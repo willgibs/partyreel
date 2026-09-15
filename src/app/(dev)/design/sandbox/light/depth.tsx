@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-
-import { Stage, Toggle, type Ground, type Mode } from "@/components/dev/board";
+import { Stage, type Ground, type Mode } from "@/components/dev/board";
 import { cn } from "@/lib/utils";
 
 import { LIT_FACE, SHADOW_FAMILY } from "./candidates";
@@ -10,12 +8,11 @@ import {
   ApplyToSite,
   Cell,
   Copy,
-  Knob,
   Labeled,
   matrixCols,
   Part,
   Photo,
-  Proposal,
+  Takeaway,
 } from "./shared";
 
 /**
@@ -47,12 +44,6 @@ const CUES: { id: Cue; label: string }[] = [
   { id: "ring", label: "The ring lift" },
   { id: "shadow", label: "A soft shadow" },
   { id: "lit", label: "The lit face" },
-];
-
-const GROUNDS: { id: Ground; label: string }[] = [
-  { id: "cinema", label: "Cinema" },
-  { id: "app-dark", label: "App dark" },
-  { id: "paper", label: "Paper" },
 ];
 
 /** The cue as classes plus the data attribute board.css keys off. A cue that
@@ -392,16 +383,26 @@ function LitFaceMatrix({ mode, ground }: { mode: Mode; ground: Ground }) {
   );
 }
 
-export function DepthPart({ mode, rules }: { mode: Mode; rules: string[] }) {
-  const [ground, setGround] = useState<Ground>("cinema");
+export function DepthPart({
+  mode,
+  ground,
+  rules,
+}: {
+  mode: Mode;
+  /** The dock's ground: this block is judged on all three of them, which is
+   *  why the dock carries the app's dark alongside the two marketing rooms. */
+  ground: Ground;
+  rules: string[];
+}) {
   const small = mode === "phone";
   const cols = matrixCols(mode, 4);
   const rowH = small ? 178 : 300;
 
   return (
     <Part
-      n="A"
-      title="Depth: the cue is the relationship, not the mode"
+      n="04"
+      id="separate"
+      title="The separate job: the cue is the relationship, not the mode"
       rules={rules}
       lede={
         <>
@@ -434,15 +435,6 @@ export function DepthPart({ mode, rules }: { mode: Mode; rules: string[] }) {
         </>
       }
     >
-      <Knob label="Ground">
-        <Toggle
-          ariaLabel="Ground"
-          options={GROUNDS}
-          value={ground}
-          onChange={setGround}
-        />
-      </Knob>
-
       {/* The canvas is taller than a viewport on purpose: a matrix is not a
           screen, and 375 pairs the four cues into two rows per subject, so the
           phone canvas is roughly a third taller again. Measured, not guessed:
@@ -494,15 +486,17 @@ export function DepthPart({ mode, rules }: { mode: Mode; rules: string[] }) {
         </div>
       </Stage>
 
-      <Proposal>
+      <Takeaway lands="--shadow-lift and --shadow-layer in globals.css, mapped in theme.css, with the ring written into the elevation contract.">
         One shadow family, two sizes, one alpha ramp per ground. Lift separates
         objects of the same lightness that overlap; float detaches a layer from
         content that keeps living behind it; a flat surface takes neither, in
         either mode. On a light ground lift is what ships today, to the byte, so
         paper does not move: the finding was only ever that dark has no ramp,
         because 6 percent of black over a near black room is arithmetically
-        invisible.
-      </Proposal>
+        invisible. And the fourth technique gets its name at last: the ring
+        states an edge without implying height, it has 77 uses, and it is in no
+        document.
+      </Takeaway>
 
       <ApplyToSite candidate={SHADOW_FAMILY} />
 
@@ -534,14 +528,14 @@ export function DepthPart({ mode, rules }: { mode: Mode; rules: string[] }) {
         <LitFaceMatrix mode={mode} ground={ground} />
       </Labeled>
 
-      <Proposal>
+      <Takeaway lands="[data-lit] in globals.css, with the paper variant, on the three surfaces the doctrine names.">
         The lit face is material, not elevation. It belongs to a face that is
         catching light: a media frame, a screen, a plate. On paper the lip reads
         off the bottom edge rather than the top, unless the face carries its own
         ground, in which case the face wins. It never lands on a card, a panel
         or a control, which is the line that keeps it from becoming a fifth
         depth technique.
-      </Proposal>
+      </Takeaway>
 
       <ApplyToSite candidate={LIT_FACE} />
     </Part>

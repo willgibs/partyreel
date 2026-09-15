@@ -147,12 +147,17 @@ export function Labeled({
  *  here. One array in board.tsx feeds all three, so they cannot drift. */
 export function Part({
   n,
+  id,
   title,
   rules,
   lede,
   children,
 }: {
   n: string;
+  /** The anchor, without the `lgt-` prefix. Round four names the blocks by
+   *  what they are (kit, treatments, composer) rather than by a letter, because
+   *  a link that says what it points at is a better link. */
+  id: string;
   title: string;
   /** The ask (or asks) this part answers, verbatim from the board's ASKS. */
   rules?: string[];
@@ -160,9 +165,9 @@ export function Part({
   children: React.ReactNode;
 }) {
   return (
-    // The id is the part's anchor: five parts on one long board, and a ruling
-    // conversation wants to point at one of them.
-    <section id={`lgt-${n.toLowerCase()}`} className="flex flex-col gap-4">
+    // The id is the part's anchor: a ruling conversation wants to point at one
+    // block of a very long board.
+    <section id={`lgt-${id}`} className="flex flex-col gap-4">
       <div className="max-w-2xl scroll-mt-6">
         <h2 className="text-sm font-semibold tracking-tight">
           <span className="mr-2 text-muted-foreground tabular-nums">{n}</span>
@@ -200,7 +205,7 @@ export function Part({
  * A TOGGLE WITH ITS NAME BESIDE IT (round three).
  *
  * The board shell's Toggle carries an ariaLabel and nothing visible, which is
- * right for a board with one control and wrong for part B, which has six in
+ * right for a board with one control and wrong for the composer, which has eight in
  * two rows: "Accent | Identity" and "House five | Warm | Cool" sitting side by
  * side with no names on them is the first thing a stranger stumbles over, and
  * no amount of prose further down repairs it, because the prose is read after
@@ -298,10 +303,10 @@ export function Copy({
 /**
  * THE AURORA'S CLOCK, the board's one home for it.
  *
- * Part B sets it on the aurora's bands and part C puts it on a strip beside the
- * two under ruling, so it must be one number or the board is arguing with
- * itself. Three laps of --spill-cadence: the ratio is the proposal, not the
- * literal, and the ruling on part C picks the lamp's clock this multiplies.
+ * The composer sets it on the aurora's bands and the evidence block prints it
+ * beside the lamp's clock, so it must be one number or the board is arguing
+ * with itself. Three laps of --spill-cadence: the ratio is the proposal, not
+ * the literal, and the cadence ruling picks the lamp's clock this multiplies.
  */
 export const AURORA_CADENCE = "33s";
 
@@ -444,7 +449,7 @@ export function CadenceKnob({ seconds }: { seconds: number }) {
  * Nine of these at full height were 6,300px of the board, more than a third of
  * it, and a reviewer does not read CSS and markdown end to end on a walk: he
  * checks that the block exists, that it says what the stage above it said, and
- * copies it. Collapsed, part E is a list of nine landings he can scan in one
+ * copies it. Collapsed, the ruling block is a list of landings he can scan in one
  * screen and open one at a time. Nothing is hidden that a click does not
  * return, and the Copy button always copies the WHOLE block, open or not.
  */
@@ -535,7 +540,7 @@ export function RuleIndex({ asks }: { asks: Ask[] }) {
               href={`#lgt-${a.at}`}
               className="text-muted-foreground underline decoration-foreground/20 underline-offset-2 transition-colors duration-150 ease-emphasis hover:text-foreground hover:decoration-foreground/50 motion-reduce:transition-none"
             >
-              <span className="mr-1.5 font-medium text-foreground uppercase">
+              <span className="mr-1.5 font-medium text-foreground">
                 {a.at}
               </span>
               {a.text}
@@ -804,4 +809,83 @@ export function CostMeter({
       ) : null}
     </div>
   );
+}
+
+/* ─────────────────────  ROUND FOUR: THE KIT'S FURNITURE  ────────────────── */
+
+/**
+ * THE TAKEAWAY (round four).
+ *
+ * Will's review of round three: the board read as "a fun research report
+ * without many applicable takeaways to carry into the platform". `Proposal`
+ * already stated what a section landed on, but it read as the end of an
+ * argument. This states it as the thing to CARRY, in the kit's own words, and
+ * every block on the board now ends in one. A specimen that cannot produce a
+ * takeaway is cut rather than captioned.
+ */
+export function Takeaway({
+  children,
+  lands,
+}: {
+  children: React.ReactNode;
+  /** What a wiring round types, if this one ends in a file. */
+  lands?: string;
+}) {
+  return (
+    <div className="flex max-w-2xl flex-col gap-1 rounded-lg border border-foreground/25 bg-card px-3.5 py-3">
+      <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        Takeaway
+      </p>
+      <p className="text-xs leading-relaxed text-foreground">{children}</p>
+      {lands ? (
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          <span className="text-foreground">Lands as: </span>
+          {lands}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * THE FOUR-QUESTION LAMP CARD, which design-system.md calls the anti-sprawl
+ * mechanism: a placement that cannot answer all four cannot be built, and the
+ * form is answerable by someone other than its author. Question one is restated
+ * for this board's correction: not "what object is emitting" but "what PLACE is
+ * the light entering from".
+ */
+export function LampCard({
+  place,
+  direction,
+  colour,
+  admitted,
+}: {
+  place: string;
+  direction: string;
+  colour: string;
+  admitted: string;
+}) {
+  const rows = [
+    ["Place", place],
+    ["Direction", direction],
+    ["Colour", colour],
+    ["Admitted by", admitted],
+  ];
+  return (
+    <dl className="grid max-w-2xl grid-cols-1 gap-x-4 gap-y-1 text-[11px] leading-relaxed sm:grid-cols-2">
+      {rows.map(([k, v]) => (
+        <div key={k} className="flex gap-1.5">
+          <dt className="shrink-0 font-medium text-foreground">{k}:</dt>
+          <dd className="text-muted-foreground">{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** A treatment's production mount, beside the treatment. `Paste` in the body
+ *  face (there is no mono face in the product), collapsed to its first lines
+ *  with the whole block one click and one copy away. */
+export function Recipe({ mount, label }: { mount: string; label?: string }) {
+  return <Paste label={label ?? "The mount"} css={mount} lines={7} />;
 }

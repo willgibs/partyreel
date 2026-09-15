@@ -58,7 +58,7 @@ export const SHADOW_FAMILY: LightCandidate = {
   what: "The menus, dialogs, sheets and toasts gain the float; the dashboard's event cards and the host's gallery tiles gain the lift. No other surface moves, and no alpha on paper changes.",
   pages:
     "/dashboard (the event cards, a menu), /pricing, /help, an event page (the host gallery)",
-  css: `/* THE SHADOW FAMILY (light board, part A).
+  css: `/* THE SHADOW FAMILY (light board, the separate job).
    One geometry, two sizes, one alpha ramp per ground.
    LIFT separates two objects of the same lightness that overlap.
    FLOAT detaches a layer from content that keeps living behind it.
@@ -174,7 +174,7 @@ export const LIT_FACE: LightCandidate = {
   what: "Every media tile, player and QR plate gains a hairline and a lip. Nothing else on the page changes.",
   pages:
     "/ (the film strip), /features/qr, /features/album (three plates), an event page (the host gallery)",
-  css: `/* THE LIT FACE (light board, part A).
+  css: `/* THE LIT FACE (light board, the separate job).
    Not elevation: material. An inset hairline and a lip on a face that is
    catching light. Three surfaces: a media frame, a screen, a plate.
    var(--tw-ring-shadow) is re-stated first so the hairline ring survives. */
@@ -214,28 +214,28 @@ export const LIT_FACE: LightCandidate = {
  * FILL takes the field's register, MARK keeps its own.
  *
  * ★ THE CLOCK IS A SIBLING TOKEN, NEVER A RE-TUNE OF --spill-cadence. The
- * cadence is a lamp's property and part C rules its number, so the aurora
+ * cadence is a lamp's property and the evidence block rules its number, so the aurora
  * takes a MULTIPLE of it (three laps, the board's own ratio) under a name of
  * its own. Writing 33s into --spill-cadence would be the opposite ruling: it
  * would slow every shipped lamp, the footer seam that is the board's model
- * first, and it would fight part C's two knobs, which write that same token.
+ * first, and it would fight the two cadence knobs, which write that same token.
  * Nothing on the site consumes the sibling yet, because the aurora's mounts
  * are markup and markup is the wiring round's; the register below is the half
- * of the ruling a paste can carry, and the drift row on part B is where the
+ * of the ruling a paste can carry, and the clock row in the evidence is where the
  * ratio is judged.
  */
 export const AURORA_REGISTER: LightCandidate = {
   label: "Light: the aurora register",
   what: "Every ambient lamp drops to the field's register, so the page reads as a room with a temperature rather than as things glowing. The lamp's clock is untouched: the aurora's is a sibling token, three laps of it.",
   pages: "/ (the footer seam, the film strip), /pricing, /help, /contact",
-  css: `/* THE AURORA'S REGISTER (light board, part B).
+  css: `/* THE AURORA'S REGISTER (light board, the composer).
    A low base with a band near zero, and a clock several times slower than a
    lamp's, because a field the size of a chapter moving at a lamp's clock
    reads as a screensaver. Reaches the ambient lamps and leaves the moments
    alone: a bloom tunes itself inline and an inline style wins. */
 
 :root {
-  /* The lamp's clock keeps its token and its number, whichever part C rules.
+  /* The lamp's clock keeps its token and its number, whichever the cadence ruling picks.
      The aurora gains a SIBLING, a multiple of it: 33s against today's 11s,
      24s against the engine's ruled 8s. Re-pointing --spill-cadence itself
      would slow every shipped lamp, which is a different ruling entirely. */
@@ -301,7 +301,7 @@ export const PAPER_FIVE: LightCandidate = {
   what: "Every lamp on a paper chapter is re-lit for a near-white page. The clearest look is the footer seam where the paper chapter meets the ink slab.",
   pages:
     "/ (the paper chapter: the album, curation, privacy), /pricing, /help, /contact",
-  css: `/* THE PAPER FIVE (light board, part B).
+  css: `/* THE PAPER FIVE (light board, the evidence).
    globals.css declares the lamp set once, at the dark register, and nothing
    re-declares it on paper: a house lamp on a near-white page is wearing a
    colour chosen for a near-black room. Same five hues, hand-tuned per hue,
@@ -323,7 +323,7 @@ export const PAPER_FIVE: LightCandidate = {
  * NOT AN "APPLY" CANDIDATE, AND DELIBERATELY SO: nothing on the site uses the
  * transform drive today, so applying this block to the running site would
  * change nothing visible, and a button that does nothing is worse than no
- * button. It is here because part B's cost row proposes that the FIELD take
+ * button. It is here because the evidence block's drive row proposes that the FIELD take
  * that drive, and the drive arrives with a law 4 defect that has never been
  * seen precisely because no shipped lamp uses it.
  *
@@ -334,7 +334,7 @@ export const PAPER_FIVE: LightCandidate = {
  * resting mask-position was moved to its own from-keyframe. One line puts the
  * cheap drive back inside law 4.
  */
-export const ENGINE_DRIVE_FIX = `/* THE TRANSFORM DRIVE'S REST STATE (light board, part B).
+export const ENGINE_DRIVE_FIX = `/* THE TRANSFORM DRIVE'S REST STATE (light board, the evidence).
    Law 4: the base is how a reduced-motion arrival still arrives, band away.
    glw-drift-x's own from-keyframe, declared OUTSIDE the no-preference block,
    exactly as [data-glw-drive="mask"] already declares mask-position: 150% 0.
