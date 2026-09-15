@@ -142,7 +142,7 @@ import {
  */
 
 const QUESTION =
-  "The radius system as three decisions rather than six numbers: the surface family (A to D), the action rung (today, pill or quiet) and the derived ladder (stock or quarters), each judged at true size on the components that ship them, and applied to the real site for the walk.";
+  "The radius system as three decisions rather than six numbers: the surface family (A to D), the action rung (today, pill or quiet) and the derived ladder (stock or quarters), each judged on the real pages and the real app screens, loaded into a viewport of their own at true pixels and re-skinned live from the dock.";
 
 /** The four fixed candidates. The tuner's column is a band of its own now. */
 const CANDIDATES = SURFACES.filter((c) => c.values);
@@ -510,7 +510,7 @@ const DEPARTURES = [
   "The float rung is being ruled on two boards. This one sets --radius-float; the floating-surfaces proposal adds --radius-float-item (the panel minus its row padding) and --radius-float-lg. They have to agree, and bible 9 says the item token is right: today a menu draws an 8px panel around 1.6px rows sitting in 4px of padding.",
   "--radius-action-lg has exactly one call site, the reel builder, on an h-11. Every marketing CTA is size lg forced to h-11 with a className in 26 files, so the loudest action on the site wears 0.9 x --radius-action at 0.33 of its height while globals.css documents the ladder as 0.4. The proposal is a cta size on the Button (h-11 at 1.1 x --radius-action) and the retirement of a token named for a height nothing uses.",
   "The derived ladder cannot be retuned with a token. @theme inline substitutes each step into its utility at build time, so --radius-xl is empty at runtime and part D renders the retune as utility overrides. The ruling lands on the multipliers in theme.css, one line a step, which is the Orchestrator's file.",
-  "The guest group cannot wear a candidate. CandidateStyle mounts in the lab layout, the marketing island and the app island, and (guest)/layout.tsx mounts none of them, so /e/<token> ignores every paste this board offers. The floating-surfaces board asks for the same one line, and this board is the second reason: the surface part E turns on is on that page.",
+  "The guest group still mounts no design island, so a candidate applied to the site does not reach /e/<token> in your own tab. The board no longer needs that fixed to SHOW the page (part A writes the rail into the frame directly, which is how the gap finding is now drawn on the live demo album), but a walk does, and the floating-surfaces board asks for the same one line in (guest)/layout.tsx.",
   "Sixty-four corners on the site are literals rather than tokens, and the walk is where that shows. rounded-[2px], -[3px] and -[4px] account for 52 of them across 24 non-lab files (the film strip, the live demo, the decomposition frames, the album grids, the reel filmstrip), so under any candidate but A a photograph keeps today's corner while the card around it moves: the home page alone holds 48 corners at 2px and 22 at 3px with the answer applied, beside cards at 10 and 12. They are the same argument as the gallery gap, one layer out, and they want var(--radius-tile). A ruling of C is a ruling to sweep them.",
 ];
 
@@ -673,6 +673,13 @@ export function RoundingBoard() {
             <Button
               size="xs"
               variant="outline"
+              onClick={() => setReloadKey((n) => n + 1)}
+            >
+              Reload frames
+            </Button>
+            <Button
+              size="xs"
+              variant="outline"
               onClick={() => applyToSite(surface, action, ladder)}
               disabled={!surface.values}
             >
@@ -735,6 +742,19 @@ export function RoundingBoard() {
             ]}
             value={ground}
             onChange={setGround}
+          />
+        </Labeled>
+        {/* Compare is page wide: it decides whether parts A and B show one
+            frame or two, so it belongs here and not beside either of them. */}
+        <Labeled label="Compare">
+          <Toggle
+            ariaLabel="Compare"
+            options={[
+              { id: "split", label: "Today beside it" },
+              { id: "single", label: "One frame" },
+            ]}
+            value={split ? "split" : "single"}
+            onChange={(v) => setSplit(v === "split")}
           />
         </Labeled>
       </BoardDock>
@@ -914,24 +934,6 @@ export function RoundingBoard() {
                 onChange={setRouteId}
               />
             </Labeled>
-            <Labeled label="Compare">
-              <Toggle
-                ariaLabel="Compare"
-                options={[
-                  { id: "split", label: "Today beside it" },
-                  { id: "single", label: "One frame" },
-                ]}
-                value={split ? "split" : "single"}
-                onChange={(v) => setSplit(v === "split")}
-              />
-            </Labeled>
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => setReloadKey((n) => n + 1)}
-            >
-              Reload the frames
-            </Button>
             <a
               href={walk(route.path)}
               target="_blank"
@@ -966,10 +968,10 @@ export function RoundingBoard() {
           the ruling can be judged as a whole: a card corner at the chapters, a
           photograph corner in the film strip, a plan card at the band, and a
           CTA at every one of them. Take it at 1440 and then at 375 with the
-          dock, on C, and the second read is the one that settles the tile.
-          Then take the guest album on D: the tiles come up to 6px and the gap
-          stays at the 3px its masonry hard-codes, which is the round&apos;s
-          worst finding drawn by the real page rather than argued about.
+          dock, on C, and the second read is the one that settles the tile. Then
+          take the guest album on D: the tiles come up to 6px and the gap stays
+          at the 3px its masonry hard-codes, which is the round&apos;s worst
+          finding drawn by the real page rather than argued about.
         </Proposal>
       </Part>
 
