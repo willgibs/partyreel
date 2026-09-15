@@ -231,6 +231,10 @@ function Items({
   );
 }
 
+/** Border (2) plus the worst rounding a fractional zoom can add. Dead ground,
+ *  not a guess at the copy: it is the same number on every stage. */
+const FIT_SLACK = 8;
+
 /**
  * A Stage whose height is its CONTENT's height, measured rather than written.
  *
@@ -241,7 +245,7 @@ function Items({
  * reason round two's hand-tuned numbers failed review: a real marketing
  * component inside a Stage resolves its own `sm:`/`lg:` rungs against the REAL
  * browser window, not the canvas, so the arc's chapters measure up to 40px
- * taller at 1512 than at 1000 in the same voice. Two stages clipped a heading,
+ * taller in a 1512 window than in a narrow one, in the same voice. Two stages clipped a heading,
  * one of them the hero board 5 asks a ruling on, which is the worst possible
  * place to lose a word. A literal also cannot survive an edit to the copy
  * above it, and editing copy is the entire activity on a copy board.
@@ -256,10 +260,6 @@ function Items({
  * offsetHeight, not getBoundingClientRect: the Stage fits the lab column with
  * `zoom`, and a rect is in the zoomed frame while the height prop is not.
  */
-/** Border (2) plus the worst rounding a fractional zoom can add. Dead ground,
- *  not a guess at the copy: it is the same number on every stage. */
-const FIT_SLACK = 8;
-
 function FitStage({
   mode,
   ground,
