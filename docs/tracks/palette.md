@@ -1475,7 +1475,7 @@ island. Lab only, no production byte.
 
 ## Handoff (round 4)
 
-- Head **`HEADSHA`**, pushed. Board at `/design/c/palette?key=`. **The round-four board is the one
+- Head **`75351fbd`** (this manifest's own commit sits on top; no board byte differs), pushed. Board at `/design/c/palette?key=`. **The round-four board is the one
   whose FIRST block is headed "The model: two modes, two grounds each, and one well that belongs to
   neither"**; round three's opened on a candidate card instead. Its dock carries two candidate
   switches (Dark: Today, Ladder, One room, Ember, Slate, Lift · Light: Today, Paper, Bright, Warm,
