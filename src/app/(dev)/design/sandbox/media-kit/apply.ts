@@ -74,20 +74,50 @@ const SHOT_BY_ID = new Map(
   MASTERS.flatMap((m) => m.replaces.map((id) => [id, m] as const)),
 );
 
+/** Wrap to at most `lines` rows of `max` characters, breaking on spaces. */
+function wrap(text: string, max: number, lines: number): string[] {
+  const out: string[] = [];
+  let row = "";
+  for (const word of text.split(" ")) {
+    if (!row) row = word;
+    else if (row.length + 1 + word.length <= max) row += ` ${word}`;
+    else {
+      out.push(row);
+      row = word;
+      if (out.length === lines) break;
+    }
+  }
+  if (out.length < lines && row) out.push(row);
+  return out.slice(0, lines);
+}
+
+/**
+ * The slate a frame becomes under the Ours block.
+ *
+ * ★ SQUARE VIEWBOX, CENTRED TEXT, SHORT LINES. The first cut drew a 1200x800
+ * slate with the type at the left margin, and every surface that shows a frame
+ * cover-cropped it: the blog card is 4:5 and took 20 percent off each side, so
+ * the shot's code was gone and the line started mid-word. A slate has to read in
+ * a 4:5 card, a 1:1 tile, a 40:21 share card and a 120 px corridor frame, which
+ * means a square source and nothing important outside the middle 60 percent.
+ */
 function slate(id: string): string {
   const m = SHOT_BY_ID.get(id);
   if (!m) return "";
-  // Kept to two short lines: a slate is a label, and anything longer stops being
-  // readable the moment the frame is drawn at 120 px in the hero corridor.
-  const line = m.subject.split(",")[0].slice(0, 58);
+  const rows = wrap(m.subject.split(",")[0], 26, 2);
   const svg = [
-    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800' preserveAspectRatio='xMidYMid slice'>`,
-    `<rect width='1200' height='800' fill='%23141414'/>`,
-    `<rect x='0' y='0' width='1200' height='10' fill='%23f5f5f5'/>`,
-    `<text x='64' y='360' fill='%23f5f5f5' font-family='system-ui,sans-serif' font-size='64' font-weight='600'>${m.code}</text>`,
-    `<text x='64' y='430' fill='%23a3a3a3' font-family='system-ui,sans-serif' font-size='34'>${esc(line)}</text>`,
-    `<text x='64' y='720' fill='%23737373' font-family='system-ui,sans-serif' font-size='28'>to be shot, replaces ${esc(id)}</text>`,
-    `</svg>`,
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000'>`,
+    `<rect width='1000' height='1000' fill='%23141414'/>`,
+    `<g font-family='system-ui,sans-serif' text-anchor='middle' fill='%23f5f5f5'>`,
+    `<text x='500' y='420' font-size='128' font-weight='600'>${esc(m.code)}</text>`,
+    rows
+      .map(
+        (row, i) =>
+          `<text x='500' y='${520 + i * 46}' font-size='36' fill='%23a3a3a3'>${esc(row)}</text>`,
+      )
+      .join(""),
+    `<text x='500' y='650' font-size='28' fill='%23737373'>to be shot, replaces ${esc(id)}</text>`,
+    `</g></svg>`,
   ].join("");
   return `img[src*="mkt-${id}-01"] { content: url("data:image/svg+xml,${svg}"); }`;
 }

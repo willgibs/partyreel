@@ -81,6 +81,24 @@ describe("the blocks a board hands the running site", () => {
     }
   });
 
+  it("a slate keeps its type inside the middle of a square, so no crop loses it", () => {
+    // Every surface cover-crops: 4:5 takes 20 percent off the sides of a square,
+    // 40:21 takes half the height. Centred text on a 1000 square is the only
+    // shape that survives all of them, so the viewBox and the anchor are pinned.
+    for (const uri of dataUris(SHOOT_CSS)) {
+      expect(uri).toContain("viewBox='0 0 1000 1000'");
+      expect(uri).toContain("text-anchor='middle'");
+      for (const x of uri.matchAll(/<text x='(\d+)'/g)) {
+        expect(Number(x[1]), uri.slice(0, 60)).toBe(500);
+      }
+      // Two rows of 26 characters at 36 px is about 470 px wide, inside the 600
+      // a 4:5 crop of a 1000 square leaves.
+      for (const t of uri.matchAll(/font-size='36'[^>]*>([^<]*)</g)) {
+        expect(t[1].length, t[1]).toBeLessThanOrEqual(26);
+      }
+    }
+  });
+
   it("the exposure block selects the stills, the posters and the reels", () => {
     expect(EXPOSURE_CSS).toContain('img[src*="mkt-"]');
     expect(EXPOSURE_CSS).toContain('img[src*="hero-candidate-0"]');
