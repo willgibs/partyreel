@@ -280,10 +280,11 @@ const B: Ladder = {
  * prose tier is folded into the section step: six marketing steps was two more
  * than the site can tell apart.
  *
- * The app gets an instrument register: 20 / 16 / 14, low contrast, hierarchy
- * carried by weight and colour rather than size, because in the app the
- * photographs are the loud thing and the chrome should get out of their way.
- * The page title comes DOWN from 24, which is the swing to rule on.
+ * The app gets an instrument register: 20 / 18 / 16 (round one proposed
+ * 20 / 16 / 14 and round two rebuilt the bottom of it, below), low contrast,
+ * hierarchy carried by weight and colour rather than size, because in the app
+ * the photographs are the loud thing and the chrome should get out of their
+ * way. The page title comes DOWN from 24, which is the swing to rule on.
  */
 const C: Ladder = {
   id: "c",
@@ -328,13 +329,206 @@ const C: Ladder = {
   },
 };
 
-export const LADDERS: Ladder[] = [TODAY, A, B, C];
+/**
+ * ROUND THREE: THE STRONGEST FIRST. The wave's first two rounds listed the
+ * ladders in the order they were written (today, then A, B, C), which made the
+ * board a menu. A board that has walked its own candidates should say which one
+ * it would ship, so the order is now the board's own ranking and today's is
+ * last, as the control rather than as the default.
+ */
+export const LADDERS: Ladder[] = [B, C, A, TODAY];
+
+/** What the board would ship, and what BOTH ladder asks default to. */
+export const RECOMMENDED: LadderId = "b";
 
 export function ladderById(id: LadderId): Ladder {
   const found = LADDERS.find((l) => l.id === id);
   if (!found) throw new Error(`Unknown ladder: ${id}`);
   return found;
 }
+
+/* ─────────────────────── What each ladder actually fixes ──────────────────── */
+
+/**
+ * Today's four faults, as the four columns of the glance table. Each is
+ * COMPUTED from the ladder data rather than declared beside it, so a candidate
+ * cannot claim a fix it does not make and a tick on the board is a measurement.
+ */
+export type Fix = "phone" | "leading" | "tracking" | "middle";
+
+export const FIXES: { id: Fix; label: string; fault: string }[] = [
+  {
+    id: "phone",
+    label: "The phone end",
+    fault: "at 375 today has three distinct sizes doing the work of six",
+  },
+  {
+    id: "leading",
+    label: "Named leading",
+    fault: "line-height arrives with whichever size class the ramp lands on",
+  },
+  {
+    id: "tracking",
+    label: "Tracking by size",
+    fault: "a 160px masthead and a 16px card title share one -0.03em",
+  },
+  {
+    id: "middle",
+    label: "The app's middle",
+    fault: "between the page title and the card title the app has no step",
+  },
+];
+
+/** Tailwind's own line-heights for the size classes today's ramps land on.
+ *  A ladder NAMES its leading when its values are not all borrowed from here. */
+const BORROWED_LEADING = new Set([0.85, 1, 1.111, 1.2, 1.333, 1.375]);
+
+export function fixes(ladder: Ladder): Record<Fix, boolean> {
+  const marketing = STEPS.filter(
+    (s) =>
+      s.surface === "marketing" &&
+      ladder.steps[s.id] &&
+      ladder.aliases?.[s.id] === undefined,
+  );
+  const phoneSizes = marketing.map((s) => ladder.steps[s.id]!.phone.px);
+  const live = STEPS.filter((s) => ladder.steps[s.id]);
+  const leadings = live.flatMap((s) => [
+    ladder.steps[s.id]!.phone.lh,
+    ladder.steps[s.id]!.desktop.lh,
+  ]);
+  const tracking = new Set(live.map((s) => ladder.steps[s.id]!.desktop.ls));
+  return {
+    phone: new Set(phoneSizes).size === phoneSizes.length,
+    leading: leadings.some((lh) => !BORROWED_LEADING.has(lh)),
+    tracking: tracking.size >= 5,
+    middle: Boolean(ladder.steps.subsection),
+  };
+}
+
+/**
+ * How much of the site a ladder actually moves at one canvas, counted rather
+ * than claimed. A. Tuned keeps every desktop size today ships, so at 1440 it
+ * moves NOTHING but the leading and the tracking, and a reviewer toggling to it
+ * on a desktop would otherwise read a working control as a broken one.
+ */
+export function moved(
+  ladder: Ladder,
+  end: "phone" | "desktop",
+): { moved: number; of: number; added: number } {
+  let count = 0;
+  let of = 0;
+  let added = 0;
+  for (const step of STEPS) {
+    const mine = ladder.steps[step.id];
+    const now = TODAY.steps[step.id];
+    if (!mine) continue;
+    if (!now) {
+      added += 1;
+      continue;
+    }
+    of += 1;
+    if (mine[end].px !== now[end].px) count += 1;
+  }
+  return { moved: count, of, added };
+}
+
+/* ───────────────────── The four rulings, and the board's own ──────────────── */
+
+/**
+ * ROUND THREE: FOUR ASKS, EACH A ONE-WORD ANSWER, EACH WITH THE BOARD'S OWN.
+ *
+ * Round two asked six. Two of them stopped earning their place: the app's floor
+ * asked Will to rule on a 14px card title that C no longer proposes (round two
+ * rebuilt C to 20 / 18 / 16 and `ladders.test.ts` pins the floor for every
+ * ladder, so there is nothing left to choose), and the face pairing asked him
+ * to rule on a question the board answers with evidence rather than with a
+ * choice. Both are stated as departures instead; a ruling that is already made
+ * is not an ask.
+ *
+ * `answer` is what the board would ship; `overrule` is the one thing that would
+ * change its mind, so a disagreement is also a few words.
+ */
+export const ASKS: {
+  ask: string;
+  answer: string;
+  because: string;
+  overrule: string;
+}[] = [
+  {
+    ask: "The marketing ladder: B rungs, C registers, A tuned or today",
+    answer: "B",
+    because:
+      "One rung set from 12 to 160 with the ratio widening as it climbs, every step sitting on a rung at both ends and reading its leading and its tracking off the rung. Today's desktop ladder is an unevenly rounded version of it already, so this is the ladder the site is a rough draft of.",
+    overrule:
+      "C, if the front of the site should read as a poster: 200 over 120 rather than 160 over 100, and the prose tier folded away.",
+  },
+  {
+    ask: "The app ladder: B rungs, C registers, A tuned or today",
+    answer: "B",
+    because:
+      "The app gets the middle tier it has never had, so the three h2s that are labels wearing a heading tag become a heading, and the page title grows from 24 on a phone to 28 on a desktop instead of standing still at both.",
+    overrule:
+      "C, if the chrome should go quieter than today rather than louder: a 20px title, with weight and colour carrying the rank under it.",
+  },
+  {
+    ask: "The tracking law: adopt, or keep the flat -0.03em",
+    answer: "Adopt",
+    because:
+      "It is a function of size, so it moves no size and can be taken whichever ladder wins, and it is the only one of today's faults that today's numbers can fix by themselves.",
+    overrule:
+      "Keep the constant, if one value for every heading is the simplicity worth paying a loose masthead and a tight card title for.",
+  },
+  {
+    ask: "The 404's h1: put it on the ladder, or leave it off",
+    answer: "On the ladder",
+    because:
+      "It is the only page title on the site in Inter, and it is not an edge case: the marketing 404, the app 404, the admin 404 and every dead guest link.",
+    overrule:
+      "Leave it off, and the exception becomes documented rather than swept.",
+  },
+];
+
+/* ────────────────── Where a paste can be walked, and where not ───────────── */
+
+/**
+ * THE PAGES A CANDIDATE CAN ACTUALLY BE WALKED ON.
+ *
+ * ★ Round three's cold walk found two dead links in round two's list. The
+ * candidate's `<style>` is rendered by a design island, and the island mounts
+ * in exactly three places: the lab layout, the two marketing layouts and the
+ * app layout. `/admin` mounts none, and `/nothing-here` resolves to the ROOT
+ * `app/not-found.tsx`, which sits outside both marketing and the app, so both
+ * links looked like a broken paste rather than a missing island. The 404 link
+ * is a MARKETING 404 now (an unknown event slug renders
+ * `(marketing)/(cinema)/not-found.tsx`, inside the island's layout).
+ */
+export const WALK: { href: string; label: string }[] = [
+  { href: "/", label: "the home" },
+  { href: "/pricing", label: "/pricing" },
+  { href: "/features/curation", label: "a feature page" },
+  { href: "/help", label: "/help" },
+  { href: "/about", label: "/about, on paper" },
+  { href: "/contact", label: "/contact" },
+  { href: "/dashboard", label: "the dashboard" },
+  { href: "/events/not-a-real-event", label: "a marketing 404" },
+];
+
+/** The surfaces no paste reaches, named on the board so a reviewer never reads
+ *  a missing island as a broken block. Each is one line for the wiring round. */
+export const NO_ISLAND: { where: string; why: string }[] = [
+  {
+    where: "/admin",
+    why: "admin/layout.tsx mounts no design island, so the admin idiom is judged on the stages instead",
+  },
+  {
+    where: "a guest page and the demo album",
+    why: "(guest)/layout.tsx mounts none either, and the guest album is the one surface a host never signs in to",
+  },
+  {
+    where: "the root 404",
+    why: "app/not-found.tsx renders outside both marketing and the app; the marketing 404 above wears the paste",
+  },
+];
 
 /* ──────────────────────────── The token table ─────────────────────────── */
 
