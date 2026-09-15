@@ -217,9 +217,17 @@ export function GroundsRow({ mode, ramp }: { mode: Mode; ramp: Ramp }) {
           />
         </div>
 
-        {/* 3. The ink slab: type and a card on a leaf inside a paper page. */}
+        {/* 3. The ink slab: type and a card on a leaf inside a paper page.
+            The CLASS stays (a leaf is a class in production) but the candidate's
+            own ink block rides inline on the same element, because a class rule
+            would otherwise serve the SHIPPED values while the caption below
+            names the candidate's, and a board must never label one thing and
+            render another. */}
         <div className="flex flex-col gap-2">
-          <div className="surface-ink flex aspect-[4/3] flex-col justify-between gap-3 overflow-hidden rounded-lg bg-background p-4 text-foreground">
+          <div
+            className="surface-ink flex aspect-[4/3] flex-col justify-between gap-3 overflow-hidden rounded-lg bg-background p-4 text-foreground"
+            style={{ ...ramp.gallery, ...ramp.ink } as React.CSSProperties}
+          >
             <div className="flex items-start justify-between gap-3">
               <Logo />
               <span className="text-[10px] text-muted-foreground">2026</span>
@@ -228,7 +236,7 @@ export function GroundsRow({ mode, ramp }: { mode: Mode; ramp: Ramp }) {
             <div className="rounded-md border border-border bg-card p-2 text-card-foreground">
               <p className="text-[11px] font-medium">A card on the leaf</p>
               <p className="text-[10px] text-muted-foreground">
-                Near white until a candidate completes the set.
+                Today it has no --card of its own.
               </p>
             </div>
           </div>
@@ -608,10 +616,15 @@ export function GuestAlbum({ mode }: { mode: Mode }) {
             columnGap: "var(--gap-gallery)",
           }}
         >
+          {/* break-inside-avoid is load-bearing here and NOT in production's
+              masonry: the shipped tile's height comes from an in-flow image,
+              while a stand-in tile is an aspect-ratio box with a FILL image in
+              it, and a column will happily split one of those across two
+              columns. It did: half this album rendered as black fragments. */}
           {TILE_RATIOS.slice(0, desktop ? 12 : 8).map((ratio, i) => (
             <div
               key={i}
-              className="relative mb-[var(--gap-gallery)] block w-full overflow-hidden bg-gallery"
+              className="relative mb-[var(--gap-gallery)] block w-full break-inside-avoid overflow-hidden bg-gallery"
               style={{ aspectRatio: ratio, borderRadius: "var(--radius-tile)" }}
             >
               {i === 3 ? (
