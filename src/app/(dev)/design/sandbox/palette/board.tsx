@@ -9,6 +9,9 @@ import {
   BoardMeta,
   Stage,
   Toggle,
+  clearCandidate,
+  setCandidateCss,
+  useTunerCandidate,
   type Ground,
   type Mode,
 } from "@/components/dev/board";
@@ -22,39 +25,62 @@ import {
   PANEL_ALPHAS,
   RAMPS,
   RAMP_BY_ID,
+  WALK,
+  accentBlock,
   accentStyle,
   alphaOf,
+  applyCss,
+  applyLabel,
   lOf,
   rampStyle,
+  resolveRamp,
   rooms,
   tokenBlock,
   type AccentId,
+  type CardMode,
   type Ramp,
   type RampId,
 } from "./ramps";
+import { InkLeaf, MarketingChapter, PanelBand, SurfaceStack } from "./sections";
 import {
   AppDashboard,
-  InkLeaf,
-  MarketingChapter,
-  PanelBand,
-  SurfaceStack,
-} from "./sections";
+  AppEvent,
+  DepthRow,
+  GroundsRow,
+  GuestAlbum,
+  PhotoCards,
+  StateRow,
+  TextSteps,
+} from "./specimens";
 
 /**
- * THE PALETTE BOARD (the review wave, 2026-09-14). Bible 1 under exploration.
+ * THE PALETTE BOARD, ROUND TWO (the review wave, 2026-09-14). Bible 1 under
+ * exploration.
  *
- * The question is three questions that share one answer: what the achromatic
- * ramp should be in both modes, what the accent is FOR now that rule 1 gives it
- * a job, and whether the set-apart panel is a token or an alpha trick.
+ * WHAT ROUND TWO CHANGED, and why. Round one proved with a ruler that the ramp
+ * is wrong; Will's read was that a single round was not enough context for any
+ * board to be ruled on from a walk. So this round stops being a proof and
+ * becomes a ruling surface:
  *
- * Rising tides (bible 22): the ramp was judged from the ground up rather than
- * nudged. The finding underneath all three candidates is that today's twenty-one
- * values are hand-picked rather than stepped, which is why the light middle is
- * empty (37 sites dim text with an alpha to reach a step that is not there),
- * why five light surfaces sit inside 0.037 of each other, and why the panel has
- * to be an alpha to be visible at all. A tunes that system, B replaces it with a
- * derivation, C questions its zero-chroma premise. Every candidate is a complete
- * token block, so a ruling is a paste.
+ *  1 A candidate leaves the board. Every candidate is offered as the paste its
+ *    ruling would land, handed to the WHOLE site through the shell's
+ *    setCandidateCss, with the pages to walk listed beside the buttons. Two of
+ *    the asks (the panel, --faint) are utility classes rather than token
+ *    values, so they ride along as optional rules and can be judged on the real
+ *    /help and /contact rather than only on a stage.
+ *  2 The judged surfaces widened to the ones the product is actually made of:
+ *    the host event page's stat band and review queue, the dashboard, the guest
+ *    album on the canvas, the footer leaf hosting a card and a menu, the text
+ *    steps in real copy, the state hues under every ramp in both modes.
+ *  3 Depth is judged WITH the ramp (docs/specs/light.md's shadow family and the
+ *    ring), because a cue and a step fail together.
+ *  4 The five-grounds finding got sharper and changed: the deepest surface in
+ *    the product is a literal, not a token (media-lightbox.tsx:617's
+ *    bg-black/90), so --gallery is the media WELL and the ink SLAB, and bible
+ *    16's count is wrong in a different way than round one said.
+ *  5 The accent is a comparison, not a memory test: all four hues at once, on
+ *    every job, with the state hues in the same look.
+ *  6 The asks now take one-word answers.
  *
  * Board mechanics worth knowing before editing:
  *  - a ramp is applied as INLINE custom properties on a wrapper inside the
@@ -62,34 +88,61 @@ import {
  *    `.surface-paper` class that the `dark:` variants in production components
  *    need. See rampStyle() in ramps.ts.
  *  - breakpoints do not work inside a Stage (a 375 wide stage in a 1440
- *    viewport still matches `sm:`), so sections branch on `mode`.
+ *    viewport still matches `sm:`), so every section branches on `mode`.
  *  - the menu specimens are hand-placed: a real DropdownMenu portals to the
  *    body and would escape both the zoom and the token overrides.
+ *  - what the board renders and what the paste prints both read the RESOLVED
+ *    ramp (the card question folded in), so the two can never disagree.
  */
 
 const QUESTION =
   "The achromatic ramp between black and white in both modes, the accent's role where there is no media, and the muted panel as a real register: what would the perfect version be if none of today's greys existed?";
 
+/** The rows, in walking order; the nav under the control bar renders these and
+ *  each Row carries the matching id. */
+const ROWS = [
+  { n: "01", name: "the ladder" },
+  { n: "02", name: "the grounds" },
+  { n: "03", name: "the app" },
+  { n: "04", name: "the guest album" },
+  { n: "05", name: "a menu over a card" },
+  { n: "06", name: "the ink leaf" },
+  { n: "07", name: "depth" },
+  { n: "08", name: "the card over a photograph" },
+  { n: "09", name: "the panel" },
+  { n: "10", name: "the text steps" },
+  { n: "11", name: "a marketing chapter" },
+  { n: "12", name: "the accent" },
+  { n: "13", name: "the paste" },
+];
+
 const ASKS = [
-  "The ramp: A, B or C, or today's, in both modes.",
-  "The accent: which hue (ink today, blue 252, violet 300, flare 330), and which of its three jobs it takes (identity, attention, the stand-in for media).",
-  "The panel: one token at full strength, retiring the six alphas it ships at, and hover fills moving to --secondary.",
-  "The dark grounds: three steps of one ladder (A and C) or one room for cinema, the app, ink and the canvas (B).",
-  "The missing step: --faint enters the token set (all three candidates add it) or the 37 alpha-dimmed text sites stay as they are.",
+  "The ramp: today, A, B or C.",
+  "The accent: ink, blue, violet or flare.",
+  "The accent's reach: all three jobs, attention only, or identity only.",
+  "The panel: one token, or the alphas.",
+  "The dark grounds: a ladder, or one room.",
+  "The canvas and the ink slab: split, or one.",
+  "The missing step: faint in, or out.",
+  "The dark card: opaque, or the veil.",
 ];
 
 const DEPARTURES = [
+  "Round one's departure list said only candidate B kept the system's one translucent surface. That was wrong: B's card is a color-mix off the room, which is fully opaque, so all three candidates retire the veil and none of them said so. Row 07 renders both answers over a photograph and ask 8 makes it a ruling rather than a side effect.",
+  "A finding against bible 16, sharpened and changed. Counted by the job it does, the deepest dark surface in the product is not a token at all: the lightbox paints its backdrop with a literal bg-black/90 (media-lightbox.tsx:617). What --gallery actually does is the media WELL (a tile before its image decodes, a coverless event card, the reel frame) and, through .surface-ink, the footer SLAB, and those two want opposite things. Rule 16 counts four grounds; there are at least six surfaces and one of them is a literal. Row 02.",
   "C re-opens a decision globals.css records as closed: zero-chroma purity IS the brand point, and saturating the neutrals was consciously declined. C is that decision re-argued at 0.003 to 0.008 chroma, on the board rather than in a comment.",
-  "A and C make the dark card opaque, retiring the system's one translucent surface. Only B keeps a veil, and only in B does a card over a photograph read as glass.",
+  "The accent has to be written into .surface-ink or it never reaches the footer. Today the leaf declares --brand: var(--gallery-foreground), and a class rule outranks a value inherited from the page around it, so a hue ruled for the whole site would reach every surface in the product except the mark that sits at the bottom of every page. The accent paste therefore carries a third block, and every candidate's ink map keeps a --brand line of its own so a ruling of ink alone cannot leave the leaf inheriting the PAPER ink onto a dark slab. Row 06 shows the mark on the leaf.",
   "B deletes the cinema override in marketing.css, the skin block's only surface value. The cinema-to-footer seam then belongs entirely to light, which is the light board's lane.",
-  "A finding against bible 16, which names four grounds. There are five: the media canvas is a ground of its own and it is doing a job ink cannot, since a lightbox wants the deepest surface in the product and a footer leaf wants a slab that reads on paper. Today one token, --gallery, is both. A and C separate them (canvas 0.09, ink 0.185); B answers the other way and makes every dark surface one room. Either way rule 16 is counting wrong, and that is Will's to rule, not a value to tune.",
   "All three candidates complete .surface-ink (no --card, --popover, --secondary, --accent or --input ships today), so an ink leaf can finally host a card and a menu.",
-  "Each candidate adds one custom property, --faint, which needs one line in theme.css's @theme inline block before a text-faint utility exists. The board reaches it with an arbitrary value.",
+  "Each candidate adds one custom property, --faint, which needs one line in theme.css's @theme inline block (--color-faint: var(--faint);) before a text-faint utility exists. The board reaches it with an arbitrary value.",
+  "Row 06 borrows the light exploration's proposed shadow family and its named ring (docs/specs/light.md) so the ramp and the depth cue are judged in one look. Those values are NOT in this board's paste: depth is that track's lane and its ruling lands there.",
+  "The demo guest page cannot wear a candidate today: the (guest) layout mounts no design island, so setCandidateCss never reaches /e/. One line adds it, the same AppDesignIsland the host app mounts. The shell is not this lane, so it is left as a note for the Orchestrator and the guest album is rendered on the board instead (row 04).",
 ];
 
 const ASSETS = [
-  "Four hard cases inside the kit the media-kit track already asked for (its 36 masters replace all twelve stand-ins by id, so this is a line on that shot list, not a second delivery) · one high key (a white dress against a white wall), one low key (a dance floor lit by one lamp), one candle-warm, one stage-cool, four of the 36 at 1600 px long edge, landscape, one grade · replaces the four this board renders (wedding-golden, party-balloons, concert-confetti, reception-table)",
-  "Why a palette board needs them: a ramp is only ever wrong against media that fights it, and all four stand-ins here are mid-key and warm, so the light end of every candidate is going untested",
+  "Four hard cases inside the kit the media-kit track already asked for (its 36 masters replace all twelve stand-ins by id, so this is a line on that shot list, not a second delivery) · one high key (a white dress against a white wall), one low key (a dance floor lit by one lamp), one candle-warm, one stage-cool, four of the 36 at 1600 px long edge, landscape, one grade · replaces the four this board renders most (wedding-golden, party-balloons, concert-confetti, reception-table)",
+  "A portrait pair for the guest masonry · two of the same 36 at 1600 px long edge, PORTRAIT, same grade · replaces the hand-set tile ratios in specimens.tsx (every stand-in in the kit but one is landscape, so the column flow the guest album actually ships is being faked)",
+  "Why a palette board needs them: a ramp is only ever wrong against media that fights it, and the stand-ins here are mid-key and warm, so the light end of every candidate is going untested",
 ];
 
 /* ── Board furniture ────────────────────────────────────────────────────── */
@@ -106,7 +159,9 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-3">
+    // The id and the scroll margin are the walk's index: the control bar is
+    // sticky, so a jump that lands a heading at y=0 would land it UNDER the bar.
+    <section id={`pal-${n}`} className="flex scroll-mt-32 flex-col gap-3">
       <div>
         <p className="text-sm font-semibold">
           <span className="mr-2 inline-flex size-5 items-center justify-center rounded-md bg-foreground text-[11px] text-background tabular-nums">
@@ -123,13 +178,21 @@ function Row({
   );
 }
 
-/** A stage under one candidate's tokens. */
+/**
+ * A stage under one candidate's tokens.
+ *
+ * `extra` lands on the SAME element as the ramp, which matters for the accent
+ * on ink: `.surface-ink` declares --brand itself, and a class rule outranks a
+ * custom property inherited from a wrapper outside the stage, so an accent set
+ * on an ancestor would silently not reach the leaf. Inline on the element wins.
+ */
 function Frame({
   ramp,
   ground,
   mode,
   height,
   label,
+  extra,
   children,
 }: {
   ramp: Ramp;
@@ -137,6 +200,7 @@ function Frame({
   mode: Mode;
   height: number;
   label: string;
+  extra?: React.CSSProperties;
   children: React.ReactNode;
 }) {
   return (
@@ -146,7 +210,7 @@ function Frame({
         <div
           data-pal-swap
           className="h-full w-full overflow-hidden bg-background text-foreground"
-          style={rampStyle(ramp, ground)}
+          style={{ ...rampStyle(ramp, ground), ...extra }}
         >
           {children}
         </div>
@@ -180,9 +244,13 @@ function Ladder({ ramp, tone }: { ramp: Ramp; tone: "light" | "dark" }) {
     };
   });
   return (
+    // The real theme CLASS as well as the candidate's inline block, so the
+    // state hues under the table are the ones that ship in this mode: they are
+    // not part of any candidate, and a dark chip judged against a light
+    // `--destructive` would be a lie.
     <div
       data-pal-swap
-      className="rounded-lg border border-border bg-background p-3 text-foreground"
+      className={`${tone === "dark" ? "dark" : "surface-paper"} rounded-lg border border-border bg-background p-3 text-foreground`}
       style={block as React.CSSProperties}
     >
       <p className="mb-2 text-[11px] font-medium">
@@ -217,6 +285,12 @@ function Ladder({ ramp, tone }: { ramp: Ramp; tone: "light" | "dark" }) {
             </span>
           </div>
         ))}
+      </div>
+      {/* Round two: the state row under every ramp in both modes. A ramp is not
+          finished until the six colours it must never be confused with still
+          read on it. */}
+      <div className="mt-2.5 border-t border-border pt-2.5">
+        <StateRow compact />
       </div>
     </div>
   );
@@ -284,12 +358,26 @@ export function PaletteBoard() {
   const [accentGround, setAccentGround] = useState<"cinema" | "paper">(
     "cinema",
   );
+  const [cardMode, setCardMode] = useState<CardMode>("declared");
   const [panelSingle, setPanelSingle] = useState(true);
+  const [faintOnDimmed, setFaintOnDimmed] = useState(true);
 
-  const ramp = RAMP_BY_ID[rampId];
+  const declared = RAMP_BY_ID[rampId];
+  const ramp = resolveRamp(declared, cardMode);
   const accent = ACCENT_BY_ID[accentId];
   const desktop = mode === "desktop";
   const h = (d: number, p: number) => (desktop ? d : p);
+
+  const applied = useTunerCandidate();
+  const opts = {
+    accent,
+    panelOneToken: panelSingle,
+    faintOnDimmed,
+  };
+  const apply = (id: RampId) => {
+    const r = resolveRamp(RAMP_BY_ID[id], cardMode);
+    setCandidateCss(applyLabel(r, opts), applyCss(r, opts));
+  };
 
   return (
     <div className="flex flex-col gap-10 py-4">
@@ -297,49 +385,134 @@ export function PaletteBoard() {
         {QUESTION}
       </p>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Toggle
-          ariaLabel="Ramp"
-          options={RAMPS.map((r) => ({ id: r.id, label: r.label }))}
-          value={rampId}
-          onChange={setRampId}
-        />
-        <Toggle
-          ariaLabel="Viewport"
-          options={[
-            { id: "desktop" as Mode, label: "Desktop 1440" },
-            { id: "phone" as Mode, label: "Phone 375" },
-          ]}
-          value={mode}
-          onChange={setMode}
-        />
+      {/* The control bar follows the walk: every stage below repaints from it,
+          so it has to stay reachable at row 12 as well as row 01. */}
+      <div className="pal-walk-bar sticky top-0 z-20 -mx-4 flex flex-col gap-2.5 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Toggle
+            ariaLabel="Ramp"
+            options={RAMPS.map((r) => ({ id: r.id, label: r.label }))}
+            value={rampId}
+            onChange={setRampId}
+          />
+          <Toggle
+            ariaLabel="Viewport"
+            options={[
+              { id: "desktop" as Mode, label: "Desktop 1440" },
+              { id: "phone" as Mode, label: "Phone 375" },
+            ]}
+            value={mode}
+            onChange={setMode}
+          />
+          <Toggle
+            ariaLabel="The dark card"
+            options={[
+              { id: "declared" as CardMode, label: "As declared" },
+              { id: "opaque" as CardMode, label: "Opaque" },
+              { id: "veil" as CardMode, label: "Veil 62%" },
+            ]}
+            value={cardMode}
+            onChange={setCardMode}
+          />
+        </div>
+
+        {/* APPLY TO THE SITE: the paste, worn by the real pages. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-medium">Apply to the site</span>
+          {RAMPS.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => apply(r.id)}
+              className="rounded-lg border border-border px-2.5 py-1 text-[12px] font-medium transition-colors hover:bg-secondary"
+            >
+              {r.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => clearCandidate()}
+            className="rounded-lg px-2.5 py-1 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Clear
+          </button>
+          <Toggle
+            ariaLabel="The panel"
+            options={[
+              { id: "single", label: "Panel: one token" },
+              { id: "alphas", label: "Panel: the alphas" },
+            ]}
+            value={panelSingle ? "single" : "alphas"}
+            onChange={(v) => setPanelSingle(v === "single")}
+          />
+          <Toggle
+            ariaLabel="Faint text"
+            options={[
+              { id: "on", label: "Faint: in" },
+              { id: "off", label: "Faint: out" },
+            ]}
+            value={faintOnDimmed ? "on" : "off"}
+            onChange={(v) => setFaintOnDimmed(v === "on")}
+          />
+        </div>
+
+        <p className="truncate text-[11px] text-muted-foreground">
+          {applied ? (
+            <>
+              <span className="font-medium text-foreground">
+                Applied: {applied.label}.
+              </span>{" "}
+              This page wears it too, so the board&apos;s own chrome is that
+              candidate while each stage stays on the ramp toggle above.
+            </>
+          ) : (
+            "Nothing applied. The pages to walk are listed at row 13."
+          )}
+        </p>
       </div>
 
+      {/* The walk, in one line. A board this long is only judgeable if a row can
+          be reached and re-reached without scrolling past the other twelve. */}
+      <nav
+        aria-label="The rows"
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground"
+      >
+        {ROWS.map((r) => (
+          <a
+            key={r.n}
+            href={`#pal-${r.n}`}
+            className="transition-colors hover:text-foreground"
+          >
+            <span className="tabular-nums">{r.n}</span> {r.name}
+          </a>
+        ))}
+      </nav>
+
       <div className="rounded-lg border border-border bg-card px-4 py-3">
-        <p className="text-sm font-semibold">{ramp.name}</p>
+        <p className="text-sm font-semibold">{declared.name}</p>
         <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
-          {ramp.thesis}
+          {declared.thesis}
         </p>
         <ul className="mt-2.5 space-y-1">
-          {ramp.moves.map((m) => (
+          {declared.moves.map((m) => (
             <li key={m} className="text-xs text-muted-foreground">
               {m}
             </li>
           ))}
           <li className="text-xs text-muted-foreground italic">
-            The trade: {ramp.trade}
+            The trade: {declared.trade}
           </li>
         </ul>
       </div>
 
       <Row
         n="01"
-        name="The ladder, and where it is empty"
-        reading="Every value of each set on the black-to-white line: light above, dark below. Today's shows the whole system at a glance, a crowd at each end and a 0.455 hole in the middle where 37 call sites reach for a step by dimming the one above it."
+        name="The ladder, where it is empty, and what has to survive on it"
+        reading="Every value of each set on the black-to-white line: light above, dark below. Today's shows the whole system at a glance, a crowd at each end and a 0.455 hole in the middle where 37 call sites reach for a step by dimming the one above it. Under each table, the six state hues on that ramp in that mode: a ramp is not finished until the colours it must never be confused with still read on it."
       >
         <div className="space-y-2.5">
           {RAMPS.map((r) => (
-            <Spectrum key={r.id} ramp={r} />
+            <Spectrum key={r.id} ramp={resolveRamp(r, cardMode)} />
           ))}
         </div>
         {/* The board's OWN chrome keys off the real viewport, not the stage
@@ -347,19 +520,41 @@ export function PaletteBoard() {
             honest here, and four 77px columns at 375 is unreadable. */}
         <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {RAMPS.map((r) => (
-            <Ladder key={`${r.id}-light`} ramp={r} tone="light" />
+            <Ladder
+              key={`${r.id}-light`}
+              ramp={resolveRamp(r, cardMode)}
+              tone="light"
+            />
           ))}
           {RAMPS.map((r) => (
-            <Ladder key={`${r.id}-dark`} ramp={r} tone="dark" />
+            <Ladder
+              key={`${r.id}-dark`}
+              ramp={resolveRamp(r, cardMode)}
+              tone="dark"
+            />
           ))}
         </div>
       </Row>
 
       <Row
         n="02"
-        name="Three darks, or one"
-        reading="Cinema, the app, the footer's ink and the media canvas, side by side for each set. Today they are four numbers nobody wrote a reason for. A and C make them steps of one ladder and send the canvas deeper than any room; B makes them one room and deletes the cinema override."
+        name="The grounds, counted by the job they do"
+        reading="Bible 16 names four. Counted by job there are more, and the deepest is not a token: the lightbox paints bg-black/90 as a literal. What --gallery actually does is the media well and, through .surface-ink, the footer slab, and those two want opposite things. On paper, because the slab's whole job is to sit on a light page."
       >
+        <Frame
+          ramp={ramp}
+          ground="paper"
+          mode={mode}
+          height={h(560, 1240)}
+          label={`paper · ${ramp.label}`}
+        >
+          <GroundsRow mode={mode} ramp={ramp} />
+        </Frame>
+        <p className="text-[11px] text-muted-foreground">
+          The four dark values of each set, side by side: B answers one room for
+          all of them, A and C answer a ladder with the canvas sent deeper than
+          any room, today answers four numbers with no reason written down.
+        </p>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {RAMPS.map((r) => (
             <div key={r.id} className="space-y-1.5">
@@ -384,48 +579,34 @@ export function PaletteBoard() {
 
       <Row
         n="03"
-        name="A marketing chapter, on cinema"
-        reading="Three cards on the dark room: one with a photograph, one with none (the case rule 1 was rewritten for), one all type. Watch the card edge, the panel in the card foot, and whether the secondary button is a surface or a rumour."
-      >
-        <Frame
-          ramp={ramp}
-          ground="cinema"
-          mode={mode}
-          height={h(800, 1220)}
-          label={`cinema · ${ramp.label}`}
-        >
-          <MarketingChapter mode={mode} />
-        </Frame>
-      </Row>
-
-      <Row
-        n="04"
-        name="The same chapter, on paper"
-        reading="The light ramp's whole argument: today the card is 0.007 above the page, so it is its hairline and nothing else. A and C give it a real lift by dropping the page; B keeps the page and makes the ring do the work."
-      >
-        <Frame
-          ramp={ramp}
-          ground="paper"
-          mode={mode}
-          height={h(800, 1220)}
-          label={`paper · ${ramp.label}`}
-        >
-          <MarketingChapter mode={mode} />
-        </Frame>
-      </Row>
-
-      <Row
-        n="05"
-        name="The app, in both modes"
-        reading="Real event cards with real covers, the storage track, the chips and a card with a foot. The media is the colour here, so the ramp's job is to disappear behind it and still hold the chrome together."
+        name="The host app, in both modes"
+        reading="The densest chrome in the product, and the composition round one never showed: an event page's header, its stat band and config chips, the command strip on the panel, the review queue, the grid; then the dashboard with the real filter chips, the storage track, the event cards and a panel inside a card. Four crushed dark surfaces are visible here at once."
       >
         <div className="flex flex-col gap-4">
           <Frame
             ramp={ramp}
             ground="app-dark"
             mode={mode}
-            height={h(760, 900)}
-            label={`the app, dark · ${ramp.label}`}
+            height={h(1090, 1260)}
+            label={`an event, dark · ${ramp.label}`}
+          >
+            <AppEvent mode={mode} />
+          </Frame>
+          <Frame
+            ramp={ramp}
+            ground="app-light"
+            mode={mode}
+            height={h(1090, 1260)}
+            label={`an event, light · ${ramp.label}`}
+          >
+            <AppEvent mode={mode} />
+          </Frame>
+          <Frame
+            ramp={ramp}
+            ground="app-dark"
+            mode={mode}
+            height={h(820, 1080)}
+            label={`the dashboard, dark · ${ramp.label}`}
           >
             <AppDashboard mode={mode} />
           </Frame>
@@ -433,8 +614,8 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-light"
             mode={mode}
-            height={h(760, 900)}
-            label={`the app, light · ${ramp.label}`}
+            height={h(820, 1080)}
+            label={`the dashboard, light · ${ramp.label}`}
           >
             <AppDashboard mode={mode} />
           </Frame>
@@ -442,9 +623,36 @@ export function PaletteBoard() {
       </Row>
 
       <Row
-        n="06"
+        n="04"
+        name="The guest album, on the canvas"
+        reading="The surface every guest sees, and the one the canvas token is for: the masonry at 3px gaps and 3px tile radius, one tile still uploading, one well with nothing in it yet. The canvas is identical in both modes by design, so the only thing that moves between these two frames is the chrome around it."
+      >
+        <div className="flex flex-col gap-4">
+          <Frame
+            ramp={ramp}
+            ground="app-light"
+            mode={mode}
+            height={h(760, 900)}
+            label={`the guest album, light · ${ramp.label}`}
+          >
+            <GuestAlbum mode={mode} />
+          </Frame>
+          <Frame
+            ramp={ramp}
+            ground="app-dark"
+            mode={mode}
+            height={h(760, 900)}
+            label={`the guest album, dark · ${ramp.label}`}
+          >
+            <GuestAlbum mode={mode} />
+          </Frame>
+        </div>
+      </Row>
+
+      <Row
+        n="05"
         name="A menu over a card"
-        reading="The specimen today's dark ramp fails: ground 0.14, card 0.21 at 62 percent, panel 0.245, menu 0.23, hover 0.25. Five surfaces inside 0.11, two of them the wrong way round. Flip to A and the same frame has a ladder."
+        reading="The specimen today's dark ramp fails: ground 0.14, card 0.21 at 62 percent, panel 0.245, menu 0.23, hover 0.25. Five surfaces inside 0.11, two of them the wrong way round. Flip the ramp and the same frame has a ladder."
       >
         <Frame
           ramp={ramp}
@@ -458,42 +666,73 @@ export function PaletteBoard() {
       </Row>
 
       <Row
-        n="07"
-        name="The ink leaf"
-        reading="The footer's set, rendered the way it ships: on a paper page, so the gap shows. Today .surface-ink declares no --card and no --popover, which is why the card and the menu at the foot of this frame are near white on a dark slab. Every candidate completes the set."
+        n="06"
+        name="The ink leaf, hosting a card and a menu"
+        reading="The footer's set, rendered the way it ships: on a paper page, so the gap shows. Today .surface-ink declares no --card and no --popover, which is why the card and the menu at the foot of this frame are near white on a dark slab. Every candidate completes the set, and the accent selected below is written into the leaf, so the mark at the bottom of every page carries it too."
       >
         <Frame
           ramp={ramp}
           ground="ink"
           mode={mode}
-          height={h(700, 1040)}
-          label={`ink on a paper page · ${ramp.label}`}
+          height={h(740, 1120)}
+          label={`ink on a paper page · ${ramp.label} · ${accent.label}`}
+          extra={accentStyle(accent, true)}
         >
           <InkLeaf mode={mode} />
         </Frame>
       </Row>
 
       <Row
-        n="08"
-        name="The panel"
-        reading="The set-apart block of bible 16, on its real sites. It ships at six alphas of --muted (20, 30, 40, 50, 60 and 70 across 45 uses), a token that also does hover, and on paper 40 percent over 0.99 is a one percent step. The toggle swaps every one of them for the ruled ramp's --muted at full strength."
+        n="07"
+        name="Depth with the ramp"
+        reading="A shadow has to be darker than what it falls on, so a cue and a step fail together. The light exploration's proposed family (lift on two overlapping photographs, float on a menu over a card) plus the ring nobody wrote down, rendered on this candidate's grounds. These values are not in this board's paste: depth is that track's lane."
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <Toggle
-            ariaLabel="The panel"
-            options={[
-              { id: "single", label: "One token" },
-              { id: "alphas", label: "Today's alphas" },
-            ]}
-            value={panelSingle ? "single" : "alphas"}
-            onChange={(v) => setPanelSingle(v === "single")}
-          />
-          <p className="text-[11px] text-muted-foreground">
-            {PANEL_ALPHAS.map((a) => `${a.alpha} percent x${a.uses}`).join(
-              ", ",
-            )}
-          </p>
+        <div className="flex flex-col gap-4">
+          <Frame
+            ramp={ramp}
+            ground="app-dark"
+            mode={mode}
+            height={h(520, 940)}
+            label={`the cues, dark · ${ramp.label}`}
+          >
+            <DepthRow mode={mode} />
+          </Frame>
+          <Frame
+            ramp={ramp}
+            ground="app-light"
+            mode={mode}
+            height={h(520, 940)}
+            label={`the cues, light · ${ramp.label}`}
+          >
+            <DepthRow mode={mode} />
+          </Frame>
         </div>
+      </Row>
+
+      <Row
+        n="08"
+        name="The card over a photograph: opaque, or the veil"
+        reading="Today ships exactly one translucent surface in the whole system and no document says so. Round one's departure list said only B kept it; that was wrong, because B's card is a color-mix off the room, which is opaque. Left: the card as this candidate declares it, under the card toggle above. Right: today's 62 percent, fixed, so the difference is a look and not a footnote."
+      >
+        <Frame
+          ramp={ramp}
+          ground="app-dark"
+          mode={mode}
+          height={h(460, 700)}
+          label={`over a photograph, dark · ${ramp.label} · card ${cardMode}`}
+        >
+          <PhotoCards mode={mode} />
+        </Frame>
+      </Row>
+
+      <Row
+        n="09"
+        name="The panel, on its real sites"
+        reading="The set-apart block of bible 16, on the sites it ships on. It ships at six alphas of --muted (20, 30, 40, 50, 60 and 70 across 45 uses), a token that also does hover, and on paper 40 percent over 0.99 is a one percent step. The toggle in the bar swaps every one of them for the ruled ramp's --muted at full strength, on the board and on the walk."
+      >
+        <p className="text-[11px] text-muted-foreground">
+          {PANEL_ALPHAS.map((a) => `${a.alpha} percent x${a.uses}`).join(", ")}
+        </p>
         <Frame
           ramp={ramp}
           ground="paper"
@@ -515,9 +754,63 @@ export function PaletteBoard() {
       </Row>
 
       <Row
-        n="09"
-        name="The accent, by the job it does"
-        reading="Rule 1 gives the accent a mandate where there is no media, so the first question is not which hue but which job. Today one token does three: identity, attention, and standing in for a photograph. The state hues sit under the wall so a collision is visible rather than argued."
+        n="10"
+        name="The text steps, in real copy"
+        reading="Every text step with a real line at it, on the three grounds type lands on: the page, a card, the panel. The hole in the light ramp is only a hole once you try to write the third line, and --faint is the step 37 sites are already compositing to by hand."
+      >
+        <div className="flex flex-col gap-4">
+          <Frame
+            ramp={ramp}
+            ground="paper"
+            mode={mode}
+            height={h(400, 900)}
+            label={`paper · ${ramp.label}`}
+          >
+            <TextSteps mode={mode} />
+          </Frame>
+          <Frame
+            ramp={ramp}
+            ground="cinema"
+            mode={mode}
+            height={h(400, 900)}
+            label={`cinema · ${ramp.label}`}
+          >
+            <TextSteps mode={mode} />
+          </Frame>
+        </div>
+      </Row>
+
+      <Row
+        n="11"
+        name="A marketing chapter, on cinema and on paper"
+        reading="Three cards on each room: one with a photograph, one with none (the case rule 1 was rewritten for), one all type. On cinema, watch the card edge and whether the secondary button is a surface or a rumour. On paper, today the card is 0.007 above the page, so it is its hairline and nothing else."
+      >
+        <div className="flex flex-col gap-4">
+          <Frame
+            ramp={ramp}
+            ground="cinema"
+            mode={mode}
+            height={h(800, 1220)}
+            label={`cinema · ${ramp.label}`}
+          >
+            <MarketingChapter mode={mode} />
+          </Frame>
+          <Frame
+            ramp={ramp}
+            ground="paper"
+            mode={mode}
+            height={h(800, 1220)}
+            label={`paper · ${ramp.label}`}
+          >
+            <MarketingChapter mode={mode} />
+          </Frame>
+        </div>
+      </Row>
+
+      <Row
+        n="12"
+        name="The accent, by the job it does, at every hue at once"
+        reading="Rule 1 gives the accent a mandate where there is no media, so the first question is not which hue but which job. Today one token does three: identity, attention, and standing in for a photograph. All four candidates render side by side on each job, with the state hues at the foot, because four hues cannot be ruled on from memory."
       >
         <div className="flex flex-wrap items-center gap-3">
           <Toggle
@@ -535,6 +828,10 @@ export function PaletteBoard() {
             value={accentGround}
             onChange={setAccentGround}
           />
+          <p className="text-[11px] text-muted-foreground">
+            The wall shows all four. The toggle picks the one that rides the
+            walk and the paste.
+          </p>
         </div>
         <div className="rounded-lg border border-border bg-card px-4 py-3">
           <p className="text-sm font-semibold">{accent.name}</p>
@@ -545,26 +842,57 @@ export function PaletteBoard() {
             The risk: {accent.risk}
           </p>
         </div>
-        <div style={accentStyle(accent, accentGround === "cinema")}>
-          <Frame
-            ramp={ramp}
-            ground={accentGround}
-            mode={mode}
-            height={h(1000, 1660)}
-            label={`${accentGround} · ${ramp.label} · ${accent.label}`}
-          >
-            <AccentWall mode={mode} />
-          </Frame>
-        </div>
+        <Frame
+          ramp={ramp}
+          ground={accentGround}
+          mode={mode}
+          height={h(1560, 1800)}
+          label={`${accentGround} · ${ramp.label} · all four hues`}
+        >
+          <AccentWall mode={mode} dark={accentGround === "cinema"} />
+        </Frame>
       </Row>
 
       <Row
-        n="10"
+        n="13"
         name="The ruling, as a paste"
-        reading="The selected candidate as the block that lands in globals.css and marketing.css. The Record in docs/tracks/palette.md carries all three, so a ruling is a few words and the Orchestrator pastes rather than rewrites."
+        reading="The selected candidate as the block that lands in globals.css and marketing.css, with the card question and the accent folded in exactly as the board is showing them. The Record in docs/tracks/palette.md carries all three, so a ruling is a few words and the Orchestrator pastes rather than rewrites."
       >
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => apply(rampId)}
+            className="rounded-lg bg-foreground px-3 py-1.5 text-[12px] font-medium text-background transition-opacity hover:opacity-90"
+          >
+            Apply {declared.label} to the site
+          </button>
+          <button
+            type="button"
+            onClick={() => clearCandidate()}
+            className="rounded-lg border border-border px-3 py-1.5 text-[12px] font-medium transition-colors hover:bg-secondary"
+          >
+            Clear
+          </button>
+          <span className="text-[11px] text-muted-foreground">
+            {applied ? applied.label : "nothing applied"}
+          </span>
+        </div>
+        <p className="max-w-3xl text-[11px] text-muted-foreground">
+          Walk it on{" "}
+          {WALK.map((w, i) => (
+            <span key={w.href}>
+              {i > 0 ? ", " : ""}
+              <span className="text-foreground">{w.href}</span> ({w.note})
+            </span>
+          ))}
+          , every one with the lab key on the end. The block persists in this
+          browser until Clear, and the tuner panel on any of those pages clears
+          it too. The demo guest page is missing from the list on purpose: the
+          guest layout mounts no design island, so a candidate cannot reach it
+          yet (see the departures, and row 04 for the album on the board).
+        </p>
         <pre className="max-h-96 overflow-auto rounded-lg border border-border bg-muted/40 p-4 font-sans text-[11px] leading-relaxed whitespace-pre tabular-nums">
-          {tokenBlock(ramp)}
+          {[tokenBlock(ramp), accentBlock(accent)].filter(Boolean).join("\n\n")}
         </pre>
       </Row>
 
