@@ -85,7 +85,7 @@ import {
  *    while gaining an answer (warm B) that could not be asked before.
  *  3 The flip stopped being a memory test where a STEP is the question. Row 12
  *    learned this for the accent in round two ("four hues cannot be ruled on
- *    from memory"); row 05 now puts today beside the candidate inside one
+ *    from memory"); row 02 now puts today beside the candidate inside one
  *    canvas, which is also what the 1000px of empty ground beside that card
  *    was for.
  *  4 The numbers are re-measured, and two were wrong: the panel ships at 35
@@ -144,10 +144,10 @@ const QUESTION =
  *  each Row carries the matching id. */
 const ROWS = [
   { n: "01", name: "the ladder" },
-  { n: "02", name: "the grounds" },
-  { n: "03", name: "the app" },
-  { n: "04", name: "the guest album" },
-  { n: "05", name: "a menu over a card" },
+  { n: "02", name: "the same frame, both ramps" },
+  { n: "03", name: "the grounds" },
+  { n: "04", name: "the app" },
+  { n: "05", name: "the guest album" },
   { n: "06", name: "the ink leaf" },
   { n: "07", name: "depth" },
   { n: "08", name: "the card over a photograph" },
@@ -183,14 +183,14 @@ const ASKS = [
 const DEPARTURES = [
   "Round three cut candidate C, and no value it held is lost. C was A's ladder at a temperature, and its own move list said so: the spacing was A's exactly, so a ruling between A and C was a ruling on temperature alone. A column that moves no step is a switch wearing a letter, so it is a switch now, and the one question it could never answer (does B want warming too) is one click. warm(A) still produces C's five published blocks token for token, pinned by temperature.test.ts, with one correction recorded there: C left the dark ring cold while writing the ink ring warm, at the same job on the same ground.",
   "Round one's departure list said only candidate B kept the system's one translucent surface. That was wrong: B's card is a color-mix off the room, which is fully opaque, so every candidate retires the veil and none of them said so. Row 08 renders both answers over a photograph and the card ask makes it a ruling rather than a side effect.",
-  "A finding against bible 16, sharpened and changed. Counted by the job it does, the deepest dark surface in the product is not a token at all: the lightbox paints its backdrop with a literal bg-black/90 (media-lightbox.tsx:617). What --gallery actually does is the media WELL (a tile before its image decodes, a coverless event card, the reel frame) and, through .surface-ink, the footer SLAB, and those two want opposite things. Rule 16 counts four grounds; there are at least six surfaces and one of them is a literal. Row 02.",
+  "A finding against bible 16, sharpened and changed. Counted by the job it does, the deepest dark surface in the product is not a token at all: the lightbox paints its backdrop with a literal bg-black/90 (media-lightbox.tsx:617). What --gallery actually does is the media WELL (a tile before its image decodes, a coverless event card, the reel frame) and, through .surface-ink, the footer SLAB, and those two want opposite things. Rule 16 counts four grounds; there are at least six surfaces and one of them is a literal. Row 03.",
   "Warm re-opens a decision globals.css records as closed: zero-chroma purity IS the brand point, and saturating the neutrals was consciously declined. The switch is that decision re-argued at 0.002 to 0.008 chroma, on the board rather than in a comment, and now on whichever ramp is selected rather than on one of them.",
   "The accent has to be written into .surface-ink or it never reaches the footer. Today the leaf declares --brand: var(--gallery-foreground), and a class rule outranks a value inherited from the page around it, so a hue ruled for the whole site would reach every surface in the product except the mark that sits at the bottom of every page. The accent paste therefore carries a third block, and every candidate's ink map keeps a --brand line of its own so a ruling of ink alone cannot leave the leaf inheriting the PAPER ink onto a dark slab. Row 06 shows the mark on the leaf.",
   "B deletes the cinema override in marketing.css, the skin block's only surface value. The cinema-to-footer seam then belongs entirely to light, which is the light board's lane.",
   "Both candidates complete .surface-ink (no --card, --popover, --secondary, --accent or --input ships today), so an ink leaf can finally host a card and a menu.",
   "Each candidate adds one custom property, --faint, which needs one line in theme.css's @theme inline block (--color-faint: var(--faint);) before a text-faint utility exists. The board reaches it with an arbitrary value.",
   "Row 07 borrows the light exploration's proposed shadow family and its named ring (docs/specs/light.md) so the ramp and the depth cue are judged in one look. Those values are NOT in this board's paste: depth is that track's lane and its ruling lands there.",
-  "The demo guest page cannot wear a candidate today: the (guest) layout mounts no design island, so setCandidateCss never reaches /e/. One line adds it, the same AppDesignIsland the host app mounts. The shell is not this lane, so it is left as a note for the Orchestrator and the guest album is rendered on the board instead (row 04).",
+  "The demo guest page cannot wear a candidate today: the (guest) layout mounts no design island, so setCandidateCss never reaches /e/. One line adds it, the same AppDesignIsland the host app mounts. The shell is not this lane, so it is left as a note for the Orchestrator and the guest album is rendered on the board instead (row 05).",
 ];
 
 const ASSETS = [
@@ -533,7 +533,7 @@ export function PaletteBoard() {
     <div className="flex flex-col gap-10 py-4">
       <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
         <span className="text-foreground">How to rule from here.</span> Set the
-        ramp and the switches in the bar, read row 01 for the ladder and row 05
+        ramp and the switches in the bar, read row 01 for the ladder and row 02
         for the same frame under both, then put it on the real pages and walk
         the six links at row 13. Seven asks at the foot, each one word. The
         question, the departures and the asks are in the meta panel at the
@@ -756,7 +756,7 @@ export function PaletteBoard() {
               nothing regresses, and its one cost (a paper body at 0.977 instead
               of near white) is visible on rows 09 and 11. B is the better IDEA
               and the worse ramp today: one room is right, and it buys the
-              tuning by flattening cinema into the app, which rows 02 and 11
+              tuning by flattening cinema into the app, which rows 03 and 11
               show as a chapter that has stopped being a room of its own.
             </p>
           </div>
@@ -796,6 +796,44 @@ export function PaletteBoard() {
 
       <Row
         n="02"
+        name="A menu over a card, today beside the candidate"
+        reading="The frame both ramps are judged on, with today on the left and the candidate on the right, because a step of 0.02 is exactly the thing an eye cannot hold across a toggle press. Dark first: ground 0.14, card 0.21 at 62 percent, panel 0.245, menu 0.23, hover 0.25, which is five surfaces inside 0.11 with two of them the wrong way round. Then the same frame on paper, where the five sit inside 0.037 and a card is its hairline and nothing else. The numbers under each half are that half's own."
+      >
+        {/* ★ THE PAIR. Round two learned this for the accent ("four hues cannot
+            be ruled on from memory") and left every surface row on a toggle. A
+            LIGHTNESS STEP is the harder memory test of the two, so the frame
+            that carries the whole dark-ramp argument shows both answers at
+            once. One Stage, two token wrappers: the ground class is shared (it
+            is the same .dark either way) and each half paints its own
+            --background, which is the only honest way to put two grounds in one
+            canvas. */}
+        <PairFrame
+          left={todayRamp}
+          right={ramp}
+          ground="app-dark"
+          mode={mode}
+          height={h(440, 1060)}
+          label={`the stack, dark · today beside ${ramp.label}`}
+          render={(r) => <SurfaceStack mode={mode} paired ramp={r} />}
+        />
+        {/* The same proof on paper, because the light ramp fails the same way
+            and the numbers are smaller: five surfaces inside 0.037, so a card
+            is its hairline and nothing else. */}
+        <PairFrame
+          left={todayRamp}
+          right={ramp}
+          ground="app-light"
+          mode={mode}
+          height={h(440, 1060)}
+          label={`the stack, paper · today beside ${ramp.label}`}
+          render={(r) => (
+            <SurfaceStack mode={mode} paired ramp={r} tone="light" />
+          )}
+        />
+      </Row>
+
+      <Row
+        n="03"
         name="The grounds, counted by the job they do"
         reading="Bible 16 names four. Counted by job there are more, and the deepest is not a token: the lightbox paints bg-black/90 as a literal. What --gallery actually does is the media well and, through .surface-ink, the footer slab, and those two want opposite things. On paper, because the slab's whole job is to sit on a light page."
       >
@@ -849,7 +887,7 @@ export function PaletteBoard() {
       </Row>
 
       <Row
-        n="03"
+        n="04"
         name="The host app, in both modes"
         reading="The densest chrome in the product, and the composition round one never showed: an event page's header, its stat band and config chips, the command strip on the panel, the review queue, the grid; then the dashboard with the real filter chips, the storage track, the event cards and a panel inside a card. Four crushed dark surfaces are visible here at once."
       >
@@ -894,7 +932,7 @@ export function PaletteBoard() {
       </Row>
 
       <Row
-        n="04"
+        n="05"
         name="The guest album, on the canvas"
         reading="The surface every guest sees, and the one the canvas token is for: the masonry at 3px gaps and 3px tile radius, one tile still uploading, one well with nothing in it yet. The canvas is identical in both modes by design, so the only thing that moves between these two frames is the chrome around it."
       >
@@ -921,39 +959,15 @@ export function PaletteBoard() {
       </Row>
 
       <Row
-        n="05"
-        name="A menu over a card, today beside the candidate"
-        reading="The specimen today's dark ramp fails: ground 0.14, card 0.21 at 62 percent, panel 0.245, menu 0.23, hover 0.25. Five surfaces inside 0.11, two of them the wrong way round. Both sets are in one frame because a step of 0.02 is exactly the thing an eye cannot hold across a toggle press, and because the 1000px of empty ground beside one card was not evidence of anything."
-      >
-        {/* ★ THE PAIR. Round two learned this for the accent ("four hues cannot
-            be ruled on from memory") and left every surface row on a toggle. A
-            LIGHTNESS STEP is the harder memory test of the two, so the frame
-            that carries the whole dark-ramp argument shows both answers at
-            once. One Stage, two token wrappers: the ground class is shared (it
-            is the same .dark either way) and each half paints its own
-            --background, which is the only honest way to put two grounds in one
-            canvas. */}
-        <PairFrame
-          left={todayRamp}
-          right={ramp}
-          ground="app-dark"
-          mode={mode}
-          height={h(440, 1060)}
-          label={`the stack, dark · today beside ${ramp.label}`}
-          render={(r) => <SurfaceStack mode={mode} paired ramp={r} />}
-        />
-      </Row>
-
-      <Row
         n="06"
         name="The ink leaf, hosting a card and a menu"
-        reading="The footer's set, rendered the way it ships: on a paper page, so the gap shows. Today .surface-ink declares no --card and no --popover, which is why the card and the menu at the foot of this frame are near white on a dark slab. Every candidate completes the set, and the accent selected below is written into the leaf, so the mark at the bottom of every page carries it too."
+        reading="The footer's set, rendered the way it ships: on a paper page, so the gap shows. Today .surface-ink declares no --card and no --popover, which is why on Today the card and the menu at the foot of this frame are near white on a dark slab; both candidates complete the set, and the two captions down there say which you are looking at. The accent selected below is written into the leaf, so the mark at the bottom of every page carries it too."
       >
         <Frame
           ramp={ramp}
           ground="ink"
           mode={mode}
-          height={h(740, 1120)}
+          height={h(610, 1120)}
           label={`ink on a paper page · ${ramp.label} · ${accent.label}`}
           extra={accentStyle(accent, true)}
         >
@@ -1023,7 +1037,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="paper"
           mode={mode}
-          height={h(760, 900)}
+          height={h(575, 900)}
           label={`paper · ${ramp.label} · ${panelSingle ? "one token" : "today's alphas"}`}
         >
           <PanelBand mode={mode} single={panelSingle} />
@@ -1032,7 +1046,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="app-dark"
           mode={mode}
-          height={h(760, 900)}
+          height={h(575, 900)}
           label={`the app, dark · ${ramp.label} · ${panelSingle ? "one token" : "today's alphas"}`}
         >
           <PanelBand mode={mode} single={panelSingle} />
@@ -1198,7 +1212,7 @@ export function PaletteBoard() {
           host, so its link goes to the dashboard and the event is one click on.
           The demo guest page is missing on purpose: the guest layout mounts no
           design island, so a candidate cannot reach it yet (see the departures,
-          and row 04 for the album on the board).
+          and row 05 for the album on the board).
         </p>
         <pre className="max-h-96 overflow-auto rounded-lg border border-border bg-muted/40 p-4 font-sans text-[11px] leading-relaxed whitespace-pre tabular-nums">
           {[tokenBlock(ramp), accentBlock(accent)].filter(Boolean).join("\n\n")}

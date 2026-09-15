@@ -182,16 +182,22 @@ export function SurfaceStack({
   mode,
   paired = false,
   ramp,
+  tone = "dark",
 }: {
   mode: Mode;
   paired?: boolean;
   ramp?: Ramp;
+  /** Which block the printed steps are read from. The specimen itself is the
+   *  same on either ground: the paper ramp crushes five surfaces into 0.037
+   *  exactly as the dark one crushes five into 0.11. */
+  tone?: "light" | "dark";
 }) {
   const desktop = mode === "desktop";
   const wide = desktop && !paired;
   const step = (token: string) => {
     if (!ramp) return null;
-    const l = lOf(ramp.dark[token] ?? "", ramp.dark);
+    const block = tone === "light" ? ramp.light : ramp.dark;
+    const l = lOf(block[token] ?? "", block);
     return l === null ? null : l.toFixed(3);
   };
   return (
