@@ -246,7 +246,8 @@ Three departures were flagged rather than buried, and no production byte changed
 
 ## Handoff (round 2)
 
-- Head `da618a2` (the round-two review fixes; this manifest commit sits on top of it), pushed; preview
+- Head `43c55f5` (the round-two review fixes, `da618a2` and `43c55f5`; this manifest commit sits on
+  top of them), pushed; preview
   `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the board at
   `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
   The round-two board is the one whose root div carries `class="bv-round-two"` and whose control
