@@ -764,7 +764,7 @@ export function RoundingBoard() {
                   </a>
                   {i < all.length - 1 ? ", " : ""}
                 </span>
-              ))}
+              ))}{" "}
               and an event page. The app pages want the host signed in, and the
               key rides the query string.
             </CellLabel>
@@ -1123,8 +1123,10 @@ export function RoundingBoard() {
               Note what it does at today&apos;s base, in the two columns of
               numbers: nothing. It is a change that costs nothing now and is the
               difference between a plan card at{" "}
-              {px(stepValue(14, "stock", "2xl"))} and{" "}
-              {px(stepValue(14, "quarters", "2xl"))} if the base ever moves.
+              {px(stepValue(8, "stock", "2xl"))} and{" "}
+              {px(stepValue(8, "quarters", "2xl"))} at C&apos;s 8px base, and
+              between {px(stepValue(14, "stock", "2xl"))} and{" "}
+              {px(stepValue(14, "quarters", "2xl"))} at D&apos;s.
             </p>
           </>
         }
@@ -1181,7 +1183,8 @@ export function RoundingBoard() {
                         {px(stepValue(base, "quarters", step))}
                       </CellLabel>
                       <CellLabel>
-                        {site.uses} uses: {site.where}
+                        {site.uses} {site.uses === 1 ? "use" : "uses"}:{" "}
+                        {site.where}
                         {dead ? ". A candidate for deletion." : ""}
                       </CellLabel>
                     </div>

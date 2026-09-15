@@ -466,7 +466,9 @@ export function NestedSpecimen({
             </div>
           </div>
           <CellLabel className="mt-1.5">
-            The object&apos;s own radius. The corners drift apart.
+            {ringOnly && radius !== null
+              ? `Drawn at the object's own ${px(radius)}: ${px(ringOffset)} of drift.`
+              : "The object's own radius. The corners drift apart."}
           </CellLabel>
         </div>
       </div>

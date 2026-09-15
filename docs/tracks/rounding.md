@@ -319,9 +319,15 @@ Four findings, all on the board rather than in a comment. The guest gallery's ga
      knobs cap at 24px, which cannot express the pill rung, so Apply writes the
      pill into the candidate block and clears the knob rather than leaving the
      panel in a state a drag cannot return to; if the pill is ruled, the max
-     moves or the control gains a "pill" step. And the surface-radius knob's
-     description says "288 uses in 140 files", which the recount contradicts:
-     320 uses of a derived step in 154 files outside the lab.
+     moves or the control gains a "pill" step. And THREE of the six knob
+     descriptions are wrong where this board counted: the surface knob says
+     "288 uses in 140 files" against a recount of 320 uses of a derived step in
+     154 files; "Action radius" is described as "the standard button (40px
+     tall)" and "every default Button", when the default Button is h-8 and
+     wears `--radius-action-sm`; and "Action radius, large" says it ships on
+     "the hero and pricing CTAs, the guest door's primary action" when it has
+     exactly one call site in the product, the reel builder, on an h-11. The
+     panel sits beside the board that disproves it.
   4. `src/components/dev/board/`: two things every board is now writing for
      itself. A stage that takes its height from its content (the brand-voice
      board wrote it, this board wrote it again as `FitStage`, and a stage that
