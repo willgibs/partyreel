@@ -58,13 +58,10 @@ const OWNED = [
  * migration wave deletes; nothing is ever added.
  */
 const LEGACY: readonly string[] = [
-  "album-hero",
   "brand-voice",
   "floating-surfaces",
-  "home-hero",
   "media-kit",
   "palette",
-  "river-visual",
 ];
 
 function filesIn(dir: string, out: string[] = []): string[] {

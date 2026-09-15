@@ -313,6 +313,23 @@ const GEO: Record<Mode, Geo> = {
   },
 };
 
+/**
+ * THE FIELD'S DENSITY, EXPORTED, so the board's caption cannot drift from the
+ * field (the migration wave, 2026-09-15). Round one carried "fifty-two frames
+ * at 1440" in four separate prose strings and one of them was stale by its
+ * first read-back. The pool size here is GEO's own number and the flight is the
+ * shared constant, so a change to either reaches the caption; `onScreen` is the
+ * range round one MEASURED on the running field, and it is the one figure a
+ * later round has to re-measure rather than recompute.
+ */
+export const FIELD_DENSITY = {
+  desktop: { cards: GEO.desktop.cards, onScreen: "19 to 27" },
+  phone: { cards: GEO.phone.cards, onScreen: "13 to 22" },
+} as const satisfies Record<Mode, { cards: number; onScreen: string }>;
+
+/** One frame's whole life, in seconds, for the same reason. */
+export const FIELD_FLIGHT_S = FLIGHT_MS / 1000;
+
 /** The headline's measure and leading per step. `lg` IS THE SHIPPED HERO,
  *  measured off /features/album rather than chosen: PageHero centres its lockup
  *  at max-w-3xl (768) and the lg ramp lands on text-7xl at 1440 with

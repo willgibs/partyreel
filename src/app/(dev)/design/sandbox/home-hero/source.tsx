@@ -793,27 +793,14 @@ function Source({ mode, copy, qrUrl }: ConceptProps) {
   );
 }
 
+/**
+ * The engine, and nothing else (the Library x Lab migration wave, 2026-09-15).
+ * The name, the rationale, the copy proposal, the departures and the assets
+ * this concept asks for are `spec.ts`'s `source` candidate now: a board's
+ * argument has to be pure data, because `sandbox/registry.ts` is imported by a
+ * server page and by node tests. Nothing above this line changed.
+ */
 export const source: Concept = {
   id: "source",
-  n: 1,
-  name: "The source",
-  rationale:
-    "The scan is where everything starts, so the hero makes that literal: the real demo QR holds the exact centre, still and scannable, and the album branches out of it and never stops. Round four made the corridor a volume rather than a plane (three depth lanes, near frames passing over far ones), filled it with the shapes an album is really made of, and measured the lane the type sits in off the running corridor instead of choosing it, so no photograph is ever under a word by construction.",
-  eyebrow:
-    "The QR itself, at the centre, with no label. The eyebrow is the object; the caption under it names where the photographs came from, which is the only thing the picture cannot say for itself.",
-  proposed: {
-    h1: "The whole event comes back to you.",
-    subhead:
-      "Guests scan the code. Every photo and video they take lands in your album, with no app and no account.",
-    secondary: "See a real album",
-  },
-  departures: [
-    "THE CENTRED LOCKUP, and it is the only one left. Precedent rather than law: every other marketing hero goes left, and this one is centred because the code owns the axis and the corridor is symmetrical about it. Overrule it and the composition changes shape, because the type would then have to live beside the corridor rather than above and below it. Everything else here is inside the bible: media at 100 percent with no scrim and no darkening layer anywhere, the h1 in the markup at full opacity, every animation inside the reduced-motion block with the deployed corridor as the rest state, and cinema and unlit with no lamp. Round three's second departure, a reader with scripting off and motion allowed getting an empty band, is fixed rather than flagged: a noscript companion rule restores the deployed corridor for exactly that reader.",
-  ],
-  assets: [
-    "34 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals, cropped from 34 of the same 36 masters rather than shot again. They replace the 12 landscape stand-ins the corridor cycles (FRAMES in shared.tsx); the left arm takes the first 17 and the right arm the last 17. 34 rather than a round 24 because the count is the composition's: the corridor holds 17 frames a side in the air at 1440, the two arms are offset by half the set, and the two windows only come apart at twice the pool, which is what buys the one thing the pictures buy, that no photograph is ever on screen twice. Anything short of it still doubles: the 12 stand-ins go round almost three times, so every one of them is in the air two or three times at once, and 24 would still leave ten pictures shared between the two arms. Nothing else moves, because the cadence, the pool and the sizes are constants of the composition.",
-    "Framed tight enough to read at 120 px AND to survive a centre crop to 4:5 and to 4:3: a face, two hands, a glass, a sparkler, a first dance. Half the corridor is portrait now, because that is what guests shoot. Frames are read between 117 and 370 px here, so a wide room shot is grey mush and a subject near an edge loses its head to the crop.",
-    "Nothing else. The QR is the real demo event's, live from NEXT_PUBLIC_DEMO_QR_TOKEN, and there is no plate art, no lamp and no video in this concept.",
-  ],
   render: (p) => <Source {...p} />,
 };
