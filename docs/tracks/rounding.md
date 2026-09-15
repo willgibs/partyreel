@@ -1,8 +1,8 @@
 ---
 track: rounding
-status: integrated
-cut: "ca952b5"
-merged: "2603465"      # the branch head merged into launch-prep
+status: open
+cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_2: "2603465"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/rounding/
@@ -22,6 +22,25 @@ reads:
 ---
 
 # lp/rounding
+
+## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
+
+**Round 3 (the goal): the last mile, walked first by you.** Two rounds built the board; this one is the
+walk Will will take, taken before him. (1) **Walk it cold**, the way he will: the board on the launch-prep
+alias (round 2 is integrated there) and then on your preview, in a foreground tab, at 1440 and then
+375, every toggle, every candidate, and every "Apply to the site" block on the pages you listed (the home
+arc, `/pricing`, `/help`, `/contact`, the dashboard and an event page with `?key=`, the demo guest page).
+Note every place a stranger would stumble: an unexplained toggle, two candidates that read the same, a
+stage that needs a caption or has one too many, a slow first paint, a layout that breaks at 375, a
+control that does nothing visible. Fix each. (2) **Re-read the reviewer's findings** on your round-2
+handoff (below) and the other boards' latest Handoffs in `docs/tracks/` and proposals in `docs/specs/`:
+anything there that changes your answer changes your board. (3) **Make the decision easy**: the strongest
+candidate first; a candidate cut if it no longer earns its column (say so); every ask a one-word answer
+and no more asks than Will must answer; the departures only the ones he must rule on. (4) **Honesty and
+cost**: every number on the board is measured or labelled a stand-in; measure what runs (frame time, layer
+count) and cut what does not earn its cost; reduced motion gets the settled composition. (5) **The
+record**: "Handoff (round 3)" and "Record (round 3)" below; the Record is the paragraph the CHANGELOG
+carries for rounds 2 and 3 together, so write it as the whole story of what the board became.
 
 **Goal.** Round two of the rounding board (round one was the Orchestrator's: the tuner's store,
 descriptions and action knobs, the board at `/design/c/rounding` with one kit in four columns, the
@@ -217,3 +236,18 @@ Merged into `launch-prep` at `<sha>` (2026-09-14). The rounding board was rebuil
 Part A is a four-row matrix of the shipped components, B four real compositions from `EventCard`, `EventTypeCard` and the primitives' own class strings, C bible 9 drawn right and wrong under each candidate, D the seven derived steps on the components that use them beside a quarter-step retune, E the action ladder at every height that ships, and F every candidate on its own 375 canvas, which is where the tile is settled.
 Each candidate applies to the whole site as the paste its ruling would land, verified on `/pricing`: a plan card lands at 21px under D's quarter ladder against 25.2 on stock.
 Four findings, all on the board rather than in a comment. The guest gallery's gap is a literal in three files while its tiles ride the token, so any tile above 3 opens corner holes on the one grid every guest sees. `--radius-action` names a 40px button that ships nowhere and `--radius-action-lg` has one call site. Every marketing CTA is `size="lg"` forced to h-11, at 0.33 x height against a documented 0.4. And `rounded-3xl` and `rounded-4xl` have three uses between them.
+
+## Handoff (round 3)
+
+- Head <sha>, pushed; preview partyreel-git-lp-rounding-partyreel.vercel.app
+- Synced with launch-prep at <sha> (or: launch-prep had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
+- Look at first: ...
+
+## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...
