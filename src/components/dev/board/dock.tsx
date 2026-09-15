@@ -62,9 +62,16 @@ export function BoardDock({
       html.style.setProperty("--board-dock-h", `${h}px`);
     };
     sync();
+    // A ResizeObserver does not re-fire in a background tab (the type-scale
+    // track measured 246px then 97px on a 49px dock), so re-sync one frame
+    // after mount and on every window resize as well.
+    const raf = requestAnimationFrame(sync);
+    window.addEventListener("resize", sync);
     const ro = new ResizeObserver(sync);
     ro.observe(el);
     return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", sync);
       ro.disconnect();
       html.style.scrollPaddingTop = "";
       html.style.removeProperty("--board-dock-h");
@@ -83,15 +90,18 @@ export function BoardDock({
       )}
     >
       <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+        {/* On a phone the board's switches take the whole row and the shell's
+            cluster wraps under them (a basis-0 cell never forced the wrap and
+            squeezed a board's switches into a 44px column at 375; brand-voice). */}
         <div
           className={cn(
-            "flex min-w-0 flex-1 flex-wrap items-center gap-2",
+            "flex basis-full flex-wrap items-center gap-2 sm:min-w-0 sm:flex-1 sm:basis-auto",
             !open && "hidden",
           )}
         >
           {children}
         </div>
-        <div className="ml-auto flex flex-wrap items-center gap-2">
+        <div className="flex basis-full flex-wrap items-center gap-2 sm:ml-auto sm:basis-auto">
           {aside}
           <Toggle
             ariaLabel="Stage scale"
