@@ -43,7 +43,7 @@ export function EntryBlock({
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3
           id={`c-${entry.id}`}
-          className="flex scroll-mt-[calc(var(--lab-topbar-h,0px)+12px)] items-baseline gap-2 font-heading text-lg"
+          className="flex items-baseline gap-2 font-heading text-lg"
         >
           <Link href={link(item.href)} className="hover:underline">
             {title}
