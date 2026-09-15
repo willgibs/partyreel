@@ -61,14 +61,18 @@ import {
  *    field, born further back so it stays small, slow and long on screen. One
  *    description, two canvases, no second design.
  *
- * 4. A DIRECTION THE CANVAS HAS NO ROOM FOR IS NOT LAUNCHED. The pool is built
- *    by walking golden-angle candidates and keeping the first N whose flight is
- *    watchable at all (it reaches full opacity and lives longer than a beat).
- *    Round one shipped up to a third of its cards into geometry where the
- *    lockup gated them until they were already off the canvas: real DOM, real
- *    layers, real image requests, never seen. It also means the field re-solves
- *    itself when the lockup changes, which is what makes the headline toggle
- *    below honest rather than decorative.
+ * 4. A DIRECTION THE CANVAS HAS NO ROOM FOR IS NOT LAUNCHED. Round one launched
+ *    every golden-angle candidate, which is safe only for the one geometry it
+ *    was tuned against. The pool is now built by walking candidates and keeping
+ *    the first N whose flight is watchable at all (it reaches full opacity and
+ *    lives longer than a beat). Measured: at 1440 that drops none at the lg
+ *    step and three at xl, and at 375, where the lockup is nearly as wide as
+ *    the canvas, it drops 35 and 43 respectively, which is more than half the
+ *    compass. Those are the frames that would otherwise be DOM, composited
+ *    layers and image requests for something gated until it is already off the
+ *    edge. It also means the field re-solves itself when the lockup changes,
+ *    which is what makes the headline toggle below honest rather than
+ *    decorative.
  *
  * 5. THE FIRST BEAT IS THREE BEATS. A 260 ms hold (the code alone), then the
  *    slip (the frames with the corridor sliding out from behind the plate),
@@ -99,10 +103,12 @@ import {
  * "no photograph is ever under a word" is not a hope about the layout; it is
  * the condition the field is drawn from, in every direction and at every moment
  * of the loop. The corridor between the headline's box and the caption's is
- * what a frame leaving the plate has to fit through, so round two bought it 30
- * px by moving the headline 18 px further off the code and the caption 12 px
- * down: that corridor is the whole reason a frame can be a photograph rather
- * than a speck as it appears.
+ * what a frame leaving the plate has to fit through, and round two took it from
+ * 105 px to 164 px by moving the headline 18 px further off the code, the
+ * caption 12 px down, and measuring both blocks to their INK rather than to
+ * their line boxes. That corridor is the whole reason a frame can be a
+ * photograph rather than a speck as it appears; it is also, at 375, the only
+ * lane a frame can be born in at all.
  */
 
 /* ── The field's constants ── */
@@ -243,7 +249,7 @@ const GEO: Record<Mode, Geo> = {
     zRun: 900,
     zLo: 0.25,
     scaleNorm: 0.95,
-    s0: 0.18,
+    s0: 0.24,
     s0e: 0.05,
     s1a: 0.1,
     sk: 1.4,
@@ -271,7 +277,7 @@ const GEO: Record<Mode, Geo> = {
     zRun: 300,
     zLo: 0.3,
     scaleNorm: 0.9,
-    s0: 0.18,
+    s0: 0.24,
     s0e: 0.05,
     s1a: 0.1,
     sk: 1.4,
