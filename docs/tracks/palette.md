@@ -807,8 +807,11 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
   slot roughly every 14.4 minutes (100 a day), and the list bears that out to the minute over six
   deployments (22:04:10, 22:18:42, 22:33:19, 22:48:02, 23:02:50, 23:17:14), each taken by whichever
   branch asked first. A push whose deployment is refused is not queued, so it never gets a later
-  slot on its own. **So: one attempt per slot interval, aligned to the last successful deployment in
-  the list, never a tight poll.**
+  slot on its own, and the slots are CONTESTED: while this round was handing off, the 23:31:57 slot
+  opened exactly on the interval and `lp/media-kit` took it within seconds. **So: place ONE call at
+  the boundary (the newest READY deployment's timestamp plus 14m24s), from the deployment list, and
+  expect to lose it to another branch sometimes; never a tight poll.** Four attempts across three
+  intervals did not win one here, which is why this handoff is written against a local server.
 - **So this round's QA was taken on a local production-equivalent dev server in the worktree**
   (`pnpm dev` in the worktree, the lab key on every URL), which serves the head exactly. Every
   number below was measured there through the DOM rather than eyeballed. One thing to know if you
