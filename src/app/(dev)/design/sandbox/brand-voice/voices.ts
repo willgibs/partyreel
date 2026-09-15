@@ -877,6 +877,21 @@ export const UTILITY_HEROES: UtilityHero[] = [
   },
 ];
 
+/** What a voice costs the three pages, counted like every other chapter. The
+ *  two article heads are outside the count and stated separately: they hold in
+ *  every column, which is the finding. */
+export function utilityDiff(id: VoiceId): { moved: number; total: number } {
+  let moved = 0;
+  let total = 0;
+  for (const h of UTILITY_HEROES) {
+    for (const t of [h.eyebrow, h.header, h.support]) {
+      total += 1;
+      if (!held(t, id)) moved += 1;
+    }
+  }
+  return { moved, total };
+}
+
 /**
  * Two help article heads, verbatim from `content/help`. The guide's surfaces
  * table names a help article and the board had never shown one; both hold, for

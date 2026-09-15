@@ -39,6 +39,7 @@ import {
   pageCardDiff,
   pick,
   sectionHeadersPaste,
+  utilityDiff,
   voiceById,
   type ArcSection,
   type PageCard,
@@ -1030,6 +1031,7 @@ function HelpHead({
 }
 
 function UtilityChapter({ voice, mode }: { voice: VoiceId; mode: Mode }) {
+  const util = utilityDiff(voice);
   const hero = (h: UtilityHero) => (
     <PageHero
       key={h.route}
@@ -1068,6 +1070,16 @@ function UtilityChapter({ voice, mode }: { voice: VoiceId; mode: Mode }) {
         {UTILITY_HEROES.filter((h) => h.ground === "paper").map(hero)}
       </FitStage>
       <div className="space-y-2 pt-3 text-xs leading-relaxed text-muted-foreground">
+        <p>
+          <span className="text-foreground">
+            {voice === "today"
+              ? `${util.total} lines across the three heroes.`
+              : `${util.moved} of ${util.total} lines move across the three heroes.`}
+          </span>{" "}
+          Both article heads hold in every column, which is the finding rather
+          than an omission: the 59 articles were written to the shape the guide
+          prescribes, so a voice ruling costs the help catalogue nothing.
+        </p>
         {UTILITY_HEROES.map((h) => (
           <p key={h.route}>
             <span className="text-foreground">{h.route}. </span>
