@@ -2,23 +2,15 @@
 
 import { type CSSProperties, useState } from "react";
 
-import { Stage, Toggle, type Ground, type Mode } from "@/components/dev/board";
+import { Stage, Toggle, type Ground, type Mode } from "@/components/lab";
 import { LAMP_SET } from "@/components/dev/lamp-set";
 import { Glow, type GlowVars } from "@/components/shared/glow";
 
+import { Knob, Labeled, Paste } from "@/components/lab";
+
 import { PAPER_FIVE_VALUES } from "./candidates";
 import { SECTIONS, sectionById, type SectionId } from "./sections";
-import {
-  AURORA_DUR,
-  Knob,
-  KnobNote,
-  Labeled,
-  Part,
-  Paste,
-  Takeaway,
-  WipeControl,
-  type GlowDriveId,
-} from "./shared";
+import { AURORA_DUR, KnobNote, Takeaway, WipeControl, type GlowDriveId } from "./shared";
 
 /**
  * THE SECTION COMPOSER (round four, 2026-09-15): the board's centrepiece.
@@ -496,12 +488,10 @@ export function ComposerPart({
   mode,
   ground,
   register,
-  rules,
 }: {
   mode: Mode;
   ground: Ground;
   register: Register;
-  rules: string[];
 }) {
   const [section, setSection] = useState<SectionId>("guests");
   const [treatment, setTreatment] = useState<Treatment>("aurora");
@@ -564,37 +554,7 @@ export function ComposerPart({
   };
 
   return (
-    <Part
-      n="03"
-      id="composer"
-      title="The composer: light for any section"
-      rules={rules}
-      lede={
-        <>
-          <p>
-            Pick a section type, a treatment and where it sits, and the real
-            production component wears it at 1:1, with the unlit version of
-            itself on the other side of the wipe. Nine sections: a hero, four
-            chapters, two media strips, the pricing band and the footer, each at
-            the ground the page actually gives it.
-          </p>
-          <p>
-            The composer enforces the grammar rather than describing it. A
-            placement a treatment cannot take is not offered; a section that
-            refuses a treatment says so in its own words and still renders it,
-            because the refusals are the most useful thing here. Two placements
-            are kept selectable on purpose and neither is a candidate: the
-            middle is the placement error and the room is the engine{"'"}s own
-            warning, both worth seeing go wrong once.
-          </p>
-          <p>
-            Every configuration exports both halves of what a wiring round
-            needs, below the stage: the CSS a ruling lands, and the JSX a
-            section is wrapped in.
-          </p>
-        </>
-      }
-    >
+    <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <Knob label="Section">
           <Toggle
@@ -752,12 +712,12 @@ export function ComposerPart({
       <div className="grid gap-4 lg:grid-cols-2">
         <Paste
           label="The paste: what a ruling lands in globals.css"
-          css={pasteFor(config)}
+          code={pasteFor(config)}
           lines={8}
         />
         <Paste
           label="The mount: what a section is wrapped in"
-          css={mountFor(config)}
+          code={mountFor(config)}
           lines={8}
         />
       </div>
@@ -774,6 +734,6 @@ export function ComposerPart({
         shape: a wrapper that owns one light, takes children, and keeps the
         engine{"'"}s invariants where a call site cannot break them.
       </Takeaway>
-    </Part>
+    </div>
   );
 }

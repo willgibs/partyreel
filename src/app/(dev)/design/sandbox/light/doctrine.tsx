@@ -1,7 +1,9 @@
 "use client";
 
+import { Paste } from "@/components/lab";
+
 import { ENGINE_DRIVE_FIX, LIGHT_CANDIDATES } from "./candidates";
-import { Part, Paste } from "./shared";
+
 
 /**
  * THE DOCTRINE AS A DIFF (round two, 2026-09-14).
@@ -247,36 +249,9 @@ const STAYS = [
   "Every animation inside the reduced-motion block, and every lamp's rest state designed.",
 ];
 
-export function DoctrinePart({ rules }: { rules: string[] }) {
+export function DoctrinePart() {
   return (
-    <Part
-      n="07"
-      id="paste"
-      title="The ruling, as a paste"
-      rules={rules}
-      lede={
-        <>
-          <p>
-            The doctrine in design-system.md{"'"}s own shape rather than in the
-            board{"'"}s: the exact markdown that replaces each block, headed by
-            the block it lands under and the line that stands there today. A
-            ruling is a few words and the Orchestrator pastes rather than
-            rewrites, which is the difference between landing a decision and
-            re-interpreting it.
-          </p>
-          <p>
-            Nothing here is new thinking. Every block names the part of the
-            board that argues it, and the CSS below is the same bytes the apply
-            buttons hand the browser, so a value cannot drift between what you
-            walked and what gets written down.
-          </p>
-          <p>
-            Each block opens on its first lines and expands on the button beside
-            it. Copy takes the whole thing either way, open or closed.
-          </p>
-        </>
-      }
-    >
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-8">
         {REPLACEMENTS.map((r) => (
           <div key={r.id} className="flex flex-col gap-2">
@@ -289,7 +264,7 @@ export function DoctrinePart({ rules }: { rules: string[] }) {
                 <span className="font-medium">Argued on:</span> {r.argued}
               </p>
             </div>
-            <Paste label="The replacement" css={r.markdown} />
+            <Paste label="The replacement" code={r.markdown} />
           </div>
         ))}
       </div>
@@ -333,13 +308,13 @@ export function DoctrinePart({ rules }: { rules: string[] }) {
           </p>
         </div>
         {LIGHT_CANDIDATES.map((c) => (
-          <Paste key={c.label} label={c.label} css={c.css} />
+          <Paste key={c.label} label={c.label} code={c.css} />
         ))}
         <Paste
           label="Light: the engine's one line (the transform drive's rest state)"
-          css={ENGINE_DRIVE_FIX}
+          code={ENGINE_DRIVE_FIX}
         />
       </div>
-    </Part>
+    </div>
   );
 }

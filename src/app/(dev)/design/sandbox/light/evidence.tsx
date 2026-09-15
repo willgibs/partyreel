@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 
 import {
   Stage,
@@ -8,7 +8,7 @@ import {
   type Ground,
   type LabFit,
   type Mode,
-} from "@/components/dev/board";
+} from "@/components/lab";
 import { LAMP_SET } from "@/components/dev/lamp-set";
 import { Glow } from "@/components/shared/glow";
 import { cn } from "@/lib/utils";
@@ -26,19 +26,10 @@ import {
   type Register,
   type Temperature,
 } from "./composer";
+import { ApplyToSite, CostMeter, Knob, Labeled } from "@/components/lab";
+
 import { sectionById, type SectionId } from "./sections";
-import {
-  ApplyToSite,
-  CadenceKnob,
-  CostMeter,
-  Knob,
-  Labeled,
-  Part,
-  Takeaway,
-  useClocks,
-  WipeControl,
-  type GlowDriveId,
-} from "./shared";
+import { CadenceKnob, Takeaway, useClocks, WipeControl, type GlowDriveId } from "./shared";
 
 /**
  * WHAT DECIDED THE NUMBERS (round four, 2026-09-15).
@@ -182,35 +173,45 @@ export function EvidencePart({
   mode,
   ground,
   register,
-  rules,
 }: {
   mode: Mode;
   ground: Ground;
   register: Register;
-  rules: string[];
 }) {
   const [drive, setDrive] = useState<GlowDriveId>("transform");
   const [grainWipe, setGrainWipe] = useState(50);
   const specimen = useRef<HTMLDivElement | null>(null);
+  const [statics, setStatics] = useState<string | null>(null);
+
+  // ★ READ OFF THE SPECIMEN, NEVER TYPED. The stage may be zoom-fitted to the
+  // column, so every measured box is divided back out to the 1:1 pixels the
+  // chapter would really paint. The kit's meter prints this line; only the
+  // board knows what a lamp is, so the reading lives here.
+  useEffect(() => {
+    const host = specimen.current;
+    if (!host) return;
+    const stage = host.querySelector<HTMLElement>("[data-ground]");
+    const fields = [...host.querySelectorAll<HTMLElement>("[data-glw-field]")];
+    if (!stage || !fields.length) return;
+    const zoom = Number(getComputedStyle(stage).zoom) || 1;
+    const dpr = window.devicePixelRatio || 1;
+    const box = fields[0].getBoundingClientRect();
+    const w = Math.round(box.width / zoom);
+    const h = Math.round(box.height / zoom);
+    const mpx = ((w * h * dpr * dpr) / 1e6).toFixed(1);
+    const layers = host.querySelectorAll("[data-glw] div").length;
+    const filter = getComputedStyle(fields[0]).filter.replace(/"/g, "");
+    setStatics(
+      `${fields.length} lamps and ${layers} painted layers: a filtered field each, over a resting base and a travelling band. Each field is ${w} by ${h} css pixels at 1:1, ${mpx} megapixels at this screen's ${dpr}x, and each one carries ${filter}.`,
+    );
+  }, [drive]);
   const cinemaSection: SectionId = "guests";
   // The clock row prints two numbers and the knobs under it change one of them,
   // so both are read live rather than written down. See useClocks.
   const clocks = useClocks();
 
   return (
-    <Part
-      n="05"
-      id="evidence"
-      title="What decided the numbers"
-      rules={rules}
-      lede={
-        <p>
-          Five instruments, each kept only because it decided a line in the kit.
-          Every block ends in the line it produced. A measurement that produced
-          none is not on this board.
-        </p>
-      }
-    >
+    <div className="flex flex-col gap-4">
       {/* ── THE DRIVE, AND WHAT IT COSTS ─────────────────────────────────── */}
       <div className="flex flex-col gap-3 pt-2">
         <h3 className="text-[13px] font-semibold">
@@ -244,7 +245,7 @@ export function EvidencePart({
             onChange={setDrive}
           />
         </Knob>
-        <div ref={specimen} data-lgt-solo-target>
+        <div ref={specimen} data-lab-solo-target>
           <Labeled
             name="The guest ledger at the accent register"
             note="The meter runs on this specimen with every other lamp on the board hidden."
@@ -259,7 +260,26 @@ export function EvidencePart({
             />
           </Labeled>
         </div>
-        <CostMeter drive={drive} setDrive={setDrive} targetRef={specimen} />
+        {/* The kit's meter runs the phases a board declares; the three here
+            are the board's own argument (no lamp, the aurora as built, the same
+            aurora on the cheap drive), and the solo attribute it sets is what
+            board.css section 8 reads to hide the other twenty-two lamps. */}
+        <CostMeter
+          phases={[
+            { id: "off", label: "No lamp (the chapter alone)", solo: "none" },
+            {
+              id: "mask",
+              label: "The aurora as built (mask drive)",
+              enter: () => setDrive("mask"),
+            },
+            {
+              id: "transform",
+              label: "The same aurora, transform drive",
+              enter: () => setDrive("transform"),
+            },
+          ]}
+          statics={statics}
+        />
         <Takeaway lands="one line of globals.css: glw-drift-x's from-keyframe, declared outside the reduced-motion block.">
           The field takes the transform drive and a lamp keeps the mask drive:
           the same light, a fraction of the repaint, and the difference between
@@ -438,7 +458,7 @@ export function EvidencePart({
           </Labeled>
         </div>
 
-        <ApplyToSite candidate={PAPER_FIVE} />
+        <ApplyToSite block={PAPER_FIVE} />
         <Takeaway lands="--lamp-1..5, re-declared on .surface-paper.">
           A ground changes what a hue means, so the lamp set needs a second
           declaration rather than a global compromise. The hues do not move: 85
@@ -547,7 +567,7 @@ export function EvidencePart({
           />
         </Labeled>
       </div>
-    </Part>
+    </div>
   );
 }
 

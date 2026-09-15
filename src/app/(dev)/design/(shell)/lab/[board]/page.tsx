@@ -23,9 +23,10 @@ import { BOARD_COMPONENTS } from "../boards";
  * catalog record (the ruling so far in one line, the pointers); the page is
  * wide (the sidebar tucks away by preference, the TOC column yields to the
  * dock's Sections menu); the dock reads the board's neighbours from the
- * context this page provides. A board with a spec (sandbox/registry.ts)
- * renders through the kit's template once the lab-kit track lands it; until
- * then every board is `legacy` and draws its own body.
+ * context this page provides. A board with a spec (sandbox/registry.ts) renders
+ * through the kit's template and answers in its own first block, so this header
+ * stays a record card and says nothing the Answer is about to say; a board
+ * without one is `legacy` and draws its own body under its note.
  */
 export default async function BoardPage({
   params,
@@ -67,7 +68,11 @@ export default async function BoardPage({
       <WidePage>
         <PageHeader
           title={ruling.title}
-          description={spec?.question ?? `${board.note}.`}
+          // A board on the template answers in its own first block (the kit's
+          // Answer: the question, the verdict, the asks as pills), so the
+          // header must not say it first: two statements of the same question,
+          // one above the other, is the density the template exists to end.
+          description={spec ? undefined : `${board.note}.`}
           badges={
             <>
               <Tag>{SURFACE_LABEL[ruling.surface]}</Tag>

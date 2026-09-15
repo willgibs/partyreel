@@ -73,7 +73,7 @@ function TreatmentRows({ job }: { job: JobId }) {
 
 export function KitBlock() {
   return (
-    <section id="lgt-kit" className="flex scroll-mt-6 flex-col gap-5">
+    <div className="flex flex-col gap-5">
       <div className="max-w-2xl space-y-2">
         <h2 className="text-sm font-semibold tracking-tight">
           <span className="mr-2 text-muted-foreground tabular-nums">01</span>
@@ -179,6 +179,6 @@ export function KitBlock() {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

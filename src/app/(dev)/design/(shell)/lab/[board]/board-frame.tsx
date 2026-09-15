@@ -3,7 +3,7 @@
 import {
   BoardPageProvider,
   type BoardPageContextValue,
-} from "@/components/dev/board/board-page-context";
+} from "@/components/lab/board-page-context";
 
 /** Provides the board's identity, sections and neighbours to its dock. */
 export function BoardFrame({

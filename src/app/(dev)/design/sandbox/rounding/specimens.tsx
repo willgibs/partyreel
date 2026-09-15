@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
+import { CellLabel } from "@/components/lab";
+
 import { cardMultiplier, type LadderId, px, stepValue } from "./candidates";
 
 /**
@@ -65,87 +67,11 @@ export const TILES = [
   "festival-crowd",
 ];
 
-/** A section of the board: the heading, the case, the specimens. The id is the
- *  anchor, because a ruling conversation wants to point at one part. */
-export function Part({
-  n,
-  title,
-  lede,
-  children,
-}: {
-  n: string;
-  title: string;
-  lede: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <section
-      id={`rnd-${n.toLowerCase()}`}
-      className="flex scroll-mt-6 flex-col gap-4"
-    >
-      <div className="max-w-2xl">
-        <h2 className="text-sm font-semibold tracking-tight">
-          <span className="mr-2 text-muted-foreground tabular-nums">{n}</span>
-          {title}
-        </h2>
-        <div className="mt-1.5 space-y-2 text-xs leading-relaxed text-muted-foreground">
-          {lede}
-        </div>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-/** What a part lands on, stated on the board rather than in a doc. */
 export function Proposal({ children }: { children: React.ReactNode }) {
   return (
     <p className="max-w-2xl border-l-2 border-foreground/25 pl-3 text-xs leading-relaxed text-foreground">
       {children}
     </p>
-  );
-}
-
-/** The per-cell label: the body face with tabular figures, one step under the
- *  lab's caption. Never a mono face (there is no mono in the product). */
-export function CellLabel({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <p
-      className={cn(
-        "text-[11px] leading-snug text-muted-foreground tabular-nums",
-        className,
-      )}
-    >
-      {children}
-    </p>
-  );
-}
-
-/** A toggle group with a VISIBLE name. The shell's Toggle carries an
- *  ariaLabel and nothing on screen, so three unlabelled pill groups in a row
- *  is three questions a stranger has to answer by clicking (round three's cold
- *  walk). The label is the answer, in four words. */
-export function Labeled({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    // flex-wrap, because the label plus a four-option group is 382px and the
-    // phone canvas is 375: unwrapped it took the whole document into a
-    // horizontal scroll for the sake of one word.
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-      <span className="text-[11px] text-muted-foreground">{label}</span>
-      {children}
-    </div>
   );
 }
 

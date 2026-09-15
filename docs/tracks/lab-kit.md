@@ -1,8 +1,9 @@
 ---
 track: lab-kit
-status: open
-cut: "<filled at boot: the launch-prep SHA you cut from>"
-preview: false
+status: integrated
+cut: "2644310d67d9c3c2bb5c9cb7aafa84b26322311b"
+merged: "22c0dc81"      # the branch head merged into launch-prep
+preview: true
 owns:
   - src/components/lab/
   - src/components/dev/board/
@@ -127,14 +128,137 @@ section; `/design/lab/kit` renders every piece. The gate and `pnpm lab:smoke` gr
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-<track>-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Shared-file changes asked of the Orchestrator (a `_data/` module, `touchpoints.ts`, `next.config.ts`): none
-- Assets requested from Will: none
-- Look at first: ...
+- Last code commit `5ca30f1e`; this manifest commit is the branch head, pushed. Preview: partyreel-git-lp-lab-kit-partyreel.vercel.app
+- Synced with launch-prep at `995959c4` (lab-library and lab-rules integrated); clean merge, no conflicts
+- Gates on the synced tree: typecheck ok, lint ok (0 errors), test ok (2062 in 212 files), build ok (256 static pages), `pnpm design:rules` regenerated (no diff: the contracts are pending, below), `pnpm lab:smoke --base http://localhost:3403` ok (262 checks, 0 failing)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is 63 files, every one inside `owns` plus this manifest. No exceptions.
+
+### Shared-file changes asked of the Orchestrator
+
+Four, each a small exact patch. None blocks a walk; the first is the one Will will feel.
+
+**1. The tuner panel overlaps the evidence** (`src/components/dev/motion-tuner.tsx`, the Orchestrator's,
+plus `src/app/(dev)/design/design.css`, lab-shell's). The panel is `fixed bottom-3 right-3` and at 375 it
+is 320 of 375, so it covers the rounding board entirely until the reader collapses it. The rounding board
+carries `usePanelAwareWidth` as a stand-in (it measures `[data-motion-tuner]` and holds the wide parts
+clear), which is a board doing the shell's job. The fix is two lines:
+
+In `motion-tuner.tsx`, in the effect that runs when `open` changes, on `document.documentElement`:
+```
+html.toggleAttribute("data-lab-panel", open);
+html.style.setProperty("--lab-panel-w", open ? "20rem" : "0px");
+```
+(cleared on unmount, like the dock clears `--board-dock-h`.)
+
+In `design.css`, beside the other `[data-lab-*]` rules:
+```
+@media (min-width: 1024px) {
+  html[data-lab-panel] .board-page { padding-right: calc(var(--lab-panel-w, 0px) + 1rem); }
+}
+```
+Below 1024 the right answer is to collapse the panel, not to squeeze a board into 43px, so the rule is
+deliberately desktop-only. With both landed, `usePanelAwareWidth` in `sandbox/rounding/board.tsx` can go.
+
+**2. Publish the kit's contracts** (`src/app/(dev)/design/rules/component-notes.ts`, lab-library's).
+Three test files carry `@contract-for-pending:` rather than `@contract-for:` because the collector
+indexes every file a contract names, and an indexed file owes a `for` line or `gallery.test.ts` fails.
+The nine lines, ready to paste into `COMPONENT_NOTES`:
+
+```ts
+  /* the lab kit (src/components/lab) */
+  "src/components/lab/index.ts": {
+    for: "the lab kit's one import surface; nothing outside /design may import it (boundary.test.ts)",
+    unspecimened: "a barrel, not a component",
+  },
+  "src/components/lab/board-spec.ts": {
+    for: "what an exploration board IS as data: the question, the verdict, the asks, the sections, the controls, the walk",
+    unspecimened: "pure types and the density limits; the specimen is any board",
+  },
+  "src/components/lab/board-page.tsx": {
+    for: "the template every board renders through: the dock, the answer, the index, the sections, the meta, in one fixed order",
+    unspecimened: "its specimen is a whole board (/design/lab/light)",
+  },
+  "src/components/lab/board-state.tsx": {
+    for: "a board's declared controls, read from the URL rather than mirrored to it, so a link reopens the exact canvas and candidate",
+    unspecimened: "a hook; the dock on any board is the specimen",
+  },
+  "src/components/lab/dock.tsx": {
+    for: "a board's page-wide controls, always on screen, with the shell's reading controls at its right end",
+  },
+  "src/components/lab/frame.tsx": {
+    for: "the only 1:1 surface the lab has: a same-origin iframe wearing a candidate as an adopted stylesheet, in scroll-locked rows",
+    unspecimened: "it loads real pages; mounting one on a library page would load the site into the library",
+  },
+  "src/components/lab/specimen.tsx": {
+    for: "the judged thing and the line that names it; a label is never inside the judged area and a stage never goes in a Cell",
+  },
+  "src/components/lab/apply.tsx": {
+    for: "hands the whole site the exact block a ruling would land; a radio across a board, never a checkbox on each candidate",
+  },
+  "src/app/(dev)/design/sandbox/registry.ts": {
+    for: "every standing board's spec, imported here and nowhere else, so the desk, the board page and the ledger read one list",
+    unspecimened: "a registry; the boards are the specimens",
+  },
+```
+
+Then one command, and `pnpm design:rules`:
+```
+grep -rl '@contract-for-pending' src | xargs sed -i '' 's/@contract-for-pending/@contract-for/'
+```
+
+**3. Optional, and the cleaner version of 2** (`scripts/design-rules/collect.mjs`, lab-rules'): add
+`"src/components/lab"` to `COMPONENT_DIRS` so the kit is indexed like any component family rather than
+only through its contracts. Then `(shell)/lab/kit/notes.ts` (my local `for`-line map, written in
+`COMPONENT_NOTES`'s own shape and marked as a stand-in) can be deleted and the kit page can read the
+index like every library page does.
+
+**4. Optional** (`package.json`): a `"new-board": "node scripts/new-board.mjs"` script. Deliberately not
+taken: `package.json` is nobody's lane in a parallel round and a one-line convenience is not worth a
+contended edit. The script works as `node scripts/new-board.mjs <id> "<title>"` today.
+
+### For lab-desk
+
+`scripts/lab-review.mjs` does not exist yet (its lane). The review panel already emits the line it will
+parse, matching `docs/reviews/README.md` exactly; verified live on the light board:
+`review light r5: kit=land; cadence=8s "a hair slower would still read"; note: "read the kit block first"`
+Unanswered asks are omitted rather than defaulted, ask ids and option tokens are emitted (never the
+question text), and a note's inner double quotes are downgraded to single so the clause cannot break.
+
+- Assets requested from Will: none. (The two the light board asks for and the one rounding asks for are
+  the boards' own and already ride their specs' `assets`, which the meta panel now renders from one source.)
+
+### Look at first
+
+1. `/design/lab/light` at 1440. The first screen is the whole change: the question, the verdict in the
+   heading face, what would change its mind, one line of what this round changed, then the nine calls as
+   option pills with the recommendation filled and a "See it" link into the evidence. Compare it with any
+   board still on the legacy path (`/design/lab/palette`), which opens with three paragraphs of history
+   and puts the asks 17,000px down.
+2. Press **Look first** in the dock. Six steps; step 2 sets the register to identity AND lands on the
+   composer, and the URL follows, so the step is a coordinate rather than a link.
+3. Scroll to **Rule on it** at the bottom. Answer two asks, type a note, press Copy as message. That line
+   is the whole review protocol; the lab never writes the repo.
+4. `/design/lab/rounding`, part A. Two real home pages side by side at true pixels, one wearing today and
+   one wearing the candidate, scrolled together. Flip the surface rail in the dock: the same documents
+   re-skin in place, no reload, no scroll lost.
+5. `/design/lab/kit`. Twenty-two pieces with a line each, live specimens, and the sixteen traps, each one
+   a round somebody already paid for.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The lab kit moved from `src/components/dev/board` to
+`src/components/lab` and grew from four pieces to twenty-two: the `BoardPage` template, which renders a
+board's spec answer-first in one fixed order for every board; `Frame`, the true-viewport iframe that
+injects a candidate as an adopted stylesheet constructed in the frame's own realm and joins scroll-locked
+rows; `Compare`, whose "what differs" line is required; the specimen furniture, the measurements that read
+the computed cascade rather than a typed literal, `ApplyToSite`, the executable walk, and the review panel,
+which composes one ledger line to paste into chat and never writes the repo. A board became two files, a
+pure `spec.ts` and a `board.tsx` of evidence, with `registry.test.ts` pinning the density limits and
+refusing a spec that imports React, CSS or its own board; `light` and `rounding` were migrated onto it and
+lost their local copies of `Part`, `Knob`, `Paste`, `ApplyToSite`, `Cell`, `CostMeter` and `PageFrame`, a
+discipline test refusing the next one. The fourteen landmines the boards had each paid for separately were
+written down once in `traps.ts` and rendered on `/design/lab/kit`, and two more were found by red-teaming
+the new code: a cross-origin `contentWindow` is a proxy whose first property access throws, which took a
+whole board to its error boundary when a reader followed a link out of a frame, and an unwrapped six-option
+toggle at 375 took the document into a horizontal scroll (1456px, now 391). The old path stays a re-export
+shim until the last board migrates.
