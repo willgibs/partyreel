@@ -27,18 +27,26 @@ import { FRAMES, type Mode } from "../home-hero/shared";
  * on mount with a 45 ms stagger capped at 540 ms), which is the ONLY motion on
  * this half of the page: nothing here loops, nothing drifts, and the hero above
  * keeps the whole of the eye's appetite for movement. Production components are
- * composed and never edited, so the one production change this board argues for
- * is made from the outside, in album.css, where it can be read as a diff.
+ * composed and never edited, so the production change this board argues for is
+ * made from the outside, in album.css, where it can be read as a diff.
  *
- * THE ONE ARGUMENT: THE COLUMN COUNT. `GuestMasonry` is `columns-2` at every
- * width, which is right on the phone it was designed for and wrong on the
- * laptop the host opens the album on and wrong on the marketing page that shows
- * it: two columns of a 1440 canvas are 700 px tiles, so four photographs fill a
- * screen. The board shows both under the dock's Album switch. "Shipped" is
- * `column-count: 2` exactly as it ships; "Wide" is the same component with that
- * one number driven from the width it was given (album.css). It is an APP-UI
- * change and therefore a candidate, not a fait accompli: Will opened the app's
- * UI to the lab tracks on 2026-09-15, and the ask is in BoardMeta.
+ * THE ONE ARGUMENT: THE ALBUM'S WIDTH, AND IT IS TWO DECLARATIONS, NOT ONE.
+ * `GuestMasonry` is `columns-2` at every width, which is right on the phone it
+ * was designed for. But the number that actually decides the tile is the
+ * CONTAINER, and the shipped guest page caps its whole column at `max-w-2xl`
+ * with `px-5` (event-experience.tsx line 165, the only place GuestMasonry is
+ * ever rendered, through live-gallery.tsx): 632 px of content at EVERY
+ * viewport, 1440 included. So a shipped tile today is about 314 px, not the
+ * 576 px this board's own 1154 px frame gives it, and raising the column count
+ * ALONE would cut those same 632 px into four tiles of about 156 px, which is
+ * worse than what ships. The candidate is therefore the column rule AND a
+ * wider laptop cap. The board shows the end state under the dock's Album
+ * switch: 2 columns is `column-count: 2` exactly as it ships, responsive is
+ * the same component with that one number driven from the width it was given
+ * (album.css), inside a frame already about as wide as the widened cap would
+ * be. It is an APP-UI change and therefore a candidate, not a fait accompli:
+ * Will opened the app's UI to the lab tracks on 2026-09-15, and the arithmetic
+ * for both declarations is in BoardMeta.
  *
  * BIBLE 4: a guest surface is the HOST'S. The chrome above the grid is the
  * event's own identity, in the shape the shipped guest page uses (the
@@ -96,7 +104,9 @@ export function AlbumVisual({
        real air rather than butting the field's dissolving edge: the top pad is
        deliberately larger than the bottom one, which is the hand-off Will asked
        to be able to judge (the hero is the feeling, this is the product). */
-    <div className={`alb-album ${phone ? "px-4 pt-12 pb-10" : "px-16 pt-20 pb-16"}`}>
+    <div
+      className={`alb-album ${phone ? "px-4 pt-12 pb-10" : "px-16 pt-20 pb-16"}`}
+    >
       <BrowserFrame
         label={EVENT.url}
         className={phone ? "" : "mx-auto max-w-[1180px]"}

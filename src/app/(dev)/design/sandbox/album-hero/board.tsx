@@ -78,7 +78,11 @@ export function AlbumHeroBoard() {
   // shipped component is two columns everywhere; the candidate is two on a
   // phone and four on a laptop, so at 375 the switch is deliberately a no-op
   // and the caption under the stage says so rather than leaving a stranger to
-  // wonder whether the control is broken.
+  // wonder whether the control is broken. NOTE the desktop stage is 1154 px
+  // wide inside the browser card, which is the widened guest cap the ask
+  // argues for, NOT the 632 px event-experience.tsx ships today: four columns
+  // of today's container would be 156 px tiles, which is why the ask is two
+  // declarations and says so.
   const cols = wide ? (phone ? 2 : 4) : 2;
 
   return (
@@ -145,7 +149,7 @@ export function AlbumHeroBoard() {
             body={
               phone
                 ? "The shipped guest album, composed: the same masonry, the same tiles, the same lightbox. Two columns at 375 under either switch, which is what the candidate's responsive rule resolves to on a phone."
-                : `The shipped guest album, composed: the same masonry, the same tiles, the same lightbox, at ${cols} columns. Its only motion is the product's own entrance, so it never competes with the hero.`
+                : `The shipped guest album, composed: the same masonry, the same tiles, the same lightbox, at ${cols} columns. Its only motion is the product's own entrance, so it never competes with the hero. The frame is 1154 px, which is the widened laptop cap the ask argues for and not the 632 px the guest page ships at every viewport.`
             }
           />
           <MeasuredStage mode={mode} key={`album-${mode}-${cols}-${runId}`}>
@@ -186,14 +190,14 @@ export function AlbumHeroBoard() {
           ]}
           asks={[
             "Rule on, the headline step: lg or xl. It is the one choice that changes the composition rather than the styling, because the field is re-solved against the lockup the step draws. lg (text-7xl at 1440, text-4xl at 375) leaves the album the canvas and keeps the corridor beside the vent wide enough to be born in; xl (text-8xl, text-5xl) is the louder promise and takes about 80 px of quiet zone in every direction, which at 375 drops a further slice of the compass out of the pool.",
-            "Rule on, the album's column rule, and it is an APP-UI change, not a marketing one. Shipped is columns-2 at every width, which is right for the phone it was designed for; the candidate is two on a phone and four on a laptop (columns-2 md:columns-3 xl:columns-4 in guest-masonry.tsx). WHAT IT BUYS: a host opening their own album on a laptop sees twelve photographs where they now see four, and the marketing page can show the album wide at all. WHAT IT COSTS: a smaller tile, so a face at 1440 goes from about 700 px to about 280 px, and the masonry's natural-ratio signature reads quieter the more columns it has.",
+            "Rule on, the album's width, and it is an APP-UI change, not a marketing one, and it is TWO declarations rather than one. What decides the tile is the CONTAINER before the column count: the shipped guest page caps its whole column at max-w-2xl with px-5 (event-experience.tsx), so the album is 632 px wide at EVERY viewport, 1440 included, and columns-2 makes that two tiles of about 314 px. Raising the column count alone (columns-2 md:columns-3 xl:columns-4 in guest-masonry.tsx) would cut the same 632 px into four tiles of about 156 px, which is worse than what ships. So the candidate is that rule AND a wider laptop cap, for instance max-w-2xl lg:max-w-6xl, which is 1112 px of content at 1440 and four tiles of about 276 px. WHAT IT BUYS: the album stops being a 632 px strip down the middle of a laptop and becomes the page, at roughly twice the photographs in a screenful, and the marketing page can show the album wide at all. WHAT IT COSTS: the cap carries the WHOLE guest page, so the event header, the reel card and the action row widen with the grid; the tile goes from about 314 px to about 276 px; and the masonry's natural-ratio signature reads quieter the more columns it has. NOTE the stage above is the board's own frame at 1154 px, which is about what the widened cap would give (about 576 px at two columns, about 286 px at four), not the 632 px that ships today.",
             "Rule on, the album's life: the pulse alone, or an arrival. It ships with one live signal, a 6 px green dot pulsing every 2 s, and nothing else; the product's real behaviour is a new tile landing at the head of the album every few seconds with its green check. The second is the truer demonstration of live and is the thing most likely to fight the hero, which is why it is an ask and not a default.",
             "Rule on, the copy: the page's own lines stand (bible 21 leaves them open). The hero renders /features/album's shipped eyebrow, h1 and subhead verbatim from feature-pages.ts. The brand-voice board's proposal would rewrite the subhead here; this board proposes nothing of its own, because the field is the argument and the sentence is the page's.",
           ]}
           departures={[
             "Departure, bible 10 (the hero is unlit by the standing ruling): the frames carry a drop shadow, the light spec's LIFT family (docs/specs/light.md) at four times the offsets, because LIFT separates two cards a pixel apart and these are separated by a depth axis measured in hundreds of units. It is a shadow, never a lamp: no light source is added, no photograph is darkened, and there is no scrim anywhere on the hero.",
             "Departure, bible 13, decorative layer only: the field's FIRST FRAME (every card collapsed on the vent at no size) sits inside the prefers-reduced-motion: no-preference query, and no-preference is the DEFAULT match, so with JavaScript off the hero paints as the lockup alone on the cinema ground, no photographs behind it, until the loop takes over on the next frame. A reader who HAS asked for less motion gets the opposite and the better one: the album settled around the vent, whole and still, because that state is what the cards carry outside every query. Nothing that carries meaning is gated (the eyebrow, the h1, the sentence and the actions are plain markup at full opacity, and the field is aria-hidden), and the alternative is worse to look at, not better: paint the album settled for everyone and the loop has to snap it back to the vent on every load. Rule on whether the no-script frame should be the settled album anyway.",
-            "Departure, the production component is changed from the outside: album.css drives GuestMasonry's column count through a variable rather than forking the component, so the candidate is composed and the diff it argues for is one declaration. Nothing under src/components/guest was edited.",
+            "Departure, the production component is changed from the outside: album.css drives GuestMasonry's column count through a variable rather than forking the component, so the candidate is composed and nothing under src/components/guest was edited. The diff it argues for is two declarations, the column rule in guest-masonry.tsx and a wider laptop cap in event-experience.tsx, and the ask above carries the arithmetic for both.",
           ]}
           assets={[
             "24 event photographs as 512 x 512 squares · one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals, framed tight enough to read at 90 px (a face, two hands, a glass, a sparkler, a first dance), never a wide room shot · replaces the 12 landscape stand-ins the field cycles (FRAMES in the home hero's shared.tsx). Already asked for as docs/ASSETS.md row 2; the same 24 serve this board, and they serve the album grid below as well as the field.",

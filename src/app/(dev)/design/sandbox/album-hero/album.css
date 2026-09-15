@@ -7,15 +7,20 @@
   background: var(--background);
 }
 
-/* THE ONE PRODUCTION CHANGE THIS BOARD ARGUES FOR, made from the outside so the
+/* THE PRODUCTION CHANGE THIS BOARD ARGUES FOR, made from the outside so the
    shipped component is composed and never edited. `GuestMasonry` hard-codes
-   `columns-2`, which is the phone it was designed for; the album is also opened
-   on a laptop and shown on a marketing page, where two columns of 1440 are
-   700 px tiles. If Will rules the candidate in, the change in
-   src/components/guest/guest-masonry.tsx is this same declaration, responsive:
-   `columns-2 md:columns-3 xl:columns-4`. Driven by a variable here rather than
-   by a breakpoint because a lab stage is a CANVAS, and a Tailwind prefix inside
-   one reads the real browser viewport instead (stage.tsx). */
+   `columns-2`, which is the phone it was designed for. Read the CONTAINER
+   before the column count: event-experience.tsx caps the whole guest column at
+   `max-w-2xl` with `px-5`, so the shipped album is 632 px wide at every
+   viewport and its tile is about 314 px, while this board's frame is 1154 px
+   and its two-column tile is about 576 px. The candidate is therefore TWO
+   declarations, not one: `columns-2 md:columns-3 xl:columns-4` in
+   src/components/guest/guest-masonry.tsx AND a wider laptop cap in
+   src/components/guest/event-experience.tsx, because the column rule on its
+   own would make four tiles of about 156 px out of today's 632 px. Driven by a
+   variable here rather than by a breakpoint because a lab stage is a CANVAS,
+   and a Tailwind prefix inside one reads the real browser viewport instead
+   (stage.tsx). */
 .alb-grid :where([class~="columns-2"]) {
   column-count: var(--alb-cols, 2);
 }
