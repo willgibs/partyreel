@@ -110,7 +110,7 @@ export { Notes } from "./notes";
 
 /* The review */
 export { composeReviewMessage, ReviewQuestions } from "./review";
-export { useDesignKey, Walk } from "./walk";
+export { useDesignKey, Walk, WalkPages } from "./walk";
 
 /* The traps, documented once */
 export { TRAPS, type Trap } from "./traps";

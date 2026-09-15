@@ -4,7 +4,9 @@ import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { anchorFor, type BoardSpec } from "./board-spec";
+import { withDesignKey } from "@/lib/design-gate/links";
+
+import { anchorFor, type BoardSpec, type WalkPage } from "./board-spec";
 import { DOCK_PILL } from "./dock";
 
 /**
@@ -119,5 +121,48 @@ export function Walk({
         </>
       )}
     </span>
+  );
+}
+
+/**
+ * THE WALK AN APPLIED BLOCK REACHES: the board's `links.pages`, keyed.
+ *
+ * A board that hands the site a candidate has to say where to go and look at
+ * it, or the Apply button is a control with no consequence a reviewer can see.
+ * The pages come from the spec, so the board says it once and the desk can read
+ * the same list.
+ *
+ * ★ EVERY LINK CARRIES THE GATE KEY. A lab page's candidate rides the tuner
+ * store, and the islands that render it only mount where the gate is open, so a
+ * keyless walk link lands on the page wearing nothing and reads as a broken
+ * Apply. `withDesignKey` is fragment-aware for the same class of reason.
+ */
+export function WalkPages({
+  pages,
+  className,
+}: {
+  pages: readonly WalkPage[];
+  className?: string;
+}) {
+  const key = useDesignKey();
+  if (pages.length === 0) return null;
+  return (
+    <p className={cn("text-[11px] leading-relaxed text-muted-foreground", className)}>
+      Walk it:{" "}
+      {pages.map((p, i) => (
+        <span key={p.path}>
+          <a
+            href={withDesignKey(p.path, key ?? null)}
+            className="text-foreground underline underline-offset-2"
+            title={p.note}
+          >
+            {p.label}
+          </a>
+          {i < pages.length - 1 ? ", " : ""}
+        </span>
+      ))}
+      . The app pages want the host signed in, and the key rides the query
+      string.
+    </p>
   );
 }
