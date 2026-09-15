@@ -12,6 +12,8 @@ reads:
   - src/components/dev/board/dock.tsx
   - src/components/dev/board/board-meta.tsx
   - src/components/marketing/system/section-shell.tsx
+  - src/components/guest/gallery-empty-state.tsx   # composed unedited as the A/B's first half
+  - src/components/guest/event-experience.tsx      # the guest column the A/B renders at (max-w-2xl, px-5)
   - src/lib/constants/feature-pages.ts
   - src/lib/constants/marketing-media.ts
   - src/lib/shared/use-ambient-pause.ts
