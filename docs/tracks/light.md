@@ -332,7 +332,8 @@ all when their reel goes live.
 ## Handoff (round 2)
 
 - Head: the tip of `lp/light`, pushed (the board's content is `be34aba`, the sync merge of
-  `launch-prep` at `4b035c1`, the two review fixes `76ef0c0` and `46837cf`, and this manifest on top);
+  `launch-prep` at `4b035c1`, the two review fixes `76ef0c0` and `46837cf`, this manifest, and the
+  second sync merge of `launch-prep` at `1cf4cea` on top);
   preview partyreel-git-lp-light-partyreel.vercel.app. The board is
   `/design/c/light?key=...`; five anchors now, `#lgt-a` .. `#lgt-e` (part E is the doctrine as a paste).
 - What changed after the read-only review of `471b8db` (all four should-fix items, all inside the lane):
@@ -356,9 +357,12 @@ all when their reel goes live.
     the sibling and the ratio, the CSS lede says why the dark grounds are named surface by surface).
   - The light-QA claim below is redone: the board was walked on the preview at 1440 and at 375, and
     the bytes that changed since are walked on the running app.
-- Synced with `launch-prep` at `4b035c1` (it had moved 1 commit, the candidate-block doc note; merged clean).
-- Gates on the synced tree: typecheck ok, lint ok (0 findings in the lane; 7 pre-existing warnings
-  elsewhere), test ok (1698), build ok (248 static pages, 114 routes).
+- Synced with `launch-prep` twice: at `4b035c1` mid-round (1 commit, the candidate-block doc note) and
+  again at `1cf4cea` before this handoff (9 commits, all of them hero-river's own lane and its
+  manifest, so no overlap with this track's files or its reads). Both merged clean.
+- Gates on the synced tree, re-run after the review fixes and after the second sync: typecheck ok,
+  lint ok (0 findings in the lane; 7 pre-existing warnings elsewhere), test ok (1698), build ok
+  (248 static pages, 114 routes).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/light.md` +
   `src/app/(dev)/design/sandbox/light/{aurora,beats,board,candidates,chapters,depth,doctrine,shared}`
   (`board.css` too). No exceptions. No production byte changed: the board composes `<Glow>`, imports
