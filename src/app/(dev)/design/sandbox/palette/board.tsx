@@ -531,8 +531,13 @@ export function PaletteBoard() {
 
   return (
     <div className="flex flex-col gap-10 py-4">
-      <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
-        {QUESTION}
+      <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
+        <span className="text-foreground">How to rule from here.</span> Set the
+        ramp and the switches in the bar, read row 01 for the ladder and row 05
+        for the same frame under both, then put it on the real pages and walk
+        the six links at row 13. Seven asks at the foot, each one word. The
+        question, the departures and the asks are in the meta panel at the
+        bottom; this page is the evidence for them.
       </p>
 
       {/* The control bar follows the walk: every stage below repaints from it,
@@ -933,7 +938,7 @@ export function PaletteBoard() {
           right={ramp}
           ground="app-dark"
           mode={mode}
-          height={h(560, 1000)}
+          height={h(440, 1060)}
           label={`the stack, dark · today beside ${ramp.label}`}
           render={(r) => <SurfaceStack mode={mode} paired ramp={r} />}
         />
@@ -966,7 +971,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-dark"
             mode={mode}
-            height={h(520, 940)}
+            height={h(465, 875)}
             label={`the cues, dark · ${ramp.label}`}
           >
             <DepthRow mode={mode} />
@@ -975,7 +980,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-light"
             mode={mode}
-            height={h(520, 940)}
+            height={h(465, 875)}
             label={`the cues, light · ${ramp.label}`}
           >
             <DepthRow mode={mode} />
@@ -995,7 +1000,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="app-dark"
           mode={mode}
-          height={h(460, 540)}
+          height={h(460, 470)}
           label={`over a photograph, dark · ${ramp.label} · card ${cardMode}`}
         >
           <PhotoCards mode={mode} />
@@ -1130,7 +1135,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground={accentGround}
           mode={mode}
-          height={h(1560, 1800)}
+          height={h(1480, 1800)}
           label={`${accentGround} · ${ramp.label} · all four hues`}
         >
           <AccentWall mode={mode} dark={accentGround === "cinema"} />
@@ -1169,20 +1174,20 @@ export function PaletteBoard() {
             board opened without a key hands out URLs without one. Each opens
             in its own tab: the candidate lives in the browser, not in the page,
             so a new tab wears it and this board stays where it was. */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="grid gap-x-6 gap-y-3 sm:grid-cols-3">
           {WALK.map((w) => (
             <a
               key={w.href}
               href={`${w.href}${labKey}`}
               target="_blank"
               rel="noreferrer"
-              className="group flex items-baseline gap-1.5 text-[12px]"
+              className="group flex flex-col gap-0.5 text-[12px]"
             >
               <span className="font-medium underline decoration-border underline-offset-4 transition-colors group-hover:decoration-foreground">
-                {w.href}
+                {w.name}
               </span>
               <span className="text-[11px] text-muted-foreground">
-                {w.note}
+                {w.href} · {w.note}
               </span>
             </a>
           ))}
