@@ -14,7 +14,15 @@ import { cn } from "@/lib/utils";
 import type { Mode } from "@/components/dev/board";
 
 import { StateRow } from "./specimens";
-import { ACCENTS, accentStyle, type Accent } from "./ramps";
+import {
+  ACCENTS,
+  ACCENT_BY_ID,
+  accentStyle,
+  jobTakesAccent,
+  type Accent,
+  type AccentJob,
+  type ReachId,
+} from "./registers";
 
 /**
  * THE ACCENT WALL, rebuilt for round two as a COMPARISON.
@@ -38,20 +46,31 @@ import { ACCENTS, accentStyle, type Accent } from "./ramps";
  * is what makes the accent a two-line change rather than a sweep (theme.css:35).
  * The frames are the real production components; the small marks are copied
  * verbatim from their call sites so the sizes are honest.
+ *
+ * ROUND FOUR ADDS THE REACH, which is the board's own finding against itself:
+ * "the accent's reach" had been an ASK for two rounds with no control anywhere
+ * on the page, and round three's own rule is that a control naming an ask has
+ * to move a pixel in the evidence for it. It moves pixels here. A job outside
+ * the ruled reach renders on INK, which is exactly what the ruling lands (those
+ * call sites keep `var(--primary)`), so the wall shows the whole answer rather
+ * than the hue alone.
  */
 
 function HueColumn({
   accent,
   dark,
+  on = true,
   children,
 }: {
   accent: Accent;
   dark: boolean;
+  /** False when the ruled reach leaves this job on ink. */
+  on?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div
-      style={accentStyle(accent, dark)}
+      style={accentStyle(on ? accent : ACCENT_BY_ID.ink, dark)}
       className="flex min-w-0 flex-col gap-2"
     >
       {/* min-w-0 on the specimen row as well as the column: a grid item's
@@ -59,7 +78,12 @@ function HueColumn({
           label (job 03's toast) pushes past its column and, in the 2-column
           phone wall, 8px past the stage's own edge. Measured at 375. */}
       <div className="flex min-h-14 min-w-0 items-center">{children}</div>
-      <p className="truncate text-[11px] font-medium">{accent.label}</p>
+      <p className="truncate text-[11px] font-medium">
+        {accent.label}
+        {on ? null : (
+          <span className="ml-1 font-normal text-muted-foreground">on ink</span>
+        )}
+      </p>
     </div>
   );
 }
@@ -67,6 +91,8 @@ function HueColumn({
 function JobRow({
   n,
   name,
+  job,
+  reach,
   question,
   where,
   dark,
@@ -75,6 +101,8 @@ function JobRow({
 }: {
   n: string;
   name: string;
+  job: AccentJob;
+  reach: ReachId;
   question: string;
   where: string;
   dark: boolean;
@@ -82,6 +110,7 @@ function JobRow({
   render: (accent: Accent) => React.ReactNode;
 }) {
   const desktop = mode === "desktop";
+  const on = jobTakesAccent(job, reach);
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-baseline gap-2">
@@ -90,12 +119,17 @@ function JobRow({
         </span>
         <h3 className="text-sm font-semibold">{name}</h3>
         <p className="text-[11px] text-muted-foreground">{question}</p>
+        {on ? null : (
+          <p className="text-[11px] font-medium text-foreground">
+            outside the ruled reach, so this job keeps ink
+          </p>
+        )}
       </div>
       <div
         className={cn("grid gap-4", desktop ? "grid-cols-4" : "grid-cols-2")}
       >
         {ACCENTS.map((a) => (
-          <HueColumn key={a.id} accent={a} dark={dark}>
+          <HueColumn key={a.id} accent={a} dark={dark} on={on}>
             {render(a)}
           </HueColumn>
         ))}
@@ -105,8 +139,17 @@ function JobRow({
   );
 }
 
-export function AccentWall({ mode, dark }: { mode: Mode; dark: boolean }) {
+export function AccentWall({
+  mode,
+  dark,
+  reach = "all",
+}: {
+  mode: Mode;
+  dark: boolean;
+  reach?: ReachId;
+}) {
   const desktop = mode === "desktop";
+  const framesOn = jobTakesAccent("stand-in", reach);
   return (
     <div
       className={cn(
@@ -117,6 +160,8 @@ export function AccentWall({ mode, dark }: { mode: Mode; dark: boolean }) {
       <JobRow
         n="01"
         name="Identity"
+        job="identity"
+        reach={reach}
         question="Is a coloured mark more us than an ink one?"
         where="shared/logo.tsx:35, the single splash of --brand allowed"
         dark={dark}
@@ -127,6 +172,8 @@ export function AccentWall({ mode, dark }: { mode: Mode; dark: boolean }) {
       <JobRow
         n="02"
         name="Attention"
+        job="attention"
+        reach={reach}
         question="Look here, you are here. The job rule 1 now gives the accent."
         where="notification-bell.tsx:60 and :85, create-event-wizard.tsx:141, welcome-flow.tsx:98"
         dark={dark}
@@ -174,6 +221,8 @@ export function AccentWall({ mode, dark }: { mode: Mode; dark: boolean }) {
       <JobRow
         n="03"
         name="Attention, at size"
+        job="attention"
+        reach={reach}
         question="The chosen preset and the success row: the accent as a border and as an icon."
         where="qr-preset-picker.tsx:53 and :64, create-event-wizard.tsx:282"
         dark={dark}
@@ -197,6 +246,8 @@ export function AccentWall({ mode, dark }: { mode: Mode; dark: boolean }) {
       <JobRow
         n="04"
         name="A stand-in for media"
+        job="stand-in"
+        reach={reach}
         question="Roughly half the brand call sites are drawings of photographs that do not exist yet."
         where="marketing/frames/qr-frame.tsx:34, phone-frame.tsx:56 to 79, gallery-frame.tsx:29, album-frame.tsx:36"
         dark={dark}
@@ -215,6 +266,11 @@ export function AccentWall({ mode, dark }: { mode: Mode; dark: boolean }) {
               05
             </span>
             <h3 className="text-sm font-semibold">The frames at full size</h3>
+            {framesOn ? null : (
+              <span className="text-[11px] font-medium">
+                outside the ruled reach, so these keep ink
+              </span>
+            )}
             <p className="text-[11px] text-muted-foreground">
               The wireframes carry the accent across whole sections, so a hue
               that reads as punctuation at 6px can read as a wash here.
@@ -224,7 +280,7 @@ export function AccentWall({ mode, dark }: { mode: Mode; dark: boolean }) {
             {ACCENTS.map((a) => (
               <div
                 key={a.id}
-                style={accentStyle(a, dark)}
+                style={accentStyle(framesOn ? a : ACCENT_BY_ID.ink, dark)}
                 className="flex min-w-0 flex-col gap-2"
               >
                 <div className="flex items-start gap-3">
