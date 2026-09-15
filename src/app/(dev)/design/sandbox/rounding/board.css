@@ -50,6 +50,15 @@
   width: calc(100% + min(0px, var(--rnd-grow-right, 0px)));
 }
 
+/* The five rulings as a row rather than a column: at the width the board has
+   once the panel has its room, that is three across, and two on a narrow
+   window. auto-fit rather than a count, so it never has to know either. */
+.rnd-answer-grid {
+  display: grid;
+  gap: 0.75rem 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
 /* The live band's measuring probe: six boxes carrying border-radius:
    var(--token) and one carrying the gallery gap, read back as used pixels
    (board.tsx explains why measuring beats parsing a custom property). It has

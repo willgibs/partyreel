@@ -230,8 +230,15 @@ function usePanelAwareWidth(): React.RefObject<HTMLDivElement | null> {
         Math.min(gutter, col.left - box.left - PAGE_PAD),
       );
       let growRight = Math.min(gutter, limit - col.right);
+      // The floor may take room back FROM THE PANEL, which the reader can
+      // move, but never from the page: at 375 the same floor pushed the block
+      // 277px past the window and took the whole document into a horizontal
+      // scroll, which is the bug the two CSS versions had in a new place.
       if (col.width + growLeft + growRight < MIN_WIDE) {
-        growRight = MIN_WIDE - col.width - growLeft;
+        growRight = Math.min(
+          MIN_WIDE - col.width - growLeft,
+          box.right - PAGE_PAD - col.right,
+        );
       }
       root.style.setProperty("--rnd-grow-left", `${Math.round(growLeft)}px`);
       root.style.setProperty("--rnd-grow-right", `${Math.round(growRight)}px`);
@@ -407,7 +414,7 @@ const ROWS: Row[] = [
   {
     token: "--radius",
     label: "Surfaces",
-    note: "The base every derived step is a multiple of. 154 files carry one. Card is 1.4x of it, Input and every plate 1x.",
+    note: "154 files carry one. Card is 1.4x of it, Input and every plate 1x.",
     cell: (c, live) => (
       <SurfaceSpecimen
         radius={c.values ? c.values.radius : (live?.["--radius"] ?? null)}
@@ -417,7 +424,7 @@ const ROWS: Row[] = [
   {
     token: "--radius-float",
     label: "The floating layer",
-    note: "Menus, popovers, dialogs, toasts. Rows sit in 4px of padding.",
+    note: "Menus, dialogs, toasts. Rows sit in 4px of padding.",
     cell: (c, live) => (
       <FloatSpecimen
         float={c.values ? c.values.float : (live?.["--radius-float"] ?? null)}
@@ -438,11 +445,14 @@ const ROWS: Row[] = [
   {
     token: "--radius-action",
     label: "Actions",
-    note: "The rung is the second axis, ruled in part E. Every column wears the rung the rail is set to.",
+    note: "The rung is the rail's, the same in every column. What changes is the contrast, printed under each.",
     cell: (c, live, a) => (
       <ActionSpecimen
-        action={c.values ? a.values.action : (live?.["--radius-action"] ?? null)}
+        action={
+          c.values ? a.values.action : (live?.["--radius-action"] ?? null)
+        }
         sm={c.values ? a.values.sm : (live?.["--radius-action-sm"] ?? null)}
+        surface={c.values ? c.values.radius : (live?.["--radius"] ?? null)}
       />
     ),
   },
@@ -702,7 +712,9 @@ export function RoundingBoard() {
           ))}
           <div className="flex max-w-xs flex-col gap-2 self-center">
             <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={applyAnswer}>Apply the answer to the site</Button>
+              <Button onClick={applyAnswer}>
+                Apply the answer to the site
+              </Button>
               <Button variant="ghost" onClick={clearAll}>
                 Clear
               </Button>
@@ -748,7 +760,7 @@ export function RoundingBoard() {
       </section>
 
       {/* ── The rail: the three axes ───────────────────────────────────── */}
-      <div className="flex flex-col gap-3">
+      <div className="rnd-fit flex flex-col gap-3">
         <CellLabel>
           Every part below is drawn at the rail&apos;s setting. The four
           candidates each apply on their own from part A.
@@ -916,9 +928,11 @@ export function RoundingBoard() {
               chapter&apos;s card row and its CTA, the dashboard&apos;s event
               grid, the guest gallery, and the floating layer over content.
               Switch candidates on the rail to flicker between them. This is the
-              shell&apos;s stage, so on desktop the corner is drawn at about two
-              thirds of its true size, and on the phone canvas at 1:1. Part F is
-              the same phone canvas with every candidate side by side.
+              shell&apos;s stage, which fits a whole canvas into this column, so
+              the desktop corner is drawn smaller than its number and the phone
+              one at 1:1. The answer block and part A are the 1:1 read; this is
+              the layout. Part F is the phone canvas with every candidate side
+              by side.
             </p>
             <p>
               The guest composition carries the round&apos;s worst finding at
@@ -1141,7 +1155,8 @@ export function RoundingBoard() {
                     </div>
                     <div className="flex flex-col gap-0.5">
                       <CellLabel>
-                        {LADDERS.stock[step]}x = {px(stepValue(base, "stock", step))}
+                        {LADDERS.stock[step]}x ={" "}
+                        {px(stepValue(base, "stock", step))}
                         {"  |  "}
                         {LADDERS.quarters[step]}x ={" "}
                         {px(stepValue(base, "quarters", step))}
@@ -1336,33 +1351,41 @@ export function RoundingBoard() {
           </Labeled>
         </div>
         <div className="rnd-wide">
-          <div className="flex flex-wrap gap-4">
-            {CANDIDATES.map((c) => (
-              <div key={c.id} className="flex w-[375px] shrink-0 flex-col gap-2">
-                <div>
-                  <p className="text-sm font-medium">
-                    {c.letter}
-                    <span className="ml-1.5 text-muted-foreground tabular-nums">
-                      {c.values!.radius} / {c.values!.float} / {c.values!.tile}
-                    </span>
-                  </p>
-                  <CellLabel>{c.phone}</CellLabel>
-                </div>
-                <Stage mode="phone" ground={phoneGround} height={700}>
-                  {/* data-inview for the same reason as part B: the marketing
+          {/* A 375 canvas is wider than the board is at 375, so this row
+              scrolls inside itself rather than taking the page with it. */}
+          <div className="overflow-x-auto pb-1">
+            <div className="flex flex-wrap gap-4">
+              {CANDIDATES.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex w-[375px] shrink-0 flex-col gap-2"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {c.letter}
+                      <span className="ml-1.5 text-muted-foreground tabular-nums">
+                        {c.values!.radius} / {c.values!.float} /{" "}
+                        {c.values!.tile}
+                      </span>
+                    </p>
+                    <CellLabel>{c.phone}</CellLabel>
+                  </div>
+                  <Stage mode="phone" ground={phoneGround} height={700}>
+                    {/* data-inview for the same reason as part B: the marketing
                       card is held at opacity 0 by marketing.css until an
                       ancestor says it is in view. */}
-                  <div
-                    className="h-full overflow-y-auto"
-                    style={overrideStyle(c, action)}
-                    data-rnd-ladder={ladder}
-                    data-inview="true"
-                  >
-                    <Composition id={phoneComposition} mode="phone" />
-                  </div>
-                </Stage>
-              </div>
-            ))}
+                    <div
+                      className="h-full overflow-y-auto"
+                      style={overrideStyle(c, action)}
+                      data-rnd-ladder={ladder}
+                      data-inview="true"
+                    >
+                      <Composition id={phoneComposition} mode="phone" />
+                    </div>
+                  </Stage>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
         <Proposal>
@@ -1374,27 +1397,29 @@ export function RoundingBoard() {
         </Proposal>
       </Part>
 
-      <BoardMeta
-        question={QUESTION}
-        candidates={[
-          ...CANDIDATES.map((s) => ({
-            name: `Surfaces ${s.letter}, ${s.name}`,
-            rationale: s.rationale,
-          })),
-          ...ACTIONS.map((a) => ({
-            name: `Actions, ${a.name}`,
-            rationale: a.rationale,
-          })),
-          {
-            name: "The ladder, quarters",
-            rationale:
-              "0.5 / 0.75 / 1 / 1.25 / 1.5 / 1.75 / 2 in place of 0.6 / 0.8 / 1 / 1.4 / 1.8 / 2.2 / 2.6. Within half a pixel of stock at today's base; the difference is only visible once the base is round.",
-          },
-        ]}
-        asks={ASKS}
-        departures={DEPARTURES}
-        assets={ASSETS}
-      />
+      <div className="rnd-fit">
+        <BoardMeta
+          question={QUESTION}
+          candidates={[
+            ...CANDIDATES.map((s) => ({
+              name: `Surfaces ${s.letter}, ${s.name}`,
+              rationale: s.rationale,
+            })),
+            ...ACTIONS.map((a) => ({
+              name: `Actions, ${a.name}`,
+              rationale: a.rationale,
+            })),
+            {
+              name: "The ladder, quarters",
+              rationale:
+                "0.5 / 0.75 / 1 / 1.25 / 1.5 / 1.75 / 2 in place of 0.6 / 0.8 / 1 / 1.4 / 1.8 / 2.2 / 2.6. Within half a pixel of stock at today's base; the difference is only visible once the base is round.",
+            },
+          ]}
+          asks={ASKS}
+          departures={DEPARTURES}
+          assets={ASSETS}
+        />
+      </div>
 
       <MotionTuner controls={ROUNDING_TUNER_CONTROLS} />
     </div>

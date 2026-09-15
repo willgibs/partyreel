@@ -143,7 +143,10 @@ export function Labeled({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    // flex-wrap, because the label plus a four-option group is 382px and the
+    // phone canvas is 375: unwrapped it took the whole document into a
+    // horizontal scroll for the sake of one word.
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <span className="text-[11px] text-muted-foreground">{label}</span>
       {children}
     </div>
@@ -219,7 +222,9 @@ export function FloatSpecimen({ float }: { float: number | null }) {
       </div>
       <CellLabel>
         {float === null ? "live" : px(float)} panel, 4px padding
-        {float === null ? "" : `, so a row nests at ${px(Math.max(0, float - 4))}`}
+        {float === null
+          ? ""
+          : `, so a row nests at ${px(Math.max(0, float - 4))}`}
       </CellLabel>
     </div>
   );
@@ -246,8 +251,8 @@ export function TileSpecimen({
         ))}
       </div>
       <CellLabel>
-        {tile === null ? "live" : px(tile)} tile, {gap === null ? "live" : px(gap)}{" "}
-        gap
+        {tile === null ? "live" : px(tile)} tile,{" "}
+        {gap === null ? "live" : px(gap)} gap
       </CellLabel>
     </div>
   );
@@ -260,9 +265,15 @@ export function TileSpecimen({
 export function ActionSpecimen({
   action,
   sm,
+  surface,
 }: {
   action: number | null;
   sm: number | null;
+  /** The candidate's card radius, so the cell can print the CONTRAST, which
+   *  is the only thing that changes down this row: the rung is the same in
+   *  every column by design, and four identical cells read as a mistake. The
+   *  ratio is what bible 8 is actually claiming. */
+  surface?: number | null;
 }) {
   const pill = action !== null && action > 100;
   return (
@@ -290,6 +301,15 @@ export function ActionSpecimen({
             ? "a pill on h-11"
             : `${px(action * 0.9)} on the h-11 CTA`}
       </CellLabel>
+      {surface !== undefined && surface !== null && sm !== null ? (
+        <CellLabel className="text-foreground">
+          {surface === 0
+            ? "A square card against a round action: the widest contrast there is."
+            : `Card ${px(surface * 1.4)} against action ${px(sm)}: ${
+                Math.round((sm / (surface * 1.4)) * 10) / 10
+              } to 1.`}
+        </CellLabel>
+      ) : null}
     </div>
   );
 }
@@ -328,59 +348,63 @@ export function NestedSpecimen({
           than hidden: a hidden <Image> still loads. */}
       {!ringOnly && (
         <div>
-        <div className="flex gap-3">
-          <div className="min-w-0 flex-1">
-            <div
-              className="bg-card p-3 ring-1 ring-foreground/10"
-              style={{ borderRadius: `calc(var(--radius) * ${outerMultiplier})` }}
-            >
+          <div className="flex gap-3">
+            <div className="min-w-0 flex-1">
               <div
-                className="relative aspect-[4/3] overflow-hidden bg-muted"
-                style={{
-                  borderRadius: `max(0px, calc(var(--radius) * ${outerMultiplier} - ${padding}px))`,
-                }}
-              >
-                <Image
-                  src={marketingImage("wedding-golden").src}
-                  alt=""
-                  fill
-                  sizes="160px"
-                  className="object-cover"
-                />
-              </div>
-            </div>
-            <CellLabel className="mt-1.5">
-              Concentric. inner ={" "}
-              {inner === null
-                ? `outer minus ${padding}`
-                : `${px(outer!)} - ${padding} = ${px(inner)}`}
-            </CellLabel>
-          </div>
-          <div className="min-w-0 flex-1">
-            <div
-              className="bg-card p-3 ring-1 ring-foreground/10"
-              style={{ borderRadius: `calc(var(--radius) * ${outerMultiplier})` }}
-            >
-              <div
-                className="relative aspect-[4/3] overflow-hidden bg-muted"
+                className="bg-card p-3 ring-1 ring-foreground/10"
                 style={{
                   borderRadius: `calc(var(--radius) * ${outerMultiplier})`,
                 }}
               >
-                <Image
-                  src={marketingImage("wedding-golden").src}
-                  alt=""
-                  fill
-                  sizes="160px"
-                  className="object-cover"
-                />
+                <div
+                  className="relative aspect-[4/3] overflow-hidden bg-muted"
+                  style={{
+                    borderRadius: `max(0px, calc(var(--radius) * ${outerMultiplier} - ${padding}px))`,
+                  }}
+                >
+                  <Image
+                    src={marketingImage("wedding-golden").src}
+                    alt=""
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                  />
+                </div>
               </div>
+              <CellLabel className="mt-1.5">
+                Concentric. inner ={" "}
+                {inner === null
+                  ? `outer minus ${padding}`
+                  : `${px(outer!)} - ${padding} = ${px(inner)}`}
+              </CellLabel>
             </div>
-            <CellLabel className="mt-1.5">
-              The same token twice. Two centres, one shape short.
-            </CellLabel>
+            <div className="min-w-0 flex-1">
+              <div
+                className="bg-card p-3 ring-1 ring-foreground/10"
+                style={{
+                  borderRadius: `calc(var(--radius) * ${outerMultiplier})`,
+                }}
+              >
+                <div
+                  className="relative aspect-[4/3] overflow-hidden bg-muted"
+                  style={{
+                    borderRadius: `calc(var(--radius) * ${outerMultiplier})`,
+                  }}
+                >
+                  <Image
+                    src={marketingImage("wedding-golden").src}
+                    alt=""
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+              <CellLabel className="mt-1.5">
+                The same token twice. Two centres, one shape short.
+              </CellLabel>
+            </div>
           </div>
-        </div>
         </div>
       )}
 
@@ -633,8 +657,11 @@ export function EntrySheetSpecimen({ action }: { action: number }) {
   const corner = action > 100 ? null : action * 1.4;
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="relative h-[184px] w-full overflow-hidden rounded-lg bg-muted/40 ring-1 ring-foreground/10">
-        <div aria-hidden className="grid grid-cols-3 gap-[var(--gap-gallery)] p-1 opacity-60">
+      <div className="relative h-[230px] w-full overflow-hidden rounded-lg bg-muted/40 ring-1 ring-foreground/10">
+        <div
+          aria-hidden
+          className="grid grid-cols-3 gap-[var(--gap-gallery)] p-1 opacity-60"
+        >
           {TILES.slice(0, 3).map((id) => (
             <Tile key={id} id={id} className="aspect-square" sizes="70px" />
           ))}
