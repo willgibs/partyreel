@@ -93,9 +93,10 @@ import {
  *
  * The mechanism, one expression. A card's progress is a closed form of the
  * clock, ((slot + phase) * launch * reveal + t) mod cycle / flight, where t is
- * the clock after the hold. That is the source's lesson kept exactly: no
- * state, no timers, no per-card bookkeeping, and the recycling falls out of
- * the modulo. Everything else is that one number:
+ * the clock after the hold, held at zero until the pour and never negative
+ * (HOLD_MS). That is the source's lesson kept exactly: no state, no timers, no
+ * per-card bookkeeping, and the recycling falls out of the modulo. Everything
+ * else is that one number:
  *
  *   fall   0.6p^2 + 0.4p        gravity, so a frame leaves the code slowly
  *                               and is three times quicker at the bottom;
@@ -128,9 +129,14 @@ const POOL = CARDS / 2;
 /** The reveal that fans the seeded offsets apart, once, at the pour. */
 const REVEAL_MS = 1900;
 /**
- * THE HELD BEAT. The stream's clock does not start until here, so the first
- * thing on screen is the code and the words with nothing falling. Cause, then
- * effect. Long enough to read the card, short enough that nobody waits.
+ * THE HELD BEAT. The stream's clock is HELD AT ZERO until here and the stream
+ * is hidden for as long as it is held, so the first thing on screen is the code
+ * and the words with nothing falling. Cause, then effect. Long enough to read
+ * the card, short enough that nobody waits.
+ *
+ * ★ The CLAMP is the mechanism, and it is not optional: a clock allowed to run
+ * negative through the loop's modulo does not suppress the stream, it teleports
+ * the whole album to the bottom of the hero for this entire beat. See the loop.
  */
 const HOLD_MS = 620;
 /** The right arm launches half a cadence after the left, so the two arms
@@ -769,9 +775,45 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
       if (root.closest("[data-paused]")) return;
       elapsed += dt;
 
-      // THE HELD BEAT: the stream's clock, not the page's. While t is negative
-      // every progress lands above 1 and the loop writes nothing at all, so
-      // the code and the words stand alone for the first beat.
+      // THE HELD BEAT: the stream's clock, not the page's, HELD AT ZERO rather
+      // than allowed to run negative.
+      //
+      // ★ Round three wrote `elapsed - HOLD_MS` and claimed that while t was
+      // negative every progress landed above 1 and the loop wrote nothing. It
+      // does the exact opposite. `mod` wraps a negative t to the END of the
+      // cycle, not past it: with a 9600 ms cycle and a 9800 ms flight the
+      // largest progress it can return is 0.9796, so the `at > 1` cut below
+      // never fired and all sixteen cards stood at p 0.92..0.98, the bottom of
+      // the fall. The whole 620 ms beat was two piles of photographs at x -342
+      // and +343 sliding out of the bottom of the desktop hero, which is the
+      // opposite of the sentence the beat exists to say.
+      //
+      // So the clock is clamped and the stream is hidden while it is held.
+      // Zero is the pour's own first instant (every card at the origin, behind
+      // the code, and opacityAt(0) is 0), so the held state and the first frame
+      // of the pour are the same state and there is no seam between them. The
+      // hide is one write per card, guarded by lastO like every other opacity
+      // in this loop, so the hold costs sixteen writes in total and not sixteen
+      // per frame.
+      //
+      // What this does NOT remove is one frame of the REST state at the mount
+      // itself: the server's HTML IS the rest state, and this effect is a
+      // passive one, so the earliest any JS hide can land is after that commit
+      // has painted. Measured after a Replay as exactly ONE sampled frame, at
+      // both canvases. Hoisting the hide up into the effect body cannot move
+      // it, because that is the same passive tick; only a layout effect could,
+      // and it would cost a server-render warning. The other way out is hiding
+      // the stream in the MARKUP, which is the reduced-motion reader's own
+      // still and may not be spent on one frame.
+      if (elapsed < HOLD_MS) {
+        for (let i = 0; i < CARD_POOL.length; i++) {
+          const el = nodes.current[i];
+          if (!el || lastO.current[i] === 0) continue;
+          el.style.opacity = "0";
+          lastO.current[i] = 0;
+        }
+        return;
+      }
       const t = elapsed - HOLD_MS;
 
       // The pour: one tween of the seeded offsets from nothing to their steady
@@ -790,14 +832,21 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
         if (!el) continue;
         const c = CARD_POOL[i];
         const at = p[i];
-        // Two ways a card is not worth a write: it is on the ground between
-        // flights, or its TOP EDGE has fallen past the point the bottom
-        // dissolve has already taken to zero, which is the first moment none
-        // of it can be seen. The second is the performance pass's real cut: on
-        // the phone the mask is complete at 46% of the canvas, so a quarter of
-        // the airborne cards would be writing transforms nobody can see. Cheap
-        // to skip, and exact, because the dissolve's end and the fall are both
-        // numbers this file already owns.
+        // TWO tests, and only the second of them can fire. `at > 1` guards a
+        // card on the ground between flights, and the cycle is deliberately a
+        // hair SHORTER than the flight (Geo.flight), so it is unreachable by
+        // construction: the largest progress the modulo can return is 0.9796 on
+        // the desktop and 0.9809 on the phone. It stays as the guard for
+        // whoever retunes launch past flight, and it is NOT a hiding mechanism
+        // for anything else (the held beat above learned that the hard way).
+        //
+        // The real cut is the second: the card's TOP EDGE has fallen past the
+        // point the bottom dissolve has already taken to zero, which is the
+        // first moment none of it can be seen. That is the performance pass's
+        // cut: on the phone the mask is complete at 46% of the canvas, so a
+        // quarter of the airborne cards would be writing transforms nobody can
+        // see. Cheap to skip, and exact, because the dissolve's end and the
+        // fall are both numbers this file already owns.
         //
         // ★ The test is the EDGE, not the centre. Round two wrote it against
         // the centre and it read as frames popping out of existence near the
