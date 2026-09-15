@@ -19,6 +19,7 @@ import {
   PAPER_FLAT_VALUES,
 } from "./candidates";
 import {
+  auroraVars,
   Light,
   lampVars,
   type Clock,
@@ -28,13 +29,13 @@ import {
 import { sectionById, type SectionId } from "./sections";
 import {
   ApplyToSite,
-  AURORA_CADENCE,
   CadenceKnob,
   CostMeter,
   Knob,
   Labeled,
   Part,
   Takeaway,
+  useClocks,
   WipeControl,
   type GlowDriveId,
 } from "./shared";
@@ -192,6 +193,9 @@ export function EvidencePart({
   const [grainWipe, setGrainWipe] = useState(50);
   const specimen = useRef<HTMLDivElement | null>(null);
   const cinemaSection: SectionId = "guests";
+  // The clock row prints two numbers and the knobs under it change one of them,
+  // so both are read live rather than written down. See useClocks.
+  const clocks = useClocks();
 
   return (
     <Part
@@ -292,7 +296,7 @@ export function EvidencePart({
         <div className="grid gap-4 lg:grid-cols-2">
           <Labeled
             name="At the lamp's clock"
-            note="--spill-cadence, whatever the tuner currently holds."
+            note={`--spill-cadence, ${clocks.lamp}s as this page computes it.`}
           >
             <LitSection
               id={cinemaSection}
@@ -305,7 +309,7 @@ export function EvidencePart({
           </Labeled>
           <Labeled
             name="At the aurora's clock"
-            note={`${AURORA_CADENCE}: three laps of the lamp, the proposed sibling token.`}
+            note={`${clocks.aurora}s: three laps of the lamp, the proposed sibling token, and a calc rather than a literal so the ratio survives the ruling.`}
           >
             <LitSection
               id={cinemaSection}
@@ -330,9 +334,12 @@ export function EvidencePart({
           <CadenceKnob seconds={11} />
           <span className="max-w-prose text-[11px] text-muted-foreground">
             Writes --spill-cadence on the site, the same override the tuner
-            panel{"'"}s slider writes. Then walk the home page: the footer seam,
-            the film strip and the reel pool are a viewport apart, and that is
-            the comparison no stage in a lab can make.
+            panel{"'"}s slider writes. The two stages above will not move: a lab
+            page wears an applied candidate block but not the panel{"'"}s
+            overrides, so this knob is an instrument for the real pages. Walk
+            the home page after the tap: the footer seam, the film strip and the
+            reel pool are a viewport apart, and that is the comparison no stage
+            in a lab can make.
           </span>
         </div>
         <Takeaway lands="--aurora-cadence: calc(var(--spill-cadence) * 3), beside the lamp's token.">
@@ -561,12 +568,14 @@ function GrainWipeSection({
   const section = sectionById("guests");
   const height = section.h[mode];
   const band = Math.round(height * 0.42);
-  const vars = {
-    "--glw-base": ground === "paper" ? "0.52" : "0.30",
-    "--glw-strength": ground === "paper" ? "0.24" : "0.13",
-    "--glw-blur": "38px",
-    "--glw-dur": "var(--aurora-cadence)",
-  } as const;
+  // ★ THE COMPOSER'S OWN VARS, NOT A SECOND COPY OF THEM. This row used to
+  // hard-code the register (0.30 / 0.13 on cinema, 0.52 / 0.24 on paper), which
+  // are the ACCENT numbers: the dock's Register switch moved every other aurora
+  // on the board and quietly left this one behind, and the clock was a
+  // hand-written token besides. One call gives the row the register it is being
+  // shown at, the blur and the sibling clock, all from the place that exports
+  // them (board.css section 6 declares the token the clock reads).
+  const vars = auroraVars(ground, register, "aurora");
   return (
     <Stage mode={mode} ground={ground} height={height}>
       <div

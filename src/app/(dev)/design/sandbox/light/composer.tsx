@@ -5,11 +5,11 @@ import { type CSSProperties, useState } from "react";
 import { Stage, Toggle, type Ground, type Mode } from "@/components/dev/board";
 import { LAMP_SET } from "@/components/dev/lamp-set";
 import { Glow, type GlowVars } from "@/components/shared/glow";
-import { cn } from "@/lib/utils";
 
 import { PAPER_FIVE_VALUES } from "./candidates";
 import { SECTIONS, sectionById, type SectionId } from "./sections";
 import {
+  AURORA_DUR,
   Knob,
   KnobNote,
   Labeled,
@@ -221,7 +221,13 @@ export function auroraVars(
   return {
     "--glw-base": r.base,
     "--glw-strength": r.strength,
-    "--glw-dur": clock === "lamp" ? "var(--spill-cadence)" : "var(--aurora-cadence)",
+    // ★ BOTH CLOCKS ARE TOKENS, AND BOTH HAVE TO BE DECLARED SOMEWHERE THIS
+    // BOARD LOADS. This lands inline on the [data-glw] element, so it beats the
+    // engine's own --glw-dur and there is nothing behind it: a token nothing
+    // declares freezes the band instead of falling back (board.css section 6).
+    // --spill-cadence is globals.css's; --aurora-cadence is board.css's until
+    // the ruling lands it.
+    "--glw-dur": clock === "lamp" ? "var(--spill-cadence)" : AURORA_DUR,
     // The blur scales with the band: 16px on a 210px seam is the same softness
     // as roughly 38px on a 560px one, and --glw-blur is a literal, not a ratio.
     "--glw-blur": "38px",

@@ -307,8 +307,17 @@ export function Copy({
  * beside the lamp's clock, so it must be one number or the board is arguing
  * with itself. Three laps of --spill-cadence: the ratio is the proposal, not
  * the literal, and the cadence ruling picks the lamp's clock this multiplies.
+ *
+ * ★ EVERY AURORA ON THE BOARD PASSES THIS EXACT STRING, AND board.css SECTION
+ * 6 IS WHAT MAKES IT RESOLVE. Round four moved the clock from a literal ("33s")
+ * to the sibling token, which is right (the ratio follows the cadence knobs
+ * instead of contradicting them) but the token was declared nowhere the board
+ * loads, so every band it reached computed animation-name: none and the aurora
+ * sat frozen with its base still lit. The token now has a declaration; do not
+ * pass a bare literal here again, and do not reference a token this board does
+ * not declare. The full anatomy of the failure is in board.css section 6.
  */
-export const AURORA_CADENCE = "33s";
+export const AURORA_DUR = "var(--aurora-cadence)";
 
 /** Desktop lays a matrix out in columns; 375 cannot, so it pairs them. One
  *  helper rather than a responsive class, because the stage renders at a REAL
@@ -373,24 +382,41 @@ export function ApplyToSite({
   );
 }
 
-/** The board's own clear, so a walk can be ended without hunting for the tuner
- *  panel. Renders nothing while no block stands. */
-export function AppliedBanner() {
+/**
+ * WHICH BLOCK STANDS ON THE SITE, AND THE SWITCH OFF. It rides the dock.
+ *
+ * Applying a block is a per-candidate decision and its button stays beside the
+ * candidate; being able to see that one is live, and turn it off, is page-wide,
+ * and Will's note (a) is about exactly this: "having to scroll back to the top
+ * makes it very hard to review differences." Round four's first pass left this
+ * as a banner under the index, near the top of an 18,000px board, which is the
+ * friction the note was written to end. The applied state is the sixth thing in
+ * the dock and the only one that is sometimes absent: it renders nothing while
+ * no block stands, so the dock does not carry an empty slot for it.
+ *
+ * The label is truncated rather than wrapped, with the full one on hover, so a
+ * long candidate name cannot push the dock into a second row at 375.
+ */
+export function AppliedCandidate() {
   const applied = useTunerCandidate();
   if (!applied) return null;
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-foreground/25 bg-card px-3 py-2 text-[11px]">
-      <span className="font-medium text-foreground">
-        On the site: {applied.label}
+    <span className="flex items-center gap-1.5 rounded-lg border border-foreground/25 bg-card py-1 pl-2 pr-1 text-[11px]">
+      <span className="text-muted-foreground">On the site</span>
+      <span
+        title={applied.label}
+        className="max-w-[14ch] truncate font-medium text-foreground sm:max-w-[26ch]"
+      >
+        {applied.label.replace(/^Light: /, "")}
       </span>
       <button
         type="button"
         onClick={clearCandidate}
-        className="h-7 rounded-[var(--radius-action-sm)] border border-border px-2.5 text-[11px] font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none"
+        className="rounded-[calc(var(--radius-action-sm)-2px)] border border-border px-2 py-0.5 font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none"
       >
         Clear
       </button>
-    </div>
+    </span>
   );
 }
 
@@ -417,6 +443,47 @@ function useTunerOverrides() {
     getTunerSnapshot,
     getTunerServerSnapshot,
   );
+}
+
+/**
+ * THE TWO CLOCKS AS NUMBERS, READ OFF THE PAGE ITSELF.
+ *
+ * The board's invariant is that every number it prints is the number the stage
+ * is rendering, and the clock row is where that is hardest to hold: the aurora
+ * is `calc(var(--spill-cadence) * 3)` now, so the caption cannot be a literal.
+ *
+ * ★ IT READS THE COMPUTED CASCADE, NOT THE TUNER STORE, AND THE DIFFERENCE IS
+ * THE WHOLE POINT. Tapping "8s on the site" writes an override into the store,
+ * but the lab layout mounts CandidateStyle and NOT the tuner panel, so nothing
+ * on a board page wears that override: the stage below keeps whatever the
+ * sheet declares. A caption driven by the store would therefore print 24s over
+ * a field still running at 33s, which is the same class of lie the literal was.
+ * `getComputedStyle` on the element the stages inherit from cannot drift from
+ * them by construction, and it also picks up an applied candidate block, which
+ * is the one thing on a lab page that CAN move the token.
+ *
+ * It rides the tuner store's own subscription rather than an effect, so the
+ * snapshot is a plain number React can compare: applying or clearing a block is
+ * the only thing on a lab page that moves the token, and useSyncExternalStore
+ * re-checks the snapshot after the commit that renders the block's <style>.
+ * The server snapshot is the sheet's default, which is what a lab page with no
+ * block applied computes anyway, so nothing flickers on hydration.
+ */
+export function useClocks(): { lamp: number; aurora: number } {
+  const fallback = CADENCE ? Number(CADENCE.default) : 11;
+  const lamp = useSyncExternalStore(
+    subscribeTuner,
+    () => {
+      const seconds = Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--spill-cadence",
+        ),
+      );
+      return Number.isFinite(seconds) ? seconds : fallback;
+    },
+    () => fallback,
+  );
+  return { lamp, aurora: lamp * 3 };
 }
 
 export function CadenceKnob({ seconds }: { seconds: number }) {

@@ -19,7 +19,7 @@ import { DoctrinePart } from "./doctrine";
 import { EvidencePart } from "./evidence";
 import { InfusionPart } from "./infusion";
 import { KitBlock } from "./kit-block";
-import { AppliedBanner, Knob, RuleIndex, type Ask } from "./shared";
+import { AppliedCandidate, Knob, RuleIndex, type Ask } from "./shared";
 import { TreatmentsPart } from "./treatments";
 
 /**
@@ -80,9 +80,12 @@ import { TreatmentsPart } from "./treatments";
  * Will: "For any pagewide configs, the GUI control should be fixed so that
  * variants can be toggled on different previews anywhere on the page." Four
  * switches change everything on this board (the canvas, the ground, the
- * register, the motion state) and one command runs everything (Replay), so all
- * five live in the shell's BoardDock and nothing else does. Every other control
- * changes exactly one specimen and sits beside it.
+ * register, the motion state), one command runs everything (Replay), and one
+ * badge says which CSS block is currently standing on the whole site, with its
+ * clear. All six live in the shell's BoardDock and nothing else does. Every
+ * other control changes exactly one specimen and sits beside it, which includes
+ * each candidate's own "Apply to the site": choosing a block is a decision
+ * about that candidate, and only the resulting STATE is page-wide.
  */
 const QUESTION =
   "Light, shadow and lamp as one system, and the kit that carries it into the platform: what the treatments are, where each belongs, what is never done, and the order the identity enters the marketing site.";
@@ -189,13 +192,18 @@ export function LightBoard() {
       <BoardDock
         label="The light board's page-wide controls"
         aside={
-          <button
-            type="button"
-            onClick={() => setRunId((n) => n + 1)}
-            className="rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {runId === 0 ? "Replay" : `Replay ${runId}`}
-          </button>
+          <>
+            {/* Which block is on the site, and its clear. Absent until one
+                stands, so the dock does not carry an empty slot. */}
+            <AppliedCandidate />
+            <button
+              type="button"
+              onClick={() => setRunId((n) => n + 1)}
+              className="rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {runId === 0 ? "Replay" : `Replay ${runId}`}
+            </button>
+          </>
         }
       >
         <Knob label="Canvas">
@@ -278,8 +286,6 @@ export function LightBoard() {
       </div>
 
       <RuleIndex asks={ASKS} />
-
-      <AppliedBanner />
 
       {/* ★ A LAB CASCADE DEFECT, FOUND BY MOUNTING NINE REAL SECTIONS, AND IT
           IS NOT THIS BOARD'S TO FIX. Every board this round was asked for live
