@@ -120,11 +120,11 @@ import {
  *  4. LESS TO RULE ON. Two departures moved into the asks they had become, the
  *     twelve app and guest rewrites are marked as sweep work with the ONE row
  *     bible 4 already decides called out (compelled, not an eighth ask: its
- *     only choosable part, the noun, is ask 7), and the remaining departures
+ *     only choosable part, the noun, is ask 6), and the remaining departures
  *     are only the ones Will must answer.
  *
  * STANDING JUDGMENTS from round two, kept: candidate C retired as a column
- * (its one real question, the thesis, is chapter 5); every candidate ships as a
+ * (its one real question, the thesis, is chapter 8); every candidate ships as a
  * real TypeScript PASTE, since copy cannot be applied to the site as CSS; every
  * line a candidate HOLDS is marked and counted, because where a voice does not
  * bite is as much of the ruling as where it does. A was re-judged from the

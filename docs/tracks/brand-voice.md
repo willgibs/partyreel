@@ -1,6 +1,6 @@
 ---
 track: brand-voice
-status: open
+status: handed-off
 cut: "c473707"          # round four cut from origin/launch-prep (2026-09-15)
 merged_round_3: "4530f2e"
 merged_round_2: "b574cda"
@@ -804,16 +804,211 @@ changed.
 
 ## Handoff (round 4)
 
-- Head <sha>, pushed; preview partyreel-git-lp-brand-voice-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/brand-voice` (this manifest commit); the board's code head is the commit
+  before it. The board is at `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
+  `docs/specs/brand-voice.md`. **The round-four board is the one whose root div carries
+  `class="bv-round-four"`, opens on "The voices in use: marketing, loud" as chapter 1, and whose
+  headnote reads "48 of 66 lines differ across the three columns."**
+- **Where it was verified, and why not on the preview.** Vercel is capped for the trailing day
+  (the round-four brief says so; round three measured the exact 402, `api-deployments-free-per-day`,
+  remaining 0), so nothing here waited on a build and the Vercel API was not called. Every number
+  below was measured on **a local PRODUCTION build in this worktree** (`pnpm build && pnpm start -p
+  3035`), in a browser tab, at a real 1440 viewport and a real 375 one, after a walk on the dev
+  server at `-p 3034`. The one-line check that the right head is on screen: the root div reads
+  `bv-round-four`.
+- Synced with `launch-prep` at `6484558` (it had moved by two docs commits, `PROGRAM.md` and the
+  orchestrator manifest; nothing in this lane or its `reads`). Merged clean, gate re-run on the
+  merged tree.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing and none
+  in this lane), test ok (1,804 in 199 files), build ok (compiled clean, 248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/brand-voice.md`,
+  `docs/tracks/brand-voice.md` and the three files under
+  `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `board.css`, `voices.ts`). No
+  exceptions, and no production byte changed. The read-only production imports grew by two, both
+  pure constants modules with no server import in their chain, so the cards and the pricing pair
+  quote the product rather than a retyped memory of it: `board.tsx` now imports the real
+  `EventCard` (`components/app/event-card.tsx`) and `tiers.ts` (`planById`, `plansForTier`,
+  `MAX_EVENTS`) beside round two's `album-copy.ts` and `recently-deleted.ts`. The production build
+  is unchanged at 248 static pages.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Shell changes asked for (the Orchestrator lands them).**
+  1. **NEW, measured this round: `BoardDock`'s control cell collapses on a phone.** The dock lays
+     out as `[children: flex-1 min-w-0] [shell cluster: ml-auto]`. `flex-1` is `flex: 1 1 0%`, so
+     the children cell has a basis of zero and never forces the row to wrap: at a real 375 window
+     the shell's own cluster (1:1/Fit, Sidebar, Desk, Collapse) takes 286 of the 343 available and
+     the board's switches are squeezed into a **44px column, 281px tall**. Any board with more than
+     two page-wide switches has it, and this round asked every board to put its switches there. The
+     fix is one class in `dock.tsx` (`basis-full sm:basis-auto` on the children cell, or let the
+     cluster wrap first). This board works around it in its own sheet, scoped under its root class,
+     which took the dock from 298px to 194px at 375; that workaround should be deleted when the
+     shell lands the fix.
+  2. **Round three's four findings are all still open** and still true of every board that stages a
+     marketing component: the lab never compiles the heading ladder (a `PageHero` on a Stage
+     renders at its base class, 48px where the site renders 96px); a Tailwind prefix inside a Stage
+     reads the REAL viewport, so the 375 stage takes desktop gutters and desktop heading steps; a
+     `Stage` cannot be handed a literal height it can keep (this board's `FitStage`, about thirty
+     lines, is the working fix, and a `fit` height mode on `Stage` would retire the literal from
+     every board at once); and `Stage`'s zoom-fit is defeated by a grid or flex cell whose default
+     `min-width` is auto (`min-w-0` on `Stage`'s own outer wrapper would immunise every board). The
+     first two matter MORE at 1:1 than they did at zoom, because a specimen is now judged at the
+     pixels it claims.
+  3. **The registration line is still stale, and now doubly so.** `touchpoints.ts` describes the
+     board as "Three candidate voices ... the seven provisional home headers rewritten in each
+     beside today's line; the unfurl both ways." It has been wrong since round two and it is the
+     FIRST thing a walker reads. Round four is: two candidates and today, shown writing sixteen
+     real surfaces across marketing, the app and a guest's phone, then priced on whole pages;
+     thirteen chapters.
+- Assets requested from Will: none. The board is type on the real grounds and on the real
+  components; its stand-ins are the shipped ghost pack behind the two empty states (the product's
+  own decorative asset, used as the product uses it) and the grey plate in the three unfurl cards,
+  which stands for a link preview's own thumbnail and says so on the board.
+- **No "Apply to the site" block, and none is coming: copy is not CSS.** A tuner board hands the
+  site a candidate STYLESHEET; a voice board hands it SENTENCES, which reach the pages only as
+  TypeScript. The equivalent artifact is the pair of pastes, rendered per candidate and copyable off
+  the board: `sectionHeadersPaste()` in chapter 7 and `featurePagesPaste()` at the foot of chapter
+  11. Nothing in this lane calls `setCandidateCss`, so the candidate-block check is N/A here by
+  construction. What round four did instead is bring the PAGES to the board: sixteen surfaces now
+  render as the real UI rather than as text in a card.
+
+### What round four changed, against Will's two notes
+
+**Note 1, usage over notes.** "There's a handful of notes about the voices, but not a lot of actual
+usage examples that I can get a feel for each voice through... I would love to see the brand voices
+previewed on a few different production UI areas across marketing and app."
+
+The board now OPENS on the voices writing. Sixteen surfaces, each written three ways on the
+component that ships it, at 1:1 on the real ground, in three chapters:
+
+- **Chapter 1, marketing:** the home hero (real `PageHero` at the restored 96px ladder), the album
+  chapter (real `SectionShell`, left masthead, on paper), a three-card feature set at the band
+  `album-copy.ts` was written to, the pricing pair in the shipped markup with every number rendered
+  from `tiers.ts`, and a help article's opening (badge, title, description, first paragraph).
+- **Chapter 2, the host's app** (Will's fourth global note opened it): the dashboard's empty state
+  with its ghost pack, **the real `EventCard`** three abreast in the dashboard's own grid, the
+  create wizard's card and step rail, two toasts at sonner's width, the two errors, the
+  notification panel, and the account page's labels. The app's theme is a page-wide switch in the
+  dock, so all of it reads on app light and app dark.
+- **Chapter 3, a guest's phone and the inbox**, always at 375 because that is the only place these
+  render: the door in its three gates, the upload sheet (dropzone, the host's review note, the save
+  card, the confirmation), the empty album, and the inactivity mail as an inbox row and the mail
+  itself.
+
+Round three's twelve chapters follow as the price list, minus the two these replaced (the quiet
+register and the guest register, which were text cards with today beside ONE proposal). Thirteen
+chapters, indexed in the dock.
+
+**Note 2, every comparison shows a difference.** "A lot just have the exact same versions with a
+note that says unchanged... it's absolutely useless for a brand voice comparison here. Any examples
+should actually show the distinction (can include similarities as well)."
+
+The cause was two different questions sharing one table. A voice COMPARISON asks how each voice
+would write the line; a voice LEDGER asks what a rewrite would move and what it would leave. Round
+three ran them together, so a hold printed as "unchanged" and taught nothing.
+
+So in the usage chapters **every voice writes every line**, even where a sweep would keep today's,
+and the ledger chapters keep counting what a sweep actually moves (A 23 of 65 arc lines, B 33).
+Where all three still land on the same string, the row carries **the reason**, never the word
+unchanged: a button the host is about to press, a help title that is also the search string, a state
+pill that is a state. The board states its own compliance as a measurement rather than a promise:
+**48 of 66 lines differ, 18 are the same in every voice and each says why, and a row the same in all
+three WITHOUT a reason is counted as a defect out loud (there are 0).**
+
+**The dock** (Will's global note a) carries the voice, the canvas, the app's theme and the
+thirteen-chapter index, so a candidate flips from anywhere on a board this tall. **Nothing is
+zoomed** (note b): every Stage renders at 1:1, which a copy board needed more than any other.
+
+### Light QA, in numbers (a local PRODUCTION build, `pnpm start -p 3035`, at real viewports)
+
+- **At a real 1440 viewport:** 52 stages, **0** boxes crossing a stage edge, **0** stage scroll in
+  either axis, **0** horizontal document overflow, **0** of the 22 `[data-mkt-reveal]` slots below
+  opacity 1, dock 73px, board 41,420px tall.
+- **At a real 375 viewport:** the same four zeros, dock 194px (from 298 before the workaround
+  above), board 58,577px.
+- **The phone CANVAS reads three abreast**, which was a change this round: three 375 canvases are
+  1,125px and fit a 1440 window, so stacking them left a thousand pixels of dead ground beside every
+  specimen and put the line being judged a screen away from the line it replaces (round three found
+  the same thing on its ledgers). Measured at the phone canvas: all 52 stages 375 wide, 0 clipped, 0
+  stage scroll, 0 document overflow, and the board 36.5k pixels instead of 44k.
+- **Reduced motion gets the settled composition**, verified in the SERVED stylesheet rather than the
+  source: both `[data-bv-swap]` rules (the rule and the `bv-swap-in` keyframes) resolve inside
+  `(prefers-reduced-motion: no-preference)`, so under `reduce` there is nothing to undo.
+- **At rest the board runs 0 animations**, re-measured on the production build. ★ A caution for the
+  next reviewer, and it cost this round twenty minutes: a HIDDEN tab freezes every mount animation
+  at `currentTime` 0 and they report `playState: "running"` forever, so a probe run in a background
+  tab reads 53 animations on a board that is actually at rest. Twelve tracks share one browser
+  tonight, so a tab is hidden more often than not; front it, then measure. The same fact is why the
+  window-size tools could not be trusted this round (a resize applied to a window another session
+  had fronted), and why the 1440 and 375 numbers above were taken inside a same-origin iframe at
+  those exact widths, with the at-rest animation count taken on the fronted top document.
+
+### Findings the Orchestrator must carry
+
+1. **Three lines in the app are CORRECTIONS rather than rewrites, and land whichever voice wins.**
+   (a) The create wizard's date helper says "events never expire", and the product's rule is that an
+   event stays until the host deletes it: there is deliberately no end date, which is the
+   anti-abuse core. It is on the board in all three voices and in the guide's sweep step 5.
+   (b) "Hidden from everyone" is true and still wrong, because the host can still see the photo.
+   (c) The storage notification's "before we auto-reduce it" names the machinery and then threatens
+   the host with it, which is the fence do 2 exists for.
+2. **Some app copy is a prop and some is a component edit, and the difference sets the size of the
+   sweep.** The event card's two pills arrive from `dashboard/events-section.tsx`; its amber review
+   chip is hardcoded in `event-card.tsx`. The board says so on the specimen (all three cards show
+   the shipped chip and the row below is where the candidates part), and the guide's "What a rewrite
+   keeps" now carries the rule.
+3. **The email subject is one ruling for ten templates**, not a line-by-line call: A keeps
+   "Partyreel" in it because an inbox sorts and searches by our name and this mail arrives months
+   after the party; B puts the reader's own event first, which is the guide's rule everywhere else.
+4. **Carried from round three, unchanged:** the home page is about to carry two different counts
+   (312 from 48 as a hero stand-in against the shipped "Built from 214 photos. Shot by 23 guests.");
+   `/pricing` and the home arc say one promise two ways ("upgrade when you host again" against
+   "upgrade for more events"); and the five copy-alternative picks have lost their list.
+
+### The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will)
+
+- "The voice: B, A, or today (the agent recommends B)"
+- "The seven provisional home headers: whole in the selected voice, or line by line from the ledgers (the agent recommends whole)"
+- "The rest of the arc, its eyebrows, supporting lines and CTAs: take the selected voice, or hold today's (the agent recommends take)"
+- "Bible 20's replacement, in one sentence: lead with what arrives, an absence may be the second beat, never the first, and never both. Yes, or send it back"
+- "The thesis: keep in one album, or take as everyone saw it (the agent recommends keep)"
+- "One noun for the thing: album everywhere, or album on the site and gallery on a guest's screen (the agent recommends album)"
+- "The account-required unfurl line: email, or sign in (the agent recommends email)"
+
+Seven, unchanged from round three, and nothing new on the board is waiting on Will. The two MARKED
+rows in chapter 3 (the account-required door, `components/guest/entry-modal.tsx`) are compelled by
+bible 4 rather than chosen: the shipped line asks a guest to make an account with us on the host's
+own page, so the sweep rewrites it whichever voice wins, and its only choosable part is the noun,
+which is ask 6.
+
+### Look at first
+
+- **Chapter 1, the first two surfaces.** The hero is the whole ruling in one lockup: A writes
+  today's two ratified lines back, because keeping them IS A's argument, so only the eyebrow and the
+  second CTA move; B writes a different sentence about the same product. Then the album chapter,
+  where the three are furthest apart. Flip the canvas to 375 and the three phones sit abreast with
+  B's extra row visible rather than asserted.
+- **Chapter 2, the wizard and the notification.** Two of the three corrections above are on screen
+  there, and they are the clearest evidence that walking the app's copy in the app's own UI finds
+  things a text card hides.
+- **Chapter 3, the door.** Three gates, three voices, nine cards, and bible 4 deciding more than the
+  voice does. The album-and-gallery split is visible in one screen.
+- **The counter under chapter 1's headnote.** It is the round's answer to the second note, stated as
+  a number the board recomputes rather than a promise: 48 of 66 differ, 18 explained, 0 unexplained.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). Round four answered Will's two notes by turning
+the board around: it opens on the voices WRITING rather than on notes about them. Sixteen real
+surfaces, each written three ways on the component that ships it and at 1:1 on the real ground: the
+home hero, a chapter, a card set, the pricing pair with every number from `tiers.ts` and a help
+opening; the dashboard's empty state, the real `EventCard` three abreast in the dashboard's own
+grid, the create wizard, two toasts, the two errors, a notification and the account page; a guest's
+door in three gates, the upload sheet, the empty album and an email, all at 375. The "unchanged"
+rows that made the old comparison useless were a symptom of two questions sharing one table, so the
+usage chapters now have every voice write every line while the ledgers keep pricing a sweep, and
+where all three still agree the row carries the reason rather than the word: 48 of 66 lines differ,
+18 are explained, and an unexplained match is counted as a defect on the board itself. The
+page-wide switches moved into the shell's dock, the phone canvas reads three abreast, and the guide
+grew the section a wiring round can rewrite a surface from without opening the board, including
+three app lines that are corrections rather than rewrites (an event that "never expires", a photo
+"hidden from everyone" the host can still see, and a storage warning that names the machinery). No
+production byte changed.

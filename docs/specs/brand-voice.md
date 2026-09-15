@@ -255,7 +255,7 @@ exists for: copy commits to outcomes, never to what does the work.
 
 Two rulings live in this table. The **account-required door is compelled by bible 4, not chosen**:
 the shipped line asks a guest to make an account with us on the host's own page, so the sweep
-rewrites it whichever voice wins, and the only choosable part is the noun (ask 7). And the **email
+rewrites it whichever voice wins, and the only choosable part is the noun (ask 6). And the **email
 subject is a real trade**: A keeps *Partyreel* in it because an inbox sorts and searches by our name
 and this mail arrives months after the party, while B puts the reader's own event first, which is
 the guide's rule everywhere else. Decide it once, for all ten templates.

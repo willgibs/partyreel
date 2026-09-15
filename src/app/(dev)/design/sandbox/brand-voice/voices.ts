@@ -2234,7 +2234,7 @@ export const GUEST_USE: UseCase[] = [
       },
     ],
     distinction:
-      "Two of these five are the same in every voice, and that is the chapter's finding rather than a gap: the guest surface was the closest thing to a written voice this product had. What moves is where a host is the one deciding. The host becomes Maya and Jay, and the gallery becomes the album, which is ask 7 answered in the one place a guest can see both nouns at once. The save card is the ONE place Partyreel legitimately speaks on a guest surface, because the guest has already added a photo and is being offered our thing rather than met at the door with it.",
+      "Two of these five are the same in every voice, and that is the chapter's finding rather than a gap: the guest surface was the closest thing to a written voice this product had. What moves is where a host is the one deciding. The host becomes Maya and Jay, and the gallery becomes the album, which is ask 6 answered in the one place a guest can see both nouns at once. The save card is the ONE place Partyreel legitimately speaks on a guest surface, because the guest has already added a photo and is being offered our thing rather than met at the door with it.",
   },
   {
     id: "guest-empty",
