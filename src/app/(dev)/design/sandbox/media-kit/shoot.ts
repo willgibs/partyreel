@@ -569,3 +569,12 @@ const MASTER_BY_ID = new Map(
 export function masterFor(id: string): Master | undefined {
   return MASTER_BY_ID.get(id);
 }
+
+const MASTER_BY_CODE = new Map(MASTERS.map((m) => [m.code, m]));
+
+/** A master by its sheet code. Throws on an unknown one, so a typo fails a test. */
+export function master(code: string): Master {
+  const m = MASTER_BY_CODE.get(code);
+  if (!m) throw new Error(`Unknown master frame: ${code}`);
+  return m;
+}

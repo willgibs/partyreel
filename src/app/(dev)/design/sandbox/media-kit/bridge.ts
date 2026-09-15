@@ -45,6 +45,12 @@ export type BridgePost = {
   crop: string;
   /** The staged candidate key, or null when nothing can fill it under the rule. */
   candidate: string | null;
+  /** The master frame the SHOOT gives this post, by code (shoot.ts).
+   *  ★ Assigned from the post's own vertical, never inherited from the cover it
+   *  carries today: the whole fault being fixed is that a conference post carries
+   *  a festival frame, so inheriting that id would reproduce the miscasting in the
+   *  route that exists to end it. */
+  shot: string;
   /** Why this frame, or what the search returned instead. One line, honest. */
   why: string;
 };
@@ -52,6 +58,7 @@ export type BridgePost = {
 export const BRIDGE: readonly BridgePost[] = [
   {
     slug: "best-way-to-share-event-photos",
+    shot: "S2",
     title: "The best way to share photos from an event, ranked",
     vertical: "general",
     cover: "party-balloons",
@@ -61,6 +68,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "birthday-party-photo-sharing",
+    shot: "B1",
     title: "How to collect every birthday party photo before anyone leaves",
     vertical: "birthdays",
     cover: "reception-hall",
@@ -70,6 +78,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "company-offsite-photos",
+    shot: "C1",
     title: "Company offsite photos: every phone into one album",
     vertical: "corporate",
     cover: "reception-hall",
@@ -79,6 +88,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "conference-photo-sharing-no-app",
+    shot: "K1",
     title: "Conference photo sharing without an app: what works",
     vertical: "conferences",
     cover: "festival-crowd",
@@ -88,6 +98,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "corporate-event-photo-sharing-pricing",
+    shot: "C2",
     title: "Corporate event photo sharing: one price for any headcount",
     vertical: "corporate",
     cover: "festival-lights",
@@ -97,6 +108,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "disposable-cameras-vs-qr-photo-album",
+    shot: "W3",
     title: "Disposable cameras vs a QR photo album for your wedding",
     vertical: "weddings",
     cover: "reception-hall",
@@ -106,6 +118,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "does-whatsapp-compress-photos",
+    shot: "B4",
     title: "Does WhatsApp compress photos? What a chat does to guest photos",
     vertical: "general",
     cover: "wedding-rings",
@@ -115,6 +128,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "event-album-no-expiry-date",
+    shot: "S6",
     title: "Why your event album has no expiry date (and the one exception)",
     vertical: "general",
     cover: "concert-confetti",
@@ -124,6 +138,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "family-reunion-photo-sharing",
+    shot: "T6",
     title: "Family reunion photos: one album for every generation",
     vertical: "general",
     cover: "reception-table",
@@ -133,6 +148,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "group-chat-party-photos",
+    shot: "S1",
     title: "The group chat is where party photos go to die",
     vertical: "festivals",
     cover: "party-dj",
@@ -142,6 +158,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "group-trip-photo-sharing",
+    shot: "T3",
     title:
       "Bachelorette and group trip photos: one album for the whole crew",
     vertical: "trips",
@@ -152,6 +169,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "guest-album-for-photographers-and-planners",
+    shot: "W1",
     title: "For photographers: the guest album beside your gallery",
     vertical: "weddings",
     cover: "wedding-golden",
@@ -161,6 +179,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "guest-upload-kit",
+    shot: "W2",
     title: "Where the QR code goes and what the MC says: the guest upload kit",
     vertical: "weddings",
     cover: "wedding-toast",
@@ -170,6 +189,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "highlight-reel-renders-on-your-phone",
+    shot: "S3",
     title: "Every event ends with a reel, made on your own phone",
     vertical: "festivals",
     cover: "party-dj",
@@ -179,6 +199,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "how-much-storage-for-event-photos",
+    shot: "B5",
     title: "How much storage do wedding and party photos need?",
     vertical: "birthdays",
     cover: "party-balloons",
@@ -188,6 +209,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "office-holiday-party-photos-checklist",
+    shot: "C4",
     title: "Office holiday party photos: the volunteer's checklist",
     vertical: "corporate",
     cover: "concert-confetti",
@@ -197,6 +219,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "photo-booth-alternative",
+    shot: "B2",
     title: "The photo booth alternative: every guest's phone, one album",
     vertical: "birthdays",
     cover: "wedding-toast",
@@ -206,6 +229,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "qr-code-for-wedding-photos",
+    shot: "W4",
     title:
       "QR code for wedding photos: the complete guest photo sharing guide",
     vertical: "weddings",
@@ -216,15 +240,17 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "scanned-a-qr-code-where-your-photos-go",
+    shot: "T4",
     title: "You scanned a wedding QR code. Here's where your photos go",
     vertical: "weddings",
     cover: "wedding-golden",
     crop: "78% 45%",
     candidate: "bridge-ceremony",
-    why: "A ceremony with guests in the pews, seen from the back of the aisle. A post written for the guest who just scanned should show the room the guest is standing in.",
+    why: "A ceremony with guests in the pews, seen from the back of the aisle. A post written for the guest who just scanned should show the room the guest is standing in; the shoot answers it with T4, one of the three phone-up frames, which is the only place this sheet reaches outside a post's own vertical.",
   },
   {
     slug: "wedding-album-password",
+    shot: "W5",
     title: "Should your wedding album have a password? Usually not",
     vertical: "weddings",
     cover: "reception-table",
@@ -234,6 +260,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "wedding-day-photo-collection-timeline",
+    shot: "W6",
     title: "A wedding-day timeline for collecting every guest photo",
     vertical: "weddings",
     cover: "wedding-arch",
@@ -243,6 +270,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "wedding-photo-sharing-app-vs-shared-albums",
+    shot: "W4",
     title: "Wedding photo sharing app vs shared album: which fills up?",
     vertical: "weddings",
     cover: "reception-hall",
@@ -252,6 +280,7 @@ export const BRIDGE: readonly BridgePost[] = [
   },
   {
     slug: "wedding-photos-photographer-cant-be-there-for",
+    shot: "W2",
     title: "The wedding photos your photographer can't be there for",
     vertical: "weddings",
     cover: "wedding-toast",

@@ -37,7 +37,7 @@ import {
 } from "./exposure";
 import { countByVertical, MANIFEST_BY_ID, REELS, type Route, STAND_INS, VERTICALS } from "./kit";
 import { runbookFor, WIRING_ADDS } from "./runbook";
-import { DERIVED, KIT_CONSTRAINTS, MASTERS, masterFor } from "./shoot";
+import { DERIVED, KIT_CONSTRAINTS, master, MASTERS } from "./shoot";
 import { SOURCES } from "./sources";
 
 /**
@@ -276,16 +276,18 @@ function SharePlate({
    -------------------------------------------------------------------------- */
 
 function whatReplaces(post: BridgePost, route: Route) {
-  if (route === "ours") return { kind: "ours" as const, master: masterFor(post.cover) };
-  if (route === "licensed") {
-    return { kind: "licensed" as const, key: post.candidate };
-  }
-  // Mix: licensed only where the frame is furniture, which on the blog means the
-  // two details nobody studies; everything else goes to the shoot.
-  const furniture = post.candidate === "wedding-rings" || post.candidate === "wedding-arch";
-  return furniture
-    ? { kind: "licensed" as const, key: post.candidate }
-    : { kind: "ours" as const, master: masterFor(post.cover) };
+  // ★ The shoot's frame comes from the POST's vertical (bridge.ts `shot`), never
+  // from the cover it carries today. Inheriting today's id would hand the
+  // conference post a festival frame again, in the route that exists to end
+  // exactly that.
+  const shot = { kind: "ours" as const, master: master(post.shot) };
+  if (route === "ours") return shot;
+  if (route === "licensed") return { kind: "licensed" as const, key: post.candidate };
+  // Mix: licensed only where the photograph is furniture, which on the blog is
+  // the two details nobody studies; everything else goes to the shoot.
+  const furniture =
+    post.candidate === "wedding-rings" || post.candidate === "wedding-arch";
+  return furniture ? { kind: "licensed" as const, key: post.candidate } : shot;
 }
 
 function PostRow({
@@ -304,9 +306,7 @@ function PostRow({
   const Plate = geometry === "card" ? CardPlate : SharePlate;
   const slate =
     next.kind === "ours"
-      ? next.master
-        ? `To be shot, ${next.master.code}: ${next.master.subject}`
-        : "No master frame inherits this id"
+      ? `To be shot, ${next.master.code}: ${next.master.subject}`
       : post.candidate
         ? undefined
         : post.why;
@@ -422,15 +422,16 @@ export function MediaKitBoard() {
           twelve are referenced in {PRODUCTION_FILES} production files across{" "}
           {ROUTES.length} routes, and four of them sit in the footer strip and two
           in the nav panel, both of which live in the group layouts, so they are on
-          all {MARKETING_PAGES} marketing pages before a reader scrolls. Apply
+          all {MARKETING_PAGES}{" "}marketing pages before a reader scrolls. Apply
           &ldquo;The exposure&rdquo; below and walk the site to see it.
         </p>
         <p>
           The second, harder search closed all four holes round one could not
           fill: searching by the scene rather than by the words on a manifest
           entry found a dance floor, a table with people at it, real balloons and a
-          portrait, and {stagedTwo} candidates in all. That moves the argument
-          rather than winning it. Of the {CANDIDATES.length} staged frames,{" "}
+          portrait: {stagedTwo} more frames, {CANDIDATES.length} staged in all.
+          That moves the argument rather than winning it. Of the{" "}
+          {CANDIDATES.length} staged frames,{" "}
           {CANDIDATES.length - IDENTIFIABLE.length} work only because nobody in
           them is recognisable, and the {IDENTIFIABLE.length} with a face are the{" "}
           {IDENTIFIABLE.length} that need a release nobody here holds. The frames
@@ -649,7 +650,22 @@ export function MediaKitBoard() {
         </div>
 
         {/* WHERE THEY LAND, at a real viewport on the paper ground the blog is. */}
-        <Stage mode={mode} ground="paper" height={mode === "phone" ? 500 : 560}>
+        {/* Heights are sized to the PLATE, not to a viewport: a 4:5 card at a
+            third of 1440 is 550 px tall, so a 560 stage clipped the bottom of
+            every one of them (caught by walking the preview, not by the build). */}
+        <Stage
+          mode={mode}
+          ground="paper"
+          height={
+            geometry === "card"
+              ? mode === "phone"
+                ? 540
+                : 660
+              : mode === "phone"
+                ? 300
+                : 380
+          }
+        >
           <div
             className={cn(
               "grid h-full items-center gap-[var(--gap-gallery)]",
@@ -673,7 +689,7 @@ export function MediaKitBoard() {
                     crop={p.crop}
                     slate={
                       next.kind === "ours"
-                        ? `To be shot: ${masterFor(p.cover)?.subject ?? p.why}`
+                        ? `To be shot, ${master(p.shot).code}: ${master(p.shot).subject}`
                         : p.why
                     }
                   />
@@ -692,8 +708,11 @@ export function MediaKitBoard() {
         <div
           className={cn(
             "grid gap-x-5 gap-y-7",
+            // Three across at most: at four, a 4:5 plate lands at 110 px, which
+            // is too small to judge a photograph on, and judging the photograph
+            // is the entire job of this sheet.
             geometry === "card"
-              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
               : "grid-cols-1 lg:grid-cols-2",
           )}
         >

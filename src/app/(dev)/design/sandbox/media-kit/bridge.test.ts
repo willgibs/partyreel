@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { BRIDGE, BRIDGE_BY_ID, MIX_LICENSED } from "./bridge";
 import { candidate } from "./candidates";
 import { STAND_INS } from "./kit";
+import { master } from "./shoot";
 
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 import { coverFor } from "@/lib/content/blog-covers";
@@ -62,6 +63,20 @@ describe("the per-post bridge", () => {
     // only reached when frontmatter omits `cover:`, and none of them does.
     for (const slug of SLUGS) {
       expect(frontmatter(slug).cover, `${slug} has no explicit cover`).toBeTruthy();
+    }
+  });
+
+  it("every post's shot is a real master frame from the post's own vertical", () => {
+    // The fault being fixed is a conference post carrying a festival frame, so
+    // the shoot's answer must come from the post's vertical, never from the id
+    // it carries today. Two exceptions, both principled: a "general" post has no
+    // vertical to draw from, and the three phone-up frames are the product's own
+    // argument in a photograph, so they serve any post about scanning or sharing
+    // whatever vertical they were shot in.
+    for (const post of BRIDGE) {
+      const m = master(post.shot);
+      if (post.vertical === "general" || m.phoneUp) continue;
+      expect(m.vertical, `${post.slug} -> ${post.shot}`).toBe(post.vertical);
     }
   });
 
