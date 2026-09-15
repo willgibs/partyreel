@@ -1,5 +1,6 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
+import { ALBUM_HERO } from "./album-hero/spec";
 import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
 import { GLOW_MOMENTS } from "./glow-moments/spec";
 import { HOME_HERO } from "./home-hero/spec";
@@ -29,6 +30,7 @@ export const BOARDS: readonly BoardSpec[] = [
   GLOW_MOMENTS,
   LIGHT,
   ROUNDING,
+  ALBUM_HERO,
 ];
 
 export function boardSpec(id: string): BoardSpec | undefined {
