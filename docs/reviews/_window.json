@@ -1,0 +1,60 @@
+{
+  "board": "_window",
+  "rounds": [
+    {
+      "n": 4,
+      "opened": "2026-09-15",
+      "answers": [],
+      "notes": [
+        {
+          "on": null,
+          "text": "Page-wide controls always on screen: the GUI control should be fixed so that variants can be toggled on different previews anywhere on the page for better back-and-forth comparisons.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "Pixel-perfect previews: the iframe previews throw off anything related to size; never zoom, scale or transform a specimen whose size is being judged.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "More real UI: live production components and whole real pages as the comparison surfaces, not a screen of specimens.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "The app's UI is open: any UI that touches the app in an active lab track may be worked on before the dedicated app agents get to it later.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": "palette",
+          "text": "Dark and light are chosen separately; dark applies to marketing and the app's dark mode, light to paper and the app's light mode. Argue the theming model from the ground up.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": "light",
+          "text": "Feels like a research report without applicable takeaways; synthesise the spill doctrine and placements into it; the section configurator for aurora placements is the promising part.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": "brand-voice",
+          "text": "Show the voices in use on production UI across marketing and the app; every comparison must show the distinction.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": "media-kit",
+          "text": "Pivot to discovery and sourcing: a few potential sources rather than exact picks.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        }
+      ]
+    }
+  ]
+}

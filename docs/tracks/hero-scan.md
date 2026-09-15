@@ -75,23 +75,16 @@ phone and the cause it makes literal. (4) Every stage at 1:1; the board's page-w
 board's dock (the Orchestrator's `board.tsx`); your concept's own toggles stay beside the stage. (5) The
 asks: the departures Will rules on, no more.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -211,7 +204,7 @@ ancestor and stops under reduced motion, where the rest state is the composition
 geometry comes from `CANVAS`, never from `getBoundingClientRect` (the stage is zoomed); `sizes` on
 `next/image` is canvas-relative; Replay is a remount.
 
-**Rulings in force.** The bible on `/design/rules` (second edition), above all 1 (media is the color:
+**Rulings in force.** The bible on `/design/library/rules` (second edition), above all 1 (media is the color:
 no darkening layer over a photograph), 13 (the h1 at paint, never gated; `marketing-h1-policy` scans
 the lab), 14 (every animation inside the reduced-motion block, a designed rest state), 21 (copy is
 open: the ruled thesis renders under the ruled toggle, your proposal under the proposed toggle), 22
@@ -224,7 +217,7 @@ motion, the h1 at opacity 1 off the DOM; nothing more; the red-team is the wirin
 and pauses the stage, so verify in a foreground tab or freeze the loop at a chosen elapsed and shoot
 the still (the source's own lesson).
 
-**Verify on.** partyreel-git-lp-hero-scan-partyreel.vercel.app, `/design/c/home-hero?key=` (the key is
+**Verify on.** partyreel-git-lp-hero-scan-partyreel.vercel.app, `/design/lab/home-hero?key=` (the key is
 `DESIGN_PREVIEW_KEY` in `.env.local`): your concept at Desktop and Phone 375, ruled and proposed
 copy, Replay, reduced motion (the rest state), the h1 present at opacity 1 off the DOM.
 
@@ -242,19 +235,16 @@ beat, a centred lockup (the source's own flagged departure, kept unless you have
 guest scanning; a hand-and-phone cutout (PNG with alpha, 1200 px, the phone's screen transparent so
 the live camera view composes under it) if you use a cutout; nothing else new.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `board.tsx`, `shared.tsx`, `board.css`,
-  `source.tsx`, `touchpoints.ts` or `rules/bible.ts`; never CHANGELOG, STATUS, ROADMAP, PROGRAM,
-  CLAUDE, AGENTS, `docs/ASSETS.md`; ask in Handoff.
-- **Sheets.** Keyframes under your prefix `hhc-` only (`keyframe-uniqueness.test.ts` reads every
-  sheet under the lab; `hhs-` is the source's, `hh-` the board's); a sheet never imports tailwindcss;
-  `glow-contract.test.ts` pins the BorderBeam and GlowFilter counts across `src`, so compose `<Glow>`
-  only if you light anything (and flag it). No em-dashes anywhere.
-- **Sync** `origin/launch-prep` only per PROGRAM.md (before handoff if it moved; mid-round only when
-  `docs/tracks/orchestrator.md` announces a landed change to one of your `reads`).
-- **Handoff:** fill Handoff and Record below, `status: handed-off`, push; the chat report is one
-  line, "handed off at <sha>".
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -269,7 +259,7 @@ the live camera view composes under it) if you use a cutout; nothing else new.
 - Head: the tip of `lp/hero-scan`, which is THIS commit (a manifest cannot name its own SHA). The last
   code commit is `bd112d0`; the merge of `launch-prep` that follows it carries no change of mine.
   Pushed; preview `https://partyreel-git-lp-hero-scan-partyreel.vercel.app`, the board at
-  `/design/c/home-hero?key=` (concept 2 of 4, after the source).
+  `/design/lab/home-hero?key=` (concept 2 of 4, after the source).
 - Synced with `launch-prep` at `3d40173` (twice: `80302b42` first, which landed the kill-mono sweep,
   then `3d40173` for the palette merge). Both merged clean, no conflicts.
 - Gates on the synced tree: typecheck ok, lint ok (0 errors; the 7 warnings are the pre-existing ones
@@ -373,7 +363,7 @@ block so neither can flash.
 
 - Head: the tip of `lp/hero-scan`, which is THIS commit (a manifest cannot name its own SHA). The last
   code commit is `ab855c9`. Pushed; preview `https://partyreel-git-lp-hero-scan-partyreel.vercel.app`,
-  the board at `/design/c/home-hero?key=` (concept 2 of 4, after the source). The round-two board is
+  the board at `/design/lab/home-hero?key=` (concept 2 of 4, after the source). The round-two board is
   the one whose stage carries a switch at the top right: look for `hhc-lab` in the served HTML, or
   for the words "Cause / Phone / Brackets only" on the stage.
 - **After the read-only review (this commit, documentation only: no code, no rebuild of the board).**
@@ -537,7 +527,7 @@ readings, with zero intersections and 12 to 30 canvas px to spare.
   after it, this review pass included, touches only this manifest, so `scan.tsx` and `scan.css` are
   byte-identical to the tree every verification names. Pushed; preview
   `https://partyreel-git-lp-hero-scan-partyreel.vercel.app`, the board at
-  `/design/c/home-hero?key=` (concept 2 of 4, after the source). **Marker for the round-three board:
+  `/design/lab/home-hero?key=` (concept 2 of 4, after the source). **Marker for the round-three board:
   the proposed headline "Every camera in the room, one album."**, which exists nowhere in round two;
   `overflow-clip` on the concept root and the switch's word "The room" mark it too.
 - **After the read-only review (this commit and the one before it, DOCUMENTATION ONLY: no code, no

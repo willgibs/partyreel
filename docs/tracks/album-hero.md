@@ -93,31 +93,24 @@ to `../home-hero/shared`; keep it, cut it or rewrite it, it is yours. Keyframes 
 or `alb-` (say which). Production components are composed, never edited (`src/components/guest/`,
 `src/components/marketing/`): a redesign of one is a candidate in your lane.
 
-**Rulings in force.** The bible on `/design/rules` (second edition): 1 (media is the color), 4 (a guest
+**Rulings in force.** The bible on `/design/library/rules` (second edition): 1 (media is the color), 4 (a guest
 surface is the host's, so the album visual carries the host's event, not Partyreel's chrome), 13, 14, 17
 (chapters open strong), 21 (copy is open), 22 (rising tides). The media manifest is the only source of
 paths (bible 18).
 
-**Verify on.** `/design/c/album-hero?key=` on a local production build at 1440 and 375, reduced motion, the
+**Verify on.** `/design/lab/album-hero?key=` on a local production build at 1440 and 375, reduced motion, the
 gate; the preview alias once Vercel's window frees.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -348,7 +341,7 @@ headline step, the album's column count, Replay), every stage at 1:1:
 
 ### Look at first
 
-`/design/c/album-hero?key=` at 1440. Reading 1 for thirty seconds with nothing else on screen: the
+`/design/lab/album-hero?key=` at 1440. Reading 1 for thirty seconds with nothing else on screen: the
 album should never stop arriving, and no word should ever sit on a photograph. (Those thirty seconds
 are also the one check no tool could run tonight, for the reason in the second bullet at the top of
 the Handoff.) Then reading 3, which is now the whole route: the only place both animations run at

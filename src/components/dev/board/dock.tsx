@@ -6,6 +6,7 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { withDesignKey } from "@/lib/design-gate/links";
 import { cn } from "@/lib/utils";
 
+import { useBoardPage } from "./board-page-context";
 import { setLabPref, useLabPrefs } from "./lab-prefs";
 import { Toggle } from "./toggle";
 
@@ -19,12 +20,14 @@ import { Toggle } from "./toggle";
  * (the candidate, the ground, the canvas, the ramp, Replay); a control that
  * only changes one specimen stays beside that specimen.
  *
- * It sticks to the top from `sm` up and stays static on a phone (at 375 a bar
- * this tall covers the specimen, which is worse than scrolling back; the
- * floating board measured it). It writes its own height to `scroll-padding-top`
- * on <html> and to `--board-dock-h`, so a board's anchors land under the dock
- * rather than beneath it and a board that needs the number can read it. Its
- * right end carries the shell's reading controls (Fit or 1:1, the sidebar) and
+ * It sticks under the shell's top bar from `sm` up and stays static on a
+ * phone (at 375 a bar this tall covers the specimen, which is worse than
+ * scrolling back; the floating board measured it). It writes its own height
+ * to `--board-dock-h` and the sum with the top bar to `scroll-padding-top` on
+ * <html>, so a board's anchors land under the dock rather than beneath it and
+ * a board that needs the number can read it. Its right end carries the
+ * shell's reading controls (Fit or 1:1, the sidebar), the Sections menu and
+ * the neighbours when the page provides them (board-page-context.tsx), and
  * the way back to the desk, so a board never has to draw them.
  */
 export function BoardDock({
@@ -42,7 +45,8 @@ export function BoardDock({
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(true);
-  const { fit, bleed } = useLabPrefs();
+  const { fit, sidebar } = useLabPrefs();
+  const page = useBoardPage();
   // The gate key rides the URL; read it from the browser (useSearchParams
   // would want a Suspense boundary of its own). The Desk link is client-only
   // anyway: it renders keyless on the server and keyed after hydration.
@@ -58,7 +62,10 @@ export function BoardDock({
     const html = document.documentElement;
     const sync = () => {
       const h = Math.round(el.getBoundingClientRect().height);
-      html.style.scrollPaddingTop = `${h + 8}px`;
+      const top = parseFloat(
+        getComputedStyle(html).getPropertyValue("--lab-topbar-h"),
+      );
+      html.style.scrollPaddingTop = `${h + (Number.isFinite(top) ? top : 0) + 8}px`;
       html.style.setProperty("--board-dock-h", `${h}px`);
     };
     sync();
@@ -78,6 +85,9 @@ export function BoardDock({
     };
   }, []);
 
+  const pill =
+    "rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground";
+
   return (
     <div
       ref={ref}
@@ -85,7 +95,7 @@ export function BoardDock({
       role="region"
       aria-label={label}
       className={cn(
-        "z-30 -mx-4 border-b border-border bg-background/90 px-4 py-2 backdrop-blur sm:sticky sm:top-0",
+        "z-30 -mx-4 border-b border-border bg-background/90 px-4 py-2 backdrop-blur sm:sticky sm:top-[var(--lab-topbar-h,0px)]",
         className,
       )}
     >
@@ -103,6 +113,25 @@ export function BoardDock({
         </div>
         <div className="flex basis-full flex-wrap items-center gap-2 sm:ml-auto sm:basis-auto">
           {aside}
+          {page && page.sections.length > 0 && (
+            <details className="relative">
+              <summary className={cn(pill, "cursor-pointer list-none")}>
+                Sections
+              </summary>
+              <ul className="absolute right-0 z-40 mt-1 max-h-[60vh] w-64 overflow-y-auto rounded-lg border border-border bg-popover p-1 text-[12px] shadow-md">
+                {page.sections.map((s, i) => (
+                  <li key={s.id}>
+                    <a
+                      href={`#${page.id}-${s.id}`}
+                      className="block rounded-md px-2 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    >
+                      <span className="tabular-nums">{i + 1}.</span> {s.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
           <Toggle
             ariaLabel="Stage scale"
             options={[
@@ -114,22 +143,42 @@ export function BoardDock({
           />
           <button
             type="button"
-            onClick={() => setLabPref("bleed", !bleed)}
-            className="rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+            onClick={() =>
+              setLabPref(
+                "sidebar",
+                sidebar === "collapsed" ? "open" : "collapsed",
+              )
+            }
+            className={pill}
           >
-            {bleed ? "Sidebar" : "Hide sidebar"}
+            {sidebar === "collapsed" ? "Sidebar" : "Hide sidebar"}
           </button>
-          <Link
-            href={withDesignKey("/design/c", key)}
-            className="rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
+          {page?.prev && (
+            <Link
+              href={withDesignKey(page.prev.href, key)}
+              className={pill}
+              title={page.prev.label}
+            >
+              Prev
+            </Link>
+          )}
+          {page?.next && (
+            <Link
+              href={withDesignKey(page.next.href, key)}
+              className={pill}
+              title={page.next.label}
+            >
+              Next
+            </Link>
+          )}
+          <Link href={withDesignKey("/design/lab", key)} className={pill}>
             Desk
           </Link>
           <button
             type="button"
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
-            className="rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className={pill}
           >
             {open ? "Collapse" : "Controls"}
           </button>

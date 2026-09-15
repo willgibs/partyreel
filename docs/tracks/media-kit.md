@@ -80,23 +80,16 @@ vertical and the source filter. (4) The spec (`docs/specs/media-kit.md`) gains t
 own section and the asset log rows it proposes (what Will buys or downloads, where it lands) in the
 Handoff.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -182,7 +175,7 @@ must add. (5) The asks reduced to one-word answers; the route recommendation kep
 
 **Goal.** The media-kit exploration of the review wave (2026-09-14). Bible 18 (every frame is ours) was "an unspoken rule": no stock at launch, and a licensed kit found under allowed licenses. This track writes the licensing rule down as a proposal (`docs/specs/media-kit.md`), surveys the sources whose terms allow a marketing use, plans the kit Will produces himself (he makes any image, video, SVG, 3D or generative asset), and stages a candidate first batch on a contact-sheet board beside the current twelve stills with provenance under each. The batch is staged, not wired: the stand-ins stay until a wiring round. No production byte changes on this track.
 **Rulings in force.** The bible's second edition: rule 18 (every frame is ours; `marketing-media.test.ts` enforces the manifest), rule 1 as rewritten (media is the color), the unlimited-design-resources policy (PROGRAM.md: Will makes the assets; ask specifically). Every asset request goes through `docs/ASSETS.md` via the Orchestrator; never edit it.
-**Verify on.** `/design/c/media-kit?key=` on your preview at 1440 and 375; `docs/specs/media-kit.md` reads whole; the gate green (`marketing-media.test.ts` stays green: the staged batch lives under `public/design/`, which nothing scans, never under `public/marketing/`).
+**Verify on.** `/design/lab/media-kit?key=` on your preview at 1440 and 375; `docs/specs/media-kit.md` reads whole; the gate green (`marketing-media.test.ts` stays green: the staged batch lives under `public/design/`, which nothing scans, never under `public/marketing/`).
 
 ## The brief
 
@@ -206,7 +199,7 @@ If the marketing media were sourced today under the rule that every frame is our
   deterministic recipe (`styleId`, `seed`, `clipIds`, `sourceBitrate`, `finish`). ★ Re-rendering is NOT
   a CLI job: the engine encodes in the host's browser (WebCodecs, `src/lib/reel/engine/encode.ts:54`;
   `render-service.ts:1-12` brokers the client encode; the Lambda path was torn down 2026-07-08), driven
-  from the lab's `/design/reel-parity` page, then the `finish` ffmpeg step by hand. Budget for it.
+  from the lab's `/design/lab/tools/reel-parity` page, then the `finish` ffmpeg step by hand. Budget for it.
 - **The rights statement today:** `docs/systems/marketing-content.md:555-557` (bible 18; Will pulled the
   two stock event photos from the press cut: "just feels weird to say here's a random stock photo"). The
   media manifest itself is undocumented in the system doc. STATUS's old queue said "the 4 Unsplash items
@@ -236,43 +229,16 @@ clause; the first batch, OK or not, item by item; the kit plan.
 
 `docs/specs/media-kit.md` (a proposal until Will rules; the settled part is promoted into the system layer by the Orchestrator): the licensing rule (no stock at launch; every frame ours or under a license we can name, with `author`, `sourceUrl` and `retrieved` required on every manifest entry), the manifest and its test documented, how a loop is re-rendered, a survey of licensed sources whose terms allow a marketing use without attribution (CC0, Pexels, Pixabay, Mixkit, Coverr and the like, each with the exact clause and what it forbids), the generated-kit plan (the hero asks generalised: photographs by vertical, vertical clips, posters, with the shot lists), and the rows to add to `docs/ASSETS.md` proposed in Handoff. Plus the board.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **Rising tides (bible 22).** Judge the system from the ground up: what would the perfect version
-  be if none existed? If today's tokens point there, the candidates are tunings; if the perfect
-  version deviates, a candidate replaces the system and says so as a departure in `BoardMeta`. The
-  three candidates on a board span that range; they are never three shades of one answer. A
-  candidate may question a bible rule: that is a finding, written in this manifest, ruled by Will.
-- **The board shell.** `src/components/dev/board/` is the shell: `Stage` (a real viewport on a
-  real ground, `cinema | paper | ink | app-dark | app-light`, zoom-fitted, `data-paused` on a hidden
-  tab), `Toggle`, and `BoardMeta` (the question, the candidates, the asks, the departures, the
-  assets). The stub in your directory shows the pattern; replace it whole. The asks are the exact
-  choices Will makes, worded so a ruling is a few words; the Orchestrator quotes them.
-- **Light QA (Will, 2026-09-14).** A lab-only round verifies its board on its preview at 1440 and
-  375 with reduced motion honoured and the gate green on the synced tree, then hands off; the deep
-  red-team is the wiring round's. Iterate rather than perfect. Push early and often: `preview: true`
-  builds `partyreel-git-lp-<track>-partyreel.vercel.app` on every push and Will reviews there in
-  parallel.
-- **Unlimited design resources.** Ask for exactly the asset the design needs, in Handoff, one
-  bullet per asset in the shape `what · spec (size, grade, count, format) · replaces <stand-in id>`;
-  ship the manifest's stand-in meanwhile. Never edit `docs/ASSETS.md`.
-- **Never touch:** `touchpoints.ts` (your board is registered; the placeholder variant names are
-  renamed at integration), `rules/bible.ts` (a bible change is Will's ruling, folded by the
-  Orchestrator), CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `src/lib/env.ts`, anything
-  outside `owns`.
-- **No mono.** Bible 7 is retiring and a sweep is removing the face in parallel: no `font-mono`, no
-  `MonoCaption`; `Caption` (`system/caption.tsx`) is the label face and `tabular-nums` on the body
-  face carries data.
-- **Sheets.** Keyframes live in your `board.css` under your prefix only (`keyframe-uniqueness.test.ts`
-  reads every sheet under the lab); a board sheet never imports tailwindcss (`css-source-policy`);
-  `glow-contract.test.ts` pins exactly three `<BorderBeam` sites, one `id="glw-warp"` and one
-  `<GlowFilter />` across all of `src`, so compose `<Glow>` only. No em-dashes anywhere (the AST
-  guard scans lab TSX).
-- **Sync** `origin/launch-prep` only per PROGRAM.md: before handoff if it moved; mid-round only when
-  `docs/tracks/orchestrator.md` announces a landed change to one of your `reads`. The Orchestrator's
-  rounding round retunes radius VALUES mid-window (never a token name) and announces there.
-- **Handoff:** fill Handoff and Record below, `status: handed-off`, push; the chat report is one
-  line, "handed off at <sha>".
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -282,7 +248,7 @@ clause; the first batch, OK or not, item by item; the kit plan.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- Lab: `/design/reel-parity` hardcodes its eight `FIXTURES`, so re-rendering a recorded
+- Lab: `/design/lab/tools/reel-parity` hardcodes its eight `FIXTURES`, so re-rendering a recorded
   `MARKETING_REELS` recipe needs a code edit rather than a control; read the clip ids off the recipe.
 - Docs: the marketing media manifest and its test have no home in `docs/systems/`; fold
   `docs/specs/media-kit.md` section 2 into `marketing-content.md` when the rule is ruled.
@@ -357,7 +323,7 @@ generating service's output-ownership clause, and the model-release rule that ke
 off a page that makes a claim. The survey behind it quotes ten license pages clause by clause and
 found the thing that settles the round: Unsplash's terms exclude recognizable people from the
 license, and all twelve stand-ins are full of them, so the gap was never a missing citation. The board
-at `/design/c/media-kit` argues three routes on the same twelve positions with the provenance line
+at `/design/lab/media-kit` argues three routes on the same twelve positions with the provenance line
 under each, shows the vertical gap costing seven of 23 blog posts a miscast cover, and stages eight
 CC0 candidates under `public/design/media-kit/` with `provenance.json` and a test pinning the two
 together; the four it could not fill are the argument. The kit plan generalises round two's parked
@@ -370,7 +336,7 @@ production byte changed.
   its own commit; `git rev-parse origin/lp/media-kit` gives the SHA). The last commit that changes
   what the board draws is `763423a`; the ones after it are this manifest and one unused import
   dropped. Preview `partyreel-git-lp-media-kit-partyreel.vercel.app`, board at
-  `/design/c/media-kit?key=`
+  `/design/lab/media-kit?key=`
 - ★ **The alias was a day stale, and it is rebuilt.** Vercel's ceiling of 100 deployments a day
   was at 0 remaining when `763423a` landed, so that push produced no deployment and the alias kept
   serving `b05c7c3`, a build whose Ours slate is still the 1200x800 cut. That is the one frame the
@@ -484,7 +450,7 @@ site four blocks it can wear. No production byte changed.
 - Head: the tip of `lp/media-kit`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot
   name its own commit). The last commit that changes what the board draws is `063a227`, the third
   pass's; the ones after it are the `launch-prep` merge and these docs. Board at
-  `/design/c/media-kit?key=`.
+  `/design/lab/media-kit?key=`.
 - **Third pass (a second read-only review raised two should-fix items; both are closed here, in the
   lane, and both were the same fault seen from two sides: the board and the site were not looking at
   the same thing).**
@@ -718,7 +684,7 @@ No production byte changed.
 ## Handoff (round 4)
 
 - Head `c937549`, pushed, plus the one commit after it that names this line (a manifest cannot name
-  its own commit; `git rev-parse origin/lp/media-kit` is the truth). Board at `/design/c/media-kit?key=`.
+  its own commit; `git rev-parse origin/lp/media-kit` is the truth). Board at `/design/lab/media-kit?key=`.
   Preview `partyreel-git-lp-media-kit-partyreel.vercel.app`.
 - ★ **A fifth pass was asked to strike finding 0c as false. It is not false, and the review that
   called it false used the wrong compiler, so this pass fixed the actual defect instead.** 0c reported

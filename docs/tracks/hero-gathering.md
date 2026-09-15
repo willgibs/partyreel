@@ -33,7 +33,7 @@ exactly what replaces your stand-ins: 36 event photographs, mixed orientation, a
 name and the id. Keyframes live in your own sheet with your prefix. You own two files and nothing
 else; if the shell lacks something you need, say so in Handoff rather than editing it.
 
-**Rulings in force.** The bible on `/design/rules` (22 rules, Will's), above all 1 (media is the
+**Rulings in force.** The bible on `/design/library/rules` (22 rules, Will's), above all 1 (media is the
 color: no darkening layer over a photograph), 13 (the h1 at paint, never gated; `marketing-h1-policy`
 scans the lab), 14 (every animation inside the reduced-motion block, a designed rest state), 21 (the
 thesis renders verbatim under the ruled toggle; your proposal renders under the proposed toggle), and
@@ -41,7 +41,7 @@ the standing ruling that the hero is cinema and unlit (light only as a flagged d
 manifest is the only source of paths. Take the big swing: a totally different, better hero beats a
 safe increment, and the reference's mechanic is a starting point, not a ceiling.
 
-**Verify on.** partyreel-git-lp-hero-gathering-partyreel.vercel.app, `/design/c/home-hero?key=` (the key is
+**Verify on.** partyreel-git-lp-hero-gathering-partyreel.vercel.app, `/design/lab/home-hero?key=` (the key is
 `DESIGN_PREVIEW_KEY` in `.env.local`): your concept at Desktop and Phone 375, ruled and proposed copy,
 Replay, reduced motion (the rest state), the h1 present at opacity 1 off the DOM. Light QA by the
 exploration-round principle: nothing more.
@@ -60,7 +60,7 @@ exploration-round principle: nothing more.
 
 - Head: the tip of `lp/hero-gathering`, pushed. The last commit touching the concept is `0ff8ef6`;
   everything after it is this manifest. Preview partyreel-git-lp-hero-gathering-partyreel.vercel.app,
-  `/design/c/home-hero?key=<DESIGN_PREVIEW_KEY>` (verified at `5f873e5`, which carries the same two files).
+  `/design/lab/home-hero?key=<DESIGN_PREVIEW_KEY>` (verified at `5f873e5`, which carries the same two files).
 - Synced with launch-prep: it had not moved (`git rev-list --count HEAD..origin/launch-prep` = 0, cut from `f28d521`)
 - Gates on the tree: typecheck ok, lint ok (0 errors; the 6 warnings are pre-existing, none in my files), test ok (1636 in 190 files), build ok (246 static pages)
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-gathering.md`,

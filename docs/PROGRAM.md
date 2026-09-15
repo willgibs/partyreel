@@ -47,7 +47,7 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
   Will** (rulings and assets, each with its link, the asks quoted from the boards), kept current at
   every spawn, handoff, integration and ruling; [`ASSETS.md`](ASSETS.md) is the asset log Will
   completes in parallel (the Orchestrator folds each manifest's "Assets requested from Will" line at
-  integration, Will marks delivered, the wiring round marks wired); `/design/c` is the desk that
+  integration, Will marks delivered, the wiring round marks wired); `/design/lab` is the desk that
   renders the same files for his parallel reviews. STATUS points at them; nothing about a wave lives
   only in a session.
 - **Succession-ready round close (the Orchestrator's exit checklist):** the record step is done
@@ -70,7 +70,7 @@ a session opened in the repo root.
 > You are an AGENT on Partyreel's elevation program. Track `<track>`. Goal: `<goal>`.
 > Rulings in force: `<rulings | none>`. You own: `<owned path prefixes>`. Also never touch:
 > `<extra forbidden paths | none>`. Verify on: `<pages/flows>`.
-> Design law: the bible on `/design/rules` and the component contracts on `/design`; everything else is
+> Design law: the bible on `/design/library/rules` and the component contracts on `/design`; everything else is
 > precedent. Rising tides (bible 22): judge it from the ground up, elevate or rework, in the lab first.
 > Boot per `docs/PROGRAM.md` "Agent boot" (your manifest `docs/tracks/<track>.md` is the last boot step, before any other work),
 > build, then hand off by filling the manifest's Handoff + Record sections, setting

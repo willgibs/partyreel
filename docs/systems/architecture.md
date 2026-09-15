@@ -110,7 +110,7 @@ every local check and break only in production.
 - **Verifying host-page hydration:** the **CDP / Chrome-MCP is UNRELIABLE on the heavy `(app)` host page** —
   a programmatic `.click()` doesn't reliably fire React 19's delegated events there, and react-fiber
   inspection FALSE-NEGATIVES (both wrongly read "not hydrated" on a working page). Use the two reliable
-  instruments instead: (1) the **gated, auth-free hydration probe** `/design/compositions` (it wraps the
+  instruments instead: (1) the **gated, auth-free hydration probe** `/design/library/compositions` (it wraps the
   real `HostMediaGrid` in `LikesProvider` = a faithful host-gallery render with no auth/heavy-layout noise;
   light enough that the CDP + react-fiber checks ARE reliable on it), and (2) **a human's real browser** on
   the actual host page (the ground truth). Don't trust a CDP "not hydrated" verdict on the host page.

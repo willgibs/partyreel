@@ -77,23 +77,16 @@ selected pair; a comparison per section is a flip of the dock beside that sectio
 top. (4) Keep round three's answer block, the glance table and the pastes; recompute anything the 1:1 change
 or the two switches move. (5) **The dock** for every page-wide switch.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -180,7 +173,7 @@ it with the candidate you would actually ship. Keep `ladders.ts` pure and its te
 
 **Goal.** The type-scale exploration of the review wave (2026-09-14). Bible 5 holds (one heading face on one site ladder) but the sizes are not nailed: one ladder for marketing and one for the app, each consistent, shown on real pages at both widths as three candidate scales beside today's, and proposed as a token table the wiring round bakes. Lab only: no production byte changes on this track.
 **Rulings in force.** The bible's second edition: rule 5 (under exploration, naming this board), rule 6 (a masthead is one or two words; the h1 is the nav label at the display step), rule 13 (nothing gates an h1; `marketing-h1-policy.test.ts`), rule 2 as rewritten (marketing may be louder in most things, scale included).
-**Verify on.** `/design/c/type-scale?key=` on your preview at 1440 and 375, reduced motion honoured; the gate green.
+**Verify on.** `/design/lab/type-scale?key=` on your preview at 1440 and 375, reduced motion honoured; the gate green.
 
 ## The brief
 
@@ -224,43 +217,16 @@ any pairing departure.
 
 The board, plus the token table in the Record. Read `page-hero.tsx`, `section-shell.tsx`, `page-heading.tsx`, `globals.css`, `theme.css`; change none of them.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **Rising tides (bible 22).** Judge the system from the ground up: what would the perfect version
-  be if none existed? If today's tokens point there, the candidates are tunings; if the perfect
-  version deviates, a candidate replaces the system and says so as a departure in `BoardMeta`. The
-  three candidates on a board span that range; they are never three shades of one answer. A
-  candidate may question a bible rule: that is a finding, written in this manifest, ruled by Will.
-- **The board shell.** `src/components/dev/board/` is the shell: `Stage` (a real viewport on a
-  real ground, `cinema | paper | ink | app-dark | app-light`, zoom-fitted, `data-paused` on a hidden
-  tab), `Toggle`, and `BoardMeta` (the question, the candidates, the asks, the departures, the
-  assets). The stub in your directory shows the pattern; replace it whole. The asks are the exact
-  choices Will makes, worded so a ruling is a few words; the Orchestrator quotes them.
-- **Light QA (Will, 2026-09-14).** A lab-only round verifies its board on its preview at 1440 and
-  375 with reduced motion honoured and the gate green on the synced tree, then hands off; the deep
-  red-team is the wiring round's. Iterate rather than perfect. Push early and often: `preview: true`
-  builds `partyreel-git-lp-<track>-partyreel.vercel.app` on every push and Will reviews there in
-  parallel.
-- **Unlimited design resources.** Ask for exactly the asset the design needs, in Handoff, one
-  bullet per asset in the shape `what · spec (size, grade, count, format) · replaces <stand-in id>`;
-  ship the manifest's stand-in meanwhile. Never edit `docs/ASSETS.md`.
-- **Never touch:** `touchpoints.ts` (your board is registered; the placeholder variant names are
-  renamed at integration), `rules/bible.ts` (a bible change is Will's ruling, folded by the
-  Orchestrator), CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `src/lib/env.ts`, anything
-  outside `owns`.
-- **No mono.** Bible 7 is retiring and a sweep is removing the face in parallel: no `font-mono`, no
-  `MonoCaption`; `Caption` (`system/caption.tsx`) is the label face and `tabular-nums` on the body
-  face carries data.
-- **Sheets.** Keyframes live in your `board.css` under your prefix only (`keyframe-uniqueness.test.ts`
-  reads every sheet under the lab); a board sheet never imports tailwindcss (`css-source-policy`);
-  `glow-contract.test.ts` pins exactly three `<BorderBeam` sites, one `id="glw-warp"` and one
-  `<GlowFilter />` across all of `src`, so compose `<Glow>` only. No em-dashes anywhere (the AST
-  guard scans lab TSX).
-- **Sync** `origin/launch-prep` only per PROGRAM.md: before handoff if it moved; mid-round only when
-  `docs/tracks/orchestrator.md` announces a landed change to one of your `reads`. The Orchestrator's
-  rounding round retunes radius VALUES mid-window (never a token name) and announces there.
-- **Handoff:** fill Handoff and Record below, `status: handed-off`, push; the chat report is one
-  line, "handed off at <sha>".
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -284,7 +250,7 @@ The board, plus the token table in the Record. Read `page-hero.tsx`, `section-sh
 
 - Head: this handoff commit, sitting on the gated tree `a9a3c79`; both pushed. Preview
   `partyreel-git-lp-type-scale-partyreel.vercel.app`, and the board is at
-  `/design/c/type-scale?key=8838d0dd22f626a603fcf551`. The alias was READY at the first commit
+  `/design/lab/type-scale?key=8838d0dd22f626a603fcf551`. The alias was READY at the first commit
   `90baaf5` when this was written, with the later pushes queued behind the wave's other tracks on
   the one-at-a-time plan; it moves to the head on its own. ★ WAIT FOR IT TO PASS `e28579b` before
   ruling on the display step: at `90baaf5` the masthead still lost its tracking to marketing.css and
@@ -477,7 +443,7 @@ by design)
 ## Handoff (round 2)
 
 - Head: this commit, sitting on the handoff and on the review round's fix; all pushed. Preview
-  `partyreel-git-lp-type-scale-partyreel.vercel.app`, board at `/design/c/type-scale?key=`. The
+  `partyreel-git-lp-type-scale-partyreel.vercel.app`, board at `/design/lab/type-scale?key=`. The
   alias follows the branch on its own and `[preview]` is in every build commit, but the push of the
   fix produced no deployment at all (GitHub created none for it, while other branches pushed before
   and after it deployed normally), so the alias sat on the pre-fix build for twenty minutes. This
@@ -722,7 +688,7 @@ B's rungs, so any size has a value and no step chooses its own)
 
 - Head: this commit; the board's last code change is `4722151`, over the review-fix commit
   `aa74879`, `2b63080` (the first round-3 handoff), `9814802` (the sync merge), `b44a6aa` and
-  `77a1e5c`; all pushed. Board at `/design/c/type-scale?key=`.
+  `77a1e5c`; all pushed. Board at `/design/lab/type-scale?key=`.
 - **The read-only review's four should-fixes, all fixed in this pass** (2026-09-14, after the first
   round-3 handoff):
   1. **The stale ask number inside the artifact Will copies.** Round three cut six asks to four and
@@ -776,7 +742,7 @@ B's rungs, so any size has a value and no step chooses its own)
   deploy today" (other branches did) but "a push deploys only if it coincides with a freed slot".
   Same cause the floating-surfaces track recorded at `943473b`. **Walk round three locally until an
   alias catches up**: `pnpm dev` in this worktree, then
-  `http://localhost:<port>/design/c/type-scale?key=`; the lab is in no allow-list, so localhost
+  `http://localhost:<port>/design/lab/type-scale?key=`; the lab is in no allow-list, so localhost
   renders the tip exactly, "Apply to the site" included, which is where both QA passes below were
   measured. For the Orchestrator, and it is mandatory before Will walks anything, because this branch
   is handed off and pushes no more: force a redeploy at the tip (`POST /v13/deployments`, `gitSource
@@ -948,10 +914,10 @@ Two one-line mounts would fix it for every board in the wave.
 ## Handoff (round 4)
 
 - Head: this commit, over `e33f197` (round four's first hand-off), `b71246c` (the sync merge),
-  `80c0dd9`, `443ffa6` and `5244620`; all pushed. Board at `/design/c/type-scale?key=`.
+  `80c0dd9`, `443ffa6` and `5244620`; all pushed. Board at `/design/lab/type-scale?key=`.
   **Vercel is capped, so nothing here was verified on a preview**: the walk below was re-taken on a
   LOCAL PRODUCTION BUILD (`pnpm build`, then `next start -p 3118`) from this worktree at
-  `http://localhost:3118/design/c/type-scale?key=`, at 1440 and at 375, and the gate was closed with
+  `http://localhost:3118/design/lab/type-scale?key=`, at 1440 and at 375, and the gate was closed with
   a real `pnpm build`. The `[preview]` marker is in every commit so the alias builds when the window
   frees.
 - **Where the walk was watched, said plainly, because the rule asks for a FOREGROUND tab.** Two

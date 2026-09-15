@@ -12,17 +12,17 @@ owns:
   - src/app/(dev)/design/mode-shell.tsx
   - src/app/(dev)/design/theme-toggle.tsx
   - src/app/(dev)/design/design.css
-  - src/app/(dev)/design/components/
-  - src/app/(dev)/design/compositions/
-  - src/app/(dev)/design/patterns/
-  - src/app/(dev)/design/foundations/
-  - src/app/(dev)/design/marketing/
+  - src/app/(dev)/design/(shell)/library/components/
+  - src/app/(dev)/design/(shell)/library/compositions/
+  - src/app/(dev)/design/(shell)/library/patterns/
+  - src/app/(dev)/design/(shell)/library/foundations/
+  - src/app/(dev)/design/(shell)/library/marketing/
   - src/app/(dev)/design/reference/
   - src/app/(dev)/design/rules/component-notes.ts
   # added at build time: the two directories the per-component page needed.
   # No peer claims either (home-hero owns sandbox/, c/ and touchpoints.ts).
   - src/app/(dev)/design/gallery/
-  - src/app/(dev)/design/library/
+  - src/app/(dev)/design/(shell)/library/
 reads:
   - src/app/(dev)/design/rules/rules.ts
   - src/app/(dev)/design/rules/bible.ts
@@ -41,14 +41,14 @@ hundred hand-written `Spec` blocks, the index on `/design` has no per-component 
 there is no props or variants model, no reusable config panel (two board-local sliders only, in
 `sandbox/glow-doctrine-variants.tsx` and `reel-parity/parity.tsx`), and notes exist for 11 of 84
 components. The round: a per-component page or permalink with its specimen, its variants and its
-contracts (the contracts already render on `/design/rules` and link from the index row; reuse the
+contracts (the contracts already render on `/design/library/rules` and link from the index row; reuse the
 artifact in `rules.ts`, never re-derive); a declared variants model per component (CVA variants
 where they exist, a small declared list where they do not); one reusable config panel beside a
 specimen; the family pages become the organized gallery; a `for` line for every component in
 `component-notes.ts`. Big swings welcome: the gallery is a UI surface and the only law is the bible
 plus each component's contract.
 
-**Rulings in force.** The bible on `/design/rules` (22 rules, Will's). The library renders only
+**Rulings in force.** The bible on `/design/library/rules` (22 rules, Will's). The library renders only
 production imports and the reference kit (`marketing-library.test.ts`); every component in the
 library's directories has a specimen or an `unspecimened` reason (`component-index.test.ts`); the
 lab compiles its own utilities from `design.css` and never `@reference`s `globals.css`
@@ -77,7 +77,7 @@ freshness guard says so) and the lane check accepts the file.
 - Design lab: fold `SourceLink` into one component. The gallery has its own copy because
   `rules/page.tsx` was outside this track's lane; whichever round touches that page next should
   import `gallery/gallery-ui.tsx`'s and delete the private one.
-- Design lab: link each contract block on `/design/rules` to its component's permalink at
+- Design lab: link each contract block on `/design/library/rules` to its component's permalink at
   `/design/library/<id>`, now that one exists.
 - App polish: `src/components/shared/empty-state.tsx`'s doc comment says `"quiet" (default)` while
   the signature is `variant = "icon"`. The gallery declares what the code does and says so; one of
@@ -98,7 +98,7 @@ freshness guard says so) and the lane check accepts the file.
 - Gates on the tree: typecheck ok, lint ok (0 errors, the same 6 pre-existing warnings), test ok
   (1633 tests in 190 files), build ok (246 static pages).
 - Lane check, `git diff --name-only origin/launch-prep...HEAD`: every line under an owned prefix.
-  Two notes. `owns` gained `src/app/(dev)/design/gallery/` and `src/app/(dev)/design/library/` at
+  Two notes. `owns` gained `src/app/(dev)/design/gallery/` and `src/app/(dev)/design/(shell)/library/` at
   build time, the two directories the entry model and the per-component page needed; no peer claims
   either (`home-hero` owns `sandbox/`, `c/` and `touchpoints.ts`) and `pnpm test`'s manifest guard
   is green. `rules/rules.generated.json` is the manifest's ruled exception, regenerated with

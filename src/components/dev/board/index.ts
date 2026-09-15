@@ -8,9 +8,16 @@
 export { BoardMeta, type BoardMetaProps } from "./board-meta";
 export { BoardDock } from "./dock";
 export {
+  type BoardPageContextValue,
+  BoardPageProvider,
+  type BoardSectionLink,
+  useBoardPage,
+} from "./board-page-context";
+export {
   getLabPrefs,
   type LabFit,
   type LabPrefs,
+  type LabSidebar,
   setLabPref,
   useLabPrefs,
 } from "./lab-prefs";

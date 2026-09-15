@@ -69,23 +69,16 @@ the measured corner; every page walk link stays. (4) Where the tuner panel and t
 them clear of each other and of the evidence (you measured the panel last round; the dock writes
 `--board-dock-h`).
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -107,7 +100,7 @@ record**: "Handoff (round 3)" and "Record (round 3)" below; the Record is the pa
 carries for rounds 2 and 3 together, so write it as the whole story of what the board became.
 
 **Goal.** Round two of the rounding board (round one was the Orchestrator's: the tuner's store,
-descriptions and action knobs, the board at `/design/c/rounding` with one kit in four columns, the
+descriptions and action knobs, the board at `/design/lab/rounding` with one kit in four columns, the
 tokens made reachable in paper chapters and the lab; see the CHANGELOG's review-wave entry). Bible 8
 (sharp surfaces, round actions; tokens, never literals) inherits the values Will rules on this board.
 
@@ -132,7 +125,7 @@ Orchestrator's (propose in Handoff).
 floating layer's one radius), 22 (rising tides). Never rename a radius token; the values are the
 tuner's and the ruling's.
 
-**Verify on.** `/design/c/rounding?key=` on your preview at 1440 and 375; the gate green.
+**Verify on.** `/design/lab/rounding?key=` on your preview at 1440 and 375; the gate green.
 
 ### The rules of round two (every track)
 
@@ -187,7 +180,7 @@ tuner's and the ruling's.
 ## Handoff (round 2)
 
 - Head: the tip of `lp/rounding` (the last code commit is `6db270c`; the
-  manifest commits follow it), pushed. The board is `/design/c/rounding?key=`;
+  manifest commits follow it), pushed. The board is `/design/lab/rounding?key=`;
   the round-two marker in the rendered HTML is the heading **"The six tokens,
   at true size"** (and the class `rnd-wide`), and the second pass adds part F,
   **"Every candidate on the phone"**.
@@ -307,7 +300,7 @@ Four findings, all on the board rather than in a comment. The guest gallery's ga
   (the fourth pass, below); `12f1b91` was the third pass's and `6dd4d7a` the
   second pass's, and all three sit on the sync merge `c79038b`. The manifest
   commits follow the code. The board is
-  `/design/c/rounding?key=`. **The round-three marker in the rendered HTML is
+  `/design/lab/rounding?key=`. **The round-three marker in the rendered HTML is
   the heading "What the board answers"** (and the class `rnd-answer-grid`),
   both present in the server-rendered markup; round two's marker, "The six
   tokens, at true size", is still there as part A's heading, so the answer
@@ -495,7 +488,7 @@ Four findings, all on the board rather than in a comment. The guest gallery's ga
   7. **An event page, `/dashboard/<eventId>?key=`: DECLINED, same reason** (the
      same signed-in host, one route deeper).
   **The 20-second hand-off for 6 and 7**, in any browser where the host is
-  already signed in: open `/design/c/rounding?key=`, press **Apply the
+  already signed in: open `/design/lab/rounding?key=`, press **Apply the
   answer**, then open `/dashboard?key=` and an event page in that same
   browser. The block is one `localStorage` entry on that origin, so it
   follows; keep `?key=` on the URL, because the island reads it at mount.

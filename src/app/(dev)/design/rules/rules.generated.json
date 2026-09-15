@@ -59,7 +59,7 @@
         "AlbumFrame"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -71,7 +71,7 @@
         "BrowserFrame"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -83,7 +83,7 @@
         "GalleryFrame"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -95,7 +95,7 @@
         "LiveQr"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -108,7 +108,7 @@
         "PhoneShell"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -120,7 +120,7 @@
         "QrFrame"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -132,7 +132,7 @@
         "ReelFrame"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -179,7 +179,7 @@
         "FeatureDoor"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": [
@@ -216,7 +216,7 @@
         "FeatureFaq"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -228,7 +228,7 @@
         "FeatureHeroEyebrow"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -240,7 +240,7 @@
         "GhostBackdrop"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -252,7 +252,7 @@
         "GoDeeper"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -264,7 +264,7 @@
         "RelatedFeatures"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -276,7 +276,7 @@
         "TextSwap"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -289,7 +289,7 @@
         "SelectTile"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -301,7 +301,7 @@
         "ConfettiBurst"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -313,7 +313,7 @@
         "InlineReelPlayer"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -325,7 +325,7 @@
         "LearnChevron"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -337,7 +337,7 @@
         "LearnMoreLink"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -349,7 +349,7 @@
         "SampleReelOverlay"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -361,7 +361,7 @@
         "TextsReveal"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -373,7 +373,7 @@
         "Caption"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -385,7 +385,7 @@
         "CardGrid"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -397,7 +397,7 @@
         "Conveyor"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -409,7 +409,7 @@
         "CtaBand"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -421,7 +421,7 @@
         "DemoCtaLink"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -433,7 +433,7 @@
         "DemoTicket"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -445,7 +445,7 @@
         "Eyebrow"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -457,7 +457,7 @@
         "MediaSplit"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -469,7 +469,7 @@
         "MorphDelegate"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -481,7 +481,7 @@
         "PageHero"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": [
@@ -582,7 +582,7 @@
         "PaperChapter"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -594,7 +594,7 @@
         "Reveal"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -606,7 +606,7 @@
         "ScreenLamp"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": [
@@ -659,7 +659,7 @@
         "SectionShell"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -671,7 +671,7 @@
         "StatBand"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -683,7 +683,7 @@
         "TiltCard"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -705,7 +705,7 @@
         "ActionTooltip"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -717,7 +717,7 @@
         "AnonymousInfo"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -749,7 +749,7 @@
         "Container"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -761,7 +761,7 @@
         "EmptyState"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -773,7 +773,7 @@
         "FloatingAddButton"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1004,7 +1004,7 @@
         "Glow"
       ],
       "specimens": [
-        "/design/foundations"
+        "/design/library/foundations"
       ],
       "indexed": true,
       "contracts": [
@@ -1265,7 +1265,7 @@
         "Kbd"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1277,7 +1277,7 @@
         "LegalConsentLine"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": [
@@ -1314,7 +1314,7 @@
         "Logo"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1327,7 +1327,7 @@
         "MasonryColumns"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1359,7 +1359,7 @@
         "NotFoundScreen"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1371,7 +1371,7 @@
         "PageHeading"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1383,7 +1383,7 @@
         "PasswordStrengthMeter"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1395,7 +1395,7 @@
         "PlayBadge"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1417,7 +1417,7 @@
         "SetNameStep"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1444,7 +1444,7 @@
         "AvatarImage"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1456,7 +1456,7 @@
         "Badge"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1468,9 +1468,9 @@
         "Button"
       ],
       "specimens": [
-        "/design/components",
-        "/design/marketing",
-        "/design/patterns"
+        "/design/library/components",
+        "/design/library/marketing",
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1488,7 +1488,7 @@
         "CardTitle"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1509,7 +1509,7 @@
         "DialogTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1530,7 +1530,7 @@
         "DrawerTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1556,7 +1556,7 @@
         "DropdownMenuTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1574,7 +1574,7 @@
         "FormMessage"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1589,7 +1589,7 @@
         "InputOTPSlot"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1601,7 +1601,7 @@
         "Input"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1613,7 +1613,7 @@
         "Label"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1632,7 +1632,7 @@
         "NavigationMenuViewport"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1646,7 +1646,7 @@
         "PopoverTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1658,7 +1658,7 @@
         "Progress"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1679,7 +1679,7 @@
         "SelectValue"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1691,7 +1691,7 @@
         "Separator"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1710,7 +1710,7 @@
         "SheetTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1722,8 +1722,8 @@
         "Skeleton"
       ],
       "specimens": [
-        "/design/components",
-        "/design/foundations"
+        "/design/library/components",
+        "/design/library/foundations"
       ],
       "indexed": true,
       "contracts": []
@@ -1745,7 +1745,7 @@
         "Switch"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1760,7 +1760,7 @@
         "TabsTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1772,7 +1772,7 @@
         "Textarea"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1787,7 +1787,7 @@
         "TooltipTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []

@@ -24,17 +24,18 @@
 @source not "./rules/rules.generated.json";
 
 /*
-  THE LAB SHEET: the mono mock tokens, the type layer, the shared motion.
+  THE LAB SHEET: the shell's grid, the boards' shared hooks, the shared motion.
 
-  Round 1 settled the identity: MONOCHROME, both modes (Will, 2026-06-10).
-  `.mono` is the Sandbox mock token sheet - light mode is round-1 A (paper,
-  hairline borders), dark mode is round-1 B (near-black glass, the media as
-  the light source). Light/dark FOLLOWS the global next-themes class via
-  `.dark .mono` (the Workbench's single theme source, 2026-06-19); the explicit
-  `[data-mode]` is kept as an optional local override. TYPE: `.font-opt-*`
-  swaps the display face + its optical tuning.
+  One design language (the Library x Lab round, 2026-09-15): the lab renders
+  on the REAL tokens (globals.css and theme.css through the app's own theme),
+  never on a copy. The `.mono` mock sheet of the round-one identity work
+  (paper in light, near-black glass in dark), its `font-opt-urbanist` display
+  face and the `[data-dir-root]` wash retired here; the two boards that still
+  paint a `.mono` dark container (marketing-decomposition, marketing-hero-
+  substrate, both retiring to the record in the migration wave) keep the dark
+  override below until they go.
 
-  The boards consume these hooks:
+  The boards consume these hooks (unscoped: they read the real tokens):
     [data-dir-display] - display/heading type
     [data-dir-card]    - card surface (hairline in light, glass in dark)
     [data-dir-press] / [data-dir-enter] / [data-dir-stagger] - motion
@@ -54,60 +55,69 @@
   marketing.css itself (loaded by layout.tsx), never from a copy here.
 */
 
-/* ───────────────────────────── The mono sheet ────────────────────────────── */
-.mono {
-  --background: oklch(0.995 0 0);
-  --foreground: oklch(0.13 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0 0);
-  --primary: oklch(0.13 0 0);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.13 0 0);
-  --muted: oklch(0.965 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.13 0 0);
-  --destructive: oklch(0.55 0.21 27);
-  --border: oklch(0.905 0 0);
-  --input: oklch(0.905 0 0);
-  --ring: oklch(0.3 0 0);
-
-  /* THE ROUNDING SYSTEM is NOT re-declared here (the rounding round,
-     2026-09-14): --radius, --radius-tile, --radius-float and the three action
-     tokens are theme-independent and inherit from globals.css's own :root
-     block, so the tuner's html-inline override reaches every board and the
-     playground. Re-declaring them here made every lab surface under
-     .mono deaf to the knobs (the live column of /design/c/rounding read the
-     baked 2px while <html> said 14px). Never add them back. */
-
-  /* No accent exists: brand-colored things render as ink. */
-  --brand: oklch(0.13 0 0);
-  --brand-foreground: oklch(0.99 0 0);
-
-  /* STATE COLORS (Will, rounds 6-7): mono bans BRAND color, never MEANING -
-     state feedback ALWAYS gets color, as punctuation, never a wash.
-     Success = green (the upload check reads instantly); liked = the
-     standard rose heart (white read as empty/unliked); warning = amber
-     (the needs-review chip must be noticeable); error = the destructive
-     red above. */
-  --success: oklch(0.6 0.16 150);
-  --success-foreground: oklch(0.99 0 0);
-  --warning: oklch(0.8 0.14 80);
-  --warning-foreground: oklch(0.25 0.05 70);
-  --dir-like: oklch(0.63 0.21 15);
-
-  --dir-duration: 200ms;
-  --dir-ease: cubic-bezier(0.23, 1, 0.32, 1);
+/* ───────────────────────────── The shell's grid ───────────────────────────
+   The top bar (top-bar.tsx) writes its height to --lab-topbar-h on <html>;
+   the sidebar and the table of contents stick under it. lg: sidebar + content;
+   xl: + the TOC rail. A wide page ([data-lab-wide], a board) drops the TOC
+   column always and the sidebar when the reading preference says so
+   (data-lab-sidebar, lab-prefs.ts), so a 1440 canvas has its room at 1:1. */
+.lab-shell {
+  --lab-sidebar-w: 240px;
+  --lab-toc-w: 200px;
+}
+.lab-shell-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 1024px) {
+  .lab-shell-body {
+    grid-template-columns: var(--lab-sidebar-w) minmax(0, 1fr);
+  }
+  .lab-sidebar {
+    position: sticky;
+    top: var(--lab-topbar-h, 48px);
+    height: calc(100dvh - var(--lab-topbar-h, 48px));
+    overflow-y: auto;
+  }
+}
+@media (min-width: 1280px) {
+  .lab-shell-body {
+    grid-template-columns: var(--lab-sidebar-w) minmax(0, 1fr) var(--lab-toc-w);
+  }
+  .lab-toc {
+    position: sticky;
+    top: var(--lab-topbar-h, 48px);
+    max-height: calc(100dvh - var(--lab-topbar-h, 48px));
+    overflow-y: auto;
+    padding: 1.5rem 1rem 1.5rem 0;
+  }
+}
+.lab-shell-body:has([data-lab-wide]) .lab-toc {
+  display: none;
+}
+@media (min-width: 1280px) {
+  .lab-shell-body:has([data-lab-wide]) {
+    grid-template-columns: var(--lab-sidebar-w) minmax(0, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  html[data-lab-sidebar="collapsed"] .lab-shell-body:has([data-lab-wide]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  html[data-lab-sidebar="collapsed"]
+    .lab-shell-body:has([data-lab-wide])
+    .lab-sidebar {
+    display: none;
+  }
+}
+/* At 1:1 a wide page gives its stages the whole column. */
+html[data-lab-fit="true"] [data-lab-wide] {
+  max-width: none;
 }
 
-/* Dark mode = round-1 Night: near-black, inverted-ink CTAs, glass cards.
-   The mono mocks now FOLLOW the global theme: next-themes sets `.dark` on <html>
-   (the lab's single theme source, 2026-06-19), so `.dark .mono` flips the mock
-   palette with the rest of the Workbench. The explicit `[data-mode="dark"]` is
-   kept as an optional local override. */
+/* ───────────────────────── The legacy mono dark ground ─────────────────────
+   Kept ONLY for the two legacy marketing boards' `.mono` dark containers
+   (data-mode="dark", or the global dark theme); deleted with them. */
 :is(.mono[data-mode="dark"], .dark .mono) {
   --background: oklch(0.14 0 0);
   --foreground: oklch(0.96 0 0);
@@ -127,11 +137,8 @@
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.85 0 0);
-
   --brand: oklch(0.96 0 0);
   --brand-foreground: oklch(0.15 0 0);
-
-  /* State colors brighten against near-black so they still pop. */
   --success: oklch(0.7 0.16 150);
   --success-foreground: oklch(0.13 0 0);
   --warning: oklch(0.84 0.14 82);
@@ -139,31 +146,15 @@
   --dir-like: oklch(0.68 0.2 15);
 }
 
-/* Card surface: hairline paper in light, glass in dark. */
-.mono [data-dir-card] {
+/* Card surface: hairline paper in light, glass in dark (unscoped, 2026-09-15). */
+[data-dir-card] {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
-
-:is(.mono[data-mode="dark"], .dark .mono) [data-dir-card] {
+.dark [data-dir-card] {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-}
-
-/* The faint neutral wash dark mode blurs its glass against. */
-:is(.mono[data-mode="dark"], .dark .mono)[data-dir-root] {
-  background-image:
-    radial-gradient(
-      36rem 24rem at 85% -5%,
-      oklch(0.45 0 0 / 0.2),
-      transparent 65%
-    ),
-    radial-gradient(
-      28rem 20rem at 0% 100%,
-      oklch(0.4 0 0 / 0.14),
-      transparent 60%
-    );
 }
 
 /* ───────────────────────────── The type layer ──────────────────────────────
@@ -193,21 +184,6 @@
   font-synthesis: none;
 }
 
-/* THE SHIPPED FACE: Urbanist, mirroring globals.css's font-heading (Will,
-   2026-06-19 - Instrument Serif read too thin). A proper variable sans, so the
-   Instrument-era knobs are gone: real bold (700) does the work, no synthetic
-   stroke, no x-height adjust. Two live knobs, exactly like the app: WEIGHT (700)
-   and TRACKING (-3%). The retired Instrument explorations live in git history;
-   the vendored fork in fonts-local/ is kept unused. */
-.font-opt-urbanist {
-  --font-heading: var(--font-display);
-  --display-font: var(--font-display);
-  --display-adjust: none;
-  --display-tracking: -0.03em;
-  --display-weight: 700;
-  --display-stroke: 0;
-}
-
 /* ───────────────────────────── Shared motion system ────────────────────────
    Press feedback is constant (craft standard: 100-160ms). */
 [data-dir-press] {
@@ -230,7 +206,7 @@
   }
 
   /* Dark's signature garnish: entrances de-blur (the emil blur-mask trick). */
-  :is(.mono[data-mode="dark"], .dark .mono) [data-dir-enter] {
+  .dark [data-dir-enter] {
     @starting-style {
       filter: blur(6px);
     }
@@ -258,24 +234,4 @@
       opacity: 0;
     }
   }
-}
-
-/* THE READING PREFERENCES (round four of the review wave, 2026-09-15; the
-   store is src/components/dev/board/lab-prefs.ts, applied to <html> by
-   LabChrome). At 1:1 a board page gives its stages the whole column, and with
-   the sidebar tucked away (`data-lab-bleed`, board pages only: the library
-   pages keep their rail) a 1440 canvas has its room on a wide window. */
-html[data-lab-fit="true"] .board-page {
-  max-width: none;
-}
-html[data-lab-bleed] .lab-grid:has(.board-page) {
-  grid-template-columns: minmax(0, 1fr);
-}
-html[data-lab-bleed] .lab-grid:has(.board-page) .lab-nav {
-  display: none;
-}
-html[data-lab-bleed]
-  .lab-grid:has(.board-page):not(:has([data-board-dock]))
-  .lab-sidebar-pill {
-  display: inline-flex;
 }

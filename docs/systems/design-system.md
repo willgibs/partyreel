@@ -8,7 +8,7 @@
 > GROWS BY: edit-in-place as tokens/rules evolve; the lab (`/design`) stays the experimentation
 > venue, this doc records what's ratified.
 
-**The design law is the bible on `/design/rules`** (22 rules, Will's; source
+**The design law is the bible on `/design/library/rules`** (22 rules, Will's; source
 `src/app/(dev)/design/rules/bible.ts`) **plus each component's contract** (a test tagged
 `@contract-for`, shown on the component's library row). This doc is the machinery and the scars: how
 the system works, and the landmines (★) that break silently when reverted. A ★ is never a rule, and a
@@ -20,13 +20,13 @@ Ratified in V1 program Phase 1 (the gated `/design` lab), made real in Phase 2: 
 [`src/app/globals.css`](../../src/app/globals.css), the craft pass across `src/components/ui/*`,
 and the error taxonomy in [`src/lib/errors/`](../../src/lib/errors). The lab is two things and never a
 third (the library round, 2026-09-02): a **LIBRARY** of production imports (the reference pages render
-the real components and tokens, synced by construction; `/design/marketing` renders the marketing
+the real components and tokens, synced by construction; `/design/library/marketing` renders the marketing
 system on the cinema skin; the index is below) and a **WORKSHOP** that is empty by default (`sandbox/`
 holds only the boards whose ruling is still open). Prototype and compare there; when a ruling lands,
 the RULE moves here (or to its surface doc), the RECORD moves to
 [`docs/decisions/design-record.md`](../decisions/design-record.md), and the board is deleted (git
 keeps it). The thin registry the lab reads is `touchpoints.ts` (`RULINGS`: one line per ruling, where
-the rule lives), rendered at `/design/record`.
+the rule lives), rendered at `/design/library/record`.
 
 ## The identity: achromatic, media is the color
 
@@ -534,8 +534,8 @@ Nested-corner math: inner = outer minus gap. The sharp-surface/round-action cont
 system's DELIBERATE exception to it.
 
 ★ **The radius tokens, `--gap-gallery`, `--spill-cadence` and the `--tune-*` knobs live in their OWN
-`:root` block in `globals.css`, never in the `:root, .surface-paper` block and never in the lab's
-`.mono` sheet** (the rounding round, 2026-09-14). They are theme-independent, and aliased into a
+`:root` block in `globals.css`, never in the `:root, .surface-paper` block and never in a lab
+sheet** (the rounding round, 2026-09-14). They are theme-independent, and aliased into a
 theme set they were re-declared by every paper chapter and every lab board, so the tuner's
 html-inline override never pierced them: a radius sitting on a paper chapter or on the rounding
 board was silently on the baked values (measured: `<html>` at 14px, the live column at 2px).
@@ -545,7 +545,7 @@ Tailwind compiles each into its utility and emits NO custom property; `var(--rad
 runtime and an empty var inside a `calc()` invalidates the whole declaration silently (found by the
 floating-surfaces board). Derive from `--radius`, `--radius-action`, `--radius-float` or
 `--radius-tile` (the real `:root` tokens), never from the scale's names. The sitting surface
-is `/design/c/rounding` (four columns of one kit: three fixed candidates as inline overrides and a
+is `/design/lab/rounding` (four columns of one kit: three fixed candidates as inline overrides and a
 live column that follows the tuner) plus every real page the tuner mounts on; bible 8 inherits the
 values Will rules there.
 
@@ -688,7 +688,7 @@ generic default). Copy rules: plain language, no em-dashes, no internals.
 **Boundaries:** every route group has an `error.tsx` → the shared `RouteError` (generic copy +
 `digest` as the support handle — it NEVER renders `error.message`; that's the security invariant)
 tagged `render:app|guest|marketing|admin|auth` in Sentry; `global-error.tsx` is dependency-free
-(own html/body, inline styles) for root-layout death. The gated `/design/boom` probe throws on
+(own html/body, inline styles) for root-layout death. The gated `/design/lab/tools/boom` probe throws on
 purpose to verify the chain against the real prod build (dev shows the overlay instead).
 `notFound()` is never caught by these (verified).
 
@@ -813,7 +813,7 @@ styles on the element that declares them (`<html>` for the app's `--tune-*` and 
 working set lives in a module store persisted to `localStorage` and re-applied on every mount, so a value
 survives a Replay, a navigation out of the cinema group and a reload; Reset clears it and the badge always
 counts what stands. Every knob carries a `description`, a `ships` line and a `group`, and every knob has a
-specimen where the tuner mounts (the playground at [`/design/motion`](../../src/app/(dev)/design/motion/page.tsx),
+specimen where the tuner mounts (the playground at [`/design/lab/tools/motion`](../../src/app/(dev)/design/(shell)/lab/tools/motion/page.tsx),
 the real cinema pages, the rounding board); a knob without one is retired rather than left as a dead slider
 (the reel reveal's, the reel experience's and the event feed's knobs left the panel; their vars and bakes are
 untouched). Contract: an increment APPENDS its knobs with all three fields and a specimen in the same commit,
@@ -887,7 +887,7 @@ or `*-demos.tsx` file that imports it, so a demo module in the wrong folder inde
 a route that does not exist: nine of them sat at `/design/reference`, which has never been a page,
 until the gallery round (2026-09-12). It also means `family` is not always the component's own
 directory, and should not be made to be: Glow lives in `src/components/shared` and belongs beside the
-light tokens on `/design/foundations`.
+light tokens on `/design/library/foundations`.
 
 Two guards keep it honest. `component-index.test.ts` fails when a library component has neither a
 specimen nor a recorded reason. `gallery/gallery.test.ts` fails when a component has no gallery entry
@@ -903,11 +903,19 @@ variants of six and four Button sizes of eight on the day it was written.
 variant sit in `src/app/theme.css`, shared with the lab's own Tailwind entry) ·
 `src/app/layout.tsx` (font loading) · `src/components/ui/*` (the crafted primitives) ·
 `src/lib/errors/` (taxonomy) · `src/components/vendor/*` (third-party packages copied in verbatim) · `src/components/shared/route-error.tsx` + the route-group
-`error.tsx` files · `src/app/(dev)/design/` (the lab: the five family pages plus `gallery/` (the entry model, the chrome, the
-config panels) and `library/` (the index and every component's permalink); `/design/rules`, the bible (`rules/bible.ts`, hand-authored)
-and the component contracts (every test tagged `@contract-for`, collected by `pnpm design:rules` into
-`rules/rules.generated.json`, `rules-registry.test.ts` pinning it fresh); `touchpoints.ts` the rulings
-registry; `sandbox/` the open boards with their own sheets; the four probes) · `src/lib/design-gate/*` +
+`error.tsx` files · `src/app/(dev)/design/` (the lab, two areas on one shell since the Library x Lab round,
+2026-09-15: `(shell)/library/` is everything that binds or informs (the bible at `/design/library/rules`,
+`rules/bible.ts` hand-authored; the policies and landmines; the guidance; Will's rulings from
+`docs/design/rulings.md`; the doctrine, the system docs rendered; the record; the glossary; the index and
+every component's permalink plus the five family galleries, each declared once in its family's
+`gallery-demos.tsx`) and `(shell)/lab/` is everything exploratory (the desk, `/design/lab/<board>`,
+proposals from `docs/specs/`, tracks from `docs/tracks/`, the kit, the tools); `(shell)/_shell/` the chrome
+and the page templates; `_data/` the nav model, the link grammar (`links.ts`), the markdown reader
+(`docs.ts`), the legacy redirects; the component contracts (every test tagged `@contract-for`, collected by
+`pnpm design:rules` into `rules/rules.generated.json`, `rules-registry.test.ts` pinning it fresh);
+`touchpoints.ts` the rulings registry; `sandbox/` the open boards with their own sheets and, outside the
+shell group, the iframe scene routes; `src/components/lab/board-spec.ts` the board spec type; the
+authority model in [`../design/README.md`](../design/README.md); `pnpm lab:smoke` crawls every lab route) · `src/lib/design-gate/*` +
 `/api/design-gate` (the gate, outside the lab because production depends on it) ·
 [`../decisions/design-record.md`](../decisions/design-record.md) (the rulings, verbatim). Perf baselines: [`../perf/v1-baseline.md`](../perf/v1-baseline.md).
 
@@ -918,11 +926,14 @@ registry; `sandbox/` the open boards with their own sheets; the four probes) · 
   four elements, which no `font-mono` grep will ever find. Give any of them `font-sans` (the `Kbd` atom
   is the model), and a prose container `prose-code:font-sans` — that one variant on the two long-form
   wrappers covers the ~260 inline code spans in `content/help` and `content/blog`.
-- The lab's `design.css` keeps the `.mono` mock sheet (the sandbox's frozen token set, the one
-  deliberate duplicate of production tokens: it is what the boards are judged in), the type layer and the
-  shared motion, and declares NO keyframes: keyframe names are document-global and the lab once shadowed
-  nine production names on every `/design` visit; `src/app/keyframe-uniqueness.test.ts` holds the count at
-  zero. A board's own CSS lives beside the board under `sandbox/`, imported by it, so it leaves with it.
+- The lab renders on the REAL tokens, one design language (the Library x Lab round, 2026-09-15: the
+  `.mono` mock sheet, `ModeShell`, `font-opt-urbanist` and the `[data-dir-root]` wash retired; only a dark
+  override remains for the two legacy marketing boards until the migration wave deletes them). `design.css`
+  keeps the shell's grid (the sidebar and TOC rails under `--lab-topbar-h`, `[data-lab-wide]` pages), the
+  boards' hooks (`[data-dir-display|card|press|enter|stagger]`) and the shared motion, and declares NO
+  keyframes: keyframe names are document-global and the lab once shadowed nine production names on every
+  `/design` visit; `src/app/keyframe-uniqueness.test.ts` holds the count at zero. A board's own CSS lives
+  beside the board under `sandbox/`, imported by it, so it leaves with it.
 - 47 behavior pins (`*.test.tsx`, the component vitest project) freeze MediaLightbox / GuestUpload /
   LikesProvider behavior ahead of the Phase 4-5 decomposition — they assert behavior only, never
   styles, so token/craft changes don't touch them.

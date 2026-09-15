@@ -7,7 +7,7 @@ preview: true           # Will's review surface: every push builds partyreel-git
 owns:
   - src/components/marketing/sections/home/cinema-hero.tsx
   - src/app/(dev)/design/sandbox/
-  - src/app/(dev)/design/c/
+  - src/app/(dev)/design/(shell)/lab/
   - src/app/(dev)/design/touchpoints.ts
   - src/app/(dev)/design/touchpoints.test.ts
 reads:
@@ -28,12 +28,12 @@ different, better hero beats a safe increment, and the only law is the bible plu
 contracts (`page-hero-contract.test.ts`, `marketing-h1-policy.test.ts`: the h1 on the ladder, never
 gated, at paint).
 
-**Rulings in force.** The bible on `/design/rules` (22 rules, Will's). The hero stays UNLIT until a
+**Rulings in force.** The bible on `/design/library/rules` (22 rules, Will's). The hero stays UNLIT until a
 board rules otherwise (the wall is the ground, not a source). The thesis line and the primary CTA are
 ruled copy (`marketing-voice.ts`); the two provisional home headers stay provisional. Boards leave the
 sandbox when their ruling lands; the record goes to `docs/decisions/design-record.md`.
 
-**Verify on.** partyreel-git-lp-home-hero-partyreel.vercel.app: the boards on `/design/c/home-hero?key=`,
+**Verify on.** partyreel-git-lp-home-hero-partyreel.vercel.app: the boards on `/design/lab/home-hero?key=`,
 then the home at 1440 and 375 with the h1 at opacity 1 at paint, reduced motion included.
 
 **Lane exception, ruled.** `src/app/(dev)/design/rules/rules.generated.json` is generated: a push that
@@ -61,7 +61,7 @@ freshness guard says so) and the lane check accepts the file.
 - Head: the tip of `lp/home-hero`, which is THIS commit (a manifest cannot name its own SHA). The
   last code commit is `05f8642`, which is what the preview alias was verified at. Pushed; preview
   `https://partyreel-git-lp-home-hero-partyreel.vercel.app`.
-  **The board: `/design/c/home-hero?key=` (the sidebar's Sandbox zone picked it up on its own,
+  **The board: `/design/lab/home-hero?key=` (the sidebar's Sandbox zone picked it up on its own,
   since `catalog.ts` derives that list from `SANDBOX`).**
 - Synced with launch-prep: **not needed**, it had not moved (`git rev-list --count
   HEAD..origin/launch-prep` = 0 at handoff).
@@ -70,7 +70,7 @@ freshness guard says so) and the lane check accepts the file.
   files), build ok (245 static pages, the launch-prep count unchanged).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` =
   `docs/tracks/home-hero.md`, `docs/decisions/design-record.md`,
-  `src/app/(dev)/design/c/[touchpoint]/page.tsx`,
+  `src/app/(dev)/design/(shell)/lab/[touchpoint]/page.tsx`,
   `src/app/(dev)/design/sandbox/home-hero-lab.css`,
   `src/app/(dev)/design/sandbox/home-hero-variants.tsx`,
   `src/app/(dev)/design/touchpoints.test.ts`, `src/app/(dev)/design/touchpoints.ts`.
@@ -86,7 +86,7 @@ freshness guard says so) and the lane check accepts the file.
   `cinema-hero.tsx` is untouched by design, because the brief is to wire only what Will rules.
 - **Verified on the preview at `05f8642`** (the alias was polled until it served that build, proven
   by a marker in the HTML rather than by the clock):
-  - The gate: `/design/c/home-hero` 404 with no key and 404 with a wrong key, 200 with the key; the
+  - The gate: `/design/lab/home-hero` 404 with no key and 404 with a wrong key, 200 with the key; the
     four pre-existing boards still 200; an unknown board 404.
   - **The measurement that is the whole argument**, taken in the browser on the preview over each
     stage (absolutely-positioned layers over 200x200 that paint anything over a photograph, counted
@@ -131,7 +131,7 @@ build. The finding is the board: the shipped hero carries three darkening layers
 tiles at desktop and a fourth below `sm`, because white type had to survive over whichever tile the
 55-second drift parked under it, so bible rule 1 is inverted and not one photograph reads as a
 photograph. That turns the hero into one design question, WHERE DOES THE TYPE LIVE so no photograph
-is ever dimmed, and `/design/c/home-hero` answers it four ways: the type as a cell in the album's own
+is ever dimmed, and `/design/lab/home-hero` answers it four ways: the type as a cell in the album's own
 grid, as its own column against a hard frame edge, as a band over an album that fills guest by guest
 with the count climbing, and as a small opaque title card on one photograph that owns the screen. The
 four stages carry zero darkening layers over media between them, measured on the preview against

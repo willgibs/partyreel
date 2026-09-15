@@ -143,7 +143,7 @@ ancestor and stops under reduced motion, where the rest state is the composition
 geometry comes from `CANVAS`, never from `getBoundingClientRect` (the stage is zoomed); `sizes` on
 `next/image` is canvas-relative; Replay is a remount.
 
-**Rulings in force.** The bible on `/design/rules` (second edition), above all 1 (media is the color:
+**Rulings in force.** The bible on `/design/library/rules` (second edition), above all 1 (media is the color:
 no darkening layer over a photograph), 13 (the h1 at paint, never gated; `marketing-h1-policy` scans
 the lab), 14 (every animation inside the reduced-motion block, a designed rest state), 21 (copy is
 open: the ruled thesis renders under the ruled toggle, your proposal under the proposed toggle), 22
@@ -156,7 +156,7 @@ motion, the h1 at opacity 1 off the DOM; nothing more; the red-team is the wirin
 and pauses the stage, so verify in a foreground tab or freeze the loop at a chosen elapsed and shoot
 the still (the source's own lesson).
 
-**Verify on.** partyreel-git-lp-hero-river-partyreel.vercel.app, `/design/c/home-hero?key=` (the key is
+**Verify on.** partyreel-git-lp-hero-river-partyreel.vercel.app, `/design/lab/home-hero?key=` (the key is
 `DESIGN_PREVIEW_KEY` in `.env.local`): your concept at Desktop and Phone 375, ruled and proposed
 copy, Replay, reduced motion (the rest state), the h1 present at opacity 1 off the DOM.
 
@@ -171,19 +171,16 @@ flag: the code leaving the exact centre (the source's argument was the still cen
 origin at the top, say why), a lamp if any, the lockup's alignment. The asks: the 24 squares
 (`docs/ASSETS.md` row 2); a portrait set if the lanes want tall frames (name the count and size).
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `board.tsx`, `shared.tsx`, `board.css`,
-  `source.tsx`, `touchpoints.ts` or `rules/bible.ts`; never CHANGELOG, STATUS, ROADMAP, PROGRAM,
-  CLAUDE, AGENTS, `docs/ASSETS.md`; ask in Handoff.
-- **Sheets.** Keyframes under your prefix `hhv-` only (`keyframe-uniqueness.test.ts` reads every
-  sheet under the lab; `hhs-` is the source's, `hh-` the board's); a sheet never imports tailwindcss;
-  `glow-contract.test.ts` pins the BorderBeam and GlowFilter counts across `src`, so compose `<Glow>`
-  only if you light anything (and flag it). No em-dashes anywhere.
-- **Sync** `origin/launch-prep` only per PROGRAM.md (before handoff if it moved; mid-round only when
-  `docs/tracks/orchestrator.md` announces a landed change to one of your `reads`).
-- **Handoff:** fill Handoff and Record below, `status: handed-off`, push; the chat report is one
-  line, "handed off at <sha>".
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -209,7 +206,7 @@ origin at the top, say why), a lamp if any, the lockup's alignment. The asks: th
 - Head `2fcf926` plus this commit (a manifest cannot name its own SHA); `2fcf926` is the SHA the
   preview was verified at. Pushed; preview
   `https://partyreel-git-lp-hero-river-partyreel.vercel.app`, the board at
-  `/design/c/home-hero?key=` (concept 4 of 4).
+  `/design/lab/home-hero?key=` (concept 4 of 4).
 - Synced with `launch-prep` at **`3d40173`** (it had moved 68 commits: kill-mono, palette,
   type-scale, floating-surfaces, media-kit, light). `git merge origin/launch-prep` at `6eab1ae`, no
   conflicts, and the gate re-ran on the merged tree. The concept uses the `Caption` atom and no mono
@@ -298,7 +295,7 @@ the pre-pour frame lives inside the reduced-motion block so the pour cannot flas
 ## Handoff (round 2)
 
 - Head `b72d56b` plus this commit (a manifest cannot name its own SHA); `b72d56b` is the tree every
-  check below ran against. Pushed. The board is `/design/c/home-hero?key=` (concept 4 of 4).
+  check below ran against. Pushed. The board is `/design/lab/home-hero?key=` (concept 4 of 4).
   **Marker for the round-two board: `hhv-plate`**, the printed card's class, which exists nowhere in
   round one; `--hhv-fade-b0` marks anything after the first round-two commit and
   `--hhv-lab-scale` marks this head.
@@ -476,7 +473,7 @@ voice guide.
   running was re-taken at that head**, in a real foreground page rather than off a stepped clock.
   Which those are, and what stands from `d9040aa` on code the diff proves identical, is named under
   Verified below.
-  Pushed. The board is `/design/c/home-hero?key=` (concept 4 of 4).
+  Pushed. The board is `/design/lab/home-hero?key=` (concept 4 of 4).
   **Marker for the round-three board: `hhv-delta`**, the stream wrapper's second class, which exists
   in no earlier round; the absence of `hhv-lab` (the cut chip) marks it too.
 - ★ **The preview alias serves round TWO, and that is not this track's to fix.** Every push from
@@ -493,11 +490,11 @@ voice guide.
   round and the Vercel API was not called**, this third pass included, which was also its explicit
   instruction: the cap still stands, so verify locally and say so, which is the next bullet. Nothing about the build is at fault, and the alias serves this head
   the moment any push from this branch wins a slot. One line tells Will which round an alias is
-  serving: `curl -s "<alias>/design/c/home-hero?key=" | grep -c hhv-delta` returns 1 on round three
+  serving: `curl -s "<alias>/design/lab/home-hero?key=" | grep -c hhv-delta` returns 1 on round three
   and 0 on round two, where `grep -c hhv-lab` returns 1 instead.
 - **How the board was verified instead: a local production build, at BOTH canvases.** `pnpm build`
   then `pnpm start` in the worktree, which serves the same production output the preview would at
-  the same code, and the board opened there at `/design/c/home-hero?key=` and driven at **Desktop
+  the same code, and the board opened there at `/design/lab/home-hero?key=` and driven at **Desktop
   1440 and Phone 375**: Replay, the held beat, the clearing, the dead line and the steady state at
   this head; reduced motion and the copy toggle at `d9040aa`, on identical executable code. The one thing this cannot
   exercise is Vercel's own edge, and this board touches no route handler, no auth, no R2 and no

@@ -31,11 +31,11 @@ export type GalleryFamily =
   | "marketing";
 
 export const FAMILY_ROUTE: Record<GalleryFamily, string> = {
-  components: "/design/components",
-  patterns: "/design/patterns",
-  compositions: "/design/compositions",
-  foundations: "/design/foundations",
-  marketing: "/design/marketing",
+  components: "/design/library/components",
+  patterns: "/design/library/patterns",
+  compositions: "/design/library/compositions",
+  foundations: "/design/library/foundations",
+  marketing: "/design/library/marketing",
 };
 
 export const FAMILY_LABEL: Record<GalleryFamily, string> = {

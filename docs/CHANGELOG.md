@@ -11,6 +11,44 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-15 — The Library x Lab round, Phase 0: two areas on one shell (the Orchestrator)
+
+Will stopped his review of round four before it began: no cross-page navigation, every board a
+different presentation, so the work could not be read. He asked for a dedicated round that turns
+the lab into an internal app: the Library as the whole working rule set (everything that influences
+an agent's design work visible to him, the Orchestrator and new agents; global rules separated from
+component-exclusive contracts) and the Lab as the exploratory surface with its own kit (a fixed
+configurator, preview galleries, candidate selection, human vs AI notes, review questions), on
+shadcn's docs layout. Four decisions at the plan: review notes are copy-as-message only (the UI never
+writes); the rulings that lived only in the Orchestrator's memory move into the repo
+(`docs/design/rulings.md`); the routes rename to `/design/library/*` and `/design/lab/*` and the
+`.mono` sheet retires; the shell, the kit, the rules layer and the desk come first, the boards
+migrate in a wave after them.
+
+Phase 0 built the skeleton on `launch-prep`: the route groups (`(shell)/` for every page a person
+reads, the iframe scenes outside it), every page moved whole and every old URL a 307 that keeps the
+key (`_data/legacy-routes.ts`, `next.config.ts`); a thin root layout and the shell layout that builds
+the nav server-side (`_data/nav.ts` over the `_data/catalog.ts` model: two areas, sections, items with
+prefix matching, badges as data) and renders the top bar, the sidebar, the content column and the
+table-of-contents rail; the page templates (`PageHeader` with breadcrumbs from the nav, `Section`,
+`Pager`, `Ref` for every reference the repo writes, `LabLink` keeping the key fragment-safe, `Tag`,
+`Callout`, `StatRow`, `WidePage`, `PreviewCode`, `CopyPage`); repo markdown rendered in the library
+(`_data/docs.ts` from an allow-list, `compileMDX` in md format, heading ids from the help slugify;
+the docs traced into the lab's functions and verified in the build's trace); the rulings, policies
+and landmines, guidance, doctrine, record entry, rule permalink, glossary, proposal, track and kit
+pages as plain first versions; the desk and the board page on the shell (the dock under the top bar,
+`BoardPageContext` for its Sections menu and neighbours, the sidebar tucked away by preference); the
+board spec type (`src/components/lab/board-spec.ts`) and the empty registry; `docs/design/README.md`
+(the nine levels and what binds you), `docs/reviews/README.md` (the ledger shape and the message
+grammar), the round-four global notes as the first ledger; the fourteen manifests' repeated wave
+block replaced by one Binds line; `pnpm lab:smoke` (every route 200, every legacy route 307 with the
+key: 235 checks) and four new test files (the nav, the links, the docs, the redirects). Verified on
+the dev server at 1440 (the library index, the light board, the rulings page, the desk); the gate
+green (2004 tests, the build). Five tracks cut on disjoint lanes with their manifests as inits:
+`lab-shell`, `lab-rules`, `lab-kit`, `lab-library`, `lab-desk`.
+
+---
+
 ## 2026-09-14 — The review wave: the bible's second edition, the record for parallel agents, seven tracks at once (`fa45a88` to `6c19d84`; integrations below)
 
 Will reviewed the 22-rule bible line by line while round two of the home hero was building. Nine

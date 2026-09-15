@@ -243,9 +243,14 @@ function libraryImports(root) {
   const imports = [];
   for (const abs of pages) {
     const rel = toPosix(relative(dir, abs));
+    // A route group like `(shell)/` is a directory, never a URL segment (the
+    // Library x Lab round, 2026-09-15).
+    const routeRel = rel.replace(/\([^)]+\)\//g, "");
     const route =
       "/design" +
-      (rel.includes("/") ? "/" + rel.slice(0, rel.lastIndexOf("/")) : "");
+      (routeRel.includes("/")
+        ? "/" + routeRel.slice(0, routeRel.lastIndexOf("/"))
+        : "");
     const text = readFileSync(abs, "utf8");
     const sf = ts.createSourceFile(
       abs,

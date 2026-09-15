@@ -85,29 +85,22 @@ in your lane (`river.tsx`, `river.css`) is the river as it left the home-hero bo
 `../home-hero/shared`; keep it, cut it or rewrite it, it is yours. Keyframes and classes under `hhv-` or
 `rvr-` (say which). Production section shells are composed, never edited.
 
-**Rulings in force.** The bible on `/design/rules` (second edition): 1, 12 (animate by frequency: a feature
+**Rulings in force.** The bible on `/design/library/rules` (second edition): 1, 12 (animate by frequency: a feature
 visual is occasional, not a hero), 13, 14, 21, 22. The media manifest is the only source of paths (18).
 
-**Verify on.** `/design/c/river-visual?key=` on a local production build at 1440 and 375, reduced motion,
+**Verify on.** `/design/lab/river-visual?key=` on a local production build at 1440 and 375, reduced motion,
 the gate; the preview alias once Vercel's window frees.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -136,7 +129,7 @@ the gate; the preview alias once Vercel's window frees.
   **Marker for this round: `rvr-oneflow`**, the second class on every instance's root, which exists in
   no earlier round of anything (the seed rendered `hhv-delta`, the hero's). One line tells you which
   build an alias is serving:
-  `curl -s "<url>/design/c/river-visual?key=" | grep -o rvr-oneflow | wc -l` returns **6** on this
+  `curl -s "<url>/design/lab/river-visual?key=" | grep -o rvr-oneflow | wc -l` returns **6** on this
   round, where `hhv-delta` returns 0. (`grep -c` counts matching LINES and the page is one line, so it
   answers 1 for either: round one's handoff said `grep -c`, which is why this says `grep -o | wc -l`.)
 
@@ -179,7 +172,7 @@ the gate; the preview alias once Vercel's window frees.
     fixed something.
   - **How it was verified: a local PRODUCTION build at 1440 and 375, in a FOREGROUND tab.** `pnpm
     build` then `pnpm start` on **:3182** in the worktree, driven through the Browser pane at
-    `/design/c/river-visual?key=`, every reading taken with `document.visibilityState` asserted
+    `/design/lab/river-visual?key=`, every reading taken with `document.visibilityState` asserted
     "visible" and `[data-paused]` at 0 in the same call. **No stage clips on either canvas** (858/860,
     1187/1200, 738/760, 828/840 at 1440; 1638/1640, 1391/1400, 1516/1560, 1030/1060 at 375, with no
     horizontal overflow). The six instances measure **560, 400, 240, 560, 330, 632** at 1440 and
@@ -228,7 +221,7 @@ the gate; the preview alias once Vercel's window frees.
   this branch wins one; until then the board is the local build below.
 - **How the REVIEW FIX was verified: a local PRODUCTION build at 1440 and 375, in a FOREGROUND tab.**
   `pnpm build` then `pnpm start` on **:3172** in the worktree (round one's loop was `pnpm dev`), driven
-  through the Browser pane at `/design/c/river-visual?key=`, at **Desktop 1440 and Phone 375**, on
+  through the Browser pane at `/design/lab/river-visual?key=`, at **Desktop 1440 and Phone 375**, on
   **cinema and paper**, through **all three origins**, across the bank row and all three placements,
   with `document.visibilityState` asserted "visible" and `[data-paused]` at 0 in the same call as every
   reading. The preview alias was again not waited on and the Vercel API was not called. Read off the
@@ -242,7 +235,7 @@ the gate; the preview alias once Vercel's window frees.
   mounted.
 - **How the board was verified: a local server at 1440 and 375, in a FOREGROUND tab, with the loops
   running.** `pnpm dev` on :3171 in the worktree for the build-and-look loop and `pnpm build` for the
-  gate. Driven through the Browser pane at `/design/c/river-visual?key=`, at **Desktop 1440 and Phone
+  gate. Driven through the Browser pane at `/design/lab/river-visual?key=`, at **Desktop 1440 and Phone
   375**, on **cinema and paper**, through **all three origins** (the demo code, the plain plate, no
   object), with Replay, plus the reduced-motion resolution below. Every reading was taken with
   `document.visibilityState` asserted "visible" and `[data-paused]` at 0 in the same call.

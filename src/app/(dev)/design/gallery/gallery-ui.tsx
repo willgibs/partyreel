@@ -7,6 +7,7 @@ import type { VariantAxis } from "./entry";
 import { FAMILY_LABEL, FAMILY_ROUTE, type GalleryItem } from "./registry";
 import { Playground } from "./playgrounds";
 import { Stage } from "./stage";
+import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
 
 /**
  * THE GALLERY CHROME (server): how one declared component reads on a page.
@@ -65,7 +66,7 @@ export function EntryBlock({
 
       {file && (
         <p className="mt-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-          <SourceLink file={file} />
+          <Ref to={{ kind: "source", file }} quiet />
           {record && record.names.length > 1 && (
             <span className="text-muted-foreground/70">
               {record.names.join(" · ")}
@@ -128,10 +129,10 @@ export function EntryBlock({
                     )}
                     {k.title}
                   </span>
-                  <SourceLink
-                    file={k.file}
-                    line={k.line}
-                    className="text-[11px] text-muted-foreground"
+                  <Ref
+                    to={{ kind: "source", file: k.file, line: k.line }}
+                    quiet
+                    className="text-[11px]"
                   />
                 </li>
               ))}
@@ -264,39 +265,5 @@ export function FamilyCrumb({
     >
       {FAMILY_LABEL[family]}
     </Link>
-  );
-}
-
-/**
- * The path, monospace, opening in the editor on Will's machine and on GitHub.
- * The same affordance /design/rules carries; fold the two into one the next
- * time that page is touched (it is another track's lane this round).
- */
-export function SourceLink({
-  file,
-  line,
-  className,
-}: {
-  file: string;
-  line?: number;
-  className?: string;
-}) {
-  const at = line ? `${file}:${line}` : file;
-  const vscode = `vscode://file${process.cwd()}/${file}${line ? `:${line}` : ""}`;
-  const gh = `https://github.com/willgibs/partyreel/blob/launch-prep/${file}${line ? `#L${line}` : ""}`;
-  return (
-    <span className={cn("inline-flex items-baseline gap-1.5", className)}>
-      <a href={vscode} className="break-all hover:underline">
-        {at}
-      </a>
-      <a
-        href={gh}
-        target="_blank"
-        rel="noreferrer"
-        className="text-[10px] text-muted-foreground hover:underline"
-      >
-        gh
-      </a>
-    </span>
   );
 }

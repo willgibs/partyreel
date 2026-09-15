@@ -8,7 +8,7 @@
  * must still report FULL composition dims, or every style's geometry silently changes.
  *
  * drawReelFrame is mocked (this pins the CALLER's contract, not the 14 styles — registry.test.ts and
- * the /design/reel-parity harness own those); the env factories stay REAL so the env a thumb hands a
+ * the /design/lab/tools/reel-parity harness own those); the env factories stay REAL so the env a thumb hands a
  * style is the genuine article.
  */
 import { Profiler, type ProfilerOnRenderCallback } from "react";

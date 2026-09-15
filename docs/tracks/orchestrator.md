@@ -6,51 +6,51 @@ preview: false
 owns:
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
-  - src/app/(dev)/design/rules/rules.ts
-  - src/app/(dev)/design/rules/page.tsx
-  - src/app/(dev)/design/rules/rules-registry.test.ts
-  - src/app/(dev)/design/rules/component-index.test.ts
-  - src/app/(dev)/design/rules/rules.generated.json
-  - src/app/(dev)/design/record/
-  - src/app/(dev)/design/motion/
-  - src/app/(dev)/design/stream-probe/
-  - src/app/(dev)/design/boom/
-  - src/app/(dev)/design/reel-parity/
-  - src/app/(dev)/design/c/
   - src/app/(dev)/design/layout.tsx
-  - src/app/(dev)/design/lab-nav.tsx
-  - src/app/(dev)/design/design.css
-  - src/app/(dev)/design/mode-shell.tsx
+  - src/app/(dev)/design/(shell)/page.tsx
+  - src/app/(dev)/design/_data/links.ts
+  - src/app/(dev)/design/_data/links.test.ts
+  - src/app/(dev)/design/_data/docs.ts
+  - src/app/(dev)/design/_data/docs.test.ts
+  - src/app/(dev)/design/_data/legacy-routes.ts
+  - src/app/(dev)/design/_data/legacy-routes.test.ts
+  - src/app/(dev)/design/_data/glossary.ts
   - src/app/(dev)/design/touchpoints.ts
   - src/app/(dev)/design/touchpoints.test.ts
   - src/app/(dev)/design/sandbox/home-hero/board.tsx
   - src/app/(dev)/design/sandbox/home-hero/board.css
   - src/app/(dev)/design/sandbox/home-hero/shared.tsx
-  - src/components/dev/
+  - src/components/dev/motion-tuner.tsx
+  - src/components/dev/motion-tuner-config.ts
+  - src/components/dev/marketing-motion-tuner.tsx
+  - src/components/dev/tuner-store.ts
+  - src/components/dev/candidate-style.tsx
+  - src/components/dev/app-design-island.tsx
+  - src/components/dev/glow-contrast.ts
+  - src/components/dev/glow-contrast.test.ts
+  - src/components/dev/lamp-set.ts
   - src/components/marketing/mdx/
   - src/components/marketing/mdx-components.tsx
   - src/lib/design-gate/
   - src/app/api/design-gate/
-  - src/lib/track-manifests.test.ts
-  - src/lib/single-source-policy.test.ts
   - scripts/vercel-ignore-build.mjs
+  - scripts/lab-smoke.mjs
   - .github/workflows/ci.yml
-  - docs/decisions/design-record.md
   - docs/perf/v1-baseline.md
   - src/app/globals.css
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
   - src/lib/events/visibility-labels.ts
   - src/lib/shared/use-entered-frame.ts
-  - scripts/design-rules/
 reads:
   - src/app/(marketing)/(cinema)/layout.tsx
   - src/components/marketing/system/section-shell.tsx
 announces:
+  - "the Library x Lab round, Phase 0 (2026-09-15): the lab is two areas on one shell. Routes are /design/library/* (rules, policies, guidance, rulings, doctrine/<doc>, record, glossary, the component permalinks and the five family galleries) and /design/lab/* (the desk, /design/lab/<board>, proposals, tracks, kit, tools/<tool>); every old URL 307s with the key (_data/legacy-routes.ts, next.config.ts). The shell: (shell)/layout.tsx builds the nav server-side (_data/nav.ts over _data/catalog.ts) and renders _shell/shell.tsx (top bar with the two areas, the theme control and the key chip; the sidebar with prefix matching, badges and a filter; the content column; the TOC rail from xl). Templates every page composes, from (shell)/_shell/index.ts: PageHeader (breadcrumbs from the nav, title, description, badges, meta, actions, Copy page), Section and Sub (anchored, scroll-margin under the top bar and a dock), Pager (neighbours from the nav or passed), Ref (one link for every reference: a bible rule, a component, a board, a record entry, a doc anchor, a proposal, a track, a policy, a source path; replaces both SourceLinks), LabLink and useDesignKey (the key on every internal href, fragment-safe: withDesignKey now inserts before #), Tag, Callout, StatRow, WidePage (data-lab-wide: the TOC rail hides, the sidebar honours the preference), PreviewCode, CopyButton. Repo markdown renders through _shell/markdown.tsx (compileMDX, format md, remark-gfm; heading ids from the help slugify; docs read by _data/docs.ts from an allow-list of docs/, CLAUDE.md and the craft skill, traced into the /design/ functions by next.config.ts). The board shell: lab-prefs.ts renamed bleed to sidebar (open | collapsed) and gained editorRoot; BoardDock sticks under the top bar (sm:top-[var(--lab-topbar-h)]), reads BoardPageContext (id, title, sections, prev, next; provided by (shell)/lab/[board]/page.tsx, filled by the kit's template) and links the desk at /design/lab; ModeShell, .mono (except the dark override two legacy boards still paint), font-opt-urbanist and the data-dir-root wash are gone: one design language on the real tokens. The board spec type is src/components/lab/board-spec.ts (defineBoard, LIMITS, anchorFor) and the registry sandbox/registry.ts (empty until the kit track lands the pilots). docs/design/rulings.md holds Will's rulings (never owned); docs/reviews/ holds the ledgers (never owned; the README states the shape and the message grammar). pnpm lab:smoke crawls every lab route against a running server. Five tracks cut on disjoint lanes: lab-shell, lab-rules, lab-kit, lab-library, lab-desk (their manifests are their inits); integration order lab-shell, lab-rules, lab-kit, lab-library, lab-desk; a shared-file change a track needs (_data/{links,docs,legacy-routes,glossary}.ts, touchpoints.ts, rules/bible.ts, next.config.ts, motion-tuner.tsx) is asked for in Handoff and landed here."
   - "the CI budget round (2026-09-15): CI is not the gate, the four local steps are. ci.yml runs on main and launch-prep pushes that touch code and on PRs to main; an lp/* push runs it only when the commit message says [ci]; a docs-only push is skipped. Vercel: an lp/* branch builds at status: handed-off or on [preview], never every push (preview: true is intent only). Push work in progress freely; say [preview] on the push Will should see before the handoff."
   - "round four of the review wave (2026-09-15, overnight on Will's notes): the shell gained BoardDock (src/components/dev/board/dock.tsx: a board's page-wide switches, sticky from sm up, writing its height to scroll-padding-top and --board-dock-h) and the reading preferences (lab-prefs.ts, applied by LabChrome: every Stage renders at 1:1 by default, the board page lifts its max-width, the sidebar is tucked away on board pages; Fit keeps the old zoom); never scale a judged specimen. The home hero board is the source, the scan and the new inflow (hero-source, hero-scan, hero-inflow); the burst and the river left it for their own boards, album-hero and river-visual, their files moved whole (imports now ../home-hero/shared); ConceptId keeps burst and river for the seeds. Twelve tracks run at once; Vercel is capped until the afternoon, so every track verifies locally."
   - "the review wave (2026-09-14): seven tracks cut at once off the bible's second edition; the six boards own only sandbox/<id>/ (their RULINGS entries, the dispatcher lines and the desk are registered here up front, with placeholder variant names renamed at integration); kill-mono owns the production trees it sweeps, the lab's family pages and six older sandbox files, and src/components/marketing/system/ is RELEASED to it from this manifest (deleting mono-caption.tsx is atomic only with its 18 importers)"
-  - the rounding and tweaking GUI round (Orchestrator-run, in parallel with the wave) touches src/components/dev/ (the tuner, its config, the shared board shell in dev/board/), src/app/(dev)/design/motion/, the rounding board at sandbox/rounding/, and the radius VALUES in src/app/globals.css and the derivation in src/app/theme.css; tokens are never renamed mid-window (boards read --radius-float and --radius-tile), and any landed value change is announced here first so boards sync
+  - the rounding and tweaking GUI round (Orchestrator-run, in parallel with the wave) touches src/components/dev/ (the tuner, its config, the shared board shell in dev/board/), src/app/(dev)/design/(shell)/lab/tools/motion/, the rounding board at sandbox/rounding/, and the radius VALUES in src/app/globals.css and the derivation in src/app/theme.css; tokens are never renamed mid-window (boards read --radius-float and --radius-tile), and any landed value change is announced here first so boards sync
   - theme.css line 18 (--font-mono) was deleted pre-spawn; Tailwind's default mono stack carries every surviving font-mono until kill-mono lands, and no new mono is written anywhere (bible 7, retiring)
   - no @contract-for test is added on launch-prep until kill-mono integrates (it regenerates rules.generated.json); the Orchestrator reruns pnpm design:rules at each merge
   - "kill-mono landed (2026-09-14, `69af90d`): no mono face in the product; `src/app/two-faces-policy.test.ts` refuses a `font-mono` class, a mono loader or a `--font-mono` token; `MonoCaption` is gone (`Caption` is the one atom); `@contract-for` tests may be added again (the artifact was regenerated at the merge)"
@@ -67,7 +67,7 @@ they sync once, before handoff, if it moved.
 
 **This window (the review wave, 2026-09-14 to 15):** Will's rule-by-rule review of the bible, taken while
 round two of the home hero was building. Nine rules rewritten, each reviewed rule carrying a status on
-`/design/rules`, rising tides redefined as the ground-up judgment (bible 22), copy opened (21), mono
+`/design/library/rules`, rising tides redefined as the ground-up judgment (bible 22), copy opened (21), mono
 gone (7 is now the two-faces rule). Seven tracks cut at once (six lab boards and one production
 sweep) and round three of the hero (three variations off the ruled source) cut the same afternoon,
 and all ten integrated the same day. Will's read at the close: one round of context was not enough
@@ -90,7 +90,7 @@ of round four** (the items below), after which:
 the composition pass (one Orchestrator board stacking the ruled blocks on the home arc and the
 dashboard), the hero's wiring round, the floating and light wiring rounds, `voice-infusion`. The
 record the Orchestrator keeps between windows is the two lists below plus
-[`../ASSETS.md`](../ASSETS.md); the desk at `/design/c?key=` renders the same files.
+[`../ASSETS.md`](../ASSETS.md); the desk at `/design/lab?key=` renders the same files.
 
 ## In flight
 
@@ -99,28 +99,33 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 
 | track | board | preview | waits on |
 | --- | --- | --- | --- |
-| `palette` | `/design/c/palette` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `c0d60b94`) | Will's ruling |
-| `light` | `/design/c/light` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `bc2390f2`) | Will's ruling |
-| `type-scale` | `/design/c/type-scale` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `d762841f`) | Will's ruling |
-| `floating-surfaces` | `/design/c/floating-surfaces` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `75be0b0d`) | Will's ruling |
-| `brand-voice` | `/design/c/brand-voice` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `0414a120`) | Will's ruling |
-| `media-kit` | `/design/c/media-kit` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `1c2be959`) | Will's ruling |
+| `lab-shell` | `/design/library` and `/design/lab` (the chrome) | its own alias at handoff | the Orchestrator (integration, first) |
+| `lab-rules` | `/design/library/rules`, `policies`, `guidance`, `rulings`, `doctrine`, `record`, `glossary` | its own alias at handoff | the Orchestrator (integration, second) |
+| `lab-kit` | `/design/lab/light`, `/design/lab/rounding`, `/design/lab/kit` | its own alias at handoff | the Orchestrator (integration, third) |
+| `lab-library` | `/design/library/<component>` and the five family galleries | its own alias at handoff | the Orchestrator (integration, fourth) |
+| `lab-desk` | `/design/lab` (the desk, the review session), `tracks`, `proposals`, `tools` | its own alias at handoff | the Orchestrator (integration, last) |
+| `palette` | `/design/lab/palette` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `c0d60b94`) | Will's ruling |
+| `light` | `/design/lab/light` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `bc2390f2`) | Will's ruling |
+| `type-scale` | `/design/lab/type-scale` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `d762841f`) | Will's ruling |
+| `floating-surfaces` | `/design/lab/floating-surfaces` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `75be0b0d`) | Will's ruling |
+| `brand-voice` | `/design/lab/brand-voice` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `0414a120`) | Will's ruling |
+| `media-kit` | `/design/lab/media-kit` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `1c2be959`) | Will's ruling |
 | `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
-| `hero-scan` | `/design/c/home-hero` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `f4494d6e`) | Will's ruling |
-| `hero-source` | `/design/c/home-hero (variation 1)` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `797fa9ad`) | Will's ruling |
-| `hero-inflow` | `/design/c/home-hero (variation 3)` | the launch-prep alias once Vercel's window frees (round 1 integrated, merged `7294f1d5`) | Will's ruling |
-| `album-hero` | `/design/c/album-hero` | the launch-prep alias once Vercel's window frees (round 1 integrated, merged `f51fcdc5`) | Will's ruling |
-| `river-visual` | `/design/c/river-visual` | the launch-prep alias once Vercel's window frees (round 1 integrated, merged `3e81cc39`) | Will's ruling |
+| `hero-scan` | `/design/lab/home-hero` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `f4494d6e`) | Will's ruling |
+| `hero-source` | `/design/lab/home-hero (variation 1)` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `797fa9ad`) | Will's ruling |
+| `hero-inflow` | `/design/lab/home-hero (variation 3)` | the launch-prep alias once Vercel's window frees (round 1 integrated, merged `7294f1d5`) | Will's ruling |
+| `album-hero` | `/design/lab/album-hero` | the launch-prep alias once Vercel's window frees (round 1 integrated, merged `f51fcdc5`) | Will's ruling |
+| `river-visual` | `/design/lab/river-visual` | the launch-prep alias once Vercel's window frees (round 1 integrated, merged `3e81cc39`) | Will's ruling |
 | `hero-burst` | retired: the burst left the home hero (Will, 2026-09-15) for `album-hero` | the launch-prep alias (round 3 merged `78e9538`) | nothing: its field is the album-hero track's seed |
 | `hero-river` | retired: the river left the home hero (Will, 2026-09-15) for `river-visual` | the launch-prep alias (round 3 merged `39113bb`) | nothing: its stream is the river-visual track's seed |
-| `rounding` | `/design/c/rounding` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `06ceeb41`) | Will's ruling |
+| `rounding` | `/design/lab/rounding` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `06ceeb41`) | Will's ruling |
 
 ## Waiting on Will
 
 Every open ruling with its link; the asks are quoted from each board's meta panel as the boards hand
 off. Assets live in [`../ASSETS.md`](../ASSETS.md).
 
-1. **The home hero, round three** (`/design/c/home-hero?key=`, read in a FOREGROUND tab): round two
+1. **The home hero, round three** (`/design/lab/home-hero?key=`, read in a FOREGROUND tab): round two
    was ruled 2026-09-14 (the source, "definitely my favorite direction"; the reel and the gathering
    out, the reel's idea parked as a "Watch your event highlights" video card for another page). Three
    variations off the source are building (`hero-scan`, `hero-burst`, `hero-river`, each on its own
@@ -142,7 +147,7 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      - Precedent, not law: the lockup is centred rather than left-aligned, inherited from the source because the code owns the axis. The first thing to overrule if the home hero should stay left.
 2. **The boards of the review wave** (round four integrated on Will's notes; the asks quoted from each
    board's meta panel; each ends in a word):
-   - **palette** (`/design/c/palette?key=`; merged `c0d60b94`):
+   - **palette** (`/design/lab/palette?key=`; merged `c0d60b94`):
      - The model: registers, or today's five grounds.
      - The dark: today, ladder, one room, ember, slate or lift.
      - The light: today, paper, bright, warm or cool.
@@ -151,17 +156,17 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      - The mat: a register, or the alphas.
      - The missing step: faint in, or out.
      - The dark card: declared, opaque, or the veil.
-   - **light** (`/design/c/light?key=`; merged `bc2390f2`):
+   - **light** (`/design/lab/light?key=`; merged `bc2390f2`):
      - (see the board's Rule on panel)
-   - **type-scale** (`/design/c/type-scale?key=`; merged `d762841f`):
+   - **type-scale** (`/design/lab/type-scale?key=`; merged `d762841f`):
      - (see the board's Rule on panel)
-   - **floating-surfaces** (`/design/c/floating-surfaces?key=`; merged `75be0b0d`):
+   - **floating-surfaces** (`/design/lab/floating-surfaces?key=`; merged `75be0b0d`):
      - The direction: today, card, glass or command (this board says card)
      - The submenu: keep it, or delete it and let the three values be a group (this board says delete)
      - The radius: sharp, nested or round (this board says nested, which is what card carries)
      - The entrance: one clock or by frequency (this board says by frequency, and that rule 15 means one language)
      - The light in dark: today or the shadow (this board says whatever the light board is ruled, since the numbers are the same)
-   - **brand-voice** (`/design/c/brand-voice?key=`; merged `0414a120`):
+   - **brand-voice** (`/design/lab/brand-voice?key=`; merged `0414a120`):
      - The voice: B, A, or today (the agent recommends B)
      - The seven provisional home headers: whole in the selected voice, or line by line from the ledgers (the agent recommends whole)
      - The rest of the arc, its eyebrows, supporting lines and CTAs: take the selected voice, or hold today's (the agent recommends take)
@@ -169,19 +174,19 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      - The thesis: keep in one album, or take as everyone saw it (the agent recommends keep)
      - One noun for the thing: album everywhere, or album on the site and gallery on a guest's screen (the agent recommends album)
      - The account-required unfurl line: email, or sign in (the agent recommends email)
-   - **media-kit** (`/design/c/media-kit?key=`; merged `1c2be959`):
+   - **media-kit** (`/design/lab/media-kit?key=`; merged `1c2be959`):
      - (see the board's Rule on panel)
-   - **rounding** (`/design/c/rounding?key=`; merged `06ceeb41`):
+   - **rounding** (`/design/lab/rounding?key=`; merged `06ceeb41`):
      - The surfaces: A, B, C or D (--radius, --radius-float and --radius-tile move together)
      - The actions: today, pill or quiet
      - The derived ladder: stock or quarters
      - The dead rungs (rounded-3xl, rounded-4xl, --radius-action-lg): keep or drop
      - The gallery gap: pinned to the tile, or free
-   - **album-hero** (`/design/c/album-hero?key=`; merged `f51fcdc5`):
+   - **album-hero** (`/design/lab/album-hero?key=`; merged `f51fcdc5`):
      - (see the board's Rule on panel)
-   - **river-visual** (`/design/c/river-visual?key=`; merged `3e81cc39`):
+   - **river-visual** (`/design/lab/river-visual?key=`; merged `3e81cc39`):
      - (see the board's Rule on panel)
-3. **The rounding sitting** (the tuner earned it 2026-09-14): `/design/c/rounding?key=` on the
+3. **The rounding sitting** (the tuner earned it 2026-09-14): `/design/lab/rounding?key=` on the
    launch-prep alias (four columns of one kit, three fixed candidates and a live one) and the tuner
    in the corner of every cinema page and the lab (`?key=`); values survive Replay, navigation and
    reload until Reset; Copy CSS gives the block to bake. The asks: "--radius, --radius-float,
@@ -240,7 +245,7 @@ feels alive keeps a visitor exploring).
   (Tailwind's default stack carries the survivors until `kill-mono` lands). ★ A lane that sees mono
   fall back to the system stack is seeing this, not a bug.
 - `0cdf4c7` the board shell (`src/components/dev/board/`: `Stage` with grounds, `Toggle`, `BoardMeta`),
-  the home-hero board and contract moved onto it, the desk at `/design/c` (reads `docs/tracks/` at
+  the home-hero board and contract moved onto it, the desk at `/design/lab` (reads `docs/tracks/` at
   request time; `next.config.ts` traces the directory in), seven boards registered in `touchpoints.ts`
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.

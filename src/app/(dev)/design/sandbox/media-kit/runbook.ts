@@ -68,7 +68,10 @@ export const CLIP_SETS: Readonly<Record<string, readonly string[]>> = {
 /** The set whose clips are the recipe's, in order, or null if a code edit is needed. */
 export function matchClipSet(clipIds: readonly string[]): string | null {
   for (const [label, ids] of Object.entries(CLIP_SETS)) {
-    if (ids.length === clipIds.length && ids.every((id, i) => id === clipIds[i])) {
+    if (
+      ids.length === clipIds.length &&
+      ids.every((id, i) => id === clipIds[i])
+    ) {
       return label;
     }
   }
@@ -93,7 +96,7 @@ export function runbookFor(reelId: string): RunbookStep[] {
       n: 1,
       do: "Open the parity page in Chrome",
       detail:
-        "/design/reel-parity with the lab key. WebCodecs has to be available; the page probes on mount and disables Encode if it is not",
+        "/design/lab/tools/reel-parity with the lab key. WebCodecs has to be available; the page probes on mount and disables Encode if it is not",
     },
     {
       n: 2,

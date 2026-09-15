@@ -154,7 +154,7 @@ describe("mood asset needs (per theme)", () => {
 });
 
 // The Cinematic kit values the canvas port was calibrated against. If someone retunes the kit
-// (themes/reel-types), this trips so the canvas side gets re-graded in /design/reel-parity instead of
+// (themes/reel-types), this trips so the canvas side gets re-graded in /design/lab/tools/reel-parity instead of
 // silently diverging from what was signed off.
 describe("Cinematic kit tripwire (grade-string parity with the Remotion theme)", () => {
   it("pins the THEME_CLASSIC values the port replicates", () => {

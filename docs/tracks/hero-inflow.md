@@ -92,33 +92,26 @@ else. A JS loop reads `data-paused` off the closest `[data-paused]` ancestor and
 motion, where the rest state is the composition fully deployed; geometry comes from `CANVAS`; `sizes` on
 `next/image` is canvas-relative; Replay is a remount.
 
-**Rulings in force.** The bible on `/design/rules` (second edition), above all 1 (media is the color: no
+**Rulings in force.** The bible on `/design/library/rules` (second edition), above all 1 (media is the color: no
 darkening layer over a photograph), 13 (the h1 at paint, never gated; `marketing-h1-policy` scans the
 lab), 14 (every animation inside the reduced-motion block, a designed rest state), 21 (copy is open), 22
 (rising tides), and the standing ruling that the hero is cinema and unlit (light only as a flagged
 departure). The media manifest is the only source of paths (bible 18).
 
-**Verify on.** `/design/c/home-hero?key=` on a local production build (the key is `DESIGN_PREVIEW_KEY` in
+**Verify on.** `/design/lab/home-hero?key=` on a local production build (the key is `DESIGN_PREVIEW_KEY` in
 `.env.local`): your concept at Desktop and Phone 375, ruled and proposed copy, Replay, reduced motion, the
 h1 present at opacity 1 off the DOM; your preview alias once Vercel's window frees.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 

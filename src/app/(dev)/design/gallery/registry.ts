@@ -1,5 +1,9 @@
 import { COMPONENT_NOTES, type ComponentNote } from "../rules/component-notes";
-import { COMPONENTS, componentTitle, type ComponentRecord } from "../rules/rules";
+import {
+  COMPONENTS,
+  componentTitle,
+  type ComponentRecord,
+} from "../rules/rules";
 import {
   FAMILY_LABEL,
   FAMILY_ROUTE,
@@ -25,11 +29,11 @@ import {
  * and gallery.test.ts fails on it.
  */
 
-import { COMPONENT_ENTRIES } from "../components/gallery-demos";
-import { COMPOSITION_ENTRIES } from "../compositions/gallery-demos";
-import { FOUNDATION_ENTRIES } from "../foundations/gallery-demos";
-import { MARKETING_ENTRIES } from "../marketing/gallery-demos";
-import { PATTERN_ENTRIES } from "../patterns/gallery-demos";
+import { COMPONENT_ENTRIES } from "@/app/(dev)/design/(shell)/library/components/gallery-demos";
+import { COMPOSITION_ENTRIES } from "@/app/(dev)/design/(shell)/library/compositions/gallery-demos";
+import { FOUNDATION_ENTRIES } from "@/app/(dev)/design/(shell)/library/foundations/gallery-demos";
+import { MARKETING_ENTRIES } from "@/app/(dev)/design/(shell)/library/marketing/gallery-demos";
+import { PATTERN_ENTRIES } from "@/app/(dev)/design/(shell)/library/patterns/gallery-demos";
 
 export const GALLERY: GalleryEntry[] = [
   ...COMPONENT_ENTRIES,
@@ -69,7 +73,8 @@ export function item(entry: GalleryEntry): GalleryItem {
     file,
     note: file ? COMPONENT_NOTES[file] : undefined,
     title:
-      entry.title ?? (record ? componentTitle(record).split(", ")[0] : entry.id),
+      entry.title ??
+      (record ? componentTitle(record).split(", ")[0] : entry.id),
     href: galleryHref(entry.id),
   };
 }

@@ -90,23 +90,16 @@ or keep yours if it does more, and say which). (4) Keep round three's answer blo
 as one section, updated to the new directions: the asks become which direction, then the rungs. (5) The
 proposal in `docs/specs/floating-surfaces.md` becomes the directions with their contracts.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -193,7 +186,7 @@ what the shell should absorb.
 
 **Goal.** The floating-surfaces exploration of the review wave (2026-09-14). Bible 15 (every floating surface rides one contract: one radius, one entrance, one light) gets its dedicated exploration: every floating primitive on every ground at both widths, today beside two candidate treatments of radius, entrance and light-or-shadow in dark, with the outliers brought onto whichever contract wins. Lab only: no production byte changes on this track.
 **Rulings in force.** The bible's second edition: rule 15 (under exploration, naming this board), rule 8 (tokens, never literals: floating layers take `--radius-float`), rule 9 (radius plus offset), rule 10 as rewritten (a shadow is allowed where a layer sits over content), rule 12 (animate by frequency; custom easing on every control), rule 14 (reduced motion).
-**Verify on.** `/design/c/floating-surfaces?key=` on your preview at 1440 and 375, reduced motion honoured; the gate green.
+**Verify on.** `/design/lab/floating-surfaces?key=` on your preview at 1440 and 375, reduced motion honoured; the gate green.
 
 ## The brief
 
@@ -240,43 +233,16 @@ dropped).
 
 The board, plus the rewritten contract in the Record. Read `components/ui/*`; change none of them.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **Rising tides (bible 22).** Judge the system from the ground up: what would the perfect version
-  be if none existed? If today's tokens point there, the candidates are tunings; if the perfect
-  version deviates, a candidate replaces the system and says so as a departure in `BoardMeta`. The
-  three candidates on a board span that range; they are never three shades of one answer. A
-  candidate may question a bible rule: that is a finding, written in this manifest, ruled by Will.
-- **The board shell.** `src/components/dev/board/` is the shell: `Stage` (a real viewport on a
-  real ground, `cinema | paper | ink | app-dark | app-light`, zoom-fitted, `data-paused` on a hidden
-  tab), `Toggle`, and `BoardMeta` (the question, the candidates, the asks, the departures, the
-  assets). The stub in your directory shows the pattern; replace it whole. The asks are the exact
-  choices Will makes, worded so a ruling is a few words; the Orchestrator quotes them.
-- **Light QA (Will, 2026-09-14).** A lab-only round verifies its board on its preview at 1440 and
-  375 with reduced motion honoured and the gate green on the synced tree, then hands off; the deep
-  red-team is the wiring round's. Iterate rather than perfect. Push early and often: `preview: true`
-  builds `partyreel-git-lp-<track>-partyreel.vercel.app` on every push and Will reviews there in
-  parallel.
-- **Unlimited design resources.** Ask for exactly the asset the design needs, in Handoff, one
-  bullet per asset in the shape `what · spec (size, grade, count, format) · replaces <stand-in id>`;
-  ship the manifest's stand-in meanwhile. Never edit `docs/ASSETS.md`.
-- **Never touch:** `touchpoints.ts` (your board is registered; the placeholder variant names are
-  renamed at integration), `rules/bible.ts` (a bible change is Will's ruling, folded by the
-  Orchestrator), CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `src/lib/env.ts`, anything
-  outside `owns`.
-- **No mono.** Bible 7 is retiring and a sweep is removing the face in parallel: no `font-mono`, no
-  `MonoCaption`; `Caption` (`system/caption.tsx`) is the label face and `tabular-nums` on the body
-  face carries data.
-- **Sheets.** Keyframes live in your `board.css` under your prefix only (`keyframe-uniqueness.test.ts`
-  reads every sheet under the lab); a board sheet never imports tailwindcss (`css-source-policy`);
-  `glow-contract.test.ts` pins exactly three `<BorderBeam` sites, one `id="glw-warp"` and one
-  `<GlowFilter />` across all of `src`, so compose `<Glow>` only. No em-dashes anywhere (the AST
-  guard scans lab TSX).
-- **Sync** `origin/launch-prep` only per PROGRAM.md: before handoff if it moved; mid-round only when
-  `docs/tracks/orchestrator.md` announces a landed change to one of your `reads`. The Orchestrator's
-  rounding round retunes radius VALUES mid-window (never a token name) and announces there.
-- **Handoff:** fill Handoff and Record below, `status: handed-off`, push; the chat report is one
-  line, "handed off at <sha>".
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -421,7 +387,7 @@ contract, a centre origin detaches the panel from its trigger, and a scale with 
 - Head: the tip of `lp/floating-surfaces`, pushed. The last code commit is `e57b5ec`;
   everything after it is this manifest. Preview:
   `partyreel-git-lp-floating-surfaces-partyreel.vercel.app`
-- Board: `/design/c/floating-surfaces?key=` (nine rows). Marker for "is this round two":
+- Board: `/design/lab/floating-surfaces?key=` (nine rows). Marker for "is this round two":
   the row heading "The corner, measured", which did not exist in round one.
 - **The preview alias is CURRENT: it serves `943473b`**, deployment
   `dpl_BvT5gfi5RMXxVfrtMznUUewFwnVv`, READY at 2026-09-14 22:37. That build carries every
@@ -447,7 +413,7 @@ contract, a centre origin detaches the panel from its trigger, and a scale with 
   `gitSource {type: github, repoId: 1252816746, ref: <branch>, sha: <tip>}`, retried until a
   slot frees) rather than by pushing again; an empty commit spends a slot and fixes nothing.
 - **The board also runs with no deploy at all:** `pnpm dev`, then
-  `http://localhost:3000/design/c/floating-surfaces?key=`. The lab sits in no allow-list, so
+  `http://localhost:3000/design/lab/floating-surfaces?key=`. The lab sits in no allow-list, so
   localhost renders the tip exactly, "Apply to the site" included (the local marketing pages
   and dashboard wear a rung the same way). Worth knowing the next time the ceiling bites.
 - Synced with `launch-prep` at `4b035c1` (merge `881c258`); it had moved one commit
@@ -595,7 +561,7 @@ rescue.
 
 - Head: the tip of `lp/floating-surfaces`, pushed; the third pass's code and prose landed at
   `e7b5b18`, on the merge `b624c23`, and the tip is the commit that records this line. Board:
-  `/design/c/floating-surfaces?key=`.
+  `/design/lab/floating-surfaces?key=`.
   **The marker that says "this is round three" is the block the board OPENS with, "Where this board
   lands"**; round two's board had no such block, and its absence is the fastest way to tell you are
   looking at the old one. A second marker, in a different place: any frame drawn smaller than its
@@ -626,7 +592,7 @@ rescue.
   walked for this handoff on a LOCAL PRODUCTION BUILD of this head, which renders the tip exactly
   (the lab is in no allow-list, so nothing about it is preview-only, "Apply to the site" included):
   `pnpm build && npx next start -p 3008`, then
-  `http://localhost:3008/design/c/floating-surfaces?key=`, driven in Chrome. **At 1440** the window
+  `http://localhost:3008/design/lab/floating-surfaces?key=`, driven in Chrome. **At 1440** the window
   was sized to a 1440 viewport and the board scrolled end to end. **At 375**, since a Chrome window
   will not go below 500px wide, the board was loaded in a 375-wide same-origin iframe on the same
   local server: a real 375 layout viewport, so the `sm:` breakpoints resolve the way a phone
@@ -929,7 +895,7 @@ none above 0.01ms.
   still describing round three) was buried and at risk of being deferred or landed wrong. The ask now
   quotes the three real strings at `07ad3b2` with a paste-ready replacement for each and says which to
   land first. The gate was re-run green on this head and the board re-walked at 1440 and 375 on a local
-  production build of it. Board: `/design/c/floating-surfaces?key=`.
+  production build of it. Board: `/design/lab/floating-surfaces?key=`.
   **The marker that says "this is round four" is the block the board OPENS with, "Three floating
   layers, and the one this board would build"**; round three's opener was "Where this board lands", and
   its absence is the fastest way to tell you are looking at the old one. A second marker in a different

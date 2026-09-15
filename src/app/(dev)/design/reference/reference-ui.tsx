@@ -1,3 +1,4 @@
+import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
 import { cn } from "@/lib/utils";
 
 /**
@@ -8,39 +9,42 @@ import { cn } from "@/lib/utils";
  * bordered "library card" frame each specimen sits in.
  */
 
+function slug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export function RefHeader({
-  eyebrow,
   title,
   blurb,
 }: {
-  eyebrow: string;
+  /** Retired (the Library x Lab round, 2026-09-15): the breadcrumbs say it. */
+  eyebrow?: string;
   title: string;
   blurb: string;
 }) {
-  return (
-    <header className="mb-2">
-      <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-        {eyebrow}
-      </p>
-      <h1 className="mt-1 font-heading text-3xl text-balance">{title}</h1>
-      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-        {blurb}
-      </p>
-    </header>
-  );
+  return <PageHeader title={title} description={blurb} />;
 }
 
 export function RefSection({
+  id,
   title,
   blurb,
   children,
 }: {
+  /** The anchor (defaults to the title, slugged) the table of contents lists. */
+  id?: string;
   title: string;
   blurb?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="pt-10">
+    <section
+      id={id ?? slug(title)}
+      className="scroll-mt-[calc(var(--lab-topbar-h,0px)+12px)] pt-10"
+    >
       <h2 className="text-sm font-semibold">{title}</h2>
       {blurb && (
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{blurb}</p>

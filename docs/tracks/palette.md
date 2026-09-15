@@ -92,23 +92,16 @@ switch in `BoardDock`, so a candidate can be flipped beside any row. (6) Keep wh
 paste per candidate, today beside the candidate in one canvas, the measured counts, the temperature switch
 if it still earns its place under the new model.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -194,8 +187,8 @@ canvas. (7) The asks reduced to one-word answers. Keep the oklab ruler; it is th
 ## Round 1, for reference (integrated; the brief it was built to)
 
 **Goal.** The palette exploration of the review wave (Will's rule-by-rule review of the bible, 2026-09-14). Bible 1 is under exploration: the achromatic ramp between black and white in both modes (Will: the greys feel off; achromatic, not grayscale, is the intent), the accent's role (state, and UI colour where there is no media), and the muted panel as a real register. The board proposes three token blocks Will can rule between; the ruling lands in `globals.css` and `theme.css` through the Orchestrator. Lab only: no production byte changes on this track.
-**Rulings in force.** The bible on `/design/rules` (second edition), rule 1 as rewritten: achromatic UI with one accent, the media is the color, and where there is no media the accent carries state and UI color and marketing may carry color of its own. Rule 3 stands (the five lamp hues are light, never UI). Rule 2 as rewritten: marketing may be louder in most things; only the tokens are shared by law.
-**Verify on.** `/design/c/palette?key=` on your preview at 1440 and 375, reduced motion honoured; the gate green.
+**Rulings in force.** The bible on `/design/library/rules` (second edition), rule 1 as rewritten: achromatic UI with one accent, the media is the color, and where there is no media the accent carries state and UI color and marketing may carry color of its own. Rule 3 stands (the five lamp hues are light, never UI). Rule 2 as rewritten: marketing may be louder in most things; only the tokens are shared by law.
+**Verify on.** `/design/lab/palette?key=` on your preview at 1440 and 375, reduced motion honoured; the gate green.
 
 ## The brief
 
@@ -263,43 +256,16 @@ ground or three.
 
 The board, plus the three token blocks written in the Record so the ruling is a paste, not a rewrite. Read `globals.css`, `theme.css`, `marketing.css`; change none of them (the ruling lands through the Orchestrator).
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **Rising tides (bible 22).** Judge the system from the ground up: what would the perfect version
-  be if none existed? If today's tokens point there, the candidates are tunings; if the perfect
-  version deviates, a candidate replaces the system and says so as a departure in `BoardMeta`. The
-  three candidates on a board span that range; they are never three shades of one answer. A
-  candidate may question a bible rule: that is a finding, written in this manifest, ruled by Will.
-- **The board shell.** `src/components/dev/board/` is the shell: `Stage` (a real viewport on a
-  real ground, `cinema | paper | ink | app-dark | app-light`, zoom-fitted, `data-paused` on a hidden
-  tab), `Toggle`, and `BoardMeta` (the question, the candidates, the asks, the departures, the
-  assets). The stub in your directory shows the pattern; replace it whole. The asks are the exact
-  choices Will makes, worded so a ruling is a few words; the Orchestrator quotes them.
-- **Light QA (Will, 2026-09-14).** A lab-only round verifies its board on its preview at 1440 and
-  375 with reduced motion honoured and the gate green on the synced tree, then hands off; the deep
-  red-team is the wiring round's. Iterate rather than perfect. Push early and often: `preview: true`
-  builds `partyreel-git-lp-<track>-partyreel.vercel.app` on every push and Will reviews there in
-  parallel.
-- **Unlimited design resources.** Ask for exactly the asset the design needs, in Handoff, one
-  bullet per asset in the shape `what · spec (size, grade, count, format) · replaces <stand-in id>`;
-  ship the manifest's stand-in meanwhile. Never edit `docs/ASSETS.md`.
-- **Never touch:** `touchpoints.ts` (your board is registered; the placeholder variant names are
-  renamed at integration), `rules/bible.ts` (a bible change is Will's ruling, folded by the
-  Orchestrator), CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `src/lib/env.ts`, anything
-  outside `owns`.
-- **No mono.** Bible 7 is retiring and a sweep is removing the face in parallel: no `font-mono`, no
-  `MonoCaption`; `Caption` (`system/caption.tsx`) is the label face and `tabular-nums` on the body
-  face carries data.
-- **Sheets.** Keyframes live in your `board.css` under your prefix only (`keyframe-uniqueness.test.ts`
-  reads every sheet under the lab); a board sheet never imports tailwindcss (`css-source-policy`);
-  `glow-contract.test.ts` pins exactly three `<BorderBeam` sites, one `id="glw-warp"` and one
-  `<GlowFilter />` across all of `src`, so compose `<Glow>` only. No em-dashes anywhere (the AST
-  guard scans lab TSX).
-- **Sync** `origin/launch-prep` only per PROGRAM.md: before handoff if it moved; mid-round only when
-  `docs/tracks/orchestrator.md` announces a landed change to one of your `reads`. The Orchestrator's
-  rounding round retunes radius VALUES mid-window (never a token name) and announces there.
-- **Handoff:** fill Handoff and Record below, `status: handed-off`, push; the chat report is one
-  line, "handed off at <sha>".
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -325,7 +291,7 @@ The board, plus the three token blocks written in the Record so the ruling is a 
 
 - Head: the tip of `lp/palette`, pushed. The last commit touching the board is `703a227`; the commits
   after it are the unused-import sweep and this manifest. Preview
-  `partyreel-git-lp-palette-partyreel.vercel.app`, board at `/design/c/palette?key=`
+  `partyreel-git-lp-palette-partyreel.vercel.app`, board at `/design/lab/palette?key=`
 - Synced with `launch-prep` at `7d389d4` (twice: `8b06f89` first, then `7d389d4` when media-kit
   folded; the earlier tip `ff2de13` carried a YAML break in `docs/tracks/orchestrator.md`'s
   frontmatter that failed `track-manifests.test.ts`, fixed on the branch before this sync)
@@ -688,7 +654,7 @@ body:has([data-mkt-skin="cinema"]) {
   deploy's existence: it carries "Today it has no --card of its own" and `break-inside-avoid` and
   no longer carries "Near white until a candidate completes the set". The tip adds only this
   manifest, so no board byte differs between `b4be6a2` and the tip. Board at
-  `/design/c/palette?key=`. The round-two board is the one whose control bar carries the class
+  `/design/lab/palette?key=`. The round-two board is the one whose control bar carries the class
   `pal-walk-bar` (and thirteen rows with ids `#pal-01` to `#pal-13`); round one's had neither. The
   last commit touching the board is the album fix; the `4b035c1` sync merge sits between it and the
   first round-two commit.
@@ -1108,7 +1074,7 @@ body:has([data-mkt-skin="cinema"]) {
 
 - Head: the tip of `lp/palette`, pushed. Every board byte is at **`d773ad6`** (the SECOND fix pass,
   after the read-only re-review); the commits after it are this manifest's own, so no board byte
-  differs between `d773ad6` and the tip. Board at `/design/c/palette?key=`.
+  differs between `d773ad6` and the tip. Board at `/design/lab/palette?key=`.
   **The round-three board is the one whose candidate card is followed by a panel headed "What the
   letter already decides", and whose control bar reads "Put it on the real pages"; round two's had
   neither, and round two's ramp toggle had a fourth button, C. The FIX PASS on top of it is the one
@@ -1476,7 +1442,7 @@ island. Lab only, no production byte.
 
 ## Handoff (round 4)
 
-- Head **`f61313f7`** (this manifest's own commit sits on top; no board byte differs), pushed. Board at `/design/c/palette?key=`. **The round-four board is the one
+- Head **`f61313f7`** (this manifest's own commit sits on top; no board byte differs), pushed. Board at `/design/lab/palette?key=`. **The round-four board is the one
   whose FIRST block is headed "The model: two modes, two grounds each, and one well that belongs to
   neither"**; round three's opened on a candidate card instead. Its dock carries two candidate
   switches (Dark: Today, Ladder, One room, Ember, Slate, Lift · Light: Today, Paper, Bright, Warm,

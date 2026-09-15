@@ -143,7 +143,7 @@ ancestor and stops under reduced motion, where the rest state is the composition
 geometry comes from `CANVAS`, never from `getBoundingClientRect` (the stage is zoomed); `sizes` on
 `next/image` is canvas-relative; Replay is a remount.
 
-**Rulings in force.** The bible on `/design/rules` (second edition), above all 1 (media is the color:
+**Rulings in force.** The bible on `/design/library/rules` (second edition), above all 1 (media is the color:
 no darkening layer over a photograph), 13 (the h1 at paint, never gated; `marketing-h1-policy` scans
 the lab), 14 (every animation inside the reduced-motion block, a designed rest state), 21 (copy is
 open: the ruled thesis renders under the ruled toggle, your proposal under the proposed toggle), 22
@@ -156,7 +156,7 @@ motion, the h1 at opacity 1 off the DOM; nothing more; the red-team is the wirin
 and pauses the stage, so verify in a foreground tab or freeze the loop at a chosen elapsed and shoot
 the still (the source's own lesson).
 
-**Verify on.** partyreel-git-lp-hero-burst-partyreel.vercel.app, `/design/c/home-hero?key=` (the key is
+**Verify on.** partyreel-git-lp-hero-burst-partyreel.vercel.app, `/design/lab/home-hero?key=` (the key is
 `DESIGN_PREVIEW_KEY` in `.env.local`): your concept at Desktop and Phone 375, ruled and proposed
 copy, Replay, reduced motion (the rest state), the h1 present at opacity 1 off the DOM.
 
@@ -172,19 +172,16 @@ flag: a lamp under the code if you light it; the centred lockup; any scrim (ther
 The asks: the 24 squares (`docs/ASSETS.md` row 2) serve this variation as they serve the source;
 name any extra shape you need (a portrait set for the vertical radials, for instance).
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `board.tsx`, `shared.tsx`, `board.css`,
-  `source.tsx`, `touchpoints.ts` or `rules/bible.ts`; never CHANGELOG, STATUS, ROADMAP, PROGRAM,
-  CLAUDE, AGENTS, `docs/ASSETS.md`; ask in Handoff.
-- **Sheets.** Keyframes under your prefix `hhb-` only (`keyframe-uniqueness.test.ts` reads every
-  sheet under the lab; `hhs-` is the source's, `hh-` the board's); a sheet never imports tailwindcss;
-  `glow-contract.test.ts` pins the BorderBeam and GlowFilter counts across `src`, so compose `<Glow>`
-  only if you light anything (and flag it). No em-dashes anywhere.
-- **Sync** `origin/launch-prep` only per PROGRAM.md (before handoff if it moved; mid-round only when
-  `docs/tracks/orchestrator.md` announces a landed change to one of your `reads`).
-- **Handoff:** fill Handoff and Record below, `status: handed-off`, push; the chat report is one
-  line, "handed off at <sha>".
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -208,7 +205,7 @@ name any extra shape you need (a portrait set for the vertical radials, for inst
 - Head: the tip of `lp/hero-burst` (a manifest cannot name its own SHA). The work commit is
   `59cdd49`, which is what the preview alias was verified at; the sync merge is `9e3a94c`. Pushed;
   preview `https://partyreel-git-lp-hero-burst-partyreel.vercel.app`, the board at
-  `/design/c/home-hero?key=` (concept 3 of 4).
+  `/design/lab/home-hero?key=` (concept 3 of 4).
 - **Synced with launch-prep at `3d40173`** (it had moved 68 commits: media-kit, floating-surfaces,
   palette, type-scale, kill-mono). Nothing under `sandbox/home-hero/` moved, so the contract is
   unchanged; of my `reads`, `caption.tsx` lost its `MonoCaption` sibling in the kill-mono sweep (this
@@ -315,7 +312,7 @@ word was 36 px, with no scrim and no darkening layer anywhere.
   ONLY this manifest. **The build the preview alias serves is `8043b8e`**, and since every commit
   after it changes this file alone, which is never served, the board on the alias is this head's
   board to the byte. `61165c9` is the last commit that changed a source file. The board
-  is at `/design/c/home-hero?key=` (concept 3 of 4). **The round-two marker in the served HTML is
+  is at `/design/lab/home-hero?key=` (concept 3 of 4). **The round-two marker in the served HTML is
   `hhb-lab`**, the headline toggle on the stage, which round one did not have: if a surface does not
   carry it, it is not this head.
 - ★ **The preview blocker is CLEARED, and it was not what the message said** (it is the whole
@@ -470,7 +467,7 @@ word was 36 px, with no scrim and no darkening layer anywhere.
     h1 and 0 of round one's.
   - **The design-key gate, re-checked after all** (the earlier note said it could not be, because
     `requireDesignKey` is open in development and only 404s in a production build): a local
-    production build serves `/design/c/home-hero` as **404** with no key and **200** with
+    production build serves `/design/lab/home-hero` as **404** with no key and **200** with
     `?key=`, so the lab is closed on a built tree. This round changed nothing about it.
   - No em-dash, no `font-mono` and no `MonoCaption` in either owned file.
   - The headline toggle flipped lg to xl and back three times inside one mount: 11, 12, 11 frames in
@@ -492,7 +489,7 @@ word was 36 px, with no scrim and no darkening layer anywhere.
       the loop writes **0 inline styles** and **0 of 34 cards change over 1200 ms**, and the h1 is
       at opacity 1. The board is a still photograph of the album, which is what the sheet promises.
     - The design-key gate holds on the preview as well as on a local production build:
-      `/design/c/home-hero` is **404** there without `?key=`.
+      `/design/lab/home-hero` is **404** there without `?key=`.
 - **A finding against the river, for Will rather than for me** (bible 22, and the round's "read the
   other variations"): the river parts its stream around the type by holding a card's inner edge on
   the block's wall, instead of gating it. Applied here that would let EVERY direction be born at the
@@ -530,7 +527,7 @@ now "One code, and the album fills." in place of "One code. Every angle.", subhe
 - **Head**: the tip of `lp/hero-burst` (a manifest cannot name its own SHA). The round-three work is
   three commits: `3c77594` (the cold walk), `59ed9d4` (the first review pass) and **`edcdebf`, the
   second review pass**, which is the head of the source; every commit after it changes this file
-  alone. Pushed. The board is at `/design/c/home-hero?key=` (concept 3 of 4). **The marker of this
+  alone. Pushed. The board is at `/design/lab/home-hero?key=` (concept 3 of 4). **The marker of this
   head is the copy ask on the board reading "Both halves of the trade" with a WHAT IT BUYS and a WHAT
   IT COSTS**; an ask that instead says "The whole trade, because it is the easiest one on this board"
   is the previous head. Older tells still hold: the proposed h1 is "It all comes out of this code."
@@ -808,7 +805,7 @@ now "One code, and the album fills." in place of "One code. Every angle.", subhe
     `--hhb-rest` and 34 `--hhb-rest-o` declarations, so the settled album is in the markup; the h1
     at 72 px at lg and 96 px at xl (36 and 48 on the phone); **0 `font-mono`**, **0 em-dashes** and
     **0 `loading="lazy"`** on the whole served page; the QR is the real demo event's.
-  - **The design-key gate** on that build: `/design/c/home-hero` is **404** with no key, **404** with a
+  - **The design-key gate** on that build: `/design/lab/home-hero` is **404** with no key, **404** with a
     wrong key, **200** with the key. **Page overflow** 0 px horizontally, and the concept's root
     cannot be scrolled at all. **Console**: 0 errors and no hydration warning across every toggle.
 - **Look at first**: **reduced motion**, which is the thing the first review pass rebuilt and the honest test

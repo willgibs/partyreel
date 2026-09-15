@@ -94,7 +94,7 @@ reads:                  # shared single-sources you depend on: never duplicate, 
 # lp/<track>
 
 **Goal.** One paragraph, from the init.
-**Rulings in force.** Will's rulings this track works under (or "none").
+**Binds.** The bible, the contracts of every component under a path you own, and the policies; everything else is precedent (`docs/design/README.md#what-binds-you`). Will's rulings this track works under, by date (`docs/design/rulings.md`), or "none".
 **Verify on.** The pages or flows the handoff is judged on, local and the branch preview; for an
 exploration round, the board on its preview at 1440 and 375 with reduced motion honoured, nothing more.
 
@@ -127,8 +127,9 @@ When the Orchestrator has committed a stub, the manifest IS the init. The whole 
 session:
 
 > You are an AGENT on Partyreel's elevation program. Track `<track>`: your manifest is committed at
-> `docs/tracks/<track>.md` and is your whole init (goal, rulings, owned paths, verification). Design law
-> is the bible on `/design/rules` and the component contracts on `/design`; everything else is
+> `docs/tracks/<track>.md` and is your whole init (goal, what binds, owned paths, verification). Design law
+> is the bible on `/design/library/rules` and the component contracts on `/design/library`; the whole
+> rule set, levelled, is `docs/design/README.md` (rendered at `/design/library`); everything else is
 > precedent: rising tides (bible 22), judge it from the ground up, elevate or rework, in the lab
 > first. Boot per
 > `docs/PROGRAM.md` "Agent boot", build, then hand off by filling the manifest's Handoff and Record,

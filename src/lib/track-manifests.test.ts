@@ -27,6 +27,10 @@ const NEVER_OWNED = [
   "src/lib/db/types.ts",
   "docs/tracks/",
   "docs/ASSETS.md",
+  // Will's verbatim rulings and the review ledgers (the Library x Lab round):
+  // the Orchestrator writes both from his messages; no track claims them.
+  "docs/design/rulings.md",
+  "docs/reviews/",
 ];
 
 type Manifest = {

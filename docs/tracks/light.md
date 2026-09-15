@@ -85,23 +85,16 @@ and the media kit), so the wiring rounds cut from it. (5) **The dock** for every
 candidate, the ground, the canvas, the register, Replay). (6) The doctrine draft in `docs/specs/light.md`
 is rewritten to the kit: treatments, placements, the recipe, the plan.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -189,7 +182,7 @@ the phone canvas; every lamp's rest state designed. Keep the four-part structure
 
 **Goal.** The light exploration of the review wave (2026-09-14): light, shadow and lamp as one system, with the aurora infused as identity. Bible 10 was rewritten (in dark, depth is light first; a shadow is allowed where stacked or overlapping objects need separating) and bible 11 is retiring (a lamp may light a section without media; the footer's seam is the model; this board writes the doctrine that replaces the source-and-direction law). The parked light rulings ride this board: the lit surface, the publish beat's violet, the cadence at 8s or 11s. Lab only: no production byte changes on this track; the doctrine is proposed in the Record.
 **Rulings in force.** The bible's second edition: rules 10 and 11 as rewritten (under exploration and retiring, both naming this board), rule 3 (the lamp hues are light, never UI: never a text, border, background, state or brand color; the fence in `globals-theme-contract.test.ts`), rule 14 (every animation inside the reduced-motion block), rule 1 as rewritten (marketing may carry color of its own where there is no media).
-**Verify on.** `/design/c/light?key=` on your preview at 1440 and 375, reduced motion honoured; the gate green.
+**Verify on.** `/design/lab/light?key=` on your preview at 1440 and 375, reduced motion honoured; the gate green.
 
 ## The brief
 
@@ -268,43 +261,16 @@ Reduced motion: every lamp's rest state designed, not absent. Compose `<Glow>` o
 
 The board, plus a draft of the replacement doctrine in the Record (one paragraph each for light, shadow and lamp; the laws that stay, the laws that go, the aurora defined), since you own no system doc: the Orchestrator lands it in `design-system.md` at the ruling. Read `glow.tsx`, `globals.css`, `marketing.css`, the sandbox glow files; change none of them.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **Rising tides (bible 22).** Judge the system from the ground up: what would the perfect version
-  be if none existed? If today's tokens point there, the candidates are tunings; if the perfect
-  version deviates, a candidate replaces the system and says so as a departure in `BoardMeta`. The
-  three candidates on a board span that range; they are never three shades of one answer. A
-  candidate may question a bible rule: that is a finding, written in this manifest, ruled by Will.
-- **The board shell.** `src/components/dev/board/` is the shell: `Stage` (a real viewport on a
-  real ground, `cinema | paper | ink | app-dark | app-light`, zoom-fitted, `data-paused` on a hidden
-  tab), `Toggle`, and `BoardMeta` (the question, the candidates, the asks, the departures, the
-  assets). The stub in your directory shows the pattern; replace it whole. The asks are the exact
-  choices Will makes, worded so a ruling is a few words; the Orchestrator quotes them.
-- **Light QA (Will, 2026-09-14).** A lab-only round verifies its board on its preview at 1440 and
-  375 with reduced motion honoured and the gate green on the synced tree, then hands off; the deep
-  red-team is the wiring round's. Iterate rather than perfect. Push early and often: `preview: true`
-  builds `partyreel-git-lp-<track>-partyreel.vercel.app` on every push and Will reviews there in
-  parallel.
-- **Unlimited design resources.** Ask for exactly the asset the design needs, in Handoff, one
-  bullet per asset in the shape `what · spec (size, grade, count, format) · replaces <stand-in id>`;
-  ship the manifest's stand-in meanwhile. Never edit `docs/ASSETS.md`.
-- **Never touch:** `touchpoints.ts` (your board is registered; the placeholder variant names are
-  renamed at integration), `rules/bible.ts` (a bible change is Will's ruling, folded by the
-  Orchestrator), CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `src/lib/env.ts`, anything
-  outside `owns`.
-- **No mono.** Bible 7 is retiring and a sweep is removing the face in parallel: no `font-mono`, no
-  `MonoCaption`; `Caption` (`system/caption.tsx`) is the label face and `tabular-nums` on the body
-  face carries data.
-- **Sheets.** Keyframes live in your `board.css` under your prefix only (`keyframe-uniqueness.test.ts`
-  reads every sheet under the lab); a board sheet never imports tailwindcss (`css-source-policy`);
-  `glow-contract.test.ts` pins exactly three `<BorderBeam` sites, one `id="glw-warp"` and one
-  `<GlowFilter />` across all of `src`, so compose `<Glow>` only. No em-dashes anywhere (the AST
-  guard scans lab TSX).
-- **Sync** `origin/launch-prep` only per PROGRAM.md: before handoff if it moved; mid-round only when
-  `docs/tracks/orchestrator.md` announces a landed change to one of your `reads`. The Orchestrator's
-  rounding round retunes radius VALUES mid-window (never a token name) and announces there.
-- **Handoff:** fill Handoff and Record below, `status: handed-off`, push; the chat report is one
-  line, "handed off at <sha>".
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -318,7 +284,7 @@ The board, plus a draft of the replacement doctrine in the Record (one paragraph
 ## Handoff (round 1)
 
 - Head: the tip of `lp/light` (the sync merge `0672ad9`, this manifest committed on top), pushed; preview
-  partyreel-git-lp-light-partyreel.vercel.app. The board is `/design/c/light?key=...`; each part has
+  partyreel-git-lp-light-partyreel.vercel.app. The board is `/design/lab/light?key=...`; each part has
   an anchor (`#lgt-a` .. `#lgt-d`).
 - Synced with `launch-prep` at `3d40173` (it had moved 57 commits; merged at `0672ad9`).
 - Gates on the synced tree: typecheck ok, lint ok (0 findings in the lane; 7 pre-existing warnings
@@ -351,7 +317,7 @@ The board, plus a draft of the replacement doctrine in the Record (one paragraph
 ## Record (round 1)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). The light exploration replaced its stub with a
-four-part board at `/design/c/light` and drafted the doctrine that replaces the source-and-direction
+four-part board at `/design/lab/light` and drafted the doctrine that replaces the source-and-direction
 law. Part A put three subjects (two overlapping photographs, a layer over content, a flat card) under
 four cues (the surface step alone, the ring lift, a soft shadow, the lit face) on cinema, app dark and
 paper, and proposed one shadow family at two sizes with one alpha ramp per ground. Part B rendered the
@@ -434,7 +400,7 @@ all when their reel goes live.
   `launch-prep` at `4b035c1`, the two review fixes `76ef0c0` and `46837cf`, this manifest, and the
   second sync merge of `launch-prep` at `1cf4cea` on top);
   preview partyreel-git-lp-light-partyreel.vercel.app. The board is
-  `/design/c/light?key=...`; five anchors now, `#lgt-a` .. `#lgt-e` (part E is the doctrine as a paste).
+  `/design/lab/light?key=...`; five anchors now, `#lgt-a` .. `#lgt-e` (part E is the doctrine as a paste).
 - What changed after the read-only review of `471b8db` (all four should-fix items, all inside the lane):
   - The shadow family reaches the real card. `[data-media-tile][data-static]`, the host pair
     globals.css already uses to opt those surfaces out of the guest arrival fade, takes
@@ -495,7 +461,7 @@ all when their reel goes live.
   - The shadow family: with it applied, `--shadow-float` is the invisible value on the dark root and
     on `.surface-ink`, and on `.surface-paper` it is today's shipped bytes
     (`0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1)`), so paper does not move.
-    The real EventCard takes the dark lift (13 cards on `/design/compositions`, computed
+    The real EventCard takes the dark lift (13 cards on `/design/library/compositions`, computed
     `oklch(0 0 0 / 0.45) 0 2px 4px -1px, oklch(0 0 0 / 0.55) 0 4px 8px -2px`, radius 3px). The home
     page carries no `[data-media-tile][data-static]`, so marketing's frames are untouched by the card
     rule.
@@ -558,7 +524,7 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
 ## Handoff (round 3)
 
 - Head: the board's content is `08b97fa`, this manifest on top; pushed to
-  partyreel-git-lp-light-partyreel.vercel.app. The board is `/design/c/light?key=...`; five anchors,
+  partyreel-git-lp-light-partyreel.vercel.app. The board is `/design/lab/light?key=...`; five anchors,
   `#lgt-a` .. `#lgt-e`, and the index at the top of the board links each of the eight calls to the
   part that argues it.
 - ★ **THE ALIAS STILL SERVES `e108ec4` AND I COULD NOT REFRESH IT. The redeploy the review asks for
@@ -690,7 +656,7 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
     - The control is a radio across the board and behaves as one: four buttons, exactly one reads
       "Applied to the site" at any time, applying a second clears the first, and the board's banner
       clears the store (`partyreel.tuner.candidate.v1` back to null).
-    - The shadow family on `/pricing`, `/help`, `/contact` and `/design/compositions`:
+    - The shadow family on `/pricing`, `/help`, `/contact` and `/design/library/compositions`:
       `--shadow-lift` resolves the dark ramp (`0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px
       oklch(0 0 0 / 0.55)`), `--shadow-float` stays the invisible zero on the dark root and on
       `.surface-ink`, and `.surface-paper` keeps today's shipped `0.06 / 0.1`, so paper does not
@@ -709,7 +675,7 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
     - No page in the walk gained horizontal overflow under any block.
   - Not walked, and why: `/dashboard` and a host event page redirect to `/login` on localhost, since
     sign-in is not in any local allow-list by design. They are the two surfaces round two verified
-    live on the preview at `471b8db` (same bytes), and `/design/compositions` carries the same real
+    live on the preview at `471b8db` (same bytes), and `/design/library/compositions` carries the same real
     `EventCard` at 13 instances, which is the honest local stand-in for the dashboard's cards.
   - The launch-prep alias, walked as goal item 1 asks: it serves a board that PREDATES round two.
     Round two is genuinely merged there (`6203d62` is an ancestor of `origin/launch-prep`, and that
@@ -792,7 +758,7 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
 - Head: the tip of `lp/light`, pushed. The board's content is `4e7f908` + `47039c5` + `c9d40f5`, the
   sync merges of `launch-prep` at `4ce03ff`, `6727026` and `6d79214` (the last one picking up the
   lab cascade fix), the round-four review fix at `d4c38d5` and the re-review fix at `c6862d1`, with
-  this manifest on top. The board is `/design/c/light?key=...`; seven anchors, named by what
+  this manifest on top. The board is `/design/lab/light?key=...`; seven anchors, named by what
   they are rather than by a letter: `#lgt-kit`, `#lgt-treatments` (with `#lgt-t-seam` ..
   `#lgt-t-beam` per treatment), `#lgt-composer`, `#lgt-separate`, `#lgt-evidence`, `#lgt-infusion`,
   `#lgt-paste`. The board is 28,345px tall at the 1440 canvas on a local production build, measured
@@ -1028,7 +994,7 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
   - Not walked: the four "Apply to the site" blocks on the real pages. They are byte-identical to
     round three (`candidates.ts` changed only in its comments this round), and round three walked all
     four on `/`, `/pricing`, `/help`, `/contact`, `/features/qr`, `/features/album` and
-    `/design/compositions`. That pass stands.
+    `/design/library/compositions`. That pass stands.
 - The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will). The first
   two are the whole board; the seven under them are the places to differ:
   - The kit, as written: land it, or name what to change
@@ -1058,7 +1024,7 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
   written document rather than a machine-stitched concatenation of Records; if the fold script
   regenerates it at integration it will overwrite the kit. (6) A board's cadence knob writes an
   override that no board page wears: the lab layout mounts `CandidateStyle` but not the tuner panel,
-  so only `/design/motion` and the rounding board (which mount their own `MotionTuner`) apply knob
+  so only `/design/lab/tools/motion` and the rounding board (which mount their own `MotionTuner`) apply knob
   values inside the lab. Worth knowing before another board builds a knob whose own stage is meant
   to follow it. (7) The pricing plan cards truncating their own copy ("Backed up twice,
   automatically" by 14px in three places, "Event Pass" by 3px) was measured at the 375 canvas UNDER

@@ -33,6 +33,9 @@ import { COMPONENTS, INDEXED } from "../rules/rules";
 
 const ROOT = process.cwd();
 const LIB = "src/app/(dev)/design";
+// The family pages and their entry modules live under the shell route group
+// since the Library x Lab round (2026-09-15).
+const FAMILIES = "src/app/(dev)/design/(shell)/library";
 
 /* ─────────────────────────── reading the entries ─────────────────────────── */
 
@@ -108,9 +111,9 @@ const prop = (o: ts.ObjectLiteralExpression, name: string) =>
 
 /** Every entry declared in the five family modules. */
 function readEntries(): Entry[] {
-  const files = readdirSync(join(ROOT, LIB), { withFileTypes: true })
+  const files = readdirSync(join(ROOT, FAMILIES), { withFileTypes: true })
     .filter((d) => d.isDirectory())
-    .map((d) => `${LIB}/${d.name}/gallery-demos.tsx`)
+    .map((d) => `${FAMILIES}/${d.name}/gallery-demos.tsx`)
     .filter((f) => existsSync(join(ROOT, f)));
   expect(files.length, "the five family entry modules").toBe(5);
 
@@ -364,7 +367,7 @@ describe("every gallery entry", () => {
       expect(
         e.from,
         `${e.id} is declared in ${e.from} but says family ${e.family}`,
-      ).toBe(`${LIB}/${e.family}/gallery-demos.tsx`);
+      ).toBe(`${FAMILIES}/${e.family}/gallery-demos.tsx`);
     }
   });
 

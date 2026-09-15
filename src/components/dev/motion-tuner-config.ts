@@ -13,8 +13,8 @@
  * clear"; ruled at the rounding round): every knob carries a `description` (what
  * moves, in a sentence) and `ships` (where it lands in the product), and every
  * knob has a SPECIMEN somewhere the tuner mounts: the motion playground
- * (/design/motion) for the app's beats, the real cinema pages for the marketing
- * knobs, the rounding board (/design/c/rounding) for the radius tokens. A knob
+ * (/design/lab/tools/motion) for the app's beats, the real cinema pages for the marketing
+ * knobs, the rounding board (/design/lab/rounding) for the radius tokens. A knob
  * without a specimen is retired from the panel rather than left as a dead
  * slider: the reel reveal's seven and the reel experience's two (ratified at T1,
  * revisit-only) and the event feed's swap and reorder (ratified 2026-06-22) left
@@ -81,7 +81,7 @@ export const EASING_OPTIONS: { label: string; value: string }[] = [
 
 /**
  * The app's beats, with a specimen each on the motion playground
- * (/design/motion): the route crossfade, the review takeover's tile cascade,
+ * (/design/lab/tools/motion): the route crossfade, the review takeover's tile cascade,
  * the removal exit and the all-caught-up beat.
  */
 export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
@@ -183,7 +183,7 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
  * writes px, the same computed values. Not --mkt-*, so tunerScope puts these on
  * <html>, where an inline value outranks the :root token, and a soft navigation
  * carries them across pages. The specimens are the rounding board
- * (/design/c/rounding) and every real page the tuner mounts on.
+ * (/design/lab/rounding) and every real page the tuner mounts on.
  */
 export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
   {

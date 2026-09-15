@@ -19,11 +19,11 @@ owns:
   - src/components/shared/route-error.tsx
   - src/lib/constants/legal-privacy.tsx
   - src/app/(dev)/design/page.tsx
-  - src/app/(dev)/design/foundations/
+  - src/app/(dev)/design/(shell)/library/foundations/
   - src/app/(dev)/design/gallery/
-  - src/app/(dev)/design/library/
-  - src/app/(dev)/design/marketing/
-  - src/app/(dev)/design/patterns/
+  - src/app/(dev)/design/(shell)/library/
+  - src/app/(dev)/design/(shell)/library/marketing/
+  - src/app/(dev)/design/(shell)/library/patterns/
   - src/app/(dev)/design/reference/
   - src/app/(dev)/design/rules/component-notes.ts
   - src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx
@@ -102,43 +102,16 @@ family pages and the six older sandbox files listed in `owns`; the seven `sandbo
 
 The sweep: every `font-mono` in your lane gone; `MonoCaption` callers moved to `Caption` (labels) or the body face with `tabular-nums` (data); the atom deleted with its library entries; the loader and its variable out of `layout.tsx`; the hard cases redesigned; the Record naming every redesigned case. **Ruled exception, listed in Handoff:** you regenerate `src/app/(dev)/design/rules/rules.generated.json` (`pnpm design:rules`) after deleting the atom, though the Orchestrator owns it; add no `@contract-for` test.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **Rising tides (bible 22).** Judge the system from the ground up: what would the perfect version
-  be if none existed? If today's tokens point there, the candidates are tunings; if the perfect
-  version deviates, a candidate replaces the system and says so as a departure in `BoardMeta`. The
-  three candidates on a board span that range; they are never three shades of one answer. A
-  candidate may question a bible rule: that is a finding, written in this manifest, ruled by Will.
-- **The board shell.** `src/components/dev/board/` is the shell: `Stage` (a real viewport on a
-  real ground, `cinema | paper | ink | app-dark | app-light`, zoom-fitted, `data-paused` on a hidden
-  tab), `Toggle`, and `BoardMeta` (the question, the candidates, the asks, the departures, the
-  assets). The stub in your directory shows the pattern; replace it whole. The asks are the exact
-  choices Will makes, worded so a ruling is a few words; the Orchestrator quotes them.
-- **Light QA (Will, 2026-09-14).** A lab-only round verifies its board on its preview at 1440 and
-  375 with reduced motion honoured and the gate green on the synced tree, then hands off; the deep
-  red-team is the wiring round's. Iterate rather than perfect. Push early and often: `preview: true`
-  builds `partyreel-git-lp-<track>-partyreel.vercel.app` on every push and Will reviews there in
-  parallel.
-- **Unlimited design resources.** Ask for exactly the asset the design needs, in Handoff, one
-  bullet per asset in the shape `what · spec (size, grade, count, format) · replaces <stand-in id>`;
-  ship the manifest's stand-in meanwhile. Never edit `docs/ASSETS.md`.
-- **Never touch:** `touchpoints.ts` (your board is registered; the placeholder variant names are
-  renamed at integration), `rules/bible.ts` (a bible change is Will's ruling, folded by the
-  Orchestrator), CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `src/lib/env.ts`, anything
-  outside `owns`.
-- **No mono.** Bible 7 is retiring and a sweep is removing the face in parallel: no `font-mono`, no
-  `MonoCaption`; `Caption` (`system/caption.tsx`) is the label face and `tabular-nums` on the body
-  face carries data.
-- **Sheets.** Keyframes live in your `board.css` under your prefix only (`keyframe-uniqueness.test.ts`
-  reads every sheet under the lab); a board sheet never imports tailwindcss (`css-source-policy`);
-  `glow-contract.test.ts` pins exactly three `<BorderBeam` sites, one `id="glw-warp"` and one
-  `<GlowFilter />` across all of `src`, so compose `<Glow>` only. No em-dashes anywhere (the AST
-  guard scans lab TSX).
-- **Sync** `origin/launch-prep` only per PROGRAM.md: before handoff if it moved; mid-round only when
-  `docs/tracks/orchestrator.md` announces a landed change to one of your `reads`. The Orchestrator's
-  rounding round retunes radius VALUES mid-window (never a token name) and announces there.
-- **Handoff:** fill Handoff and Record below, `status: handed-off`, push; the chat report is one
-  line, "handed off at <sha>".
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -194,7 +167,7 @@ The sweep: every `font-mono` in your lane gone; `MonoCaption` callers moved to `
   (375 through a same-origin 375x812 iframe: the Chrome MCP tab reports `innerWidth` 1440 whatever the
   window is resized to, which is a tooling limit, not a product one): `/`, `/how-it-works`, `/reel`,
   `/features/album`, `/help`, `/help/send-the-event-link`, `/privacy`, `/press`, `/careers`, a 404,
-  `/design/library`, `/design/marketing`, `/design/patterns`. **`/admin` could not be walked signed in**
+  `/design/library`, `/design/library/marketing`, `/design/library/patterns`. **`/admin` could not be walked signed in**
   and I am not downgrading that quietly: an `lp/*` alias is in no auth allow-list by design, and
   `/admin/*` answers 404 to anyone who is not an admin (confirmed on the preview), so there is no way to
   reach those four pages from this branch. What I did instead: injected the four admin class strings

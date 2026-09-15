@@ -1814,5 +1814,9 @@ export const WALK: {
     note: "the album on the well, the surface every guest sees",
     demo: true,
   },
-  { href: "/design/rules", name: "the bible", note: "rule 1, as it stands" },
+  {
+    href: "/design/library/rules",
+    name: "the bible",
+    note: "rule 1, as it stands",
+  },
 ];

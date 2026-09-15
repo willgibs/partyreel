@@ -33,7 +33,7 @@ exactly what replaces your stand-ins: a 15 to 20 s highlight reel, fast cuts of 
 name and the id. Keyframes live in your own sheet with your prefix. You own two files and nothing
 else; if the shell lacks something you need, say so in Handoff rather than editing it.
 
-**Rulings in force.** The bible on `/design/rules` (22 rules, Will's), above all 1 (media is the
+**Rulings in force.** The bible on `/design/library/rules` (22 rules, Will's), above all 1 (media is the
 color: no darkening layer over a photograph), 13 (the h1 at paint, never gated; `marketing-h1-policy`
 scans the lab), 14 (every animation inside the reduced-motion block, a designed rest state), 21 (the
 thesis renders verbatim under the ruled toggle; your proposal renders under the proposed toggle), and
@@ -41,7 +41,7 @@ the standing ruling that the hero is cinema and unlit (light only as a flagged d
 manifest is the only source of paths. Take the big swing: a totally different, better hero beats a
 safe increment, and the reference's mechanic is a starting point, not a ceiling.
 
-**Verify on.** partyreel-git-lp-hero-reel-partyreel.vercel.app, `/design/c/home-hero?key=` (the key is
+**Verify on.** partyreel-git-lp-hero-reel-partyreel.vercel.app, `/design/lab/home-hero?key=` (the key is
 `DESIGN_PREVIEW_KEY` in `.env.local`): your concept at Desktop and Phone 375, ruled and proposed copy,
 Replay, reduced motion (the rest state), the h1 present at opacity 1 off the DOM. Light QA by the
 exploration-round principle: nothing more.

@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
  * REST of the page. So round four stops arranging and loads the pages.
  *
  * ★ A SAME-ORIGIN IFRAME IS THE ONLY 1:1 SURFACE THE LAB HAS. The board runs
- * at /design/c/rounding and the site runs at /, on one origin, so the frame's
+ * at /design/lab/rounding and the site runs at /, on one origin, so the frame's
  * `contentDocument` is reachable and a candidate can be written INTO it as a
  * style element: the real route, the real components, the real breakpoints,
  * the real scroll, wearing this column's radius and nobody else's. No zoom, no

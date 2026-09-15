@@ -12,7 +12,7 @@
 > **STATUS: a PROPOSAL (the `brand-voice` track, round four, 2026-09-15).** Bible 20 says the
 > brand-voice exploration writes the do's that replace it, and bible 21 opened every line until the
 > voice exists. This is that guide, written from the ground up (bible 22), shown in use on sixteen real
-> surfaces and argued on whole pages at `/design/c/brand-voice`. Nothing here binds until Will rules; on his ruling the Orchestrator
+> surfaces and argued on whole pages at `/design/lab/brand-voice`. Nothing here binds until Will rules; on his ruling the Orchestrator
 > promotes it to `docs/systems/brand-voice.md` and the `voice-infusion` round carries it site-wide.
 > The board holds the candidates, the pastes and the seven asks; this doc is the recommended answer.
 

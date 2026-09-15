@@ -90,7 +90,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   era; Will: "we've just weighed ourselves down with docs and rules".
 - **Design lab follow-ons from the gallery round** (2026-09-12): fold the two `SourceLink` copies into
   one (`gallery/gallery-ui.tsx` has the one to keep; `rules/page.tsx` was outside the track's lane), and
-  link each contract block on `/design/rules` to its component's permalink at `/design/library/<id>`.
+  link each contract block on `/design/library/rules` to its component's permalink at `/design/library/<id>`.
 - **App polish the gallery's declarations surfaced** (2026-09-12): `shared/empty-state.tsx`'s comment
   says `"quiet" (default)` while the signature defaults to `"icon"`; `shared/action-tooltip.tsx` claims a
   200ms provider delay while `ui/tooltip.tsx` defaults to 0; `ui/drawer.tsx` and `ui/tabs.tsx` have no
@@ -125,12 +125,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   array is rebuilt per render and the effect cleanup removes the properties; values die on leaving the
   cinema group). Everything on the glow boards reads its token rather than a
   literal, so the lab inherits whatever lands here for free. **Opened 2026-09-14** as the Orchestrator's
-  round of the review wave (`tracks/orchestrator.md` In flight): the `rounding` board on `/design/c/rounding`
+  round of the review wave (`tracks/orchestrator.md` In flight): the `rounding` board on `/design/lab/rounding`
   is the sitting surface, the three action-radius knobs join the tuner, and a store outside the
   component (persisted, exported) fixes both defects at their one root. Bible 8 inherits the values.
   ✅ **The tuner earned the sitting (2026-09-14):** the store, the descriptions and ships lines, the
   grouped panel and export, the action trio, the retirements (nine knobs without a specimen), the
-  board at `/design/c/rounding`, the button ladder derived from `--radius-action`, and the two
+  board at `/design/lab/rounding`, the button ladder derived from `--radius-action`, and the two
   places that made the tokens deaf to the knob (the `:root, .surface-paper` alias and the lab's
   `.mono` sheet) fixed. **The sitting is Will's** (Waiting on Will, item 3).
 - **The composition pass** (2026-09-14): when the review wave's six boards are ruled, one Orchestrator
@@ -259,8 +259,8 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   finding: an already-built deployment never picks it up. Proven on one branch at one moment with
   one key: `lp/glow-doctrine`'s FIRST deployment still 404s on `/design` at its immutable URL while
   its latest serves the lab fine. `lp/about` is the remaining stale alias and will fix itself on its
-  next push. Nothing to do here beyond knowing it: if `/design` (or `/design/marketing`, `/design/record`,
-  a `/design/c/<board>`) 404s on an `lp/*` alias, push again before concluding anything about the env.
+  next push. Nothing to do here beyond knowing it: if `/design` (or `/design/library/marketing`, `/design/library/record`,
+  a `/design/lab/<board>`) 404s on an `lp/*` alias, push again before concluding anything about the env.
 - **One real bug the glow round surfaced, out of its scope** (its sibling, nine production keyframe
   names redeclared by `design.css`, closed 2026-09-02 in the library round: the blocks are gone and
   `src/app/keyframe-uniqueness.test.ts` pins every sheet). The repo has NO `forced-colors` and no
@@ -297,7 +297,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
   native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep** (2026-09-11) is superseded: **mono is leaving** (Will, 2026-09-14; the `kill-mono` track removes the face and redesigns every place it did semantic work); **the voice-infusion round** (after `brand-voice` is ruled): the voice carried site-wide, the 30 feature-page strings, the 59 nav strings, the seven provisional headers, the MDX, the ten email templates and the inline app copy (`help-ui-labels.test.ts` makes an app-control rename a two-file change);
   **the floating layer has no reduced-motion gate of its OWN** (floating-surfaces, corrected in round 2, 2026-09-14: `tw-animate-css` ships no guard, and what holds bible 14 on all 36 floating surfaces today is the global `@layer base` clamp at `globals.css:855`, every animation and transition to 0.01ms with `!important`, carried since 2026-06-11; that guard's own comment calls a component-level gate the first line, and the board's `REDUCED_MOTION_CSS` is that gate, ready to paste in the floating wiring round); **`guest/entry-shell.tsx` renders a raw vaul drawer outside `ui/drawer.tsx`** with a literal radius `calc(var(--radius-action) * 1.4)`, so the surface most guests ever meet sits outside the token law (bible 8) and the floating-layer contract (bible 15): the tenth floating surface, onto whichever contract the ruling lands; **the lightbox backdrop is a literal `bg-black/90`** (`media-lightbox.tsx:617`, palette round 2), not the canvas token, so the deepest surface in the product moves with nothing: fold it into the grounds ruling; **`ui/tooltip.tsx`'s arrow** takes a literal `rounded-[2px]` (bible 8), the one literal radius left on the floating layer; **`ui/navigation-menu.tsx`'s viewport** cannot size itself outside the marketing header (its width rides a radix var that never lands on a lab page), so the mega-menu rendered anywhere but `marketing-nav.tsx` gets a 0-wide panel; **the board shell wants a frame** (the floating board's `frame.tsx` + scene route: an iframe at the canvas's true pixels for anything that portals to `document.body`; add it to `src/components/dev/board/` when the next board needs one);
-  **the blog's cover pool is unlicensed for what it shows** (media-kit, 2026-09-14: Unsplash's terms exclude recognizable people, all twelve `MARKETING_IMAGES` are full of them, eleven cover 23 posts plus OG and RSS; replace before launch with the kit (`docs/ASSETS.md` row 7) or bridge with the staged CC0 batch on the blog pool only, Will's call); **`/design/reel-parity` hardcodes its eight `FIXTURES`**, so re-rendering a recorded `MARKETING_REELS` recipe needs a code edit rather than a control (read the clip ids off the recipe); **the media manifest has no home in `docs/systems/`** (fold `docs/specs/media-kit.md` section 2 into `marketing-content.md` when the rule is ruled);
+  **the blog's cover pool is unlicensed for what it shows** (media-kit, 2026-09-14: Unsplash's terms exclude recognizable people, all twelve `MARKETING_IMAGES` are full of them, eleven cover 23 posts plus OG and RSS; replace before launch with the kit (`docs/ASSETS.md` row 7) or bridge with the staged CC0 batch on the blog pool only, Will's call); **`/design/lab/tools/reel-parity` hardcodes its eight `FIXTURES`**, so re-rendering a recorded `MARKETING_REELS` recipe needs a code edit rather than a control (read the clip ids off the recipe); **the media manifest has no home in `docs/systems/`** (fold `docs/specs/media-kit.md` section 2 into `marketing-content.md` when the rule is ruled);
   **inline code as a plate** in the help centre and the blog (kill-mono, 2026-09-14: `prose-code:font-sans` left ~260 code spans reading on the body face at weight 600 inside backticks; a muted plate would read better; its own round); **the operator emails' `<code>media</code>`** (`src/lib/email/templates.ts:169,196` renders in each mail client's mono face; an inline style or drop the tag); **the 404 title** (`shared/not-found-screen.tsx:55` is the one h1 without `font-heading`; the type wiring sweeps it with the ladder);
   **a "Watch your event highlights" video card** on another page, a CTA that links to `/reel` (Will, 2026-09-14: the round-two reel hero, redesigned as a section rather than the hero, since a film in the hero reads as the video being the product; the film ask in `docs/ASSETS.md` row 1 serves it);
   `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
@@ -433,7 +433,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   Suspense streaming DEFERRED post-launch** (P5 S1, three live strandings: completions die inside
   radix TabsContent regardless of child shape, and even outside-radix boundaries displayed but
   never client-hydrated on this page while the guest page's identical shape works; revisit in the
-  PPR/cacheComponents era - the permanent `/design/stream-probe` + the blocking page + loading.tsx
+  PPR/cacheComponents era - the permanent `/design/lab/tools/stream-probe` + the blocking page + loading.tsx
   are the baseline) · front Vercel
   with Cloudflare at launch (DNS already migrating there) · Vercel Spend-Management hard cap + alerts ·
   revisit the `proxy.ts` per-request `getUser` matcher scope · a large-gallery presigned-read strategy

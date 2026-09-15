@@ -24,7 +24,7 @@
 > a company. Unsplash's free licence excludes recognisable people; Unsplash+ is model and property
 > released with a warranty behind it, perpetual for anything downloaded inside a month, and $20. The
 > whole bridge is buyable for $56.** Read section 8 first; sections 1 to 7 are what it stands on.
-> The board is `/design/c/media-kit`.
+> The board is `/design/lab/media-kit`.
 
 ---
 
@@ -68,7 +68,7 @@ than a word of Will's):
 | 3 | The route, which also decides the bridge | Mix / Ours / Licensed | **Mix** |
 | 4 | The kit (section 5): 36 masters, six per vertical, shot in one night at a real event running Partyreel | Shoot / Park | **Shoot** |
 
-The three routes, argued on the board at `/design/c/media-kit`:
+The three routes, argued on the board at `/design/lab/media-kit`:
 
 | Route | What it ships the week it is chosen | Cost | Legal under ask 1 as staged |
 | --- | --- | --- | --- |
@@ -321,7 +321,7 @@ edits code they did not need to edit.
 
 **The runbook.**
 
-1. Open `/design/reel-parity` in the lab (Chrome, with WebCodecs; the page probes on mount and
+1. Open `/design/lab/tools/reel-parity` in the lab (Chrome, with WebCodecs; the page probes on mount and
    disables Encode if it is not there).
 2. Pick the clip set from the table above. No code edit.
 3. Set style, seed and orientation from the recipe. Seed defaults to 73, which both recipes use.

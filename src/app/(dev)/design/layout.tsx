@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
-import { LabChrome } from "@/components/dev/board/lab-chrome";
 import { CandidateStyle } from "@/components/dev/candidate-style";
 
-import { LabNav } from "./lab-nav";
 import "./design.css";
 // The production marketing sheet loads in the lab on purpose (the library round,
 // 2026-09-02): the sandbox's marketing boards and the marketing library render
@@ -13,36 +10,26 @@ import "./design.css";
 // is what makes loading it here harmless to every other lab page.
 import "@/app/(marketing)/marketing.css";
 
-// The lab's heading face is the SAME Urbanist the app loads (root layout's
-// --font-display): the live Reference inherits it natively, and the Sandbox's
-// .font-opt-urbanist now points at it too (design.css), so there is no second
-// font load. The design.css -> globals.css token dedup stays the Phase 8
-// follow-up.
+// THE THIN ROOT (the Library x Lab round, 2026-09-15): the sheets, the metadata
+// and the candidate block, and nothing a person sees. The chrome lives in
+// (shell)/layout.tsx so an iframe scene route (sandbox/*/page.tsx) renders bare.
 
 // Never indexed, never linked: the lab exists only behind the gate
 // (see src/lib/design-gate; production 404s without the key).
 export const metadata: Metadata = {
-  title: "V1 design lab",
+  title: "Partyreel Design",
   robots: { index: false, follow: false },
 };
 
-export default function DesignLayout({
+export default function DesignRootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="lab-grid min-h-dvh lg:grid lg:grid-cols-[232px_minmax(0,1fr)]">
-      {/* useSearchParams (the key) needs a Suspense boundary; every lab route
-          is already dynamic via requireDesignKey, so this never suspends long. */}
-      <Suspense>
-        <LabNav />
-      </Suspense>
-      <div className="min-w-0">{children}</div>
+    <>
+      {children}
       {/* A board's "Apply to the site" block, worn by every lab page too, so a
           candidate palette or shadow family is judged on the other boards. */}
       <CandidateStyle />
-      {/* The reading preferences (1:1 stages, the sidebar tucked away on a
-          board page) applied to <html>; see dev/board/lab-prefs.ts. */}
-      <LabChrome />
-    </div>
+    </>
   );
 }

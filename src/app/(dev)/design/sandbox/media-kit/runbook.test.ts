@@ -23,6 +23,9 @@ const PARITY = join(
   "app",
   "(dev)",
   "design",
+  "(shell)",
+  "lab",
+  "tools",
   "reel-parity",
   "parity.tsx",
 );

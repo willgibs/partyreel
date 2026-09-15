@@ -78,23 +78,16 @@ surface to match, so a wiring round can write in the voice from the guide alone.
 the voice, the canvas and the ground. (5) Keep round three's recommendation, its measured cost and the
 twelve chapters; recut the chapters so the usage examples come first.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -179,7 +172,7 @@ board is the surface. Read at 375 as well as 1440.
 
 **Goal.** The brand-voice exploration of the review wave (2026-09-14). Bible 20 (affirmative only) was "messy: don'ts without do's" and bible 21 (ruled copy) was killed: all copy is open until the voice exists. This track writes the voice guide as a proposal (`docs/specs/brand-voice.md`) and shows it on a board: sample headings and lines beside today's on real section shells, with the home arc's seven provisional section headers rewritten in the proposed voice as the worked example. A later round, `voice-infusion`, carries the ruled voice site-wide; not this one. Lab and spec only: no production copy changes on this track.
 **Rulings in force.** The bible's second edition: rule 20 as rewritten (affirmative only; the two fences that are product truth stand: no human-response or human-moderation promise, no automation absolutes; `content-policy.test.ts` assertion 3), rule 21 (copy is open), rule 19 (no em-dashes), rule 4 (a guest surface belongs to the host's event: the guest register is the host's voice, Partyreel nearly silent), rule 6 (a masthead is one or two words).
-**Verify on.** `/design/c/brand-voice?key=` on your preview at 1440 and 375; `docs/specs/brand-voice.md` reads whole; the gate green.
+**Verify on.** `/design/lab/brand-voice?key=` on your preview at 1440 and 375; `docs/specs/brand-voice.md` reads whole; the gate green.
 
 ## The brief
 
@@ -237,43 +230,16 @@ the album) with new sentence shapes; one that questions a ruled line (flagged). 
 
 `docs/specs/brand-voice.md` (a proposal until Will rules, then promoted to `docs/systems/brand-voice.md` by the Orchestrator): a ROLE blockquote; the voice in one paragraph; the three registers; the do's as sentence shapes, each with an example per surface (hero, section header, feature card, help article, app label, email subject, error); what it never does, folded from the fences; a rewrite procedure for the infusion round (how a line is judged, what it keeps, how the app's inline copy and the help catalogue's `<UiLabel>` pairs are swept). Plus the board. Read the constants, the tests and `marketing-content.md`; change none of them.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **Rising tides (bible 22).** Judge the system from the ground up: what would the perfect version
-  be if none existed? If today's tokens point there, the candidates are tunings; if the perfect
-  version deviates, a candidate replaces the system and says so as a departure in `BoardMeta`. The
-  three candidates on a board span that range; they are never three shades of one answer. A
-  candidate may question a bible rule: that is a finding, written in this manifest, ruled by Will.
-- **The board shell.** `src/components/dev/board/` is the shell: `Stage` (a real viewport on a
-  real ground, `cinema | paper | ink | app-dark | app-light`, zoom-fitted, `data-paused` on a hidden
-  tab), `Toggle`, and `BoardMeta` (the question, the candidates, the asks, the departures, the
-  assets). The stub in your directory shows the pattern; replace it whole. The asks are the exact
-  choices Will makes, worded so a ruling is a few words; the Orchestrator quotes them.
-- **Light QA (Will, 2026-09-14).** A lab-only round verifies its board on its preview at 1440 and
-  375 with reduced motion honoured and the gate green on the synced tree, then hands off; the deep
-  red-team is the wiring round's. Iterate rather than perfect. Push early and often: `preview: true`
-  builds `partyreel-git-lp-<track>-partyreel.vercel.app` on every push and Will reviews there in
-  parallel.
-- **Unlimited design resources.** Ask for exactly the asset the design needs, in Handoff, one
-  bullet per asset in the shape `what · spec (size, grade, count, format) · replaces <stand-in id>`;
-  ship the manifest's stand-in meanwhile. Never edit `docs/ASSETS.md`.
-- **Never touch:** `touchpoints.ts` (your board is registered; the placeholder variant names are
-  renamed at integration), `rules/bible.ts` (a bible change is Will's ruling, folded by the
-  Orchestrator), CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `src/lib/env.ts`, anything
-  outside `owns`.
-- **No mono.** Bible 7 is retiring and a sweep is removing the face in parallel: no `font-mono`, no
-  `MonoCaption`; `Caption` (`system/caption.tsx`) is the label face and `tabular-nums` on the body
-  face carries data.
-- **Sheets.** Keyframes live in your `board.css` under your prefix only (`keyframe-uniqueness.test.ts`
-  reads every sheet under the lab); a board sheet never imports tailwindcss (`css-source-policy`);
-  `glow-contract.test.ts` pins exactly three `<BorderBeam` sites, one `id="glw-warp"` and one
-  `<GlowFilter />` across all of `src`, so compose `<Glow>` only. No em-dashes anywhere (the AST
-  guard scans lab TSX).
-- **Sync** `origin/launch-prep` only per PROGRAM.md: before handoff if it moved; mid-round only when
-  `docs/tracks/orchestrator.md` announces a landed change to one of your `reads`. The Orchestrator's
-  rounding round retunes radius VALUES mid-window (never a token name) and announces there.
-- **Handoff:** fill Handoff and Record below, `status: handed-off`, push; the chat report is one
-  line, "handed off at <sha>".
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -290,7 +256,7 @@ the album) with new sentence shapes; one that questions a ruled line (flagged). 
 
 - Head: the branch tip (the board and spec at `4d0052d`, the spec's read-through fixes after it), pushed; preview
   `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the board at
-  `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
+  `/design/lab/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
 - Synced with launch-prep: it had not moved. Still `6c19d84`, the SHA in `cut`.
 - Gates on the tree: typecheck ok, lint ok (0 errors; 7 warnings, all pre-existing and none in this
   lane), test ok (1,644 in 190 files), build ok (113 routes).
@@ -328,7 +294,7 @@ registers with a table of what changes between them, five sentence shapes, an ex
 the seven surfaces, the two product-truth fences folded in as do's beside a word list, and the sweep
 procedure the `voice-infusion` round rewrites by (how a line is judged, what a rewrite keeps, and
 the order, with the `<UiLabel>` parity making an app rename a two-file change by construction). The
-board on `/design/c/brand-voice` argued it three ways on the real `PageHero` and `SectionShell`,
+board on `/design/lab/brand-voice` argued it three ways on the real `PageHero` and `SectionShell`,
 across cinema, paper and the app ground at 1440 and 375: A tuned the register the eight ratified
 lines already speak, B rebuilt it from the code becoming the album, and C made the people the
 subject and rewrote the ruled thesis to do it. The home arc's seven provisional headers were
@@ -340,7 +306,7 @@ Three departures were flagged rather than buried, and no production byte changed
 - Head: the branch tip, pushed. The round-two review fixes are `da618a2` and `43c55f5`; the
   manifest commits sit on top of them. Preview
   `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the board at
-  `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
+  `/design/lab/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
   The round-two board is the one whose root div carries `class="bv-round-two"` and whose control
   bar reads "Moves 33 of 65 lines in the arc, 15 of 30 on the feature pages."
 - Synced with launch-prep at `4b035c1` (it had moved by one docs commit, `design-system.md`;
@@ -488,7 +454,7 @@ own page. No production byte changed.
 
 - Head: the tip of `lp/brand-voice` (this manifest commit); the board's code head is `cfb443d`, on
   top of the sync merge `e769c27`. The board is at
-  `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
+  `/design/lab/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
   **The round-three board is the one whose root div carries `class="bv-round-three"`, opens with a
   card reading "The recommendation / B, the room." and carries a twelve-chapter index in the control
   bar.**
@@ -698,7 +664,7 @@ cause is now measured rather than guessed.
   recommendation / B, the room." at the top and the twelve-chapter index in the control bar.
 - **Where this head WAS verified, in full: a local dev server on the worktree tip.** `pnpm dev -p
   3031` in `../partyreel-wt/brand-voice`, board at
-  `http://localhost:3031/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, served HTML confirmed
+  `http://localhost:3031/design/lab/brand-voice?key=8838d0dd22f626a603fcf551`, served HTML confirmed
   to carry `bv-round-three` and the recommendation card before anything else was measured. Walked in
   a browser at **a real 1440 viewport** (`innerWidth` 1440) in all six passes, Desktop and Phone 375
   canvases each on B, A and today: 16 stages, 0 boxes crossing a stage edge, 0 stage scroll in
@@ -809,7 +775,7 @@ changed.
   its guide and this manifest together, so the head a walker opens and the head this text describes
   are the same SHA. Round four's board landed at `ec839ba`, the first review pass corrected it at
   `9c3e929`, and `07ad3b21` from `launch-prep` is merged in.
-  The board is at `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
+  The board is at `/design/lab/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
   `docs/specs/brand-voice.md`. **The round-four board is the one whose root div carries
   `class="bv-round-four"`, opens on "The voices in use: marketing, loud" as chapter 1, and whose
   headnote reads "47 of 66 lines differ across the three columns."**

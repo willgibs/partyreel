@@ -79,51 +79,16 @@ dock (the Orchestrator's `board.tsx`); your concept's own toggles stay beside th
 departures Will rules on, no more; the assets unchanged (row 2, the 24 squares) unless the composition
 needs something new.
 
-### The rules of this wave (every track)
+### Binds (every track)
 
-- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
-  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
-  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
-  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
-  `docs/tracks/orchestrator.md`).
-- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
-  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
-  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
-  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
-- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
-  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
-  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
-  `docs/systems/testing-verification.md`) and say so in the Handoff.
-- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
-  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
-
-**Goal.** The source, concept of the home-hero board's second round (Will, 2026-09-14: round one's four
-grids were "very bland and generic", not "the one QR/link -> full event album concept"; everything is
-open, the hero's UI, its copy, the eyebrow, and the design system around it under rising tides).
-The QR is the origin. The real demo QR sits at the exact centre of the viewport, at rest and scannable (the shell hands you `qrUrl`; render it with `DemoQr` from shared.tsx at a size that scans from a laptop screen, 120 to 160 px). On load the album's frames branch out of it, left and right, in two perspective rows, and never stop: frames are born at the QR and travel outward to the edges in a loop, the way an album fills from one scan. The headline sits above the rows, the subhead and the CTAs below; the QR is the eyebrow, the object and the argument at once. Phone: the two rows compressed to one strip between headline and subhead. Melius's loop, ported: 24 cards split by index parity into a left and a right pool; one card launches per side every 900 ms and flies for 9.6 s, recycled round-robin; position on `0.5 * easeInQuad(smoothstep(p)) + 0.5 * smoothstep(p)` toward 1.65 x the canvas width, scale on `0.125 * smoothstep(0, .15, p) + 0.875 * smoothstep(.2, 1, p)`; the corridor pre-seeded (`progress = i * 0.09375`) and revealed by one tween of progress from 0 to 1 over 1.75 s (that is the branch-out). One `perspective` parent, absolutely positioned cards, one requestAnimationFrame loop writing `translate3d(x) scale(n)` from a `progress[]` ref (never state), an explicit rotateY of 6 to 10 degrees per side, `will-change: transform`, the band masked at its edges, new cards fading in AT the QR rather than popping. Geometry from CANVAS (1440 or 375), never from getBoundingClientRect (the stage is zoomed). The loop stops on the stage's `data-paused` (read it off the closest `[data-paused]` ancestor) and under reduced motion, where the rest state is the two rows fully deployed. Media at 100 percent, no darkening layer anywhere.
-
-**The contract.** Your file exports one `Concept` (see `shared.tsx`, which is the whole doctrine:
-read it first and hold every line of it). The board renders `concept.render(props)` inside a stage
-that already lays out at a real viewport's pixels (1440 x 930 or 375 x 760, fitted with `zoom`) and
-carries the cinema skin, `data-mkt` and `data-paused` on a hidden tab. Your `Concept` also carries
-what the board lists beside the stage: `eyebrow` (yours: the QR itself, no label), `proposed` copy (the stub's lines are
-a starting point; improve them, they are proposals), `departures` (flag: none expected; light only as a flagged departure) and `assets` (name
-exactly what replaces your stand-ins: 24 event photographs as 512 x 512 squares (6 to 35 KB webp each) across weddings, parties, corporate, festivals; one grade). Replace the stub's `Placeholder` render; keep the export
-name and the id. Keyframes live in your own sheet with your prefix. You own two files and nothing
-else; if the shell lacks something you need, say so in Handoff rather than editing it.
-
-**Rulings in force.** The bible on `/design/rules` (22 rules, Will's), above all 1 (media is the
-color: no darkening layer over a photograph), 13 (the h1 at paint, never gated; `marketing-h1-policy`
-scans the lab), 14 (every animation inside the reduced-motion block, a designed rest state), 21 (the
-thesis renders verbatim under the ruled toggle; your proposal renders under the proposed toggle), and
-the standing ruling that the hero is cinema and unlit (light only as a flagged departure). The media
-manifest is the only source of paths. Take the big swing: a totally different, better hero beats a
-safe increment, and the reference's mechanic is a starting point, not a ceiling.
-
-**Verify on.** partyreel-git-lp-hero-source-partyreel.vercel.app, `/design/c/home-hero?key=` (the key is
-`DESIGN_PREVIEW_KEY` in `.env.local`): your concept at Desktop and Phone 375, ruled and proposed copy,
-Replay, reduced motion (the rest state), the h1 present at opacity 1 off the DOM. Light QA by the
-exploration-round principle: nothing more.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Shell changes are asked for in the Handoff and announced in
+`docs/tracks/orchestrator.md`; never edit `src/components/dev/`, `src/components/lab/`,
+`touchpoints.ts`, `rules/bible.ts`, another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM,
+CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/`. Light QA (Will,
+2026-09-14): the board at 1440 and 375 in a foreground tab, reduced motion honoured, the gate green
+on the synced tree.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -157,7 +122,7 @@ exploration-round principle: nothing more.
 - Head: the tip of `lp/hero-source`, which is THIS commit (a manifest cannot name its own SHA). The
   last code commit is `e4e46fe`, which is what the preview alias was verified at. Pushed; preview
   `https://partyreel-git-lp-hero-source-partyreel.vercel.app`, the board at
-  `/design/c/home-hero?key=` (concept 1 of 3).
+  `/design/lab/home-hero?key=` (concept 1 of 3).
 - Synced with launch-prep: **not needed**, it had not moved (`git rev-list --count
   HEAD..origin/launch-prep` = 0 at handoff).
 - Gates on the tree: typecheck ok, lint ok (0 errors; the 6 warnings are the pre-existing ones on
