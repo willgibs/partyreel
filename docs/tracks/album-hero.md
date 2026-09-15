@@ -316,7 +316,7 @@ headline step, the album's column count, Replay), every stage at 1:1:
   the album page's hero, looped for ever with the page's own shipped lockup in a quiet zone no frame
   enters, the real guest album composed and calm below it, and the whole shipped route under the two
   so the cinema-to-paper cut is judged with the hero running". Nothing in this lane touches that file.
-- **Rename `sandbox/album-hero/burst.tsx` and `burst.css` to `field.tsx` / `field.css`** when
+- **Rename `sandbox/album-hero/field.tsx` and `burst.css` to `field.tsx` / `field.css`** when
   `lp/hero-source` closes. The file is no longer the home hero's burst and the name says the wrong
   thing, but `docs/tracks/hero-source.md` declares that exact path in its `reads`, so renaming it now
   turns a LIVE track's lane guard red (`track-manifests.test.ts` caught it). The rename is one

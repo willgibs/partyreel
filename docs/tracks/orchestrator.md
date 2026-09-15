@@ -81,8 +81,10 @@ on the 14th: the launch-prep alias serves round one until the window frees (from
 so the review surface is the local dev server. Will's overnight notes (2026-09-15) opened **round four on
 twelve tracks at once** (the seven boards and the scan on his notes; the source released to
 `hero-source`; `hero-inflow` new; `album-hero` and `river-visual` seeded with the burst and the river,
-killed as heroes), on a shell that gained the board dock and 1:1 stages for it. **Now: Will's review of
-round four** (the items below), after which:
+killed as heroes), on a shell that gained the board dock and 1:1 stages for it; every round-4
+handoff is integrated (the merge SHAs on the In flight rows), each after a read-only review, a fix and a
+re-review, the last passes cut short by a usage limit at 06:20 and finished after it. **Now: Will's review
+of round four** (the items below), after which:
 the composition pass (one Orchestrator board stacking the ruled blocks on the home arc and the
 dashboard), the hero's wiring round, the floating and light wiring rounds, `voice-infusion`. The
 record the Orchestrator keeps between windows is the two lists below plus
@@ -95,21 +97,21 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 
 | track | board | preview | waits on |
 | --- | --- | --- | --- |
-| `palette` | `/design/c/palette` | `partyreel-git-lp-palette-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `b6da35d`) | round four: the handoff, then Will's ruling |
-| `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `8d8d0af`) | round four: the handoff, then Will's ruling |
-| `type-scale` | `/design/c/type-scale` | `partyreel-git-lp-type-scale-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `5277925`) | round four: the handoff, then Will's ruling |
-| `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `e7309d7`) | round four: the handoff, then Will's ruling |
-| `brand-voice` | `/design/c/brand-voice` | `partyreel-git-lp-brand-voice-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `778bdf1`) | round four: the handoff, then Will's ruling |
-| `media-kit` | `/design/c/media-kit` | `partyreel-git-lp-media-kit-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `db2af14`) | round four: the handoff, then Will's ruling |
+| `palette` | `/design/c/palette` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `c0d60b94`) | Will's ruling |
+| `light` | `/design/c/light` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `bc2390f2`) | Will's ruling |
+| `type-scale` | `/design/c/type-scale` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `d762841f`) | Will's ruling |
+| `floating-surfaces` | `/design/c/floating-surfaces` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `75be0b0d`) | Will's ruling |
+| `brand-voice` | `/design/c/brand-voice` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `0414a120`) | Will's ruling |
+| `media-kit` | `/design/c/media-kit` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `1c2be959`) | Will's ruling |
 | `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
-| `hero-scan` | `/design/c/home-hero` | `partyreel-git-lp-hero-scan-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `1c2d0ea`) | round four: the handoff, then Will's ruling |
-| `hero-source` | `/design/c/home-hero (variation 1)` | `partyreel-git-lp-hero-source-partyreel.vercel.app` (round 4 building: the source continues in its emanating direction; the lane released from this manifest) | round four: the handoff, then Will's ruling |
-| `hero-inflow` | `/design/c/home-hero (variation 3)` | `partyreel-git-lp-hero-inflow-partyreel.vercel.app` (round 1 building: the album streaming INTO the code, off the source) | round one: the handoff and its honest verdict, then Will's ruling |
-| `album-hero` | `/design/c/album-hero` | `partyreel-git-lp-album-hero-partyreel.vercel.app` (round 1 building: the burst's field as the /features/album hero) | round one: the handoff, then Will's ruling |
-| `river-visual` | `/design/c/river-visual` | `partyreel-git-lp-river-visual-partyreel.vercel.app` (round 1 building: the river as a feature visual, one flow) | round one: the handoff, then Will's placement |
+| `hero-scan` | `/design/c/home-hero` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `f4494d6e`) | Will's ruling |
+| `hero-source` | `/design/c/home-hero (variation 1)` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `797fa9ad`) | Will's ruling |
+| `hero-inflow` | `/design/c/home-hero (variation 3)` | the launch-prep alias once Vercel's window frees (round 1 integrated, merged `7294f1d5`) | Will's ruling |
+| `album-hero` | `/design/c/album-hero` | the launch-prep alias once Vercel's window frees (round 1 integrated, merged `f51fcdc5`) | Will's ruling |
+| `river-visual` | `/design/c/river-visual` | the launch-prep alias once Vercel's window frees (round 1 integrated, merged `3e81cc39`) | Will's ruling |
 | `hero-burst` | retired: the burst left the home hero (Will, 2026-09-15) for `album-hero` | the launch-prep alias (round 3 merged `78e9538`) | nothing: its field is the album-hero track's seed |
 | `hero-river` | retired: the river left the home hero (Will, 2026-09-15) for `river-visual` | the launch-prep alias (round 3 merged `39113bb`) | nothing: its stream is the river-visual track's seed |
-| `rounding` | `/design/c/rounding` | `partyreel-git-lp-rounding-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `93017e2`) | round four: the handoff, then Will's ruling |
+| `rounding` | `/design/c/rounding` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `06ceeb41`) | Will's ruling |
 
 ## Waiting on Will
 
@@ -123,44 +125,41 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
    preview, the source first on the board as the reference); the ruling to come: which variation (or
    the source as is), its eyebrow and supporting elements, its copy, the departures ruled in. The
    wiring round cuts after that ruling (`kill-mono` has landed).
-   - **The scan** (rounds two and three; merged `1c2d0ea`). The departures Will rules on:
-     - THE ROOM, OR A PHONE. Will named a phone in the hero as the first thing he may overrule, because a phone can read as an app. The recommendation is the room, until the cutout on ASSETS row 8 is shot. Either reading also puts light in a hero that is cinema and unlit by the standing ruling, and it is the only light in the frame: in the phone reading the screen, lighting itself and its own bezel and nothing else; in the room reading one white capture bloom behind the plate, spent in 400 ms and repeated once per turn of the album. Both brighten, neither darkens: there is no scrim anywhere on this concept and every photograph is at 100 percent.
-     - KEEP THE COUNT, OR CUT IT. 282 photos from 48 guests, climbing to 312, is a STAND-IN and must not ship as invented data: the wiring round reads the demo event's real total, or the line goes. Round three made it the quiet half of the pair, so the composition holds either way.
+   - **The source** (round 4; merged `797fa9ad`). The departures Will rules on:
+     - THE CENTRED LOCKUP, and it is the only one left. Precedent rather than law: every other marketing hero goes left, and this one is centred because the code owns the axis and the corridor is symmetrical about it. Overrule it and the composition changes shape, because the type would then have to live beside the corridor rather than above and below it. Everything else here is inside the bible: media at 100 percent with no scrim and no darkening layer anywhere, the h1 in the markup at full opacity, every animation inside the reduced-motion block with the deployed corridor as the rest state, and cinema and unlit with no lamp. Round three's second departure, a reader with scripting off and motion allowed getting an empty band, is fixed rather than flagged: a noscript companion rule restores the deployed corridor for exactly that reader.
+   - **The scan** (round 4; merged `f4494d6e`). The departures Will rules on:
+     - KEEP THE COUNT, OR CUT IT. 282 photos from 48 guests, climbing to 312, is a STAND-IN and must not ship as invented data: the wiring round reads the demo event's real total, or the line goes. It is the quiet half of the pair, so the composition holds either way. This is the one ruling left on the concept.
      - THE CENTRED LOCKUP, inherited from the source: precedent and not law, because the code owns the axis. Overrule it and this hero goes left with the source.
-     - Bible 13, decorative layers only: the corridor's pre-release state and the brackets' thrown-wide state live inside the reduced-motion block, so nothing paints settled and then snaps back. Every word, the code, the caption and the count are plain markup and never gated, and reduced motion gets the whole composition deployed and locked.
-   - **The burst** (rounds two and three; merged `78e9538`). The departures Will rules on:
-     - Rule on, the headline step, and it is the one choice that changes the composition: lg or xl. The toggle is on the stage, bottom right, and the field re-solves for whichever is showing. lg (text-7xl at 1440, text-4xl at 375) leaves the burst the canvas and keeps a corridor wide enough for a frame to leave the code through; xl (text-8xl, text-5xl) is the louder promise and costs the field about 80 px of quiet zone in every direction. Both are cinema steps of the one site ladder (bible 5).
-     - Rule on, the copy: proposed or ruled. Proposed is 'It all comes out of this code.' over 'Every guest shoots from a different spot, and all of it reaches you at full size. No app, no account.' Both halves of the trade, because this is the easiest thing on the board to rule in the wrong word. WHAT IT BUYS: the code stays in the headline, which is the standing ruling here (the code as the basis of the feature is the distinct thing; a generic album is the weak one), the line says the one thing only this concept shows, that every frame on screen came out of that object, and it collides with nothing the other three propose. WHAT IT COSTS: it names the mechanism where round two's line named the outcome, so the album now arrives in the subhead instead of the headline, and 'It all' is a pronoun the picture has to answer, which makes the line the burst's rather than the site's. WHY IT MOVED: round two proposed 'One code, and the album fills.' over the subhead the river had published half an hour earlier, and the river, now integrated on launch-prep, opens 'One code, and the whole event lands here.' over that same sentence, so the duplicate was this concept's to fix. Round three's first answer, 'Your album, from every angle.', gave up the wrong half by giving up the code. Round two's phrasing can come back on one word, and it comes back into that collision: the line is the river's own opening, shortened, and both concepts would again be arguing one sentence. The ruled thesis stays the default under the board's copy toggle (bible 21).
-     - Rule on, the lockup: centred or left. Precedent, not law. The code owns the axis here, so the type is centred on it. The first thing to overrule if the home hero should stay left.
-     - Departure, bible 10 (the hero is unlit by the standing ruling): the frames carry a drop shadow, the light spec's LIFT family (docs/specs/light.md) at four times the offsets, because LIFT separates two cards a pixel apart and these are separated by a depth axis measured in hundreds of units. It is a shadow, never a lamp: no light source is added, no photograph is darkened, and there is no scrim anywhere on this concept.
-     - Departure, bible 13, decorative layer only: the frames' pre-burst state sits inside the reduced-motion block, so with JavaScript off and motion allowed the field rests around the code instead of leaving it. The h1, the code, the caption, the sentence and the actions are plain markup, never gated, and reduced motion gets the whole album settled around the code.
-   - **The river** (rounds two and three; merged `39113bb`). The departures Will rules on:
-     - THE AXIS, and the one real argument with the source: the code leaves the exact centre. The source's case was the still centre of a moving album, and it is a good one; this trades it for causality read top to bottom. A code in the middle of a composition is an object the page is arranged around, and a stranger reads it as a thing to scan for more information. A code at the TOP, in the eyebrow's slot, with the album falling out of it, is a beginning: everything below it is what the scan produced, which is the sentence the hero was asked to say. The stillness survives the move, and nothing about the card animates. The lockup is centred rather than left-aligned for the same reason, which is precedent and not law: left-aligning costs the symmetry of the two arms, not the mechanism.
-     - THE LINE UNDER THE CODE is printed on the card, and that is now the only build. Round two put both on the stage under a chip, a printed line and a line floating above a bare plate; walked cold the floating one loses plainly, so the chip is gone rather than left for Will to find, because it was also the one thing on the canvas that was not the composition. Say "above" and it comes back in a line: the mechanism does not care, it is the object that changes, and round one's argument against a line under a FLOATING plate (every frame has to escape sideways before it has fallen a card's height) is exactly what putting the line inside the white object dissolves.
-     - See a real album
-     - Built from 214 photos. Shot by 23 guests.
-     - BIBLE 13, decorative layer only: the stream's pre-pour state (every frame collapsed at the code) and the ticking count both sit inside the reduced-motion block, so with JavaScript off and motion allowed the stream rests at the code and the count shows its starting figure. Putting either in an effect instead would paint the album deployed and then snap it back. The h1, the code, the line, the subhead, the buttons and the count's settled figure are plain markup and never gated, and a reader who asked for less motion gets the stream fully deployed and the settled number. What this board took from the first wave, recorded here because there is no other row for it: the light spec's LIFT carries the cards' overlap at its cinema alphas (docs/specs/light.md), the voice guide's hero shape and its two-beat sentence wrote the proposed copy (docs/specs/brand-voice.md), and the media kit's "readable at 120 px" test is what the asks are written against (docs/specs/media-kit.md). This concept has no CSS-paste candidate and so offers no "Apply to the site" block: its ruling lands as a hero component in the wiring round, not as tokens.
-2. **The boards of the review wave** (rounds two and three integrated; the asks quoted from each
+     - RULED AND FLAGGED, not a question: the phone. Will ruled it in on 2026-09-15, and three things still hold it to a camera rather than to software, because a phone that reads as an app would break the whole pitch. The screen carries no chrome but the notch, no title bar and no buttons; the device is cropped by two frame edges so it reads as a held object in the room rather than a mockup on a slide; and what it is looking at is visibly the same code standing a few hundred pixels away. Its bezel radius is a drawn object's proportion, a literal rather than a surface token, because a phone corner is not a UI surface.
+     - THE LIGHT. The hero is cinema and unlit by the standing ruling, and this concept has two emissive things: the phone's screen, which lights itself and its own bezel and nothing else, and one white capture bloom behind the plate, spent in 400 ms and repeated once per turn of the album. Both brighten, neither darkens: there is no scrim anywhere on this concept and every photograph is at 100 percent.
+     - Bible 13, decorative layers only: the corridor's pre-release state, the phone's off-frame start and the brackets' thrown-wide state live inside the reduced-motion block, so nothing paints settled and then snaps back. Every word, the code, the caption and the count are plain markup and never gated, and reduced motion gets the whole composition deployed, held and locked.
+   - **The inflow** (round 1; merged `7294f1d5`). The departures Will rules on:
+     - Bible 13, decorative layer only, and a milder trade than the source's: with JavaScript off and motion allowed the corridor rests one beat further out than its steady spacing, because the gather's first frame lives inside the reduced-motion block (an effect would paint the steady corridor and then jump it outward). Both states are a full corridor rather than a collapsed one, which the source's pre-burst frame was not. The h1, the code, the count, the subhead and the CTAs are plain markup and never gated, and reduced motion gets the corridor flowing at its steady spacing.
+     - The splash ring carries an 18 px outer glow, which is the concept's one departure from the standing cinema-and-unlit ruling. Measured, not decorative: a hairline ring at the opacity a ripple wants is invisible the moment it crosses a photograph, and the plate is surrounded by photographs by construction, so at a hairline the landing is only legible over the dark. There is no inner glow, which would whiten the plate and the frames under it, and bible 1 does not allow that.
+     - The count under the code is the one fabricated thing in the frame, and it is load-bearing here in a way it is not on the other concepts: it is what separates arriving from vanishing. At wiring it reads the demo event's real total and each tick is one real upload. Rule on whether a hero may carry a live number at all; if it may not, this concept loses its clearest signal and the recommendation to keep the source gets stronger.
+     - Precedent, not law: the lockup is centred rather than left-aligned, inherited from the source because the code owns the axis. The first thing to overrule if the home hero should stay left.
+2. **The boards of the review wave** (round four integrated on Will's notes; the asks quoted from each
    board's meta panel; each ends in a word):
-   - **palette** (`/design/c/palette?key=`; merged `b6da35d`):
-     - The ramp: today, A or B.
-     - The temperature: neutral, or warm.
+   - **palette** (`/design/c/palette?key=`; merged `c0d60b94`):
+     - The model: registers, or today's five grounds.
+     - The dark: today, ladder, one room, ember, slate or lift.
+     - The light: today, paper, bright, warm or cool.
      - The accent: ink, blue, violet or flare.
-     - The accent's reach: all three jobs, attention only, or identity only.
-     - The panel: one token, or the alphas.
+     - The accent's reach: all three, attention only, or identity only.
+     - The mat: a register, or the alphas.
      - The missing step: faint in, or out.
      - The dark card: declared, opaque, or the veil.
-   - **light** (`/design/c/light?key=`; merged `8d8d0af`):
+   - **light** (`/design/c/light?key=`; merged `bc2390f2`):
      - (see the board's Rule on panel)
-   - **type-scale** (`/design/c/type-scale?key=`; merged `5277925`):
+   - **type-scale** (`/design/c/type-scale?key=`; merged `d762841f`):
      - (see the board's Rule on panel)
-   - **floating-surfaces** (`/design/c/floating-surfaces?key=`; merged `e7309d7`):
-     - The radius: sharp, nested or round (this board says nested)
+   - **floating-surfaces** (`/design/c/floating-surfaces?key=`; merged `75be0b0d`):
+     - The direction: today, card, glass or command (this board says card)
+     - The submenu: keep it, or delete it and let the three values be a group (this board says delete)
+     - The radius: sharp, nested or round (this board says nested, which is what card carries)
      - The entrance: one clock or by frequency (this board says by frequency, and that rule 15 means one language)
      - The light in dark: today or the shadow (this board says whatever the light board is ruled, since the numbers are the same)
-     - The edge family: sheet or drawer (this board says drawer, and the guest entry shell adopts it)
-     - The select: keep or drop (this board says keep, on the contract)
-   - **brand-voice** (`/design/c/brand-voice?key=`; merged `778bdf1`):
+   - **brand-voice** (`/design/c/brand-voice?key=`; merged `0414a120`):
      - The voice: B, A, or today (the agent recommends B)
      - The seven provisional home headers: whole in the selected voice, or line by line from the ledgers (the agent recommends whole)
      - The rest of the arc, its eyebrows, supporting lines and CTAs: take the selected voice, or hold today's (the agent recommends take)
@@ -168,14 +167,18 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      - The thesis: keep in one album, or take as everyone saw it (the agent recommends keep)
      - One noun for the thing: album everywhere, or album on the site and gallery on a guest's screen (the agent recommends album)
      - The account-required unfurl line: email, or sign in (the agent recommends email)
-   - **media-kit** (`/design/c/media-kit?key=`; merged `db2af14`):
+   - **media-kit** (`/design/c/media-kit?key=`; merged `1c2be959`):
      - (see the board's Rule on panel)
-   - **rounding** (`/design/c/rounding?key=`; merged `93017e2`):
+   - **rounding** (`/design/c/rounding?key=`; merged `06ceeb41`):
      - The surfaces: A, B, C or D (--radius, --radius-float and --radius-tile move together)
      - The actions: today, pill or quiet
      - The derived ladder: stock or quarters
      - The dead rungs (rounded-3xl, rounded-4xl, --radius-action-lg): keep or drop
      - The gallery gap: pinned to the tile, or free
+   - **album-hero** (`/design/c/album-hero?key=`; merged `f51fcdc5`):
+     - (see the board's Rule on panel)
+   - **river-visual** (`/design/c/river-visual?key=`; merged `3e81cc39`):
+     - (see the board's Rule on panel)
 3. **The rounding sitting** (the tuner earned it 2026-09-14): `/design/c/rounding?key=` on the
    launch-prep alias (four columns of one kit, three fixed candidates and a live one) and the tuner
    in the corner of every cinema page and the lab (`?key=`); values survive Replay, navigation and

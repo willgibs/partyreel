@@ -10,7 +10,7 @@
 // live hero-source track declares this exact path as a read in its manifest, so
 // renaming it turns that track's lane guard red. Asked for in the Handoff: the
 // Orchestrator may rename the pair to field.tsx once hero-source closes.
-import "./burst.css";
+import "./field.css";
 
 import Link from "next/link";
 import { type CSSProperties, useEffect, useRef } from "react";

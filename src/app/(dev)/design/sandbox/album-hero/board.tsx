@@ -30,7 +30,7 @@ import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 
 import { AlbumVisual } from "./album";
-import { AlbumHeroField, type Step } from "./burst";
+import { AlbumHeroField, type Step } from "./field";
 
 /**
  * THE ALBUM PAGE'S HERO (the album-hero track, round one, 2026-09-15).

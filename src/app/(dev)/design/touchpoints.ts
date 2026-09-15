@@ -489,13 +489,13 @@ export const RULINGS: Ruling[] = [
       "src/app/theme.css",
     ],
     board: {
-      note: "Today beside the candidate in one canvas: two ramps and a warm temperature switch any ramp can wear, each leaving the board as the paste its ruling lands, judged on the event page, the dashboard, the guest album and the ink leaf; the accent as four hues on every job at once; the panel as one token",
+      note: "Two modes chosen separately: six darks beside five lights, thirty pairs from two switches in the dock, each pair one paste; the theming model first (two modes, two grounds each, and the media well that belongs to neither) with the cinema-versus-ink answer in a sentence; live production sections, the footer, the plan pair, four home chapters and the floating primitives in unscaled frames; the accent on every job",
       variants: [
-        "Today",
-        "A, one ladder",
-        "B, one room",
-        "Warm, on either ramp",
+        "The model",
+        "The dark: today, ladder, one room, ember, slate or lift",
+        "The light: today, paper, bright, warm or cool",
         "The accent by job",
+        "The mat",
       ],
     },
   },
@@ -512,13 +512,15 @@ export const RULINGS: Ruling[] = [
       "src/components/shared/glow.tsx",
     ],
     board: {
-      note: "Eight one-word calls indexed at the top, each named on the part that argues it: depth in dark on stacked photographs, a layer and a flat card; the aurora on the home arc's five real media-less chapters behind a wipe; the cadence; the publish beat's violet; and the ruling as a paste with Apply to the site",
+      note: "The light kit: twelve treatments across three jobs on the real sections that wear them, a composer that lights any marketing section and exports its paste and its mount, the spill doctrine and the placements folded in as one identity, and the order the identity enters the site",
       variants: [
-        "A, depth in dark",
-        "B, lamps without media",
-        "C, the cadence",
-        "D, the violet",
-        "E, the paste",
+        "The kit",
+        "The treatments",
+        "The composer",
+        "The separate job",
+        "The evidence",
+        "The infusion plan",
+        "The paste",
       ],
     },
   },
@@ -535,8 +537,13 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/system/section-shell.tsx",
     ],
     board: {
-      note: "Opens on the ladder it would ship, four rulings with what would overrule each, then the four ladders' nine steps side by side at the selected canvas with the faults each fixes; every candidate is a paste against the real production hooks, so the ruling is made on the real home page, help, the dashboard and admin",
-      variants: ["Today", "A tuned", "B rungs", "C registers"],
+      note: "Seven real routes in frames exactly the canvas wide with the candidate injected into their own documents, so the page's own breakpoints and an evaluated clamp do the work; the marketing ladder and the app ladder chosen separately in the dock, any of the sixteen pairs one nine-step set and one paste",
+      variants: [
+        "Marketing: today, A tuned, B rungs or C registers",
+        "App: today, A tuned, B rungs or C registers",
+        "The tracking law",
+        "The 404's h1",
+      ],
     },
   },
   {
@@ -551,14 +558,8 @@ export const RULINGS: Ruling[] = [
       "src/components/ui/",
     ],
     board: {
-      note: "Opens with the five answers it recommends, one word each, and one button that applies them; ten surfaces (the guest entry drawer found as the tenth) on every ground at both widths with radius, entrance and light as independent knobs made of the CSS the site is handed; the rule-9 corner measured off the live DOM at 6x",
-      variants: [
-        "Radius: sharp, nested, round",
-        "Entrance: one clock, by frequency",
-        "Light in dark: a soft shadow",
-        "The corner, measured",
-        "The guest drawer at 375",
-      ],
+      note: "Three directions for the whole floating layer rather than three knobs: card changes the anatomy, glass the material, command the model; each real working UI on the real primitives with its paste, switched from the dock across eleven surfaces at true pixels (a host's desk at 1440, the same host on a phone, the guest's entry drawer)",
+      variants: ["Today", "Card", "Glass", "Command", "The rungs"],
     },
   },
   {
@@ -573,7 +574,7 @@ export const RULINGS: Ruling[] = [
       "src/lib/constants/marketing-voice.ts",
     ],
     board: {
-      note: "Two voices on whole pages beside today's: the home arc's fifteen sections, two feature pages whole, help, contact and pricing, the thirty identity strings as a paste, the app's quiet and guest copy on twelve surfaces; twelve chapters indexed in the bar, the recommendation and its measured cost first",
+      note: "Two voices and today writing sixteen real surfaces across marketing, the app and a guest's phone, every comparison showing the distinction, then priced on whole pages; thirteen chapters with the usage first, the recommendation and its measured cost",
       variants: ["Today", "A, the house", "B, the room"],
     },
   },
@@ -590,8 +591,8 @@ export const RULINGS: Ruling[] = [
       "docs/ASSETS.md",
     ],
     board: {
-      note: "Four questions with one-word answers first, each linked to the section that argues it; three routes swapping in place on the twelve positions with the provenance line under each, 22 CC0 candidates staged under the face-without-release rule, the blog plate at its real 320x400, and four CSS blocks the running site can wear",
-      variants: ["Mix", "Ours", "Licensed", "The exposure"],
+      note: "Where the frames actually come from: thirteen real catalogues ranked by whether they hold a release, each with its clause, its price and a contact sheet of its own thumbnails, and a plan that totals $56",
+      variants: ["The sheet", "The plan", "Mix", "Ours"],
     },
   },
   {
@@ -607,7 +608,7 @@ export const RULINGS: Ruling[] = [
       "src/components/dev/motion-tuner-config.ts",
     ],
     board: {
-      note: "Five one-word rulings first, today's card beside the proposed one at true size and one button that puts the paste on the site; then the surface family A to D, the action rung and the derived ladder against a quarter-step retune, every comparison at 1:1 on the components that ship them, kept clear of the tuner panel",
+      note: "The site and the app loaded into a viewport of their own at true pixels and re-skinned live from the dock, under five one-word rulings: the surface family A to D, the action rung and the derived ladder against a quarter-step retune",
       variants: [
         "A, today",
         "B, square",
@@ -630,8 +631,8 @@ export const RULINGS: Ruling[] = [
       "src/lib/constants/feature-pages.ts",
     ],
     board: {
-      note: "Seeded with the burst as it left the home hero: the field becomes the album page's hero with the page's own lockup in the quiet zone, then the real guest album as a wide, calmer visual below it, judged as the top of the real page",
-      variants: ["The seed (the burst)"],
+      note: "The burst's field with its centre taken out as the album page's hero, looped for ever with the page's own shipped lockup in a quiet zone no frame enters, the real guest album composed and calm below it, and the whole shipped route under the two so the cinema-to-paper cut is judged with the hero running",
+      variants: ["The hero", "The live album, wide", "The page, whole"],
     },
   },
   {
@@ -647,8 +648,13 @@ export const RULINGS: Ruling[] = [
       "src/lib/constants/feature-pages.ts",
     ],
     board: {
-      note: "Seeded with the river as it left the home hero: one flow instead of two banks, sized as a card, a column and a thumbnail, shown in three real placements, with its props, its measured cost and the paste to mount it",
-      variants: ["The seed (the river)"],
+      note: "The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost",
+      variants: [
+        "560, the column",
+        "400, the card",
+        "240, the thumbnail",
+        "The placements",
+      ],
     },
   },
 ];

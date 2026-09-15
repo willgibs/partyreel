@@ -144,7 +144,9 @@ variation tracks (`hero-scan`, `hero-burst`, `hero-river`), all integrated. The 
 `brand-voice`, `media-kit`, `kill-mono`) and every one of the seven integrated the same day; the
 rounding and tweaking GUI round ran on the Orchestrator's side. Will asked for a second and a third
 round before reviewing, so all ten tracks (the six boards, `rounding` as an agent track, the three
-hero variations) ran both the same night and integrated 2026-09-15. Everything now waits on Will's rulings
+hero variations) ran both the same night and integrated 2026-09-15; his overnight notes then opened round
+four on twelve tracks (the source released to `hero-source`, `hero-inflow` new, `album-hero` and
+`river-visual` seeded with the burst and the river), all integrated the same morning. Everything now waits on Will's rulings
 (Waiting on Will in [`orchestrator.md`](orchestrator.md)); then the composition pass, the wiring
 rounds and `voice-infusion` cut. The rest follow the wave plan in [`../STATUS.md`](../STATUS.md).
 

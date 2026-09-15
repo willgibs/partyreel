@@ -13,7 +13,7 @@ reads:
   - src/app/(dev)/design/sandbox/home-hero/board.tsx
   - src/app/(dev)/design/sandbox/home-hero/board.css
   - src/app/(dev)/design/sandbox/home-hero/scan.tsx
-  - src/app/(dev)/design/sandbox/album-hero/burst.tsx
+  - src/app/(dev)/design/sandbox/album-hero/field.tsx
   - src/app/(dev)/design/sandbox/river-visual/river.tsx
   - src/components/dev/board/stage.tsx
   - src/components/dev/board/dock.tsx

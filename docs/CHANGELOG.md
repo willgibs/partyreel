@@ -193,6 +193,228 @@ asks into 36 masters by vertical, with the squares, clips and film derived from 
 production byte changed.
 
 
+**Round four, overnight on Will's notes** (2026-09-15; Will, before sleep: "review notes from a quick
+scroll through each lab page's current status on launch prep for you to continue working into the night
+and conclude a fourth round for review by the morning"). Two of his notes were shell faults and were fixed
+first: a board's page-wide switches must be fixed on screen (the `BoardDock`), and a zoom-fitted stage
+shrinks every size he is asked to judge (every `Stage` at 1:1 by default, the board page full width, the
+sidebar tucked away). Then twelve tracks at once: the seven boards and the scan reopened on his notes; the
+source released to `hero-source`; the new inflow (the album streaming INTO the code); and the burst and the
+river killed as heroes and moved whole into `album-hero` (the /features/album hero) and `river-visual` (a
+feature visual in the bank). Each track ran as build, a read-only review against his notes, a fix and a
+re-review; Vercel stayed capped, so every board verified on a local production build.
+
+**palette, round 4** (head `5cd20bdc`, merged `c0d60b94`). Round four stopped adding candidates and named the
+system instead. Cinema and ink turned out to be one mode's two grounds rather than two darks: the
+room a dark chapter sits in, and the slab a dark leaf makes on a light page. Light has the same pair
+(the paper, and the mat, which is the /contact panel nobody had named), and the media well belongs to
+neither mode because it is always dark. Four registers and a bed, where the product had five unnamed
+grounds and a literal. The board's first block states it and it is the first ask. The ruling then
+split in two, as Will asked: six dark sets beside five light ones, thirty pairs, one paste from
+whichever pair is up, and three new darks (a warm room, a cool one, and one lifted off black that
+argues dark needs a single register) beside two new papers. The split immediately produced an answer
+no earlier round could have reached, because warming had only ever been askable about both modes at
+once: warm the room, leave the page a true grey. Every page-wide switch moved into the dock, and the
+comparison surfaces became live production sections, rendered in unscaled iframes at the canvas width
+so a real breakpoint measures the canvas. Lab only, no production byte.
+
+**light, round 4** (head `de656d30`, merged `bc2390f2`). Round four turned the light board from a research
+report into the identity kit and the plan to infuse it. The kit became the FIRST block: twelve
+treatments across three jobs (separate, fill, mark), each carrying its place, its section list, its
+frequency and its mount, with the fences and the seven things a wiring round types into files, all
+read from one source the composer and the spec also read. The spill doctrine's five shapes and the
+spill placements' rulings were folded in beside this board's own, which surfaced the round's strongest
+fact, that half the kit already runs in production unnamed, and two corrections to the board's own
+draft: the QR plate's light is a mark rather than spill, and the halo cannot light a white primary
+action. The section configurator Will called promising grew into the centrepiece: nine real section
+types at the grounds the chapter map gives them, four treatments, five placements, the register, the
+temperature and the clock, enforcing the grammar rather than describing it (a refused treatment says
+why in the section's own words) and exporting both the CSS paste and the JSX mount for every
+configuration, which produced the kit's one new component, `<SectionLight>`. An infusion plan in six
+phases says the order the identity enters the site and what goes wrong out of it; the five
+measurements were demoted to evidence, each ending in the line it decided; and the dock took the four
+page-wide switches plus the badge naming whichever block stands on the site, and the field's cadence
+became a declared sibling of the lamp's token. `docs/specs/light.md` was rewritten to the kit. One lab defect came out of mounting
+nine live sections, and it was the round's widest find: the lab's own Tailwind entry outranked
+production's responsive utilities, so every board showing a production component rendered part of it
+at its phone layout, 115 elements here. The one-line remedy landed on `launch-prep` as
+`layer(utilities.lab)` and this board re-measured it at zero.
+
+**type-scale, round 4** (head `9b8af70d`, merged `d762841f`). **The type scale, on the pages themselves, and the
+two registers ruled apart.** Will could not judge a size on a stage scaled to 0.7, so round four
+stopped showing stages of marketing at all: four hand-composed reconstructions came off and seven
+real ROUTES went on, each in a frame exactly the canvas wide with the candidate injected into its
+own document. A frame gets what no stage on this board could: the canvas's own breakpoints, so the
+phone end is the page's real phone end, and an EVALUATED clamp rather than one resolved here by
+hand, so the board shows the token the wiring round bakes instead of arithmetic about it. The two
+registers became two switches in the dock, with the board's call on the shape argued rather than
+assumed (one token set, two registers, because two sets would name every role twice and then have to
+answer which set a Card wears, and would duplicate a tracking law that is a function of size and not
+of surface); any of the sixteen pairs composes into one nine-step set, one `@theme` block and one
+paste, which is the claim the tests now prove for all sixteen. Measuring the frames found three
+faults and fixed them: the injected block was landing fifth of five sheets and is an adopted
+stylesheet now, a masthead was being read mid-entrance and reported a tracking no candidate
+proposes, and the shell's sidebar pill was covering the dock's first control. And the frames found a
+third hand-rolled heading outside both registers, on the guest album, the surface most people who
+ever see Partyreel see. A review of the hand-off put two things back that the round had dropped
+quietly: the law alone kept its own apply button, so the tracking ask can still be ruled on the real
+site with no size moving, and the three app surfaces that stayed composed stages are declined in
+writing on the board rather than in a comment. Lab only; no production byte changed.
+
+**floating-surfaces, round 4** (head `c2f7d05b`, merged `75be0b0d`). Round four changed what the floating-surfaces board
+is for, on Will's note that the app's menus are the problem and the exact values of today's options are
+not: it now proposes three DIRECTIONS for the whole floating layer, deliberately three different kinds
+of answer rather than three shades of one. Card changes the anatomy (a header row carrying the menu's
+subject, labelled sections, an icon rail, a trailing column for state, and a footer rail under the
+action that cannot be undone); glass changes the material (one translucent pane of the room at a
+measured mix, lit along its top edge, with no boxes inside it); command changes the model (a field, one
+flat grouped list, keyboard first, and no nested menu anywhere). Each is a working component on the real
+primitives plus a real paste for its material, radius and motion, and the board says on every row which
+half a paste can carry. The direction is a switch on the shell's new dock, so comparing two is a click
+from anywhere on the page and eleven surfaces answer at once; no frame is scaled any more, so a 4px
+corner is 4px; and the specimens are whole surfaces (a host's desk at 1440, the same host on a phone,
+the guest's own entry drawer, the dialog, the tooltip, the toast, the field, the edge panel). Three real
+bugs came out of building it: a nested submenu is INVISIBLE in the product, because SubContent has no
+Portal while Content clips overflow; an entrance written for every panel beat the edge family's slide on
+specificity, so the sheet zoomed and the guest drawer was handed a clock on top of vaul's; and every
+ground-dependent value was read off `<html>` rather than off the section, so a tooltip on a paper page
+drew the dark shadow. Rounds one to three's three knobs survive as one section, corrected and still
+pasteable, as the ruling for today's primitives if no direction wins.
+
+**brand-voice, round 4** (head `fa118649`, merged `0414a120`). Round four answered Will's two notes by turning
+the board around: it opens on the voices WRITING rather than on notes about them. Sixteen real
+surfaces, each written three ways on the component that ships it and at 1:1 on the real ground: the
+home hero, a chapter, a card set, the pricing pair with every number from `tiers.ts` and a help
+opening; the dashboard's empty state, the real `EventCard` three abreast in the dashboard's own
+grid, the create wizard, two toasts, the two errors, a notification and the account page; a guest's
+door in three gates, the upload sheet, the empty album and an email, all at 375. The "unchanged"
+rows that made the old comparison useless were a symptom of two questions sharing one table, so the
+usage chapters now have every voice write every line while the ledgers keep pricing a sweep, and
+where all three still agree the row carries the reason rather than the word: 47 of 66 lines differ,
+19 are explained, and an unexplained match is counted as a defect on the board itself. The
+page-wide switches moved into the shell's dock, the phone canvas reads three abreast, and the guide
+grew a section that writes all sixteen surfaces line by line, all 66 rows with the 19 held ones
+carrying their reason, so a wiring round can rewrite a surface without opening the board. Three of
+those app lines are corrections rather than rewrites (an event that "never expires", a photo
+"hidden from everyone" the host can still see, and a storage warning that names the machinery). No
+production byte changed.
+
+**media-kit, round 4** (head `b399c354`, merged `1c2be959`). Will's note reopened the media-kit track on a
+different question, where the frames come from rather than which twelve to pick, and the board became
+a sourcing sheet: thirteen real catalogues, ranked by whether they hold a model release rather than by
+price, each with its licence clause quoted word for word, its price with a number in it, and a contact
+sheet of its own thumbnails hotlinked from its own CDN so that nothing paid was copied into the repo.
+Twenty-six sheets and 308 frames were harvested from the sources' public search pages and every URL
+confirmed live; the six that cannot be drawn say why on their own cards, in four different ways (a 403,
+an empty client-rendered shell, a members' wall, and one that read perfectly and failed on what it
+returned) rather than sharing one excuse. Writing those reasons out per source is what caught the round's
+own worst error: a seventh card had been blank on an unmeasured claim that Unsplash+ sits behind an
+account, the plus-filtered search reads fine from a plain client, and the source the plan actually asks
+Will to buy now draws 60 of the frames instead of explaining why it could not. The round's finding is that the refusal at the heart of
+three rounds was of a TIER and not of a company: Unsplash's free licence excludes recognisable people,
+which is what disqualified the twelve stand-ins, and Unsplash+ is a separate agreement on the same site
+whose entire product is that clause removed, model and property released with a $10,000 warranty per
+photo and a perpetual grant on anything downloaded inside a paid month. So the bridge that three rounds
+called unbuyable costs $56: one month at $20 for all five verticals, plus three iStock frames at $36 for
+the conference rooms no subscription is deep in. The films are the other number and they point the other
+way, at $299 a year for the only clip licence that survives cancellation, which is more than every
+photograph put together and is why the recommendation buys the stills and shoots the rest. Two more
+things the sheet found rather than reasoned: Coverr, marked allowed in round one on its licence text,
+now returns 23 AI generations and 34 iStock results in a single page of its own search, so a licence is
+read once and a catalogue moves continuously; and the 87,066 CC BY conference photographs in Web
+Summit's Flickr archive, the best free catalogue for the vertical we cannot fill, are a wall of other
+companies' trademarks as well as unreleased faces. The asks are four again, two of them new: the rule,
+the $56, whether a crowd counts as a subject, and the shoot. No production byte changed and nothing was
+added to `public/`.
+
+**rounding, round 4** (head `31788b38`, merged `06ceeb41`). Will's note on the rounding board was that a screen of components gives no feel of the real site or the real app, and round four answered it by rebuilding what the board judges ON rather than adding to it. Three rounds had used compositions: real components, arranged by the board, standing in for pages, inside a Stage whose breakpoints read the browser rather than the canvas and out of which every radix panel portals. Round four loads the pages instead. Part A is the site in a same-origin iframe at exactly 1440x930 or 375x760 with the candidate written into that document as the paste a ruling would land, so the real components wear it at their own breakpoints at true pixels: split scrolls today beside the candidate, single re-skins one page in place as the dock flips, over eight routes including the live demo guest album.
+Part B is the app, which is behind a sign-in, served from a screen route of the lane's own so the production MasonryColumns, EventCard, Dialog, DropdownMenu and guest EntryShell each get a viewport of their own; part G is the four candidates at once at 375. The shell's new dock carries every page-wide switch. The hand-written floating specimens and the whole compositions file went with the change.
+Three findings stopped being sentences and became things to look at, all measured in the running pages: the production entry sheet draws 22.4px today, 11.2 under quiet and 1398.6px under the pill, which the browser clamps to a half circle; the real dialog and menu both measure the 8px float token, portalled into the canvas; and on the live demo album at candidate D the guest masonry draws 6px tile corners inside the literal 3px gap it hard-codes, which is four corners meeting in three pixels on the one grid every guest sees.
+The walk found three faults and fixed them: a bordered frame handed the iframe a 1438px viewport under a caption reading 1440, the shell's non-wrapping Toggle took the page into a 131px horizontal scroll at 375, and a server component cannot read a constant out of a client module. The board still answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop the dead rungs and pin the gap.
+
+**album-hero, round 1** (head `bd5f63b5`, merged `f51fcdc5`). The burst, killed as the home hero, became the
+live album's. Its centre came out: with no QR plate to hide a birth behind, the birth became a point
+(a frame is born at 13 px at 1440 and 8 px at 375 and grows out of nothing) and the plate's radius
+became a vent the album emanates from. The lockup over it is `/features/album`'s SHIPPED lockup,
+measured off the real page rather than restyled, and the field is denser and slower than the home
+hero's so the album reads full and never resolves: 52 frames at 1440 and 44 at 375 over a 9.6 s
+flight, 19 to 27 on screen, and 12 image requests for all of them. Under the hero the board put the
+shipped guest album itself, composed and not drawn (GuestMasonry, MediaTile, the lightbox, the
+host's own chrome), calm by design: the product's own entrance and one status dot, so the two halves
+of the page do not fight. A third reading stacks the hero, the album and then the whole shipped
+route beneath them, every section in its shipped order on a stage that measures its own content, so
+the cut from cinema to paper is judged with the hero still running rather than imagined. The quiet
+zone was re-proved on the running field at all four canvas-and-step combinations: 2965 card-instants
+against the lockup's ink, no word ever under a photograph; the settled composition, which is what a
+reduced-motion reader gets, was found hanging 3 px past the rim and guarded; and the no-script frame
+turned out to be the lockup alone, because the collapsed first frame sits in the no-preference query
+that matches by default. The board asks Will for the headline step, the guest album's width rule (an
+app-UI candidate of two declarations, argued from outside the shipped component), whether the album
+should breathe,
+whether a reader with JavaScript off should get the settled album instead, and three short clips.
+
+**river-visual, round 1** (head `232dfd29`, merged `3e81cc39`). The river, killed as the home hero, came back as a banked
+feature visual. Will's ruling asked for one flow instead of two and a smaller presentation of the images
+emanating from the code, so the hero's parity split, its clearing, its held beat and its two hand-typed
+geometries were deleted: what is left is one stream fanning out of one printed object, every number derived
+from its box, so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, on constants
+that keep instances on a page in step. The frames straighten as they land, the dissolve runs to the bottom
+edge rather than stopping short inside somebody else's slot, and the loop is cut by a frame's top edge. The
+board banks it: three sizes at 1:1 on cinema and paper, three origins on one dock switch, and three
+placements on the production shells they would ship inside, each drawing the width its own ask quotes, the
+guest empty state among them as a true A/B against the mosaic it would replace, at the guest page's gallery
+width on both canvases. The bank card carries the props, the paste and a live meter reading 8.3 ms with six
+mounted. Nothing production moved; the asks are where it goes first and whether the code stays in it.
+
+**hero-source, round 4** (head `33fa27cd`, merged `797fa9ad`). Will ruled the source's direction a second time,
+so round four kept the silhouette and rebuilt everything inside it. The corridor stopped being a
+plane: three depth lanes now scale a frame's size, travel, drift and turn together, paint order
+follows apparent size so near frames pass over far ones, and the arms open as they go, which makes
+the two rows read as one cone with the code at its apex. Half the frames became 4:5 portraits and a
+quarter 4:3, cropped from the same squares, because an album is what guests shoot and not a contact
+sheet. Density went from ten frames on screen at 70 to 290 px to sixteen at 241 to 373. Two numbers
+stopped being chosen and started being measured: each card's DOM box is now its own largest
+on-canvas moment, so no photograph is ever rasterized above 1:1 where a person can see it, and the
+lane the type sits in is solved off the running corridor, so "no photograph is ever under a word" is
+the condition the composition is drawn from (120 samples a canvas against the type's true ink found
+zero intersections). The one departure round three flagged is gone: a noscript companion rule gives
+a reader with motion allowed and scripting off the deployed corridor instead of an empty band. A
+caption under the code names where the frames came from, and the geometry was tuned against the site
+header's 4rem overlay, which the stage cannot draw.
+
+**hero-scan, round 4** (head `6ee39295`, merged `f4494d6e`). Will ruled the phone in, so the scan stopped carrying
+it as one of two equal readings and became the composition it had only been proposing. The phone is the
+default at both canvases and both canvases were laid out around it, as two points of view rather than
+one compressed: at 1440 the hand enters from the left, another guest at work in a room the host is being
+shown, and at 375 it is the reader's own hand rising out of the bottom edge with the two codes on one
+vertical axis. The scan became a gesture, a hand coming up over 620 ms and rolling into its aim before
+the brackets close, and then never quite still, on a drift period deliberately out of step with the
+album's. The round's real find was that the capture had never landed on the code: the bloom belonged to
+the ruled-out reading, so the phone fired while the plate did nothing and the concept's one sentence had
+no verb. The plate answers in both readings now, 40 ms before the album leaves it, and the brackets tick
+inward on every recapture so the repeat reads as the next guest scanning rather than as a light. The
+drawn device was rebuilt as three flat layers so the cutout on ASSETS row 8 drops in over an untouched
+live viewfinder, and that ask stopped being conditional. Three defects fell out of measuring rather than
+looking: a proposed action row three pixels too wide wrapped onto the caption at 375, the new caption
+intersected the corridor in the footnote reading, and the lab's own footnote pill, exempted from the
+keep-out sweep as chrome in an empty corner, was clipping the tops of the 375 headline once the round
+raised the device and lowered the words. All three are fixed, the pill by taking a strip of the canvas
+nothing else wanted and paying the ten pixels back inside the type block, and every combination of
+canvas, reading and copy now clears every neighbour it has.
+
+**hero-inflow, round 1** (head `c4f6bc4a`, merged `7294f1d5`). The inflow, variation 3 of the home-hero board,
+replaced its stub and answered Will's question. It runs the source's mechanics on the reversed axis:
+frames are born out of the dark at the edges of the room, decelerate inward, and slide UNDER the
+code's white plate, so nothing ever fades at the destination (an object hidden behind something
+opaque has gone somewhere; an object that dissolves has been erased). The geometry is solved against
+the plate rather than guessed, and each landing pushes a ring out of the plate and ticks a count on
+the one lane of dark ground the funnel leaves clear, both driven in closed form off the loop's clock
+so a pause cannot desynchronise them. The entrance is a lag on that clock: the album plays at about
+2.2x for 1.5 s and eases to its cadence, so the whole room closes on the code once before a word is
+read. The verdict is on the board: it reads in motion and it is the truer sentence, but it needs the
+motion, and the source's frames grow as they travel while the inflow's shrink to nothing at the
+object you want looked at, so the recommendation is to keep the source as the home hero.
+
 **Rounds two and three, the same night** (Will, after the first wave: "a single round of context didn't
 seem to be enough for any of them to reach enough of their full potential for a real review"; then,
 at dinner, "let's go ahead and run a third"). Every board and every hero variation was reopened twice

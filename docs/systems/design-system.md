@@ -973,3 +973,11 @@ registry; `sandbox/` the open boards with their own sheets; the four probes) · 
   canvas** (brand-voice and palette, round 2): `sm:` fires inside the 375 stage on a desktop window and
   never fires on a phone-width window showing the 1440 canvas. A board's own markup keys off the
   `mode` prop; the real production components carry their own prefixes and are judged as they ship.
+- ★ **The lab's compiled utilities live in the `utilities.lab` sub-layer** (`design.css`, round four,
+  2026-09-15). The lab sheet loads after `globals.css`; in one shared `utilities` layer its copy of an
+  unprefixed utility beat a production component's responsive one on the same element (`grid-cols-1`
+  over `lg:grid-cols-12`), so every real section a board mounted at 1440 laid out as its phone version.
+  Rules directly in `utilities` outrank the sub-layer, so production wins on a shared element; a board
+  that must override a production class on the same element uses its own sheet or `cn()`. Pinned by
+  `css-source-policy.test.ts`. The remaining limit is the ★ above on breakpoints: a production section
+  inside a 375 stage still lays out for the real window, so judge phone chrome in an iframe at 375.
