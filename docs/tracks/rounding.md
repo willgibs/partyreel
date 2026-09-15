@@ -583,13 +583,121 @@ The board answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop 
 
 ## Handoff (round 4)
 
-- Head `9fb6002`, pushed (the manifest commit follows it); preview
+- Head `2f9cedd`, pushed (the manifest commit follows it); preview
   `partyreel-git-lp-rounding-partyreel.vercel.app`, which this round did NOT
   wait on and did NOT ask the API for: Vercel is capped and the round's
   instruction is to verify locally. **Everything below was walked on a LOCAL
   PRODUCTION BUILD** (`pnpm build`, then `next start` on :3401 from this
   worktree) and on `next dev` before it, in a FOREGROUND tab, at 1440 and at
   375.
+- **Second pass, `7a470dd` and `2f9cedd` (the read-only review of this handoff
+  found four should-fix items; all four are fixed, the first uncovered a fifth
+  under it, and re-walking the fix for the fourth turned up a sixth). Every
+  claim here is measured in the running page on a local production build in a
+  FOREGROUND tab, not asserted.**
+  1. **The scroll lock reached one row of three.** `useScrollLock` was
+     instantiated inside `PageFrames` only, so part A's split scrolled together
+     while part B's pair and part G's four did not, under a part-G lede that
+     promised they did and a dock control ("Compare: Today beside it") that
+     reads as page wide. The hook is exported now and **every row holds one of
+     its own**: part A's two, part B's two (in a `ScreenFrames` beside
+     `PageFrames`, so Compare means the same thing on both parts) and part G's
+     four, always on, because a row of four candidates at four scroll positions
+     is not a comparison. Measured: scrolling the app's left frame to 260 moves
+     its right frame to 260 and leaves the site pair and the phones where they
+     were; scrolling phone three to 120 moves all four phones and nothing else.
+  2. **Under it, a fault the review could not see and the first walk missed:
+     even part A's split did not lock on first open.** A frame in the
+     server-rendered HTML finishes loading BEFORE React hydrates, so the
+     element's `load` event is gone by the time an `onLoad` handler exists and
+     the row was never joined; it only began to work after "Reload frames",
+     which remounts the element so its load lands after hydration. That is why
+     the round-four walk read the split as working. The row is joined from an
+     effect keyed on the load count now, and the first scroll after a cold load
+     of the production build syncs (600 to 600, no reload).
+  3. **Two DEPARTURES pointed at the wrong part**, which is the block Will
+     reads to rule: the guest entry sheet is drawn in part F, not E, and the
+     ladder retune renders in part E, not D. Both were right before the
+     re-lettering. Swept the rest of the lane with them: four comments and two
+     section headers in `specimens.tsx`, `candidates.ts` and `board.tsx` still
+     carried round three's letters, and `specimens.tsx` still described a Stage
+     this board no longer uses. Every "part X" in the rendered page was then
+     read back out of the HTML and checked one by one.
+  4. **The app frames shipped a keyless lab URL in the server HTML.** The
+     design key is read from `window.location.search`, whose server snapshot is
+     empty, so the SSR markup carried
+     `<iframe src="/design/sandbox/rounding/screen?screen=dashboard&ground=app-light">`
+     and the browser started that load before hydration. `requireDesignKey`
+     answers a keyless lab URL with `notFound()` on every build but local dev,
+     so on the gated preview and on `next start` both app frames painted the
+     lab 404 and then reloaded: two wasted page loads and a visible wrong-page
+     flash on every open. Parts B and G hold their frames until the board is
+     mounted (part G's intersection gate already did, for the same reason);
+     part A's frames are the site's own routes, need no key, and still render
+     on the server. `curl` now finds exactly two iframes in the HTML, both
+     `src="/"`. The header's invariant in `frames.tsx` claimed no frame carries
+     the key, which was only ever true of part A and was contradicted by the
+     `inject` comment below it; it states both kinds now.
+  5. **The Screen picker was a page-wide switch left beside part B**, and the
+     Handoff's justification for the exception ("each picks one specimen") was
+     wrong: the page picker does pick part A's one specimen, but the screen
+     picker also decides what part G loads into all four phones, so a reader at
+     the phone row had to scroll back up to change it, which is Will's global
+     note (a) exactly. It is in the dock with the other page-wide switches now
+     (the dock is three rows and 131px at 1440, the answer block's anchors
+     still land clear of it at y=163 against a dock bottom of 131), and part B
+     carries a line saying where it went. Measured standing at part G: one
+     click on "Guest door" in the dock moved all six screen frames to
+     `screen=entry`.
+  6. **The comment under that move made a claim the page does not support.**
+     Both the JSX comment and the `board.css` note said the five screen names
+     are "wider than a 375 dock", so the group "scrolls inside itself". Walked
+     at 375 on the production build they are not: the tablist measures 343
+     inside 343 of dock, it fits with nothing to spare, and the wrapper's
+     `overflow-x` never engages. The guard is still right to keep, because one
+     longer screen name earns it, so both comments say guard rather than fix
+     and quote the measurement. Same class as the four above, one layer down.
+- **Second-pass gates, re-run on the final formatted tree (`2f9cedd`):**
+  typecheck ok, lint ok (0 errors, 6 warnings, all pre-existing and outside the
+  lane), test ok (1804 in 199 files), build ok. `pnpm format` reported both
+  changed files already clean, and the diff was eyeballed for the
+  `prettier-plugin-tailwindcss` className hazard (none: no conditional class
+  strings in the lane).
+- **Second-pass light QA, on a local production build in a FOREGROUND tab.** At
+  **1440**: document overflow 0, the dock 131px (three rows, up from 89 with
+  the screen picker in it) writing `--board-dock-h` and `scroll-padding-top:
+  139px`, eight frames on the page (2 site, 2 app, 4 phones), all three rows
+  locking to themselves, "One frame" giving one site frame and one app frame
+  and both re-skinning to `--radius: 8px` on a flip to C with no reload. At
+  **375**: document overflow 0, the dock static and exactly 375 wide with its
+  own overflow 0, the docked screen picker 343 inside 343, and **zero stranded
+  elements**: every element whose right edge passes the viewport sits inside a
+  row that scrolls itself, parts A and B included, which is the harder case
+  (those rows hold 1440-wide frames in a 375 viewport). **Reduced motion
+  honoured by having nothing to undo**, re-measured after the change: zero
+  elements on the page resolve an `animation-name` and the sheet still declares
+  no keyframes. No console errors or warnings on the board, and **zero
+  hydration warnings** from the mount-gated frames. The SSR HTML was read with
+  `curl` as well: exactly two iframes, both `src="/"`, and no keyless lab URL
+  on any frame.
+- **One check this pass could NOT re-measure, stated rather than glossed.**
+  Part G's four phones were re-verified at **1440** (they mount, they carry the
+  dock's key and screen, and scrolling phone three to 120 moved all four while
+  the site pair stayed at 400 and the app pair at 300). The same row at **375**
+  was not re-measured: every Browser-pane tab was held by another track's
+  session by then, and the fallback Chrome tab sat occluded, where
+  IntersectionObserver is frozen and part G therefore never mounts. Part G's
+  row is the same `overflow-x-auto` + `w-fit` construct as parts A and B, whose
+  375 behaviour IS measured above with wider children, so the risk is low, but
+  it is not measured and is not claimed as such.
+- **The test-tool note, again, and it cost time again.** The Browser pane's tab
+  went hidden between two calls and part G simply never mounted: in a hidden
+  tab **IntersectionObserver callbacks are not delivered either**, not just
+  ResizeObserver's, so a gated part reads as broken. Fronting the tab
+  (`tabs_select`) and re-running showed all four phones immediately. For
+  `docs/systems/testing-verification.md`, which is not this lane: a hidden tab
+  freezes every observer on the page, so anything a board defers until it is
+  seen, or measures in JS, is frozen with them.
 - **The round-four marker in the rendered HTML is the heading "The real site,
   at 1:1"** (with the class `rnd-frames`), server rendered, so `curl` finds it.
   Round three's "What the board answers" and round two's "The six tokens, at
@@ -622,12 +730,15 @@ The board answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop 
      a vaul drawer below 640 and a Radix dialog above) and the floating layer
      (the real `Dialog` and `DropdownMenu`, open).
   3. **Part G is the four candidates at once**, four 375 viewports side by
-     side, gated on intersection because four viewports are four page loads.
+     side, gated on intersection because four viewports are four page loads,
+     and scrolled together.
   4. **The dock carries every page-wide switch** (the shell's new `BoardDock`):
-     the candidate, the action rung, the ladder, the canvas, the app ground,
-     Compare, Reload frames, Apply and Clear. The page picker and the screen
-     picker are the only controls left beside a part, because each picks one
-     specimen. `compositions.tsx` is deleted and `StaticMenu` / `StaticDialog`
+     the candidate, the action rung, the ladder, the canvas, the app screen,
+     the app ground, Compare, Reload frames, Apply and Clear. **Part A's page
+     picker is the only control left beside a part**, because it is the only
+     one that picks a single part's specimen; the screen picker looked like its
+     twin and is not, since part G loads the same screen, so the second pass
+     moved it into the dock (item 5 above). `compositions.tsx` is deleted and `StaticMenu` / `StaticDialog`
      are gone from `specimens.tsx`: the real primitives replaced them.
   Rounds two and three are kept and moved under the evidence they explain: the
   answer block first, then the matrix (part C), the nested corners (D), the
