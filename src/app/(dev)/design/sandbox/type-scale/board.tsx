@@ -572,8 +572,9 @@ function ApplyBar({ active }: { active: string | null }) {
         reach, for a different reason: production writes it as a label inside an
         h2 and there is no class worth aiming at, which is what the
         missing-middle stage is for. Marketing has one of those too, found in
-        round three: sixteen hand-rolled h2s (the feature sections, careers, the
-        footer, the reel and the stat register) stop one rung short of
+        round three: sixteen hand-rolled headings (the feature sections,
+        careers, the footer, the reel, the error screen and the stat register)
+        stop one rung short of
         SectionShell&rsquo;s ramp and ship at 30 / 36, so no paste moves them
         and a section that does not budge is the page, not the block. Aiming the
         section step at them would grow them to 48 and make Today move the real
