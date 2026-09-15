@@ -1,6 +1,6 @@
 ---
 track: rounding
-status: open
+status: handed-off
 cut: "c473707"
 merged_round_3: "a32981a"
 merged_round_2: "2603465"
@@ -583,16 +583,207 @@ The board answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop 
 
 ## Handoff (round 4)
 
-- Head <sha>, pushed; preview partyreel-git-lp-rounding-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `9fb6002`, pushed (the manifest commit follows it); preview
+  `partyreel-git-lp-rounding-partyreel.vercel.app`, which this round did NOT
+  wait on and did NOT ask the API for: Vercel is capped and the round's
+  instruction is to verify locally. **Everything below was walked on a LOCAL
+  PRODUCTION BUILD** (`pnpm build`, then `next start` on :3401 from this
+  worktree) and on `next dev` before it, in a FOREGROUND tab, at 1440 and at
+  375.
+- **The round-four marker in the rendered HTML is the heading "The real site,
+  at 1:1"** (with the class `rnd-frames`), server rendered, so `curl` finds it.
+  Round three's "What the board answers" and round two's "The six tokens, at
+  true size" are still there, one part down each.
+- **What changed, and why it is a rework rather than an addition.** Will's note
+  was that a screen of components gives no feel of the real thing. Rounds one
+  to three answered that with COMPOSITIONS: real components, arranged by the
+  board, standing in for pages. A composition is honest about a component and
+  dishonest about a page, and inside the shell's Stage it is dishonest twice,
+  because a Stage is a div: a Tailwind breakpoint prefix in it reads the
+  BROWSER's width rather than the canvas's, and every radix panel portals out
+  of it. Both are documented on `Stage` itself; every earlier round of this
+  board worked around both by hand, which is why the guest sheet, the dialog
+  and the menu were hand-copied class strings.
+  Round four stops arranging and loads the pages.
+  1. **Part A is the site.** A same-origin iframe laid out at exactly 1440x930
+     or 375x760 with the route in it, and the rail written INTO that document
+     as the same paste a ruling would land (`frames.tsx`). Split scrolls today
+     beside the candidate; single re-skins one page in place as the dock flips,
+     with no reload and no scroll lost. Eight pages: `/`, `/pricing`, `/help`,
+     `/how-it-works`, `/features/album`, `/contact`, the live demo guest album
+     and `/login`.
+  2. **Part B is the app**, which is behind a sign-in and cannot be loaded from
+     a route, so this lane serves it from one of its own,
+     `/design/sandbox/rounding/screen` (`screen/page.tsx` + `screens.tsx`), the
+     pattern the floating-surfaces board wrote for the same portal reason. Five
+     screens, all production components: the dashboard (`EventCard`), an event
+     page (`MasonryColumns`, the command strip, the row menu), the gap (the
+     token grid beside the literal one), the guest door (the real `EntryShell`,
+     a vaul drawer below 640 and a Radix dialog above) and the floating layer
+     (the real `Dialog` and `DropdownMenu`, open).
+  3. **Part G is the four candidates at once**, four 375 viewports side by
+     side, gated on intersection because four viewports are four page loads.
+  4. **The dock carries every page-wide switch** (the shell's new `BoardDock`):
+     the candidate, the action rung, the ladder, the canvas, the app ground,
+     Compare, Reload frames, Apply and Clear. The page picker and the screen
+     picker are the only controls left beside a part, because each picks one
+     specimen. `compositions.tsx` is deleted and `StaticMenu` / `StaticDialog`
+     are gone from `specimens.tsx`: the real primitives replaced them.
+  Rounds two and three are kept and moved under the evidence they explain: the
+  answer block first, then the matrix (part C), the nested corners (D), the
+  derived ladder (E) and the action ladder (F). Every walk link stays.
+- **What the frames proved, measured in the running pages rather than argued.**
+  - The paste reaches a frame and re-skins it live: flipping the dock to C
+    moved the right frame to `--radius: 8px`, `--radius-tile: 4px`, card 11.2px
+    while the left stayed at 2 / 3 / 2.8, with no reload. Quarters took the same
+    card to 10px (the ladder is baked into the utilities, so the block's utility
+    overrides have to win, and they do). The pill took `--radius-action` to 999.
+  - **The guest entry sheet, on the production shell at a real 375 viewport:
+    22.4px today, 11.2 under quiet, and 1398.6px under the pill**, which the
+    browser clamps to a half circle. Round three drew that from a copied class
+    string; it is the real component now.
+  - **The real dialog and the real menu both measure 8px** (`--radius-float`),
+    portalled into the canvas rather than over the lab.
+  - **The round's worst finding, on the live demo album:** at candidate D the
+    real guest masonry draws 6px tile corners while its column gap stays at the
+    literal 3px it hard-codes, beside today at 3 and 3. That is four corners
+    meeting in three pixels, on the one grid every guest sees, and it is now
+    something Will can look at rather than a sentence.
+- **Three faults the walk found, all fixed here, all measured.**
+  1. A bordered frame is border-box, so 1px of chrome handed the iframe a
+     **1438px** viewport under a caption reading 1440: a two pixel lie on a
+     board whose whole argument is that a size must be its own. The chrome is an
+     outline now (painted outside the box, no layout) and every frame measures
+     exactly its canvas.
+  2. The shell's `Toggle` is `inline-flex` and never wraps, so part A's eight
+     pages are a 490px group that took the whole document into a **131px**
+     horizontal scroll at 375. The control rows scroll inside themselves now.
+  3. A server component cannot read a constant out of a `"use client"` module
+     (Next replaces every export with a client reference on the server), so the
+     screen route's first render was a TypeError on `SCREENS.map`. The ids live
+     in `screen-ids.ts`, which the route, the board and the screens all read.
+- Synced with `launch-prep` at `6484558` (merge `6bbb458`); it had moved two
+  commits, both docs (`PROGRAM.md`, `docs/tracks/orchestrator.md`), none in this
+  lane. The sync surfaced one correction the board needed: `(guest)/layout.tsx`
+  mounts `AppDesignIsland` now, so the departure claiming the guest page cannot
+  wear a candidate is wrong and is rewritten, the album joins the walk list, and
+  round three's shell ask 1 retires.
+- Gates on the synced tree: **typecheck ok, lint ok (0 errors, 6 warnings, all
+  pre-existing and outside the lane), test ok (1804 in 199 files), build ok (249
+  pages** , one more than 248: the screen route).
+- **Light QA, walked rather than asserted, on a local production build in a
+  FOREGROUND tab.** At **1440**: `documentElement.scrollWidth - clientWidth` is
+  0, zero unclipped elements with a right edge past the viewport, all four
+  frames report `innerWidth` 1440 with the candidate injected, the dock measures
+  89px and writes `--board-dock-h: 89px`, and the answer block's "part C" anchor
+  lands at y=121 against a dock bottom of 89, so it clears it. At **375**: 0 of
+  overflow, 0 elements past the viewport, the dock is `static` (the shell's
+  phone behaviour), the frame rows scroll inside themselves. **Reduced motion
+  honoured by having nothing to undo**: measured in the running page, zero
+  elements resolve an `animation-name` and the board's sheet declares no
+  keyframes at all; inside a frame the page is the real page and honours the
+  reader's own setting exactly as it does in a tab, because
+  `prefers-reduced-motion` propagates into an iframe. Zero console errors on a
+  fresh load of the production build.
+- **The test-tool note this round is the same one, and it bit first.** A driven
+  Chrome tab reports `document.hidden` true: `requestAnimationFrame` never
+  fires, **no `ResizeObserver` callback is ever delivered** (verified by
+  attaching a fresh observer in the page and resizing the observed element: zero
+  hits), and the lab lays out in the sidebar cell. The first hour of this walk
+  read `--board-dock-h: 357px` against a dock that measured 89 and looked
+  exactly like a shell bug in `dock.tsx`. It is not: in a visible tab the
+  observer settles at 89 immediately. The Browser pane's tab is visible when it
+  is fronted (`tabs_select`), which is how this round was walked; it still
+  returns an all-black screenshot after a scroll, so every below-the-fold claim
+  above is a measurement, not a look. For
+  `docs/systems/testing-verification.md`, which is not this lane: **a hidden tab
+  does not just pause loops, it silently disables every ResizeObserver on the
+  page, so any width or height a board measures in JS is frozen at whatever the
+  first, half-built layout produced.**
+- **Cost, measured.** At most 8 iframes on the page: 2 in part A, 2 in part B, 4
+  in part G, and part G's four wait for an IntersectionObserver so a reader who
+  never reaches it never pays for them. Single mode halves A and B to one each.
+  Each frame is a real page load, which is the price of the honesty; nothing on
+  the board animates, no keyframes are declared, and the only observers are the
+  panel-aware width's (unchanged from round three) and part G's gate.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `src/app/(dev)/design/sandbox/rounding/{board.tsx,board.css,frames.tsx,screens.tsx,screen-ids.ts,screen/page.tsx,specimens.tsx}`,
+  `compositions.tsx` (deleted), plus this file. No exceptions.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Shell changes asked for (the Orchestrator lands them; none made here):**
+  1. `src/components/dev/board/toggle.tsx`: a `wrap` option (or
+     `flex-wrap` by default). The group is `inline-flex` and never wraps, so any
+     board offering more than about six options overflows a phone. This lane
+     works around it with a scrolling row in its own sheet; the fix belongs
+     beside the component every board uses.
+  2. `src/components/dev/board/`: a `PageFrame` beside `Stage`. This lane just
+     wrote one (a same-origin iframe at a real canvas with a CSS block written
+     into its document, plus a scroll lock for two of them), the
+     floating-surfaces board wrote a narrower version for its scenes, and it is
+     the only way a lab board can judge a real page at true pixels or reach a
+     component's own breakpoints and portals. It is about 200 lines and it wants
+     one home.
+  3. `src/components/dev/motion-tuner-config.ts`, unchanged from round three:
+     the three action knobs cap at 24px, which cannot express the pill rung (so
+     Apply writes the pill into the block and clears the knob); and three of the
+     six knob descriptions are wrong where this board counted (the surface knob
+     says "288 uses in 140 files" against 320 uses of a derived step in 154;
+     "Action radius" is described as "the standard button (40px tall)" and
+     "every default Button", when the default Button is h-8 on
+     `--radius-action-sm`; "Action radius, large" claims the hero and pricing
+     CTAs and the guest door, when it has exactly one call site in the product).
+     The panel sits beside the board that disproves it.
+  4. `src/app/(dev)/design/touchpoints.ts`, the `rounding` entry: the note is
+     round three's and is now a part behind. Proposed: "The site and the app
+     loaded into a viewport of their own at true pixels and re-skinned live from
+     the dock, under five one-word rulings: the surface family A to D, the
+     action rung and the derived ladder against a quarter-step retune".
+     `board.variants` is correct as it stands.
+  5. `src/components/shared/glow-contract.test.ts` pins the exact set of
+     BorderBeam call sites. The beam around an action is the third bible-9
+     specimen part D wants (the beam is the case the system already gets right:
+     no radius prop, it reads the child's computed one), and adding it would
+     need one line in that test. The board draws a plain ring at the same offset
+     instead and says so. (Raised in rounds two and three, unchanged.)
+  - Retired this round: round three's ask 1 (`(guest)/layout.tsx` mounting
+    `AppDesignIsland`) landed on `launch-prep`; and round two's ask for a
+    `fit={false}` escape hatch on `Stage`, which round four's 1:1 default
+    answered.
+- **Assets requested from Will: one, unchanged from rounds two and three.**
+  - A worst-case tile set for the gallery gap · four photographs whose edges are
+    near-white and bright (a white tablecloth, an overexposed sky, a white dress
+    against a window), 1200px long edge, JPG, four of them · replaces the
+    `wedding-golden` / `party-dj` / `festival-lights` stills in part B's gap
+    screen and part G's phone row, so a corner hole between tiles is judged at
+    maximum contrast rather than against dark stills that hide it.
+- **A judgment call, stated rather than buried.** Will's round-four note opens
+  the app's UI to any active lab track. This board did not redesign an app
+  screen, on purpose: a radius board that also redraws the screen cannot be
+  ruled on, because you could no longer tell whether a corner reads better
+  because of the radius or because the page was redrawn. What the round took
+  from that note instead is the part that serves the ruling: the app is now on
+  the board at the size it ships, in its own viewport, which is the thing an app
+  track will need as its starting point anyway.
+- The asks, verbatim from BoardMeta:
+  1. "The surfaces: A, B, C or D (--radius, --radius-float and --radius-tile move together)"
+  2. "The actions: today, pill or quiet"
+  3. "The derived ladder: stock or quarters"
+  4. "The dead rungs (rounded-3xl, rounded-4xl, --radius-action-lg): keep or drop"
+  5. "The gallery gap: pinned to the tile, or free"
+- **Look at first:** the block at the top, "What the board answers", then part
+  A. Leave Compare on "Today beside it", put the dock on **C**, and scroll the
+  home page inside the left frame: the two scroll together, and that is the
+  ruling. Then switch the page to **Guest album** and the candidate to **D**,
+  which is the round's worst finding on the real page. Then **One frame** and
+  flip A, B, C, D in the dock without scrolling: the same page re-skins in
+  place, and it is the fastest read on the board. Part B is the same thing for
+  the app; its door screen is where the action rung turns into a sheet. One
+  practical note: the tuner panel is fixed over the right at 320px, so collapse
+  it (its cross) before reading a 1440 frame, and the row widens live.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). Will's note on the rounding board was that a screen of components gives no feel of the real site or the real app, and round four answered it by rebuilding what the board judges ON rather than adding to it. Three rounds had used compositions: real components, arranged by the board, standing in for pages, inside a Stage whose breakpoints read the browser rather than the canvas and out of which every radix panel portals. Round four loads the pages instead. Part A is the site in a same-origin iframe at exactly 1440x930 or 375x760 with the candidate written into that document as the paste a ruling would land, so the real components wear it at their own breakpoints at true pixels: split scrolls today beside the candidate, single re-skins one page in place as the dock flips, over eight routes including the live demo guest album.
+Part B is the app, which is behind a sign-in, served from a screen route of the lane's own so the production MasonryColumns, EventCard, Dialog, DropdownMenu and guest EntryShell each get a viewport of their own; part G is the four candidates at once at 375. The shell's new dock carries every page-wide switch. The hand-written floating specimens and the whole compositions file went with the change.
+Three findings stopped being sentences and became things to look at, all measured in the running pages: the production entry sheet draws 22.4px today, 11.2 under quiet and 1398.6px under the pill, which the browser clamps to a half circle; the real dialog and menu both measure the 8px float token, portalled into the canvas; and on the live demo album at candidate D the guest masonry draws 6px tile corners inside the literal 3px gap it hard-codes, which is four corners meeting in three pixels on the one grid every guest sees.
+The walk found three faults and fixed them: a bordered frame handed the iframe a 1438px viewport under a caption reading 1440, the shell's non-wrapping Toggle took the page into a 131px horizontal scroll at 375, and a server component cannot read a constant out of a client module. The board still answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop the dead rungs and pin the gap.
