@@ -56,8 +56,11 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
   `origin/lp/*` only open or handed-off ones (merged worktrees removed, merged remotes deleted);
   gates are green at the `launch-prep` tip and, when the round ended in a walk, its `[preview]`
   push is READY there (the integration preview is built on request since 2026-09-11); Vercel is
-  pruned (`node scripts/prune-vercel-deployments.mjs`); nothing a successor needs lives only in
-  the closing session.
+  pruned (`node scripts/prune-vercel-deployments.mjs`); the `new` and `updated` badges on gallery
+  entries and boards are cleared (they are data, never dates, so a Vercel build prints what the dev
+  server prints); Will's rulings from the window are appended to `docs/design/rulings.md` and his
+  review messages transcribed into `docs/reviews/` (`pnpm lab:review`); nothing a successor needs
+  lives only in the closing session.
 
 ### Init templates (Will copies one as the first prompt of a new session)
 
