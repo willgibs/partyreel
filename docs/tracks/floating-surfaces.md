@@ -315,7 +315,9 @@ contract, a centre origin detaches the panel from its trigger, and a scale with 
 
 ## Handoff (round 2)
 
-- Head `e1949df`, pushed; preview `partyreel-git-lp-floating-surfaces-partyreel.vercel.app`
+- Head: the tip of `lp/floating-surfaces`, pushed. The last code commit is `6a5fc46`; `881c258`
+  is the merge of `launch-prep`, and everything after it is this manifest. Preview:
+  `partyreel-git-lp-floating-surfaces-partyreel.vercel.app`
 - Board: `/design/c/floating-surfaces?key=` (nine rows). Marker for "is this my head":
   the row heading "The corner, measured", which did not exist in round one.
 - Synced with `launch-prep` at `4b035c1` (merge `881c258`); it had moved one commit
