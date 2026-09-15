@@ -95,17 +95,21 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 
 | track | board | preview | waits on |
 | --- | --- | --- | --- |
-| `palette` | `/design/c/palette` | the launch-prep alias (rounds 2 and 3 integrated; round 3 merged `b6da35d`) | Will's ruling |
-| `light` | `/design/c/light` | the launch-prep alias (rounds 2 and 3 integrated; round 3 merged `8d8d0af`) | Will's ruling |
-| `type-scale` | `/design/c/type-scale` | the launch-prep alias (rounds 2 and 3 integrated; round 3 merged `5277925`) | Will's ruling |
-| `floating-surfaces` | `/design/c/floating-surfaces` | the launch-prep alias (rounds 2 and 3 integrated; round 3 merged `e7309d7`) | Will's ruling |
-| `brand-voice` | `/design/c/brand-voice` | the launch-prep alias (rounds 2 and 3 integrated; round 3 merged `778bdf1`) | Will's ruling |
-| `media-kit` | `/design/c/media-kit` | the launch-prep alias (rounds 2 and 3 integrated; round 3 merged `db2af14`) | Will's ruling |
+| `palette` | `/design/c/palette` | `partyreel-git-lp-palette-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `b6da35d`) | round four: the handoff, then Will's ruling |
+| `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `8d8d0af`) | round four: the handoff, then Will's ruling |
+| `type-scale` | `/design/c/type-scale` | `partyreel-git-lp-type-scale-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `5277925`) | round four: the handoff, then Will's ruling |
+| `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `e7309d7`) | round four: the handoff, then Will's ruling |
+| `brand-voice` | `/design/c/brand-voice` | `partyreel-git-lp-brand-voice-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `778bdf1`) | round four: the handoff, then Will's ruling |
+| `media-kit` | `/design/c/media-kit` | `partyreel-git-lp-media-kit-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `db2af14`) | round four: the handoff, then Will's ruling |
 | `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
-| `hero-scan` | `/design/c/home-hero` | the launch-prep alias (rounds 2 and 3 integrated; round 3 merged `1c2d0ea`) | Will's ruling |
-| `hero-burst` | `/design/c/home-hero` | the launch-prep alias (rounds 2 and 3 integrated; round 3 merged `78e9538`) | Will's ruling |
-| `hero-river` | `/design/c/home-hero` | the launch-prep alias (rounds 2 and 3 integrated; round 3 merged `39113bb`) | Will's ruling |
-| `rounding` | `/design/c/rounding` | the launch-prep alias (rounds 2 and 3 integrated; round 3 merged `93017e2`) | Will's ruling |
+| `hero-scan` | `/design/c/home-hero` | `partyreel-git-lp-hero-scan-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `1c2d0ea`) | round four: the handoff, then Will's ruling |
+| `hero-source` | `/design/c/home-hero (variation 1)` | `partyreel-git-lp-hero-source-partyreel.vercel.app` (round 4 building: the source continues in its emanating direction; the lane released from this manifest) | round four: the handoff, then Will's ruling |
+| `hero-inflow` | `/design/c/home-hero (variation 3)` | `partyreel-git-lp-hero-inflow-partyreel.vercel.app` (round 1 building: the album streaming INTO the code, off the source) | round one: the handoff and its honest verdict, then Will's ruling |
+| `album-hero` | `/design/c/album-hero` | `partyreel-git-lp-album-hero-partyreel.vercel.app` (round 1 building: the burst's field as the /features/album hero) | round one: the handoff, then Will's ruling |
+| `river-visual` | `/design/c/river-visual` | `partyreel-git-lp-river-visual-partyreel.vercel.app` (round 1 building: the river as a feature visual, one flow) | round one: the handoff, then Will's placement |
+| `hero-burst` | retired: the burst left the home hero (Will, 2026-09-15) for `album-hero` | the launch-prep alias (round 3 merged `78e9538`) | nothing: its field is the album-hero track's seed |
+| `hero-river` | retired: the river left the home hero (Will, 2026-09-15) for `river-visual` | the launch-prep alias (round 3 merged `39113bb`) | nothing: its stream is the river-visual track's seed |
+| `rounding` | `/design/c/rounding` | `partyreel-git-lp-rounding-partyreel.vercel.app` (round 4 building on Will's notes; rounds 2 and 3 on launch-prep, round 3 merged `93017e2`) | round four: the handoff, then Will's ruling |
 
 ## Waiting on Will
 
