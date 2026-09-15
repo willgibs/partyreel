@@ -789,6 +789,17 @@ export function CostMeter({
             free: the work it does is raster the numbers above cannot see. The
             static line is the half that carries to a slower one.
           </p>
+          {rows.some((r) => r.mean > 40) ? (
+            // ★ A HIDDEN TAB THROTTLES rAF AND THE STAGE PAUSES ITS LAMPS, so a
+            // run taken with the board behind another window measures neither
+            // the light nor the browser. Say so rather than printing a number
+            // that reads as a catastrophe.
+            <p className="mt-1 text-[11px] leading-relaxed text-foreground">
+              Those gaps are far too long to be the light. This tab was behind
+              something while it ran, which throttles frames and pauses every
+              lamp on the board. Run it again with the board in front.
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>
