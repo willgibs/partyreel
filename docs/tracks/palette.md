@@ -1,6 +1,6 @@
 ---
 track: palette
-status: open
+status: handed-off
 cut: "c473707"
 merged_round_3: "0d5bb64"
 merged_round_2: "499a1ad"
@@ -1475,16 +1475,256 @@ island. Lab only, no production byte.
 
 ## Handoff (round 4)
 
-- Head <sha>, pushed; preview partyreel-git-lp-palette-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head **`HEADSHA`**, pushed. Board at `/design/c/palette?key=`. **The round-four board is the one
+  whose FIRST block is headed "The model: two modes, two grounds each, and one well that belongs to
+  neither"**; round three's opened on a candidate card instead. Its dock carries two candidate
+  switches (Dark: Today, Ladder, One room, Ember, Slate, Lift · Light: Today, Paper, Bright, Warm,
+  Cool) where round three's bar had one ramp toggle and a temperature switch, and the paste at row 15
+  prints a `.surface-mat` block that has never existed before.
+- **Vercel is capped, so nothing here was verified on a preview** and the alias will still be serving
+  round three when Will opens it. Everything below was measured on a **local PRODUCTION build** in
+  this worktree (`pnpm build` then `next start`, ports 3044 and 3045), in a browser tab at a real
+  1440-class window (the window clamps at 1424 of inner width, so "1440" is the board's own canvas
+  toggle, which is what the rows render at) and at the board's 375 canvas, with an earlier iteration
+  pass on `pnpm dev` (3043). Readings are through the DOM; a driven tab is `document.hidden`, which
+  freezes the transition clock and pauses rAF, so every colour was read off a custom property
+  (never transitioned) rather than off a transitioned one, and two screenshots were taken to eyeball
+  what the DOM cannot say.
+- Synced with `launch-prep` at **`6484558`** (2 commits, PROGRAM and the orchestrator's own rows;
+  nothing in this lane). The gate below is the run on the synced tree.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 warnings, all pre-existing and none in
+  a file this track owns), test ok (**1822** in 199 files, 31 of them this round's
+  `registers.test.ts`, up from 15), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` plus nine
+  paths under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `call-sites.tsx`, `sections.tsx`,
+  `specimens.tsx`, the new `registers.ts`, `model.tsx`, `real-ui.tsx` and `registers.test.ts`, and the
+  deletions of `ramps.ts` and `temperature.test.ts`). No exceptions. No production byte changed:
+  `globals.css`, `theme.css` and `marketing.css` were read and not touched.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+
+### What round four changed, and the answer to the question that opened it
+
+1. **The model is the first block and the first ask, and it answers cinema versus ink in one
+   sentence.** They are one mode's two grounds, not two darks: cinema is the ROOM a dark chapter sits
+   in (the deepest thing on its own page) and ink is the SLAB a dark leaf makes on a light one (the
+   only dark thing on a page of paper), which is why the slab has to sit LIGHTER than the room rather
+   than deeper. Once that is said, light has the same two: the PAPER a page is, and the MAT a section
+   sets itself apart on, which today is `bg-muted/40` at six alphas and is the fifth ground nobody
+   named (the /contact card). And the media WELL turns out to belong to neither mode, because a
+   photograph is always laid on something near black. So: **two modes, two registers each, plus one
+   well** (four registers and a bed, where today there are five unnamed grounds and a literal). The
+   block names each register with its selector, what takes it, and what it is today, and prints the
+   selected pair's own grounds with their lightnesses beside it. `.surface-mat` is the one new class
+   the model costs; the rest is naming, not a sixth value.
+2. **The dark and the light are ruled separately, which is what Will asked for and what paid for
+   itself immediately.** Six dark sets and five light ones, thirty pairs, two switches in the dock,
+   one paste generated from whichever pair is up. Three darks are new (**Ember**, a warm 0.120 room
+   with a tighter ladder and an almost-neutral well; **Slate**, a cool 0.145 room at the same rhythm
+   as Ladder so the ruling between them is the cast alone; **Lift**, a 0.195 room with no true black,
+   whose argument is that dark needs ONE register because a room that high no longer reads as a hole
+   in paper) and two lights (**Warm**, uncoated stock at 0.985 with neutral ink; **Cool**, a daylight
+   page whose mat is a hand-written DEAD NEUTRAL grey, which is Will's "a grey that is not a tint of
+   the text", rendered).
+3. **The temperature stopped being a switch and became candidates.** Round three was right that
+   candidate C moved no step, but a switch over the WHOLE system could only ask "warm or not" about
+   both modes at once, and that is the wrong question: the case for a warm room (skin against a dark
+   ground) and the case for a warm page (a white dress on paper) are not the same case. Four sets
+   carry a cast now and each moves its own lightnesses too. The transform that generates them is
+   still C's published table at gain 1, and `registers.test.ts` pins all five of C's blocks token for
+   token, so nothing Will was shown became unavailable.
+4. **This board's recommendation is a pair no earlier round could have named: Ember on the dark side,
+   Paper (neutral) on the light one.** Warm the room, leave the page a true grey, and let the well
+   stay the least tinted surface in the product. It is on the board under the two candidate cards,
+   with the note that Ladder is Ember's rhythm at chroma 0 for anyone who wants globals.css's
+   zero-chroma decision kept exactly as written.
+5. **The comparison surfaces are live production sections.** The real `MarketingFooter` on a real
+   paper page, the real `PlanPair` on the paper and then on the mat, four real home-arc chapters
+   (`TrustStrip`, `NoApp`, `FullQuality`, `Privacy`) on the room and on the paper, and the real
+   `Dialog`, `DropdownMenu` and `Popover`. Rows 06 to 09.
+6. **Every page-wide switch is in `BoardDock`** (three rows at 1440, 129px: the two candidates and
+   the accent, then the reach, the mat, the faint step, the card and the canvas), and Apply/Clear sit
+   in its aside. The accent wall's own ground toggle stayed beside the wall, because it changes one
+   specimen.
+7. **The accent's reach finally moves a pixel.** It had been an ask for two rounds with no control
+   anywhere on the page, which is exactly the failure round three found in the faint switch and
+   fixed. A job outside the ruled reach renders on INK on the accent wall, which is what the ruling
+   lands; measured, the identity column falls from `oklch(0.7 0.2 330)` to `oklch(0.955 0 0)` on
+   "Attention" and four "outside the ruled reach" labels appear.
+
+### The four defects the walk found, each fixed at its cause
+
+1. **A token that referenced itself took the page down.** The derived set's new mat was written
+   `--background: color-mix(in oklab, var(--foreground) 5%, var(--background))`. In real CSS that is
+   a cycle and the declaration is invalid at computed-value time; in this board's own reader it
+   recursed until the stack gave out and the route 500'd on the server, with neither failure naming
+   the token. The mat derives from `--card` instead, `lOf()` parses a mix's real operands with a
+   depth guard rather than assuming `--foreground` over `--background`, and a test walks every block
+   (including each mat as it actually cascades, layered on its own paper) for a direct or transitive
+   self-reference. The wider operand parsing fixed a second, silent miss: the shipped slab's
+   `var(--gallery)` mix had been reading as no value at all on the ruler.
+2. **★ A BREAKPOINT INSIDE A STAGE READS THE WINDOW, NOT THE CANVAS**, which the shell's own note on
+   `Stage` says and which a hand-built specimen hides by branching on `mode`. A production section
+   cannot: the real pricing pair laid its two cards out side by side inside the 375 stage and ran
+   52px past it. `TrueViewport` (real-ui.tsx) renders every live section in an **unscaled iframe the
+   width of the canvas**, with the page's stylesheets and the `next/font` class on `<html>` mirrored
+   in and kept mirrored by a MutationObserver, so `sm:` fires at 640 of the CANVAS. Measured at 375
+   after: the pair stacks, zero right overflow, zero clipped elements. These frames pin `fit="true"`,
+   so a production section whose size is being judged is never scaled, whatever the dock's Fit
+   control says. This is the answer to Will's note (b): an iframe is only wrong when it is SCALED.
+3. **★ THE ENTRANCE GRAMMAR NEVER TRIPS INSIDE AN IFRAME, and an invisible element still has a box.**
+   `Reveal` flips `data-inview` from an IntersectionObserver whose implicit root, inside an iframe,
+   is that iframe's viewport CLIPPED BY THE PARENT, so a section below the visible strip never
+   trips: 20 of row 07's marked elements sat at **opacity 0** and two whole chapters rendered blank
+   while the clip audit still reported zero, because it measures boxes. The stage injects the
+   settled state marketing.css already ships for a reduced-motion reader, unconditionally and inside
+   the stage only. It is the honest state for a board that judges a ground rather than an entrance,
+   and it means the reduced-motion reader and everyone else are shown the same page. **Worth knowing
+   before the next board puts a marketing section in an iframe.**
+4. **The footer row claimed a paper page and painted the slab across the whole canvas**, which made
+   the seam, the thing the row exists for, invisible: a dark leaf on a dark page is not a leaf. And
+   `justify-end` pushed a 1414px footer 513px off the top of a 900px stage, so the row showed the
+   bottom two thirds of a footer. The root wears the paper block, the footer wears `.surface-ink`
+   through a block scoped to that one stage id (a class rule beats an inherited custom property, so
+   the real footer would otherwise serve the SHIPPED slab under a caption naming the candidate), the
+   accent is folded into that scoped block (the leaf declares `--brand` itself and outranks an
+   ancestor), and the stage is sized to the measured whole. A real section inside a flex column also
+   silently COMPRESSED when the stage was a pixel short; they are blocks now, so a short stage clips
+   instead, which is at least a reading.
+
+### Light QA, measured on the local production build
+
+- **Zero clipped elements and zero horizontal page scroll at both canvases.** 19 ordinary stages plus
+  5 iframe stages; the audit walks every descendant's rect against its stage's, ignores anything
+  inside an `overflow-x` scroller (the dashboard's filter chips are one on purpose) and ignores the
+  production footer glow's deliberate `inset: -40px` bleed, which the stage clips exactly as the
+  page's own box does. Inside the iframes: zero right and zero bottom overflow at 1440 and at 375.
+- **Every switch repaints the board from one resolver**, so none can label an answer the page does
+  not show. Read off custom properties at row 04 and row 06's iframe: Ember room `oklch(0.12 0.008
+  60)` / card `0.205 0.01 60` / well `0.085 0.006 60` / slab `0.165 0.008 60`; Slate `0.145 0.007
+  258` / `0.235 0.01 258` / `0.1 0.005 258` / `0.19 0.01 258`; Lift `0.195 0 0` with its slab at the
+  same `0.195 0 0`, which is its claim. Veil gives `oklch(0.265 0 0 / 0.62)`; "faint out" leaves
+  `--faint` empty everywhere and drops it from the paste; the light switch moves Paper `0.977 0 0` to
+  Cool `0.99 0.002 250` and back.
+- **The walk was taken on the real pages.** Apply lands ONE `<style>` carrying the paper register,
+  the mat register, the room, the slab, the well, the accent's three blocks and both emulated
+  rulings. On `/contact`, which is the page the fifth ground lives on: the three real `bg-muted/40`
+  panels take the ruled mat's own ground (`oklch(0.948 0 0)`) while the hover-only variant stays
+  transparent, the dimmed text takes `oklch(0.62 0 0)` inside the paper sections, the footer wears
+  Ember's slab and the mark at the bottom carries Flare. Clear removes the block and leaves
+  `localStorage` empty. `/dashboard` and the host event page need the signed-in host, which localhost
+  cannot do by design, so those two stay for the alias.
+- **The real floating layer works and wears the pair.** The production `Dialog` opens on
+  `oklch(0.25 0.01 60)`, which is Ember's menu step; it portals to the body, so the buttons apply the
+  pair to the page first, and the row says so.
+- **Reduced motion and the two-faces rule**, read off the SERVED production sheets: zero `pal-`
+  keyframes; exactly one `data-pal-*` motion rule in the whole document and it sits inside
+  `(prefers-reduced-motion: no-preference)`; nothing on this board loops. Zero elements render in a
+  mono stack and zero text nodes carry an em-dash.
+- **Cost, measured on the head rather than asserted:** 4784 DOM nodes, 80 images, page height
+  31042px, DOMContentLoaded 185ms on the production server, dock 129px. The page is long because the
+  five live sections are real; the dock is what keeps it walkable.
+- Seven walk links, the sixth resolving to `/e/<demo token>?key=` and dropped when the env has no
+  demo event.
+
+- **Shell changes asked for (the Orchestrator lands them).**
+  1. `src/app/(dev)/design/touchpoints.ts` still describes round three for this board ("Today beside
+     the candidate in one canvas: two ramps and a warm temperature switch any ramp can wear... the
+     panel as one token"). It is two independent sets now, six darks and five lights, with the mat as
+     a register. It is the first paragraph a stranger reads above the board, and it currently
+     contradicts the dock. One line, at integration.
+  2. `BoardDock` writes its measured height to `--board-dock-h` and `scroll-padding-top` from a
+     ResizeObserver. In a tab that is `document.hidden` the lab lays out in a narrow cell and the
+     observer records that height, then lags one layout behind when the tab wakes: measured 546px,
+     then 201px, against a real 169px. It self-corrects on the next resize and it only affects where
+     an anchor jump lands, so it is a note rather than a blocker; a `requestAnimationFrame` before
+     the first `sync()`, or a re-sync on `visibilitychange`, would close it.
+  3. Nothing else. `Stage`, `Toggle`, `BoardMeta`, `lab-prefs` and the candidate-style island all did
+     exactly what this round needed; the 1:1 default is the single biggest improvement to this board
+     since it was cut.
+- Assets requested from Will (unchanged in shape from round three, both still lines on the
+  `media-kit` track's existing shot list rather than a second delivery, but the reason is sharper now
+  that four of the eleven sets carry a cast):
+  - **Four hard cases inside the kit the `media-kit` track already asked for** · one high key (a
+    white dress against a white wall), one low key (a dance floor lit by one lamp), one candle-warm,
+    one stage-cool; four of the 36 at 1600 px long edge, landscape, one grade · replaces the four
+    this board renders most (`wedding-golden`, `party-balloons`, `concert-confetti`,
+    `reception-table`)
+  - **A portrait pair for the guest masonry** · two of the same 36 at 1600 px long edge, PORTRAIT,
+    same grade · replaces the hand-set tile ratios in `specimens.tsx` (every stand-in in the kit but
+    one is landscape, so the column flow the guest album actually ships is being faked)
+  - Why a palette board needs them, and more so this round: a cast is only ever wrong against media
+    that fights it. Every stand-in here is mid-key and warm, so the high-key end of Warm and the
+    candle-lit end of Slate are both going untested.
+- **One cross-track note for the Orchestrator.** The `floating-surfaces` board renders "the palette's
+  ramps A and B verbatim" under its panels, reading `docs/specs/palette.md`, which is this track's
+  round-ONE proposal. If the register model is ruled in, that board's toggle labels and its borrowed
+  values go stale: A is now the dark half of "Ladder" plus the light half of "Paper", and B splits
+  into "One room" and "Bright". The values themselves are unchanged, so it is a renaming rather than
+  a re-measurement.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will; each takes
+  one word). Eight, where round three had seven: the model arrives as the first ask, the ramp splits
+  into a dark half and a light half, and the temperature leaves because it is four candidates now.
+  1. The model: registers, or today's five grounds.
+  2. The dark: today, ladder, one room, ember, slate or lift.
+  3. The light: today, paper, bright, warm or cool.
+  4. The accent: ink, blue, violet or flare.
+  5. The accent's reach: all three, attention only, or identity only.
+  6. The mat: a register, or the alphas.
+  7. The missing step: faint in, or out.
+  8. The dark card: declared, opaque, or the veil.
+- The departures, verbatim from BoardMeta (SIX, as in round three, but three are rewritten because
+  the model changed what they say):
+  1. The model itself is the departure, and it is the first ask. Bible 16 counts four grounds.
+     Counted by the job they do there are five plus a literal (cinema 0.110, the app 0.140, the leaf
+     0.155, paper 0.990, the contact card's panel, and media-lightbox.tsx:617's bg-black/90), and the
+     model says there should be four registers and one well: cinema is the room, ink is the slab, the
+     panel becomes the mat, and the well is the only surface that belongs to no mode. Ruling it in
+     means a new class (.surface-mat) and a renamed idea, not a new palette.
+  2. Four of the eleven sets carry a cast, which re-opens a decision globals.css records as closed:
+     zero-chroma purity IS the brand point, and saturating the neutrals was consciously declined.
+     Round three argued it as one switch over both modes. The split is what makes it answerable: the
+     case for a warm room and the case for a warm page are not the same case, and this board's
+     recommendation takes one and refuses the other.
+  3. Round three cut candidate C on the grounds that it moved no step. Round four does not bring it
+     back as a letter: the cast is a property four sets carry, each moving its own lightnesses too,
+     and the transform at gain 1 still reproduces C's five published blocks token for token
+     (registers.test.ts). Nothing Will was shown became unavailable, and warm on a derived set is one
+     press rather than a fourth column.
+  4. Lift argues that dark needs ONE register, not two. Every other set lifts the slab above the room
+     because a 0.14 room dropped into paper reads as a hole; Lift starts the room at 0.195, where
+     that stops being true, and declares the slab equal to it. It is the only candidate that
+     contradicts the model's dark half, which is why it is on the board rather than in a comment.
+  5. The accent has to be written into the slab or it never reaches the footer. Today the leaf
+     declares --brand: var(--gallery-foreground), and a class rule outranks a value inherited from
+     the page around it, so a hue ruled for the whole site would reach every surface in the product
+     except the mark at the bottom of every page. The accent paste carries a third block, and every
+     set's slab keeps a --brand line of its own. Row 06 shows the real footer with the mark on it.
+  6. Round one's departure list said only the derived set kept the system's one translucent surface.
+     That was wrong: a color-mix off the room is fully opaque, so every candidate retires the veil and
+     none of them said so. Row 11 renders both answers over a photograph and the card ask makes it a
+     ruling rather than a side effect.
+- **Look at first: the model block**, before any candidate. It is the only ask whose answer changes
+  what the other seven mean, and the cinema-versus-ink sentence is its first line. Then the two
+  candidate cards under it and the recommendation beside them. Then **row 02**, today beside the
+  pair, on the room and then on the paper. Then press **Slate**, then **Lift**, and watch row 02 and
+  row 03 follow; then **Cool** on the light side and look at the mat strip at row 03, which is the
+  only dead-neutral one. Then **rows 06 to 09**, which are the live ones: the real footer's seam on a
+  real paper page, four real chapters on the room, the real pricing cards on the paper and then on
+  the mat, and the real dialog. Then **Apply the pair** in the dock and walk `/contact`, where the
+  fifth ground gets its register on the real page.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). Round four stopped adding candidates and named the
+system instead. Cinema and ink turned out to be one mode's two grounds rather than two darks: the
+room a dark chapter sits in, and the slab a dark leaf makes on a light page. Light has the same pair
+(the paper, and the mat, which is the /contact panel nobody had named), and the media well belongs to
+neither mode because it is always dark. Four registers and a bed, where the product had five unnamed
+grounds and a literal. The board's first block states it and it is the first ask. The ruling then
+split in two, as Will asked: six dark sets beside five light ones, thirty pairs, one paste from
+whichever pair is up, and three new darks (a warm room, a cool one, and one lifted off black that
+argues dark needs a single register) beside two new papers. The split immediately produced an answer
+no earlier round could have reached, because warming had only ever been askable about both modes at
+once: warm the room, leave the page a true grey. Every page-wide switch moved into the dock, and the
+comparison surfaces became live production sections, rendered in unscaled iframes at the canvas width
+so a real breakpoint measures the canvas. Lab only, no production byte.
