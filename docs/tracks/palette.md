@@ -1,8 +1,9 @@
 ---
 track: palette
 status: open
-cut: "c473707"
+cut: "1b647d76"
 merged_round_4: "5cd20bdc"
+cut_round_4: "c473707"
 merged_round_3: "0d5bb64"
 merged_round_2: "499a1ad"
 merged_round_1: "bf1a6ef"
