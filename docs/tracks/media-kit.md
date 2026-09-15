@@ -1,7 +1,7 @@
 ---
 track: media-kit
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "fb395fe"
 merged_round_2: "2307446"
 merged_round_1: "c1aa5c6"
 preview: true           # Will reviews this board on its preview as it builds
