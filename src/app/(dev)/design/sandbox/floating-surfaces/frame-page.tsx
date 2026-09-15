@@ -13,6 +13,7 @@ import {
   type LightRung,
   type RadiusRung,
 } from "./candidates";
+import { directionCss, type Direction } from "./directions";
 import {
   GROUND_CLASSES,
   GROUND_SET,
@@ -57,6 +58,10 @@ import { Scene } from "./scenes";
 type Knobs = {
   ground: Ground;
   ramp: Ramp;
+  /** Round four's page-wide switch. It rides the same event as the grounds
+   *  rather than the URL, so flipping direction on the dock re-renders every
+   *  frame in place instead of reloading eighteen documents. */
+  direction: Direction;
   radius: string;
   entrance: string;
   light: string;
@@ -66,6 +71,7 @@ export function FramePage({
   scene,
   ground,
   ramp,
+  direction,
   phone,
   dim,
   variant,
@@ -79,6 +85,7 @@ export function FramePage({
   scene: SceneId;
   ground: Ground;
   ramp: Ramp;
+  direction: Direction;
   phone: boolean;
   dim: Dim;
   variant: "sheet" | "drawer";
@@ -92,6 +99,7 @@ export function FramePage({
   const [knobs, setKnobs] = useState<Knobs>({
     ground,
     ramp,
+    direction,
     radius,
     entrance,
     light,
@@ -110,6 +118,7 @@ export function FramePage({
     const root = document.documentElement;
     root.setAttribute("data-flt-frame", "");
     root.setAttribute("data-flt-scene", scene);
+    root.setAttribute("data-flt-direction", knobs.direction);
     const g = GROUND_SET[knobs.ground];
     const want = g.className.split(" ");
     const apply = () => {
@@ -148,6 +157,7 @@ export function FramePage({
           ? [rung]
           : [];
     return [
+      directionCss(knobs.direction, "frame"),
       contractCss(
         {
           radius: knobs.radius as RadiusRung | "off",
@@ -160,7 +170,15 @@ export function FramePage({
     ]
       .filter(Boolean)
       .join("\n\n");
-  }, [scene, dim, rung, knobs.radius, knobs.entrance, knobs.light]);
+  }, [
+    scene,
+    dim,
+    rung,
+    knobs.direction,
+    knobs.radius,
+    knobs.entrance,
+    knobs.light,
+  ]);
 
   return (
     <div className="flt-cover bg-background text-foreground">
@@ -171,6 +189,7 @@ export function FramePage({
       <style>{css}</style>
       <Scene
         scene={scene}
+        direction={knobs.direction}
         phone={phone}
         dim={dim}
         variant={variant}

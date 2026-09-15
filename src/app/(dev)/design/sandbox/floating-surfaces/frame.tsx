@@ -10,11 +10,11 @@ import {
   useState,
 } from "react";
 
-import { CANVAS, type Ground, type Mode } from "@/components/dev/board";
+import { CANVAS, useLabPrefs, type Ground, type Mode } from "@/components/dev/board";
 import { withDesignKey } from "@/lib/design-gate/links";
-import { cn } from "@/lib/utils";
 
 import type { Dim, Ramp, Scene, Side } from "./constants";
+import type { Direction } from "./directions";
 
 /**
  * A VIEWPORT ON A GROUND: the board's stage for this family.
@@ -31,6 +31,16 @@ import type { Dim, Ramp, Scene, Side } from "./constants";
  * Only the props that change the render ride the URL, so a ground, a ramp or a
  * candidate change never reloads: those are attributes the parent writes
  * straight into `contentDocument` (same origin).
+ *
+ * ROUND FOUR: THE FRAME NO LONGER SCALES. Will's review: "the iFrame previews
+ * throw off anything related to size, making those reviews particularly
+ * difficult. This needs to be fixed for pixel-perfect lab demos/previews." A
+ * `transform: scale` kept the LAYOUT honest and made every judged size a lie,
+ * which on a board about a 4px corner is the whole board. So a frame is now its
+ * canvas's real pixels: 1440 is 1440, and a canvas wider than the lab column
+ * scrolls sideways inside its own box rather than shrinking. The shell's
+ * Fit/1:1 control (lab-prefs.ts, on the dock) still fits a frame to the column
+ * for a glance at the whole, and 1:1 is the default everywhere.
  *
  * ROUND THREE: a frame mounts with its ROW, not on its own. Round two mounted
  * all nineteen at once and argued that a frame appearing when you reach it makes
@@ -85,6 +95,8 @@ export type FrameProps = {
   ground: Ground;
   /** Which of the palette board's dark ramps the panel floats over. */
   ramp?: Ramp;
+  /** Round four: which floating layer this frame renders. */
+  direction?: Direction;
   mode: Mode;
   /** Override the canvas height; a ladder rarely needs a full viewport. */
   height?: number;
@@ -94,8 +106,6 @@ export type FrameProps = {
    *  Kept above 768 on the desktop canvas so `sm:` still resolves desktop-side
    *  (the sheet, the dialog and the guest entry shell all branch on it). */
   width?: number;
-  /** Cap the fitted width, so small frames can sit several to a row at 1:1. */
-  fit?: number;
   dim?: Dim;
   variant?: "sheet" | "drawer";
   /** Which edge an edge-attached panel enters from. Defaults to the real one
@@ -121,10 +131,10 @@ export function Frame({
   scene,
   ground,
   ramp = "today",
+  direction = "today",
   mode,
   height,
   width,
-  fit,
   dim = "radius",
   variant = "sheet",
   side,
@@ -141,6 +151,7 @@ export function Frame({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(1);
   const [ready, setReady] = useState(0);
+  const trueScale = useLabPrefs().fit === "true";
   const w = width ?? CANVAS[mode].w;
   const h = height ?? CANVAS[mode].h;
 
@@ -154,6 +165,7 @@ export function Frame({
       variant,
       ground,
       ramp,
+      direction,
       radius,
       entrance,
       light,
@@ -166,54 +178,54 @@ export function Frame({
       `/design/sandbox/floating-surfaces?${q.toString()}`,
       designKey,
     );
-    // ground/ramp/radius/entrance/light are seeded here for the first paint and
-    // then owned by the attribute effect below, so they must NOT retrigger the
-    // memo.
+    // ground/ramp/direction/radius/entrance/light are seeded here for the first
+    // paint and then owned by the attribute effect below, so they must NOT
+    // retrigger the memo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scene, mode, dim, variant, side, compact, rung, designKey]);
 
+  // Only measured when the reader has asked for Fit; at 1:1 the box is the
+  // canvas and nothing is measured at all.
   useLayoutEffect(() => {
     const box = boxRef.current;
     if (!box) return;
-    const sync = () => {
-      const avail = Math.min(box.getBoundingClientRect().width, fit ?? Infinity);
-      setScale(Math.min(1, avail / w));
-    };
+    if (trueScale) return;
+    const sync = () => setScale(Math.min(1, box.getBoundingClientRect().width / w));
     sync();
     const ro = new ResizeObserver(sync);
     ro.observe(box);
     return () => ro.disconnect();
-  }, [w, fit]);
+  }, [w, trueScale]);
 
-  // The ground, the ramp and the three knobs, asked for rather than written:
-  // the frame is their resident owner (frame-page.tsx says why next-themes makes
-  // that necessary). Same origin, so this is a direct dispatch, no postMessage.
-  // `ready` is in the deps so a frame that has just reloaded is told again.
+  // The ground, the ramp, the direction and the three knobs, asked for rather
+  // than written: the frame is their resident owner (frame-page.tsx says why
+  // next-themes makes that necessary). Same origin, so this is a direct
+  // dispatch, no postMessage. `ready` is in the deps so a frame that has just
+  // reloaded is told again.
   useEffect(() => {
     const win = frameRef.current?.contentWindow;
     if (!win) return;
     const Ctor = (win as Window & typeof globalThis).CustomEvent ?? CustomEvent;
     win.dispatchEvent(
       new Ctor("flt:set", {
-        detail: { ground, ramp, radius, entrance, light },
+        detail: { ground, ramp, direction, radius, entrance, light },
       }),
     );
-  }, [ground, ramp, radius, entrance, light, ready]);
+  }, [ground, ramp, direction, radius, entrance, light, ready]);
 
   // Replay runs the frames you can SEE, and REMEMBERS the ones you cannot.
   // Measured on the walk: one press with fourteen frames mounted closed and
   // re-opened about thirty panels across fourteen documents at once and cost a
   // 150ms hitch, all of it spent on entrances nobody was looking at. A row is
-  // always visible as a row, so the comparisons that matter (the two trios of
-  // row 5, the four rungs of a ladder) still replay together.
+  // always visible as a row, so the comparisons that matter still replay
+  // together.
   //
   // ROUND THREE, SECOND PASS: dropping the press for an off-screen frame made
   // the button dead at 375, where the control bar is static at the top of the
   // document and nothing is on screen from up there, and no amount of scrolling
   // afterwards brought the entrance back (the effect had already run). A frame
   // that was off screen when the press landed now waits for its own arrival and
-  // replays then, so a press is never swallowed: you scroll down and every row
-  // plays as you reach it. The observer lives exactly one press.
+  // replays then, so a press is never swallowed. The observer lives one press.
   useEffect(() => {
     if (!replay) return;
     const el = frameRef.current;
@@ -237,23 +249,24 @@ export function Frame({
   }, [replay]);
 
   const mounted = useContext(MountContext);
-  // The honest label: a frame laid out at 1440 inside a 992-wide lab column is
-  // being read at 69 percent, and a board that does not say so invites a ruling
-  // on a size nobody ships. Only where it matters (below 95 percent).
-  const shrunk = scale < 0.95;
+  const drawn = trueScale ? 1 : scale;
+  // A canvas that is not a real viewport says so. At 1:1 nothing is shrunk, so
+  // round three's "canvas at 69%" badge is gone with the shrinking; what is
+  // still worth saying is that a 340-wide detail frame is not a phone.
+  const detail = w !== 1440 && w !== 375;
 
   return (
-    // `w-full` on the measured box, not just `flex-1`: the box inside it is
-    // sized from the scale, and the scale is measured from this element, so a
-    // wrapper that takes its width from its content makes the two chase each
-    // other down (it settled at 200px of a 1440 canvas once, and at 375 it drove
-    // the whole board into horizontal scroll). Width has to flow top-down.
-    <div ref={boxRef} className="w-full min-w-0 flex-1">
+    // At 1:1 the measured box IS the canvas, and the wrapper scrolls sideways
+    // when the lab column is narrower. Width has to flow top-down: a wrapper
+    // that takes its width from its content makes the box and the scale chase
+    // each other down (it settled at 200px of a 1440 canvas once).
+    <div
+      ref={boxRef}
+      className={trueScale ? "w-full min-w-0 flex-1 overflow-x-auto" : "w-full min-w-0 flex-1"}
+    >
       <div
-        className={cn(
-          "relative overflow-hidden rounded-lg border border-border bg-muted/30",
-        )}
-        style={{ width: w * scale, height: h * scale }}
+        className="relative overflow-hidden rounded-lg border border-border bg-muted/30"
+        style={{ width: w * drawn, height: h * drawn }}
       >
         {src && mounted ? (
           <iframe
@@ -265,14 +278,16 @@ export function Frame({
             style={{
               width: w,
               height: h,
-              transform: `scale(${scale})`,
+              transform: trueScale ? undefined : `scale(${drawn})`,
               transformOrigin: "top left",
             }}
           />
         ) : null}
-        {shrunk ? (
+        {detail || !trueScale ? (
           <span className="pointer-events-none absolute right-1 bottom-1 rounded-md bg-background/75 px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">
-            {w} canvas at {Math.round(scale * 100)}%
+            {trueScale
+              ? `${w} canvas, 1:1`
+              : `${w} canvas at ${Math.round(drawn * 100)}%`}
           </span>
         ) : null}
       </div>

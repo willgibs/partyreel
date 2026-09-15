@@ -37,7 +37,7 @@
    after the tooltip arrow's. It belongs in the family. */
 
 /** Anchored panels: the radius of a menu, and the surface every rung is about. */
-const MENUS = [
+export const MENUS = [
   '[data-slot="dropdown-menu-content"]',
   '[data-slot="dropdown-menu-sub-content"]',
   '[data-slot="popover-content"]',
@@ -48,31 +48,31 @@ const MENUS = [
 ].join(", ");
 
 /** The centred box: one step larger than a menu under every rung. */
-const BOX = '[data-slot="dialog-content"]';
+export const BOX = '[data-slot="dialog-content"]';
 
 /* Edge-attached: only the corners that stay on screen round, so every side
    needs its own line. ALL FOUR, which round one did not have and which cost it
    the one call site that exists: ui/sheet.tsx is called exactly once in the
    product, by the marketing mobile menu, and that sheet enters from the TOP. A
    candidate that covered bottom and right reached nothing real. */
-const EDGE_BOTTOM = [
+export const EDGE_BOTTOM = [
   '[data-slot="sheet-content"][data-side="bottom"]',
   '[data-vaul-drawer-direction="bottom"]',
   "[data-entry-drawer]",
 ].join(", ");
 
-const EDGE_TOP = [
+export const EDGE_TOP = [
   '[data-slot="sheet-content"][data-side="top"]',
   '[data-vaul-drawer-direction="top"]',
 ].join(", ");
 
 /** The host's side sheet at 1440. */
-const EDGE_RIGHT = [
+export const EDGE_RIGHT = [
   '[data-slot="sheet-content"][data-side="right"]',
   '[data-vaul-drawer-direction="right"]',
 ].join(", ");
 
-const EDGE_LEFT = [
+export const EDGE_LEFT = [
   '[data-slot="sheet-content"][data-side="left"]',
   '[data-vaul-drawer-direction="left"]',
 ].join(", ");
@@ -80,19 +80,19 @@ const EDGE_LEFT = [
 /** The rows inside a panel. Scoped UNDER a panel on purpose: [data-slot$="-item"]
  *  also matches navigation-menu-item, which is an <li> in the trigger bar and
  *  not a row in a panel at all. */
-const ITEMS = [
+export const ITEMS = [
   '[data-slot$="-item"]',
   '[data-slot="dropdown-menu-sub-trigger"]',
   '[data-slot="navigation-menu-link"]',
 ].join(", ");
 
 /** Every panel, for the light and the entrance (which do not care about size). */
-const ALL = [MENUS, BOX, EDGE_BOTTOM, EDGE_TOP, EDGE_RIGHT, EDGE_LEFT].join(
+export const ALL = [MENUS, BOX, EDGE_BOTTOM, EDGE_TOP, EDGE_RIGHT, EDGE_LEFT].join(
   ", ",
 );
 
 /** High-frequency: opened dozens of times in a working session. */
-const HIGH = [
+export const HIGH = [
   '[data-slot="tooltip-content"]',
   '[data-slot="dropdown-menu-content"]',
   '[data-slot="dropdown-menu-sub-content"]',
@@ -101,7 +101,7 @@ const HIGH = [
 ].join(", ");
 
 /** Occasional: a decision, a confirmation, a piece of news. */
-const OCCASIONAL = [
+export const OCCASIONAL = [
   '[data-slot="popover-content"]',
   '[data-slot="dialog-content"]',
   ".cn-toast",
@@ -111,26 +111,26 @@ const OCCASIONAL = [
  *  different component. Only its clock moves. The guest entry drawer is NOT in
  *  here: vaul drives its own transform for the drag, and an animation on top of
  *  that fights the gesture. */
-const EDGE_ANY = [
+export const EDGE_ANY = [
   '[data-slot="sheet-content"]',
   '[data-slot="drawer-content"]',
 ].join(", ");
 
-const OPEN = '[data-state="open"], [data-state="delayed-open"], [data-state="instant-open"]';
-const CLOSED = '[data-state="closed"]';
+export const OPEN = '[data-state="open"], [data-state="delayed-open"], [data-state="instant-open"]';
+export const CLOSED = '[data-state="closed"]';
 
 export type Scope = "frame" | "site" | { panel: string };
 
 /** The guard that keeps a site-wide block out of the board's own frames, so the
  *  ladders keep telling the truth while a candidate is applied to the site. */
-const NOT_FRAME = "html:not([data-flt-frame])";
+export const NOT_FRAME = "html:not([data-flt-frame])";
 
-function prefix(scope: Scope): string {
+export function prefix(scope: Scope): string {
   return scope === "site" ? `${NOT_FRAME} ` : "";
 }
 
 /** Where a rung's custom properties are declared. */
-function root(scope: Scope): string {
+export function root(scope: Scope): string {
   if (typeof scope === "object") return scope.panel;
   return scope === "site" ? NOT_FRAME : ":root";
 }
@@ -142,7 +142,7 @@ function root(scope: Scope): string {
  *  dark value has to land on the panel too, qualified by the ground as an
  *  ancestor. It cost the light ladder a round: every rung drew its LIGHT values
  *  on cinema and the dark answers were never actually on the board. */
-function darkRoot(scope: Scope): string {
+export function darkRoot(scope: Scope): string {
   if (typeof scope === "object") {
     return `:is(.dark, .surface-ink) ${scope.panel}`;
   }
@@ -152,19 +152,19 @@ function darkRoot(scope: Scope): string {
 }
 
 /** A selector for a group of panels under this scope. */
-function panels(scope: Scope, group: string): string {
+export function panels(scope: Scope, group: string): string {
   if (typeof scope === "object") return `:is(${group})${scope.panel}`;
   return `${prefix(scope)}:is(${group})`;
 }
 
 /** A selector for something INSIDE a panel under this scope. */
-function inside(scope: Scope, group: string, child: string): string {
+export function inside(scope: Scope, group: string, child: string): string {
   if (typeof scope === "object") return `${scope.panel} :is(${child})`;
   return `${prefix(scope)}:is(${group}) :is(${child})`;
 }
 
 /** A state selector on the panels themselves. */
-function state(scope: Scope, group: string, states: string): string {
+export function state(scope: Scope, group: string, states: string): string {
   return `${panels(scope, group)}:is(${states})`;
 }
 
@@ -284,7 +284,7 @@ export const LIGHT_RUNGS = ["shadow"] as const;
 export type LightRung = (typeof LIGHT_RUNGS)[number];
 
 /** The ring the primitive already ships, put back. */
-const RING = "var(--tw-ring-shadow, 0 0 #0000)";
+export const RING = "var(--tw-ring-shadow, 0 0 #0000)";
 
 export const LIGHT_LABEL: Record<LightRung, string> = {
   shadow: "a soft shadow",
@@ -374,7 +374,7 @@ ${p}[data-slot="sheet-content"][data-side="left"] { --flt-edge-dx: -100%; --flt-
  *  so an entrance candidate applied on its own is already correct for a reader
  *  who asked for less motion. The patch below is for the animations the
  *  PRIMITIVES ship, which have no such block and are the standing hole. */
-function guarded(body: string): string {
+export function guarded(body: string): string {
   return `@media (prefers-reduced-motion: no-preference) {\n${body
     .split("\n")
     .map((l) => (l ? `  ${l}` : l))
