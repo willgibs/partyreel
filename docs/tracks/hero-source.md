@@ -222,12 +222,13 @@ so the burst cannot flash.
 ## Handoff (round 4)
 
 - Head: the tip of `lp/hero-source`, which is THIS commit (a manifest cannot name its own SHA). The
-  last code commit is `505df89`, the review pass; `dc4040c` is round four's build and `f12841b` the
-  merge that synced launch-prep a second time, for the dock (below). Pushed. The preview at
+  last code commit is `e0f1bf5`, the final pass on the asset ask; `505df89` is the review pass,
+  `dc4040c` round four's build and `f12841b` the merge that synced launch-prep a second time, for
+  the dock (below). Pushed. The preview at
   `partyreel-git-lp-hero-source-partyreel.vercel.app` was NOT
   waited on: Vercel is capped for the day, so the board was verified on this worktree's own
-  PRODUCTION build (`pnpm build && pnpm start` on :3213, rebuilt and re-walked after the review pass
-  on the final tree), in a FOREGROUND Browser-pane tab at 1440 and at 375, with every number taken
+  PRODUCTION build (`pnpm build && pnpm start` on :3213, rebuilt and re-walked after each pass on
+  the final tree), in a FOREGROUND Browser-pane tab at 1440 and at 375, with every number taken
   off the DOM rather than off a screenshot. A screenshot is not evidence here and was not used as
   any: the Browser pane's captures desync from the page's own scroll on this board (the Deferred
   bullet above), and the pane is shared, so a parallel session fronting another tab hides this one,
@@ -243,8 +244,8 @@ so the burst cannot flash.
      corridor at six frames a side; 24 doubles the cadence with no other change." That is false in
      both halves: the pool is `ceil(FLIGHT_MS / launch) + 1`, 17 a side, the cadence is the constant
      `Geo.launch`, and `FRAMES.length` is read in exactly one place, the photograph offset. So the
-     assets change neither number. It was replaced with what the 24 actually buy, which is what the
-     file's own `Geo.launch` comment already said: no photograph on screen twice.
+     assets change neither number. The replacement the review pass wrote was wrong in turn, and the
+     final pass below fixed it properly by moving the ask to 34.
   3. **The asks are now quoted, not paraphrased.** The three asset lines below are `concept.assets`
      itself, diffed against the branch head with whitespace normalised. They previously diverged
      enough that quoting the manifest would have quoted text Will never sees.
@@ -266,6 +267,32 @@ so the burst cannot flash.
   `src/app/(dev)/design/sandbox/home-hero/source.tsx`. **No exceptions.** `shared.tsx`, `board.tsx`,
   `scan.tsx`, `inflow.tsx`, `../album-hero/burst.tsx` and the shell were read and not touched.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- **What the final pass changed** (one should-fix, no blocker, and it is the one sentence Will rules
+  on): **THE ASK IS 34, NOT 24.** The review pass replaced a false sentence with another false one.
+  It had `concept.assets[0]` promise that the 24 squares buy "no photograph is ever on screen
+  twice", and they do not. The corridor holds `ceil(FLIGHT_MS / launch) + 1` frames a side, 17 at
+  1440 and 14 at 375, and `photo = slot + round(FRAMES.length / 2)`, so the left arm's window is
+  `pool` pictures from 0 and the right arm's is `pool` from half the set: the two come apart only
+  once the set is at least TWICE the desktop pool. At 24 (half = 12, left 0 to 16, right 12 to 23
+  then 0 to 4) the two arms share TEN pictures. Ported the file's constants to a simulation and ran
+  three full cycles at 50 ms: at 24 a doubled picture is on canvas through 43 percent of the cycle
+  at 1440 and 39 percent at 375 (22 and 12 percent at a strict bar, opacity >= 0.95 and both copies
+  >= 100 px); at 34 and at 36 it is zero at both canvases. The 12 stand-ins are worse than the old
+  sentence said, not better: 34 cards over 12 pictures means every stand-in is in the air two or
+  three times at once, and the LEFT arm alone repeats five of them in the SAME lane and the SAME
+  crop (slot and slot + 12, and 12 is a multiple of both `LANES.length` and `ASPECTS.length`).
+  The fix keeps the promise and moves the ask: 34 squares, which is 17 a side, exactly disjoint,
+  with all 34 on canvas at 1440 and 28 of them at 375. The promise is what the composition is worth
+  asking for, and 34 costs no second shoot (see the bookkeeping note under the asks). The same claim
+  was mirrored in three places and all three moved with it: `Geo.launch`'s cost-of-the-stand-ins
+  note and `buildCards`'s doc comment now state the CONDITION (`FRAMES.length >= 2 * pool`) rather
+  than asserting the identity unconditionally, with an explicit "do not shrink the set past 2 x
+  pool, and re-derive the count if the cadence changes" for the next agent. Nothing else moved: no
+  geometry, no CSS, no motion. The corridor is still `34x3` at 1440 and `28x3` at 375, re-walked on
+  a fresh production build after the change, both canvases running (18 of 34 and 14 of 28 transforms
+  rewritten in a 500 ms sample, `data-paused` false), the board's Asks row rendering the new line
+  server-side and verbatim, and no horizontal overflow at either canvas.
+
 - **What the inflow can take** (round four's goal item 3, the half addressed to the sibling track).
   The long version is the file header of `source.tsx`, the block titled "WHAT THE INFLOW CAN TAKE";
   this is the short one, because `hero-inflow` reads `docs/tracks/`, not this branch's unmerged file.
@@ -345,13 +372,17 @@ so the burst cannot flash.
   exactly what the board's Asks row renders under the stage, so the manifest and the board say the
   same words and the Orchestrator can quote either. Only this file's line wrapping differs; the text
   was diffed against the branch head with whitespace normalised and matches character for character.
-  1. "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, across weddings,
-     birthdays, corporate and festivals. They replace the 12 landscape stand-ins the corridor cycles
-     (FRAMES in shared.tsx); the left arm takes the first 12 and the right arm the last 12. They do
-     not change the corridor: the cadence, the pool and the sizes are constants of the composition,
-     so the 24 buy exactly one thing, that no photograph is ever on screen twice. With the 12
-     stand-ins the two arms' windows overlap by four, so four pictures are doubled at every moment,
-     on opposite arms, at very different sizes and three of the four in different crops."
+  1. "34 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, across weddings,
+     birthdays, corporate and festivals, cropped from 34 of the same 36 masters rather than shot
+     again. They replace the 12 landscape stand-ins the corridor cycles (FRAMES in shared.tsx); the
+     left arm takes the first 17 and the right arm the last 17. 34 rather than a round 24 because
+     the count is the composition's: the corridor holds 17 frames a side in the air at 1440, the two
+     arms are offset by half the set, and the two windows only come apart at twice the pool, which
+     is what buys the one thing the pictures buy, that no photograph is ever on screen twice.
+     Anything short of it still doubles: the 12 stand-ins go round almost three times, so every one
+     of them is in the air two or three times at once, and 24 would still leave ten pictures shared
+     between the two arms. Nothing else moves, because the cadence, the pool and the sizes are
+     constants of the composition."
   2. "Framed tight enough to read at 120 px AND to survive a centre crop to 4:5 and to 4:3: a face,
      two hands, a glass, a sparkler, a first dance. Half the corridor is portrait now, because that
      is what guests shoot. Frames are read between 117 and 370 px here, so a wide room shot is grey
@@ -360,12 +391,18 @@ so the burst cannot flash.
      is no plate art, no lamp and no video in this concept."
 
   Context for the Orchestrator, which is deliberately NOT on the board because it is bookkeeping and
-  not a ruling: this is `docs/ASSETS.md` row 2, already asked. Round four refined the spec rather
-  than adding a row, and the refinement is the centre-crop requirement in line 2, which costs no new
-  shoot because both crops come out of the same 512 square. Line 1's last two sentences are the
-  correction round four owed the board: the 24 do not change the corridor's density (the cadence
-  `Geo.launch` and the pool `ceil(FLIGHT_MS / launch) + 1` are constants, and `FRAMES.length` is read
-  in exactly one place, the photograph offset), so what they buy is that no picture is doubled.
+  not a ruling: this is `docs/ASSETS.md` row 2, already asked, and round four refines that row in
+  TWO ways rather than adding a row. (a) THE COUNT GOES 24 TO 34, and only the count: still 512
+  squares, still crops of row 7's 36 masters (row 2 already says "crops of 24 of the 36"), so it is
+  ten more exports off a shoot that is already requested and not a second shoot. 34 is derived, not
+  chosen: the corridor holds `ceil(FLIGHT_MS / launch) + 1` frames a side, which is 17 at 1440 and
+  14 at 375, and the photograph offset is half the set, so the two arms' windows are disjoint (and
+  no picture is ever on screen twice) exactly when the set is at least twice the desktop pool. If a
+  later round changes `Geo.launch`, re-derive the count from the pool rather than keeping 34. (b)
+  the centre-crop requirement in line 2, which costs nothing because both crops come out of the same
+  512 square. Two other cells name the count and move with it: row 7 ("the 24 squares (row 2) ...
+  are crops and cuts of this one shoot") and row 9 ("11 of the 24 squares (row 2)", `hero-burst`'s
+  portrait crops, which are unaffected in substance since 11 of 34 is still 11).
 - **The asks, verbatim from the board** (this board renders `ConceptMeta`, not `BoardMeta`; its
   Departures and Asks rows are the ruling surface, and the Departures row is now ONE line):
   - "THE CENTRED LOCKUP, and it is the only one left. Precedent rather than law: every other
