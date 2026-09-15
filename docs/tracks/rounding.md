@@ -161,22 +161,7 @@ tuner's and the ruling's.
 
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (2026-09-14). The rounding board was rebuilt
-from the ground up. Round one judged six numbers in four columns inside a
-zoom-fitted stage, where `zoom` scales paint as well as layout and every corner
-rendered about a third sharper than the number printed under it; round two
-splits the tokens into the three decisions they are (the surface family A to D,
-the action rung, the derived ladder) and renders every comparison at 1:1. Part A
-is a four-row matrix of the shipped components, part B four real compositions
-built from `EventCard`, `EventTypeCard` and the primitives' own class strings,
-part C bible 9 drawn right and wrong under each candidate, part D the seven
-derived steps on the components that use them beside a quarter-step retune, and
-part E the action ladder at every height that ships. Each candidate applies to
-the whole site as the paste its ruling would land, verified on `/pricing` (a
-plan card at 21px under D's quarter ladder, 25.2 under stock). Four findings,
-all on the board: the guest gallery's gap is a literal `gap-[3px]` in three
-files while its tiles ride the token, so any tile above 3 opens corner holes on
-the one grid every guest sees; `--radius-action` names a 40px button that ships
-nowhere and `--radius-action-lg` has one call site; every marketing CTA is
-`size="lg"` forced to h-11, at 0.33 x height against a documented 0.4; and
-`rounded-3xl` and `rounded-4xl` have three uses between them.
+Merged into `launch-prep` at `<sha>` (2026-09-14). The rounding board was rebuilt from the ground up. Round one judged six numbers in four columns inside a zoom-fitted stage, where `zoom` scales paint with layout and every corner read about a third sharper than its own number; round two splits the tokens into the three decisions they are (the surface family A to D, the action rung, the derived ladder) and renders every comparison at 1:1.
+Part A is a four-row matrix of the shipped components, B four real compositions from `EventCard`, `EventTypeCard` and the primitives' own class strings, C bible 9 drawn right and wrong under each candidate, D the seven derived steps on the components that use them beside a quarter-step retune, E the action ladder at every height that ships.
+Each candidate applies to the whole site as the paste its ruling would land, verified on `/pricing`: a plan card lands at 21px under D's quarter ladder against 25.2 on stock.
+Four findings, all on the board rather than in a comment. The guest gallery's gap is a literal in three files while its tiles ride the token, so any tile above 3 opens corner holes on the one grid every guest sees. `--radius-action` names a 40px button that ships nowhere and `--radius-action-lg` has one call site. Every marketing CTA is `size="lg"` forced to h-11, at 0.33 x height against a documented 0.4. And `rounded-3xl` and `rounded-4xl` have three uses between them.
