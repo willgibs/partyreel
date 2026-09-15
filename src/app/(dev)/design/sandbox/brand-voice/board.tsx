@@ -78,7 +78,8 @@ import {
  *     pricing pair, a help opening; the dashboard’s empty state, its event
  *     card, the create wizard, a toast, an error, a notification, the account
  *     page; a guest’s door, the upload sheet, the empty album, an email.
- *     The twelve chapters round three built follow, as the price list.
+ *     Round three's twelve chapters follow as the price list, minus the two the
+ *     usage chapters replaced: ten of them, renumbered 4 to 13.
  *  2. EVERY COMPARISON SHOWS A DIFFERENCE. "A lot just have the exact same
  *     versions with a note that says unchanged... it’s absolutely useless
  *     for a brand voice comparison." In the usage chapters every voice WRITES
@@ -150,7 +151,7 @@ import {
 /** The verdict, on top. A board this tall with its recommendation at the
  *  bottom is a board that gets scrolled, not ruled on. */
 const LEAD = {
-  what: "What Partyreel sounds like, shown in use before it is argued: sixteen real surfaces across marketing, the app and a guest's phone, each written three ways on the component that ships it. Then the twelve chapters that price a ruling, and seven asks at the foot that each answer in one word.",
+  what: "What Partyreel sounds like, shown in use before it is argued: sixteen real surfaces across marketing, the app and a guest's phone, each written three ways on the component that ships it. Then ten chapters that price a ruling on whole pages, and seven asks at the foot that each answer in one word.",
   recommend: "B, the room.",
   because:
     "It is the only candidate built from the one thing only this product does, a code on a table becoming an album while the party is still going, and it is the reason a line here could not be said by a shared folder or a group chat.",
@@ -1367,7 +1368,7 @@ function PricingPair({ voice, mode }: { voice: VoiceId; mode: Mode }) {
           {pro.priceLabel}
         </p>
         <ul className="mt-6 flex-1 space-y-2.5 text-sm">
-          <li>Photos and video, one album an event</li>
+          <li>Photos and video, an album for every event</li>
           <li>{line("pro-item")}</li>
         </ul>
         <p className="mt-6 text-sm text-background/70">
@@ -1831,6 +1832,13 @@ function MarketingUseChapter({ mode }: { mode: Mode }) {
           ground="paper"
           render={(v) => <PricingPair voice={v} mode={mode} />}
         />
+        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+          The card is the shipped markup with the shipped numbers: the price,
+          the storage and the event cap all render from tiers.ts, so no voice
+          can move one. The photo stacks, the cadence toggle and the Pro size
+          selector are left off because they carry no copy, and two of the five
+          feature lines are shown rather than all five.
+        </p>
       </UseFrame>
 
       <UseFrame u={help}>
