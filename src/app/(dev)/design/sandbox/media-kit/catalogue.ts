@@ -13,16 +13,30 @@
  *
  * ★ SO A FRAME CAN FAIL TO LOAD, AND THAT IS DESIGNED FOR. Every tile falls back
  * to a labelled slate naming its source, so a sheet degrades to a caption rather
- * than to a broken page. All 248 URLs below answered 200 with an image content-type
+ * than to a broken page. All 308 URLs below answered 200 with an image content-type
  * to a request carrying a partyreel.com referer on the date below, so none of them
  * is hotlink-protected today. Any that stop answering are the sheet telling the
  * truth about a catalogue that moved.
  *
  * HOW TO REBUILD IT: the harvest reads each source's public search page and takes
- * the thumbnail URLs out of the markup. The five sources that are NOT here
- * (Unsplash+, Adobe Stock, Pexels, Pixabay, Creative Market) each refuse a client
- * that is not a browser with a 401 or a 403, which is recorded on their cards
- * rather than worked around. The procedure and the queries are
+ * the thumbnail URLs out of the markup. SIX of the thirteen sources are not in
+ * here, and ★ THEY ARE ABSENT FOR FOUR DIFFERENT REASONS, NOT ONE. Measured with
+ * a plain client on HARVESTED: Adobe Stock, Stocksy and Creative Market answer
+ * 403; Artgrid answers 200 with an empty application shell and fetches its clips
+ * client side; Death to Stock answers 200 at the door and 404 on every browse path
+ * under it; Coverr reads completely, and what the reading found is its verdict
+ * rather than a sheet. Each card carries its own reason in `noSheet` (sources.ts)
+ * and plan.test.ts refuses a source that has neither a sheet nor one.
+ *
+ * ★ UNSPLASH+ IS HERE BECAUSE THE EXCUSE WAS CHECKED, AND IT DID NOT HOLD. It was
+ * the seventh blank, on the stated grounds that the paid tier sits behind an
+ * account, which no one had measured. `unsplash.com/s/photos/<q>?license=plus`
+ * returns the plus results to a plain client: 20 released frames on every one of
+ * the five verticals, and the 60 below are the first 12 of each. Take them from
+ * the embedded search payload, never from the preload tags in the `head`, which
+ * repeat ONE photo at twelve widths and will happily pair two thumbnails to one
+ * page. The `ixid` tracking token each URL carries is dropped on the way in; the
+ * rest of the query string is the source's own. The procedure and the queries are
  * docs/specs/media-kit.md section 8.5.
  */
 
@@ -51,6 +65,336 @@ export const HARVESTED = "2026-09-15";
 
 /** Keyed `<source id>::<vertical>`. */
 export const CATALOGUE: Record<string, Sheet> = {
+  "unsplash-plus::weddings": {
+    query: "wedding, filtered to the Unsplash+ licence",
+    searchUrl: "https://unsplash.com/s/photos/wedding?license=plus",
+    frames: [
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1675003662150-2569448d2b3b?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/two-gold-wedding-rings-on-a-white-background-WHUG4KXCbuI",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1663076211121-36754a46de8d?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/beautiful-young-bride-and-groom-outside-in-green-nature-at-romantic-sunset-holding-hands-rear-view-BYXAX2Lb_Ow",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1673897888993-a1db844c2ca1?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-table-is-set-with-candles-and-flowers-pt34cohzJiU",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1675851210020-045950ac0215?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-bride-and-groom-walking-down-a-flight-of-stairs-ijuTbtiGh5w",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1664530452596-e1c17e342876?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-bride-and-groom-standing-in-a-barn-aJnh0_TzdKg",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1711132425055-1c289c69b950?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-man-and-a-woman-standing-next-to-each-other-kzood2jZFME",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1675851210855-e7727076e829?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-bride-and-groom-standing-on-a-staircase-LLd5F6surIk",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1675719847698-6c8a924b2a7a?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-couple-of-rings-sitting-on-top-of-a-wooden-box--Kc29c7lCBA",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1675720042825-84e20074f34a?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-table-is-set-with-wine-glasses-and-flowers-rffPE2yNVG4",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1690148812608-9942834931a1?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-bride-and-groom-embracing-each-other-in-a-field-VPCIQIa_Hjk",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1675003663256-bfdc8b1acb2d?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-bouquet-of-flowers-and-a-wedding-dress-on-a-couch-tCZg7Foz5hA",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1681841695231-d674aa32f65b?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/bride-groom-and-their-guests-at-the-wedding-reception-outside-in-the-backyard-family-celebration-K-HExRIw96E",
+      },
+    ],
+  },
+  "unsplash-plus::birthdays": {
+    query: "party, filtered to the Unsplash+ licence",
+    searchUrl: "https://unsplash.com/s/photos/party?license=plus",
+    frames: [
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1670333351937-68cb2735a0fd?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-hand-holding-a-glass-of-water-w3RxPn7C_vg",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1683121126477-17ef068309bc?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/crowd-of-cheerful-carefree-youth-waving-gadgets-with-flashlights-turned-on-while-supporting-favorite-singer-at-concert-9xBXiMNKnaM",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1683129651802-1c7ba429a137?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/happy-young-friends-dancing-in-confetti-during-celebration-of-holiday-lTjH9UGx2XI",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1666184130709-f3709060899a?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-people-sitting-around-a-table-holding-sparklers-nGliBjjrUDY",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1661759013744-4754d402459d?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/multi-ethnic-group-of-young-people-having-fun-and-singing-karaoke-in-a-bar-at-night-focus-is-on-black-man-2MnoxgkfEeA",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1697477564435-a2481694a2fb?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-white-table-topped-with-glasses-filled-with-liquid-MULu8JziS-o",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1682681903841-1f98ce6a1175?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-people-toasting-with-drinks-in-a-pool-I3IYOMYMvdE",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1697477564480-9496d0c4adc5?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-disco-ball-being-blown-by-a-pair-of-legs-u1VVPvFXbeE",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1697477564605-e7e2a61aa9a6?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-woman-sitting-on-a-couch-holding-a-glass-of-wine-sC7aturO0lg",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1687826541778-3f2bf4c03bc3?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-women-standing-next-to-each-other-3TFDE0pm3_A",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1683121131492-9ae8cdfea4f7?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/group-of-unrecognizable-people-standing-under-confetti-and-raising-hands-up-at-musical-performance-zmvpBGZbm4A",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1698529231408-80642212fd1b?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-people-holding-up-wine-glasses-AuI39GyKr4E",
+      },
+    ],
+  },
+  "unsplash-plus::corporate": {
+    query: "conference, filtered to the Unsplash+ licence",
+    searchUrl: "https://unsplash.com/s/photos/conference?license=plus",
+    frames: [
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1679547202671-f9dbbf466db4?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-people-sitting-in-chairs-in-front-of-a-projector-screen-bghmzALo194",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1679547202348-9aef21c9f30e?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-people-standing-around-a-conference-room-Stdn0PNUyHM",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1664302656889-e0ff44331843?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-crowd-of-people-in-suits-and-ties-clapping-jtc3RWxfvOM",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1679547202717-c1fea70eb817?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-woman-standing-in-front-of-a-group-of-people-DLU7cBYNK80",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1663047091392-425566f3ea56?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/young-asian-female-economist-with-document-making-presentation-of-financial-data-or-new-project-by-interactive-screen-jXiLtQd9HGY",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1681487469745-91d1d8a5836b?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/modern-cinema-interior-corner-with-dark-walls-a-concrete-floor-and-black-chairs-3d-rendering-mock-up-toned-image-double-exposure-FLlH4ILZKZk",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1733259762527-3d759dfdbd3d?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-people-sitting-in-chairs-in-front-of-a-projector-screen-YF4rmfroznc",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1723291331030-d6874d63e5bf?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/group-of-diverse-business-people-meeting-concept-8Yh7UspTxMc",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1681493316075-b1c3e5302ec3?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/vertical-side-view-of-people-sitting-in-row-at-business-conference-focus-on-smiling-young-woman-applauding-in-foreground-2gztJrybPRU",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1733306641142-b51ea3730979?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/ask-a-question-at-the-conference-0qbUJwfj4Yw",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1679547202606-4d905471107f?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-man-standing-in-front-of-a-group-of-people-OqSV8JWhm3c",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1725408033432-c6d0d712384a?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/group-of-people-applauding-5RmFH0v6c30",
+      },
+    ],
+  },
+  "unsplash-plus::festivals": {
+    query: "festival, filtered to the Unsplash+ licence",
+    searchUrl: "https://unsplash.com/s/photos/festival?license=plus",
+    frames: [
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1698500034742-098f7fc04163?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-table-topped-with-plates-and-bowls-filled-with-food-ZKGBoLFzBN4",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1661284892176-fd7713b764a6?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/group-of-friends-having-fun-at-the-festival-y7CApuF9k4M",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1661306437817-8ab34be91e0c?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/portrait-of-happy-crowd-enjoying-and-dancing-at-music-festival-XVrINU5jX58",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1682090867765-39d1790259c5?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/indian-family-celebrating-diwali-festival-with-fire-crackers-j-s3Xs34xRs",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1661377118520-287ec60a32f3?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/cheering-crowd-with-hands-in-air-enjoying-at-music-festival-dNvNcMjFN2s",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1683121131492-9ae8cdfea4f7?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/group-of-unrecognizable-people-standing-under-confetti-and-raising-hands-up-at-musical-performance-zmvpBGZbm4A",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1663051210654-0c8a835dad1f?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/front-view-of-group-of-young-friends-with-smartphone-at-summer-festival-taking-selfie-DUQhp7DoK4E",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1719066378950-f9df97d6e083?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-people-standing-around-each-other-3yqt17yQ2as",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1698500035049-d69331f7cd2a?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-close-up-of-a-plate-of-food-on-a-table-iMeicjsZvrY",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1664304095595-e428558e8161?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/happy-people-crowd-partying-under-colorful-powder-cloud-hi6Cri0Z38A",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1681830630610-9f26c9729b75?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/rear-view-of-group-of-unrecognizable-young-friends-dancing-at-summer-festival-XVkUW0-fsfw",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1664303674394-157511e7085d?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/silhouettes-of-festival-concert-crowd-in-front-of-bright-stage-lights-unrecognizable-people-and-colorful-effects-ceK96L-QvtA",
+      },
+    ],
+  },
+  "unsplash-plus::trips": {
+    query: "travel friends, filtered to the Unsplash+ licence",
+    searchUrl: "https://unsplash.com/s/photos/travel-friends?license=plus",
+    frames: [
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1663100398778-2c86ca1dc02e?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-happy-young-people-with-smartphone-sitting-in-outdoors-cafe-on-town-trip-taking-selfie-z-swILPvL1s",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1687653086440-7dc61b5ff5db?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-people-walking-along-a-sandy-beach-gxYETAlsp-c",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1661960937960-1883bf00f480?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/the-four-travelers-with-backpacks-standing-on-the-mountain-top-above-the-sea-wtPXO3708wk",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1683120698590-7e21c5ff1b5b?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/group-of-hikers-on-mountain-slope-bEOwn1JCrWQ",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1661636737716-aecafc3bdb4d?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/happy-friends-enjoying-travel-and-vacation-in-the-city-BuxMyVp9Ydw",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1661904024889-0f8bec080dd4?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/friendly-hugs-full-length-portrait-of-group-of-people-from-back-making-hug-and-looking-at-sea-De-m6c3okjc",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1661265859579-de8150e43edb?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/cheerful-young-people-spending-nice-time-together-while-sitting-on-the-beach-and-drinking-beer-CS2xuvlENeA",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1661933707147-3b1840e63102?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/having-fun-portrait-of-group-of-friends-dedicating-time-to-pleasure-during-their-trip-to-the-seashore-LIwiEzNwKKA",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1684379149616-e9058c859518?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/a-group-of-women-walking-across-a-sandy-beach-cBuf1xR6TGk",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1723600938180-0450c59d5deb?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/backpackers-on-an-adventure-5HexLzLs7j0",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1679619556731-57bd1a224eb7?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/two-women-taking-a-picture-with-a-cell-phone-fdILRW2jNyw",
+      },
+      {
+        thumb:
+          "https://plus.unsplash.com/premium_photo-1723867323960-b4491d2b324e?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1",
+        page: "https://unsplash.com/photos/group-of-young-adult-friends-outdoors-recreational-leisure-freedom-and-adventure-concept-alk3iuUe5zo",
+      },
+    ],
+  },
   "websummit-flickr::corporate": {
     query: "the account, filtered to CC BY 2.0",
     searchUrl:

@@ -33,9 +33,29 @@
  *
  * `catalogue` is measured where a source let itself be counted (Flickr, Coverr,
  * iStock, Envato, Nappy and Mixkit did) and is otherwise the source's own
- * published figure, labelled. Adobe Stock, Pexels, Pixabay, Creative Market and
- * Unsplash refuse any client that is not a browser, which is itself a fact worth
- * knowing before planning a workflow around one.
+ * published figure, labelled.
+ *
+ * ★ A SOURCE THAT DRAWS NO CONTACT SHEET SAYS WHY ON ITS OWN CARD, AND THE
+ * REASONS ARE NOT THE SAME REASON. An earlier draft printed one categorical
+ * sentence under all seven blanks ("this catalogue answers a non-browser client
+ * with a 401 or a 403"), which was false for four of them and contradicted the
+ * Coverr card standing beside it, whose whole verdict is a measurement taken off
+ * the search page it supposedly refused. Every one of them was measured again on
+ * RETRIEVED with a plain curl, and the count fell from seven to SIX, because the
+ * check killed its own excuse: Unsplash+ was the source the sheet most needed to
+ * show, it turned out to be readable, and it now draws 60 frames rather than
+ * carrying a sentence about why it cannot (see the finding in the Handoff).
+ * What is left is genuinely undrawable, for four different reasons: Adobe Stock,
+ * Stocksy and Creative Market answer 403; Artgrid answers 200 with an empty
+ * application shell; Death to Stock answers 200 at the door and 404 on every
+ * browse path under it; Coverr reads completely, and what the reading found is
+ * its verdict. `noSheet` carries each of those in its own words, and
+ * plan.test.ts refuses a source that has neither a sheet nor a reason.
+ *
+ * THE GENERAL LESSON, which is the round's own turned on itself: one sentence
+ * covering seven cases is a description, and a board whose whole claim is that
+ * it DRAWS must check the excuse before it prints it. Writing the shared excuse
+ * out per source is what exposed that one of the seven was not refusing at all.
  */
 
 import { CATALOGUE, type Vertical } from "./catalogue";
@@ -85,6 +105,13 @@ export type SourceCard = {
   covers: Vertical[];
   /** What is behind it, with a number where the source let itself be counted. */
   catalogue: string;
+  /**
+   * Why this source draws no contact sheet, measured rather than assumed, in the
+   * source's own particulars. Set on exactly the sources CATALOGUE has no sheet
+   * for; plan.test.ts pins both directions, so a source cannot go blank silently
+   * and a drawn one cannot carry a stale excuse.
+   */
+  noSheet?: string;
   /** One line. The whole card in a sentence. */
   verdict: string;
   /** True when the source cannot supply a frame this product may ship. */
@@ -143,7 +170,7 @@ export const SOURCES: SourceCard[] = [
       "All visuals are model and property released, backed by a warranty of up to US $10,000 per licensed photo. This is the exact thing the free Unsplash licence carves out, and it is why this source sits first: the paid tier's whole product is the removal of the clause that disqualified the twelve stand-ins.",
     covers: ["weddings", "birthdays", "corporate", "festivals", "trips"],
     catalogue:
-      "A curated premium library, much smaller than the free one and not browsable without an account, so this sheet cannot draw its frames. Unsplash publishes no count.",
+      "A curated premium library, much smaller than the free one. Unsplash publishes no count, but the search filtered to the plus licence is readable without an account: 20 released frames came back on every one of the five verticals below, and the 60 on this card were drawn from them.",
     verdict:
       "One month buys every frame the kit needs, released, and a frame downloaded while the subscription is live stays licensed forever with no project to register. The cheapest legal answer on this sheet.",
     barred: false,
@@ -167,6 +194,8 @@ export const SOURCES: SourceCard[] = [
     covers: ["weddings", "birthdays", "corporate", "festivals", "trips"],
     catalogue:
       "Hundreds of millions of files, every vertical deep. Not countable from here: the site refuses any client that is not a browser, so this sheet cannot draw its frames either.",
+    noSheet:
+      "Answers a plain client with a 403, measured on the date above. There is nothing to draw and nothing to route around short of driving a browser, which is worth knowing before building any workflow on it.",
     verdict:
       "The right shape for a handful of hard frames rather than for a kit. At ten dollars a photo, 36 masters is $360, and one night of shooting produces nine rows of the asset log for less.",
     barred: false,
@@ -212,6 +241,8 @@ export const SOURCES: SourceCard[] = [
     covers: ["weddings", "birthdays", "festivals", "trips"],
     catalogue:
       "A deliberately small curated library, strong on real celebration and travel and thin on corporate rooms. Not readable from here.",
+    noSheet:
+      "Answers a plain client with a 403 as well, so the smallest and most carefully curated library on this sheet is the one it can show least of. Its verdict rests on the source's own description, which is the thinnest evidence on the board and is marked as such here rather than hidden in a blank.",
     verdict:
       "The source for the one or two frames that carry a page. At $35 a frame the 36-frame kit is $1,260, several times what shooting it costs.",
     barred: false,
@@ -259,6 +290,8 @@ export const SOURCES: SourceCard[] = [
     covers: ["weddings", "birthdays", "corporate", "festivals", "trips"],
     catalogue:
       "Cinematic footage organised as whole shoots rather than as single clips, which suits a film cut from one night. Not readable from here.",
+    noSheet:
+      "Answers 200 and then serves an empty application shell: the clips are fetched client side, so the markup a plain client receives holds no thumbnails at all. A 200 is not a readable catalogue, and this card is the difference.",
     verdict:
       "The only clip source on this sheet whose licence survives cancellation intact, and the most expensive line in the plan. It is the line the shoot deletes: a film cut from our own event is the one asset no licence can stand in for, because the product's claim is that the frames came from a real party.",
     barred: false,
@@ -367,6 +400,8 @@ export const SOURCES: SourceCard[] = [
     covers: ["festivals"],
     catalogue:
       "Measured this round rather than trusted, and the measurement moved it down the sheet. A search for party returns 70 Coverr-hosted clips, 23 of them user AI generations, alongside 34 iStock results served into the same grid under no Coverr licence at all. A search for wedding returns 58, 24 of them AI, with the same 34 iStock results.",
+    noSheet:
+      "Readable, and the reading is the verdict. Its party page returned 70 Coverr clips and 34 iStock results into a single grid, so a sheet drawn from it would put two catalogues under one name and license neither. The counts on the left were taken off that page, not off a licence.",
     verdict:
       "An irrevocable licence over a catalogue you have to audit per item, shown on a page mixed with a catalogue it does not cover. A source that needs auditing is not a source.",
     barred: true,
@@ -390,6 +425,8 @@ export const SOURCES: SourceCard[] = [
     covers: ["birthdays", "corporate", "trips"],
     catalogue:
       "More than 15,000 visuals, about 500 added a month, real photographers rather than generations. The taste is the closest here to the product's own.",
+    noSheet:
+      "The front page answers 200 to a plain client and every browse path under it answers 404: the 15,000 visuals are behind the membership, which is the same wall the rental clause on the left describes. The taste is visible on the marketing page, the catalogue is not.",
     verdict:
       "The nicest pictures and the worst deal. A subscription that can never be cancelled is not a price, it is a standing charge on our own marketing site.",
     barred: true,
@@ -413,6 +450,8 @@ export const SOURCES: SourceCard[] = [
     covers: ["weddings"],
     catalogue:
       "Real wedding bundles from individual photographers, which is what the note asked to see. The catalogue refuses a non-browser client, so this sheet cannot draw its frames.",
+    noSheet:
+      "Answers a plain client with a 403, so the cheap wedding album from Will's note is the one source here taken entirely on its own description. The price is real and the frames are unseen, which is exactly the shape of risk the rest of this board exists to remove.",
     verdict:
       "This is the cheap wedding album from the note and the price is real. The cheap tier forbids a business social account and a paid advert, so the usable licence is the Commercial one, and what the money buys is rings and cake rather than a room full of people.",
     barred: true,

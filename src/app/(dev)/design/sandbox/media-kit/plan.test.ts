@@ -203,6 +203,35 @@ describe("the contact sheets", () => {
     }
   });
 
+  /**
+   * ★ A BLANK CARD STATES ITS OWN REASON, AND THE REASONS ARE NOT ONE REASON.
+   * The slate under a source with no contact sheet used to print a single
+   * categorical sentence, that the catalogue answers a non-browser client with a
+   * 401 or a 403. Seven cards showed it; three of them were actually refusing.
+   * One of the other four was Coverr, whose entire verdict on the same card is a
+   * measurement taken off the search page the slate said had refused, so the
+   * board contradicted itself across two columns of one row. This pins the shape
+   * rather than the wording: a source is drawn or it says why, never neither and
+   * never both, so a future harvest that drops a sheet cannot inherit a reason
+   * that was written about something else.
+   */
+  it("gives every undrawn source its own reason, and no drawn one an excuse", () => {
+    for (const s of SOURCES) {
+      const drawn = drawableVerticals(s.id).length > 0;
+      if (drawn) {
+        expect(s.noSheet, s.id).toBeUndefined();
+      } else {
+        expect(typeof s.noSheet, s.id).toBe("string");
+        expect(s.noSheet!.length, s.id).toBeGreaterThan(40);
+      }
+    }
+    // Distinct text, not one sentence pasted seven times: the fault this
+    // replaces was a shared sentence, so sharing one again must fail here.
+    const reasons = SOURCES.map((s) => s.noSheet).filter(Boolean);
+    expect(new Set(reasons).size).toBe(reasons.length);
+    expect(reasons.length).toBeGreaterThan(0);
+  });
+
   it("counts what the board prints", () => {
     expect(SHEET_COUNT).toBe(Object.keys(CATALOGUE).length);
     expect(FRAME_COUNT).toBe(

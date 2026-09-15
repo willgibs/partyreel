@@ -106,14 +106,23 @@ import {
  *     It is the top of the sheet, and it means the whole bridge is buyable for
  *     one month plus a few frames rather than unbuyable at any price. The board
  *     prints the number; plan.ts computes it and plan.test.ts refuses a stale one.
- *  4. THE CONTACT SHEETS ARE HOTLINKED, NEVER COPIED. 21 pulls from the sources'
+ *  4. THE CONTACT SHEETS ARE HOTLINKED, NEVER COPIED. 26 pulls from the sources'
  *     own public search pages, each recorded as the source's own thumbnail URL,
  *     so a watermarked comp stays a watermarked comp and nothing paid is ever in
- *     our tree. Five sources refuse a non-browser client and draw no sheet at all,
- *     which is recorded on their cards rather than worked around.
+ *     our tree. Six sources draw no sheet, for four different reasons measured on
+ *     the day (a 403, an empty app shell, a members' wall, and one that read
+ *     perfectly and failed on what it returned), and each card prints its own
+ *     rather than sharing an excuse. Writing them out per source is what emptied
+ *     a seventh: Unsplash+ was blank on an unmeasured claim that its paid tier
+ *     needs an account, the plus-filtered search reads fine, and the card the
+ *     plan asks Will to buy now draws 60 frames.
  *  5. THE PAGE-WIDE SWITCHES ARE IN THE DOCK (the global note for this round), so
  *     a vertical can be flipped while looking at any source rather than by
- *     scrolling back to the top, and every stage renders at 1:1.
+ *     scrolling back to the top, and every stage renders at 1:1. The surface
+ *     check's two switches stay beside it, because they dress ONE stage: the same
+ *     note says a per-specimen control belongs with its specimen, and the round's
+ *     goal item (3) is answered that far and declined the rest of the way, which
+ *     the Handoff states in full rather than leaving to this comment.
  *
  * ROUND THREE (2026-09-15), for reference.
  *
@@ -715,17 +724,29 @@ export function MediaKitBoard() {
           </>
         }
       >
-        {/* ★ THE CONTROLS SCROLL SIDEWAYS ON A PHONE RATHER THAN WIDENING THE
-            PAGE. A Toggle is an inline-flex row that does not wrap, and six
-            verticals plus a route plus a geometry is 456 px of switch against a
-            375 px screen, which pushed the whole document into a horizontal
-            scroll (measured at 375 before this wrapper existed). The row is its
-            own scroller below sm and wraps normally from sm up, which is where
-            the dock starts sticking anyway. The negative margin lets it bleed to
-            the dock's edges so a half-cut switch reads as more to the right. */}
-        <div className="-mx-4 flex max-w-full items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0">
+        {/* ★ THE DOCK'S SWITCHES WRAP ON A PHONE. THEY MUST NOT SCROLL SIDEWAYS,
+            AND THIS IS THE SECOND TIME THAT WAS MEASURED RATHER THAN ASSUMED.
+            A Toggle used to be an inline-flex row that never wrapped, so six
+            verticals plus a route plus a geometry ran 778 px wide against a 375 px
+            screen and pushed the whole document into a horizontal scroll. The
+            first fix made this row its own `overflow-x-auto` scroller, which held
+            until the shell's dock grew a `basis-full` control cell whose
+            `min-w-0` only applies from `sm` up: below `sm` that cell takes its
+            min-content width from this row, a scroller's content still reports
+            its full min-content width, and the page went sideways again. Measured
+            on a real 375 viewport after the merge: documentElement.scrollWidth
+            793 against clientWidth 375, and `min-w-0` on the scroller changed
+            nothing because the cell, not this row, is the flex item that cannot
+            shrink. Wrapping removes the contribution instead of hiding it: 375
+            and 375, with the dock 232 px tall, which costs nothing because the
+            dock is `static` below `sm` and is scrolled past once. Wrap is the
+            shell's own option, added for exactly this. If a later dock change
+            tempts you back to a scroller, re-measure at a REAL 375 window, never
+            in an iframe. */}
+        <div className="flex flex-wrap items-center gap-2">
           <Toggle
             ariaLabel="Vertical"
+            wrap
             options={[
               { id: "all", label: "All" },
               ...ALL_VERTICALS.map((v) => ({
@@ -738,12 +759,14 @@ export function MediaKitBoard() {
           />
           <Toggle
             ariaLabel="Route"
+            wrap
             options={ROUTE_OPTIONS}
             value={route}
             onChange={setRoute}
           />
           <Toggle
             ariaLabel="Geometry"
+            wrap
             options={[
               { id: "card" as const, label: "Card 4:5" },
               { id: "share" as const, label: "Share 1200x630" },
@@ -855,7 +878,7 @@ export function MediaKitBoard() {
               The twelve are referenced in {PRODUCTION_FILES} production files
               across {ROUTES.length} routes, and four of them sit in the footer
               strip and two in the nav panel, both of which live in the group
-              layouts, so they are on all {MARKETING_PAGES} marketing pages
+              layouts, so they are on all {`${MARKETING_PAGES} marketing`} pages
               before a reader scrolls. Apply &ldquo;The exposure&rdquo; below
               and walk the site to see it.
             </p>

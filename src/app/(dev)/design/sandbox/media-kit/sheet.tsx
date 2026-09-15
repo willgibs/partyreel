@@ -371,13 +371,26 @@ function SourceRow({
           // `self-start`, never a stretched cell: a card whose catalogue cannot
           // be drawn should read as a short note, not as a tall empty rectangle
           // that implies the sheet failed. The absence is the fact, not a void.
+          //
+          // ★ AND THE FACT IS THIS SOURCE'S, NEVER A CATEGORY'S. This slate used
+          // to print one sentence under all seven blanks, that the catalogue
+          // answers a non-browser client with a 401 or a 403. It was true of
+          // three of them and it contradicted the Coverr card printed one column
+          // to its left, whose verdict is a measurement taken off the very search
+          // page it claimed had refused. On a board whose thesis is that a
+          // catalogue must be drawn rather than described, a shared excuse is the
+          // one thing a blank must not carry: `noSheet` is per source, measured
+          // on the retrieval date, and a source without one fails plan.test.ts.
+          // Writing them out one at a time is also what emptied one of the seven:
+          // Unsplash+, the card the whole plan asks Will to buy, turned out to be
+          // readable and now draws 60 frames instead of explaining itself.
           <div className="max-w-md self-start rounded border border-dashed border-border p-3">
             <Caption className="text-[10px] leading-snug">
-              No contact sheet, on purpose. This catalogue answers a non-browser
-              client with a 401 or a 403, so the sheet leaves it blank rather
-              than draw something else and call it this. Its licence, its price
-              and its release position are on the left, which is what the
-              ranking is made of.
+              <span className="text-foreground">No contact sheet.</span>{" "}
+              {source.noSheet ??
+                "No reason recorded, which is itself a defect."}{" "}
+              Its licence, its price and its release position are on the left,
+              which is what the ranking is made of.
             </Caption>
           </div>
         )}
@@ -393,15 +406,23 @@ export function SourcingSheet({ vertical }: { vertical: Vertical | "all" }) {
         <h2 className="text-sm font-semibold">
           {SOURCES.length} places, ranked by whether they hold a release
         </h2>
+        {/* ★ A NUMBER AND ITS NOUN GO IN ONE EXPRESSION, NEVER `{n} noun`.
+            JSX dropped the space after `{SHEET_COUNT}` here and the board
+            printed "26pulls of the source's own thumbnails" on the production
+            build (it survived a round because the count read as one word and
+            nobody rebuilt to look). The same bug was live on the exposure
+            paragraph in board.tsx. A template literal cannot be split, so the
+            space cannot be lost; if you add another count to this sentence,
+            write it the same way and REBUILD before believing the copy. */}
         <Caption className="mt-1 max-w-3xl leading-relaxed">
           Not by price. Our five verticals are rooms full of recognisable
           people, so a free library with no release is not a cheaper source, it
           is a source that cannot supply the frames we came for. Each clause is
-          quoted word for word from the licence page on {RETRIEVED}, and each
-          contact sheet is {SHEET_COUNT} pulls of the source&rsquo;s own
-          thumbnails, {FRAME_COUNT} frames in all, taken on {HARVESTED} and
-          hotlinked rather than copied. Nothing here is licensed to us: every
-          tile is a preview, and some sources serve theirs unwatermarked.
+          quoted word for word from the licence page on {RETRIEVED}. The sheet
+          is {`${SHEET_COUNT} pulls`} of the sources&rsquo; own thumbnails,{" "}
+          {`${FRAME_COUNT} frames`} in all, taken on {HARVESTED} and hotlinked
+          rather than copied. Nothing here is licensed to us: every tile is a
+          preview, and some sources serve theirs unwatermarked.
         </Caption>
       </div>
 
@@ -485,10 +506,29 @@ export function SurfaceCheck({ vertical }: { vertical: Vertical | "all" }) {
         </p>
       </div>
 
-      {/* A Toggle is an inline-flex row that never wraps, and seven source names
-          is 456 px of switch against a 375 px screen: measured, that one row was
-          the whole document's horizontal scroll at phone width. It is its own
-          scroller below sm and wraps from sm up, the same shape the dock uses. */}
+      {/* ★ THESE TWO STAY HERE AND ARE NOT IN THE DOCK, WHICH IS A DECISION AND
+          NOT AN OMISSION. The round's global note puts every PAGE-WIDE switch in
+          the dock and keeps a per-specimen control beside its specimen; source
+          and viewport dress this one stage and nothing else on the page moves
+          when they change, so docking them would make the dock claim a reach it
+          does not have. The vertical, which every contact sheet on the page
+          obeys, is in the dock. The Handoff says the same thing out loud against
+          goal item (3), and the caption below says it to a reviewer who is
+          looking for the missing switch rather than reading the manifest.
+
+          A Toggle was an inline-flex row that never wrapped, and this row of
+          seven source names plus a viewport pair overflowed a 375 screen, which
+          pushed the whole document into a horizontal scroll (measured before this
+          wrapper existed; it is seven since Unsplash+ started drawing, because
+          this list is derived from the sources that have a sheet). It is its own
+          scroller below sm and wraps from sm up. It stays a scroller while the
+          DOCK's row was changed to wrap, and the difference is measured, not a
+          taste: the dock's row sits inside the shell's `basis-full` cell, whose
+          `min-w-0` applies only from `sm` up, so a scroller there still widens
+          the page (see board.tsx). This row's parent has a definite width, so the
+          scroller is contained, and the measurement at a real 375 is in the
+          Handoff. Wrapping it instead would cost five rows of switch directly
+          above the stage it controls. */}
       <div className="-mx-4 flex max-w-full items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0">
         <Toggle
           ariaLabel="Source"
@@ -506,6 +546,12 @@ export function SurfaceCheck({ vertical }: { vertical: Vertical | "all" }) {
           onChange={(v) => setMode(v as "desktop" | "phone")}
         />
       </div>
+
+      <Caption className="text-[10px]">
+        These two dress this stage only, so they sit with it. The dock holds
+        what moves the whole page: the vertical every contact sheet above draws,
+        the route, the geometry.
+      </Caption>
 
       {frames.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-4">

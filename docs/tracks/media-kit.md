@@ -716,20 +716,24 @@ No production byte changed.
 
 ## Handoff (round 4)
 
-- Head `4aa2967`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot name its own
-  commit, so the commits after it are this file). Board at `/design/c/media-kit?key=`.
+- Head `<this file's commit>`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot name its
+  own commit). Board at `/design/c/media-kit?key=`.
   Preview `partyreel-git-lp-media-kit-partyreel.vercel.app`.
 - ★ **Verified on a LOCAL PRODUCTION BUILD, not on a preview, and no Vercel API was called.** The
   round's brief said Vercel is capped, so every check below was run on `pnpm build` + `next start` in
-  this worktree, in a FOREGROUND tab, at 1440 and at 375 (`-p 3214`, then `3216`, `3218`, `3220` and
-  finally `3222` on the synced tree; the port moves because a rebuild swaps `.next` under a running
-  server and kills it). The alias will serve this round whenever a slot frees; confirm by the SHA on
-  the deployment, never by the push succeeding (round two's note on the cap still holds).
-- Synced with `launch-prep` at `6484558` (it had moved one commit past the cut `32ddefc`:
-  `docs(program)`, the app's UI inside rising tides, which touches nothing this lane reads; merged
-  before handoff so the tree under test is the integration tree).
+  this worktree at 1440 and at 375 (finally `-p 3233`; the port moves because a rebuild swaps `.next`
+  under a running server and kills it). The alias will serve this round whenever a slot frees; confirm
+  by the SHA on the deployment, never by the push succeeding (round two's note on the cap still holds).
+- ★ **Synced with `launch-prep` at `07ad3b2`, which is the correction of a claim the first handoff got
+  wrong.** That handoff said the tree under test was the integration tree at `6484558`; it was not.
+  `launch-prep` moved to `07ad3b2` (`lab(shell)`: the dock wraps at 375, re-syncs its height, hides the
+  pill; `Toggle` takes `wrap`; `Stage`'s wrapper is `min-w-0`) at 05:07, between this track's merge at
+  05:04 and its handoff commit at 05:09, so the round was signed off against a shell one commit stale,
+  and that shell commit lands exactly on the surface this board's 375 fix works around. It is merged now
+  and everything below was re-measured on it. The lesson for the next round is the cheap one: re-read
+  `origin/launch-prep` at the moment of the handoff, not at the moment of the merge.
 - Gates on that synced tree: typecheck ok, lint ok (0 errors, 6 warnings, all pre-existing and none
-  in this lane), test ok (1821 in 200 files; this track holds 76 across 7 suites, 17 of them new this
+  in this lane), test ok (1822 in 200 files; this track holds 77 across 7 suites, 18 of them new this
   round in `plan.test.ts` plus 3 rewritten in `decision.test.ts`), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
   `docs/tracks/media-kit.md` and eight files under `src/app/(dev)/design/sandbox/media-kit/`
@@ -740,23 +744,46 @@ No production byte changed.
   `provenance.json`). Round four copied nothing into the repo at all, which is the point of it.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 
+### The goal, item by item (and the one item that was not delivered whole)
+
+- (1) **Sources, not picks**: delivered. 13 catalogues, each with URL, licence clause quoted verbatim,
+  price, coverage, release position, verdict, and a contact sheet where one can be drawn.
+- (2) **The rule stays**: delivered. Release-held is the sort key and the bar; `plan.test.ts` asserts
+  the ordering rather than trusting the array.
+- (3) **"The dock carries the vertical and the source filter"**: **HALF DELIVERED, AND THE HALF THAT IS
+  NOT IS A DECISION.** The dock carries Vertical, Route and Geometry plus the Apply cluster. The Source
+  filter is NOT in the dock: it sits beside the surface check, where it started. The reason is the same
+  round's global note (a), which puts every PAGE-WIDE switch in the dock and keeps a control that
+  changes ONE specimen beside that specimen. Source drives only the surface check's single stage, and
+  nothing else on the page moves when it changes, so docking it would make the dock advertise a reach it
+  does not have, and it would push a 7-option row into a dock that already wraps to 232 px at 375. The
+  vertical, which every contact sheet on the page obeys, IS docked, and that is the half of the item
+  that was about back-and-forth comparison. A caption under the surface check says this on the board so
+  a reviewer hunting the missing switch finds the answer without the manifest. **If Will reads the item
+  literally rather than by its stated purpose, this is a one-line change and the board should take it**;
+  it is written up here rather than quietly dropped, which is what the first handoff did.
+- (4) **The spec gains the sourcing sheet**: delivered, `docs/specs/media-kit.md` section 8 (8.1-8.5),
+  plus the asset-log rows proposed below.
+
 ### Shell changes asked for (the Orchestrator lands them)
 
-1. ★ **`BoardDock`'s height sync is dead after first paint, on every board that adopted it this
-   round.** `src/components/dev/board/dock.tsx` writes the dock's height to `scroll-padding-top` and
-   `--board-dock-h` from a `ResizeObserver`, and the observer never fires again after mount.
-   Measured on the local production build: on this board the dock is **89 px** and the variable is
-   stuck at **292 px** (`scroll-padding-top: 300px`), so `location.hash = "#mk-sheet"` lands the
-   section **211 px below the dock** rather than just under it, which is the exact thing the sync
-   exists to prevent. Reproduced independently on the **palette** board in a neighbouring worktree
-   (dock 129 px, variable 456 px, padding 464 px), so it is the shell and not one board's usage.
-   Proof it is the observer and not a race: growing the dock by hand
-   (`el.style.paddingBottom = "60px"`) takes it 89 to 141 and the variable does not move; shrinking it
-   back does not either. The frozen value is roughly what the dock measures while the lab is still
-   laid out in its narrow sidebar cell during hydration, so the likely cause is the ref landing on a
-   node React replaced during hydration; a `requestAnimationFrame`-deferred re-sync, or observing with
-   `{ box: "border-box" }` plus a `load` listener, would close it. Every board's in-page links are
-   wrong until it is fixed, this one's four "See it" links included.
+1. ~~**`BoardDock`'s height sync is dead after first paint.**~~ **WITHDRAWN, it is already landed.** The
+   first handoff asked for this against a `launch-prep` that had already fixed it: `07ad3b2` adds a
+   `requestAnimationFrame`-deferred re-sync and a `resize` listener to `dock.tsx`, which is the fix that
+   ask described. Re-measured on the merged tree: the dock is 89 px, `--board-dock-h` is 89 px,
+   `scroll-padding-top` is 97 px, and all four "See it" links land their section at `top: 97`, i.e. 8 px
+   under the dock. **The "four links land 210 px low" defect reported in the first Light QA is gone, and
+   the Orchestrator should not act on it.**
+
+   ★ One real residue, and it is the reason that ask read as a live bug at all: the stale value only
+   appears when the board first paints in a **background tab**, where the lab lays out in its narrow
+   sidebar cell and no resize ever fires. Measured here: `document.hidden === true`, dock 89 px,
+   variable stuck at 350 px, and one synthetic `resize` event corrected it to 89 px instantly. A human
+   opening the lab in a foreground window never sees it, which is why this is reported as a note rather
+   than an ask. If the Orchestrator wants it closed anyway, a `visibilitychange` listener next to the
+   existing `resize` one in `dock.tsx` is the whole fix. This is the `testing-verification.md`
+   blind-spot in its purest form: the tooling, not the product, produced the number.
+
 2. **`touchpoints.ts` still carries round three's note and variants for `media-kit`** (no agent edits
    that file). Proposed: `note` → `Where the frames actually come from: thirteen real catalogues
    ranked by whether they hold a release, each with its clause, its price and a contact sheet of its
@@ -832,12 +859,16 @@ rooms nothing else can, and $56 is the total. Then read the three lines under it
 middle one: $299 a year is what the FILMS would cost, which is more than every photograph above, and
 that asymmetry is why the recommendation buys the stills and shoots the rest.
 
-**Then the first card on the sheet, and read the release note on it.** Unsplash was refused in round
-one on the sentence that excludes recognisable people, and three rounds were built on that refusal.
-It is the FREE licence. Unsplash+ is a different agreement on the same site whose entire product is
-that clause removed: model and property released, a $10,000 warranty per photo, perpetual for
-anything downloaded inside the month. Nobody had looked at the paid tier of the site the first round
-ruled out.
+**Then the first card on the sheet, and look at the twelve frames on it before you read a word.**
+Until this morning that card was blank, with a sentence where the photographs are now: the board was
+asking for $20 on a catalogue it showed nothing of, because an unmeasured claim that the paid tier
+needs an account had been sitting there since the sheet was built. It does not. Those are the frames
+the money buys, on whichever vertical the dock is set to. **Then** read the release note underneath.
+Unsplash was refused in round one on the sentence that excludes recognisable people, and three rounds
+were built on that refusal. It is the FREE licence. Unsplash+ is a different agreement on the same
+site whose entire product is that clause removed: model and property released, a $10,000 warranty per
+photo, perpetual for anything downloaded inside the month. Nobody had looked at the paid tier of the
+site the first round ruled out, and then nobody had looked at its catalogue either.
 
 **Then set the dock to Corporate and conferences and scroll to card 7, Web Summit's Flickr archive.**
 87,066 CC BY 2.0 photographs from one account, which is the best free catalogue that exists for the
@@ -849,44 +880,76 @@ footnote.
 
 ### Light QA
 
-Walked cold at 1440 and at 375 on a local production build in a foreground tab, on the synced tree
-(`next start -p 3222`).
+**Re-walked from scratch on the merged tree** (`launch-prep` `07ad3b2` in), on a local production build
+(`pnpm build` + `next start -p 3233`), at 1440 and at 375. No Vercel API was called and no preview was
+used. Everything the first handoff measured on the stale shell was thrown away and taken again.
 
-- **1440.** `documentElement.scrollWidth === clientWidth === 1456` with the disclosure closed and
-  open. The dock's Vertical filter drives every contact sheet at once, which is the global note it
-  answers: on Corporate and conferences, iStock, Envato, Web Summit and Nappy each draw 12 frames and
-  the four sources with nothing for that vertical fall back to one they have, labelled `nothing for
-  corporate and conferences` so the fallback cannot be mistaken for an answer. All 70 tiles in the
-  default view load (`naturalWidth > 0` on every one, zero dead), as do all 24 Flickr frames on the
-  Web Summit card.
-- **The surface check at 1:1.** Three real 320x400 blog cards on the cinema ground at the three rungs
-  of the crop ladder, and the 1200x630 share card at its true size, each measured at exactly those
-  pixels (`getBoundingClientRect` 320x400 and 1200x630). The 1440 canvas sits in the shell's own
-  `overflow-x-auto`, so it scrolls sideways in its box and never widens the page.
-- **375, verified in a 375 px same-origin iframe** (the Chrome MCP still cannot narrow the window; it
-  reports `innerWidth` 1456 for a 420 px window, and an iframe does re-run the media queries).
-  `scrollWidth === clientWidth === 371` at five sampled scroll positions down all 47,645 px of the
-  page with the disclosure OPEN, and every element past 376 px is inside an `overflow-x-auto` or the
-  Stage's own scroller. **This took two fixes, and the first was a real bug:** a `Toggle` is an
-  inline-flex row that never wraps, so the dock's six verticals (453 px) and the surface check's seven
-  sources (456 px) each pushed the whole document into a horizontal scroll at phone width. Both rows
-  are their own scroller below `sm` now and wrap from `sm` up, which is where the dock starts sticking
-  anyway.
-- **Reduced motion is honoured, and this board still mints no keyframe and runs no loop.** The only
-  entrance is the house develop beat (`data-mkt-develop` with `--i`, marketing.css, already inside
-  `no-preference`), the only transform is the tile press, which carries
-  `motion-reduce:transition-none motion-reduce:active:scale-100`, and everything else is a 150 ms
-  colour or underline change. `board.css` is unchanged and still adds exactly one rule, inside
-  `prefers-reduced-motion: no-preference`.
-- **No console message of any kind** on the production build.
-- **One defect a reviewer will hit and I cannot fix from this lane:** the four "See it" links in the
-  ruling card land about 210 px below the dock, because of the shell's frozen `scroll-padding-top`
-  (shell ask 1 above). Scrolling up two notches after a jump is the workaround until it lands.
+- **1440.** `documentElement.scrollWidth === clientWidth === 1456`. The dock's Vertical filter drives
+  every contact sheet at once. The dock measures 89 px, `--board-dock-h` agrees, and the four "See it"
+  links land their section at `top: 97` (8 px clear). Zero console messages of any kind.
+- **The sheet.** 26 contact sheets, 308 frames. Unsplash+ is rank 1 and now draws its own 12-frame
+  sheet on each of the five verticals; the other six blanks each print their own measured reason.
+- **The surface check at 1:1.** Three real 320x400 blog cards at the three rungs of the crop ladder and
+  the 1200x630 share card, each at exactly those pixels. It now defaults to Unsplash+, which is also the
+  source the plan recommends buying, so the first specimen a reviewer sees is the one being argued for.
+- **375, measured in a 375 px same-origin iframe, and this is a disclosed limitation.** The Chrome MCP
+  cannot narrow this window: `resize_window` to 375x812 reports success and `innerWidth` stays 1456, so
+  the iframe (which does re-run the media queries) is the honest instrument available. In it:
+  `scrollWidth === clientWidth === 371` at six sampled positions down all 22,146 px of the page, and a
+  walk of every element in the document found **zero** wider than the viewport outside an
+  `overflow-x` container. The dock wraps to 232 px and `scroll-padding-top` follows it to 240 px.
+- **The dock's row wraps; the surface check's row still scrolls, and that difference is measured.** The
+  dock's switches sit in the shell's `basis-full` cell, whose `min-w-0` applies only from `sm` up, so a
+  sideways scroller there still widens the page: they use the shell's new `wrap` option instead. The
+  surface check's 7-source row has a parent with a definite width, so its scroller is contained (339 px
+  visible over 674 px of content) and costs no page width.
+- **Reduced motion is honoured, and this board still mints no keyframe and runs no loop.**
+  `document.getAnimations()` returns **0** running animations on the loaded board. `board.css` is
+  untouched and still adds exactly one rule, inside `prefers-reduced-motion: no-preference`.
+- ★ **What the tooling could NOT tell me, stated rather than glossed.** The Chrome MCP drives a
+  BACKGROUND tab, and Chrome defers image loading in one: every tile reports `complete === false`
+  forever, so "all 308 tiles load" cannot be proved by polling `naturalWidth` here (it reports 0 dead
+  and 115 pending, which means nothing). What IS evidence: all 308 thumbnail URLs plus 60 photo pages
+  and 5 search pages were confirmed by `curl` to answer 200 with an image content type behind a
+  `partyreel.com` referer, and the screenshots taken during the walk show the frames painted on both
+  the sheet and the surface check. The same background-tab deferral is what produced the withdrawn
+  shell ask above. **Will's 10-second look, if he wants one: open the board and confirm the tiles on
+  card 1 are photographs rather than empty slates.**
 
 ### Findings against a rule
 
-None against the bible. Five against this track's own earlier work and one against a source, all
-acted on:
+None against the bible. Seven against this track's own earlier work and one against a source, all
+acted on. **The first two were found by a review of the handoff, after the round called itself done,
+and they are the two worth reading:**
+
+0a. ★★ **The board printed a false technical claim on 7 of its 13 cards, and it contradicted the card
+   standing next to it.** Every source with no contact sheet shared one categorical slate: "This
+   catalogue answers a non-browser client with a 401 or a 403." It was true of three. Stocksy and
+   Artgrid were only ever described as unreadable; Death to Stock carried a described catalogue; and
+   **Coverr's own card, one column to the left of that slate, reports a measurement taken off the very
+   search page the slate said had refused** (70 clips, 23 of them AI, plus 34 iStock results), the
+   measurement finding 4 below is built on. On a board whose entire thesis is "drawn, not described", a
+   shared excuse is the one thing a blank must not carry. Every reason is now measured per source and
+   printed per card, and `plan.test.ts` fails a source that has neither a sheet nor its own reason, or
+   two sources sharing one.
+
+0b. ★★ **Writing those seven reasons out separately is what proved one of them false, and it changed
+   the round's own recommendation from "described" to "drawn".** Unsplash+ was blank on the claim that
+   the paid tier sits behind an account. Nobody had ever measured it.
+   `unsplash.com/s/photos/<q>?license=plus` answers a plain client with the plus results: 20 released
+   frames on every one of the five verticals. **The one source the plan asks Will to spend money on was
+   the one source the board showed nothing of**, purely because an unchecked sentence sat where a
+   measurement belonged. It now draws 60 frames, 12 per vertical, and the sheet went from 21 sheets /
+   248 frames to 26 / 308. The general lesson is the round's own turned back on itself: an unverified
+   claim about why something CANNOT be shown is the same failure as an unverified claim about what it
+   contains, and it is harder to spot because it looks like diligence.
+
+0c. **A count and its noun must live in ONE JSX expression.** `{SHEET_COUNT} pulls` rendered as
+   "26pulls" on the production build, and the identical shape in `board.tsx` rendered "24marketing
+   pages". Both had been live for a round, because the copy reads as one word in source and nobody
+   rebuilds to re-read a sentence they wrote. Both are template literals now, with the trap written
+   down where the next agent will hit it. Found by walking the rendered DOM for `\d+[a-z]{3,}`, which
+   is a cheap check worth repeating on any board that prints derived numbers.
 
 1. ★ **The refusal that shaped three rounds was of a TIER, not of a company.** Round one read
    Unsplash's free terms, found the sentence excluding recognisable people, marked the source
@@ -924,9 +987,13 @@ different question, where the frames come from rather than which twelve to pick,
 a sourcing sheet: thirteen real catalogues, ranked by whether they hold a model release rather than by
 price, each with its licence clause quoted word for word, its price with a number in it, and a contact
 sheet of its own thumbnails hotlinked from its own CDN so that nothing paid was copied into the repo.
-Twenty-one sheets and 248 frames were harvested from the sources' public search pages and every URL
-confirmed live; the five that answer a non-browser client with a 401 or a 403 draw nothing and say so,
-which is itself a fact about working with them. The round's finding is that the refusal at the heart of
+Twenty-six sheets and 308 frames were harvested from the sources' public search pages and every URL
+confirmed live; the six that cannot be drawn say why on their own cards, in four different ways (a 403,
+an empty client-rendered shell, a members' wall, and one that read perfectly and failed on what it
+returned) rather than sharing one excuse. Writing those reasons out per source is what caught the round's
+own worst error: a seventh card had been blank on an unmeasured claim that Unsplash+ sits behind an
+account, the plus-filtered search reads fine from a plain client, and the source the plan actually asks
+Will to buy now draws 60 of the frames instead of explaining why it could not. The round's finding is that the refusal at the heart of
 three rounds was of a TIER and not of a company: Unsplash's free licence excludes recognisable people,
 which is what disqualified the twelve stand-ins, and Unsplash+ is a separate agreement on the same site
 whose entire product is that clause removed, model and property released with a $10,000 warranty per

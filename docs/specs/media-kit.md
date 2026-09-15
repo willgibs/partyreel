@@ -774,7 +774,7 @@ continuously**, so a source approved on its terms is not a source approved.
 
 ### 8.5 How the contact sheets are built, and why nothing is copied
 
-The board draws 21 contact sheets, 248 frames, each one **the source's own thumbnail hotlinked from the
+The board draws 26 contact sheets, 308 frames, each one **the source's own thumbnail hotlinked from the
 source's own CDN**: [`catalogue.ts`](../../src/app/\(dev\)/design/sandbox/media-kit/catalogue.ts) holds
 URLs and no files. That is the honest way to show a catalogue we have not bought. A watermarked comp
 stays a watermarked comp, a paid frame is never copied into this repo, and `plan.test.ts` refuses any
@@ -792,10 +792,42 @@ To rebuild it, read each source's public search page and take the thumbnail URLs
 - **Nappy** `nappy.co/search?q=<query>`, `images.nappy.co/photo/<id>.jpg`.
 - **Mixkit** `mixkit.co/free-stock-video/<topic>/`, poster frames on
   `assets.mixkit.co/videos/<id>/<id>-thumb-360-0.jpg`.
+- **Unsplash+** `unsplash.com/s/photos/<query>?license=plus`, released frames on
+  `plus.unsplash.com/premium_photo-<id>`. Take them from the embedded search payload, never from the
+  `<link rel="preload">` tags in the head: those repeat ONE photo at twelve widths, and pairing a
+  thumbnail to the nearest anchor there maps two frames onto one photo page. Drop the `ixid` tracking
+  token and keep the rest of the source's own query string.
 
-Five sources draw no sheet at all, and that is recorded on their cards rather than worked around:
-**Unsplash, Adobe Stock, Pexels, Pixabay and Creative Market** each answer a non-browser client with a
-401 or a 403. It is worth knowing before planning a workflow around one of them.
+**Six of the thirteen sources draw no sheet, and they are blank for four different reasons.** Two
+earlier drafts of this section got this wrong in the same way, and the correction is the useful part.
+The first said five sources and gave one reason for all of them, a 401 or a 403, which was true of
+three and wrong about the rest; two of the five it named (Pexels, Pixabay) are licences on this board
+and not sources at all. The second kept the shared shape and wrote seven reasons out per source, which
+is what exposed the real error: one of the seven was not refusing anything. Measured with a plain
+client on 2026-09-15:
+
+| Source | What a plain client gets | Why there is no sheet |
+| --- | --- | --- |
+| Adobe Stock | `403` | Refuses outright. Nothing to draw, and nothing to route around short of driving a browser. |
+| Stocksy United | `403` | The same. The most carefully curated library here is the one the board can show least of. |
+| Creative Market | `403` | The same. The cheap wedding album from Will's note is taken entirely on its own description. |
+| Artgrid | `200`, an empty application shell | The clips are fetched client side, so the markup carries no thumbnails. A 200 is not a readable catalogue. |
+| Death to Stock | `200` at the door, `404` on every browse path | The 15,000 visuals are behind the membership, the same wall its rental clause describes. |
+| Coverr | `200`, and it reads completely | Nothing refused it. The reading IS its verdict (8.4): its `party` page is 70 Coverr clips and 34 iStock results in one grid, so a sheet drawn from it would put two catalogues under one name. |
+
+**Unsplash+ was the seventh, and it draws now.** It had been left blank on the claim that the paid tier
+sits behind an account, which nobody had measured. `unsplash.com/s/photos/<query>?license=plus`
+answers a plain client with the plus results: 20 released frames on each of the five verticals, of
+which this sheet takes the first 12, so the source the plan actually asks Will to buy is the one the
+board now shows most of rather than the one it showed none of. The board's whole thesis is that a
+catalogue must be drawn rather than described, and an unchecked sentence about why a catalogue cannot
+be drawn is the same failure wearing the opposite costume.
+
+Each remaining reason lives on its own card, in `noSheet` on the source
+([`sources.ts`](../../src/app/\(dev\)/design/sandbox/media-kit/sources.ts)), and `plan.test.ts`
+refuses a source that has neither a sheet nor a reason, or two sources sharing one. The lesson is the
+round's own, turned on itself: one sentence covering seven cases is a description, and writing the
+seven out separately is what proved one of them false.
 
 Every URL on the sheet was confirmed to answer 200 with an image content type to a request carrying a
 `partyreel.com` referer on 2026-09-15, so none of them is hotlink-protected today. A tile whose URL
