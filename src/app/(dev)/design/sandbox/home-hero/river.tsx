@@ -878,6 +878,25 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
             // the rest state cannot drift from the running one; the modulo is
             // what the loop uses and what keeps a card whose slot jitter went
             // negative at the bottom of the fall rather than above the code.
+            //
+            // ★ WHAT THAT MEANS AT 375, because the still reads as short of
+            // its own markup and is not: the rest state is one INSTANT of the
+            // stream, so the cards the bottom dissolve already holds at zero
+            // are at zero here too. The phone's dissolve is complete at 46% of
+            // the canvas and the fall runs past it, so three of the sixteen
+            // stand below it with nothing on screen and a fourth is a 9 px
+            // band at 8 percent: a reduced-motion reader gets 12 frames, which
+            // is what a motion reader has at any frame (12 to 14, measured on
+            // the driven loop). The desktop stands all 16, the last two
+            // dissolving through the bottom edge at 76 and 23 px.
+            //
+            // The fall OVER-travels the dissolve on purpose, and that tail is
+            // what those three cards are: a card may only recycle once none of
+            // it can be seen (topEdgeAt above), so without the tail the recycle
+            // would be the pop the dead-line test exists to prevent. Moving the
+            // rest state up to fill the band would buy four frames in the still
+            // by making it denser than the stream it stands for, which is the
+            // one thing a designed rest state may not be.
             const seed =
               mod((c.slot + c.phase) * geo.launch, POOL * geo.launch) /
               geo.flight;
