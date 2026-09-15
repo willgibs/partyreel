@@ -341,9 +341,16 @@
    has nowhere else to put a control of its own; it leaves with the board. Since
    round four it is ONE button rather than a pair, because the reading is ruled
    and this only shows what the hero looks like before the cutout is shot.
-   Sized so it never competes with anything in the frame, and parked in the one
-   corner every composition here leaves empty: above the headline's box,
-   outside the band, clear of the near field on both canvases. */
+   Sized so it never competes with anything in the frame, and parked above the
+   headline's first row of INK rather than above its line BOX, which is the
+   distinction round four's review turned on: at 375 the ruled reading stacks
+   the words at the top of the canvas, so the corner this pill used to call
+   empty is the headline's. The small pill is therefore 20 px tall at top 6
+   (box ends at y=26) and the stacked block's top inset is set from that box,
+   not the other way round (scan.tsx): 32 puts the cap line at y=39.5 and the
+   ascenders at y=38.1, a clear 12 px below the pill. Move either number and
+   re-measure the pair. Outside the band and clear of the near field on both
+   canvases, as before. */
 .hhc-lab {
   position: absolute;
   top: 12px;
@@ -360,10 +367,13 @@
   line-height: 1;
 }
 
+/* The 375 pill: shorter and higher than the 1440 one, because the canvas it
+   sits on has no spare corner. The button keeps its 16 px hit box and the
+   height comes out of the pill's own padding instead. */
 .hhc-lab-sm {
-  top: 8px;
+  top: 6px;
   right: 8px;
-  padding: 3px 4px 3px 9px;
+  padding: 1px 2px 1px 9px;
   font-size: 10px;
 }
 

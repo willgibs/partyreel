@@ -359,10 +359,19 @@ const GEO: Record<Mode, Geo> = {
         // the frame. Round four raised the axis to 96 and the block to 22: the
         // device grew, and every pixel it grew by had to come from somewhere
         // that was not the type.
+        //
+        // 22 was ten pixels too few, and the review caught it: the block's TOP
+        // is the only thing the lab's footnote pill has to sit above, and at 22
+        // the pill's box (y=6..26) cut 3.8 px off the first line's ascenders.
+        // 32 puts the ink at y=38.1 and clears the pill by 12. The ten pixels
+        // are paid back INSIDE the block (mt-3 under the headline, mt-4 under
+        // the sentence, both stacked-only) so nothing below the type moves: the
+        // actions still end 15 px above the caption lane, which is anchored to
+        // the plate and was never the thing in the way.
         axis: 96,
         lane: { at: -92, anchor: "bottom", max: 320 },
         stacked: true,
-        topInset: 22,
+        topInset: 32,
       },
       room: {
         // No near field to make room for, so the classic vertical rhythm:
@@ -804,7 +813,7 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
         {text.subhead}
       </p>
       <div
-        className={`flex flex-wrap items-center justify-center gap-3 ${layout.stacked ? "mt-5" : "mt-7"}`}
+        className={`flex flex-wrap items-center justify-center gap-3 ${layout.stacked ? "mt-4" : "mt-7"}`}
       >
         <Button asChild size="lg" className="h-11 px-6 text-base">
           <Link href={text.primary.href}>{text.primary.label}</Link>
@@ -957,7 +966,10 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
           style={{ top: layout.topInset }}
         >
           {headline}
-          <div className="mt-4">{sentence}</div>
+          {/* mt-3, not mt-4: the ten pixels the top inset took back for the
+              footnote pill are returned here and at the actions, so the block
+              ends where it did and the lane below it is untouched. */}
+          <div className="mt-3">{sentence}</div>
         </div>
       ) : (
         <>
