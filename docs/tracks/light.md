@@ -794,10 +794,14 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
   this manifest on top. The board is `/design/c/light?key=...`; seven anchors, named by what
   they are rather than by a letter: `#lgt-kit`, `#lgt-treatments` (with `#lgt-t-seam` ..
   `#lgt-t-beam` per treatment), `#lgt-composer`, `#lgt-separate`, `#lgt-evidence`, `#lgt-infusion`,
-  `#lgt-paste`. The board is 28,309px tall at the 1440 canvas on a local production build, 18
-  stages, 13 at 1:1 and 5 fitted. It was 27,690 before this pass: the cascade fix hands every
-  mounted production section back its desktop layout, which changes their heights, and the
-  disclosure paragraph that asked a reviewer to ignore those layouts is gone.
+  `#lgt-paste`. The board is 28,345px tall at the 1440 canvas on a local production build, measured
+  on a settled fresh load with the composer at its default section, and 18 stages, 13 at 1:1 and 5
+  fitted. Two caveats on that number, because a height read at the wrong moment is a number the page
+  does not show: it grows by several hundred px between first paint and settle, and it follows the
+  composer (28,557 on the hero, 29,366 on the footer, back to 28,345 on the guest ledger). It was
+  27,690 before this pass, measured the same way: the mounted production sections now lay out as
+  they ship rather than stacked, and the disclosure paragraph that asked a reviewer to ignore those
+  layouts is gone.
 - **The round-four review's three in-lane defects, fixed at `d4c38d5`, and one they turned up.**
   - ★ **The aurora's clock was dead, and the board was rendering as if it were not.** Round four
     moved the field's cadence off a literal (`"33s"`) onto the sibling token its paste proposes,
@@ -874,8 +878,8 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
   hidden, so this pass makes no motion claim from it; nothing it changed touches motion, and round
   four's foreground-tab sweep still stands. What it does assert is geometry and DOM state, both of
   which are visibility-independent: the 27-cell refusal sweep, the nine-section cascade measurement,
-  the 18-stage census (13 at 1:1, 5 fitted), the 28,309px height and no horizontal overflow at
-  either canvas.
+  the 18-stage census (13 at 1:1, 5 fitted), the height and no horizontal overflow at either
+  canvas.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/light.md`,
   `docs/specs/light.md` and `src/app/(dev)/design/sandbox/light/*`. The spec is the ONE addition to
   `owns` this round, because goal item 6 asks for it rewritten to the kit and `media-kit` is the
