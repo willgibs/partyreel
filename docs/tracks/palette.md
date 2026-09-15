@@ -957,18 +957,16 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). Rounds two and three turned the palette board
-from a proof that the ramp is wrong into a surface a ruling can be read off in a few words. Round
-two made every candidate leave the board: the full token block plus the accent, the panel at one
-token and `--faint` on the alpha-dimmed sites, handed to the whole site through the shell's
-`setCandidateCss`, and widened the judged surfaces to what the product is made of (the event page's
-stat band and review queue, the dashboard, the guest album on the canvas, the ink leaf hosting a card
-and a menu, the six state hues under every ramp, the light spec's depth cues on each candidate's
-grounds). Round three walked it cold and cut rather than added: candidate C was A's ladder at a
-temperature by its own admission, so it became a switch that any ramp can wear (`warm(A)` still
-reproduces C's five published blocks token for token, pinned by a test) and warm B became askable for
-the first time; two of the eight asks were consequences of the ramp letter, so they are printed as
-what the letter already decides; and the board's strongest evidence now leads it, with today's ramp
-beside the candidate in one canvas on both grounds, because a 0.02 step is exactly what an eye cannot
-hold across a toggle. Two counts the board had been quoting were wrong and are measured now (the
-panel ships at 35 sites, not 45; the undocumented ring at 37, not 77), the six pages of the walk are
-links rather than prose, and every control has a name. Lab only: no production byte changed.
+from a proof that the ramp is wrong into a surface a ruling can be read off in a few words. Round two
+made every candidate leave the board as the paste its ruling would land, handed to the whole site
+through the shell's `setCandidateCss`, and widened the judged surfaces to what the product is made of:
+the event page's stat band and review queue, the dashboard, the guest album on the canvas, the ink
+leaf hosting a card and a menu, the state hues under every ramp, the light spec's depth cues on each
+candidate's grounds. Round three walked it cold and cut rather than added. Candidate C was A's ladder
+at a temperature by its own admission, so it became a switch any ramp can wear, with a test pinning
+`warm(A)` to C's published blocks token for token and warm B askable for the first time. Two of the
+eight asks were consequences of the letter, and are printed as what the letter already decides. The
+strongest evidence now leads the board, today beside the candidate in one canvas on both grounds,
+because a 0.02 step is what an eye cannot hold across a toggle. Two counts it had been quoting were
+wrong and are measured (the panel ships at 35 sites, not 45; the undocumented ring at 37, not 77),
+the walk's six pages are links, and every control has a name. Lab only: no production byte changed.
