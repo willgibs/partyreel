@@ -568,8 +568,8 @@ body:has([data-mkt-skin="cinema"]) {
 
 ## Handoff (round 2)
 
-- Head: the tip of `lp/palette`, pushed. The last commit touching the board is `ba2afa9`; after it
-  come the `4b035c1` sync merge and this manifest. Preview
+- Head: the tip of `lp/palette`, pushed. The last commit touching the board is the album fix; the
+  `4b035c1` sync merge sits between it and the first round-two commit. Preview
   `partyreel-git-lp-palette-partyreel.vercel.app`, board at `/design/c/palette?key=`. The round-two board is the one whose control bar carries the class
   `pal-walk-bar` (and thirteen rows with ids `#pal-01` to `#pal-13`); round one's had neither.
 - Synced with `launch-prep` at `4b035c1` (it had moved from the `ca952b5` cut by one docs commit,
@@ -590,11 +590,26 @@ body:has([data-mkt-skin="cinema"]) {
   that does not resolve while `document.hidden`, so the content lands in the sidebar's grid cell.
   It is a test-tool artifact, not a defect, and it hits every board in the lab: verify a lab page in
   a FOREGROUND tab or by the DOM.
-- Two defects the preview caught and the board now fixes, both worth knowing: half the guest album
-  rendered as black fragments (a CSS column will split an aspect-ratio box with a fill image in it,
-  which production's masonry never hits because its tiles take their height from an in-flow image;
-  `break-inside-avoid` is the fix), and the grounds row's ink slab wore the SHIPPED `.surface-ink`
-  while its caption named the candidate's value.
+- ★ **The preview alias is STALE at `e440961`: the project hit Vercel's daily deployment rate
+  limit** ("Deployment rate limited, retry in 24 hours", the GitHub commit status on every push
+  after that; the whole project is affected, not this branch, so the other tracks will hit it too).
+  The three commits after it (`ba2afa9`, `e7549ba` and the album fix) are verified on a local
+  production build and a local dev server instead, measured the same way. When the limit clears,
+  any push to `lp/palette` rebuilds the alias; the round-two board is the one whose control bar
+  carries `pal-walk-bar`.
+- Three defects caught while verifying, all fixed, all worth knowing: the guest album fragmented and
+  then painted black (a CSS column will split an aspect-ratio box, and an ABSOLUTELY positioned
+  child of a column item is placed against the first column fragment in Chrome, so every tile past
+  column two drew its photograph on top of column one; `break-inside-avoid` plus an IN-FLOW image is
+  the fix, which is what production's masonry already does); the grounds row's ink slab wore the
+  SHIPPED `.surface-ink` while its caption named the candidate's value; and the accent never reached
+  `.surface-ink` at all (see departure 4).
+- ★ Two lab-tooling traps, for the next agent: a board read in a DRIVEN BACKGROUND tab lays out in
+  the 232px sidebar cell (the lab nav is a Suspense boundary that does not resolve while
+  `document.hidden`), and shifting a lab page with a negative body margin to dodge the black-
+  screenshot bug perturbs the Stage's own ResizeObserver, so every stage collapses to a thumbnail
+  and the screenshot lies twice. Read a lab page in a FOREGROUND tab at a normal scroll position,
+  or measure the DOM.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
 - **Shell change proposed (the Orchestrator's, not this lane's): the demo guest page cannot wear a
   candidate.** `src/app/(guest)/layout.tsx` mounts no design island, so `setCandidateCss` never

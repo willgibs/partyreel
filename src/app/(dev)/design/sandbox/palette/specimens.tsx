@@ -635,12 +635,18 @@ export function GuestAlbum({ mode }: { mode: Mode }) {
                   <Images className="size-5" />
                 </span>
               ) : (
+                // IN-FLOW, not `fill`. An absolutely positioned child inside a
+                // CSS-column item is positioned against the first column
+                // fragment in Chrome, so every tile past column two painted its
+                // photograph on top of column one and read as black. The shipped
+                // masonry never hits this because its image is in flow too.
                 <Image
                   src={photo(i)}
                   alt=""
-                  fill
+                  width={marketingImage(PHOTOS[i % PHOTOS.length]).width}
+                  height={marketingImage(PHOTOS[i % PHOTOS.length]).height}
                   sizes={desktop ? "260px" : "180px"}
-                  className="object-cover"
+                  className="h-full w-full object-cover"
                 />
               )}
               {i === 0 ? (
