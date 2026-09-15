@@ -171,8 +171,11 @@ export function MarketingChapter({ mode }: { mode: Mode }) {
  * `-right-24` on desktop and `right-2` on the phone, which covered the panel's
  * own explanation at 1440 and hid three lines of it at 375: the specimen is a
  * menu OVER a card, not a menu over the one sentence that says what the panel
- * is. It now overlaps the card's corner from outside and clears the text, and
- * on the phone it drops below the fold of the card rather than across it.
+ * is. On desktop it now hangs off the card's top-right corner from outside; on
+ * the phone, where a 224px menu cannot clear a 335px card at all, it sits over
+ * the action row, so the overlap is still a menu over a card and nothing it
+ * covers is an explanation. Both positions are checked by measuring which text
+ * nodes the menu's box intersects, at both canvases.
  *
  * When paired it also prints the three values it is arguing about, because two
  * frames side by side turn "is this a ladder" into a reading rather than a
@@ -258,7 +261,13 @@ export function SurfaceStack({
         <div
           className={cn(
             "absolute w-56 rounded-float bg-popover p-1 text-popover-foreground shadow-float ring-1 ring-foreground/10",
-            desktop ? "-top-2 -right-16" : "-top-1 -right-3",
+            // ★ Measured, not guessed: at 375 the card is 335 wide and this
+            // menu is 224, so anything anchored to the TOP corner lands on the
+            // card's title, its description and the panel's heading, which is
+            // exactly the copy that says what the specimen is. On the phone it
+            // sits over the action row instead, where the overlap is still a
+            // menu over a card but nothing it covers is an explanation.
+            desktop ? "-top-2 -right-16" : "-right-2 bottom-6",
           )}
         >
           {["Share the album", "Download everything", "Close uploads"].map(
