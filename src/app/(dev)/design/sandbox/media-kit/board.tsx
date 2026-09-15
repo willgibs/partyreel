@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useState, useSyncExternalStore, type CSSProperties } from "react";
 
 import {
+  BoardDock,
   BoardMeta,
   clearCandidate,
   setCandidateCss,
@@ -55,7 +56,9 @@ import {
   STAND_INS,
   VERTICALS,
 } from "./kit";
+import { CLIPS_IF_LICENSED, HARD_FRAMES, TOTAL } from "./plan";
 import { runbookFor, WIRING_ADDS } from "./runbook";
+import { PlanCard, SourcingSheet, SurfaceCheck } from "./sheet";
 import {
   DERIVED,
   KIT_CONSTRAINTS,
@@ -63,10 +66,56 @@ import {
   MASTERS,
   NOT_DERIVED,
 } from "./shoot";
-import { SOURCES } from "./sources";
+import {
+  ALL_VERTICALS,
+  ALLOWED_SOURCES,
+  BARRED_SOURCES,
+  LICENCES,
+  SOURCES,
+  type Vertical,
+  VERTICAL_LABEL,
+} from "./sources";
 
 /**
- * THE MEDIA-KIT BOARD, ROUND THREE (2026-09-15).
+ * THE MEDIA-KIT BOARD, ROUND FOUR (2026-09-15).
+ *
+ * WHAT ROUND FOUR CHANGED, AND WHY. Will's note reopened the track on a different
+ * question: "I haven't had any time to find or design any photos myself. The best
+ * use of this track next may be for discovery/sourcing of those new assets. Could
+ * focus on a few different potential sources as opposed to a few exact image
+ * picks." Three rounds had argued about twelve positions on a page; the thing
+ * actually blocking him was not knowing where to go.
+ *
+ *  1. THE BOARD IS A SOURCING SHEET NOW, AND THE ARGUMENT IS BEHIND A DISCLOSURE.
+ *     The plan and the twelve catalogues come first. Rounds two and three's
+ *     evidence (the exposure, the 23 posts, the call sheet, the record, the
+ *     runbook) is all still here and all still true, folded into one disclosure
+ *     so the new work is findable. An argument already made should not be in
+ *     front of the answer it produced.
+ *  2. THE SHEET RANKS BY RELEASE, NOT BY PRICE, and that inverts the list round
+ *     three built. Every vertical this product sells into is a room full of
+ *     recognisable people, so a free library with no release is not the cheap
+ *     option, it is the one that cannot supply the frames. Every paid source with
+ *     a release outranks every free one, and the sheet says so with a line across
+ *     it.
+ *  3. ★ THE REFUSAL AT THE HEART OF THE TRACK WAS OF A TIER, NOT OF A COMPANY.
+ *     Round one killed Unsplash on the sentence that excludes recognisable people
+ *     from its free licence. Unsplash+ is a different agreement on the same site:
+ *     every visual model and property released, a warranty of up to $10,000 a
+ *     photo, perpetual for anything downloaded while it is live, $20 for a month.
+ *     It is the top of the sheet, and it means the whole bridge is buyable for
+ *     one month plus a few frames rather than unbuyable at any price. The board
+ *     prints the number; plan.ts computes it and plan.test.ts refuses a stale one.
+ *  4. THE CONTACT SHEETS ARE HOTLINKED, NEVER COPIED. 21 pulls from the sources'
+ *     own public search pages, each recorded as the source's own thumbnail URL,
+ *     so a watermarked comp stays a watermarked comp and nothing paid is ever in
+ *     our tree. Five sources refuse a non-browser client and draw no sheet at all,
+ *     which is recorded on their cards rather than worked around.
+ *  5. THE PAGE-WIDE SWITCHES ARE IN THE DOCK (the global note for this round), so
+ *     a vertical can be flipped while looking at any source rather than by
+ *     scrolling back to the top, and every stage renders at 1:1.
+ *
+ * ROUND THREE (2026-09-15), for reference.
  *
  * Round one surveyed the licenses and found the thing that settles the round:
  * Unsplash's terms exclude recognisable people, so the twelve stills were never
@@ -122,9 +171,13 @@ import { SOURCES } from "./sources";
  */
 
 const QUESTION =
-  "No stock at launch and every frame ours or under a license we can name: what the rule says, where the frames come from until the kit exists, and what the kit is when it is shot.";
+  "Where do the frames actually come from: which real catalogues can sell or give us a party, a wedding, a conference and a festival under a licence we can name, at what price, and which of them hold a release for the faces in them.";
 
 const DEPARTURES = [
+  `The refusal that shaped three rounds was of a TIER, not of a company. Unsplash's free licence excludes recognisable people, and every one of the twelve stand-ins is full of them, which is the finding the track was built on. Unsplash+ is a different agreement on the same site: model and property released, a warranty of up to $10,000 a photo, perpetual for anything downloaded while it runs, $20 for a month. Three rounds of "no stock we can name" turn out to have had a $${TOTAL} answer the whole time, and this board is where it is said out loud.`,
+  "A licence is not a source, and round three's survey ran them together: its first row was CC0 1.0, which is a legal instrument and not a place with photographs in it. That is why the survey could not answer the question Will actually had. The two lists are separate now, and the sheet ranks places.",
+  `The free half of the sheet is not cheap, it is unusable, and ranking by price hid that. Every vertical this product sells into is a room full of recognisable faces, so a library with no release cannot supply the frames at any price. ${BARRED_SOURCES.length} of the ${SOURCES.length} places on the sheet sit below a line for that one reason, including the two best free catalogues on it.`,
+  `Coverr was marked allowed in round one on its licence text and was measured this round instead. A search for party returns 70 Coverr-hosted clips, 23 of them user AI generations, served on the same page as 34 iStock results under no Coverr licence at all. The licence was never the problem; the catalogue behind it moved. A source whose terms are read once and whose grid is never audited is a source we do not actually know.`,
   "Bible 18 says no stock on a marketing surface, and the rule is already broken in production on a larger scale than round one reported: the twelve are in 40 production files and 22 routes, and four of them are in the footer of every marketing page. That is the only reason the Licensed route exists at all.",
   "Licensed no longer survives its own column, and round three says so rather than leaving it as an equal third. Under ask 1 it fills ten of the twelve ids and eighteen of the 23 posts, the two it cannot fill are the dance floor and the DJ, and it has nothing at all for the corporate and conference half of the business. It stays on the board to be walked, because walking it is what kills it, not to be chosen.",
   "Round one's board said the blog covers were hashed out of a pool. They are not. All 23 posts set `cover:` in frontmatter and 22 of the 23 differ from what the hash would give, so every miscast cover was chosen by a person out of eleven wedding and festival frames. The correction is on the board because it changes what the fix is: 23 frontmatter lines, not twelve files.",
@@ -133,11 +186,12 @@ const DEPARTURES = [
 ];
 
 const ASSETS = [
+  `NOT an asset ask, a purchase: one month of Unsplash+ ($20) and ${HARD_FRAMES} iStock Essentials frames for the conference rooms ($${HARD_FRAMES * 12}), $${TOTAL} in total. This is the one line on the list Will can complete in an evening with a card rather than a camera, and it is what makes the bridge legal while the shoot is booked. Everything below is the shoot.`,
   "36 event photographs, six per vertical (weddings, birthdays, corporate, conferences, festivals, trips), 1600 px long edge, a third portrait, one dark warm grade, the call sheet on this board (codes W1 to T6). Four of the 36 are the palette board's hard cases (W5 high key, W3 low key, W2 candle warm, S4 stage cool) and three show a guest holding a phone up (K3, S3, T4). Replaces all twelve stand-ins by id.",
   "24 squares at 512x512, 6 to 35 KB webp, crops of the 24 masters marked 512 square rather than a second shoot. Replaces FRAMES in sandbox/home-hero/shared.tsx (ASSETS row 2).",
   "10 portrait crops at 512x640 and 12 portraits at 720x900, recrops of the same masters, for the burst's tall third and the river's stream (ASSETS rows 9 and 12). Ten, not the log's eight: hero-burst raised the count in its round two.",
   "A hand-and-phone cutout, PNG with alpha, 1200 px long edge, the screen area transparent, two grips. The ONE item on the list that is a separate setup: shoot it at the same event, against the darkest wall, in the same low warm light as K3 (ASSETS row 8).",
-  "8 vertical clips, 3 to 5 s, 1080x1920, silent, each with its own poster, filmed at the same events, and the film cut from that footage (ASSETS rows 4 and 1).",
+  `8 vertical clips, 3 to 5 s, 1080x1920, silent, each with its own poster, filmed at the same events, and the film cut from that footage (ASSETS rows 4 and 1). Round four priced the alternative: the only clip licence on the sheet that survives cancellation is $${CLIPS_IF_LICENSED} a year, which is more than every photograph in the plan put together, so this row is the one a licence cannot make cheaper.`,
   "Two frames shot knowing they will be laid over each other, both dark and low contrast at the touching edge, for the light board's depth cue (ASSETS row 11). W3 and C1 on the call sheet already are that pair; they need no second setup, only the intent.",
   "The demo event's curated folder (ASSETS row 5): if the shoot is run AS a Partyreel event, the guests' own uploads are the seed, and the live QR on every hero board points at a real album instead of fixtures.",
 ];
@@ -596,6 +650,11 @@ export function MediaKitBoard() {
   const [route, setRoute] = useState<Route>("mix");
   const [geometry, setGeometry] = useState<"card" | "share">("card");
   const [mode, setMode] = useState<Mode>("desktop");
+  // Round four's one page-wide switch: which vertical every contact sheet on the
+  // page is showing. It lives in the dock rather than beside the sheet, which is
+  // the whole point of the global note it answers: a reviewer compares Unsplash+
+  // against Web Summit on weddings and then on conferences without scrolling back.
+  const [vertical, setVertical] = useState<Vertical | "all">("all");
   const applied = useTunerCandidate();
 
   // The lab key, so "walk it on" can be a LINK rather than a path to retype: the
@@ -620,892 +679,93 @@ export function MediaKitBoard() {
 
   return (
     <div className="flex flex-col gap-10 py-4">
-      <Verdict />
-
-      <div className="max-w-2xl space-y-3 text-xs leading-relaxed text-muted-foreground">
-        <p>
-          All twelve stills in the manifest carry one line, &ldquo;unsplash (per
-          lab-pack comment; provenance unverified)&rdquo;, with no author, no
-          source and no retrieval date. Reading the license settles it faster
-          than a provenance hunt would: Unsplash&rsquo;s terms say the license
-          &ldquo;does not include the right to use ... People&rsquo;s images if
-          they are recognizable in the Images&rdquo;, and all twelve are full of
-          recognisable people. Even in the best case the license never covered
-          the thing that makes them worth having. Not a filing problem. A
-          sourcing problem.
-        </p>
-        <p>
-          Round one measured the blast radius as the blog. It is the site. The
-          twelve are referenced in {PRODUCTION_FILES} production files across{" "}
-          {ROUTES.length} routes, and four of them sit in the footer strip and
-          two in the nav panel, both of which live in the group layouts, so they
-          are on all {MARKETING_PAGES} marketing pages before a reader scrolls.
-          Apply &ldquo;The exposure&rdquo; below and walk the site to see it.
-        </p>
-        <p>
-          The second, harder search closed all four holes round one could not
-          fill: searching by the scene rather than by the words on a manifest
-          entry found a dance floor, a table with people at it, real balloons
-          and a portrait: {stagedTwo} more frames, {CANDIDATES.length} staged in
-          all. That moves the argument rather than winning it. Of the{" "}
-          {CANDIDATES.length} staged frames,{" "}
-          {CANDIDATES.length - IDENTIFIABLE.length} work only because nobody in
-          them is recognisable, and the {IDENTIFIABLE.length} with a face are
-          the {IDENTIFIABLE.length} that need a release nobody here holds. The
-          frames worth anything to this product are the ones with faces in them,
-          and saying yes to ask 1 is what takes them off the table: under the
-          rule the batch fills {IDS_UNDER_RULE} of the {IDS_TOTAL} ids and{" "}
-          {POSTS_UNDER_RULE} of the 23 posts, not {IDS_TOTAL} and {POSTS_FILLED}
-          .
-        </p>
-      </div>
-
-      {/* APPLY TO THE SITE. A photograph board's candidate is not a token block,
-          so what it hands the site is the swap itself. */}
-      <section
-        id="mk-apply"
-        className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4"
-      >
-        <div className="flex flex-wrap items-baseline gap-2">
-          <h2 className="text-sm font-semibold">Apply to the site</h2>
-          <Caption className="text-[11px]">
-            One block at a time, on every lab page, every marketing page and the
-            host app. Chrome and Safari only: a stylesheet replacing the content
-            of an image is their behaviour, and Firefox simply shows
-            today&rsquo;s frame.
-          </Caption>
-          <Caption className="text-[11px]">
-            Each block carries both namespaces, because the bridge has two: the
-            twelve ids by file name, for the 21 routes that read a frame
-            directly, and all 23 blog covers by slug, so a card wears the
-            candidate its own row on the sheet shows rather than whatever its
-            cover&rsquo;s id is bridged with.
-          </Caption>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {APPLY.map((a) => (
-            <button
-              key={a.id}
-              type="button"
-              onClick={() => setCandidateCss(a.label, a.css)}
-              className={cn(
-                "rounded-md border px-2.5 py-1 text-xs font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
-                applied?.label === a.label
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border hover:bg-secondary",
-              )}
-            >
-              {a.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={clearCandidate}
-            className="rounded-md border border-border px-2.5 py-1 text-xs transition-transform duration-150 ease-emphasis hover:bg-secondary active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
-          >
-            Clear
-          </button>
-          {applied && <Tag tone="ours">Applied: {applied.label}</Tag>}
-        </div>
-        <ul className="mt-1 space-y-0.5">
-          {APPLY.map((a) => (
-            <li
-              key={a.id}
-              className="text-[11px] leading-snug text-muted-foreground"
-            >
-              <span className="font-medium text-foreground">{a.label}.</span>{" "}
-              {a.note}
-            </li>
-          ))}
-        </ul>
-        {/* The walk is LINKS, not a sentence to retype. Each one carries the lab
-            key, because the candidate block renders only where the tuner island
-            mounts and that island needs it; each opens in a new tab so the board
-            and the applied block both stay where they are. */}
-        <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <Caption className="text-[11px]">Walk it on</Caption>
-          {WALK.map((p) => (
-            <a
-              key={p}
-              href={walkHref(p)}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded border border-border px-1.5 py-0.5 text-[11px] transition-colors duration-150 hover:bg-secondary"
-            >
-              {p}
-            </a>
-          ))}
-          <Caption className="text-[11px]">
-            in a new tab. The footer and the nav carry a frame on every one of
-            them, so the argument is there before a scroll.
-          </Caption>
-        </div>
-        <Caption className="text-[10px]">
-          Not the app, and not a guest link: no marketing still is referenced
-          anywhere under the dashboard, the event page, the admin portal or{" "}
-          {"/e/[qr_token]"}, so a block changes nothing there and walking them
-          proves nothing. Every surface this ruling touches is a marketing one.
-        </Caption>
-      </section>
-
-      {/* THE EXPOSURE, MEASURED. */}
-      <section id="mk-exposure" className="flex flex-col gap-3">
-        <div>
-          <h2 className="text-sm font-semibold">
-            Where the twelve actually are
-          </h2>
-          <Caption className="mt-1">
-            Production files per id, recomputed from the tree by
-            exposure.test.ts so the numbers cannot go stale on the board. The
-            bar is a share of the widest, which is {maxFiles} files.
-          </Caption>
-        </div>
-        <div className="grid gap-6 rounded-lg border border-border bg-card p-4 sm:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-          <ul className="space-y-1">
-            {STAND_INS.map((s) => {
-              const n = FILE_COUNTS[s.id] ?? 0;
-              return (
-                <li key={s.id} className="flex items-center gap-2">
-                  <span className="w-28 shrink-0 text-[11px]">{s.id}</span>
-                  <span className="h-2 flex-1 rounded-[1px] bg-muted">
-                    <span
-                      className="block h-2 rounded-[1px] bg-foreground"
-                      style={{ width: `${(n / maxFiles) * 100}%` }}
-                    />
-                  </span>
-                  <span className="w-6 text-right text-[11px] text-muted-foreground tabular-nums">
-                    {n}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="space-y-2">
-            {CHROME.map((c) => (
-              <div key={c.file}>
-                <p className="text-[11px] font-medium">{c.where}</p>
-                <p className="text-[11px] leading-snug text-muted-foreground">
-                  {c.ids.join(", ")}
-                </p>
-              </div>
-            ))}
-            <div>
-              <p className="text-[11px] font-medium">
-                {ROUTES.length} routes reach a still
-              </p>
-              <p className="text-[11px] leading-snug text-muted-foreground">
-                {ROUTES.join("  ")}
-              </p>
-            </div>
-            {/* Round two wrote "wedding-golden is the widest" by hand and it was
-                simply not true of either column: party-balloons leads on files
-                and reception-hall on covers. Both ends are derived now. */}
-            <Caption className="text-[10px]">
-              {widest.id} is the widest: {liveExposure(widest.id)}. The
-              narrowest, {narrowest.id}, is still {FILE_COUNTS[narrowest.id]}{" "}
-              files and the footer of every page. Reach, rather than count,
-              belongs to reception-table: it is the only id in both the footer
-              and the nav, so it is on all {MARKETING_PAGES} marketing pages
-              twice.
-            </Caption>
-          </div>
-        </div>
-      </section>
-
-      {/* THE GAP, by vertical. */}
-      <section id="mk-gap" className="flex flex-col gap-3">
-        <div>
-          <h2 className="text-sm font-semibold">The gap, by vertical</h2>
-          <Caption className="mt-1">
-            Six frames per vertical is the kit. Three of the six verticals the
-            product sells to have nothing at all, which is what a person picking
-            covers out of eleven frames has to work with.
-          </Caption>
-        </div>
-        <ul className="grid gap-x-6 gap-y-1.5 rounded-lg border border-border bg-card p-4 sm:grid-cols-2">
-          {VERTICALS.map((v) => {
-            const have = countByVertical(v.id);
-            return (
-              <li key={v.id} className="flex items-center gap-2">
-                <span className="w-24 shrink-0 text-[11px] text-muted-foreground">
-                  {v.label}
-                </span>
-                <span className="flex h-2 flex-1 gap-px">
-                  {Array.from({ length: Math.max(6, have) }, (_, i) => (
-                    <span
-                      key={i}
-                      className={cn(
-                        "flex-1 rounded-[1px]",
-                        i >= 6
-                          ? "bg-foreground/40"
-                          : i < have
-                            ? "bg-foreground"
-                            : "bg-muted",
-                      )}
-                    />
-                  ))}
-                </span>
-                <span className="w-5 text-right text-[11px] text-muted-foreground tabular-nums">
-                  {have}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      {/* THE BRIDGE. The controls sit here because this is what they steer. */}
-      <section id="mk-bridge" data-mk-sheet className="flex flex-col gap-4">
-        <div>
-          <h2 className="text-sm font-semibold">The bridge, post by post</h2>
-          <Caption className="mt-1">
-            All 23 posts, today above or beside what replaces it, at the real
-            geometry of the surface it lands on. The share card is the one a
-            stranger sees first and it ignores the crop ladder entirely. The two
-            percentages under each plate are the cover&rsquo;s object-position:
-            the rung of the crop ladder that slug sits on, which is how one
-            photograph dresses six posts and is recognisable in all six. The
-            candidate is cut at the same rung, because the rung is derived from
-            the slug and nothing about replacing the photograph moves it.
-          </Caption>
-          <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-            The bridge is a per-post job, not a per-frame one. Every one of the
-            23 posts sets its own <span className="font-medium">cover</span> in
-            frontmatter and 22 of the 23 differ from what the fallback hash
-            would give, so nobody hashed these: a person chose each one out of
-            eleven wedding and festival frames, which is exactly why the
-            conference post is a music festival. {POSTS_FILLED} of the 23 have a
-            candidate below, {empty.length} are left empty on purpose, and{" "}
-            {BARRED_POSTS.length} of the {POSTS_FILLED} are filled by a frame
-            that ask 1 will not let ship.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <Toggle
-            ariaLabel="Route"
-            options={ROUTE_OPTIONS}
-            value={route}
-            onChange={setRoute}
-          />
-          <Toggle
-            ariaLabel="Geometry"
-            options={[
-              { id: "card" as const, label: "Card 4:5" },
-              { id: "share" as const, label: "Share 1200x630" },
-            ]}
-            value={geometry}
-            onChange={setGeometry}
-          />
-          <Toggle
-            ariaLabel="Viewport"
-            options={[
-              { id: "desktop" as Mode, label: "Desktop" },
-              { id: "phone" as Mode, label: "Phone 375" },
-            ]}
-            value={mode}
-            onChange={setMode}
-          />
-          <Caption className="max-w-sm text-[11px]">
-            {route === "licensed"
-              ? `${POSTS_FILLED} of 23 filled, but ${POSTS_UNDER_RULE} of 23 under the rule: ${BARRED_POSTS.length} of them carry a face with no release. Fast, free, and still somebody else's party.`
-              : route === "ours"
-                ? "All 23 from the kit. Six verticals, 36 masters, and the squares, portraits, clips and film cut from the same night."
-                : "Licensed on the details nobody studies, the shoot on everything a reader stops at. The bridge is dated: it ends when the kit lands."}
-          </Caption>
-        </div>
-
-        {/* WHAT THE ROUTE SHIPS, which is the question round two asked twice.
-            The bridge is not a separate ruling: the route decides how many frames
-            change and when, so the consequence is a table rather than a word. */}
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
-          <table className="w-full min-w-[46rem] border-collapse text-left">
-            <thead>
-              <tr className="border-b border-border">
-                {[
-                  "Route",
-                  "What ships",
-                  "On the blog",
-                  "Cost",
-                  "How it ends",
-                ].map((h) => (
-                  <th key={h} className="px-3 py-2">
-                    <Caption className="text-[10px]">{h}</Caption>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {ROUTE_SHIPS.map((r) => (
-                <tr
-                  key={r.route}
-                  className={cn(
-                    "border-b border-border align-top last:border-b-0",
-                    route === r.route && "bg-secondary/60",
-                  )}
-                >
-                  <td className="px-3 py-2">
-                    <span className="flex flex-wrap items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setRoute(r.route)}
-                        className="text-[11px] font-medium underline decoration-border underline-offset-2 transition-colors duration-150 hover:decoration-foreground"
-                      >
-                        {r.label}
-                      </button>
-                      {!r.legal && <Tag tone="gap">Not shippable</Tag>}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-[11px] leading-snug text-muted-foreground">
-                    {r.ships}
-                  </td>
-                  <td className="px-3 py-2 text-[11px] leading-snug text-muted-foreground tabular-nums">
-                    {r.blog}
-                  </td>
-                  <td className="px-3 py-2 text-[11px] leading-snug text-muted-foreground">
-                    {r.cost}
-                  </td>
-                  <td className="px-3 py-2 text-[11px] leading-snug text-muted-foreground">
-                    {r.ends}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* WHERE THEY LAND, AT THE REAL SIZE ON THE REAL GROUND.
-            ★ Both of those were wrong until round three walked the running blog
-            and measured it: the library card is 320x400 with a 16 px gutter,
-            three across at 1440, and /blog is in the (cinema) group, so it is a
-            DARK page. This stage drew 440 px plates on paper. And it drew only
-            the route's row, so at the default route (Mix, where all three of
-            these posts go to the shoot) the board's largest element opened as
-            three empty hatches. Today's row above the route's row fixes both: it
-            is a comparison at every route, and it is never blank.
-
-            The three posts are not a slice, they are the argument: two corporate
-            posts and a conference post, wearing an empty wedding hall and two
-            music festivals today, which is what choosing carefully out of eleven
-            frames looks like. */}
-        <Stage
-          mode={mode}
-          ground="cinema"
-          height={
-            geometry === "card"
-              ? mode === "phone"
-                ? 1040
-                : 1000
-              : mode === "phone"
-                ? 560
-                : 740
-          }
-        >
-          <div
-            className={cn(
-              "flex h-full flex-col justify-center",
-              mode === "phone" ? "gap-4 px-4 py-4" : "gap-5 py-6",
-            )}
-          >
-            {(
-              [
-                ["On the blog today", "today"],
-                [
-                  route === "licensed"
-                    ? "Licensed, the staged batch"
-                    : route === "ours"
-                      ? "Ours, the shot that replaces it"
-                      : "Mix, the recommendation",
-                  "next",
-                ],
-              ] as const
-            ).map(([label, which]) => (
-              <div
-                key={which}
+      {/* THE DOCK. Everything in it changes the WHOLE page: the vertical every
+          contact sheet draws, the route every plate on the folded sheet takes,
+          the geometry it takes it in. The per-specimen switches stay beside their
+          specimen (the surface check has its own source and viewport toggles,
+          because they change one stage). */}
+      <BoardDock
+        label="The media kit board's controls"
+        aside={
+          <>
+            {APPLY.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => setCandidateCss(a.label, a.css)}
                 className={cn(
-                  "flex flex-col gap-2",
-                  mode === "phone" ? "" : "mx-auto w-[992px]",
+                  "rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
+                  applied?.label === a.label
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border hover:bg-secondary",
                 )}
               >
-                <Caption
-                  className={mode === "phone" ? "text-[11px]" : "text-xs"}
-                >
-                  {label}
-                </Caption>
-                <div
-                  className={cn(
-                    "grid gap-4",
-                    mode === "phone"
-                      ? "grid-cols-1"
-                      : geometry === "card"
-                        ? "grid-cols-3"
-                        : "grid-cols-2",
-                  )}
-                >
-                  {STAGE_POSTS.slice(
-                    0,
-                    mode === "phone" ? 1 : geometry === "card" ? 3 : 2,
-                  ).map((p) => {
-                    const next = whatReplaces(p, route);
-                    const current = MANIFEST_BY_ID.get(p.cover);
-                    const src =
-                      which === "today"
-                        ? (current?.src ?? null)
-                        : next.kind === "licensed" && next.key
-                          ? candidateSrc(next.key)
-                          : null;
-                    const slate =
-                      which === "today"
-                        ? undefined
-                        : next.kind === "ours"
-                          ? `To be shot, ${master(p.shot).code}: ${master(p.shot).subject}`
-                          : p.why;
-                    // The provenance line belongs UNDER the plate, never on it:
-                    // the plate is the real card and the annotation is board
-                    // chrome, and the whole point of this section is that the
-                    // two are not the same thing.
-                    const licensed =
-                      which === "next" && next.kind === "licensed" && next.key
-                        ? candidate(next.key)
-                        : null;
-                    const note =
-                      which === "today" ? (
-                        <>
-                          {p.cover} at {p.crop}, license unverified
-                        </>
-                      ) : licensed ? (
-                        <span className="inline-flex flex-wrap items-center gap-1">
-                          <Tag tone="named">CC0 1.0</Tag>
-                          {licensed.people === "identifiable" ? (
-                            <Tag tone="face">A face, no release</Tag>
-                          ) : (
-                            <span>{licensed.author}, Wikimedia Commons</span>
-                          )}
-                        </span>
-                      ) : null;
-                    return (
-                      <div key={p.slug} className="flex flex-col gap-1.5">
-                        {geometry === "card" ? (
-                          <CardPlate
-                            full
-                            src={src}
-                            title={p.title}
-                            crop={p.crop}
-                            slate={slate}
-                          />
-                        ) : (
-                          <SharePlateStage
-                            src={src}
-                            title={p.title}
-                            next={next}
-                            which={which}
-                            shot={p.shot}
-                          />
-                        )}
-                        <p className="min-h-4 text-[11px] leading-snug text-muted-foreground tabular-nums">
-                          {note}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+                {a.label}
+              </button>
             ))}
-          </div>
-        </Stage>
-        <Caption className="text-[10px]">
-          Measured on the running blog at 1440: the library card is 320 by 400
-          with a 16 px gutter, three across, on the cinema ground. The plate
-          draws the cover, the scrim, the title and the byline; the real card
-          also carries up to two tag chips in the top left, which this board
-          holds no data for and will not invent. Both rows are cut at the same
-          rung of the crop ladder, because the ladder is a function of the slug:
-          swapping the photograph does not move it, and neither will the
-          frontmatter edit that ships it.
-        </Caption>
-
-        <div
-          className={cn(
-            "grid gap-x-5 gap-y-7",
-            // Three across at most: at four, a 4:5 plate lands at 110 px, which
-            // is too small to judge a photograph on, and judging the photograph
-            // is the entire job of this sheet.
-            geometry === "card"
-              ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
-              : "grid-cols-1 lg:grid-cols-2",
-          )}
-        >
-          {BRIDGE.map((p, i) => (
-            <PostRow
-              key={p.slug}
-              post={p}
-              route={route}
-              geometry={geometry}
-              index={i}
-            />
-          ))}
-        </div>
-
-        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
-          <Caption className="font-medium text-foreground">
-            The two that stay empty, and what that means
-          </Caption>
-          <ul className="mt-2 space-y-1.5">
-            {empty.map((p) => (
-              <li key={p.slug} className="text-[11px] leading-snug">
-                <span className="font-medium">/blog/{p.slug}</span>
-                <span className="text-muted-foreground"> {p.why}</span>
-              </li>
-            ))}
-          </ul>
-          <Caption className="mt-2 text-[10px]">
-            Both are the corporate and conference end of the product, which is
-            the half of the business a licensed corpus cannot dress at all.
-            Trips it covers perfectly, because travel is what photographers give
-            away.
-          </Caption>
-          <ul className="mt-3 space-y-1.5 border-t border-destructive/30 pt-3">
-            <li className="text-[11px] leading-snug">
-              <span className="font-medium">
-                And {BARRED_POSTS.length} more are filled by a frame ask 1 bars.
-              </span>{" "}
-              <span className="text-muted-foreground">
-                {BARRED_POSTS.map((p) => `/blog/${p.slug}`).join(", ")}. Each
-                one carries a readable face and no release, so the honest count
-                for Licensed is {POSTS_UNDER_RULE} of 23, and for the twelve ids
-                it is {IDS_UNDER_RULE} of {IDS_TOTAL}:{" "}
-                {BARRED_IDS.join(" and ")}, the dance floor and the DJ, which
-                are the two frames a product about parties needs most.
-              </span>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      {/* THE CALL SHEET. */}
-      <section id="mk-kit" className="flex flex-col gap-3">
-        <div>
-          <h2 className="text-sm font-semibold">The kit, as a call sheet</h2>
-          <Caption className="mt-1">
-            36 masters, six per vertical. Each one names what happens in the
-            frame, where the camera is, what the light is doing, and the crops
-            it has to survive, so it can be shot from rather than argued with.
-            Four are the palette board&rsquo;s hard cases and three are the
-            phone-up frames every round-three hero variation wants.
-          </Caption>
-        </div>
-        {VERTICALS.map((v) => (
-          <div key={v.id}>
-            <div className="mb-2 flex items-baseline gap-2 border-b border-border pb-1.5">
-              <h3 className="text-xs font-semibold">{v.label}</h3>
-              <Caption className="text-[11px] tabular-nums">
-                {MASTERS.filter((m) => m.vertical === v.id).length} frames,{" "}
-                {countByVertical(v.id)} in the manifest today
-              </Caption>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {MASTERS.filter((m) => m.vertical === v.id).map((m) => (
-                <div
-                  key={m.code}
-                  className="flex flex-col rounded-lg border border-border p-3"
-                >
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="rounded bg-foreground px-1.5 py-px text-[10px] font-medium text-background tabular-nums">
-                      {m.code}
-                    </span>
-                    <Tag tone="named">{m.orientation}</Tag>
-                    {m.hardCase && <Tag tone="ours">{m.hardCase}</Tag>}
-                    {m.phoneUp && <Tag tone="ours">phone up</Tag>}
-                  </div>
-                  <p className="mt-1.5 text-[11px] leading-snug font-medium">
-                    {m.subject}
-                  </p>
-                  <dl className="mt-1.5 space-y-1">
-                    <div>
-                      <dt className="sr-only">Framing</dt>
-                      <dd className="text-[11px] leading-snug text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          Frame.
-                        </span>{" "}
-                        {m.framing}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="sr-only">Light</dt>
-                      <dd className="text-[11px] leading-snug text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          Light.
-                        </span>{" "}
-                        {m.light}
-                      </dd>
-                    </div>
-                  </dl>
-                  <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
-                    Survives: {m.crops.join("; ")}
-                  </p>
-                  <p className="mt-1 text-[10px] leading-snug">
-                    {m.replaces.length ? (
-                      <>
-                        Replaces{" "}
-                        <span className="font-medium">
-                          {m.replaces.join(", ")}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground">
-                        New ground: nothing in the manifest does this job
-                      </span>
-                    )}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {/* ONE NIGHT, NINE ROWS. Round two listed four derived rows because it
-            had read four manifests. Reading the whole asset log end to end is
-            what turned the kit from the most expensive ask on the list into the
-            one that closes most of it. */}
-        <div className="mt-2 flex flex-col gap-3">
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h3 className="text-sm font-semibold">
-              One night, {DERIVED.length} rows of the asset log
-            </h3>
-            <Caption className="text-[11px]">
-              The log holds {DERIVED.length + NOT_DERIVED.length} rows. Three
-              are not photography (the ruling, the shoot itself and a noise
-              tile). The other {DERIVED.length} are crops, recrops, cuts or
-              setups of the same night, so the kit is not the most expensive ask
-              on the list, it is the one that closes the list.
-            </Caption>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {DERIVED.map((d) => (
-              <div
-                key={d.row}
-                className="rounded-lg border border-border bg-card p-3"
+            {applied && (
+              <button
+                type="button"
+                onClick={clearCandidate}
+                className="rounded-lg border border-border px-2.5 py-1 text-[11px] transition-colors hover:bg-secondary"
               >
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="rounded bg-foreground px-1.5 py-px text-[10px] font-medium text-background tabular-nums">
-                    Row {d.row}
-                  </span>
-                  <span className="text-xs font-medium">{d.what}</span>
-                  <Caption className="text-[10px]">{d.askedBy}</Caption>
-                </div>
-                <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
-                  {d.spec}
-                </p>
-                <p className="mt-1 text-[11px] leading-snug">
-                  <span className="font-medium">From.</span> {d.from}
-                </p>
-                <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
-                  Replaces {d.replaces}
-                </p>
-              </div>
-            ))}
-          </div>
-          <ul className="flex flex-wrap gap-x-5 gap-y-1">
-            {NOT_DERIVED.map((n) => (
-              <li
-                key={n.row}
-                className="text-[10px] leading-snug text-muted-foreground"
-              >
-                <span className="font-medium text-foreground tabular-nums">
-                  Row {n.row}
-                </span>{" "}
-                {n.what}, not from the shoot: {n.why}
-              </li>
-            ))}
-          </ul>
-        </div>
+                Clear
+              </button>
+            )}
+          </>
+        }
+      >
+        <Toggle
+          ariaLabel="Vertical"
+          options={[
+            { id: "all", label: "All" },
+            ...ALL_VERTICALS.map((v) => ({ id: v, label: VERTICAL_LABEL[v] })),
+          ]}
+          value={vertical}
+          onChange={(v) => setVertical(v as Vertical | "all")}
+        />
+        <Toggle
+          ariaLabel="Route"
+          options={ROUTE_OPTIONS}
+          value={route}
+          onChange={setRoute}
+        />
+        <Toggle
+          ariaLabel="Geometry"
+          options={[
+            { id: "card" as const, label: "Card 4:5" },
+            { id: "share" as const, label: "Share 1200x630" },
+          ]}
+          value={geometry}
+          onChange={setGeometry}
+        />
+      </BoardDock>
 
-        <div className="rounded-lg border border-border bg-card p-4">
-          <Caption className="font-medium text-foreground">
-            What a frame must survive, and the surface that decides it
-          </Caption>
-          <ul className="mt-2 space-y-1.5">
-            {KIT_CONSTRAINTS.map((c, i) => (
-              <li key={i} className="flex gap-2 text-[11px] leading-snug">
-                <span className="w-3 shrink-0 text-right text-muted-foreground tabular-nums">
-                  {i + 1}
-                </span>
-                <span>
-                  <span className="font-medium">{c.rule}.</span>{" "}
-                  <span className="text-muted-foreground">{c.because}.</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      <Verdict />
+      <PlanCard />
+      <SourcingSheet vertical={vertical} />
+      <SurfaceCheck vertical={vertical} />
 
-      {/* THE RECORD. The schema prototyped, with a real row in it. */}
-      <section id="mk-record" className="flex flex-col gap-3">
-        <div>
-          <h2 className="text-sm font-semibold">The record, prototyped</h2>
-          <Caption className="mt-1">
-            The six fields the rule adds to a manifest entry, running on{" "}
-            {CANDIDATES.length} staged records with provenance.test.ts refusing
-            a record that is missing one. The rule is not a proposal on this
-            board; it is a suite you can watch pass.
-          </Caption>
-        </div>
-        <div className="grid gap-3 lg:grid-cols-2">
-          <div className="rounded-lg border border-border bg-card p-4">
-            <Caption className="font-medium text-foreground">
-              One record, as the test reads it
-            </Caption>
-            <dl className="mt-2 space-y-1">
-              {(
-                [
-                  ["author", candidate("bridge-dancefloor").author],
-                  ["sourceUrl", candidate("bridge-dancefloor").sourceUrl],
-                  ["license", "CC0 1.0"],
-                  [
-                    "clause",
-                    "You can copy, modify, distribute and perform the work, even for commercial purposes, all without asking permission.",
-                  ],
-                  ["retrieved", "2026-09-14"],
-                  ["people", candidate("bridge-dancefloor").people],
-                ] as const
-              ).map(([field, value]) => (
-                <div
-                  key={field}
-                  className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2"
-                >
-                  <dt className="text-[11px] font-medium tabular-nums">
-                    {field}
-                  </dt>
-                  <dd className="text-[11px] leading-snug break-words text-muted-foreground">
-                    {value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-              <span className="font-medium text-foreground">people</span> is the
-              field that does the work. No free tier supplies a model release,
-              so an entry reading identifiable cannot sit on a page that makes a
-              claim, and the test refuses one without a caution on it.
-            </p>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-4">
-            <Caption className="font-medium text-foreground">
-              What the suite asserts today
-            </Caption>
-            <ul className="mt-2 space-y-1">
-              {[
-                "Every staged file exists, is under 300 KB and is 1200 px on the long edge.",
-                "Nothing sits in the directory without a record, and no record without a file.",
-                "candidates.ts and provenance.json agree field by field, so the two copies cannot drift.",
-                "Every record carries all six required fields, and the license clause is quoted rather than named.",
-                "Every file predates 5 June 2017, which is the entire basis of the batch being CC0 at all.",
-                "A frame with an identifiable face carries a caution, without exception.",
-                "Every staged frame is used by the bridge, so nothing is staged and forgotten.",
-              ].map((line, i) => (
-                <li
-                  key={i}
-                  className="flex gap-2 text-[11px] leading-snug text-muted-foreground"
-                >
-                  <span className="w-3 shrink-0 text-right tabular-nums">
-                    {i + 1}
-                  </span>
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-2 text-[11px] leading-snug">
-              Two more suites keep the board honest: exposure.test.ts recomputes
-              every number above from the tree, and bridge.test.ts recomputes
-              each post&rsquo;s cover and crop from the real resolver.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* THE RUNBOOK. */}
-      <section id="mk-runbook" className="flex flex-col gap-3">
-        <div>
-          <h2 className="text-sm font-semibold">
-            Re-rendering the two recorded reels
-          </h2>
-          <Caption className="mt-1">
-            A media swap invalidates both recorded loops, and the engine encodes
-            in a browser, so this is a person at a machine with Chrome. It is
-            not, however, a code edit: both recipes are already in the parity
-            page&rsquo;s own clip-set picker, in order, and runbook.test.ts
-            keeps that true.
-          </Caption>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          {REELS.map((r) => (
-            <div key={r.id} className="rounded-lg border border-border p-3">
-              <p className="text-xs font-medium">{r.id}</p>
-              <Caption className="mt-0.5 text-[11px] tabular-nums">
-                {r.orientation}, {r.durationSeconds.toFixed(2)} s, style{" "}
-                {r.recipe.styleId}, seed {r.recipe.seed},{" "}
-                {r.recipe.clipIds.length} clips
-              </Caption>
-              <ol className="mt-2 space-y-1.5">
-                {runbookFor(r.id).map((s) => (
-                  <li key={s.n} className="flex gap-2">
-                    <span className="w-3 shrink-0 text-right text-[11px] text-muted-foreground tabular-nums">
-                      {s.n}
-                    </span>
-                    <span className="text-[11px] leading-snug">
-                      <span className="font-medium">{s.do}.</span>{" "}
-                      <span className="text-muted-foreground">{s.detail}</span>
-                      {s.friction && (
-                        <span className="mt-0.5 block rounded border border-border bg-muted/50 px-1.5 py-1 text-[10px] leading-snug text-muted-foreground">
-                          Friction: {s.friction}
-                        </span>
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <Caption className="mt-2 text-[10px]">
-                Clips: {r.recipe.clipIds.join(", ")}. Every one of them is a
-                stand-in, so the swap invalidates this recording.
-              </Caption>
-            </div>
-          ))}
-        </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <Caption className="font-medium text-foreground">
-            What the wiring round adds, in the order it bites
-          </Caption>
-          <ul className="mt-2 space-y-1">
-            {WIRING_ADDS.map((line, i) => (
-              <li
-                key={i}
-                className="flex gap-2 text-[11px] leading-snug text-muted-foreground"
-              >
-                <span className="w-3 shrink-0 text-right tabular-nums">
-                  {i + 1}
-                </span>
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* THE SOURCES, condensed. The full survey is the spec. */}
+      {/* THE LICENCES, which are not sources. Round three's survey listed CC0 as a
+          source, and a legal instrument is not a place with photographs in it;
+          separating them is what made the sheet above answerable. */}
       <section id="mk-sources" className="flex flex-col gap-3">
         <div>
           <h2 className="text-sm font-semibold">
-            The sources, clause by clause
+            The licences behind the sheet, clause by clause
           </h2>
-          <Caption className="mt-1">
-            Quoted from each license page on the date recorded. What each also
-            forbids, and why the four refusals fail us, are in
-            docs/specs/media-kit.md section 4.
+          <Caption className="mt-1 max-w-3xl leading-relaxed">
+            A licence is what you agree to, a source is where you go, and round
+            three&rsquo;s survey ran them together. These are the instruments,
+            quoted from the licence page on the date read. The refusals stay
+            because knowing why a licence fails is worth more than a shorter
+            list, and one of them moved this round: CC BY was struck cheaply
+            when nothing good was under it, and the best free catalogue on the
+            sheet turned out to be.
           </Caption>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {SOURCES.map((s) => (
+          {LICENCES.map((s) => (
             <div
               key={s.name}
               className={cn(
@@ -1524,31 +784,931 @@ export function MediaKitBoard() {
               <p className="mt-1.5 text-[11px] leading-snug italic">
                 &ldquo;{s.clause}&rdquo;
               </p>
-              <Caption className="mt-1.5 text-[10px]">
-                {s.url}, read {s.retrieved}
-              </Caption>
+              <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
+                {s.note}
+              </p>
+              <Caption className="mt-1.5 text-[10px]">{s.url}</Caption>
             </div>
           ))}
         </div>
       </section>
 
+      {/* ROUNDS TWO AND THREE, FOLDED. Every section below is the argument that
+          produced the plan above, and all of it is still true: where the twelve
+          actually are, the gap by vertical, the 23 posts at their real geometry,
+          the call sheet, the provenance schema and the reel runbook. It is behind
+          a disclosure because an argument already made should not sit in front of
+          the answer it produced, and because round three measured this board at
+          30,799 px, which is a long way to scroll past a settled case. Open by
+          default is wrong for the same reason; open when a line of the plan is
+          disputed is exactly right. */}
+      <details
+        id="mk-argument"
+        className="group rounded-lg border border-border bg-card/40 [&_summary::-webkit-details-marker]:hidden"
+      >
+        <summary className="flex cursor-pointer flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg px-4 py-3 transition-colors duration-150 hover:bg-secondary/60">
+          <span className="text-sm font-semibold">
+            The argument, from rounds two and three
+          </span>
+          <Caption className="text-[11px]">
+            The exposure on the real site, the gap by vertical, all 23 posts at
+            the blog card&rsquo;s and the share card&rsquo;s real geometry, the
+            kit as a call sheet of 36, the provenance schema and the reel
+            runbook. Open it to disagree with a line of the plan.
+          </Caption>
+          <span className="ml-auto text-[11px] text-muted-foreground group-open:hidden">
+            Open
+          </span>
+          <span className="ml-auto hidden text-[11px] text-muted-foreground group-open:inline">
+            Close
+          </span>
+        </summary>
+
+        <div className="flex flex-col gap-10 border-t border-border p-4 pt-6">
+          <div className="max-w-2xl space-y-3 text-xs leading-relaxed text-muted-foreground">
+            <p>
+              All twelve stills in the manifest carry one line, &ldquo;unsplash
+              (per lab-pack comment; provenance unverified)&rdquo;, with no
+              author, no source and no retrieval date. Reading the license
+              settles it faster than a provenance hunt would: Unsplash&rsquo;s
+              terms say the license &ldquo;does not include the right to use ...
+              People&rsquo;s images if they are recognizable in the
+              Images&rdquo;, and all twelve are full of recognisable people.
+              Even in the best case the license never covered the thing that
+              makes them worth having. Not a filing problem. A sourcing problem.
+            </p>
+            <p>
+              Round one measured the blast radius as the blog. It is the site.
+              The twelve are referenced in {PRODUCTION_FILES} production files
+              across {ROUTES.length} routes, and four of them sit in the footer
+              strip and two in the nav panel, both of which live in the group
+              layouts, so they are on all {MARKETING_PAGES} marketing pages
+              before a reader scrolls. Apply &ldquo;The exposure&rdquo; below
+              and walk the site to see it.
+            </p>
+            <p>
+              The second, harder search closed all four holes round one could
+              not fill: searching by the scene rather than by the words on a
+              manifest entry found a dance floor, a table with people at it,
+              real balloons and a portrait: {stagedTwo} more frames,{" "}
+              {CANDIDATES.length} staged in all. That moves the argument rather
+              than winning it. Of the {CANDIDATES.length} staged frames,{" "}
+              {CANDIDATES.length - IDENTIFIABLE.length} work only because nobody
+              in them is recognisable, and the {IDENTIFIABLE.length} with a face
+              are the {IDENTIFIABLE.length} that need a release nobody here
+              holds. The frames worth anything to this product are the ones with
+              faces in them, and saying yes to ask 1 is what takes them off the
+              table: under the rule the batch fills {IDS_UNDER_RULE} of the{" "}
+              {IDS_TOTAL} ids and {POSTS_UNDER_RULE} of the 23 posts, not{" "}
+              {IDS_TOTAL} and {POSTS_FILLED}.
+            </p>
+          </div>
+
+          {/* APPLY TO THE SITE. A photograph board's candidate is not a token block,
+          so what it hands the site is the swap itself. */}
+          <section
+            id="mk-apply"
+            className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4"
+          >
+            <div className="flex flex-wrap items-baseline gap-2">
+              <h2 className="text-sm font-semibold">Apply to the site</h2>
+              <Caption className="text-[11px]">
+                One block at a time, on every lab page, every marketing page and
+                the host app. Chrome and Safari only: a stylesheet replacing the
+                content of an image is their behaviour, and Firefox simply shows
+                today&rsquo;s frame.
+              </Caption>
+              <Caption className="text-[11px]">
+                Each block carries both namespaces, because the bridge has two:
+                the twelve ids by file name, for the 21 routes that read a frame
+                directly, and all 23 blog covers by slug, so a card wears the
+                candidate its own row on the sheet shows rather than whatever
+                its cover&rsquo;s id is bridged with.
+              </Caption>
+            </div>
+            {/* The four buttons live in the dock now, so a block can be swapped from
+            anywhere on the page. What stays here is what each one does, which is
+            reading rather than a control. */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Caption className="text-[11px]">
+                The four blocks are in the dock at the top of the page
+              </Caption>
+              {applied && <Tag tone="ours">Applied: {applied.label}</Tag>}
+            </div>
+            <ul className="mt-1 space-y-0.5">
+              {APPLY.map((a) => (
+                <li
+                  key={a.id}
+                  className="text-[11px] leading-snug text-muted-foreground"
+                >
+                  <span className="font-medium text-foreground">
+                    {a.label}.
+                  </span>{" "}
+                  {a.note}
+                </li>
+              ))}
+            </ul>
+            {/* The walk is LINKS, not a sentence to retype. Each one carries the lab
+            key, because the candidate block renders only where the tuner island
+            mounts and that island needs it; each opens in a new tab so the board
+            and the applied block both stay where they are. */}
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <Caption className="text-[11px]">Walk it on</Caption>
+              {WALK.map((p) => (
+                <a
+                  key={p}
+                  href={walkHref(p)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded border border-border px-1.5 py-0.5 text-[11px] transition-colors duration-150 hover:bg-secondary"
+                >
+                  {p}
+                </a>
+              ))}
+              <Caption className="text-[11px]">
+                in a new tab. The footer and the nav carry a frame on every one
+                of them, so the argument is there before a scroll.
+              </Caption>
+            </div>
+            <Caption className="text-[10px]">
+              Not the app, and not a guest link: no marketing still is
+              referenced anywhere under the dashboard, the event page, the admin
+              portal or {"/e/[qr_token]"}, so a block changes nothing there and
+              walking them proves nothing. Every surface this ruling touches is
+              a marketing one.
+            </Caption>
+          </section>
+
+          {/* THE EXPOSURE, MEASURED. */}
+          <section id="mk-exposure" className="flex flex-col gap-3">
+            <div>
+              <h2 className="text-sm font-semibold">
+                Where the twelve actually are
+              </h2>
+              <Caption className="mt-1">
+                Production files per id, recomputed from the tree by
+                exposure.test.ts so the numbers cannot go stale on the board.
+                The bar is a share of the widest, which is {maxFiles} files.
+              </Caption>
+            </div>
+            <div className="grid gap-6 rounded-lg border border-border bg-card p-4 sm:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+              <ul className="space-y-1">
+                {STAND_INS.map((s) => {
+                  const n = FILE_COUNTS[s.id] ?? 0;
+                  return (
+                    <li key={s.id} className="flex items-center gap-2">
+                      <span className="w-28 shrink-0 text-[11px]">{s.id}</span>
+                      <span className="h-2 flex-1 rounded-[1px] bg-muted">
+                        <span
+                          className="block h-2 rounded-[1px] bg-foreground"
+                          style={{ width: `${(n / maxFiles) * 100}%` }}
+                        />
+                      </span>
+                      <span className="w-6 text-right text-[11px] text-muted-foreground tabular-nums">
+                        {n}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="space-y-2">
+                {CHROME.map((c) => (
+                  <div key={c.file}>
+                    <p className="text-[11px] font-medium">{c.where}</p>
+                    <p className="text-[11px] leading-snug text-muted-foreground">
+                      {c.ids.join(", ")}
+                    </p>
+                  </div>
+                ))}
+                <div>
+                  <p className="text-[11px] font-medium">
+                    {ROUTES.length} routes reach a still
+                  </p>
+                  <p className="text-[11px] leading-snug text-muted-foreground">
+                    {ROUTES.join("  ")}
+                  </p>
+                </div>
+                {/* Round two wrote "wedding-golden is the widest" by hand and it was
+                simply not true of either column: party-balloons leads on files
+                and reception-hall on covers. Both ends are derived now. */}
+                <Caption className="text-[10px]">
+                  {widest.id} is the widest: {liveExposure(widest.id)}. The
+                  narrowest, {narrowest.id}, is still{" "}
+                  {FILE_COUNTS[narrowest.id]} files and the footer of every
+                  page. Reach, rather than count, belongs to reception-table: it
+                  is the only id in both the footer and the nav, so it is on all{" "}
+                  {MARKETING_PAGES} marketing pages twice.
+                </Caption>
+              </div>
+            </div>
+          </section>
+
+          {/* THE GAP, by vertical. */}
+          <section id="mk-gap" className="flex flex-col gap-3">
+            <div>
+              <h2 className="text-sm font-semibold">The gap, by vertical</h2>
+              <Caption className="mt-1">
+                Six frames per vertical is the kit. Three of the six verticals
+                the product sells to have nothing at all, which is what a person
+                picking covers out of eleven frames has to work with.
+              </Caption>
+            </div>
+            <ul className="grid gap-x-6 gap-y-1.5 rounded-lg border border-border bg-card p-4 sm:grid-cols-2">
+              {VERTICALS.map((v) => {
+                const have = countByVertical(v.id);
+                return (
+                  <li key={v.id} className="flex items-center gap-2">
+                    <span className="w-24 shrink-0 text-[11px] text-muted-foreground">
+                      {v.label}
+                    </span>
+                    <span className="flex h-2 flex-1 gap-px">
+                      {Array.from({ length: Math.max(6, have) }, (_, i) => (
+                        <span
+                          key={i}
+                          className={cn(
+                            "flex-1 rounded-[1px]",
+                            i >= 6
+                              ? "bg-foreground/40"
+                              : i < have
+                                ? "bg-foreground"
+                                : "bg-muted",
+                          )}
+                        />
+                      ))}
+                    </span>
+                    <span className="w-5 text-right text-[11px] text-muted-foreground tabular-nums">
+                      {have}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+
+          {/* THE BRIDGE. The controls sit here because this is what they steer. */}
+          <section id="mk-bridge" data-mk-sheet className="flex flex-col gap-4">
+            <div>
+              <h2 className="text-sm font-semibold">
+                The bridge, post by post
+              </h2>
+              <Caption className="mt-1">
+                All 23 posts, today above or beside what replaces it, at the
+                real geometry of the surface it lands on. The share card is the
+                one a stranger sees first and it ignores the crop ladder
+                entirely. The two percentages under each plate are the
+                cover&rsquo;s object-position: the rung of the crop ladder that
+                slug sits on, which is how one photograph dresses six posts and
+                is recognisable in all six. The candidate is cut at the same
+                rung, because the rung is derived from the slug and nothing
+                about replacing the photograph moves it.
+              </Caption>
+              <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+                The bridge is a per-post job, not a per-frame one. Every one of
+                the 23 posts sets its own{" "}
+                <span className="font-medium">cover</span> in frontmatter and 22
+                of the 23 differ from what the fallback hash would give, so
+                nobody hashed these: a person chose each one out of eleven
+                wedding and festival frames, which is exactly why the conference
+                post is a music festival. {POSTS_FILLED} of the 23 have a
+                candidate below, {empty.length} are left empty on purpose, and{" "}
+                {BARRED_POSTS.length} of the {POSTS_FILLED} are filled by a
+                frame that ask 1 will not let ship.
+              </p>
+            </div>
+
+            {/* The route and the geometry moved to the dock this round: they change
+            every plate on the page, so they belong where they are reachable from
+            any of them. The viewport stays here, because it changes this stage
+            and nothing else. */}
+            <div className="flex flex-wrap items-center gap-3">
+              <Toggle
+                ariaLabel="Viewport"
+                options={[
+                  { id: "desktop" as Mode, label: "Desktop" },
+                  { id: "phone" as Mode, label: "Phone 375" },
+                ]}
+                value={mode}
+                onChange={setMode}
+              />
+              <Caption className="max-w-sm text-[11px]">
+                {route === "licensed"
+                  ? `${POSTS_FILLED} of 23 filled, but ${POSTS_UNDER_RULE} of 23 under the rule: ${BARRED_POSTS.length} of them carry a face with no release. Fast, free, and still somebody else's party.`
+                  : route === "ours"
+                    ? "All 23 from the kit. Six verticals, 36 masters, and the squares, portraits, clips and film cut from the same night."
+                    : "Licensed on the details nobody studies, the shoot on everything a reader stops at. The bridge is dated: it ends when the kit lands."}
+              </Caption>
+            </div>
+
+            {/* WHAT THE ROUTE SHIPS, which is the question round two asked twice.
+            The bridge is not a separate ruling: the route decides how many frames
+            change and when, so the consequence is a table rather than a word. */}
+            <div className="overflow-x-auto rounded-lg border border-border bg-card">
+              <table className="w-full min-w-[46rem] border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-border">
+                    {[
+                      "Route",
+                      "What ships",
+                      "On the blog",
+                      "Cost",
+                      "How it ends",
+                    ].map((h) => (
+                      <th key={h} className="px-3 py-2">
+                        <Caption className="text-[10px]">{h}</Caption>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {ROUTE_SHIPS.map((r) => (
+                    <tr
+                      key={r.route}
+                      className={cn(
+                        "border-b border-border align-top last:border-b-0",
+                        route === r.route && "bg-secondary/60",
+                      )}
+                    >
+                      <td className="px-3 py-2">
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setRoute(r.route)}
+                            className="text-[11px] font-medium underline decoration-border underline-offset-2 transition-colors duration-150 hover:decoration-foreground"
+                          >
+                            {r.label}
+                          </button>
+                          {!r.legal && <Tag tone="gap">Not shippable</Tag>}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-[11px] leading-snug text-muted-foreground">
+                        {r.ships}
+                      </td>
+                      <td className="px-3 py-2 text-[11px] leading-snug text-muted-foreground tabular-nums">
+                        {r.blog}
+                      </td>
+                      <td className="px-3 py-2 text-[11px] leading-snug text-muted-foreground">
+                        {r.cost}
+                      </td>
+                      <td className="px-3 py-2 text-[11px] leading-snug text-muted-foreground">
+                        {r.ends}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* WHERE THEY LAND, AT THE REAL SIZE ON THE REAL GROUND.
+            ★ Both of those were wrong until round three walked the running blog
+            and measured it: the library card is 320x400 with a 16 px gutter,
+            three across at 1440, and /blog is in the (cinema) group, so it is a
+            DARK page. This stage drew 440 px plates on paper. And it drew only
+            the route's row, so at the default route (Mix, where all three of
+            these posts go to the shoot) the board's largest element opened as
+            three empty hatches. Today's row above the route's row fixes both: it
+            is a comparison at every route, and it is never blank.
+
+            The three posts are not a slice, they are the argument: two corporate
+            posts and a conference post, wearing an empty wedding hall and two
+            music festivals today, which is what choosing carefully out of eleven
+            frames looks like. */}
+            <Stage
+              mode={mode}
+              ground="cinema"
+              height={
+                geometry === "card"
+                  ? mode === "phone"
+                    ? 1040
+                    : 1000
+                  : mode === "phone"
+                    ? 560
+                    : 740
+              }
+            >
+              <div
+                className={cn(
+                  "flex h-full flex-col justify-center",
+                  mode === "phone" ? "gap-4 px-4 py-4" : "gap-5 py-6",
+                )}
+              >
+                {(
+                  [
+                    ["On the blog today", "today"],
+                    [
+                      route === "licensed"
+                        ? "Licensed, the staged batch"
+                        : route === "ours"
+                          ? "Ours, the shot that replaces it"
+                          : "Mix, the recommendation",
+                      "next",
+                    ],
+                  ] as const
+                ).map(([label, which]) => (
+                  <div
+                    key={which}
+                    className={cn(
+                      "flex flex-col gap-2",
+                      mode === "phone" ? "" : "mx-auto w-[992px]",
+                    )}
+                  >
+                    <Caption
+                      className={mode === "phone" ? "text-[11px]" : "text-xs"}
+                    >
+                      {label}
+                    </Caption>
+                    <div
+                      className={cn(
+                        "grid gap-4",
+                        mode === "phone"
+                          ? "grid-cols-1"
+                          : geometry === "card"
+                            ? "grid-cols-3"
+                            : "grid-cols-2",
+                      )}
+                    >
+                      {STAGE_POSTS.slice(
+                        0,
+                        mode === "phone" ? 1 : geometry === "card" ? 3 : 2,
+                      ).map((p) => {
+                        const next = whatReplaces(p, route);
+                        const current = MANIFEST_BY_ID.get(p.cover);
+                        const src =
+                          which === "today"
+                            ? (current?.src ?? null)
+                            : next.kind === "licensed" && next.key
+                              ? candidateSrc(next.key)
+                              : null;
+                        const slate =
+                          which === "today"
+                            ? undefined
+                            : next.kind === "ours"
+                              ? `To be shot, ${master(p.shot).code}: ${master(p.shot).subject}`
+                              : p.why;
+                        // The provenance line belongs UNDER the plate, never on it:
+                        // the plate is the real card and the annotation is board
+                        // chrome, and the whole point of this section is that the
+                        // two are not the same thing.
+                        const licensed =
+                          which === "next" &&
+                          next.kind === "licensed" &&
+                          next.key
+                            ? candidate(next.key)
+                            : null;
+                        const note =
+                          which === "today" ? (
+                            <>
+                              {p.cover} at {p.crop}, license unverified
+                            </>
+                          ) : licensed ? (
+                            <span className="inline-flex flex-wrap items-center gap-1">
+                              <Tag tone="named">CC0 1.0</Tag>
+                              {licensed.people === "identifiable" ? (
+                                <Tag tone="face">A face, no release</Tag>
+                              ) : (
+                                <span>
+                                  {licensed.author}, Wikimedia Commons
+                                </span>
+                              )}
+                            </span>
+                          ) : null;
+                        return (
+                          <div key={p.slug} className="flex flex-col gap-1.5">
+                            {geometry === "card" ? (
+                              <CardPlate
+                                full
+                                src={src}
+                                title={p.title}
+                                crop={p.crop}
+                                slate={slate}
+                              />
+                            ) : (
+                              <SharePlateStage
+                                src={src}
+                                title={p.title}
+                                next={next}
+                                which={which}
+                                shot={p.shot}
+                              />
+                            )}
+                            <p className="min-h-4 text-[11px] leading-snug text-muted-foreground tabular-nums">
+                              {note}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Stage>
+            <Caption className="text-[10px]">
+              Measured on the running blog at 1440: the library card is 320 by
+              400 with a 16 px gutter, three across, on the cinema ground. The
+              plate draws the cover, the scrim, the title and the byline; the
+              real card also carries up to two tag chips in the top left, which
+              this board holds no data for and will not invent. Both rows are
+              cut at the same rung of the crop ladder, because the ladder is a
+              function of the slug: swapping the photograph does not move it,
+              and neither will the frontmatter edit that ships it.
+            </Caption>
+
+            <div
+              className={cn(
+                "grid gap-x-5 gap-y-7",
+                // Three across at most: at four, a 4:5 plate lands at 110 px, which
+                // is too small to judge a photograph on, and judging the photograph
+                // is the entire job of this sheet.
+                geometry === "card"
+                  ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+                  : "grid-cols-1 lg:grid-cols-2",
+              )}
+            >
+              {BRIDGE.map((p, i) => (
+                <PostRow
+                  key={p.slug}
+                  post={p}
+                  route={route}
+                  geometry={geometry}
+                  index={i}
+                />
+              ))}
+            </div>
+
+            <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
+              <Caption className="font-medium text-foreground">
+                The two that stay empty, and what that means
+              </Caption>
+              <ul className="mt-2 space-y-1.5">
+                {empty.map((p) => (
+                  <li key={p.slug} className="text-[11px] leading-snug">
+                    <span className="font-medium">/blog/{p.slug}</span>
+                    <span className="text-muted-foreground"> {p.why}</span>
+                  </li>
+                ))}
+              </ul>
+              <Caption className="mt-2 text-[10px]">
+                Both are the corporate and conference end of the product, which
+                is the half of the business a licensed corpus cannot dress at
+                all. Trips it covers perfectly, because travel is what
+                photographers give away.
+              </Caption>
+              <ul className="mt-3 space-y-1.5 border-t border-destructive/30 pt-3">
+                <li className="text-[11px] leading-snug">
+                  <span className="font-medium">
+                    And {BARRED_POSTS.length} more are filled by a frame ask 1
+                    bars.
+                  </span>{" "}
+                  <span className="text-muted-foreground">
+                    {BARRED_POSTS.map((p) => `/blog/${p.slug}`).join(", ")}.
+                    Each one carries a readable face and no release, so the
+                    honest count for Licensed is {POSTS_UNDER_RULE} of 23, and
+                    for the twelve ids it is {IDS_UNDER_RULE} of {IDS_TOTAL}:{" "}
+                    {BARRED_IDS.join(" and ")}, the dance floor and the DJ,
+                    which are the two frames a product about parties needs most.
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          {/* THE CALL SHEET. */}
+          <section id="mk-kit" className="flex flex-col gap-3">
+            <div>
+              <h2 className="text-sm font-semibold">
+                The kit, as a call sheet
+              </h2>
+              <Caption className="mt-1">
+                36 masters, six per vertical. Each one names what happens in the
+                frame, where the camera is, what the light is doing, and the
+                crops it has to survive, so it can be shot from rather than
+                argued with. Four are the palette board&rsquo;s hard cases and
+                three are the phone-up frames every round-three hero variation
+                wants.
+              </Caption>
+            </div>
+            {VERTICALS.map((v) => (
+              <div key={v.id}>
+                <div className="mb-2 flex items-baseline gap-2 border-b border-border pb-1.5">
+                  <h3 className="text-xs font-semibold">{v.label}</h3>
+                  <Caption className="text-[11px] tabular-nums">
+                    {MASTERS.filter((m) => m.vertical === v.id).length} frames,{" "}
+                    {countByVertical(v.id)} in the manifest today
+                  </Caption>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {MASTERS.filter((m) => m.vertical === v.id).map((m) => (
+                    <div
+                      key={m.code}
+                      className="flex flex-col rounded-lg border border-border p-3"
+                    >
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="rounded bg-foreground px-1.5 py-px text-[10px] font-medium text-background tabular-nums">
+                          {m.code}
+                        </span>
+                        <Tag tone="named">{m.orientation}</Tag>
+                        {m.hardCase && <Tag tone="ours">{m.hardCase}</Tag>}
+                        {m.phoneUp && <Tag tone="ours">phone up</Tag>}
+                      </div>
+                      <p className="mt-1.5 text-[11px] leading-snug font-medium">
+                        {m.subject}
+                      </p>
+                      <dl className="mt-1.5 space-y-1">
+                        <div>
+                          <dt className="sr-only">Framing</dt>
+                          <dd className="text-[11px] leading-snug text-muted-foreground">
+                            <span className="font-medium text-foreground">
+                              Frame.
+                            </span>{" "}
+                            {m.framing}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="sr-only">Light</dt>
+                          <dd className="text-[11px] leading-snug text-muted-foreground">
+                            <span className="font-medium text-foreground">
+                              Light.
+                            </span>{" "}
+                            {m.light}
+                          </dd>
+                        </div>
+                      </dl>
+                      <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
+                        Survives: {m.crops.join("; ")}
+                      </p>
+                      <p className="mt-1 text-[10px] leading-snug">
+                        {m.replaces.length ? (
+                          <>
+                            Replaces{" "}
+                            <span className="font-medium">
+                              {m.replaces.join(", ")}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            New ground: nothing in the manifest does this job
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* ONE NIGHT, NINE ROWS. Round two listed four derived rows because it
+            had read four manifests. Reading the whole asset log end to end is
+            what turned the kit from the most expensive ask on the list into the
+            one that closes most of it. */}
+            <div className="mt-2 flex flex-col gap-3">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h3 className="text-sm font-semibold">
+                  One night, {DERIVED.length} rows of the asset log
+                </h3>
+                <Caption className="text-[11px]">
+                  The log holds {DERIVED.length + NOT_DERIVED.length} rows.
+                  Three are not photography (the ruling, the shoot itself and a
+                  noise tile). The other {DERIVED.length} are crops, recrops,
+                  cuts or setups of the same night, so the kit is not the most
+                  expensive ask on the list, it is the one that closes the list.
+                </Caption>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {DERIVED.map((d) => (
+                  <div
+                    key={d.row}
+                    className="rounded-lg border border-border bg-card p-3"
+                  >
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span className="rounded bg-foreground px-1.5 py-px text-[10px] font-medium text-background tabular-nums">
+                        Row {d.row}
+                      </span>
+                      <span className="text-xs font-medium">{d.what}</span>
+                      <Caption className="text-[10px]">{d.askedBy}</Caption>
+                    </div>
+                    <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+                      {d.spec}
+                    </p>
+                    <p className="mt-1 text-[11px] leading-snug">
+                      <span className="font-medium">From.</span> {d.from}
+                    </p>
+                    <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
+                      Replaces {d.replaces}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <ul className="flex flex-wrap gap-x-5 gap-y-1">
+                {NOT_DERIVED.map((n) => (
+                  <li
+                    key={n.row}
+                    className="text-[10px] leading-snug text-muted-foreground"
+                  >
+                    <span className="font-medium text-foreground tabular-nums">
+                      Row {n.row}
+                    </span>{" "}
+                    {n.what}, not from the shoot: {n.why}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-lg border border-border bg-card p-4">
+              <Caption className="font-medium text-foreground">
+                What a frame must survive, and the surface that decides it
+              </Caption>
+              <ul className="mt-2 space-y-1.5">
+                {KIT_CONSTRAINTS.map((c, i) => (
+                  <li key={i} className="flex gap-2 text-[11px] leading-snug">
+                    <span className="w-3 shrink-0 text-right text-muted-foreground tabular-nums">
+                      {i + 1}
+                    </span>
+                    <span>
+                      <span className="font-medium">{c.rule}.</span>{" "}
+                      <span className="text-muted-foreground">
+                        {c.because}.
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          {/* THE RECORD. The schema prototyped, with a real row in it. */}
+          <section id="mk-record" className="flex flex-col gap-3">
+            <div>
+              <h2 className="text-sm font-semibold">The record, prototyped</h2>
+              <Caption className="mt-1">
+                The six fields the rule adds to a manifest entry, running on{" "}
+                {CANDIDATES.length} staged records with provenance.test.ts
+                refusing a record that is missing one. The rule is not a
+                proposal on this board; it is a suite you can watch pass.
+              </Caption>
+            </div>
+            <div className="grid gap-3 lg:grid-cols-2">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <Caption className="font-medium text-foreground">
+                  One record, as the test reads it
+                </Caption>
+                <dl className="mt-2 space-y-1">
+                  {(
+                    [
+                      ["author", candidate("bridge-dancefloor").author],
+                      ["sourceUrl", candidate("bridge-dancefloor").sourceUrl],
+                      ["license", "CC0 1.0"],
+                      [
+                        "clause",
+                        "You can copy, modify, distribute and perform the work, even for commercial purposes, all without asking permission.",
+                      ],
+                      ["retrieved", "2026-09-14"],
+                      ["people", candidate("bridge-dancefloor").people],
+                    ] as const
+                  ).map(([field, value]) => (
+                    <div
+                      key={field}
+                      className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2"
+                    >
+                      <dt className="text-[11px] font-medium tabular-nums">
+                        {field}
+                      </dt>
+                      <dd className="text-[11px] leading-snug break-words text-muted-foreground">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+                  <span className="font-medium text-foreground">people</span> is
+                  the field that does the work. No free tier supplies a model
+                  release, so an entry reading identifiable cannot sit on a page
+                  that makes a claim, and the test refuses one without a caution
+                  on it.
+                </p>
+              </div>
+              <div className="rounded-lg border border-border bg-card p-4">
+                <Caption className="font-medium text-foreground">
+                  What the suite asserts today
+                </Caption>
+                <ul className="mt-2 space-y-1">
+                  {[
+                    "Every staged file exists, is under 300 KB and is 1200 px on the long edge.",
+                    "Nothing sits in the directory without a record, and no record without a file.",
+                    "candidates.ts and provenance.json agree field by field, so the two copies cannot drift.",
+                    "Every record carries all six required fields, and the license clause is quoted rather than named.",
+                    "Every file predates 5 June 2017, which is the entire basis of the batch being CC0 at all.",
+                    "A frame with an identifiable face carries a caution, without exception.",
+                    "Every staged frame is used by the bridge, so nothing is staged and forgotten.",
+                  ].map((line, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-2 text-[11px] leading-snug text-muted-foreground"
+                    >
+                      <span className="w-3 shrink-0 text-right tabular-nums">
+                        {i + 1}
+                      </span>
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-[11px] leading-snug">
+                  Two more suites keep the board honest: exposure.test.ts
+                  recomputes every number above from the tree, and
+                  bridge.test.ts recomputes each post&rsquo;s cover and crop
+                  from the real resolver.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* THE RUNBOOK. */}
+          <section id="mk-runbook" className="flex flex-col gap-3">
+            <div>
+              <h2 className="text-sm font-semibold">
+                Re-rendering the two recorded reels
+              </h2>
+              <Caption className="mt-1">
+                A media swap invalidates both recorded loops, and the engine
+                encodes in a browser, so this is a person at a machine with
+                Chrome. It is not, however, a code edit: both recipes are
+                already in the parity page&rsquo;s own clip-set picker, in
+                order, and runbook.test.ts keeps that true.
+              </Caption>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {REELS.map((r) => (
+                <div key={r.id} className="rounded-lg border border-border p-3">
+                  <p className="text-xs font-medium">{r.id}</p>
+                  <Caption className="mt-0.5 text-[11px] tabular-nums">
+                    {r.orientation}, {r.durationSeconds.toFixed(2)} s, style{" "}
+                    {r.recipe.styleId}, seed {r.recipe.seed},{" "}
+                    {r.recipe.clipIds.length} clips
+                  </Caption>
+                  <ol className="mt-2 space-y-1.5">
+                    {runbookFor(r.id).map((s) => (
+                      <li key={s.n} className="flex gap-2">
+                        <span className="w-3 shrink-0 text-right text-[11px] text-muted-foreground tabular-nums">
+                          {s.n}
+                        </span>
+                        <span className="text-[11px] leading-snug">
+                          <span className="font-medium">{s.do}.</span>{" "}
+                          <span className="text-muted-foreground">
+                            {s.detail}
+                          </span>
+                          {s.friction && (
+                            <span className="mt-0.5 block rounded border border-border bg-muted/50 px-1.5 py-1 text-[10px] leading-snug text-muted-foreground">
+                              Friction: {s.friction}
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                  <Caption className="mt-2 text-[10px]">
+                    Clips: {r.recipe.clipIds.join(", ")}. Every one of them is a
+                    stand-in, so the swap invalidates this recording.
+                  </Caption>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-lg border border-border bg-card p-4">
+              <Caption className="font-medium text-foreground">
+                What the wiring round adds, in the order it bites
+              </Caption>
+              <ul className="mt-2 space-y-1">
+                {WIRING_ADDS.map((line, i) => (
+                  <li
+                    key={i}
+                    className="flex gap-2 text-[11px] leading-snug text-muted-foreground"
+                  >
+                    <span className="w-3 shrink-0 text-right tabular-nums">
+                      {i + 1}
+                    </span>
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        </div>
+      </details>
+
       <BoardMeta
         question={QUESTION}
-        /* Recommendation first, and the one that no longer survives its own
-           column last, with the reason on it rather than in a footnote. */
+        /* Three ways to get frames, not three shades of one. Round four's
+           candidates are the three ways money and time can be spent, with the
+           number each actually costs on it rather than in a footnote. */
         candidates={[
           {
-            name: "Mix, the recommendation",
-            rationale: `Ours on every frame a reader stops at (the hero, the reel clips, the four posts riding one empty hall), licensed only where the photograph is furniture: ${MIX_IDS} of the twelve ids and ${MIX_POSTS} of the ${BRIDGE.length} blog covers. It is the only route that changes anything the week it is chosen AND ships nothing the rule forbids. The bridge is dated: it is deleted the day the kit lands, not left because it still looks fine.`,
+            name: `Buy the bridge, then shoot the kit (the recommendation, $${TOTAL} now)`,
+            rationale: `One month of Unsplash+ plus ${HARD_FRAMES} iStock frames buys a bridge that is genuinely released, which the CC0 batch never was, and it can be downloaded tonight. Then the shoot replaces all of it. This is round three's Mix with a legal second half: the ${ALLOWED_SOURCES.length} sources above the line on the sheet all hold or warrant a release, and the top one is $20 for a month with a perpetual licence on anything pulled inside it.`,
           },
           {
-            name: "Ours",
-            rationale:
-              "36 masters across six verticals, shot in one night at an event we host with releases at the door, and the squares, the portraits, the clips, the film, the cutout and the demo seed cut from the same footage. The rule taken literally, the only route that makes the product's own claim true, and the route that closes nine of the twelve rows in the asset log.",
+            name: "Shoot only, and leave the twelve until it happens",
+            rationale: `The rule taken literally. One night at an event we host with releases at the door closes nine of the twelve rows in the asset log, and it is the only sourcing that makes the product's own claim true. The cost is that the twelve unlicensed stills stay on ${MARKETING_PAGES} marketing pages until the night happens, which on this track's history is measured in rounds.`,
           },
           {
-            name: "Licensed, on the board to be walked rather than chosen",
-            rationale: `The staged batch, ${CANDIDATES.length} frames, all CC0, none of Will's time. It satisfies the letter of bible 18 without its point: ${CANDIDATES.length - IDENTIFIABLE.length} of the ${CANDIDATES.length} work only because nobody in them is recognisable, and the ${IDENTIFIABLE.length} worth having need a release nobody holds. Under ask 1 it fills ${IDS_UNDER_RULE} of the ${IDS_TOTAL} ids and ${POSTS_UNDER_RULE} of the 23 posts, the two it misses are the dance floor and the DJ, and it has nothing at all for the corporate and conference half of the business. Apply it and walk /blog: the walk is the argument against it.`,
+            name: "Free only, which the sheet now prices honestly",
+            rationale: `Everything below the line: ${BARRED_SOURCES.length} real catalogues, including Web Summit's 87,066 CC BY conference photographs, which is the deepest free corpus that exists for the one vertical we cannot fill. It costs nothing and it cannot ship a face. It is on the board because Will's note asked to see it, and because ask 3 is the one ruling that would change it from decoration into the answer for conferences.`,
           },
         ]}
         asks={ASKS.map(
