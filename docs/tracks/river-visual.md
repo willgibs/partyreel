@@ -1,6 +1,6 @@
 ---
 track: river-visual
-status: open
+status: handed-off
 cut: "1b647d76"         # origin/launch-prep at the round-2 boot, 2026-09-15
 cut_round_1: "c473707"
 merged_round_1: "232dfd29"
@@ -434,14 +434,198 @@ mounted. Nothing production moved; the asks are where it goes first and whether 
 
 ## Handoff (round 2)
 
-- Head <sha>, pushed; preview partyreel-git-lp-river-visual-partyreel.vercel.app
-- Synced with launch-prep at <sha>
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the three registration lines (exceptions and why)
-- Shared-file changes asked of the Orchestrator: none
-- Assets requested from Will: none
-- Look at first: ...
+- **Head: this commit**, on top of **`849937f5`**, which is the round's last commit of CODE. The
+  round is two code commits: `b8c11ee6` migrated the board onto the kit's template, and `849937f5`
+  collapsed the mount's paste (it was passed `lines={9}` against a 9 line block, so the kit's
+  `total > lines` was false and it rendered open with no Read all button). Pushed to
+  `lp/river-visual`; the preview at `partyreel-git-lp-river-visual-partyreel.vercel.app` builds on
+  this `status: handed-off` push.
+  **Marker for this round: `data-board="river-visual"`**, the attribute the kit's template writes on
+  a migrated board's root and which round one's hand-built board had nowhere. One line tells you
+  which build an alias is serving:
+  `curl -s "<url>/design/lab/river-visual?key=" | grep -o 'data-board="river-visual"' | wc -l`
+  returns **1** on this round and **0** on round one, where the same count of `rvr-oneflow` moved
+  from **6** to **7** (the cost section mounts a seventh instance).
+
+- **What the board IS now: two files.** `spec.ts` is the whole argument as pure data (the question,
+  the verdict, the four one-word calls, three candidates, five departures, two assets, six sections
+  with their ledes and collapsed arguments, four declared controls and a six step walk), and
+  `board.tsx` is the evidence per section as a function of the declared state. **No candidate,
+  number or recommendation changed**: every ask, candidate, departure and asset is round one's,
+  moved out of `BoardMeta`'s prop strings so the template, the desk, the record and the review
+  ledger read one list.
+  - **The one thing the migration had to make explicit.** Round one's four asks were sentences with
+    no recommendation, because `BoardMeta` had nowhere to put one; the kit's `Ask` requires it. Each
+    is read off what the board already stood on rather than decided this round: `column` is the
+    placement round one called "the strongest of the three", `in` is what the dock, the paste and
+    the component's own prop all default to, `ghost` is what the candidate renders, and `keep` is
+    1.32, the visual's default. The spec's header comment says exactly this, so a reviewer can see
+    that the pills are round one's position and not a new one.
+
+- **Three capabilities the board did not have, each a real gap round one hit.**
+  - **REST IS A SWITCH.** `RiverVisual` takes `still`, which stops the loop AND clears the two
+    inline properties it wrote. ★ It has to be a PROP and not a sheet rule: the running loop writes
+    inline `transform` and `opacity`, which beat any rule a board's sheet could add, and ★ it must
+    clear those two properties and never the style attribute, because `--rvr-rest` and
+    `--rvr-rest-o` are inline custom properties on the same elements (round one blanked a stage that
+    way). `river.css` gains one rule, `.rvr[data-rvr-still] .rvr-card`, written outside the
+    media query so the pre-pour frame in the no-preference block cannot hold the cards collapsed for
+    a reader looking at Rest who has not asked for less motion; it wins on specificity (0,3,0
+    against 0,1,0) rather than on source order. Round one could only reach this state by deleting 27
+    `no-preference` blocks out of the live sheets by hand, which is not something a reviewer will do.
+  - **THE COST IS PHASED.** Round one's own rolling meter is deleted (it was a function literally
+    named `CostMeter`, which the kit owns) for the kit's, with three declared phases: the rest
+    floor, one instance, and six at once. ★ The count is MOUNTED rather than revealed, because
+    `display: none` does not stop the loop: the rAF callback still writes a transform to every node
+    it holds, so a stress phase built by un-hiding five would have measured six in every phase.
+    `board.css` carries this board's reading of `data-lab-solo` (it hides the FLOW and not the
+    instance, so the plate stays and a reviewer can see what is being measured).
+  - **THE STAGES MEASURE THEMSELVES.** Four hand-typed stage heights are gone: every stage is a
+    `FitStage`. Round one shipped a clipped step placement at the phone canvas and only found it by
+    measuring the DOM two commits later; that class of defect is now unreachable.
+
+- **How it was verified: the dev server on :3412 in this worktree, driven through the Browser pane
+  at `/design/lab/river-visual`,** at Desktop 1440 and Phone 375, on cinema and paper, through all
+  three origins, Live and Rest, with `document.visibilityState` asserted "visible" and `[data-paused]`
+  at 0 in the same call as every reading. Read off the live DOM rather than a screenshot:
+  - **Nothing clips and nothing overflows.** All five stages render at 1:1, 1440 or 375 wide, each
+    exactly its content plus the kit's 3 px `FIT_SLACK` (1440: 828/825, 1174/1171, 741/738, 802/799,
+    391/388; 375: 1248/1245, 1362/1359, 1487/1484, 597/594, 285/282), and the document's
+    `scrollWidth` equals its `clientWidth` on both canvases.
+  - **Every instance draws round one's number.** 560, 400, 240, 560, 330, 632 and 240 at 1440;
+    343, 280, 160, 343, 311, 335 and 160 at 375 (the seventh is the cost row's). Every code is
+    123 px over a span of 41 where the demo URL is passed, 99 over 33 where it is not, and 126 over
+    33 in the 632 empty state, which is 3.0 px a module or better in all of them: the scan floor
+    round one measured, unmoved.
+  - **Rest resolves to the running stream's own frame.** All 7 instances carry `data-rvr-still`,
+    **79 of the 84 cards stand at their `--rvr-rest` transform** and the 5 past the dissolve's last
+    stop are held at 0, with **0 inline transforms left** on the page. A sampled card's computed
+    matrix is its `--rvr-rest` string to the digit.
+  - **The meter runs and isolates.** Mid-run `data-lab-solo` is `target` and exactly **1 of 12
+    flows** is visible, which is the board's sheet doing its job. The three phases read **16.7 ms
+    mean, 17.6 to 17.7 longest** on this machine, whose display is 60 Hz (round one's 8.3 ms was a
+    120 Hz clock, so the two are the same answer: every frame inside budget). Worth knowing before
+    anyone reads the third column as a defect: the "frames over 17 ms" count is 13 of 109 even AT
+    REST, where there is no loop at all, because a 16.7 ms cadence straddles a 17 ms threshold.
+  - **The template's own promises hold.** Six sections anchored and all six in the dock's Sections
+    menu and in the index; the four ask pills link to `column`, `bank`, `guest`, `bank`, which is
+    what the spec declares; every argument (3, 2, 2, 3, 2), the wiring note and "How it got here"
+    are collapsed; the mount's paste is collapsed behind "Read all 9 lines" and renders in Inter.
+  - **The walk executes.** All six steps set the declared state and land on their section
+    (`bank` live, `bank` origin=none, `bank` motion=rest, `column`, `card`, `guest` origin=none), and
+    a pasted link reopens the state: `?motion=rest` opens at rest, `?canvas=phone` at 375.
+  - **The review panel's line parses.** The panel composed
+    `review river-visual r2: placement=card; code=out; note: "..."` and
+    `node scripts/lab-review.mjs --root <scratch>` recorded all three against a SCRATCH copy of
+    `docs/reviews/`. The real ledger was never touched (`git status` clean after).
+  - **The desk queues the board.** `/design/lab` lists all four asks under "Waiting on you" with
+    their recommended options, and the board page no longer draws the `legacy layout` tag.
+
+- **Two kit findings, both worked around inside this lane and both asked for below with the patch.**
+  - ★ **`Compare` in `side` mode splits on a Tailwind prefix.** It lays its two halves out with
+    `sm:grid-cols-2`, and a breakpoint prefix inside a `Stage` reads the real BROWSER window rather
+    than the canvas (stage.tsx's own landmine), so on a wide window the 375 stage put two 160 px
+    columns where a phone has room for one. This is exactly the defect `Specimen`'s `cols` NUMBER
+    was designed to avoid, one component over. The board pins one column at the phone canvas from
+    its own sheet (`.rvr-onecol > div:first-child`, unlayered so it beats the utility without a
+    specificity war), measured at **333 px, one column**, on a 1512 px window.
+  - ★ **`Specimen`'s grid cannot hold a row of specimens at different TRUE widths.**
+    `repeat(cols, minmax(0,1fr))` is right for equal cells and wrong for the bank row: three equal
+    437 px columns inside a 1440 stage cannot hold a 560 specimen, and the only ways to make it fit
+    are to shrink it or scale it, both of which the 1:1 law forbids for a thing whose size is being
+    judged. The bank row is a flex row of the kit's own `Cell`s until the kit takes content-sized
+    columns; `Specimen` IS used where the cells are genuinely equal (the cost row).
+  - **One note that is not a request.** A section lands **214 px** down the viewport after a walk
+    step or a Sections click, about 117 px below the dock, because `BoardDock` writes
+    `scroll-padding-top: 105px` on `<html>` AND `BoardSection` carries
+    `scroll-mt-[calc(topbar+dock+12px)]`, and the two ADD. Nothing is hidden and nothing is broken,
+    it is just dead headroom. **The light PILOT measures identically (214 px)**, so this is the
+    kit's and not this board's, and the wave should not have twelve boards fixing it twelve ways.
+
+- **Shared-file changes asked of the Orchestrator: two, both one-liners in the kit, neither blocking.**
+  - `src/components/lab/compare.tsx`: take the canvas the way `Specimen` does rather than reading
+    the window. Add `cols?: 1 | 2` and use it when given:
+    `className={cn("grid min-w-0 gap-4", cols ? undefined : "grid-cols-1 sm:grid-cols-2")}`, plus
+    an inline `gridTemplateColumns` of `repeat(<cols>, minmax(0,1fr))` when `cols` is given. Every
+    board inside a `Stage` then passes `cols={mode === "desktop" ? 2 : 1}` and this lane deletes its
+    `.rvr-onecol` rule.
+  - `src/components/lab/specimen.tsx`: let `cols` be `number | "auto"`, and when `"auto"` set
+    an inline `gridTemplateColumns` of `repeat(<child count>, max-content)` (or simply
+    `grid-auto-flow: column` with `justify-content: center`). The bank row then becomes a `Specimen`
+    like every other row on the wave.
+  - **One thing NOT asked for.** The kit's `CostPhase.solo` is `"none" | "target"` and has no
+    "measure everything" value; this board does not need one, because its stress case is a COUNT
+    inside the measured specimen rather than the rest of the page.
+
+- Synced with `launch-prep`: **not needed. It had not moved** (`git rev-list --count
+  HEAD..origin/launch-prep` = 0; the tip is still `1b647d76`, this branch's cut).
+- Gates on this tree, each on its own exit code: typecheck ok, lint ok (**0 errors; 6 warnings,
+  every one pre-existing and none in this lane**, on `contact-form.tsx`, `album-fill-grid.tsx`,
+  `review-switch.tsx`, `jobs.ts` and `use-flip.ts`), test ok (**2140 in 218 files**), build ok
+  (**257 static pages**), and `pnpm lab:smoke --base http://localhost:3412` ok (**287 checks, 0
+  failing**).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `docs/tracks/river-visual.md`,
+  `src/app/(dev)/design/(shell)/lab/boards.ts`,
+  `src/app/(dev)/design/sandbox/registry.ts`,
+  `src/app/(dev)/design/sandbox/river-visual/board.css`,
+  `src/app/(dev)/design/sandbox/river-visual/board.tsx`,
+  `src/app/(dev)/design/sandbox/river-visual/river.css`,
+  `src/app/(dev)/design/sandbox/river-visual/river.tsx`,
+  `src/app/(dev)/design/sandbox/river-visual/spec.ts`,
+  `src/components/lab/kit-discipline.test.ts`.
+  **Three exceptions, all of them the registration the wave allows for this board's id only**, and
+  each is an adjacent-line edit the Orchestrator resolves at the merge: `registry.ts` imports
+  `RIVER_VISUAL` and appends it to `BOARDS` in the list's existing order; `boards.ts` drops
+  `legacy: true` from the `river-visual` entry; `kit-discipline.test.ts` deletes `"river-visual"`
+  from `LEGACY`. Nothing else outside the owned directory and this manifest.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte moved.
+- **Assets requested from Will: two, both already open, neither new and neither changed this round.**
+  - 24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, framed tight enough
+    to read at 110 px, which is the size a frame is as it leaves the object in the 560 column ·
+    ASSETS row 2, unchanged, and the same row the media kit's call sheet asks for · replaces the 12
+    landscape stand-ins and retires the per-frame crop table in `river.tsx`.
+  - 12 event photographs as 4:5 portraits, 720 x 900, one grade, from the same shoot · ASSETS row
+    12, unchanged · replaces the portrait cards (`wf` 0.8), which are cropped out of landscapes
+    today.
+  - Nothing else is a picture. This visual still asks for no count, no video and no shell prop.
+- **The asks, verbatim from the spec** (the Orchestrator quotes these under Waiting on Will; each is
+  answered in ONE word and the board's own word is first):
+  - "Where it goes first" (column, card, guest) · proposed **column** · because the column is the
+    only slot tall enough for the whole fall, and the one placement that draws the visual at its
+    full banked width. The card slot is the hardest test rather than the best one, and the guest
+    album is an app surface that has to ghost it. · overrule if the first placement should be the
+    hardest one rather than the strongest.
+  - "The code, in or out" (in, out) · proposed **in** · because it is what the album pours out of,
+    and a scannable code is a second call to action inside a section visual. The price is fixed: 123
+    px of code whatever the box is, so its card is a quarter of the 560 column and three fifths of
+    the 240 thumbnail. · overrule: the guest album is the exception either way.
+  - "May an empty album show photographs" (ghost, none) · proposed **ghost** · because production
+    already made this call for the mosaic it would replace, at grayscale and low alpha, so the
+    promise is a thing arriving rather than a grid standing still. · overrule if an empty state may
+    carry no picture of other people's events at all, in which case the mosaic goes too.
+  - "The box's proportion" (keep, taller, squarer) · proposed **keep** · because 1.32 is the only
+    number in the visual that is taste rather than derivation.
+- **Look at first:** press **Look first** in the dock and take the six steps. It is round one's walk,
+  executable: the bank row at 1440 on cinema, then the SAME row with Origin flipped to no object
+  (that one flip is the whole second ask), then the same row at Rest, which is new this round and is
+  what a reader who asked for less motion actually gets. Then the recommended column placement, the
+  card slot on paper where the object eats a third of a short box, and the guest empty state as a
+  true A/B against the mosaic it would replace. Every step sets the dock for you and the link in the
+  address bar is shareable at each one.
 
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The river's board moved onto the kit's template
+and became two files: a `spec.ts` that is the whole argument as pure data, and a `board.tsx` that is
+the evidence per section as a function of the declared state. No candidate, number or recommendation
+changed, so the verdict and the four one-word calls a reviewer now meets on the first screen are
+round one's, moved out of prop strings into the one list the desk, the record and the review ledger
+also read. Three things the board could not do before, it can: the reduced-motion state is a Motion
+knob driving the visual's own `still` prop, which stops the loop and clears the two inline properties
+it wrote, so a state that took an hour to reproduce by hand is now one shareable link; the cost is
+measured in three declared phases, the rest floor, one instance and six, with every other flow on the
+board hidden while the meter runs; and four hand-typed stage heights are gone for stages that measure
+themselves. The board's own rolling meter, its header, its index and its meta panel are deleted, the
+kit's owning all four. Two kit findings are handed back with their patch: `Compare` splits on a
+Tailwind prefix inside a stage, and `Specimen` cannot hold a row of specimens at different true widths.
