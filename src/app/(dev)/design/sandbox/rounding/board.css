@@ -110,3 +110,26 @@
 .rnd-frames {
   min-height: 1px;
 }
+
+/* ── A control row that never widens the page (round four) ────────────────
+
+   ★ THE SHELL'S Toggle IS `inline-flex` AND NEVER WRAPS. Part A offers eight
+   pages, which is a 490px group, and at 375 that pushed the whole document
+   into a 131px horizontal scroll (measured on the board, not guessed). The
+   row scrolls inside itself instead; the gutters are negative so a pill can
+   reach the edge of the column rather than stopping short of it, and the
+   padding puts it back for the eye. A `wrap` option on the shell's Toggle
+   would retire this (asked for in the Handoff). */
+.rnd-controls {
+  margin-inline: -1rem;
+  overflow-x: auto;
+  padding-inline: 1rem;
+  padding-bottom: 2px;
+}
+
+@media (min-width: 40rem) {
+  .rnd-controls {
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+}

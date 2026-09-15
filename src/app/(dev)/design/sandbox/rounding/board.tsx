@@ -67,11 +67,7 @@ import {
   type RouteId,
   screenPath,
 } from "./frames";
-import {
-  SCREEN_NOTE,
-  SCREEN_OPTIONS,
-  type ScreenId,
-} from "./screen-ids";
+import { SCREEN_NOTE, SCREEN_OPTIONS, type ScreenId } from "./screen-ids";
 import {
   ActionRingSpecimen,
   ActionSpecimen,
@@ -851,9 +847,9 @@ export function RoundingBoard() {
               )}
             </CellLabel>
             <CellLabel>
-              Parts A and B do not need it: a frame is handed the rail
-              directly, so it shows this column whatever the site is wearing.
-              The button is for the walk you take in your own tabs.
+              Parts A and B do not need it: a frame is handed the rail directly,
+              so it shows this column whatever the site is wearing. The button
+              is for the walk you take in your own tabs.
             </CellLabel>
             <CellLabel>
               Then walk{" "}
@@ -891,12 +887,12 @@ export function RoundingBoard() {
           <>
             <p>
               Not a composition of the site: the site. Each frame is a real
-              viewport at {w} by {h} with the route loaded into it, and the
-              rail is written into that document as the same paste a ruling
-              would land, so the page in front of you is the production
-              components at their own breakpoints wearing this column&apos;s
-              radius. Scroll inside a frame and it is the real arc; click a
-              link and the frame follows it.
+              viewport at {w} by {h} with the route loaded into it, and the rail
+              is written into that document as the same paste a ruling would
+              land, so the page in front of you is the production components at
+              their own breakpoints wearing this column&apos;s radius. Scroll
+              inside a frame and it is the real arc; click a link and the frame
+              follows it.
             </p>
             <p>
               Split puts today beside the rail and scrolls them together, which
@@ -908,43 +904,51 @@ export function RoundingBoard() {
           </>
         }
       >
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-          <Labeled label="Page">
-            <Toggle
-              ariaLabel="Page"
-              options={ROUTE_OPTIONS}
-              value={routeId}
-              onChange={setRouteId}
-            />
-          </Labeled>
-          <Labeled label="Compare">
-            <Toggle
-              ariaLabel="Compare"
-              options={[
-                { id: "split", label: "Today beside it" },
-                { id: "single", label: "One frame" },
-              ]}
-              value={split ? "split" : "single"}
-              onChange={(v) => setSplit(v === "split")}
-            />
-          </Labeled>
-          <Button
-            size="xs"
-            variant="outline"
-            onClick={() => setReloadKey((n) => n + 1)}
-          >
-            Reload the frames
-          </Button>
-          <a
-            href={walk(route.path)}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
-          >
-            Open {route.label} in a tab
-          </a>
+        <div className="rnd-controls">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <Labeled label="Page">
+              <Toggle
+                ariaLabel="Page"
+                options={ROUTE_OPTIONS}
+                value={routeId}
+                onChange={setRouteId}
+              />
+            </Labeled>
+            <Labeled label="Compare">
+              <Toggle
+                ariaLabel="Compare"
+                options={[
+                  { id: "split", label: "Today beside it" },
+                  { id: "single", label: "One frame" },
+                ]}
+                value={split ? "split" : "single"}
+                onChange={(v) => setSplit(v === "split")}
+              />
+            </Labeled>
+            <Button
+              size="xs"
+              variant="outline"
+              onClick={() => setReloadKey((n) => n + 1)}
+            >
+              Reload the frames
+            </Button>
+            <a
+              href={walk(route.path)}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            >
+              Open {route.label} in a tab
+            </a>
+          </div>
         </div>
         <CellLabel className="max-w-2xl">{route.note}</CellLabel>
+        <CellLabel className="max-w-2xl">
+          A 1440 canvas does not fit in a 1440 window beside a fixed tuner
+          panel, so the row scrolls inside itself rather than taking the page
+          with it. Collapse the panel (its cross) or send it left (its arrow)
+          and the row widens live to the whole column.
+        </CellLabel>
         <div className="rnd-wide rnd-frames">
           <PageFrames
             route={route}
@@ -963,6 +967,9 @@ export function RoundingBoard() {
           photograph corner in the film strip, a plan card at the band, and a
           CTA at every one of them. Take it at 1440 and then at 375 with the
           dock, on C, and the second read is the one that settles the tile.
+          Then take the guest album on D: the tiles come up to 6px and the gap
+          stays at the 3px its masonry hard-codes, which is the round&apos;s
+          worst finding drawn by the real page rather than argued about.
         </Proposal>
       </Part>
 
@@ -977,40 +984,42 @@ export function RoundingBoard() {
               the way the marketing pages can. These are the production
               components in a viewport of their own instead: the real
               MasonryColumns, the real EventCard, the real Dialog and
-              DropdownMenu, and the real guest EntryShell, each on the page
-              that carries it. A frame is a document, so radix panels portal
-              into the canvas rather than over the lab, and a component&apos;s
-              own responsive classes resolve against the canvas rather than
-              against your browser. That was the fiction in every earlier round
-              of this board, and it is why the app read better here than it
-              does on a phone.
+              DropdownMenu, and the real guest EntryShell, each on the page that
+              carries it. A frame is a document, so radix panels portal into the
+              canvas rather than over the lab, and a component&apos;s own
+              responsive classes resolve against the canvas rather than against
+              your browser. That was the fiction in every earlier round of this
+              board, and it is why the app read better here than it does on a
+              phone.
             </p>
             <p>
               Will&apos;s round four note opens the app&apos;s UI to the lab.
               Nothing here is a redesign yet: it is the app as it ships, at the
-              size it ships, so the radius can be ruled on before the app
-              tracks start.
+              size it ships, so the radius can be ruled on before the app tracks
+              start.
             </p>
           </>
         }
       >
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-          <Labeled label="Screen">
-            <Toggle
-              ariaLabel="App screen"
-              options={SCREEN_OPTIONS}
-              value={screen}
-              onChange={setScreen}
-            />
-          </Labeled>
-          <a
-            href={screenUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
-          >
-            Open this screen in a tab
-          </a>
+        <div className="rnd-controls">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <Labeled label="Screen">
+              <Toggle
+                ariaLabel="App screen"
+                options={SCREEN_OPTIONS}
+                value={screen}
+                onChange={setScreen}
+              />
+            </Labeled>
+            <a
+              href={screenUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            >
+              Open this screen in a tab
+            </a>
+          </div>
         </div>
         <CellLabel className="max-w-2xl">{SCREEN_NOTE[screen]}</CellLabel>
         <div className="rnd-wide rnd-frames">
@@ -1043,13 +1052,13 @@ export function RoundingBoard() {
         </div>
         <Proposal>
           The gap screen is the round&apos;s worst finding and it is not a
-          candidate: the guest gallery writes its column gap as a literal 3px
-          in three files while its tiles ride the token, so every candidate
-          above a 3px tile opens corner holes on the one grid every guest sees.
-          The door screen is the second: the entry sheet takes its top corners
-          from the ACTION token at 1.4x, so the action rung, not the floating
-          rung, decides the shape of the first surface any guest meets. Put the
-          rail on the pill and look at it.
+          candidate: the guest gallery writes its column gap as a literal 3px in
+          three files while its tiles ride the token, so every candidate above a
+          3px tile opens corner holes on the one grid every guest sees. The door
+          screen is the second: the entry sheet takes its top corners from the
+          ACTION token at 1.4x, so the action rung, not the floating rung,
+          decides the shape of the first surface any guest meets. Put the rail
+          on the pill and look at it.
         </Proposal>
       </Part>
 
@@ -1064,8 +1073,8 @@ export function RoundingBoard() {
               them. This is the arithmetic behind parts A and B: the line under
               each cell is what a ruling inherits, so a card is{" "}
               {cardMultiplier(ladder)}x the base on the rail&apos;s ladder, a
-              menu row nests only at the panel minus its 4px of padding, and
-              the gallery gap follows the tile.
+              menu row nests only at the panel minus its 4px of padding, and the
+              gallery gap follows the tile.
             </p>
             <p>
               The action row shows the shipped pair: the h-8 Button on

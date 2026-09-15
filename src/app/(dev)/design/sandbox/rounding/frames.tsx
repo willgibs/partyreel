@@ -109,7 +109,7 @@ export const ROUTES: Route[] = [
           id: "guest" as const,
           label: "Guest album",
           path: GUEST_PATH,
-          note: "The live demo album, logged out, exactly as a guest gets it. The masonry's gap is a literal 3px here while its tiles ride the token, so this frame is where the round's worst finding is visible on the real page.",
+          note: "The live demo album, logged out, exactly as a guest gets it, and the one frame to take D on. Measured here: at D the tiles draw a 6px corner while the column gap stays at the literal 3px the guest masonry hard-codes, so four corners meet in three pixels and open a hole. That is the round's worst finding, on the page every guest sees, beside today.",
         },
       ]
     : []),
@@ -278,10 +278,19 @@ export function PageFrame({
         </span>
       </figcaption>
       <div
-        // No corner on the frame's own chrome: a radius here would be the lab's
-        // and would sit a pixel from the radius being judged.
-        className="relative shrink-0 border border-border bg-background"
-        style={{ width: w, height: h }}
+        // ★ AN OUTLINE, NOT A BORDER. A bordered box is border-box here, so a
+        // 1px frame on each side hands the iframe a 1438px viewport while the
+        // caption says 1440: a two pixel lie on a board whose whole argument is
+        // that a size must be its own. An outline is painted outside the box
+        // and takes no layout. No corner on it either, because a radius on the
+        // frame's own chrome would sit a pixel from the radius being judged.
+        className="relative shrink-0 bg-background"
+        style={{
+          width: w,
+          height: h,
+          outline: "1px solid var(--border)",
+          outlineOffset: 0,
+        }}
       >
         <iframe
           ref={ref}
