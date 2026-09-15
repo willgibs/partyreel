@@ -101,7 +101,11 @@ function Specimen({
         width={w}
         origin={origin}
         qrUrl={qrUrl}
-        line={origin === "code" ? CODE_LINE : null}
+        // The line is printed where the plate has room for it. At 240 the
+        // code already clamps to its scan floor and eats half the width, and a
+        // caption under it wraps to three lines: the thumbnail is exactly the
+        // size at which the second ask (the code, in or out) answers itself.
+        line={origin === "code" && w >= 400 ? CODE_LINE : null}
         tone={ground === "paper" ? "paper" : "cinema"}
         className="rounded-[var(--radius-float)]"
       />
@@ -137,9 +141,11 @@ const STEPS = [
 
 function StepPlacement({
   mode,
+  origin,
   qrUrl,
 }: {
   mode: Mode;
+  origin: RiverOrigin;
   qrUrl: string | null;
 }) {
   const w = mode === "desktop" ? 460 : 343;
@@ -151,7 +157,19 @@ function StepPlacement({
       align="left"
       reveal="standard"
     >
-      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+      {/* ★ The board's OWN markup keys off `mode`, never a Tailwind prefix: a
+          prefix inside a stage reads the real BROWSER window and not the
+          canvas, so `lg:` fires inside the 375 stage on a desktop and the
+          phone review is a lie. The production shells inside (SectionShell,
+          Container, Card) carry their own prefixes and are judged as they
+          ship, which is the shell's documented rule. */}
+      <div
+        className={
+          mode === "desktop"
+            ? "mt-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-10"
+            : "mt-8 flex flex-col gap-8"
+        }
+      >
         <ol className="flex flex-col gap-7">
           {STEPS.map((s) => (
             <li key={s.n} className="flex gap-4">
@@ -169,9 +187,9 @@ function StepPlacement({
         </ol>
         <RiverVisual
           width={w}
-          origin="code"
+          origin={origin}
           qrUrl={qrUrl}
-          line={CODE_LINE}
+          line={origin === "code" ? CODE_LINE : null}
           tone="cinema"
           className="rounded-[var(--radius-float)] justify-self-center"
         />
@@ -192,7 +210,13 @@ function StepPlacement({
 /** The two stills the middle slot is judged against. */
 const STILLS = ["reception-hall", "party-balloons"] as const;
 
-function CardPlacement({ mode }: { mode: Mode }) {
+function CardPlacement({
+  mode,
+  origin,
+}: {
+  mode: Mode;
+  origin: RiverOrigin;
+}) {
   const doors = FEATURE_PAGES.filter((p) =>
     ["album", "qr", "sharing"].includes(p.slug),
   );
@@ -204,7 +228,13 @@ function CardPlacement({ mode }: { mode: Mode }) {
       align="center"
       reveal="standard"
     >
-      <div className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-3">
+      <div
+        className={
+          mode === "desktop"
+            ? "mx-auto mt-10 grid max-w-5xl grid-cols-3 gap-4"
+            : "mx-auto mt-8 flex max-w-5xl flex-col gap-4"
+        }
+      >
         {doors.map((d, i) => (
           <Card key={d.slug} className="gap-0 overflow-hidden py-0">
             <div
@@ -216,7 +246,7 @@ function CardPlacement({ mode }: { mode: Mode }) {
                   <RiverVisual
                     width={w}
                     height={Math.round(w * 0.72)}
-                    origin="plate"
+                    origin={origin}
                     tone="paper"
                   />
                 </div>
@@ -249,7 +279,8 @@ function CardPlacement({ mode }: { mode: Mode }) {
         The middle slot is the visual at the width the real grid gives a door
         (330), beside two stills. A card slot is the hardest of the three
         placements: the box is short, so the flow is read at its top third,
-        where the frames are still small.
+        where the frames are still small, and an object at the top of it eats
+        a third of the picture. This is the slot that argues for no object.
       </Caption>
     </SectionShell>
   );
@@ -281,7 +312,13 @@ function CardPlacement({ mode }: { mode: Mode }) {
  *     silhouette; a feature visual has no clearing and never will, so type goes
  *     beside or below. That is the rule for every placement of this visual.
  */
-function EmptyStatePlacement({ mode }: { mode: Mode }) {
+function EmptyStatePlacement({
+  mode,
+  origin,
+}: {
+  mode: Mode;
+  origin: RiverOrigin;
+}) {
   const col = mode === "desktop" ? 340 : 343;
   return (
     <div className="flex flex-col gap-6 px-6 py-8">
@@ -289,7 +326,10 @@ function EmptyStatePlacement({ mode }: { mode: Mode }) {
         <p className="font-heading text-lg">The guest album, before anyone uploads</p>
         <Caption className="mt-1">
           Today on the left, the flow on the right. Both at the gallery&apos;s
-          own column width, on the app ground a guest actually meets.
+          own column width, on the app ground a guest actually meets. The dock
+          drives the origin here too, and the recommendation is no object: a
+          guest reaches this screen by scanning the code, so putting it back in
+          front of them is the one placement where the code is certainly wrong.
         </Caption>
       </div>
       <div className="flex flex-wrap items-start gap-8">
@@ -306,12 +346,17 @@ function EmptyStatePlacement({ mode }: { mode: Mode }) {
             <div className="rvr-ghost overflow-hidden rounded-[var(--radius-tile)]">
               <RiverVisual
                 width={col}
-                height={Math.round(col * 1.05)}
-                origin="plate"
+                height={col}
+                origin={origin}
                 tone="cinema"
               />
             </div>
-            <div className="mt-6 flex flex-col items-center gap-4 text-center">
+            {/* The promise, exactly where production carries it. Type over the
+                media is allowed HERE and nowhere else on this board: the flow
+                is already a ghost, which is the treatment an empty album needs
+                anyway. In every marketing placement the visual is at full
+                luminance and the words go beside it. */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
               <p className="font-heading text-2xl text-balance">
                 This is where it all lands
               </p>
@@ -473,10 +518,27 @@ function BankCard({ instances }: { instances: number }) {
         </div>
         <div>
           <p className="text-[11px] font-medium text-foreground">The paste</p>
+          {/* The body face, deliberately: there is no mono face in the product
+              (bible 7), and a bare <pre> still resolves to a mono stack through
+              preflight, so it is given font-sans like every other one in src. */}
           <pre className="mt-1 overflow-x-auto rounded-md border border-border bg-background px-3 py-2 font-sans text-[11px] leading-relaxed whitespace-pre">
             {PASTE}
           </pre>
         </div>
+      </div>
+      <div className="lg:col-span-2">
+        <p className="text-[11px] font-medium text-foreground">The props</p>
+        <dl className="mt-1 grid gap-x-3 gap-y-1 sm:grid-cols-[10rem_minmax(0,1fr)]">
+          {PROPS.map((prop) => (
+            <div key={prop.name} className="contents">
+              <dt className="text-foreground">
+                {prop.name}
+                <span className="text-muted-foreground"> {prop.type}</span>
+              </dt>
+              <dd>{prop.note}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </div>
   );
@@ -490,10 +552,11 @@ export function RiverVisualBoard() {
   const [origin, setOrigin] = useState<RiverOrigin>("code");
   const [runId, setRunId] = useState(0);
   const qrUrl = DEMO_EVENT_URL ?? null;
-  const tone = ground === "paper" ? "paper" : "cinema";
-  // Three specimens plus the three placements' one each: what the meter below
-  // is measuring, stated rather than guessed.
-  const instances = 3 + (mode === "desktop" ? 3 : 3);
+  // Three specimens plus one per placement: what the meter in the bank card is
+  // measuring, counted rather than guessed. It does not change with the canvas
+  // (today's empty state carries no instance, only the candidate does), and it
+  // is five more than any real page would mount.
+  const instances = 6;
 
   return (
     <div className="rvr-board pt-2">
@@ -596,26 +659,26 @@ export function RiverVisualBoard() {
           <Stage
             mode={mode}
             ground="cinema"
-            height={mode === "desktop" ? 880 : 1500}
-            key={`step-${mode}-${runId}`}
+            height={mode === "desktop" ? 1040 : 1180}
+            key={`step-${mode}-${origin}-${runId}`}
           >
-            <StepPlacement mode={mode} qrUrl={qrUrl} />
+            <StepPlacement mode={mode} origin={origin} qrUrl={qrUrl} />
           </Stage>
           <Stage
             mode={mode}
             ground="paper"
-            height={mode === "desktop" ? 720 : 1560}
-            key={`card-${mode}-${runId}`}
+            height={mode === "desktop" ? 760 : 1560}
+            key={`card-${mode}-${origin}-${runId}`}
           >
-            <CardPlacement mode={mode} />
+            <CardPlacement mode={mode} origin={origin} />
           </Stage>
           <Stage
             mode={mode}
             ground="app-dark"
             height={mode === "desktop" ? 720 : 900}
-            key={`empty-${mode}-${runId}`}
+            key={`empty-${mode}-${origin}-${runId}`}
           >
-            <EmptyStatePlacement mode={mode} />
+            <EmptyStatePlacement mode={mode} origin={origin} />
           </Stage>
         </section>
 

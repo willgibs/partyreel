@@ -18,7 +18,7 @@
    tiles do) and not fully desaturated, because a colourless stream reads as
    broken where a colourless grid reads as faint. */
 .rvr-ghost {
-  filter: grayscale(0.8) opacity(0.34);
+  filter: grayscale(0.85) opacity(0.4);
 }
 
 /* The board's own rows keep the lab's chrome and nothing else: everything that

@@ -125,7 +125,10 @@
 .rvr-blank {
   display: block;
   border-radius: calc(var(--radius-tile) * 0.6);
-  background: oklch(0.955 0 0);
+  /* Dark enough to be an object on a white card. At 0.955 the plate vanished
+     into a paper card entirely (measured on the doors row), which is not a
+     quiet plate, it is a missing one. */
+  background: oklch(0.915 0 0);
 }
 
 @media (prefers-reduced-motion: no-preference) {

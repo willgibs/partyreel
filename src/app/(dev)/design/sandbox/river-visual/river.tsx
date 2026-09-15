@@ -213,9 +213,15 @@ const PLATE_GAP = 8;
  */
 const QR_FLOOR = 96;
 
-/** The bottom dissolve's two stops, as fractions of the height. */
-const FADE_B0 = 0.7;
-const FADE_B1 = 0.97;
+/**
+ * The bottom dissolve's two stops, as fractions of the height. It runs to the
+ * BOTTOM EDGE and not short of it: a feature visual lives in a box somebody
+ * else's layout gave it, and a stream that evaporates 30px above the edge
+ * leaves a dead band inside that box. Ending at 1 means the album leaves
+ * through the bottom of the slot, which is also the sentence.
+ */
+const FADE_B0 = 0.8;
+const FADE_B1 = 1;
 
 export function riverGeo(w: number, h: number, origin: RiverOrigin): RiverGeo {
   const qr = origin === "code" ? Math.max(QR_FLOOR, Math.round(w * 0.2)) : 0;
@@ -229,7 +235,12 @@ export function riverGeo(w: number, h: number, origin: RiverOrigin): RiverGeo {
     origin === "none"
       ? -Math.round(h * 0.1)
       : plateTop + PLATE_PAD + Math.round(qr / 2);
-  const card = Math.round(w * 0.34);
+  // A frame is 40 percent of the box. Measured against the alternatives in the
+  // browser: at a third the twelve frames read as a scatter of small pictures
+  // with holes between them, and at a half the flow is a solid wall. At 0.4
+  // consecutive frames overlap both vertically and laterally, which is what
+  // makes a braid read as one stream rather than a queue.
+  const card = Math.round(w * 0.4);
   const deadY = h * FADE_B1;
   return {
     w,
@@ -244,14 +255,23 @@ export function riverGeo(w: number, h: number, origin: RiverOrigin): RiverGeo {
     // well before it lands, so it is never rasterized above 1:1 and it has
     // straightened by the time it is large.
     sMin: 0.3,
-    fullAt: 0.62,
-    spread: Math.round(w * 0.3),
-    travel: Math.round(h * 1.08) - originY,
+    fullAt: 0.6,
+    // Half the stream's width at full fan. With frames at 0.4w this puts the
+    // widest lane's outer edge at 80 percent of the box, so the album fills the
+    // slot and dissolves at the sides rather than being cut by them.
+    spread: Math.round(w * 0.2),
+    // ★ OVER TRAVEL, deliberately. A card may only recycle once NO part of it
+    // can be seen (topEdgeAt below), so the fall has to run past the dissolve's
+    // last stop by more than half a frame. At 1.26 the cut lands at progress
+    // 0.93 against a 0.965 ceiling, so under half a card of the pool is off
+    // screen at any moment; shorten it and the recycle becomes the pop the
+    // dead line test exists to prevent.
+    travel: Math.round(h * 1.26) - originY,
     deadY,
-    fadeX: "6%",
+    fadeX: "8%",
     fadeB0: `${Math.round(FADE_B0 * 100)}%`,
     fadeB1: `${Math.round(FADE_B1 * 100)}%`,
-    sizes: `${Math.round(w * 0.34)}px`,
+    sizes: `${Math.round(w * 0.4)}px`,
   };
 }
 
@@ -264,8 +284,15 @@ function smoothstep(edge0: number, edge1: number, x: number) {
   return t * t * (3 - 2 * t);
 }
 
-/** Gravity: 60% quadratic, 40% linear. */
-const fallAt = (p: number) => 0.6 * p * p + 0.4 * p;
+/**
+ * Gravity: 38% quadratic, 62% linear. The hero weighted it 60/40, which is
+ * right for a 990px fall under a code at the top of a viewport and wrong in a
+ * box: measured in the browser, 60/40 stacked six of the twelve frames into the
+ * first 200px, where the plate hides them, and left the rest of the column
+ * sparse. At 38/62 a frame still leaves the object slowly and is still twice as
+ * quick at the bottom, and ten of the twelve are on screen instead of six.
+ */
+const fallAt = (p: number) => 0.38 * p * p + 0.62 * p;
 
 /** The fan, over the first third of the DISTANCE fallen. */
 const openAt = (fall: number) => smoothstep(0, OPEN, fall);
