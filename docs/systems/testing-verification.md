@@ -93,6 +93,12 @@ multi-line variable becomes one iteration (one curl of a three-line "URL" return
   off the underlying state change instead (the RPC's effect, a new row, a redirect, a network response),
   screenshot off that, or hand the human the look. (Unit tests mock `sonner` globally — see
   [design-system.md](design-system.md).)
+- **Two more costumes of the hidden-tab trap, both on lab boards** (palette, round 2, 2026-09-14): (1) the
+  lab shell's nav is a Suspense boundary that does not resolve while `document.hidden`, so a board read
+  in a driven background tab lays out inside the 232px sidebar cell and every width measured off it is
+  wrong; (2) the Chrome tooling returns a flat black screenshot of any lab page scrolled past the fold.
+  Read a lab page in a FOREGROUND tab, measure the DOM rather than the pixels, or move the content under
+  scroll position zero (a negative body margin); a board that looks blank in a screenshot is not broken.
 - **The in-app Browser pane runs with `document.hidden === true`, which suspends the whole rendering
   loop.** In a non-interactive session the pane is never actually visible, and `tabs_select` does not change
   that. Everything the spec ties to the "update the rendering" steps therefore never runs between tool

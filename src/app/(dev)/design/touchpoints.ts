@@ -485,11 +485,12 @@ export const RULINGS: Ruling[] = [
       "src/app/theme.css",
     ],
     board: {
-      note: "Today's twenty-one values beside three complete candidate token sets on real sections at both widths against an oklab ruler, the accent argued by the job it does, the panel as one token",
+      note: "Today beside the candidate in one canvas: two ramps and a warm temperature switch any ramp can wear, each leaving the board as the paste its ruling lands, judged on the event page, the dashboard, the guest album and the ink leaf; the accent as four hues on every job at once; the panel as one token",
       variants: [
+        "Today",
         "A, one ladder",
         "B, one room",
-        "C, film stock",
+        "Warm, on either ramp",
         "The accent by job",
       ],
     },
@@ -507,12 +508,13 @@ export const RULINGS: Ruling[] = [
       "src/components/shared/glow.tsx",
     ],
     board: {
-      note: "Four parts: depth in dark under four cues on three subjects, the footer seam and three candidate lamps for a media-less chapter, the cadence on three identical seams, the publish beat's violet beside the house five",
+      note: "Eight one-word calls indexed at the top, each named on the part that argues it: depth in dark on stacked photographs, a layer and a flat card; the aurora on the home arc's five real media-less chapters behind a wipe; the cadence; the publish beat's violet; and the ruling as a paste with Apply to the site",
       variants: [
         "A, depth in dark",
         "B, lamps without media",
         "C, the cadence",
         "D, the violet",
+        "E, the paste",
       ],
     },
   },
@@ -529,7 +531,7 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/system/section-shell.tsx",
     ],
     board: {
-      note: "Eleven stages driving the production components through three custom properties, so picking a ladder re-lays the real home arc, a feature page, help, about, the dashboard, an event page and admin",
+      note: "Opens on the ladder it would ship, four rulings with what would overrule each, then the four ladders' nine steps side by side at the selected canvas with the faults each fixes; every candidate is a paste against the real production hooks, so the ruling is made on the real home page, help, the dashboard and admin",
       variants: ["Today", "A tuned", "B rungs", "C registers"],
     },
   },
@@ -545,13 +547,13 @@ export const RULINGS: Ruling[] = [
       "src/components/ui/",
     ],
     board: {
-      note: "All nine primitives live on one canvas over real photographs, on every ground at both widths, with radius, entrance and light as independent knobs, three ladders at 1:1 and the outliers beside the contract",
+      note: "Opens with the five answers it recommends, one word each, and one button that applies them; ten surfaces (the guest entry drawer found as the tenth) on every ground at both widths with radius, entrance and light as independent knobs made of the CSS the site is handed; the rule-9 corner measured off the live DOM at 6x",
       variants: [
-        "The entrance",
-        "The radius ladder",
-        "The light ladder",
-        "The outliers",
-        "The sheet at 375",
+        "Radius: sharp, nested, round",
+        "Entrance: one clock, by frequency",
+        "Light in dark: a soft shadow",
+        "The corner, measured",
+        "The guest drawer at 375",
       ],
     },
   },
@@ -567,8 +569,8 @@ export const RULINGS: Ruling[] = [
       "src/lib/constants/marketing-voice.ts",
     ],
     board: {
-      note: "Three candidate voices on the real PageHero and SectionShell across cinema, paper and the app ground; the seven provisional home headers rewritten in each beside today's line; the unfurl both ways",
-      variants: ["A the house", "B the room", "C the guest list"],
+      note: "Two voices on whole pages beside today's: the home arc's fifteen sections, two feature pages whole, help, contact and pricing, the thirty identity strings as a paste, the app's quiet and guest copy on twelve surfaces; twelve chapters indexed in the bar, the recommendation and its measured cost first",
+      variants: ["Today", "A, the house", "B, the room"],
     },
   },
   {
@@ -584,8 +586,8 @@ export const RULINGS: Ruling[] = [
       "docs/ASSETS.md",
     ],
     board: {
-      note: "Three routes swapping in place on the same twelve positions with the provenance line under each, the vertical gap on the blog's cover pool, the sources with their clauses, and the blog plate at production geometry",
-      variants: ["Licensed", "Ours", "Mix", "In place"],
+      note: "Four questions with one-word answers first, each linked to the section that argues it; three routes swapping in place on the twelve positions with the provenance line under each, 22 CC0 candidates staged under the face-without-release rule, the blog plate at its real 320x400, and four CSS blocks the running site can wear",
+      variants: ["Mix", "Ours", "Licensed", "The exposure"],
     },
   },
   {
@@ -601,11 +603,12 @@ export const RULINGS: Ruling[] = [
       "src/components/dev/motion-tuner-config.ts",
     ],
     board: {
-      note: "One kit of every radius-bearing surface in four columns: three fixed candidates and a live column that follows the tuner, on the app's grounds and cinema",
+      note: "Five one-word rulings first, today's card beside the proposed one at true size and one button that puts the paste on the site; then the surface family A to D, the action rung and the derived ladder against a quarter-step retune, every comparison at 1:1 on the components that ship them, kept clear of the tuner panel",
       variants: [
-        "Today",
-        "B, soft surfaces",
-        "C, the 16px column",
+        "A, today",
+        "B, square",
+        "C, soft",
+        "D, one family",
         "Live, the tuner",
       ],
     },

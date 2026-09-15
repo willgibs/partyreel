@@ -965,3 +965,11 @@ registry; `sandbox/` the open boards with their own sheets; the four probes) · 
   any unavoidable deviation `PARTYREEL:`. First instance: border-beam v1.4.0 (MIT), vendored after
   three hand-ports missed, each substituting our low-chroma five into a palette tuned at the sRGB
   gamut edge and then compensating with filters.
+- ★ **`mask-composite: intersect` does NOT intersect two mask layers in Chrome** (hero-river, round 3,
+  2026-09-15): with `mask-image: a, b`, the last layer's operator composites it against transparent
+  black, so the pair resolves to the union and a two-axis dissolve silently does nothing. Split the
+  masks across two nested elements, one mask each; it costs one div and is unambiguous in every engine.
+- **A Tailwind breakpoint prefix inside a board's `Stage` reads the REAL browser viewport, not the
+  canvas** (brand-voice and palette, round 2): `sm:` fires inside the 375 stage on a desktop window and
+  never fires on a phone-width window showing the 1440 canvas. A board's own markup keys off the
+  `mode` prop; the real production components carry their own prefixes and are judged as they ship.
