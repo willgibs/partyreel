@@ -683,8 +683,10 @@ The board answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop 
   elements resolve an `animation-name` and the board's sheet declares no
   keyframes at all; inside a frame the page is the real page and honours the
   reader's own setting exactly as it does in a tab, because
-  `prefers-reduced-motion` propagates into an iframe. Zero console errors on a
-  fresh load of the production build.
+  `prefers-reduced-motion` propagates into an iframe. The only console errors on
+  a local `next start` are the two `/_vercel/insights` scripts 404ing off the
+  platform, which is the server rather than the page, now once per frame because
+  a frame is a page: nothing else, and nothing from this lane.
 - **The test-tool note this round is the same one, and it bit first.** A driven
   Chrome tab reports `document.hidden` true: `requestAnimationFrame` never
   fires, **no `ResizeObserver` callback is ever delivered** (verified by
