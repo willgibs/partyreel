@@ -99,13 +99,23 @@ import { SOURCES } from "./sources";
  *     page. And because the three posts it stages all go to the shoot under Mix,
  *     the board's largest element opened as three empty hatches. It is now the
  *     real card at the real size on the real ground, with today's row above the
- *     route's row, so it is a comparison at every route and never a blank.
+ *     route's row and both drawn at the post's own crop, so it is a comparison at
+ *     every route and never a blank.
  *
  * THE SHEET IS BOARD CHROME AND THE PLATES ARE REAL. A contact sheet is a
  * reviewing instrument and wants the reader's own width; "does this frame survive
  * where it lands" is a geometry question, so the two plate shapes on this board
  * are the production ones: the blog card's 4:5 with the slug-derived ladder
  * position, and the share card's 1200x630 CENTRE crop, which ignores the ladder.
+ *
+ * ★ AND BOTH ROWS OF A COMPARISON ARE DRAWN AT THE SAME RUNG. The candidate used
+ * to be drawn centred, which made the side by side a comparison of two different
+ * things. `coverFor` derives the object-position from the SLUG alone, so neither
+ * the applied block (a `content` swap leaves object-position where it was) nor
+ * the wiring round (a new `cover:` id, the same slug) moves it: a candidate lands
+ * at the post's own rung of the ladder, and the offsite post's frame really is
+ * cut at 62% 50%. Drawing it centred flattered every candidate on this board by
+ * exactly the amount the real card takes off its side.
  *
  * Keyframes live in board.css under `mk-`. No mono face anywhere: data sits on
  * the body face with tabular figures and every label is the Caption atom.
@@ -441,12 +451,17 @@ function PostRow({
               <Plate
                 src={candidateSrc(next.key)}
                 title={post.title}
-                crop="50% 50%"
+                crop={post.crop}
               />
               <CandidateLine keyName={next.key} />
             </>
           ) : (
-            <Plate src={null} title={post.title} crop="50% 50%" slate={slate} />
+            <Plate
+              src={null}
+              title={post.title}
+              crop={post.crop}
+              slate={slate}
+            />
           )}
         </div>
       </div>
@@ -477,7 +492,7 @@ const APPLY: { id: string; label: string; css: string; note: string }[] = [
     id: "mk-mix",
     label: "Mix",
     css: MIX_CSS,
-    note: `The recommendation: a licensed photograph only where the frame is furniture (${MIX_IDS} of the twelve, the ring detail), the slate on the ${IDS_TOTAL - MIX_IDS} that carry the argument. This is the site in the weeks between the ruling and the shoot.`,
+    note: `The recommendation: a licensed photograph only where the frame is furniture (${MIX_IDS} of the twelve ids and ${MIX_POSTS} of the 23 covers, the ring detail and the empty aisle), the slate everywhere else. This is the site in the weeks between the ruling and the shoot, with every frame the shoot owes marked rather than quietly left as it is.`,
   },
   {
     id: "mk-ours",
@@ -489,7 +504,7 @@ const APPLY: { id: string; label: string; css: string; note: string }[] = [
     id: "mk-licensed",
     label: "Licensed",
     css: BRIDGE_CSS,
-    note: `The staged CC0 batch swapped in by id, everywhere the twelve appear. Walk it to see why it loses: ${BARRED_IDS.join(" and ")} are filled here by frames with a face and no release, so ${BARRED_IDS.length} of these ${IDS_TOTAL} cannot ship under ask 1.`,
+    note: `The staged CC0 batch: by id everywhere the twelve appear, and by slug on every blog cover, which is ${POSTS_FILLED} of the 23 filled and ${BRIDGE.length - POSTS_FILLED} left empty. Walk it to see why it loses: ${BARRED_IDS.join(" and ")} are filled here by frames with a face and no release, so ${BARRED_IDS.length} of these ${IDS_TOTAL} cannot ship under ask 1.`,
   },
 ];
 
@@ -658,6 +673,13 @@ export function MediaKitBoard() {
             host app. Chrome and Safari only: a stylesheet replacing the content
             of an image is their behaviour, and Firefox simply shows
             today&rsquo;s frame.
+          </Caption>
+          <Caption className="text-[11px]">
+            Each block carries both namespaces, because the bridge has two: the
+            twelve ids by file name, for the 21 routes that read a frame
+            directly, and all 23 blog covers by slug, so a card wears the
+            candidate its own row on the sheet shows rather than whatever its
+            cover&rsquo;s id is bridged with.
           </Caption>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -842,7 +864,9 @@ export function MediaKitBoard() {
             stranger sees first and it ignores the crop ladder entirely. The two
             percentages under each plate are the cover&rsquo;s object-position:
             the rung of the crop ladder that slug sits on, which is how one
-            photograph dresses six posts and is recognisable in all six.
+            photograph dresses six posts and is recognisable in all six. The
+            candidate is cut at the same rung, because the rung is derived from
+            the slug and nothing about replacing the photograph moves it.
           </Caption>
           <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
             The bridge is a per-post job, not a per-frame one. Every one of the
@@ -1066,7 +1090,7 @@ export function MediaKitBoard() {
                             full
                             src={src}
                             title={p.title}
-                            crop={which === "today" ? p.crop : "50% 50%"}
+                            crop={p.crop}
                             slate={slate}
                           />
                         ) : (
@@ -1094,7 +1118,10 @@ export function MediaKitBoard() {
           with a 16 px gutter, three across, on the cinema ground. The plate
           draws the cover, the scrim, the title and the byline; the real card
           also carries up to two tag chips in the top left, which this board
-          holds no data for and will not invent.
+          holds no data for and will not invent. Both rows are cut at the same
+          rung of the crop ladder, because the ladder is a function of the slug:
+          swapping the photograph does not move it, and neither will the
+          frontmatter edit that ships it.
         </Caption>
 
         <div

@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import { BRIDGE_CSS, EXPOSURE_CSS, MIX_CSS, SHOOT_CSS } from "./apply";
-import { BRIDGE_BY_ID, routeOutcomeForId } from "./bridge";
+import {
+  BRIDGE,
+  BRIDGE_BY_ID,
+  routeOutcome,
+  routeOutcomeForId,
+} from "./bridge";
 import { candidate } from "./candidates";
+import type { Route } from "./kit";
+import { MIX_POSTS, POSTS_FILLED } from "./decision";
+import { master } from "./shoot";
 
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 
@@ -92,8 +100,10 @@ describe("the blocks a board hands the running site", () => {
         expect(MIX_CSS, id).toContain(`replaces ${id}`);
       }
     }
-    const licensedLines = MIX_CSS.split("\n").filter((l) =>
-      l.includes("/design/media-kit/"),
+    // Only the id half of the block: the per-slug rules below it are the same
+    // question asked of a post, and they are counted in their own describe.
+    const licensedLines = MIX_CSS.split("\n").filter(
+      (l) => l.startsWith("img[src*=") && l.includes("/design/media-kit/"),
     );
     expect(licensedLines.length).toBe(licensedIds.length);
     // Mix has to change something, or the toggle is inert in the paste too.
@@ -139,5 +149,112 @@ describe("the blocks a board hands the running site", () => {
         name,
       ).toBe(true);
     }
+  });
+});
+
+/**
+ * THE BLOG IS SWAPPED PER POST, AND THIS IS THE TEST THAT SAYS SO.
+ *
+ * ★ A FILE NAME CAN ONLY CARRY AN ID. The bridge's finding is that the blog is 23
+ * frontmatter lines rather than twelve files, and 14 of the 21 filled posts name a
+ * candidate that is NOT what their cover's id is bridged with. A block built on
+ * ids alone therefore showed a walk a different photograph from the one the
+ * board's own sheet showed for the same post, and it made the route table's blog
+ * column unreachable: the Mix row promises two covers, and one id can change. The
+ * blocks carry a per-slug rule now, and these assertions hold the two together.
+ */
+describe("the blog covers a block lands, post by post", () => {
+  const ROUTES: [Route, string][] = [
+    ["licensed", BRIDGE_CSS],
+    ["ours", SHOOT_CSS],
+    ["mix", MIX_CSS],
+  ];
+
+  /** The declaration line for one post: the rule is `card,\narticle { ... }`. */
+  function ruleFor(css: string, slug: string): string {
+    const line = css
+      .split("\n")
+      .find((l) => l.includes(`[href$="/blog/${slug}"]`));
+    expect(line, slug).toBeTruthy();
+    return line as string;
+  }
+
+  it("every post is named by its own slug, on the card and on the article", () => {
+    for (const [route, css] of ROUTES) {
+      for (const post of BRIDGE) {
+        expect(css, `${route} ${post.slug}`).toContain(
+          `a[data-cover-morph][href="/blog/${post.slug}"] img`,
+        );
+        expect(css, `${route} ${post.slug}`).toContain(
+          `html:has(link[rel="canonical"][href$="/blog/${post.slug}"]) [data-cover-plate="target"] img`,
+        );
+      }
+    }
+  });
+
+  it("a post wears what its own row wears, never what its cover id wears", () => {
+    for (const [route, css] of ROUTES) {
+      for (const post of BRIDGE) {
+        const rule = ruleFor(css, post.slug);
+        const out = routeOutcome(post, route);
+        const where = `${route} ${post.slug}`;
+        if (out.kind === "licensed" && out.key) {
+          expect(rule, where).toContain(
+            `/design/media-kit/${candidate(out.key).file}`,
+          );
+        } else if (out.kind === "licensed") {
+          // The two posts nothing licensed can fill: the sheet leaves the plate
+          // empty and the site says so rather than keeping today's frame.
+          expect(rule, where).toContain("no licensed frame");
+        } else {
+          expect(rule, where).toContain(`replaces ${post.cover}`);
+          expect(rule, where).toContain(master(post.shot).code);
+        }
+      }
+    }
+  });
+
+  it("the 14 posts whose id bridges elsewhere really do land differently", () => {
+    // Without this the fix is untestable: if every post agreed with its id, a
+    // block built on ids would have been right all along.
+    const diverging = BRIDGE.filter(
+      (p) => p.candidate && BRIDGE_BY_ID[p.cover] !== p.candidate,
+    );
+    expect(diverging.length).toBeGreaterThan(0);
+    for (const post of diverging) {
+      const rule = ruleFor(BRIDGE_CSS, post.slug);
+      expect(rule, post.slug).toContain(
+        `/design/media-kit/${candidate(post.candidate as string).file}`,
+      );
+      expect(rule, post.slug).not.toContain(
+        `/design/media-kit/${candidate(BRIDGE_BY_ID[post.cover]).file}`,
+      );
+    }
+  });
+
+  it("no slug is a suffix of another, so the canonical match names one post", () => {
+    // The article rule matches the canonical href by suffix, because the origin
+    // differs between localhost, a preview and production.
+    for (const a of BRIDGE) {
+      for (const b of BRIDGE) {
+        if (a.slug === b.slug) continue;
+        expect(b.slug.endsWith(`/${a.slug}`), `${b.slug} / ${a.slug}`).toBe(
+          false,
+        );
+      }
+    }
+  });
+
+  it("the route table's blog column is what a walk actually wears", () => {
+    const wearing = (css: string) =>
+      css
+        .split("\n")
+        .filter(
+          (l) =>
+            l.includes('[href$="/blog/') && l.includes("/design/media-kit/"),
+        ).length;
+    expect(wearing(MIX_CSS)).toBe(MIX_POSTS);
+    expect(wearing(BRIDGE_CSS)).toBe(POSTS_FILLED);
+    expect(wearing(SHOOT_CSS)).toBe(0);
   });
 });

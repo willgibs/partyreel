@@ -83,6 +83,13 @@ export const MIX_POSTS = BRIDGE.filter(
  * What each route actually puts on the site the week it is chosen, which is the
  * question the fifth ask used to ask. `legal` is whether every frame it ships
  * passes ask 1 as staged today.
+ *
+ * ★ EVERY COUNT HERE IS ALSO WHAT A WALK WEARS, AND THAT TOOK A FIX IN apply.ts.
+ * The `blog` column is counted per POST (`MIX_POSTS`), and the applied block used
+ * to be able to swap only per id, so the Mix row promised two covers while the
+ * block could change exactly one. The blocks carry a per-slug rule for all 23
+ * posts now, so the number in this table is the number a reviewer can count on
+ * the real /blog with the block on. `apply.test.ts` pins the two together.
  */
 export type RouteShipment = {
   route: Route;

@@ -324,8 +324,16 @@ export const BRIDGE_BY_ID: Readonly<Record<string, string>> = {
  * edit from silence: swap either name for a key that is not also an id and every
  * post falls through to "ours", which makes Mix identical to Ours and is the
  * inert toggle this round exists to kill. One namespace now, one predicate, and
- * `routeOutcomeForId` asks the same question of an id, so the sheet, the stage
- * and the block a walk wears cannot disagree again.
+ * `routeOutcomeForId` asks the same question of an id.
+ *
+ * ★ THE TWO NAMESPACES BOTH REACH THE SITE, WHICH IS THE SECOND HALF OF THE FIX.
+ * Reading one list in two namespaces was the bug; pasting only one of them was
+ * the rest of it. A file name can carry an id and nothing else, so a block built
+ * on ids alone showed a walk the post-by-post sheet's answer for 7 of the 21
+ * filled posts and the id's answer for the other 14. `apply.ts` now writes a rule
+ * per id (for the 21 routes that read a frame directly) AND a rule per slug (for
+ * every blog cover, keyed on the card's own href and the article's canonical), so
+ * the sheet, the stage and the block a walk wears cannot disagree again.
  */
 export const MIX_LICENSED = ["wedding-rings", "wedding-arch"] as const;
 
@@ -366,10 +374,12 @@ export function routeOutcome(
 }
 
 /**
- * The same question asked of a MANIFEST ID, which is what "Apply to the site"
- * pastes. The blog is 23 frontmatter lines, but the other 21 routes read the
- * twelve ids directly, and a route has to mean one thing on both: apply.ts calls
- * this, so the block a walk wears is the board's own sheet turned into CSS.
+ * The same question asked of a MANIFEST ID. The blog is 23 frontmatter lines,
+ * but the other 21 routes read the twelve ids directly, and a route has to mean
+ * one thing on both. "Apply to the site" pastes BOTH answers: `apply.ts` calls
+ * this for the twelve file names and `routeOutcome` for the 23 slugs, so the
+ * block a walk wears is the board's own sheet turned into CSS rather than the
+ * id's answer standing in for the post's.
  */
 export function routeOutcomeForId(
   id: string,
