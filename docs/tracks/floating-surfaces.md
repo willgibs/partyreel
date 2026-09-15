@@ -318,8 +318,18 @@ contract, a centre origin detaches the panel from its trigger, and a scale with 
 - Head: the tip of `lp/floating-surfaces`, pushed. The last code commit is `6a5fc46`; `881c258`
   is the merge of `launch-prep`, and everything after it is this manifest. Preview:
   `partyreel-git-lp-floating-surfaces-partyreel.vercel.app`
-- Board: `/design/c/floating-surfaces?key=` (nine rows). Marker for "is this my head":
+- Board: `/design/c/floating-surfaces?key=` (nine rows). Marker for "is this round two":
   the row heading "The corner, measured", which did not exist in round one.
+- **The preview alias is BEHIND the branch: it serves `64f81f7`.** Vercel stopped creating
+  deployments project-wide at 2026-09-14 21:49 local (the last one on any branch is
+  `lp/media-kit` `b05c7c3`; nothing after it, on any branch, was created), so this is a
+  plan-level limit rather than the branch gate, which says build (`preview: true` and
+  `status: handed-off`). Round two's substance is on the alias; what is not is `6a5fc46`:
+  the walk list's honesty about the guest group, the sr-only description on the compact
+  sheet, the chevron on the radio trigger, the "three knobs, as one paste" label, and the
+  `min-w-0` that removes 16px of horizontal scroll from the BOARD page at 375 (the frames
+  themselves are right at both widths on the alias). The next deployment the project gets
+  picks it up; a redeploy of the branch tip is enough.
 - Synced with `launch-prep` at `4b035c1` (merge `881c258`); it had moved one commit
   (`docs/systems/design-system.md`, outside the lane).
 - Gates on the synced tree: typecheck ok, lint ok (0 errors, 7 warnings, all pre-existing
