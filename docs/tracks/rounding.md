@@ -1,7 +1,7 @@
 ---
 track: rounding
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "ca952b5"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/rounding/
