@@ -382,8 +382,16 @@ word was 36 px, with no scrim and no darkening layer anywhere.
     concepts looping at once): median frame 16.7 ms, p90 16.8, p99 18.4, worst 18.4. No dropped
     frame, on a dev build. The loop now skips a style write that would write what is already there,
     and only the frames in the first 2.6 s load eagerly.
-  - The gate: 404 with no key, 404 with a wrong key, 200 with the key.
+  - **The served HTML** (from the synced tree's own server): 34 `.hhb-card` nodes with 34
+    `--hhb-rest` and 34 `--hhb-rest-o` declarations, so the deployed field is in the markup and a
+    reduced-motion reader, a crawler and a cold paint all get the album standing still around the
+    code rather than an empty stage; 4 `hhb-lab` hits, the round-two marker.
+  - The gate is NOT re-checked this round and could not be: `requireDesignKey` is open in
+    development by design and only 404s in a production build, which is the preview the rate limit
+    blocked. This round changed nothing about it.
   - No em-dash, no `font-mono` and no `MonoCaption` in either owned file.
+  - The headline toggle flipped lg to xl and back three times inside one mount: 11, 12, 11 frames in
+    the air, nothing frozen (the reason the card refs take React 19's cleanup form).
 - **A finding against the river, for Will rather than for me** (bible 22, and the round's "read the
   other variations"): the river parts its stream around the type by holding a card's inner edge on
   the block's wall, instead of gating it. Applied here that would let EVERY direction be born at the
