@@ -107,18 +107,18 @@ tuner's and the ruling's.
   the round-two marker in the rendered HTML is the heading **"The six tokens,
   at true size"** (and the class `rnd-wide`), and the second pass adds part F,
   **"Every candidate on the phone"**.
-- ★ **The preview alias is STALE and cannot be refreshed: the Vercel account is
-  out of deployments for the day.** No deployment has been created anywhere in
-  the project since 22:04 (hero-scan's `caa8539`); the push of this pass made
-  none, and asking the REST API for one returns
-  `api-deployments-free-per-day`, "more than 100", remaining 0, reset
-  1789525175349 (about 24 hours). So
-  partyreel-git-lp-rounding-partyreel.vercel.app still serves `45834a3`, the
-  FIRST pass, which has neither the overflow fix nor part F: reviewing it now
-  re-reviews the board the review already read. It refreshes by itself on the
-  first push after the reset, or sooner if the plan changes. This is account
-  wide, so the integration preview is in the same state (the Orchestrator's
-  call, not this track's lane).
+- ★ **The preview alias is STALE and this track cannot refresh it: the account
+  is at the Vercel free plan's deployment cap.** The branch's last deployment
+  is `45834a3` at 21:32; neither this pass's pushes nor the four manifest
+  commits before them produced one, and asking the REST API for one returns
+  `api-deployments-free-per-day`, "more than 100", remaining 0, reset in about
+  24 hours. Deployments are landing intermittently across the project rather
+  than not at all (lp/palette got one at 22:18), so the alias may catch up on a
+  later push, but it has not yet. Until it does,
+  partyreel-git-lp-rounding-partyreel.vercel.app serves the FIRST pass, which
+  has neither the overflow fix nor part F: reviewing it now re-reads the board
+  the review already read. The cap is account wide and its handling is the
+  Orchestrator's call, not this track's lane.
 - **Second pass (the read-only review of this handoff found three should-fix
   items; all three are fixed here).**
   1. `.rnd-wide` overflowed the lab column at every width between `lg` and
