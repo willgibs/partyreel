@@ -63,8 +63,11 @@ describe("the lab entry (design.css)", () => {
   });
 
   it("compiles utilities from a scan of the lab alone", () => {
+    // The lab's utilities live in a SUB-layer of `utilities` so a production
+    // component's responsive class wins over the lab's copy of the unprefixed
+    // one on a shared element (round four, 2026-09-15; see design.css).
     expect(lab).toContain(
-      '@import "tailwindcss/utilities.css" layer(utilities) source(none);',
+      '@import "tailwindcss/utilities.css" layer(utilities.lab) source(none);',
     );
     expect(lab).toContain('@source "./";');
   });

@@ -9,7 +9,15 @@
    if a lab-only use ever appears.) */
 @import "tailwindcss/theme.css" theme(reference);
 @reference "../../theme.css";
-@import "tailwindcss/utilities.css" layer(utilities) source(none);
+/* ★ THE LAB'S UTILITIES SIT IN A SUB-LAYER OF `utilities` (round four, 2026-09-15). This sheet
+   loads AFTER globals.css and used to emit into the same `utilities` layer, so at equal specificity
+   the lab's copy of an unprefixed utility won over a production component's responsive one on the
+   same element (`grid-cols-1` beat `lg:grid-cols-12`, `hidden` beat `sm:block`), and every real
+   section a board mounted at 1440 laid out as its phone version (the light board, round four).
+   Rules directly in `utilities` outrank rules in `utilities.lab`, so production's classes win on a
+   shared element and a lab-only class still applies where nothing from production competes. A
+   board that must override a production class on the SAME element uses its own sheet or cn(). */
+@import "tailwindcss/utilities.css" layer(utilities.lab) source(none);
 @source "./";
 /* The rules artifact quotes class names inside rule text ("bg-gallery",
    "outline-ring/50"); scanning it would compile utilities out of prose. */
