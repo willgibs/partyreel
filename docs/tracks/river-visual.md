@@ -1,7 +1,8 @@
 ---
 track: river-visual
-status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+status: integrated
+cut: "c473707"          # origin/launch-prep at boot, 2026-09-15
+merged: "232dfd29"      # the branch head merged into launch-prep
 preview: true           # Will reviews this board on its preview as it builds (once Vercel's window frees)
 owns:
   - src/app/(dev)/design/sandbox/river-visual/
@@ -12,6 +13,8 @@ reads:
   - src/components/dev/board/dock.tsx
   - src/components/dev/board/board-meta.tsx
   - src/components/marketing/system/section-shell.tsx
+  - src/components/guest/gallery-empty-state.tsx   # composed unedited as the A/B's first half
+  - src/components/guest/event-experience.tsx      # the guest column the A/B renders at (max-w-2xl, px-5)
   - src/lib/constants/feature-pages.ts
   - src/lib/constants/marketing-media.ts
   - src/lib/shared/use-ambient-pause.ts
@@ -108,24 +111,271 @@ the gate; the preview alias once Vercel's window frees.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- **none.** No production byte moved, and no owned fact belongs in a system doc while the visual is a
+  lab candidate Will has not placed.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing (the wiring round, if the river is placed): the visual moves whole from
+  `sandbox/river-visual/river.tsx` to `src/components/marketing/system/river-visual.tsx` with its sheet,
+  and swaps the lab's `[data-paused]` ancestor read for `useAmbientPause` (which also pauses off screen,
+  and an ambient loop below the fold is exactly what that hook exists for). Nothing else about the file
+  changes: it imports only the media manifest, FooterQr, Caption and the reduced-motion hook.
+- Marketing: a fluid wrapper for the visual, if a placement wants one. It takes `width` and `height` in px
+  today, which is deterministic, hydration safe and zoom proof and is what let the board judge it at 1:1;
+  a container query wrapper that feeds it the numbers its slot actually has is the production ergonomic,
+  and it is a wrapper rather than a change to the visual.
 
 ## Handoff (round 1)
 
-- Head <sha>, pushed; preview partyreel-git-lp-river-visual-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- **Head: this commit**, on top of `4245d07` (the `launch-prep` merge). The round's last commit of CODE
+  is **`8cf5a3a`**, and the code is four commits: `ce614c5` built the visual and the board, `2b92747`
+  is the retune the browser forced (below), `74f1b73` is the FIRST review fix (the scan floor, two
+  bullets down), and **`8cf5a3a` is the SECOND** (the placements draw the widths the asks name, the
+  bullet under this one). Pushed to `lp/river-visual`.
+  **Marker for this round: `rvr-oneflow`**, the second class on every instance's root, which exists in
+  no earlier round of anything (the seed rendered `hhv-delta`, the hero's). One line tells you which
+  build an alias is serving:
+  `curl -s "<url>/design/c/river-visual?key=" | grep -o rvr-oneflow | wc -l` returns **6** on this
+  round, where `hhv-delta` returns 0. (`grep -c` counts matching LINES and the page is one line, so it
+  answers 1 for either: round one's handoff said `grep -c`, which is why this says `grep -o | wc -l`.)
+
+- **THE SECOND REVIEW FIX, `8cf5a3a`: two figures the board asked Will to rule on that nothing on it
+  drew.** Same shape as the scan floor, one pass later, and both are now read off the thing that
+  renders rather than typed beside it.
+  - **(a) THE COLUMN: the ask said 560, the section drew 460.** Ask one, the bank card and this
+    manifest all call the first placement "the how it works column (560, the strongest of the three)",
+    while `StepPlacement` drew `460` at 1440, a number that appeared exactly once in the file and in no
+    caption; its sibling parenthetical, the doors row's 330, WAS the rendered figure, so the sentence
+    read as if both were in situ. The placement now takes **the bank's own column size**, through the
+    same `bankWidth("column", mode)` the specimen row uses: **560 at 1440 and 343 at 375**, identical
+    to the bank row's first specimen (both measured 560 by 739 in the DOM, on one clock). The section
+    absorbs it: `Container` gives 1216 px at 1440, so the step list keeps the **616** the visual
+    leaves, which is a better measure than the 716 it had. The placement now carries a caption naming
+    its width the way the doors row always did, and it prints **what it drew** ("the bank's column size
+    (560 here)"), so it is true on both canvases. Ask one is unchanged and did not need rewriting: the
+    board draws its numbers now.
+  - **(b) THE GUEST A/B VANISHED AT 375.** `EmptyStatePlacement` rendered the real `GalleryEmptyState`
+    only when `mode === "desktop"`, while its caption said "Today on the left, the flow on the right"
+    on both canvases, so at Phone 375 Will read a sentence about two columns over one column and **ask
+    three (may an empty album show photographs at all) had no evidence on the canvas most guests are
+    on**. Both halves render on **both** canvases now: side by side at 1440, **stacked at 375**, where
+    two of them cannot share a row. The width is no longer picked either. The guest page clamps at
+    `max-w-2xl` with `px-5` gutters (`event-experience.tsx`), so its gallery is **the canvas or 672,
+    whichever is smaller, less the two gutters**, read off the shell's own exported `CANVAS` so it
+    cannot drift from the stage: **632 at 1440 and 335 at 375**, where the old hand-picked 340 was the
+    guest column at no window at all. The A/B is bigger and truer for it, and the caption prints the
+    number the canvas drew. The phone canvas also keeps the guest page's own 20 px gutter rather than
+    the board's 24, so the column is not squeezed by a padding the real screen does not have.
+  - **Two collateral corrections in the same file.** The doors caption printed a fixed "(330)" while
+    the phone canvas draws **311**, which is the same defect one size down; it prints `{w}` now. And
+    the bank card's "Where it could go" states ONCE that its parentheses are the 1440 numbers and that
+    every placement below prints the one it actually drew, so the entry can name a banked size without
+    the reader having to guess which canvas it belongs to.
+  - **The two stage heights follow the content, measured rather than guessed**: the step stage is
+    **1200 / 1400** (content 1187 / 1391) and the empty state **840 / 1060** (content 828 / 1030).
+    Worth recording: the step placement was **already clipped at the phone canvas before this pass**
+    (content ~1330 in a 1180 stage, which `overflow-hidden` hid), so the bigger column cost nothing and
+    fixed something.
+  - **How it was verified: a local PRODUCTION build at 1440 and 375, in a FOREGROUND tab.** `pnpm
+    build` then `pnpm start` on **:3182** in the worktree, driven through the Browser pane at
+    `/design/c/river-visual?key=`, every reading taken with `document.visibilityState` asserted
+    "visible" and `[data-paused]` at 0 in the same call. **No stage clips on either canvas** (858/860,
+    1187/1200, 738/760, 828/840 at 1440; 1638/1640, 1391/1400, 1516/1560, 1030/1060 at 375, with no
+    horizontal overflow). The six instances measure **560, 400, 240, 560, 330, 632** at 1440 and
+    **343, 280, 160, 343, 311, 335** at 375, and the A/B's two halves measure 335 by 363 each, stacked,
+    at the phone canvas. Every code still measures **3.0 px a module or better off the value drawn**
+    (123 over a span of 41 where the demo URL is passed, 99 over 33 where it is not, and 126 over 33 in
+    the 632 empty state, where the fifth-of-the-box share is larger than the floor). The cost meter
+    still reads **8.3 ms median frame gap, about 120 fps** with all six mounted, and the reduced-motion
+    resolution (27 `no-preference` blocks deleted from the running sheets, the stages paused, only
+    `transform` and `opacity` cleared) still stands **68 of the 72 cards at `--rvr-rest`** with the
+    four past the dissolve's last stop held at 0: the numbers the first fix recorded, unmoved by bigger
+    boxes, because every one of them is derived from the box. **The Vercel API was not called and no
+    preview was waited on** (the daily cap).
+  - **Nothing else moved.** One file changed, `board.tsx`; `river.tsx` and both sheets are untouched,
+    so the visual, its geometry, its scan floor and its reduced-motion state are bit-identical to the
+    build the first fix verified.
+
+- **THE REVIEW FIX, `74f1b73`: the scan floor was wrong by the board's own arithmetic, and ask two
+  rested on it.** `FooterQr` draws its code over a viewBox of the module count PLUS its 8 quiet-zone
+  modules, so the px a module gets is `size / span` and not `size / count`. The demo URL is 33 modules,
+  span 41, so the typed `QR_FLOOR = 96` gave it **2.34 px a module against the 3 px floor the same
+  comment cited**, and no banked size cleared it (the 560 column drew 112, and the 400 card and the 240
+  thumbnail both clamped to 96). The floor is now **measured off the value being drawn** (one
+  `qrcode-generator` pass in `riverQrReadout`, `river.tsx`), so the demo URL clamps at **123 px** and a
+  placement that passes no demo URL, whose string is shorter, clamps at **99**. Verified on the served
+  HTML and again in the live DOM: every `<svg>` on the page is `123` over a span of `41` or `99` over
+  `33`, which is **exactly 3.0 px a module** in all six instances.
+  - **The consequence is printed now, not claimed.** Every specimen's caption reads the code's real
+    numbers off the same function: "Code 123 px, 3.0 px a module, plate 26 / 36 / 60 percent of the
+    box" at 560 / 400 / 240, and 42 / 51 / **89** percent at the phone canvas's 343 / 280 / 160. A
+    scannable demo code is 123 px whatever the box is, so the small sizes pay for it in composition
+    rather than in legibility, and that is the second ask stated in a number. Ask two and the
+    scan-floor departure are both restated on this arithmetic.
+  - **Two defects the same pass turned up and fixed.** (a) The plain plate rendered as a **bare 20 px
+    square**: its field was derived only for `origin="code"`, so `geo.qr` was 0 for the plate and only
+    the plate's padding survived. It is a fifth of the box at every size now (112 / 80 / 48 in the bank
+    row, confirmed in the DOM), which is also the honest picture of the second ask, since taking the
+    code out takes the scan floor out with it. (b) The plate's printed line was held to
+    `qr + PLATE_PAD`, which made the plate 153 px wide where the derived share said 143; the line is
+    held to the code's own width now, so the plate is exactly the field plus its padding at every size
+    and the printed share is the rendered one.
+- **The preview alias was not waited on and the Vercel API was not called**, per the round's
+  instruction: the free plan's 100 deployments per trailing day were spent at 23:31 on the 14th and the
+  window frees through the afternoon of the 15th, so a push is an entry in a race for a slot and not a
+  deploy. `partyreel-git-lp-river-visual-partyreel.vercel.app` serves this head the moment a push from
+  this branch wins one; until then the board is the local build below.
+- **How the REVIEW FIX was verified: a local PRODUCTION build at 1440 and 375, in a FOREGROUND tab.**
+  `pnpm build` then `pnpm start` on **:3172** in the worktree (round one's loop was `pnpm dev`), driven
+  through the Browser pane at `/design/c/river-visual?key=`, at **Desktop 1440 and Phone 375**, on
+  **cinema and paper**, through **all three origins**, across the bank row and all three placements,
+  with `document.visibilityState` asserted "visible" and `[data-paused]` at 0 in the same call as every
+  reading. The preview alias was again not waited on and the Vercel API was not called. Read off the
+  live DOM rather than a screenshot: every code is 123 px over a span of 41 or 99 over 33 (3.0 px a
+  module), every code plate is exactly **143** or **119** px wide, the plain plate is **112 / 80 / 48**
+  across the bank row, and the three captions print 26 / 36 / 60 percent at 1440 and 42 / 51 / 89 at
+  375. Reduced motion was resolved as below and the rest state holds: **68 of the 72 cards stand at
+  `--rvr-rest`**, the four held at 0 being the ones whose top edge is already past the dissolve's last
+  stop (which four depends on the box, so this is 68 where round one, with a smaller object, counted
+  66). The cost meter still reads **8.3 ms median frame gap, about 120 fps** with all six instances
+  mounted.
+- **How the board was verified: a local server at 1440 and 375, in a FOREGROUND tab, with the loops
+  running.** `pnpm dev` on :3171 in the worktree for the build-and-look loop and `pnpm build` for the
+  gate. Driven through the Browser pane at `/design/c/river-visual?key=`, at **Desktop 1440 and Phone
+  375**, on **cinema and paper**, through **all three origins** (the demo code, the plain plate, no
+  object), with Replay, plus the reduced-motion resolution below. Every reading was taken with
+  `document.visibilityState` asserted "visible" and `[data-paused]` at 0 in the same call.
+  **Three tooling facts, because each cost this round time and any one of them turns a look into a
+  fiction:**
+  - ★ **A board's loops stop in a tab that is not FRONTED, and the screenshot comes back solid black**
+    while the DOM is perfectly correct (`docs/systems/testing-verification.md`). Worse in a wave: the
+    Browser pane is SHARED between the sessions running tonight, so a tab that was fronted stops being
+    fronted when another track fronts its own, and one of them navigated this track's tab to its own
+    port mid-review. Every black screenshot here was that and not the board: the fix is
+    `tabs_select` on your own tab (and a tab of your own, created late) immediately before each batch,
+    and the tell is that `document.visibilityState` reads "hidden" or the stages carry `data-paused`
+    while the markup is right.
+  - **Reduced motion was resolved rather than emulated.** The pane cannot set the preference, so the
+    reader's own resolution was reproduced on the live page: all **27 `no-preference` blocks were
+    deleted from the running sheets** (which is exactly what such a reader resolves), the stages were
+    given `data-paused` and the inline styles the loop had written were cleared. **11 of the 12 cards
+    then stand at `--rvr-rest` and the 12th is held at 0** by the dead line, which is what the markup
+    itself computes (`--rvr-rest-o` is written "0" for a card whose top edge is already past the
+    dissolve's last stop). The rest state is therefore one INSTANT of the running stream and cannot
+    drift from it.
+  - ★ **Resolving that reader by clearing a card's WHOLE `style` attribute blanks the stage**, and
+    the blank is the emulation, not the board: the `--rvr-rest` and `--rvr-rest-o` the rest state is
+    written in are inline custom properties on the same element, so wiping the attribute deletes the
+    state you were trying to see. Clear the two properties the loop writes, `transform` and `opacity`,
+    and nothing else. (Found while re-verifying the review fix.)
+- **What the browser changed, and what it cost to find.** The first build was measured at 1440 before it
+  was judged, and it was wrong twice, both times in a way a screenshot flatters:
+  - **Gravity.** The hero weighted the fall 60 percent quadratic, which is right under a code at the top
+    of a 930px viewport and wrong in a box: six of the twelve frames sat in the first 200px, where the
+    plate hides them, and the rest of the column was sparse. At **38/62** ten of the twelve are on
+    screen, and a frame still leaves the object slowly and is still twice as quick at the bottom.
+  - **Scale and fan.** At a third of the box width the twelve frames read as a scatter of small pictures
+    with holes between them. At **0.40 of the width**, with the fan narrowed to **0.20**, consecutive
+    frames overlap both vertically and laterally and the flow reads as one braid.
+  - **The dissolve.** It ended at 97 percent of the height, which left a dead band inside a box somebody
+    else's layout gave us. It now runs to the **bottom edge**, and the fall over travels it by 26
+    percent so a card still only recycles once no part of it can be seen (the cut lands at progress
+    0.93 against a 0.965 ceiling, so under half a card is off screen at any moment).
+  - **The plain plate was invisible on paper** at oklch(0.955) against a white card: not a quiet object,
+    a missing one. It is 0.915 now.
+- **The cost, measured on the page carrying every instance at once.** The board mounts **six** instances
+  (three specimens and one per placement), five more than any real page would: **8.3 ms median frame
+  gap, about 120 frames per second** at 1440 on this machine, read off a rolling 180 sample window by
+  the meter in the bank card (which writes to a DOM node twice a second rather than re-rendering, so it
+  is not measuring itself). Per instance, derived and not claimed: **12 frames, 14 promoted layers, 39
+  DOM nodes, 12 transform writes per frame** and an opacity write only when it changed, which at rest
+  is none.
+- Synced with `launch-prep` once, at **`6484558`** (2 commits: the app UI ruling in PROGRAM.md and the
+  round-four In flight rows), merged at **`4245d07`**. No conflicts. Neither commit touches a file this
+  track reads or owns: both are docs.
+- Gates on the synced tree, each on its own exit code: typecheck ok, lint ok (0 errors; **6 warnings,
+  every one pre-existing and none in this lane**, on `contact-form.tsx`, `album-fill-grid.tsx`,
+  `review-switch.tsx`, `jobs.ts` and `use-flip.ts`), test ok (**1804 in 199 files**), build ok
+  (**248 static pages**). **Re-run green after the review fix**, at the same four numbers.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/river-visual.md`,
+  `src/app/(dev)/design/sandbox/river-visual/board.css`,
+  `src/app/(dev)/design/sandbox/river-visual/board.tsx`,
+  `src/app/(dev)/design/sandbox/river-visual/river.css`,
+  `src/app/(dev)/design/sandbox/river-visual/river.tsx`. **No exceptions**: the owned directory and this
+  manifest.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte moved.
+- **One finding OUTSIDE this lane, reported and not touched.** `src/components/marketing/chrome/footer-qr.tsx`
+  carries the same arithmetic slip its copy in `river.tsx` did: its comment says "33 modules gives
+  ~4.1px per module at the default size", but the default size is 128 px over a span of **41** modules,
+  which is **3.12** px a module (4.1 would be 128 / 31, the count without its quiet zone). The render
+  is fine, and 3.12 still clears the 3 px floor the same comment cites, but only just: the production
+  footer draws at exactly 128 (`footer-demo.tsx`, `QR_PX`), so any caller that passes a smaller size is
+  under the floor. It is a comment in production marketing, not the board shell, so it is left for
+  whoever owns that file.
+- **Shell changes asked for: none.** The board composes `Stage` (at 1:1, with its own `height` per
+  placement), `Toggle`, `BoardDock` and `BoardMeta` as they ship and needs nothing added to them. Two
+  notes for whoever owns the shell next, neither a request:
+  - The dock is the right answer and this board uses it for all three page-wide switches (the canvas,
+    the ground, the origin) plus Replay. Worth knowing: with three toggles and the shell's own controls
+    it wraps to two rows at 1440, which is fine, and its measured height still lands in
+    `--board-dock-h` correctly.
+  - ★ **A Tailwind breakpoint prefix in a BOARD's own markup is a bug at the phone canvas**, because it
+    reads the real browser window and not the stage (the shell documents this for the production
+    components rendered inside). This board's first draft laid the placements out with `lg:` and `sm:`
+    and the 375 stage was a lie on a wide window; every board-authored layout here now keys off the
+    `mode` prop instead. The production shells inside (SectionShell, Container, Card) still carry their
+    own prefixes and are judged as they ship, which is correct and is captioned on the board.
+- **Assets requested from Will: two, both already open, neither new.**
+  - 24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, framed tight enough to
+    read at 110 px, which is the size a frame is as it leaves the object in the 560 column · ASSETS row
+    2, unchanged, and the same row the media kit's call sheet asks for · replaces the 12 landscape
+    stand-ins and retires the per-frame crop table in `river.tsx`.
+  - 12 event photographs as 4:5 portraits, 720 x 900, one grade, from the same shoot · ASSETS row 12,
+    unchanged · replaces the portrait cards (`wf` 0.8), which are cropped out of landscapes today.
+  - Nothing else is a picture. This visual asks for **no count, no video and no shell prop**: it is
+    twelve photographs, one plate and one clock, which is the point of banking it.
+- **The asks, verbatim from BoardMeta** (the Orchestrator quotes these under Waiting on Will):
+  - "Where it goes first: the how it works column on a feature page (560, the strongest of the three),
+    the doors row card slot (330, the hardest), or the guest album's empty state (the app surface,
+    ghosted)."
+  - "The code, in or out. In, it is a scannable CTA inside a section visual and every placement inherits
+    a second call to action, at a fixed price: the demo code is scannable from 123 px and no smaller,
+    whatever the box is, so its printed card is a quarter of the 560 column, a third of the 400 card and
+    three fifths of the 240 thumbnail. Out, the plain plate is a white card with a faint field in it,
+    sized by the composition rather than by a camera, which is quieter and says less."
+  - "Whether an empty album may show photographs at all. The candidate ghosts the flow at production's
+    own mosaic treatment for exactly that reason, and the honest alternative is that the guest's empty
+    state carries no picture of other people's events."
+  - "The proportion: 1.32 is the visual's default and the only number in it that is taste rather than
+    derivation."
+- **Look at first:** the bank row at Desktop 1440 on cinema, with the dock's Origin flipped from the
+  demo code to no object and back. Read the thumbnail's caption while you do it: it prints **60 percent
+  of the box** for the code's card at 240, and 89 on the phone canvas, which is the second ask in one
+  line and the reason the small sizes are the ones that argue. That one flip is the whole second ask, and it is the comparison the
+  dock exists to make: the code turns a section visual into a second CTA, and without it the flow is
+  just the album arriving. Then the same flip on the doors row (paper), where the object eats a third
+  of a 330 by 238 card slot, and on the guest empty state, where the code is certainly wrong because
+  the guest got there by scanning it. That last stage is the A/B for ask three: today's mosaic beside
+  the candidate, both at the width the guest page really gives its gallery (632 at 1440), and both
+  still there at Phone 375, stacked, where the row will not fit.
+- **The prefix moved and the lane says so:** everything here is `rvr-`, and no `hhv-` name survives in
+  this directory. `hhv-` meant "home hero variation" and this is no longer one; keyframe names are
+  document global, so the rename also keeps this sheet from shadowing the hero board's if the two ever
+  render on one page. Neither sheet declares a keyframe at all now: the whole animation is one rAF loop
+  writing transforms, and the only CSS state is the pour's first frame.
 
 ## Record (round 1; the CHANGELOG paragraph for round 1, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The river, killed as the home hero, came back as a banked
+feature visual. Will's ruling asked for one flow instead of two and a smaller presentation of the images
+emanating from the code, so the hero's parity split, its clearing, its held beat and its two hand-typed
+geometries were deleted: what is left is one stream fanning out of one printed object, every number derived
+from its box, so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, on constants
+that keep instances on a page in step. The frames straighten as they land, the dissolve runs to the bottom
+edge rather than stopping short inside somebody else's slot, and the loop is cut by a frame's top edge. The
+board banks it: three sizes at 1:1 on cinema and paper, three origins on one dock switch, and three
+placements on the production shells they would ship inside, each drawing the width its own ask quotes, the
+guest empty state among them as a true A/B against the mosaic it would replace, at the guest page's gallery
+width on both canvases. The bank card carries the props, the paste and a live meter reading 8.3 ms with six
+mounted. Nothing production moved; the asks are where it goes first and whether the code stays in it.

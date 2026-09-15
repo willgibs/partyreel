@@ -1,3 +1,28 @@
-/* THE RIVER, A FEATURE VISUAL: the board's own sheet. Keyframes and classes under `rvr-` only
-   (keyframe-uniqueness.test.ts reads every sheet under the lab); the seed keeps
-   its own sheet (river.css) and its own prefix until the track decides. */
+/* THE RIVER, A FEATURE VISUAL: the board's own sheet. Classes and keyframes
+   under rvr- only (keyframe-uniqueness.test.ts reads every sheet under the lab;
+   this sheet declares no keyframes at all, and the visual's own sheet,
+   river.css, declares none either: the whole animation is one rAF loop writing
+   transforms, and the only CSS state is the pour's first frame). A board sheet
+   never imports tailwindcss. */
+
+/* THE GHOST, for the guest empty state placement only. Production's own
+   treatment for the mosaic this candidate replaces (gallery-empty-state.tsx:
+   grayscale at 25 percent, aria-hidden, pure atmosphere), applied to the
+   placement's WRAPPER rather than to the visual, because the visual is a
+   marketing object at full luminance everywhere else on this board and the
+   treatment belongs to the surface that needs it. A filter on the wrapper is
+   not a layer over the media, so bible 1 holds.
+
+   Slightly brighter than the mosaic's 25 percent (the flow is in motion and
+   dissolves at three edges, so it has less to say per pixel than nine static
+   tiles do) and not fully desaturated, because a colourless stream reads as
+   broken where a colourless grid reads as faint. */
+.rvr-ghost {
+  filter: grayscale(0.85) opacity(0.4);
+}
+
+/* The board's own rows keep the lab's chrome and nothing else: everything that
+   argues is inside a Stage, on a production shell. */
+.rvr-board h2 {
+  color: var(--foreground);
+}
