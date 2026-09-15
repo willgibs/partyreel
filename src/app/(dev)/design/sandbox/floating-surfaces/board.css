@@ -137,11 +137,15 @@ html[data-flt-scene="guest"] [data-entry-overlay] {
   backdrop-filter: none;
 }
 
-/* -- BIBLE 14, THE HALF THE PRIMITIVES ARE MISSING -------------------------
-   tw-animate-css ships no reduced-motion guard, so `animate-in` runs for a
-   reader who asked for less motion. This is the SAME patch candidates.ts offers
-   as a paste (REDUCED_MOTION_CSS), applied to the board itself so the board
-   obeys the rule it is asking Will to fix. The substring match is not laziness:
+/* -- BIBLE 14, THE FIRST LINE THE PRIMITIVES ARE MISSING -------------------
+   tw-animate-css ships no reduced-motion guard of its own, but globals.css:855
+   has carried a global one since 2026-06-11 (every animation and transition
+   clamped to 0.01ms, `!important`), so `animate-in` does NOT run for a reader
+   who asked for less motion: round one's finding was wrong and round two
+   measured it. This is the SAME block candidates.ts offers as a paste
+   (REDUCED_MOTION_CSS), applied to the board itself, and what it adds over the
+   global clamp is a stop rather than a 0.01ms run. The substring match is not
+   laziness:
    the utilities are variant-prefixed, so the class on the element is literally
    `data-open:animate-in` and a plain `.animate-in` selector matches nothing. */
 @media (prefers-reduced-motion: reduce) {

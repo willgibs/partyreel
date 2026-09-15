@@ -128,7 +128,7 @@ const CANDIDATES = [
   {
     name: "The reduced-motion patch",
     rationale:
-      "Not a candidate, a hole with its fix attached: tw-animate-css ships no reduced-motion guard, so the whole floating layer still animates for a reader who asked for less motion. One paste closes it site-wide. It wants applying whatever else is ruled.",
+      "Not a candidate, and not the hole round one called it. globals.css has carried a global reduce guard since 2026-06-11 that clamps every animation and transition to 0.01ms, so the floating layer does not animate for a reader who asked for less motion. What the layer lacks is bible 14's FIRST line, a gate of its own, and this paste is that: a stop rather than a clamp. Optional, and safe.",
   },
 ];
 
@@ -147,7 +147,7 @@ const DEPARTURES = [
   "The entrance rung 'by frequency' contests rule 15's one entrance with rule 12's animate-by-frequency. Both are ratified and on this family they disagree. A finding for Will, not a quiet choice.",
   "The 'soft shadow' rung is the light board's proposed --lgt-float family verbatim (docs/specs/light.md), not a second design. If a shadow returns in dark it should return once, in one family, for both boards.",
   "The light rungs compose var(--tw-ring-shadow) back in. A bare box-shadow silently deletes the ring the dropdown, the popover, the dialog and the entry shell all ship, because ring-1 IS a box-shadow in Tailwind v4. Round one's board had that bug and it flattened every panel it was trying to judge.",
-  "tw-animate-css ships no reduced-motion guard, so every animate-in utility on the site runs for a reader who asked for less motion. The board obeys bible 14 for itself and offers the same patch as a paste.",
+  "Round one reported a hole that is not there, and round two measured it instead. tw-animate-css does ship no guard of its own, but globals.css has clamped every animation and transition to 0.01ms under the preference since 2026-06-11, with !important, so it beats the utility. Forced on, all 36 floating surfaces across these 19 frames come back at 0.01ms. Row 8's paste is the first line bible 14 asks for, not a rescue.",
   "The stage is not the shell's Stage. Every radix panel portals to globalThis.document.body, so inside a zoom-fitted div it leaves the ground, the zoom and the canvas. Each frame here is an iframe laid out at the canvas's true pixels, running the scene route in its own document.",
 ];
 
@@ -727,8 +727,8 @@ export function FloatingSurfacesBoard() {
 
       <Row
         n={8}
-        name="The hole under all of it, and its patch"
-        note="Bible 14 says every animation lives inside the reduced-motion block. tw-animate-css, which every primitive's entrance rides, ships no such block, so the whole floating layer animates for a reader who asked for less motion. This board honours the preference for itself; the button hands the same patch to the site. It is not a candidate and it does not compete with the three above: whatever is ruled, this wants applying."
+        name="Bible 14: the net holds, the first line is missing"
+        note="Round one called this a hole. It is not one, and the correction is the useful part. Bible 14 says every animation lives inside the reduced-motion block; tw-animate-css, which every primitive's entrance rides, ships no such block of its own. But globals.css has carried a global guard since 2026-06-11 that clamps every animation and transition to 0.01ms under the preference, with !important, so it wins over the utility. Measured on this board with the preference forced: all 36 floating surfaces across the 19 frames come back at 0.01ms. What the layer lacks is the FIRST line that guard's own comment asks for, a gate on the family itself, and the button hands it over as a paste: a stop rather than a clamp. It competes with nothing above, it is optional, and it is safe (radix unmounts a panel immediately when its animation name computes to none)."
       >
         <div className="flex flex-wrap items-center gap-2">
           <Apply
@@ -737,7 +737,8 @@ export function FloatingSurfacesBoard() {
           />
           <span className="text-[11px] text-muted-foreground">
             Turn reduced motion on in the OS, then reload a marketing page with
-            it applied.
+            it applied. What changes against today is a clamp becoming a stop,
+            not motion becoming stillness.
           </span>
         </div>
       </Row>

@@ -453,11 +453,20 @@ ${state(scope, EDGE_ANY, CLOSED)} {
 }
 
 /* -- 4. THE REDUCED-MOTION GUARD -------------------------------------------
-   Not a candidate: a hole, with its patch. tw-animate-css ships no
-   reduced-motion guard, so every animate-in / animate-out utility on the site,
-   the whole floating layer included, still runs for a reader who asked for less
-   motion. Bible 14 is enforced by hand today and the floating layer is the one
-   place it is not enforced at all.
+   Not a candidate, and NOT the hole round one reported. tw-animate-css ships no
+   reduced-motion guard of its own, but globals.css:855 has carried a global one
+   since 2026-06-11 (`@layer base`, every animation and transition clamped to
+   0.01ms, `!important`, which is why it beats an unimportant utility in a higher
+   layer), so the floating layer does not animate for a reader who asked for less
+   motion. Measured, not assumed: with the preference forced on this board, all
+   36 floating surfaces across the 19 frames come back at 0.01ms.
+
+   What the family lacks is the FIRST line that guard's own comment names, a gate
+   on the components themselves, and that is what this block is: a stop rather
+   than a clamp. Safe to paste: `animation: none` does not strand a panel open,
+   because radix's Presence unmounts immediately when the computed animation name
+   is `none` (react-presence@1.1.5, index.mjs:59). The clamp is 0.01ms rather
+   than 0 for the opposite reason, which the globals.css comment explains.
 
    The substring match is not laziness: the utilities are variant-prefixed
    (data-open:animate-in), so the class on the element is literally
