@@ -39,5 +39,5 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "media-kit": { Component: MediaKitBoard, legacy: true },
   rounding: { Component: RoundingBoard },
   "album-hero": { Component: AlbumHeroBoard, legacy: true },
-  "river-visual": { Component: RiverVisualBoard, legacy: true },
+  "river-visual": { Component: RiverVisualBoard },
 };

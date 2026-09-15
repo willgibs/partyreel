@@ -64,7 +64,6 @@ const LEGACY: readonly string[] = [
   "home-hero",
   "media-kit",
   "palette",
-  "river-visual",
   "type-scale",
 ];
 
