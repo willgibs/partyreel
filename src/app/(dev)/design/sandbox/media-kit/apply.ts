@@ -86,21 +86,34 @@ function slate(id: string): string {
     `<rect x='0' y='0' width='1200' height='10' fill='%23f5f5f5'/>`,
     `<text x='64' y='360' fill='%23f5f5f5' font-family='system-ui,sans-serif' font-size='64' font-weight='600'>${m.code}</text>`,
     `<text x='64' y='430' fill='%23a3a3a3' font-family='system-ui,sans-serif' font-size='34'>${esc(line)}</text>`,
-    `<text x='64' y='720' fill='%23737373' font-family='system-ui,sans-serif' font-size='28'>to be shot &#183; replaces ${id}</text>`,
+    `<text x='64' y='720' fill='%23737373' font-family='system-ui,sans-serif' font-size='28'>to be shot, replaces ${esc(id)}</text>`,
     `</svg>`,
   ].join("");
   return `img[src*="mkt-${id}-01"] { content: url("data:image/svg+xml,${svg}"); }`;
 }
 
-/** SVG text inside a url() token: the characters that would end it, and the ampersand. */
+/**
+ * Text going into an UNENCODED `data:image/svg+xml,` URI inside a CSS url("...").
+ *
+ * ★ PERCENT-ENCODE, NEVER ENTITY-ENCODE. The first cut wrote `&#183;` for a
+ * separator and the whole slate silently fell back to today's photograph on every
+ * page: a bare `&` ends the data URI's parse, the image fails to load, and an
+ * <img> whose `content` fails just renders its own src, so nothing looks broken.
+ * Caught by driving the real blog with the block applied, not by the build, and
+ * the reason an XML entity cannot be the fix is that its own `&` is the problem.
+ *
+ * So: `%` first (or it double-encodes the escapes below), then the four
+ * characters that would end the URI, the CSS string or an XML attribute.
+ */
 function esc(s: string): string {
   return s
-    .replace(/&/g, "&#38;")
-    .replace(/</g, "&#60;")
-    .replace(/>/g, "&#62;")
-    .replace(/"/g, "&#34;")
-    .replace(/'/g, "&#39;")
-    .replace(/#/g, "%23");
+    .replace(/%/g, "%25")
+    .replace(/&/g, "%26")
+    .replace(/#/g, "%23")
+    .replace(/</g, "%3C")
+    .replace(/>/g, "%3E")
+    .replace(/"/g, "%22")
+    .replace(/'/g, "%27");
 }
 
 /**
