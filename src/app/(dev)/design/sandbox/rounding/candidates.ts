@@ -110,9 +110,9 @@ export const SURFACES: SurfaceCandidate[] = [
     letter: "C",
     name: "Soft",
     rationale:
-      "8 / 12 / 4. Surfaces come up to meet the actions. The contrast narrows from eight times to two and survives; the ladder starts to matter (a plan card lands at 14.4).",
+      "8 / 12 / 4. Surfaces come up to meet the actions. The contrast narrows from eight times to two and survives, the tile keeps its photograph, and at a base of 8 the ladder starts to matter, so it takes the even one.",
     values: { radius: 8, float: 12, tile: 4, gap: 4 },
-    wants: "stock",
+    wants: "quarters",
     phone:
       "The tile still reads as a corner at a guest's width and still leaves the photograph its edges. The card at 11.2 is a card, not a lozenge.",
   },
@@ -198,22 +198,22 @@ export const STEP_CALL_SITES: Record<
   { uses: number; where: string; specimen: string }
 > = {
   sm: {
-    uses: 7,
+    uses: 8,
     where: "the tooltip arrow, a select item",
     specimen: "Tooltip",
   },
   md: {
-    uses: 88,
+    uses: 89,
     where: "menu rows, segmented thumbs",
     specimen: "A menu row",
   },
   lg: {
-    uses: 104,
+    uses: 105,
     where: "inputs, plates, the lab's own toggles",
     specimen: "Input",
   },
   xl: {
-    uses: 61,
+    uses: 66,
     where: "Card, and the dashboard event card",
     specimen: "Event card",
   },
@@ -224,15 +224,68 @@ export const STEP_CALL_SITES: Record<
   },
   "3xl": {
     uses: 1,
-    where: "one demo modal on /features/sharing",
+    where: "zip-modal-demo.tsx, one panel on /features/sharing",
     specimen: "One modal",
   },
   "4xl": {
     uses: 2,
-    where: "Badge, and one attribution stage",
+    where: "badge.tsx, and one label in attribution-stage.tsx",
     specimen: "Badge",
   },
 };
+
+/**
+ * WHERE THE ACTION TOKENS ACTUALLY LAND, counted on the shipped tree
+ * (2026-09-14, every non-lab `var(--radius-action*)`).
+ *
+ * ★ ROUND TWO GOT THIS WRONG AND THE BOARD SAID IT OUT LOUD: "three call
+ * sites, all in the reel". The token has THIRTEEN raw uses in seven files, and
+ * the one that matters is not a button at all. Recounted rather than repeated.
+ */
+export const ACTION_SITES = {
+  /** button.tsx derives four sizes from --radius-action inside its variants. */
+  derived: 6,
+  /** Hand-written `var(--radius-action)` outside button.tsx. */
+  raw: 7,
+  lg: 1,
+  files: 7,
+} as const;
+
+/** The board's answer, in one place, so the top block, the Apply button and
+ *  every Proposal below can never drift apart. */
+export const ANSWER = {
+  surface: "soft" as SurfaceCandidate["id"],
+  action: "today" as ActionRung["id"],
+  ladder: "quarters" as LadderId,
+  /** One line a decision, each a one-word ruling for Will. */
+  lines: [
+    {
+      ask: "Surfaces",
+      value: "C, 8 / 12 / 4",
+      why: "A corner you can see, and still eight steps short of the action. A is a claim nobody can read at 2px and D gives up the contrast bible 8 exists for.",
+    },
+    {
+      ask: "Actions",
+      value: "Today, 0.4 x height",
+      why: "The rung is not what is broken. What is broken is the h-11 CTA that wears a token defined for h-10, and the guest sheet that wears the action token at all.",
+    },
+    {
+      ask: "The ladder",
+      value: "Quarters",
+      why: "0.5 / 0.75 / 1 / 1.25 / 1.5 / 1.75 / 2. Within half a pixel of stock at today's base and the difference between a plan card at 12 and at 14.4 once the base is 8.",
+    },
+    {
+      ask: "The dead rungs",
+      value: "Drop",
+      why: "rounded-3xl has one call site, rounded-4xl has two, and one of those is the Badge, which wants a pill and should say rounded-full.",
+    },
+    {
+      ask: "The gallery gap",
+      value: "Pinned",
+      why: "The gap follows the tile, and the three literal gap-[3px] on the guest grid become the token. Below the radius, four corners meeting open a hole.",
+    },
+  ],
+} as const;
 
 export function px(n: number): string {
   // Two decimals at most, and never a trailing zero: 19.2, not 19.20.

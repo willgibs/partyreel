@@ -6,54 +6,51 @@
    House convention: FINAL states live OUTSIDE the media queries, so a
    reduced-motion reader gets the settled composition with no rule to undo;
    entrances and loops live inside `no-preference` only, and any infinite loop
-   is marked [data-rnd-loop] so the stage's data-paused stops it on a hidden tab. */
+   is marked [data-rnd-loop] so the stage's data-paused stops it on a hidden tab.
+   This board declares no keyframes at all: a radius is a still life. */
 
-/* ★ THE BOARD IS WIDER THAN THE LAB COLUMN, ON PURPOSE (round two). The lab
-   page is max-w-5xl and a radius has to be compared across five columns at
-   1:1, because the only honest size for a corner is its own.
+/* ★ THE WIDTHS ARE MEASURED IN JS, NOT DERIVED IN CSS (round three).
 
-   It grows into the PAGE GUTTERS and no further. The first cut centred the
-   block on the viewport (margin-left: 50% and a translate) and it slid under
-   the lab's sticky sidebar on the left and 96px off-screen on the right, where
-   an ancestor's overflow clipped it silently.
+   The board is wider than the lab column on purpose: a radius has to be
+   compared across four columns at 1:1, because the only honest size for a
+   corner is its own. Two earlier cuts computed the room in CSS and both were
+   wrong:
 
-   ★ THE WIDTH IS 100% PLUS THE GUTTERS, NEVER A LENGTH. The second cut wrote
-   the column out as a length (62rem, max-w-5xl less its px-4) and that length
-   was wrong at every width between lg and about 1256px: above lg the sidebar
-   is BESIDE the column, so the column is `min(100vw - 232px, 64rem) - 2rem`
-   and a 992px block sat inside a 760px one, dragging the whole page (sidebar
-   included) into a horizontal scroll. The base width is the containing block
-   now, which is the real column whatever the shell does with it, and only the
-   spare room is computed.
+   1. `margin-left: 50%` plus a translate centred the block on the VIEWPORT,
+      so it slid under the lab's sticky sidebar and 96px off-screen right,
+      where an ancestor's overflow clipped it silently.
+   2. A gutter computed from `100vw`, a hard-coded 232px sidebar and a 64rem
+      column was wrong at every width between lg and about 1256px (a 992px
+      block inside a 760px one, and the whole page in a horizontal scroll),
+      and even once corrected it reached UNDER the tuner panel, which is
+      fixed over the bottom right and opens OPEN: the board's own evidence was
+      the thing hidden.
 
-   ★ NO PERCENTAGES INSIDE THE CUSTOM PROPERTY. `100%` in a var resolved
-   against a different box in `margin-left` than it did in `width` (a 1176px
-   box pulled 488px left), so the gutter is viewport units and lengths only;
-   the one percentage lives directly in `width`, where it resolves against the
-   containing block and nothing else.
-
-   gutter = half of what is left of the viewport once the sidebar and the
-   column's own max width are taken out, and zero whenever the column already
-   fills the viewport (every width below lg, and every narrow desktop). The
-   page's own px-4 is what stays as the margin at the edge. 100vw counts a
-   classic scrollbar the layout does not, which can only make the gutter
-   smaller than the room it has, never larger. */
+   So board.tsx measures three real rectangles (the column, the viewport, the
+   tuner panel) and writes `--rnd-grow-left` and `--rnd-grow-right` on the
+   board root. Both default to 0, which is the plain lab column, so the first
+   paint and the server render are correct and narrow rather than wrong and
+   wide. `--rnd-grow-right` goes NEGATIVE when the panel is open beside the
+   board, and the values update live when it is closed or flipped. */
 .rnd-wide {
-  /* The sidebar sits beside the column only at lg and up: the lab layout is
-     `lg:grid-cols-[232px_minmax(0,1fr)]`. */
-  --rnd-side: 0px;
-  --rnd-gutter: max(0px, calc((100vw - var(--rnd-side) - 64rem) / 2));
-  width: calc(100% + 2 * var(--rnd-gutter));
-  margin-left: calc(-1 * var(--rnd-gutter));
+  width: calc(100% + var(--rnd-grow-left, 0px) + var(--rnd-grow-right, 0px));
+  margin-left: calc(-1 * var(--rnd-grow-left, 0px));
 }
 
-@media (min-width: 64rem) {
-  .rnd-wide {
-    --rnd-side: 232px;
-  }
+/* A part that is already the column's width (a stage fits itself to its box)
+   and only needs the panel's room given back. */
+.rnd-fit {
+  width: calc(100% + min(0px, var(--rnd-grow-right, 0px)));
 }
 
-/* The live column's measuring probe: six boxes carrying border-radius:
+/* The answer block sits in the column, so it gets the same treatment: its two
+   specimens and its button are the first thing on the page and must never
+   arrive behind the panel. */
+.rnd-answer {
+  width: calc(100% + min(0px, var(--rnd-grow-right, 0px)));
+}
+
+/* The live band's measuring probe: six boxes carrying border-radius:
    var(--token) and one carrying the gallery gap, read back as used pixels
    (board.tsx explains why measuring beats parsing a custom property). It has
    to be laid out for the values to resolve, so it is clipped rather than

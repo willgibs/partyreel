@@ -52,6 +52,12 @@ const DIALOG_PANEL =
 const DIALOG_FOOTER =
   "-mx-4 -mb-4 flex items-center justify-end gap-2 rounded-b-float border-t bg-muted/50 p-4";
 
+/** entry-shell.tsx, Drawer.Content: the guest entry sheet. ★ Its corner is
+ *  the ACTION token times 1.4, not --radius-float, which is the finding part E
+ *  is built on. Copied verbatim except for the fixed positioning. */
+const ENTRY_SHEET =
+  "flex flex-col rounded-t-[calc(var(--radius-action)*1.4)] bg-popover px-6 pt-3 pb-6 text-sm text-popover-foreground shadow-float ring-1 ring-foreground/10";
+
 export const TILES = [
   "wedding-golden",
   "party-dj",
@@ -122,6 +128,25 @@ export function CellLabel({
     >
       {children}
     </p>
+  );
+}
+
+/** A toggle group with a VISIBLE name. The shell's Toggle carries an
+ *  ariaLabel and nothing on screen, so three unlabelled pill groups in a row
+ *  is three questions a stranger has to answer by clicking (round three's cold
+ *  walk). The label is the answer, in four words. */
+export function Labeled({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[11px] text-muted-foreground">{label}</span>
+      {children}
+    </div>
   );
 }
 
@@ -205,14 +230,18 @@ export function FloatSpecimen({ float }: { float: number | null }) {
 export function TileSpecimen({
   tile,
   gap,
+  count = 6,
 }: {
   tile: number | null;
   gap: number | null;
+  /** Six in the matrix (two rows, so a junction of four corners is in it);
+   *  three in the answer strip, where the row is one line tall. */
+  count?: number;
 }) {
   return (
     <div className="flex flex-col gap-2.5">
       <div className="grid grid-cols-3 gap-[var(--gap-gallery)]">
-        {TILES.slice(0, 6).map((id) => (
+        {TILES.slice(0, count).map((id) => (
           <Tile key={id} id={id} className="aspect-square" sizes="90px" />
         ))}
       </div>
@@ -278,20 +307,27 @@ export function NestedSpecimen({
   outerMultiplier = 1.4,
   padding = 8,
   ringOffset = 6,
+  ringOnly = false,
 }: {
-  /** null on the live column: the arithmetic is printed as expressions. */
+  /** null when the tuner is driving: the arithmetic prints as expressions. */
   radius: number | null;
   outerMultiplier?: number;
   padding?: number;
   ringOffset?: number;
+  /** The across-candidates strip shows the ring pair only: the card pair is
+   *  drawn once, large, at the rail's candidate, because a 90px card cannot
+   *  carry an 8px argument. */
+  ringOnly?: boolean;
 }) {
   const outer = radius === null ? null : radius * outerMultiplier;
   const inner = outer === null ? null : Math.max(0, outer - padding);
   const ring = radius === null ? null : radius + ringOffset;
   return (
     <div className="flex flex-col gap-4">
-      {/* 1. A card with an inner media plate. */}
-      <div>
+      {/* 1. A card with an inner media plate. Left out of the strip rather
+          than hidden: a hidden <Image> still loads. */}
+      {!ringOnly && (
+        <div>
         <div className="flex gap-3">
           <div className="min-w-0 flex-1">
             <div
@@ -345,7 +381,8 @@ export function NestedSpecimen({
             </CellLabel>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* 2. A ring drawn AROUND an object at an offset. */}
       <div className="flex gap-3">
@@ -577,6 +614,50 @@ export function StaticDialog({ className }: { className?: string }) {
           <Copy data-icon="inline-start" /> Copy link
         </Button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * THE GUEST ENTRY SHEET, at the action token (round three's finding).
+ *
+ * ★ THIS IS NOT A BUTTON AND IT WEARS THE BUTTON'S TOKEN. entry-shell.tsx
+ * draws the sheet every guest meets before they see a single photograph with
+ * `rounded-t-[calc(var(--radius-action)*1.4)]`, so the action rung decides the
+ * corner of the biggest floating surface on the site: 22.4px today, 11.2 under
+ * quiet, and a half-circle under the pill, where 1.4 x 999 clamps to half the
+ * sheet's height. Drawn static from the class string above, because vaul
+ * portals the real one out of any stage.
+ */
+export function EntrySheetSpecimen({ action }: { action: number }) {
+  const corner = action > 100 ? null : action * 1.4;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="relative h-[184px] w-full overflow-hidden rounded-lg bg-muted/40 ring-1 ring-foreground/10">
+        <div aria-hidden className="grid grid-cols-3 gap-[var(--gap-gallery)] p-1 opacity-60">
+          {TILES.slice(0, 3).map((id) => (
+            <Tile key={id} id={id} className="aspect-square" sizes="70px" />
+          ))}
+        </div>
+        <div className={cn(ENTRY_SHEET, "absolute inset-x-0 bottom-0")}>
+          <span
+            aria-hidden
+            className="mx-auto mb-2 h-1 w-9 shrink-0 rounded-full bg-muted-foreground/30"
+          />
+          <p className="font-heading text-base leading-snug font-semibold">
+            Welcome to Summer wedding
+          </p>
+          <p className="mt-1 text-muted-foreground">
+            A shared gallery for the whole event.
+          </p>
+          <Button className="mt-3 w-full">Add your photos</Button>
+        </div>
+      </div>
+      <CellLabel>
+        {corner === null
+          ? "A half circle: 1.4 x 999 clamps to half the sheet"
+          : `${px(corner)} on the top corners, 1.4 x the action token`}
+      </CellLabel>
     </div>
   );
 }
