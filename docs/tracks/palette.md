@@ -818,10 +818,10 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
 - Gates on the synced tree, re-run at the head: typecheck ok, lint ok (0 errors, 6 warnings, all
   pre-existing and none in a file this track owns), test ok (1727 in 194 files, 8 of them this
   round's `temperature.test.ts`), build ok (248 static pages).
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` plus four
-  files under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `ramps.ts`, `sections.tsx`, and
-  the new `temperature.test.ts`). No exceptions. No production byte changed: `globals.css`,
-  `theme.css` and `marketing.css` were read and not touched.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` plus five
+  files under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `ramps.ts`, `sections.tsx`,
+  `specimens.tsx`, and the new `temperature.test.ts`). No exceptions. No production byte changed:
+  `globals.css`, `theme.css` and `marketing.css` were read and not touched.
 - **What round three changed, in one list.**
   1. **Candidate C is cut, and every value it held is still reachable.** C was A's ladder at a
      temperature, and round two wrote the reason in C's own move list: "The spacing is A's exactly,
@@ -850,6 +850,10 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
      ring is at **37**, not 77. The faint step is 37 sites at five alphas, 19 of them at exactly the
      70 percent `--faint` is. A hue ruling reaches 34 utilities in 16 files. Every count now lives in
      `ramps.ts` beside the grep that produced it, so the next agent re-runs rather than re-remembers.
+     Worth knowing how the last one was caught: the 77 was fixed in the row's caption and in the
+     specimen's own doc comment, and the walk found it still RENDERING under the depth row from a
+     third copy of the number. A count that appears in prose in more than one file is a count that
+     will go stale in one of them; every one of them now reads the constant.
   5. **The stumbles a stranger hits, fixed.** Four unlabelled segmented controls in a row (two of
      them unreadable without the file open) all have visible names; the grounds strip printed four
      near-black bars and now prints each room's lightness, which is the only way 0.110 against 0.140
