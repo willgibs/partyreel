@@ -38,6 +38,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "brand-voice": { Component: BrandVoiceBoard, legacy: true },
   "media-kit": { Component: MediaKitBoard, legacy: true },
   rounding: { Component: RoundingBoard },
-  "album-hero": { Component: AlbumHeroBoard, legacy: true },
+  "album-hero": { Component: AlbumHeroBoard },
   "river-visual": { Component: RiverVisualBoard, legacy: true },
 };
