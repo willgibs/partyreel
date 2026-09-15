@@ -415,8 +415,8 @@ own page. No production byte changed.
 
 ## Handoff (round 3)
 
-- Head: the tip of `lp/brand-voice` (this manifest commit on top of the sync merge `e769c27`); the
-  board's code head is `5846b43`. Preview `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the
+- Head: the tip of `lp/brand-voice` (this manifest commit); the board's code head is `767fb2f`, on
+  top of the sync merge `e769c27`. Preview `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the
   board at `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
   `docs/specs/brand-voice.md`. **The round-three board is the one whose root div carries
   `class="bv-round-three"`, opens with a card reading "The recommendation / B, the room." and
