@@ -514,7 +514,8 @@ rescue.
 
 ## Handoff (round 3)
 
-- Head `HEADSHA`, pushed. Board: `/design/c/floating-surfaces?key=`. **The marker for "is this
+- Head: the tip of `lp/floating-surfaces`, pushed. The last code commit is `57118da`; everything
+  after it is this manifest, which changes no served byte. Board: `/design/c/floating-surfaces?key=`. **The marker for "is this
   round three": the block heading "Where this board lands"**, and the row-2 caption "The finding the
   round turned on, at 6x". Round two's board had neither.
 - **Synced: `launch-prep` had NOT moved.** It is still at `dd4aa0b`, the SHA this branch was cut
