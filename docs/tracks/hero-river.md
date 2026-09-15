@@ -276,18 +276,36 @@ the pre-pour frame lives inside the reduced-motion block so the pour cannot flas
 
 ## Handoff (round 2)
 
-- Head `f1be9ea` plus this commit (a manifest cannot name its own SHA); `f1be9ea` is the tree every
-  check below ran against. Pushed; preview
-  `https://partyreel-git-lp-hero-river-partyreel.vercel.app`, the board at
-  `/design/c/home-hero?key=` (concept 4 of 4). **Marker for the round-two board: `hhv-plate`**, the
-  printed card's class, which exists nowhere in round one; `--hhv-fade-b0` marks the final head.
+- Head `b72d56b` plus this commit (a manifest cannot name its own SHA); `b72d56b` is the tree every
+  check below ran against. Pushed. The board is `/design/c/home-hero?key=` (concept 4 of 4).
+  **Marker for the round-two board: `hhv-plate`**, the printed card's class, which exists nowhere in
+  round one; `--hhv-fade-b0` marks anything after the first round-two commit and
+  `--hhv-lab-scale` marks this head.
+- ★ **BLOCKER FOR THE WHOLE WAVE, not for this track alone: Vercel is deployment rate limited.**
+  Every push after `6915bd5` returns the GitHub commit status
+  `Vercel: "Deployment rate limited - retry in 24 hours."`
+  (`https://vercel.com/partyreel?upgradeToPro=build-rate-limit`), and NO deployment record is created
+  at all, so this is not a build that failed, it is a build that was never started. Nine tracks
+  pushing previews in one afternoon is what spent it. **The consequence to carry:** the alias
+  `partyreel-git-lp-hero-river-partyreel.vercel.app` is frozen at `6915bd5`, which is round two's
+  FIRST commit. It has the printed card, the held beat, the settled count, the crops and LIFT; it
+  does NOT have the rebuilt phone, the two-stop dissolve, the shorter desktop ramp, the loop's cut,
+  the phone measure or the chip's scale. Every other track's `lp/*` alias is frozen the same way at
+  whatever it last built, and `launch-prep` cannot deploy either. Nothing here needs a rebuild to be
+  reviewed once the limit clears; the head is pushed and the gate is green on it.
+- **What the live pass ran against instead, and why it is not a downgrade.** `pnpm build` and then
+  `pnpm start` on the worktree, which serves the same production output the preview would, at the
+  same code. The one thing it cannot exercise is Vercel's own edge, and this board touches no route
+  handler, no auth, no R2 and no Stripe: it is a static lab page behind the `DESIGN_PREVIEW_KEY`
+  gate, and that gate was tested on the production server (404 with no key, 404 with a wrong key,
+  200 with the key). Everything below was measured there unless it says otherwise.
 - Synced with `launch-prep` at **`4b035c1`** (it had moved one commit,
   `docs(design-system): the candidate block, recorded beside the tuner`, which touches only
   `docs/systems/design-system.md` and nothing this track reads). `git merge origin/launch-prep`, no
   conflicts, and the whole gate re-ran on the merged tree.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 7 warnings are the pre-existing ones
-  on `contact-form.tsx`, `review-switch.tsx`, `album-fill-grid.tsx`, `jobs.ts` and `use-flip.ts`),
-  test ok (1698 in 193 files), build ok (248 static pages).
+- Gates on the synced tree, re-run at this head: typecheck ok, lint ok (0 errors; the 7 warnings are
+  the pre-existing ones on `contact-form.tsx`, `review-switch.tsx`, `album-fill-grid.tsx`, `jobs.ts`
+  and `use-flip.ts`), test ok (1698 in 193 files), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-river.md`,
   `src/app/(dev)/design/sandbox/home-hero/river.css`,
   `src/app/(dev)/design/sandbox/home-hero/river.tsx`. **No exceptions**: the two owned files and this
@@ -358,8 +376,7 @@ the pre-pour frame lives inside the reduced-motion block so the pour cannot flas
   not two); the media kit's "readable at 120 px" test is what the asks are written against. The
   type-scale board's finding that this hero invented `leading-[1.02]` locally is real and recorded:
   the h1 keeps it until a ladder is ruled and then takes the ruled leading for its step.
-- **Verified at `f1be9ea`**, on the running tree (dev server on 3017 against the exact worktree) and
-  on the preview for the served HTML:
+- **Verified at `b72d56b`**, against the PRODUCTION build served locally (see the blocker above):
   - **The clearing is still a geometric guarantee, measured not eyeballed.** A probe read the
     rendered INK box of the h1 (grown 10 px), the subhead, both CTAs and the count, and tested every
     visible card's live rect against all five, every frame, for 150 frames in each of the EIGHT
@@ -371,15 +388,21 @@ the pre-pour frame lives inside the reduced-motion block so the pour cannot flas
   - **The line placement survives Replay** (the board remounts the stage, so the choice lives in a
     module store rather than in component state), and the QR's CENTRE is pinned to the same y in both
     placements: 141 on the desktop, 97 on the phone, so the toggle moves one line and nothing else.
+    The printed card measures 164 x 168 on the desktop and 164 x 140 on the phone.
   - **The served HTML** carries 16 `.hhv-card` nodes, 16 `--hhv-rest` declarations, 16 `--hhv-pos`
     crops, the printed card, and the count's SETTLED figure (248) as the markup, with the ticking 241
-    hidden outside the reduced-motion block. No em-dash, no `font-mono`, no `data-mkt-cut` /
-    `data-mkt-reveal` / `.mkt-line` on any h1.
-  - **Reduced motion**, simulated by deleting all 27 `no-preference` blocks from the live sheets and
-    clearing the loop's inline styles, which leaves exactly the cascade such a reader gets: 14 of 16
-    cards stand deployed (the other two are on the ground between flights, which IS the steady
-    state), spread from y 110 to 768; the h1 is at opacity 1 with transform none; the count shows 248
-    and the ticking span is hidden.
+    hidden outside the reduced-motion block. The lab gate: 404 with no key, 404 with a wrong key, 200
+    with the key. No em-dash, no `font-mono`, no `data-mkt-cut` / `data-mkt-reveal` / `.mkt-line` on
+    any h1.
+  - **Reduced motion**, read off the MARKUP rather than off the running page, which is the honest
+    way: a reduced-motion reader's effect returns before it writes a single inline style, so what
+    they get is exactly the 16 `--hhv-rest` transforms the server printed. Parsed from the served
+    HTML: the 16 rest transforms spread from dy 0 to dy 990 (the whole fall) at scales 0.32 to 1.0,
+    15 of the 16 at an opacity above 0.05 (the sixteenth is the frame still inside the code, which is
+    the steady state), the count's settled 248 is the visible span and the ticking one is display
+    none outside the `no-preference` block. On the running page the h1 measures opacity 1 with
+    transform none. Deleting all 27 `no-preference` blocks from the live sheets leaves the stream
+    standing rather than collapsed.
   - **Performance, measured at both canvases.** With all FOUR concepts on the board running, rAF
     deltas over 200 frames: median 16.7 ms, p99 18.7 ms, max 18.7 ms, so not one frame was dropped;
     the river alone and the river with its stream removed measure the same, which is the honest
