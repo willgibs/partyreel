@@ -278,15 +278,17 @@ production byte changed.
   what the board draws is `763423a`; the ones after it are this manifest and one unused import
   dropped. Preview `partyreel-git-lp-media-kit-partyreel.vercel.app`, board at
   `/design/c/media-kit?key=`
-- ★ **The alias was a day stale, and this push is the rebuild.** Vercel's ceiling of 100
-  deployments a day was at 0 remaining when `763423a` landed, so that push produced no deployment
-  and the alias kept serving `b05c7c3`, a build whose Ours slate is still the 1200x800 cut. That is
-  the one frame the walk below opens on, and the one this track found broken: a 4:5 blog card takes
-  20 percent off each side of it, so the shot code and the start of the line were gone. A slot freed
-  and the push carrying this manifest rebuilds the alias at the tip; nothing else differs between
-  the two builds. The check, any time the alias looks behind again: the board's chunk under
-  `/_next/static/chunks/` carries `viewBox='0 0 1000 1000'` on the head and `0 0 1200 800` on the
-  stale build.
+- ★ **The alias was a day stale, and it is rebuilt.** Vercel's ceiling of 100 deployments a day
+  was at 0 remaining when `763423a` landed, so that push produced no deployment and the alias kept
+  serving `b05c7c3`, a build whose Ours slate is still the 1200x800 cut. That is the one frame the
+  walk below opens on, and the one this track found broken: a 4:5 blog card takes 20 percent off
+  each side of it, so the shot code and the start of the line were gone. The first rebuild push lost
+  its slot by seven seconds, so the rebuild was forced at the same SHA instead and went READY, and
+  the alias now serves the tip. Verified on it, not inferred: the board's chunk carries
+  `viewBox='0 0 1000 1000'` and no served chunk carries `0 0 1200 800` any more, and Ours applied
+  from the board draws the square slate on the real `/blog` at 1440, centred inside the 320x400 card
+  with the code, both rows of the subject and the replaces line all inside the crop. The same check
+  settles it any time the alias looks behind again.
 - **How the ceiling actually behaves** (worth knowing while six tracks share one project, and the
   reason the first rebuild push produced nothing): the cap does not lift at midnight, it refills at
   one deployment every 14.4 minutes, and the next push on ANY branch takes the free slot. Pushes
