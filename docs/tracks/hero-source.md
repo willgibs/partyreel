@@ -1,7 +1,7 @@
 ---
 track: hero-source
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "c473707"          # origin/launch-prep at the round-four cut
 merged_round_1: "0298c21"
 preview: true           # Will's review surface: every push builds partyreel-git-lp-hero-source
 owns:
