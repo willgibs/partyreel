@@ -1,7 +1,7 @@
 ---
 track: lab-kit
 status: open
-cut: "<filled at boot: the launch-prep SHA you cut from>"
+cut: "2644310d67d9c3c2bb5c9cb7aafa84b26322311b"
 preview: false
 owns:
   - src/components/lab/
