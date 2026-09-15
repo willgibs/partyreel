@@ -102,27 +102,59 @@ tuner's and the ruling's.
 
 ## Handoff (round 2)
 
-- Head: the tip of `lp/rounding` (the last code commit is `7cf1927`; the
-  manifest commits follow it), pushed; preview
+- Head: the tip of `lp/rounding` (the last code commit is `6db270c`; this
+  manifest commit follows it), pushed; preview
   partyreel-git-lp-rounding-partyreel.vercel.app. The board is
   `/design/c/rounding?key=`; the round-two marker in the rendered HTML is the
-  heading **"The six tokens, at true size"** (and the class `rnd-wide`).
-- Synced with launch-prep at `4b035c1` (merged in, the design-system note about
-  the candidate block).
+  heading **"The six tokens, at true size"** (and the class `rnd-wide`), and
+  the second pass adds part F, **"Every candidate on the phone"**.
+- **Second pass (the read-only review of this handoff found three should-fix
+  items; all three are fixed here).**
+  1. `.rnd-wide` overflowed the lab column at every width between `lg` and
+     about 1256px and took the whole page into a horizontal scroll with it
+     (216px of it at 1024). It sized itself from a hard-coded 62rem column,
+     which is only the column BELOW lg; above lg the sidebar is beside the
+     content and the column is `min(100vw - 232px, 64rem) - 2rem`. The width is
+     `100% + the gutters` now, so the base is the real containing block
+     whatever the shell does with it, and only the spare room is computed, from
+     a sidebar width that is 0 below lg and 232px at and above it.
+  2. Goal item (6), every column on the phone canvas, was addressed nowhere and
+     declined nowhere. Part F is the row: the five columns of part A, each on
+     its own 375 canvas at 1:1, composition and ground on their own toggles,
+     one line per candidate on what it does at a guest's width. Five phones at
+     true size do not fit across the column, so they wrap three to a row at
+     1440 and two on a narrower window.
+  3. The gate line claimed the four gate steps and not the light-QA canvases.
+     Both are claimed below.
+- Synced with launch-prep at `4b035c1` (still the tip of `origin/launch-prep`
+  at this handoff, so the tree is the merged one the gates ran on).
 - Gates on the synced tree: typecheck ok, lint ok (0 errors, 7 pre-existing
   warnings in other files), test ok (1698 in 193 files), build ok (248 pages).
+- Light QA, walked rather than assumed: the board at **1440** and at **375**,
+  both with zero horizontal overflow on the document and zero console errors;
+  **reduced motion honoured** by having nothing to undo, since `board.css`
+  declares no keyframes and no element on the board resolves an
+  `animation-name` at all (checked in the page, not only in the source). The
+  overflow fix was measured at 375, 768, 1000, 1023, 1024, 1100, 1180, 1256,
+  1280, 1360, 1440 and 1920: zero at every one, and the 1440 geometry is
+  unchanged from the first pass. Below 375 the page does overflow, from the
+  shell's own `Toggle` groups and the fixed tuner panel rather than from
+  anything in this lane.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` =
   `src/app/(dev)/design/sandbox/rounding/{board.tsx,board.css,candidates.ts,specimens.tsx,compositions.tsx}`
   plus this file. No exceptions.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
 - **Shell changes proposed (the Orchestrator's files, none made):**
   1. `src/components/dev/board/stage.tsx`: a `fit={false}` escape hatch, or a
-     `TrueSize` sibling. A Stage fits 1440 into the lab's 992px column with
-     `zoom`, which scales paint as well as layout, so a board judging a
-     DIMENSION (a radius, a gap, a shadow offset, a stroke) reads about a third
-     under its own numbers there. This board works around it with `.rnd-wide`
-     in its own sheet, which has to assume the lab's sidebar width (232px) and
-     column (62rem); a shell-owned wide slot would delete both assumptions.
+     `TrueSize` sibling. A Stage fits 1440 into the lab's column with `zoom`,
+     which scales paint as well as layout, so a board judging a DIMENSION (a
+     radius, a gap, a shadow offset, a stroke) reads about a third under its
+     own numbers there. This board works around it with `.rnd-wide` in its own
+     sheet, which now takes its base width from the containing block but still
+     has to know the lab sidebar (232px at lg and up) to find the spare room.
+     A shell-owned wide slot would delete that last assumption, and the second
+     pass is the evidence for asking: a board guessing at the shell's layout
+     got it wrong at every width its own QA did not sit at.
   2. `src/components/dev/motion-tuner-config.ts`: the three action knobs cap at
      24px, which cannot express the pill rung. If the pill is ruled, the max
      moves (or the control gains a "pill" step). Apply writes the pill into the
@@ -147,8 +179,8 @@ tuner's and the ruling's.
     near-white and bright (a white tablecloth, an overexposed sky, a white dress
     against a window), 1200px long edge, JPG, four of them · replaces the
     `wedding-golden` / `party-dj` / `festival-lights` stills in part B's guest
-    grid, so a corner hole between tiles is judged at maximum contrast rather
-    than against dark stills that hide it.
+    grid and part F's phone row, so a corner hole between tiles is judged at
+    maximum contrast rather than against dark stills that hide it.
 - The asks, verbatim from BoardMeta:
   1. "The surfaces: A, B, C or D (--radius, --radius-float and --radius-tile move together)"
   2. "The actions: today, pill or quiet"
@@ -158,11 +190,14 @@ tuner's and the ruling's.
 - Look at first: part A, the matrix at true size, which is the whole ruling on
   one screen. Then press **Apply C** and walk `/`, `/pricing` and `/dashboard`
   with it on: that is the real answer, and the board is only the shortlist.
-  Part B's guest composition carries the round's worst finding at its foot.
+  Part B's guest composition carries the round's worst finding at its foot, and
+  part F is the same four candidates at the width a guest actually holds. The
+  tuner panel sits over the right of the page, so close it (the cross) or send
+  it left (the arrow) before reading the last column of any part.
 
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). The rounding board was rebuilt from the ground up. Round one judged six numbers in four columns inside a zoom-fitted stage, where `zoom` scales paint with layout and every corner read about a third sharper than its own number; round two splits the tokens into the three decisions they are (the surface family A to D, the action rung, the derived ladder) and renders every comparison at 1:1.
-Part A is a four-row matrix of the shipped components, B four real compositions from `EventCard`, `EventTypeCard` and the primitives' own class strings, C bible 9 drawn right and wrong under each candidate, D the seven derived steps on the components that use them beside a quarter-step retune, E the action ladder at every height that ships.
+Part A is a four-row matrix of the shipped components, B four real compositions from `EventCard`, `EventTypeCard` and the primitives' own class strings, C bible 9 drawn right and wrong under each candidate, D the seven derived steps on the components that use them beside a quarter-step retune, E the action ladder at every height that ships, and F every candidate on its own 375 canvas, which is where the tile is settled.
 Each candidate applies to the whole site as the paste its ruling would land, verified on `/pricing`: a plan card lands at 21px under D's quarter ladder against 25.2 on stock.
 Four findings, all on the board rather than in a comment. The guest gallery's gap is a literal in three files while its tiles ride the token, so any tile above 3 opens corner holes on the one grid every guest sees. `--radius-action` names a 40px button that ships nowhere and `--radius-action-lg` has one call site. Every marketing CTA is `size="lg"` forced to h-11, at 0.33 x height against a documented 0.4. And `rounded-3xl` and `rounded-4xl` have three uses between them.
