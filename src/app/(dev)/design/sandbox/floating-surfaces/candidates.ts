@@ -155,21 +155,45 @@ export function root(scope: Scope): string {
   return scope === "site" ? NOT_FRAME : ":root";
 }
 
-/** Where a rung's DARK-GROUND values are declared, which is not simply the root
- *  selector with `.dark` bolted on. A panel-scoped rung declares its value ON
- *  the panel, and a custom property set on the element itself beats the same
- *  property inherited from <html> whatever the ground rule's specificity: the
- *  dark value has to land on the panel too, qualified by the ground as an
- *  ancestor. It cost the light ladder a round: every rung drew its LIGHT values
- *  on cinema and the dark answers were never actually on the board. */
-export function darkRoot(scope: Scope): string {
+/** Where a rung's GROUND-DEPENDENT values are declared, which is not simply the
+ *  root selector with `.dark` bolted on. Two lessons are baked in here and both
+ *  were found on the board rather than reasoned out.
+ *
+ *  ROUND TWO: a panel-scoped rung declares its value ON the panel, and a custom
+ *  property set on the element itself beats the same property inherited from
+ *  <html> whatever the ground rule's specificity, so the dark value has to land
+ *  on the panel too, qualified by the ground as an ancestor. It cost the light
+ *  ladder a round: every rung drew its LIGHT values on cinema.
+ *
+ *  ROUND FOUR: `html:is(.dark, .surface-ink)` is the WRONG ancestor. Measured on
+ *  the real /pricing with a candidate applied: <html> carries `dark` from
+ *  next-themes while the section carries `.surface-paper`, so the tooltip drew
+ *  a LIGHT ground with the DARK shadow behind it. The fix is the mechanism
+ *  globals.css already uses for --foreground: declare the value on the ground
+ *  CLASSES as elements, so the nearest declaring ancestor wins by inheritance
+ *  rather than by cascade. Light first and dark second, which is globals.css's
+ *  own order, so an element carrying both resolves dark. */
+export function lightGround(scope: Scope): string {
+  if (typeof scope === "object") return scope.panel;
+  return scope === "site"
+    ? `${NOT_FRAME}, ${NOT_FRAME} .surface-paper`
+    : ":root, .surface-paper";
+}
+
+export function darkGround(scope: Scope): string {
   if (typeof scope === "object") {
+    // A panel-scoped rung cannot use inheritance (the value is on the panel), so
+    // it re-asserts light under a paper ancestor after the dark rule. A dark
+    // section nested inside a paper one would lose, which no page does.
     return `:is(.dark, .surface-ink) ${scope.panel}`;
   }
   return scope === "site"
-    ? `${NOT_FRAME}:is(.dark, .surface-ink)`
+    ? `${NOT_FRAME}:is(.dark, .surface-ink), ${NOT_FRAME} :is(.dark, .surface-ink)`
     : ":is(.dark, .surface-ink)";
 }
+
+/** The old name, kept so nothing silently reads the wrong ancestor. */
+export const darkRoot = darkGround;
 
 /** A selector for a group of panels under this scope. */
 export function panels(scope: Scope, group: string): string {
@@ -316,7 +340,7 @@ export function lightCss(rung: LightRung, scope: Scope): string {
    because a shadow has to be darker than what it falls on and 6% of black over
    oklch(0.11) is arithmetically invisible. */`;
   return `${head}
-${root(scope)} {
+${lightGround(scope)} {
   /* ROUND THREE, an honesty fix. These two alphas were 0.12 and 0.16 while the
      block above claimed the light board's family verbatim; the light board's
      own sheet declares --lgt-float on a LIGHT ground as 0.09 and 0.13
@@ -326,7 +350,7 @@ ${root(scope)} {
   --flt-float:
     0 4px 8px -2px oklch(0 0 0 / 0.09), 0 8px 16px -4px oklch(0 0 0 / 0.13);
 }
-${darkRoot(scope)} {
+${darkGround(scope)} {
   --flt-float:
     0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
 }

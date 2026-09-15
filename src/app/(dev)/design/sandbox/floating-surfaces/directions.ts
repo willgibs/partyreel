@@ -58,7 +58,8 @@ import {
   RING,
   CLOSED,
   type Scope,
-  darkRoot,
+  darkGround,
+  lightGround,
   guarded,
   inside,
   panels,
@@ -225,10 +226,10 @@ function cardCss(scope: Scope): string {
    nested at the corner, entering with a short lift toward its trigger. The
    anatomy (header, icon rail, footer rail) is markup, not this block. */
 ${radiusBlock("card", scope)}
-${root(scope)} {
+${lightGround(scope)} {
   --flt-float: ${FLOAT_LIGHT};
 }
-${darkRoot(scope)} {
+${darkGround(scope)} {
   --flt-float: ${FLOAT_DARK};
 }
 ${panels(scope, ALL)} {
@@ -271,13 +272,13 @@ function glassCss(scope: Scope): string {
    panel stay part of the picture. Rounder than anything else on the site on
    purpose: a pane of light has no corner of its own. */
 ${radiusBlock("glass", scope)}
-${root(scope)} {
+${lightGround(scope)} {
   --flt-glass: color-mix(in oklab, var(--popover) 80%, transparent);
   --flt-glass-edge: color-mix(in oklab, var(--foreground) 14%, transparent);
   --flt-glass-lit: inset 0 1px 0 0 oklch(1 0 0 / 0.65);
   --flt-float: ${FLOAT_LIGHT};
 }
-${darkRoot(scope)} {
+${darkGround(scope)} {
   /* Measured on the board rather than guessed. At 62 percent over the album a
      row label at 55 percent opacity disappears into a photograph, which is a
      pane you cannot read: the mix is 74 and the labels come up with it. A
@@ -356,10 +357,10 @@ function commandCss(scope: Scope): string {
    an edge at the bottom. The field, the filtering and the deleted submenu are
    the direction; this block is what a paste can carry of it. */
 ${radiusBlock("command", scope)}
-${root(scope)} {
+${lightGround(scope)} {
   --flt-float: 0 1px 2px 0 oklch(0 0 0 / 0.1), ${FLOAT_LIGHT};
 }
-${darkRoot(scope)} {
+${darkGround(scope)} {
   --flt-float: 0 1px 2px 0 oklch(0 0 0 / 0.45), ${FLOAT_DARK};
 }
 ${panels(scope, ALL)} {
