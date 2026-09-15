@@ -6,6 +6,7 @@ import "./board.css";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -22,6 +23,7 @@ import {
   setCandidateCss,
   Stage,
   Toggle,
+  useLabPrefs,
   useTunerCandidate,
   type Ground,
   type Mode,
@@ -659,8 +661,30 @@ function PageFrame({
   css: string;
 }) {
   const ref = useRef<HTMLIFrameElement | null>(null);
+  const boxRef = useRef<HTMLDivElement | null>(null);
   const [screens, setScreens] = useState(1);
+  const [scale, setScale] = useState(1);
   const { w, h } = CANVAS[mode];
+  // The dock's own 1:1 / Fit control has to reach the frames too, or it reads
+  // as dead on seven of the surfaces on the page. 1:1 is the default and the
+  // point of the round; Fit is the shell's deliberate "glance at the whole",
+  // and it scales the PAINT only: the frame's document still lays out at the
+  // canvas width, so its breakpoints and its clamps do not move.
+  const trueScale = useLabPrefs().fit === "true";
+
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    if (!box || trueScale) {
+      setScale(1);
+      return;
+    }
+    const sync = () =>
+      setScale(Math.min(1, box.getBoundingClientRect().width / w));
+    sync();
+    const observer = new ResizeObserver(sync);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [w, trueScale]);
 
   /**
    * ★ ADOPTED, NOT APPENDED. The first version appended a <style> to the
@@ -750,7 +774,11 @@ function PageFrame({
           purpose: a size read mid-transition is not a size.
         </span>
       </div>
-      <div className="overflow-x-auto">
+      <div
+        ref={boxRef}
+        data-frame-fit={trueScale ? "true" : "zoom"}
+        className={trueScale ? "overflow-x-auto" : "overflow-hidden"}
+      >
         <iframe
           ref={ref}
           src={href}
@@ -758,7 +786,7 @@ function PageFrame({
           loading="lazy"
           onLoad={paint}
           className="mx-auto block shrink-0 rounded-lg border border-border bg-background"
-          style={{ width: w, height: h * screens, border: 0 }}
+          style={{ width: w, height: h * screens, border: 0, zoom: scale }}
         />
       </div>
     </div>
