@@ -65,14 +65,18 @@ import {
  *    sheet. This costs no new asset: a 512 square centre-crops to both.
  *
  * 3. THE PHOTOGRAPHS WERE TOO SMALL AND TOO FEW. Round three ran five frames a
- *    side at 70 to 290 px, and Will's own note on the board asked whether the
- *    corridor was dense enough. Round four runs EIGHT a side at 241 to 373 px on
- *    the desktop canvas (median 280), which puts 1.33 canvas widths of
- *    photograph on screen against round three's 0.8, and six a side at 117 to
- *    188 on the phone, where the corridor overlaps to two canvas widths because
- *    375 is too narrow for a stream that does not. The cadence is per canvas (Geo.launch) because density is
- *    a composition decision and 375 is its own composition: the same cadence
- *    there would be 2.2 canvases of frame in a canvas a quarter as wide.
+ *    side, and Will's own note on the board asked whether the corridor was
+ *    dense enough. Round four runs EIGHT a side. ONE definition of density is
+ *    used everywhere in this file so that two rounds can be compared at all:
+ *    the on-canvas width of every visible frame, summed, over the canvas width,
+ *    sampled every 80 ms for ten seconds off the running board. Round four at
+ *    1440: 14 to 18 frames on screen (median 16) in DOM boxes of 239 to 370 px,
+ *    which is 1.08 to 1.28 canvas widths of photograph (median 1.12). Round
+ *    three's model under exactly that definition: 10 frames and 0.9 canvas
+ *    widths. The phone runs six a side in boxes of 117 to 187 px and overlaps
+ *    to about 1.5 canvas widths, because 375 is too narrow for a stream that
+ *    does not. The cadence is per canvas (Geo.launch) because density is a
+ *    composition decision and 375 is its own composition.
  *
  * 4. THE DOM BOX WAS GUESSED. One hand-tuned gain kept the cards from being
  *    rasterized above 1:1 on screen. Each card now measures its own largest
@@ -247,10 +251,12 @@ type Geo = {
   /**
    * The cadence: one frame a side every `launch` ms, and it is a per-canvas
    * number because density is a composition decision and the two canvases are
-   * different compositions. 620 at 1440 puts 8 frames a side on screen and the
-   * sum of their widths at 1.47 canvases, which is a corridor you read as an
-   * album pouring out; the same cadence at 375 would be 2.2 canvases of frame
-   * in a canvas a quarter as wide, so the phone runs at 780.
+   * different compositions. 620 at 1440 puts 8 frames a side on screen and
+   * about 1.1 canvas widths of photograph with them (measured; the definition
+   * and the comparison with round three are in note 3 of the file header),
+   * which is a corridor you read as an album pouring out. The same cadence at
+   * 375 would crowd a canvas a quarter as wide, so the phone runs at 780 and
+   * still overlaps to about 1.5 canvas widths.
    *
    * THE COST OF THE STAND-INS, stated so it is not mistaken for a design fault:
    * the two arms are offset by half the frame set, so with 24 frames the two
@@ -797,8 +803,8 @@ export const source: Concept = {
     "THE CENTRED LOCKUP, and it is the only one left. Precedent rather than law: every other marketing hero goes left, and this one is centred because the code owns the axis and the corridor is symmetrical about it. Overrule it and the composition changes shape, because the type would then have to live beside the corridor rather than above and below it. Everything else here is inside the bible: media at 100 percent with no scrim and no darkening layer anywhere, the h1 in the markup at full opacity, every animation inside the reduced-motion block with the deployed corridor as the rest state, and cinema and unlit with no lamp. Round three's second departure, a reader with scripting off and motion allowed getting an empty band, is fixed rather than flagged: a noscript companion rule restores the deployed corridor for exactly that reader.",
   ],
   assets: [
-    "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals. They replace the 12 landscape stand-ins the corridor cycles (FRAMES in shared.tsx); the left arm takes the first 12 and the right arm the last 12, so the two arms never carry the same frame. Twelve stand-ins cap the corridor at six frames a side; 24 doubles the cadence with no other change.",
-    "Framed tight enough to read at 120 px AND to survive a centre crop to 4:5 and to 4:3: a face, two hands, a glass, a sparkler, a first dance. Half the corridor is portrait now, because that is what guests shoot. Frames are read between 117 and 373 px here, so a wide room shot is grey mush and a subject near an edge loses its head to the crop.",
+    "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals. They replace the 12 landscape stand-ins the corridor cycles (FRAMES in shared.tsx); the left arm takes the first 12 and the right arm the last 12. They do not change the corridor: the cadence, the pool and the sizes are constants of the composition, so the 24 buy exactly one thing, that no photograph is ever on screen twice. With the 12 stand-ins the two arms' windows overlap by four, so four pictures are doubled at every moment, on opposite arms, at very different sizes and three of the four in different crops.",
+    "Framed tight enough to read at 120 px AND to survive a centre crop to 4:5 and to 4:3: a face, two hands, a glass, a sparkler, a first dance. Half the corridor is portrait now, because that is what guests shoot. Frames are read between 117 and 370 px here, so a wide room shot is grey mush and a subject near an edge loses its head to the crop.",
     "Nothing else. The QR is the real demo event's, live from NEXT_PUBLIC_DEMO_QR_TOKEN, and there is no plate art, no lamp and no video in this concept.",
   ],
   render: (p) => <Source {...p} />,
