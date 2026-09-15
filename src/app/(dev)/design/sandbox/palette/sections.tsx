@@ -18,11 +18,11 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 import type { Mode } from "@/components/dev/board";
 
-import { lOf, type Ramp } from "./ramps";
+import { lOf, type TokenMap } from "./registers";
 import { StateRow } from "./specimens";
 
 /**
- * THE MARKETING AND LEAF SECTIONS the ramps are judged on (the app, the guest
+ * THE MARKETING AND LEAF SECTIONS the register sets are judged on (the app, the guest
  * album, the grounds, the depth cues and the text steps live in specimens.tsx).
  * A palette board that shows swatches proves nothing: a ramp is right or wrong
  * at the moment a card sits on a ground with a photograph beside it, so every
@@ -184,22 +184,23 @@ export function MarketingChapter({ mode }: { mode: Mode }) {
 export function SurfaceStack({
   mode,
   paired = false,
-  ramp,
+  block,
   tone = "dark",
 }: {
   mode: Mode;
   paired?: boolean;
-  ramp?: Ramp;
-  /** Which block the printed steps are read from. The specimen itself is the
-   *  same on either ground: the paper ramp crushes five surfaces into 0.037
-   *  exactly as the dark one crushes five into 0.11. */
+  /** The resolved token block this half is painting, so the printed steps are
+   *  read off the same strings the wrapper renders. */
+  block?: TokenMap;
+  /** Which ground the copy addresses. The specimen itself is the same on
+   *  either: the paper set crushes five surfaces into 0.037 exactly as the
+   *  dark one crushes five into 0.11. */
   tone?: "light" | "dark";
 }) {
   const desktop = mode === "desktop";
   const wide = desktop && !paired;
   const step = (token: string) => {
-    if (!ramp) return null;
-    const block = tone === "light" ? ramp.light : ramp.dark;
+    if (!block) return null;
     const l = lOf(block[token] ?? "", block);
     return l === null ? null : l.toFixed(3);
   };
@@ -210,15 +211,20 @@ export function SurfaceStack({
         desktop ? (wide ? "px-20 py-12" : "px-10 py-10") : "px-5 py-8",
       )}
     >
+      {/* The register the half is standing on is named rather than implied:
+          "ground" meant two different things on the two halves of row 02. */}
       <p className="mt-5 mb-4 text-xs text-muted-foreground">
         {paired ? (
           <span className="tabular-nums">
-            Ground {step("--background")}, panel {step("--muted")}, card{" "}
+            {tone === "dark" ? "Room" : "Paper"} {step("--background")},{" "}
+            {tone === "dark" ? "panel" : "mat"} {step("--muted")}, card{" "}
             {step("--card")}, menu {step("--popover")}, hover{" "}
             {step("--secondary")}.
           </span>
+        ) : tone === "dark" ? (
+          "Room, card, panel, input, menu. Five surfaces, one frame."
         ) : (
-          "Ground, card, panel, input, menu. Five surfaces, one frame."
+          "Paper, card, mat, input, menu. Five surfaces, one frame."
         )}
       </p>
       <div className={cn("relative", wide && "max-w-xl", paired && "mr-16")}>
@@ -233,7 +239,7 @@ export function SurfaceStack({
             <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
               <p className="font-medium">Guests need an email</p>
               <p className="text-muted-foreground">
-                The panel, an alpha of a token that also does hover.
+                The set-apart ground, an alpha of a token that also does hover.
               </p>
             </div>
             <div className="flex h-9 items-center rounded-lg border border-input px-3 text-sm text-muted-foreground">
@@ -450,7 +456,10 @@ export function InkLeaf({
           </CardHeader>
         </Card>
         <div className="w-52 rounded-float bg-popover p-1 text-popover-foreground shadow-float ring-1 ring-foreground/10">
-          {["A menu on ink", complete ? "On the leaf's own set" : "Also near white"].map((item, i) => (
+          {[
+            "A menu on ink",
+            complete ? "On the leaf's own set" : "Also near white",
+          ].map((item, i) => (
             <div
               key={item}
               className={cn(

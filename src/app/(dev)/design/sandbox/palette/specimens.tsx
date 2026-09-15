@@ -41,8 +41,8 @@ import {
   RING_USES,
   STATE_HUES,
   TEXT_STEPS,
-  type Ramp,
-} from "./ramps";
+  type Pair,
+} from "./registers";
 
 /**
  * ROUND TWO'S SPECIMENS: the surfaces round one did not put on the board, and
@@ -121,13 +121,13 @@ export function StateRow({ compact = false }: { compact?: boolean }) {
  * black, not a token at all), the media well, and the ink slab. On a PAPER
  * stage, because the slab's whole job is to sit on a light page.
  */
-export function GroundsRow({ mode, ramp }: { mode: Mode; ramp: Ramp }) {
+export function GroundsRow({ mode, pair }: { mode: Mode; pair: Pair }) {
   const desktop = mode === "desktop";
-  const gallery = ramp.gallery["--gallery"];
+  const gallery = pair.dark.well["--gallery"];
   const slab =
-    ramp.ink["--background"] === "var(--gallery)"
+    pair.dark.slab["--background"] === "var(--gallery)"
       ? gallery
-      : ramp.ink["--background"];
+      : pair.dark.slab["--background"];
   return (
     <div
       className={cn(
@@ -232,7 +232,9 @@ export function GroundsRow({ mode, ramp }: { mode: Mode; ramp: Ramp }) {
         <div className="flex flex-col gap-2">
           <div
             className="surface-ink flex aspect-[4/3] flex-col justify-between gap-3 overflow-hidden rounded-lg bg-background p-4 text-foreground"
-            style={{ ...ramp.gallery, ...ramp.ink } as React.CSSProperties}
+            style={
+              { ...pair.dark.well, ...pair.dark.slab } as React.CSSProperties
+            }
           >
             <div className="flex items-start justify-between gap-3">
               <Logo />
@@ -898,7 +900,7 @@ export function PhotoCards({ mode }: { mode: Mode }) {
  *
  * `faint` is ask 6, and it is the reason the third step paints from a `var()`
  * with a fallback rather than from a value. A ruling of "out" deletes --faint
- * from the ramp itself (`withoutFaint` in ramps.ts), so the fallback takes
+ * from the set itself (`resolvePair` in registers.ts), so the fallback takes
  * over and the third line becomes what ships today: 70 percent of the second
  * step, composited against whatever ground it happens to sit on. That is why
  * this specimen renders all three grounds side by side. One token is one grey
