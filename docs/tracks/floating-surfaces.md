@@ -918,8 +918,8 @@ none above 0.01ms.
 
 ## Handoff (round 4)
 
-- Head: the tip of `lp/floating-surfaces`, pushed. The last code commit is `8f17d09`; everything after
-  it is this file and `docs/specs/floating-surfaces.md`. Board: `/design/c/floating-surfaces?key=`.
+- Head `8265667`, pushed. The last code commit is `8265667` itself (it deletes the spacer the shell fix
+  made dead); the code before it lands at `8f17d09`, and `e38462b` is the sync merge. Board: `/design/c/floating-surfaces?key=`.
   **The marker that says "this is round four" is the block the board OPENS with, "Three floating
   layers, and the one this board would build"**; round three's opener was "Where this board lands", and
   its absence is the fastest way to tell you are looking at the old one. A second marker in a different
