@@ -127,6 +127,11 @@ const TODAY: Ramp = {
     "--ring": "var(--gallery-foreground)",
     "--primary": "var(--gallery-foreground)",
     "--primary-foreground": "var(--gallery)",
+    // The shipped zero, carried by every candidate's ink map: without it an ink
+    // leaf inside a paper page wears the PAPER float on a dark slab. The light
+    // board's round-three handoff flags this line as one its own ruling moves,
+    // so the two pastes land in one pass rather than overwriting each other
+    // (board.tsx, "From the other boards").
     "--shadow-float": "0 0 0 0 oklch(0 0 0 / 0)",
   },
   gallery: {
@@ -328,7 +333,6 @@ const B: Ramp = {
   cinemaBackground: "oklch(0.125 0 0)",
 };
 
-
 export const RAMPS: Ramp[] = [TODAY, A, B];
 export const RAMP_BY_ID: Record<RampId, Ramp> = {
   today: TODAY,
@@ -431,7 +435,9 @@ function warmValue(value: string, dark: boolean): string {
 }
 
 const warmMap = (m: TokenMap, dark: boolean): TokenMap =>
-  Object.fromEntries(Object.entries(m).map(([k, v]) => [k, warmValue(v, dark)]));
+  Object.fromEntries(
+    Object.entries(m).map(([k, v]) => [k, warmValue(v, dark)]),
+  );
 
 /** One ramp at a temperature. The light block reads the paper table; every
  *  other block (the dark room, the ink leaf, the canvas, cinema) reads the
@@ -963,9 +969,23 @@ export function applyLabel(ramp: Ramp, opts: ApplyOptions): string {
   return `palette: ${parts.join(", ")}`;
 }
 
-/** The pages a candidate is walked on, listed on the board beside the buttons
- *  and in BoardMeta, every one of them with the lab key on the end. */
-export const WALK = [
+/**
+ * The pages a candidate is walked on, listed on the board beside the buttons
+ * and in BoardMeta, every one of them with the lab key on the end.
+ *
+ * The guest page joined the walk in round three, and not from this lane:
+ * launch-prep mounted the key-gated AppDesignIsland in the (guest) layout at
+ * fb395fe, which is the one-line shell change rounds two and three both asked
+ * for. Its path carries the demo event's token, which lives in the env rather
+ * than in this file, so the row is marked `demo` and the board fills it in (and
+ * drops it when no demo event is configured).
+ */
+export const WALK: {
+  href: string;
+  name: string;
+  note: string;
+  demo?: boolean;
+}[] = [
   { href: "/", name: "the home arc", note: "cinema into paper into ink" },
   {
     href: "/pricing",
@@ -979,5 +999,11 @@ export const WALK = [
     name: "the dashboard",
     note: "signed in, both modes, then one click to an event",
   },
+  {
+    href: "/e/",
+    name: "the demo guest page",
+    note: "the album on the canvas, the surface every guest sees",
+    demo: true,
+  },
   { href: "/design/rules", name: "the bible", note: "rule 1, as it stands" },
-] as const;
+];

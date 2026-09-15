@@ -16,6 +16,8 @@ import {
   type Mode,
 } from "@/components/dev/board";
 
+import { env } from "@/lib/env";
+
 import { AccentWall } from "./call-sites";
 import {
   ACCENTS,
@@ -91,13 +93,22 @@ import {
  *  4 The numbers are re-measured, and two were wrong: the panel ships at 35
  *    sites, not 45, and the ring nobody wrote down is at 37, not 77. Every
  *    count now lives in ramps.ts beside the command that produced it.
- *  5 The walk is clickable. Six pages with the lab key on the end were printed
- *    as prose, so ruling meant retyping URLs; they are links now and they carry
- *    this page's own key.
+ *  5 The walk is clickable, and it is seven pages rather than six: the pages
+ *    with the lab key on the end were printed as prose, so ruling meant
+ *    retyping URLs; they are links now, they carry this page's own key, and the
+ *    guest page joined them when launch-prep mounted the design island in the
+ *    (guest) layout (fb395fe), which is the one shell line rounds two and three
+ *    both asked for. Nothing counts the pages in prose any more.
  *  6 The stale captions are gone (the ink leaf said "today this is near white"
  *    under a candidate that had just fixed it), the rooms strip prints its
  *    lightness instead of four black bars, and the stages that were clipping or
  *    running half empty were resized.
+ *  7 The fix pass after the read-only review: row 02 cannot pair a set with
+ *    itself any more (pressing Today, which is one of the three answers, made
+ *    the candidate the left half and the frame argued with itself), the
+ *    departures are the six Will must RULE on rather than ten with four notes
+ *    in them, and the accent wall's toast stops clipping 8px past the phone
+ *    stage.
  *
  * WHAT ROUND TWO CHANGED, and why. Round one proved with a ruler that the ramp
  * is wrong; Will's read was that a single round was not enough context for any
@@ -180,6 +191,20 @@ const ASKS = [
   "The dark card: opaque, or the veil.",
 ];
 
+/**
+ * SIX, and every one of them is a ruling.
+ *
+ * Round three curated this list the way it curated the asks. A departure is a
+ * thing Will has to RULE on, not a thing the next agent has to remember, and
+ * four of round two's ten were the second kind: the one line theme.css needs
+ * before a text-faint utility exists, the light board's shadow values borrowed
+ * for row 07, the fact that both candidates complete .surface-ink, and the
+ * guest layout's missing design island. Each of those now sits where it is
+ * actually read (row 13 beside the paste, row 07's own caption, row 06's, and
+ * launch-prep, which mounted the island at fb395fe so the guest page joined the
+ * walk), and the manifest carries the two that are the Orchestrator's to do.
+ * What is left is six decisions, each of which changes what ships.
+ */
 const DEPARTURES = [
   "Round three cut candidate C, and no value it held is lost. C was A's ladder at a temperature, and its own move list said so: the spacing was A's exactly, so a ruling between A and C was a ruling on temperature alone. A column that moves no step is a switch wearing a letter, so it is a switch now, and the one question it could never answer (does B want warming too) is one click. warm(A) still produces C's five published blocks token for token, pinned by temperature.test.ts, with one correction recorded there: C left the dark ring cold while writing the ink ring warm, at the same job on the same ground.",
   "Round one's departure list said only candidate B kept the system's one translucent surface. That was wrong: B's card is a color-mix off the room, which is fully opaque, so every candidate retires the veil and none of them said so. Row 08 renders both answers over a photograph and the card ask makes it a ruling rather than a side effect.",
@@ -187,10 +212,6 @@ const DEPARTURES = [
   "Warm re-opens a decision globals.css records as closed: zero-chroma purity IS the brand point, and saturating the neutrals was consciously declined. The switch is that decision re-argued at 0.002 to 0.008 chroma, on the board rather than in a comment, and now on whichever ramp is selected rather than on one of them.",
   "The accent has to be written into .surface-ink or it never reaches the footer. Today the leaf declares --brand: var(--gallery-foreground), and a class rule outranks a value inherited from the page around it, so a hue ruled for the whole site would reach every surface in the product except the mark that sits at the bottom of every page. The accent paste therefore carries a third block, and every candidate's ink map keeps a --brand line of its own so a ruling of ink alone cannot leave the leaf inheriting the PAPER ink onto a dark slab. Row 06 shows the mark on the leaf.",
   "B deletes the cinema override in marketing.css, the skin block's only surface value. The cinema-to-footer seam then belongs entirely to light, which is the light board's lane.",
-  "Both candidates complete .surface-ink (no --card, --popover, --secondary, --accent or --input ships today), so an ink leaf can finally host a card and a menu.",
-  "Each candidate adds one custom property, --faint, which needs one line in theme.css's @theme inline block (--color-faint: var(--faint);) before a text-faint utility exists. The board reaches it with an arbitrary value.",
-  "Row 07 borrows the light exploration's proposed shadow family and its named ring (docs/specs/light.md) so the ramp and the depth cue are judged in one look. Those values are NOT in this board's paste: depth is that track's lane and its ruling lands there.",
-  "The demo guest page cannot wear a candidate today: the (guest) layout mounts no design island, so setCandidateCss never reaches /e/. One line adds it, the same AppDesignIsland the host app mounts. The shell is not this lane, so it is left as a note for the Orchestrator and the guest album is rendered on the board instead (row 05).",
 ];
 
 const ASSETS = [
@@ -320,22 +341,32 @@ function PairFrame({
   mode: Mode;
   height: number;
   label: string;
-  render: (ramp: Ramp) => React.ReactNode;
+  render: (ramp: Ramp, paired: boolean) => React.ReactNode;
 }) {
   const desktop = mode === "desktop";
+  // ★ A PAIR OF ONE SET IS NOT A COMPARISON. `today` is one of the three
+  // answers the ramp toggle offers (ask 1), and pressing it makes the candidate
+  // the same object as the left half: the frame then printed "Today" beside
+  // "Today", the same five lightnesses under each, and two children on one key.
+  // It renders ONCE instead, in the unpaired composition (a wider card and the
+  // plain caption), with a line under it saying which press brings the second
+  // half back. The row's own argument survives: today alone is exactly what a
+  // ruling of "today" lands.
+  const halves = left.id === right.id ? [left] : [left, right];
+  const paired = halves.length > 1;
   return (
     <div className="flex flex-col gap-1.5">
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <Stage mode={mode} ground={ground} height={height}>
         <div className={`flex h-full w-full ${desktop ? "" : "flex-col"}`}>
-          {[left, right].map((r, i) => (
+          {halves.map((r, i) => (
             <div
               key={r.id}
               data-pal-swap
               className="relative min-w-0 flex-1 overflow-hidden bg-background text-foreground"
               style={rampStyle(r, ground)}
             >
-              {render(r)}
+              {render(r, paired)}
               <span className="absolute top-3 left-4 text-[11px] text-muted-foreground">
                 {i === 0 ? "Today" : r.name}
               </span>
@@ -343,6 +374,11 @@ function PairFrame({
           ))}
         </div>
       </Stage>
+      {paired ? null : (
+        <p className="text-[11px] text-muted-foreground">
+          {`The ramp is set to ${left.label}, so the candidate and this half are the same set and there is nothing to set beside it. Press A or B in the bar above for the pair.`}
+        </p>
+      )}
     </div>
   );
 }
@@ -479,6 +515,11 @@ function Spectrum({ ramp }: { ramp: Ramp }) {
 
 /* ── The board ──────────────────────────────────────────────────────────── */
 
+/** The board writes its counts in words, so a derived number still reads like
+ *  the sentence around it ("the seven links", beside "Seven asks"). */
+const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven"];
+const inWords = (n: number) => WORDS[n] ?? String(n);
+
 const subscribeNever = () => () => {};
 const readLabKey = () => {
   const key = new URLSearchParams(window.location.search).get("key");
@@ -502,9 +543,19 @@ export function PaletteBoard() {
   // Today, resolved the same way, so a row that pairs the two is comparing two
   // ramps and not a ramp against an unanswered card question.
   const todayRamp = resolveRamp(RAMP_BY_ID.today, cardMode, temperature);
+  // Row 02 is a PAIR only while there are two sets to pair. A ruling of "today"
+  // is one of the three answers, and it makes the candidate the left half, so
+  // the frame renders once and takes a single half's height and its own label.
+  const pairedRow = rampId !== "today";
   const accent = ACCENT_BY_ID[accentId];
   const desktop = mode === "desktop";
   const h = (d: number, p: number) => (desktop ? d : p);
+  // A phone pair stacks its two halves, so the unpaired frame is half as tall;
+  // on desktop the halves sit side by side and the height does not move.
+  const pairHeight = pairedRow ? h(440, 1060) : h(440, 545);
+  const pairLabel = pairedRow
+    ? `today beside ${ramp.label}`
+    : "today, with no candidate beside it";
 
   // The lab key, read off THIS page rather than written into the file, so the
   // walk's links carry it without the board holding a secret.
@@ -516,6 +567,15 @@ export function PaletteBoard() {
   // navigation, and the snapshot is a string, so React's identity check on it
   // is a value comparison and settles on the first read.
   const labKey = useSyncExternalStore(subscribeNever, readLabKey, () => "");
+  // The demo event's token, so the walk's guest row is a real link. It is a
+  // NEXT_PUBLIC value baked at build time, so it needs no hydration dance; when
+  // no demo event is configured the row drops out rather than linking to /e/.
+  const demoToken = env.NEXT_PUBLIC_DEMO_QR_TOKEN;
+  // The walk's pages, counted from the list rather than written into the prose
+  // in three places: round three's own finding was that a number quoted in more
+  // than one file goes stale in one of them, and this one just did (the guest
+  // page made six seven).
+  const walk = WALK.filter((w) => !w.demo || demoToken);
 
   const applied = useTunerCandidate();
   const opts = {
@@ -535,9 +595,9 @@ export function PaletteBoard() {
         <span className="text-foreground">How to rule from here.</span> Set the
         ramp and the switches in the bar, read row 01 for the ladder and row 02
         for the same frame under both, then put it on the real pages and walk
-        the six links at row 13. Seven asks at the foot, each one word. The
-        question, the departures and the asks are in the meta panel at the
-        bottom; this page is the evidence for them.
+        the {inWords(walk.length)} links at row 13. Seven asks at the foot, each
+        one word. The question, the departures and the asks are in the meta
+        panel at the bottom; this page is the evidence for them.
       </p>
 
       {/* The control bar follows the walk: every stage below repaints from it,
@@ -641,7 +701,7 @@ export function PaletteBoard() {
             Clear
           </button>
           <span className="text-[11px] text-muted-foreground">
-            then walk the six pages at row 13.
+            {`then walk the ${inWords(walk.length)} pages at row 13.`}
           </span>
         </div>
 
@@ -655,7 +715,7 @@ export function PaletteBoard() {
               candidate while each stage stays on the ramp toggle above.
             </>
           ) : (
-            "Nothing applied yet. Everything below is a stage; the six real pages are one click away at row 13."
+            `Nothing applied yet. Everything below is a stage; the ${inWords(walk.length)} real pages are one click away at row 13.`
           )}
         </p>
       </div>
@@ -797,7 +857,7 @@ export function PaletteBoard() {
       <Row
         n="02"
         name="A menu over a card, today beside the candidate"
-        reading="The frame both ramps are judged on, with today on the left and the candidate on the right, because a step of 0.02 is exactly the thing an eye cannot hold across a toggle press. Dark first: ground 0.14, card 0.21 at 62 percent, panel 0.245, menu 0.23, hover 0.25, which is five surfaces inside 0.11 with two of them the wrong way round. Then the same frame on paper, where the five sit inside 0.037 and a card is its hairline and nothing else. The numbers under each half are that half's own."
+        reading="The frame both ramps are judged on, with today on the left and the candidate on the right, because a step of 0.02 is exactly the thing an eye cannot hold across a toggle press. Dark first: ground 0.14, card 0.21 at 62 percent, panel 0.245, menu 0.23, hover 0.25, which is five surfaces inside 0.11 with two of them the wrong way round. Then the same frame on paper, where the five sit inside 0.037 and a card is its hairline and nothing else. The numbers under each half are that half's own, and with the ramp set to today the frame renders once, because a ruling of today is this half with nothing beside it."
       >
         {/* ★ THE PAIR. Round two learned this for the accent ("four hues cannot
             be ruled on from memory") and left every surface row on a toggle. A
@@ -812,9 +872,11 @@ export function PaletteBoard() {
           right={ramp}
           ground="app-dark"
           mode={mode}
-          height={h(440, 1060)}
-          label={`the stack, dark · today beside ${ramp.label}`}
-          render={(r) => <SurfaceStack mode={mode} paired ramp={r} />}
+          height={pairHeight}
+          label={`the stack, dark · ${pairLabel}`}
+          render={(r, paired) => (
+            <SurfaceStack mode={mode} paired={paired} ramp={r} />
+          )}
         />
         {/* The same proof on paper, because the light ramp fails the same way
             and the numbers are smaller: five surfaces inside 0.037, so a card
@@ -824,10 +886,10 @@ export function PaletteBoard() {
           right={ramp}
           ground="app-light"
           mode={mode}
-          height={h(440, 1060)}
-          label={`the stack, paper · today beside ${ramp.label}`}
-          render={(r) => (
-            <SurfaceStack mode={mode} paired ramp={r} tone="light" />
+          height={pairHeight}
+          label={`the stack, paper · ${pairLabel}`}
+          render={(r, paired) => (
+            <SurfaceStack mode={mode} paired={paired} ramp={r} tone="light" />
           )}
         />
       </Row>
@@ -1159,7 +1221,7 @@ export function PaletteBoard() {
       <Row
         n="13"
         name="The ruling, as a paste"
-        reading="The selected candidate as the block that lands in globals.css and marketing.css, with the card question and the accent folded in exactly as the board is showing them. The Record in docs/tracks/palette.md carries all three, so a ruling is a few words and the Orchestrator pastes rather than rewrites."
+        reading="The selected candidate as the block that lands in globals.css and marketing.css, with the card question, the temperature and the accent folded in exactly as the board is showing them. The manifest carries the same blocks in writing (A and B neutral, and the warm form of each), so a ruling is a few words and the Orchestrator pastes rather than rewrites."
       >
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -1180,8 +1242,8 @@ export function PaletteBoard() {
             {applied ? applied.label : "nothing applied"}
           </span>
         </div>
-        {/* ★ THE WALK, CLICKABLE (round three). These six were printed as
-            prose, so walking a candidate meant retyping six paths and
+        {/* ★ THE WALK, CLICKABLE (round three). These were printed as
+            prose, so walking a candidate meant retyping every path and
             remembering to hang the lab key off each one. They are links now,
             and the key comes from THIS page's own query string rather than
             being written into the file, so nothing here is a secret and a
@@ -1189,35 +1251,87 @@ export function PaletteBoard() {
             in its own tab: the candidate lives in the browser, not in the page,
             so a new tab wears it and this board stays where it was. */}
         <div className="grid gap-x-6 gap-y-3 sm:grid-cols-3">
-          {WALK.map((w) => (
-            <a
-              key={w.href}
-              href={`${w.href}${labKey}`}
-              target="_blank"
-              rel="noreferrer"
-              className="group flex flex-col gap-0.5 text-[12px]"
-            >
-              <span className="font-medium underline decoration-border underline-offset-4 transition-colors group-hover:decoration-foreground">
-                {w.name}
-              </span>
-              <span className="text-[11px] text-muted-foreground">
-                {w.href} · {w.note}
-              </span>
-            </a>
-          ))}
+          {walk.map((w) => {
+            const href = w.demo ? `/e/${demoToken}` : w.href;
+            return (
+              <a
+                key={w.href}
+                href={`${href}${labKey}`}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex flex-col gap-0.5 text-[12px]"
+              >
+                <span className="font-medium underline decoration-border underline-offset-4 transition-colors group-hover:decoration-foreground">
+                  {w.name}
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {href} · {w.note}
+                </span>
+              </a>
+            );
+          })}
         </div>
         <p className="max-w-3xl text-[11px] text-muted-foreground">
           The block persists in this browser until Clear, and the tuner panel on
           any of those pages clears it too. The event page needs the signed-in
           host, so its link goes to the dashboard and the event is one click on.
-          The demo guest page is missing on purpose: the guest layout mounts no
-          design island, so a candidate cannot reach it yet (see the departures,
-          and row 05 for the album on the board).
+          The guest page is on the walk since launch-prep mounted the design
+          island in the guest layout, which is the one shell line rounds two and
+          three both asked for; row 05 keeps the album on the board beside it.
+        </p>
+        {/* The paste's one prerequisite, printed where the paste is rather than
+            carried as a departure: --faint is a new custom property and Tailwind
+            only grows a `text-faint` utility once theme.css maps it. The board
+            itself reaches the token with an arbitrary value, so nothing here
+            depends on that line landing first. */}
+        <p className="max-w-3xl text-[11px] text-muted-foreground">
+          One line goes with it, for the Orchestrator rather than for the
+          ruling: theme.css needs{" "}
+          <span className="text-foreground">--color-faint: var(--faint);</span>{" "}
+          in its @theme inline block before a text-faint utility exists.
         </p>
         <pre className="max-h-96 overflow-auto rounded-lg border border-border bg-muted/40 p-4 font-sans text-[11px] leading-relaxed whitespace-pre tabular-nums">
           {[tokenBlock(ramp), accentBlock(accent)].filter(Boolean).join("\n\n")}
         </pre>
       </Row>
+
+      {/* WHAT THIS BOARD TOOK FROM THE OTHER BOARDS (the wave rule: use what
+          sharpens your board and say so). It is a panel rather than a
+          departure, because none of it is a thing Will rules on: the
+          departures are the six decisions and nothing else. */}
+      <div className="rounded-lg border border-border px-4 py-3">
+        <p className="text-xs font-medium">From the other boards</p>
+        <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+          <li>
+            The light exploration&apos;s proposed shadow family and its named
+            ring (docs/specs/light.md) are rendered on every candidate&apos;s
+            grounds in row 07, so the ramp and the depth cue are judged
+            together. They are not in this board&apos;s paste: that ruling lands
+            in that lane.
+          </li>
+          <li>
+            That board&apos;s round-three handoff notes that every candidate
+            here re-declares the shipped{" "}
+            <span className="text-foreground">--shadow-float</span> zero on
+            .surface-ink, which is a token its own ruling moves. Both pastes
+            touch the same line, so they land in one pass rather than
+            overwriting each other. The zero stays here, because an ink leaf
+            that inherits the paper float is the bug the line was written for.
+          </li>
+          <li>
+            The guest page is on the walk because launch-prep mounted the design
+            island in the (guest) layout (fb395fe), which is the one shell line
+            this track asked for in rounds two and three. It wears a candidate
+            now, proven on the demo album.
+          </li>
+          <li>
+            The media-kit track&apos;s shot list carries both of this
+            board&apos;s asset asks, so they are lines on an existing delivery
+            rather than a second one. The type, voice, rounding, floating and
+            hero boards propose nothing that moves a colour token.
+          </li>
+        </ul>
+      </div>
 
       <BoardMeta
         question={QUESTION}
