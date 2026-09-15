@@ -53,7 +53,7 @@ export type SurfaceCandidate = {
   /** The ladder this candidate wants, stated rather than implied. */
   wants?: LadderId;
   /** What the candidate does at 375, where the tile is the whole argument
-   *  (part F). One line, because a phone column has room for one. */
+   *  (part G). One line, because a phone column has room for one. */
   phone: string;
 };
 
