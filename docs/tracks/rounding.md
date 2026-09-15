@@ -241,36 +241,40 @@ Four findings, all on the board rather than in a comment. The guest gallery's ga
 
 - Head: the tip of `lp/rounding`, pushed. The last code commit is `6dd4d7a`,
   which sits ON the sync merge `c79038b`; the manifest commits follow it. The
-  board is
-  `/design/c/rounding?key=`. **The round-three marker in the rendered HTML is
+  board is `/design/c/rounding?key=`. **The round-three marker in the rendered HTML is
   the heading "What the board answers"** (and the class `rnd-answer-grid`),
   both present in the server-rendered markup; round two's marker, "The six
   tokens, at true size", is still there as part A's heading, so the answer
   block is what tells the two rounds apart.
-- ★ **The preview alias could not be refreshed and this track cannot fix it:
-  the project is at Vercel's ceiling of 100 deployments a day.** The branch's
-  last deployment is `45834a3`, round two's FIRST pass, at 21:32. None of this
-  round's five pushes produced one, and a forced redeploy
-  (`POST /v13/deployments` with the gitSource recipe the floating-surfaces
-  handoff wrote down) is refused with `payment_required`,
-  `api-deployments-free-per-day`, retried six times over forty minutes.
-  Deployments are landing project-wide about one every fifteen minutes as old
-  ones age out of the rolling window, so the alias may catch up on its own;
-  until it does, `partyreel-git-lp-rounding-partyreel.vercel.app` serves a
-  board two rounds old and reading it would re-read what the review already
-  read. The ceiling is account-wide and its handling is the Orchestrator's
-  call.
-- **Verified instead on the production build in this worktree**, which is what
-  the alias would serve: `pnpm build` then `next start`, plus `pnpm dev` for
-  the iteration. Both walked at 1440 and 375.
+- ★ **The preview alias is CURRENT: it serves `0986a52`**, deployment
+  `partyreel-kdzrgi9c2-partyreel.vercel.app`, READY at 23:46. Checked in the
+  served HTML after it went READY: the round-three marker, the `rnd-answer-grid`
+  class, the guest caveat and part E's entry-sheet row are all there, and there
+  is no em-dash in it. The only commits after `0986a52` are this manifest,
+  which changes no served byte.
+- **It took forty minutes of forced redeploys, and the ceiling is the lesson,
+  again.** None of this round's six pushes produced a deployment on their own.
+  The branch gate was not refusing (the manifest says `preview: true` and every
+  commit message carries `[preview]`), and deployments were landing
+  project-wide about one every fifteen minutes. The project is at Vercel's
+  ceiling of 100 deployments a day, so `POST /v13/deployments` answers
+  `payment_required` / `api-deployments-free-per-day` until a slot ages out of
+  the rolling window and whoever asks next takes it. Twenty-two retries at
+  forty-five seconds got nothing; a tight loop at twelve seconds caught the
+  23:46 slot on the first pass. **So: a push is not a deploy, and a slow retry
+  is not a retry.** The recipe is the floating-surfaces handoff's
+  (`gitSource {type: github, repoId: 1252816746, ref, sha}`); what this round
+  adds is the interval. An empty commit spends a slot and fixes nothing.
 - Synced with `launch-prep` at `dd4aa0b` (merge `c79038b`); it had moved 24
   commits, all of them other tracks' sandbox files and manifests, none in this
   lane.
 - Gates on the synced tree, re-run after the last code commit: typecheck ok,
   lint ok (0 errors, 6 warnings, all pre-existing and outside the lane), test
   ok (1719 in 193 files), build ok (248 pages).
-- **Light QA, walked rather than asserted.** The board at **1440** and at
-  **375** on the production build, and at 1024 on the way. At both widths
+- **Light QA, walked rather than asserted, ON THE PREVIEW.** The board at
+  **1440** and at **375** on `partyreel-git-lp-rounding-partyreel.vercel.app`
+  at `0986a52`, and the same two widths on the local production build and on
+  `pnpm dev` before it, plus 1024 on the way. At both widths
   `documentElement.scrollWidth - clientWidth` is 0 AND no unclipped element
   has a right edge past the viewport (the second check is the one that
   matters: the first pass of the new width machinery pushed the board 277px
