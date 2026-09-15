@@ -686,10 +686,10 @@ export function CostMeter({
     const w = Math.round(box.width / zoom);
     const h = Math.round(box.height / zoom);
     const mpx = ((w * h * dpr * dpr) / 1e6).toFixed(1);
-    const layers = host.querySelectorAll("[data-glw] > div > div").length;
+    const layers = host.querySelectorAll("[data-glw] div").length;
     const filter = getComputedStyle(fields[0]).filter.replace(/"/g, "");
     setFacts(
-      `${fields.length} lamps, ${layers} painted layers. Each field is ${w} by ${h} css pixels at 1:1, ${mpx} megapixels at this screen's ${dpr}x, and each one carries ${filter}.`,
+      `${fields.length} lamps and ${layers} painted layers: a filtered field each, over a resting base and a travelling band. Each field is ${w} by ${h} css pixels at 1:1, ${mpx} megapixels at this screen's ${dpr}x, and each one carries ${filter}.`,
     );
   }, [targetRef, drive]);
 

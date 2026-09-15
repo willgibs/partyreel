@@ -38,31 +38,32 @@ import {
  * needs a PLACE: an edge, a boundary, a screen, a plate, a horizon. The footer
  * seam has one, the rim of a button does not, and the same verdicts fall out.
  *
- * ── WHAT ROUND TWO CHANGED HERE, AND WHY ──
+ * ── WHAT THE PART SHOWS, AND HOW IT GOT THERE ──
  *
  * Round one lit a chapter it had built itself: one heading, three centred
  * steps, a button, air at both boundaries. Every claim it made was true of
  * that specimen and unproven of the page. So the specimen is gone and the real
- * chapters are mounted in its place (chapters.tsx), each one beside itself
- * unlit, because the only honest question about a field this quiet is whether
- * you can see it at all when you have the unlit version to compare against.
+ * chapters are mounted in its place (chapters.tsx). Round two printed each one
+ * twice, unlit above and lit below; round three puts the two states in ONE
+ * frame with a wipe, because a field this quiet compared across 800px of
+ * scroll is compared from memory.
  *
- * Five candidates now, not three. The fourth is the ERROR: the same light at
- * the chapter's middle instead of its boundaries. The placement grammar was
- * asserted in round one and is demonstrated here, because "never the middle"
- * is the half of the grammar a wiring round is most likely to get wrong.
+ * Four lights, and only the first two are candidates:
  *
- *   A  THE SEAM        the footer's own lamp, unchanged in kind, at a
- *                      chapter's top edge. The tune: nothing new.
- *   B  THE AURORA      both boundaries, low and slow, the hue set narrowed to
- *                      the chapter's temperature, the copy in the clean middle.
- *   C  THE MIDDLE      the same register, centred. The error, on the board.
- *   D  THE ROOM        no boundary at all: one field behind everything.
+ *   THE AURORA    both boundaries, low and slow, the hue set narrowed to the
+ *                 chapter's temperature, the copy in the clean middle.
+ *   THE SEAM      the footer's own lamp, unchanged in kind, at a chapter's top
+ *                 edge. The tune: nothing new.
+ *   THE MIDDLE    the same register, centred. The placement ERROR, demonstrated
+ *                 rather than asserted, because "never the middle" is the half
+ *                 of the grammar a wiring round is most likely to get wrong.
+ *   THE ROOM      no boundary at all: one field behind everything.
  *
- * ★ D IS THE CANDIDATE THE ENGINE WARNS ABOUT, ON PURPOSE. globals.css: "a
+ * ★ THE ROOM IS THE THING THE ENGINE WARNS ABOUT, ON PURPOSE. globals.css: "a
  * seam is a band, not a fill ... generalising that away is what turns spill
- * into a wash sitting on the copy". D is exactly that generalisation, at a
- * register low enough that it might survive it.
+ * into a wash sitting on the copy". The room is exactly that generalisation,
+ * at a register low enough that it might survive it. It is on the board so the
+ * warning can be tested rather than quoted, not so it can be chosen.
  *
  * The colour is the engine's own hook and not a new mechanism: [data-glw]
  * declares --glw-c1..5 as var(--lamp-*), and "an ancestor can retune these" is
