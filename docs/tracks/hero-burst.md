@@ -286,15 +286,119 @@ word was 36 px, with no scrim and no darkening layer anywhere.
 
 ## Handoff (round 2)
 
-- Head <sha>, pushed; preview partyreel-git-lp-hero-burst-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- **Head**: the tip of `lp/hero-burst` (a manifest cannot name its own SHA). The work commits are
+  `fdc0aad` (round two of the field) and `3386667` (the birth size); the sync merge with
+  `origin/launch-prep` is `cbca83e`. Pushed; preview
+  `https://partyreel-git-lp-hero-burst-partyreel.vercel.app`, the board at `/design/c/home-hero?key=`
+  (concept 3 of 4). **The round-two marker in the served HTML is `hhb-lab`** (the headline toggle on
+  the stage, which round one did not have): if the preview does not carry it, it is not this head.
+- **Synced with launch-prep at `4b035c1`** (it had moved one commit, a design-system doc line about
+  the candidate block). Nothing under `sandbox/home-hero/` moved and none of my `reads` changed, so
+  the contract is identical to round one's.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the same 7 pre-existing warnings, on
+  `brand-voice/board.tsx`, `contact-form.tsx`, two album sections, `jobs.ts` and `use-flip.ts`), test
+  ok (1698 in 193 files), build ok (248 static pages; this change adds no route).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-burst.md`,
+  `src/app/(dev)/design/sandbox/home-hero/burst.css`,
+  `src/app/(dev)/design/sandbox/home-hero/burst.tsx`. **No exceptions.** `shared.tsx`, `board.tsx`,
+  `source.tsx`, `scan.tsx` and `river.tsx` were read and not touched.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- **Shell change proposed (the Orchestrator's call, not mine to make).** The home-hero board predates
+  the shell's `BoardMeta` and renders its own `ConceptMeta`, whose rows are Eyebrow, Proposed copy,
+  Departures and **Asks**, where "Asks" is the `assets` array. So a concept has nowhere to put the
+  CHOICES Will rules on, and mine are carried in `departures` with a "Rule on," prefix per line. One
+  field on `Concept` (`asks: string[]`) and one row in `ConceptMeta` would fix it for all four
+  concepts. I did not touch `shared.tsx` or `board.tsx` to do it.
+- **Assets requested from Will** (the concept lists these on the board too):
+  1. **24 event photographs as 512 x 512 squares** · one grade, 6 to 35 KB webp each, across
+     weddings, birthdays, corporate and festivals, framed tight enough to read at 90 px (a face, two
+     hands, a glass, a sparkler, a first dance), never a wide room shot · replaces the 12 landscape
+     stand-ins the field cycles (`FRAMES` in `shared.tsx`). **This is `docs/ASSETS.md` row 2, already
+     requested for the source**; the same 24 serve the burst unchanged.
+  2. **10 more as 4:5 portraits** · 512 x 640, same grade, and they may be recrops of the 24 rather
+     than new photography · replaces the square box on the third of the field that already lays out
+     4:5, and takes the pool to 34 so no frame is on screen twice on the desktop canvas. Guests shoot
+     vertical, so a field of nothing but squares reads as a deck of cards rather than as an album.
+  3. Nothing else. The QR is the real demo event's, live from `NEXT_PUBLIC_DEMO_QR_TOKEN`; no plate
+     art, no lamp and no video in this concept.
+- **The asks, verbatim from the board** (the four "Rule on" lines in `departures`, which is where
+  this board can carry them; the Orchestrator quotes them under Waiting on Will):
+  1. "Rule on, the headline step: the toggle on the stage, bottom right. lg (text-7xl at 1440,
+     text-4xl at 375) leaves the burst the canvas and keeps the corridor a frame leaves the code
+     through; xl (text-8xl, text-5xl) is the louder promise and costs the field about 80 px of quiet
+     zone in every direction. Both are cinema steps of the one site ladder (bible 5), and the field
+     re-solves for whichever is showing."
+  2. "Rule on, the copy: the proposed h1 is the voice guide's arrival shape and says what the burst
+     shows, one code and everything arriving (docs/specs/brand-voice.md). The ruled thesis stays the
+     default under the board's copy toggle (bible 21)."
+  3. "Rule on, the centred lockup: precedent, not law. The code owns the axis here, so the type is
+     centred rather than left-aligned. The first thing to overrule if the home hero should stay left."
+  4. (a departure, not a choice) "Departure, bible 10 (the hero is unlit by the standing ruling): the
+     frames carry a drop shadow. It is the light spec's LIFT family (docs/specs/light.md), the
+     geometry and the cinema alphas verbatim, at four times the offsets, because LIFT separates two
+     cards a pixel apart and these are separated by a depth axis measured in hundreds of units."
+  5. (a departure, not a choice) "Departure, bible 13, decorative layer only: the frames' pre-burst
+     state sits inside the reduced-motion block, so with JavaScript off and motion allowed the field
+     rests around the code instead of leaving it."
+- **Verified, measured rather than argued** (locally on the synced tree at 1440 and 375, then on the
+  preview; every number below is off the live DOM, not off the source):
+  - **The quiet zone**: over ~12 s of the running field on the desktop canvas, sampling every visible
+    card against the h1's, the caption's, the sentence's and both buttons' real ink rects, the
+    closest any frame came to any word was **31 px** (to the h1), under the taller proposed copy.
+    On the phone, **27 px**. No photograph is ever under a word, in any direction, at any moment of
+    the loop, with no scrim and no darkening layer anywhere.
+  - **The three beats, after a Replay**: 0 frames until 420 ms (the code alone); 7 frames from 502 to
+    1002 ms, growing 33 px to 97 px and out from behind the plate by 752 ms (the slip); 11, 18, 25,
+    26 at 1087 to 1338 ms with the widest frame going 141 px to 406 px (the eruption); settling to 11
+    to 15 with the widest between 300 px and 445 px.
+  - **The field**: 34 cards at 1440 (13.2 on screen on average, median frame 217 px and widest
+    448 px of the canvas; 52 percent horizontal / 27 diagonal / 21 vertical, up 47 / down 53) and 32
+    at 375 (9.4 on screen, median 113 px and widest 191 px of a 375 canvas, up 59 / down 41). Six of
+    the 34 have a corridor wide enough to be born behind the plate, spread across the cycle, so a
+    photograph slides out from under the code every 1.2 to 2.6 seconds. Nothing is ever launched that
+    is not seen: none of the golden-angle candidates are refused at 1440 (three at the xl step), and
+    35 of 67 are refused at 375, where the lockup is nearly as wide as the canvas.
+  - **Reduced motion** (simulated by deleting the sheet's one `no-preference` block from the live
+    cascade and clearing the loop's inline styles, which leaves exactly a reduced-motion reader's
+    cascade): 20 of the 34 frames stand deployed around the code, 114 px to 375 px wide, the lockup
+    untouched, the h1 at opacity 1.
+  - **The h1**: in the served HTML, computed opacity 1, `transform: none`, 72 px at lg and 96 px at
+    xl on the desktop canvas, with no `data-mkt-cut`, `data-mkt-reveal` or `.mkt-line` on it.
+  - **Performance**: 199 consecutive animation frames sampled with the whole board mounted (four
+    concepts looping at once): median frame 16.7 ms, p90 16.8, p99 18.4, worst 18.4. No dropped
+    frame, on a dev build. The loop now skips a style write that would write what is already there,
+    and only the frames in the first 2.6 s load eagerly.
+  - The gate: 404 with no key, 404 with a wrong key, 200 with the key.
+  - No em-dash, no `font-mono` and no `MonoCaption` in either owned file.
+- **A finding against the river, for Will rather than for me** (bible 22, and the round's "read the
+  other variations"): the river parts its stream around the type by holding a card's inner edge on
+  the block's wall, instead of gating it. Applied here that would let EVERY direction be born at the
+  plate rather than only the ones with a corridor, which is strictly more of what the burst argues.
+  I did not take it, because on a radial field an x-only parting turns every vertical lane into an
+  S-curve around the headline, which is the river's own look: the burst would converge on the river
+  and the board would lose an axis. It is a real choice and it is Will's, not mine.
+- **Look at first**: the first second and a half after a Replay, and specifically the moment a
+  photograph slides out from under the code (about every 1.2 s once the field is running). That is
+  the whole of what round two changed: round one put a 110 px hole around the object, so the album
+  never visibly left it. Then flip the headline toggle at the bottom right of the stage, because it
+  is the one choice that changes the composition rather than the styling, and the field re-solves
+  around whichever step is showing. Then the phone, which is the claim this variation makes against
+  the source: the same lockup, the same code at the exact centre, the burst re-solved for a canvas
+  that is tall rather than wide (the deep lanes are vertical there, and more than half the compass is
+  refused because the lockup is nearly as wide as the screen).
 
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). Round two of the burst made the code the emitter
+rather than a hole in the field: the QR lost its keep-out box, so a frame is now born behind the
+plate that paints above it and slides out from under it, which is the one thing the concept exists to
+show and the one thing round one never showed. Travel and size moved onto ease-out curves in world
+units and the perspective term was left to supply the acceleration, so a frame's screen position is
+near linear while its apparent size keeps opening and the big moments happen on the canvas instead of
+past the edge. Birth depth, depth gain and reach became a function of the direction: the axis a canvas
+has room on takes the near-camera flights, the cramped one the far field, which is what lets one
+description compose 1440 and 375. The pool is built by acceptance now, so a direction this canvas and
+this lockup cannot carry is never launched (none refused at 1440, more than half at 375), and the
+field re-solves itself when the lockup changes, which is what makes the headline step a toggle on the
+stage. A 260 ms hold turned the opening into three beats. The frames' shadow became the light spec's
+LIFT family at four times the offsets.

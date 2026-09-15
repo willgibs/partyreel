@@ -41,8 +41,10 @@ import {
  *    every photograph faded up in open space: the one thing the concept exists
  *    to show, a frame leaving the code, was the one thing it never showed. The
  *    plate paints ABOVE the field (it always did), so a frame born behind it is
- *    hidden by it for free. The code's box is gone; the type's stays. A frame
- *    now slides out from under the plate about every 1.2 s.
+ *    hidden by it for free. The code's box is gone; the type's stays. Six of the
+ *    34 desktop cards have a corridor wide enough to be born there, spread
+ *    across the cycle, so a photograph slides out from under the plate every
+ *    1.2 to 2.6 seconds, for ever.
  *
  * 2. THE CURVES WERE BACKWARDS. Round one ran travel on sqrt(p), fast out of
  *    the gate, and size on a smoothstep that is flat at both ends, so a frame
@@ -76,9 +78,11 @@ import {
  *
  * 5. THE FIRST BEAT IS THREE BEATS. A 260 ms hold (the code alone), then the
  *    slip (the frames with the corridor sliding out from behind the plate),
- *    then the eruption at about 1.1 s as the reveal tween opens the launch
- *    offsets. Measured on the stage: nothing until 450 ms, seven frames from
- *    500 to 1050, a crest of 26, settling to 13.
+ *    then the eruption as the reveal tween opens the launch offsets. Measured
+ *    off the running stage after a Replay: nothing until 420 ms; seven frames
+ *    from 500 to 1000, growing 33 px to 97 px and clear of the plate by 750;
+ *    11, 18, 25, 26 from 1090 to 1340, the widest going 141 px to 406 px;
+ *    settling to 11 to 15, the widest between 300 and 445.
  *
  * ── WHAT DID NOT CHANGE ──
  *
