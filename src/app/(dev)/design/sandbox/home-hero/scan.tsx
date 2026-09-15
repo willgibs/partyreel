@@ -190,6 +190,17 @@ function countText(launches: number) {
  *  it is lab chrome, not composition, and it leaves with the board. */
 type Cause = "phone" | "brackets";
 
+/** The chosen reading, held OUTSIDE the component on purpose. The board keys
+ *  the stage on the canvas, the copy and the run, so Replay and every canvas
+ *  change remount this concept from scratch: component state would silently
+ *  drop the reading and put the room back, and a reviewer who flipped to the
+ *  phone and then looked at 375 would be shown the composition he did not ask
+ *  for. Module scope survives the remount and is safe here because the board
+ *  renders one canvas at a time. It leaves with the switch. The initial value
+ *  is the reading this concept recommends. (The river reached the same answer
+ *  for its own chip; a `controls` slot on Concept would retire both.) */
+let causeChoice: Cause = "brackets";
+
 /** The phone in the near field: its box, its angle, and the viewfinder inside
  *  it. x and y are the CENTRE of the device, offset from the canvas centre, so
  *  the crop against a frame edge is a number rather than a guess. */
@@ -618,7 +629,11 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
   // board opens on the candidate it argues for and the switch is the second
   // look rather than the first (it opened on the phone through round two,
   // against the concept's own recommendation).
-  const [cause, setCause] = useState<Cause>("brackets");
+  const [cause, setCauseState] = useState<Cause>(causeChoice);
+  const setCause = useCallback((c: Cause) => {
+    causeChoice = c;
+    setCauseState(c);
+  }, []);
   const layout = geo.layout[cause];
   const axis = layout.axis;
   const text = copyFor(scan, copy);
