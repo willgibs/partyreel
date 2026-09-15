@@ -208,6 +208,26 @@ The board, plus the token table in the Record. Read `page-hero.tsx`, `section-sh
   lane), test ok (1688 in 191 files), build ok (247 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = the five files under
   `src/app/(dev)/design/sandbox/type-scale/` plus this manifest. No exceptions.
+- **The review round's one fix (this head).** A read-only review found that an applied candidate
+  outranked the board's own stages at one step. The page hook,
+  `h1[class~="font-heading"]:is([class~="text-2xl"], ...):not([class~="lg:text-5xl"])`, scores
+  (0,3,1), three attribute tokens AND a type, which is exactly what board.css's
+  `[data-tsc] [data-tsc-page] [data-tsc-step="heading"] :is(h1, h2, h3)` scored, and a candidate's
+  `<style>` is rendered after every stylesheet, so the paste won the tie on source order. Stage 13
+  lost its whole argument to that: with any candidate applied its three app registers collapsed onto
+  the applied ladder's one page size while the captions still read 24 / 20 / 20, and stages 9, 11 and
+  12 lost the same way whenever the applied block and the toggled ladder differed. The step rules now
+  run a doubled `[data-tsc][data-tsc]` chain at (0,4,1), the `ships` and `face` rules with them (that
+  note had the premise wrong: it said a candidate's longest selector is three tokens). And it is
+  computed now rather than asserted: "the board's sheet outranks any paste" in `ladders.test.ts`
+  counts both sides by Selectors Level 4 and fails the moment a hook grows a token or the doubling is
+  tidied away, which was verified by reverting the chain (it fails, naming the rule that lost).
+- Re-verified after the fix on `pnpm dev` from this worktree, measured off the DOM: under each of the
+  five applied blocks (Today, A, B, C, the law alone), every heading and card title on the board
+  renders the size its own stage declares, at 1440 and at 375; the cross case holds (B applied while
+  the board is toggled to C reads C's 20 at stage 12 and still 24 / 20 / 20 at stage 13); the 404
+  stage's "as it ships" half stays Inter 600. The paste itself is untouched: C applied to the real
+  home page still gives the hero 119.94px at -5.4px, which is C's 120 at -0.045em.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none. Lab only, as briefed: not one
   production byte changed, and `page-hero.tsx`, `section-shell.tsx`, `page-heading.tsx`,
   `globals.css` and `theme.css` were read and left alone.
@@ -368,13 +388,14 @@ by design)
 
 ## Handoff (round 2)
 
-- Head: this handoff commit, sitting on the gated tree `964bf96`; both pushed. Preview `partyreel-git-lp-type-scale-partyreel.vercel.app`, board at
-  `/design/c/type-scale?key=`. The alias follows the branch on its own; `[preview]` is in both
-  build commits.
+- Head: this handoff commit, sitting on the review round's fix; both pushed. Preview
+  `partyreel-git-lp-type-scale-partyreel.vercel.app`, board at `/design/c/type-scale?key=`. The
+  alias follows the branch on its own; `[preview]` is in every build commit.
 - Synced with `launch-prep` at `4b035c1` (the cut: `ca952b5` had moved by one docs commit while the
   worktree was being made, so the branch was cut fresh from the newer tip). It has not moved since.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors, 7 pre-existing warnings, none in this
-  lane), test ok (1716 in 193 files, 18 of them round two's new ladder laws), build ok (248 pages).
+- Gates on the synced tree, re-run after the review round's fix: typecheck ok, lint ok (0 errors, 7
+  pre-existing warnings, none in this lane), test ok (1719 in 193 files; `ladders.test.ts` is 62
+  cases, 21 of them round two's, three of them the new specificity guard), build ok (248 pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = the five files under
   `src/app/(dev)/design/sandbox/type-scale/` plus this manifest. No exceptions.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none. Lab only, as briefed: not one
@@ -466,21 +487,17 @@ by design)
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). **The type scale, applied to the site.** Round one
-wrote the ladder down; round two made every candidate a PASTE: one generated block of real CSS
-against the real production hooks (`.mkt-name`, a ramp's widest class, `[data-slot="card-title"]`,
+wrote the ladder down; round two made every candidate a PASTE: one generated block of real CSS against
+the real production hooks (`.mkt-name`, a ramp's widest class, `[data-slot="card-title"]`,
 `[data-not-found] h1`), handed to the whole site through the shell's candidate store, so a ruling is
-made on the real home page and the real /help rather than on a canvas. Today is the control and it
-holds: applied, it reproduces every shipped value at 1440 and at 375 and moves exactly one thing,
-the home hero's hand-rolled `leading-[1.02]`. The tracking law became adoptable on its own, as a
-function of size that moves no size; the app's missing middle is judged against the three idioms
-production actually writes it as; the hero step is judged against the hero board's own hand-rolled
-lockup; the 404's h1, the one page title on the site in Inter, is on the board and in every paste.
-C's app register was rebuilt from the ground up: the quiet 20px title survived a real dashboard, the
-14px card title did not (a Card sets `text-sm` on its whole subtree, so the title was the size of
-the sentence under it), and the floor under it, no app heading below the body it sits on, is pinned
-for every ladder. The token names moved into Tailwind v4's own font-size shape, so the bake is one
-`@theme` block and a baked step is ONE class. Sixteen stages in four acts; lab only, no production
-byte changed.
+made on the real home page rather than on a canvas. Today is the control and it holds: applied, it
+reproduces every shipped value at both widths and moves one thing, the home hero's hand-rolled
+`leading-[1.02]`. The tracking law became adoptable on its own, a function of size that moves no size;
+the app's missing middle is judged against the three idioms production writes it as; the hero step
+against the hero board's own lockup; the 404's h1, the one page title in Inter, is in every paste.
+C's app register was rebuilt: the quiet 20px title survived a real dashboard, the 14px card title did
+not (a Card sets `text-sm` on its whole subtree), and the floor under it is pinned for every ladder.
+Token names moved into Tailwind v4's font-size shape, so a baked step is ONE class. Lab only.
 
 ### The token table the wiring round bakes
 
