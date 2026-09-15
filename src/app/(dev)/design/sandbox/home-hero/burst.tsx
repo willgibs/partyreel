@@ -84,6 +84,45 @@ import {
  *    11, 18, 25, 26 from 1090 to 1340, the widest going 141 px to 406 px;
  *    settling to 11 to 15, the widest between 300 and 445.
  *
+ * ── WHAT ROUND THREE CHANGED, and why ──
+ *
+ * Round three walked the board the way a stranger would, found six things, and
+ * fixed each one. They are listed here because the next agent will read this
+ * file before the manifest.
+ *
+ * 1. THE FIELD WAS GREY BOXES FOR THE FIRST MINUTE. Round two loaded only the
+ *    frames of the first beats and left the other 31 lazy. This stage is
+ *    fifteen thousand pixels down a lab page, so nothing intersected the
+ *    viewport and nothing loaded: 9 of 34 images after 60 seconds, and a reader
+ *    scrolling to it met a scatter of empty rectangles. Every frame is eager
+ *    now (see the Photo below), which costs a hero nothing, because a hero's
+ *    frames are all inside the first screen and a lazy image there is fetched
+ *    immediately anyway.
+ * 2. THE ROOT WAS A SCROLL CONTAINER. `overflow-hidden` clips and still
+ *    scrolls; focusing the step toggle inside it could shove the whole
+ *    composition sideways. `overflow-clip` clips the same pixels and creates no
+ *    scroll container. The scan found this on its own switch and flagged all
+ *    four concepts.
+ * 3. THE PHONE LEANED UPWARD, 60 percent of the album above the code, because
+ *    the lockup sits below it and a downward ray was gated for 240 canvas units
+ *    against an upward one's 170. Two changes answer it: `crossHold` holds a
+ *    ray back in proportion to the type it has to cross, so it clears later and
+ *    larger instead of arriving small, and the pool is now selected to be even
+ *    in VISIBLE MASS rather than in directions launched (BALANCE). The album
+ *    covers 0.24 of the 375 canvas at round two and 0.43 now, against 0.42 at
+ *    1440: the same composition at both canvases, which is this variation's
+ *    whole claim, now measured rather than argued.
+ * 4. THE REST STATE WAS A FREEZE FRAME. What reduced motion, a crawler and the
+ *    cold paint got was the running field stopped mid-flight, so half of it was
+ *    dissolving at the rim. It is composed now (restFrame): every photograph
+ *    whole, spread by a low-discrepancy radius, the quiet zone still holding.
+ * 5. THE COPY HAD BECOME THE RIVER'S. Round two proposed "One code, and the
+ *    album fills." with a subhead the river now carries verbatim. Two concepts
+ *    arguing the same sentence makes the board harder to rule, so both lines
+ *    were rewritten to what only this concept can say.
+ * 6. THE ONE CONTROL ON THE STAGE SAID "h1" at 0.45 opacity. It says Headline,
+ *    it is legible without hunting, and it is sized for the canvas it sits on.
+ *
  * ── WHAT DID NOT CHANGE ──
  *
  * The projection is still done by hand rather than with a CSS `perspective`
@@ -143,7 +182,8 @@ let lastStep: Step = "lg";
 /** One block of the lockup, in canvas coordinates from the code (y points
  *  down), plus the margin frames keep from it. Measured off the rendered stage
  *  rather than guessed: each is the union of the two copy modes' real INK
- *  extents (a Range over the text, not the block box, which is full bleed).
+ *  extents (a Range over the text, not the block box, which is full bleed),
+ *  re-measured at round three against the copy this concept now proposes.
  *  THE CODE HAS NO BOX: the plate paints above the field, so a frame born
  *  behind it is hidden by it, and taking the box away is what lets the album
  *  visibly leave the object. */
@@ -152,30 +192,30 @@ type KeepPart = { x: number; y: number; hw: number; hh: number; r: number };
 const KEEP: Record<Mode, Record<Step, KeepPart[]>> = {
   desktop: {
     lg: [
-      { x: 0, y: -188, hw: 262, hh: 70, r: 26 }, // the headline, two lines at 72
-      { x: 0, y: 105, hw: 158, hh: 9, r: 24 }, // the caption
-      { x: 0, y: 156, hw: 224, hh: 23, r: 28 }, // the sentence, two lines
-      { x: 0, y: 226, hw: 165, hh: 24, r: 28 }, // the actions, one row
+      { x: 0, y: -188, hw: 263, hh: 80, r: 26 }, // the headline, two lines at 72
+      { x: 0, y: 105, hw: 155, hh: 8, r: 24 }, // the caption
+      { x: 0, y: 155, hw: 228, hh: 21, r: 28 }, // the sentence, two lines
+      { x: 0, y: 226, hw: 165, hh: 22, r: 28 }, // the actions, one row
     ],
     xl: [
-      { x: 0, y: -210, hw: 350, hh: 93, r: 26 }, // the headline, two lines at 96
-      { x: 0, y: 105, hw: 158, hh: 9, r: 24 },
-      { x: 0, y: 156, hw: 224, hh: 23, r: 28 },
-      { x: 0, y: 226, hw: 165, hh: 24, r: 28 },
+      { x: 0, y: -210, hw: 350, hh: 107, r: 26 }, // the headline, two lines at 96
+      { x: 0, y: 105, hw: 155, hh: 8, r: 24 },
+      { x: 0, y: 155, hw: 228, hh: 21, r: 28 },
+      { x: 0, y: 226, hw: 165, hh: 22, r: 28 },
     ],
   },
   phone: {
     lg: [
-      { x: 0, y: -114, hw: 140, hh: 36, r: 20 }, // the headline, two lines at 36
-      { x: 0, y: 76, hw: 92, hh: 9, r: 18 }, // the caption
-      { x: 0, y: 131, hw: 163, hh: 32, r: 20 }, // the sentence, two or three lines
-      { x: 0, y: 191, hw: 144, hh: 31, r: 20 }, // the actions, one row
+      { x: 0, y: -115, hw: 132, hh: 41, r: 20 }, // the headline, two lines at 36
+      { x: 0, y: 76, hw: 90, hh: 8, r: 18 }, // the caption
+      { x: 0, y: 131, hw: 160, hh: 32, r: 20 }, // the sentence, three lines
+      { x: 0, y: 202, hw: 142, hh: 20, r: 20 }, // the actions, one row
     ],
     xl: [
-      { x: 0, y: -150, hw: 150, hh: 71, r: 20 }, // the headline, two or three at 48
-      { x: 0, y: 76, hw: 92, hh: 9, r: 18 },
-      { x: 0, y: 131, hw: 163, hh: 32, r: 20 },
-      { x: 0, y: 191, hw: 144, hh: 31, r: 20 },
+      { x: 0, y: -150, hw: 126, hh: 78, r: 20 }, // the headline, three lines at 48
+      { x: 0, y: 76, hw: 90, hh: 8, r: 18 },
+      { x: 0, y: 131, hw: 160, hh: 32, r: 20 },
+      { x: 0, y: 202, hw: 142, hh: 20, r: 20 },
     ],
   },
 };
@@ -216,6 +256,14 @@ type Geo = {
    *  lockup while it is still small. */
   reachA: number;
   reachB: number;
+  /** How much a direction is HELD BACK for having to cross the lockup. The
+   *  gated part of a flight is the part nobody sees, so a ray that has to clear
+   *  240 canvas units of type before it may appear was spending a third of its
+   *  life invisible and arriving small. Held back, it clears later, at a larger
+   *  size, and spends what is left on the canvas instead of past the edge.
+   *  Measured over 10 s of the running field: the album covers 0.24 of the 375
+   *  canvas at 0 and 0.36 at 0.4, and 0.35 of the 1440 canvas against 0.45. */
+  crossHold: number;
   /** Bends the golden-angle fan toward the HORIZONTAL, which is where both
    *  canvases have a corridor beside the code for a frame to be born in (the
    *  lockup is a column, so it is the width that leaves a gap). Positive bends
@@ -259,6 +307,7 @@ const GEO: Record<Mode, Geo> = {
     sk: 1.4,
     reachA: 1.85,
     reachB: 0.8,
+    crossHold: 0.3,
     warp: 0.3,
     laneSign: 1,
     fade: 0.085,
@@ -287,6 +336,7 @@ const GEO: Record<Mode, Geo> = {
     sk: 1.4,
     reachA: 1.6,
     reachB: 0.55,
+    crossHold: 0.4,
     warp: 0.2,
     laneSign: -1,
     fade: 0.085,
@@ -532,17 +582,48 @@ function frameAt(
   };
 }
 
+/** The share of the field's visible MASS either half of the canvas may hold
+ *  before a candidate for that half is passed over. Round three's answer to the
+ *  phone reading top-heavy: the lockup sits below the code, so a downward
+ *  flight is gated for 240 canvas units against an upward one's 170, and the
+ *  gated part of a flight is the part nobody sees. Counting directions launched
+ *  says the compass is even; counting the photograph actually on screen says it
+ *  is not, and the second one is what a reader sees. */
+const BALANCE = 0.56;
+/** How many cards are placed before the balance rule starts refusing: with two
+ *  or three on screen there is no distribution to be even about. */
+const BALANCE_AFTER = 8;
+
 /**
- * The pool, built by ACCEPTANCE rather than by count. Candidate directions walk
- * the golden angle (so consecutive launches land on opposite sides of the code
- * and the field never reads as a sweeping fan), bent toward the axis the canvas
- * has room on. Each candidate is then flown once: a direction whose flight
- * never reaches full opacity, or lives less than a beat, is one this canvas and
- * this lockup have no room for, and the next candidate takes its slot.
+ * The pool, built by ACCEPTANCE rather than by count, in two passes.
+ *
+ * PASS ONE, viability. Candidate directions walk the golden angle (so
+ * consecutive launches land on opposite sides of the code and the field never
+ * reads as a sweeping fan), bent toward the axis the canvas has room on. Each
+ * candidate is flown once: a direction whose flight never reaches full opacity,
+ * or lives less than a beat, is one this canvas and this lockup have no room
+ * for. The same flight also integrates the candidate's VISIBLE MASS, the
+ * apparent area it puts on the canvas over its life, which is what pass two
+ * balances.
+ *
+ * PASS TWO, balance (round three). Viable candidates are taken in golden order
+ * until the pool is full, but one whose half of the canvas already holds more
+ * than BALANCE of the mass is passed over and only taken if the pool would
+ * otherwise come up short. The selected cards are then put back into golden
+ * order before they are given slots, so the launch cadence still alternates
+ * sides and only the membership changed.
  */
+type Candidate = {
+  seed: Seed;
+  pClear: number;
+  mass: number;
+  down: boolean;
+  right: boolean;
+};
+
 function buildCards(geo: Geo, keep: KeepPart[], halfW: number, halfH: number) {
-  const out: Card[] = [];
-  for (let i = 0; out.length < geo.cards && i < geo.cards * 4; i++) {
+  const viable: Candidate[] = [];
+  for (let i = 0; viable.length < geo.cards * 2 && i < geo.cards * 6; i++) {
     const j = hash01(i);
     const jj = hash01(i + 101);
     const jjj = hash01(i + 211);
@@ -562,7 +643,17 @@ function buildCards(geo: Geo, keep: KeepPart[], halfW: number, halfH: number) {
     const zBirth = geo.z0 - geo.zBack * (1 - lane);
     const zGain =
       zBirth + geo.zRun * (geo.zLo + (1 - geo.zLo) * lane) * (0.85 + jj * 0.3);
-    const reach = (geo.reachA - geo.reachB * lane) * (0.94 + jjj * 0.12);
+    // How far along this ray the lockup itself reaches, before the card's own
+    // size is added: the bare geometry of what this direction has to cross.
+    const dx0 = geo.ax * ct;
+    const dy0 = geo.ay * st;
+    const m0 = Math.hypot(dx0, dy0);
+    const crossing =
+      clearAlong(keep, dx0 / m0, dy0 / m0, 0, 0) / Math.hypot(halfW, halfH);
+    const reach =
+      (geo.reachA - geo.reachB * lane) *
+      (1 - geo.crossHold * crossing) *
+      (0.94 + jjj * 0.12);
 
     const vx = geo.ax * ct * reach;
     const vy = geo.ay * st * reach;
@@ -594,25 +685,106 @@ function buildCards(geo: Geo, keep: KeepPart[], halfW: number, halfH: number) {
       ry: (-vx / mag) * geo.tilt * (0.7 + jj * 0.6),
       rx: (vy / mag) * geo.tilt * (0.7 + j * 0.6),
     };
-    const card: Card = {
-      ...seed,
-      slot: out.length,
-      photo: out.length,
-      pClear: scanClear(seed, geo, keep),
-    };
+    const pClear = scanClear(seed, geo, keep);
+    const probe: Card = { ...seed, slot: 0, photo: 0, pClear };
 
-    // The acceptance walk.
+    // The acceptance walk, which also weighs the flight.
     let peak = 0;
     let live = 0;
+    let mass = 0;
     for (let n = 0; n <= WALK; n++) {
-      const o = Number(frameAt(card, n / WALK, geo, halfW, halfH).opacity);
+      const p = n / WALK;
+      const o = Number(frameAt(probe, p, geo, halfW, halfH).opacity);
       if (o > peak) peak = o;
       if (o > 0.2) live += FLIGHT_MS / WALK;
+      // The apparent area on the canvas, weighted by how visible it is: the
+      // same projection the transform uses, so this is the photograph a reader
+      // actually gets from this direction and not the distance it travelled.
+      const z = seed.zBirth + (seed.zGain - seed.zBirth) * p;
+      const sc =
+        sizeAt(p, geo) *
+        (geo.persp / (geo.persp - z)) *
+        seed.sJit *
+        geo.scaleNorm;
+      mass += o * sc * sc * seed.aspect;
     }
     if (peak < 0.75 || live < 900) continue;
-    out.push(card);
+    viable.push({
+      seed,
+      pClear,
+      mass,
+      down: seed.vy > 0,
+      right: seed.vx > 0,
+    });
   }
-  return out;
+
+  const taken: Candidate[] = [];
+  const passed: Candidate[] = [];
+  // Mass already placed in each half of the canvas: up, down, left, right.
+  const held = { up: 0, down: 0, left: 0, right: 0 };
+  type Half = keyof typeof held;
+  const sides = (c: Candidate): [Half, Half][] => [
+    c.down ? ["down", "up"] : ["up", "down"],
+    c.right ? ["right", "left"] : ["left", "right"],
+  ];
+  for (const c of viable) {
+    if (taken.length >= geo.cards) break;
+    const tilted = sides(c).some(
+      ([mine, other]) =>
+        (held[mine] + c.mass) / (held[mine] + held[other] + c.mass) > BALANCE,
+    );
+    if (taken.length >= BALANCE_AFTER && tilted) {
+      passed.push(c);
+      continue;
+    }
+    taken.push(c);
+    for (const [mine] of sides(c)) held[mine] += c.mass;
+  }
+  // Short of a full pool, the passed-over directions come back: an even field
+  // is worth less than a full one.
+  for (const c of passed) {
+    if (taken.length >= geo.cards) break;
+    taken.push(c);
+  }
+  // Back into golden order, so the launch cadence alternates sides as before.
+  taken.sort((a, b) => Number(a.seed.key.slice(4)) - Number(b.seed.key.slice(4)));
+  return taken.map((c, n) => ({
+    ...c.seed,
+    slot: n,
+    photo: n,
+    pClear: c.pClear,
+  }));
+}
+
+/** The golden RATIO's fractional part, the standard low-discrepancy step: a
+ *  sequence of frac(i * PHI) fills 0..1 evenly at every prefix length. */
+const PHI = 0.6180339887;
+
+/**
+ * THE REST STATE, composed rather than sampled (round three). It is what a
+ * reduced-motion reader, a crawler, a cold paint and a reader with JavaScript
+ * off all get, so it is a composition in its own right and not a pause button.
+ *
+ * Round two took it from the running field: each card at the progress its own
+ * launch offset put it at, which is a FREEZE FRAME. Half the album was caught
+ * mid-dissolve at the rim or still inside the quiet zone, so the still read as
+ * photographs cut off at the edges with a hole in the middle.
+ *
+ * This walks each card to a radius of its own instead. The distance is a
+ * low-discrepancy sequence, so cards next to each other in the golden fan sit
+ * at different distances and the field is an even scatter rather than a spiral;
+ * then the progress is walked BACK until the frame is fully faded in and inside
+ * the canvas, so every photograph in the settled field is whole. The quiet zone
+ * still holds: pClear is the floor, so no frame can settle over a word.
+ */
+function restFrame(c: Card, i: number, geo: Geo, halfW: number, halfH: number) {
+  const floor = Math.min(c.pClear + geo.fade, 1);
+  let p = c.pClear + (1 - c.pClear) * (0.2 + 0.62 * mod(i * PHI, 1));
+  for (let k = 0; k < 24 && p > floor; k++) {
+    if (Number(frameAt(c, p, geo, halfW, halfH).opacity) > 0.92) break;
+    p -= 0.03;
+  }
+  return frameAt(c, Math.max(p, floor), geo, halfW, halfH);
 }
 
 /** Built on demand per canvas AND per headline step, because the step changes
@@ -630,13 +802,6 @@ function poolFor(mode: Mode, step: Step) {
   );
   POOLS.set(key, built);
   return built;
-}
-
-/** When a card is first on screen, in ms from the burst: its launch plus the
- *  flight it spends inside the quiet zone. Only the frames in the first beats
- *  load eagerly, so a hero does not open thirty image requests at once. */
-function firstSeenMs(c: Card, geo: Geo) {
-  return c.slot * geo.launch + c.pClear * FLIGHT_MS;
 }
 
 function Burst({ mode, copy, qrUrl }: ConceptProps) {
@@ -774,17 +939,25 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
   return (
     <div
       ref={rootRef}
-      className="relative size-full overflow-hidden bg-background"
+      /* overflow-CLIP, not overflow-hidden: the same pixels are clipped, but no
+         scroll container is created. An overflow-HIDDEN box is still scrollable
+         programmatically and by focus, and this one has 1933 px of content in a
+         1437 px box, so focusing the step toggle inside it could let the browser
+         "reveal" the button by scrolling the whole composition sideways under
+         the stage's zoom (measured here: scrollLeft took 496 px and scrollTop
+         321 px on demand; with clip both are no-ops). Found by the scan on its
+         own switch, where a click really did jump the hero, and flagged for all
+         four concepts (docs/tracks/hero-scan.md, round three, finding 1). */
+      className="relative size-full overflow-clip bg-background"
     >
       {/* THE FIELD. Full bleed and decorative: the album is the argument, but
           the type in the quiet zone is what carries the sentence. */}
       <div aria-hidden className="hhb-field">
         {cards.map((c, i) => {
           // The REST state, written as custom properties the sheet reads: the
-          // field standing at its steady-state spacing, which is what reduced
-          // motion, a crawler and the server's own HTML all get.
-          const at = Math.min((c.slot * geo.launch) / FLIGHT_MS, 1);
-          const rest = frameAt(c, at, geo, halfW, halfH);
+          // album settled around the code, which is what reduced motion, a
+          // crawler and the server's own HTML all get (see restFrame).
+          const rest = restFrame(c, i, geo, halfW, halfH);
           const w = geo.card;
           const h = geo.card * c.aspect;
           return (
@@ -814,10 +987,22 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
                 } as CSSProperties
               }
             >
+              {/* EAGER, every frame, which round three had to correct. Round
+                  two loaded only the frames of the first beats and left the
+                  rest lazy, reasoning that a hero should not open thirty image
+                  requests at once. On a hero it buys nothing: every card sits
+                  at the centre of the first screen at paint, so a lazy image
+                  there is fetched immediately anyway, at a lower priority. On
+                  the BOARD it cost the concept its argument, because this stage
+                  is fifteen thousand pixels down a lab page: nothing intersects
+                  the viewport, so 31 of the 34 frames had not loaded at all,
+                  and the field a reader scrolled to was a scatter of grey boxes
+                  filling in one by one (measured on the dev server: 9 of 34
+                  after 60 s). The album has to be photographs from the first
+                  frame, here and in production. */}
               <Photo
                 index={c.photo}
                 sizes={geo.sizes}
-                eager={firstSeenMs(c, geo) < 2600}
                 className="size-full rounded-[var(--radius-tile)] ring-1 ring-white/10 ring-inset"
               />
             </div>
@@ -878,9 +1063,15 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
           than the styling, so it is a toggle on the stage and Will rules it
           with both in view; the field re-solves for whichever step is showing,
           because the quiet zone changes shape and the field is drawn from it.
-          It leaves with the board. */}
-      <div className="hhb-lab" data-hhb-block="lab">
-        <span className="hhb-lab-label">h1</span>
+          It leaves with the board. Round three named it in words rather than in
+          the sheet's ("h1" meant nothing to anyone who had not read the file)
+          and stopped hiding it at 0.45 opacity: the one control on the stage
+          has to be findable without hunting for it. */}
+      <div
+        className={`hhb-lab${phone ? " hhb-lab-sm" : ""}`}
+        data-hhb-block="lab"
+      >
+        <span className="hhb-lab-label">Headline</span>
         {(["lg", "xl"] as Step[]).map((s) => (
           <button
             key={s}
@@ -906,21 +1097,21 @@ export const burst: Concept = {
   n: 3,
   name: "The burst",
   rationale:
-    "Every frame on screen is born inside the code and slides out from under it. The album radiates around the whole compass and forward out of the screen, so a near frame grows until it wipes past the edge while a far one stays small and slides out, and the causality reads at a glance. The type holds a quiet zone that no frame ever enters, so nothing is dimmed and no word sits over a photograph. A radial has no orientation, so the phone gets the same composition rather than a compressed strip: the canvas decides which lanes are deep, and a direction it has no room for is never launched.",
+    "Every frame on screen is born inside the code and slides out from under it. The album radiates around the whole compass and forward out of the screen, so a near frame grows until it wipes past the edge while a far one stays small and slides out, and the causality reads at a glance. The type holds a quiet zone that no frame ever enters, so nothing is dimmed and no word sits over a photograph. A radial has no orientation, so the phone is the same composition rather than a compressed strip: the canvas decides which lanes are deep, a direction it has no room for is never launched, and the field is balanced by the photograph a reader actually sees rather than by the directions thrown. Measured over ten seconds of the loop, the album covers 0.42 of the 1440 canvas and 0.43 of the 375 one.",
   eyebrow:
     "The code itself, at the centre of the burst. Its caption is the only label, so the eyebrow is the object.",
   proposed: {
-    h1: "One code, and the album fills.",
+    h1: "Your album, from every angle.",
     subhead:
-      "Every phone in the room finds it and uploads at full size, with nothing to install.",
+      "One code on the table, and everything your guests shoot arrives at full size. No app, no account.",
     secondary: "Open the live album",
   },
   departures: [
-    "Rule on, the headline step: the toggle on the stage, bottom right. lg (text-7xl at 1440, text-4xl at 375) leaves the burst the canvas and keeps the corridor a frame leaves the code through; xl (text-8xl, text-5xl) is the louder promise and costs the field about 80 px of quiet zone in every direction. Both are cinema steps of the one site ladder (bible 5), and the field re-solves for whichever is showing.",
-    "Rule on, the copy, and note that it CHANGED: the proposed h1 replaces round one's proposal, 'One code. Every angle.', and the subhead was rewritten with it. The old line named the field but not what a guest gets; 'One code, and the album fills.' is the voice guide's arrival shape and says what the burst actually shows, one code and everything arriving (docs/specs/brand-voice.md). Rule on the new pair, or send the old line back. The ruled thesis stays the default under the board's copy toggle (bible 21).",
-    "Rule on, the centred lockup: precedent, not law. The code owns the axis here, so the type is centred rather than left-aligned. The first thing to overrule if the home hero should stay left.",
-    "Departure, bible 10 (the hero is unlit by the standing ruling): the frames carry a drop shadow. It is the light spec's LIFT family (docs/specs/light.md), the geometry and the cinema alphas verbatim, at four times the offsets, because LIFT separates two cards a pixel apart and these are separated by a depth axis measured in hundreds of units. The burst overlaps constantly, near frame over far, and with no edge the depth collapses into a flat scatter. It is a shadow, never a lamp: no light source is added and no photograph is darkened.",
-    "Departure, bible 13, decorative layer only: the frames' pre-burst state sits inside the reduced-motion block, so with JavaScript off and motion allowed the field rests around the code instead of leaving it. Putting it in an effect would paint the album deployed and then snap it back to the code. The h1, the code, the caption, the sentence and the actions are plain markup, never gated, and reduced motion gets the field fully deployed.",
+    "Rule on, the headline step, and it is the one choice that changes the composition: lg or xl. The toggle is on the stage, bottom right, and the field re-solves for whichever is showing. lg (text-7xl at 1440, text-4xl at 375) leaves the burst the canvas and keeps a corridor wide enough for a frame to leave the code through; xl (text-8xl, text-5xl) is the louder promise and costs the field about 80 px of quiet zone in every direction. Both are cinema steps of the one site ladder (bible 5).",
+    "Rule on, the copy: proposed or ruled. Proposed is 'Your album, from every angle.' over 'One code on the table, and everything your guests shoot arrives at full size. No app, no account.' Round three rewrote both, because the pair round two proposed had become the river's line almost word for word (its h1 opens 'One code, and' and its subhead was mine verbatim), and two concepts arguing the same sentence makes the board harder to rule, not easier. The ruled thesis stays the default under the board's copy toggle (bible 21).",
+    "Rule on, the lockup: centred or left. Precedent, not law. The code owns the axis here, so the type is centred on it. The first thing to overrule if the home hero should stay left.",
+    "Departure, bible 10 (the hero is unlit by the standing ruling): the frames carry a drop shadow, the light spec's LIFT family (docs/specs/light.md) at four times the offsets, because LIFT separates two cards a pixel apart and these are separated by a depth axis measured in hundreds of units. It is a shadow, never a lamp: no light source is added, no photograph is darkened, and there is no scrim anywhere on this concept.",
+    "Departure, bible 13, decorative layer only: the frames' pre-burst state sits inside the reduced-motion block, so with JavaScript off and motion allowed the field rests around the code instead of leaving it. The h1, the code, the caption, the sentence and the actions are plain markup, never gated, and reduced motion gets the whole album settled around the code.",
   ],
   assets: [
     "24 event photographs as 512 x 512 squares · one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals, framed tight enough to read at 90 px (a face, two hands, a glass, a sparkler, a first dance), never a wide room shot · replaces the 12 landscape stand-ins the field cycles (FRAMES in shared.tsx). Already asked for as docs/ASSETS.md row 2; the same 24 serve this concept.",
