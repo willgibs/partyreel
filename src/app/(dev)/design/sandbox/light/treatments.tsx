@@ -2,7 +2,7 @@
 
 import { type CSSProperties } from "react";
 
-import { Stage, type Ground, type Mode } from "@/components/dev/board";
+import { Stage, type Ground, type Mode } from "@/components/lab";
 import { LAMP_SET } from "@/components/dev/lamp-set";
 import { ReelFrame } from "@/components/marketing/frames";
 import { QrHero } from "@/components/marketing/sections/features/qr/qr-hero";
@@ -10,16 +10,11 @@ import { Glow } from "@/components/shared/glow";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { Labeled } from "@/components/lab";
+
 import { treatmentById, type TreatmentId } from "./kit";
 import { sectionById } from "./sections";
-import {
-  LampCard,
-  Labeled,
-  Part,
-  Photo,
-  Recipe,
-  Takeaway,
-} from "./shared";
+import { LampCard, Photo, Recipe, Takeaway } from "./shared";
 
 /**
  * THE TREATMENTS, EACH ON THE REAL SECTION IT BELONGS TO (round four).
@@ -340,41 +335,17 @@ export function TreatmentsPart({
   mode,
   ground,
   runId,
-  rules,
 }: {
   mode: Mode;
   ground: Ground;
   runId: number;
-  rules: string[];
 }) {
   const small = mode === "phone";
   const footer = sectionById("footer");
   const pricing = sectionById("pricing");
 
   return (
-    <Part
-      n="02"
-      id="treatments"
-      title="The treatments, on the real sections that wear them"
-      rules={rules}
-      lede={
-        <>
-          <p>
-            Six of the kit{"'"}s treatments, each on a production component at
-            1:1, with the four-question lamp card that admits it and the mount a
-            wiring round pastes. Three of them ship today and are shown exactly
-            as they ship: the footer{"'"}s seam, the QR plate{"'"}s ignition and
-            the Pro card{"'"}s beam. That is the strongest fact on this board.
-            Half the kit is already running in production, and until now nobody
-            had written down what any of it was called.
-          </p>
-          <p>
-            The seventh, the aurora, is in the composer below, because it is the
-            one treatment that has to be configured rather than looked at.
-          </p>
-        </>
-      }
-    >
+    <div className="flex flex-col gap-4">
       <Spec
         id="lgt-t-seam"
         treatment="seam"
@@ -634,6 +605,6 @@ export function TreatmentsPart({
           </Stage>
         </Labeled>
       </Spec>
-    </Part>
+    </div>
   );
 }

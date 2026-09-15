@@ -211,15 +211,15 @@
    Specificity is three classes deep so it wins wherever globals.css lands in
    the sheet order (a component-imported sheet has no guaranteed position
    relative to the app's own). */
-[data-lgt-rest] [data-glw] [data-glw-band],
-[data-lgt-rest] [data-glw] [data-glw-edge] {
+[data-motion="rest"] [data-glw] [data-glw-band],
+[data-motion="rest"] [data-glw] [data-glw-edge] {
   animation: none;
 }
-[data-lgt-rest] [data-lgt-phase] {
+[data-motion="rest"] [data-lgt-phase] {
   animation: none;
   left: 0;
 }
-[data-lgt-rest] [data-rxp-pubglow] {
+[data-motion="rest"] [data-rxp-pubglow] {
   animation: none;
 }
 
@@ -253,15 +253,15 @@
   pointer-events: none;
 }
 
-/* THE SOLO SWITCH. The cost meter sets data-lgt-solo on the document element
+/* THE SOLO SWITCH. The cost meter sets data-lab-solo on the document element
    for the six seconds it runs. "none" hides every lamp on the board; "target"
    hides every lamp except the ones inside the specimen it is measuring. Both
    rules are attribute selectors of equal weight, so the second one wins on
    source order, which is why it is written second. */
-[data-lgt-solo] [data-glw] {
+[data-lab-solo] [data-glw] {
   display: none;
 }
-[data-lgt-solo="target"] [data-lgt-solo-target] [data-glw] {
+[data-lab-solo="target"] [data-lab-solo-target] [data-glw] {
   display: block;
 }
 

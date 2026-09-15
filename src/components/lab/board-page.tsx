@@ -37,6 +37,14 @@ import { Walk } from "./walk";
  * guard against the one failure mode every long board has: the author knows too
  * much and the reviewer reads none of it.
  *
+ * ★ THE STATE IS ALSO ON THE ROOT, AS DATA ATTRIBUTES. Every declared control
+ * becomes `data-<id>="<option>"` on the board's root, so a board's own sheet can
+ * select on it (`[data-motion="rest"] .lamp { animation: none }`) instead of
+ * inventing a second board-wide flag that React has to thread through every
+ * part. It is also how Rest stays narrow: the board's sheet decides exactly what
+ * freezes, and a blanket `animation: none` would stop the marketing reveal
+ * grammar on the real sections, whose pre-animation state is opacity 0.
+ *
  * ★ AND THE STATE IS DECLARED, WHICH IS WHAT MAKES THE REST WORK. The dock's
  * knobs, the URL a review note is pasted with, the walk's steps and the evidence
  * itself all read one `spec.controls`; a board holding its switches in ad-hoc
@@ -74,7 +82,13 @@ export function BoardPage({
         next: outer?.next,
       }}
     >
-      <div className={cn("flex flex-col gap-10 pb-4", className)}>
+      <div
+        data-board={spec.id}
+        {...Object.fromEntries(
+          controls.map((c) => [`data-${c.id}`, state[c.id] ?? c.default]),
+        )}
+        className={cn("flex flex-col gap-10 pb-4", className)}
+      >
         <BoardDock
           label={`${spec.title}: the board's controls`}
           aside={

@@ -10,7 +10,7 @@ import { PricingTeaser } from "@/components/marketing/sections/home/pricing-teas
 import { Privacy } from "@/components/marketing/sections/home/privacy";
 import { TrustStrip } from "@/components/marketing/sections/home/trust-strip";
 
-import type { Ground } from "@/components/dev/board";
+import type { Ground } from "@/components/lab";
 
 import type { TreatmentId } from "./kit";
 

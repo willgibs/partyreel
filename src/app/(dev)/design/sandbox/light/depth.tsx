@@ -1,19 +1,12 @@
 "use client";
 
-import { Stage, type Ground, type Mode } from "@/components/dev/board";
+import { Stage, type Ground, type Mode } from "@/components/lab";
 import { cn } from "@/lib/utils";
 
+import { ApplyToSite, Cell, Labeled } from "@/components/lab";
+
 import { LIT_FACE, SHADOW_FAMILY } from "./candidates";
-import {
-  ApplyToSite,
-  Cell,
-  Copy,
-  Labeled,
-  matrixCols,
-  Part,
-  Photo,
-  Takeaway,
-} from "./shared";
+import { Copy, matrixCols, Photo, Takeaway } from "./shared";
 
 /**
  * PART A: DEPTH. What separates one object from another, per RELATIONSHIP.
@@ -386,55 +379,18 @@ function LitFaceMatrix({ mode, ground }: { mode: Mode; ground: Ground }) {
 export function DepthPart({
   mode,
   ground,
-  rules,
 }: {
   mode: Mode;
   /** The dock's ground: this block is judged on all three of them, which is
    *  why the dock carries the app's dark alongside the two marketing rooms. */
   ground: Ground;
-  rules: string[];
 }) {
   const small = mode === "phone";
   const cols = matrixCols(mode, 4);
   const rowH = small ? 178 : 300;
 
   return (
-    <Part
-      n="04"
-      id="separate"
-      title="The separate job: the cue is the relationship, not the mode"
-      rules={rules}
-      lede={
-        <>
-          <p>
-            Three subjects, each rendered four ways beside each other. Cue one
-            is what ships today (lighter is closer, plus a hairline); the other
-            three add the ring lift (37 uses at 5 percent, 12 at 10, and the
-            elevation contract never named it), a soft shadow, and the lit face
-            from the beam board. Switch the ground: the same three subjects on
-            the cinema room, on the app dark, and on paper as the control.
-          </p>
-          <p>
-            The shadow column is one family at two sizes, declared in board.css:
-            the light mode geometry verbatim, at the alpha a dark ground needs.
-            That is the finding underneath bible 10. Dark did not lack a shadow
-            because shadows are wrong in dark; it lacked one because 6 percent
-            of black over a near black room is arithmetically invisible.
-          </p>
-          <p>
-            <span className="font-medium text-foreground">
-              One ruling, two boards.
-            </span>{" "}
-            The floating-surfaces board asks the same question for its own
-            family, as item 5 of its contract: the light in dark, lighter is
-            closer against a soft shadow against a lit edge. The middle subject
-            here is that question, and the three answers are the same three
-            columns. A ruling on this row answers both, and FLOAT is the
-            shadow-tuned-for-dark option written out with values.
-          </p>
-        </>
-      }
-    >
+    <div className="flex flex-col gap-4">
       {/* The canvas is taller than a viewport on purpose: a matrix is not a
           screen, and 375 pairs the four cues into two rows per subject, so the
           phone canvas is roughly a third taller again. Measured, not guessed:
@@ -498,7 +454,7 @@ export function DepthPart({
         document.
       </Takeaway>
 
-      <ApplyToSite candidate={SHADOW_FAMILY} />
+      <ApplyToSite block={SHADOW_FAMILY} />
 
       <div className="max-w-2xl space-y-2 pt-6 text-xs leading-relaxed text-muted-foreground">
         <h3 className="text-[13px] font-semibold text-foreground">
@@ -537,7 +493,7 @@ export function DepthPart({
         depth technique.
       </Takeaway>
 
-      <ApplyToSite candidate={LIT_FACE} />
-    </Part>
+      <ApplyToSite block={LIT_FACE} />
+    </div>
   );
 }

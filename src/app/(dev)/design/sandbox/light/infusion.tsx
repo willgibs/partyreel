@@ -1,6 +1,6 @@
 "use client";
 
-import { Part, Takeaway } from "./shared";
+import { Takeaway } from "./shared";
 
 /**
  * THE INFUSION PLAN (round four, 2026-09-15).
@@ -101,32 +101,9 @@ const PHASES: Phase[] = [
   },
 ];
 
-export function InfusionPart({ rules }: { rules: string[] }) {
+export function InfusionPart() {
   return (
-    <Part
-      n="06"
-      id="infusion"
-      title="The infusion plan: the order the identity enters the site"
-      rules={rules}
-      lede={
-        <>
-          <p>
-            Six phases, and the order is the whole proposal. Achromatic first,
-            because the separate job has no colour to collide with and every
-            other phase is judged badly until it lands. One page before every
-            page, because {"“"}one accent section per page{"”"} only
-            means something where a page has a ruled chapter map, and exactly
-            one page does. And a phase that needs another board{"'"}s ruling
-            waits for it: two do, and landing them early would mean landing them
-            twice.
-          </p>
-          <p>
-            A wiring round cuts its scope from one row. Nothing here needs the
-            whole kit ruled at once.
-          </p>
-        </>
-      }
-    >
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col">
         {PHASES.map((p) => (
           <div
@@ -172,6 +149,6 @@ export function InfusionPart({ rules }: { rules: string[] }) {
         on the site, and it should be taken while the cost of being wrong is two
         lines.
       </Takeaway>
-    </Part>
+    </div>
   );
 }
