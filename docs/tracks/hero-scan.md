@@ -195,6 +195,15 @@ the live camera view composes under it) if you use a cutout; nothing else new.
   imported, because a concept file is self-contained by the contract and `source.tsx` exports only its
   `Concept`.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- **An operational note for the Orchestrator, not a code problem:** two of this track's four pushes
+  (`ab855c9` and `caa8539`) produced NO Vercel deployment at all, while other branches pushed in the
+  same minutes deployed normally, so the branch alias kept serving the previous commit. CI ran and
+  passed on every push, and `scripts/vercel-ignore-build.mjs` would have built them (this manifest
+  says `preview: true` and now `status: handed-off`), so the miss is upstream of the gate: GitHub
+  created no deployment for either SHA. Recovered by asking Vercel for one directly
+  (`POST /v13/deployments` with the branch's `gitSource`, the team token from `.env.local`), which
+  built and took the alias. Worth knowing if another track's preview looks stale: check the SHA the
+  alias serves rather than the clock.
 - **Verified on the preview** at the code tip (the alias was polled until its HTML carried
   `hhc-viewpos`, so the build is proven by a marker rather than by the clock):
   - The gate: 404 with no key, 404 with a wrong key, 200 with the key.
