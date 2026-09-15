@@ -276,7 +276,7 @@ export function ActionSpecimen({
 export function NestedSpecimen({
   radius,
   outerMultiplier = 1.4,
-  padding = 12,
+  padding = 8,
   ringOffset = 6,
 }: {
   /** null on the live column: the arithmetic is printed as expressions. */
@@ -315,7 +315,9 @@ export function NestedSpecimen({
             </div>
             <CellLabel className="mt-1.5">
               Concentric. inner ={" "}
-              {inner === null ? "outer minus 12" : `${px(outer!)} - 12 = ${px(inner)}`}
+              {inner === null
+                ? `outer minus ${padding}`
+                : `${px(outer!)} - ${padding} = ${px(inner)}`}
             </CellLabel>
           </div>
           <div className="min-w-0 flex-1">

@@ -11,14 +11,31 @@
 /* ★ THE BOARD IS WIDER THAN THE LAB COLUMN, ON PURPOSE (round two). The lab
    page is max-w-5xl (992px of content) and a radius has to be compared across
    five columns at 1:1, because the only honest size for a corner is its own.
-   `margin-left: 50%` plus a translate re-centres the block without changing
-   what the element's own layout box does to its siblings, and the width is
-   capped under the viewport, so there is no horizontal scrollbar at any width:
-   at 375 it resolves to the column it already had. */
+
+   It grows into the PAGE GUTTERS and no further. The first cut centred the
+   block on the viewport (margin-left: 50% and a translate) and it slid under
+   the lab's sticky sidebar on the left and 96px off-screen on the right, where
+   an ancestor's overflow clipped it silently. The lab column is centred in
+   what is left of the viewport after that sidebar, so half of that remainder,
+   less a margin, is exactly how far this block may grow on each side:
+
+     gutter = max(0, (100vw - sidebar - column) / 2 - margin)
+
+   `15rem` covers the 232px sidebar with room to spare, and the max() clamp
+   means the block is simply the column again below lg, where the sidebar
+   stops sitting beside the content (the 375 pass).
+
+   ★ NO PERCENTAGES IN THE GUTTER. `100%` inside the custom property resolved
+   against a different box in `margin-left` than it did in `width` (a 1176px
+   box pulled 488px left), so the column is written out as a length instead:
+   62rem is max-w-5xl less its px-4, which is what the lab page gives a board.
+   The two assumptions about the shell are the cost of not owning it, and are
+   why the Handoff offers the shell a real wide slot. */
 .rnd-wide {
-  width: min(1400px, calc(100vw - 2.5rem));
-  margin-left: 50%;
-  translate: -50%;
+  --rnd-col: min(62rem, calc(100vw - 2rem));
+  --rnd-gutter: max(0px, calc((100vw - 15rem - var(--rnd-col)) / 2 - 0.75rem));
+  width: calc(var(--rnd-col) + 2 * var(--rnd-gutter));
+  margin-left: calc(-1 * var(--rnd-gutter));
 }
 
 /* The live column's measuring probe: six boxes carrying border-radius:

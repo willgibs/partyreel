@@ -199,7 +199,7 @@ type Row = {
   token: string;
   label: string;
   note: string;
-  cell: (c: SurfaceCandidate, live: Live) => React.ReactNode;
+  cell: (c: SurfaceCandidate, live: Live, a: ActionRung) => React.ReactNode;
 };
 
 const ROWS: Row[] = [
@@ -237,11 +237,11 @@ const ROWS: Row[] = [
   {
     token: "--radius-action",
     label: "Actions",
-    note: "The rung is the second axis, ruled in part E.",
-    cell: (c, live) => (
+    note: "The rung is the second axis, ruled in part E. Every column wears the rung on the rail.",
+    cell: (c, live, a) => (
       <ActionSpecimen
-        action={c.values ? null : (live?.["--radius-action"] ?? null)}
-        sm={c.values ? null : (live?.["--radius-action-sm"] ?? null)}
+        action={c.values ? a.values.action : (live?.["--radius-action"] ?? null)}
+        sm={c.values ? a.values.sm : (live?.["--radius-action-sm"] ?? null)}
       />
     ),
   },
@@ -447,6 +447,11 @@ export function RoundingBoard() {
           , an event page and the demo guest page. The app pages want the host
           signed in, and the key rides the query string.
         </p>
+        <p>
+          The tuner panel is fixed over the right of the page, which is where
+          the live column and the third action rung sit: move it to the left
+          with the arrow in its header, or close it with the cross.
+        </p>
       </div>
 
       {/* The rail: the three axes, then what is applied. */}
@@ -577,7 +582,7 @@ export function RoundingBoard() {
                       data-rnd-ladder={ladder}
                       className="min-w-0"
                     >
-                      {row.cell(c, live)}
+                      {row.cell(c, live, action)}
                     </div>
                   ))}
                 </div>
@@ -653,12 +658,20 @@ export function RoundingBoard() {
           <Stage
             mode={mode}
             ground={ground}
-            height={mode === "phone" ? 900 : 780}
+            height={mode === "phone" ? 900 : 980}
           >
+            {/* ★ data-inview, set rather than observed. The marketing card
+                carries data-mkt-reveal, and marketing.css (loaded by the lab
+                layout) holds it at opacity 0 until an ancestor says
+                data-inview="true", which is what <Reveal> does on
+                intersection. A radius board has no business animating an
+                entrance, and the first cut of this part was three invisible
+                cards in a white box. */}
             <div
               className="h-full overflow-y-auto"
               style={overrideStyle(surface, action)}
               data-rnd-ladder={ladder}
+              data-inview="true"
             >
               <Composition id={composition} mode={mode} />
             </div>
