@@ -114,7 +114,7 @@ export const SURFACES: SurfaceCandidate[] = [
     values: { radius: 8, float: 12, tile: 4, gap: 4 },
     wants: "quarters",
     phone:
-      "The tile still reads as a corner at a guest's width and still leaves the photograph its edges. The card at 11.2 is a card, not a lozenge.",
+      "The tile still reads as a corner at a guest's width and still leaves the photograph its edges. The card keeps a corner at this width and still reads as a card, not a lozenge.",
   },
   {
     id: "family",
@@ -301,6 +301,20 @@ export function stepValue(
   step: Step,
 ): number {
   return radius * LADDERS[ladder][step];
+}
+
+/**
+ * ★ THE CARD'S MULTIPLIER IS THE LADDER'S, NEVER A CONSTANT (round three).
+ *
+ * Card ships as `rounded-xl`, so its corner is the xl step: 1.4x under stock
+ * and 1.25x under quarters. The board scopes a retune to a subtree
+ * (`ladderCss("quarters", '[data-rnd-ladder="quarters"] ')`), so two columns
+ * on one screen can be drawing different cards, and a cell that printed 1.4
+ * captioned the answer column's 10px card as 11.2px. Everything the board
+ * prints beside a card reads this instead.
+ */
+export function cardMultiplier(ladder: LadderId): number {
+  return LADDERS[ladder].xl;
 }
 
 /** The ladder as CSS. `scope` prefixes every selector so the board can show a

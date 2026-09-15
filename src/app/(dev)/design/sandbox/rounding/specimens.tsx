@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
-import { px } from "./candidates";
+import { cardMultiplier, type LadderId, px, stepValue } from "./candidates";
 
 /**
  * THE ROUNDING BOARD'S ATOMS (round two, 2026-09-14).
@@ -177,8 +177,28 @@ export function Tile({
 /* ── The matrix rows ───────────────────────────────────────────────────── */
 
 /** --radius: the sharp family, on the components that carry it. Card is
- *  rounded-xl (1.4x), Input and the plate are rounded-lg (1x). */
-export function SurfaceSpecimen({ radius }: { radius: number | null }) {
+ *  rounded-xl, so its corner is the LADDER'S xl step (1.4x stock, 1.25x
+ *  quarters); Input and the plate are rounded-lg, which is 1x on both. */
+export function SurfaceSpecimen({
+  radius,
+  ladder,
+  card,
+}: {
+  radius: number | null;
+  /** The ladder in force on THIS subtree. ★ Never print a constant beside
+   *  the card: the board scopes a retune to a column, so the answer column
+   *  drew a 10px card under an 11.2px caption for two rounds. */
+  ladder?: LadderId;
+  /** The card's corner MEASURED off the page, for the live band, which sits
+   *  outside every scoped ladder and so has no multiplier to claim. */
+  card?: number | null;
+}) {
+  const tail =
+    ladder && radius !== null
+      ? `, card at ${cardMultiplier(ladder)}x = ${px(stepValue(radius, ladder, "xl"))}`
+      : card != null
+        ? `, card ${px(card)}`
+        : "";
   return (
     <div className="flex flex-col gap-2.5">
       <Card size="sm">
@@ -194,8 +214,8 @@ export function SurfaceSpecimen({ radius }: { radius: number | null }) {
         </CardContent>
       </Card>
       <CellLabel>
-        {radius === null ? "live" : px(radius)} base, card at 1.4x
-        {radius === null ? "" : ` = ${px(radius * 1.4)}`}
+        {radius === null ? "live" : px(radius)} base
+        {tail}
       </CellLabel>
     </div>
   );
@@ -265,15 +285,17 @@ export function TileSpecimen({
 export function ActionSpecimen({
   action,
   sm,
-  surface,
+  card,
 }: {
   action: number | null;
   sm: number | null;
-  /** The candidate's card radius, so the cell can print the CONTRAST, which
+  /** The candidate's CARD corner (the base through the ladder in force, or
+   *  the live band's measurement), so the cell can print the CONTRAST, which
    *  is the only thing that changes down this row: the rung is the same in
    *  every column by design, and four identical cells read as a mistake. The
-   *  ratio is what bible 8 is actually claiming. */
-  surface?: number | null;
+   *  ratio is what bible 8 is actually claiming, and it is the card's corner
+   *  that carries it, so the ladder moves this number too. */
+  card?: number | null;
 }) {
   const pill = action !== null && action > 100;
   return (
@@ -301,12 +323,12 @@ export function ActionSpecimen({
             ? "a pill on h-11"
             : `${px(action * 0.9)} on the h-11 CTA`}
       </CellLabel>
-      {surface !== undefined && surface !== null && sm !== null ? (
+      {card !== undefined && card !== null && sm !== null ? (
         <CellLabel className="text-foreground">
-          {surface === 0
+          {card === 0
             ? "A square card against a round action: the widest contrast there is."
-            : `Card ${px(surface * 1.4)} against action ${px(sm)}: ${
-                Math.round((sm / (surface * 1.4)) * 10) / 10
+            : `Card ${px(card)} against action ${px(sm)}: ${
+                Math.round((sm / card) * 10) / 10
               } to 1.`}
         </CellLabel>
       ) : null}
@@ -324,14 +346,18 @@ export function ActionSpecimen({
  */
 export function NestedSpecimen({
   radius,
-  outerMultiplier = 1.4,
+  outerMultiplier,
   padding = 8,
   ringOffset = 6,
   ringOnly = false,
 }: {
   /** null when the tuner is driving: the arithmetic prints as expressions. */
   radius: number | null;
-  outerMultiplier?: number;
+  /** The card's step, from the ladder in force. ★ Required, not defaulted:
+   *  this card is drawn from an inline calc, so nothing else here follows a
+   *  ladder retune, and a default of 1.4 is how the board came to caption a
+   *  quarters card with a stock number. */
+  outerMultiplier: number;
   padding?: number;
   ringOffset?: number;
   /** The across-candidates strip shows the ring pair only: the card pair is

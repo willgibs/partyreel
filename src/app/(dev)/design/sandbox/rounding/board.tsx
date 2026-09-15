@@ -47,6 +47,7 @@ import {
   ANSWER,
   blockFor,
   blockLabel,
+  cardMultiplier,
   LADDERS,
   ladderCss,
   type LadderId,
@@ -383,6 +384,10 @@ function useLiveTokens(
       if (gapEl) {
         next["--gap-gallery"] = parseFloat(getComputedStyle(gapEl).columnGap);
       }
+      const cardEl = box.children[PROBES.length + 1] as HTMLElement | undefined;
+      if (cardEl) {
+        next.card = parseFloat(getComputedStyle(cardEl).borderTopLeftRadius);
+      }
       setLive(next);
     };
     read();
@@ -398,6 +403,11 @@ function useLiveTokens(
         <span key={name} style={{ borderRadius: `var(${name})` }} />
       ))}
       <span style={{ columnGap: "var(--gap-gallery)" }} />
+      {/* The CARD's corner, measured for the same reason as the tokens. It is
+          not a token at all: @theme inline bakes rounded-xl into its utility,
+          and an applied candidate can rewrite that utility, so the only
+          honest card number for the live band is the browser's. */}
+      <span className="rounded-xl" />
     </div>
   );
   return { live, probe };
@@ -408,25 +418,39 @@ function useLiveTokens(
 type Row = {
   token: string;
   label: string;
-  note: string;
-  cell: (c: SurfaceCandidate, live: Live, a: ActionRung) => React.ReactNode;
+  /** The ladder is an argument because the note prints the card's multiplier
+   *  and the matrix can be wearing either ladder. */
+  note: (l: LadderId) => string;
+  cell: (
+    c: SurfaceCandidate,
+    live: Live,
+    l: LadderId,
+    a: ActionRung,
+  ) => React.ReactNode;
 };
 
 const ROWS: Row[] = [
   {
     token: "--radius",
     label: "Surfaces",
-    note: "154 files carry one. Card is 1.4x of it, Input and every plate 1x.",
-    cell: (c, live) => (
-      <SurfaceSpecimen
-        radius={c.values ? c.values.radius : (live?.["--radius"] ?? null)}
-      />
-    ),
+    note: (l) =>
+      `154 files carry one. Card is ${cardMultiplier(l)}x of it, Input and every plate 1x.`,
+    // The live band is outside every scoped ladder, so it is handed the
+    // MEASURED card rather than a multiplier it would have to guess.
+    cell: (c, live, l) =>
+      c.values ? (
+        <SurfaceSpecimen radius={c.values.radius} ladder={l} />
+      ) : (
+        <SurfaceSpecimen
+          radius={live?.["--radius"] ?? null}
+          card={live?.card ?? null}
+        />
+      ),
   },
   {
     token: "--radius-float",
     label: "The floating layer",
-    note: "Menus, dialogs, toasts. Rows sit in 4px of padding.",
+    note: () => "Menus, dialogs, toasts. Rows sit in 4px of padding.",
     cell: (c, live) => (
       <FloatSpecimen
         float={c.values ? c.values.float : (live?.["--radius-float"] ?? null)}
@@ -436,7 +460,7 @@ const ROWS: Row[] = [
   {
     token: "--radius-tile",
     label: "Media tiles",
-    note: "Every gallery grid, with --gap-gallery pinned to it.",
+    note: () => "Every gallery grid, with --gap-gallery pinned to it.",
     cell: (c, live) => (
       <TileSpecimen
         tile={c.values ? c.values.tile : (live?.["--radius-tile"] ?? null)}
@@ -447,14 +471,17 @@ const ROWS: Row[] = [
   {
     token: "--radius-action",
     label: "Actions",
-    note: "The rung is the rail's, the same in every column. What changes is the contrast, printed under each.",
-    cell: (c, live, a) => (
+    note: () =>
+      "The rung is the rail's, the same in every column. What changes is the contrast, printed under each.",
+    cell: (c, live, l, a) => (
       <ActionSpecimen
         action={
           c.values ? a.values.action : (live?.["--radius-action"] ?? null)
         }
         sm={c.values ? a.values.sm : (live?.["--radius-action-sm"] ?? null)}
-        surface={c.values ? c.values.radius : (live?.["--radius"] ?? null)}
+        card={
+          c.values ? stepValue(c.values.radius, l, "xl") : (live?.card ?? null)
+        }
       />
     ),
   },
@@ -693,27 +720,37 @@ export function RoundingBoard() {
 
         {/* The one comparison the first ruling turns on, at true size. */}
         <div className="flex flex-wrap items-start gap-6 border-t border-border pt-4">
-          {[today, answer].map((c) => (
-            <div
-              key={c.id}
-              style={overrideStyle(c, todayRung)}
-              data-rnd-ladder={c.id === answer.id ? ANSWER.ladder : "stock"}
-              className="flex w-[15rem] flex-col gap-2"
-            >
-              <p className="text-sm font-medium">
-                {c.id === today.id ? "Today" : "The answer"}
-                <span className="ml-1.5 text-muted-foreground tabular-nums">
-                  {c.values!.radius} / {c.values!.float} / {c.values!.tile}
-                </span>
-              </p>
-              <SurfaceSpecimen radius={c.values!.radius} />
-              <TileSpecimen
-                tile={c.values!.tile}
-                gap={c.values!.gap}
-                count={3}
-              />
-            </div>
-          ))}
+          {[today, answer].map((c) => {
+            // One value for the attribute AND the caption: the answer column
+            // wears the ruled ladder, so its card is 1.25x and must not be
+            // captioned at the stock 1.4x.
+            const columnLadder: LadderId =
+              c.id === answer.id ? ANSWER.ladder : "stock";
+            return (
+              <div
+                key={c.id}
+                style={overrideStyle(c, todayRung)}
+                data-rnd-ladder={columnLadder}
+                className="flex w-[15rem] flex-col gap-2"
+              >
+                <p className="text-sm font-medium">
+                  {c.id === today.id ? "Today" : "The answer"}
+                  <span className="ml-1.5 text-muted-foreground tabular-nums">
+                    {c.values!.radius} / {c.values!.float} / {c.values!.tile}
+                  </span>
+                </p>
+                <SurfaceSpecimen
+                  radius={c.values!.radius}
+                  ladder={columnLadder}
+                />
+                <TileSpecimen
+                  tile={c.values!.tile}
+                  gap={c.values!.gap}
+                  count={3}
+                />
+              </div>
+            );
+          })}
           <div className="flex max-w-xs flex-col gap-2 self-center">
             <div className="flex flex-wrap items-center gap-2">
               <Button onClick={applyAnswer}>
@@ -836,9 +873,9 @@ export function RoundingBoard() {
             <p>
               Four rows, one per token family, on the components that carry
               them. The line under each cell is the arithmetic a ruling
-              inherits: a card is 1.4x the base, a menu row nests only at the
-              panel minus its 4px of padding, and the gallery gap follows the
-              tile.
+              inherits: a card is {cardMultiplier(ladder)}x the base on the
+              rail&apos;s ladder, a menu row nests only at the panel minus its
+              4px of padding, and the gallery gap follows the tile.
             </p>
             <p>
               The action row shows the shipped pair: the h-8 Button on
@@ -890,7 +927,7 @@ export function RoundingBoard() {
                       {row.label}
                     </p>
                     <CellLabel className="mt-0.5">{row.token}</CellLabel>
-                    <CellLabel className="mt-1.5">{row.note}</CellLabel>
+                    <CellLabel className="mt-1.5">{row.note(ladder)}</CellLabel>
                   </div>
                   {CANDIDATES.map((c) => (
                     <div
@@ -899,7 +936,7 @@ export function RoundingBoard() {
                       data-rnd-ladder={ladder}
                       className="min-w-0"
                     >
-                      {row.cell(c, live, action)}
+                      {row.cell(c, live, ladder, action)}
                     </div>
                   ))}
                 </div>
@@ -923,7 +960,7 @@ export function RoundingBoard() {
               {ROWS.map((row) => (
                 <div key={row.token} className="w-[13rem] min-w-0">
                   <CellLabel className="mb-1.5">{row.token}</CellLabel>
-                  {row.cell(LIVE, live, action)}
+                  {row.cell(LIVE, live, ladder, action)}
                 </div>
               ))}
             </div>
@@ -1055,11 +1092,15 @@ export function RoundingBoard() {
             <p className="text-sm font-medium">
               {surface.letter}
               <span className="ml-1.5 text-muted-foreground tabular-nums">
-                base {px(base)}, card {px(base * 1.4)}
+                base {px(base)}, card at {cardMultiplier(ladder)}x ={" "}
+                {px(stepValue(base, ladder, "xl"))}
               </span>
             </p>
             <div className="max-w-[34rem]">
-              <NestedSpecimen radius={surface.values ? base : null} />
+              <NestedSpecimen
+                radius={surface.values ? base : null}
+                outerMultiplier={cardMultiplier(ladder)}
+              />
             </div>
             <div className="max-w-[26rem]">
               <ActionRingSpecimen
@@ -1092,7 +1133,11 @@ export function RoundingBoard() {
                   className="min-w-0"
                 >
                   <p className="mb-2 text-sm font-medium">{c.letter}</p>
-                  <NestedSpecimen radius={c.values!.radius} ringOnly />
+                  <NestedSpecimen
+                    radius={c.values!.radius}
+                    outerMultiplier={cardMultiplier(ladder)}
+                    ringOnly
+                  />
                 </div>
               ))}
             </div>
@@ -1392,7 +1437,8 @@ export function RoundingBoard() {
                       {c.letter}
                       <span className="ml-1.5 text-muted-foreground tabular-nums">
                         {c.values!.radius} / {c.values!.float} /{" "}
-                        {c.values!.tile}
+                        {c.values!.tile}, card{" "}
+                        {px(stepValue(c.values!.radius, ladder, "xl"))}
                       </span>
                     </p>
                     <CellLabel>{c.phone}</CellLabel>
