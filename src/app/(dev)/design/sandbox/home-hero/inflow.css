@@ -68,8 +68,17 @@
 /* THE SPLASH. The rings live in the plate's own box and sit BEHIND it
    (z-index: -1 inside the lockup's stacking context), so the code is never
    overdrawn and the ripple reads as the surface reacting to something that
-   landed on it. Geometry, not light: a hairline ring expanding outward, which
-   is what an impact does. The standing cinema ruling is untouched. */
+   landed on it.
+
+   The glow on the ring is measured, not decorative, and it is the concept's
+   one flagged departure from the standing cinema-and-unlit ruling. A 1 px
+   hairline at the opacity a ripple wants is invisible the moment it crosses a
+   photograph, and the plate is surrounded by photographs by construction: at
+   0.32 opacity over the frames beside the code it read as nothing at all
+   (measured on the board). An 18 px spread at 0.25 carries over both the
+   photographs and the dark, which is what makes the landing legible. There is
+   NO inner glow: an inset haze whitens the plate and the frames under the
+   ring, and bible 1 does not allow that. */
 .hhi-splash {
   position: absolute;
   inset: 0;
@@ -87,6 +96,9 @@
 
 .hhi-count {
   font-variant-numeric: tabular-nums;
+  /* The rest level. The element's colour is plain white so the tick can
+     brighten past it; without this the flash would have nowhere to go. */
+  opacity: 0.72;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -97,14 +109,33 @@
   }
 
   @keyframes hhi-land {
-    from {
-      opacity: 0.5;
+    0% {
+      opacity: 0;
       transform: scale(1);
     }
-    to {
-      opacity: 0;
-      transform: scale(1.62);
+    18% {
+      opacity: 0.58;
     }
+    100% {
+      opacity: 0;
+      transform: scale(1.42);
+    }
+  }
+
+  /* The number brightens on the same beat and decays back. It sits on the one
+     lane of dark ground the funnel always leaves clear, so unlike the ring it
+     is legible every time; the two together are the whole of the evidence. */
+  @keyframes hhi-tick {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0.72;
+    }
+  }
+
+  .hhi-count[data-hhi-live] {
+    animation: hhi-tick 300ms var(--ease-emphasis) both;
   }
 
   /* Fired by the loop the moment a frame is fully behind the plate: the
@@ -112,6 +143,8 @@
      the one way to restart a CSS animation on demand. `both` leaves the ring
      at opacity 0 when it is over, so a ring at rest is invisible. */
   .hhi-ring[data-hhi-live] {
-    animation: hhi-land 760ms var(--ease-emphasis) both;
+    border-color: rgb(255 255 255 / 0.78);
+    box-shadow: 0 0 18px 0 rgb(255 255 255 / 0.22);
+    animation: hhi-land 640ms var(--ease-emphasis) both;
   }
 }

@@ -95,11 +95,6 @@ const CARDS = 24;
 /** Cards per side. CARDS / 2 by the parity split. */
 const POOL = CARDS / 2;
 const FLIGHT_MS = 9600;
-const LAUNCH_MS = 900;
-/** One card's full round trip: the flight plus its slack off screen. */
-const CYCLE_MS = POOL * LAUNCH_MS;
-/** The seeded gap between neighbours, in progress units: 900 / 9600. */
-const SEED_STEP = LAUNCH_MS / FLIGHT_MS;
 /** How long the opening rush takes to ease back to the steady cadence. */
 const GATHER_MS = 1500;
 /** How far behind the steady clock the field starts. Also the JS-off rest. */
@@ -128,6 +123,14 @@ type Geo = {
   card: number;
   /** How far out in the room a frame is born, from the centre. */
   travel: number;
+  /** The gap between launches on one side. The desktop keeps the source's
+   *  900 ms so the two concepts on the board compare beat for beat; the phone
+   *  launches at 1250, because 188 px of runway each side is not enough for
+   *  the source's cadence. Measured: at 900 ms the phone's neighbours sit 0.5
+   *  of a card apart and the funnel reads as a pile with nothing legible in
+   *  it; at 1250 they sit 0.75 apart and it reads as a procession. The count
+   *  ticks slower there as a result, which is the truth of the picture. */
+  launch: number;
   perspective: number;
   /** Half the corridor's reserved band: where the type starts, from the centre. */
   offset: number;
@@ -158,32 +161,38 @@ const GEO: Record<Mode, Geo> = {
     plate: 160,
     card: 310,
     travel: 1.65 * CANVAS.desktop.w,
+    launch: 900,
     perspective: 900,
-    offset: 212,
+    offset: 216,
     sizes: "384px",
     rotate: 9.5,
-    yDrift: 64,
+    yDrift: 60,
     h1Max: 1100,
     fade: "12%",
-    countTop: 92,
+    countTop: 118,
     countFull: true,
   },
   phone: {
     qr: 112,
     plate: 128,
-    card: 190,
+    card: 162,
     travel: 1.65 * CANVAS.phone.w,
+    launch: 1250,
     perspective: 360,
     offset: 148,
-    sizes: "224px",
+    sizes: "200px",
     rotate: 8.5,
-    yDrift: 26,
+    yDrift: 28,
     h1Max: 343,
     fade: "16%",
-    countTop: 76,
+    countTop: 92,
     countFull: false,
   },
 };
+
+/** One card's full round trip on this canvas: the flight plus its slack off
+ *  screen. Twelve launches a side, so the modulo recycles the pool exactly. */
+const cycleOf = (geo: Geo) => POOL * geo.launch;
 
 /* ── The shader primitives, unchanged from the source: the two concepts have
       to share physics or the board is comparing two things at once ── */
@@ -340,20 +349,20 @@ function opacityAt(p: number, landing: number) {
  * offset plus the clock hits the landing progress, so the whole count is two
  * floors per card and stays exact across a pause, a gather and an hour.
  */
-function landingsBetween(from: number, to: number, landing: number) {
+function landingsBetween(from: number, to: number, geo: Geo, landing: number) {
   const at = landing * FLIGHT_MS;
+  const cycle = cycleOf(geo);
   let n = 0;
   for (const c of CARD_POOLS) {
-    const base = c.slot * LAUNCH_MS - at;
-    n +=
-      Math.floor((base + to) / CYCLE_MS) - Math.floor((base + from) / CYCLE_MS);
+    const base = c.slot * geo.launch - at;
+    n += Math.floor((base + to) / cycle) - Math.floor((base + from) / cycle);
   }
   return n;
 }
 
-/** How many rings can be in the air at once. A landing every 450 ms against a
- *  760 ms ring means two, and the third is the slack that makes the
- *  round-robin safe at the gather's 2.2x. */
+/** How many rings can be in the air at once. A landing every 450 ms on the
+ *  desktop against a 760 ms ring means two, and the third is the slack that
+ *  makes the round-robin safe at the gather's 2.2x. */
 const RINGS = 3;
 
 function Inflow({ mode, copy, qrUrl }: ConceptProps) {
@@ -366,6 +375,7 @@ function Inflow({ mode, copy, qrUrl }: ConceptProps) {
   const nodes = useRef<(HTMLDivElement | null)[]>([]);
   const rings = useRef<(HTMLSpanElement | null)[]>([]);
   const countRef = useRef<HTMLSpanElement | null>(null);
+  const countLine = useRef<HTMLParagraphElement | null>(null);
   // The contract's progress[]: filled every frame, never React state.
   const progress = useRef<number[]>([]);
 
@@ -379,6 +389,7 @@ function Inflow({ mode, copy, qrUrl }: ConceptProps) {
     let elapsed = 0;
     let landed = 0;
     let ring = 0;
+    const cycle = cycleOf(geo);
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
@@ -401,7 +412,7 @@ function Inflow({ mode, copy, qrUrl }: ConceptProps) {
 
       const p = progress.current;
       for (let i = 0; i < CARD_POOLS.length; i++) {
-        p[i] = mod(CARD_POOLS[i].slot * LAUNCH_MS + flow, CYCLE_MS) / FLIGHT_MS;
+        p[i] = mod(CARD_POOLS[i].slot * geo.launch + flow, cycle) / FLIGHT_MS;
       }
       for (let i = 0; i < CARD_POOLS.length; i++) {
         const el = nodes.current[i];
@@ -419,7 +430,7 @@ function Inflow({ mode, copy, qrUrl }: ConceptProps) {
       // THE EVIDENCE. Every landing since the gather's first frame, counted in
       // closed form off the same clock, so a pause or the gather's speed-up
       // can never desynchronise the number from the picture.
-      const total = landingsBetween(-GATHER_LAG_MS, flow, landing);
+      const total = landingsBetween(-GATHER_LAG_MS, flow, geo, landing);
       if (total !== landed) {
         landed = total;
         if (countRef.current) {
@@ -427,12 +438,13 @@ function Inflow({ mode, copy, qrUrl }: ConceptProps) {
         }
         const el = rings.current[ring % RINGS];
         ring += 1;
-        if (el) {
-          // The one reliable way to restart a CSS animation: drop the hook,
-          // flush layout, put it back. Twice a second, on three small nodes.
-          el.removeAttribute("data-hhi-live");
-          void el.offsetWidth;
-          el.setAttribute("data-hhi-live", "");
+        // The one reliable way to restart a CSS animation: drop the hook,
+        // flush layout, put it back. Twice a second, on four small nodes.
+        for (const node of [el, countLine.current]) {
+          if (!node) continue;
+          node.removeAttribute("data-hhi-live");
+          void node.offsetWidth;
+          node.setAttribute("data-hhi-live", "");
         }
       }
     };
@@ -464,8 +476,9 @@ function Inflow({ mode, copy, qrUrl }: ConceptProps) {
             // crawler and the server's HTML get the album flowing) and the
             // gather's first frame (inside no-preference, so the opening beat
             // cannot flash). Neither is a collapsed composition.
-            const seed = c.slot * SEED_STEP;
-            const lagged = mod(c.slot * LAUNCH_MS - GATHER_LAG_MS, CYCLE_MS) / FLIGHT_MS;
+            const seed = (c.slot * geo.launch) / FLIGHT_MS;
+            const lagged =
+              mod(c.slot * geo.launch - GATHER_LAG_MS, cycleOf(geo)) / FLIGHT_MS;
             const rest = Math.min(seed, 1);
             return (
               <div
@@ -530,7 +543,10 @@ function Inflow({ mode, copy, qrUrl }: ConceptProps) {
         className="absolute left-1/2 z-10 -translate-x-1/2 text-center"
         style={{ top: `calc(50% + ${geo.countTop}px)` }}
       >
-        <Caption className="hhi-count whitespace-nowrap text-white/70">
+        <Caption
+          ref={countLine}
+          className="hhi-count whitespace-nowrap text-white"
+        >
           <span ref={countRef}>{COUNT_BASE}</span> photos
           {geo.countFull ? ` from ${GUEST_COUNT} guests, still arriving` : ""}
         </Caption>
@@ -583,7 +599,7 @@ export const inflow: Concept = {
   n: 3,
   name: "The inflow",
   rationale:
-    "The mirror of the source, built to answer one question honestly: guests' photographs arrive out of the dark at the edges of the room, close on the code, and slide under its plate, so the code reads as the destination everything goes to. Nothing ever fades at the code, because an object hidden behind something opaque has gone somewhere and an object that dissolves has been erased; each landing pushes a ring out of the plate and ticks the count under it. The verdict, which is what this variation was built to give: it is the truer sentence and it is a real composition, but it presents a shade below the source, because an outflow can be read from one still frame and an inflow needs the motion, the ring and the count to be read at all. Recommendation: keep the source as the hero, and keep this one for a surface where the reader is already moving.",
+    "The mirror of the source, built to answer one question honestly. Guests' photographs come out of the dark at the edges of the room, close on the code, and slide UNDER its white plate: nothing ever fades at the code, because an object hidden behind something opaque has gone somewhere and an object that dissolves has been erased. Each landing pushes a ring out of the plate and ticks the count under it, and on load the whole room closes on the code once before settling. The verdict, which is what this variation was built to give: in MOTION it reads, and it is the truer sentence. In a STILL it does not: the corridor is geometrically the same picture as the source, and the only cue left is the words. A directional soft edge on every frame was tried as the fix and abandoned, because at a strength you can see it is eating the photograph. The second finding is the one that decides it: the source's frames grow as they travel, so the album gets MORE legible the longer you look, while the inflow's shrink to nothing at the object you want looked at. Recommendation: keep the source as the home hero. Keep this one for a surface where the reader is already moving and 'everything lands here' is the sentence, the album page or /features/qr.",
   eyebrow:
     "The code itself, at the centre, with no label: the eyebrow is the object, and here it is the destination.",
   proposed: {
