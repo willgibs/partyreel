@@ -1,5 +1,13 @@
 import type { Ground } from "@/components/dev/board";
 
+import {
+  ENTRANCE_LABEL,
+  ENTRANCE_RUNGS,
+  LIGHT_LABEL,
+  LIGHT_RUNGS,
+  RADIUS_RUNGS,
+} from "./candidates";
+
 /**
  * The board's shared vocabulary, in a module with NO "use client" on purpose:
  * the scene route is a Server Component and has to validate its search params
@@ -12,8 +20,12 @@ export const SCENES = [
   "family",
   "overlay",
   "edge",
+  "guest",
   "ladder",
+  "nest",
+  "trio",
   "select",
+  "radio",
 ] as const;
 export type Scene = (typeof SCENES)[number];
 
@@ -28,13 +40,44 @@ export const GROUNDS = [
   "app-light",
 ] as const;
 
+/** Which edge an edge-attached panel enters from. A knob because the ONE
+ *  product call site of ui/sheet.tsx is the marketing mobile menu, and it enters
+ *  from the TOP: the two corners that stay on screen there are the bottom two,
+ *  not the top two, and a candidate that only covered bottom and right reached
+ *  nothing real. */
+export const SIDES = ["top", "right", "bottom", "left"] as const;
+export type Side = (typeof SIDES)[number];
+
+/** The palette board's dark ramps (docs/specs/palette.md), as a knob. A floating
+ *  layer's light in dark is entirely a question of the ground it floats over: on
+ *  today's dark the popover sits LIGHTER than the card it opens from (0.245 over
+ *  0.21, the palette board's finding), and the answer to "does a shadow return
+ *  in dark" changes with that. The ramp blocks live in board.css. */
+export const RAMPS = ["today", "a", "b"] as const;
+export type Ramp = (typeof RAMPS)[number];
+
+export const RAMP_LABEL: Record<Ramp, string> = {
+  today: "Ramp: today",
+  a: "A one ladder",
+  b: "B one room",
+};
+
+/** The cinema ground paints its --background inline (the frame's own style, so
+ *  it beats any class rule), so the ramp has to hand it the matching value.
+ *  These are the three cinema grounds from the palette spec's marketing block. */
+export const RAMP_CINEMA_BG: Record<Ramp, string> = {
+  today: "oklch(0.11 0 0)",
+  a: "oklch(0.105 0 0)",
+  b: "oklch(0.125 0 0)",
+};
+
 /** The ground sets a frame paints, shared by the frame page (first paint, from
  *  the URL) and the parent board (every change after, by attribute). */
 export const GROUND_SET: Record<
   Ground,
-  { className: string; mkt: boolean; bg?: string }
+  { className: string; mkt: boolean; cinema?: boolean }
 > = {
-  cinema: { className: "dark", mkt: true, bg: "oklch(0.11 0 0)" },
+  cinema: { className: "dark", mkt: true, cinema: true },
   paper: { className: "surface-paper", mkt: true },
   ink: { className: "surface-ink", mkt: true },
   "app-dark": { className: "dark", mkt: false },
@@ -45,24 +88,73 @@ export const GROUND_SET: Record<
  *  next without knowing which it was. */
 export const GROUND_CLASSES = ["dark", "surface-paper", "surface-ink"];
 
-/** The rungs of each ladder. The id is the candidate class board.css matches on
- *  the panel itself, which is what lets one frame hold a whole ladder: a radix
- *  panel portals away from any wrapper we could put around it. */
+/** The rungs of each ladder. The id is the candidate class the generated block
+ *  matches on the panel itself, which is what lets one frame hold a whole ladder:
+ *  a radix panel portals away from any wrapper we could put around it. The ""
+ *  id is today, as it ships, with nothing overridden. */
 export const RUNGS: Record<Dim, { id: string; label: string }[]> = {
   radius: [
     { id: "", label: "today" },
-    { id: "flt-r-sharp", label: "sharp" },
-    { id: "flt-r-nested", label: "nested" },
-    { id: "flt-r-round", label: "round" },
+    ...RADIUS_RUNGS.map((r) => ({ id: `flt-r-${r}`, label: r })),
   ],
   light: [
-    { id: "flt-l-lighter", label: "lighter is closer" },
-    { id: "flt-l-shadow", label: "a soft shadow" },
-    { id: "flt-l-lit-edge", label: "a lit edge" },
+    { id: "", label: "today" },
+    ...LIGHT_RUNGS.map((r) => ({ id: `flt-l-${r}`, label: LIGHT_LABEL[r] })),
   ],
   entrance: [
-    { id: "flt-e-one-clock", label: "one clock" },
-    { id: "flt-e-by-frequency", label: "by frequency" },
-    { id: "flt-e-origin-true", label: "origin true" },
+    { id: "", label: "today" },
+    ...ENTRANCE_RUNGS.map((r) => ({
+      id: `flt-e-${r}`,
+      label: ENTRANCE_LABEL[r],
+    })),
   ],
 };
+
+/** A rung class is its own address: the six-character prefix says which
+ *  dimension, the rest says which value, so the frame turns a list of rung ids
+ *  into CSS (candidates.ts rungCss) and the board turns one into a paste
+ *  without a second table to keep in step. */
+export const RUNG_PREFIX_LENGTH = 6;
+
+/** The pages to walk with a candidate applied, quoted on the board and in the
+ *  manifest's Handoff. Each carries a different member of the family.
+ *
+ *  `carries` is the honest column. A candidate rides the <style> that
+ *  CandidateStyle renders, and that mounts in exactly three places: the lab
+ *  layout, the marketing cinema island and the host app's island. The GUEST
+ *  group has no island, so /e/<token> cannot wear a candidate at all, and the
+ *  surface this board made primary is the one page a sitting cannot walk. One
+ *  line in src/app/(guest)/layout.tsx fixes it; it is a shell change, so it is
+ *  in the manifest's Handoff rather than done here. */
+export const WALK: { href: string; what: string; carries: boolean }[] = [
+  {
+    href: "/",
+    what: "the header nav panel (hover Features), then the mobile menu sheet at 375, which is ui/sheet.tsx's only product call site",
+    carries: true,
+  },
+  {
+    href: "/pricing",
+    what: "the plan tooltips, the highest-frequency surface on the site",
+    carries: true,
+  },
+  {
+    href: "/help",
+    what: "the header nav panel over a paper ground, where the light rungs change sides",
+    carries: true,
+  },
+  {
+    href: "/contact",
+    what: "the select, its one product call site, and the outlier row 7 asks about",
+    carries: true,
+  },
+  {
+    href: "/dashboard",
+    what: "the account dropdown, the event menus and a confirm dialog (signed in)",
+    carries: true,
+  },
+  {
+    href: "/e/[the demo token]",
+    what: "the guest entry drawer at 375. It cannot wear a candidate yet: the guest group has no design island, so row 1 is the only place this surface can be judged",
+    carries: false,
+  },
+];

@@ -6,7 +6,7 @@ import { CANVAS, type Ground, type Mode } from "@/components/dev/board";
 import { withDesignKey } from "@/lib/design-gate/links";
 import { cn } from "@/lib/utils";
 
-import type { Dim, Scene } from "./constants";
+import type { Dim, Ramp, Scene, Side } from "./constants";
 
 /**
  * A VIEWPORT ON A GROUND: the board's stage for this family.
@@ -20,9 +20,9 @@ import type { Dim, Scene } from "./constants";
  * lab column without touching the layout inside, which is the difference that
  * matters: the frame still LAYS OUT at 1440 or 375.
  *
- * Only the props that change the render ride the URL, so a ground or candidate
- * change never reloads: those are attributes the parent writes straight into
- * `contentDocument` (same origin).
+ * Only the props that change the render ride the URL, so a ground, a ramp or a
+ * candidate change never reloads: those are attributes the parent writes
+ * straight into `contentDocument` (same origin).
  *
  * Every frame mounts at once rather than on scroll. An IntersectionObserver was
  * the obvious economy and the wrong call here: a board of six frames is six
@@ -33,6 +33,8 @@ import type { Dim, Scene } from "./constants";
 export type FrameProps = {
   scene: Scene;
   ground: Ground;
+  /** Which of the palette board's dark ramps the panel floats over. */
+  ramp?: Ramp;
   mode: Mode;
   /** Override the canvas height; a ladder rarely needs a full viewport. */
   height?: number;
@@ -40,12 +42,18 @@ export type FrameProps = {
    *  corner against a 12px one at 0.5 scale judges the scale, so a ladder asks
    *  for exactly the width its rungs need and renders 1:1 in the lab column.
    *  Kept above 768 on the desktop canvas so `sm:` still resolves desktop-side
-   *  (both sheet and dialog branch on it). */
+   *  (the sheet, the dialog and the guest entry shell all branch on it). */
   width?: number;
   /** Cap the fitted width, so small frames can sit several to a row at 1:1. */
   fit?: number;
   dim?: Dim;
   variant?: "sheet" | "drawer";
+  /** Which edge an edge-attached panel enters from. Defaults to the real one
+   *  for the width (a guest on a phone gets the bottom, a host at 1440 the
+   *  right); named explicitly where the product's own call site differs. */
+  side?: Side;
+  /** A short scene body, so a tall surface's top edge fits a short canvas. */
+  compact?: boolean;
   /** A single rung's candidate class, when the whole frame is one rung. */
   rung?: string;
   radius?: string;
@@ -62,12 +70,15 @@ export type FrameProps = {
 export function Frame({
   scene,
   ground,
+  ramp = "today",
   mode,
   height,
   width,
   fit,
   dim = "radius",
   variant = "sheet",
+  side,
+  compact = false,
   rung,
   radius = "off",
   entrance = "off",
@@ -92,20 +103,24 @@ export function Frame({
       dim,
       variant,
       ground,
+      ramp,
       radius,
       entrance,
       light,
     });
+    if (side) q.set("side", side);
     if (rung) q.set("rung", rung);
+    if (compact) q.set("compact", "1");
     if (designKey === undefined) return undefined;
     return withDesignKey(
       `/design/sandbox/floating-surfaces?${q.toString()}`,
       designKey,
     );
-    // ground/radius/entrance/light are seeded here for the first paint and then
-    // owned by the attribute effect below, so they must NOT retrigger the memo.
+    // ground/ramp/radius/entrance/light are seeded here for the first paint and
+    // then owned by the attribute effect below, so they must NOT retrigger the
+    // memo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scene, mode, dim, variant, rung, designKey]);
+  }, [scene, mode, dim, variant, side, compact, rung, designKey]);
 
   useLayoutEffect(() => {
     const box = boxRef.current;
@@ -120,18 +135,20 @@ export function Frame({
     return () => ro.disconnect();
   }, [w, fit]);
 
-  // The ground and the three knobs, asked for rather than written: the frame is
-  // their resident owner (frame-page.tsx says why next-themes makes that
-  // necessary). Same origin, so this is a direct dispatch, no postMessage.
+  // The ground, the ramp and the three knobs, asked for rather than written:
+  // the frame is their resident owner (frame-page.tsx says why next-themes makes
+  // that necessary). Same origin, so this is a direct dispatch, no postMessage.
   // `ready` is in the deps so a frame that has just reloaded is told again.
   useEffect(() => {
     const win = frameRef.current?.contentWindow;
     if (!win) return;
     const Ctor = (win as Window & typeof globalThis).CustomEvent ?? CustomEvent;
     win.dispatchEvent(
-      new Ctor("flt:set", { detail: { ground, radius, entrance, light } }),
+      new Ctor("flt:set", {
+        detail: { ground, ramp, radius, entrance, light },
+      }),
     );
-  }, [ground, radius, entrance, light, ready]);
+  }, [ground, ramp, radius, entrance, light, ready]);
 
   useEffect(() => {
     if (!replay) return;
