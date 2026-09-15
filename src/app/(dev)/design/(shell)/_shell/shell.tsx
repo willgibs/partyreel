@@ -26,15 +26,18 @@ import { TopBar } from "./top-bar";
 export function Shell({
   nav,
   index,
+  designKey,
   children,
 }: {
   nav: Nav;
   index: SearchIndex;
+  /** The gate key the proxy forwarded; null in open dev. */
+  designKey: string | null;
   children: React.ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <ShellProvider nav={nav} index={index}>
+    <ShellProvider nav={nav} index={index} designKey={designKey}>
       <div className="lab-shell min-h-dvh bg-background text-foreground">
         <TopBar onMenu={() => setMenuOpen(true)} />
         <div className="lab-shell-body">

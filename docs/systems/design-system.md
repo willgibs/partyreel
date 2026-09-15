@@ -939,6 +939,15 @@ authority model in [`../design/README.md`](../design/README.md); `pnpm lab:smoke
   styles, so token/craft changes don't touch them.
 - jsdom can't run the lightbox pause-on-navigate effect (portal/commit timing); that one pin was
   dropped on purpose — cover it in live device passes.
+- ★ **The lab's gate runs in the proxy, before any lab layout renders** (the Library x Lab round,
+  2026-09-15). The shell layout builds the nav (every component, board, proposal and track by name) and a
+  layout cannot read `searchParams`, so a page-level `notFound()` came too late: on the launch-prep alias
+  a keyless request answered 200 with the layout's props in the flight payload while the page drew the
+  404. `src/proxy.ts` now runs `designGateOpen` on every `/design` request (a refused one is rewritten to
+  a path no route serves, a real 404 like any missing URL) and forwards the key as the `x-design-key`
+  header the shell layout reads; the pages still call `requireDesignKey`. Never wrap the shell layout's
+  page in a Suspense boundary (it lets a page's `notFound()` answer 200) and never read the key in the
+  shell with `useSearchParams` (it needs that boundary). Proven by `pnpm lab:smoke --production`.
 - ★ **Two Tailwind entries, one theme, two scans** (the library round, 2026-09-02). `globals.css` excludes
   the lab and `docs/` from its scan (`@source not`), and the lab compiles its own utilities from the entry at
   the top of `design.css`, which `@reference`s `theme.css`. Never `@reference "globals.css"` from the lab: it

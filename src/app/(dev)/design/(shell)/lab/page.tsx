@@ -127,11 +127,20 @@ export default async function DeskPage({
                 <Ref to={{ kind: "record", id: ruling.id }} quiet>
                   the record
                 </Ref>
-                {built.map((b) => (
-                  <Ref key={b.name} to={{ kind: "track", name: b.name }} quiet>
-                    {built.length > 1 ? `manifest: ${b.name}` : "the manifest"}
-                  </Ref>
-                ))}
+                {built.map(
+                  (b) =>
+                    b.track && (
+                      <Ref
+                        key={b.name}
+                        to={{ kind: "track", name: b.name }}
+                        quiet
+                      >
+                        {built.length > 1
+                          ? `manifest: ${b.name}`
+                          : "the manifest"}
+                      </Ref>
+                    ),
+                )}
               </p>
             </li>
           ))}

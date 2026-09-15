@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 import type { Nav } from "@/app/(dev)/design/_data/catalog";
 import type { SearchIndex } from "@/app/(dev)/design/_data/search";
@@ -26,11 +20,20 @@ import {
  * nav and the search index (both built server-side by _data/nav.ts and handed
  * down as props), the live URL state, and the palette's latch.
  *
- * Layouts cannot see searchParams, so the state is read here with
- * useSearchParams inside the layout's Suspense boundary. `LabLink` is the only
- * way the chrome links anywhere: it carries the sticky params (the key, the
- * canvas, the ground) onto every internal href, fragment included, and the
- * page-local ones only when the link stays on this page (_data/state.ts).
+ * ★ THE GATE KEY COMES FROM THE LAYOUT PROP, NEVER FROM A CLIENT HOOK. The
+ * proxy runs the design gate before any of this renders and forwards the key
+ * as `x-design-key`; the layout reads it with `headers()` and hands it down.
+ * Reading it here with `useSearchParams` would need a Suspense boundary around
+ * the page, and one of those let a keyless production request stream the nav
+ * under a 200. The OTHER params (the canvas, the ground, a board's candidate,
+ * the section, the review position) are read from the URL here because they
+ * change without a full render and are not security-bearing; the layout's own
+ * `headers()` call already makes every route under it dynamic, so this needs no
+ * boundary of its own. The key on `state` is always the prop's.
+ *
+ * `LabLink` is the only way the chrome links anywhere: it carries the sticky
+ * params onto every internal href, fragment included, and the page-local ones
+ * only when the link stays on this page (_data/state.ts).
  */
 type ShellValue = {
   nav: Nav;
@@ -55,10 +58,13 @@ const Ctx = createContext<ShellValue>(EMPTY);
 export function ShellProvider({
   nav,
   index,
+  designKey,
   children,
 }: {
   nav: Nav;
   index: SearchIndex;
+  /** The gate key the proxy forwarded; null in open dev. */
+  designKey: string | null;
   children: React.ReactNode;
 }) {
   const searchParams = useSearchParams();
@@ -67,7 +73,13 @@ export function ShellProvider({
   // searchParams is a new object every render; the string is the real identity,
   // so the state object (and every keyed href built from it) stays stable.
   const search = searchParams.toString();
-  const state = useMemo(() => readLabState(search), [search]);
+  const state = useMemo(() => {
+    const read = readLabState(search);
+    // The proxy's key wins over anything the URL says, and is the only source.
+    if (designKey) read.key = designKey;
+    else delete read.key;
+    return read;
+  }, [search, designKey]);
   const value = useMemo(
     () => ({ nav, index, state, pathname, paletteOpen, setPaletteOpen }),
     [nav, index, state, pathname, paletteOpen],
