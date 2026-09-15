@@ -525,6 +525,7 @@ const DEPARTURES = [
   "The float rung is being ruled on two boards. This one sets --radius-float; the floating-surfaces proposal adds --radius-float-item (the panel minus its row padding) and --radius-float-lg. They have to agree, and bible 9 says the item token is right: today a menu draws an 8px panel around 1.6px rows sitting in 4px of padding.",
   "--radius-action-lg has exactly one call site, the reel builder, on an h-11. Every marketing CTA is size lg forced to h-11 with a className in 26 files, so the loudest action on the site wears 0.9 x --radius-action at 0.33 of its height while globals.css documents the ladder as 0.4. The proposal is a cta size on the Button (h-11 at 1.1 x --radius-action) and the retirement of a token named for a height nothing uses.",
   "The derived ladder cannot be retuned with a token. @theme inline substitutes each step into its utility at build time, so --radius-xl is empty at runtime and part D renders the retune as utility overrides. The ruling lands on the multipliers in theme.css, one line a step, which is the Orchestrator's file.",
+  "The guest group cannot wear a candidate. CandidateStyle mounts in the lab layout, the marketing island and the app island, and (guest)/layout.tsx mounts none of them, so /e/<token> ignores every paste this board offers. The floating-surfaces board asks for the same one line, and this board is the second reason: the surface part E turns on is on that page.",
 ];
 
 const ASSETS = [
@@ -732,6 +733,18 @@ export function RoundingBoard() {
               )}
             </CellLabel>
             <CellLabel>
+              {/* ★ The guest group mounts no design island, so /e/<token>
+                  cannot wear a candidate. Found by the floating-surfaces
+                  board and confirmed here: CandidateStyle mounts in the lab
+                  layout, the marketing island and the app island, and
+                  (guest)/layout.tsx has none of the three. Saying "walk the
+                  guest page" would send the reader to the one page that
+                  silently ignores the paste. */}
+              The guest page at /e/&lt;token&gt; cannot wear a candidate yet:
+              its group mounts no design island. Part F is the stand-in, and the
+              Handoff asks for the one line that fixes it.
+            </CellLabel>
+            <CellLabel>
               Then walk{" "}
               {(
                 [
@@ -752,8 +765,8 @@ export function RoundingBoard() {
                   {i < all.length - 1 ? ", " : ""}
                 </span>
               ))}
-              , an event page and the demo guest page. The app pages want the
-              host signed in, and the key rides the query string.
+              and an event page. The app pages want the host signed in, and the
+              key rides the query string.
             </CellLabel>
           </div>
         </div>
@@ -1286,7 +1299,9 @@ export function RoundingBoard() {
                 </p>
                 <CellLabel className="mt-0.5">
                   entry-shell.tsx, at 1.4 x --radius-action. Not a button, and
-                  the first surface every guest meets
+                  the first surface every guest meets. Drawn here because the
+                  real one cannot be walked: the guest group mounts no design
+                  island, so a candidate never reaches it
                 </CellLabel>
               </div>
               {ACTIONS.map((a) => (
