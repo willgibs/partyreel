@@ -83,7 +83,7 @@ Copy everything below into `docs/tracks/<track>.md` and fill it in.
 track: <track>
 status: open            # open -> handed-off -> integrated (deleted at the milestone that ships it)
 cut: "<sha>"            # the launch-prep SHA the branch was cut from
-preview: false          # true = every push builds partyreel-git-lp-<track>; flip for Will's eyes
+preview: false          # intent only since 2026-09-15: the branch builds at handed-off or on [preview], never every push
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/some/dir/
   - src/some/file.ts
@@ -161,10 +161,19 @@ rounds and `voice-infusion` cut. The rest follow the wave plan in [`../STATUS.md
 ## Previews
 
 The build gate (`scripts/vercel-ignore-build.mjs`) builds an `lp/<track>` push when the branch has
-no manifest yet, when its manifest says `preview: true` or `status: handed-off`, or when the commit
-message carries `[preview]`. A manifest with `preview: false` and `status: open` skips the build, so
-the integration preview never queues behind work in progress on the one-at-a-time Hobby plan.
+no manifest yet, when its manifest says `status: handed-off`, or when the commit message carries
+`[preview]`. An open manifest skips whatever its `preview:` field says (the CI budget round,
+2026-09-15: `preview: true` on twelve boards meant twelve tracks building every push, which hit the
+free plan's 100 deployments a day and then could not build the one alias Will needed). Work in
+progress needs no preview; the handoff does.
 
 `main` always builds. `launch-prep` builds ON REQUEST since 2026-09-11: say `[preview]` in the
 commit message of the push whose alias you mean to walk. Building it on every push was most of a
-Vercel storage overage, and CI runs the four-step gate on every push either way.
+Vercel storage overage.
+
+**CI is not the gate; the four local steps are.** `ci.yml` runs on `main` and `launch-prep` pushes
+that touch code (a docs-only push is skipped, and the Orchestrator's record commits say `[skip ci]`)
+and on PRs to `main`. An `lp/*` push runs it only when the commit message carries `[ci]`: opt in for
+a production sweep, a lockfile change, or a tree you cannot build locally. Twelve agent tracks
+running the remote gate on every push spent a month of GitHub Actions minutes in two days
+(405 runs, about 1,500 minutes, 09-14 to 09-15).

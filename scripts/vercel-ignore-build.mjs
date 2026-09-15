@@ -20,14 +20,16 @@
  * `[preview]`. Nothing is lost but the preview itself: CI (GitHub Actions) runs typecheck,
  * lint, test and build on every push to main, launch-prep and lp/** regardless of this file.
  *
- * An lp/<track> push is unchanged: it builds when the branch has NO manifest yet (the pre-model
- * default, so a branch that predates docs/tracks keeps its every-push preview), when its manifest
- * docs/tracks/<track>.md says `preview: true` or `status: handed-off`, or when the commit message
- * carries `[preview]`. A manifest with `preview: false` and `status: open` skips, so the
- * integration preview never queues behind work in progress on the one-at-a-time Hobby plan (the
- * operating model, 2026-09-02). A missing/empty VERCEL_GIT_COMMIT_REF means a manual
- * `vercel deploy` with no git ref, which must never be silently canceled, so it builds.
- * Everything else skips.
+ * An lp/<track> push builds when the branch has NO manifest yet (the pre-model default, so a
+ * branch that predates docs/tracks keeps its every-push preview), when its manifest
+ * docs/tracks/<track>.md says `status: handed-off` (the handoff and the fix pushes after it are
+ * Will's review surface), or when the commit message carries `[preview]`. An open manifest skips
+ * whatever its `preview:` field says: `preview: true` used to mean "build every push", and with
+ * twelve boards carrying it round four of the review wave hit the free plan's 100 deployments a
+ * day at 23:31 on 2026-09-14 and then could not build the one alias Will needed (the CI budget
+ * round, 2026-09-15). Work in progress needs no preview; the handoff does. A missing/empty
+ * VERCEL_GIT_COMMIT_REF means a manual `vercel deploy` with no git ref, which must never be
+ * silently canceled, so it builds. Everything else skips.
  *
  * vercel.json's "ignoreCommand" points here and overrides the project-settings field; keep the
  * policy in THIS file. Rollback: delete the vercel.json key (the dashboard field, if still set,
@@ -48,8 +50,7 @@ function manifestDecision(track) {
   }
   return {
     hasManifest: true,
-    wants:
-      /^preview:\s*true\b/m.test(head) || /^status:\s*handed-off\b/m.test(head),
+    wants: /^status:\s*handed-off\b/m.test(head),
   };
 }
 
@@ -74,15 +75,14 @@ if (ref === "") {
       "an lp/ branch without a manifest builds every push (the pre-model default)";
   } else if (wants) {
     build = true;
-    why =
-      "its manifest asks for a preview (preview: true or status: handed-off)";
+    why = "its manifest says status: handed-off (the review surface)";
   } else if (message.includes("[preview]")) {
     build = true;
     why = "the commit message says [preview]";
   } else {
     build = false;
     why =
-      "its manifest is open with preview: false (say [preview] or flip the flag)";
+      "its manifest is not handed-off: work in progress builds no preview (say [preview] for one)";
   }
 } else {
   build = false;

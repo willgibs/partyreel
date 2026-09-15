@@ -30,6 +30,23 @@
 # Until those two variables exist, the build step SKIPS with a loud annotation
 # rather than failing: a red run must mean broken code, not unfinished setup, or
 # the signal is worthless on day one. Set them and it lights up on the next push.
+#
+# THE BUDGET (the CI budget round, 2026-09-15). Round four of the review wave ran
+# twelve agent tracks at once and every one of their pushes ran this gate: 405
+# runs and about 1,500 runner-minutes on 09-14 and 09-15 alone, 90 percent of
+# them on lp/* branches, which spent the month's private-repo budget in two days
+# (Will: "every single commit does not need a full CI/CD deployment, especially
+# when it's UI heavy with minimal risk"). Every agent already runs the four-step
+# gate locally before a handoff and the Orchestrator reruns it on the merged
+# tree, so the remote run on an agent branch was a second opinion, not the
+# gate. The policy now:
+#   - main and launch-prep run on every push that touches code; a push that only
+#     changes docs is skipped (paths-ignore), and the Orchestrator's record
+#     commits say [skip ci] besides.
+#   - lp/** pushes run ONLY when the head commit message carries [ci]: an agent
+#     opts a push in (a production sweep, a lockfile change, a tree it cannot
+#     build locally). Otherwise the job is skipped at zero minutes.
+#   - pull requests to main always run; workflow_dispatch always runs.
 
 name: ci
 
@@ -41,6 +58,11 @@ on:
       - main
       - launch-prep
       - "lp/**"
+    # A docs-only push never changes what the gate checks (the manifests' lane
+    # guard is run locally before every integration push).
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
   pull_request:
     branches:
       - main
@@ -57,6 +79,12 @@ permissions:
 jobs:
   gate:
     name: gate
+    # An agent branch runs the remote gate only on request ([ci] in the head
+    # commit message); a skipped job bills nothing. Everything else runs.
+    if: >-
+      ${{ github.event_name != 'push'
+          || !startsWith(github.ref, 'refs/heads/lp/')
+          || contains(github.event.head_commit.message, '[ci]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:

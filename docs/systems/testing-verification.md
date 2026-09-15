@@ -30,10 +30,12 @@ the spliced file was committed on the strength of a gate that had passed minutes
 fans work out inside one worktree, re-run typecheck after formatting whenever anything else might hold
 the file, and verify the commit rather than the run.
 
-**CI runs the same four steps on every push** to `launch-prep` and `lp/*` and on every PR to `main`
-([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)), each command its own named step, so a track
-turns red before the integration window instead of inside it; read a failed run with `gh run list --branch
-lp/<track>` then `gh run view <id> --log-failed`. Its `pnpm build` step needs the repository variables
+**CI runs the same four steps on `main` and `launch-prep` pushes that touch code and on every PR to
+`main`** ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)), each command its own named step;
+an `lp/*` push runs it only when its commit message carries `[ci]` (the CI budget round, 2026-09-15: the
+local four steps are the gate, and twelve tracks running the remote one on every push spent a month of
+minutes in two days). Read a failed run with `gh run list --branch launch-prep` then `gh run view <id>
+--log-failed`. Its `pnpm build` step needs the repository variables
 `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (the only env `next build` requires)
 and skips with an annotation naming them until they are set; the other three always run.
 

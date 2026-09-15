@@ -34,6 +34,7 @@ owns:
   - src/lib/track-manifests.test.ts
   - src/lib/single-source-policy.test.ts
   - scripts/vercel-ignore-build.mjs
+  - .github/workflows/ci.yml
   - docs/decisions/design-record.md
   - docs/perf/v1-baseline.md
   - src/app/globals.css
@@ -46,6 +47,7 @@ reads:
   - src/app/(marketing)/(cinema)/layout.tsx
   - src/components/marketing/system/section-shell.tsx
 announces:
+  - "the CI budget round (2026-09-15): CI is not the gate, the four local steps are. ci.yml runs on main and launch-prep pushes that touch code and on PRs to main; an lp/* push runs it only when the commit message says [ci]; a docs-only push is skipped. Vercel: an lp/* branch builds at status: handed-off or on [preview], never every push (preview: true is intent only). Push work in progress freely; say [preview] on the push Will should see before the handoff."
   - "round four of the review wave (2026-09-15, overnight on Will's notes): the shell gained BoardDock (src/components/dev/board/dock.tsx: a board's page-wide switches, sticky from sm up, writing its height to scroll-padding-top and --board-dock-h) and the reading preferences (lab-prefs.ts, applied by LabChrome: every Stage renders at 1:1 by default, the board page lifts its max-width, the sidebar is tucked away on board pages; Fit keeps the old zoom); never scale a judged specimen. The home hero board is the source, the scan and the new inflow (hero-source, hero-scan, hero-inflow); the burst and the river left it for their own boards, album-hero and river-visual, their files moved whole (imports now ../home-hero/shared); ConceptId keeps burst and river for the seeds. Twelve tracks run at once; Vercel is capped until the afternoon, so every track verifies locally."
   - "the review wave (2026-09-14): seven tracks cut at once off the bible's second edition; the six boards own only sandbox/<id>/ (their RULINGS entries, the dispatcher lines and the desk are registered here up front, with placeholder variant names renamed at integration); kill-mono owns the production trees it sweeps, the lab's family pages and six older sandbox files, and src/components/marketing/system/ is RELEASED to it from this manifest (deleting mono-caption.tsx is atomic only with its 18 importers)"
   - the rounding and tweaking GUI round (Orchestrator-run, in parallel with the wave) touches src/components/dev/ (the tuner, its config, the shared board shell in dev/board/), src/app/(dev)/design/motion/, the rounding board at sandbox/rounding/, and the radius VALUES in src/app/globals.css and the derivation in src/app/theme.css; tokens are never renamed mid-window (boards read --radius-float and --radius-tile), and any landed value change is announced here first so boards sync
