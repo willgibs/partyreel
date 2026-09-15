@@ -809,18 +809,20 @@ cause is restated rather than asserted once, on one animation and half the raste
 ## Handoff (round 4)
 
 - Head: the tip of `lp/hero-scan`, which is THIS commit (a manifest cannot name its own SHA). The last
-  CODE commit is `0afc9f8`; everything after it is this manifest and the `launch-prep` merge, which
-  carries no change of mine, so `scan.tsx` and `scan.css` are byte-identical to the tree every
+  CODE commit is `0afc9f8`; everything after it is this manifest and the two `launch-prep` merges,
+  which carry no change of mine, so `scan.tsx` and `scan.css` are byte-identical to the tree every
   verification below names. Pushed. **Marker for the round-four board: the class `hhc-bezel` in the
   served HTML**, which exists nowhere before this round; the caption "Guests scan once. The album fills
   itself." and the corner toggle's words "Without the phone" mark it too.
-- Synced with `launch-prep` at **`6484558`** (it had moved two docs-only commits: PROGRAM's rising-tides
-  line for the app's UI and the Orchestrator's In flight rows). Merged clean; the diff touches
-  `docs/PROGRAM.md` and `docs/tracks/orchestrator.md` and no path this track reads.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 6 warnings are the pre-existing ones on
-  `contact-form.tsx`, `album-fill-grid.tsx`, `review-switch.tsx`, `jobs.ts` and `use-flip.ts`, none in
-  this lane and none new), test ok (1804 in 199 files), build ok (248 static pages, the `launch-prep`
-  count unchanged).
+- Synced with `launch-prep` at **`07ad3b21`**, the shell commit that lands `BoardDock` on this board
+  (merge commit `1ac4ade`, clean). It moves `board.tsx`, `dock.tsx`, `stage.tsx`, `toggle.tsx` and
+  `design.css`, all read-only for this track and none of them touched here; the two earlier docs-only
+  commits (`6484558`) came with it. **That commit is the fix for both findings the review raised**, so
+  the re-walk below is on the board Will will actually open, not on the one this round was built against.
+- Gates re-run on the merged tree: typecheck ok, lint ok (0 errors; the 6 warnings are the pre-existing
+  ones on `contact-form.tsx`, `album-fill-grid.tsx`, `review-switch.tsx`, `jobs.ts` and `use-flip.ts`,
+  none in this lane and none new), test ok (1804 in 199 files), build ok (248 static pages, the
+  `launch-prep` count unchanged).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-scan.md`,
   `src/app/(dev)/design/sandbox/home-hero/scan.css`,
   `src/app/(dev)/design/sandbox/home-hero/scan.tsx`. **No exceptions**: the two owned files and this
@@ -953,12 +955,84 @@ before each reading). Where a check is a DOM or stylesheet read rather than a ti
   the next; a screenshot batched after a long wait comes back black. Front the tab in the same batch as
   the screenshot, and do the waiting in a separate call.
 
-### Shell changes for the Orchestrator to carry (none blocks this board)
+### The review's two findings, re-walked at `1ac4ade` on the docked board
 
-1. **The home-hero board has not adopted `BoardDock`.** Its page-wide switches (Desktop / Phone 375,
-   Ruled / Proposed copy, Replay) still sit in a row at the top of `board.tsx`, so comparing the source
-   against the scan at 375 means scrolling back up for every flip, which is the exact complaint Will's
-   note (a) makes. The dock exists and takes them as children; `board.tsx` is the Orchestrator's file.
+A read-only review of this handoff raised two should-fix defects. Neither is a change to `scan.tsx` or
+`scan.css`: both were one change to `board.tsx`, which this handoff had already filed as shell change 1
+below. The Orchestrator landed that change at **`07ad3b21`** while this track was finishing, this branch
+is merged with it, and both findings were re-walked on a fresh local production build of the merged tree.
+
+1. **The board's page-wide switches were not in the dock.** Comparing the source against the scan meant
+   scrolling back past a 930 px stage for every flip, which is Will's note (a) verbatim. **Fixed
+   upstream and verified here**: the canvas, the copy and Replay now ride `BoardDock`. At 1440 the dock
+   is `position: sticky` at 49 px tall and reads `top: 0` with the scan filling the screen at
+   `scrollY` 1816, so every switch is on screen while the scan is the thing being looked at; it writes
+   `scroll-padding-top: 57px`, and the scan stage lands at exactly `top: 57` under it. Replay, the
+   canvas and the copy were all driven FROM the dock with the scan on screen and reached it. At a real
+   375 the dock goes `static` by the shell's design (a 164 px bar would cover the specimen) and all
+   nine controls wrap onto readable rows rather than into the 44 px column the brand-voice track
+   measured.
+2. **The consequence this handoff did NOT name, and it bites note (b) rather than note (a).** The
+   Fit / 1:1 switch exists only inside `BoardDock`, while the preference itself is global and persisted
+   (`fit` in `partyreel.lab.prefs.v1`, `lab-prefs.ts`; `lab-chrome.tsx` only applies it). On a board
+   without a dock it was therefore unreachable. The default is `fit: "true"`, so a fresh profile was
+   never wrong, and every number in this round was taken at 1:1, which is exactly why the hole went
+   unnoticed: flipping "Fit" on the album-hero or river-visual dock and then opening this board rendered
+   every stage at about 0.69x with no control anywhere on the page to put it back, which is the failure
+   Will's note (b) named. The same landing fixes it, and **both states are now walked**: at 1440 the
+   dock's "Fit" scales the 1440x930 stage to 992x641 (`zoom: 0.6889`) with the whole composition legible
+   and intact, and "1:1" beside it puts it back; at a real 375 the 375x760 canvas fits the 343 px column
+   at `zoom: 0.9147`. The concept survives both because it measures nothing from the viewport: the only
+   DOM read in `scan.tsx` is a forced reflow, so `zoom` scales it uniformly and no number in the corridor
+   loop drifts.
+
+### Re-walked at `1ac4ade`, LOCAL PRODUCTION BUILD, 1440 and 375, both fit states, FOREGROUND tab
+
+Vercel is capped, so no preview was built and the Vercel API was not called. `pnpm build` then
+`pnpm start` on port 3421, and every reading below was taken in a tab whose `document.visibilityState`
+was `"visible"`, asserted in the same call as the reading. `scan.tsx` and `scan.css` are byte-identical
+to `0afc9f8`, so the measured numbers above still stand; this pass re-proves them on the docked board.
+
+- **The beat still replays from the dock's Replay, cause before effect**, sampled on the production
+  build with the scan scrolled under the dock: t=165 the phone is 66 px out, the brackets are at 0 and
+  the room is EMPTY (0 of 24); t=348 the phone is 7.1 px out and the brackets have begun (0.25); t=656
+  the phone is home and the brackets are locked, room still empty; t=1022 locked, capture still 0, room
+  STILL empty; t=1080 the flash is at 0.337 and the PLATE's bloom at 0.244 together; t=1524 all 24
+  frames are up; t=2306 settled. Camera, code, album, in that order, within a frame or two of the
+  numbers taken at `0afc9f8`.
+- **Both canvases, both fit states, both copies, all driven from the dock without scrolling.** 1440 at
+  1:1: stage 1440x930, 22 of 24 frames up, phone risen (`translate: 0px`, opacity 1), all four brackets
+  locked. 1440 at Fit: 992x641, same 22 frames, nothing clipped. 375 canvas at 1:1 inside a 1440 window:
+  375x760, 20 to 22 frames, the two codes on one vertical axis. Real 375 window: the page never scrolls
+  sideways (`documentElement.scrollWidth` 375 = `innerWidth`) at either fit, because the 1:1 stage
+  scrolls inside its own container rather than the page. Proposed copy at 375: "Start free" and "See
+  what it made" hold one row and clear the caption, which is round four's first defect still fixed.
+- **No console errors on the board**, and the gate still holds on the production server: 404 with no
+  key, 404 with a wrong key, 200 with the key. The served HTML carries `hhc-bezel`, the dock
+  (`data-board-dock`) and the Fit / 1:1 pair, with no `font-mono` and no em-dash in the payload.
+- Test-tooling note (c), new this pass and worth carrying while twelve tracks share one browser: **the
+  Chrome window was occluded for this whole session, so `document.hidden` was `true` in every tab I
+  could open there, including two I created myself.** A screenshot still comes back and still looks
+  plausible, but the stage's `data-paused` is set, so the composition is frozen at t=0 and reads as a
+  hero with no album and no phone. It is not a product bug and no amount of clicking or `navigate`
+  fronts the window. The desktop app's own Browser pane was visible and was used for every reading
+  here; assert `document.visibilityState` in the same call as the measurement rather than trusting the
+  picture. A second session also navigated a tab I had created out from under me mid-call, so assert
+  `location.href` too.
+
+### Shell changes asked for (the Orchestrator's files; none blocks this board)
+
+Item 1 has landed. Of the four left, **item 4 is the one that wants a ruling before the wiring round**,
+not after: every concept on this board is composing with 64 px of height it will not have on the real
+page, and it distorts the two concepts anchored off the canvas centre more than the others. It cannot be
+fixed in one lane without making the variations Will is comparing incomparable.
+
+1. ~~**The home-hero board has not adopted `BoardDock`.**~~ **LANDED at `07ad3b21` and re-verified
+   here.** Its page-wide switches (Desktop / Phone 375, Ruled / Proposed copy, Replay) rode a static row
+   at the top of `board.tsx`, so comparing the source against the scan meant scrolling back up for every
+   flip, which is Will's note (a) verbatim; and because the Fit / 1:1 switch lives only in the dock, a
+   board without one could not undo a global, persisted `fit: "zoom"` set from another board, which is
+   his note (b). Both are gone. Nothing is left for this item; the walk is two sections above.
 2. **An optional `controls` (or `switches`) slot on `Concept`, rendered by `board.tsx` beside its own
    toggles.** Third filing. A concept with a control of its own has nowhere but inside the canvas to
    draw one, which is where round three's 600 px scroll bug came from; this round's toggle is one
