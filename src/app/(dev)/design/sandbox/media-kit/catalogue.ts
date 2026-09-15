@@ -23,7 +23,7 @@
  * (Unsplash+, Adobe Stock, Pexels, Pixabay, Creative Market) each refuse a client
  * that is not a browser with a 401 or a 403, which is recorded on their cards
  * rather than worked around. The procedure and the queries are
- * docs/specs/media-kit.md section 6.
+ * docs/specs/media-kit.md section 8.5.
  */
 
 export type Vertical =

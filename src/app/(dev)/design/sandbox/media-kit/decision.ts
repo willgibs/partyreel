@@ -154,7 +154,7 @@ export type Ask = {
  *
  * Round three asked Will to rule on an allowed LIST of licences. His note for
  * round four asked for PLACES instead, and the sourcing sheet is that answer, so
- * the list ask is gone: the sheet ranks twelve real catalogues by the one test
+ * the list ask is gone: the sheet ranks thirteen real catalogues by the one test
  * that decides them, and a ranking a reviewer can read beats a yes to eight
  * licence names.
  *

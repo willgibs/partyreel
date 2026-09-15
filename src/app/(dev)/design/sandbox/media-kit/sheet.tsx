@@ -3,7 +3,7 @@
 /**
  * THE SOURCING SHEET, ON THE BOARD (round four, 2026-09-15). Will's note asked
  * for places rather than picks, so this file is the three surfaces that answer
- * it: the plan (what to buy, where, for how much), the sheet (twelve real
+ * it: the plan (what to buy, where, for how much), the sheet (thirteen real
  * catalogues ranked by the one test that decides them), and the surface check
  * (the same frames inside the geometry they would land in).
  *
@@ -329,7 +329,7 @@ function SourceRow({
         </Caption>
       </div>
 
-      <div className="min-w-0">
+      <div className="flex min-w-0 flex-col">
         {sheet ? (
           <>
             <div className="mb-1.5 flex flex-wrap items-baseline gap-x-2">
@@ -358,11 +358,16 @@ function SourceRow({
             </div>
           </>
         ) : (
-          <div className="flex h-full min-h-28 flex-col justify-center rounded border border-dashed border-border p-3">
+          // `self-start`, never a stretched cell: a card whose catalogue cannot
+          // be drawn should read as a short note, not as a tall empty rectangle
+          // that implies the sheet failed. The absence is the fact, not a void.
+          <div className="max-w-md self-start rounded border border-dashed border-border p-3">
             <Caption className="text-[10px] leading-snug">
-              No contact sheet. This catalogue refuses any client that is not a
-              browser, so the sheet will not draw it rather than draw something
-              else and call it this.
+              No contact sheet, on purpose. This catalogue answers a non-browser
+              client with a 401 or a 403, so the sheet leaves it blank rather
+              than draw something else and call it this. Its licence, its price
+              and its release position are on the left, which is what the
+              ranking is made of.
             </Caption>
           </div>
         )}
@@ -385,7 +390,8 @@ export function SourcingSheet({ vertical }: { vertical: Vertical | "all" }) {
           quoted word for word from the licence page on {RETRIEVED}, and each
           contact sheet is {SHEET_COUNT} pulls of the source&rsquo;s own
           thumbnails, {FRAME_COUNT} frames in all, taken on {HARVESTED} and
-          hotlinked rather than copied.
+          hotlinked rather than copied. Nothing here is licensed to us: every
+          tile is a preview, and some sources serve theirs unwatermarked.
         </Caption>
       </div>
 
@@ -456,6 +462,17 @@ export function SurfaceCheck({ vertical }: { vertical: Vertical | "all" }) {
           stage is 1:1, so a frame that cannot survive a 4:5 crop fails here
           where it fails on the site.
         </Caption>
+        {/* ★ SAID OUT LOUD, BECAUSE A COMP DOES NOT ALWAYS LOOK LIKE ONE. iStock
+            serves its search thumbnails unwatermarked at 612 px, so a plate here
+            can read as a finished card. Nothing on this board is licensed to us,
+            and a board about licensing is the last place to let that be inferred
+            from the absence of a watermark. */}
+        <p className="mt-1.5 max-w-3xl text-[11px] leading-snug text-destructive">
+          None of these frames is licensed to us. Every one is a preview served
+          from the source&rsquo;s own search page, and some sources serve theirs
+          without a watermark, so a plate below can look finished when it is
+          not. This is the catalogue in our geometry, never what we own.
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
