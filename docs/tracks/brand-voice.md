@@ -246,15 +246,57 @@ Three departures were flagged rather than buried, and no production byte changed
 
 ## Handoff (round 2)
 
-- Head `8fe548c`, pushed; preview
+- Head `da618a2` (the round-two review fixes; this manifest commit sits on top of it), pushed; preview
   `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the board at
   `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
   The round-two board is the one whose root div carries `class="bv-round-two"` and whose control
   bar reads "Moves 33 of 65 lines in the arc, 15 of 30 on the feature pages."
 - Synced with launch-prep at `4b035c1` (it had moved by one docs commit, `design-system.md`;
   merged in, gate re-run green).
-- Gates on the synced tree: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing and none
-  in this lane), test ok (1,698 in 193 files), build ok (114 routes, 248 static pages).
+- **Fixed after the round-two review (three defects, one of them blocking; the fourth was the QA
+  claim, answered by the walk below).**
+  1. **Every stage clipped, or could.** Board 5's thesis was a 520px box holding 616px of content,
+     so the word "it." was cut off the second line at 1440 and the phone stopped at "as", on the
+     exact surface ask 6 asks Will to choose on. The curation hero clipped 38px on candidate A.
+     The cause was hand-tuned literal heights, and the reason they could not be trusted is now in
+     the code: a real marketing component inside a `Stage` resolves its own `sm:`/`lg:` rungs
+     against the REAL browser window rather than the canvas, so the arc's chapters measure up to
+     40px taller at a 1512 window than at 1150 in the same voice. A literal cannot hold for three
+     voices, two canvases, every window width AND an edit to the copy above it, which is the whole
+     activity on a copy board. So there are no literal heights left: `FitStage` (board.tsx)
+     measures its content in a layout effect before the first paint, re-measures on the voice
+     swap, and keeps a ResizeObserver for the webfont settling and the window resizing.
+  2. **The feature pages now include their cards**, which goal item (2) asked for and round two's
+     first pass dropped without saying so. `PageSection` gained `cards` (and `cardColumns`), and
+     the two pages carry all 24 of their real card sets: the album page's nineteen (getting in,
+     the settings, the name states, the three plates, the four lifecycle steps and three notes) and
+     the curation page's five (the two review modes, the three reversible calls). `today` is the
+     SHIPPED object, imported from `album-copy.ts` rather than retyped, so the board cannot drift
+     from the page. A count and a reason per set sit under each page.
+  3. **The finding those cards produced is the reason to have rendered them.** A moves 3 of the 48
+     card strings and B moves 6, against 23 and 33 of the 65 arc lines. Will's 2026-09-02 finish
+     pass had already written these sets in one length band with the numbers derived from the
+     constants the product enforces, and three sets quote the app's own helpers (the album page's
+     `Accepting uploads` body is the settings card's helper verbatim, pinned by mock-parity, so it
+     is a two-file change owned by the quiet register). Rendering them also caught a collision
+     worth the whole exercise: B's supporting line for Names ended on "it rides on everything they
+     add", which is the first card word for word. The line gave the clause back.
+- **Light QA, done and stated (this is the bullet the review said was missing).** The board was
+  walked on `pnpm dev` at both canvases in all three columns, Today, A and B, six passes:
+  - **Nothing clips.** Every element inside every stage is inside its stage: a scan of all 14
+    stages for any `h1/h2/h3/p/span/td/li/button` whose box crosses the stage's edge returns empty
+    in all six passes, and `scrollHeight - clientHeight` is 0 on all 14 stages in all six.
+  - **1440 and 375** are the two canvases above; the phone column reads with the cards stacked at
+    the measure `album-copy.ts` wrote them to, and B's h1 still takes its four rows.
+  - **Reduced motion is honoured.** The only animation anywhere under `.bv-round-two` is
+    `bv-swap-in`, and it is inside `@media (prefers-reduced-motion: no-preference)`, so under
+    `reduce` the board renders the settled composition with nothing to undo. All 7
+    `[data-mkt-reveal]` slots in the stages compute to opacity 1, so no line depends on motion to
+    be read. The only console error is a `cz-shortcut-listen` hydration warning from a browser
+    extension on `<body>`, not from this board.
+- Gates on the synced tree, re-run after the fixes: typecheck ok, lint ok (0 errors; 6 warnings,
+  all pre-existing and none in this lane), test ok (1,698 in 193 files), build ok (114 routes, 248
+  static pages).
 - Lane check: `docs/specs/brand-voice.md`, `docs/tracks/brand-voice.md` and the three files under
   `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `board.css`, `voices.ts`). No
   exceptions. Nothing production imports anything on this branch; `marketing-voice.ts`,
@@ -286,11 +328,23 @@ Three departures were flagged rather than buried, and no production byte changed
      desktop gutter and every heading takes its desktop step. `board.css` restates both, keyed to
      a `data-bv-canvas` attribute the board sets from the `mode` prop. The right home for that is
      the shell, not fourteen board sheets.
+  3. **`Stage` takes a height it cannot keep.** A stage is a fixed box with `overflow: hidden`, so
+     every board passing a literal height is promising something about content it does not control,
+     across voices, canvases AND window widths (finding 2 is exactly why that last one bites: a
+     real marketing component inside a stage resolves its `sm:`/`lg:` rungs against the browser).
+     Round two's review found two clipped stages here from that alone, one of them the hero an ask
+     is written on. The working fix is `FitStage` in this board's `board.tsx`, about thirty lines;
+     a `fit` height mode on `Stage` itself would retire the literal from every board at once.
 - **The registration line is stale.** `touchpoints.ts` (not this track's to edit) still describes
   the board as "Three candidate voices ... the seven provisional home headers rewritten in each
   beside today's line; the unfurl both ways." Round two is two candidates on whole pages; the
   Orchestrator should reword it at integration.
 - Look at first:
+  - **The feature pages read as pages now, cards and all, and they are where the voice does the
+    least.** Boards 6 and 7 carry all 24 real card sets; the ledger under each page counts what a
+    voice costs there (A moves 3 of 48 strings, B moves 6) against what it costs on the arc (23 and
+    33 of 65). That gap is the sharpest thing on the board about what adopting a voice means: the
+    arc is unwritten and the feature pages are finished.
   - **Board 2 to 4, the arc top to bottom, on B.** This is the round's whole point: fifteen
     sections in shipped order on their real grounds. Read it once on Today, once on B; the count
     in the control bar says how much moved, and every line a candidate keeps is marked `held`.
@@ -309,18 +363,18 @@ Three departures were flagged rather than buried, and no production byte changed
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). Round two argued the voice where a voice is
-actually judged: on whole pages. The board now walks the home arc's fifteen sections top to bottom
-in shipped order on their real grounds, with every eyebrow, header, supporting line and CTA in the
-selected voice and a ledger beneath each chapter carrying today beside it; then `/features/album`
-and `/features/curation` whole, the six feature pages' thirty identity strings as a table, the
-app's quiet copy on six real surfaces and the guest surfaces on six more. Candidate C was retired
-as a column after it read as B with a substitution across fifteen sections, and its one real
-question, the ruled thesis, became its own board and its own ask. Because copy cannot be applied to
-the site as CSS, each candidate instead copies out as a real `SECTION_HEADERS` and `FEATURE_PAGES`
-block, and every line a candidate holds verbatim is marked and counted (A moves 23 of 65 arc lines,
-B moves 33). Two lab facts that had been making every heading on every board lie about its size,
-the uncompiled ladder and the real-viewport prefix inside a stage, were fixed in the board's own
-sheet and reported to the shell. The guide gained one written example per surface for each of its
-five shapes, a surfaces table, the fences restated as the eight do's bible 20 asked for, and two
-new findings: the album/gallery split, and the guest account gate that asks for an account with us
-on the host's own page. No production byte changed.
+actually judged: on whole pages. The board walks the home arc's fifteen sections top to bottom on
+their real grounds, every eyebrow, header, supporting line and CTA in the selected voice with a
+ledger carrying today beside it; then `/features/album` and `/features/curation` whole, cards
+included, the thirty identity strings as a table, and the app's quiet and guest copy on twelve
+surfaces. Candidate C was retired after it read as B with a substitution across fifteen sections,
+and its one real question, the ruled thesis, became its own ask. Copy is not CSS, so each candidate
+copies out as a real `SECTION_HEADERS` and `FEATURE_PAGES` block instead, and every held line is
+counted: A moves 23 of 65 arc lines and 3 of 48 card strings, B 33 and 6, which is the round's
+sharpest finding, that the arc is unwritten while the feature pages are already finished. Three lab
+facts that had been making boards lie about their own content were fixed and reported to the shell:
+the uncompiled heading ladder, the real-viewport prefix inside a stage, and a `Stage` height that
+cannot be written as a literal, measured from the content now. The guide gained an example per
+surface for each shape, the fences restated as the eight do's bible 20 asked for, and two findings:
+the album/gallery split, and the guest account gate that asks for an account with us on the host's
+own page. No production byte changed.
