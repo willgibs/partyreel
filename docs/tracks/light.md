@@ -1,7 +1,7 @@
 ---
 track: light
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "c473707"
 merged_round_3: "83fdc71"
 merged_round_2: "6203d62"
 merged_round_1: "72b20da"
