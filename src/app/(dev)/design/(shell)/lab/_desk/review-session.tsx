@@ -244,7 +244,7 @@ export function ReviewSession({
           <ArrowLeft className="size-3.5" />
           The desk
         </LabLink>
-        <p className="text-xs tabular-nums text-muted-foreground">
+        <p className="text-xs text-muted-foreground tabular-nums">
           {atEnd
             ? `${answered} of ${steps.length} answered`
             : `Ask ${at + 1} of ${steps.length}`}
@@ -257,7 +257,7 @@ export function ReviewSession({
         role="presentation"
       >
         <div
-          className="h-full bg-foreground transition-[width] duration-200 ease-out"
+          className="h-full bg-foreground transition-[width] duration-200 ease-out motion-reduce:transition-none"
           style={{
             width: `${Math.round(((atEnd ? steps.length : at) / steps.length) * 100)}%`,
           }}
@@ -268,8 +268,9 @@ export function ReviewSession({
         <p className="mt-4 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
           A dry run on a sample board, so the session can be walked before the
           standing boards carry their specs. The message it composes is real
-          grammar on an unreal board, so <code className="font-sans">lab:review</code> refuses it:
-          that is the refusal path, shown rather than described.
+          grammar on an unreal board, so{" "}
+          <code className="font-sans">lab:review</code> refuses it: that is the
+          refusal path, shown rather than described.
         </p>
       )}
 
@@ -347,7 +348,7 @@ export function ReviewSession({
               value={store.answers[holdKey(step)]?.note ?? ""}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Optional. It rides the answer into the ledger."
-              className="mt-1 w-full resize-y rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none transition-colors duration-150 placeholder:text-muted-foreground/70 focus:border-foreground/40"
+              className="mt-1 w-full resize-y rounded-xl border border-border bg-card px-3 py-2 text-sm transition-colors duration-150 outline-none placeholder:text-muted-foreground/70 focus:border-foreground/40"
             />
           </label>
 
@@ -435,7 +436,7 @@ export function ReviewSession({
                     copied="Copied"
                   />
                 </div>
-                <p className="px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                <p className="px-4 py-3 text-sm leading-relaxed break-words whitespace-pre-wrap">
                   {message}
                 </p>
               </div>
@@ -500,11 +501,14 @@ export function ReviewSession({
                           onChange={(e) =>
                             update({
                               ...store,
-                              notes: { ...store.notes, [board]: e.target.value },
+                              notes: {
+                                ...store.notes,
+                                [board]: e.target.value,
+                              },
                             })
                           }
                           placeholder="Optional. Anything that is about the board rather than one ask."
-                          className="mt-1 w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none transition-colors duration-150 placeholder:text-muted-foreground/70 focus:border-foreground/40"
+                          className="mt-1 w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors duration-150 outline-none placeholder:text-muted-foreground/70 focus:border-foreground/40"
                         />
                       </label>
                     </li>

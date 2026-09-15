@@ -15,12 +15,14 @@ import { inlineText, listSpecs, readDoc } from "@/app/(dev)/design/_data/docs";
 import { readTrackStates } from "@/app/(dev)/design/_data/tracks";
 import { SANDBOX } from "@/app/(dev)/design/touchpoints";
 
+import { proposalStatus } from "../status";
+
 /**
  * ONE PROPOSAL (the Library x Lab round, 2026-09-15). The document, rendered,
  * with the two things a reader needs beside it: the board it argues for (open
- * it to answer) and the track writing it. Its own status line is markdown in
- * the file, so it is flattened to text for the header rather than printed with
- * its asterisks.
+ * it to answer) and the track writing it. Its standing comes from its own
+ * opening blockquote, de-wrapped into one clause (status.ts), rather than from
+ * the raw source line the listing carries.
  */
 export default async function ProposalPage({
   params,
@@ -39,10 +41,14 @@ export default async function ProposalPage({
   const listed = listSpecs().find((s) => s.slug === slug);
   const { body } = readDoc(file);
   const h1 = body.split("\n").find((l) => /^# /.test(l));
-  const spec = listed ?? {
+  const spec = {
     slug,
-    title: h1 ? inlineText(h1.replace(/^# /, "")) : slug,
-    status: "A settled spec, not an open proposal.",
+    title: listed?.title ?? (h1 ? inlineText(h1.replace(/^# /, "")) : slug),
+    status:
+      proposalStatus(body) ??
+      (listed
+        ? "A board's settled argument; not law until Will rules."
+        : "A settled spec, not an open proposal."),
   };
   const board = SANDBOX.find((r) => r.id === slug);
   const tracks = readTrackStates();
@@ -54,11 +60,7 @@ export default async function ProposalPage({
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title={spec.title}
-        description={
-          spec.status
-            ? inlineText(spec.status)
-            : "A board's settled argument; not law until Will rules."
-        }
+        description={spec.status}
         badges={
           <>
             <Tag badge="proposal" />
@@ -95,7 +97,9 @@ export default async function ProposalPage({
         A proposal argues; the bible binds. The asks Will answers are on the
         board, and the desk queues them.
       </Callout>
-      <div className="mt-6">
+      {/* See the note on the track page: a long unbroken path inside inline
+          code overflows a phone until the shared prose learns to break it. */}
+      <div className="mt-6 [&_a]:break-words [&_code]:break-words [&_table]:block [&_table]:overflow-x-auto">
         <Markdown source={body} from={file} designKey={key} skipTitle />
       </div>
       <Pager />

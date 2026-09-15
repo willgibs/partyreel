@@ -7,9 +7,11 @@ import { Section } from "@/app/(dev)/design/(shell)/_shell/section";
 import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
 import { StatRow } from "@/app/(dev)/design/(shell)/_shell/stat-row";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
-import { inlineText, listSpecs } from "@/app/(dev)/design/_data/docs";
+import { listSpecs, readDoc } from "@/app/(dev)/design/_data/docs";
 import { readTrackStates } from "@/app/(dev)/design/_data/tracks";
 import { SANDBOX } from "@/app/(dev)/design/touchpoints";
+
+import { proposalStatus } from "./status";
 
 /**
  * THE PROPOSALS (the Library x Lab round, 2026-09-15): every board's settled
@@ -17,7 +19,8 @@ import { SANDBOX } from "@/app/(dev)/design/touchpoints";
  * one is read: a proposal whose board still stands is live, and the board is
  * where you answer it; a proposal whose board has gone is the argument behind
  * something already in the site. Phase 0 printed each one's status line as raw
- * markdown ("**NOT LAW**" with its asterisks); it renders as text here.
+ * markdown with its asterisks, cut at the file's hard wrap; it reads as one
+ * whole clause here (status.ts).
  */
 export default async function ProposalsPage({
   searchParams,
@@ -31,7 +34,7 @@ export default async function ProposalsPage({
     const builders = board?.board?.tracks ?? (board ? [board.id] : []);
     return {
       ...s,
-      status: s.status ? inlineText(s.status) : null,
+      status: proposalStatus(readDoc(`docs/specs/${s.slug}.md`).body),
       board,
       live: builders.some((n) => {
         const t = tracks.get(n);

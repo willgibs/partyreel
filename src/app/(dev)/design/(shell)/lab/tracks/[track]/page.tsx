@@ -128,7 +128,13 @@ export default async function TrackPage({
         </details>
       )}
 
-      <div className="mt-6">
+      {/* A manifest quotes long unbroken paths inline and a proposal draws
+          wide tables; at 375 both push the whole page sideways by 80 to 320px.
+          The shared prose has no rule for either yet, so the break and the
+          table's own scroll are asked for here. The Handoff proposes the same
+          two lines in the shell's markdown renderer, which would clear the
+          doctrine pages and every other rendered doc at once. */}
+      <div className="mt-6 [&_a]:break-words [&_code]:break-words [&_table]:block [&_table]:overflow-x-auto">
         <Markdown source={body} from={file} designKey={key} skipTitle />
       </div>
       <Pager />
