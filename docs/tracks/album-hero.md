@@ -16,6 +16,7 @@ reads:
   - src/lib/constants/marketing-media.ts
   - src/components/guest/guest-masonry.tsx
   - src/components/guest/live-gallery.tsx
+  - src/components/guest/event-experience.tsx
   - src/lib/shared/use-ambient-pause.ts
   - src/app/(dev)/design/rules/bible.ts
   - docs/ASSETS.md
@@ -125,18 +126,27 @@ gate; the preview alias once Vercel's window frees.
 ## Deferred (ROADMAP one-liners, bucket named)
 
 - Marketing overhaul: wire the album hero onto `/features/album` once Will rules the step and the
-  column rule (the field replaces `ArrivalsHero`'s `ArrivalsStage`; the album visual goes under it).
-- App overhaul: the guest album's column rule, `columns-2` -> `columns-2 md:columns-3 xl:columns-4`
-  in `src/components/guest/guest-masonry.tsx`, if the board's candidate is ruled in.
+  album's width rule (the field replaces `ArrivalsHero`'s `ArrivalsStage`; the album visual goes
+  under it).
+- App overhaul: the guest album's WIDTH rule, and it is two declarations, not one:
+  `columns-2` -> `columns-2 md:columns-3 xl:columns-4` in `src/components/guest/guest-masonry.tsx`
+  AND a wider laptop cap than `max-w-2xl` in `src/components/guest/event-experience.tsx` (which holds
+  the whole guest column at 632 px of content at every viewport, so the column rule on its own would
+  ship 156 px tiles), if the board's candidate is ruled in.
 
 ## Handoff (round 1)
 
-- Head `fe41436` plus this manifest commit, pushed (round one's first hand-off was `13d6eb9`; a
-  read-back found four defects and this is the pass that closes them, listed under "What the read-back
-  changed" below). The preview at `partyreel-git-lp-album-hero-partyreel.vercel.app` was NOT waited on
-  and the Vercel API was not called (the deployment cap). **Everything below was verified on a LOCAL
-  PRODUCTION BUILD** (`pnpm build && pnpm start -p 3011`, my own worktree's server, never the root
-  checkout's on 3000) at 1440 and at 375.
+- Head `0edcacd` plus this manifest commit, pushed. Round one's first hand-off was `13d6eb9`; a
+  first read-back found four defects (closed at `fe41436` + `01bf584`, listed under "What the first
+  read-back changed"), and a second read-back found one more, closed in this pass and listed under
+  "What the second read-back changed". The preview at
+  `partyreel-git-lp-album-hero-partyreel.vercel.app` was NOT waited on and the Vercel API was not
+  called (Vercel is at its daily deployment cap, so no preview will build for this head either).
+  **Everything below was verified on a LOCAL PRODUCTION BUILD** (`pnpm build && pnpm start`, my own
+  worktree's server, never the root checkout's on 3000) at 1440 and at 375, this pass included. The
+  port moved from 3011 to 3047 for this pass, because another track's server had taken 3011; check
+  the port before trusting a localhost read, since a stale server on a sibling worktree serves a
+  different board at a 200.
 - **Say the tab honestly.** The first hand-off walked a fronted tab. This pass could not hold one:
   seven tracks are driving the same Chrome window tonight and each new lab tab steals the foreground,
   so this tab read `document.visibilityState === "hidden"` throughout and an occluded window suspends
@@ -150,12 +160,32 @@ gate; the preview alias once Vercel's window frees.
   eye still owes this board: thirty seconds of reading 1 at real speed.** Nothing measurable is left.
 - Synced with `launch-prep` at `6484558` (it had moved two doc commits since the cut; merged clean).
 - Gates, re-run on this pass's tree: typecheck ok, lint ok (0 errors; the 6 warnings are all
-  pre-existing files outside this lane), test ok (1804 in 199 files), build ok (114 routes).
+  pre-existing files outside this lane), test ok (1804 in 199 files), build ok (114 routes). The
+  board was re-walked on the fresh production build at 1440 and 375 after the change (reading 2 under
+  both switch positions, reading 3's cut), since this pass touched a caption the board renders.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/album-hero/`
   (board.tsx, board.css, burst.tsx, burst.css, album.tsx, album.css) + this file. No exceptions.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
 
-### What the read-back changed (this pass)
+### What the second read-back changed (this pass)
+
+- **The one production change on the board is now argued from the APP's canvas, not the BOARD's.**
+  The ask, the matching departure, the ROADMAP one-liner and the two WHY-comments (`album.tsx`'s
+  header and `album.css`'s) all said "two columns of a 1440 canvas are 700 px tiles" and priced the
+  candidate at "about 700 px to about 280 px". Those are the BOARD's frame (1154 px) and not even
+  that: the shipped guest album is 632 px wide at every viewport, because `event-experience.tsx:165`
+  caps the whole guest column at `max-w-2xl` with `px-5`. So the shipped tile is about 314 px, and
+  `columns-2 md:columns-3 xl:columns-4` ON ITS OWN would have shipped **156 px** tiles into the real
+  album, which is worse than what ships. The ask now names TWO declarations (the column rule plus a
+  wider laptop cap), carries the arithmetic for each, prices the cost honestly (about 314 px to about
+  276 px, and a cap that widens the event header, the reel card and the action row with the grid),
+  and says in the stage caption that the 1154 px frame is the end state rather than today's page. The
+  full arithmetic is under "What was measured". Nothing shipped changed: this lane is lab-only and
+  the correction is text, in `board.tsx`, `album.tsx`, `album.css` and this file.
+- `src/components/guest/event-experience.tsx` was added to this manifest's `reads`, since the ask now
+  cites it.
+
+### What the first read-back changed
 
 - **Reading 3 is the whole route now.** It stopped at `GettingInSection` and `EverywhereSection`,
   which quietly left off the hand-off most at risk from a full-bleed hero that never resolves: the
@@ -177,7 +207,7 @@ gate; the preview alias once Vercel's window frees.
 ### What the board is now
 
 Three readings of the top of `/features/album`, every page-wide switch in `BoardDock` (canvas,
-headline step, the album's column rule, Replay), every stage at 1:1:
+headline step, the album's column count, Replay), every stage at 1:1:
 
 1. **The hero.** The burst's field with its centre taken out. The origin is nothing visible: a vent
    the album emanates from. Because the QR plate used to be what hid a birth, the birth had to become
@@ -247,6 +277,22 @@ headline step, the album's column rule, Replay), every stage at 1:1:
   rather than the tail's spacing.
 - **The production components work in the board**: a tile opens the real lightbox and Escape closes
   it; the column switch flips the shipped `columns-2` to 4 and back.
+- **The album's real geometry, which the width ask is now argued from** (the second read-back's
+  finding). Every number below is arithmetic off the shipped classes AND was measured in the live
+  DOM on this pass, by building a probe with the shipped container's exact classes inside a 1440 px
+  box. `GuestMasonry` is rendered in exactly ONE place in the product, `live-gallery.tsx` inside
+  `event-experience.tsx:165`, whose container is `mx-auto w-full max-w-2xl flex-1 px-5 py-8`: 42rem
+  less 2 x 20 px = **632 px of content at every viewport, 1440 included** (measured 632). With
+  `columns-2 gap-[3px]` that is a tile of **(632 - 3) / 2 = about 314 px** (measured 314.5), three
+  columns would be about 209 px (208.66), and the responsive rule ON ITS OWN would give **(632 - 9)
+  / 4 = about 156 px** at `xl` (measured 155.75). A laptop cap of `max-w-6xl` gives 1112 px of
+  content and about 276 px at four columns (measured 1112 and 275.75), which is the figure the ask
+  quotes. This board's own frame is a different width again: 1440 less `px-16` is 1312, capped by
+  `max-w-[1180px]`, less `BrowserFrame`'s `p-3` and its 1 px border each side = **1154 px**
+  (measured 1154), so its two-column tile is about 576 px (575.5) and its four-column tile about
+  286 px (286). The board's stage is therefore a picture of the END STATE (both declarations), not
+  of the column rule alone, and the ask, the departure, the ROADMAP one-liner and the two code
+  comments all say so now.
 - **The lab's blind-spots bit four times across the two passes** and none was a product bug
   (`docs/systems/testing-verification.md`): a capture past about 1000 px of scroll comes back black
   though the DOM is correct; a capture taken straight after a scroll paints the region a beat late
@@ -295,7 +341,7 @@ headline step, the album's column rule, Replay), every stage at 1:1:
 ### The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will)
 
 - "Rule on, the headline step: lg or xl. It is the one choice that changes the composition rather than the styling, because the field is re-solved against the lockup the step draws. lg (text-7xl at 1440, text-4xl at 375) leaves the album the canvas and keeps the corridor beside the vent wide enough to be born in; xl (text-8xl, text-5xl) is the louder promise and takes about 80 px of quiet zone in every direction, which at 375 drops a further slice of the compass out of the pool."
-- "Rule on, the album's column rule, and it is an APP-UI change, not a marketing one. Shipped is columns-2 at every width, which is right for the phone it was designed for; the candidate is two on a phone and four on a laptop (columns-2 md:columns-3 xl:columns-4 in guest-masonry.tsx). WHAT IT BUYS: a host opening their own album on a laptop sees twelve photographs where they now see four, and the marketing page can show the album wide at all. WHAT IT COSTS: a smaller tile, so a face at 1440 goes from about 700 px to about 280 px, and the masonry's natural-ratio signature reads quieter the more columns it has."
+- "Rule on, the album's width, and it is an APP-UI change, not a marketing one, and it is TWO declarations rather than one. What decides the tile is the CONTAINER before the column count: the shipped guest page caps its whole column at max-w-2xl with px-5 (event-experience.tsx), so the album is 632 px wide at EVERY viewport, 1440 included, and columns-2 makes that two tiles of about 314 px. Raising the column count alone (columns-2 md:columns-3 xl:columns-4 in guest-masonry.tsx) would cut the same 632 px into four tiles of about 156 px, which is worse than what ships. So the candidate is that rule AND a wider laptop cap, for instance max-w-2xl lg:max-w-6xl, which is 1112 px of content at 1440 and four tiles of about 276 px. WHAT IT BUYS: the album stops being a 632 px strip down the middle of a laptop and becomes the page, at roughly twice the photographs in a screenful, and the marketing page can show the album wide at all. WHAT IT COSTS: the cap carries the WHOLE guest page, so the event header, the reel card and the action row widen with the grid; the tile goes from about 314 px to about 276 px; and the masonry's natural-ratio signature reads quieter the more columns it has. NOTE the stage above is the board's own frame at 1154 px, which is about what the widened cap would give (about 576 px at two columns, about 286 px at four), not the 632 px that ships today."
 - "Rule on, the album's life: the pulse alone, or an arrival. It ships with one live signal, a 6 px green dot pulsing every 2 s, and nothing else; the product's real behaviour is a new tile landing at the head of the album every few seconds with its green check. The second is the truer demonstration of live and is the thing most likely to fight the hero, which is why it is an ask and not a default."
 - "Rule on, the copy: the page's own lines stand (bible 21 leaves them open). The hero renders /features/album's shipped eyebrow, h1 and subhead verbatim from feature-pages.ts. The brand-voice board's proposal would rewrite the subhead here; this board proposes nothing of its own, because the field is the argument and the sentence is the page's."
 
@@ -341,6 +387,7 @@ zone was re-proved on the running field at all four canvas-and-step combinations
 against the lockup's ink, no word ever under a photograph; the settled composition, which is what a
 reduced-motion reader gets, was found hanging 3 px past the rim and guarded; and the no-script frame
 turned out to be the lockup alone, because the collapsed first frame sits in the no-preference query
-that matches by default. The board asks Will for the headline step, the guest album's column rule (an
-app-UI candidate, argued from outside the shipped component), whether the album should breathe,
+that matches by default. The board asks Will for the headline step, the guest album's width rule (an
+app-UI candidate of two declarations, argued from outside the shipped component), whether the album
+should breathe,
 whether a reader with JavaScript off should get the settled album instead, and three short clips.
