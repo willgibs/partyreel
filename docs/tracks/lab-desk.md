@@ -1,13 +1,14 @@
 ---
 track: lab-desk
 status: open
-cut: "<filled at boot: the launch-prep SHA you cut from>"
+cut: "2644310d"          # the Library x Lab round, phase 0
 preview: false
 owns:
   - src/app/(dev)/design/(shell)/lab/page.tsx
   - src/app/(dev)/design/(shell)/lab/tracks/
   - src/app/(dev)/design/(shell)/lab/proposals/
   - src/app/(dev)/design/(shell)/lab/tools/
+  - src/app/(dev)/design/(shell)/lab/_desk/
   - src/app/(dev)/design/_data/tracks.ts
   - scripts/lab-review.mjs
   - scripts/lab-review.test.mjs
