@@ -443,12 +443,14 @@ own page. No production byte changed.
 A read-only review of the round-three handoff found one blocking and two should-fix items. All three
 are answered at this head:
 
-1. **The preview alias does not serve this head (blocking).** Not fixable from inside this lane and
-   not caused by it: the cause is measured below ("The preview alias, and where this head was
-   actually verified"), the branch gate passes on all three counts, and every check the round claims
-   was re-run at this head on a local server at a real 1440 viewport and a real 375 one. A forced
-   redeploy of `lp/brand-voice`, confirmed READY at this head, is the Orchestrator's to run before
-   Will walks.
+1. **The preview alias does not serve this head (blocking).** Not caused by this lane and not
+   fixable from inside it. The cause is now measured rather than guessed, with the exact error, and
+   it rules out the remedy the review proposed: the project has spent its 100 deployments for the
+   rolling day, so a forced redeploy returns 402 as surely as a push does, and the only thing that
+   lands one is a push timed into the window that opens every fifteen minutes or so. See "The
+   preview alias, and where this head was actually verified" below. The branch gate passes on all
+   three counts, and every check this round claims was re-run at this head on a local server, at a
+   real 1440 viewport and a real 375 one.
 2. **The round's "Apply to the site" item was dropped from the record.** Restated, with the two
    pastes named as the equivalent artifact and the reason the real pages cannot be walked in a
    candidate: see "The goal's 'Apply to the site' block, and the real pages it names" below.
@@ -557,13 +559,23 @@ The read-only review of round three confirmed this from the outside: 24 polls ov
 every response HTTP 200 and every one of them `bv-round-two`. It is still true at this head, and the
 cause is now measured rather than guessed.
 
-- **The project is creating one deployment per fifteen minutes, whatever the branch, and a push
-  that arrives inside a closed window leaves NO record at all.** The deployment list for the
-  project, one row per window, reads 21:49, 22:04, 22:18, 22:33, 22:48, 23:02, 23:17, 23:31 EDT,
-  each one a different track. Nine tracks are pushing tonight, so the slot goes to whoever pushes
-  first after it opens, and everyone else's push is dropped silently. This branch has lost every
-  window since 21:33, which is why the alias serves round TWO (commit `0f40d41`, deployment
-  `dpl_4dUiy4m1eRRi538YY1A1ZLBh3oX2`).
+- **The project is at a hard daily deployment ceiling, and the exact error is worth recording.** A
+  deployment create against the Vercel REST API answers HTTP 402: `code: "payment_required"`,
+  `resource: "api-deployments-free-per-day"`, `limit: {total: 100, remaining: 0}`, message
+  "Resource is limited, try again in 24 hours (more than 100)". That is 100 deployments in a
+  rolling 24 hours, all spent. It was tried 38 times between 23:49 and 00:05 EDT and `remaining`
+  never left 0.
+- **Meanwhile a push still lands one deployment per window, roughly every fifteen minutes, as the
+  oldest of the hundred ages out.** The project list reads 22:48, 23:02, 23:17, 23:31, 23:46,
+  00:00, each a different track. The slot goes to whoever pushes inside the open window; nine
+  tracks are pushing tonight, and every push that arrives inside a closed one leaves NO record at
+  all (not a canceled build: nothing). This branch has lost every window since 21:33, which is why
+  the alias serves round TWO (commit `0f40d41`, deployment `dpl_4dUiy4m1eRRi538YY1A1ZLBh3oX2`),
+  and the pushes at 23:42 and 23:44 of this pass went the same way.
+- **So "force a redeploy" is not a move anyone has right now.** The API path an Orchestrator would
+  use is the one returning 402 above; the dashboard's redeploy button is the same resource. What
+  actually works is a push timed into an open window, or simply less pressure once the other tracks
+  stop pushing. Either way it costs one commit, not a fix.
 - **The branch gate is not the cause and there is nothing to fix on this branch.** The front matter
   says `preview: true` and `status: handed-off`, and every commit message also carries `[preview]`,
   so `scripts/vercel-ignore-build.mjs` exits 1 (build) on all three counts. A canceled build would
@@ -587,8 +599,9 @@ cause is now measured rather than guessed.
 - **So the round's light-QA rule is satisfied on the composition and not on the surface.** Will's
   rule is the board on ITS PREVIEW at 1440 and 375; this is the board at that head at 1440 and 375
   on localhost. If the alias has caught a window by the time this is read, the one-line check above
-  settles it in a second; if it has not, the Orchestrator can force a redeploy of this branch, or
-  Will can run the dev server line above.
+  settles it in a second; if it has not, the cheapest path is one `[preview]` commit pushed into an
+  open window (they open about every fifteen minutes), and the dev server line above works at any
+  time.
 - **Also worth the Orchestrator's eye: the `launch-prep` alias serves ROUND ONE of this board**, not
   round two. It was checked at the start of round three, before any of its pushes: the integration
   alias builds on request and no `[preview]` push has rebuilt it since this track merged, so a walk
