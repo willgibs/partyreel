@@ -1,6 +1,6 @@
 ---
 track: media-kit
-status: open
+status: handed-off
 cut: "32ddefc"
 merged_round_3: "6c6ab14"
 merged_round_2: "2307446"
@@ -716,16 +716,229 @@ No production byte changed.
 
 ## Handoff (round 4)
 
-- Head <sha>, pushed; preview partyreel-git-lp-media-kit-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Head `4aa2967`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot name its own
+  commit, so the commits after it are this file). Board at `/design/c/media-kit?key=`.
+  Preview `partyreel-git-lp-media-kit-partyreel.vercel.app`.
+- ★ **Verified on a LOCAL PRODUCTION BUILD, not on a preview, and no Vercel API was called.** The
+  round's brief said Vercel is capped, so every check below was run on `pnpm build` + `next start` in
+  this worktree, in a FOREGROUND tab, at 1440 and at 375 (`-p 3214`, then `3216`, `3218`, `3220` and
+  finally `3222` on the synced tree; the port moves because a rebuild swaps `.next` under a running
+  server and kills it). The alias will serve this round whenever a slot frees; confirm by the SHA on
+  the deployment, never by the push succeeding (round two's note on the cap still holds).
+- Synced with `launch-prep` at `6484558` (it had moved one commit past the cut `32ddefc`:
+  `docs(program)`, the app's UI inside rising tides, which touches nothing this lane reads; merged
+  before handoff so the tree under test is the integration tree).
+- Gates on that synced tree: typecheck ok, lint ok (0 errors, 6 warnings, all pre-existing and none
+  in this lane), test ok (1821 in 200 files; this track holds 76 across 7 suites, 17 of them new this
+  round in `plan.test.ts` plus 3 rewritten in `decision.test.ts`), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
+  `docs/tracks/media-kit.md` and eight files under `src/app/(dev)/design/sandbox/media-kit/`
+  (`board.tsx`, `catalogue.ts`, `decision.ts`, `decision.test.ts`, `plan.ts`, `plan.test.ts`,
+  `sheet.tsx`, `sources.ts`). No exceptions. **No production byte changed and nothing was added to
+  `public/`:** `marketing-media.ts`, `public/marketing/` and every blog frontmatter are untouched, and
+  `public/design/media-kit/` is unchanged from round two (the same 22 staged CC0 files and
+  `provenance.json`). Round four copied nothing into the repo at all, which is the point of it.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+
+### Shell changes asked for (the Orchestrator lands them)
+
+1. ★ **`BoardDock`'s height sync is dead after first paint, on every board that adopted it this
+   round.** `src/components/dev/board/dock.tsx` writes the dock's height to `scroll-padding-top` and
+   `--board-dock-h` from a `ResizeObserver`, and the observer never fires again after mount.
+   Measured on the local production build: on this board the dock is **89 px** and the variable is
+   stuck at **292 px** (`scroll-padding-top: 300px`), so `location.hash = "#mk-sheet"` lands the
+   section **211 px below the dock** rather than just under it, which is the exact thing the sync
+   exists to prevent. Reproduced independently on the **palette** board in a neighbouring worktree
+   (dock 129 px, variable 456 px, padding 464 px), so it is the shell and not one board's usage.
+   Proof it is the observer and not a race: growing the dock by hand
+   (`el.style.paddingBottom = "60px"`) takes it 89 to 141 and the variable does not move; shrinking it
+   back does not either. The frozen value is roughly what the dock measures while the lab is still
+   laid out in its narrow sidebar cell during hydration, so the likely cause is the ref landing on a
+   node React replaced during hydration; a `requestAnimationFrame`-deferred re-sync, or observing with
+   `{ box: "border-box" }` plus a `load` listener, would close it. Every board's in-page links are
+   wrong until it is fixed, this one's four "See it" links included.
+2. **`touchpoints.ts` still carries round three's note and variants for `media-kit`** (no agent edits
+   that file). Proposed: `note` → `Where the frames actually come from: thirteen real catalogues
+   ranked by whether they hold a release, each with its clause, its price and a contact sheet of its
+   own thumbnails, and a plan that totals $56`; `variants` → `["The sheet", "The plan", "Mix",
+   "Ours"]`.
+
+### Assets requested from Will
+
+★ **The first item is not an asset, it is a purchase, and it is the only line Will can complete
+tonight with a card instead of a camera.** Everything under it is unchanged from round three.
+
+- **One month of Unsplash+ ($20) and 3 iStock Essentials frames for the conference rooms ($36),
+  $56 in total** · download to the call sheet's codes inside the month and stage the files the way
+  the CC0 batch was staged, under `public/design/media-kit/`, with the same six provenance fields ·
+  replaces the CC0 bridge, which ask 1 bars on four of its 22 frames
+- **36 event photographs, six per vertical** (weddings, birthdays, corporate, conferences, festivals,
+  trips) · 1600 px long edge, a third portrait, one dark warm grade; the call sheet is on the board
+  and in `docs/specs/media-kit.md` 5.1, codes `W1` to `T6`. Four are the palette board's hard cases
+  (`W5`, `W3`, `W2`, `S4`) and three show a guest holding a phone up (`K3`, `S3`, `T4`) · replaces all
+  twelve `MARKETING_IMAGES` by id
+- **24 squares at 512x512**, 6 to 35 KB webp · 1:1 crops of the 24 masters marked `512 square` ·
+  `ASSETS.md` row 2
+- **10 portrait crops at 512x640 and 12 portraits at 720x900** · 4:5 recrops of the same masters ·
+  rows 9 and 12
+- **A hand-and-phone cutout**, PNG with alpha, 1200 px long edge, screen area transparent, two grips ·
+  the ONE separate setup: the same event, the darkest wall, `K3`'s light · row 8
+- **8 vertical clips with posters**, 3 to 5 s, 1080x1920, silent, and the film cut from that footage ·
+  rows 4 and 1. **Round four priced the alternative and it is the round's second number:** the only
+  clip licence on the sheet whose grant survives cancellation is Artgrid at **$299 a year**, more than
+  every photograph in the plan put together, so this is the one row a licence cannot make cheaper
+- **The light board's worst-case overlapping pair** (row 11) · `W3` and `C1` are already that pair
+- **The demo event's curated folder** (row 5) · if the shoot runs AS a Partyreel event, the guests'
+  uploads are the seed
+
+### Proposed `ASSETS.md` changes (the Orchestrator applies; no agent edits that file)
+
+- Row 7's `spec` → append `round four priced the licensed alternative: one month of Unsplash+ plus
+  three iStock frames is $56 for every still, and the only clip licence that survives cancellation is
+  $299 a year, so the money in this log was never in the photographs. The sourcing sheet is
+  docs/specs/media-kit.md section 8.`
+- Row 6's `spec` → append `and round four found the refusal was of a TIER: Unsplash's FREE licence
+  excludes recognisable people, Unsplash+ is model and property released with a $10,000 warranty and
+  a perpetual grant on anything downloaded inside a paid month. The staged CC0 batch is the bridge
+  only until that month is bought.`
+- Rows 1 and 4's `spec` → append `licensing these instead is $299 a year (Artgrid, the only clip
+  grant on the sheet that survives cancellation); shooting them is cheaper and it is the one asset a
+  licence cannot stand in for.`
+
+### The asks, verbatim from `BoardMeta` (the Orchestrator quotes them under Waiting on Will)
+
+**Four, and two of them are new.** Round three asked for a yes to a LIST of licence names; Will's note
+asked for places, so the sheet ranks thirteen catalogues instead and that ask is gone. Round three
+also asked for the route; round four answers it rather than re-asking (it is still Mix, and only the
+source of Mix's licensed half changed), so the question it actually needs is the money.
+
+1. The sourcing rule: author, source, the license clause quoted, a retrieval date and a people field
+   required on every manifest entry, and no recognisable face ships without a release. Options: Yes
+   or No. This board recommends Yes.
+2. The bridge, bought rather than scavenged: one month of Unsplash+ plus 3 iStock frames for the
+   conference rooms, $56 in total, staged the way the CC0 batch was. Options: Buy or Hold. This board
+   recommends Buy.
+3. Does the release rule bind every face, or only a frame's subject? A crowd shot is full of
+   recognisable people and none of them is the picture. Options: Subjects only or All faces. This
+   board recommends Subjects only.
+4. The kit: 36 masters, six per vertical, shot in one night at a real event running Partyreel.
+   Options: Shoot or Park. This board recommends Shoot.
+
+### Look at first
+
+**The plan card, second block on the page.** It is four lines of money and it is the whole round: one
+month of Unsplash+ at $20 covers all five verticals, three iStock frames at $36 cover the conference
+rooms nothing else can, and $56 is the total. Then read the three lines under it, especially the
+middle one: $299 a year is what the FILMS would cost, which is more than every photograph above, and
+that asymmetry is why the recommendation buys the stills and shoots the rest.
+
+**Then the first card on the sheet, and read the release note on it.** Unsplash was refused in round
+one on the sentence that excludes recognisable people, and three rounds were built on that refusal.
+It is the FREE licence. Unsplash+ is a different agreement on the same site whose entire product is
+that clause removed: model and property released, a $10,000 warranty per photo, perpetual for
+anything downloaded inside the month. Nobody had looked at the paid tier of the site the first round
+ruled out.
+
+**Then set the dock to Corporate and conferences and scroll to card 7, Web Summit's Flickr archive.**
+87,066 CC BY 2.0 photographs from one account, which is the best free catalogue that exists for the
+one vertical our corpus cannot fill at all. Look at the twelve frames rather than the numbers: they
+are real conference floors, full of recognisable faces AND full of Meta and Huawei booths at full
+size, which is a second bar nobody had thought of before the sheet drew them. It is free, it is
+better than anything the money buys, and ask 3 is the ruling that decides whether it is a source or a
+footnote.
+
+### Light QA
+
+Walked cold at 1440 and at 375 on a local production build in a foreground tab, on the synced tree
+(`next start -p 3222`).
+
+- **1440.** `documentElement.scrollWidth === clientWidth === 1456` with the disclosure closed and
+  open. The dock's Vertical filter drives every contact sheet at once, which is the global note it
+  answers: on Corporate and conferences, iStock, Envato, Web Summit and Nappy each draw 12 frames and
+  the four sources with nothing for that vertical fall back to one they have, labelled `nothing for
+  corporate and conferences` so the fallback cannot be mistaken for an answer. All 70 tiles in the
+  default view load (`naturalWidth > 0` on every one, zero dead), as do all 24 Flickr frames on the
+  Web Summit card.
+- **The surface check at 1:1.** Three real 320x400 blog cards on the cinema ground at the three rungs
+  of the crop ladder, and the 1200x630 share card at its true size, each measured at exactly those
+  pixels (`getBoundingClientRect` 320x400 and 1200x630). The 1440 canvas sits in the shell's own
+  `overflow-x-auto`, so it scrolls sideways in its box and never widens the page.
+- **375, verified in a 375 px same-origin iframe** (the Chrome MCP still cannot narrow the window; it
+  reports `innerWidth` 1456 for a 420 px window, and an iframe does re-run the media queries).
+  `scrollWidth === clientWidth === 371` at five sampled scroll positions down all 47,645 px of the
+  page with the disclosure OPEN, and every element past 376 px is inside an `overflow-x-auto` or the
+  Stage's own scroller. **This took two fixes, and the first was a real bug:** a `Toggle` is an
+  inline-flex row that never wraps, so the dock's six verticals (453 px) and the surface check's seven
+  sources (456 px) each pushed the whole document into a horizontal scroll at phone width. Both rows
+  are their own scroller below `sm` now and wrap from `sm` up, which is where the dock starts sticking
+  anyway.
+- **Reduced motion is honoured, and this board still mints no keyframe and runs no loop.** The only
+  entrance is the house develop beat (`data-mkt-develop` with `--i`, marketing.css, already inside
+  `no-preference`), the only transform is the tile press, which carries
+  `motion-reduce:transition-none motion-reduce:active:scale-100`, and everything else is a 150 ms
+  colour or underline change. `board.css` is unchanged and still adds exactly one rule, inside
+  `prefers-reduced-motion: no-preference`.
+- **No console message of any kind** on the production build.
+- **One defect a reviewer will hit and I cannot fix from this lane:** the four "See it" links in the
+  ruling card land about 210 px below the dock, because of the shell's frozen `scroll-padding-top`
+  (shell ask 1 above). Scrolling up two notches after a jump is the workaround until it lands.
+
+### Findings against a rule
+
+None against the bible. Five against this track's own earlier work and one against a source, all
+acted on:
+
+1. ★ **The refusal that shaped three rounds was of a TIER, not of a company.** Round one read
+   Unsplash's free terms, found the sentence excluding recognisable people, marked the source
+   refused, and no round since re-opened it. The paid tier is a separate agreement whose entire
+   product is that clause removed, at $20 for a month, and it makes the whole bridge buyable. The
+   general lesson is worth carrying: a source was ruled out by reading ONE of its licences.
+2. ★ **A licence is not a source, and round three's survey ran them together.** Its top row was
+   "CC0 1.0", a legal instrument rather than a catalogue with photographs in it, which is precisely
+   why it could not answer "where do I get a wedding" and why Will's note had to ask again. `SOURCES`
+   and `LICENCES` are separate exports now and `plan.test.ts` refuses anything that appears in both.
+3. ★ **Ranking by price hid that the free half is not cheap, it is unusable.** Under the rule this
+   board proposes, a library with no release cannot supply a frame with a face in it, and faces are
+   the only frames this product wants. Seven of the thirteen places sit below a line for that one
+   reason, and the test asserts the rule rather than trusting the order the array was typed in.
+4. ★ **A licence is read once and a catalogue moves continuously.** Round one marked Coverr allowed
+   on its terms, which are generous and irrevocable and still true. Measured this round: a search for
+   `party` returns 70 Coverr-hosted clips of which 23 are `user-ai-generation` uploads, served on the
+   same page as 34 iStock results under no Coverr licence at all; `wedding` returns 58, 24 of them AI,
+   with the same 34. Nothing about the licence changed.
+5. **A conference floor is a wall of other companies' trademarks**, which the Web Summit contact
+   sheet shows and no amount of licence reading would have. It is a second bar on the free conference
+   corpus, independent of the release one, and it only appeared because the board draws the catalogue
+   instead of describing it.
+6. **`next/image` is wrong for a sourcing board, and not because it cannot do it.** It would proxy
+   every thumbnail through our own optimizer, putting a cached copy of another company's watermarked
+   comp on our infrastructure, which is the one thing a board arguing about licensing must not do
+   quietly. Plain `<img>` from the source's own CDN, with a labelled slate on error. Related and said
+   on the board in red: iStock serves its comps **unwatermarked** at 612 px, so a plate can look
+   finished when it is not, and both surfaces now say plainly that nothing here is licensed to us.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). Will's note reopened the media-kit track on a
+different question, where the frames come from rather than which twelve to pick, and the board became
+a sourcing sheet: thirteen real catalogues, ranked by whether they hold a model release rather than by
+price, each with its licence clause quoted word for word, its price with a number in it, and a contact
+sheet of its own thumbnails hotlinked from its own CDN so that nothing paid was copied into the repo.
+Twenty-one sheets and 248 frames were harvested from the sources' public search pages and every URL
+confirmed live; the five that answer a non-browser client with a 401 or a 403 draw nothing and say so,
+which is itself a fact about working with them. The round's finding is that the refusal at the heart of
+three rounds was of a TIER and not of a company: Unsplash's free licence excludes recognisable people,
+which is what disqualified the twelve stand-ins, and Unsplash+ is a separate agreement on the same site
+whose entire product is that clause removed, model and property released with a $10,000 warranty per
+photo and a perpetual grant on anything downloaded inside a paid month. So the bridge that three rounds
+called unbuyable costs $56: one month at $20 for all five verticals, plus three iStock frames at $36 for
+the conference rooms no subscription is deep in. The films are the other number and they point the other
+way, at $299 a year for the only clip licence that survives cancellation, which is more than every
+photograph put together and is why the recommendation buys the stills and shoots the rest. Two more
+things the sheet found rather than reasoned: Coverr, marked allowed in round one on its licence text,
+now returns 23 AI generations and 34 iStock results in a single page of its own search, so a licence is
+read once and a catalogue moves continuously; and the 87,066 CC BY conference photographs in Web
+Summit's Flickr archive, the best free catalogue for the vertical we cannot fill, are a wall of other
+companies' trademarks as well as unreleased faces. The asks are four again, two of them new: the rule,
+the $56, whether a crowd counts as a subject, and the shoot. No production byte changed and nothing was
+added to `public/`.
