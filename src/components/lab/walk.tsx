@@ -51,7 +51,9 @@ export function useDesignKey(): string | null | undefined {
  * ★ AND THE SCROLL IS `scrollIntoView`, NOT A HASH CHANGE. Writing the hash also
  * pushes a history entry, so a six-step walk leaves six entries between the
  * reader and the page he came from. The dock's own Sections menu uses hrefs
- * because those ARE navigations; a walk is not.
+ * because those ARE navigations; a walk is not. It honours reduced motion: a
+ * step can travel ten thousand pixels, which is the large motion the preference
+ * exists to refuse.
  */
 export function Walk({
   spec,
@@ -72,7 +74,16 @@ export function Walk({
       setAt(i);
       if (step.state) setState(step.state as Record<string, string>);
       const el = document.getElementById(anchorFor(spec.id, step.section));
-      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      // ★ THE SMOOTH SCROLL IS OPT-OUT. A walk step can travel ten thousand
+      // pixels, and a smooth scroll over that distance is exactly the kind of
+      // large motion reduced-motion exists to refuse; it is also slower than
+      // the reader, who presses Next again mid-flight. A media query, not a
+      // preference of ours.
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el?.scrollIntoView({
+        behavior: still ? "auto" : "smooth",
+        block: "start",
+      });
     },
     [steps, setState, spec.id],
   );

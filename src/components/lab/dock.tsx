@@ -200,13 +200,21 @@ export const DOCK_PILL =
   "rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground";
 
 /**
- * A NAMED CONTROL (lifted from the light board's `Knob`, 2026-09-15).
+ * A NAMED CONTROL (lifted from the light board's `Knob` and the rounding
+ * board's `Labeled`, 2026-09-15).
  *
  * The `Toggle` carries an ariaLabel and nothing visible, which is right for a
  * board with one switch and wrong for a dock with five: "Accent | Identity"
  * beside "House five | Warm | Cool" with no names on them is the first thing a
  * stranger stumbles over, and prose further down does not repair it, because
  * the prose is read after the control is pressed. The name goes on the control.
+ *
+ * ★ IT WRAPS, AND THAT IS NOT COSMETIC. A label plus a four-option group is
+ * 382px and the phone canvas is 375: unwrapped, one word takes the whole
+ * DOCUMENT into a horizontal scroll, which is the worst class of layout bug
+ * because every other thing on the page then looks subtly misaligned and none
+ * of them is at fault. The rounding board found it and the first lift of this
+ * component dropped it; a 375 pass found it again.
  */
 export function Knob({
   label,
@@ -216,7 +224,7 @@ export function Knob({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
       <span className="text-[11px] font-medium text-muted-foreground">
         {label}
       </span>

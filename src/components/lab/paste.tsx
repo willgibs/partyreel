@@ -69,6 +69,12 @@ export function CopyButton({
  *
  * The clamp is a line count rather than a pixel height so a two-line paste does
  * not sit in a tall empty box, and `--lab-paste-lines` is read by design.css.
+ *
+ * ★ `min-w-0` ON BOTH THE PRE AND ITS WRAPPER, or `overflow-auto` does nothing.
+ * A flex item's default `min-width: auto` is its CONTENT's width, so a long CSS
+ * line makes the <pre> wider than its column instead of scrolling inside it, and
+ * the board's document scrolls sideways at 375. The scroller has to be allowed
+ * to be narrower than what it holds before it will scroll at all.
  */
 export function Paste({
   code,
@@ -86,7 +92,7 @@ export function Paste({
   const total = code.split("\n").length;
   const clamped = total > lines;
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn("flex min-w-0 flex-col gap-2", className)}>
       <div className="flex flex-wrap items-center gap-2">
         <p className="mr-1 text-[12px] font-medium">{label}</p>
         {clamped && (
@@ -104,7 +110,7 @@ export function Paste({
       <pre
         data-lab-paste={open || !clamped ? undefined : ""}
         style={{ "--lab-paste-lines": lines } as React.CSSProperties}
-        className="overflow-auto rounded-lg border border-border bg-muted/40 p-4 font-sans text-[11px] leading-relaxed tabular-nums whitespace-pre"
+        className="min-w-0 overflow-auto rounded-lg border border-border bg-muted/40 p-4 font-sans text-[11px] leading-relaxed tabular-nums whitespace-pre"
       >
         {code}
       </pre>
