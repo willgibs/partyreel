@@ -568,35 +568,63 @@ body:has([data-mkt-skin="cinema"]) {
 
 ## Handoff (round 2)
 
-- Head: the tip of `lp/palette`, pushed. The last commit touching the board is the album fix; the
-  `4b035c1` sync merge sits between it and the first round-two commit. Preview
-  `partyreel-git-lp-palette-partyreel.vercel.app`, board at `/design/c/palette?key=`. The round-two board is the one whose control bar carries the class
-  `pal-walk-bar` (and thirteen rows with ids `#pal-01` to `#pal-13`); round one's had neither.
+- Head: the tip of `lp/palette`, pushed, and the preview alias serves THE HEAD'S BOARD. The alias
+  `partyreel-git-lp-palette-partyreel.vercel.app` serves `b4be6a2` (deployment
+  `partyreel-ka5icno5j`, READY, alias assigned), proved on the served HTML rather than on the
+  deploy's existence: it carries "Today it has no --card of its own" and `break-inside-avoid` and
+  no longer carries "Near white until a candidate completes the set". The tip adds only this
+  manifest, so no board byte differs between `b4be6a2` and the tip. Board at
+  `/design/c/palette?key=`. The round-two board is the one whose control bar carries the class
+  `pal-walk-bar` (and thirteen rows with ids `#pal-01` to `#pal-13`); round one's had neither. The
+  last commit touching the board is the album fix; the `4b035c1` sync merge sits between it and the
+  first round-two commit.
 - Synced with `launch-prep` at `4b035c1` (it had moved from the `ca952b5` cut by one docs commit,
   `docs/systems/design-system.md`; merged clean, no conflict, nothing in this lane touched).
-- Gates on the synced tree: typecheck ok, lint ok (0 errors, 7 warnings, all pre-existing and none in
-  this lane), test ok (1698 in 193 files), build ok (248 static pages).
+- Gates, re-run at this head on the synced tree: typecheck ok, lint ok (0 errors, 7 warnings, all
+  pre-existing and none in this lane, none in a file this track owns), test ok (1698 in 193 files),
+  build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` and the six
   files under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `board.css`, `ramps.ts`,
   `sections.tsx`, `call-sites.tsx`, and the new `specimens.tsx`). No exceptions. No production byte
   changed: `globals.css`, `theme.css` and `marketing.css` were read and not touched.
-- Light QA, measured rather than eyeballed, on the preview: the content column is 1024 wide, the
-  sticky bar is 126 tall and every row's `scroll-mt-32` clears it, all nineteen stages hold their
-  canvas with zero overflow at 1440 AND at 375 under all four ramps, no horizontal scroll at either
-  width, no element renders in a mono stack, no animation runs (the one colour fade on the token
-  wrapper lives inside `prefers-reduced-motion: no-preference`, so a reduced-motion reader gets the
-  jump cut and the same composition), and no em-dash renders in any text node.
+- Light QA, measured rather than eyeballed, and split by where each measurement was actually taken.
+  ON THE REBUILT PREVIEW, through the DOM: thirteen rows `#pal-01` to `#pal-13`, the walk bar 126
+  tall, the album's twenty four tiles every one `break-inside: avoid` with an IN-FLOW image whose
+  box coincides with its tile (so the fragment bug cannot come back unseen), the ink slab's computed
+  background equal to the value its own caption prints under every ramp (Today 0.155, A 0.185, B
+  0.125, C 0.185 at 0.006 chroma) with the card on the leaf following it, the Apply walk landing one
+  `<style>` with the real selectors (`:root, .surface-paper`, `.dark`, `.surface-ink` and the accent
+  block) and the badge then reading "This page wears it too", Clear removing it and leaving nothing
+  in `localStorage`, zero page-level horizontal scroll under BOTH stage toggles (Desktop 1440 and
+  Phone 375), zero running animations, no element in a mono stack, no em-dash in any text node.
+  ON A LOCAL PRODUCTION BUILD OF THE SAME COMMIT, at the two browser widths the test browser cannot
+  give (its window width is pinned at a 1120 viewport, so a 1440 and a 375 BROWSER have to be
+  measured locally): the content column is 1024 wide, every row's `scroll-mt-32` clears the bar, and
+  all nineteen stages hold their canvas with zero overflow at 1440 AND at 375 under all four ramps.
+  The one colour fade on the token wrapper lives inside `prefers-reduced-motion: no-preference`, so
+  a reduced-motion reader gets the jump cut and the same composition.
   ★ The board reads as a 232px column in a HIDDEN tab: the lab shell's nav is a Suspense boundary
   that does not resolve while `document.hidden`, so the content lands in the sidebar's grid cell.
   It is a test-tool artifact, not a defect, and it hits every board in the lab: verify a lab page in
   a FOREGROUND tab or by the DOM.
-- ★ **The preview alias is STALE at `e440961`: the project hit Vercel's daily deployment rate
-  limit** ("Deployment rate limited, retry in 24 hours", the GitHub commit status on every push
-  after that; the whole project is affected, not this branch, so the other tracks will hit it too).
-  The three commits after it (`ba2afa9`, `e7549ba` and the album fix) are verified on a local
-  production build and a local dev server instead, measured the same way. When the limit clears,
-  any push to `lp/palette` rebuilds the alias; the round-two board is the one whose control bar
-  carries `pal-walk-bar`.
+- ★ **A rate-limited push leaves the alias STALE with nothing on the branch to say so: prove the
+  review surface by a marker string from the newest commit, never by the push.** The project sits
+  on a 100-deployments-per-day cap (`api-deployments-free-per-day`), which the first wave of tracks
+  exhausted, so the three pushes after `e440961` got "Deployment rate limited, retry in 24 hours"
+  as a GitHub commit status and produced NO deployment at all. The alias went on serving `e440961`,
+  which is how a read-only review came to walk a board without the three fixes below and report
+  them as live defects. Recovery, for the next agent to hit this: the cap is a ROLLING window, so
+  slots free a few at a time. Poll `POST api.vercel.com/v13/deployments` with
+  `{"gitSource":{"type":"github","repoId":1252816746,"ref":"lp/<track>","sha":"<sha>"}}` until it
+  stops answering `payment_required` (two attempts 45 seconds apart was enough here, at 22:18); the
+  deployment it creates takes the branch alias on its own. Then fetch the board and grep for a
+  string only the newest commit has.
+- What the fix pass after the first read-only review changed: NO board byte. All three defects that
+  review reported were already fixed in the tree at `b4be6a2`; what was broken was the review
+  SURFACE, an alias three commits behind the branch because the quota refused every push. The pass
+  rebuilt the alias at `b4be6a2`, re-ran the four gates at this head, re-measured all three fixes on
+  the SERVED build instead of a local one (see Light QA above), and corrected this Handoff, which
+  had claimed its QA "on the preview" when half of it was measured locally.
 - Three defects caught while verifying, all fixed, all worth knowing: the guest album fragmented and
   then painted black (a CSS column will split an aspect-ratio box, and an ABSOLUTELY positioned
   child of a column item is placed against the first column fragment in Chrome, so every tile past
