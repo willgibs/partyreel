@@ -605,7 +605,10 @@ function MountPart() {
           ))}
         </dl>
       </div>
-      <Paste code={PASTE} label="The mount" lines={9} />
+      {/* Collapsed, like every paste on the kit: the reviewer checks that the
+          block exists and says what the section above it said, then copies it.
+          Six lines is the kit's own default and the count is on the button. */}
+      <Paste code={PASTE} label="The mount" />
     </div>
   );
 }
