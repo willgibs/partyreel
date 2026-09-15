@@ -13,7 +13,8 @@ import {
 } from "./registers";
 
 /**
- * THE MODEL, AS THE FIRST BLOCK ON THE BOARD (round four).
+ * THE MODEL, THE BOARD'S FIRST SECTION (round four; the header and the lede
+ * moved into spec.ts at the migration wave, 2026-09-15).
  *
  * Will's note asked two questions that turn out to be one: "what's the
  * difference between cinema and ink?" and "didn't know if we were incorrectly
@@ -21,10 +22,12 @@ import {
  * answered neither, because all three inherited the shape of the thing they
  * were judging: a list of grounds with no statement of what a ground IS.
  *
- * So this block is written before any candidate, in plain words, and every
- * candidate below is an answer INSIDE it rather than a rival to it. It is the
- * board's first ask, and it is the only ask whose answer changes what the other
- * seven mean.
+ * ★ IT DRAWS NO HEADING OF ITS OWN ANY MORE. The template numbers the section,
+ * prints its title, restates the ask it answers and carries its lede and its
+ * argument; a block that also opened with a title and a paragraph would say the
+ * same thing twice, one above the other, which is the density the template
+ * exists to end. What is left here is the evidence: the one-sentence answer,
+ * the five registers, the selected pair's grounds and the choosing rules.
  */
 export function ModelBlock({ pair }: { pair: Pair }) {
   const dark = roomsOf(pair.dark);
@@ -34,19 +37,7 @@ export function ModelBlock({ pair }: { pair: Pair }) {
     return n === null ? "" : n.toFixed(3);
   };
   return (
-    <section id="pal-model" className="flex scroll-mt-32 flex-col gap-4">
-      <div>
-        <p className="text-sm font-semibold">
-          The model: two modes, two grounds each, and one well that belongs to
-          neither
-        </p>
-        <p className="mt-1.5 max-w-3xl text-xs text-muted-foreground">
-          Judged from the ground up, as if none of today&apos;s greys existed.
-          Everything below this block is a candidate INSIDE this model; the
-          first ask is whether the model itself is right.
-        </p>
-      </div>
-
+    <div className="flex flex-col gap-4">
       {/* The answer to the question that opened the round, in one sentence,
           because it should not need a paragraph. */}
       <div className="rounded-lg border border-border bg-card px-4 py-3">
@@ -161,6 +152,6 @@ export function ModelBlock({ pair }: { pair: Pair }) {
           ))}
         </ul>
       </div>
-    </section>
+    </div>
   );
 }

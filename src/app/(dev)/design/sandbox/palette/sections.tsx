@@ -16,7 +16,7 @@ import {
 import { Logo } from "@/components/shared/logo";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
-import type { Mode } from "@/components/dev/board";
+import type { Mode } from "@/components/lab";
 
 import { lOf, type TokenMap } from "./registers";
 import { StateRow } from "./specimens";

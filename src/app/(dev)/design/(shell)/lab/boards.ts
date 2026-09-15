@@ -31,7 +31,7 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "home-hero": { Component: HomeHeroBoard, legacy: true },
   "glow-doctrine": { Component: GlowDoctrineVariants, legacy: true },
   "glow-moments": { Component: GlowMomentsVariants, legacy: true },
-  palette: { Component: PaletteBoard, legacy: true },
+  palette: { Component: PaletteBoard },
   light: { Component: LightBoard },
   "type-scale": { Component: TypeScaleBoard, legacy: true },
   "floating-surfaces": { Component: FloatingSurfacesBoard, legacy: true },

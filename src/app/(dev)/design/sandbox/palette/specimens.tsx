@@ -34,7 +34,7 @@ import { Logo } from "@/components/shared/logo";
 import { PageHeading } from "@/components/shared/page-heading";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
-import type { Mode } from "@/components/dev/board";
+import type { Mode } from "@/components/lab";
 
 import {
   GROUND_JOBS,
