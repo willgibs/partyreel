@@ -1,187 +1,137 @@
-/* The river's own sheet (home-hero board, round three's variation 4; this is
-   the track's round two). Keyframe prefix: hhv- (hhs- is the source's, hh- the
-   board's; keyframe names are document-global and keyframe-uniqueness.test.ts
-   reads every sheet under the lab). One keyframe lives here, hhv-tick, and it
-   is declared inside the reduced-motion block with the only rule that uses it.
+/* THE RIVER, A FEATURE VISUAL: the visual's own sheet.
 
-   THE REST STATE / ENTRANCE SPLIT, inherited from the source and inverted from
-   the usual shape for the same reason.
+   PREFIX: rvr-, everywhere, and the hero's hhv- is gone from this lane (the
+   track's ruling, round one: hhv- means "home hero variation" and this is no
+   longer one; keyframe names are document global and keyframe-uniqueness.test.ts
+   reads every sheet under the lab, so the rename is also what keeps this file
+   from shadowing the hero board if the river is ever mounted beside it).
 
-   House convention is "final states outside the media queries, entrances inside
-   `no-preference`". That is what this is, once you see which state is which.
-   The stream's FINAL state is the album fully deployed, and it lives outside
-   every query on `.hhv-card`, read from the per-card custom properties the
-   concept computes during render: a reduced-motion reader, a crawler and the
-   server's own HTML all get the stream standing at its steady-state spacing,
-   with nothing to undo. The count is written the same way in two spans: the
-   SETTLED figure is the rest state and the ticking one is the entrance.
+   THE REST STATE / ENTRANCE SPLIT, inherited from the hero and inverted from
+   the usual shape for the same reason. House convention is "final states
+   outside the media queries, entrances inside no-preference". That is what this
+   is, once you see which state is which. The flow's FINAL state is the album
+   fully deployed, and it lives outside every query on .rvr-card, read from the
+   per card custom properties the component computes during render: a reduced
+   motion reader, a crawler and the server's own HTML all get the flow standing
+   at its steady spacing, with nothing to undo.
 
-   The state inside `no-preference` is the pour's FIRST FRAME, every frame
-   collapsed at the code. It has to live in CSS rather than in an effect,
-   because an effect runs after the server's paint: the stream would paint
-   deployed, snap back to the code, and pour again. Put the pre-pour frame in
+   The state inside no-preference is the pour's FIRST FRAME, every frame
+   collapsed at the origin. It has to live in CSS rather than in an effect,
+   because an effect runs after the server's paint: the flow would paint
+   deployed, snap back to the object, and pour again. Put the pre pour frame in
    the same query the animation itself is allowed in and the pour is one beat.
 
    THE TRADE, flagged on the board under Departures: a reader with JavaScript
-   off who has NOT asked for less motion sees the stream rest at the code and
-   the count hold its starting figure. Nothing that carries meaning is gated by
-   it: the code, the line, the h1, the subhead, the CTAs and the count's
-   settled figure are plain markup and never move. */
+   off who has NOT asked for less motion sees the flow rest at the object.
+   Nothing that carries meaning is gated by it, because a placement's words live
+   beside this visual and never inside it. */
 
-/* The stream dissolves into the frame rather than being guillotined by the
-   stage's overflow: an arm that swings wide as it passes the words fades out at
-   the side edge instead of being cut, and the album leaves through the BOTTOM
-   edge, which is the argument (the page is the album, and the hero is only its
-   first screen). --hhv-fade-x and the two bottom stops are set per canvas.
-
-   THE TWO BOTTOM STOPS are what let one mechanism serve two compositions. On
-   the desktop the fade runs 88% to 100%, so the album genuinely leaves through
-   the bottom of the hero. On the phone it runs 32% to 46%, just above the
-   headline, because at 375 a full-measure h1 leaves no corridor for a
-   photograph beside it: the parting still runs underneath (the guarantee is
-   the same expression on both canvases) but the frames have dissolved before
-   they would be flung aside, so the phone reads as the album pouring out of
-   the code and dissolving into the words rather than as cards thrown out of
-   the way. Nothing is ever drawn OVER a photograph in either case, which is
-   the line bible 1 actually draws.
-
-   ★ TWO ELEMENTS, ONE MASK EACH, deliberately. The obvious way to write this is
+/* ★ TWO ELEMENTS, ONE MASK EACH, deliberately. The obvious way to write this is
    one element with two mask layers and `mask-composite: intersect`; it does not
    work, because the LAST layer's operator composites it against transparent
    black, so the pair either resolves to the union (no dissolve at all, which is
-   what Chrome rendered here) or to nothing. Nesting is unambiguous in every
-   engine and costs one div. */
-.hhv-stream {
+   what Chrome rendered) or to nothing. Nesting is unambiguous in every engine
+   and costs one div. */
+.rvr-stream {
   -webkit-mask-image: linear-gradient(
     to bottom,
-    #000 var(--hhv-fade-b0),
-    transparent var(--hhv-fade-b1)
+    #000 var(--rvr-fade-b0),
+    transparent var(--rvr-fade-b1)
   );
   mask-image: linear-gradient(
     to bottom,
-    #000 var(--hhv-fade-b0),
-    transparent var(--hhv-fade-b1)
+    #000 var(--rvr-fade-b0),
+    transparent var(--rvr-fade-b1)
   );
 }
 
-.hhv-flow {
+.rvr-flow {
   position: absolute;
   inset: 0;
   -webkit-mask-image: linear-gradient(
     to right,
     transparent 0%,
-    #000 var(--hhv-fade-x),
-    #000 calc(100% - var(--hhv-fade-x)),
+    #000 var(--rvr-fade-x),
+    #000 calc(100% - var(--rvr-fade-x)),
     transparent 100%
   );
   mask-image: linear-gradient(
     to right,
     transparent 0%,
-    #000 var(--hhv-fade-x),
-    #000 calc(100% - var(--hhv-fade-x)),
+    #000 var(--rvr-fade-x),
+    #000 calc(100% - var(--rvr-fade-x)),
     transparent 100%
   );
 }
 
-.hhv-card {
+/* LIFT, the light board's named cue for two objects of the same lightness
+   overlapping (docs/specs/light.md, part A). The frames in this flow overlap
+   each other constantly, and two photographs stacked need an edge; bible 10
+   allows exactly this case and no other. One source, directly above, blur twice
+   the offset. The alphas are the only thing the tone prop changes: the hero's
+   cinema pair is far too heavy on paper, where the ground is already lighter
+   than the photographs. It rides INSIDE the scaled element, so a frame near the
+   bottom throws a larger shadow than one at the origin, which is the depth cue
+   for free. */
+.rvr[data-rvr-tone="cinema"] {
+  --rvr-lift:
+    0 8px 16px -4px oklch(0 0 0 / 0.45), 0 16px 32px -8px oklch(0 0 0 / 0.55);
+  --rvr-plate-ring: 0 0 0 0 oklch(0 0 0 / 0);
+}
+
+.rvr[data-rvr-tone="paper"] {
+  --rvr-lift:
+    0 6px 12px -3px oklch(0 0 0 / 0.14), 0 12px 24px -6px oklch(0 0 0 / 0.16);
+  /* A white plate on a light ground needs its own edge, which a dark ground
+     gives it for free. One hairline ring, not a heavier shadow. */
+  --rvr-plate-ring: 0 0 0 1px oklch(0 0 0 / 0.08);
+}
+
+.rvr-card {
   position: absolute;
-  /* Every frame is born at the code: one origin, set per canvas, and the card's
-     negative margins put its CENTRE there, so scale opens from the plate. */
-  top: var(--hhv-origin);
+  /* Every frame is born at the origin: one point, set per box, and the card's
+     negative margins put its CENTRE there, so scale opens from the object. */
+  top: var(--rvr-origin);
   left: 50%;
-  transform: var(--hhv-rest);
-  opacity: var(--hhv-rest-o);
+  transform: var(--rvr-rest);
+  opacity: var(--rvr-rest-o);
   border-radius: var(--radius-tile);
-  /* LIFT, the light board's named cue for two objects of the same lightness
-     overlapping (docs/specs/light.md, part A), at its CINEMA alphas: the frames
-     in this stream overlap each other constantly, and two photographs stacked
-     on a dark ground need an edge. The geometry is that family's, doubled twice
-     because a frame here is 340 px rather than a card: blur stays twice the
-     offset and there is still one source, directly above. It rides inside the
-     scaled element, so a frame near the bottom throws a larger shadow than one
-     at the code, which is the depth cue for free. Bible 10 allows exactly this
-     case and no other. */
-  box-shadow:
-    0 8px 16px -4px oklch(0 0 0 / 0.45),
-    0 16px 32px -8px oklch(0 0 0 / 0.55);
+  box-shadow: var(--rvr-lift);
   will-change: transform, opacity;
   backface-visibility: hidden;
 }
 
-/* The crop, per frame, chosen off the photograph (CROP in river.tsx). Every box
-   in this stream is a square or a 4:5 portrait and eleven of the twelve
-   stand-ins are 3:2, so a centred crop throws the subject away on half of them.
-   The fallback is the browser's own default, so a card without the property is
+/* The crop, per frame, chosen off the photograph (CROP in river.tsx). The
+   fallback is the browser's own default, so a card without the property is
    simply centred. */
-.hhv-card img {
-  object-position: var(--hhv-pos, 50% 50%);
+.rvr-img {
+  object-position: var(--rvr-pos, 50% 50%);
 }
 
-/* THE CODE AS A PRINTED CARD: the white object an event puts on a table, a QR
-   with one line under it. The plate's white and the line's ink are the
-   scanner-contrast exception footer-qr.tsx already documents, not a palette
-   choice. LIFT again, at the same alphas, because this card sits over the
-   photographs the stream carries past it. */
-.hhv-plate {
+/* THE ORIGIN AS A PRINTED CARD: the white object an event puts on a table. */
+.rvr-plate {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   border-radius: var(--radius-tile);
   background: #fff;
-  box-shadow:
-    0 8px 16px -4px oklch(0 0 0 / 0.45),
-    0 16px 32px -8px oklch(0 0 0 / 0.55);
+  box-shadow: var(--rvr-plate-ring), var(--rvr-lift);
 }
 
-/* THE COUNT'S TWO STATES. The settled figure is what the markup carries at
-   rest; the ticking one is swapped in only where an animation is allowed, so
-   reduced motion, a crawler and a JavaScript-less reader all get the number the
-   album actually holds rather than the one the tick starts from. */
-.hhv-n-live {
-  display: none;
+/* THE PLAIN PLATE'S FIELD: the object without the pattern, at the code's own
+   footprint, for a placement whose subject is not the code. A faint field
+   rather than nothing, so the card reads as printed stock and not as a failed
+   image. */
+.rvr-blank {
+  display: block;
+  border-radius: calc(var(--radius-tile) * 0.6);
+  background: oklch(0.955 0 0);
 }
-
-.hhv-n-rest {
-  display: inline-block;
-}
-
-/* ROUND THREE cut the lab chip that used to sit at the top left of the stage
-   (the caption line, printed on the card or floating above a bare plate). The
-   floating line lost plainly on a cold walk, so there is one build now; the
-   chip was also the only thing on the canvas that was not the composition, and
-   a stranger reads a control like that as product UI. The ruling survives as a
-   line in the departures, where one word still overrules it. */
 
 @media (prefers-reduced-motion: no-preference) {
-  /* The pour's first frame: every frame inside the code, at no size. */
-  .hhv-card {
+  /* The pour's first frame: every frame inside the object, at no size. */
+  .rvr-card {
     transform: translate3d(0, 0, 0) scale(0);
     opacity: 0;
-  }
-
-  .hhv-n-live {
-    display: inline-block;
-  }
-
-  .hhv-n-rest {
-    display: none;
-  }
-
-  /* One arrival, marked. High frequency (seven of them, one per launch), so it
-     is instant and almost subliminal rather than a flourish: the number should
-     read as having just landed, never as a counter performing. */
-  .hhv-tick {
-    animation: hhv-tick 140ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  @keyframes hhv-tick {
-    from {
-      opacity: 0.4;
-      transform: translateY(-3px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
   }
 }
