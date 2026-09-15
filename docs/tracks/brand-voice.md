@@ -804,8 +804,10 @@ changed.
 
 ## Handoff (round 4)
 
-- Head: the tip of `lp/brand-voice` (this manifest commit); the board's code head is the commit
-  before it. The board is at `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
+- Head: the tip of `lp/brand-voice`. Round four's board landed at `ec839ba` and the review pass
+  corrected it at `9c3e929` (code and manifest in one commit); this commit sits on top and only
+  names the head, so `9c3e929` is the board a walker sees.
+  The board is at `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
   `docs/specs/brand-voice.md`. **The round-four board is the one whose root div carries
   `class="bv-round-four"`, opens on "The voices in use: marketing, loud" as chapter 1, and whose
   headnote reads "47 of 66 lines differ across the three columns."**
