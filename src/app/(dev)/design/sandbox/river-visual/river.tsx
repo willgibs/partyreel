@@ -4,6 +4,7 @@ import "./river.css";
 
 import Image from "next/image";
 import Link from "next/link";
+import qrcode from "qrcode-generator";
 import { type CSSProperties, useEffect, useMemo, useRef } from "react";
 
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
@@ -171,7 +172,8 @@ const CROP = [
 export type RiverGeo = {
   w: number;
   h: number;
-  /** The QR's edge in px, quiet zone included; 0 when there is no object. */
+  /** The object's field in px (the code including its quiet zone, or the plain
+   *  plate's blank); 0 when there is no object. */
   qr: number;
   /** The white object's own box. */
   plateTop: number;
@@ -204,14 +206,60 @@ export type RiverGeo = {
 /** The plate's padding around the code, and the gap to its printed line. */
 const PLATE_PAD = 10;
 const PLATE_GAP = 8;
+
+/** The object's share of the box when the box is big enough to give it. The
+ *  plain plate is always this. The code is this or its scan floor, whichever
+ *  is larger, which in a small box is the floor. */
+const QR_SHARE = 0.2;
+
+/** What the code encodes when a placement passes no demo URL. One constant,
+ *  because the floor has to be measured off the value actually drawn. */
+const QR_FALLBACK_VALUE = "https://partyreel.com";
+
+/** FooterQr's quiet zone in modules PER SIDE, and the px a module needs to
+ *  survive a phone camera reading it off a screen (footer-qr.tsx cites the
+ *  same floor). QUIET_ZONE is private to that file, so it is mirrored here: it
+ *  is the QR spec's minimum and does not move. */
+const QUIET_ZONE_MODULES = 4;
+const MODULE_FLOOR_PX = 3;
+
 /**
- * ★ THE SCAN FLOOR. FooterQr is 33 modules plus an 8 module quiet zone, so a
- * plate under about 96px puts each module below the ~3px a phone camera needs
- * off a screen. The geometry clamps there rather than drawing a code nobody
- * can scan: below a 400px box the honest builds are the plain plate or no
- * object at all, which is exactly what the board asks Will to rule on.
+ * ★ THE SCAN FLOOR, MEASURED OFF THE CODE and never typed.
+ *
+ * FooterQr draws its svg at `size` px over a viewBox of count + 2 * QUIET_ZONE
+ * modules, so the px a module gets is size / SPAN, not size / count: the quiet
+ * zone is INSIDE the box, and forgetting it overstates the code by a quarter.
+ * The demo URL is 33 modules, so its span is 41 and it is scannable from 123 px
+ * up; the fallback above is 25 modules, span 33, and starts at 99. Round one
+ * typed 96 for both, which gave the demo code 2.34 px a module against the 3
+ * the same note cited, so the number the board asked Will to rule on was one
+ * the code could not support.
+ *
+ * Measured per value because the value decides it: a placement that passes no
+ * demo URL encodes a much shorter string and its floor is genuinely lower.
  */
-const QR_FLOOR = 96;
+function qrSpanModules(value: string) {
+  const code = qrcode(0, "M");
+  code.addData(value);
+  code.make();
+  return code.getModuleCount() + QUIET_ZONE_MODULES * 2;
+}
+
+/**
+ * THE CODE'S REAL NUMBERS in a box of this width: the edge it is drawn at, the
+ * px each module gets, and the share of the box its plate takes. Exported
+ * because the board prints them under every specimen rather than claiming
+ * them. A scannable code has an absolute minimum size, so the smaller the box
+ * the larger its share, and that is the whole of the second ask.
+ */
+export function riverQrReadout(w: number, value: string | null) {
+  const span = qrSpanModules(value ?? QR_FALLBACK_VALUE);
+  const edge = Math.max(
+    Math.ceil(span * MODULE_FLOOR_PX),
+    Math.round(w * QR_SHARE),
+  );
+  return { edge, perModule: edge / span, plateShare: (edge + PLATE_PAD * 2) / w };
+}
 
 /**
  * The bottom dissolve's two stops, as fractions of the height. It runs to the
@@ -223,8 +271,24 @@ const QR_FLOOR = 96;
 const FADE_B0 = 0.8;
 const FADE_B1 = 1;
 
-export function riverGeo(w: number, h: number, origin: RiverOrigin): RiverGeo {
-  const qr = origin === "code" ? Math.max(QR_FLOOR, Math.round(w * 0.2)) : 0;
+export function riverGeo(
+  w: number,
+  h: number,
+  origin: RiverOrigin,
+  qrUrl: string | null,
+): RiverGeo {
+  // The plain plate is the composition's share of the box, at any size. The
+  // CODE cannot be: it has a floor in px, so in a small box it is larger than
+  // the composition would choose. That difference is the honest picture of
+  // what a scannable code costs a section visual, so it is drawn rather than
+  // hidden, and the plate's field is derived the same way rather than left at
+  // zero.
+  const qr =
+    origin === "none"
+      ? 0
+      : origin === "code"
+        ? riverQrReadout(w, qrUrl).edge
+        : Math.round(w * QR_SHARE);
   const plateW = origin === "none" ? 0 : qr + PLATE_PAD * 2;
   const plateTop = Math.round(h * 0.055);
   const plateH = plateW;
@@ -445,15 +509,20 @@ function Origin({
     <span className="rvr-plate" style={{ padding: PLATE_PAD }}>
       {origin === "code" ? (
         <FooterQr
-          value={url ?? "https://partyreel.com"}
+          value={url ?? QR_FALLBACK_VALUE}
           size={geo.qr}
           className="p-0"
         />
       ) : (
-        // THE PLAIN PLATE: the object without the pattern, at the code's own
-        // footprint. A placement whose subject is not the code (curation,
-        // sharing, the guest album) still needs something for the album to pour
-        // OUT of, and a drawn code that goes nowhere would be a lie.
+        // THE PLAIN PLATE: the object without the pattern, at the share of
+        // the box the composition would choose, which is what the code would
+        // also be if a code could be any size. A placement whose subject is not
+        // the code (curation, sharing, the guest album) still needs something
+        // for the album to pour OUT of, and a drawn code that goes nowhere
+        // would be a lie. It is SMALLER than the code in every box under about
+        // 615 px (495 when there is no demo URL to encode), and that difference
+        // is part of the second ask: taking the code out is also taking the
+        // scan floor out.
         <span
           aria-hidden
           className="rvr-blank"
@@ -463,7 +532,10 @@ function Origin({
       {line ? (
         <Caption
           className="text-center text-black/70"
-          style={{ marginTop: PLATE_GAP, maxWidth: geo.qr + PLATE_PAD }}
+          // The line is held to the CODE's own width, not a little wider than
+          // it: the plate is then exactly the field plus its padding at every
+          // size, which is the number the board prints under each specimen.
+          style={{ marginTop: PLATE_GAP, maxWidth: geo.qr }}
         >
           {line}
         </Caption>
@@ -516,7 +588,10 @@ export function RiverVisual({
   className,
 }: RiverVisualProps) {
   const h = height ?? riverHeight(width);
-  const geo = useMemo(() => riverGeo(width, h, origin), [width, h, origin]);
+  const geo = useMemo(
+    () => riverGeo(width, h, origin, qrUrl),
+    [width, h, origin, qrUrl],
+  );
   const reduced = usePrefersReducedMotion();
 
   const rootRef = useRef<HTMLDivElement | null>(null);

@@ -30,6 +30,7 @@ import {
   type RiverOrigin,
   type RiverSizeId,
   riverHeight,
+  riverQrReadout,
 } from "./river";
 
 /**
@@ -95,6 +96,11 @@ function Specimen({
 }) {
   const w = bankWidth(id, mode);
   const h = riverHeight(w);
+  // What the code actually gets in this box, read off the same function the
+  // geometry uses. Printed rather than claimed: the scan floor is an absolute
+  // number of px, so the smaller the box the more of it the code takes, and
+  // that is what the second ask turns on.
+  const code = origin === "code" ? riverQrReadout(w, qrUrl) : null;
   return (
     <figure className="flex flex-col items-center gap-2">
       <RiverVisual
@@ -102,9 +108,10 @@ function Specimen({
         origin={origin}
         qrUrl={qrUrl}
         // The line is printed where the plate has room for it. At 240 the
-        // code already clamps to its scan floor and eats half the width, and a
-        // caption under it wraps to three lines: the thumbnail is exactly the
-        // size at which the second ask (the code, in or out) answers itself.
+        // scannable code is 123 px and its plate 143, three fifths of the
+        // width, and a caption under that wraps to three lines: the thumbnail
+        // is exactly the size at which the second ask (the code, in or out)
+        // answers itself.
         line={origin === "code" && w >= 400 ? CODE_LINE : null}
         tone={ground === "paper" ? "paper" : "cinema"}
         className="rounded-[var(--radius-float)]"
@@ -113,6 +120,12 @@ function Specimen({
         <Caption className="text-center">
           {RIVER_SIZES[id].label}, {w} by {h}
         </Caption>
+        {code ? (
+          <Caption className="text-center">
+            Code {code.edge} px, {code.perModule.toFixed(1)} px a module, plate{" "}
+            {Math.round(code.plateShare * 100)} percent of the box
+          </Caption>
+        ) : null}
       </figcaption>
     </figure>
   );
@@ -429,7 +442,7 @@ const PROPS: { name: string; type: string; note: string }[] = [
   {
     name: "origin",
     type: '"code" | "plate" | "none"',
-    note: "What the album pours out of: the real demo code on its printed card, the same card with no code, or nothing (the flow enters from above the frame).",
+    note: "What the album pours out of: the real demo code on its printed card, the same card with no code, or nothing (the flow enters from above the frame). The plain plate is a fifth of the width at any size; the code is that or its scan floor, whichever is larger, so under about 615 px (495 with no demo URL) the code is the larger object.",
   },
   {
     name: "qrUrl",
@@ -711,7 +724,7 @@ export function RiverVisualBoard() {
           ]}
           asks={[
             "Where it goes first: the how it works column on a feature page (560, the strongest of the three), the doors row card slot (330, the hardest), or the guest album's empty state (the app surface, ghosted).",
-            "The code, in or out. In, it is a scannable CTA inside a section visual and every placement inherits a second call to action; out, the plain plate is a white card with a faint field in it, which is quieter and says less.",
+            "The code, in or out. In, it is a scannable CTA inside a section visual and every placement inherits a second call to action, at a fixed price: the demo code is scannable from 123 px and no smaller, whatever the box is, so its printed card is a quarter of the 560 column, a third of the 400 card and three fifths of the 240 thumbnail. Out, the plain plate is a white card with a faint field in it, sized by the composition rather than by a camera, which is quieter and says less.",
             "Whether an empty album may show photographs at all. The candidate ghosts the flow at production's own mosaic treatment for exactly that reason, and the honest alternative is that the guest's empty state carries no picture of other people's events.",
             "The proportion: 1.32 is the visual's default and the only number in it that is taste rather than derivation.",
           ]}
@@ -719,7 +732,7 @@ export function RiverVisualBoard() {
             "THE GHOST IN THE APP PLACEMENT. The guest empty state renders the flow grayscale at low alpha, which is production's own treatment for the ghost mosaic it replaces (gallery-empty-state.tsx): at full luminance a stream of photographs in an empty album promises pictures that do not exist. It is a filter on the placement's wrapper and never a layer over the media, so bible 1 holds; it is listed here because it is the only place on this board where a photograph is not at 100 percent.",
             "BIBLE 13, decorative layer only. The pre pour state (every frame collapsed at the object) lives inside the reduced-motion block, so a reader with JavaScript off who has not asked for less motion sees the flow rest at the object. Nothing that carries meaning is gated by it: this visual holds no type, by design, and every placement's words are plain markup beside it. A reader who asked for less motion gets the flow fully deployed, which is the still the rest state was written to be.",
             "BIBLE 12, the register. A feature visual is occasional, not a hero, so the flight is 7.6 seconds and a frame launches every 611 ms: slow enough to be ambient beside copy, and paused off screen by useAmbientPause the moment this is wired (the lab pauses on a hidden tab only, so the board can be compared side by side).",
-            "THE SCAN FLOOR, stated rather than hidden. FooterQr is 33 modules plus its quiet zone, so a plate under about 96 px puts each module below what a phone camera reads off a screen. The geometry clamps there instead of drawing a code nobody can scan, which means the 240 thumbnail's code is nearly half the visual. That is the strongest argument for the plain plate at small sizes and it is what the second ask is really about.",
+            "THE SCAN FLOOR, measured rather than claimed. FooterQr draws its code over a viewBox of the module count PLUS its 8 quiet zone modules, so the px a module gets is the size over 41 and not over 33: the demo URL is scannable from 123 px up, and round one's typed 96 gave it 2.34 px a module against the 3 px floor the same note cited. The geometry now measures the floor off the value it is drawing (a placement with no demo URL encodes a shorter string and its floor is 99), clamps there, and every specimen prints what it got. The consequence is the second ask: 123 px of code sits on a 143 px card whatever the box is, which is a quarter of the 560 column, a third of the 400 card and three fifths of the 240 thumbnail, so the small sizes pay for the code in composition rather than in legibility.",
             "THE PREFIX MOVED, hhv- to rvr-, everywhere in this lane. hhv- meant home hero variation and this is no longer one; keyframe names are document global, so the rename also keeps this sheet from shadowing the hero board's if the two are ever on one page.",
           ]}
           assets={[

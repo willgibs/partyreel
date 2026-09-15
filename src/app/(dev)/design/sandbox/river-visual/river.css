@@ -118,10 +118,11 @@
   box-shadow: var(--rvr-plate-ring), var(--rvr-lift);
 }
 
-/* THE PLAIN PLATE'S FIELD: the object without the pattern, at the code's own
-   footprint, for a placement whose subject is not the code. A faint field
-   rather than nothing, so the card reads as printed stock and not as a failed
-   image. */
+/* THE PLAIN PLATE'S FIELD: the object without the pattern, at the share of the
+   box the composition chooses (the code, which has a scan floor in px, is
+   larger than that in every small box), for a placement whose subject is not
+   the code. A faint field rather than nothing, so the card reads as printed
+   stock and not as a failed image. */
 .rvr-blank {
   display: block;
   border-radius: calc(var(--radius-tile) * 0.6);
