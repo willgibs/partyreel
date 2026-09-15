@@ -1,7 +1,7 @@
 ---
 track: light
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "521ea6633021e20756b75aba5b723213867d82cf"
 merged_round_2: "6203d62"
 merged_round_1: "72b20da"
 preview: true           # Will reviews this board on its preview as it builds
