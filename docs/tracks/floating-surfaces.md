@@ -1,7 +1,7 @@
 ---
 track: floating-surfaces
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "c473707"
 merged_round_3: "c0609e7"
 merged_round_2: "8a448fd"
 merged_round_1: "3071cfc"
