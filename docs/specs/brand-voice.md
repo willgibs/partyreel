@@ -257,7 +257,14 @@ reaches `marketing-voice.ts` and `feature-pages.ts` without anything being retyp
    the pair cannot move separately. (Board 8's paste.)
 3. **The marketing sections and pages**, chapter by chapter, a page at a time. The home arc's
    eyebrows, supporting lines and CTAs are on boards 2 to 4; the two feature pages whole are on
-   boards 6 and 7.
+   boards 6 and 7, cards included. **The card sets are the surprise in this step, and the cheapest
+   part of it:** across the album page's nineteen cards and the curation page's five, A moves three
+   strings of forty-eight and B six. Will's 2026-09-02 finish pass already wrote them in one length
+   band with every number derived from the constants the product enforces, so a rewrite that ignores
+   the band breaks the row it sits in. Three of the sets also quote the app's own helpers back to
+   the reader: the album page's `Accepting uploads` body is the settings card's helper verbatim and
+   mock-parity pins the pair, which makes that one a two-file change owned by the quiet register
+   rather than by this guide.
 4. **The help catalogue** (59 articles, 2,959 lines): the frontmatter `description` first, since it
    is the short answer and the meta description both, then the body. Anything inside `<UiLabel>` is
    a quotation and is not rewritten here at all.

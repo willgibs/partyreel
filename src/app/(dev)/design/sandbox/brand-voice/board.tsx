@@ -3,7 +3,7 @@
 // the board's own sheet; it leaves with the board when the ruling lands.
 import "./board.css";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import {
   BoardMeta,
@@ -33,10 +33,12 @@ import {
   featureDiff,
   featurePagesPaste,
   held,
+  pageCardDiff,
   pick,
   sectionHeadersPaste,
   voiceById,
   type ArcSection,
+  type PageCard,
   type Surface,
   type Trio,
   type VoiceId,
@@ -229,6 +231,103 @@ function Items({
   );
 }
 
+/**
+ * A Stage whose height is its CONTENT's height, measured rather than written.
+ *
+ * ★ WHY NO STAGE ON THIS BOARD CARRIES A LITERAL HEIGHT ANY MORE. A Stage is a
+ * fixed box with `overflow: hidden`, so a number typed into it is a promise
+ * about content that has to hold for three voices, two canvases, and every
+ * window width the board is read at. That last one is not obvious and is the
+ * reason round two's hand-tuned numbers failed review: a real marketing
+ * component inside a Stage resolves its own `sm:`/`lg:` rungs against the REAL
+ * browser window, not the canvas, so the arc's chapters measure up to 40px
+ * taller at 1512 than at 1000 in the same voice. Two stages clipped a heading,
+ * one of them the hero board 5 asks a ruling on, which is the worst possible
+ * place to lose a word. A literal also cannot survive an edit to the copy
+ * above it, and editing copy is the entire activity on a copy board.
+ *
+ * So the stage takes the height from the content: one layout pass before the
+ * first paint (useLayoutEffect, so nothing is ever painted at the default
+ * canvas height), then a ResizeObserver for the two things that move a wrap
+ * afterwards, the webfont settling and the window resizing. The children drop
+ * `min-h-full` for the same reason: the ground is the Stage's own background,
+ * and content stretched to fill a box cannot be used to measure it.
+ *
+ * offsetHeight, not getBoundingClientRect: the Stage fits the lab column with
+ * `zoom`, and a rect is in the zoomed frame while the height prop is not.
+ */
+/** Border (2) plus the worst rounding a fractional zoom can add. Dead ground,
+ *  not a guess at the copy: it is the same number on every stage. */
+const FIT_SLACK = 8;
+
+function FitStage({
+  mode,
+  ground,
+  swapKey,
+  className,
+  children,
+}: {
+  mode: Mode;
+  ground: Ground;
+  /** Remounts the inner block so the voice swap still animates. It is a level
+   *  BELOW the measured node on purpose: a key change on the measured node
+   *  would swap the element out from under the observer. */
+  swapKey?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState<number | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // scrollHeight as well as offsetHeight, so a descendant sitting a hair past
+    // the block is inside the box; then FIT_SLACK, which is not a fudge for the
+    // copy but for two mechanical facts: the Stage is border-box, so its 1px
+    // border comes OUT of the height it is handed, and it fits the lab column
+    // with a fractional `zoom`, which rounds the box at the device pixel. Both
+    // showed up as a constant few-pixel clip on every stage at once, in every
+    // voice, which is how you tell them from a line that does not fit.
+    const sync = () =>
+      setHeight(
+        Math.ceil(Math.max(el.offsetHeight, el.scrollHeight)) + FIT_SLACK,
+      );
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    window.addEventListener("resize", sync);
+    // The webfont lands after the first layout and takes every wrap with it.
+    document.fonts?.ready.then(sync).catch(() => {});
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", sync);
+    };
+    // swapKey is a dependency, not just an RO's problem: a voice change swaps
+    // every string in the stage at once, and the observer was measurably late
+    // on it (a stage stayed a few pixels short until something else nudged it).
+    // In a layout effect the new copy is measured before the frame is painted.
+  }, [mode, swapKey]);
+
+  return (
+    <Stage mode={mode} ground={ground} height={height}>
+      {/* flow-root, so a child's margin cannot collapse out of the thing being
+          measured and hand back a height shorter than what is drawn. */}
+      <div ref={ref} className="flow-root">
+        <div
+          key={swapKey}
+          data-inview="true"
+          data-bv-canvas={mode}
+          data-bv-swap
+          className={className}
+        >
+          {children}
+        </div>
+      </div>
+    </Stage>
+  );
+}
+
 /* -------------------------------------------------------------------------
  * The arc
  * ---------------------------------------------------------------------- */
@@ -325,28 +424,18 @@ function ArcChapter({
   voice,
   mode,
   ground,
-  height,
 }: {
   sections: ArcSection[];
   voice: VoiceId;
   mode: Mode;
   ground: Ground;
-  height: number;
 }) {
   return (
-    <Stage mode={mode} ground={ground} height={height}>
-      <div
-        key={voice}
-        data-inview="true"
-        data-bv-canvas={mode}
-        data-bv-swap
-        className="min-h-full"
-      >
-        {sections.map((s) => (
-          <ArcBlock key={s.id} section={s} voice={voice} mode={mode} />
-        ))}
-      </div>
-    </Stage>
+    <FitStage mode={mode} ground={ground} swapKey={voice}>
+      {sections.map((s) => (
+        <ArcBlock key={s.id} section={s} voice={voice} mode={mode} />
+      ))}
+    </FitStage>
   );
 }
 
@@ -427,6 +516,53 @@ function Ledger({
   );
 }
 
+/**
+ * A section's card set, at the width the copy was measured in.
+ *
+ * ★ WHY THE WIDTHS ARE SPELLED, not `sm:`/`lg:`: album-copy.ts states the
+ * bands it was written to (measured at 1440 in `text-sm leading-relaxed`: a
+ * three-up column holds about 40 characters a row, a four-up about 34, and
+ * two rows is the target for every body). A Tailwind breakpoint inside a Stage
+ * reads the REAL viewport, so a `lg:w-1/3` here would put a desktop column
+ * inside the 375 box and every band would be judged against the wrong wrap.
+ */
+function Cards({
+  cards,
+  voice,
+  mode,
+  columns = 3,
+}: {
+  cards: PageCard[];
+  voice: VoiceId;
+  mode: Mode;
+  columns?: 3 | 4;
+}) {
+  const grid =
+    mode === "desktop"
+      ? `mx-auto mt-9 grid max-w-5xl gap-x-6 gap-y-7 text-left ${columns === 4 ? "grid-cols-4" : "grid-cols-3"}`
+      : "mx-auto mt-7 grid max-w-sm gap-5 text-left";
+  return (
+    <div className={grid}>
+      {cards.map((c, i) => (
+        <div key={i} className="flex flex-col gap-1">
+          <h3
+            className={
+              mode === "desktop"
+                ? "font-heading text-lg"
+                : "font-heading text-base"
+            }
+          >
+            {pick(c.title, voice)}
+          </h3>
+          <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
+            {pick(c.body, voice)}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* -------------------------------------------------------------------------
  * A feature page, whole
  * ---------------------------------------------------------------------- */
@@ -435,17 +571,10 @@ function FeaturePageStage({
   page,
   voice,
   mode,
-  heroHeight,
-  chunkHeights,
 }: {
   page: WholePage;
   voice: VoiceId;
   mode: Mode;
-  /** [desktop, phone]. Measured on the rendered board, not guessed: a stage is
-   *  a fixed box with overflow hidden, so a short height clips a section and a
-   *  tall one pads the chapter with dead ground. */
-  heroHeight: [number, number];
-  chunkHeights: [number, number][];
 }) {
   const strings = FEATURES.find((f) => f.slug === page.slug);
   const pad = mode === "desktop" ? "py-10 sm:py-10" : "py-7 sm:py-7";
@@ -461,42 +590,19 @@ function FeaturePageStage({
 
   return (
     <div className="space-y-2">
-      <Stage
-        mode={mode}
-        ground="cinema"
-        height={heroHeight[mode === "desktop" ? 0 : 1]}
-      >
-        <div
-          key={voice}
-          data-inview="true"
-          data-bv-canvas={mode}
-          data-bv-swap
-          className="min-h-full"
-        >
-          <PageHero
-            data-bv-type="hero-lg"
-            className="w-full py-10"
-            scale="lg"
-            eyebrow={pick(strings?.navLabel, voice)}
-            heading={pick(strings?.h1, voice)}
-            subhead={pick(strings?.heroSub, voice)}
-          />
-        </div>
-      </Stage>
+      <FitStage mode={mode} ground="cinema" swapKey={voice}>
+        <PageHero
+          data-bv-type="hero-lg"
+          className="w-full py-10"
+          scale="lg"
+          eyebrow={pick(strings?.navLabel, voice)}
+          heading={pick(strings?.h1, voice)}
+          subhead={pick(strings?.heroSub, voice)}
+        />
+      </FitStage>
       {chunks.map((chunk, i) => (
-        <Stage
-          key={i}
-          mode={mode}
-          ground={chunk.ground}
-          height={(chunkHeights[i] ?? [600, 900])[mode === "desktop" ? 0 : 1]}
-        >
-          <div
-            key={voice}
-            data-inview="true"
-            data-bv-canvas={mode}
-            data-bv-swap
-            className="min-h-full"
-          >
+        <FitStage key={i} mode={mode} ground={chunk.ground} swapKey={voice}>
+          <>
             {chunk.items.map((s, j) => (
               <SectionShell
                 key={j}
@@ -507,6 +613,14 @@ function FeaturePageStage({
                 heading={pick(s.header, voice)}
                 subhead={pick(s.support, voice)}
               >
+                {s.cards && (
+                  <Cards
+                    cards={s.cards}
+                    voice={voice}
+                    mode={mode}
+                    columns={s.cardColumns}
+                  />
+                )}
                 {s.cta && (
                   <div className="mt-5 flex justify-center">
                     <Button size="lg" className="h-11 px-6 text-base">
@@ -516,9 +630,41 @@ function FeaturePageStage({
                 )}
               </SectionShell>
             ))}
-          </div>
-        </Stage>
+          </>
+        </FitStage>
       ))}
+      <CardLedger page={page} voice={voice} />
+    </div>
+  );
+}
+
+/** What the cards cost, counted, with the reason a set holds written under it.
+ *  The goal asked for the feature pages WHOLE, and a page's cards carry more
+ *  words than every heading on it put together; both candidates come out low
+ *  here, so the count has to be on the board rather than asserted. */
+function CardLedger({ page, voice }: { page: WholePage; voice: VoiceId }) {
+  const d = pageCardDiff(page, voice);
+  const noted = page.sections.filter((s) => s.cards && s.cardNote);
+  return (
+    <div className="bv-card-ledger space-y-2 pt-3 text-xs leading-relaxed text-muted-foreground">
+      <p>
+        <span className="text-foreground">
+          {voice === "today"
+            ? `${d.cards} cards on this page, ${d.total} strings.`
+            : `Cards: ${d.moved} of ${d.total} strings move, across ${d.cards} cards.`}
+        </span>{" "}
+        The titles and bodies are the shipped objects, imported rather than
+        retyped, so the board cannot drift from the page.
+      </p>
+      {voice !== "today" &&
+        noted.map((s) => (
+          <p key={pick(s.eyebrow, "today") || pick(s.header, "today")}>
+            <span className="text-foreground">
+              {pick(s.eyebrow, "today") || pick(s.header, "today")}.{" "}
+            </span>
+            {s.cardNote}
+          </p>
+        ))}
     </div>
   );
 }
@@ -707,7 +853,6 @@ export function BrandVoiceBoard() {
             voice={voiceId}
             mode={mode}
             ground="cinema"
-            height={desktop ? 2000 : 2020}
           />
           <Ledger sections={CHAPTER_1} voice={voiceId} />
         </div>
@@ -725,7 +870,6 @@ export function BrandVoiceBoard() {
             voice={voiceId}
             mode={mode}
             ground="paper"
-            height={desktop ? 970 : 1060}
           />
           <Ledger sections={CHAPTER_PAPER} voice={voiceId} />
         </div>
@@ -743,7 +887,6 @@ export function BrandVoiceBoard() {
             voice={voiceId}
             mode={mode}
             ground="cinema"
-            height={desktop ? 1240 : 1200}
           />
           <Ledger sections={CHAPTER_CLOSE} voice={voiceId} />
           <div className="mt-5">
@@ -762,28 +905,25 @@ export function BrandVoiceBoard() {
         framed={false}
       >
         <div className="space-y-3">
-          <Stage mode={mode} ground="cinema" height={desktop ? 520 : 330}>
-            {/* min-h-full, never h-full: a flex column at the stage's exact
-                height shrinks both lockups to a line and a half. */}
-            <div
-              data-inview="true"
-              data-bv-canvas={mode}
-              className="min-h-full space-y-10 py-12"
-            >
-              <PageHero
-                data-bv-type="hero-xl"
-                className="w-full"
-                scale="xl"
-                heading={THESIS.ruled}
-              />
-              <PageHero
-                data-bv-type="hero-xl"
-                className="w-full"
-                scale="xl"
-                heading={THESIS.alternative}
-              />
-            </div>
-          </Stage>
+          {/* ★ THE STAGE THIS BOARD MOST HAD TO GET RIGHT. Ask 6 asks Will to
+              choose between two lines, so a stage that clips one of them asks
+              nothing. It did: a 520px box against 616px of content cut the
+              word "it." off the second thesis at 1440, and at 375 the line
+              stopped at "as". Measured now, like every other stage. */}
+          <FitStage mode={mode} ground="cinema" className="space-y-10 py-12">
+            <PageHero
+              data-bv-type="hero-xl"
+              className="w-full"
+              scale="xl"
+              heading={THESIS.ruled}
+            />
+            <PageHero
+              data-bv-type="hero-xl"
+              className="w-full"
+              scale="xl"
+              heading={THESIS.alternative}
+            />
+          </FitStage>
           <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
             {THESIS.note}
           </p>
@@ -793,38 +933,19 @@ export function BrandVoiceBoard() {
       <Variant
         n={6}
         name="A feature page, whole: /features/album"
-        rationale="The h1, the hero sub and every section eyebrow and header on the page, in order, on the two grounds it really uses. A voice that holds for ten sections of one page is a voice the other five pages can be written against."
+        rationale="The page whole: the h1, the hero sub, every section eyebrow, header and supporting line, and every card with its title, in order, on the two grounds the page really uses. The cards are its body weight, so the ledger under the page counts what they cost."
         framed={false}
       >
-        <FeaturePageStage
-          page={ALBUM_PAGE}
-          voice={voiceId}
-          mode={mode}
-          heroHeight={[380, 390]}
-          chunkHeights={[
-            [800, 830],
-            [1340, 1320],
-            [265, 290],
-          ]}
-        />
+        <FeaturePageStage page={ALBUM_PAGE} voice={voiceId} mode={mode} />
       </Variant>
 
       <Variant
         n={7}
         name="A feature page, whole: /features/curation"
-        rationale="The second page, and the harder one: its whole body is one paper chapter of decisions, so the voice has to stay quiet enough to read as a working document and loud enough to still be marketing."
+        rationale="The second page, and the harder one: its whole body is one paper chapter of decisions, cards included, so the voice has to stay quiet enough to read as a working document and loud enough to still be marketing."
         framed={false}
       >
-        <FeaturePageStage
-          page={CURATION_PAGE}
-          voice={voiceId}
-          mode={mode}
-          heroHeight={[380, 350]}
-          chunkHeights={[
-            [940, 930],
-            [265, 260],
-          ]}
-        />
+        <FeaturePageStage page={CURATION_PAGE} voice={voiceId} mode={mode} />
       </Variant>
 
       <Variant
@@ -890,15 +1011,13 @@ export function BrandVoiceBoard() {
         rationale="The dashboard's empty state, an error, two notifications, an email subject with its first line, and the account page's labels. Shown once, not per candidate: the quiet register does not fork with the voice, which is why three of these hold unchanged."
         framed={false}
       >
-        <Stage mode={mode} ground="app-light" height={desktop ? 1110 : 2440}>
-          <div className="h-full overflow-hidden px-8 py-6">
-            <div className="flex flex-col gap-3">
-              {QUIET_SURFACES.map((s) => (
-                <SurfaceCard key={s.surface} s={s} mode={mode} />
-              ))}
-            </div>
+        <FitStage mode={mode} ground="app-light" className="px-8 py-6">
+          <div className="flex flex-col gap-3">
+            {QUIET_SURFACES.map((s) => (
+              <SurfaceCard key={s.surface} s={s} mode={mode} />
+            ))}
           </div>
-        </Stage>
+        </FitStage>
       </Variant>
 
       <Variant
@@ -907,15 +1026,13 @@ export function BrandVoiceBoard() {
         rationale="The demo guest page's real lines: the door in its three states, the upload prompt, the empty album, the upload confirmation. Bible 4 is the whole rule here, and the shipped account gate is the one line that breaks it."
         framed={false}
       >
-        <Stage mode={mode} ground="app-light" height={desktop ? 1170 : 2100}>
-          <div className="h-full overflow-hidden px-8 py-6">
-            <div className="flex flex-col gap-3">
-              {GUEST_SURFACES.map((s) => (
-                <SurfaceCard key={s.surface} s={s} mode={mode} />
-              ))}
-            </div>
+        <FitStage mode={mode} ground="app-light" className="px-8 py-6">
+          <div className="flex flex-col gap-3">
+            {GUEST_SURFACES.map((s) => (
+              <SurfaceCard key={s.surface} s={s} mode={mode} />
+            ))}
           </div>
-        </Stage>
+        </FitStage>
       </Variant>
 
       <Variant
@@ -924,8 +1041,8 @@ export function BrandVoiceBoard() {
         rationale="The parked ruling, on the surface it actually renders: what a host's group chat shows. The public variant sits above as the control, because the two lines have to read as one set."
         framed={false}
       >
-        <Stage mode={mode} ground="app-light" height={desktop ? 360 : 600}>
-          <div className="flex h-full flex-col justify-center gap-5 px-8">
+        <FitStage mode={mode} ground="app-light" className="px-8 py-8">
+          <div className="flex flex-col gap-5">
             <div className="max-w-md">
               <p className="text-[11px] font-medium text-muted-foreground">
                 A public event, for reference
@@ -968,7 +1085,7 @@ export function BrandVoiceBoard() {
               ))}
             </div>
           </div>
-        </Stage>
+        </FitStage>
       </Variant>
 
       <BoardMeta

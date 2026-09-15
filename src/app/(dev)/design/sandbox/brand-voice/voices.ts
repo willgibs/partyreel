@@ -23,6 +23,16 @@
  * comparison is against reality and not a paraphrase.
  */
 
+import {
+  GETTING_IN,
+  NAMES,
+  STAYS,
+  TAKE_HOME,
+  YOUR_CALL,
+  type CopyItem,
+} from "@/components/marketing/sections/features/album/album-copy";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
+
 export type VoiceId = "today" | "house" | "room";
 
 /** One slot, in all three columns. `today` is the shipped string, verbatim. */
@@ -786,11 +796,61 @@ export function featureDiff(id: VoiceId): { moved: number; total: number } {
  * TWO FEATURE PAGES, WHOLE
  * ------------------------------------------------------------------------ */
 
+/** One card in a section's set: a title and a body, each in all three
+ *  columns. The feature pages carry more WORDS in their cards than in their
+ *  headings, so a voice that is only argued on headings is not argued. */
+export type PageCard = { title: Trio; body: Trio };
+
+/**
+ * A card whose `today` is the SHIPPED object, imported rather than retyped, so
+ * the board cannot drift from the page it quotes. Pass `null` for a voice that
+ * keeps the card verbatim, or only the half that moves: the board marks and
+ * counts every hold, which on these sets is most of them (see CARD_NOTE).
+ */
+function card(
+  src: CopyItem,
+  house: Partial<CopyItem> | null,
+  room: Partial<CopyItem> | null,
+): PageCard {
+  return {
+    title: {
+      today: src.title,
+      house: house?.title ?? src.title,
+      room: room?.title ?? src.title,
+    },
+    body: {
+      today: src.body,
+      house: house?.body ?? src.body,
+      room: room?.body ?? src.body,
+    },
+  };
+}
+
+/** The same, for a card whose shipped copy lives inline in a component rather
+ *  than in a copy module (the curation page's two sets). The `today` strings
+ *  below are quoted from those components, with the constants resolved. */
+function inlineCard(
+  today: CopyItem,
+  house: Partial<CopyItem> | null,
+  room: Partial<CopyItem> | null,
+): PageCard {
+  return card(today, house, room);
+}
+
 export type PageSection = {
   ground: "cinema" | "paper";
   eyebrow?: Trio;
   header: Trio;
   support?: Trio;
+  /** The section's card set, titles and bodies, where it ships one. Round two
+   *  of this track added these: the goal asked for the feature pages WHOLE,
+   *  and a page's cards are most of its words. */
+  cards?: PageCard[];
+  /** Why a set holds where it does, shown under the page on the board. */
+  cardNote?: string;
+  /** The set's real column count, so a band is judged against its own wrap
+   *  (the stays section ships four steps and then three notes on one grid). */
+  cardColumns?: 3 | 4;
   cta?: Trio;
 };
 
@@ -823,6 +883,22 @@ export const ALBUM_PAGE: WholePage = {
           "Guests point a camera at the code, land on a welcome screen, and start adding. New events ask for an email first.",
         room: "A camera finds the code, a welcome screen opens, and the adding starts. New events ask for an email first.",
       },
+      cards: [
+        card(
+          GETTING_IN.facts[0],
+          { title: "The browser they already have" },
+          {
+            title: "It opens in a browser",
+            body: "A camera finds the code and the album opens in the browser already on the phone. Nothing to install.",
+          },
+        ),
+        card(GETTING_IN.facts[1], null, {
+          body: "Ask for accounts and everyone confirms an email once. Switch it off and anyone with the link can add.",
+        }),
+        card(GETTING_IN.facts[2], null, null),
+      ],
+      cardNote:
+        "Both candidates move the first title, because No app, ever puts the absence in the first beat, which is the thing ask 5 replaces. The other two hold.",
     },
     {
       ground: "cinema",
@@ -880,6 +956,13 @@ export const ALBUM_PAGE: WholePage = {
           "Guests only ever see approved photos. Whether that means the moment they land, or after you say so, is one switch.",
         room: "Guests only ever see approved photos. Whether that happens as they land, or after you say so, is one switch.",
       },
+      cards: [
+        card(YOUR_CALL.settings[0], null, null),
+        card(YOUR_CALL.settings[1], null, null),
+        card(YOUR_CALL.settings[2], null, null),
+      ],
+      cardNote:
+        "The whole set holds in both voices, and the first line could not move alone anyway: Accepting uploads quotes the app's own settings helper and a mock-parity test pins the pair, so a rewrite there is a two-file change owned by the quiet register, not by this ask.",
     },
     {
       ground: "paper",
@@ -894,8 +977,15 @@ export const ALBUM_PAGE: WholePage = {
           "Open any photo and the name is right there. Guests pick a display name once, with a free account.",
         house:
           "Open any photo and the name is right there. Guests pick a display name once, with a free account.",
-        room: "Open any photo and the name is right there. A guest picks a display name once and it rides on everything they add.",
+        room: "Open any photo and the name is right there. A guest picks a display name once, with a free account.",
       },
+      cards: [
+        card(NAMES.states[0], null, null),
+        card(NAMES.states[1], null, null),
+        card(NAMES.states[2], null, null),
+      ],
+      cardNote:
+        "Held in both. Rendering the cards caught a collision: B's first draft of the supporting line above ended on it rides on everything they add, which is the first card, word for word. The line gave the clause back.",
     },
     {
       ground: "paper",
@@ -936,6 +1026,13 @@ export const ALBUM_PAGE: WholePage = {
           "The album is the share. Save one shot, take the whole thing, and watch the reel.",
         room: "The album is the share. Save one shot, take the whole thing, and watch the reel.",
       },
+      cards: [
+        card(TAKE_HOME.plates[0], null, null),
+        card(TAKE_HOME.plates[1], null, null),
+        card(TAKE_HOME.plates[2], null, null),
+      ],
+      cardNote:
+        "Held in both voices. Three verbs, three plates, one length band; there is nothing here for a voice to take.",
     },
     {
       ground: "paper",
@@ -968,6 +1065,22 @@ export const ALBUM_PAGE: WholePage = {
           "An album is for after, not just the day. Here is how long it stays.",
         room: "An album is for after, not just the day. Here is how long it stays.",
       },
+      cards: [
+        card(STAYS.steps[0], null, null),
+        card(
+          STAYS.steps[1],
+          { body: "Yours until you say otherwise. No end date." },
+          { body: "It stays until you say otherwise. No end date." },
+        ),
+        card(STAYS.steps[2], null, null),
+        card(STAYS.steps[3], null, null),
+        card(STAYS.notes[0], null, null),
+        card(STAYS.notes[1], null, null),
+        card(STAYS.notes[2], null, null),
+      ],
+      cardColumns: 4,
+      cardNote:
+        "Seven cards, one move, and both voices make it: No end date. leads on an absence, which ask 5 pushes to the second beat. The four steps and the three notes are constants in a sentence, so the voice reaches the order of the clauses and nothing else.",
     },
     {
       ground: "cinema",
@@ -1024,6 +1137,28 @@ export const CURATION_PAGE: WholePage = {
           "Casual events usually run live, so the room can watch the album grow. For weddings and conferences, flip on review and every upload waits for you.",
         room: "Casual events run live, so the room watches the album grow. For a wedding or a conference, flip on review and every upload waits for you.",
       },
+      cards: [
+        inlineCard(
+          {
+            title: "Live",
+            body: "Uploads appear the moment guests take them. The album fills in real time while the party is still going.",
+          },
+          null,
+          {
+            body: "Uploads land the moment guests take them. The album fills while the party is still going.",
+          },
+        ),
+        inlineCard(
+          {
+            title: "Review",
+            body: "Every upload waits for your approval before anyone else sees it. Skim the queue and clear it in one scroll.",
+          },
+          null,
+          null,
+        ),
+      ],
+      cardNote:
+        "B drops in real time, which is an abstraction laid over a thing the reader is watching happen. Review holds: it is already written in B.",
     },
     {
       ground: "paper",
@@ -1044,6 +1179,38 @@ export const CURATION_PAGE: WholePage = {
           "Curation is a series of small, reversible calls. The only permanent delete is the one you confirm on purpose.",
         room: "Hide it, show it again, hide it again. The only permanent delete is the one you confirm on purpose.",
       },
+      cards: [
+        inlineCard(
+          {
+            title: "Hide",
+            body: "One tap takes it off the guest album. It stays dimmed in your own view, so bringing it back is one more tap.",
+          },
+          null,
+          null,
+        ),
+        inlineCard(
+          {
+            title: "Remove",
+            body: `Deletes it from the album and into the Trash, where it waits ${RECENTLY_DELETED_WINDOW_DAYS} days before it\u2019s gone for good.`,
+          },
+          {
+            body: `Moves it to the Trash, where it waits ${RECENTLY_DELETED_WINDOW_DAYS} days before it\u2019s gone for good.`,
+          },
+          {
+            body: `It moves to the Trash and waits there ${RECENTLY_DELETED_WINDOW_DAYS} days before it\u2019s gone for good.`,
+          },
+        ),
+        inlineCard(
+          {
+            title: "Restore",
+            body: "Back exactly as it was, in the same spot, like nothing happened. An accidental swipe is never a disaster.",
+          },
+          null,
+          null,
+        ),
+      ],
+      cardNote:
+        "Remove moves in both, because Deletes it from the album and into the Trash runs two prepositions off one verb. Hide and Restore hold.",
     },
     {
       ground: "paper",
@@ -1079,6 +1246,35 @@ export const CURATION_PAGE: WholePage = {
     },
   ],
 };
+
+/**
+ * How many of a page's CARD strings a candidate moves. Counted separately from
+ * the thirty identity strings because it is the answer to a different
+ * question: the cards carry more words than every heading on the page put
+ * together, so this is the honest measure of what a voice costs on a feature
+ * page. Both candidates come out low, and that is the finding, not an
+ * omission: Will's 2026-09-02 finish pass wrote these sets in one length band
+ * with the numbers derived from the constants the product enforces, and three
+ * of the six sets quote the app's own helpers back to the reader.
+ */
+export function pageCardDiff(
+  page: WholePage,
+  id: VoiceId,
+): { moved: number; total: number; cards: number } {
+  let moved = 0;
+  let total = 0;
+  let cards = 0;
+  for (const section of page.sections) {
+    for (const c of section.cards ?? []) {
+      cards += 1;
+      for (const t of [c.title, c.body]) {
+        total += 1;
+        if (!held(t, id)) moved += 1;
+      }
+    }
+  }
+  return { moved, total, cards };
+}
 
 /* ---------------------------------------------------------------------------
  * THE QUIET REGISTER, ON REAL APP COPY
