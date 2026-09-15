@@ -1,7 +1,7 @@
 ---
 track: rounding
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "c473707"
 merged_round_3: "a32981a"
 merged_round_2: "2603465"
 preview: true           # Will reviews this board on its preview as it builds
