@@ -1401,218 +1401,8 @@ export function pageCardDiff(
 }
 
 /* ---------------------------------------------------------------------------
- * THE QUIET REGISTER, ON REAL APP COPY
+ * THE UNFURL (the parked ruling)
  * ------------------------------------------------------------------------ */
-
-export type Surface = {
-  surface: string;
-  /** Where the string lives, so the infusion round can find it. */
-  where: string;
-  rule: string;
-  today: { title: string; body?: string; action?: string };
-  proposed: { title: string; body?: string; action?: string };
-  note: string;
-  /**
-   * Set ONLY on the row a bible rule already decides, naming the rule. Round
-   * three's finding on these two chapters: twelve rewrites are shown and eleven
-   * are the infusion round's ordinary work, which made the chapter read like
-   * twelve rulings. The twelfth is not a ruling Will owes either, and the mark
-   * now says which rule owns it instead of implying an ask: bible 4 refuses the
-   * shipped line outright, so the infusion round has to change it whatever the
-   * voice. Its one choosable part, the noun (email or sign in), is ask 7, which
-   * settles this door line and the chapter 12 unfurl together.
-   */
-  compelled?: string;
-};
-
-/**
- * Shown ONCE, not per candidate: the quiet register does not fork with the
- * voice (round one's finding, carried). Round two widens it from four sample
- * surfaces to the real app copy the brief named: the dashboard's empty state,
- * an error, two notifications, an email subject with its first line, and the
- * account page's labels.
- */
-export const QUIET_SURFACES: Surface[] = [
-  {
-    surface: "The dashboard's empty state",
-    where: "components/app/dashboard/events-empty-teaser.tsx",
-    rule: "One clause, the verb on the button beneath it, and then it stops. An absence may be the second beat, never the first, and never both.",
-    today: {
-      title: "Your events land here",
-      body: "Create an event and your guests add photos and videos in seconds. No app, no account, just a QR code.",
-      action: "Create your first event",
-    },
-    proposed: {
-      title: "Your events land here",
-      body: "Create an event, share one code, and your guests start adding photos in seconds.",
-      action: "Create your first event",
-    },
-    note: "The heading is already an arrival and stays. The blurb led with an arrival, then spent its whole second half on three absences, which is the marketing argument repeated inside the product to a host who is already here.",
-  },
-  {
-    surface: "An error",
-    where: "components/guest/enter-event-prompt.tsx",
-    rule: "Say what did not happen, in the app's own noun, then the one thing to do next. Never apologise, never blame the reader, never explain the system.",
-    today: { title: "Check the form and retry." },
-    proposed: { title: "Couldn't sign you in. Check the email and password." },
-    note: "The shipped fallback names no failure and asks the reader to audit themselves. The rewrite states what did not happen, then the one thing to do.",
-  },
-  {
-    surface: "A notification",
-    where: "lib/notifications/build.ts",
-    rule: "Name what happened to the host's own thing. The body says what follows, in the present, and commits to an outcome rather than to a mechanism.",
-    today: {
-      title: "3 uploads to review",
-      body: "Guests are waiting for your approval.",
-    },
-    proposed: {
-      title: "3 uploads to review",
-      body: "They go into the album as soon as you approve them.",
-    },
-    note: "The title is already right. The body says what the guests are doing; the rewrite says what happens next to the album, which is the thing the host is deciding about.",
-  },
-  {
-    surface: "A notification, the storage one",
-    where: "lib/notifications/build.ts",
-    rule: "The same, and never name the machinery: copy commits to outcomes, never to what does the work.",
-    today: {
-      title: "You're over your storage limit",
-      body: "Upgrade or remove media before we auto-reduce it.",
-    },
-    proposed: {
-      title: "You're over your storage limit",
-      body: "Upgrade or clear some space and everything stays.",
-    },
-    note: "Naming the mechanism and then threatening with it is two rules at once. Same fact, stated as what the host keeps.",
-  },
-  {
-    surface: "An email subject and its first line",
-    where: "lib/email/templates.ts, inactivityWarningEmail",
-    rule: "Name what happened to the reader's own thing, front-loaded for a truncating inbox. The first line leads with what keeps it, and the policy arrives second.",
-    today: {
-      title: "Your Partyreel event will be removed soon",
-      body: "Your event Maya & Jay's Wedding hasn't been used in a while. To keep free accounts tidy, we remove events after 6 months of inactivity.",
-    },
-    proposed: {
-      title: "Your Partyreel event will be removed soon",
-      body: "Open Maya & Jay's Wedding before 14 March and it stays. Free events are removed after 6 months without a visit.",
-    },
-    note: "The subject already names the reader's thing first and stays. The first line opened on an absence and a housekeeping rationale; the rewrite leads with the one action that keeps the album, and the deadline sits in the sentence the reader actually reads.",
-  },
-  {
-    surface: "The account page's labels",
-    where: "app/(app)/account/page.tsx",
-    rule: "A label is the noun the host would use for the thing, never a sentence and never a promise. The description is the short answer, written so someone could stop reading after it.",
-    today: {
-      title:
-        "Profile  ·  Public profile  ·  Connections  ·  Password  ·  Email preferences",
-      body: "Public profile: Your page on Partyreel: the events you host and choose to share, plus events you joined. Follower counts stay private to you.",
-    },
-    proposed: {
-      title:
-        "Profile  ·  Public profile  ·  Connections  ·  Password  ·  Email preferences",
-      body: "Public profile: The events you host and share, plus the ones you joined. Follower counts stay private to you.",
-    },
-    note: "Five labels, five nouns, all unchanged: a label the host already reads correctly is finished. One description carried a colon clause explaining what a profile is to a host standing on their own account page.",
-  },
-];
-
-/* ---------------------------------------------------------------------------
- * THE GUEST REGISTER
- * ------------------------------------------------------------------------ */
-
-/**
- * The demo guest page's real lines, with Partyreel nearly silent (bible 4).
- * The event is "Maya & Jay's Wedding", the demo event the live-demo section
- * and the demo ticket both point at.
- */
-export const GUEST_SURFACES: Surface[] = [
-  {
-    surface: "The door, a public event",
-    where: "components/guest/entry-modal.tsx",
-    rule: "The event's name leads and ours stays out of the way. The description says what this is, in the guest's words.",
-    today: {
-      title: "Welcome to Maya & Jay's Wedding",
-      body: "A shared gallery for the whole event.",
-      action: "Continue",
-    },
-    proposed: {
-      title: "Welcome to Maya & Jay's Wedding",
-      body: "One album, from everyone who came.",
-      action: "Continue",
-    },
-    note: "The title is right and stays. The shipped line is the software describing itself; the rewrite says what the guest is looking at. It also settles the noun: the site says album everywhere and the guest surface says gallery in five places.",
-  },
-  {
-    surface: "The door, an account-required event",
-    where: "components/guest/entry-modal.tsx",
-    rule: "The host's business, stated plainly. Never our ask, never a pitch for an account.",
-    today: {
-      title: "See all the photos",
-      body: "Create a free account to see the full gallery and add your own photos.",
-      action: "Continue",
-    },
-    proposed: {
-      title: "See all the photos",
-      body: "Maya and Jay ask guests for an email. Add it once and you can add photos.",
-      action: "Continue",
-    },
-    note: "The shipped line asks the guest to create an account with US on the host's own page, which is exactly what bible 4 is about. The rewrite hands the ask back to the host, who is the one who turned it on. Bible 4 decides that much on its own, so this row is not an ask; the noun it uses is, and that is ask 7, answered once for this line and the unfurl.",
-    compelled: "bible 4 refuses the shipped line",
-  },
-  {
-    surface: "The door, a private event",
-    where: "components/guest/entry-modal.tsx",
-    rule: "The same. A gate is the host's, so the sentence is the host's.",
-    today: {
-      title: "Maya & Jay's Wedding is private",
-      body: "Enter the event password to view it.",
-      action: "Continue",
-    },
-    proposed: {
-      title: "Maya & Jay's Wedding is private",
-      body: "Enter the password Maya and Jay gave you.",
-      action: "Continue",
-    },
-    note: "Same length, and the guest now knows where the password came from.",
-  },
-  {
-    surface: "The upload prompt",
-    where: "components/guest/file-dropzone.tsx",
-    rule: "The verb on the control, and the one way to use it. No sentence, no promise.",
-    today: {
-      title: "Add photos & videos",
-      body: "Tap to choose, or drag them here",
-    },
-    proposed: {
-      title: "Add photos & videos",
-      body: "Tap to choose, or drag them here",
-    },
-    note: "Unchanged. Both lines are the register already: a verb, then how.",
-  },
-  {
-    surface: "The empty album",
-    where: "components/guest/gallery-empty-state.tsx",
-    rule: "One line about what is about to arrive, then the button that starts it.",
-    today: {
-      title: "This is where it all lands",
-      action: "Be the first to add a photo",
-    },
-    proposed: {
-      title: "This is where it all lands",
-      action: "Be the first to add a photo",
-    },
-    note: "Unchanged, and the strongest evidence the guest register was already written in the voice: an arrival, present tense, no brand.",
-  },
-  {
-    surface: "The upload confirmation",
-    where: "components/guest/guest-upload.tsx",
-    rule: "What happened, then who it is with. A guest who is waiting should know on whom.",
-    today: { title: "Sent, waiting for host approval" },
-    proposed: { title: "Sent. Maya and Jay will approve it." },
-    note: "Either answer is defensible, so it is flagged rather than assumed: the shipped line is quoted verbatim inside the album page's copy set, so a rewrite here is a two-file change.",
-  },
-];
 
 /**
  * The account-required unfurl, both ways (the parked ruling). The string lives
@@ -1687,3 +1477,843 @@ export function featurePagesPaste(id: VoiceId): string {
     "];",
   ].join("\n");
 }
+
+/* ---------------------------------------------------------------------------
+ * THE VOICES IN USE (round four, 2026-09-15)
+ * ------------------------------------------------------------------------ */
+
+/**
+ * ★ WHY THIS SECTION EXISTS, AND THE ONE RULE IT OBEYS.
+ *
+ * Will, after walking round three: "there's a handful of notes about the
+ * voices, but not a lot of actual usage examples that I can get a feel for
+ * each voice through... I would love to see the brand voices previewed on a
+ * few different production UI areas across marketing and app." And: "a lot
+ * just have the exact same versions with a note that says unchanged... it's
+ * absolutely useless for a brand voice comparison here. Any examples should
+ * actually show the distinction (can include similarities as well)."
+ *
+ * So the board now opens on the voices WRITING, not on notes about them: the
+ * same real surface, written three ways, on the component that ships it.
+ *
+ * THE RULE THAT FIXES THE UNCHANGED ROWS, and the one thing to understand
+ * about this data: here every voice WRITES every line, even where a sweep
+ * would keep today's. That is a different question from the ledger chapters,
+ * which count what a rewrite would actually MOVE (A moves 23 of 65 arc lines,
+ * B 33) and mark a hold. A comparison exists to show a difference; a ledger
+ * exists to price one. Keeping the two questions in one table was what
+ * produced the useless rows.
+ *
+ * Where all three columns land on the SAME string anyway, the row carries
+ * `same`: the reason the voice does not touch it, never the word unchanged. A
+ * button that says Create your first event is not an omission, it is the
+ * finding that a verb the host is about to press outranks a voice. The board
+ * counts both (useTally below), so the claim is measured rather than asserted.
+ */
+export type UseLine = {
+  /** The slot's name on the real surface (eyebrow, heading, body, action). */
+  slot: string;
+  trio: Trio;
+  /**
+   * Set ONLY where all three voices write the same string: why the line is
+   * the same in every voice. Never "unchanged": a reader learns nothing from
+   * that, which was the whole complaint.
+   */
+  same?: string;
+  /** A rule already decides this line whatever the voice (bible 4 on a guest
+   *  surface). Named, so a compliance fix never reads as an ask. */
+  compelled?: string;
+};
+
+export type UseCase = {
+  id: string;
+  /** The surface, named the way a walker would name it. */
+  surface: string;
+  /** Where the strings live, so the infusion round can find them. */
+  where: string;
+  /** The guide's rule for this surface, in one line. */
+  rule: string;
+  lines: UseLine[];
+  /** What separates the three voices HERE, in one or two sentences. */
+  distinction: string;
+};
+
+/** A surface's slot, as a trio. Returns an empty trio rather than throwing:
+ *  a board should render a missing line as nothing, not as a blank screen. */
+export function slot(u: UseCase, name: string): Trio {
+  return (
+    u.lines.find((l) => l.slot === name)?.trio ?? {
+      today: "",
+      house: "",
+      room: "",
+    }
+  );
+}
+
+/** One slot, in one voice. */
+export function say(u: UseCase, name: string, id: VoiceId): string {
+  return pick(slot(u, name), id);
+}
+
+/** True when all three voices write the same string on a slot. */
+export function sameInAll(t: Trio): boolean {
+  return t.today === t.house && t.house === t.room;
+}
+
+/**
+ * The measured answer to Will's second note, printed on the board: how many
+ * rows show a difference, and how many are the same in all three with the
+ * reason stated. A row that is the same in all three WITHOUT a reason is a
+ * defect, so it is counted separately and the board says so out loud.
+ */
+export function useTally(groups: UseCase[][]): {
+  rows: number;
+  differ: number;
+  same: number;
+  unexplained: number;
+} {
+  const all = groups.flat().flatMap((u) => u.lines);
+  const same = all.filter((l) => sameInAll(l.trio));
+  return {
+    rows: all.length,
+    differ: all.length - same.length,
+    same: same.length,
+    unexplained: same.filter((l) => !l.same).length,
+  };
+}
+
+/**
+ * An ARC section's slot, by id rather than by index: the usage chapter and the
+ * ledger chapters have to show the SAME line for the same section, and an
+ * index silently points at a different section the moment the arc is reordered
+ * (it already did once in this file's life).
+ */
+function arcSlot(
+  id: string,
+  key: "eyebrow" | "header" | "support" | "cta",
+): Trio {
+  return (
+    ARC.find((s) => s.id === id)?.[key] ?? { today: "", house: "", room: "" }
+  );
+}
+
+/* --- Marketing, loud ---------------------------------------------------- */
+
+/**
+ * The five marketing surfaces, in the order a reader meets them. The hero and
+ * the paper chapter quote the ARC trios above verbatim so the board tells ONE
+ * story: what chapter 1 shows in use is the same line chapter 5's ledger
+ * prices. The card set, the pricing pair and the help opening are written
+ * here, since round three's chapters carried them only as counts.
+ */
+export const MARKETING_USE: UseCase[] = [
+  {
+    id: "home-hero",
+    surface: "The home hero",
+    where: "app/(marketing)/(cinema)/page.tsx, SITE_THESIS and SITE_SUBHEAD",
+    rule: "The h1 is the whole product in one line and the subhead is the mechanism in one sentence. The h1 never explains; the subhead never sells a second time.",
+    lines: [
+      { slot: "eyebrow", trio: arcSlot("cinema-hero", "eyebrow") },
+      { slot: "heading", trio: arcSlot("cinema-hero", "header") },
+      { slot: "subhead", trio: arcSlot("cinema-hero", "support") },
+      { slot: "cta", trio: arcSlot("cinema-hero", "cta") },
+    ],
+    distinction:
+      "The sharpest pair on the board. A writes today's two ruled lines back, because keeping them IS A's argument: the thesis and the subhead were ratified on 2026-08-25 and A says the voice already lives in them. B writes a different sentence about the same product, and the eyebrow underneath shows the two philosophies in five words each: today names three absences, A names a sequence, B names a state. Read the h1 rows under the stage for what B costs.",
+  },
+  {
+    id: "album-chapter",
+    surface: "A chapter header and its body",
+    where: "components/marketing/sections/home/album-section.tsx",
+    rule: "A claim the section then proves, never the category it belongs to. The body is one sentence that earns the header, and the chevron is the reader's next step.",
+    lines: [
+      {
+        slot: "eyebrow",
+        trio: arcSlot("album", "eyebrow"),
+        same: "An eyebrow on this page is a chapter mark, and the chapter is the album. A voice that renames it is naming a different section, which is a structure question rather than a copy one.",
+      },
+      { slot: "heading", trio: arcSlot("album", "header") },
+      { slot: "subhead", trio: arcSlot("album", "support") },
+      {
+        slot: "cta",
+        trio: arcSlot("album", "cta"),
+        same: "A chevron link is the reader's next step, not a sentence: it names the place it goes. All three voices write the destination.",
+      },
+    ],
+    distinction:
+      "The paper masthead, the one left-aligned header on the home page, and the place the three voices are furthest apart. Today states a mechanism (every photo comes to you first). A states what the host ends up holding. B states a count nobody had to chase, which is the only one of the three a shared folder could not say back.",
+  },
+  {
+    id: "feature-cards",
+    surface: "A feature card set",
+    where: "components/marketing/sections/features/album/album-copy.ts, GETTING_IN",
+    rule: "A card is read in a row of cards, so it is scannable and different from its neighbours in substance. One line, no verb in front: the title carries the name.",
+    lines: [
+      {
+        slot: "subhead",
+        trio: {
+          today:
+            "Guests point a camera at the code, land on a welcome screen, and start adding. New events ask for an email first.",
+          house:
+            "A camera, a code, a welcome screen, and your guests are adding. New events ask for an email first.",
+          room: "A phone finds the code, a welcome screen opens, and photos start arriving. New events ask for an email first.",
+        },
+      },
+      {
+        slot: "card1-title",
+        trio: {
+          today: "No app, ever",
+          house: "The browser they already have",
+          room: "It opens in a browser",
+        },
+      },
+      {
+        slot: "card1-body",
+        trio: {
+          today:
+            "The code opens the album in the browser they already have. Point, tap, add. Nothing to install.",
+          house:
+            "The code opens the album in the browser on their phone, and they are adding a tap later. Nothing to install.",
+          room: "A camera finds the code and the album opens in the browser already on the phone. Point, tap, add.",
+        },
+      },
+      {
+        slot: "card2-title",
+        trio: {
+          today: "Names, if you want them",
+          house: "A name on every photo, if you want one",
+          room: "Names, if you ask for them",
+        },
+      },
+      {
+        slot: "card2-body",
+        trio: {
+          today:
+            "Require accounts and guests confirm an email once. Switch it off and anyone with the link can add.",
+          house:
+            "Ask for an email and each guest confirms one once, so every photo arrives with a name on it. Switch it off and anyone with the link can add.",
+          room: "Ask for an email and a guest confirms one once, on the phone they are already holding. Switch it off and anyone with the link adds.",
+        },
+      },
+      {
+        slot: "card3-title",
+        trio: {
+          today: "One link, forever",
+          house: "One link, and it keeps working",
+          room: "The code is the album",
+        },
+      },
+      {
+        slot: "card3-body",
+        trio: {
+          today:
+            "The code is the album link. Scan it, tap it in a chat, open it later. Pro and Event Pass can name it.",
+          house:
+            "The code is the album link: scan it at the door, tap it in a chat, open it next year. Pro and Event Pass can name it.",
+          room: "Scan it at the door, tap it in the group chat, open it next March. It is the same link the whole time, and Pro can name it.",
+        },
+      },
+    ],
+    distinction:
+      "Three cards read across, not down: the test is whether the row still scans when the eye takes a second each. Today names what is absent, what is optional and what is permanent. A turns each into the thing the host holds. B puts the phone in the sentence, which is the most concrete of the three and also the longest, and on a three-up grid length is the cost: the band album-copy.ts was written to is about forty characters a row.",
+  },
+  {
+    id: "pricing-card",
+    surface: "The pricing pair",
+    where: "components/marketing/sections/pricing/plan-cards.tsx, numbers from tiers.ts",
+    rule: "A plan is a fact and a price. The tagline says who the plan is for, the list says what arrives, and the footnote answers the one thing a reader is afraid of.",
+    lines: [
+      {
+        slot: "free-tagline",
+        trio: {
+          today: "Your first event, covered.",
+          house: "Your first event, and everyone in it.",
+          room: "One event, and every photo that lands in it.",
+        },
+      },
+      {
+        slot: "free-item",
+        trio: {
+          today: "No watermark on photos or the album",
+          house: "Full-size photos, no watermark",
+          room: "Photos come out the size they went in",
+        },
+      },
+      {
+        slot: "free-cta",
+        trio: {
+          today: "Start free",
+          house: "Start free",
+          room: "Start free",
+        },
+        same: "Two words, a verb and the price. Every voice writes it, and a voice that improves on it has started selling on a button.",
+      },
+      {
+        slot: "free-note",
+        trio: {
+          today: "No card. Upgrade only when you host again.",
+          house: "No card, and you upgrade only when you host again.",
+          room: "No card. Upgrade when you host the next one.",
+        },
+      },
+      {
+        slot: "pro-tagline",
+        trio: {
+          today: "For hosts who host again.",
+          house: "For the next one, and the one after.",
+          room: "For hosts already planning the next one.",
+        },
+      },
+      {
+        slot: "pro-item",
+        trio: {
+          today: "Password-locked albums and custom links",
+          house: "Password-locked albums, and links you name",
+          room: "Lock an album, name its link",
+        },
+      },
+      {
+        slot: "pro-note",
+        trio: {
+          today: "Change size or cancel any time in the billing portal.",
+          house: "Change the size, or stop, any time in the billing portal.",
+          room: "Move up a size or stop any time, from the billing portal.",
+        },
+      },
+    ],
+    distinction:
+      "The one surface where the voice has to stay out of the way of a number: every figure on these cards renders from tiers.ts and no voice touches it. What a voice can move is the tagline and the footnote, which is where a reader decides whether we are going to charge them by surprise. Today's Free tagline is a passive (covered by whom?); A names who is covered; B names what lands. The footnote is the one line on the page a nervous reader rereads, and all three keep No card first.",
+  },
+  {
+    id: "help-open",
+    surface: "A help article's opening",
+    where: "content/help/an-upload-wont-finish.mdx, its front matter and first paragraph",
+    rule: "The title is the reader's question in the reader's words. The description is the short answer, written so someone could stop reading after it.",
+    lines: [
+      {
+        slot: "title",
+        trio: {
+          today: "An upload won't finish",
+          house: "An upload won't finish",
+          room: "An upload won't finish",
+        },
+        same: "A help title is also the search string and the tab title, so the reader's words outrank the voice. This is the one surface where the guide says so outright, and all three voices yield the same way.",
+      },
+      {
+        slot: "description",
+        trio: {
+          today:
+            "A stuck upload is almost always the connection: tap the dimmed tile to retry. A refused one tells you why (too large, wrong type, uploads closed). Big videos need a steady connection and time.",
+          house:
+            "A stuck upload is almost always the connection, and a tap on the dimmed tile finishes it. A refused one tells you why: too large, wrong type, uploads closed.",
+          room: "Tap the dimmed tile and a stuck upload usually finishes: it is almost always the connection. A refused one says why, and a big video needs a steady signal and time.",
+        },
+      },
+      {
+        slot: "first",
+        trio: {
+          today:
+            "Uploads go one file at a time, and each one either lands with a green check or turns dim with Tap to retry. The message on the toast tells you which of these it is.",
+          house:
+            "Uploads go one file at a time, and each one either lands with a green check or turns dim with Tap to retry. The toast tells you which.",
+          room: "Files go up one at a time. Each one lands with a green check or turns dim with Tap to retry, and the toast says which it was.",
+        },
+      },
+    ],
+    distinction:
+      "The surface that costs a ruling the least and shows the register the clearest. The title holds in every voice by the guide's own rule; underneath it, A tightens the shipped sentence and B leads with the tap, because a reader on this page is holding a phone with a stuck upload on it. All 59 articles are written to this shape, which is why a voice ruling costs the help catalogue nothing.",
+  },
+];
+
+/* --- The app, quiet ----------------------------------------------------- */
+
+/**
+ * The host's app, on the components that ship it. Will's fourth global note
+ * opened the app's UI to a lab track, so these render on the real app ground
+ * (light or dark, from the dock) rather than as text in a card, which is what
+ * round three did and what made the register hard to judge.
+ */
+export const APP_USE: UseCase[] = [
+  {
+    id: "dashboard-empty",
+    surface: "The dashboard's empty state",
+    where: "components/app/dashboard/events-empty-teaser.tsx",
+    rule: "One clause, the verb on the button beneath it, and then it stops. An absence may be the second beat, never the first, and never both.",
+    lines: [
+      {
+        slot: "heading",
+        trio: {
+          today: "Your events land here",
+          house: "Your events land here",
+          room: "Your events land here",
+        },
+        same: "An arrival, in the present, with the host's own noun in it. Every voice writes this line, and finding it already shipped is the strongest evidence the app register was half-written before anyone wrote it down.",
+      },
+      {
+        slot: "body",
+        trio: {
+          today:
+            "Create an event and your guests add photos and videos in seconds. No app, no account, just a QR code.",
+          house:
+            "Create an event, share the code, and your guests add photos and videos in seconds.",
+          room: "Create an event and share one code. Photos start arriving in seconds, from any phone in the room.",
+        },
+      },
+      {
+        slot: "action",
+        trio: {
+          today: "Create your first event",
+          house: "Create your first event",
+          room: "Create your first event",
+        },
+        same: "The verb the host is about to press. A button is the one place a voice never gets to be interesting, and both candidates handed this one straight back.",
+      },
+    ],
+    distinction:
+      "The clearest case of the marketing argument leaking into the product: the shipped blurb leads with an arrival and then spends its whole second half on three absences, to a host who is already signed in and reading their own dashboard. A cuts the second half. B replaces it with what happens next. Nothing else on the surface moves, and that is the register: a quiet surface fails by saying too much, not by saying it wrong.",
+  },
+  {
+    id: "event-card",
+    surface: "The event card's pills",
+    where: "components/app/event-card.tsx, labels from dashboard/events-section.tsx",
+    rule: "A pill is a fact about the host's own event in the fewest words that stay true. Never a sentence, never a promise.",
+    lines: [
+      {
+        slot: "items",
+        trio: {
+          today: "128 items",
+          house: "128 in the album",
+          room: "128 in the album",
+        },
+      },
+      {
+        slot: "status",
+        trio: { today: "Open", house: "Open", room: "Open" },
+        same: "A state pill is a state. The only question a voice could raise here is whether the other state says Closed or something softer, and that is a product question rather than a copy one.",
+      },
+      {
+        slot: "review",
+        trio: {
+          today: "3 to review",
+          house: "3 to review",
+          room: "3 waiting on you",
+        },
+      },
+    ],
+    distinction:
+      "Both candidates land on the same items pill from opposite directions: A because item is a database word and the host's word is album, B because a pill should say where a thing is rather than what it is. The amber chip is where they part. A keeps the instruction, since the chip is a to-do and the host taps it to act. B makes it a state, which reads warmer and, on a card the host sees ten times a day, slightly less useful. This is a row where the recommendation loses.",
+  },
+  {
+    id: "wizard",
+    surface: "The create-event wizard, its three steps",
+    where: "components/app/create-event-wizard.tsx",
+    rule: "A step is a label, a field is a noun, and the helper is the one fact the host needs in order to answer. The product never sells inside itself.",
+    lines: [
+      {
+        slot: "title",
+        trio: {
+          today: "Create an event",
+          house: "Create an event",
+          room: "Create an event",
+        },
+        same: "Three words, a verb and the host's noun. It is the page's job title, and every voice writes it the same way.",
+      },
+      {
+        slot: "description",
+        trio: {
+          today:
+            "Name it, pick a QR style, and you're ready to collect photos.",
+          house: "Name it, pick a QR style, and it's ready for your guests.",
+          room: "Name it, style the code, and it's ready for your guests to scan.",
+        },
+      },
+      {
+        slot: "steps",
+        trio: {
+          today: "Details · Design · Share",
+          house: "Details · Design · Share",
+          room: "Name · Code · Share",
+        },
+      },
+      {
+        slot: "date-helper",
+        trio: {
+          today: "Just for your reference: events never expire.",
+          house: "For your reference only. Events never expire.",
+          room: "For your own reference. An event stays until you delete it.",
+        },
+      },
+      {
+        slot: "qr-title",
+        trio: {
+          today: "Guest join QR",
+          house: "The QR your guests scan",
+          room: "The code your guests scan",
+        },
+      },
+      {
+        slot: "qr-body",
+        trio: {
+          today:
+            "Pick a style for the QR your guests scan. You can change it anytime.",
+          house: "Pick a style. You can change it any time.",
+          room: "Pick a style now, change it any time.",
+        },
+      },
+      {
+        slot: "share-body",
+        trio: {
+          today:
+            "Print or display the QR, or share the link. Guests just open it. No app, no account.",
+          house:
+            "Print the QR, put it on a table, or send the link. Guests just open it.",
+          room: "Put the code on a table or send the link. A guest opens it and starts adding.",
+        },
+      },
+    ],
+    distinction:
+      "Three steps is where a voice either helps a host finish or slows them down. The step labels are the argument: today names an activity (Details, Design), B names the thing being made (Name, Code), and a host halfway through a form reads the nouns rather than the verbs. The date helper carries a real finding rather than a preference: events never expire is not quite what the product does, and an event stays until you delete it is, which is the anti-abuse rule the whole lifecycle rests on.",
+  },
+  {
+    id: "toast",
+    surface: "A toast",
+    where: "components/app/event-feed/event-feed.tsx and app/host-media-grid.tsx",
+    rule: "A toast says what just happened, in the app's own noun, and it is gone in four seconds. Never a thank-you, never a sentence about us.",
+    lines: [
+      {
+        slot: "review-on",
+        trio: {
+          today: "Review is on. New uploads wait here for approval.",
+          house: "Review is on. New uploads wait for your approval.",
+          room: "Review is on. New uploads wait here for you.",
+        },
+      },
+      {
+        slot: "hidden",
+        trio: {
+          today: "Hidden from everyone",
+          house: "Hidden from your guests",
+          room: "Hidden. Only you can see it.",
+        },
+      },
+    ],
+    distinction:
+      "Hidden from everyone is the kind of line that is true and still wrong: the host can still see the photo, so everyone means everyone but you, and a warning toast is the worst place to make a host stop and work that out. Both candidates fix it and they disagree about how much to say in a four-second window. This is the register at its smallest scale, and the shipped review toast is already the shape both candidates write back.",
+  },
+  {
+    id: "error",
+    surface: "An error",
+    where: "components/guest/enter-event-prompt.tsx and components/guest/guest-upload.tsx",
+    rule: "Say what did not happen, in the app's own noun, then the one thing to do next. Never apologise, never blame the reader, never explain the system.",
+    lines: [
+      {
+        slot: "signin",
+        trio: {
+          today:
+            "That email and password didn't match. Try the email link instead.",
+          house:
+            "That email and password didn't match. Try the email link instead.",
+          room: "That email and password didn't match. Try the email link instead.",
+        },
+        same: "The error a guest actually meets on the password path, and it already writes the shape: what did not happen, then the one move left. Its pointer to the email link is load-bearing rather than stylistic, because a line that named which half was wrong would confirm whether an account exists, so no voice touches it. The validation fallback two branches above it sits behind a per-field message and is effectively unreachable, which is why the reachable line is the one on the board.",
+      },
+      {
+        slot: "upload-title",
+        trio: {
+          today: "Couldn't add that photo",
+          house: "Couldn't add that photo",
+          room: "Couldn't add that photo",
+        },
+        same: "Four words, the app's own verb, and the reason arrives underneath from the server. Both candidates wrote it straight back, which is the guide's error shape already shipped.",
+      },
+      {
+        slot: "upload-body",
+        trio: {
+          today: "That file type isn't supported.",
+          house: "Photos need to be JPEG, PNG, WebP, HEIC, HEIF or AVIF.",
+          room: "Photos go up as JPEG, PNG, WebP, HEIC, HEIF or AVIF.",
+        },
+      },
+    ],
+    distinction:
+      "The sign-in error is settled before the voices arrive: it names what did not happen and then the one move left, and its pointer to the email link is an account-enumeration decision rather than a preference, so all three write it back. The upload pair is where the voices work, and the title holds there too, because four words in the app's own verb is already the shape. So the whole difference falls on the description underneath, which is the other half of an error: a type that is not supported is useless without the list of the ones that are. A writes that list as a requirement (photos need to be), B as a fact about what the product does (photos go up as), and the second spends no words instructing a guest whose only move is to pick another file.",
+  },
+  {
+    id: "notification",
+    surface: "A notification",
+    where: "lib/notifications/build.ts",
+    rule: "Name what happened to the host's own thing. The body says what follows, in the present, and commits to an outcome rather than to a mechanism.",
+    lines: [
+      {
+        slot: "pending-title",
+        trio: {
+          today: "3 uploads to review",
+          house: "3 uploads to review",
+          room: "3 uploads to review",
+        },
+        same: "A count and the host's own noun, front-loaded for a notification list that truncates. Every voice writes it.",
+      },
+      {
+        slot: "pending-body",
+        trio: {
+          today: "Guests are waiting for your approval.",
+          house: "They go into the album as soon as you approve them.",
+          room: "Approve them and they are in the album.",
+        },
+      },
+      {
+        slot: "storage-title",
+        trio: {
+          today: "You're over your storage limit",
+          house: "You're over your storage limit",
+          room: "You're over your storage limit",
+        },
+        same: "The fact about the host's own account, in the fewest words. A softer opening here would be a kindness that costs the host their photos.",
+      },
+      {
+        slot: "storage-body",
+        trio: {
+          today: "Upgrade or remove media before we auto-reduce it.",
+          house: "Upgrade or clear some space and everything stays.",
+          room: "Upgrade or clear some space, and nothing has to go.",
+        },
+      },
+    ],
+    distinction:
+      "The storage line breaks two rules in nine words: it names the machinery (auto-reduce) and then threatens the host with it. Both candidates state the same fact as what the host keeps, which is the fence do 2 was written for: copy commits to outcomes, never to what does the work. On the review line, today tells the host what the guests are doing and both candidates tell them what happens to the album, which is the thing they are actually deciding about.",
+  },
+  {
+    id: "account",
+    surface: "The account page",
+    where: "app/(app)/account/page.tsx",
+    rule: "A label is the noun the host would use for the thing, never a sentence and never a promise. The description is the short answer, written so someone could stop reading after it.",
+    lines: [
+      {
+        slot: "labels",
+        trio: {
+          today:
+            "Profile · Public profile · Connections · Password · Email preferences",
+          house:
+            "Profile · Public profile · Connections · Password · Email preferences",
+          room: "Profile · Public profile · Connections · Password · Email preferences",
+        },
+        same: "Five labels, five nouns, and a label the host already reads correctly is finished. Both candidates handed all five back, which is what a settings page should cost a voice ruling.",
+      },
+      {
+        slot: "profile-help",
+        trio: {
+          today:
+            "Your page on Partyreel: the events you host and choose to share, plus events you joined. Follower counts stay private to you.",
+          house:
+            "The events you host and share, plus the ones you joined. Follower counts stay private to you.",
+          room: "The events you host and share, and the ones you joined. Follower counts stay private to you.",
+        },
+      },
+    ],
+    distinction:
+      "The one row on the page that moves, and it moves for a structural reason rather than a stylistic one: the description opened by explaining what a profile IS to a host standing on their own account page. Both candidates cut the clause and keep the sentence that carries the fact a host actually wonders about, which is who can see the follower count.",
+  },
+];
+
+/* --- A guest's phone, and the inbox ------------------------------------- */
+
+/**
+ * The guest register and the one email surface, at 375 because that is where
+ * they render. Bible 4 is the whole rule on the first four: the event belongs
+ * to the host and Partyreel stays nearly silent.
+ */
+export const GUEST_USE: UseCase[] = [
+  {
+    id: "guest-door",
+    surface: "The door a guest meets",
+    where: "components/guest/entry-modal.tsx",
+    rule: "The event's name leads and ours stays out of the way. The host's business, stated plainly, in the guest's words.",
+    lines: [
+      {
+        slot: "title",
+        trio: {
+          today: "Welcome to Maya & Jay's Wedding",
+          house: "Welcome to Maya & Jay's Wedding",
+          room: "Welcome to Maya & Jay's Wedding",
+        },
+        same: "The host's event name, first and largest. Bible 4 decides this line before a voice gets to it, and all three voices agree the door is the host's.",
+      },
+      {
+        slot: "public-body",
+        trio: {
+          today: "A shared gallery for the whole event.",
+          house: "One album, from everyone who came.",
+          room: "One album, filling up all night.",
+        },
+      },
+      {
+        slot: "gated-body",
+        trio: {
+          today:
+            "Create a free account to see the full gallery and add your own photos.",
+          house:
+            "Maya and Jay ask guests for an email. Add it once and you can add photos.",
+          room: "Maya and Jay ask for an email first. Add it once and you're in.",
+        },
+        compelled: "bible 4 refuses the shipped line",
+      },
+      {
+        slot: "private-body",
+        trio: {
+          today: "Enter the event password to view it.",
+          house: "Enter the password Maya and Jay gave you.",
+          room: "Enter the password Maya and Jay sent you.",
+        },
+      },
+      {
+        slot: "action",
+        trio: { today: "Continue", house: "Continue", room: "Continue" },
+        same: "One word, and the guest has already decided. Every voice leaves it alone.",
+      },
+    ],
+    distinction:
+      "The public line is the software describing itself (a shared gallery) against what the guest is actually looking at, and it is also where the album and gallery split is visible in one screen: the site says album in every heading and the guest surface says gallery five times. The gated line is marked because bible 4 already refuses it: it asks a guest to make an account with US, on the host's own page. Both candidates hand the ask back to the host, who is the one who turned it on.",
+  },
+  {
+    id: "upload-sheet",
+    surface: "The upload sheet a guest sees",
+    where: "components/guest/file-dropzone.tsx, guest-upload.tsx, save-account-prompt.tsx",
+    rule: "The verb on the control, and the one way to use it. No sentence, no promise, and the host's name wherever the host is the one deciding.",
+    lines: [
+      {
+        slot: "dropzone-title",
+        trio: {
+          today: "Add photos & videos",
+          house: "Add photos & videos",
+          room: "Add photos & videos",
+        },
+        same: "The verb and the two nouns it takes. Both candidates wrote it back, and the ampersand stays because the control is 180 pixels wide on a phone.",
+      },
+      {
+        slot: "dropzone-hint",
+        trio: {
+          today: "Tap to choose, or drag them here",
+          house: "Tap to choose, or drag them here",
+          room: "Tap to choose, or drag them here",
+        },
+        same: "A verb, then how. This is the guest register's own shape, shipped, and neither candidate could improve it without making it longer.",
+      },
+      {
+        slot: "moderation",
+        trio: {
+          today:
+            "The host reviews uploads before they appear in the gallery.",
+          house:
+            "Maya and Jay review photos before they appear in the album.",
+          room: "Maya and Jay see everything first. Approved photos appear in the album.",
+        },
+      },
+      {
+        slot: "save-title",
+        trio: {
+          today: "Keep these photos",
+          house: "Keep these photos",
+          room: "Keep these photos",
+        },
+        same: "The guest's own reason for tapping, in three words. Every voice writes it.",
+      },
+      {
+        slot: "save-body",
+        trio: {
+          today:
+            "Create a free account to save this event and come back to the gallery whenever you want.",
+          house:
+            "Save this event and come back to the album whenever you want. A free account keeps it.",
+          room: "Save the album and open it again whenever you want. A free account keeps it on your list.",
+        },
+      },
+      {
+        slot: "confirmation",
+        trio: {
+          today: "Sent, waiting for host approval",
+          house: "Sent. Maya and Jay will approve it.",
+          room: "Sent. Maya and Jay see it next.",
+        },
+      },
+    ],
+    distinction:
+      "Two of these five are the same in every voice, and that is the chapter's finding rather than a gap: the guest surface was the closest thing to a written voice this product had. What moves is where a host is the one deciding. The host becomes Maya and Jay, and the gallery becomes the album, which is ask 6 answered in the one place a guest can see both nouns at once. The save card is the ONE place Partyreel legitimately speaks on a guest surface, because the guest has already added a photo and is being offered our thing rather than met at the door with it.",
+  },
+  {
+    id: "guest-empty",
+    surface: "The empty album",
+    where: "components/guest/gallery-empty-state.tsx",
+    rule: "One line about what is about to arrive, then the button that starts it.",
+    lines: [
+      {
+        slot: "heading",
+        trio: {
+          today: "This is where it all lands",
+          house: "This is where it all lands",
+          room: "This is where it all lands",
+        },
+        same: "An arrival, present tense, no brand anywhere in it. It is the single best line in the product and all three voices write it, which is how the guide knew what it was describing.",
+      },
+      {
+        slot: "action",
+        trio: {
+          today: "Be the first to add a photo",
+          house: "Be the first to add a photo",
+          room: "Add the first photo",
+        },
+      },
+    ],
+    distinction:
+      "One word of distance between the two candidates, and it is the whole difference between them. Be the first is a small flattery that A keeps, because a guest standing in front of an empty album needs a nudge more than they need economy. B trims it to the verb, which is what the register says and slightly colder on the one screen where warmth is the product.",
+  },
+  {
+    id: "email",
+    surface: "An email subject and its opening",
+    where: "lib/email/templates.ts, inactivityWarningEmail",
+    rule: "Name what happened to the reader's own thing, front-loaded for a truncating inbox. The first line leads with what keeps it; the policy arrives second.",
+    lines: [
+      {
+        slot: "subject",
+        trio: {
+          today: "Your Partyreel event will be removed soon",
+          house: "Your Partyreel event will be removed soon",
+          room: "Maya & Jay's Wedding will be removed soon",
+        },
+      },
+      {
+        slot: "headline",
+        trio: {
+          today: "Keep your event active",
+          house: "Keep your event",
+          room: "Open it and it stays",
+        },
+      },
+      {
+        slot: "first",
+        trio: {
+          today:
+            "Your event Maya & Jay's Wedding hasn't been used in a while. To keep free accounts tidy, we remove events after 6 months of inactivity. Yours is set for removal on 14 March. Just sign in or open it before then to keep it.",
+          house:
+            "Open Maya & Jay's Wedding before 14 March and it stays. Free events are removed after 6 months without a visit.",
+          room: "Open Maya & Jay's Wedding before 14 March and it stays, photos and all. Free events are removed after six months without a visit.",
+        },
+      },
+      {
+        slot: "button",
+        trio: {
+          today: "Keep my event",
+          house: "Keep my event",
+          room: "Open the album",
+        },
+      },
+    ],
+    distinction:
+      "The subject is a real trade rather than a preference. A keeps Partyreel in it, because an inbox sorts and searches by our name and this mail arrives months after the party. B puts the reader's own event first, which is the guide's rule everywhere else and costs the sorting. The opening is not a trade: today spends its first sentence on an absence and its second on our housekeeping, and the one action that saves the album arrives fourth. Both candidates lead with it.",
+  },
+];
+
+export const USE_GROUPS: { title: string; cases: UseCase[] }[] = [
+  { title: "Marketing, loud", cases: MARKETING_USE },
+  { title: "The app, quiet", cases: APP_USE },
+  { title: "A guest's phone, and the inbox", cases: GUEST_USE },
+];

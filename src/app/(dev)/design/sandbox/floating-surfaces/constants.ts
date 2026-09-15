@@ -17,6 +17,14 @@ import {
  */
 
 export const SCENES = [
+  // Round four's scenes: the three directions, standing up as working UI.
+  "desk", // the host's desk at 1440: the header panel, the event menu, the account menu
+  "pocket", // the same host on a phone, plus the guest surface under the direction
+  "menu", // one menu, one direction, for the four-up comparison at 1:1
+  "sub", // the nested branch: a submenu in two directions, deleted in the third
+  "surfaces", // the dialog, the tooltip and the toast under the direction
+  "field", // the select under the direction (a searchable list in command)
+  // Rounds one to three: today's primitives and the three knobs.
   "family",
   "overlay",
   "edge",

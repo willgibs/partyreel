@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -76,12 +75,10 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-import {
-  RUNGS,
-  type Dim,
-  type Scene as SceneId,
-  type Side,
-} from "./constants";
+import { RUNGS, type Dim, type Scene as SceneId, type Side } from "./constants";
+import { DirectionScene } from "./direction-scenes";
+import type { Direction } from "./directions";
+import { Backdrop, useNextFrame, useReplay } from "./stage-bits";
 
 /**
  * THE SCENES (floating-surfaces, round two). Everything here renders INSIDE a
@@ -106,121 +103,6 @@ import {
  * and be compared. `flt:replay` on the frame window closes them and re-opens
  * them a frame later, which is how the entrance is watched.
  */
-
-/** The content a floating layer sits over. Bible 10 turns on the words "a layer
- *  over content", so no scene judges a panel against an empty ground: these are
- *  the real event photographs the marketing pages use. */
-const PHOTOS = [
-  "/marketing/img/mkt-wedding-toast-01.jpg",
-  "/marketing/img/mkt-party-dj-01.jpg",
-  "/marketing/img/mkt-festival-lights-01.jpg",
-  "/marketing/img/mkt-wedding-petals-01.jpg",
-  "/marketing/img/mkt-reception-table-01.jpg",
-  "/marketing/img/mkt-concert-confetti-01.jpg",
-  "/marketing/img/mkt-party-balloons-01.jpg",
-  "/marketing/img/mkt-wedding-golden-01.jpg",
-  "/marketing/img/mkt-festival-crowd-01.jpg",
-];
-
-function Backdrop({
-  phone,
-  variant = "photos",
-  chrome = true,
-}: {
-  phone: boolean;
-  /** `calm` is for the corner work only: a 6px corner against a 12px one is
-   *  read at the corner itself, and a busy photograph behind it hides the very
-   *  thing being judged. Every other scene keeps the photographs, because that
-   *  is the condition bible 10 is written for. */
-  variant?: "photos" | "calm";
-  chrome?: boolean;
-}) {
-  const cols = phone ? 3 : 6;
-  return (
-    <div className="absolute inset-0 flex flex-col">
-      {chrome ? (
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <p className="text-sm font-semibold tracking-tight">Ana and Theo</p>
-          <p className="text-xs text-muted-foreground">218 photos</p>
-        </div>
-      ) : null}
-      {variant === "calm" ? (
-        <div className="min-h-0 flex-1 bg-background" />
-      ) : (
-        <div
-          className="grid min-h-0 flex-1 content-start"
-          style={{
-            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-            gap: "var(--gap-gallery)",
-            padding: "var(--gap-gallery)",
-          }}
-        >
-          {Array.from({ length: cols * 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="relative aspect-square overflow-hidden bg-muted"
-              style={{ borderRadius: "var(--radius-tile)" }}
-            >
-              {/* Eager, against the usual instinct. Every frame on this board
-                  is an iframe, and a browser defers a LAZY image inside an
-                  iframe that is off the parent's screen: scrolling down the
-                  board met empty grids that filled a beat later, which is the
-                  worst possible thing to happen to a comparison. The cost is
-                  nothing: nine files, one optimized URL each, shared by all
-                  nineteen frames through the HTTP cache. */}
-              <Image
-                src={PHOTOS[i % PHOTOS.length]}
-                alt=""
-                fill
-                sizes="200px"
-                loading="eager"
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/** Closes every held-open panel and re-opens it a frame later, so an entrance
- *  can be replayed without hunting for triggers. The parent board fires
- *  `flt:replay` straight at this window: same origin, no postMessage dance. */
-function useReplay(initial = true) {
-  const [on, setOn] = useState(initial);
-  useEffect(() => {
-    const replay = () => {
-      setOn(false);
-      // A timer, not requestAnimationFrame: rAF does not fire while the tab is
-      // in the background, and a board with several frames is exactly where a
-      // panel would sit half-replayed on a tab nobody is looking at. Long
-      // enough for radix to unmount the panel and the browser to paint the
-      // closed state before the entrance starts again.
-      window.setTimeout(() => setOn(true), 60);
-    };
-    window.addEventListener("flt:replay", replay);
-    return () => window.removeEventListener("flt:replay", replay);
-  }, []);
-  return on;
-}
-
-/** Mirrors a flag one frame late. The nav viewport sizes itself from a
- *  ResizeObserver that radix only runs across a real open TRANSITION: a Root
- *  mounted already-open never measures, and the panel sits at 0x0 forever (the
- *  primitive's own comment describes the one-frame version of this). Every other
- *  panel is happy to be born open. */
-function useNextFrame(on: boolean): boolean {
-  // `ticked` only ever goes forward; the flag reads `on && ticked`, so a replay
-  // closes the panel the moment `on` drops without a second state write.
-  const [ticked, setTicked] = useState(false);
-  useEffect(() => {
-    if (!on) return;
-    const id = window.setTimeout(() => setTicked(true), 32);
-    return () => window.clearTimeout(id);
-  }, [on]);
-  return on && ticked;
-}
 
 const MENU_ROWS = [
   { label: "Share the link", icon: Share2 },
@@ -461,11 +343,7 @@ function EdgeScene({
       />
       {variant === "sheet" ? (
         <Sheet open={on} modal={false}>
-          <SheetContent
-            className={cls}
-            side={edge}
-            showCloseButton={false}
-          >
+          <SheetContent className={cls} side={edge} showCloseButton={false}>
             <SheetHeader>
               <SheetTitle>Filter the album</SheetTitle>
               {/* sr-only rather than absent in the compact strip: radix warns
@@ -482,7 +360,9 @@ function EdgeScene({
                   key={r}
                   data-slot="sheet-row-item"
                   className="flex items-center justify-between bg-muted/50 px-3 py-2 text-sm"
-                  style={{ borderRadius: "var(--flt-r-item, var(--radius-md))" }}
+                  style={{
+                    borderRadius: "var(--flt-r-item, var(--radius-md))",
+                  }}
                 >
                   {r}
                 </div>
@@ -505,7 +385,9 @@ function EdgeScene({
                 <div
                   key={r}
                   className="bg-muted/50 px-3 py-2 text-sm"
-                  style={{ borderRadius: "var(--flt-r-item, var(--radius-md))" }}
+                  style={{
+                    borderRadius: "var(--flt-r-item, var(--radius-md))",
+                  }}
                 >
                   {r}
                 </div>
@@ -855,7 +737,10 @@ function TrioScene({ rung }: { rung?: string }) {
         </TooltipProvider>
       </div>
       <Dialog open={on} modal={false}>
-        <DialogContent className={cn(cls, "flt-trio-dialog")} showCloseButton={false}>
+        <DialogContent
+          className={cn(cls, "flt-trio-dialog")}
+          showCloseButton={false}
+        >
           <DialogHeader>
             <DialogTitle>Delete this event</DialogTitle>
             <DialogDescription>
@@ -938,8 +823,18 @@ function RadioScene({ rung }: { rung?: string }) {
   );
 }
 
+const DIRECTION_SCENES = [
+  "desk",
+  "pocket",
+  "menu",
+  "sub",
+  "surfaces",
+  "field",
+] as const;
+
 export function Scene({
   scene,
+  direction,
   phone,
   dim,
   variant,
@@ -948,6 +843,10 @@ export function Scene({
   compact,
 }: {
   scene: SceneId;
+  /** Round four: which floating layer this frame is rendering. The direction
+   *  changes ANATOMY as well as material, so it is React state rather than a
+   *  class, and the frame receives it by event so a switch never reloads. */
+  direction: Direction;
   phone: boolean;
   dim: Dim;
   variant: "sheet" | "drawer";
@@ -955,6 +854,15 @@ export function Scene({
   rung?: string;
   compact?: boolean;
 }) {
+  if ((DIRECTION_SCENES as readonly string[]).includes(scene)) {
+    return (
+      <DirectionScene
+        scene={scene as (typeof DIRECTION_SCENES)[number]}
+        direction={direction}
+        phone={phone}
+      />
+    );
+  }
   if (scene === "family") return <FamilyScene phone={phone} rung={rung} />;
   if (scene === "overlay") return <OverlayScene phone={phone} rung={rung} />;
   if (scene === "edge")

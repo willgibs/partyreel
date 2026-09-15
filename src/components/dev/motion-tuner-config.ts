@@ -193,7 +193,8 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
     group: "rounding",
     description:
       "The base every rounded-* utility derives from; cards, inputs, plates and panels move together.",
-    ships: "every surface on the site and in the app (288 uses in 140 files)",
+    ships:
+      "every surface on the site and in the app (about 320 uses in 154 files, the rounding board's count)",
     min: 0,
     max: 24,
     step: 1,
@@ -234,10 +235,11 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
     label: "Action radius",
     group: "rounding",
     description:
-      "The corner of the standard button (40px tall); the round half of sharp surfaces, round actions.",
-    ships: "every default Button, the CTAs, the segmented controls",
+      "The base of the action ladder: the 40px h-10 button wears it, and the h-6, h-7 and h-9 sizes derive from it (0.6, 0.7 and 0.9x); at half the height and above the corner reads as a pill.",
+    ships:
+      "the h-10 buttons and the segmented controls; the in-between Button sizes by derivation",
     min: 0,
-    max: 24,
+    max: 48,
     step: 1,
     unit: "px",
     default: 16,
@@ -247,10 +249,12 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
     cssVar: "--radius-action-lg",
     label: "Action radius, large",
     group: "rounding",
-    description: "The corner of the large button (48px tall).",
-    ships: "the hero and pricing CTAs, the guest door's primary action",
+    description:
+      "The corner of the 48px button (rounded-action-lg); 24 and above is a pill.",
+    ships:
+      "the one rounded-action-lg call site today (the reel builder); the hero and pricing CTAs are h-11 on the base",
     min: 0,
-    max: 28,
+    max: 48,
     step: 0.4,
     unit: "px",
     default: 19.2,
@@ -260,10 +264,11 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
     cssVar: "--radius-action-sm",
     label: "Action radius, small",
     group: "rounding",
-    description: "The corner of the small and icon buttons (32px tall).",
-    ships: "toolbar buttons, chips, icon buttons",
+    description:
+      "The corner of the 32px button, which is the DEFAULT Button size (h-8); 16 and above is a pill.",
+    ships: "every default Button, toolbar buttons, chips, the icon buttons",
     min: 0,
-    max: 20,
+    max: 32,
     step: 0.4,
     unit: "px",
     default: 12.8,
