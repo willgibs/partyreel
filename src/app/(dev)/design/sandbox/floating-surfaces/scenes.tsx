@@ -449,7 +449,16 @@ function EdgeScene({
     : ["Everything", "In the reel", "Hidden", "Liked"];
   return (
     <>
-      <Backdrop phone={phone} chrome={!compact} variant="photos" />
+      {/* ROUND THREE: the compact strip is the CORNER strip, and a corner is read
+          at the corner. A photograph behind an 8px arc hides the one thing the
+          strip exists to compare, and four of these frames were loading 96
+          images to do it. The full-height edge scenes keep the photographs,
+          because that is the condition bible 10 is written for. */}
+      <Backdrop
+        phone={phone}
+        chrome={!compact}
+        variant={compact ? "calm" : "photos"}
+      />
       {variant === "sheet" ? (
         <Sheet open={on} modal={false}>
           <SheetContent

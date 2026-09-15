@@ -38,7 +38,7 @@ import {
   type Dim,
   type Ramp,
 } from "./constants";
-import { Frame } from "./frame";
+import { Frame, Mount } from "./frame";
 
 /** A ladder asks for exactly the width its rungs need, so it renders 1:1 in the
  *  lab column: judging a 6px corner against a 12px one at half scale judges the
@@ -46,7 +46,33 @@ import { Frame } from "./frame";
 const ladderWidth = (dim: Dim) => Math.max(800, RUNGS[dim].length * 230);
 
 /**
- * THE FLOATING-SURFACES BOARD, round two (2026-09-14).
+ * THE FLOATING-SURFACES BOARD, rounds two and three (2026-09-14).
+ *
+ * ROUND THREE walked it the way Will will and spent itself on one thing: making
+ * the ruling cheap. Four changes.
+ *
+ * 1  THE BOARD OPENS WITH WHERE IT LANDS. Five lines, one recommended answer
+ *    each, and one button that applies the whole recommendation to the site. The
+ *    rows below are the evidence for those five lines, in the order they carry
+ *    weight, so a ruling can be "all five" in two words or a rung name in one.
+ * 2  THREE RUNGS WERE CUT, because a rung has to be a different ANSWER. The
+ *    "lighter is closer" light rung WAS today (its block set the declaration the
+ *    panel already carries, so the ladder showed one column twice); the lit-edge
+ *    rung is ruled out by the light board's own doctrine (the lit face is
+ *    material, not elevation); and "origin true" answers how a panel moves
+ *    rather than how fast, which is not the question rule 12 and rule 15
+ *    disagree about. candidates.ts says each in full where the rung used to be.
+ * 3  THE COST IS MEASURED AND CUT. Nineteen documents cost 1020 requests and
+ *    5.7s to settle, which is a slow first paint before the first row says
+ *    anything. Frames now mount BY ROW, a viewport ahead of arrival (frame.tsx);
+ *    the corner strip dropped 96 photographs it was hiding its own corners
+ *    behind; the entrance ladder went with its rung. Every frame smaller than
+ *    its canvas says so on its face, so nobody rules on a size nobody ships.
+ * 4  THE ASKS ARE ONE WORD EACH, and every departure left standing is one Will
+ *    has to rule on. The build findings moved to the manifest, where the
+ *    Orchestrator reads them.
+ *
+ * THE BOARD, round two (2026-09-14).
  *
  * Round one put all the primitives on one canvas and found that the contract
  * misses bible 9 inside itself. It was a good finding badly shown: the
@@ -79,16 +105,54 @@ const ladderWidth = (dim: Dim) => Math.max(800, RUNGS[dim].length * 230);
 const QUESTION =
   "If the floating layer were designed today, what is its radius, its entrance and its light on every ground, what happens to the primitives that stand outside it, and does the contract reach the surface a guest actually meets?";
 
+/** WHERE THE BOARD LANDS. One recommended answer per ask, in the order the rows
+ *  below argue them, so the walk can be "yes to all five" and the rows are the
+ *  evidence rather than the decision. Each line names the rung, the reason in
+ *  one sentence, and what it costs, because a recommendation with no cost in it
+ *  is a sales pitch. */
+const LANDING: { ask: string; answer: string; why: string; row: number }[] = [
+  {
+    ask: "Radius",
+    answer: "nested",
+    why: "The only rung that changes one number: today's 8px container stays ratified and the rows rise 4px to nest inside it, which is the miss row 2 measures. Sharp and round both move the container as well, and neither buys anything the nest does not.",
+    row: 2,
+  },
+  {
+    ask: "Entrance",
+    answer: "by frequency",
+    why: "Rule 12 is the house's motion doctrine and a tooltip is opened fifty times in an evening: 90ms with no zoom is right for it and sluggish for a dialog. The finding underneath is a wording one, and it is Will's: rule 15's one entrance is one LANGUAGE (a fade, origin-aware, exits faster than enters), and rule 12 sets the clock inside it. Read that way the two rules never disagreed.",
+    row: 5,
+  },
+  {
+    ask: "Light in dark",
+    answer: "whatever the light board is ruled",
+    why: "These are the same numbers: the shadow rung is --lgt-float from docs/specs/light.md to the byte. If a shadow comes back in dark there, this family takes it; if it does not, today stands, because the popover already sits lighter than the card it opens from. Nothing to decide twice.",
+    row: 4,
+  },
+  {
+    ask: "The edge family",
+    answer: "the drawer",
+    why: "Vaul is in the product whatever is ruled, because the guest surface needs the drag, so keeping the drawer is what lets the tenth surface join the family instead of staying a bespoke one. The cost is real and named: the marketing mobile menu changes primitive (its one call site) and ui/sheet.tsx goes.",
+    row: 7,
+  },
+  {
+    ask: "The select",
+    answer: "keep it, on the contract",
+    why: "A form field is a listbox, and a dropdown with radio items is a menu wearing one: typeahead, the value semantics and the label all come free in the primitive and have to be rebuilt in the replacement. Five lines bring it onto the contract. Row 7 shows both, so the cheaper answer is there to take.",
+    row: 7,
+  },
+];
+
 const CANDIDATES = [
+  {
+    name: "Radius, nested (what this board recommends)",
+    rationale:
+      "Today's ratified container, corrected: the 8px stays and the rows rise to 4px so the lit row nests inside the corner. The smallest true change, and it follows the rounding round's retune of --radius-float by itself.",
+  },
   {
     name: "Radius, sharp",
     rationale:
       "A floating layer is a surface, so it keeps the sharp family: rows at the 1.6px surface radius, the panel at rows plus their 4px padding, big boxes at double. The panel is only as round as what it holds.",
-  },
-  {
-    name: "Radius, nested",
-    rationale:
-      "Today's ratified container, corrected: the 8px stays and the rows rise to 4px so the lit row nests inside the corner. The smallest true change, and it follows the rounding round's retune of --radius-float by itself.",
   },
   {
     name: "Radius, round",
@@ -96,59 +160,46 @@ const CANDIDATES = [
       "A menu is a cluster of things you press, so the rows take the action family at row height (8px) and the container follows at 12px. Ties menus to buttons instead of to cards.",
   },
   {
+    name: "Entrance, by frequency (what this board recommends)",
+    rationale:
+      "Rule 12 taken literally, applied to the family rather than to one control: a tooltip or a menu is opened fifty times in an evening, so it lands in 90ms with no zoom, while a dialog or a toast stays occasional at 220ms. Two clocks, one language.",
+  },
+  {
     name: "Entrance, one clock",
     rationale:
-      "Rule 15 taken literally: one origin-aware zoom-fade for the whole family, 175ms in and 120ms out on the emphasis curve. One entrance is the half of the rule that is easiest to keep.",
+      "Rule 15 taken literally: one origin-aware zoom-fade for the whole family, 175ms in and 120ms out on the emphasis curve. One entrance is the half of the rule that is easiest to keep, and the half a fifty-times-an-evening surface pays for.",
   },
   {
-    name: "Entrance, by frequency",
+    name: "Light in dark, a soft shadow",
     rationale:
-      "Rule 12 taken literally, applied to the family rather than to one control: a tooltip or a menu is opened fifty times in an evening, so it lands in 90ms with no zoom, while a dialog or a toast stays occasional at 220ms. Two clocks, chosen by how often the surface appears.",
+      "The light board's own --lgt-float family, adopted here rather than invented: one geometry, two sizes, one alpha ramp per ground. Two boards proposing two dark shadows would be the exact failure rule 15 exists to prevent, so this rung makes the two rulings one. The alternative is what ships: nothing casts in dark and the ring draws the edge.",
   },
   {
-    name: "Entrance, origin true",
+    name: "The reduced-motion patch (free, optional, competes with nothing)",
     rationale:
-      "One clock, more physical: the panel grows out of its trigger from 0.92 with a 6px travel along the side axis, so the tie to the trigger is the motion rather than a transform-origin nobody sees.",
-  },
-  {
-    name: "Light, lighter is closer",
-    rationale:
-      "Today in dark: the popover surface sits lighter than the ground, the shadow is zeroed, the ring draws the edge. Nothing casts in dark. Judge it on ramp A and ramp B, where the surface gap it leans on is a different size.",
-  },
-  {
-    name: "Light, a soft shadow",
-    rationale:
-      "The light board's own --lgt-float family, adopted here rather than invented: one geometry, two sizes, one alpha ramp per ground. Two boards proposing two dark shadows would be the exact failure rule 15 exists to prevent, so this rung makes the two rulings one.",
-  },
-  {
-    name: "Light, a lit edge",
-    rationale:
-      "No shadow on either ground: a hairline of light along the top edge and a dark hairline under the bottom, so the panel catches the room's light the way an object does. The scrim separates the modal ones.",
-  },
-  {
-    name: "The reduced-motion patch",
-    rationale:
-      "Not a candidate, and not the hole round one called it. globals.css has carried a global reduce guard since 2026-06-11 that clamps every animation and transition to 0.01ms, so the floating layer does not animate for a reader who asked for less motion. What the layer lacks is bible 14's FIRST line, a gate of its own, and this paste is that: a stop rather than a clamp. Optional, and safe.",
+      "Not a candidate, and not the hole round one called it. globals.css has carried a global reduce guard since 2026-06-11 that clamps every animation and transition to 0.01ms, so the floating layer does not animate for a reader who asked for less motion. What the layer lacks is bible 14's FIRST line, a gate of its own, and this paste is that: a stop rather than a clamp.",
   },
 ];
 
+/** One word each, and the recommendation is on the board above them. */
 const ASKS = [
-  "The radius: sharp, nested or round, and whether the big boxes take a second token or the same one",
-  "The entrance: one clock (rule 15) or by frequency (rule 12), and which rule gives way on this family",
-  "The light in dark: lighter is closer, a soft shadow, or a lit edge, ruled on the palette ramp you intend to keep",
-  "The edge family: which ONE of sheet and drawer survives, and does the guest entry shell adopt it",
-  "The select: onto the contract, or dropped for the dropdown with radio items",
+  "The radius: sharp, nested or round (this board says nested)",
+  "The entrance: one clock or by frequency (this board says by frequency, and that rule 15 means one language)",
+  "The light in dark: today or the shadow (this board says whatever the light board is ruled, since the numbers are the same)",
+  "The edge family: sheet or drawer (this board says drawer, and the guest entry shell adopts it)",
+  "The select: keep or drop (this board says keep, on the contract)",
 ];
 
+/** Only what Will has to rule on. The findings the build turned up (the ring a
+ *  bare box-shadow deletes, the panel-scoped dark values, the eager backdrops,
+ *  the nav viewport's width, the iframe stage) are in the manifest, where the
+ *  Orchestrator reads them: they are true whatever is ruled here and none of
+ *  them is a choice. */
 const DEPARTURES = [
-  "The family is TEN surfaces, not nine. guest/entry-shell.tsx renders a raw vaul drawer that never goes through ui/drawer.tsx, and it is the floating layer most people on this product will ever see. It carries a literal radius, calc(var(--radius-action) * 1.4), the second literal on the layer after the tooltip arrow's. Every rung here reaches it through [data-entry-drawer].",
-  "ui/sheet.tsx has exactly ONE product call site and it is the marketing mobile menu, which enters from the TOP. So the sheet's two corners that stay on screen are the BOTTOM two, and an edge rung that covered bottom and right (round one's) reached nothing that ships. Every rung here covers all four sides.",
-  "Today's contract misses bible 9 inside itself: an 8px panel around 1.6px rows in 4px of padding does not nest. Row 2 measures it off the live DOM. Every rung fixes it; the ruling is which end to anchor.",
-  "The entrance rung 'by frequency' contests rule 15's one entrance with rule 12's animate-by-frequency. Both are ratified and on this family they disagree. A finding for Will, not a quiet choice.",
-  "The 'soft shadow' rung is the light board's proposed --lgt-float family verbatim (docs/specs/light.md), not a second design. If a shadow returns in dark it should return once, in one family, for both boards.",
-  "The light rungs compose var(--tw-ring-shadow) back in. A bare box-shadow silently deletes the ring the dropdown, the popover, the dialog and the entry shell all ship, because ring-1 IS a box-shadow in Tailwind v4. Round one's board had that bug and it flattened every panel it was trying to judge.",
-  "Round one reported a hole that is not there, and round two measured it instead. tw-animate-css does ship no guard of its own, but globals.css has clamped every animation and transition to 0.01ms under the preference since 2026-06-11, with !important, so it beats the utility. Forced on, all 36 floating surfaces across these 19 frames come back at 0.01ms. Row 8's paste is the first line bible 14 asks for, not a rescue.",
-  "The stage is not the shell's Stage. Every radix panel portals to globalThis.document.body, so inside a zoom-fitted div it leaves the ground, the zoom and the canvas. Each frame here is an iframe laid out at the canvas's true pixels, running the scene route in its own document.",
+  "The family is TEN surfaces, not nine. guest/entry-shell.tsx renders a raw vaul drawer that never goes through ui/drawer.tsx, and it is the floating layer most people on this product will ever see. It carries a literal radius, calc(var(--radius-action) * 1.4), the second literal on the layer after the tooltip arrow's. Every rung here reaches it through [data-entry-drawer], and the edge ask decides whether it joins the family or stays bespoke.",
+  "Today's contract misses bible 9 inside itself: an 8px panel around 1.6px rows in 4px of padding does not nest. Row 2 measures it off the live DOM at 6x. Every rung fixes it; the ruling is which end to anchor.",
+  "A FINDING AGAINST RULE 15, not a quiet choice. Rule 15's one entrance and rule 12's animate-by-frequency disagree on this family as they are written. The board recommends reading rule 15's line as one entrance LANGUAGE (a fade beside whatever else moves, an origin-aware transform-origin, exits faster than enters) with rule 12 setting the clock inside it. That is a bible edit and it is Will's to make.",
+  "The shadow rung puts a shadow in DARK, which the shipped elevation contract still forbids by name (--shadow-float is zeroed in .dark and .surface-ink). It is the light board's proposed family verbatim (docs/specs/light.md), so the two boards are one ruling and not two.",
 ];
 
 const GROUNDS: { id: Ground; label: string }[] = [
@@ -170,15 +221,19 @@ function Row({
   n,
   name,
   note,
+  eager = false,
   children,
 }: {
   n: number;
   name: string;
   note: string;
+  /** The rows a reader meets before they can scroll; everything else mounts a
+   *  viewport before it arrives (frame.tsx, Mount). */
+  eager?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-3">
+    <section className="flex scroll-mt-40 flex-col gap-3" id={`flt-row-${n}`}>
       <div>
         <p className="text-sm font-semibold">
           <span className="mr-2 inline-flex size-5 items-center justify-center rounded-md bg-foreground text-[11px] tabular-nums text-background">
@@ -190,7 +245,7 @@ function Row({
           {note}
         </p>
       </div>
-      {children}
+      <Mount eager={eager}>{children}</Mount>
     </section>
   );
 }
@@ -239,7 +294,7 @@ function ApplyRow({
               <Apply label={built.label} css={built.css} />
             ) : (
               <span className="text-[11px] text-muted-foreground/60">
-                ships today
+                is what ships
               </span>
             )}
           </div>
@@ -267,6 +322,25 @@ function useDesignKey(): string | null | undefined {
   return useSyncExternalStore(noop, readKey, noKeyYet);
 }
 
+/** Whether this reader asked for less motion. Not a nicety: with the preference
+ *  on, every entrance on this board is a jump cut (globals.css clamps animation
+ *  and transition to 0.01ms), so "Replay every entrance" is a button that does
+ *  nothing visible, and a board that lets a stranger press it twice and doubt
+ *  the board is a board with a broken control. It says so instead. */
+const REDUCE = "(prefers-reduced-motion: reduce)";
+function subscribeReduce(cb: () => void) {
+  const mq = window.matchMedia(REDUCE);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+function useReducedMotion(): boolean {
+  return useSyncExternalStore(
+    subscribeReduce,
+    () => window.matchMedia(REDUCE).matches,
+    () => false,
+  );
+}
+
 export function FloatingSurfacesBoard() {
   const designKey = useDesignKey();
   const candidate = useTunerCandidate();
@@ -276,11 +350,14 @@ export function FloatingSurfacesBoard() {
   const [ramp, setRamp] = useState<Ramp>("today");
   const [scene, setScene] = useState<SceneId>("family");
   const [variant, setVariant] = useState<"sheet" | "drawer">("sheet");
+  // The three knobs OPEN on what the board recommends (LANDING above), so the
+  // first thing on screen is the proposal and every rung is the alternative.
   const [radius, setRadius] = useState("nested");
-  const [entrance, setEntrance] = useState("one-clock");
-  const [light, setLight] = useState("lighter");
+  const [entrance, setEntrance] = useState("by-frequency");
+  const [light, setLight] = useState("off");
   const [outlier, setOutlier] = useState<Outlier>("select");
   const [replay, setReplay] = useState(0);
+  const reduced = useReducedMotion();
 
   const knobs = { radius, entrance, light };
   const phone = mode === "phone";
@@ -290,6 +367,19 @@ export function FloatingSurfacesBoard() {
     light: light as LightRung | "off",
   };
   const demo = env.NEXT_PUBLIC_DEMO_QR_TOKEN;
+  // A select opens beside its trigger near the top of the canvas and needs no
+  // more canvas than that; an edge panel needs the whole phone to enter across.
+  // Round two gave all three 520 and two thirds of the select column was empty.
+  const outlierHeight = outlier === "select" ? 360 : 520;
+
+  /** The recommendation as one paste: the two knobs the board actually
+   *  recommends changing. The light stays as it ships, because that ruling
+   *  belongs to the light board and the numbers are already the same. */
+  const recommended = {
+    radius: "nested" as RadiusRung,
+    entrance: "by-frequency" as EntranceRung,
+    light: "off" as const,
+  };
 
   return (
     <div className="flex flex-col gap-10 py-4">
@@ -297,7 +387,58 @@ export function FloatingSurfacesBoard() {
         {QUESTION}
       </p>
 
-      <div className="sticky top-0 z-20 -mx-4 flex flex-col gap-2 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
+      {/* WHERE THIS LANDS, before anything that needs scrolling. The rows are
+          the evidence for these five lines; the number beside each one is the
+          row that argues it. */}
+      <section className="flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-sm font-semibold">Where this board lands</p>
+          <p className="text-[11px] text-muted-foreground">
+            Five answers, one word each. The rows below are the evidence, in the
+            order they carry weight.
+          </p>
+        </div>
+        <dl className="flex flex-col gap-2">
+          {LANDING.map((l) => (
+            <div
+              key={l.ask}
+              className="grid gap-x-3 gap-y-1 sm:grid-cols-[10rem_minmax(0,1fr)]"
+            >
+              <dt className="text-xs">
+                <span className="text-muted-foreground">{l.ask}: </span>
+                <strong className="font-semibold">{l.answer}</strong>
+              </dt>
+              <dd className="text-xs leading-relaxed text-muted-foreground">
+                {l.why}{" "}
+                <a
+                  className="whitespace-nowrap underline underline-offset-2"
+                  href={`#flt-row-${l.row}`}
+                >
+                  Row {l.row}
+                </a>
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          <span className="text-[11px] text-muted-foreground">
+            The two knobs this recommends, as one paste:
+          </span>
+          <Apply
+            label={contractLabel(recommended)}
+            css={contractCss(recommended, "site")}
+          />
+          <span className="text-[11px] text-muted-foreground">
+            Then walk the pages in row 9. The light is not in it on purpose:
+            that ruling belongs to the light board, at the same numbers.
+          </span>
+        </div>
+      </section>
+
+      {/* The bar is sticky from sm up and static on a phone: at 375 it stands
+          310px tall, which is 38 percent of the viewport, and a control bar that
+          covers the specimen is worse than one you scroll back to. */}
+      <div className="z-20 -mx-4 flex flex-col gap-2 border-b border-border bg-background/90 px-4 py-3 backdrop-blur sm:sticky sm:top-0">
         <div className="flex flex-wrap items-center gap-2">
           <Toggle
             ariaLabel="Radius"
@@ -316,7 +457,6 @@ export function FloatingSurfacesBoard() {
               { id: "off", label: "Entrance: today" },
               { id: "one-clock", label: "one clock" },
               { id: "by-frequency", label: "by frequency" },
-              { id: "origin-true", label: "origin true" },
             ]}
             value={entrance}
             onChange={setEntrance}
@@ -324,10 +464,8 @@ export function FloatingSurfacesBoard() {
           <Toggle
             ariaLabel="Light"
             options={[
-              { id: "off", label: "Light: today" },
-              { id: "lighter", label: "lighter" },
-              { id: "shadow", label: "shadow" },
-              { id: "lit-edge", label: "lit edge" },
+              { id: "off", label: "Light: today, nothing casts in dark" },
+              { id: "shadow", label: "a soft shadow" },
             ]}
             value={light}
             onChange={setLight}
@@ -362,6 +500,13 @@ export function FloatingSurfacesBoard() {
           >
             Replay every entrance
           </button>
+          {reduced ? (
+            <span className="text-[11px] text-muted-foreground">
+              Reduced motion is on, so every entrance here is a jump cut by
+              design and Replay will look like it did nothing. That is bible 14
+              holding; row 8 says how.
+            </span>
+          ) : null}
           <span className="text-[11px] text-muted-foreground">
             The three knobs, as one paste:
           </span>
@@ -382,8 +527,9 @@ export function FloatingSurfacesBoard() {
 
       <Row
         n={1}
+        eager
         name="The guest surface at 375, the one most people meet"
-        note="Not ui/sheet.tsx: guest/entry-shell.tsx renders a raw vaul drawer with its own radius literal, and it is the first thing every guest sees after the QR. The contract has to reach it or it is not a contract. Beside it is the house sheet on its real side: its one product call site is the marketing mobile menu, which enters from the top, so its two corners are the bottom two. The strip below pins the guest case, one frame per rung, at 1:1."
+        note="Not ui/sheet.tsx: guest/entry-shell.tsx renders a raw vaul drawer with its own radius literal, and it is the first thing every guest sees after the QR. The contract has to reach it or it is not a contract. Beside it is the house sheet on its real side: its one product call site is the marketing mobile menu, which enters from the TOP, so the two corners that stay on screen there are the bottom two."
       >
         <div className="flex flex-wrap gap-4">
           <div
@@ -426,7 +572,10 @@ export function FloatingSurfacesBoard() {
           </div>
         </div>
         <p className="text-[11px] text-muted-foreground">
-          The two corners that stay on screen, one frame per rung, at 1:1.
+          The big box under each rung, on the side the product actually uses: a
+          top sheet at 375, its two bottom corners at 1:1. The ground is calm
+          here rather than photographic, because a corner is read at the corner
+          and a photograph behind an 8px arc hides the thing being compared.
         </p>
         <div className="flex flex-wrap gap-3">
           {RUNGS.radius.map((r) => (
@@ -435,11 +584,14 @@ export function FloatingSurfacesBoard() {
               className="flex min-w-0 max-w-full flex-col gap-1"
               style={{ flexBasis: 375 }}
             >
-              <span className="text-[11px] font-medium">{r.label}</span>
+              <span className="text-[11px] font-medium">
+                {r.id ? r.label : "today, as it ships"}
+              </span>
               <Frame
                 label={`Sheet corners, ${r.label}`}
                 scene="edge"
                 variant="sheet"
+                side="top"
                 compact
                 rung={r.id || undefined}
                 ground={ground}
@@ -457,6 +609,7 @@ export function FloatingSurfacesBoard() {
 
       <Row
         n={2}
+        eager
         name="The corner, measured"
         note="The finding the round turned on, at 6x, read off the live DOM rather than claimed in a caption. The solid outer arc is the panel, the solid inner arc is the lit row, and the dashed arc is where the row's corner has to sit for the two to share a centre (bible 9: the container is the object plus its offset). On today's rung the dashed arc and the row's arc are different lines, and they are the same line on all three candidates. That is the whole argument for changing anything."
       >
@@ -515,7 +668,7 @@ export function FloatingSurfacesBoard() {
       <Row
         n={4}
         name="The light in dark, over the palette's ramps"
-        note="A floating layer's light in dark is a question about the ground it floats over, so the ramp is a knob. Today's dark popover sits lighter than the card it opens from (0.245 over 0.21, the palette board's finding), which is exactly what 'lighter is closer' leans on; ramp A widens that gap, ramp B makes every dark surface one room. Walk the three lights on today, then on A, then on B, and check on paper that whichever wins leaves the light side standing."
+        note="A floating layer's light in dark is a question about the ground it floats over, so the ramp is a knob. Today's dark popover sits lighter than the card it opens from (0.245 over 0.21, the palette board's finding), and that gap is the whole reason nothing needs to cast; ramp A widens it, ramp B makes every dark surface one room. Walk both answers on today, then on A, then on B, and check on paper that whichever wins leaves the light side standing. Round three cut two rungs here: 'lighter is closer' WAS today (its paste set the declaration the panel already carries), and the lit edge belongs to the light board's material face, not to a layer over content."
       >
         <Frame
           label="Light ladder"
@@ -541,7 +694,7 @@ export function FloatingSurfacesBoard() {
       <Row
         n={5}
         name="The entrance: rule 12 against rule 15"
-        note="Not a number, a principle. Two ratified rules disagree on this family, and the two frames below are each rule taken literally on the same three primitives: the tooltip (the highest-frequency surface on the site), the menu, and the dialog. Press Replay and watch them together. Rule 15 asks the family to move as one; rule 12 asks each surface to move at the rate a person meets it. One of them gives way here."
+        note="Not a number, a principle. Two ratified rules disagree on this family as they are written, and the two frames below are each rule taken literally on the same three primitives: the tooltip (the highest-frequency surface on the site), the menu, and the dialog. Press Replay and watch them together. Rule 15 asks the family to move as one; rule 12 asks each surface to move at the rate a person meets it. The board's reading is that rule 15 means one entrance LANGUAGE, and that a wording change to it is the whole disagreement: a third rung, origin true, was here in round two and is cut, because it answers how a panel moves rather than how fast."
       >
         <div className="grid gap-2 rounded-lg border border-border bg-card px-4 py-3 text-xs text-muted-foreground sm:grid-cols-2">
           <p>
@@ -575,21 +728,6 @@ export function FloatingSurfacesBoard() {
             </div>
           ))}
         </div>
-        <p className="text-[11px] text-muted-foreground">
-          The third answer, origin true, on the menus alone:
-        </p>
-        <Frame
-          label="Entrance ladder"
-          scene="ladder"
-          dim="entrance"
-          ground={ground}
-          ramp={ramp}
-          mode={mode}
-          width={phone ? undefined : ladderWidth("entrance")}
-          height={phone ? 470 : 300}
-          replay={replay}
-          designKey={designKey}
-        />
         <ApplyRow
           dim="entrance"
           build={(v) => ({
@@ -673,7 +811,7 @@ export function FloatingSurfacesBoard() {
               ground={ground}
               ramp={ramp}
               mode="phone"
-              height={520}
+              height={outlierHeight}
               replay={replay}
               designKey={designKey}
             />
@@ -692,7 +830,7 @@ export function FloatingSurfacesBoard() {
               ground={ground}
               ramp={ramp}
               mode="phone"
-              height={520}
+              height={outlierHeight}
               replay={replay}
               designKey={designKey}
               {...knobs}
@@ -716,7 +854,7 @@ export function FloatingSurfacesBoard() {
               ground={ground}
               ramp={ramp}
               mode="phone"
-              height={520}
+              height={outlierHeight}
               replay={replay}
               designKey={designKey}
               {...knobs}
