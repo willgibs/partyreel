@@ -1,6 +1,6 @@
 ---
 track: media-kit
-status: open
+status: handed-off
 cut: "fb395fe"
 merged_round_2: "2307446"
 merged_round_1: "c1aa5c6"
@@ -408,15 +408,125 @@ site four blocks it can wear. No production byte changed.
 
 ## Handoff (round 3)
 
-- Head <sha>, pushed; preview partyreel-git-lp-media-kit-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Head: the tip of `lp/media-kit`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot
+  name its own commit). The last commit that changes what the board draws is `5516bfa`; the one
+  after it is this manifest. Board at `/design/c/media-kit?key=`.
+- ★ **Verified on a LOCAL PRODUCTION BUILD, not on a preview.** Vercel was at its daily deployment
+  ceiling for the whole round, so the `lp/media-kit` alias serves round two's build and no push in
+  this round produced a deployment. The round was walked on `pnpm build` + `next start -p 3112`
+  (and, during the work, `pnpm dev -p 3111`), both in this worktree against the real
+  Supabase and R2. The alias will be round three's as soon as a slot frees: confirm by the SHA on
+  the deployment, never by the push succeeding (round two's note on how the cap behaves still
+  holds, one slot every 14.4 minutes and the next push on any branch takes it).
+- Synced with `launch-prep`: it had not moved. The cut `fb395fe` is still its tip, so the tree
+  under test is the integration tree.
+- Gates on that tree, re-run after `pnpm format` on the changed files: typecheck ok, lint ok
+  (0 errors, 6 warnings, all pre-existing and none in this lane), test ok (1775 in 198 files; this
+  track holds 48 across six suites, 14 of them new this round), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
+  `docs/tracks/media-kit.md` and eight files under `src/app/(dev)/design/sandbox/media-kit/`
+  (`board.tsx`, `bridge.ts`, `bridge.test.ts`, `decision.ts`, `decision.test.ts`,
+  `exposure.test.ts`, `shoot.ts`). No exceptions. No production byte changed: `marketing-media.ts`,
+  `public/marketing/` and every blog frontmatter are untouched, and `public/design/media-kit/` is
+  unchanged from round two (the 22 staged files and `provenance.json`).
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- **Shell / touchpoint change the Orchestrator applies** (no agent edits `touchpoints.ts`), superseding
+  round two's proposal: `note` → `The ruling first: four questions with one-word answers, then the
+  exposure on the real site, all 23 posts at the blog card's and the share card's real geometry, the
+  kit as a call sheet of 36, and four blocks a walk can wear`; `variants` →
+  `["The exposure", "Mix", "Ours", "Licensed"]` (the four applied blocks, recommendation first).
+- **Assets requested from Will.** Unchanged in substance; round three read the whole asset log and
+  found the list is longer on paper and shorter in practice, because one night produces nine of its
+  twelve rows.
+  - **36 event photographs, six per vertical** (weddings, birthdays, corporate, conferences,
+    festivals, trips) · 1600 px long edge, a third portrait, one dark warm grade; the call sheet is
+    on the board and in `docs/specs/media-kit.md` 5.1, one card per frame, codes `W1` to `T6`, each
+    naming the subject, the framing, the light and the crops it must survive. Four are the palette
+    board's hard cases (`W5` high key, `W3` low key, `W2` candle warm, `S4` stage cool) and three
+    show a guest holding a phone up (`K3`, `S3`, `T4`) · replaces all twelve `MARKETING_IMAGES` by id
+  - **24 squares at 512x512**, 6 to 35 KB webp · 1:1 crops of the 24 masters marked `512 square` ·
+    `ASSETS.md` row 2
+  - **10 portrait crops at 512x640 and 12 portraits at 720x900** · 4:5 recrops of the same masters ·
+    rows 9 and 12. **Ten, not row 9's eight**: `hero-burst` raised the count in its round-two handoff
+    so no frame is on screen twice on the desktop canvas, and the log still says eight
+  - **A hand-and-phone cutout**, PNG with alpha, 1200 px long edge, screen area transparent, two
+    grips · the ONE separate setup: the same event, the darkest wall, `K3`'s light · row 8
+  - **8 vertical clips with posters**, 3 to 5 s, 1080x1920, silent · filmed between the frames, and
+    the film cut from that footage · rows 4 and 1
+  - **The light board's worst-case overlapping pair** (row 11) · `W3` and `C1` on the call sheet are
+    already that pair, two dark low-contrast frames; they need the intent, not a second setup
+  - **The demo event's curated folder** (row 5) · if the shoot is run AS a Partyreel event, the
+    guests' own uploads are the seed and the live QR on every hero board points at a real album
+- **Proposed `ASSETS.md` changes** (the Orchestrator applies): row 7's `spec` → append `one night
+  closes nine of the twelve rows in this log: rows 1, 2, 3, 4, 5, 8, 9, 11 and 12 are crops,
+  recrops, cuts or setups of it, and the table is docs/specs/media-kit.md 5.3`; row 9's `what` and
+  `spec` → ten portrait crops rather than eight (hero-burst, round two); row 11's `spec` → append
+  `W3 and C1 on the media-kit call sheet are this pair already; shoot them knowing they will be laid
+  over each other`; row 5's `spec` → append `if row 7's shoot is run as a Partyreel event, the
+  guests' uploads ARE this folder`; row 6's `spec` → replace the recommendation clause with `under
+  the proposed rule the staged batch fills 10 of the 12 ids and 18 of the 23 posts, not 12 and 21:
+  four frames carry a recognisable face with no release, and reception-hall and party-dj are the two
+  ids it cannot fill`.
+- The asks, verbatim from `BoardMeta` (the Orchestrator quotes them under Waiting on Will). **Four,
+  not five:** round two asked the route and the bridge separately, and the route decides the bridge,
+  so the fifth was the same question in different words. The consequence is on the board as a route
+  table instead.
+  1. The sourcing rule: author, source, the license clause quoted, a retrieval date and a people
+     field required on every manifest entry, and no recognisable face ships without a release.
+     Options: Yes or No. This board recommends Yes.
+  2. The allowed list: CC0, Pexels, Pixabay, Mixkit and Coverr in; Unsplash and CC BY out. Options:
+     Yes or Strike one. This board recommends Yes.
+  3. The route, which also decides the bridge: Licensed ships twelve swaps, Mix ships two, Ours
+     ships none. Options: Mix, Ours or Licensed. This board recommends Mix.
+  4. The kit: 36 masters, six per vertical, shot in one night at a real event running Partyreel.
+     Options: Shoot or Park. This board recommends Shoot.
+- **Look at first**: the card at the top. It is the whole ruling in four rows, and a reviewer who
+  reads nothing else can still answer it. Then press **Licensed** in "Apply to the site" and click
+  `/blog` in the walk row (the links carry the key and open in a new tab now): the whole library
+  wears the CC0 bridge on the real cards. Come back, flip the route toggle to **Licensed** on the
+  stage, and read the three plates at their real 320x400: a group around a fire with `A face, no
+  release` under it, the conference frame that stays empty with the reason in it, and a ring detail
+  that is legitimately licensed. That row is the argument in one line: the corpus can dress the site
+  and cannot dress the half of it that matters.
+- **Light QA.** Walked cold at 1440 on the local production build: every toggle, all three routes
+  against both geometries and both viewport modes, the four applied blocks, and `/blog` with a block
+  on. **375 was verified for real this round, not by construction:** the Chrome MCP still cannot
+  narrow the window (it reports `innerWidth` 1456 for a 420 px window), but the board loaded in a
+  375 px same-origin IFRAME does re-run its media queries, and there
+  `documentElement.scrollWidth === clientWidth === 375` at every section, with no element outside an
+  `overflow-x: auto` container reaching past 376 px. The route table is the one wide element and it
+  sits in its own scroller (736 px table inside a 343 px wrapper, the page still 375). Reduced motion
+  is honoured: this board still mints no keyframe and runs no loop, the develop beat's settled state
+  lives outside the media query in `marketing.css`, the only rule `board.css` adds is a transition
+  delay inside `prefers-reduced-motion: no-preference`, and round three added
+  `motion-reduce:transition-none motion-reduce:active:scale-100` to the press feedback on the applied
+  blocks, which round two left unguarded. No console message of any kind on the production build, so
+  the `useSyncExternalStore` read of the lab key hydrates clean.
+- **Findings against a rule** (for Will, not acted on): none against the bible. Two against this
+  track's own round two, both corrected in place and both now pinned by a test: the Licensed route's
+  counts were the counts before the rule the same board proposes, and the stage was drawing the wrong
+  geometry on the wrong ground while its route toggle was inert between two of its three routes.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). Two rounds turned the media-kit survey into a
+surface Will can rule on in four words. Round two found the exposure was the site and not the blog
+(the twelve unverified stills are named in 40 production files across 22 routes, six of them in the
+footer and nav of every marketing page), that nobody hashed the blog covers (all 23 posts set
+`cover:` by hand, so the fix is 23 frontmatter lines), and that a recorded reel re-renders with no
+code edit; a second, harder search by scene rather than by keyword staged 22 CC0 candidates and
+handed the running site four CSS blocks it can wear. Round three walked the board the way a reviewer
+would and found the argument was buried under its own evidence, so the ruling is now the first thing
+on the page: four questions with one-word answers, the recommendation marked, each linked to the
+section that argues it. Asking the route and the bridge separately was asking one question twice, so
+there are four asks and a table of what each route ships. The round's real correction is a number:
+the rule this board proposes bars a recognisable face without a release, four of the 22 staged frames
+carry one, and so the Licensed route fills ten of the twelve ids and eighteen of the 23 posts rather
+than twelve and 21, with the dance floor and the DJ the two it cannot fill. The stage was drawing
+440 px plates on the paper ground when the real blog card is 320x400 on a cinema page, and all three
+of its posts went to the shoot under the default route, so it opened blank and two of its three
+routes looked identical; it is now the real card at the real size with today's row above the route's
+row, and a test refuses a stage set that leaves a route flip inert. Reading the whole asset log
+closed the cost argument: one night of photography produces nine of its twelve rows, the demo event's
+own seed among them, so the shoot is the cheapest item on the list rather than the most expensive.
+No production byte changed.
