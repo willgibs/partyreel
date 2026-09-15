@@ -478,23 +478,33 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
 
 ## Handoff (round 3)
 
-- Head `abee07b`, pushed; preview partyreel-git-lp-light-partyreel.vercel.app. The board is
-  `/design/c/light?key=...`; five anchors, `#lgt-a` .. `#lgt-e`, and the index at the top of the
-  board links each of the eight calls to the part that argues it.
-- ★ **The alias serves `e108ec4`, four commits behind the head, and it is the Vercel daily cap
-  rather than the lane.** Neither push created a deployment (the GitHub integration made none while
-  the project sat at its ceiling); one forced API deploy got through at `e108ec4` and every attempt
-  since is refused with `payment_required` / `api-deployments-free-per-day`, remaining 0, reset
-  about 24h from 2026-09-14 23:09. `e108ec4` is the whole structural round (the index, the labelled
-  knobs, the wipe, the cost meter, the paper row, the collapsed pastes), so the board Will walks is
-  round three. What is NOT on it: part E's drive paragraph and the engine's one-line paste, the
-  corrected canvas heights, the drive reaching the middle and the room, the seam's knob note and the
-  meter's hidden-tab guard. All five were walked on a local dev server in this worktree instead, and
-  the Orchestrator only has to force one redeploy once a slot frees.
+- Head: the board's content is `08b97fa`, this manifest on top; pushed to
+  partyreel-git-lp-light-partyreel.vercel.app. The board is `/design/c/light?key=...`; five anchors,
+  `#lgt-a` .. `#lgt-e`, and the index at the top of the board links each of the eight calls to the
+  part that argues it.
+- **The alias is refreshed: it serves the head, and the review-blocking gap is closed.** The
+  read-only review of `97602076` was right that the alias was pinned four commits back at `e108ec4`
+  (the Vercel `api-deployments-free-per-day` cap, not the lane), so the board Will would have opened
+  was missing part E's drive paragraph and the engine's one-line paste, the corrected canvas
+  heights, the drive reaching the middle and the room, the seam's knob note and the meter's
+  hidden-tab guard, while part B on that same build told him to press the drive toggle. Deployments
+  freed up and a forced deploy was taken at this head; the served board is verified below, not
+  assumed. Nothing about the fixes changed, only where they are readable.
+- **What the review asked to re-check on the real thing, checked there.** The two corrected canvas
+  heights were arrived at by measurement the last handoff called unreliable on a zoomed stage, so
+  they were re-measured on a rendered board rather than trusted: the honest instrument is a leaf
+  text node's own rect against the canvas's rect (both in the same post-zoom space), not
+  `scrollHeight` against `clientHeight`. At 1440 the lit-face matrix is 870px with its lowest text
+  46px clear of the bottom; at 375 it is 1370px with 27px clear. All 13 stages on both canvases have
+  positive headroom, and the document has zero horizontal overflow on either. The drive toggle now
+  moves three of the four lights (`[data-glw-drive]` flips mask to transform on the aurora, the
+  middle and the room); the fourth is the seam, and that is deliberate, which is the first defect
+  below.
 - Synced with `launch-prep` at `dd4aa0b` (72 commits, all of them other tracks' lab lanes and their
   manifests: nothing in this lane and nothing in its `reads`). Merged clean at `74d96e1`.
-- Gates on the synced tree: typecheck ok, lint ok (0 findings in the lane; 7 pre-existing warnings
-  elsewhere), test ok (1719), build ok (248 static pages, 114 routes).
+- Gates on the synced tree, re-run after the review fixes: typecheck ok, lint ok (0 errors, 0
+  findings in the lane; 6 pre-existing warnings elsewhere), test ok (1719 in 193 files), build ok
+  (248 static pages, 114 routes).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/light.md` +
   `src/app/(dev)/design/sandbox/light/{aurora,beats,board,candidates,depth,doctrine,shared}` and
   `board.css`. No exceptions, no production byte: the board composes `<Glow>`, imports five
@@ -557,18 +567,67 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
     ("the light in dark: lighter is closer, a soft shadow, or a lit edge") is part A's middle subject
     with the same three columns, so part A says so and part E's elevation block says bible 15
     inherits the ruling.
-- Light QA, at the head, on a local dev server in this worktree (the alias is capped, above):
+  - **Two knobs stopped promising what the page does not do** (found by the walk below, after the
+    review). The seam's knob note exempted the register and grain knobs but not the DRIVE, and the
+    seam is the one light of the four that does not take it: it is the footer's lamp verbatim, so a
+    re-tuned drive would make it a different candidate wearing its name. Pressing Transform on the
+    seam did nothing, with no line saying why, which is precisely the stumble this round exists to
+    remove; the note names all three knobs now and says the other three lights do take the toggle.
+    And the lit face's walk line sent a reviewer to the demo guest page, where the block CANNOT
+    land: the tuner island that renders an applied candidate mounts in `(app)`,
+    `(marketing)/(cinema)`, `(marketing)/(paper)` and `(dev)/design`, and the `(guest)` group has
+    none, so no board's candidate reaches `/e/[token]` at all. That page is off the line with the
+    reason written beside it in `candidates.ts`; the island gap itself is the Orchestrator's, below.
+- Light QA at the head. The board on the served preview and on a local dev server in this worktree,
+  and the four applied blocks on the running app.
   - 1440: all 13 stages, no horizontal overflow on the document, no stage overflowing its canvas,
-    and no text below any stage's bottom edge. The five real chapters mount and their reveal grammar
-    fires on scroll.
-  - 375: every stage measures exactly 375 css px, nothing cut on any of them, the paper row stacks
-    to one column and part A pairs its cues two by two.
-  - Reduced motion: the board-wide Rest switch computes `animation-name: none` on all 22 lamps'
-    bands and on the three phase markers at once; the board's one keyframe stays inside the
+    and no text below any stage's bottom edge (the tightest is the lit-face matrix at 46px clear).
+    The five real chapters mount and their reveal grammar fires on scroll.
+  - 375: every stage measures exactly 375 css px, nothing cut on any of them (the lit-face matrix at
+    1370px clears by 27px), the paper row stacks to one column and part A pairs its cues two by two.
+  - Reduced motion: the board-wide Rest switch computes `animation-name: none` on all of the bands
+    at once and is reversible (back on Live they compute `glw-mask-x` again, so the switch is the
+    cause and not a stuck state; the machine's own `prefers-reduced-motion` is false, which is what
+    makes that a real test). The board's one keyframe stays inside the
     `prefers-reduced-motion: no-preference` block.
-  - On the preview at `e108ec4`: the index, the labelled knobs, the wipe at 50 percent, the cost
-    meter's three rows and its static line, the paper three-up and part E's ten collapsed pastes,
-    all seen in screenshots at 1440.
+  - The drive toggle, per light: mask to transform on the aurora, the middle and the room; the seam
+    stays on mask by design, now said out loud on the stage.
+  - **The four "Apply to the site" blocks, walked on the pages each one names** (this is round three
+    goal item 1, which the reviewed handoff reported only for the board itself). All with `?key=`,
+    which is required: without it no page mounts the tuner island and no block lands, and that is
+    the gate working rather than a defect. The blocks themselves are byte-identical to round two
+    (the round's only change to `candidates.ts` is `ENGINE_DRIVE_FIX`, which is deliberately not an
+    Apply candidate), so this re-walk confirms round two's live pass rather than replacing it.
+    - The control is a radio across the board and behaves as one: four buttons, exactly one reads
+      "Applied to the site" at any time, applying a second clears the first, and the board's banner
+      clears the store (`partyreel.tuner.candidate.v1` back to null).
+    - The shadow family on `/pricing`, `/help`, `/contact` and `/design/compositions`:
+      `--shadow-lift` resolves the dark ramp (`0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px
+      oklch(0 0 0 / 0.55)`), `--shadow-float` stays the invisible zero on the dark root and on
+      `.surface-ink`, and `.surface-paper` keeps today's shipped `0.06 / 0.1`, so paper does not
+      move. The 13 real event cards take the dark lift with the tile radius intact at 3px, and the
+      nav viewport takes the float as `--tw-shadow` (`0.5 / 0.62`) while keeping its ring.
+    - The lit face on `/`, `/features/qr` and `/features/album`: the gallery canvas and the QR hero
+      plate both gain the inset hairline with the outer ring surviving, and the album page carries
+      it on three plates, one of them on paper and taking the paper variant.
+    - The aurora register on `/`, `/pricing`, `/help` and `/contact`: `--spill-cadence` stays 11s
+      (untouched, which is the contract), `--aurora-cadence` resolves to `calc(11s * 3)`, the footer
+      seam keeps `--glw-dur: 11s` because a lamp keeps the lamp's clock, and the register reaches it
+      (`--glw-base: 0.3`, `--glw-blur: 38px`). `/contact`'s lamp reads 0.52 / 0.24, which is the
+      block's own `.surface-paper` rule and not a miss: that lamp is inside `.surface-paper`.
+    - The paper five on `/`, `/pricing`, `/help` and `/contact`: `.surface-paper` takes
+      `--lamp-1: oklch(0.88 0.085 25)` and the root five are untouched.
+    - No page in the walk gained horizontal overflow under any block.
+  - Not walked, and why: `/dashboard` and a host event page redirect to `/login` on localhost, since
+    sign-in is not in any local allow-list by design. They are the two surfaces round two verified
+    live on the preview at `471b8db` (same bytes), and `/design/compositions` carries the same real
+    `EventCard` at 13 instances, which is the honest local stand-in for the dashboard's cards.
+  - The launch-prep alias, walked as goal item 1 asks: it serves a board that PREDATES round two.
+    Round two is genuinely merged there (`6203d62` is an ancestor of `origin/launch-prep`, and that
+    tree's `shared.tsx` contains "Apply to the site"), but the served HTML is 178,543 bytes with no
+    Apply button, no `#lgt-e` and a lede still reading "Four parts". That is the on-request preview
+    policy doing what it says, not a lost merge: nothing has pushed `[preview]` on launch-prep since
+    before this board's round two landed. It is listed for the Orchestrator below.
 - Assets requested from Will (unchanged from round two, both still standing):
   - A grain tile, so the aurora stops banding · seamless monochrome noise, 256x256, PNG-8, fine
     grain (one tile pixel), neutral, mean 50 percent grey, used at about 5 percent over the light
@@ -597,11 +656,20 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
 - For the Orchestrator: `touchpoints.ts` still describes this board as "Four parts" and it has been
   five since round two; the description is yours to rename at integration, I did not touch the file.
   Findings against a bible rule: none (10 and 11 are already under exploration naming this board),
-  but two cross-board notes. (1) The floating-surfaces contract's fifth line is this board's part A
+  but four cross-board notes. (1) The floating-surfaces contract's fifth line is this board's part A
   question for one family: one ruling should close both, and part E says so. (2) All three palette
   candidates re-declare `--shadow-float` zeroed on the dark grounds; whichever ramp is ruled here,
   the palette block inherits it, and the two should land in one pass rather than overwrite each
-  other.
+  other. (3) ★ **No board's "Apply to the site" candidate can reach a guest page.** The island that
+  renders an applied block mounts in `(app)`, `(marketing)/(cinema)`, `(marketing)/(paper)` and
+  `(dev)/design`; `(guest)` has none, so `/e/[token]` silently ignores every block every board
+  applies. It is a lab-coverage gap rather than a bug in any candidate, and the guest gallery is one
+  of the better real surfaces for a media cue (the demo page carries 18 real tiles), so it is worth
+  one line in `(guest)/layout.tsx` at some point. That file is production and outside this lane, so
+  this track dropped the page from the lit face's walk line instead of reaching for it. (4) The
+  launch-prep alias serves a build older than this board's round two (no Apply button, lede still
+  "Four parts"), because nothing has pushed `[preview]` on launch-prep since before round two
+  landed. Any walk that expects the integrated board there needs one `[preview]` push first.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
