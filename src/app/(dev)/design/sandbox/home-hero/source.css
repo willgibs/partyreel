@@ -19,10 +19,17 @@
    then snap back to the QR, then branch out again. Put the pre-burst frame in
    the same query the animation itself is allowed in and the burst is one beat.
 
-   THE TRADE, flagged on the board under Departures: a reader with JavaScript off
-   who has NOT asked for less motion sees the corridor rest at the source. Nothing
-   that carries meaning is gated by it. The h1, the QR, the subhead and the CTAs
-   are plain markup and never move. */
+   THE GAP THAT LEFT, AND HOW ROUND FOUR CLOSED IT. One reader falls between the
+   two states: motion allowed, scripting off, so the pre-burst rule applies and
+   nothing ever runs the loop that would undo it. Round three flagged that on the
+   board as a departure; round four fixes it instead. The concept renders a
+   <noscript> companion (NOSCRIPT_RULE in source.tsx) carrying the one rule that
+   puts the rest state back. A <noscript> body is parsed as markup only when
+   scripting is off, so the rule exists for exactly that reader, arrives later in
+   the document than this sheet and therefore wins, and costs a scripted reader
+   nothing but the bytes. Nothing in the composition that carries meaning was ever
+   gated: the h1, the QR, the caption, the subhead and the CTAs are plain
+   markup. */
 
 .hhs-band {
   /* The corridor dissolves into the frame rather than being guillotined by the
@@ -56,10 +63,21 @@
   position: absolute;
   top: 50%;
   left: 50%;
+  /* The card carries the tile radius as well as the Photo inside it, so the
+     shadow below is cast by the photograph's real silhouette. */
+  border-radius: var(--radius-tile);
   transform: var(--hhs-rest);
   opacity: var(--hhs-rest-o);
   will-change: transform, opacity;
   backface-visibility: hidden;
+  /* Round four: the corridor is three depth lanes and frames overlap, so a near
+     photograph needs an edge against the far one behind it. Bible 10 allows a
+     shadow for exactly this (stacked or overlapping media), and never as a flat
+     surface effect. It rides the element's own transform, so a far frame casts a
+     small shadow and a near one a large one with no second curve to tune, and it
+     darkens the frame BEHIND rather than the frame itself: nothing is laid over
+     a photograph (bible 1). */
+  box-shadow: 0 18px 46px -16px rgb(0 0 0 / 0.66);
 }
 
 @media (prefers-reduced-motion: no-preference) {
