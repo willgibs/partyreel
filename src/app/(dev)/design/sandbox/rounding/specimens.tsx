@@ -413,6 +413,61 @@ export function NestedSpecimen({
   );
 }
 
+/**
+ * THE THIRD NESTING CASE: something drawn around an ACTION.
+ *
+ * ★ THIS WANTED TO BE THE BEAM AND IS NOT, BY LANE. BorderBeam is the case the
+ * system already gets right, because it is given no borderRadius prop and
+ * reads its child's computed radius instead, so its ring is whatever the
+ * object is at whatever this board rules (pro-card-beam.tsx says so out loud:
+ * a literal is what once put a 16px ring around a 3.6px card). Putting one on
+ * this board adds a call site, and glow-contract.test.ts pins the exact set of
+ * them in a file this track does not own. So the case is drawn with a plain
+ * ring at an offset, which is the same arithmetic and the same failure, and
+ * the Handoff asks for the one line that would let the beam stand here.
+ */
+export function ActionRingSpecimen({
+  radius,
+  offset = 4,
+}: {
+  radius: number | null;
+  offset?: number;
+}) {
+  return (
+    <div className="flex gap-3">
+      {(["right", "wrong"] as const).map((kind) => (
+        <div key={kind} className="flex min-w-0 flex-1 flex-col">
+          <div className="p-2">
+            <span className="relative inline-flex">
+              <Button>
+                <Plus data-icon="inline-start" /> Add
+              </Button>
+              <span
+                aria-hidden
+                className="pointer-events-none absolute border border-foreground/40"
+                style={{
+                  inset: `-${offset}px`,
+                  borderRadius:
+                    kind === "right"
+                      ? `calc(var(--radius-action-sm) + ${offset}px)`
+                      : "var(--radius-action-sm)",
+                }}
+              />
+            </span>
+          </div>
+          <CellLabel className="mt-1.5">
+            {kind === "right"
+              ? `Ring at ${offset}px = ${
+                  radius === null ? "action-sm plus 4" : px(radius + offset)
+                }`
+              : "The action's own radius."}
+          </CellLabel>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ── Part D: the ladder ────────────────────────────────────────────────── */
 
 /** The real component each derived step lands on, at whatever the step

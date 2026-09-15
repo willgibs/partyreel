@@ -61,6 +61,7 @@ import {
   type CompositionId,
 } from "./compositions";
 import {
+  ActionRingSpecimen,
   ActionSpecimen,
   CellLabel,
   FloatSpecimen,
@@ -452,6 +453,16 @@ export function RoundingBoard() {
           the live column and the third action rung sit: move it to the left
           with the arrow in its header, or close it with the cross.
         </p>
+        <p>
+          Two boards from the first wave are inputs. The floating-surfaces
+          proposal splits the float rung into a panel token and a row token,
+          which is bible 9 applied inside the floating layer, so part C defers
+          to it rather than competing; and the light proposal is why part B has
+          a dark ground, because in dark a corner is stated by the ring today
+          and by a shadow family if that board is ruled. Nothing here touches
+          colour: every specimen is on the shipped ramps, so this ruling and
+          the palette ruling do not wait on each other.
+        </p>
       </div>
 
       {/* The rail: the three axes, then what is applied. */}
@@ -694,11 +705,14 @@ export function RoundingBoard() {
               offset look like when nobody does the subtraction.
             </p>
             <p>
-              The beam is the case that already gets this right: BorderBeam
-              reads its child&apos;s computed radius instead of taking a
-              literal, which is why the pro card&apos;s ring will follow
-              whatever this board rules, and why it must never be passed a
-              number.
+              The third row is the same rule around an action. It wanted to be
+              the beam, which is the case the system already gets right:
+              BorderBeam takes no radius prop and reads its child&apos;s
+              computed one, so the pro card&apos;s ring will follow whatever
+              this board rules. A beam here would add a call site to a pinned
+              set in a file this track does not own, so the row draws a plain
+              ring at the same offset, and the Handoff asks for the line that
+              would let the real one stand.
             </p>
           </>
         }
@@ -728,6 +742,15 @@ export function RoundingBoard() {
                       c.values ? c.values.radius : (live?.["--radius"] ?? null)
                     }
                   />
+                  <div className="mt-2">
+                    <ActionRingSpecimen
+                      radius={
+                        c.values
+                          ? action.values.sm
+                          : (live?.["--radius-action-sm"] ?? null)
+                      }
+                    />
+                  </div>
                 </div>
               ))}
             </div>
