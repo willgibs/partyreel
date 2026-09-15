@@ -9,7 +9,6 @@ import { CopyButton } from "@/app/(dev)/design/(shell)/_shell/copy";
 import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { registerReviewKeys, reviewKeysOwned } from "./review-keys";
-import { holdId, stepId } from "./queue";
 import {
   composeMessage,
   type SessionAnswer,
@@ -21,6 +20,7 @@ import {
   setReviewStore,
   useReviewStore,
 } from "./review-store";
+import { holdId, stepId } from "./step-id";
 
 /**
  * THE REVIEW SESSION (the Library x Lab round, 2026-09-15). Will's desk asks

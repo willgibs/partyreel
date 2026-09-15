@@ -11,20 +11,15 @@ import { StatRow } from "@/app/(dev)/design/(shell)/_shell/stat-row";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { listSpecs } from "@/app/(dev)/design/_data/docs";
 import { readTrackStates, trackAlias } from "@/app/(dev)/design/_data/tracks";
+import { windowNotesFor } from "@/app/(dev)/design/review/ledger";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 import { SANDBOX, SURFACE_LABEL } from "@/app/(dev)/design/touchpoints";
 
-import { readLedgers, readWindowNotes } from "./_desk/ledger";
-import {
-  type AskState,
-  type BoardRow,
-  deskRows,
-  holdId,
-  stepId,
-} from "./_desk/queue";
+import { type AskState, type BoardRow, deskRows } from "./_desk/queue";
 import { ReviewSession, type SessionStep } from "./_desk/review-session";
 import { SAMPLE_BOARD } from "./_desk/sample-spec";
 import { StartReview } from "./_desk/start-review";
+import { holdId, stepId } from "./_desk/step-id";
 
 /**
  * THE DESK (the review wave, 2026-09-14; Will's queue since the Library x Lab
@@ -92,9 +87,10 @@ export default async function DeskPage({
   const param = typeof session === "string" ? session : null;
 
   const tracks = readTrackStates();
-  const ledgers = readLedgers();
   const proposals = new Set(listSpecs().map((s) => s.slug));
-  const windowNotes = readWindowNotes();
+  // The notes that bind every board this round, as opposed to a board's own,
+  // which ride its row.
+  const windowNotes = windowNotesFor(null);
 
   const rows = deskRows(
     SANDBOX.map((r) => ({
@@ -104,8 +100,6 @@ export default async function DeskPage({
       note: r.board?.note ?? r.why,
       tracks: r.board?.tracks ?? [r.id],
     })),
-    BOARDS,
-    ledgers,
   );
 
   const queue = rows.flatMap((r) => r.open);
@@ -315,14 +309,14 @@ export default async function DeskPage({
         )}
       </Section>
 
-      {windowNotes.notes.length > 0 && (
+      {windowNotes.length > 0 && (
         <Section
           id="notes"
           title="Your notes this window"
-          blurb={`Round ${windowNotes.round}, from docs/reviews/_window.json. A note with no board binds every board.`}
+          blurb="From docs/reviews/_window.json: what you said this round that binds every board, not one of them."
         >
           <ul className="space-y-2">
-            {windowNotes.notes.map((n, i) => (
+            {windowNotes.map((n, i) => (
               <li key={`${n.on ?? "all"}-${i}`}>
                 <Callout
                   kind={n.by === "Will" ? "will" : "note"}
@@ -380,6 +374,23 @@ function BoardCard({
       <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
         {row.spec ? row.spec.verdict.recommendation : row.note}
       </p>
+
+      {/* What you already said about THIS board, which is what the round it is
+          in is answering. The notes that bind every board are printed once, at
+          the foot of the page, rather than on all fourteen rows. */}
+      {row.notes.length > 0 && (
+        <ul className="mt-2 space-y-1 border-l border-border pl-3">
+          {row.notes.map((n, i) => (
+            <li
+              key={`${n.at}-${i}`}
+              className="max-w-3xl text-xs leading-relaxed"
+            >
+              <span className="text-muted-foreground">{n.by}: </span>
+              {n.text}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {row.spec && row.asks.length > 0 && (
         <ul className="mt-2 flex flex-wrap gap-1.5">

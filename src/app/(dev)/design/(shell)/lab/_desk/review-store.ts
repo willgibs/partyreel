@@ -13,7 +13,7 @@ import { useSyncExternalStore } from "react";
  * server snapshot is empty, the client snapshot is the stored answers, and the
  * desk's "carry on" count and the session's resume point both derive from the
  * same value during render. The key an answer is held under is `holdId`
- * (queue.ts), so the desk and the session agree on it.
+ * (step-id.ts), so the desk and the session agree on it.
  */
 
 export type Held = { choice: string; note: string };

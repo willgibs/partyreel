@@ -1,49 +1,36 @@
+import "server-only";
+
 import type { Ask, BoardSpec } from "@/components/lab/board-spec";
 
+import { type Note, windowNotesFor } from "@/app/(dev)/design/review/ledger";
+import {
+  type BoardStatus,
+  boardStatus,
+} from "@/app/(dev)/design/review/status";
+
 /**
- * THE QUEUE (the Library x Lab round, 2026-09-15): what waits on Will, derived
- * from a board's spec minus its ledger. One ask with no answer in the board's
- * current round is one step of the review session and one line of the desk's
- * first panel; everything else the desk shows is context around this list.
+ * THE DESK'S ROWS (the Library x Lab round, 2026-09-15): one standing board,
+ * with the asks that still wait on Will beside the registry's own facts (its
+ * title, its surface, the tracks building it). The derivation itself is the
+ * rules track's (`design/review/status.ts`: a board's asks minus its ledger,
+ * joined on the ask id); this only joins it to `touchpoints.ts` and flattens
+ * the result into the queue the session walks. This track carried a local
+ * ledger reader until that module landed, and it is gone.
  *
- * Pure on purpose (no node, no React): the desk derives it on the server, the
- * session walks the same array on the client, and the test proves both against
- * a fixture spec rather than a board. The ledger shapes live here rather than
- * in `ledger.ts` so a client file can name them without pulling node in.
+ * Server-only because the status reader touches the disk. The two strings the
+ * browser also needs are in `step-id.ts`, which nothing here imports back.
  */
 
-export type LedgerAnswer = {
-  ask: string;
-  choice: string;
-  note?: string;
-  by: string;
-  at: string;
-};
-
-export type LedgerNote = {
-  /** A board id, or null for the whole board (in a ledger) or window. */
-  on: string | null;
-  text: string;
-  by: string;
-  at: string;
-};
-
-export type LedgerRound = {
-  n: number;
-  opened: string;
-  answers: LedgerAnswer[];
-  notes: LedgerNote[];
-};
-
-export type Ledger = { board: string; rounds: LedgerRound[] };
+export type { Note };
 
 /** One ask of one board, with the answer standing against it (or none). */
 export type AskState = {
   board: string;
   boardTitle: string;
+  /** The SPEC's round, which is the round a ledger line must quote. */
   round: number;
   ask: Ask;
-  answer: LedgerAnswer | null;
+  answer: { choice: string; note?: string } | null;
 };
 
 /** A standing board on the desk: its spec when it has one, its asks, its verdict. */
@@ -60,78 +47,76 @@ export type BoardRow = {
   tracks: string[];
   asks: AskState[];
   open: AskState[];
-  /** The board's own notes from the ledger's current round, newest last. */
-  notes: LedgerNote[];
+  /** The notes aimed at THIS board: its ledger's own, and the window's on it. */
+  notes: Note[];
 };
 
-/** The round a board is in: its spec's, which is what a ledger line must quote. */
-export function roundOf(spec: BoardSpec): number {
-  return spec.round.n;
-}
-
-/** The ledger's entry for a round; undefined until the first answer lands. */
-export function roundIn(
-  ledger: Ledger | undefined,
-  n: number,
-): LedgerRound | undefined {
-  return ledger?.rounds.find((r) => r.n === n);
-}
+/** What the registry says about a board, as the desk needs it. */
+export type DeskBoard = {
+  id: string;
+  title: string;
+  surfaceLabel: string;
+  note: string;
+  tracks: string[];
+};
 
 /**
- * Every ask of a board with its answer in the CURRENT round. An answer from an
- * earlier round is deliberately not carried forward: a new round re-asks, and
- * the ledger keeps the old answer as history.
+ * The asks of one board against one status reading.
+ *
+ * ★ THE ROUND GUARD. `boardStatus` answers from the LEDGER's latest round,
+ * whatever number that carries, while a spec states the round the board is
+ * actually in. The two agree in practice (`pnpm lab:review` refuses a line
+ * whose round is not the spec's), but the moment a board opens a new round its
+ * previous answers would read as this round's and the desk would show nothing
+ * waiting, which is the one thing it exists to show. So a status from another
+ * round is history and every ask opens. The Handoff asks the rules track for
+ * the fix in `status.ts`; this guard costs nothing once it lands.
  */
-export function askStates(
-  spec: BoardSpec,
-  title: string,
-  ledger: Ledger | undefined,
-): AskState[] {
-  const round = roundOf(spec);
-  const answers = roundIn(ledger, round)?.answers ?? [];
-  return spec.asks.map((ask) => ({
-    board: spec.id,
-    boardTitle: title,
-    round,
-    ask,
-    answer: answers.find((a) => a.ask === ask.id) ?? null,
+export function askStates(board: DeskBoard, status: BoardStatus): AskState[] {
+  const spec = status.spec;
+  if (!spec) return [];
+  const current = status.round !== null && status.round.n === spec.round.n;
+  return status.asks.map((a) => ({
+    board: board.id,
+    boardTitle: board.title,
+    round: spec.round.n,
+    ask: a.ask,
+    answer:
+      current && a.state === "answered"
+        ? { choice: a.answer.choice, note: a.answer.note }
+        : null,
   }));
-}
-
-/** The board's notes this round (an ask's own note rides its answer). */
-export function boardNotes(
-  spec: BoardSpec,
-  ledger: Ledger | undefined,
-): LedgerNote[] {
-  return roundIn(ledger, roundOf(spec))?.notes ?? [];
 }
 
 /**
  * The desk's rows, in registry order. `boards` is the standing-board registry
- * (touchpoints.ts, mapped to plain data by the caller) and `specs` is
- * sandbox/registry.ts; a board with no spec is `legacy` and carries no asks.
+ * (touchpoints.ts, mapped to plain data by the caller); a board with no spec is
+ * `legacy` and carries no asks. `statusOf` is injected so the test can walk a
+ * fixture board, which is the only way to prove this before the standing
+ * boards carry their specs.
  */
 export function deskRows(
-  boards: {
-    id: string;
-    title: string;
-    surfaceLabel: string;
-    note: string;
-    tracks: string[];
-  }[],
-  specs: readonly BoardSpec[],
-  ledgers: Map<string, Ledger>,
+  boards: DeskBoard[],
+  statusOf: (board: string) => BoardStatus = boardStatus,
+  notesOf: (board: string) => Note[] = windowNotesFor,
 ): BoardRow[] {
   return boards.map((b) => {
-    const spec = specs.find((s) => s.id === b.id) ?? null;
-    const asks = spec ? askStates(spec, b.title, ledgers.get(b.id)) : [];
+    const status = statusOf(b.id);
+    const asks = askStates(b, status);
     return {
       ...b,
-      spec,
-      legacy: spec === null,
+      spec: status.spec,
+      legacy: status.spec === null,
       asks,
       open: asks.filter((a) => a.answer === null),
-      notes: spec ? boardNotes(spec, ledgers.get(b.id)) : [],
+      // `status.notes` mixes the window's GLOBAL notes into every board, which
+      // would print the same four lines fourteen times; the desk prints those
+      // once, in their own section. What belongs on a row is the board's own:
+      // its ledger's notes for this round, and the window notes aimed at it.
+      notes: [
+        ...(status.round?.notes ?? []),
+        ...notesOf(b.id).filter((n) => n.on === b.id),
+      ],
     };
   });
 }
@@ -139,18 +124,4 @@ export function deskRows(
 /** Every open ask across every board, in registry order then spec order. */
 export function openQueue(rows: BoardRow[]): AskState[] {
   return rows.flatMap((r) => r.open);
-}
-
-/**
- * The step id the URL carries: `?session=<board>.<ask>`. One home for the
- * grammar, so the desk's links, the session's URL and the test all spell a
- * step the same way.
- */
-export function stepId(board: string, ask: string): string {
-  return `${board}.${ask}`;
-}
-
-/** The key an answer is held under while a review is in progress. */
-export function holdId(board: string, round: number, ask: string): string {
-  return `${board}.r${round}.${ask}`;
 }
