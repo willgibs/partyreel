@@ -1,41 +1,62 @@
-/* THE SCAN's own sheet (round three of the home-hero board, the lp/hero-scan
-   track; round two of the variation, 2026-09-14). Keyframe prefix: hhc- (hhs-
-   is the source's, hh- the board's; keyframe names are document-global and
-   keyframe-uniqueness.test.ts reads every sheet under the lab).
+/* THE SCAN's own sheet (the lp/hero-scan track; round four of the variation,
+   2026-09-15). Keyframe prefix: hhc- (hhs- is the source's, hh- the board's;
+   keyframe names are document-global and keyframe-uniqueness.test.ts reads
+   every sheet under the lab).
 
-   ROUND THREE also changed one thing that is not a look: the concept root is
-   `overflow-clip` rather than `overflow-hidden`. An `overflow: hidden` box is
-   still a scroll container, and this one's content is 3780 px wide, so giving
-   the switch's button focus made the browser scroll the hero 600 px sideways
-   under the stage's zoom. Clip clips the same pixels and can never scroll.
+   ROUND FOUR, in one paragraph. Will ruled the phone in, so the sheet stopped
+   treating it as one of two equal readings and started drawing a scan. Three
+   things changed here. The device is THREE FLAT LAYERS instead of one box
+   (.hhc-back, .hhc-screen, .hhc-bezel plus .hhc-pill), because the cutout on
+   ASSETS row 8 is a PNG with a transparent screen and can only drop into a
+   structure where the viewfinder is a sibling UNDERNEATH the body. The device
+   is ANIMATE: it rises into frame (.hhc-rise) and is then never quite still
+   (.hhc-hold on .hhc-phone, a pixel and a quarter degree on a 7.3 s period
+   that is deliberately not a multiple of the album's, so the hand and the
+   album never march together). And every timing that used to be a literal is
+   now read from a custom property the concept writes on its root
+   (--hhc-lock-delay, --hhc-cap-delay, --hhc-period, --hhc-lock-ms), so the
+   beat has ONE home, in scan.tsx, where the corridor's JS clock also reads it.
+
+   ROUND THREE changed one thing that is not a look and is still true: the
+   concept root is `overflow-clip` rather than `overflow-hidden`. An
+   `overflow: hidden` box is still a scroll container, and this one's content
+   is 3780 px wide, so giving the corner toggle's button focus made the browser
+   scroll the hero 600 px sideways. Clip clips the same pixels and can never
+   scroll.
 
    HOUSE CONVENTION, and why the corridor's half of it looks inverted. FINAL
    states live OUTSIDE the media queries so a reduced-motion reader gets the
    settled composition with nothing to undo: the corridor stands fully deployed
    (read from the per-card custom properties the concept computes during
-   render), the brackets sit LOCKED on the code, the flash and the bloom are
-   spent, and the count reads its opening number. All of that is in the
-   server's own HTML. What lives inside `no-preference` is each animation's
-   FIRST frame plus the animation itself: the cards collapsed at the code, the
+   render), the phone stands in its held position, the brackets sit LOCKED on
+   the code, the flash and the bloom are spent, and the count reads its opening
+   number. All of that is in the server's own HTML. What lives inside
+   `no-preference` is each animation's FIRST frame plus the animation itself:
+   the cards collapsed at the code, the phone below the frame's edge, the
    brackets thrown wide. Those have to be in CSS rather than in an effect,
    because an effect runs after the server's paint, so the composition would
    paint settled, snap back, and then play. Same trade the source flagged, and
    it is flagged again on this concept: a reader with JavaScript off who has
-   NOT asked for less motion sees the corridor rest at the code and the
-   brackets rest wide. Nothing that carries meaning is gated by it. The h1, the
-   QR, the caption, the count, the sentence and the actions are plain markup
-   and never move.
+   NOT asked for less motion sees the corridor rest at the code, the phone rest
+   low and the brackets rest wide. Nothing that carries meaning is gated by it.
+   The h1, the QR, the caption, the count, the sentence and the actions are
+   plain markup and never move.
 
-   THE BEAT, in the order a scanner actually has it (round two put it right:
-   round one fired the capture 60 ms BEFORE the brackets landed). The camera
-   finds the code (the brackets sweep in over 720 ms and snap), the capture
-   fires at 730, and the corridor's clock starts at 780, on the capture's peak,
-   which is the concept's RELEASE_MS. Cause, then effect, in that order. Round
-   three made the capture REPEAT on the album's own cycle (10800 ms, CYCLE_MS
-   in scan.tsx), so the hero says its sentence again every twelve launches
-   instead of asserting it once and then pouring forever with no visible
-   cause; the brackets lock once and stay locked, because a camera acquires a
-   code once and then holds it.
+   THE BEAT, in the order a scan actually has it, and the numbers are in
+   scan.tsx (BEAT). The ruled reading: the hand comes up over 620 ms from
+   300 ms below the frame; at 300 the camera starts looking and the brackets
+   sweep in over --hhc-lock-ms and snap at 1020; the capture fires on the
+   screen at --hhc-cap-delay; the plate blooms in answer; the corridor's clock
+   starts 40 ms later, on the capture's own peak. The footnote reading has no
+   hand, so its lock starts at 0 and its capture at 720, which is round three's
+   beat exactly, which is what makes the comparison fair.
+
+   THE CAPTURE REPEATS on the album's own cycle (--hhc-period, CYCLE_MS in
+   scan.tsx, 12 launches a side) so the hero says its sentence again rather
+   than asserting it once and then pouring forever with no visible cause. Round
+   four made the BRACKETS part of the repeat: they tick inward about two pixels
+   on every capture, the way a scanner confirms a read, so a recapture is a
+   scan and not a light that blinks.
 
    The two clocks (this sheet's animations and the concept's
    requestAnimationFrame) both start at mount, so they agree; `data-hh-loop` on
@@ -43,13 +64,13 @@
    board.css pauses any animation under `[data-paused]` on that hook, and the
    concept holds its own clock on the same attribute, so a beat interrupted by
    a tab switch resumes where it was instead of finishing unseen. The hook is
-   named for loops; these are one-shots using the same pause mechanism.
+   named for loops; the rise and the lock are one-shots using the same pause.
 
-   TWO READINGS OF THE CAUSE share every rule here, which is the point: the
-   bracket set on the phone's screen and the bracket set on the room's plate
-   are one component at two scales, driven by the same four custom properties
-   (--hhc-arm, --hhc-pad, --hhc-stroke, --hhc-throw). Rule one of them out and
-   the sheet loses a block, never a mechanism. */
+   BOTH READINGS still share every bracket rule, which is the point: the set on
+   the phone's screen and the set on the room's plate are one component at two
+   scales, driven by the same four custom properties (--hhc-arm, --hhc-pad,
+   --hhc-stroke, --hhc-throw). The bloom is shared now too, because the plate
+   answers the camera in both. */
 
 /* The corridor (the source's geometry, kept) */
 
@@ -92,21 +113,43 @@
   backface-visibility: hidden;
 }
 
-/* Reading one: the device, a guest's phone in the near field, camera open */
+/* The cause: a guest's phone in the near field, camera open on the code */
 
-/* The held angle. A phone at the lower left, aimed up and to the right at the
-   code, is turned clockwise and tipped away from the viewer, so the screen
-   still faces us. One perspective parent; the phone is its only child. */
+/* Position only. The perspective moved to .hhc-rise in round four, so that the
+   phone stays the DIRECT child of a perspective parent once the gesture
+   wrapper sits between them; a 3D rotation two levels down a plain box renders
+   flat. */
 .hhc-device {
   position: absolute;
+}
+
+/* THE GESTURE. The hand comes up into frame and the last few degrees of roll
+   arrive with it, which is how a phone is actually raised: one movement, not a
+   lift and then an aim. It carries the perspective for the phone under it. */
+.hhc-rise {
+  display: block;
+  width: 100%;
   perspective: 1200px;
 }
 
+/* The held angle. A phone at the lower left, aimed up and to the right at the
+   code, is turned clockwise and tipped away from the viewer, so the screen
+   still faces us. The drift (hhc-hold) rides the STANDALONE translate and
+   rotate properties, which compose before this transform rather than fighting
+   it, so the held angle stays a single declaration. */
 .hhc-phone {
-  /* A drawn object's proportions, not a UI surface: the bezel radius is a real
-     phone's corner (about 12% of its width), so it is a literal here rather
-     than --radius / --radius-tile. Flagged on the board with the device. */
   position: relative;
+  transform: rotateY(var(--hhc-ry)) rotateZ(var(--hhc-rz));
+  transform-origin: 50% 60%;
+}
+
+/* THE BODY, and the first of the three layers the cutout replaces. */
+.hhc-back {
+  position: absolute;
+  inset: 0;
+  /* A drawn object's proportions, not a UI surface: the bezel radius is a real
+     phone's corner (about 13% of its width), so it is a literal here rather
+     than --radius / --radius-tile. Flagged on the board with the device. */
   border-radius: calc(var(--hhc-w) * 0.13);
   background: linear-gradient(
     148deg,
@@ -115,19 +158,8 @@
     oklch(0.05 0 0) 72%,
     oklch(0.13 0 0) 100%
   );
-  /* THE ONE THING that separates a near-black object from a near-black room:
-     the rim. A drop shadow does nothing on this ground, so the edge carries
-     the read, brightest along the top-left where the phone faces the screen's
-     own light and the room's. It is the object lighting itself and its own
-     bezel: no lamp, no spill onto the room or onto a photograph. The shadow
-     underneath is only what two overlapping objects need (bible 10). */
-  box-shadow:
-    inset 0 0 0 1px oklch(1 0 0 / 0.26),
-    inset 0 1.5px 0 0 oklch(1 0 0 / 0.42),
-    inset 1.5px 0 0 0 oklch(1 0 0 / 0.2),
-    0 30px 70px oklch(0 0 0 / 0.7);
-  transform: rotateY(var(--hhc-ry)) rotateZ(var(--hhc-rz));
-  transform-origin: 50% 60%;
+  /* What two overlapping objects need, and nothing more (bible 10). */
+  box-shadow: 0 30px 70px oklch(0 0 0 / 0.7);
 }
 
 .hhc-screen {
@@ -154,6 +186,23 @@
       oklch(0.12 0 0) 100%
     ),
     oklch(0.13 0 0);
+}
+
+/* THE RIM, the third layer, drawn OVER the screen exactly as a real bezel is.
+   It is the one thing that separates a near-black object from a near-black
+   room: a drop shadow does nothing on this ground, so the edge carries the
+   read, brightest along the top-left where the phone faces the screen's own
+   light and the room's. The object lights itself and its own bezel: no lamp,
+   no spill onto the room or onto a photograph. */
+.hhc-bezel {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--hhc-w) * 0.13);
+  box-shadow:
+    inset 0 0 0 1px oklch(1 0 0 / 0.26),
+    inset 0 1.5px 0 0 oklch(1 0 0 / 0.42),
+    inset 1.5px 0 0 0 oklch(1 0 0 / 0.2);
+  pointer-events: none;
 }
 
 /* Where on the screen the camera found the code. Not centred by law: a code is
@@ -197,20 +246,22 @@
   opacity: 0;
 }
 
-/* Reading two: no device at all, and the room is the viewfinder */
+/* The plate, and the answer it gives the camera */
 
-/* The same four brackets, at the room's scale, closing on the REAL plate. The
-   wrapper is inline-flex so its box IS the plate's box and the brackets have
-   something true to hang off. */
+/* The wrapper is inline-flex so its box IS the plate's box: the bloom has
+   something true to sit behind, and in the footnote reading the four brackets
+   have something true to hang off. */
 .hhc-roomlock {
   position: relative;
   display: inline-flex;
 }
 
-/* The capture, at the plate rather than on a screen: one white bloom, spent in
-   400 ms, behind the plate so the code is never washed out (it has to stay
-   scannable at every frame of the beat). The only light in this reading, and
-   it is flagged on the board with the ruling. */
+/* THE CODE ANSWERING. One white bloom at the plate, spent in 400 ms, behind it
+   so the code is never washed out (it has to stay scannable at every frame of
+   the beat). Round four gave it to BOTH readings, which is the round's real
+   fix: in the ruled reading the capture used to fire on the screen while the
+   code did nothing, so the sentence had no verb. It is the only light in the
+   room, and it is flagged on the board. */
 .hhc-bloom {
   position: absolute;
   top: 50%;
@@ -223,10 +274,8 @@
   /* The stops reach transparent AT the edge rather than at 72 percent of it,
      and the box shrank by the same 0.72 (bloom 3.2 -> 2.3 plate widths), so
      the disc on screen is pixel-identical and the box the compositor has to
-     keep for an infinite animation is half the area: 331 px square at 1440
-     and 248 at 375, where it was 460 and 324. The only thing this concept
-     animates forever is this one element, so its box is the only raster the
-     recapture costs. */
+     keep for an infinite animation is half the area: 331 px square at 1440 and
+     248 at 375, where it was 460 and 324. */
   background: radial-gradient(
     closest-side,
     oklch(1 0 0 / 0.5) 0%,
@@ -287,13 +336,14 @@
   --hhc-by: var(--hhc-throw);
 }
 
-/* The lab's own switch, in the corner of the canvas: chrome, never
-   composition. It exists because the board's shell is shared and registered
-   and this concept has a ruling to offer (the phone, or the brackets alone);
-   it leaves with the board when that ruling lands. Sized so it never competes
-   with anything in the frame, and parked in the one corner every composition
-   here leaves empty: above the headline's box, outside the band, clear of the
-   near field on both canvases. */
+/* The lab's footnote, in the corner of the canvas: chrome, never composition.
+   It exists because the board's shell is shared and registered and a concept
+   has nowhere else to put a control of its own; it leaves with the board. Since
+   round four it is ONE button rather than a pair, because the reading is ruled
+   and this only shows what the hero looks like before the cutout is shot.
+   Sized so it never competes with anything in the frame, and parked in the one
+   corner every composition here leaves empty: above the headline's box,
+   outside the band, clear of the near field on both canvases. */
 .hhc-lab {
   position: absolute;
   top: 12px;
@@ -348,42 +398,108 @@
     opacity: 0;
   }
 
-  /* The camera finding the code: the brackets start thrown wide and
-     invisible, then sweep in and snap. --ease-emphasis is the house enter
-     curve (a strong ease-out, no overshoot: a focus lock snaps, it does not
-     bounce). Both readings run the same animation, because they ARE the same
-     object: one set is 13 px arms on a screen, the other 34 px arms in a room. */
-  .hhc-bracket {
-    animation: hhc-lock 720ms var(--ease-emphasis) both;
+  /* THE HAND COMING UP. --ease-emphasis is the house enter curve, a strong
+     ease-out with no overshoot: an arm raising a phone decelerates into its
+     aim, it does not bounce past it. */
+  .hhc-rise {
+    animation: hhc-rise var(--hhc-rise-ms) var(--ease-emphasis) both;
   }
 
-  /* The capture, 10 ms after the snap, and then ONCE EVERY CORRIDOR CYCLE.
-     Round three's change, and the reason for it: the concept's sentence is
-     "a scan releases the album", and through round two that sentence was
-     spoken once, at 730 ms, after which the album poured forever with no
-     visible cause. A capture that repeats on the album's own clock says it
-     again, and reads as the next guest scanning rather than as a loop: the
-     period is 10800 ms, which is CYCLE_MS in scan.tsx (12 launches a side),
-     so every recapture lands on a launch pair rather than between them. The
-     pulse occupies the first 3 percent of the period and the element is at
-     zero for the other 97, so nothing here is a loop that glows; the curve
-     lives in the keyframes because a timing function stretched over 10.8 s
-     would flatten the pulse. Pointing at the code restarts it (relock), so a
-     reader who wants the beat again does not wait. Keep the three numbers in
-     step: the brackets snap at 720, this fires at 730, the corridor's clock
-     starts at 780 on the peak. */
+  /* AND THEN NEVER QUITE STILL. About a pixel and a quarter of a degree, on a
+     7.3 s period chosen because it is NOT a multiple of the album's 10.8 s, so
+     the hand and the corridor never fall into step and the drift never reads
+     as a loop. It is what separates a held phone from a phone on a stand, and
+     it costs one transform on an element the 3D rotation had already
+     promoted. */
+  .hhc-phone {
+    animation: hhc-hold 7300ms ease-in-out infinite;
+  }
+
+  /* The camera finding the code: the brackets start thrown wide and invisible,
+     then sweep in and snap, at --hhc-lock-delay so the hand is up first. Both
+     readings run the same animation, because they ARE the same object: one set
+     is 14 px arms on a screen, the other 34 px arms in a room.
+
+     The second animation is round four's: on every capture the brackets tick
+     INWARD about two pixels and ease back, the way a scanner confirms a read.
+     It has no backwards fill on purpose, so it contributes nothing during its
+     delay and the sweep above owns the first second; after that it is the last
+     animation in the list, so it owns `translate` and resolves to 0 for the 97
+     percent of the period between captures. */
+  .hhc-bracket {
+    animation:
+      hhc-lock var(--hhc-lock-ms) var(--ease-emphasis) var(--hhc-lock-delay)
+        both,
+      hhc-tick var(--hhc-period) linear var(--hhc-cap-delay) infinite;
+  }
+
+  /* The capture, on the snap, and then once every corridor cycle. The pulse
+     occupies the first 3 percent of the period and the element is at zero for
+     the other 97, so nothing here is a loop that glows; the curve lives in the
+     keyframes because a timing function stretched over 10.8 s would flatten
+     it. Pointing at the code restarts all three (relock in scan.tsx), so a
+     reader who wants the beat again does not wait. */
   .hhc-flash {
-    animation: hhc-flash 10800ms linear 730ms infinite both;
+    animation: hhc-flash var(--hhc-period) linear var(--hhc-cap-delay) infinite
+      both;
   }
 
   .hhc-bloom {
-    animation: hhc-bloom 10800ms linear 730ms infinite both;
+    animation: hhc-bloom var(--hhc-period) linear var(--hhc-cap-delay) infinite
+      both;
   }
 
   .hhc-lab-btn {
     transition:
       color 120ms var(--ease-emphasis),
       background-color 120ms var(--ease-emphasis);
+  }
+}
+
+/* The hand: up from below the frame's edge, rolling into its aim. The opacity
+   stop only covers the first fifth, so the device is solid long before it
+   reaches its held position; it exists because the phone's start is inside the
+   canvas on the narrow canvas, and a hard pop there would read as a glitch
+   rather than as an entrance. */
+@keyframes hhc-rise {
+  from {
+    translate: 0 var(--hhc-lift);
+    rotate: var(--hhc-lift-rz);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  to {
+    translate: 0 0;
+    rotate: 0deg;
+    opacity: 1;
+  }
+}
+
+/* A hand's own noise. Every value here is under two pixels and under a third
+   of a degree: at that size it is not read as movement, it is read as the
+   difference between an object being held and an object being mounted. */
+@keyframes hhc-hold {
+  0% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  27% {
+    translate: 1.3px -1px;
+    rotate: 0.22deg;
+  }
+  53% {
+    translate: -0.7px 1.4px;
+    rotate: -0.16deg;
+  }
+  78% {
+    translate: -1.2px -0.5px;
+    rotate: 0.09deg;
+  }
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
   }
 }
 
@@ -398,6 +514,24 @@
   to {
     translate: 0 0;
     opacity: 1;
+  }
+}
+
+/* The scanner's confirm, re-expressed against the 10800 ms period: 0.65% is
+   70 ms in and 3% is 324 ms, so the corners pull in on the capture and ease
+   back out over a third of a second. Flat at zero for the rest of the cycle. */
+@keyframes hhc-tick {
+  0% {
+    translate: 0 0;
+    animation-timing-function: var(--ease-emphasis);
+  }
+  0.65% {
+    translate: calc(var(--hhc-bx) * -0.12) calc(var(--hhc-by) * -0.12);
+    animation-timing-function: var(--ease-emphasis);
+  }
+  3%,
+  100% {
+    translate: 0 0;
   }
 }
 
