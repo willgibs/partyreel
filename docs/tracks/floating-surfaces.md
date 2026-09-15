@@ -324,52 +324,49 @@ contract, a centre origin detaches the panel from its trigger, and a scale with 
   `partyreel-git-lp-floating-surfaces-partyreel.vercel.app`
 - Board: `/design/c/floating-surfaces?key=` (nine rows). Marker for "is this round two":
   the row heading "The corner, measured", which did not exist in round one.
-- **The preview alias is BEHIND the branch, and the cause is a project ceiling, not the
-  branch gate.** It serves `64f81f7`. The gate is not refusing:
-  `scripts/vercel-ignore-build.mjs` builds an `lp/` branch whose manifest says
-  `preview: true` or `status: handed-off`, and this one says both. Nor did deployments stop
-  project-wide: `lp/media-kit` `b05c7c3` was created at 21:49:42 and `lp/hero-scan`
-  `caa8539` at 22:04:10, both AFTER this branch pushed `6a5fc46` at 21:41:35 and after the
-  22:01 manifest commit. (The first version of this bullet claimed otherwise and was
-  wrong.) What is actually happening: the project is at Vercel's ceiling of 100 deployments
-  a day. A `POST /v13/deployments` for the tip is refused with `payment_required`,
-  `api-deployments-free-per-day`, `total 100, remaining 0`, reset Tue 2026-09-15 22:13 EDT;
-  the project's deployment list for the trailing 24 hours returns exactly 100 rows and the
-  oldest of them is Mon 16:18, so no slot frees until Tuesday afternoon. The few builds that
-  did land between 21:41 and 22:04 took slots as older ones aged out of the rolling window.
-  Five pushes on this branch produced zero deployments.
-- **Remedy, Orchestrator, outside this lane:** force a redeploy of the tip once a slot
-  exists and confirm READY before the walk, e.g. `POST /v13/deployments` with
-  `gitSource {type: github, repoId: 1252816746, ref: lp/floating-surfaces, sha: <tip>}`.
-  Another push will NOT fix it while the ceiling holds, so do not read a silent push as a
-  deploy. The branch's own agent could not clear this: it is a plan limit, not a code fact.
-- **If the walk happens before that redeploy, skip `/e/<token>` and read row 9 with care.**
-  The served build is `64f81f7`, whose row 9 lists the guest entry drawer among the pages to
-  walk with no caveat, and the guest route group has no `AppDesignIsland`, so that page
-  cannot wear a candidate at all: applying a rung and opening it shows no change, which
-  reads as a broken candidate on the one surface row 1 argues matters most. `6a5fc46` fixed
-  the copy and is not on the alias. That build also predates the `min-w-0` / `max-w-full`
-  fix, so the board page itself carries about 16px of horizontal scroll at 375 there, and
-  predates row 8's correction below, so it still presents reduced motion as an open hole.
-- **The true board needs no deploy: `pnpm dev`, then
-  `http://localhost:3000/design/c/floating-surfaces?key=`.** The lab sits in no allow-list,
-  so localhost renders the tip exactly, "Apply to the site" included (the local marketing
-  pages and dashboard wear a rung the same way). That is the review surface until the alias
-  catches up.
+- **The preview alias is CURRENT: it serves `943473b`**, deployment
+  `dpl_BvT5gfi5RMXxVfrtMznUUewFwnVv`, READY at 2026-09-14 22:37. That build carries every
+  code commit of round two, `e57b5ec` included. Checked in the served HTML after it went
+  READY: row 9's guest caveat, the "no island" badge, the "three knobs, as one paste" label
+  and row 8's corrected heading are all there, and the sentence row 8 used to get wrong is
+  gone. The only commits after `943473b` are this manifest, which changes no served byte.
+- **It took a forced redeploy, and the reason is worth carrying to the other tracks.** For
+  an hour the alias served `64f81f7` while FIVE pushes on this branch produced no deployment
+  at all. The branch gate was not refusing (`scripts/vercel-ignore-build.mjs` builds an `lp/`
+  branch whose manifest says `preview: true` or `status: handed-off`, and this one says
+  both), and deployments had not stopped project-wide (`lp/hero-scan` `caa8539` at 22:04 and
+  `lp/palette` `b4be6a2` at 22:18 both landed after this branch's pushes). The project is at
+  Vercel's ceiling of 100 deployments a day: `POST /v13/deployments` is refused with
+  `payment_required`, `api-deployments-free-per-day`, `remaining 0`, and the trailing-24h
+  deployment list returns exactly 100 rows whose oldest is Mon 16:18. Slots free one at a
+  time as old deployments age out of the rolling window and whoever pushes next takes one,
+  so a branch can sit behind indefinitely while other branches deploy. This one landed on
+  the ninth retry of the API call, at 22:33.
+  **So for the rest of this wave: a push is not a deploy.** Confirm the alias's sha before
+  reading any board on it, and recover a missed one by forcing the redeploy
+  (`POST /v13/deployments` with
+  `gitSource {type: github, repoId: 1252816746, ref: <branch>, sha: <tip>}`, retried until a
+  slot frees) rather than by pushing again; an empty commit spends a slot and fixes nothing.
+- **The board also runs with no deploy at all:** `pnpm dev`, then
+  `http://localhost:3000/design/c/floating-surfaces?key=`. The lab sits in no allow-list, so
+  localhost renders the tip exactly, "Apply to the site" included (the local marketing pages
+  and dashboard wear a rung the same way). Worth knowing the next time the ceiling bites.
 - Synced with `launch-prep` at `4b035c1` (merge `881c258`); it had moved one commit
   (`docs/systems/design-system.md`, outside the lane).
 - Gates on the synced tree at `e57b5ec`: typecheck ok, lint ok (0 errors, 7 warnings, all
   pre-existing and outside the lane), test ok (1698 in 193 files), build ok (248 static
   pages).
-- **Light QA, run and named rather than asserted.** The board at 1440 and at 375, on
-  `pnpm dev` at the head above rather than on the alias, which cannot be rebuilt while the
-  ceiling holds. At both widths `documentElement.scrollWidth - clientWidth` is 0, so there
-  is no horizontal scroll anywhere on the page, and all nineteen frames mount and paint.
-  Reduced motion verified as BEHAVIOUR, not as a code fact: with every
+- **Light QA, run and named rather than asserted, ON THE PREVIEW.** The board at 1440 and
+  at 375 on `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` at `943473b`, and the
+  same two widths on `pnpm dev` before that. At both widths
+  `documentElement.scrollWidth - clientWidth` is 0, so there is no horizontal scroll
+  anywhere on the page, and all nineteen frames mount and paint (19 of 19, both widths, both
+  surfaces). Reduced motion verified as BEHAVIOUR, not as a code fact: with every
   `prefers-reduced-motion` media rule in the board document and in all nineteen frame
-  documents forced to the reduce state (1388 rules), all 36 floating surfaces compute an
-  animation duration and a transition duration of 0.01ms or less, at both widths. Nothing
-  leaks, and finding out WHY is what corrected row 8 (below).
+  documents forced to the reduce state (1188 rules on the preview build, 1388 in dev), all 36
+  floating surfaces compute an animation duration and a transition duration of 0.01ms or
+  less, at both widths. Nothing leaks, and finding out WHY is what corrected row 8 (below).
+  No em-dash in the served text at either width.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = this file plus the eight
   files of `src/app/(dev)/design/sandbox/floating-surfaces/`. No exceptions; nothing under
   `src/components/ui/` was touched, and every candidate reaches the primitives from outside.
@@ -444,8 +441,9 @@ rule (reduce to `all`, no-preference to `not all`) in the board document and in 
 `contentDocument`. The walk MUST recurse into `@layer` blocks: a first pass that flipped only
 top-level media rules missed the global guard, which lives in `@layer base`, and produced a
 convincing false leak (the guest drawer appearing to run vaul's 0.5s `slideFromBottom` under
-reduce, which is exactly the headline this board would have got wrong twice). 1388 rules is
-the right order of magnitude for this board; a few dozen means the walk is not recursing.
+reduce, which is exactly the headline this board would have got wrong twice). Around 1200
+rules on a production build and 1400 in dev is the right order of magnitude for this board; a
+few dozen means the walk is not recursing.
 
 - The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
   1. "The radius: sharp, nested or round, and whether the big boxes take a second token or the
