@@ -1,6 +1,6 @@
 ---
 track: river-visual
-status: open
+status: handed-off
 cut: "c473707"          # origin/launch-prep at boot, 2026-09-15
 preview: true           # Will reviews this board on its preview as it builds (once Vercel's window frees)
 owns:
@@ -108,24 +108,154 @@ the gate; the preview alias once Vercel's window frees.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- **none.** No production byte moved, and no owned fact belongs in a system doc while the visual is a
+  lab candidate Will has not placed.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing (the wiring round, if the river is placed): the visual moves whole from
+  `sandbox/river-visual/river.tsx` to `src/components/marketing/system/river-visual.tsx` with its sheet,
+  and swaps the lab's `[data-paused]` ancestor read for `useAmbientPause` (which also pauses off screen,
+  and an ambient loop below the fold is exactly what that hook exists for). Nothing else about the file
+  changes: it imports only the media manifest, FooterQr, Caption and the reduced-motion hook.
+- Marketing: a fluid wrapper for the visual, if a placement wants one. It takes `width` and `height` in px
+  today, which is deterministic, hydration safe and zoom proof and is what let the board judge it at 1:1;
+  a container query wrapper that feeds it the numbers its slot actually has is the production ergonomic,
+  and it is a wrapper rather than a change to the visual.
 
 ## Handoff (round 1)
 
-- Head <sha>, pushed; preview partyreel-git-lp-river-visual-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- **Head: this commit**, on top of `4245d07` (the `launch-prep` merge). The round's last commit of CODE
+  is **`2b92747`**, and the code is two commits: `ce614c5` built the visual and the board, and
+  `2b92747` is the retune the browser forced (below). Pushed to `lp/river-visual`.
+  **Marker for this round: `rvr-oneflow`**, the second class on every instance's root, which exists in
+  no earlier round of anything (the seed rendered `hhv-delta`, the hero's). One line tells you which
+  build an alias is serving:
+  `curl -s "<url>/design/c/river-visual?key=" | grep -c rvr-oneflow` returns 6 on this round and 0 on
+  the seed, where `grep -c hhv-delta` returns 16 instead.
+- **The preview alias was not waited on and the Vercel API was not called**, per the round's
+  instruction: the free plan's 100 deployments per trailing day were spent at 23:31 on the 14th and the
+  window frees through the afternoon of the 15th, so a push is an entry in a race for a slot and not a
+  deploy. `partyreel-git-lp-river-visual-partyreel.vercel.app` serves this head the moment a push from
+  this branch wins one; until then the board is the local build below.
+- **How the board was verified: a local server at 1440 and 375, in a FOREGROUND tab, with the loops
+  running.** `pnpm dev` on :3171 in the worktree for the build-and-look loop and `pnpm build` for the
+  gate. Driven through the Browser pane at `/design/c/river-visual?key=`, at **Desktop 1440 and Phone
+  375**, on **cinema and paper**, through **all three origins** (the demo code, the plain plate, no
+  object), with Replay, plus the reduced-motion resolution below. Every reading was taken with
+  `document.visibilityState` asserted "visible" and `[data-paused]` at 0 in the same call.
+  **Two tooling facts, because both cost this round time and either one turns a look into a fiction:**
+  - ★ **A board's loops stop in a tab that is not FRONTED, and the screenshot comes back solid black**
+    while the DOM is perfectly correct (`docs/systems/testing-verification.md`). Worse in a wave: the
+    Browser pane is SHARED between the sessions running tonight, so a tab that was fronted stops being
+    fronted when another track fronts its own, and one of them navigated this track's tab to its own
+    port mid-review. Every black screenshot here was that and not the board: the fix is
+    `tabs_select` on your own tab (and a tab of your own, created late) immediately before each batch,
+    and the tell is that `document.visibilityState` reads "hidden" or the stages carry `data-paused`
+    while the markup is right.
+  - **Reduced motion was resolved rather than emulated.** The pane cannot set the preference, so the
+    reader's own resolution was reproduced on the live page: all **27 `no-preference` blocks were
+    deleted from the running sheets** (which is exactly what such a reader resolves), the stages were
+    given `data-paused` and the inline styles the loop had written were cleared. **11 of the 12 cards
+    then stand at `--rvr-rest` and the 12th is held at 0** by the dead line, which is what the markup
+    itself computes (`--rvr-rest-o` is written "0" for a card whose top edge is already past the
+    dissolve's last stop). The rest state is therefore one INSTANT of the running stream and cannot
+    drift from it.
+- **What the browser changed, and what it cost to find.** The first build was measured at 1440 before it
+  was judged, and it was wrong twice, both times in a way a screenshot flatters:
+  - **Gravity.** The hero weighted the fall 60 percent quadratic, which is right under a code at the top
+    of a 930px viewport and wrong in a box: six of the twelve frames sat in the first 200px, where the
+    plate hides them, and the rest of the column was sparse. At **38/62** ten of the twelve are on
+    screen, and a frame still leaves the object slowly and is still twice as quick at the bottom.
+  - **Scale and fan.** At a third of the box width the twelve frames read as a scatter of small pictures
+    with holes between them. At **0.40 of the width**, with the fan narrowed to **0.20**, consecutive
+    frames overlap both vertically and laterally and the flow reads as one braid.
+  - **The dissolve.** It ended at 97 percent of the height, which left a dead band inside a box somebody
+    else's layout gave us. It now runs to the **bottom edge**, and the fall over travels it by 26
+    percent so a card still only recycles once no part of it can be seen (the cut lands at progress
+    0.93 against a 0.965 ceiling, so under half a card is off screen at any moment).
+  - **The plain plate was invisible on paper** at oklch(0.955) against a white card: not a quiet object,
+    a missing one. It is 0.915 now.
+- **The cost, measured on the page carrying every instance at once.** The board mounts **six** instances
+  (three specimens and one per placement), five more than any real page would: **8.3 ms median frame
+  gap, about 120 frames per second** at 1440 on this machine, read off a rolling 180 sample window by
+  the meter in the bank card (which writes to a DOM node twice a second rather than re-rendering, so it
+  is not measuring itself). Per instance, derived and not claimed: **12 frames, 14 promoted layers, 39
+  DOM nodes, 12 transform writes per frame** and an opacity write only when it changed, which at rest
+  is none.
+- Synced with `launch-prep` once, at **`6484558`** (2 commits: the app UI ruling in PROGRAM.md and the
+  round-four In flight rows), merged at **`4245d07`**. No conflicts. Neither commit touches a file this
+  track reads or owns: both are docs.
+- Gates on the synced tree, each on its own exit code: typecheck ok, lint ok (0 errors; **6 warnings,
+  every one pre-existing and none in this lane**, on `contact-form.tsx`, `album-fill-grid.tsx`,
+  `review-switch.tsx`, `jobs.ts` and `use-flip.ts`), test ok (**1804 in 199 files**), build ok
+  (**248 static pages**).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/river-visual.md`,
+  `src/app/(dev)/design/sandbox/river-visual/board.css`,
+  `src/app/(dev)/design/sandbox/river-visual/board.tsx`,
+  `src/app/(dev)/design/sandbox/river-visual/river.css`,
+  `src/app/(dev)/design/sandbox/river-visual/river.tsx`. **No exceptions**: the owned directory and this
+  manifest.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte moved.
+- **Shell changes asked for: none.** The board composes `Stage` (at 1:1, with its own `height` per
+  placement), `Toggle`, `BoardDock` and `BoardMeta` as they ship and needs nothing added to them. Two
+  notes for whoever owns the shell next, neither a request:
+  - The dock is the right answer and this board uses it for all three page-wide switches (the canvas,
+    the ground, the origin) plus Replay. Worth knowing: with three toggles and the shell's own controls
+    it wraps to two rows at 1440, which is fine, and its measured height still lands in
+    `--board-dock-h` correctly.
+  - ★ **A Tailwind breakpoint prefix in a BOARD's own markup is a bug at the phone canvas**, because it
+    reads the real browser window and not the stage (the shell documents this for the production
+    components rendered inside). This board's first draft laid the placements out with `lg:` and `sm:`
+    and the 375 stage was a lie on a wide window; every board-authored layout here now keys off the
+    `mode` prop instead. The production shells inside (SectionShell, Container, Card) still carry their
+    own prefixes and are judged as they ship, which is correct and is captioned on the board.
+- **Assets requested from Will: two, both already open, neither new.**
+  - 24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, framed tight enough to
+    read at 110 px, which is the size a frame is as it leaves the object in the 560 column · ASSETS row
+    2, unchanged, and the same row the media kit's call sheet asks for · replaces the 12 landscape
+    stand-ins and retires the per-frame crop table in `river.tsx`.
+  - 12 event photographs as 4:5 portraits, 720 x 900, one grade, from the same shoot · ASSETS row 12,
+    unchanged · replaces the portrait cards (`wf` 0.8), which are cropped out of landscapes today.
+  - Nothing else is a picture. This visual asks for **no count, no video and no shell prop**: it is
+    twelve photographs, one plate and one clock, which is the point of banking it.
+- **The asks, verbatim from BoardMeta** (the Orchestrator quotes these under Waiting on Will):
+  - "Where it goes first: the how it works column on a feature page (560, the strongest of the three),
+    the doors row card slot (330, the hardest), or the guest album's empty state (the app surface,
+    ghosted)."
+  - "The code, in or out. In, it is a scannable CTA inside a section visual and every placement inherits
+    a second call to action; out, the plain plate is a white card with a faint field in it, which is
+    quieter and says less."
+  - "Whether an empty album may show photographs at all. The candidate ghosts the flow at production's
+    own mosaic treatment for exactly that reason, and the honest alternative is that the guest's empty
+    state carries no picture of other people's events."
+  - "The proportion: 1.32 is the visual's default and the only number in it that is taste rather than
+    derivation."
+- **Look at first:** the bank row at Desktop 1440 on cinema, with the dock's Origin flipped from the
+  demo code to no object and back. That one flip is the whole second ask, and it is the comparison the
+  dock exists to make: the code turns a section visual into a second CTA, and without it the flow is
+  just the album arriving. Then the same flip on the doors row (paper), where the object eats a third
+  of a 330 by 238 card slot, and on the guest empty state, where the code is certainly wrong because
+  the guest got there by scanning it.
+- **The prefix moved and the lane says so:** everything here is `rvr-`, and no `hhv-` name survives in
+  this directory. `hhv-` meant "home hero variation" and this is no longer one; keyframe names are
+  document global, so the rename also keeps this sheet from shadowing the hero board's if the two ever
+  render on one page. Neither sheet declares a keyframe at all now: the whole animation is one rAF loop
+  writing transforms, and the only CSS state is the pour's first frame.
 
 ## Record (round 1; the CHANGELOG paragraph for round 1, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The river, killed as the home hero, came back as a
+banked feature visual. Will's ruling asked for one flow instead of two and a smaller presentation of the
+images emanating from the code, so the hero's parity split, its clearing cut to a headline's measured
+silhouette, its held beat and its two hand-typed geometries were all deleted: what is left is one stream
+fanning out of one printed object, with every number derived from the box it is given, so a 560 column, a
+400 card and a 240 thumbnail are the same visual at three scales and the flight and the cadence are
+constants, which makes instances on one page pour in step. The frames now straighten fully as they land,
+the dissolve runs to the bottom edge rather than stopping short of it inside somebody else's slot, and the
+loop is still cut by a frame's top edge so nothing pops. The board banks it: three sizes side by side at
+1:1 on cinema and paper, three origins on one dock switch, and three placements composed on the production
+shells they would ship inside, including the guest album's empty state as a true A/B against the mosaic it
+would replace. The bank card carries the props, the paste and a live frame-cost meter reading 8.3 ms with
+six instances mounted. Nothing production moved; the asks are where it goes first and whether the code
+stays in it.
