@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   CANVAS,
@@ -103,6 +103,24 @@ const SKIN: Record<
 const SLACK = 2;
 
 /**
+ * ★ WHAT A FRAME MEASURED, REMEMBERED FOR THE SESSION.
+ *
+ * A frame reserves a box before its scene exists, and the only honest guess is
+ * a full canvas. On a board of fifty frames that guess is wrong by tens of
+ * thousands of pixels in total, so the page shrinks under the reader as the
+ * frames land: measured on the phone canvas, a link carrying `#brand-voice-guest`
+ * landed on its section and then watched it rise 14,500px as the frames above it
+ * measured themselves. Every flip of the voice or the canvas paid it again.
+ *
+ * The cache makes the guess a MEASUREMENT for every pass after the first: a
+ * frame that has been this size before opens at it. It is keyed by frame id and
+ * canvas because those are what decide a height, deliberately module-level
+ * (it outlives a remount, which is the point) and deliberately not persisted,
+ * because a stale height from another build is worse than an honest guess.
+ */
+const MEASURED = new Map<string, number>();
+
+/**
  * The content's own height, read from inside the frame.
  *
  * ★ THE OBSERVER IS CONSTRUCTED IN THE FRAME'S REALM. The node lives in another
@@ -116,31 +134,99 @@ const SLACK = 2;
  * teardown cannot leave an observer on a document that is gone.
  */
 function useMeasured(
+  key: string,
   fallback: number,
 ): [number, (el: HTMLDivElement | null) => (() => void) | void] {
-  const [height, setHeight] = useState(fallback);
-  const attach = useCallback((el: HTMLDivElement | null) => {
-    if (!el) return;
-    const doc = el.ownerDocument;
-    const win = doc.defaultView;
-    if (!win) return;
-    let alive = true;
-    const sync = () => {
-      if (!alive) return;
-      setHeight(
-        Math.max(24, Math.ceil(el.getBoundingClientRect().height) + SLACK),
-      );
-    };
-    sync();
-    const ro = new win.ResizeObserver(sync);
-    ro.observe(el);
-    doc.fonts?.ready.then(sync).catch(() => {});
-    return () => {
-      alive = false;
-      ro.disconnect();
-    };
-  }, []);
+  const [height, setHeight] = useState(() => MEASURED.get(key) ?? fallback);
+  const attach = useCallback(
+    (el: HTMLDivElement | null) => {
+      if (!el) return;
+      const doc = el.ownerDocument;
+      const win = doc.defaultView;
+      if (!win) return;
+      let alive = true;
+      const sync = () => {
+        if (!alive) return;
+        const next = Math.max(
+          24,
+          Math.ceil(el.getBoundingClientRect().height) + SLACK,
+        );
+        MEASURED.set(key, next);
+        setHeight(next);
+      };
+      sync();
+      const ro = new win.ResizeObserver(sync);
+      ro.observe(el);
+      // ★ THE WHOLE CHAIN IS GUARDED, NOT JUST `fonts`. On the top document
+      // `fonts.ready` is always a promise, which is why the kit writes
+      // `fonts?.ready.then(...)`. An about:blank document is not that: its
+      // FontFaceSet exists while `ready` is still undefined on the tick a portal
+      // mounts into it, and `.then` on undefined throws INSIDE a layout effect,
+      // which takes the whole board to its error boundary. Measured: it did, on
+      // a fast scroll through fifty frames.
+      try {
+        doc.fonts?.ready?.then(sync).catch(() => {});
+      } catch {
+        // A document torn down between the read and the call.
+      }
+      return () => {
+        alive = false;
+        ro.disconnect();
+      };
+    },
+    [key],
+  );
   return [height, attach];
+}
+
+/**
+ * ★ A LINK'S ANCHOR CANNOT LAND ON A BOARD THAT IS STILL MEASURING ITSELF.
+ *
+ * The share format for a review note is a URL, and it carries a section: the
+ * whole point of `#brand-voice-guest` is that it opens on the guest surfaces.
+ * But the browser applies a hash ONCE, at load, when every frame is still
+ * holding a reserved canvas rather than its content, and the board then shrinks
+ * by tens of thousands of pixels underneath the reader. Measured before this
+ * hook: the link landed on its section and then watched it rise 14,500px.
+ *
+ * So the hash is re-applied on a short schedule while the board settles, and
+ * the schedule is CANCELLED BY THE READER rather than by a timeout alone: a
+ * wheel, a touch or a key is intent, and a correction that fights a reader who
+ * has started reading is worse than no correction at all. A programmatic scroll
+ * fires none of those, so the cancel cannot cancel itself. Four corrections and
+ * it stops; the jump is instant, because a correction that animates is a second
+ * thing moving on a page the reader is trying to read.
+ *
+ * It belongs in the kit rather than here (every board of lazily mounted,
+ * self-measuring frames has it), and it is asked for in this round's Handoff.
+ */
+export function useAnchorAfterSettle(boardId: string) {
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!id.startsWith(`${boardId}-`)) return;
+    let cancelled = false;
+    const stop = () => {
+      cancelled = true;
+    };
+    window.addEventListener("wheel", stop, { passive: true, once: true });
+    window.addEventListener("touchstart", stop, { passive: true, once: true });
+    window.addEventListener("keydown", stop, { once: true });
+    const timers = [400, 1200, 2500, 5000].map((ms) =>
+      window.setTimeout(() => {
+        if (cancelled) return;
+        document
+          .getElementById(id)
+          ?.scrollIntoView({ block: "start", behavior: "auto" });
+      }, ms),
+    );
+    return () => {
+      cancelled = true;
+      timers.forEach((t) => window.clearTimeout(t));
+      window.removeEventListener("wheel", stop);
+      window.removeEventListener("touchstart", stop);
+      window.removeEventListener("keydown", stop);
+    };
+  }, [boardId]);
 }
 
 /** Whatever a board hands a frame, on its ground, measured. */
@@ -168,7 +254,7 @@ export function VoiceFrame({
   children: React.ReactNode;
 }) {
   const { w, h } = CANVAS[mode];
-  const [height, attach] = useMeasured(h);
+  const [height, attach] = useMeasured(`${id}:${mode}`, h);
   const g = SKIN[ground];
 
   return (

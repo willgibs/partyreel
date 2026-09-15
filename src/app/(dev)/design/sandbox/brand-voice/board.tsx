@@ -22,6 +22,7 @@ import { formatBytes } from "@/lib/utils";
 import {
   ChapterFrame,
   COLUMNS,
+  useAnchorAfterSettle,
   VOICE_TAG,
   VoiceCanvas,
   VoiceFrames,
@@ -302,8 +303,14 @@ function RowCounts({
     };
     measure();
     // The webfont lands after the first layout and takes every wrap with it,
-    // and it is the FRAME's font set that matters here, not this page's.
-    node.ownerDocument.fonts?.ready.then(measure).catch(() => {});
+    // and it is the FRAME's font set that matters here, not this page's. The
+    // whole chain is guarded: a frame's document can hold a FontFaceSet whose
+    // `ready` is still undefined (frames.tsx has the measurement).
+    try {
+      node.ownerDocument.fonts?.ready?.then(measure).catch(() => {});
+    } catch {
+      // A document torn down between the read and the call.
+    }
     return () => {
       live = false;
     };
@@ -1761,6 +1768,7 @@ export function BrandVoiceBoard() {
   // it. A state-held node is the dependency the measurement needs.
   const [arcHeroNode, setArcHeroNode] = useState<HTMLElement | null>(null);
   const [thesisNode, setThesisNode] = useState<HTMLElement | null>(null);
+  useAnchorAfterSettle(BRAND_VOICE.id);
 
   return (
     <BoardPage
