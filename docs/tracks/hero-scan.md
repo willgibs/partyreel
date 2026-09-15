@@ -463,20 +463,33 @@ readings, with zero intersections and 12 to 30 canvas px to spare.
 
 ## Handoff (round 3)
 
-- Head: `f34af1c` plus the manifest commits that follow it (a manifest cannot name its own SHA).
-  `f34af1c` is the last CODE commit and the tree every check below ran against; nothing after it
-  touches `scan.tsx` or `scan.css`. Pushed; preview `https://partyreel-git-lp-hero-scan-partyreel.vercel.app`,
-  the board at `/design/c/home-hero?key=` (concept 2 of 4, after the source). **Marker for the
-  round-three board: the proposed headline "Every camera in the room, one album."**, which exists
-  nowhere in round two; `overflow-clip` on the concept root and the switch's word "The room" mark it
-  too.
+- Head: the tip of `lp/hero-scan`, which is THIS commit (a manifest cannot name its own SHA).
+  `f34af1c` is still the last CODE commit and the tree every check below ran against; everything
+  after it, this review pass included, touches only this manifest, so `scan.tsx` and `scan.css` are
+  byte-identical to the tree every verification names. Pushed; preview
+  `https://partyreel-git-lp-hero-scan-partyreel.vercel.app`, the board at
+  `/design/c/home-hero?key=` (concept 2 of 4, after the source). **Marker for the round-three board:
+  the proposed headline "Every camera in the room, one album."**, which exists nowhere in round two;
+  `overflow-clip` on the concept root and the switch's word "The room" mark it too.
+- **After the read-only review (this commit and the one before it, DOCUMENTATION ONLY: no code, no
+  change to either owned file).** One should-fix, and it was right: the review surface does not carry
+  the head, and the closing line of the old deployment-cap bullet ("nothing needs a rebuild to be
+  reviewed once the limit clears") understated what that costs. It is corrected below, and the gap is
+  no longer inferred from a diff but MEASURED on both surfaces (the identical walk run against the
+  alias and against the head, with opposite results). The deployment was attempted again twice while
+  writing this, at 23:29 and 23:36, and refused both times with `remaining 0`; the gate was re-run
+  whole on the head and is green. Nothing about the board changed, because the reviewer found the
+  diff itself clean.
 - Synced with `launch-prep` at **`dd4aa0b`** (it had moved nine commits: the round-two merges of
   `brand-voice`, `rounding`, `palette` and `floating-surfaces` plus their reopenings). Merged clean;
   `git diff --name-only 82771e4 origin/launch-prep` touches no path this track reads.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 7 warnings are the pre-existing ones
-  on `review-switch.tsx`, `contact-form.tsx`, two feature sections, `jobs.ts` and `use-flip.ts`, none
-  in this lane), test ok (1719 in 193 files), build ok (248 static pages, the `launch-prep` count
-  unchanged).
+- Gates on the synced tree, re-run WHOLE for this review pass: typecheck ok, lint ok (0 errors),
+  test ok (1719 in 193 files), build ok (248 static pages, the `launch-prep` count unchanged). One
+  correction to the earlier line, which said seven lint warnings: the measured count is **6**, and
+  naming them is more useful than counting them, since none is in this lane and none is new here.
+  They are `contact-form.tsx` (compilation skipped, incompatible library), `album-fill-grid.tsx`
+  (two unused imports), `review-switch.tsx` (one unused import), `jobs.ts` (`JobRunInsert` unused)
+  and `use-flip.ts` (an unused eslint-disable directive).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-scan.md`,
   `src/app/(dev)/design/sandbox/home-hero/scan.css`,
   `src/app/(dev)/design/sandbox/home-hero/scan.tsx`. **No exceptions**: the two owned files and this
@@ -484,7 +497,8 @@ readings, with zero intersections and 12 to 30 canvas px to spare.
   `src/components/dev/board/stage.tsx` were read and not touched; `docs/specs/brand-voice.md` and
   `type-scale.md` were read as inputs.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
-- ★ **BLOCKER FOR THE WHOLE PROJECT, not for this track: Vercel is at its daily deployment cap.**
+- ★ **Vercel is at its daily deployment cap. It blocks the whole project, and it blocks THIS track's
+  review surface (the next bullet says how much).**
   `POST /v13/deployments` answers `payment_required`, `"api-deployments-free-per-day"`, limit 100,
   **remaining 0**, and the GitHub commit status on `f34af1c` reads
   `Vercel: "Deployment rate limited - retry in 24 hours."`, so no deployment record is created at all.
@@ -495,9 +509,29 @@ readings, with zero intersections and 12 to 30 canvas px to spare.
   missing exactly ONE change: `f34af1c`, which keeps the chosen reading across Replay and a canvas
   change. Everything below was verified on that alias unless a line says otherwise; the one change the
   alias does not carry was verified on `pnpm build` + `pnpm start` in the worktree, which serves the
-  same production output at the head, and it touches six lines of React state and no CSS at all. The
-  head is pushed and the gate is green on it; nothing needs a rebuild to be reviewed once the limit
-  clears.
+  same production output at the head, and it touches six lines of React state and no CSS at all.
+- ★ **What that costs the review, stated plainly, because the line above used to understate it: the
+  board MUST be redeployed at the head before the walk below is the walk this round describes.** The
+  missing commit is not a detail to note and move past, it is the fix for this round's own cold-walk
+  finding 5, and the switch is the first thing "Look at first" sends Will to. The two surfaces were
+  walked with the SAME script, clicking "A phone" and then changing the canvas and hitting Replay:
+  - **On the alias as served (`3fbd9c0`), the defect is live.** `.hhc-device` goes 0 to 1 on the
+    click, then back to **0** on the canvas change and 0 again on Replay, with the switch's
+    `aria-pressed` falling back to "The room". A reviewer who flips to the phone and then looks at
+    375 is shown the composition he did not ask for, which reads as a switch that does nothing: the
+    exact stranger-stumble this round claims to have fixed.
+  - **On the head, it holds.** Room at load (`.hhc-device` 0, `.hhc-roomlock` 1, "The room"
+    pressed); 1/0 after the click; and still 1/0 after the canvas change, after Replay, and after
+    changing the canvas back. Four remounts, the reading intact through all of them.
+- **The recovery is one call, and it needs no work from this track.** The cap is account-wide and
+  rolling, so it refuses and re-arms 24 hours out on every attempt (`remaining 0 of 100`, reset read
+  back as 2026-09-15 23:36 on the last try). Once it clears, this rebuilds the alias at the head
+  without a push: `POST https://api.vercel.com/v13/deployments?teamId=team_ht9qAVBQVZf60dpGNJUwmaj5`
+  with `{"name":"partyreel","project":"prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB","gitSource":{"type":
+  "github","org":"willgibs","repo":"partyreel","ref":"lp/hero-scan","sha":"<the head>"}}` and the
+  team token. Confirm the alias serves the head by asking for a deployment list rather than by the
+  clock, then walk the switch first. Until that call runs, treat the alias as round three minus its
+  switch fix.
 
 ### The cold walk, which is what this round was
 
@@ -606,11 +640,22 @@ being ruled in.
   nodes but **12 image requests**, because the two arms share the 12 landscape stand-ins;
   `sizes` is canvas-relative (360px at 1440, 170px at 375).
 - **The one commit the alias does not carry, checked against the local production build** (`pnpm
-  build` then `pnpm start`, the same output the preview would serve, at `f34af1c`): the lab gate is
-  404 with no key, 404 with a wrong key, 200 with the key; choosing "A phone", switching to Phone 375
-  and then hitting Replay leaves the switch pressed on "A phone" with `.hhc-device` rendered, where
-  before each remount put the room back; the root computes `overflow: clip`; the caption resolves at
-  13 px and white/85 on the 375 canvas.
+  build` then `pnpm start`, the same output the preview would serve, at the head): the lab gate is
+  404 with no key, 404 with a wrong key, 200 with the key; the served HTML carries 24 `.hhc-card`,
+  ONE `.hhc-roomlock`, ZERO `.hhc-device` (the room is the default), `overflow-clip`, both switch
+  words and the round-three headline, with no `font-mono` and no em-dash in the payload; the root
+  computes `overflow: clip`; the caption resolves at 13 px and white/85 on the 375 canvas; and the
+  switch survives four remounts, which is the measured walk in the deployment bullet above.
+- **A test-tooling trap this pass fell into and climbed out of, worth knowing while many tracks run
+  at once: `pnpm start` on a guessed port can silently verify ANOTHER track's build.** The port was
+  already held by a sibling worktree's server, `next start` exited with `EADDRINUSE` into a log
+  nobody was reading, and the page that answered looked close enough to pass for this board. It was
+  caught only because the DOM disagreed with the source in a way the head could not produce: the
+  concept root computed `overflow: hidden` and there was no `.hhc-lab` switch at all, which is round
+  ONE of this concept. The habit that makes it safe is cheap: pick the port by testing that nothing
+  is listening on it, and before trusting a single number, assert a marker only the head can render
+  (here `.hhc-roomlock` with `overflow: clip`). A stale-surface reading and a wrong-server reading
+  look identical from the outside, and this round has now been bitten by both.
 - Test-tooling note, unchanged from round two and it cost time again: a hidden or driven tab throttles
   rAF AND `setTimeout`, pauses the stage through `data-paused`, and returns black screenshots right
   after a navigation. Every timing number above was taken in a fronted tab; compositions were shot
@@ -662,15 +707,17 @@ board's own two stages; the ruling lands in `PageHero` at the wiring round.
   3. **The centred lockup**, precedent and not law, shared with the source.
   4. Flagged, not a ruling: bible 13, the pre-release and thrown-wide states inside the
      reduced-motion block.
-- **Look at first**: the first second, in a FOREGROUND tab, on Desktop. The code stands alone in an
-  empty room while a scanner's brackets close on it, they snap, the capture blooms, and the album
-  comes out of the plate. Then wait for it to happen AGAIN, about eleven seconds later, which is the
-  one thing round three added: the hero says its sentence once per turn of the album instead of
-  asserting it once. Then the switch at the top right, once: the room, or a phone, is the whole
-  ruling and everything else is identical between them. Then 375 in each reading, which are two
-  different compositions rather than one compressed: the classic rhythm in the room, and in the phone
-  reading the words at the top with the near field owning the bottom third and the two codes on one
-  vertical axis.
+- **Look at first** (★ first, check the surface: if the alias has not been rebuilt at the head, step
+  three below misbehaves and it is the stale build, not the board. See the deployment bullet; the
+  tell is that flipping to "A phone" and then changing the canvas puts the room back): the first
+  second, in a FOREGROUND tab, on Desktop. The code stands alone in an empty room while a scanner's
+  brackets close on it, they snap, the capture blooms, and the album comes out of the plate. Then
+  wait for it to happen AGAIN, about eleven seconds later, which is the one thing round three added:
+  the hero says its sentence once per turn of the album instead of asserting it once. Then the switch
+  at the top right, once: the room, or a phone, is the whole ruling and everything else is identical
+  between them. Then 375 in each reading, which are two different compositions rather than one
+  compressed: the classic rhythm in the room, and in the phone reading the words at the top with the
+  near field owning the bottom third and the two codes on one vertical axis.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
