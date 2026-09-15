@@ -331,7 +331,9 @@ all when their reel goes live.
 
 ## Handoff (round 2)
 
-- Head `<HEAD>`, pushed; preview partyreel-git-lp-light-partyreel.vercel.app. The board is
+- Head: the tip of `lp/light`, pushed (the board's content is `be34aba`, the sync merge of
+  `launch-prep` at `4b035c1` and this manifest on top); preview
+  partyreel-git-lp-light-partyreel.vercel.app. The board is
   `/design/c/light?key=...`; five anchors now, `#lgt-a` .. `#lgt-e` (part E is the doctrine as a paste).
 - Synced with `launch-prep` at `4b035c1` (it had moved 1 commit, the candidate-block doc note; merged clean).
 - Gates on the synced tree: typecheck ok, lint ok (0 findings in the lane; 7 pre-existing warnings
