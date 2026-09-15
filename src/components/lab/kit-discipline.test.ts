@@ -61,9 +61,7 @@ const LEGACY: readonly string[] = [
   "album-hero",
   "brand-voice",
   "floating-surfaces",
-  "home-hero",
   "palette",
-  "river-visual",
   "type-scale",
 ];
 

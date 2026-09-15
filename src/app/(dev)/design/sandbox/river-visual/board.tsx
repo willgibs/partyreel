@@ -1,20 +1,26 @@
 "use client";
 
+// the board's own sheet; it leaves with the board when the ruling lands.
 import "./board.css";
 
-import { RotateCcw } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import {
-  BoardDock,
-  BoardMeta,
+  BoardPage,
   CANVAS,
+  Cell,
+  CellLabel,
+  Compare,
+  CostMeter,
+  FitStage,
   type Ground,
   type Mode,
-  Stage,
-  Toggle,
-} from "@/components/dev/board";
+  Paste,
+  ReplayButton,
+  Specimen,
+  useReplay,
+} from "@/components/lab";
 import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
 import { Caption } from "@/components/marketing/system/caption";
 import { SectionShell } from "@/components/marketing/system/section-shell";
@@ -33,68 +39,75 @@ import {
   riverHeight,
   riverQrReadout,
 } from "./river";
+import { RIVER_VISUAL } from "./spec";
 
 /**
- * THE RIVER, A FEATURE VISUAL: the bank's board (round one, 2026-09-15).
+ * THE RIVER, A FEATURE VISUAL (round two, 2026-09-15: onto the kit's template).
  *
- * Will killed the river as a home hero and banked it: "the river animation
- * could be streamlined to drop down in one flow rather than two, and saved to
- * our lab design bank to hopefully use another time as a feature visual rather
- * than hero. This would be a cool, smaller alternative presentation of the
- * images emanating from the QR code versus the 1 or 2."
+ * What the board ARGUES lives in `spec.ts` now, and only there: the question,
+ * the verdict, the four one-word calls, the candidates, the departures and the
+ * two assets. What is left here is what a board should be and nothing else, the
+ * evidence for each declared section as a function of the declared state.
  *
- * A bank entry has to answer four questions, so the board is four rows and
- * nothing else:
+ * Round one built the bank: one flow out of one printed object, three sizes on
+ * one clock, three placements on the production shells they would ship inside.
+ * Round two moves the presentation onto the template, and nothing about the
+ * river itself changed. Three things the BOARD could not do before, it can now:
  *
- *  1  WHAT IS IT, at the sizes it would actually be used at. Three specimens
- *     side by side at 1:1 (Will's note b: never zoom a specimen whose size is
- *     being judged), on one clock, so the row reads as one visual at three
- *     scales rather than three tunings. The dock switches the ground and the
- *     origin for all three at once (Will's note a: a page wide control is fixed
- *     so variants can be compared without scrolling back).
- *  2  WHERE WOULD IT GO. Three placements, each composed on the REAL production
- *     shells and primitives it would ship inside (Will's note c: live production
- *     components and whole real page sections, not a screen of specimens):
- *     SectionShell + Container on a cinema feature page, the real Card on a
- *     paper doors row, and the guest album's own empty state on the app ground
- *     (Will's note d: the app's UI is open, so the third placement is a
- *     redesign of a shipped app surface rather than a mock of one).
- *  3  WHAT DOES IT COST. Layers, nodes and bytes are derived from the component
- *     rather than claimed, and the frame cost is measured live off the page
- *     that is carrying every instance on this board at once.
- *  4  HOW IS IT MOUNTED. The props, and the paste.
+ *  1  REST IS A SWITCH. The reduced-motion state was only reachable by deleting
+ *     the no-preference blocks out of the live sheets by hand, which cost round
+ *     one an hour and is not something a reviewer will ever do. It is the
+ *     Motion knob now, driving the visual's own `still` prop, so the state a
+ *     reduced-motion reader gets is one click and one shareable URL away.
+ *  2  THE COST IS PHASED. Round one's meter was a rolling readout of whatever
+ *     the whole board happened to be doing. The kit's runs declared phases with
+ *     everything else on the board hidden, so the three numbers a bank entry
+ *     owes (the floor, one instance, six at once) are each measured rather than
+ *     inferred from one rolling median taken over all of them.
+ *  3  THE STAGES MEASURE THEMSELVES. Four hand-typed stage heights are gone:
+ *     every stage here is a FitStage, so a placement that grows cannot quietly
+ *     clip. Round one shipped a clipped step placement at the phone canvas and
+ *     only found it by measuring the DOM two commits later.
  *
- * Nothing under src/components is edited: every placement reaches the
- * production shells from outside, exactly as a real page would.
+ * ★ THE BOARD'S OWN MARKUP KEYS OFF `mode`, NEVER A TAILWIND PREFIX. A prefix
+ * inside a stage reads the real BROWSER window and not the canvas, so `lg:`
+ * fires inside the 375 stage on a desktop and the phone review is a lie. The
+ * production shells rendered inside (SectionShell, Container, Card,
+ * GalleryEmptyState) carry their own prefixes and are judged as they ship,
+ * which is the shell's documented rule and is what makes them evidence.
+ *
+ * Nothing under src/components is edited: every placement reaches the production
+ * shells from outside, exactly as a real page would.
  */
-
-const QUESTION =
-  "The river, killed as a hero and streamlined to one flow: as a section scale feature visual at three sizes, in three real placements, on cinema, paper and the app's own ground. Where does it go first, and does the code stay in it?";
 
 /** The line printed on the plate under the code. Present tense, one breath. */
 const CODE_LINE = "Scan it. The album is live.";
 
-/* ── Row 1: the bank ── */
-
-/** The three sizes, and what each collapses to on a 375 canvas. */
+/** The three banked sizes, and what each collapses to on a 375 canvas. */
 function bankWidth(id: RiverSizeId, mode: Mode) {
   const s = RIVER_SIZES[id];
   return mode === "desktop" ? s.w : s.phoneW;
 }
 
-function Specimen({
+/** What every part needs off the declared state, passed as one object so a new
+ *  knob does not mean seven signature edits. */
+type Shared = {
+  mode: Mode;
+  origin: RiverOrigin;
+  still: boolean;
+  qrUrl: string | null;
+};
+
+/* ────────────────────────────────  THE BANK  ───────────────────────────── */
+
+function BankSpecimen({
   id,
   mode,
   ground,
   origin,
+  still,
   qrUrl,
-}: {
-  id: RiverSizeId;
-  mode: Mode;
-  ground: Ground;
-  origin: RiverOrigin;
-  qrUrl: string | null;
-}) {
+}: Shared & { id: RiverSizeId; ground: Ground }) {
   const w = bankWidth(id, mode);
   const h = riverHeight(w);
   // What the code actually gets in this box, read off the same function the
@@ -103,7 +116,15 @@ function Specimen({
   // that is what the second ask turns on.
   const code = origin === "code" ? riverQrReadout(w, qrUrl) : null;
   return (
-    <figure className="flex flex-col items-center gap-2">
+    <Cell
+      name={`${RIVER_SIZES[id].label}, ${w} by ${h}`}
+      note={
+        code
+          ? `Code ${code.edge} px, ${code.perModule.toFixed(1)} px a module, plate ${Math.round(code.plateShare * 100)} percent of the box`
+          : undefined
+      }
+      className="shrink-0"
+    >
       <RiverVisual
         width={w}
         origin={origin}
@@ -111,28 +132,59 @@ function Specimen({
         // The line is printed where the plate has room for it. At 240 the
         // scannable code is 123 px and its plate 143, three fifths of the
         // width, and a caption under that wraps to three lines: the thumbnail
-        // is exactly the size at which the second ask (the code, in or out)
-        // answers itself.
+        // is exactly the size at which the second ask answers itself.
         line={origin === "code" && w >= 400 ? CODE_LINE : null}
         tone={ground === "paper" ? "paper" : "cinema"}
+        still={still}
         className="rounded-[var(--radius-float)]"
       />
-      <figcaption>
-        <Caption className="text-center">
-          {RIVER_SIZES[id].label}, {w} by {h}
-        </Caption>
-        {code ? (
-          <Caption className="text-center">
-            Code {code.edge} px, {code.perModule.toFixed(1)} px a module, plate{" "}
-            {Math.round(code.plateShare * 100)} percent of the box
-          </Caption>
-        ) : null}
-      </figcaption>
-    </figure>
+    </Cell>
   );
 }
 
-/* ── Row 2, placement one: a feature page's "how it works" step ── */
+const BANK_SIZES: RiverSizeId[] = ["column", "card", "thumb"];
+
+function BankPart({
+  ground,
+  swapKey,
+  ...shared
+}: Shared & { ground: Ground; swapKey: string }) {
+  const { mode } = shared;
+  return (
+    <div className="flex flex-col gap-2">
+      <FitStage mode={mode} ground={ground} swapKey={swapKey}>
+        {/* ★ NOT `Specimen`, and the reason is the 1:1 law. Specimen's grid is
+            `repeat(cols, minmax(0,1fr))`, which is right for equal cells and
+            wrong for this row: three EQUAL 437px columns inside a 1440 stage
+            cannot hold a 560 specimen, and the only ways to make it fit are to
+            shrink the specimen or to scale it, both of which the lab forbids
+            for a thing whose SIZE is what is being judged. Content-sized cells
+            are asked for in the Handoff; until the kit takes them this is a
+            flex row of the kit's own Cells, which is what carries the caption
+            discipline. */}
+        <div
+          className={
+            mode === "desktop"
+              ? "flex items-center justify-center gap-8 px-8 py-6"
+              : "flex flex-col items-center gap-6 px-4 py-6"
+          }
+        >
+          {BANK_SIZES.map((id) => (
+            <BankSpecimen key={id} id={id} ground={ground} {...shared} />
+          ))}
+        </div>
+      </FitStage>
+      <CellLabel>
+        One clock across all three, so this row is one visual at three scales
+        and not three tunings. At 1:1 the row is{" "}
+        {mode === "desktop" ? "1264" : "343"} px wide and scrolls sideways if
+        the window is narrower, which is correct.
+      </CellLabel>
+    </div>
+  );
+}
+
+/* ───────────────────  PLACEMENT ONE: A FEATURE PAGE'S STEP  ─────────────── */
 
 /** Real copy in the register the feature pages use. Copy is open (bible 21). */
 const STEPS = [
@@ -153,15 +205,7 @@ const STEPS = [
   },
 ];
 
-function StepPlacement({
-  mode,
-  origin,
-  qrUrl,
-}: {
-  mode: Mode;
-  origin: RiverOrigin;
-  qrUrl: string | null;
-}) {
+function StepPlacement({ mode, origin, still, qrUrl }: Shared) {
   // THE BANK'S COLUMN SIZE, read off the bank rather than typed. This
   // placement IS the 560 column (343 on a phone, the same number the bank row
   // collapses to), so the first ask names the number the section actually
@@ -176,12 +220,6 @@ function StepPlacement({
       align="left"
       reveal="standard"
     >
-      {/* ★ The board's OWN markup keys off `mode`, never a Tailwind prefix: a
-          prefix inside a stage reads the real BROWSER window and not the
-          canvas, so `lg:` fires inside the 375 stage on a desktop and the
-          phone review is a lie. The production shells inside (SectionShell,
-          Container, Card) carry their own prefixes and are judged as they
-          ship, which is the shell's documented rule. */}
       <div
         className={
           mode === "desktop"
@@ -210,20 +248,20 @@ function StepPlacement({
           qrUrl={qrUrl}
           line={origin === "code" ? CODE_LINE : null}
           tone="cinema"
+          still={still}
           className="justify-self-center rounded-[var(--radius-float)]"
         />
       </div>
       <Caption className="mt-6">
         The visual at the bank&apos;s column size ({w} here), which is what this
         section leaves beside its copy: the list takes the rest of the
-        container. This is the placement the first ask calls the strongest, and
-        it is the one that carries the column at its full banked width.
+        container.
       </Caption>
     </SectionShell>
   );
 }
 
-/* ── Row 2, placement two: a card's media slot, on paper ── */
+/* ──────────────────  PLACEMENT TWO: A CARD SLOT, ON PAPER  ─────────────── */
 
 /**
  * The real doors row: three Cards at the width the production grid actually
@@ -232,10 +270,9 @@ function StepPlacement({
  * carrying the stills they carry today. The copy is the feature registry's own
  * directory lines, so nothing here can drift from the nav.
  */
-/** The two stills the middle slot is judged against. */
 const STILLS = ["reception-hall", "party-balloons"] as const;
 
-function CardPlacement({ mode, origin }: { mode: Mode; origin: RiverOrigin }) {
+function CardPlacement({ mode, origin, still }: Shared) {
   const doors = FEATURE_PAGES.filter((p) =>
     ["album", "qr", "sharing"].includes(p.slug),
   );
@@ -267,6 +304,7 @@ function CardPlacement({ mode, origin }: { mode: Mode; origin: RiverOrigin }) {
                     height={Math.round(w * 0.72)}
                     origin={origin}
                     tone="paper"
+                    still={still}
                   />
                 </div>
               ) : (
@@ -294,16 +332,15 @@ function CardPlacement({ mode, origin }: { mode: Mode; origin: RiverOrigin }) {
       </div>
       <Caption className="mx-auto mt-4 max-w-5xl">
         The middle slot is the visual at the width the real grid gives a door (
-        {w} here), beside two stills. A card slot is the hardest of the three
-        placements: the box is short, so the flow is read at its top third,
-        where the frames are still small, and an object at the top of it eats a
-        third of the picture. This is the slot that argues for no object.
+        {w} here), beside two stills. The box is short, so the flow is read at
+        its top third, where the frames are still small, and an object at the
+        top of it eats a third of the picture.
       </Caption>
     </SectionShell>
   );
 }
 
-/* ── Row 2, placement three: the guest album's empty state (an app surface) ── */
+/* ─────────────  PLACEMENT THREE: THE GUEST ALBUM'S EMPTY STATE  ────────── */
 
 /**
  * THE GUEST COLUMN, derived from the page it ships on rather than picked:
@@ -311,12 +348,6 @@ function CardPlacement({ mode, origin }: { mode: Mode; origin: RiverOrigin }) {
  * px-5 gutters, so its gallery is the canvas or 672, whichever is smaller,
  * less the two gutters. Read off the shell's own canvas so it cannot drift
  * from the stage: 632 at 1440, 335 at 375.
- *
- * ★ BOTH HALVES OF THE A/B RENDER ON BOTH CANVASES. They sit side by side at
- * 1440 and stack at 375, where two of them cannot share a row. An earlier
- * draft dropped the mosaic entirely at the phone canvas while the caption
- * still described two columns, which left the third ask (may an empty album
- * show photographs at all) with no evidence on the canvas most guests are on.
  */
 const GUEST_PAGE_MAX = 672;
 const GUEST_GUTTER = 20;
@@ -331,31 +362,24 @@ function guestCol(mode: Mode) {
  *
  * Today's empty state is a 3 by 3 ghost mosaic of nine grayscale stills at 25
  * percent with the promise floating over it (gallery-empty-state.tsx, composed
- * here unedited as the A/B's first half). The candidate keeps its two rules and
- * changes its picture: the promise is a thing arriving, not a grid standing
- * still, so the mosaic becomes the flow, pouring out of the plate the guest
- * just scanned.
+ * here unedited as the comparison's first half). The candidate keeps its two
+ * rules and changes its picture: the promise is a thing arriving, not a grid
+ * standing still, so the mosaic becomes the flow, pouring out of the plate the
+ * guest just scanned.
  *
  * ★ TWO DEPARTURES THE PLACEMENT OWNS, not the component.
- *  1  THE FLOW IS A GHOST HERE, at the mosaic's own treatment (grayscale, low
- *     alpha). At full luminance a stream of photographs in an EMPTY album
- *     promises pictures that do not exist, which is the one thing an empty
- *     state may not do; production already made this call for the mosaic and
- *     the candidate inherits it rather than inventing a second answer. It is a
- *     filter on the placement's own wrapper, never a layer over the media, so
- *     bible 1 holds.
- *  2  THE PROMISE SITS UNDER THE FLOW, not over it. The hero river could put
- *     type inside the stream because it cut a clearing to the lockup's measured
- *     silhouette; a feature visual has no clearing and never will, so type goes
- *     beside or below. That is the rule for every placement of this visual.
+ *  1  THE FLOW IS A GHOST HERE, at the mosaic's own treatment. At full
+ *     luminance a stream of photographs in an EMPTY album promises pictures
+ *     that do not exist, which is the one thing an empty state may not do;
+ *     production already made this call for the mosaic and the candidate
+ *     inherits it rather than inventing a second answer. It is a filter on the
+ *     placement's own wrapper, never a layer over the media, so bible 1 holds.
+ *  2  THE PROMISE SITS OVER THE FLOW, which no other placement may do. The hero
+ *     river could put type inside the stream because it cut a clearing to the
+ *     lockup's measured silhouette; a feature visual has no clearing and never
+ *     will, so everywhere else the words go beside it. Here the ghost buys it.
  */
-function EmptyStatePlacement({
-  mode,
-  origin,
-}: {
-  mode: Mode;
-  origin: RiverOrigin;
-}) {
+function EmptyStatePlacement({ mode, origin, still }: Shared) {
   const col = guestCol(mode);
   return (
     <div
@@ -367,35 +391,22 @@ function EmptyStatePlacement({
           : "flex flex-col gap-6 px-5 py-8"
       }
     >
-      <div>
-        <p className="font-heading text-lg">
-          The guest album, before anyone uploads
-        </p>
-        <Caption className="mt-1">
-          Today and the candidate, side by side at 1440 and stacked at 375, both
-          at {col}: the width the guest page gives its gallery on this canvas,
-          which is a 672 column with 20 px gutters, so it is the canvas or 672,
-          whichever is smaller, less the two. This is the app ground a guest
-          actually meets. The dock drives the origin here too, and the
-          recommendation is no object: a guest reaches this screen by scanning
-          the code, so putting it back in front of them is the one placement
-          where the code is certainly wrong.
-        </Caption>
-      </div>
-      <div
-        className={
-          mode === "desktop"
-            ? "flex flex-row items-start gap-8"
-            : "flex flex-col gap-10"
+      <Compare
+        // ★ One column at the phone canvas. Compare's `side` mode splits on
+        // `sm:grid-cols-2`, and a breakpoint prefix inside a stage reads the
+        // BROWSER window rather than the canvas, so on a wide window the 375
+        // stage would show two 160px columns where a phone has room for one.
+        // The rule is in board.css and the kit patch is in the Handoff.
+        className={mode === "phone" ? "rvr-onecol" : undefined}
+        labels={["Today", "The flow"]}
+        differs={`The picture an empty album shows: today's 3 by 3 ghost mosaic against the flow pouring out of the plate the guest just scanned, both at ${col} px, the width the guest page gives its gallery on this canvas. The dock drives the origin here too, and the recommendation is no object: a guest reached this screen by scanning the code, so putting it back in front of them is the one placement where the code is certainly wrong.`}
+        a={
+          <div style={{ width: col }}>
+            <GalleryEmptyState onAddFirst={() => {}} />
+          </div>
         }
-      >
-        <div style={{ width: col }}>
-          <Caption className="mb-3">Today</Caption>
-          <GalleryEmptyState onAddFirst={() => {}} />
-        </div>
-        <div style={{ width: col }}>
-          <Caption className="mb-3">The flow</Caption>
-          <div className="relative">
+        b={
+          <div style={{ width: col }} className="relative">
             {/* The ghost treatment, on the placement's wrapper. */}
             <div className="rvr-ghost overflow-hidden rounded-[var(--radius-tile)]">
               <RiverVisual
@@ -403,13 +414,10 @@ function EmptyStatePlacement({
                 height={col}
                 origin={origin}
                 tone="cinema"
+                still={still}
               />
             </div>
-            {/* The promise, exactly where production carries it. Type over the
-                media is allowed HERE and nowhere else on this board: the flow
-                is already a ghost, which is the treatment an empty album needs
-                anyway. In every marketing placement the visual is at full
-                luminance and the words go beside it. */}
+            {/* The promise, exactly where production carries it. */}
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
               <p className="font-heading text-2xl text-balance">
                 This is where it all lands
@@ -417,57 +425,115 @@ function EmptyStatePlacement({
               <Button size="lg">Be the first to add a photo</Button>
             </div>
           </div>
-        </div>
-      </div>
+        }
+      />
     </div>
   );
 }
 
-/* ── Row 3: the cost ── */
+/* ────────────────────────────────  THE COST  ───────────────────────────── */
 
 /**
- * THE FRAME COST, MEASURED, not claimed. One rAF loop samples the gap between
- * frames on the page that is carrying every instance on this board at once, and
- * writes the median and the fps straight to a DOM node twice a second: a
- * measurement that re-rendered React sixty times a second would be measuring
- * itself. The window is the last 180 gaps, about three seconds.
+ * WHAT ONE OF THESE COSTS, in the three states a bank entry owes: the floor,
+ * what a real page pays, and what happens to a page that wants several.
  *
- * ★ Read it in a FOREGROUND tab. rAF does not fire in a hidden one and the
- * stage sets data-paused, so a backgrounded board reports a stopped clock as a
- * perfect one (docs/systems/testing-verification.md).
+ * ★ THE MEASURED SPECIMEN IS THE ONE ON THE SCREEN. The kit's meter sets
+ * `data-lab-solo` while a phase runs and this board's sheet hides every flow
+ * outside `[data-lab-solo-target]`, so a frame gap is the candidate's and not
+ * the board's. A run taken with the other five instances pouring would be a
+ * measurement of the page.
+ *
+ * ★ AND THE COUNT IS MOUNTED, NOT REVEALED. `display: none` does not stop the
+ * loop: the rAF callback still writes a transform to every node it holds, so a
+ * hidden instance costs what a visible one does and a stress phase built by
+ * un-hiding five would measure six in every phase. The meter's own settle beat
+ * covers the mount, and the twelve photographs are already decoded because
+ * every other instance on the board drew them.
  */
-function CostMeter() {
-  const out = useRef<HTMLSpanElement | null>(null);
-  useEffect(() => {
-    let raf = 0;
-    let last = 0;
-    let lastWrite = 0;
-    const gaps: number[] = [];
-    const tick = (now: number) => {
-      raf = requestAnimationFrame(tick);
-      if (last !== 0) {
-        gaps.push(now - last);
-        if (gaps.length > 180) gaps.shift();
-      }
-      last = now;
-      if (gaps.length < 30 || now - lastWrite < 500) return;
-      lastWrite = now;
-      const sorted = [...gaps].sort((a, b) => a - b);
-      const med = sorted[Math.floor(sorted.length / 2)];
-      const node = out.current;
-      if (node) {
-        node.textContent = `${med.toFixed(1)} ms median frame gap, about ${Math.round(1000 / med)} frames per second`;
-      }
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+const COST_COUNT = 6;
+
+function CostPart({
+  mode,
+  ground,
+  origin,
+  still,
+  qrUrl,
+  count,
+  setCount,
+  setMotion,
+  swapKey,
+}: Shared & {
+  ground: Ground;
+  count: number;
+  setCount: (n: number) => void;
+  setMotion: (v: "live" | "rest") => void;
+  swapKey: string;
+}) {
+  const w = bankWidth("thumb", mode);
   return (
-    <span ref={out} className="tabular-nums">
-      sampling
-    </span>
+    <div className="flex flex-col gap-4">
+      <div data-lab-solo-target>
+        <FitStage mode={mode} ground={ground} swapKey={swapKey}>
+          <div className={mode === "desktop" ? "px-8 py-6" : "px-4 py-6"}>
+            {/* Equal cells at one size, which is exactly what Specimen is for:
+                the question here is the COUNT, not the scale, so every cell is
+                the same box and the grid is honest. */}
+            <Specimen cols={mode === "desktop" ? 4 : 2}>
+              {Array.from({ length: count }, (_, i) => (
+                <Cell key={i} name={`Instance ${i + 1}`}>
+                  <RiverVisual
+                    width={w}
+                    origin={origin}
+                    qrUrl={qrUrl}
+                    tone={ground === "paper" ? "paper" : "cinema"}
+                    still={still}
+                    className="rounded-[var(--radius-float)]"
+                  />
+                </Cell>
+              ))}
+            </Specimen>
+          </div>
+        </FitStage>
+      </div>
+      <CostMeter
+        phases={[
+          {
+            id: "rest",
+            label: "At rest (what a reduced-motion reader gets)",
+            enter: () => {
+              setCount(1);
+              setMotion("rest");
+            },
+          },
+          {
+            id: "one",
+            label: "One instance running (what a page mounts)",
+            enter: () => {
+              setCount(1);
+              setMotion("live");
+            },
+          },
+          {
+            id: "six",
+            label: `${COST_COUNT} instances running (the stress case)`,
+            enter: () => {
+              setCount(COST_COUNT);
+              setMotion("live");
+            },
+          },
+        ]}
+        statics={`Per instance: ${RIVER_FACTS.cards} frames, ${RIVER_FACTS.layers} promoted layers, ${RIVER_FACTS.nodes} DOM nodes, ${RIVER_FACTS.cards} transform writes a frame, and an opacity write only when it changed, which at rest is none. No filter, no blur and no mask repaint: two static masks and one rAF loop. The per frame work does not grow with the box; raster does, and a frame gap cannot see it.`}
+      />
+      <CellLabel>
+        The flight is {RIVER_FACTS.flight} ms and a frame launches every{" "}
+        {RIVER_FACTS.launch} ms, shared by every size, so instances on one page
+        pour in step. The meter leaves the board in the last phase it ran.
+      </CellLabel>
+    </div>
   );
 }
+
+/* ────────────────────────────────  THE MOUNT  ──────────────────────────── */
 
 const PROPS: { name: string; type: string; note: string }[] = [
   {
@@ -478,7 +544,7 @@ const PROPS: { name: string; type: string; note: string }[] = [
   {
     name: "height",
     type: "number",
-    note: `Defaults to width times 1.32. A short box is read at the top of the flow, where the frames are still small.`,
+    note: "Defaults to width times 1.32. A short box is read at the top of the flow, where the frames are still small.",
   },
   {
     name: "origin",
@@ -505,6 +571,11 @@ const PROPS: { name: string; type: string; note: string }[] = [
     type: "boolean",
     note: "False by default, which is production truth below the fold. A placement in the first screen passes true.",
   },
+  {
+    name: "still",
+    type: "boolean",
+    note: "Renders the rest state: the flow standing at its steady spacing, which is what a reduced-motion reader, a crawler and the server's own HTML already get. The board's Motion knob drives it; production passes nothing, because the reader's own preference does.",
+  },
 ];
 
 const PASTE = `import { RiverVisual } from "@/components/marketing/system/river-visual";
@@ -517,74 +588,12 @@ const PASTE = `import { RiverVisual } from "@/components/marketing/system/river-
   tone="cinema"
 />`;
 
-function BankCard({ instances }: { instances: number }) {
+function MountPart() {
   return (
-    <div className="grid gap-4 rounded-lg border border-border bg-card p-4 text-xs text-muted-foreground lg:grid-cols-2">
-      <div className="space-y-3">
-        <div>
-          <p className="text-[11px] font-medium text-foreground">What it is</p>
-          <p className="mt-1">
-            One printed object at the top of a box and an album pouring out of
-            it: {RIVER_FACTS.cards} frames, born behind the plate, fanning over
-            the first third of the distance they fall, growing and straightening
-            as they land, dissolving through the bottom and side edges. One
-            closed form of the clock drives all of it, so there is no state, no
-            timer and no per frame bookkeeping, and the still it rests at is the
-            same expression with the clock at zero.
-          </p>
-        </div>
-        <div>
-          <p className="text-[11px] font-medium text-foreground">
-            Where it could go
-          </p>
-          <p className="mt-1">
-            Every width here is the 1440 canvas, and each placement below prints
-            the one it actually drew. Beside the copy of a how it works step on
-            any feature page (560, the bank&apos;s column size, drawn at exactly
-            that below); in a card&apos;s media slot on a doors row (330, which
-            is what the real grid gives a door rather than the bank&apos;s 400);
-            as the guest album&apos;s empty state, ghosted (632, the width the
-            guest page gives its gallery). It is not a hero and should never
-            carry type inside it.
-          </p>
-        </div>
-      </div>
-      <div className="space-y-3">
-        <div>
-          <p className="text-[11px] font-medium text-foreground">The cost</p>
-          <ul className="mt-1 space-y-0.5">
-            <li>
-              {RIVER_FACTS.layers} promoted layers and {RIVER_FACTS.nodes} DOM
-              nodes per instance, derived from the component, times {instances}{" "}
-              instances mounted on this board.
-            </li>
-            <li>
-              {RIVER_FACTS.cards} transform writes per instance per frame, and
-              an opacity write only when it changed, which at rest is none.
-            </li>
-            <li>
-              The flight is {RIVER_FACTS.flight} ms and a frame launches every{" "}
-              {RIVER_FACTS.launch} ms, shared by every size, so instances on one
-              page pour in step.
-            </li>
-            <li>
-              Measured here, right now: <CostMeter />.
-            </li>
-          </ul>
-        </div>
-        <div>
-          <p className="text-[11px] font-medium text-foreground">The paste</p>
-          {/* The body face, deliberately: there is no mono face in the product
-              (bible 7), and a bare <pre> still resolves to a mono stack through
-              preflight, so it is given font-sans like every other one in src. */}
-          <pre className="mt-1 overflow-x-auto rounded-md border border-border bg-background px-3 py-2 font-sans text-[11px] leading-relaxed whitespace-pre">
-            {PASTE}
-          </pre>
-        </div>
-      </div>
-      <div className="lg:col-span-2">
-        <p className="text-[11px] font-medium text-foreground">The props</p>
-        <dl className="mt-1 grid gap-x-3 gap-y-1 sm:grid-cols-[10rem_minmax(0,1fr)]">
+    <div className="flex max-w-3xl flex-col gap-4">
+      <div>
+        <p className="text-[12px] font-medium">The props</p>
+        <dl className="mt-1.5 grid gap-x-3 gap-y-1 text-xs text-muted-foreground sm:grid-cols-[10rem_minmax(0,1fr)]">
           {PROPS.map((prop) => (
             <div key={prop.name} className="contents">
               <dt className="text-foreground">
@@ -596,195 +605,75 @@ function BankCard({ instances }: { instances: number }) {
           ))}
         </dl>
       </div>
+      {/* Collapsed, like every paste on the kit: the reviewer checks that the
+          block exists and says what the section above it said, then copies it.
+          Six lines is the kit's own default and the count is on the button. */}
+      <Paste code={PASTE} label="The mount" />
     </div>
   );
 }
 
-/* ── The board ── */
+/* ──────────────────────────────  THE BOARD  ────────────────────────────── */
 
 export function RiverVisualBoard() {
-  const [mode, setMode] = useState<Mode>("desktop");
-  const [ground, setGround] = useState<Ground>("cinema");
-  const [origin, setOrigin] = useState<RiverOrigin>("code");
-  const [runId, setRunId] = useState(0);
+  const { runId, replay } = useReplay();
+  // The meter's own phase count. Board-local on purpose: it is not a page-wide
+  // switch a reviewer flips, it is the instrument's state while it runs, so it
+  // has no business in the dock or in a shared link.
+  const [count, setCount] = useState(1);
   const qrUrl = DEMO_EVENT_URL ?? null;
-  // Three specimens plus one per placement: what the meter in the bank card is
-  // measuring, counted rather than guessed. It does not change with the canvas
-  // (today's empty state carries no instance, only the candidate does), and it
-  // is five more than any real page would mount.
-  const instances = 6;
 
   return (
-    <div className="rvr-board pt-2">
-      <BoardDock
-        aside={
-          <button
-            type="button"
-            onClick={() => setRunId((n) => n + 1)}
-            className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <RotateCcw className="size-3" /> Replay
-          </button>
+    <BoardPage
+      spec={RIVER_VISUAL}
+      dock={() => <ReplayButton runId={runId} onReplay={replay} />}
+      evidence={(id, state, api) => {
+        const mode = state.canvas as Mode;
+        const ground = state.ground as Ground;
+        const origin = state.origin as RiverOrigin;
+        const still = state.motion === "rest";
+        const shared = { mode, origin, still, qrUrl };
+        // A stage remounts on any state change that has to re-pour, so the
+        // entrance is seen rather than inferred; Replay rides the same key.
+        const swapKey = `${mode}-${ground}-${origin}-${still}-${runId}`;
+        switch (id) {
+          case "bank":
+            return <BankPart ground={ground} swapKey={swapKey} {...shared} />;
+          case "column":
+            return (
+              <FitStage mode={mode} ground="cinema" swapKey={swapKey}>
+                <StepPlacement {...shared} />
+              </FitStage>
+            );
+          case "card":
+            return (
+              <FitStage mode={mode} ground="paper" swapKey={swapKey}>
+                <CardPlacement {...shared} />
+              </FitStage>
+            );
+          case "guest":
+            return (
+              <FitStage mode={mode} ground="app-dark" swapKey={swapKey}>
+                <EmptyStatePlacement {...shared} />
+              </FitStage>
+            );
+          case "cost":
+            return (
+              <CostPart
+                ground={ground}
+                count={count}
+                setCount={setCount}
+                setMotion={(v) => api.setState({ motion: v })}
+                swapKey={`${swapKey}-${count}`}
+                {...shared}
+              />
+            );
+          case "mount":
+            return <MountPart />;
+          default:
+            return null;
         }
-      >
-        <Toggle
-          ariaLabel="Canvas"
-          options={[
-            { id: "desktop" as Mode, label: "Desktop 1440" },
-            { id: "phone" as Mode, label: "Phone 375" },
-          ]}
-          value={mode}
-          onChange={setMode}
-        />
-        <Toggle
-          ariaLabel="Ground"
-          options={[
-            { id: "cinema" as Ground, label: "Cinema" },
-            { id: "paper" as Ground, label: "Paper" },
-          ]}
-          value={ground}
-          onChange={setGround}
-        />
-        <Toggle
-          ariaLabel="Origin"
-          options={[
-            { id: "code" as RiverOrigin, label: "The demo code" },
-            { id: "plate" as RiverOrigin, label: "A plain plate" },
-            { id: "none" as RiverOrigin, label: "No object" },
-          ]}
-          value={origin}
-          onChange={setOrigin}
-        />
-      </BoardDock>
-
-      <div className="mt-4 space-y-8">
-        {/* ROW 1: the bank, three sizes on one clock. */}
-        <section className="space-y-2">
-          <header>
-            <h2 className="font-heading text-lg">
-              The visual, at the three sizes it is banked at
-            </h2>
-            <Caption className="mt-1">
-              One clock across all three, so this row is one visual at three
-              scales and not three tunings. At 1:1: the row is{" "}
-              {mode === "desktop" ? "1264" : "343"} px wide and scrolls sideways
-              if the window is narrower, which is correct.
-            </Caption>
-          </header>
-          <Stage
-            mode={mode}
-            ground={ground}
-            height={mode === "desktop" ? 860 : 1640}
-            key={`bank-${mode}-${ground}-${origin}-${runId}`}
-          >
-            <div
-              className={
-                mode === "desktop"
-                  ? "flex h-full items-center justify-center gap-8 px-8"
-                  : "flex h-full flex-col items-center gap-6 py-6"
-              }
-            >
-              {(["column", "card", "thumb"] as RiverSizeId[]).map((id) => (
-                <Specimen
-                  key={id}
-                  id={id}
-                  mode={mode}
-                  ground={ground}
-                  origin={origin}
-                  qrUrl={qrUrl}
-                />
-              ))}
-            </div>
-          </Stage>
-        </section>
-
-        {/* ROW 2: three real placements. */}
-        <section className="space-y-2">
-          <header>
-            <h2 className="font-heading text-lg">
-              Three placements, on the production shells they would ship inside
-            </h2>
-            <Caption className="mt-1">
-              SectionShell, Container, Card and the guest album&apos;s own empty
-              state, composed and never edited. A production shell&apos;s own
-              breakpoints read the BROWSER window and not the canvas, so the 375
-              stage tells the truth about the visual and only approximates the
-              shell&apos;s gutters unless the window is narrow too.
-            </Caption>
-          </header>
-          <Stage
-            mode={mode}
-            ground="cinema"
-            height={mode === "desktop" ? 1200 : 1400}
-            key={`step-${mode}-${origin}-${runId}`}
-          >
-            <StepPlacement mode={mode} origin={origin} qrUrl={qrUrl} />
-          </Stage>
-          <Stage
-            mode={mode}
-            ground="paper"
-            height={mode === "desktop" ? 760 : 1560}
-            key={`card-${mode}-${origin}-${runId}`}
-          >
-            <CardPlacement mode={mode} origin={origin} />
-          </Stage>
-          <Stage
-            mode={mode}
-            ground="app-dark"
-            height={mode === "desktop" ? 840 : 1060}
-            key={`empty-${mode}-${origin}-${runId}`}
-          >
-            <EmptyStatePlacement mode={mode} origin={origin} />
-          </Stage>
-        </section>
-
-        {/* ROW 3: the bank card. */}
-        <section className="space-y-2">
-          <header>
-            <h2 className="font-heading text-lg">The bank entry</h2>
-          </header>
-          <BankCard instances={instances} />
-        </section>
-
-        <BoardMeta
-          question={QUESTION}
-          candidates={[
-            {
-              name: "One flow (the whole board)",
-              rationale:
-                "The hero's two braided arms, its measured clearing and its held beat are gone; what is left is one stream fanning out of one object, which is the thing Will liked and the only thing a section slot has room for. 210 lines of hero geometry left with them and nothing on screen is poorer for it.",
-            },
-            {
-              name: "Three sizes, one clock",
-              rationale:
-                "Every number is derived from the box, so 560, 400 and 240 are the same visual at three scales; the flight and the cadence are constants, so instances on one page pour in step. A placement at any other width is already correct.",
-            },
-            {
-              name: "Three origins",
-              rationale:
-                "The real demo code on its printed card (a link, and a CTA in disguise), the same card blank for a placement whose subject is not the code, or no object at all, where the flow enters from above the frame. The third is the quietest and the first is the loudest.",
-            },
-          ]}
-          asks={[
-            "Where it goes first: the how it works column on a feature page (560, the strongest of the three), the doors row card slot (330, the hardest), or the guest album's empty state (the app surface, ghosted).",
-            "The code, in or out. In, it is a scannable CTA inside a section visual and every placement inherits a second call to action, at a fixed price: the demo code is scannable from 123 px and no smaller, whatever the box is, so its printed card is a quarter of the 560 column, a third of the 400 card and three fifths of the 240 thumbnail. Out, the plain plate is a white card with a faint field in it, sized by the composition rather than by a camera, which is quieter and says less.",
-            "Whether an empty album may show photographs at all. The candidate ghosts the flow at production's own mosaic treatment for exactly that reason, and the honest alternative is that the guest's empty state carries no picture of other people's events.",
-            "The proportion: 1.32 is the visual's default and the only number in it that is taste rather than derivation.",
-          ]}
-          departures={[
-            "THE GHOST IN THE APP PLACEMENT. The guest empty state renders the flow grayscale at low alpha, which is production's own treatment for the ghost mosaic it replaces (gallery-empty-state.tsx): at full luminance a stream of photographs in an empty album promises pictures that do not exist. It is a filter on the placement's wrapper and never a layer over the media, so bible 1 holds; it is listed here because it is the only place on this board where a photograph is not at 100 percent.",
-            "BIBLE 13, decorative layer only. The pre pour state (every frame collapsed at the object) lives inside the reduced-motion block, so a reader with JavaScript off who has not asked for less motion sees the flow rest at the object. Nothing that carries meaning is gated by it: this visual holds no type, by design, and every placement's words are plain markup beside it. A reader who asked for less motion gets the flow fully deployed, which is the still the rest state was written to be.",
-            "BIBLE 12, the register. A feature visual is occasional, not a hero, so the flight is 7.6 seconds and a frame launches every 611 ms: slow enough to be ambient beside copy, and paused off screen by useAmbientPause the moment this is wired (the lab pauses on a hidden tab only, so the board can be compared side by side).",
-            "THE SCAN FLOOR, measured rather than claimed. FooterQr draws its code over a viewBox of the module count PLUS its 8 quiet zone modules, so the px a module gets is the size over 41 and not over 33: the demo URL is scannable from 123 px up, and round one's typed 96 gave it 2.34 px a module against the 3 px floor the same note cited. The geometry now measures the floor off the value it is drawing (a placement with no demo URL encodes a shorter string and its floor is 99), clamps there, and every specimen prints what it got. The consequence is the second ask: 123 px of code sits on a 143 px card whatever the box is, which is a quarter of the 560 column, a third of the 400 card and three fifths of the 240 thumbnail, so the small sizes pay for the code in composition rather than in legibility.",
-            "THE PREFIX MOVED, hhv- to rvr-, everywhere in this lane. hhv- meant home hero variation and this is no longer one; keyframe names are document global, so the rename also keeps this sheet from shadowing the hero board's if the two are ever on one page.",
-          ]}
-          assets={[
-            "24 event photographs as 512 by 512 squares, one grade, 6 to 35 KB webp each, framed tight enough to read at 110 px, which is the size a frame is as it leaves the object in the 560 column and larger than it ever gets in the 240 thumbnail. ASSETS row 2, already requested and unchanged, and the same row the media kit's call sheet asks for, so this is one ask across several boards. Replaces the 12 landscape stand ins and retires the per frame crop table in river.tsx.",
-            "12 event photographs as 4:5 portraits, 720 by 900, one grade, from the same shoot as the squares. ASSETS row 12, already requested and unchanged. Replaces the portrait cards (wf 0.8), which are cropped out of landscapes today.",
-            "Nothing else is a picture. This visual asks for no count, no video and no shell prop: it is twelve photographs, one plate and one clock.",
-          ]}
-        />
-      </div>
-    </div>
+      }}
+    />
   );
 }

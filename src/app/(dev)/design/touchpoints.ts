@@ -429,6 +429,7 @@ export const RULINGS: Ruling[] = [
     board: {
       note: "Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing",
       variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo", "Corner A/B"],
+      tracks: ["glow-specs"],
     },
   },
   {
@@ -456,6 +457,7 @@ export const RULINGS: Ruling[] = [
         "Where a beam is allowed",
         "The whole page",
       ],
+      tracks: ["glow-specs"],
     },
   },
   // THE REVIEW WAVE (Will's rule-by-rule review of the bible, 2026-09-14):

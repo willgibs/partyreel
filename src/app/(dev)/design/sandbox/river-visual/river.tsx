@@ -258,7 +258,11 @@ export function riverQrReadout(w: number, value: string | null) {
     Math.ceil(span * MODULE_FLOOR_PX),
     Math.round(w * QR_SHARE),
   );
-  return { edge, perModule: edge / span, plateShare: (edge + PLATE_PAD * 2) / w };
+  return {
+    edge,
+    perModule: edge / span,
+    plateShare: (edge + PLATE_PAD * 2) / w,
+  };
 }
 
 /**
@@ -573,7 +577,18 @@ export type RiverVisualProps = {
   /** Production truth for a visual below the fold is lazy; a placement in the
    *  first screen passes true. */
   eager?: boolean;
-  /** Remount key for the lab's Replay. */
+  /**
+   * Render the REST state: what a reader who asked for less motion gets.
+   *
+   * ★ IT IS A PROP AND NOT A SHEET SWITCH, because the running loop writes
+   * inline `transform` and `opacity` on every card and an inline declaration
+   * beats any rule a board's sheet could add. Rest has to stop the loop AND
+   * clear those two properties, which only the component can do. The board's
+   * Motion knob drives it, so the state a reduced-motion reader gets is
+   * reviewable rather than reproducible only by deleting media blocks from the
+   * live sheets by hand, which is how round one had to read it.
+   */
+  still?: boolean;
   className?: string;
 };
 
@@ -585,6 +600,7 @@ export function RiverVisual({
   line = null,
   tone = "cinema",
   eager = false,
+  still = false,
   className,
 }: RiverVisualProps) {
   const h = height ?? riverHeight(width);
@@ -592,7 +608,10 @@ export function RiverVisual({
     () => riverGeo(width, h, origin, qrUrl),
     [width, h, origin, qrUrl],
   );
-  const reduced = usePrefersReducedMotion();
+  // One state, two ways in: the reader's own preference and the board's knob.
+  // They resolve to the same frame by construction, which is the whole reason
+  // the knob is worth having.
+  const rest = usePrefersReducedMotion() || still;
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const nodes = useRef<(HTMLDivElement | null)[]>([]);
@@ -602,7 +621,20 @@ export function RiverVisual({
   const lastO = useRef<number[]>([]);
 
   useEffect(() => {
-    if (reduced) return;
+    if (rest) {
+      // ★ CLEAR THE TWO PROPERTIES THE LOOP WROTE, NEVER THE STYLE ATTRIBUTE.
+      // `--rvr-rest` and `--rvr-rest-o` are inline custom properties on the
+      // same elements, so wiping the attribute deletes the state being shown
+      // and the stage goes blank. Round one found that while reproducing this
+      // reader by hand; the prop exists so nobody has to again.
+      for (const el of nodes.current) {
+        if (!el) continue;
+        el.style.removeProperty("transform");
+        el.style.removeProperty("opacity");
+      }
+      lastO.current = [];
+      return;
+    }
     const root = rootRef.current;
     if (!root) return;
 
@@ -654,12 +686,17 @@ export function RiverVisual({
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [geo, reduced]);
+  }, [geo, rest]);
 
   return (
     <div
       ref={rootRef}
       data-rvr-tone={tone}
+      // The rest state has to beat the sheet's pre-pour frame, which lives in
+      // the no-preference block and would otherwise leave every card collapsed
+      // at the object for a reader who has NOT asked for less motion but is
+      // looking at Rest on the board. One attribute, one rule (river.css).
+      data-rvr-still={rest ? "" : undefined}
       className={cn("rvr rvr-oneflow relative overflow-hidden", className)}
       style={{ width, height: h }}
     >
