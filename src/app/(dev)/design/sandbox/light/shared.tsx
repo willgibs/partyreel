@@ -147,12 +147,17 @@ export function Labeled({
  *  here. One array in board.tsx feeds all three, so they cannot drift. */
 export function Part({
   n,
+  id,
   title,
   rules,
   lede,
   children,
 }: {
   n: string;
+  /** The anchor, without the `lgt-` prefix. Round four names the blocks by
+   *  what they are (kit, treatments, composer) rather than by a letter, because
+   *  a link that says what it points at is a better link. */
+  id: string;
   title: string;
   /** The ask (or asks) this part answers, verbatim from the board's ASKS. */
   rules?: string[];
@@ -160,9 +165,9 @@ export function Part({
   children: React.ReactNode;
 }) {
   return (
-    // The id is the part's anchor: five parts on one long board, and a ruling
-    // conversation wants to point at one of them.
-    <section id={`lgt-${n.toLowerCase()}`} className="flex flex-col gap-4">
+    // The id is the part's anchor: a ruling conversation wants to point at one
+    // block of a very long board.
+    <section id={`lgt-${id}`} className="flex flex-col gap-4">
       <div className="max-w-2xl scroll-mt-6">
         <h2 className="text-sm font-semibold tracking-tight">
           <span className="mr-2 text-muted-foreground tabular-nums">{n}</span>
@@ -200,7 +205,7 @@ export function Part({
  * A TOGGLE WITH ITS NAME BESIDE IT (round three).
  *
  * The board shell's Toggle carries an ariaLabel and nothing visible, which is
- * right for a board with one control and wrong for part B, which has six in
+ * right for a board with one control and wrong for the composer, which has eight in
  * two rows: "Accent | Identity" and "House five | Warm | Cool" sitting side by
  * side with no names on them is the first thing a stranger stumbles over, and
  * no amount of prose further down repairs it, because the prose is read after
@@ -298,12 +303,21 @@ export function Copy({
 /**
  * THE AURORA'S CLOCK, the board's one home for it.
  *
- * Part B sets it on the aurora's bands and part C puts it on a strip beside the
- * two under ruling, so it must be one number or the board is arguing with
- * itself. Three laps of --spill-cadence: the ratio is the proposal, not the
- * literal, and the ruling on part C picks the lamp's clock this multiplies.
+ * The composer sets it on the aurora's bands and the evidence block prints it
+ * beside the lamp's clock, so it must be one number or the board is arguing
+ * with itself. Three laps of --spill-cadence: the ratio is the proposal, not
+ * the literal, and the cadence ruling picks the lamp's clock this multiplies.
+ *
+ * ★ EVERY AURORA ON THE BOARD PASSES THIS EXACT STRING, AND board.css SECTION
+ * 6 IS WHAT MAKES IT RESOLVE. Round four moved the clock from a literal ("33s")
+ * to the sibling token, which is right (the ratio follows the cadence knobs
+ * instead of contradicting them) but the token was declared nowhere the board
+ * loads, so every band it reached computed animation-name: none and the aurora
+ * sat frozen with its base still lit. The token now has a declaration; do not
+ * pass a bare literal here again, and do not reference a token this board does
+ * not declare. The full anatomy of the failure is in board.css section 6.
  */
-export const AURORA_CADENCE = "33s";
+export const AURORA_DUR = "var(--aurora-cadence)";
 
 /** Desktop lays a matrix out in columns; 375 cannot, so it pairs them. One
  *  helper rather than a responsive class, because the stage renders at a REAL
@@ -368,24 +382,41 @@ export function ApplyToSite({
   );
 }
 
-/** The board's own clear, so a walk can be ended without hunting for the tuner
- *  panel. Renders nothing while no block stands. */
-export function AppliedBanner() {
+/**
+ * WHICH BLOCK STANDS ON THE SITE, AND THE SWITCH OFF. It rides the dock.
+ *
+ * Applying a block is a per-candidate decision and its button stays beside the
+ * candidate; being able to see that one is live, and turn it off, is page-wide,
+ * and Will's note (a) is about exactly this: "having to scroll back to the top
+ * makes it very hard to review differences." Round four's first pass left this
+ * as a banner under the index, near the top of an 18,000px board, which is the
+ * friction the note was written to end. The applied state is the sixth thing in
+ * the dock and the only one that is sometimes absent: it renders nothing while
+ * no block stands, so the dock does not carry an empty slot for it.
+ *
+ * The label is truncated rather than wrapped, with the full one on hover, so a
+ * long candidate name cannot push the dock into a second row at 375.
+ */
+export function AppliedCandidate() {
   const applied = useTunerCandidate();
   if (!applied) return null;
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-foreground/25 bg-card px-3 py-2 text-[11px]">
-      <span className="font-medium text-foreground">
-        On the site: {applied.label}
+    <span className="flex items-center gap-1.5 rounded-lg border border-foreground/25 bg-card py-1 pl-2 pr-1 text-[11px]">
+      <span className="text-muted-foreground">On the site</span>
+      <span
+        title={applied.label}
+        className="max-w-[14ch] truncate font-medium text-foreground sm:max-w-[26ch]"
+      >
+        {applied.label.replace(/^Light: /, "")}
       </span>
       <button
         type="button"
         onClick={clearCandidate}
-        className="h-7 rounded-[var(--radius-action-sm)] border border-border px-2.5 text-[11px] font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none"
+        className="rounded-[calc(var(--radius-action-sm)-2px)] border border-border px-2 py-0.5 font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none"
       >
         Clear
       </button>
-    </div>
+    </span>
   );
 }
 
@@ -412,6 +443,47 @@ function useTunerOverrides() {
     getTunerSnapshot,
     getTunerServerSnapshot,
   );
+}
+
+/**
+ * THE TWO CLOCKS AS NUMBERS, READ OFF THE PAGE ITSELF.
+ *
+ * The board's invariant is that every number it prints is the number the stage
+ * is rendering, and the clock row is where that is hardest to hold: the aurora
+ * is `calc(var(--spill-cadence) * 3)` now, so the caption cannot be a literal.
+ *
+ * ★ IT READS THE COMPUTED CASCADE, NOT THE TUNER STORE, AND THE DIFFERENCE IS
+ * THE WHOLE POINT. Tapping "8s on the site" writes an override into the store,
+ * but the lab layout mounts CandidateStyle and NOT the tuner panel, so nothing
+ * on a board page wears that override: the stage below keeps whatever the
+ * sheet declares. A caption driven by the store would therefore print 24s over
+ * a field still running at 33s, which is the same class of lie the literal was.
+ * `getComputedStyle` on the element the stages inherit from cannot drift from
+ * them by construction, and it also picks up an applied candidate block, which
+ * is the one thing on a lab page that CAN move the token.
+ *
+ * It rides the tuner store's own subscription rather than an effect, so the
+ * snapshot is a plain number React can compare: applying or clearing a block is
+ * the only thing on a lab page that moves the token, and useSyncExternalStore
+ * re-checks the snapshot after the commit that renders the block's <style>.
+ * The server snapshot is the sheet's default, which is what a lab page with no
+ * block applied computes anyway, so nothing flickers on hydration.
+ */
+export function useClocks(): { lamp: number; aurora: number } {
+  const fallback = CADENCE ? Number(CADENCE.default) : 11;
+  const lamp = useSyncExternalStore(
+    subscribeTuner,
+    () => {
+      const seconds = Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--spill-cadence",
+        ),
+      );
+      return Number.isFinite(seconds) ? seconds : fallback;
+    },
+    () => fallback,
+  );
+  return { lamp, aurora: lamp * 3 };
 }
 
 export function CadenceKnob({ seconds }: { seconds: number }) {
@@ -444,7 +516,7 @@ export function CadenceKnob({ seconds }: { seconds: number }) {
  * Nine of these at full height were 6,300px of the board, more than a third of
  * it, and a reviewer does not read CSS and markdown end to end on a walk: he
  * checks that the block exists, that it says what the stage above it said, and
- * copies it. Collapsed, part E is a list of nine landings he can scan in one
+ * copies it. Collapsed, the ruling block is a list of landings he can scan in one
  * screen and open one at a time. Nothing is hidden that a click does not
  * return, and the Copy button always copies the WHOLE block, open or not.
  */
@@ -535,7 +607,7 @@ export function RuleIndex({ asks }: { asks: Ask[] }) {
               href={`#lgt-${a.at}`}
               className="text-muted-foreground underline decoration-foreground/20 underline-offset-2 transition-colors duration-150 ease-emphasis hover:text-foreground hover:decoration-foreground/50 motion-reduce:transition-none"
             >
-              <span className="mr-1.5 font-medium text-foreground uppercase">
+              <span className="mr-1.5 font-medium text-foreground">
                 {a.at}
               </span>
               {a.text}
@@ -804,4 +876,83 @@ export function CostMeter({
       ) : null}
     </div>
   );
+}
+
+/* ─────────────────────  ROUND FOUR: THE KIT'S FURNITURE  ────────────────── */
+
+/**
+ * THE TAKEAWAY (round four).
+ *
+ * Will's review of round three: the board read as "a fun research report
+ * without many applicable takeaways to carry into the platform". `Proposal`
+ * already stated what a section landed on, but it read as the end of an
+ * argument. This states it as the thing to CARRY, in the kit's own words, and
+ * every block on the board now ends in one. A specimen that cannot produce a
+ * takeaway is cut rather than captioned.
+ */
+export function Takeaway({
+  children,
+  lands,
+}: {
+  children: React.ReactNode;
+  /** What a wiring round types, if this one ends in a file. */
+  lands?: string;
+}) {
+  return (
+    <div className="flex max-w-2xl flex-col gap-1 rounded-lg border border-foreground/25 bg-card px-3.5 py-3">
+      <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        Takeaway
+      </p>
+      <p className="text-xs leading-relaxed text-foreground">{children}</p>
+      {lands ? (
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          <span className="text-foreground">Lands as: </span>
+          {lands}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * THE FOUR-QUESTION LAMP CARD, which design-system.md calls the anti-sprawl
+ * mechanism: a placement that cannot answer all four cannot be built, and the
+ * form is answerable by someone other than its author. Question one is restated
+ * for this board's correction: not "what object is emitting" but "what PLACE is
+ * the light entering from".
+ */
+export function LampCard({
+  place,
+  direction,
+  colour,
+  admitted,
+}: {
+  place: string;
+  direction: string;
+  colour: string;
+  admitted: string;
+}) {
+  const rows = [
+    ["Place", place],
+    ["Direction", direction],
+    ["Colour", colour],
+    ["Admitted by", admitted],
+  ];
+  return (
+    <dl className="grid max-w-2xl grid-cols-1 gap-x-4 gap-y-1 text-[11px] leading-relaxed sm:grid-cols-2">
+      {rows.map(([k, v]) => (
+        <div key={k} className="flex gap-1.5">
+          <dt className="shrink-0 font-medium text-foreground">{k}:</dt>
+          <dd className="text-muted-foreground">{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** A treatment's production mount, beside the treatment. `Paste` in the body
+ *  face (there is no mono face in the product), collapsed to its first lines
+ *  with the whole block one click and one copy away. */
+export function Recipe({ mount, label }: { mount: string; label?: string }) {
+  return <Paste label={label ?? "The mount"} css={mount} lines={7} />;
 }

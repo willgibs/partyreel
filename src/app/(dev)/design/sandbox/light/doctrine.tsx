@@ -41,7 +41,7 @@ const REPLACEMENTS: {
     where: 'Light: SPILL, BEAM, and the lamp set > "SPILL\'s four laws"',
     today:
       'Law 1 reads "Source. Name the lamp. If you cannot point at the object emitting, there is no spill", and the "Under exploration" paragraph under the table points here.',
-    argued: "Part B, the model and the four candidates",
+    argued: "The treatments, the footer seam; and the composer",
     markdown: `**SPILL's four laws**
 
 | # | Law | What it kills |
@@ -65,7 +65,7 @@ entering from?) · **Direction** (from where?) · **Colour** (sampled from what,
     where: 'Light: SPILL, BEAM, and the lamp set > "BEAM\'s four laws"',
     today:
       "The four laws stand unchanged; what is missing is the sentence that says how the three jobs relate, and the NEVER list still names violet reel glows as an absolute.",
-    argued: "Part D, the publish beat",
+    argued: "The treatments, the bloom on the publish beat",
     markdown: `**BEAM's four laws:** 1 it marks the object that is currently the LIVE SUBJECT (working, awaiting,
 uploading, publishing, live). 2 One subject per view. 3 **It ends when the state ends** (a beam is a
 state, never a decoration, and that is the whole difference between a live object and a pretty
@@ -90,7 +90,7 @@ every-section-gets-a-version failure under another name) · the admin portal.`,
       "Light: SPILL, BEAM, and the lamp set > The lamp set, and its three registers",
     today:
       'The Paper row says "Uniform L/C today, so a hand-tuned paper five is still an open design task", and there is no register for a field at chapter scale.',
-    argued: "Part B, the paper five and the register toggle",
+    argued: "The evidence, the paper five and the register",
     markdown: `### The lamp set, and its four registers
 
 The five HUES are the identity constant: **25 coral, 85 amber, 155 green, 255 blue, 305 violet**.
@@ -115,7 +115,7 @@ oklch(0.11).`,
     where:
       "Light: SPILL, BEAM, and the lamp set > a new subsection after the registers",
     today: 'The word "aurora" appears nowhere in src/ or docs/.',
-    argued: "Part B, the four candidates on the real chapters",
+    argued: "The composer, on nine real sections",
     markdown: `### The aurora
 
 The aurora is the house light itself, at rest, in a chapter that has no media. It is not a lamp, and
@@ -167,7 +167,7 @@ screens most people are looking at.`,
     where: "Elevation contract (one depth technique per mode)",
     today:
       'The section is per MODE: "Light: exactly one shadow family, floating layer only" and "Dark: depth is light first ... --shadow-float still resolves to a zero shadow in .dark until the light exploration writes shadow, lamp and light as one system".',
-    argued: "Part A, both matrices",
+    argued: "The separate job, both matrices",
     markdown: `## Elevation contract (the cue is the relationship, not the mode)
 
 Depth is SEPARATE, the achromatic and static job of the light doctrine, and it lives here rather than
@@ -217,7 +217,7 @@ technique.
     where: "Light: SPILL, BEAM, and the lamp set > the opening paragraph",
     today:
       '"Two siblings, and picking the wrong one is the usual mistake. SPILL is light falling FROM a lit thing onto what is near it. BEAM is an object lit BECAUSE IT IS the live subject."',
-    argued: "The board's opening, and the shape of all four parts",
+    argued: "The kit, and the shape of every block under it",
     markdown: `Three jobs, decided by what the light is DOING rather than by the mode or by what kind of thing is
 emitting. **SEPARATE** is achromatic and static: it says one object is in front of another (the
 elevation contract, which is part of this doctrine and not a section beside it). **FILL** is
@@ -250,7 +250,8 @@ const STAYS = [
 export function DoctrinePart({ rules }: { rules: string[] }) {
   return (
     <Part
-      n="E"
+      n="07"
+      id="paste"
       title="The ruling, as a paste"
       rules={rules}
       lede={

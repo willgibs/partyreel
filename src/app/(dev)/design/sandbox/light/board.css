@@ -9,7 +9,7 @@
    is marked [data-lgt-loop] so the stage's data-paused stops it on a hidden tab.
 
    ── WHAT THIS SHEET PROPOSES ──
-   Three things the system does not have yet, written here so the board can show
+   Four things the system does not have yet, written here so the board can show
    them and the ruling can move them (or not) into globals.css:
      1  --lgt-lift / --lgt-float   the shadow family in DARK (bible 10's rewrite
         has no values yet; --shadow-float is zeroed in .dark).
@@ -17,7 +17,10 @@
         and dark-only, here with the paper counterpart it has always lacked.
      3  [data-lgt-grain]           the aurora's dither. A field this large at
         this alpha BANDS in 8 bits; the grain is the fix, and it is a stand-in
-        for a real tile (see the manifest's Handoff). */
+        for a real tile (see the manifest's Handoff).
+     4  --aurora-cadence           the field's clock, a sibling of the lamp's.
+        Every aurora on this board reads it, so the board declares it (section
+        6) instead of rendering a frozen band. */
 
 /* ─────────────── 1. THE SHADOW FAMILY IN DARK
 
@@ -272,4 +275,38 @@
   overflow-y: hidden;
   -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+}
+
+/* ─────────────── 6. THE AURORA'S CLOCK (round four, the fix)
+
+   The fourth thing the system does not have yet, and the one the board was
+   RENDERING as if it did. The composer and the evidence pass the engine
+   `--glw-dur: var(--aurora-cadence)`, which is verbatim what their paste hands
+   globals.css. Nothing declared the token: globals.css has --spill-cadence and
+   no sibling, and the only other declarations on the board are inside exported
+   STRINGS (the register candidate's paste, the composer's paste), which are
+   text and reach nothing.
+
+   ★ AN UNDECLARED TOKEN HERE DOES NOT FALL BACK, IT FREEZES THE LAMP. `vars`
+   lands as an inline style on the same element that carries [data-glw], so it
+   outranks the engine's own `[data-glw] { --glw-dur: 8s }`; a var() reference
+   to a property nothing declares is invalid at computed-value time, and since
+   --glw-dur is not registered (@property) and no ancestor declares it, it
+   resolves to the guaranteed-invalid value. `animation: glw-drift-x
+   var(--glw-dur) linear infinite` is then an invalid shorthand and every
+   longhand resets, animation-name to `none`. The band stops dead while the
+   base stays lit, which reads as a design choice rather than a defect, and the
+   two clocks the board asks Will to rule between read as one moving band beside
+   one still one. It was invisible in QA because applying the aurora register
+   candidate declares the token and that block persists in localStorage: a
+   developer who had applied it once saw motion no reviewer would.
+
+   So the board declares the sibling itself, at the same place and with the same
+   value its paste asks for (`:root, .surface-paper`, three laps of the lamp's
+   clock). Two consequences worth keeping: every aurora on the board now follows
+   the cadence knobs under the clock row, because the ratio is a calc over the
+   lamp's own token rather than a literal; and when the ruling lands this
+   declaration is deleted, not moved, because globals.css will carry it. */
+:root {
+  --aurora-cadence: calc(var(--spill-cadence) * 3);
 }
