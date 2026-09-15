@@ -225,6 +225,8 @@ Lives: `src/lib/constants/marketing-voice.ts`, `docs/systems/marketing-content.m
 
 ## marketing-decomposition
 
+**Retired from the lab, 2026-09-15 (the Library x Lab migration wave), unruled.** The home hero's rounds (the source, the scan, the inflow) superseded the reel-that-comes-apart, so the board left the lab; git keeps its files (`sandbox/marketing-decomposition-variants.tsx`, last at the wave's merge). The photo-pile drag, the card-stack hover and the confetti proposal stay recorded here for a later round.
+
 **Marketing decomposition** (marketing). Ruled open. Shipped: open.  
 The home's signature move, two ways: the hero's reel comes apart into its source tiles while three counters land as facts, played once on scroll or scrubbed by it, plus the tactile photo-pile and card-stack candidates and the mono confetti proposal.  
 Variants: V1 One-shot play; V2 Scroll-driven; V3 Photo-pile drag (extra); V4 Card-stack hover (extra); V5 Confetti proposal (extra).
@@ -237,6 +239,8 @@ Board: `src/app/(dev)/design/sandbox/marketing-decomposition-variants.tsx`, stan
 Lives: `docs/systems/marketing-content.md`, `docs/ROADMAP.md`
 
 ## marketing-hero-substrate
+
+**Retired from the lab, 2026-09-15 (the Library x Lab migration wave), unruled.** The production hero decided against footage and the home hero's rounds replaced the kinetic H1, so the board left the lab; git keeps its files (`sandbox/marketing-hero-substrate-variants.tsx`, last at the wave's merge). The mp4 substrate slot with poster-first loading and the story progress synced to the video are recorded here for any page that wants footage.
 
 **Marketing hero substrate** (marketing). Ruled open. Shipped: open.  
 The production hero decided against real footage: an mp4 substrate slot with poster-first loading and montage fallback, story progress and timecode synced to the video, and the kinetic H1 word toggling Roll, Type, or Cut across all three voice groupings.  

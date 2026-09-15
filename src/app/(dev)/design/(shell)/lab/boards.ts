@@ -7,8 +7,6 @@ import { GlowDoctrineVariants } from "@/app/(dev)/design/sandbox/glow-doctrine-v
 import { GlowMomentsVariants } from "@/app/(dev)/design/sandbox/glow-moments-variants";
 import { HomeHeroBoard } from "@/app/(dev)/design/sandbox/home-hero/board";
 import { LightBoard } from "@/app/(dev)/design/sandbox/light/board";
-import { MarketingDecompositionVariants } from "@/app/(dev)/design/sandbox/marketing-decomposition-variants";
-import { MarketingHeroSubstrateVariants } from "@/app/(dev)/design/sandbox/marketing-hero-substrate-variants";
 import { MediaKitBoard } from "@/app/(dev)/design/sandbox/media-kit/board";
 import { PaletteBoard } from "@/app/(dev)/design/sandbox/palette/board";
 import { RiverVisualBoard } from "@/app/(dev)/design/sandbox/river-visual/board";
@@ -30,14 +28,6 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
-  "marketing-decomposition": {
-    Component: MarketingDecompositionVariants,
-    legacy: true,
-  },
-  "marketing-hero-substrate": {
-    Component: MarketingHeroSubstrateVariants,
-    legacy: true,
-  },
   "home-hero": { Component: HomeHeroBoard, legacy: true },
   "glow-doctrine": { Component: GlowDoctrineVariants, legacy: true },
   "glow-moments": { Component: GlowMomentsVariants, legacy: true },

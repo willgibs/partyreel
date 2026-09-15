@@ -69,8 +69,6 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
-  | "marketing-decomposition"
-  | "marketing-hero-substrate"
   | "home-hero"
   | "album-hero"
   | "river-visual"
@@ -288,33 +286,21 @@ export const RULINGS: Ruling[] = [
     id: "marketing-decomposition",
     title: "Marketing decomposition",
     surface: "marketing",
-    ruled: "open",
+    ruled:
+      "2026-09-15, retired unruled: the home hero's rounds (the source, the scan, the inflow) superseded the reel-that-comes-apart; the board left the lab in the Library x Lab migration wave, git keeps it (its last head is the wave's merge)",
     shipped: null,
-    why: "Open: one-shot play (V1) versus scroll-driven (V2) for the home's signature decomposition; the extras ride the ruling.",
+    why: "Retired: one-shot versus scroll-driven for a decomposition the home no longer has; the pile, stack and confetti extras wait in the record.",
     lives: ["docs/systems/marketing-content.md", "docs/ROADMAP.md"],
-    board: {
-      note: "The home's signature move, two ways: the hero's reel comes apart into its source tiles while three counters land as facts, played once on scroll or scrubbed by it, plus the tactile photo-pile and card-stack candidates and the mono confetti proposal",
-      variants: [
-        "One-shot play",
-        "Scroll-driven",
-        "Photo-pile drag (extra)",
-        "Card-stack hover (extra)",
-        "Confetti proposal (extra)",
-      ],
-    },
   },
   {
     id: "marketing-hero-substrate",
     title: "Marketing hero substrate",
     surface: "marketing",
-    ruled: "open",
+    ruled:
+      "2026-09-15, retired unruled: the production hero decided against footage and the home hero's rounds replaced the kinetic H1; the board left the lab in the Library x Lab migration wave, git keeps it",
     shipped: null,
-    why: "Open: the kinetic H1's word animation (Roll, Type, or Cut) judged against moving footage.",
+    why: "Retired: Roll, Type or Cut for a word animation the hero no longer carries; the mp4 substrate slot is recorded for any page that wants footage.",
     lives: ["docs/systems/marketing-content.md", "docs/ROADMAP.md"],
-    board: {
-      note: "The production hero decided against real footage: an mp4 substrate slot with poster-first loading and montage fallback, story progress and timecode synced to the video, and the kinetic H1 word toggling Roll, Type, or Cut across all three voice groupings",
-      variants: ["Roll on footage", "Type on footage", "Cut on footage"],
-    },
   },
   {
     id: "home-hero",

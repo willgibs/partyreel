@@ -29,8 +29,8 @@ describe("the design lab's rulings registry", () => {
         "glow-doctrine",
         "glow-moments",
         "home-hero",
-        "marketing-decomposition",
-        "marketing-hero-substrate",
+        // the two legacy marketing boards retired to the record in the
+        // Library x Lab migration wave (2026-09-15)
         // the review wave (2026-09-14)
         "palette",
         "light",

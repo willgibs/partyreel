@@ -17,9 +17,6 @@ owns:
   - src/app/(dev)/design/_data/glossary.ts
   - src/app/(dev)/design/touchpoints.ts
   - src/app/(dev)/design/touchpoints.test.ts
-  - src/app/(dev)/design/sandbox/home-hero/board.tsx
-  - src/app/(dev)/design/sandbox/home-hero/board.css
-  - src/app/(dev)/design/sandbox/home-hero/shared.tsx
   - src/components/dev/motion-tuner.tsx
   - src/components/dev/motion-tuner-config.ts
   - src/components/dev/marketing-motion-tuner.tsx
@@ -101,6 +98,15 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 
 | track | board | preview | waits on |
 | --- | --- | --- | --- |
+| `album-hero` | `/design/lab/album-hero` (the migration wave, round 2) | its own alias at handoff | the Orchestrator (integration) |
+| `river-visual` | `/design/lab/river-visual` (the migration wave, round 2) | its own alias at handoff | the Orchestrator (integration) |
+| `home-hero` | `/design/lab/home-hero` (the migration wave, round 5) | its own alias at handoff | the Orchestrator (integration) |
+| `type-scale` | `/design/lab/type-scale` (the migration wave, round 5) | its own alias at handoff | the Orchestrator (integration) |
+| `floating-surfaces` | `/design/lab/floating-surfaces` (the migration wave, round 5) | its own alias at handoff | the Orchestrator (integration) |
+| `palette` | `/design/lab/palette` (the migration wave, round 5) | its own alias at handoff | the Orchestrator (integration) |
+| `brand-voice` | `/design/lab/brand-voice` (the migration wave, round 5) | its own alias at handoff | the Orchestrator (integration) |
+| `media-kit` | `/design/lab/media-kit` (the migration wave, round 5) | its own alias at handoff | the Orchestrator (integration) |
+| `glow-specs` | `/design/lab/glow-doctrine` and `/design/lab/glow-moments` (specs + the template) | its own alias at handoff | the Orchestrator (integration) |
 | `lab-shell` | `/design/library` and `/design/lab` (the chrome) | the launch-prep alias (integrated, merged `90f23288`) | nothing |
 | `lab-rules` | `/design/library/rules`, `policies`, `guidance`, `rulings`, `doctrine`, `record`, `glossary` | the launch-prep alias (integrated, merged `0fb9498e`) | nothing: the desk and the kit read its `review/` and Binds strip |
 | `lab-kit` | `/design/lab/light`, `/design/lab/rounding`, `/design/lab/kit` | the launch-prep alias (integrated, merged `22c0dc81`) | the migration wave (eight boards onto its template) |

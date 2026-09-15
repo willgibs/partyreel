@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 15 policies · 90 contracts on 19 components · 14 standing boards.**
+**22 laws · 15 policies · 90 contracts on 19 components · 12 standing boards.**
 
 ## What binds you
 
@@ -345,8 +345,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
-| `marketing-decomposition` | marketing | The home's signature move, two ways: the hero's reel comes apart into its source tiles while three counters land as facts, played once on scroll or scrubbed by it, plus the tactile photo-pile and card-stack candidates and the mono confetti proposal |
-| `marketing-hero-substrate` | marketing | The production hero decided against real footage: an mp4 substrate slot with poster-first loading and montage fallback, story progress and timecode synced to the video, and the kinetic H1 word toggling Roll, Type, or Cut across all three voice groupings |
 | `home-hero` | marketing | Round four: the source in its emanating direction and the scan with its phone, both loved; the inflow, the album streaming into the code rather than out of it, built to answer honestly whether the truer reading presents as well |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |

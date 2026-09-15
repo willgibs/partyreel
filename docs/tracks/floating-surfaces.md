@@ -1,39 +1,98 @@
 ---
 track: floating-surfaces
-status: integrated
+status: open
 cut: "c473707"
-merged: "c2f7d05b"      # the branch head merged into launch-prep
+merged_round_4: "c2f7d05b"
 merged_round_3: "c0609e7"
 merged_round_2: "8a448fd"
 merged_round_1: "3071cfc"
-preview: true           # Will reviews this board on its preview as it builds
+preview: false           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/floating-surfaces/
+  - docs/specs/floating-surfaces.md
   # Round four claims the board's own published proposal: the round-four goal
   # says "the proposal in docs/specs/floating-surfaces.md becomes the directions
   # with their contracts", and the media-kit and brand-voice tracks own theirs
   # the same way. No other live track claims it.
   - docs/specs/floating-surfaces.md
 reads:
-  - src/components/ui/dropdown-menu.tsx
-  - src/components/ui/tooltip.tsx
-  - src/components/ui/popover.tsx
-  - src/components/ui/select.tsx
-  - src/components/ui/sheet.tsx
-  - src/components/ui/dialog.tsx
-  - src/components/ui/drawer.tsx
-  - src/components/ui/sonner.tsx
-  - src/components/ui/navigation-menu.tsx
-  - src/components/guest/entry-shell.tsx
-  - src/app/globals.css
-  - src/app/theme.css
-  - src/app/(dev)/design/sandbox/glow-lab-shared.tsx
-  - src/app/(dev)/design/sandbox/variant-frame.tsx
-  - src/app/(dev)/design/rules/bible.ts
-  - docs/systems/design-system.md
+  - src/components/lab/
+  - src/app/(dev)/design/sandbox/light/
+  - src/app/(dev)/design/sandbox/rounding/
+  - src/app/(dev)/design/sandbox/registry.ts
+  - src/app/(dev)/design/sandbox/registry.test.ts
+  - src/app/(dev)/design/(shell)/lab/boards.ts
+  - src/app/(dev)/design/(shell)/lab/[board]/page.tsx
+  - src/app/(dev)/design/(shell)/_shell/index.ts
+  - src/app/(dev)/design/_data/state.ts
+  - src/app/(dev)/design/touchpoints.ts
+  - src/components/lab/kit-discipline.test.ts
+  - scripts/new-board.mjs
+  - docs/decisions/design-record.md
+  - docs/reviews/README.md
+  - docs/design/README.md
+
 ---
 
 # lp/floating-surfaces
+
+## Round 5 (the Library x Lab migration wave, 2026-09-15)
+
+**Goal.** The floating surfaces board onto the kit. Its sticky bar was the model for the dock, so the dock is home
+ground: the page-wide switches move into the spec's `controls`; the new dropdown and menu designs Will
+asked for in round four are the `candidates`, each shown on the real primitive through `Frame` (the
+nested-submenu clipping finding stays in the departures); `frame.tsx` and `frame-page.tsx` retire to the
+kit's `Frame`, `Apply` to `ApplyToSite`, the lazy `Row` to the template's sections; the spec doc loses its
+asks block.
+
+**The migration contract (every board in the wave).** A board is two files on the kit: `sandbox/<id>/spec.ts`,
+pure data through `defineBoard` (the question; `round {n, date, changed}` with this round's line; `history`
+from this manifest's rounds; `context` for how the board got here; the `verdict`; the `asks` Will answers in
+one word each, with stable kebab ids, one-token options, the recommendation, `because`, `overrule` and the
+`evidence` section; the `candidates` with their rationale, departures and assets; the `departures` from a
+bible rule, a ruling or precedent with their cost; the `assets` in the ASSETS.md shape; the `sections` with
+a title and a one-line lede, arguments collapsed; the page-wide `controls` the dock renders; `lookFirst` as
+an executable walk; `notes` as the builder's; `links {bible, record, track, spec, pages}`); nothing about
+the board is scraped from JSX any more, and `sandbox/registry.test.ts` pins the density limits and refuses
+a spec that imports React, CSS or the board. And `sandbox/<id>/board.tsx`, the client composition:
+`BoardPage({spec, dock, evidence, review})` from `@/components/lab`, the evidence per section as a
+function of the declared state (`useBoardState`), the kit's `Frame`, `Compare` (its `differs` line
+required), `Specimen`, `ApplyToSite`, `CostMeter`, `Walk`, `Paste`, `Loupe`, `SelectTable`, `ConceptCard`,
+`useReplay`, `useMotionState` in place of the board's local copies (`kit-discipline.test.ts` refuses a
+local `Row|Part|Knob|PageFrame|ApplyToSite|CostMeter|Paste|CellLabel|Labeled|Cell|BoardIndex|RuleIndex`
+once the board's id leaves its LEGACY list); no prose before the first section (the template has no slot
+for it); every ask restated from the same array; comparisons name their distinction; captions never sit
+inside the judged area; never zoom, scale or transform a judged specimen (1:1 is the law of the lab).
+Read `sandbox/light/{spec.ts,board.tsx}` and `sandbox/rounding/{spec.ts,board.tsx}` whole first: they are
+the pilots and the model. Keep what is genuinely the board's own (a candidate's engine, a sourcing sheet, a
+scoped token block) and delete the rest of its shell code. No candidate, number or recommendation changes
+in a migration unless the manifest's round says so: the wave moves the argument, it does not re-argue it.
+
+**Registration, three lines you may edit for YOUR board id only** (declared as exceptions in the Handoff;
+the Orchestrator resolves the adjacent-line merges): `sandbox/registry.ts` (import the spec, add it to
+`BOARDS` in the list's existing order), `(shell)/lab/boards.ts` (drop `legacy: true` on your entry),
+`src/components/lab/kit-discipline.test.ts` (delete your id from `LEGACY`). Nothing else outside your
+lane; a shared-file change is asked for in the Handoff with the exact patch.
+
+**Verify.** The board on your dev server at 1440 and 375, light and dark, reduced motion honoured: the
+answer block first with the ask pills linking under the dock; every section anchored and in the dock's
+Sections menu; arguments and pastes collapsed; the walk's steps set the dock and land on their section; a
+copied link reopens the same canvas, candidate and section; the review panel's copied message parses with
+`pnpm lab:review '<line>'` against a SCRATCH copy of `docs/reviews/` (never commit a ledger); `/design/lab`
+queues the board's open asks; the gate green (typecheck, lint, test, build) and `pnpm lab:smoke --base
+http://localhost:<your port>` green. Light QA (Will, 2026-09-14): a lab-only round verifies its board and
+moves on; the red-team belongs to the wiring round. Push freely (no CI on `lp/*`); the preview builds at
+`status: handed-off`.
+
+**Binds.** The bible, the contracts of every component under a path you own, and the policies
+(`/design/library/policies`); everything else is precedent (`docs/design/README.md#what-binds-you`,
+rendered at `/design/library`). Never edit another track's files, `touchpoints.ts`, `rules/bible.ts`,
+CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/design/rulings.md` or
+`docs/reviews/`. No em-dashes and no `font-mono` anywhere a person reads.
+
+**Verify on.** `/design/lab/floating-surfaces` on your dev server at 1440 and 375, light and dark, reduced motion;
+`/design/lab` shows the board's open asks; the gate and `pnpm lab:smoke` green.
+
 
 ## Round 4 (Will's review notes, 2026-09-15)
 
@@ -1165,3 +1224,17 @@ specificity, so the sheet zoomed and the guest drawer was handed a clock on top 
 ground-dependent value was read off `<html>` rather than off the section, so a tooltip on a paper page
 drew the dark shadow. Rounds one to three's three knobs survive as one section, corrected and still
 pasteable, as the ruling for today's primitives if no direction wins.
+
+## Handoff (round 5)
+
+- Head <sha>, pushed; preview partyreel-git-lp-floating-surfaces-partyreel.vercel.app
+- Synced with launch-prep at <sha>
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the three registration lines (exceptions and why)
+- Shared-file changes asked of the Orchestrator: none
+- Assets requested from Will: none
+- Look at first: ...
+
+## Record (round 5; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...

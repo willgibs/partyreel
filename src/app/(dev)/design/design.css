@@ -30,10 +30,8 @@
   on the REAL tokens (globals.css and theme.css through the app's own theme),
   never on a copy. The `.mono` mock sheet of the round-one identity work
   (paper in light, near-black glass in dark), its `font-opt-urbanist` display
-  face and the `[data-dir-root]` wash retired here; the two boards that still
-  paint a `.mono` dark container (marketing-decomposition, marketing-hero-
-  substrate, both retiring to the record in the migration wave) keep the dark
-  override below until they go.
+  face and the `[data-dir-root]` wash retired here; the last `.mono` dark
+  override left with the two legacy marketing boards in the migration wave.
 
   The boards consume these hooks (unscoped: they read the real tokens):
     [data-dir-display] - display/heading type
@@ -190,37 +188,6 @@ html:has(.lab-shell) {
   .lab-chevron {
     transition: none;
   }
-}
-
-/* ───────────────────────── The legacy mono dark ground ─────────────────────
-   Kept ONLY for the two legacy marketing boards' `.mono` dark containers
-   (data-mode="dark", or the global dark theme); deleted with them. */
-:is(.mono[data-mode="dark"], .dark .mono) {
-  --background: oklch(0.14 0 0);
-  --foreground: oklch(0.96 0 0);
-  --card: oklch(0.21 0 0 / 0.62);
-  --card-foreground: oklch(0.96 0 0);
-  --popover: oklch(0.21 0 0);
-  --popover-foreground: oklch(0.96 0 0);
-  --primary: oklch(0.96 0 0);
-  --primary-foreground: oklch(0.15 0 0);
-  --secondary: oklch(0.25 0 0);
-  --secondary-foreground: oklch(0.96 0 0);
-  --muted: oklch(0.245 0 0);
-  --muted-foreground: oklch(0.71 0 0);
-  --accent: oklch(0.25 0 0);
-  --accent-foreground: oklch(0.96 0 0);
-  --destructive: oklch(0.7 0.19 22);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.85 0 0);
-  --brand: oklch(0.96 0 0);
-  --brand-foreground: oklch(0.15 0 0);
-  --success: oklch(0.7 0.16 150);
-  --success-foreground: oklch(0.13 0 0);
-  --warning: oklch(0.84 0.14 82);
-  --warning-foreground: oklch(0.25 0.05 70);
-  --dir-like: oklch(0.68 0.2 15);
 }
 
 /* Card surface: hairline paper in light, glass in dark (unscoped, 2026-09-15). */
