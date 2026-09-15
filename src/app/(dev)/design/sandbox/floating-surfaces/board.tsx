@@ -362,6 +362,9 @@ export function FloatingSurfacesBoard() {
           >
             Replay every entrance
           </button>
+          <span className="text-[11px] text-muted-foreground">
+            The three knobs, as one paste:
+          </span>
           <Apply
             label={contractLabel(contract)}
             css={contractCss(contract, "site")}
@@ -383,7 +386,10 @@ export function FloatingSurfacesBoard() {
         note="Not ui/sheet.tsx: guest/entry-shell.tsx renders a raw vaul drawer with its own radius literal, and it is the first thing every guest sees after the QR. The contract has to reach it or it is not a contract. Beside it is the house sheet on its real side: its one product call site is the marketing mobile menu, which enters from the top, so its two corners are the bottom two. The strip below pins the guest case, one frame per rung, at 1:1."
       >
         <div className="flex flex-wrap gap-4">
-          <div className="flex flex-col gap-2" style={{ flexBasis: 375 }}>
+          <div
+            className="flex min-w-0 max-w-full flex-col gap-2"
+            style={{ flexBasis: 375 }}
+          >
             <p className="text-[11px] font-medium text-muted-foreground">
               The real EntryShell, on the knobs above
             </p>
@@ -426,7 +432,7 @@ export function FloatingSurfacesBoard() {
           {RUNGS.radius.map((r) => (
             <div
               key={r.label}
-              className="flex flex-col gap-1"
+              className="flex min-w-0 max-w-full flex-col gap-1"
               style={{ flexBasis: 375 }}
             >
               <span className="text-[11px] font-medium">{r.label}</span>
@@ -458,7 +464,7 @@ export function FloatingSurfacesBoard() {
           {RUNGS.radius.map((r) => (
             <div
               key={r.label}
-              className="flex flex-col gap-1"
+              className="flex min-w-0 max-w-full flex-col gap-1"
               style={{ flexBasis: 236 }}
             >
               <span className="text-[11px] font-medium">{r.label}</span>
@@ -739,7 +745,7 @@ export function FloatingSurfacesBoard() {
       <Row
         n={9}
         name="Where to walk a candidate"
-        note="A candidate is applied to the whole site, so it is judged where the family actually lives. One block at a time; the newest replaces the last, and the tuner panel clears it too. The lab frames on this board are excluded on purpose, so the rungs above stay honest while a candidate is on."
+        note="A candidate is applied to the whole site, so it is judged where the family actually lives. One block at a time; the newest replaces the last, and the tuner panel clears it too. The lab frames on this board are excluded on purpose, so the rungs above stay honest while a candidate is on. One page is missing: the guest group has no design island, so the event page cannot wear a candidate, and the surface row 1 makes primary is the one page a sitting cannot walk. That is one line in the guest layout and it is in the manifest."
       >
         <ul className="flex flex-col gap-1 text-xs text-muted-foreground">
           {WALK.map((w) => {
@@ -748,6 +754,11 @@ export function FloatingSurfacesBoard() {
             const linkable = !href.includes("[");
             return (
               <li key={w.href} className="flex flex-wrap items-baseline gap-2">
+                {w.carries ? null : (
+                  <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium">
+                    no island
+                  </span>
+                )}
                 {linkable ? (
                   <a
                     className="font-medium text-foreground underline underline-offset-2"

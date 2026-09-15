@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Bell,
-  Check,
+  ChevronDown,
   Images,
   MoreHorizontal,
   Share2,
@@ -459,11 +459,13 @@ function EdgeScene({
           >
             <SheetHeader>
               <SheetTitle>Filter the album</SheetTitle>
-              {compact ? null : (
-                <SheetDescription>
-                  Narrow the gallery down to what you are looking for.
-                </SheetDescription>
-              )}
+              {/* sr-only rather than absent in the compact strip: radix warns
+                  (rightly) when a dialog surface has no description, and a
+                  board that drops an accessible name to save 18px is not a
+                  board anyone should copy. */}
+              <SheetDescription className={compact ? "sr-only" : undefined}>
+                Narrow the gallery down to what you are looking for.
+              </SheetDescription>
             </SheetHeader>
             <div className="flex flex-col gap-2 px-4 pb-6">
               {rows.map((r) => (
@@ -484,12 +486,10 @@ function EdgeScene({
           <DrawerContent className={cls}>
             <DrawerHeader>
               <DrawerTitle>Filter the album</DrawerTitle>
-              {compact ? null : (
-                <DrawerDescription>
-                  The vaul drawer, which no product surface calls through
-                  ui/drawer.tsx.
-                </DrawerDescription>
-              )}
+              <DrawerDescription className={compact ? "sr-only" : undefined}>
+                The vaul drawer, which no product surface calls through
+                ui/drawer.tsx.
+              </DrawerDescription>
             </DrawerHeader>
             <div className="flex flex-col gap-2 px-4 pb-8">
               {rows.map((r) => (
@@ -908,7 +908,7 @@ function RadioScene({ rung }: { rung?: string }) {
             className="w-52 justify-between font-normal"
           >
             {UPLOAD_CHOICES.find((c) => c.value === value)?.label}
-            <Check className="opacity-0" />
+            <ChevronDown className="opacity-60" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent

@@ -117,21 +117,44 @@ export const RUNGS: Record<Dim, { id: string; label: string }[]> = {
 export const RUNG_PREFIX_LENGTH = 6;
 
 /** The pages to walk with a candidate applied, quoted on the board and in the
- *  manifest's Handoff. Each carries a different member of the family. */
-export const WALK: { href: string; what: string }[] = [
+ *  manifest's Handoff. Each carries a different member of the family.
+ *
+ *  `carries` is the honest column. A candidate rides the <style> that
+ *  CandidateStyle renders, and that mounts in exactly three places: the lab
+ *  layout, the marketing cinema island and the host app's island. The GUEST
+ *  group has no island, so /e/<token> cannot wear a candidate at all, and the
+ *  surface this board made primary is the one page a sitting cannot walk. One
+ *  line in src/app/(guest)/layout.tsx fixes it; it is a shell change, so it is
+ *  in the manifest's Handoff rather than done here. */
+export const WALK: { href: string; what: string; carries: boolean }[] = [
   {
     href: "/",
-    what: "the header nav panel (hover Features), and the mobile menu sheet at 375",
+    what: "the header nav panel (hover Features), then the mobile menu sheet at 375, which is ui/sheet.tsx's only product call site",
+    carries: true,
   },
-  { href: "/pricing", what: "the plan tooltips and the FAQ" },
-  { href: "/help", what: "the header nav panel over a paper ground" },
-  { href: "/contact", what: "the select, its one product call site" },
+  {
+    href: "/pricing",
+    what: "the plan tooltips, the highest-frequency surface on the site",
+    carries: true,
+  },
+  {
+    href: "/help",
+    what: "the header nav panel over a paper ground, where the light rungs change sides",
+    carries: true,
+  },
+  {
+    href: "/contact",
+    what: "the select, its one product call site, and the outlier row 7 asks about",
+    carries: true,
+  },
   {
     href: "/dashboard",
     what: "the account dropdown, the event menus and a confirm dialog (signed in)",
+    carries: true,
   },
   {
     href: "/e/[the demo token]",
-    what: "the guest entry drawer at 375, then the report dialog and the share popover",
+    what: "the guest entry drawer at 375. It cannot wear a candidate yet: the guest group has no design island, so row 1 is the only place this surface can be judged",
+    carries: false,
   },
 ];
