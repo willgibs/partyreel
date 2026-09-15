@@ -652,9 +652,9 @@ B's rungs, so any size has a value and no step chooses its own)
 
 ## Handoff (round 3)
 
-- Head: `aa74879`, the review-fix commit, sitting on `2b63080` (the first round-3 handoff) over
-  `9814802` (the sync merge), `b44a6aa` and `77a1e5c`; all pushed. Board at
-  `/design/c/type-scale?key=`.
+- Head: this commit; the board's last code change is `4722151`, over the review-fix commit
+  `aa74879`, `2b63080` (the first round-3 handoff), `9814802` (the sync merge), `b44a6aa` and
+  `77a1e5c`; all pushed. Board at `/design/c/type-scale?key=`.
 - **The read-only review's four should-fixes, all fixed in this pass** (2026-09-14, after the first
   round-3 handoff):
   1. **The stale ask number inside the artifact Will copies.** Round three cut six asks to four and
@@ -715,9 +715,10 @@ B's rungs, so any size has a value and no step chooses its own)
   {type: github, repoId: 1252816746, ref: lp/type-scale, sha: <tip>}`), confirm READY, and check the
   build is round three by curling for **"The four ladders at a glance"**. The ceiling behaves as a
   token bucket rather than a midnight reset: one deployment is granted 14.4 minutes after the last
-  one, to whichever push arrives first. The fix pass spent two tries on it (`aa74879` pushed at 23:37,
-  between tokens; `65f20ab` pushed at 23:46:19 and lost the 23:46:21 token to `lp/rounding` by two
-  seconds), so assume the alias is a build behind when you read this: curl it for the marker BEFORE
+  one, to whichever push arrives first. The fix pass spent three tries on it (`aa74879` at 23:37, pushed
+  between tokens; `65f20ab` at 23:46:19, which lost the 23:46:21 token to `lp/rounding` by two
+  seconds; `4722151` at 00:00:46, which lost the 00:00:47 token to `lp/media-kit` by one), so assume
+  the alias is a build behind when you read this: curl it for the marker BEFORE
   walking, and force the redeploy if the marker is missing. An Agent cannot force one and should not:
   `POST /v13/deployments` is refused to this session by policy, and a deploy is the Orchestrator's
   under the branch protocol, which is why this is written down rather than worked around. **The `launch-prep` alias
