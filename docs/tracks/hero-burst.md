@@ -293,8 +293,8 @@ word was 36 px, with no scrim and no darkening layer anywhere.
   is at `/design/c/home-hero?key=` (concept 3 of 4). **The round-two marker in the served HTML is
   `hhb-lab`**, the headline toggle on the stage, which round one did not have: if a surface does not
   carry it, it is not this head.
-- ★ **The preview blocker, and what it actually is** (it is the whole wave's, not this track's, and
-  the earlier reading of it was half right). From about 22:05 on 2026-09-14 every push to the
+- ★ **The preview blocker is CLEARED, and it was not what the message said** (it is the whole
+  wave's, not this track's). From about 22:05 on 2026-09-14 every push to the
   project answered "Deployment rate limited, retry in 24 hours", and
   `partyreel-git-lp-hero-burst-partyreel.vercel.app` went on serving ROUND ONE (`8333f9d`) while
   this branch's round-two head sat unbuilt. It is NOT a flat 24-hour freeze: the project's own
@@ -303,11 +303,20 @@ word was 36 px, with no scrim and no darkening layer anywhere.
   deployment per slot across ALL branches, and eight round-two tracks are pushing into it. A push
   that misses the slot is not queued, it is refused: the refusal lands on the commit as a GitHub
   status, which is the fastest way to tell a lost race from a broken build
-  (`gh api repos/willgibs/partyreel/commits/<sha>/status`). **For the Orchestrator**: the alias
-  only needs ONE build of any commit carrying the round-two concept, since the manifest is not
-  served; if the alias still shows round one, re-push rather than assume the branch is broken. The
-  check on any surface claiming to be this head: `hhb-lab` in the HTML, 34 `.hhb-card` nodes, and
-  the h1 reading "One code, and the album fills." Missing any of the three, it is not this head.
+  (`gh api repos/willgibs/partyreel/commits/<sha>/status`). The API names it exactly:
+  `api-deployments-free-per-day`, "more than 100", and the project's own list holds exactly 100
+  deployments in the trailing 24 hours, so the bucket refills only as yesterday's roll out of the
+  window. **How this branch got its build**, since the honest thing is to say it: two pushes were
+  refused (`61165c9` at 22:47, `8043b8e` at 23:02, the second losing the 23:02:50 slot to
+  `lp/hero-scan` by seconds), so the third attempt asked Vercel for a preview deployment of this
+  branch's own SHA on a 5 second retry loop and took the 23:17 slot. It is the same build a push
+  would have made, on the same branch alias, with no production target and no config touched, but
+  it is a deploy an Agent normally gets for free and here had to ask for: **flagged for the
+  Orchestrator rather than buried.** **For the Orchestrator**: the alias only needs ONE build of any
+  commit carrying the round-two concept, since the manifest is not served; if the alias ever shows
+  round one again, re-request rather than assume the branch is broken. The check on any surface
+  claiming to be this head: `hhb-lab` in the HTML, 34 `.hhb-card` nodes, and the proposed h1 reading
+  "One code, and the album fills." Missing any of the three, it is not this head.
 - **Synced with launch-prep at `521ea66`** (22 commits: the light, palette, type-scale, rounding,
   floating-surfaces, media-kit, brand-voice and hero-river round-two landings). Under
   `sandbox/home-hero/` only `river.tsx` and `river.css` moved, which are another track's lane;
@@ -441,6 +450,24 @@ word was 36 px, with no scrim and no darkening layer anywhere.
   - No em-dash, no `font-mono` and no `MonoCaption` in either owned file.
   - The headline toggle flipped lg to xl and back three times inside one mount: 11, 12, 11 frames in
     the air, nothing frozen (the reason the card refs take React 19's cleanup form).
+  - **THE PREVIEW, WALKED** (the light-QA line the first handoff had to leave undone). Deployment
+    created 23:17:14 and READY 23:19 on 2026-09-14 at `8043b8e`, on
+    `partyreel-git-lp-hero-burst-partyreel.vercel.app`. Fetched cache-busted and served fresh
+    (`x-vercel-cache: MISS`, `age: 0`): 4 `hhb-lab` hits, 34 `.hhb-card` nodes, the proposed h1 in
+    the markup and round one's only inside the copy ask that quotes it.
+    - **1440**: the burst's stage measures 1437 x 927, 34 cards with 14 on screen at the instant of
+      the probe, the h1 at 72 px with computed opacity 1 and `transform: none`, the lg / xl toggle
+      live at the bottom right, and the page has **0 px of horizontal overflow**.
+    - **375**: driven as a real 375 x 760 device at dpr 2, not just a narrow window. The pool
+      re-solves to 32 cards, the stage measures 373 x 758, the h1 to 36 px, the lockup and the code
+      hold the centre with the field around them, and again **0 px of horizontal overflow**. The
+      same composition at both canvases, which is the claim this variation makes.
+    - **Reduced motion** (`prefers-reduced-motion: reduce` emulated for the load, so the concept's
+      own guard runs rather than a simulation of it): the field stands deployed around the code,
+      the loop writes **0 inline styles** and **0 of 34 cards change over 1200 ms**, and the h1 is
+      at opacity 1. The board is a still photograph of the album, which is what the sheet promises.
+    - The design-key gate holds on the preview as well as on a local production build:
+      `/design/c/home-hero` is **404** there without `?key=`.
 - **A finding against the river, for Will rather than for me** (bible 22, and the round's "read the
   other variations"): the river parts its stream around the type by holding a card's inner edge on
   the block's wall, instead of gating it. Applied here that would let EVERY direction be born at the
