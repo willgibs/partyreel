@@ -1,7 +1,7 @@
 ---
 track: album-hero
 status: open
-cut: "c473707"
+cut: "1b647d76"          # round 2 cut from origin/launch-prep
 merged_round_1: "bd5f63b5"
 preview: false           # Will reviews this board on its preview as it builds (once Vercel's window frees)
 owns:
@@ -22,6 +22,11 @@ reads:
   - docs/decisions/design-record.md
   - docs/reviews/README.md
   - docs/design/README.md
+  - src/app/(dev)/design/sandbox/home-hero/shared.tsx
+  - src/components/guest/
+  - src/components/marketing/
+  - src/app/(marketing)/(cinema)/features/album/
+  - src/lib/constants/feature-pages.ts
 
 ---
 
