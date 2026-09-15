@@ -212,8 +212,10 @@ The board, plus the rewritten contract in the Record. Read `components/ui/*`; ch
   clamp (every animation and transition to 0.01ms, `!important`) carried since 2026-06-11,
   and that guard's own comment calls a component-level gate the first line. Round two's
   `REDUCED_MOTION_CSS` is that gate, ready to paste. (Round one recorded this as an open
-  HOLE, which it is not: measured on the board with the preference forced, all 36 floating
-  surfaces come back at 0.01ms.)
+  HOLE, which it is not: measured on the board with the preference forced, every floating
+  surface comes back at 0.01ms. The 36-across-19 figure this line used to quote was round
+  two's board; round three's counts 30 and the re-measure at handoff counted 29, because a
+  census counts the panels open when it runs.)
 - App-polish bucket: `ui/tooltip.tsx`'s arrow takes a literal `rounded-[2px]` instead of a
   token (bible 8), the one literal radius left on the floating layer.
 - App-polish bucket: `ui/navigation-menu.tsx`'s viewport cannot size itself outside the
@@ -224,9 +226,6 @@ The board, plus the rewritten contract in the Record. Read `components/ui/*`; ch
   `calc(var(--radius-action) * 1.4)`, and bypasses `ui/drawer.tsx` entirely, so the
   guest's own surface sits outside both the token law (bible 8) and the floating-layer
   contract (bible 15).
-- Lab bucket (round 2): the guest route group has no design island, so a board's
-  candidate block cannot be walked on `/e/<token>`, the surface a guest actually meets.
-  One `<AppDesignIsland />` in `src/app/(guest)/layout.tsx` closes it.
 - Lab bucket (round 2): the board shell has no VIEWPORT stage (an iframe at the canvas's
   true pixels) beside `Stage`, so every board that renders a portalled layer rebuilds
   `frame.tsx` from scratch.
@@ -522,8 +521,20 @@ rescue.
   The row-2 caption "The finding the round turned on, at 6x" is NOT a marker, and an earlier draft of
   this handoff was wrong to name it: that line is verbatim in round two (`board.tsx:461` on
   `launch-prep`), so it tells the two rounds apart not at all.
-- **Synced: `launch-prep` had NOT moved.** It is still at `dd4aa0b`, the SHA this branch was cut
-  from, so there is nothing to merge and the gates below ran on the tree as it will land.
+- **Synced with `launch-prep` at `fb395fe`** (merge `b624c23`); it had moved 21 commits past the
+  `dd4aa0b` this branch was cut from. An earlier draft of this handoff said it had not moved, which
+  was false, and the track handed off unsynced: `launch-prep` moved to `fb395fe` about 80 minutes
+  before round three's last code commit. The merge is clean and the gates below were re-run on the
+  merged tree. Nothing in this lane collided: the 21 commits are other tracks' boards, `docs/`,
+  `public/design/media-kit/` and the two layouts in the next bullet, and neither
+  `src/components/ui/`, `globals.css` nor `theme.css` moved, so every rung, every arithmetic line
+  and every number on the board is what it was before the sync.
+- **`launch-prep` fixed this board's guest-island finding while round three was open.** `fb395fe`
+  ("lab: the candidate block reaches the guest surface and the admin portal") mounts
+  `<AppDesignIsland />` in `src/app/(guest)/layout.tsx` and `src/app/admin/layout.tsx`, which is
+  exactly the one line round three asked the Orchestrator to carry. Five places on this track said
+  otherwise and are corrected below: row 9's note, the "no island" badge (the `carries` column is
+  gone with the gap it described), the carry item, the Light QA bullet, and the deferred one-liner.
 - **The preview alias serves ROUND TWO, and no preview will build for this head. Not this track's
   to fix, so here is how the board was verified instead.** The alias is pinned at `943473b` (round
   two) because the project sits at Vercel's daily deployment ceiling: `POST /v13/deployments`
@@ -537,13 +548,26 @@ rescue.
   was sized to a 1440 viewport and the board scrolled end to end. **At 375**, since a Chrome window
   will not go below 500px wide, the board was loaded in a 375-wide same-origin iframe on the same
   local server: a real 375 layout viewport, so the `sm:` breakpoints resolve the way a phone
-  resolves them, and every frame and panel inside is readable off `contentDocument`.
-- Gates on the synced tree at this head: typecheck ok, lint ok (0 errors, 6 warnings, all
-  pre-existing and outside the lane), test ok (1719 in 193 files), build ok (248 static pages).
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = this file plus four files of
-  `src/app/(dev)/design/sandbox/floating-surfaces/` (`board.tsx`, `candidates.ts`, `frame.tsx`,
-  `scenes.tsx`). No exceptions; nothing under `src/components/ui/` was touched, and every candidate
-  still reaches the primitives from outside.
+  resolves them, and every frame and panel inside is readable off `contentDocument`. **Still true
+  after the sync:** the third pass was told the project is still at the daily deployment cap and not
+  to call the Vercel API, so it re-walked this head the same way, on `pnpm build` + `next start` in
+  this worktree. At 1440 the board mounts all 18 frames with `scrollWidth - clientWidth` at 0 and
+  row 9 renders its six pages with no badge; at 375 (the same 375-wide iframe, `innerWidth` exactly
+  375) there is no horizontal overflow at any scroll position, the control bar still computes
+  `position: static`, the frame column is still 343 wide, and 17 of the 18 frames mount, the
+  desktop-canvas frame being the one that does not belong at that width. Reduced motion was
+  re-forced on THIS head rather than quoted: 1165 `prefers-reduced-motion` rules flipped across the
+  board and all 18 frame documents, and every one of the 29 floating surfaces open at the moment of
+  the census computes an animation and a transition duration of 0.01ms or less. Row 8's count of 30
+  is not wrong; a census counts what is on screen when it runs, and the surface this one misses is
+  the sonner toast, which is in the DOM only while it is showing.
+- Gates on the MERGED tree at this head: typecheck ok, lint ok (0 errors, 6 warnings, all
+  pre-existing and outside the lane), test ok (1761 in 197 files, up from 1719 in 193 because the
+  sync brought the media-kit track's own tests), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = this file plus five files of
+  `src/app/(dev)/design/sandbox/floating-surfaces/` (`board.tsx`, `candidates.ts`, `constants.ts`,
+  `frame.tsx`, `scenes.tsx`). No exceptions; nothing under `src/components/ui/` was touched, and
+  every candidate still reaches the primitives from outside.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
 - Assets requested from Will: none. The board judges a layer over content and the real event
   photographs in `public/marketing/img/` are the right content for it; nothing here is a stand-in.
@@ -601,11 +625,24 @@ in Chrome, plus the same walk in dev.**
     knobs) injected into the page for the walk: the real host-app dropdown opens at
     `border-radius: 8px` running `flt-slip-in` for 90ms on both. Injected per page, never written to
     the alias's stored candidate, so nothing persists there for the next person.
-  - The demo guest page (`/e/<demo token>`, local build): **it carries nothing, and now that is
-    measured rather than read off the layout file.** No candidate `<style>` in the document,
-    `--flt-r` unset, no island script. This is the evidence for carry item 1 below: the `(guest)`
-    layout mounts no design island, so the surface this board makes primary is the one page a
-    sitting cannot walk.
+  - The demo guest page (`/e/<demo token>`, local build): **it carries a candidate now, measured
+    on the merged tree rather than read off the layout file.** Round three measured the opposite
+    here and was right at the time; `launch-prep`'s `fb395fe` landed the island, so the fourth pass
+    re-measured: the candidate `<style>` is in the document, `:root` computes `--flt-r` `.5rem`,
+    `--flt-r-item` `calc(.5rem - 4px)` and `--flt-r-lg` `calc(.5rem * 2)`, and the key-gated tuner
+    panel shows the block with its clear button. At a real 375 layout viewport (the page in a
+    375-wide same-origin iframe) the guest surface takes the rung two ways: the entry drawer's own
+    attribute, `[data-entry-drawer]`, computes `border-top-left-radius: 16px` with the block on and
+    `22.4px` with it off and 16px again when it is put back, which is the shipped
+    `calc(var(--radius-action) * 1.4)` literal giving way to the rung and taking it back; and the
+    album's own Invite dialog, a real floating surface on the real page, opens at `border-radius:
+    16px` running `flt-zoom-in` for 220ms, against the stock `enter` with the block off.
+  - **One thing the demo link cannot show, found while measuring it.** The entry drawer never opens
+    on the DEMO event at all: `computeEntry` returns no steps when `isDemo` (or when the viewer is
+    the owner), so the welcome and the gate are skipped and `[data-entry-drawer]` is never in that
+    page's DOM. The candidate reaches it by selector, which is what the A/B above measures, but to
+    watch the drawer itself arrive you need a non-demo event link or row 1, which is where the board
+    points. Row 9 says this on its face rather than leaving a walker pressing Add photos.
   - The stored candidate was cleared afterwards (the board's own "Applied to the site, clear"), so
     the lab is handed over clean.
 - No em-dash in the served text; no `font-mono`; no `<BorderBeam`, `glw-warp` or `<GlowFilter />`
@@ -662,15 +699,26 @@ all three radius rungs by itself and row 2 re-measures them off the live DOM.
    after the candidate and departure lists were cut to what has to be ruled on.
 7. **The asks are one word each** and the departures are only the four Will must rule on. The build
    findings moved down here, where the Orchestrator reads them.
+9. **A third pass, after a read-only re-review found the round had handed off unsynced and left one
+   finding stale.** `launch-prep` had moved 21 commits, so it is merged in (`b624c23`) and the whole
+   gate re-ran on the merged tree; the sync bullet above claimed the opposite and is corrected. The
+   merge brought in `fb395fe`, which mounts the design island on the `(guest)` and `/admin` layouts:
+   that is this board's own carry item, so five places that asserted the guest album "cannot wear a
+   candidate" were asserting something false and are corrected rather than repeated. Row 9's note
+   now says every page on the list wears a candidate and points at the guest line; the `carries`
+   column and its "no island" badge are DELETED rather than flipped to true, because a column that
+   reads true everywhere tells a reader nothing; the `WALK` comment in `constants.ts` says what
+   closed the gap and when; the carry item is marked done; the deferred one-liner is gone. The pass
+   also found the one thing the demo link still cannot show (`computeEntry` skips the entry flow
+   entirely on a demo event) and put it on row 9's face, so nobody walks that line pressing Add
+   photos and waiting for a drawer that is never mounted.
 
-**Four things the Orchestrator should carry (all outside this lane):**
+**Three things the Orchestrator should carry (all outside this lane).** Round three listed four;
+the first, one line in `src/app/(guest)/layout.tsx` mounting `<AppDesignIsland />`, is DONE, landed
+on `launch-prep` at `fb395fe` (on `src/app/admin/layout.tsx` too) while this round was open. It is
+verified on the merged tree in the Light QA bullet above and nothing here is waiting on it.
 
-1. **One line in `src/app/(guest)/layout.tsx`: mount `<AppDesignIsland />`.** `CandidateStyle` mounts
-   in exactly three places (the lab layout, the marketing cinema island, the host app's island), so
-   the GUEST group cannot wear a candidate at all. The surface this board makes primary, the entry
-   drawer at `/e/<token>`, is therefore the one page a sitting cannot walk. The island is already
-   key-gated, server-validated and lazy, so the cost is one import. Row 9 says so on its face.
-2. **The frame belongs in the shell.** `frame.tsx` + `page.tsx` + the `flt-cover` rules are a second
+1. **The frame belongs in the shell.** `frame.tsx` + `page.tsx` + the `flt-cover` rules are a second
    kind of stage and should move into `src/components/dev/board/` beside `Stage`: a VIEWPORT (an
    iframe laid out at the canvas's true pixels, running a gated scene route in its own document),
    because a radix panel portals to `globalThis.document.body` and leaves any zoom-fitted div, its
@@ -680,12 +728,12 @@ all three radius rungs by itself and row 2 re-measures them off the live DOM.
    frame document's resident ground owner; the cover plus `nextjs-portal` hide; and round three's two
    additions, `useMountOnApproach` (row-level mounting, with the display-contents trap it fell into
    written down) and the "canvas at N%" badge. NOT this board's scenes, candidates or ramps.
-3. **`docs/specs/floating-surfaces.md` needs its option lists trimmed at integration.** The
+2. **`docs/specs/floating-surfaces.md` needs its option lists trimmed at integration.** The
    published proposal still offers the round-two rung sets in its angle brackets: line 36 lists
    "origin true 200/130" and line 39 lists "a lit edge", both cut this round, and line 39's
    "lighter is closer" is the baseline rather than a rung. The radius line (three rungs) is
    unchanged. The spec is not in this lane's `owns`, so it is named here rather than edited.
-4. **Two small ones.** `BoardMeta`'s `grid-cols-[8rem_minmax(0,1fr)]` is not responsive: at 375 the
+3. **Two small ones.** `BoardMeta`'s `grid-cols-[8rem_minmax(0,1fr)]` is not responsive: at 375 the
    label column eats 128 of 343 and every meta line wraps to three. A `sm:` on the two-column form
    would fix every board at once. And the touchpoint blurb for this board still says "All nine
    primitives ... three ladders at 1:1": the family is TEN (the guest entry shell) and there are two

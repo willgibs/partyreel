@@ -119,42 +119,37 @@ export const RUNG_PREFIX_LENGTH = 6;
 /** The pages to walk with a candidate applied, quoted on the board and in the
  *  manifest's Handoff. Each carries a different member of the family.
  *
- *  `carries` is the honest column. A candidate rides the <style> that
- *  CandidateStyle renders, and that mounts in exactly three places: the lab
- *  layout, the marketing cinema island and the host app's island. The GUEST
- *  group has no island, so /e/<token> cannot wear a candidate at all, and the
- *  surface this board made primary is the one page a sitting cannot walk. One
- *  line in src/app/(guest)/layout.tsx fixes it; it is a shell change, so it is
- *  in the manifest's Handoff rather than done here. */
-export const WALK: { href: string; what: string; carries: boolean }[] = [
+ *  EVERY page on this list wears a candidate now, the guest album included.
+ *  A candidate rides the <style> that CandidateStyle renders, and round two
+ *  found it mounted in only three places (the lab layout, the marketing cinema
+ *  island, the host app's island), which left /e/<token> unable to wear one at
+ *  all. launch-prep closed that at fb395fe: AppDesignIsland mounts on the
+ *  (guest) layout and on /admin too, so the surface this board makes primary
+ *  is walkable with a rung on. There was a `carries` column here saying which
+ *  pages could not; it is gone with the gap it described. */
+export const WALK: { href: string; what: string }[] = [
   {
     href: "/",
     what: "the header nav panel (hover Features), then the mobile menu sheet at 375, which is ui/sheet.tsx's only product call site",
-    carries: true,
   },
   {
     href: "/pricing",
     what: "the plan tooltips, the highest-frequency surface on the site",
-    carries: true,
   },
   {
     href: "/help",
     what: "the header nav panel over a paper ground, where the light rungs change sides",
-    carries: true,
   },
   {
     href: "/contact",
     what: "the select, its one product call site, and the outlier row 7 asks about",
-    carries: true,
   },
   {
     href: "/dashboard",
     what: "the account dropdown, the event menus and a confirm dialog (signed in)",
-    carries: true,
   },
   {
     href: "/e/[the demo token]",
-    what: "the guest entry drawer at 375. It cannot wear a candidate yet: the guest group has no design island, so row 1 is the only place this surface can be judged",
-    carries: false,
+    what: "the guest entry drawer at 375, the surface most people on this product will ever meet. It wears a candidate now (the guest layout mounts the island since launch-prep fb395fe), and every radius rung reaches it through [data-entry-drawer]",
   },
 ];

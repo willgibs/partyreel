@@ -927,7 +927,7 @@ export function FloatingSurfacesBoard() {
       <Row
         n={9}
         name="Where to walk a candidate"
-        note="A candidate is applied to the whole site, so it is judged where the family actually lives. One block at a time; the newest replaces the last, and the tuner panel clears it too. The lab frames on this board are excluded on purpose, so the rungs above stay honest while a candidate is on. One page is missing: the guest group has no design island, so the event page cannot wear a candidate, and the surface row 1 makes primary is the one page a sitting cannot walk. That is one line in the guest layout and it is in the manifest."
+        note="A candidate is applied to the whole site, so it is judged where the family actually lives. One block at a time; the newest replaces the last, and the tuner panel clears it too. The lab frames on this board are excluded on purpose, so the rungs above stay honest while a candidate is on. Every page below wears a candidate, the guest album included: round two found the (guest) group had no design island, so the surface row 1 makes primary was the one page a sitting could not walk, and launch-prep mounted the island there (and on /admin) at fb395fe. So walk the last line too, at 375, where a radius rung reaches the entry drawer through [data-entry-drawer]."
       >
         <ul className="flex flex-col gap-1 text-xs text-muted-foreground">
           {WALK.map((w) => {
@@ -936,11 +936,6 @@ export function FloatingSurfacesBoard() {
             const linkable = !href.includes("[");
             return (
               <li key={w.href} className="flex flex-wrap items-baseline gap-2">
-                {w.carries ? null : (
-                  <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium">
-                    no island
-                  </span>
-                )}
                 {linkable ? (
                   <a
                     className="font-medium text-foreground underline underline-offset-2"
