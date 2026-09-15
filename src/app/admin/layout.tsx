@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import { AppDesignIsland } from "@/components/dev/app-design-island";
 import { MfaChallenge } from "@/components/admin/mfa-challenge";
 import { MfaEnroll } from "@/components/admin/mfa-enroll";
 import { Logo } from "@/components/shared/logo";
@@ -68,6 +69,9 @@ export default async function AdminLayout({
   return (
     <AdminShell email={ctx.email} alerts={{ support, applicants, reports }}>
       {children}
+      {/* Key-gated, inert otherwise: a board's candidate block on the portal's
+          own pages (the second round, 2026-09-15). */}
+      <AppDesignIsland />
     </AdminShell>
   );
 }

@@ -1,7 +1,8 @@
 ---
 track: type-scale
-status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+status: integrated
+cut: "a058ab4"
+merged: "3faf6ad"      # the branch head merged into launch-prep
 merged_round_2: "c97d799"
 merged_round_1: "5186fb8"
 preview: true           # Will reviews this board on its preview as it builds
@@ -207,8 +208,8 @@ The board, plus the token table in the Record. Read `page-hero.tsx`, `section-sh
 
 - Bucket "App polish the gallery's declarations surfaced": `shared/not-found-screen.tsx:55` is the
   one h1 on the site without `font-heading`, so the 404 title renders in Inter while every other
-  page title is Urbanist; the wiring round should sweep it with the ladder. Round two put it ON the
-  board (stage 14) and in every paste, so it is now ask 5 rather than a silent sweep: if Will rules
+  page title is Urbanist; the wiring round should sweep it with the ladder. It is ON the board
+  (stage 10 of 11) and in every paste, so it is ask 4 of 4 rather than a silent sweep: if Will rules
   it onto the ladder the deferred line closes with the wiring, and if he rules it off the line
   stays as the documented exception.
 
@@ -652,15 +653,227 @@ B's rungs, so any size has a value and no step chooses its own)
 
 ## Handoff (round 3)
 
-- Head <sha>, pushed; preview partyreel-git-lp-type-scale-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: this commit; the board's last code change is `4722151`, over the review-fix commit
+  `aa74879`, `2b63080` (the first round-3 handoff), `9814802` (the sync merge), `b44a6aa` and
+  `77a1e5c`; all pushed. Board at `/design/c/type-scale?key=`.
+- **The read-only review's four should-fixes, all fixed in this pass** (2026-09-14, after the first
+  round-3 handoff):
+  1. **The stale ask number inside the artifact Will copies.** Round three cut six asks to four and
+     the paste still called the 404 "the fifth ask". A number about a list now comes FROM the list:
+     `askOrdinal()` in `ladders.ts` reads the position off `ASKS`, the paste's comment, the
+     departure and stage 10's rationale all call it, and a new case in `ladders.test.ts` recomputes
+     the position with its own word list and fails on any other ordinal in any of the five blocks.
+     Verified in the browser on the applied block: the injected sheet parses to 13 rules and says
+     "fourth ask".
+  2. **The ROADMAP one-liner's two stale numbers** (below, under Deferred): the 404 is stage 10 of
+     11 and ask 4 of 4, not stage 14 and ask 5.
+  3. **The round's item (2), which the first handoff dropped**, is the bullet below.
+  4. **The preview**, in the bullet after that: the fix push is the retry, and the forced redeploy is
+     still the Orchestrator's if the ceiling eats it.
+- **Item (2) of the brief: what the other boards changed here.** The wave's five specs
+  (`palette`, `light`, `floating-surfaces`, `brand-voice`, `media-kit`) and every open track's
+  latest Handoff were re-read. It is on the BOARD as the last Departures line, which is the standing
+  rule, and not only here. Two things moved.
+  1. **The lab compiles no responsive heading rung** (the brand-voice board's shell finding:
+     `design.css` scans only `src/app/(dev)/design`, so a `PageHero` on a stage can render at its
+     base size). It does not reach these stages, and that is now measured rather than assumed: a
+     probe at 1440 and again at 375 compared all 21 `[data-tsc-step]` probes' `--tsc-size` with the
+     computed font-size inside them and every one matched within 0.6px, because this board hands the
+     production component its size as a custom property instead of a Tailwind rung. Worth carrying
+     to the wiring round anyway: it is true of every board that stages a marketing component.
+  2. **Marketing has a tier no paste reaches, and the kill-mono sweep added to it.** Sixteen
+     hand-rolled headings ship `font-heading text-3xl sm:text-4xl` (30 / 36) and stop one rung short
+     of `SectionShell`'s own ramp: the feature sections (album, guests, qr, sharing), `careers-story`
+     (3), the marketing footer (2), the reel's guest-share section, `route-error`, and the stat
+     register that kill-mono moved onto the heading face on 2026-09-14. No hook aims at them, and
+     aiming the section step at them would GROW them from 36 to 48 and make Today's block move the
+     real site, which is the control this board rests on, so they are the wiring round's sweep and
+     not a hook. Named on the board beside the walk links, where a reviewer would otherwise read a
+     section that did not budge as a broken paste.
+  Two things did not move. The voice board's two candidate theses are both about thirty characters
+  (`SITE_THESIS` is already "The whole event, in one album.", the shape the voice guide recommends
+  keeping), so the lockup stage counts the same lines whichever it rules; and the hero-scan board
+  measured the shipped h1 at 96px over 97.92px of leading, which is today's hero step (96 at 1.0)
+  wearing `cinema-hero`'s hand-rolled `leading-[1.02]`, an independent confirmation of fault two.
+  `palette`, `light`, `floating-surfaces` and `media-kit` propose nothing that moves a size, a
+  leading or a tracking; floating-surfaces' shared wall is the `CandidateStyle` mount, already
+  carried below. There was no reviewer-findings block under "Handoff (round 2)" to re-read: round
+  two's review landed as the specificity fix recorded in "Handoff (round 1)", which round three
+  re-verified (the cross case still holds).
+- ★ **The preview alias served ROUND TWO at the first handoff; the fix push is the retry, and a
+  forced redeploy is the Orchestrator's.** The project is at Vercel's ceiling of 100 deployments a
+  day, so slots free one at a time at a near-exact 14.4-minute cadence (21:49:42, 22:04:10, 22:18:42,
+  22:33:19, 22:48:02, 23:02:50, 23:17:14 on 2026-09-14, every one of them taken by another track's
+  push). Round three's three pushes each landed between slots and produced ZERO deployments, which is
+  why the alias still served round two's `2aa727b`; the honest statement is not "no push of mine can
+  deploy today" (other branches did) but "a push deploys only if it coincides with a freed slot".
+  Same cause the floating-surfaces track recorded at `943473b`. **Walk round three locally until an
+  alias catches up**: `pnpm dev` in this worktree, then
+  `http://localhost:<port>/design/c/type-scale?key=`; the lab is in no allow-list, so localhost
+  renders the tip exactly, "Apply to the site" included, which is where both QA passes below were
+  measured. For the Orchestrator, and it is mandatory before Will walks anything, because this branch
+  is handed off and pushes no more: force a redeploy at the tip (`POST /v13/deployments`, `gitSource
+  {type: github, repoId: 1252816746, ref: lp/type-scale, sha: <tip>}`), confirm READY, and check the
+  build is round three by curling for **"The four ladders at a glance"**. The ceiling behaves as a
+  token bucket rather than a midnight reset: one deployment is granted 14.4 minutes after the last
+  one, to whichever push arrives first. The fix pass spent three tries on it (`aa74879` at 23:37, pushed
+  between tokens; `65f20ab` at 23:46:19, which lost the 23:46:21 token to `lp/rounding` by two
+  seconds; `4722151` at 00:00:46, which lost the 00:00:47 token to `lp/media-kit` by one), so assume
+  the alias is a build behind when you read this: curl it for the marker BEFORE
+  walking, and force the redeploy if the marker is missing. An Agent cannot force one and should not:
+  `POST /v13/deployments` is refused to this session by policy, and a deploy is the Orchestrator's
+  under the branch protocol, which is why this is written down rather than worked around. **The `launch-prep` alias
+  is further behind still: it serves round ONE of this board** (eleven stages, no Apply bar), which
+  is the same ceiling, so round two was never walkable there either.
+- Marker, so a reviewer can tell which round a build serves: round three renders
+  **"The four ladders at a glance"** and **"The board's answer, if you want the short version"**.
+  Neither string exists in round two or round one.
+- Synced with `launch-prep` at `dd4aa0b` (it had moved by 30 files since the `a058ab4` cut: six track
+  manifests, `docs/specs/brand-voice.md` and five other boards' sandboxes). Nothing it landed touches
+  a path in this track's `reads`, and the merge was clean.
+- Gates on the synced tree, re-run after the review fixes: typecheck ok, lint ok (0 errors, 6
+  pre-existing warnings, none in this lane), test ok (1733 in 193 files; `ladders.test.ts` is 76
+  cases, 14 of them round three's, the newest being the ask-ordinal guard), build ok.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the four files under
+  `src/app/(dev)/design/sandbox/type-scale/` plus this manifest. No exceptions. (`board.css` did not
+  need to change: round two's doubled `[data-tsc][data-tsc]` chain still outranks every paste, and
+  `ladders.test.ts` still computes that rather than asserting it.)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. Lab only, as briefed: not one
+  production byte changed. `page-hero.tsx`, `section-shell.tsx`, `page-heading.tsx`, `card.tsx`,
+  `not-found-screen.tsx`, `globals.css`, `theme.css` and `marketing.css` were read and left alone.
+- Assets requested from Will: none. A type board needs no asset, and the one ask that could have
+  wanted one (a licensed display face) is answered on the board: the pairing holds.
+- The asks, verbatim from BoardMeta (four now, not six; the Orchestrator quotes them under Waiting on
+  Will):
+  - "The marketing ladder: B rungs, C registers, A tuned or today"
+  - "The app ladder: B rungs, C registers, A tuned or today"
+  - "The tracking law: adopt, or keep the flat -0.03em"
+  - "The 404's h1: put it on the ladder, or leave it off"
+- **The board answers all four itself now, with the one thing that would overrule each** (the panel
+  at the top, `ASKS` in `ladders.ts`): marketing **B**, the app **B**, the law **adopt**, the 404
+  **on the ladder**. Overrule the two ladder answers with **C** (the front of the site as a poster,
+  or the app chrome quieter than today); overrule the law with the simplicity of one constant;
+  overrule the 404 to keep it a documented exception. So a ruling can be "all four as proposed", and
+  a disagreement is still a few words.
+- **Two asks were CUT, and why.** The app's floor asked Will to rule on C's 14px card title, which C
+  stopped proposing inside round two: the floor is a law every ladder obeys and `ladders.test.ts`
+  pins it, so there was nothing left to choose. The face pairing asked him to rule on a question the
+  board answers with evidence: the verdict (the pairing holds, the constant is the fault) is a
+  departure now and its evidence sits under the tracking law on the last stage. An ask whose answer
+  is already made is an ask he has to read past.
+- **Five stages were cut, and why.** The PageHero hero (the hero step is judged on the lockup stage
+  beside the ramp the site actually hand-rolls, and the paste puts it on the real home page); the
+  /help masthead (the same title step as the feature page, and /help is one click away in the walk);
+  the admin page (the same two app steps as the dashboard, and its label idiom is already on the
+  missing-middle stage); C's app registers (round two's reconsideration settled it, and a rejected
+  proposal kept on the board is a paragraph to read past); the pairing stage (folded under the
+  tracking law, which is the same evidence read twice). Sixteen became eleven in four acts.
+- **What round three added, and why each earns its place.** (1) The answer panel, so the board says
+  what it would ship before it asks. (2) "The four ladders at a glance": all nine steps of all four
+  ladders at the selected canvas, with a bar per cell and today's four faults ticked per column, all
+  computed by `fixes()` from the ladder data and never declared beside it. Clicking a column selects
+  that ladder, so the comparison is also the control. (3) The strongest first: `LADDERS` is now
+  `[B, C, A, today]` and the board OPENS on B rather than on the control.
+- **The cold walk's real findings, each fixed.** (a) Two walk links were DEAD. `/admin` mounts no
+  design island and `/nothing-here` resolves to the ROOT `app/not-found.tsx`, outside both the
+  marketing and the app layouts, so a candidate never reached either: clicking them read as a broken
+  paste. Verified both ways on a real page, measured off the DOM: with C applied, `/nothing-here`
+  carries no `style[data-tuner-candidate]` at all and its h1 stays Inter 600 at 36px, while
+  `/events/not-a-real-event` (a MARKETING 404, inside the cinema layout) renders that same h1 in
+  Urbanist 700 at 40px, which is C's section step. The walk links to the marketing 404 now, and the
+  three surfaces a paste cannot reach are named ON the board with the reason, so a missing island is
+  never read as a broken block. (b) At 1440 A. Tuned carries every size the site ships, so toggling
+  to it moves nothing but the leading and the tracking, which reads as a dead control; the specimen
+  now counts what a ladder moves at the canvas you are on ("moves 0 of today's 8 sizes") and the
+  glance table says the column IS today's column, both computed. (c) The apply bar carried eleven
+  controls in one row; the five per-block copy buttons became one line that appears once a block is
+  applied. (d) At 375 every specimen row's "where it lives" caption wrapped to four lines and pushed
+  that stage past 1,400px; the glance table above carries the same line for all nine steps, so the
+  phone specimen drops it.
+- **Cost, measured rather than claimed.** Every stage's ink was measured off the DOM under all four
+  ladders at both canvases and each desktop canvas cut to it (the dashboard was 243px of ink inside
+  520; the law stage 938 inside 1169). Two canvases stay deliberately roomy and say so in a comment:
+  the marketing sections keep a real 930px viewport, and the app stages keep a real 760px phone one.
+  The walk is **10,450px on the desktop canvas and 14,089px on the phone one**, down from 11,847 and
+  17,412, measured at the same 992px lab column, with the whole ruling inside the first screen and a
+  half. The board declares no keyframes and runs no animation of its own: after the toggles settle,
+  `document.getAnimations()` holds two entries and both are the LAB SHELL's theme button, zero inside
+  `[data-tsc]`, so the composition is identical with and without reduced motion.
+- Light QA, measured rather than eyeballed, on `pnpm dev` from this worktree at 1440 and 375 under
+  all four ladders (8 combinations): no vertical crop and no horizontal overflow on any of the 11
+  stages, and every heading and card title renders the size its own stage declares to within 0.6px
+  (a generic probe that compares each `[data-tsc-step]`'s `--tsc-size` with the computed font-size of
+  the heading inside it). The cross case still holds after the cuts: with C applied to the whole site
+  and the board toggled to B, every stage still reads B at both canvases, so round two's specificity
+  fix survived. The paste itself is unchanged and still correct on the real site: C applied gives the
+  real home page a 120px hero at a leading of 105.6px and -5.4px of tracking, which is C's 120 at
+  0.88 and -0.045em, and its section h2 40px at -1.2px.
+- Re-verified after the review fixes, on `pnpm dev` from this worktree at 1440 and again at 375: all
+  21 step probes match their declared size within 0.6px at both canvases, the page has zero
+  horizontal overflow, `document.getAnimations()` is empty (nothing on this board animates, so
+  reduced motion gets the same composition), BoardMeta renders four asks and six departures, and B
+  applied injects one stylesheet that parses to 13 rules and names the 404 "the fourth ask". The only
+  moving parts in the fix pass were three strings, a derived ordinal and one test.
+- **For the Orchestrator, four things outside this lane (the first two carry over from round two):**
+  1. `docs/specs/type-scale.md` still carries ROUND ONE's tables (C's card step at 14, no law-alone
+     table) and round one's six asks including the two cut here. Replace its block with the Record
+     below, which `tokenTable()` generates, and its ask list with the four above.
+  2. `touchpoints.ts` describes this board as "Eleven stages driving the production components ...
+     the dashboard, an event page and admin". Eleven is right again by coincidence, but /help and
+     admin are walk links now, not stages, and the board applies to the site. One line at
+     integration; the file is the Orchestrator's.
+  3. Marketing's own missing tier, found in round three: sixteen hand-rolled headings at
+     `font-heading text-3xl sm:text-4xl` (30 / 36) stop one rung short of `SectionShell`'s ramp (the
+     four feature families, `careers-story`, the marketing footer, the reel's guest-share section,
+     `route-error` and the stat register kill-mono moved onto the heading face). The wiring round
+     sweeps them onto the ruled section step; a paste must NOT, because growing them 36 to 48 would
+     make Today's control block move the real site.
+  4. The wiring round needs the three one-line HOOKS round two asked for (`data-slot="page-heading"`
+     on PageHeading, `data-scale={scale}` on PageHero and SectionShell, and a named atom for the
+     app's section tier), and round three adds a fourth, which is a SHELL question rather than a type
+     one: `CandidateStyle` mounts in the lab layout, the two marketing layouts and the app layout
+     only, so `/admin`, the guest routes (`/e/<token>`, the demo album) and the root 404 can never
+     wear any board's candidate. The floating-surfaces track hit the same wall from the guest side.
+     One `<CandidateStyle />` in `admin/layout.tsx` and in `(guest)/layout.tsx` would make every
+     board's paste walkable on those surfaces; until then every board should name them, as this one
+     now does.
+- Look at first: **the answer panel, then the glance table at Phone 375**, which is where the ladders
+  are furthest apart and where today's ladder fails. Then apply B and open the home page and /help
+  from the walk. Then stage 8 (the tier the app does not have, in the three idioms production writes
+  it as today) and stage 11 (the tracking law, which moves no size, with the pairing verdict under
+  it).
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). **The type scale, applied to the site, then made
+rulable.** Round one wrote the ladder down; round two made every candidate a PASTE (one generated
+block of real CSS against the real production hooks, handed to the whole site through the shell's
+candidate store) so a ruling is made on the real home page rather than on a canvas, rebuilt C's app
+register against a real dashboard (the quiet 20px title held, the 14px card title did not, because a
+Card sets `text-sm` on its whole subtree) and pinned the floor under every ladder. Round three walked
+the board the way Will would and turned it from a menu into a verdict: it opens on the ladder it
+would ship, states four rulings with its own answer and the one thing that would overrule each, and
+puts all four ladders' nine steps side by side at the selected canvas with the four faults each one
+fixes computed from the data. Six asks became four and sixteen stages eleven, because an ask already
+answered and a stage the paste replaced are both things to read past; the walk lost 1,400 desktop
+pixels and 3,300 phone ones, measured. Two dead walk links were found and fixed: `/admin` and the
+root 404 mount no design island, so no candidate ever reached them, and the paste now says where its
+reach stops, sixteen hand-rolled marketing headings that ship one rung short of the section ramp
+included, so a heading that does not budge reads as the page rather than as a broken block. Lab
+only; no production byte changed.
+
+### The token table the wiring round bakes
+
+**Unchanged by round three: not one size, leading or tracking moved.** The five tables are directly
+above under "Record (round 2)" and they are generated, never typed: `tokenTable()` and `themeBlock()`
+in `ladders.ts` emit them from the same data the stages render, and `docs/specs/type-scale.md` should
+be replaced with that output rather than hand-edited. Round three changed only which ladder the board
+recommends (B), the order it shows them in, and how few questions it asks about them.
+
+### What the wiring round inherits
+
+Round two's list above stands in full (the one `@theme` block, the three hooks, the hand-rolled
+twins, the masthead's settled tracking, the two size overrides that disappear, the `--tracking-tight`
+deletion). Round three adds one item that is not about type at all: no board's candidate can reach
+`/admin`, the guest routes or the root 404, because `CandidateStyle` is not mounted in those layouts.
+Two one-line mounts would fix it for every board in the wave.
