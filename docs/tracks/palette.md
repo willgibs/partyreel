@@ -822,10 +822,12 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
   do the same: running `pnpm build` in a worktree that has `pnpm dev` up will eventually kill the
   dev server, because they share `.next`; restart it on another port rather than doubting the
   page.
-- Synced with `launch-prep` TWICE, both clean and neither touching this lane: at `dd4aa0b`
-  mid-round (13 commits, the floating-surfaces track's own lane plus its manifest) and again at
-  `1c2d0ea` immediately before this handoff (13 more, hero-scan's round three: its manifest and
-  `sandbox/home-hero/scan.{tsx,css}`). The gate below is the run on the second synced tree.
+- Synced with `launch-prep` THREE times as the wave integrated around this round, every one clean
+  and none of them touching this lane: `dd4aa0b` (13 commits, floating-surfaces' own lane),
+  `1c2d0ea` (13 more, hero-scan's round three) and `8d8d0af` (13 more, light's round three, its
+  manifest plus `sandbox/light/*`). The gate below is the run on the third synced tree. It moves
+  again roughly every twenty minutes while the wave lands, so expect the Orchestrator's merge rather
+  than a fourth sync from here.
 - Gates on the synced tree, re-run at the head: typecheck ok, lint ok (0 errors, 6 warnings, all
   pre-existing and none in a file this track owns), test ok (1727 in 194 files, 8 of them this
   round's `temperature.test.ts`), build ok (248 static pages).
