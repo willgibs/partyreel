@@ -1,6 +1,6 @@
 ---
 track: light
-status: open
+status: handed-off
 cut: "c473707"
 merged_round_3: "83fdc71"
 merged_round_2: "6203d62"
@@ -8,6 +8,7 @@ merged_round_1: "72b20da"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/light/
+  - docs/specs/light.md          # round four goal 6: the spec is rewritten to the kit
 reads:
   - src/components/shared/glow.tsx
   - src/components/shared/glow-filter.tsx
@@ -787,16 +788,191 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
 
 ## Handoff (round 4)
 
-- Head <sha>, pushed; preview partyreel-git-lp-light-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `<sha>` (the tip of `lp/light`), pushed. The board is `/design/c/light?key=...`; seven
+  anchors, named by what they are rather than by a letter: `#lgt-kit`, `#lgt-treatments` (with
+  `#lgt-t-seam` .. `#lgt-t-beam` per treatment), `#lgt-composer`, `#lgt-separate`, `#lgt-evidence`,
+  `#lgt-infusion`, `#lgt-paste`.
+- Synced with `launch-prep` at `6484558` (2 commits, PROGRAM.md and the orchestrator manifest;
+  nothing in this lane or its reads). Merged clean.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; 8 pre-existing warnings elsewhere, none
+  in the lane), test ok (1804 in 199 files), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/light.md`,
+  `docs/specs/light.md` and `src/app/(dev)/design/sandbox/light/*`. The spec is the ONE addition to
+  `owns` this round, because goal item 6 asks for it rewritten to the kit and `media-kit` is the
+  precedent (it owns its own spec). No production byte changed: the board composes `<Glow>` and
+  `<ProCardBeam>`, imports eleven production components read-only, and everything it proposes lives
+  in its own sheet under `lgt-`, in `kit.ts` as data or in `candidates.ts` as a string.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Shell changes asked for (the Orchestrator lands them):**
+  - ★ **`src/app/(dev)/design/design.css`: emit the lab utilities into a SUB-layer.** One character,
+    and it is the most useful thing this round found for the whole wave. Today the line reads
+    `@import "tailwindcss/utilities.css" layer(utilities) source(none);`, and design.css loads AFTER
+    globals.css, so at equal specificity the lab's unprefixed utilities outrank production's
+    responsive ones: **`grid-cols-1` beats `lg:grid-cols-12` and `hidden` beats `sm:block` on every
+    production component mounted in a board.** Round four asked every track for live production
+    components, so every board is currently showing parts of them in their PHONE layout at 1440.
+    Measured on this board: 115 elements across nine mounted sections change geometry when that sheet
+    is disabled, and it reproduces on `pnpm build && pnpm start`, so it is not a dev artifact. The
+    remedy is `layer(utilities.lab)`: rules in a sub-layer lose to rules sitting in the parent layer
+    directly, which is exactly the desired order. Verified in the browser with a two-sheet
+    experiment (same layer: the base utility wins; sub-layer: the responsive one wins). Nothing else
+    changes, because where the lab and production emit the same utility the declarations are
+    identical.
+  - `touchpoints.ts` describes this board as "Eight one-word calls ... depth in dark on stacked
+    photographs, a layer and a flat card; the aurora on the home arc's five real media-less chapters
+    behind a wipe". It is nine calls now and the board is the kit, the treatments, the composer, the
+    separate job, the evidence, the infusion plan and the ruling. The description is yours to rewrite
+    at integration; I did not touch the file. A one-line replacement: "The light kit: twelve
+    treatments across three jobs on the real sections that wear them, a composer that lights any
+    marketing section and exports its paste and its mount, and the order the identity enters the
+    site."
+- Assets requested from Will (both unchanged, both still standing):
+  - A grain tile, so the aurora stops banding · seamless monochrome noise, 256x256, PNG-8, fine grain
+    (one tile pixel), neutral, mean 50 percent grey, used at about 5 percent over the light AND laid
+    out at 128 CSS px on a 2x screen (one tile pixel per device pixel; laid out at 256 it doubles and
+    the band returns) · replaces the inline feTurbulence stand-in in `board.css` (`[data-lgt-grain]`).
+  - A worst-case pair of overlapping photographs for the separate job · two images whose touching
+    edges are both dark and low contrast (a night reception, a dim dance floor), 1200px long edge,
+    JPG · replaces the `reception-hall` + `wedding-toast` pair in `depth.tsx`.
+- **What round four changed, and why.**
+  - **The kit is the first block, not the conclusion.** Will: the board read as "a fun research
+    report without many applicable takeaways to carry into the platform". The research was not the
+    problem, its POSITION was: three rounds of argument ended in a doctrine at the bottom of 13,700px,
+    so the takeaway was the last thing he reached and the first thing he needed. The board now opens
+    with twelve treatments across three jobs, each with its place, its section list, its frequency and
+    its mount; the fences with the case behind each; and the seven things a wiring round types into
+    files. Every row links to the specimen that earns it, so the research is underneath the conclusion
+    instead of in front of it. It is all read from one source (`kit.ts`), which the composer and the
+    spec also read.
+  - **The three explorations are one identity now.** The spill doctrine's five shapes and the spill
+    placements' rulings are folded in as named treatments beside this board's own, and the difference
+    between a shape and a treatment is the whole point: a treatment is a shape, at a place, at a
+    register, at a cadence, on a named kind of section, with a mount you can paste. The strongest fact
+    that fell out: **half the kit already runs in production and nobody had written down what any of
+    it was called** (the footer's seam, the QR plate's ignition, the Pro card's beam).
+  - **Two corrections the synthesis forced on the board itself.** The QR plate's light is a BLOOM and
+    not a throw: centred at 50 by 50, no vector at all, resting at 0.34. Under law 2 a vectorless
+    field is the even rim the doctrine refuses, and it is legal because it is a MARK and not a fill.
+    Naming which JOB a light is doing is what makes both legal, and that is new. And the halo needs a
+    dark object: our primary action is white, so the halo can light a secondary action and cannot
+    light the primary one, which moves its place from the CTA at the top of a page to an action at the
+    end of a flow. Both specimens are on the board, the failure beside the success.
+  - **The composer is the centrepiece Will named, grown into a tool.** Nine real section types at the
+    ground the page actually gives them (`section-ids.ts`'s chapter map, not a guess): a hero, four
+    chapters, two media strips, the pricing band and the footer. Four treatments, five placements, the
+    register, the temperature, the clock, the drive and the grain, with the unlit section on the other
+    side of a wipe. It ENFORCES the grammar rather than describing it: a placement a treatment cannot
+    take is not offered, and a section that refuses a treatment says so in its own words and still
+    renders it, because the refusals are the most useful thing in it (the hero refuses the aurora, and
+    the reason is on the record rather than in taste). Every configuration exports BOTH halves a
+    wiring round needs, the CSS paste and the JSX mount, generated from the same vars object the stage
+    is rendering, so a paste can never drift from the specimen above it.
+  - **The takeaway it produced: the aurora needs a COMPONENT.** Two bands, a flipped axis, four custom
+    properties and a grain layer is too much for a chapter to assemble correctly twice, and a
+    placement grammar survives in a component and dies in a comment. `<SectionLight placement register
+    temperature>` beside `screen-lamp.tsx`, which already proves the shape.
+  - **The infusion plan, which is the other half of Will's note.** Six phases and the order is the
+    proposal: achromatic first (the separate job has no colour to collide with, and every other phase
+    is judged badly until it lands), one page before every page (only the home arc has a ruled chapter
+    map, so "one accent section per page" means nothing anywhere else yet), and a phase that needs
+    another board's ruling waits for it (paper waits for the palette ramp, the feature pages for the
+    media kit's art). Each row names what it lands, where, what it needs and what goes wrong out of
+    order, so a wiring round cuts its scope from one line.
+  - **The evidence was demoted, not deleted.** A measurement stays only if it decided a line in the
+    kit, so the five instruments are one block near the end and each ends in the takeaway it produced.
+    Round three's three-strip cadence stage went: it proved that three numbers are three numbers, and
+    the ruling it serves cannot be made on a stage by its own argument, so what survives is the pair
+    of knobs that write the token and send the reviewer to the real page.
+  - **The dock carries the four page-wide switches and Replay** (canvas, ground, register, motion),
+    and nothing else. Every other control changes one specimen and sits beside it. The ground gained
+    the app's dark as a third option so the depth block, whose biggest consumer is the dashboard,
+    keeps its third ground under one control.
+  - **A section is allowed to be its own height now.** The composer's wrapper is a column flex box, so
+    a section taller than its canvas COMPRESSED instead of overflowing: the real footer measured 1414
+    in it and 1642 in a stage that let it be itself. That is worse than a clip, because a squashed
+    section renders at a layout the real page never gives it and nothing says so. `shrink-0`, and
+    every canvas height re-measured off the rendered stage at both widths.
+  - **Two rows are fitted rather than 1:1, and they say why.** The rule is that a specimen whose SIZE
+    is judged is never scaled; the clock pair is judged on motion and the paper three-up on colour,
+    and at true pixels a 1440 canvas inside a one-third column shows 300px of itself behind a
+    scrollbar. Every other stage on the board is at true pixels.
+- **Light QA, at the head, on a local dev server in this worktree.** Vercel is capped, so no preview
+  was waited on and the Vercel API was not called.
+  - 1440: 18 stages, every one exactly 1440 css px wide, not one of them cutting a line of text
+    (tightest clearance 36px), no horizontal overflow on the document, 26 `<Glow>` mounts, all seven
+    anchors resolving and all 21 in-page links landing.
+  - 375: 18 stages, every one exactly 375 css px, nothing cut (tightest clearance 14px), no
+    horizontal overflow.
+  - Reduced motion: the dock's Rest switch computes `animation-name: none` on all 27 bands at once
+    and is reversible (back on Live they compute `glw-mask-x`, `glw-drift-x` and `glw-orbit` again, so
+    the switch is the cause and not a stuck state; the machine's own `prefers-reduced-motion` is
+    false, which is what makes that a real test). The board's one keyframe stays inside the
+    `prefers-reduced-motion: no-preference` block.
+  - The composer, driven: the hero's refusal renders, the placement toggle narrows to two for the seam
+    and disappears for the throw, and the two exports change with the configuration. The paste's
+    `--glw-base` and the stage's computed `--glw-base` are the same number at both registers (0.30 and
+    0.17), which is the drift the one-source rule exists to prevent.
+  - ★ **The foreground-tab caveat, and a phantom it nearly produced.** This Chrome window's foreground
+    belongs to a parallel session, so the lane's tab is hidden: `requestAnimationFrame` never fires
+    there and neither does `ResizeObserver`. That made the dock's own height sync look broken
+    (`--board-dock-h` latched at its first, pre-layout 262px while the dock measured 49px, so anchor
+    jumps landed 220px low). It is NOT a shell bug: one forced paint (a screenshot) runs the observer
+    and it corrects itself to 49px and `scroll-padding-top: 57px` immediately. Geometry read with
+    `getBoundingClientRect` is reliable in a hidden tab because it forces layout, which is why the
+    measurements above stand; anything driven by a frame is not. Screenshots at the kit, the dock, the
+    QR hero, the plate pair and the composer's wipe were captured and read. **Worth one human eyeball
+    on waking: the board in a genuinely foreground tab, for animation smoothness and the dock's height
+    on a cold load.**
+  - Not walked: the four "Apply to the site" blocks on the real pages. They are byte-identical to
+    round three (`candidates.ts` changed only in its comments this round), and round three walked all
+    four on `/`, `/pricing`, `/help`, `/contact`, `/features/qr`, `/features/album` and
+    `/design/compositions`. That pass stands.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will). The first
+  two are the whole board; the seven under them are the places to differ:
+  - The kit, as written: land it, or name what to change
+  - The infusion plan: begin at phase 1, or name the order
+  - The aurora: no, the seam, both boundaries, or the room
+  - Its register: accent or identity
+  - Depth in dark: the family (lift and float), lift only, or neither
+  - The lit face: adopt, adapt or drop
+  - The cadence: 8s or 11s
+  - The paper five: hand-tuned, the flat row, or the dark set
+  - The publish beat: 300 as shipped, the house five, or 305
+- Look at first: the kit, which is the first screen and is the whole round in one block. Then the
+  composer: put it on the guest ledger, drag the wipe once, then switch the section to the hero and
+  read the refusal, which is the grammar defending itself. Then the treatments, where the footer seam,
+  the QR plate and the Pro card are the kit already running in production. Then the infusion plan,
+  which is the answer to "the best way to begin that infusion".
+- Findings against a bible rule: none (10 and 11 are already under exploration naming this board).
+  Cross-board notes for the Orchestrator: (1) the design.css layer fix above, which affects every
+  board that mounts a production component and is the first thing to land. (2) The floating-surfaces
+  contract's fifth line is this board's separate-job question for one family; one ruling closes both,
+  and the ruling block says so. (3) All three palette candidates re-declare `--shadow-float` zeroed on
+  the dark grounds; whichever ramp is ruled here, the palette block inherits it, and the two should
+  land in one pass. (4) The infusion plan's phase 3 depends on the palette board's paper ramp, so the
+  two tracks should be sequenced rather than merged in parallel. (5) `docs/specs/light.md` is now a
+  written document rather than a machine-stitched concatenation of Records; if the fold script
+  regenerates it at integration it will overwrite the kit.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). Round four turned the light board from a research
+report into the identity kit and the plan to infuse it. The kit became the FIRST block: twelve
+treatments across three jobs (separate, fill, mark), each carrying its place, its section list, its
+frequency and its mount, with the fences and the seven things a wiring round types into files, all
+read from one source the composer and the spec also read. The spill doctrine's five shapes and the
+spill placements' rulings were folded in beside this board's own, which surfaced the round's strongest
+fact, that half the kit already runs in production unnamed, and two corrections to the board's own
+draft: the QR plate's light is a mark rather than spill, and the halo cannot light a white primary
+action. The section configurator Will called promising grew into the centrepiece: nine real section
+types at the grounds the chapter map gives them, four treatments, five placements, the register, the
+temperature and the clock, enforcing the grammar rather than describing it (a refused treatment says
+why in the section's own words) and exporting both the CSS paste and the JSX mount for every
+configuration, which produced the kit's one new component, `<SectionLight>`. An infusion plan in six
+phases says the order the identity enters the site and what goes wrong out of it; the five
+measurements were demoted to evidence, each ending in the line it decided; and the dock took the four
+page-wide switches. `docs/specs/light.md` was rewritten to the kit. One lab defect came out of mounting
+nine live sections: the lab's own Tailwind entry outranks production's responsive utilities, so every
+board showing a production component renders part of it at its phone layout, 115 elements here, with a
+one-line remedy in the handoff.
+
