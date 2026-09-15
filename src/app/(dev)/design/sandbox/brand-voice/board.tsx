@@ -563,10 +563,12 @@ function RowCounts({
         {lines.map((l, i) => `${i > 0 ? " · " : ""}${l.label} ${rows[i]}`)}
         .{" "}
       </span>
+      {/* One template string, not JSX text around an expression: the space
+          after the canvas number kept disappearing through a reformat, and a
+          caption that reads "1440on" is a caption nobody trusts the numbers
+          in. */}
       <span>
-        Measured at {mode === "desktop" ? "1440" : "375"} on the heading above,
-        at today&rsquo;s ladder: a ruling on the type scale moves these numbers
-        with it.
+        {`Measured at ${mode === "desktop" ? "1440" : "375"} on the heading above, at today\u2019s ladder: a ruling on the type scale moves these numbers with it.`}
       </span>
     </p>
   );
