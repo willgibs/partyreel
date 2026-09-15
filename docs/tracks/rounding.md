@@ -1,7 +1,8 @@
 ---
 track: rounding
-status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+status: integrated
+cut: "ab45b03"
+merged: "a32981a"      # the branch head merged into launch-prep
 merged_round_2: "2603465"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
@@ -239,15 +240,281 @@ Four findings, all on the board rather than in a comment. The guest gallery's ga
 
 ## Handoff (round 3)
 
-- Head <sha>, pushed; preview partyreel-git-lp-rounding-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/rounding`, pushed. The last code commit is `e0a85c9`
+  (the fourth pass, below); `12f1b91` was the third pass's and `6dd4d7a` the
+  second pass's, and all three sit on the sync merge `c79038b`. The manifest
+  commits follow the code. The board is
+  `/design/c/rounding?key=`. **The round-three marker in the rendered HTML is
+  the heading "What the board answers"** (and the class `rnd-answer-grid`),
+  both present in the server-rendered markup; round two's marker, "The six
+  tokens, at true size", is still there as part A's heading, so the answer
+  block is what tells the two rounds apart.
+- **Fourth pass (the read-only re-review of this handoff found one should-fix
+  item; it is fixed here).** Every number the board printed beside a card was
+  the constant 1.4, while the ladder a card is actually DRAWN at is scoped per
+  subtree: the answer block's second column is permanently on the ruled quarter
+  ladder, so candidate C drew a 10px card under a caption reading 11.2px, and
+  the same constant sat in the action row's contrast ratio, part C's header,
+  part A's row note and its lede, and candidate C's phone line.
+  `cardMultiplier(ladder)` in `candidates.ts` is the card's step in one place
+  now (Card ships as `rounded-xl`, so its corner is the xl rung: 1.4x on stock,
+  1.25x on quarters) and every one of those sites reads it. Two of them needed
+  more than arithmetic. The LIVE band sits outside every scoped ladder, so a
+  multiplier printed there would be a guess: it measures instead, one more
+  probe span at `rounded-xl` read back as used pixels, the same way the band's
+  six tokens already do (2.8px on the baked tree, 10px with the answer
+  applied). And candidate C's phone line carried "The card at 11.2", a number
+  that only holds on the stock ladder while C itself wants quarters; the prose
+  keeps the argument without the number, and part F's column header prints the
+  card computed from the ladder the phone is actually wearing. One guard
+  against the regression returning: `NestedSpecimen`'s `outerMultiplier` is
+  required rather than defaulted, because that card is drawn from an inline
+  `calc` and is the one card on the board a scoped retune cannot reach on its
+  own.
+- **How the fourth pass was verified, and it is NOT the preview.** Vercel is at
+  its daily deployment ceiling again, this round's instruction is that no
+  preview will build and that the API is not to be called, so none was
+  attempted and none is claimed: the alias still serves `0986a52` and is now
+  three code commits behind this handoff. The pass was walked on a LOCAL
+  production build instead (`pnpm build`, then `next start` on :3200 in this
+  worktree), at 1440 and at 375, and the check was mechanical rather than
+  eyeballed, because the bug was a caption that looked plausible: for every
+  caption on the page the card's own
+  `getComputedStyle().borderTopLeftRadius` was read and compared with the
+  number the caption prints. All matched, on the stock rail and the quarters
+  rail, in the answer block (2.8px under "card at 1.4x", 10px under "card at
+  1.25x"), in part A's four cells, in part C's pair, in the live band, and in
+  part F, where the dashboard composition's four `rounded-xl` event cards
+  measure 2.5 / 0 / 10 / 17.5 against headers printing the same. Zero console
+  messages on a fresh load; at 375 `documentElement.scrollWidth` equals
+  `innerWidth`, so the added text wraps rather than widening anything.
+- **A second test-tool note for the Orchestrator** (same file as the third
+  pass's, `docs/systems/testing-verification.md`, not this lane): the browser
+  pane's `resize_window` reported success on every call and the window never
+  changed size (`innerWidth` stayed 1456 whether 1440, 1424 or 375 was asked
+  for, with `outerWidth` reading 412), so a 375 walk driven that way would have
+  been a 1456 walk reported as a 375 one. The way through was to load the board
+  into a 375px same-origin `<iframe>` on the page and measure and screenshot
+  inside it; the board's own width machinery is measured in JS off real
+  rectangles, so it behaves there exactly as it does in a 375 window.
+- **Third pass (the read-only review of the round-two handoff found one
+  should-fix item; it was fixed then).** Round 3's goal item (1) named seven surfaces to walk
+  with the Apply block on, and the handoff had recorded two of them, `/pricing`
+  and `/help`, plus the guest page as a negative: `/`, `/contact`, `/dashboard`
+  and an event page were neither walked nor declined, while "Look at first"
+  sent Will to `/` with the answer applied. All seven are accounted for now,
+  five walked and two declined with the reason, in the Apply bullet below; the
+  walk found a sixth departure, which is on the board's face rather than only
+  here.
+- ★ **The preview alias serves `0986a52`, which is the second pass, so it is
+  ONE code commit behind this handoff.** At `0986a52` it was checked in the
+  served HTML after the deployment went READY (deployment
+  `partyreel-kdzrgi9c2-partyreel.vercel.app`, 23:46): the round-three marker,
+  the `rnd-answer-grid` class, the guest caveat and part E's entry-sheet row
+  all there, no em-dash. The third pass is NOT on it: the account is at
+  Vercel's daily deployment ceiling, this round's instruction is that no
+  preview will build and the API is not to be called, so none was attempted.
+  **The third pass was verified on a LOCAL production build instead** (`pnpm
+  build` then `next start` on :3100 from this worktree), which is what the
+  Apply and QA bullets below record. The one thing a local server cannot stand
+  in for is the alias itself; refreshing it is the Orchestrator's call, not
+  this track's lane. The only difference between `0986a52` and the head is the
+  sixth departure and the three lines of the board's header comment that name
+  it.
+- **It took forty minutes of forced redeploys, and the ceiling is the lesson,
+  again.** None of this round's six pushes produced a deployment on their own.
+  The branch gate was not refusing (the manifest says `preview: true` and every
+  commit message carries `[preview]`), and deployments were landing
+  project-wide about one every fifteen minutes. The project is at Vercel's
+  ceiling of 100 deployments a day, so `POST /v13/deployments` answers
+  `payment_required` / `api-deployments-free-per-day` until a slot ages out of
+  the rolling window and whoever asks next takes it. Twenty-two retries at
+  forty-five seconds got nothing; a tight loop at twelve seconds caught the
+  23:46 slot on the first pass. **So: a push is not a deploy, and a slow retry
+  is not a retry.** The recipe is the floating-surfaces handoff's
+  (`gitSource {type: github, repoId: 1252816746, ref, sha}`); what this round
+  adds is the interval. An empty commit spends a slot and fixes nothing.
+- Synced with `launch-prep` at `dd4aa0b` (merge `c79038b`); it had moved 24
+  commits, all of them other tracks' sandbox files and manifests, none in this
+  lane.
+- Gates on the synced tree, re-run in full after the third pass's code commit:
+  typecheck ok, lint ok (0 errors, 6 warnings, all pre-existing and outside the
+  lane), test ok (1719 in 193 files), build ok (248 pages).
+- **Light QA, walked rather than asserted, ON THE PREVIEW.** The board at
+  **1440** and at **375** on `partyreel-git-lp-rounding-partyreel.vercel.app`
+  at `0986a52`, and the same two widths on the local production build and on
+  `pnpm dev` before it, plus 1024 on the way. At both widths
+  `documentElement.scrollWidth - clientWidth` is 0 AND no unclipped element
+  has a right edge past the viewport (the second check is the one that
+  matters: the first pass of the new width machinery pushed the board 277px
+  past a 375 window and this found it). At 1440 the widest part measures
+  x=244 to x=1096 with the lab sidebar ending at 232 and the tuner panel
+  starting at 1108, so the board sits in the whole free width with 12px of
+  clearance at each end and nothing under the panel. **Reduced motion honoured
+  by having nothing to undo:** measured in the running page, zero elements
+  resolve an `animation-name` and `board.css` declares no keyframes at all.
+  Zero console errors. **Re-walked after the third pass's commit** on the new
+  local production build at both widths: still 0 of overflow and still nothing
+  past the viewport at 1440 and at 375, still zero elements resolving an
+  `animation-name`, and the sixth departure renders (it is in the
+  server-rendered HTML, so `curl` finds it too). The only console errors on a
+  local `next start` are the two `/_vercel/insights` scripts 404ing off the
+  platform, which is the server, not the page. **Re-walked again after the
+  fourth pass's commit**, on a fresh local production build at 1440 and at
+  375: still no horizontal overflow at either width, still zero console
+  messages, and every printed card equal to its drawn corner on both ladders
+  (the mechanical check in the fourth-pass bullet above).
+- **A test-tool blind spot worth the Orchestrator's note** (for
+  `docs/systems/testing-verification.md`, which is not this lane): the browser
+  pane paints the FIRST screen of a page and then returns an all-black frame
+  for any screenshot taken after a scroll, or after a load at a deep anchor,
+  while the DOM at that scroll position reports the section visible, opacity 1,
+  in the viewport, with its text. So every below-the-fold claim in this handoff
+  is measured (computed styles and bounding rects in the running page) rather
+  than eyeballed, and a black screenshot from that pane is not evidence of a
+  black page.
+- **Cost, measured.** 158 `<img>` in the DOM against round two's 175 (the live
+  column's phone canvas is gone), about 30 decoded on the first screen because
+  every one is a lazily-loaded `next/image`; zero animations, zero keyframes,
+  and the only transform on the page is the shell Stage's own `zoom`. The
+  panel-aware width costs one ResizeObserver on two elements, one
+  MutationObserver on the tuner panel, and a resize listener; it runs on
+  layout changes, never on scroll.
+- **"Apply to the site", now walked on every surface the round named** (the
+  third pass; the second pass had walked only `/pricing` and `/help` and left
+  four of the seven neither walked nor declined). One LOCAL production build,
+  `pnpm build` then `next start` on :3100 in this worktree, the board's own
+  **Apply the answer** pressed once by a real click so every page below read
+  the same stored block, `rounding C, today actions, quarter ladder`. Five
+  walked, two declined, none assumed:
+  1. **`/`, at 1440 and at 375.** The block lands (`--radius: 8px`,
+     `--radius-float: 12px`, `--radius-tile: 4px`, `--gap-gallery: 4px`,
+     actions 16 / 19.2 / 12.8) and the quarter ladder is visible on the real
+     page rather than on a stage: `rounded-xl` resolves to 10px and
+     `rounded-2xl` to 12px, against 11.2 and 14.4 on stock at the same base.
+     Zero horizontal overflow at both widths, and no unclipped element with a
+     right edge past the viewport. **The walk's own finding, and it is new:**
+     70 corners on that one page do not move at all, 48 at a literal 2px and
+     22 at a literal 3px, beside cards at 10 and 12. Counted on the tree,
+     `rounded-[2px]`, `-[3px]` and `-[4px]` are 52 uses in 24 non-lab files
+     (the film strip, the live demo, the decomposition frames, the album
+     grids, the reel filmstrip), and 64 px literals in 28 files in all. It is
+     the gallery gap's argument one layer out, it is on the board as a sixth
+     departure, and it means a ruling of C is also a ruling to sweep them.
+  2. **`/pricing`, at 1440.** `--radius: 8px`, a plan card at 12px (1.5 x 8 on
+     the quarter ladder) against 25.2 on stock at a 14px base. Zero overflow.
+  3. **`/help`, at 1440.** `--radius: 8px`, zero overflow.
+  4. **`/contact`, at 1440 and at 375.** The one page in the `(paper)` group,
+     and the one that tests the block's selector: a paper chapter resolves
+     `--radius: 8px` INSIDE `.surface-paper`, so the `:root`-only paste
+     pierces it exactly as `blockFor()` claims. Zero overflow at both widths.
+     Its single CTA, "Send message", measures h-11 at 14.4px, which is 0.33 of
+     its height: the board's CTA finding, confirmed on a page the board does
+     not draw.
+  5. **The demo guest page, `/e/<demo token>?key=`, at 1440.** The negative,
+     proven on the page itself rather than reasoned from the layout: no
+     `style[data-tuner-candidate]` renders at all, `--radius` stays at
+     `.125rem` and `--radius-tile` at 3px with the block applied everywhere
+     else in the same browser. That is shell ask 1, and this is its evidence.
+  6. **`/dashboard`: DECLINED, cannot be walked from this worktree.** Logged
+     out, it 307s to `/login` (checked, not assumed). Signing in cannot happen
+     on localhost: the Supabase redirect allow-list deliberately excludes it
+     (CLAUDE.md, "Local dev vs live testing"), and the one non-interactive way
+     around that, minting a host session with the project's own admin API and
+     planting the `@supabase/ssr` cookies, was refused by this session's
+     permission classifier. It was not worked around. The signed-in live
+     browser was not reachable from this session either (its tab tools were
+     refused), and with Vercel at its deployment cap there is no fresh preview
+     to drive. What IS known: `(app)/layout.tsx` mounts `<AppDesignIsland />`,
+     which mounts `CandidateStyle` behind the same `?key=` gate, so the same
+     `:root` block reaches the app group; and part B's dashboard column
+     measures the production `EventCard` at 10px under the answer.
+  7. **An event page, `/dashboard/<eventId>?key=`: DECLINED, same reason** (the
+     same signed-in host, one route deeper).
+  **The 20-second hand-off for 6 and 7**, in any browser where the host is
+  already signed in: open `/design/c/rounding?key=`, press **Apply the
+  answer**, then open `/dashboard?key=` and an event page in that same
+  browser. The block is one `localStorage` entry on that origin, so it
+  follows; keep `?key=` on the URL, because the island reads it at mount.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `src/app/(dev)/design/sandbox/rounding/{board.tsx,board.css,candidates.ts,specimens.tsx}`
+  plus this file. `compositions.tsx` is unchanged this round. No exceptions.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Shell changes proposed (the Orchestrator's files, none made):**
+  1. `src/app/(guest)/layout.tsx`: mount `<AppDesignIsland />`. Seconding the
+     floating-surfaces board. `CandidateStyle` mounts in the lab layout, the
+     marketing island and the app island, and the guest group has none of
+     them, so `/e/<token>` silently ignores every candidate block. This board
+     is the second reason: part E's finding (the entry sheet wears the ACTION
+     token at 1.4x) lives on that page, so it has to be drawn rather than
+     walked, and the board says so on its face.
+  2. `src/app/(dev)/design/touchpoints.ts`, the `rounding` entry, is still
+     round ONE's and is now the first thing a reader sees above a board that
+     contradicts it: `board.note` reads "One kit of every radius-bearing
+     surface in four columns..." and `board.variants` lists "B, soft surfaces"
+     and "C, the 16px column", neither of which has existed for two rounds.
+     Proposed note: "Six tokens as three decisions: the surface family, the
+     action rung and the derived ladder, each at true size on the shipped
+     components and appliable to the whole site"; proposed variants:
+     `["A, today", "B, square", "C, soft", "D, one family", "Live, the tuner"]`.
+     (Raised in round two, unchanged.)
+  3. `src/components/dev/motion-tuner-config.ts`, two things. The three action
+     knobs cap at 24px, which cannot express the pill rung, so Apply writes the
+     pill into the candidate block and clears the knob rather than leaving the
+     panel in a state a drag cannot return to; if the pill is ruled, the max
+     moves or the control gains a "pill" step. And THREE of the six knob
+     descriptions are wrong where this board counted: the surface knob says
+     "288 uses in 140 files" against a recount of 320 uses of a derived step in
+     154 files; "Action radius" is described as "the standard button (40px
+     tall)" and "every default Button", when the default Button is h-8 and
+     wears `--radius-action-sm`; and "Action radius, large" says it ships on
+     "the hero and pricing CTAs, the guest door's primary action" when it has
+     exactly one call site in the product, the reel builder, on an h-11. The
+     panel sits beside the board that disproves it.
+  4. `src/components/dev/board/`: two things every board is now writing for
+     itself. A stage that takes its height from its content (the brand-voice
+     board wrote it, this board wrote it again as `FitStage`, and a stage that
+     guesses leaves a hole under its composition), and a PANEL-AWARE width (the
+     tuner is fixed, 320px, and opens open, so any board whose evidence reaches
+     the right of the column is partly hidden on arrival; this board measures
+     `[data-motion-tuner]` and keeps clear of it, in about forty lines that
+     belong beside `Stage`).
+  5. `src/components/shared/glow-contract.test.ts` pins the exact set of
+     BorderBeam call sites. The beam around an action is the third bible-9
+     specimen part C wants (the beam is the case the system already gets right:
+     no radius prop, it reads the child's computed one), and adding it would
+     need one line in that test. The board draws a plain ring at the same
+     offset instead and says so. (Raised in round two, unchanged.)
+- Assets requested from Will: one, unchanged from round two.
+  - A worst-case tile set for the gallery gap · four photographs whose edges are
+    near-white and bright (a white tablecloth, an overexposed sky, a white dress
+    against a window), 1200px long edge, JPG, four of them · replaces the
+    `wedding-golden` / `party-dj` / `festival-lights` stills in part B's guest
+    grid and part F's phone row, so a corner hole between tiles is judged at
+    maximum contrast rather than against dark stills that hide it.
+- The asks, verbatim from BoardMeta:
+  1. "The surfaces: A, B, C or D (--radius, --radius-float and --radius-tile move together)"
+  2. "The actions: today, pill or quiet"
+  3. "The derived ladder: stock or quarters"
+  4. "The dead rungs (rounded-3xl, rounded-4xl, --radius-action-lg): keep or drop"
+  5. "The gallery gap: pinned to the tile, or free"
+- Look at first: the block at the top, **"What the board answers"**. It is the
+  five rulings in five words, with today's card beside the proposed one at true
+  size and one button that puts the whole paste on the site. If the five words
+  are right, the ruling is "yes" and the rest of the board is the evidence in
+  order. If one is wrong, part A settles the surfaces, part E settles the
+  actions (look at its last row, the guest entry sheet under the pill), and
+  part D settles the ladder. Then press **Apply the answer** and walk
+  `/pricing` and `/`: that is the real answer, and the board is the shortlist.
+  Two things to expect on that walk, both recorded below: the photographs stay
+  sharp while the cards move, because 52 of their corners are px literals no
+  candidate can reach; and the app pages need `?key=` on the URL and a
+  signed-in host, which is the one part of the walk this worktree could not
+  take.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The rounding board was rebuilt over two rounds. Round one judged six numbers in four columns inside a zoom-fitted stage, where `zoom` scales paint with layout and every corner read about a third sharper than its own number; round two split the tokens into the three decisions they are (the surface family A to D, the action rung, the derived ladder) and rendered every comparison at 1:1 on the components that ship them: a four-row matrix, four real compositions, bible 9 drawn right and wrong, the seven derived steps beside a quarter-step retune, the action ladder at every shipped height, and every candidate on its own 375 canvas.
+Round three was the walk Will was about to take, taken first, and it found the board hiding its own evidence. The tuner panel is fixed at the bottom right, 320px wide, and opens open: it sat over the last two columns of the matrix, both specimen columns of the ladder, the third action rung and the third phone. The board measures the panel now and keeps every part clear of it, live, so closing it widens the board again; the live column, which sat under the panel that drove it, became one band; part B's stage takes its height from its content instead of guessing at it; and the answer comes first, as five one-word rulings with the two shapes the first one turns on at true size and one button that puts the whole paste on the site.
+Six findings, all on the board rather than in a comment. The guest gallery's gap is a literal in three files while its tiles ride the token, so any tile above 3 opens corner holes on the one grid every guest sees. The guest entry sheet, the first surface any guest meets, takes its corner from the ACTION token at 1.4x, which makes it a half circle under the pill rung. `--radius-action-lg` has one call site, and every marketing CTA is an ad-hoc h-11 in 26 files wearing 0.33 of its height against a documented 0.4. `rounded-3xl` and `rounded-4xl` have three uses between them. The guest group mounts no design island, so the page those findings live on cannot wear a candidate at all. And the sixth came from walking all seven surfaces with the answer applied rather than from reading the tree: 64 corners in 28 files are px literals, 52 of them photographs, so the home page alone keeps 70 corners at 2 and 3px while the cards around them move to 10 and 12.
+The board answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop the dead rungs and pin the gap, verified on `/pricing`, where a plan card lands at 12px against 25.2 on stock at a round base.

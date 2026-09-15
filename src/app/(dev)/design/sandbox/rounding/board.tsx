@@ -6,6 +6,7 @@ import "./board.css";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -39,12 +40,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { Variant } from "../variant-frame";
 import {
   ACTIONS,
+  ACTION_SITES,
   type ActionRung,
+  ANSWER,
   blockFor,
   blockLabel,
+  cardMultiplier,
   LADDERS,
   ladderCss,
   type LadderId,
@@ -64,7 +67,9 @@ import {
   ActionRingSpecimen,
   ActionSpecimen,
   CellLabel,
+  EntrySheetSpecimen,
   FloatSpecimen,
+  Labeled,
   NestedSpecimen,
   Part,
   Proposal,
@@ -74,43 +79,56 @@ import {
 } from "./specimens";
 
 /**
- * THE ROUNDING BOARD, ROUND TWO (2026-09-14).
+ * THE ROUNDING BOARD, ROUND THREE (2026-09-14).
  *
- * Round one put one kit in four columns inside a zoom-fitted stage and asked
- * four questions at once. Judged from the ground up (bible 22), three things
- * were wrong with it, and all three are structural:
+ * Round two split six numbers into the three decisions they are and rendered
+ * every comparison at 1:1. Round three is the walk Will is about to take,
+ * taken first, and the cold walk found four things a stranger stumbles on.
+ * All four are fixed here and all four were structural:
  *
- * 1. A RADIUS CANNOT BE JUDGED AT 69 PERCENT. The shell's Stage fits a 1440
- *    canvas into the lab's 992px column with `zoom`, which scales paint as
- *    well as layout, so every corner on that board rendered a third sharper
- *    than the number printed under it. Parts A, C, D and E are at 1:1 now
- *    (.rnd-wide widens them past the lab column, board.css) and part B keeps
- *    the Stage, where the question is the layout and the distortion is stated.
+ * 1. ★ THE TUNER PANEL COVERED THE EVIDENCE. The shell's panel is fixed at
+ *    the bottom right, 320px wide, and it opens open: at 1440 it sat over the
+ *    D and Live columns of part A, over both specimen columns of part D (the
+ *    only two cells in that part that are not numbers), over the third action
+ *    rung in part E and over the third phone in part F. Round two answered
+ *    that in prose, in the fourth paragraph of the lede. The board measures
+ *    the panel now and keeps every part clear of it, live, so closing the
+ *    panel or sending it left widens the board again (usePanelInset below).
  *
- * 2. SIX NUMBERS IN ONE COLUMN IS NOT A RULING. The tokens are three
- *    independent decisions: the surface family, the action rung and the
- *    derived ladder. Split, they are three one-word answers, and a candidate
- *    is a letter plus a rung plus a ladder that combine into one paste.
+ * 2. THE BOARD DID NOT SAY WHAT IT THOUGHT UNTIL YOU HAD SCROLLED SIX PARTS.
+ *    Every part ended in a Proposal and nothing gathered them. The answer is
+ *    the first thing on the board now: five one-word rulings, the two shapes
+ *    that decide the first one at true size, and one button that puts the
+ *    whole paste on the site.
  *
- * 3. A KIT IS NOT THE PRODUCT. Part B renders four surfaces the product
- *    actually has, from the components that draw them, and Apply hands the
- *    whole site the same block a ruling lands, so the real judgement happens
- *    on the walk.
+ * 3. THE LIVE COLUMN WAS A FIFTH COLUMN UNDER THE PANEL THAT DROVE IT. It
+ *    cost a fifth of every comparison part, a whole 375 composition in part F,
+ *    and it showed what the panel already shows. It is one band under the
+ *    matrix now, with the tokens measured off the page.
+ *
+ * 4. A STAGE THAT GUESSES ITS HEIGHT IS A STAGE WITH A HOLE IN IT. Part B's
+ *    marketing composition sat in 300px of empty ground. The stage takes its
+ *    height from its content now (FitStage, the doctrine the brand-voice board
+ *    wrote at the same review wave).
  *
  * What the round found, on the board rather than in a comment: the guest
  * gallery's gap is a literal, so the one grid every guest sees opens corner
- * holes the moment the tile goes above 3; --radius-action names a 40px button
- * that ships nowhere and --radius-action-lg has exactly one call site; every
- * marketing CTA is size lg forced to h-11, which puts it at 0.33 x height
- * while globals.css documents 0.4; and the top two rungs of the derived ladder
- * have three uses between them.
+ * holes the moment the tile goes above 3; the guest ENTRY SHEET, the first
+ * surface any guest meets, takes its corner from the ACTION token at 1.4x, so
+ * the action rung decides the shape of a floating sheet; --radius-action-lg
+ * has exactly one call site; every marketing CTA is size lg forced to h-11,
+ * which puts it at 0.33 x height while globals.css documents 0.4; the top
+ * two rungs of the derived ladder have three uses between them; and, found by
+ * walking the real pages with the answer applied, 64 corners in 28 files are
+ * px literals no candidate can move, 52 of them photographs.
  */
 
 const QUESTION =
   "The radius system as three decisions rather than six numbers: the surface family (A to D), the action rung (today, pill or quiet) and the derived ladder (stock or quarters), each judged at true size on the components that ship them, and applied to the real site for the walk.";
 
-/** The columns of every comparison part: the four fixed candidates and live. */
-const COLUMNS = SURFACES;
+/** The four fixed candidates. The tuner's column is a band of its own now. */
+const CANDIDATES = SURFACES.filter((c) => c.values);
+const LIVE = SURFACES.find((c) => !c.values)!;
 
 function overrideStyle(
   c: SurfaceCandidate,
@@ -126,6 +144,198 @@ function overrideStyle(
     "--radius-action-lg": px(a.values.lg),
     "--radius-action-sm": px(a.values.sm),
   } as CSSProperties;
+}
+
+/* ── Keeping the board out from under the tuner panel ──────────────────── */
+
+/**
+ * ★ THE PANEL IS MEASURED, NOT ASSUMED (round three).
+ *
+ * The tuner is portalled to <body> as `[data-motion-tuner]`, fixed at the
+ * bottom of one side, 320px wide when open and a pill when collapsed, and it
+ * opens OPEN on the right. Round two grew the board into both page gutters
+ * with a CSS expression that had to know the lab's sidebar width, and it was
+ * wrong at every width its own QA did not sit at; worse, the widest parts then
+ * reached UNDER the panel, so the board's own evidence was the thing hidden.
+ *
+ * This measures three real rectangles instead, once per layout change: the
+ * board's own column, the viewport, and the panel. It writes two lengths the
+ * sheet consumes (board.css), so a part can grow into the gutters and stop at
+ * the panel, and a stage can give the panel its room back. Nothing here reads
+ * a breakpoint or a sidebar width, so the shell can move either.
+ *
+ * No loop is possible: the vars change the width of blocks INSIDE the column,
+ * never the column, and the right edge never passes the viewport, so no
+ * scrollbar appears to change the viewport back.
+ */
+const PAGE_PAD = 12; // what stays between the block and whatever bounds it
+const MIN_WIDE = 640; // a floor: below this a part scrolls rather than shrinks
+
+/**
+ * The box the board may grow into.
+ *
+ * ★ IT IS NOT THE VIEWPORT. The first cut of this measured the window and slid
+ * the block 100px under the lab's sticky sidebar, which is exactly the failure
+ * the CSS version made twice. It is not "the first ancestor that is wider"
+ * either: that is the page's own px-4 wrapper, 32px of padding.
+ *
+ * The test that works without knowing anything about the shell is SYMMETRY.
+ * Growing into a gutter is safe precisely while the layout is centred on the
+ * board: every ancestor from the column up to the lab's content cell shares
+ * the column's centre line, and the grid that adds the sidebar does not. So
+ * climb while the centre holds and stop at the first ancestor that moves it.
+ * Below the sidebar's breakpoint every ancestor is centred, and the climb ends
+ * at the body, which is the right answer there too.
+ */
+function boundsOf(root: HTMLElement): DOMRect {
+  let box = root.getBoundingClientRect();
+  const centre = box.left + box.width / 2;
+  let el: HTMLElement | null = root.parentElement;
+  while (el) {
+    const r = el.getBoundingClientRect();
+    if (Math.abs(r.left + r.width / 2 - centre) > 1) break;
+    box = r;
+    if (el === document.body) break;
+    el = el.parentElement;
+  }
+  return box;
+}
+
+function usePanelAwareWidth(): React.RefObject<HTMLDivElement | null> {
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useLayoutEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+
+    const sync = () => {
+      const vw = document.documentElement.clientWidth;
+      const col = root.getBoundingClientRect();
+      // ★ Do not write a width from a half-built layout. The lab wraps its
+      // sidebar in a Suspense boundary, so for a moment during hydration the
+      // content cell is the grid's FIRST column (232px) and the board measures
+      // itself at 200. A value written then stood for several seconds until
+      // something else nudged the observer, and the whole board sat at its
+      // 640px floor while it did.
+      if (col.width < 400 && vw >= 700) return;
+      const box = boundsOf(root);
+      // The panel eats room only when it is open, on the right, and beside the
+      // board rather than over it: at 375 it is 320 of the window and the
+      // answer is to collapse it, not to squeeze the board into 43px.
+      const panel = document.querySelector<HTMLElement>("[data-motion-tuner]");
+      const p = panel?.getBoundingClientRect();
+      const onRight = !!p && p.left > vw / 2 && p.width > 120;
+      const limit = Math.min(box.right, onRight ? p!.left : vw) - PAGE_PAD;
+
+      const gutter = Math.max(0, (box.width - col.width) / 2 - PAGE_PAD);
+      const growLeft = Math.max(
+        0,
+        Math.min(gutter, col.left - box.left - PAGE_PAD),
+      );
+      let growRight = Math.min(gutter, limit - col.right);
+      // The floor may take room back FROM THE PANEL, which the reader can
+      // move, but never from the page: at 375 the same floor pushed the block
+      // 277px past the window and took the whole document into a horizontal
+      // scroll, which is the bug the two CSS versions had in a new place.
+      if (col.width + growLeft + growRight < MIN_WIDE) {
+        growRight = Math.min(
+          MIN_WIDE - col.width - growLeft,
+          box.right - PAGE_PAD - col.right,
+        );
+      }
+      root.style.setProperty("--rnd-grow-left", `${Math.round(growLeft)}px`);
+      root.style.setProperty("--rnd-grow-right", `${Math.round(growRight)}px`);
+    };
+
+    sync();
+    // The observer alone is not enough on the first paint: the settle that
+    // follows hydration did not always reach it for several seconds.
+    const frame = requestAnimationFrame(sync);
+    const settle = window.setTimeout(sync, 300);
+    document.fonts?.ready.then(sync).catch(() => {});
+
+    const ro = new ResizeObserver(sync);
+    ro.observe(root);
+    const panel = document.querySelector<HTMLElement>("[data-motion-tuner]");
+    // Open/collapse swaps the panel's child; the flip swaps its class.
+    const mo = panel ? new MutationObserver(sync) : null;
+    if (panel && mo) {
+      ro.observe(panel);
+      mo.observe(panel, { childList: true, attributes: true });
+    }
+    window.addEventListener("resize", sync);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(settle);
+      ro.disconnect();
+      mo?.disconnect();
+      window.removeEventListener("resize", sync);
+    };
+  }, []);
+
+  return ref;
+}
+
+/* ── A stage that takes its height from its content ────────────────────── */
+
+/**
+ * ★ A STAGE NEVER GUESSES ITS HEIGHT (the doctrine the brand-voice board wrote
+ * at this review wave; this is that pattern in this lane). Round two passed
+ * 980 and 900 as literals and part B's marketing composition sat in 300px of
+ * empty ground, which on a board about SURFACES reads as a surface.
+ *
+ * offsetHeight, not a rect: the Stage fits the lab column with `zoom` and a
+ * rect is in the zoomed frame while the height prop is not. The slack covers
+ * two mechanical facts rather than the content: the stage is border-box, so
+ * its 1px border comes out of the height it is handed, and the fractional zoom
+ * rounds at the device pixel.
+ */
+const FIT_SLACK = 4;
+
+function FitStage({
+  mode,
+  ground,
+  swapKey,
+  children,
+}: {
+  mode: Mode;
+  ground: Ground;
+  /** Anything that changes the content's height without changing the DOM. */
+  swapKey?: string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState<number | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const sync = () =>
+      setHeight(
+        Math.ceil(Math.max(el.offsetHeight, el.scrollHeight)) + FIT_SLACK,
+      );
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    window.addEventListener("resize", sync);
+    document.fonts?.ready.then(sync).catch(() => {});
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", sync);
+    };
+  }, [mode, swapKey]);
+
+  return (
+    <Stage mode={mode} ground={ground} height={height}>
+      {/* flow-root so a child's margin cannot collapse out of the measured
+          box; data-inview because marketing.css holds [data-mkt-reveal] at
+          opacity 0 until an ancestor says it is in view, and a radius board
+          has no business animating an entrance. */}
+      <div ref={ref} className="flow-root" data-inview="true">
+        {children}
+      </div>
+    </Stage>
+  );
 }
 
 /* ── The live column's real numbers ────────────────────────────────────── */
@@ -150,7 +360,7 @@ type Live = Record<string, number> | null;
  * it was DECLARED ("0.125rem", "1rem"), so reading the variables would mean
  * re-implementing unit conversion and getting it wrong the first time someone
  * writes an em. A probe with `border-radius: var(--x)` resolves to used
- * pixels, so the live column prints the browser's answer rather than ours.
+ * pixels, so the live band prints the browser's answer rather than ours.
  */
 function useLiveTokens(
   overrides: TunerOverrides,
@@ -174,6 +384,10 @@ function useLiveTokens(
       if (gapEl) {
         next["--gap-gallery"] = parseFloat(getComputedStyle(gapEl).columnGap);
       }
+      const cardEl = box.children[PROBES.length + 1] as HTMLElement | undefined;
+      if (cardEl) {
+        next.card = parseFloat(getComputedStyle(cardEl).borderTopLeftRadius);
+      }
       setLive(next);
     };
     read();
@@ -189,6 +403,11 @@ function useLiveTokens(
         <span key={name} style={{ borderRadius: `var(${name})` }} />
       ))}
       <span style={{ columnGap: "var(--gap-gallery)" }} />
+      {/* The CARD's corner, measured for the same reason as the tokens. It is
+          not a token at all: @theme inline bakes rounded-xl into its utility,
+          and an applied candidate can rewrite that utility, so the only
+          honest card number for the live band is the browser's. */}
+      <span className="rounded-xl" />
     </div>
   );
   return { live, probe };
@@ -199,25 +418,39 @@ function useLiveTokens(
 type Row = {
   token: string;
   label: string;
-  note: string;
-  cell: (c: SurfaceCandidate, live: Live, a: ActionRung) => React.ReactNode;
+  /** The ladder is an argument because the note prints the card's multiplier
+   *  and the matrix can be wearing either ladder. */
+  note: (l: LadderId) => string;
+  cell: (
+    c: SurfaceCandidate,
+    live: Live,
+    l: LadderId,
+    a: ActionRung,
+  ) => React.ReactNode;
 };
 
 const ROWS: Row[] = [
   {
     token: "--radius",
     label: "Surfaces",
-    note: "288 uses in 140 files. Card is 1.4x of it, Input and every plate 1x.",
-    cell: (c, live) => (
-      <SurfaceSpecimen
-        radius={c.values ? c.values.radius : (live?.["--radius"] ?? null)}
-      />
-    ),
+    note: (l) =>
+      `154 files carry one. Card is ${cardMultiplier(l)}x of it, Input and every plate 1x.`,
+    // The live band is outside every scoped ladder, so it is handed the
+    // MEASURED card rather than a multiplier it would have to guess.
+    cell: (c, live, l) =>
+      c.values ? (
+        <SurfaceSpecimen radius={c.values.radius} ladder={l} />
+      ) : (
+        <SurfaceSpecimen
+          radius={live?.["--radius"] ?? null}
+          card={live?.card ?? null}
+        />
+      ),
   },
   {
     token: "--radius-float",
     label: "The floating layer",
-    note: "Menus, popovers, dialogs, toasts. Rows sit in 4px of padding.",
+    note: () => "Menus, dialogs, toasts. Rows sit in 4px of padding.",
     cell: (c, live) => (
       <FloatSpecimen
         float={c.values ? c.values.float : (live?.["--radius-float"] ?? null)}
@@ -227,7 +460,7 @@ const ROWS: Row[] = [
   {
     token: "--radius-tile",
     label: "Media tiles",
-    note: "Every gallery grid, with --gap-gallery pinned to it.",
+    note: () => "Every gallery grid, with --gap-gallery pinned to it.",
     cell: (c, live) => (
       <TileSpecimen
         tile={c.values ? c.values.tile : (live?.["--radius-tile"] ?? null)}
@@ -238,21 +471,25 @@ const ROWS: Row[] = [
   {
     token: "--radius-action",
     label: "Actions",
-    note: "The rung is the second axis, ruled in part E. Every column wears the rung on the rail.",
-    cell: (c, live, a) => (
+    note: () =>
+      "The rung is the rail's, the same in every column. What changes is the contrast, printed under each.",
+    cell: (c, live, l, a) => (
       <ActionSpecimen
         action={
           c.values ? a.values.action : (live?.["--radius-action"] ?? null)
         }
         sm={c.values ? a.values.sm : (live?.["--radius-action-sm"] ?? null)}
+        card={
+          c.values ? stepValue(c.values.radius, l, "xl") : (live?.card ?? null)
+        }
       />
     ),
   },
 ];
 
 /** Every height an action ships at, and the token each one wears. h-10 and
- *  h-12 are here because the tokens are named for them and both are empty in
- *  the product, which is half of part E's finding. */
+ *  h-12 are here because the tokens are named for them and both are nearly
+ *  empty in the product, which is half of part E's finding. */
 const HEIGHTS: {
   label: string;
   where: string;
@@ -279,7 +516,7 @@ const HEIGHTS: {
   },
   {
     label: "h-10",
-    where: "--radius-action itself. Three call sites, all in the reel",
+    where: "--radius-action itself. The reel's buttons and the footer CTA",
     px: 40,
     token: "var(--radius-action)",
     sample: "Save to phone",
@@ -287,7 +524,7 @@ const HEIGHTS: {
   },
   {
     label: "h-11, the CTA",
-    where: "size lg plus a className. Every marketing CTA on the site",
+    where: "size lg plus a className, in 26 files. Every marketing CTA",
     px: 44,
     token: "calc(var(--radius-action) * 0.9)",
     sample: "Create your event",
@@ -313,11 +550,12 @@ const ASKS = [
 
 const DEPARTURES = [
   "The guest gallery's gap is a literal. guest-masonry.tsx, gallery-skeleton.tsx and ghost-grid.tsx write gap-[3px] while their tiles ride var(--radius-tile), so any tile above 3 opens corner holes on the one grid every guest sees and nowhere else. Bible 8, second clause. Part B shows the pair; the fix is in another track's lane.",
-  "--radius-action names a 40px button that ships nowhere (its three call sites are the reel's h-10 buttons) and --radius-action-lg has exactly one, the reel builder, on an h-11. Every marketing CTA is size lg forced to h-11 with a className, so it wears 0.9 x --radius-action at 0.33 of its height while globals.css documents the ladder as 0.4.",
-  "The derived ladder cannot be retuned with a token. @theme inline substitutes each step into its utility at build time, so --radius-xl is empty at runtime and part D renders the retune as utility overrides. The ruling lands on the multipliers in theme.css, one line a step, which is the Orchestrator's file.",
+  "The guest ENTRY SHEET wears the action token. entry-shell.tsx draws the first surface any guest meets with rounded-t-[calc(var(--radius-action)*1.4)], so the action rung, not the floating rung, decides the corner of a sheet: 22.4px today, and a half circle under the pill. Part E draws it. Either the sheet moves to the floating layer's token (which is the floating-surfaces board's --radius-float-lg) or the action rung is ruled knowing it owns a sheet.",
   "The float rung is being ruled on two boards. This one sets --radius-float; the floating-surfaces proposal adds --radius-float-item (the panel minus its row padding) and --radius-float-lg. They have to agree, and bible 9 says the item token is right: today a menu draws an 8px panel around 1.6px rows sitting in 4px of padding.",
-  "Part A leaves the shell's Stage. A radius judged at the stage's zoom reads a third sharper than its number, which is a defect in the round-one board rather than in the stage: the stage is right for a hero. Offered to the shell's owner as a fit={false} escape hatch or a TrueSize wrapper, so the next board that judges a dimension does not have to invent .rnd-wide again.",
-  "The pill rung is outside the tuner's range. ROUNDING_TUNER_CONTROLS caps the action knobs at 24px, so Apply writes the pill into the block and clears the knob rather than leaving the panel in a state a drag cannot return to. If the pill is ruled, that max moves.",
+  "--radius-action-lg has exactly one call site, the reel builder, on an h-11. Every marketing CTA is size lg forced to h-11 with a className in 26 files, so the loudest action on the site wears 0.9 x --radius-action at 0.33 of its height while globals.css documents the ladder as 0.4. The proposal is a cta size on the Button (h-11 at 1.1 x --radius-action) and the retirement of a token named for a height nothing uses.",
+  "The derived ladder cannot be retuned with a token. @theme inline substitutes each step into its utility at build time, so --radius-xl is empty at runtime and part D renders the retune as utility overrides. The ruling lands on the multipliers in theme.css, one line a step, which is the Orchestrator's file.",
+  "The guest group cannot wear a candidate. CandidateStyle mounts in the lab layout, the marketing island and the app island, and (guest)/layout.tsx mounts none of them, so /e/<token> ignores every paste this board offers. The floating-surfaces board asks for the same one line, and this board is the second reason: the surface part E turns on is on that page.",
+  "Sixty-four corners on the site are literals rather than tokens, and the walk is where that shows. rounded-[2px], -[3px] and -[4px] account for 52 of them across 24 non-lab files (the film strip, the live demo, the decomposition frames, the album grids, the reel filmstrip), so under any candidate but A a photograph keeps today's corner while the card around it moves: the home page alone holds 48 corners at 2px and 22 at 3px with the answer applied, beside cards at 10 and 12. They are the same argument as the gallery gap, one layer out, and they want var(--radius-tile). A ruling of C is a ruling to sweep them.",
 ];
 
 const ASSETS = [
@@ -339,6 +577,8 @@ export function RoundingBoard() {
   const [phoneComposition, setPhoneComposition] =
     useState<CompositionId>("guest");
   const [phoneGround, setPhoneGround] = useState<Ground>("app-light");
+
+  const rootRef = usePanelAwareWidth();
 
   const overrides = useSyncExternalStore(
     subscribeTuner,
@@ -397,6 +637,17 @@ export function RoundingBoard() {
     [],
   );
 
+  /** The whole answer, as one paste: the rail moves with it so every part
+   *  below is showing what the site is now wearing. */
+  const applyAnswer = useCallback(() => {
+    const s = SURFACES.find((c) => c.id === ANSWER.surface)!;
+    const a = ACTIONS.find((c) => c.id === ANSWER.action)!;
+    setSurfaceId(s.id);
+    setActionId(a.id);
+    setLadder(ANSWER.ladder);
+    applyToSite(s, a, ANSWER.ladder);
+  }, [applyToSite]);
+
   const clearAll = useCallback(() => {
     clearCandidate();
     clearTunerValues(ROUNDING_TUNER_CONTROLS);
@@ -406,9 +657,12 @@ export function RoundingBoard() {
     designKey ? `${path}?key=${designKey}` : path;
   const liveRadius = live?.["--radius"] ?? 2;
   const base = surface.values ? surface.values.radius : liveRadius;
+  const today = CANDIDATES[0];
+  const answer = SURFACES.find((c) => c.id === ANSWER.surface)!;
+  const todayRung = ACTIONS[0];
 
   return (
-    <div className="flex flex-col gap-10 py-4">
+    <div ref={rootRef} className="flex flex-col gap-10 py-4">
       {probe}
       {/* The retuned ladder, scoped so one column can wear it. The same
           function writes the unscoped block the paste carries. */}
@@ -418,111 +672,196 @@ export function RoundingBoard() {
         <p>
           Six tokens, three decisions. The surface family (A to D) moves{" "}
           <span className="text-foreground">--radius</span>, the floating layer
-          and the media tile together. The action rung moves the three action
-          tokens, and it is a separate question because bible 8 says round
-          actions without saying how round. The ladder is the seven derived
-          steps, whose multipliers were chosen against a 2px base and stop
-          making sense somewhere above 8.
+          and the media tile together; the action rung moves the three action
+          tokens, because bible 8 says round actions without saying how round;
+          the ladder is the seven derived steps, whose multipliers were chosen
+          against a 2px base and stop making sense somewhere above 8.
         </p>
         <p>
-          Every comparison part is at 1:1. The shell&apos;s stage fits 1440 into
-          this column with <span className="text-foreground">zoom</span>, which
-          scales the corner along with the layout, so the kit in round one
-          rendered a third sharper than its own numbers. Part B keeps the stage,
-          because there the question is the layout.
-        </p>
-        <p>
-          Apply a candidate and the whole site wears the block a ruling would
-          land, so the real answer comes from the walk:{" "}
-          {(
-            [
-              ["/", "the home arc"],
-              ["/pricing", "pricing"],
-              ["/help", "help"],
-              ["/contact", "contact"],
-              ["/dashboard", "the dashboard"],
-            ] as const
-          ).map(([href, label], i, all) => (
-            <span key={href}>
-              <a
-                href={walk(href)}
-                className="text-foreground underline underline-offset-2"
-              >
-                {label}
-              </a>
-              {i < all.length - 1 ? ", " : ""}
-            </span>
-          ))}
-          , an event page and the demo guest page. The app pages want the host
-          signed in, and the key rides the query string.
-        </p>
-        <p>
-          The tuner panel is fixed over the right of the page, which is where
-          the live column and the third action rung sit: move it to the left
-          with the arrow in its header, or close it with the cross.
-        </p>
-        <p>
-          Two boards from the first wave are inputs. The floating-surfaces
-          proposal splits the float rung into a panel token and a row token,
-          which is bible 9 applied inside the floating layer, so part C defers
-          to it rather than competing; and the light proposal is why part B has
-          a dark ground, because in dark a corner is stated by the ring today
-          and by a shadow family if that board is ruled. Nothing here touches
-          colour: every specimen is on the shipped ramps, so this ruling and the
-          palette ruling do not wait on each other.
+          Every comparison is at 1:1, because the only honest size for a corner
+          is its own. Part B is the exception and says so: there the question is
+          the layout, so it keeps the shell&apos;s zoom-fitted stage.
         </p>
       </div>
 
-      {/* The rail: the three axes, then what is applied. */}
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <Toggle
-            ariaLabel="Surface candidate"
-            options={COLUMNS.map((c) => ({ id: c.id, label: c.letter }))}
-            value={surfaceId}
-            onChange={setSurfaceId}
-          />
-          <Toggle
-            ariaLabel="Action rung"
-            options={ACTIONS.map((a) => ({
-              id: a.id,
-              label: a.name.split(",")[0],
-            }))}
-            value={actionId}
-            onChange={setActionId}
-          />
-          <Toggle
-            ariaLabel="Derived ladder"
-            options={[
-              { id: "stock" as LadderId, label: "Stock ladder" },
-              { id: "quarters" as LadderId, label: "Quarters" },
-            ]}
-            value={ladder}
-            onChange={setLadder}
-          />
+      {/* ── The answer, first ──────────────────────────────────────────── */}
+      <section
+        id="rnd-answer"
+        className="rnd-answer flex scroll-mt-6 flex-col gap-4 rounded-lg border border-border bg-muted/25 p-5"
+      >
+        <div>
+          <h2 className="text-sm font-semibold tracking-tight">
+            What the board answers
+          </h2>
+          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            Five one-word rulings. The evidence for each is the part named
+            beside it; the button puts all five on the site at once, as the
+            paste the ruling would land.
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+
+        <div className="rnd-answer-grid">
+          {ANSWER.lines.map((l, i) => (
+            <div key={l.ask} className="flex flex-col gap-1">
+              <p className="text-[11px] font-medium text-muted-foreground">
+                {l.ask}
+                <a
+                  href={`#rnd-${["a", "e", "d", "d", "b"][i]}`}
+                  className="ml-1.5 underline underline-offset-2 hover:text-foreground"
+                >
+                  part {["A", "E", "D", "D", "B"][i]}
+                </a>
+              </p>
+              <p className="text-sm font-medium">{l.value}</p>
+              <CellLabel>{l.why}</CellLabel>
+            </div>
+          ))}
+        </div>
+
+        {/* The one comparison the first ruling turns on, at true size. */}
+        <div className="flex flex-wrap items-start gap-6 border-t border-border pt-4">
+          {[today, answer].map((c) => {
+            // One value for the attribute AND the caption: the answer column
+            // wears the ruled ladder, so its card is 1.25x and must not be
+            // captioned at the stock 1.4x.
+            const columnLadder: LadderId =
+              c.id === answer.id ? ANSWER.ladder : "stock";
+            return (
+              <div
+                key={c.id}
+                style={overrideStyle(c, todayRung)}
+                data-rnd-ladder={columnLadder}
+                className="flex w-[15rem] flex-col gap-2"
+              >
+                <p className="text-sm font-medium">
+                  {c.id === today.id ? "Today" : "The answer"}
+                  <span className="ml-1.5 text-muted-foreground tabular-nums">
+                    {c.values!.radius} / {c.values!.float} / {c.values!.tile}
+                  </span>
+                </p>
+                <SurfaceSpecimen
+                  radius={c.values!.radius}
+                  ladder={columnLadder}
+                />
+                <TileSpecimen
+                  tile={c.values!.tile}
+                  gap={c.values!.gap}
+                  count={3}
+                />
+              </div>
+            );
+          })}
+          <div className="flex max-w-xs flex-col gap-2 self-center">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button onClick={applyAnswer}>
+                Apply the answer to the site
+              </Button>
+              <Button variant="ghost" onClick={clearAll}>
+                Clear
+              </Button>
+            </div>
+            <CellLabel>
+              {applied ? (
+                <>
+                  On the site now:{" "}
+                  <span className="text-foreground">{applied.label}</span>. It
+                  rides every lab page, every marketing page and the app, with
+                  the key.
+                </>
+              ) : (
+                "Nothing applied. The site is on its baked values."
+              )}
+            </CellLabel>
+            <CellLabel>
+              {/* ★ The guest group mounts no design island, so /e/<token>
+                  cannot wear a candidate. Found by the floating-surfaces
+                  board and confirmed here: CandidateStyle mounts in the lab
+                  layout, the marketing island and the app island, and
+                  (guest)/layout.tsx has none of the three. Saying "walk the
+                  guest page" would send the reader to the one page that
+                  silently ignores the paste. */}
+              The guest page at /e/&lt;token&gt; cannot wear a candidate yet:
+              its group mounts no design island. Part F is the stand-in, and the
+              Handoff asks for the one line that fixes it.
+            </CellLabel>
+            <CellLabel>
+              Then walk{" "}
+              {(
+                [
+                  ["/", "the home arc"],
+                  ["/pricing", "pricing"],
+                  ["/help", "help"],
+                  ["/contact", "contact"],
+                  ["/dashboard", "the dashboard"],
+                ] as const
+              ).map(([href, label], i, all) => (
+                <span key={href}>
+                  <a
+                    href={walk(href)}
+                    className="text-foreground underline underline-offset-2"
+                  >
+                    {label}
+                  </a>
+                  {i < all.length - 1 ? ", " : ""}
+                </span>
+              ))}{" "}
+              and an event page. The app pages want the host signed in, and the
+              key rides the query string.
+            </CellLabel>
+          </div>
+        </div>
+      </section>
+
+      {/* ── The rail: the three axes ───────────────────────────────────── */}
+      <div className="rnd-fit flex flex-col gap-3">
+        <CellLabel>
+          Every part below is drawn at the rail&apos;s setting. The four
+          candidates each apply on their own from part A.{" "}
+          {/* The ladder switch is the one control on this board that can look
+              broken: at today's base the two ladders are a pixel apart and
+              nothing on the page moves. Say so, with the number. */}
+          {base < 4
+            ? `The ladder switch will look dead at a ${px(base)} base: the two are at most ${px(base * 0.6)} apart there, all of it on the two top rungs. Take a candidate with a round base to see it.`
+            : `At a ${px(base)} base the two ladders are up to ${px(base * 0.6)} apart, most of it on the rungs that carry the plan cards and the badge.`}
+        </CellLabel>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          <Labeled label="Surfaces">
+            <Toggle
+              ariaLabel="Surface candidate"
+              options={CANDIDATES.map((c) => ({ id: c.id, label: c.letter }))}
+              value={surfaceId}
+              onChange={setSurfaceId}
+            />
+          </Labeled>
+          <Labeled label="Actions">
+            <Toggle
+              ariaLabel="Action rung"
+              options={ACTIONS.map((a) => ({
+                id: a.id,
+                label: a.name.split(",")[0],
+              }))}
+              value={actionId}
+              onChange={setActionId}
+            />
+          </Labeled>
+          <Labeled label="Ladder">
+            <Toggle
+              ariaLabel="Derived ladder"
+              options={[
+                { id: "stock" as LadderId, label: "Stock" },
+                { id: "quarters" as LadderId, label: "Quarters" },
+              ]}
+              value={ladder}
+              onChange={setLadder}
+            />
+          </Labeled>
           <Button
+            variant="outline"
             onClick={() => applyToSite(surface, action, ladder)}
             disabled={!surface.values}
           >
-            Apply {surface.letter} to the site
+            Apply this rail to the site
           </Button>
-          <Button variant="ghost" onClick={clearAll}>
-            Clear
-          </Button>
-          <CellLabel className="max-w-md">
-            {applied ? (
-              <>
-                Applied site-wide:{" "}
-                <span className="text-foreground">{applied.label}</span>. It
-                rides every lab page, every marketing page and the app, with the
-                key.
-              </>
-            ) : (
-              "Nothing applied. The site is on its baked values."
-            )}
-          </CellLabel>
         </div>
       </div>
 
@@ -534,10 +873,9 @@ export function RoundingBoard() {
             <p>
               Four rows, one per token family, on the components that carry
               them. The line under each cell is the arithmetic a ruling
-              inherits: a card is 1.4x the base, a menu row nests only at the
-              panel minus its 4px of padding, and the gallery gap follows the
-              tile. The live column reads the tuner, so a knob moves it and
-              every real page together.
+              inherits: a card is {cardMultiplier(ladder)}x the base on the
+              rail&apos;s ladder, a menu row nests only at the panel minus its
+              4px of padding, and the gallery gap follows the tile.
             </p>
             <p>
               The action row shows the shipped pair: the h-8 Button on
@@ -550,38 +888,35 @@ export function RoundingBoard() {
       >
         <div className="rnd-wide">
           <div className="overflow-x-auto pb-1">
-            <div className="grid min-w-[64rem] grid-cols-[7rem_repeat(5,minmax(0,1fr))] gap-x-4 gap-y-7">
+            <div className="grid min-w-[46rem] grid-cols-[6.5rem_repeat(4,minmax(0,1fr))] gap-x-4 gap-y-7">
               <div />
-              {COLUMNS.map((c) => (
+              {CANDIDATES.map((c) => (
                 <div key={c.id} className="flex flex-col gap-1.5">
                   <p className="text-sm font-medium">
                     {c.letter}
-                    {c.values ? (
-                      <span className="ml-1.5 text-muted-foreground tabular-nums">
-                        {c.values.radius} / {c.values.float} / {c.values.tile}
+                    <span className="ml-1.5 text-muted-foreground tabular-nums">
+                      {c.values!.radius} / {c.values!.float} / {c.values!.tile}
+                    </span>
+                    {c.id === ANSWER.surface ? (
+                      <span className="ml-1.5 rounded-action-sm bg-foreground px-1.5 py-0.5 text-[10px] font-medium text-background">
+                        the answer
                       </span>
                     ) : null}
                   </p>
-                  <CellLabel className="min-h-[4.5rem]">
-                    {c.rationale}
-                  </CellLabel>
-                  {c.values ? (
-                    <Button
-                      size="xs"
-                      className="w-fit"
-                      variant={surfaceId === c.id ? "default" : "outline"}
-                      onClick={() => {
-                        setSurfaceId(c.id);
-                        const next = c.wants ?? ladder;
-                        setLadder(next);
-                        applyToSite(c, action, next);
-                      }}
-                    >
-                      Apply {c.letter}
-                    </Button>
-                  ) : (
-                    <CellLabel>Drag a knob in the panel.</CellLabel>
-                  )}
+                  <CellLabel className="min-h-[5rem]">{c.rationale}</CellLabel>
+                  <Button
+                    size="xs"
+                    className="w-fit"
+                    variant={surfaceId === c.id ? "default" : "outline"}
+                    onClick={() => {
+                      setSurfaceId(c.id);
+                      const next = c.wants ?? ladder;
+                      setLadder(next);
+                      applyToSite(c, action, next);
+                    }}
+                  >
+                    Apply {c.letter}
+                  </Button>
                 </div>
               ))}
 
@@ -592,16 +927,16 @@ export function RoundingBoard() {
                       {row.label}
                     </p>
                     <CellLabel className="mt-0.5">{row.token}</CellLabel>
-                    <CellLabel className="mt-1.5">{row.note}</CellLabel>
+                    <CellLabel className="mt-1.5">{row.note(ladder)}</CellLabel>
                   </div>
-                  {COLUMNS.map((c) => (
+                  {CANDIDATES.map((c) => (
                     <div
                       key={c.id}
                       style={overrideStyle(c, action)}
                       data-rnd-ladder={ladder}
                       className="min-w-0"
                     >
-                      {row.cell(c, live, action)}
+                      {row.cell(c, live, ladder, action)}
                     </div>
                   ))}
                 </div>
@@ -609,6 +944,29 @@ export function RoundingBoard() {
             </div>
           </div>
         </div>
+
+        {/* The tuner's own column, as a band: it used to be a fifth column
+            sitting under the panel that drives it. */}
+        <div className="rnd-wide">
+          <div className="flex flex-col gap-3 rounded-lg border border-dashed border-border p-4">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <p className="text-sm font-medium">Live, from the tuner</p>
+              <CellLabel className="max-w-lg">
+                {LIVE.rationale} The numbers are read off the page, not parsed
+                out of the variables.
+              </CellLabel>
+            </div>
+            <div className="flex flex-wrap items-start gap-6">
+              {ROWS.map((row) => (
+                <div key={row.token} className="w-[13rem] min-w-0">
+                  <CellLabel className="mb-1.5">{row.token}</CellLabel>
+                  {row.cell(LIVE, live, ladder, action)}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <Proposal>
           The board lands on C for the surfaces. A is a corner nobody can see,
           which makes the sharp half of bible 8 a claim rather than a look; B is
@@ -628,10 +986,12 @@ export function RoundingBoard() {
               Four compositions built from the shipped components: a marketing
               chapter&apos;s card row and its CTA, the dashboard&apos;s event
               grid, the guest gallery, and the floating layer over content.
-              Switch candidates to flicker between them. This is a stage, so on
-              desktop the corner is drawn at about 69 percent of its true size,
-              and on the phone canvas at 1:1. Part F is the same phone canvas
-              with every candidate beside each other rather than one at a time.
+              Switch candidates on the rail to flicker between them. This is the
+              shell&apos;s stage, which fits a whole canvas into this column, so
+              the desktop corner is drawn smaller than its number and the phone
+              one at 1:1. The answer block and part A are the 1:1 read; this is
+              the layout. Part F is the phone canvas with every candidate side
+              by side.
             </p>
             <p>
               The guest composition carries the round&apos;s worst finding at
@@ -642,61 +1002,59 @@ export function RoundingBoard() {
           </>
         }
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <Toggle
-            ariaLabel="Composition"
-            options={COMPOSITION_OPTIONS}
-            value={composition}
-            onChange={setComposition}
-          />
-          <Toggle
-            ariaLabel="Viewport"
-            options={[
-              { id: "desktop" as Mode, label: "Desktop 1440" },
-              { id: "phone" as Mode, label: "Phone 375" },
-            ]}
-            value={mode}
-            onChange={setMode}
-          />
-          <Toggle
-            ariaLabel="Ground"
-            options={[
-              { id: "app-light" as Ground, label: "Light" },
-              { id: "app-dark" as Ground, label: "Dark" },
-              { id: "cinema" as Ground, label: "Cinema" },
-            ]}
-            value={ground}
-            onChange={setGround}
-          />
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          <Labeled label="Composition">
+            <Toggle
+              ariaLabel="Composition"
+              options={COMPOSITION_OPTIONS}
+              value={composition}
+              onChange={setComposition}
+            />
+          </Labeled>
+          <Labeled label="Canvas">
+            <Toggle
+              ariaLabel="Viewport"
+              options={[
+                { id: "desktop" as Mode, label: "Desktop 1440" },
+                { id: "phone" as Mode, label: "Phone 375" },
+              ]}
+              value={mode}
+              onChange={setMode}
+            />
+          </Labeled>
+          <Labeled label="Ground">
+            <Toggle
+              ariaLabel="Ground"
+              options={[
+                { id: "app-light" as Ground, label: "Light" },
+                { id: "app-dark" as Ground, label: "Dark" },
+                { id: "cinema" as Ground, label: "Cinema" },
+              ]}
+              value={ground}
+              onChange={setGround}
+            />
+          </Labeled>
         </div>
-        <Variant
-          n={1}
-          name={`${surface.letter}, ${action.name.split(",")[0].toLowerCase()} actions`}
-          rationale={surface.rationale}
-          framed={false}
-        >
-          <Stage
-            mode={mode}
-            ground={ground}
-            height={mode === "phone" ? 900 : 980}
+        <div className="rnd-fit flex flex-col gap-2">
+          <p className="text-sm font-medium">
+            {surface.letter}, {action.name.split(",")[0].toLowerCase()} actions
+            {ladder === "quarters" ? ", quarter ladder" : ""}
+          </p>
+          <CellLabel className="max-w-2xl">{surface.rationale}</CellLabel>
+          <div
+            style={overrideStyle(surface, action)}
+            data-rnd-ladder={ladder}
+            className="mt-1"
           >
-            {/* ★ data-inview, set rather than observed. The marketing card
-                carries data-mkt-reveal, and marketing.css (loaded by the lab
-                layout) holds it at opacity 0 until an ancestor says
-                data-inview="true", which is what <Reveal> does on
-                intersection. A radius board has no business animating an
-                entrance, and the first cut of this part was three invisible
-                cards in a white box. */}
-            <div
-              className="h-full overflow-y-auto"
-              style={overrideStyle(surface, action)}
-              data-rnd-ladder={ladder}
-              data-inview="true"
+            <FitStage
+              mode={mode}
+              ground={ground}
+              swapKey={`${composition}-${surfaceId}-${actionId}-${ladder}`}
             >
               <Composition id={composition} mode={mode} />
-            </div>
-          </Stage>
-        </Variant>
+            </FitStage>
+          </div>
+        </div>
       </Part>
 
       <Part
@@ -707,38 +1065,67 @@ export function RoundingBoard() {
             <p>
               Bible 9: anything drawn around an object takes the object&apos;s
               radius plus its offset. It costs nothing at a 2px base and it is
-              the first thing that breaks when the base goes round, so each
-              candidate draws the same two shapes twice, once with the
-              arithmetic and once with the token reused. The right half of each
-              pair is what a card with a full-bleed plate and a ring at an
-              offset look like when nobody does the subtraction.
+              the first thing that breaks when the base goes round. The pair
+              below is the rail&apos;s candidate at reading size: the left half
+              does the subtraction, the right half reuses the token, and at
+              today&apos;s base the two are the same picture.
             </p>
             <p>
-              The third row is the same rule around an action. It wanted to be
-              the beam, which is the case the system already gets right:
-              BorderBeam takes no radius prop and reads its child&apos;s
-              computed one, so the pro card&apos;s ring will follow whatever
-              this board rules. A beam here would add a call site to a pinned
-              set in a file this track does not own, so the row draws a plain
-              ring at the same offset, and the Handoff asks for the line that
-              would let the real one stand.
+              The strip under it is the same failure at all four bases, which is
+              the actual argument: the rule is free to follow and the error
+              grows with whatever this board rules. The third specimen is the
+              rule around an action, which wanted to be the beam, the case the
+              system already gets right (BorderBeam takes no radius prop and
+              reads its child&apos;s computed one), and is a plain ring instead
+              because a beam here would add a call site to a set pinned in a
+              file this track does not own.
             </p>
           </>
         }
       >
+        <div className="rnd-fit flex flex-col gap-4">
+          <div
+            style={overrideStyle(surface, action)}
+            data-rnd-ladder={ladder}
+            className="flex flex-col gap-3"
+          >
+            <p className="text-sm font-medium">
+              {surface.letter}
+              <span className="ml-1.5 text-muted-foreground tabular-nums">
+                base {px(base)}, card at {cardMultiplier(ladder)}x ={" "}
+                {px(stepValue(base, ladder, "xl"))}
+              </span>
+            </p>
+            <div className="max-w-[34rem]">
+              <NestedSpecimen
+                radius={surface.values ? base : null}
+                outerMultiplier={cardMultiplier(ladder)}
+              />
+            </div>
+            <div className="max-w-[26rem]">
+              <ActionRingSpecimen
+                radius={
+                  surface.values
+                    ? action.values.sm
+                    : (live?.["--radius-action-sm"] ?? null)
+                }
+              />
+            </div>
+          </div>
+        </div>
         <div className="rnd-wide">
           <div className="overflow-x-auto pb-1">
-            <div className="grid min-w-[64rem] grid-cols-[7rem_repeat(5,minmax(0,1fr))] gap-x-4">
+            <div className="grid min-w-[42rem] grid-cols-[6.5rem_repeat(4,minmax(0,1fr))] gap-x-4">
               <div className="pt-1">
                 <p className="text-[11px] font-medium text-foreground">
-                  Concentric, or not
+                  The same ring, every base
                 </p>
                 <CellLabel className="mt-1.5">
-                  inner = outer minus the padding. A ring at 6px offset = the
-                  radius plus 6.
+                  A ring at 6px offset should be the radius plus 6. The right
+                  half of each pair is the object&apos;s own radius.
                 </CellLabel>
               </div>
-              {COLUMNS.map((c) => (
+              {CANDIDATES.map((c) => (
                 <div
                   key={c.id}
                   style={overrideStyle(c, action)}
@@ -747,19 +1134,10 @@ export function RoundingBoard() {
                 >
                   <p className="mb-2 text-sm font-medium">{c.letter}</p>
                   <NestedSpecimen
-                    radius={
-                      c.values ? c.values.radius : (live?.["--radius"] ?? null)
-                    }
+                    radius={c.values!.radius}
+                    outerMultiplier={cardMultiplier(ladder)}
+                    ringOnly
                   />
-                  <div className="mt-2">
-                    <ActionRingSpecimen
-                      radius={
-                        c.values
-                          ? action.values.sm
-                          : (live?.["--radius-action-sm"] ?? null)
-                      }
-                    />
-                  </div>
                 </div>
               ))}
             </div>
@@ -790,35 +1168,31 @@ export function RoundingBoard() {
             </p>
             <p>
               The quarter ladder is the alternative: an even quarter a step.
-              Note what it does at today&apos;s base, in the first two columns
-              of numbers: nothing. It is a change that costs nothing now and is
-              the difference between a plan card at{" "}
-              {px(stepValue(14, "stock", "2xl"))} and{" "}
-              {px(stepValue(14, "quarters", "2xl"))} if the base ever moves.
+              Note what it does at today&apos;s base, in the two columns of
+              numbers: nothing. It is a change that costs nothing now and is the
+              difference between a plan card at{" "}
+              {px(stepValue(8, "stock", "2xl"))} and{" "}
+              {px(stepValue(8, "quarters", "2xl"))} at C&apos;s 8px base, and
+              between {px(stepValue(14, "stock", "2xl"))} and{" "}
+              {px(stepValue(14, "quarters", "2xl"))} at D&apos;s.
             </p>
           </>
         }
       >
         <div className="rnd-wide">
           <div className="overflow-x-auto pb-1">
-            <div className="grid min-w-[60rem] grid-cols-[3.5rem_7rem_7rem_1fr_minmax(0,10rem)_minmax(0,10rem)] items-center gap-x-4 gap-y-4">
+            <div className="grid min-w-[44rem] grid-cols-[3rem_minmax(0,11rem)_minmax(0,11rem)_1fr] items-center gap-x-4 gap-y-4">
               <CellLabel className="font-medium text-foreground">
                 Step
               </CellLabel>
               <CellLabel className="font-medium text-foreground">
-                Stock at {px(base)}
+                Stock, at {px(base)}
               </CellLabel>
               <CellLabel className="font-medium text-foreground">
-                Quarters at {px(base)}
+                Quarters, at {px(base)}
               </CellLabel>
               <CellLabel className="font-medium text-foreground">
                 Where it lands
-              </CellLabel>
-              <CellLabel className="font-medium text-foreground">
-                Stock
-              </CellLabel>
-              <CellLabel className="font-medium text-foreground">
-                Quarters
               </CellLabel>
 
               {STEPS.map((step) => {
@@ -834,18 +1208,6 @@ export function RoundingBoard() {
                     >
                       {step}
                     </CellLabel>
-                    <CellLabel>
-                      {LADDERS.stock[step]}x ={" "}
-                      {px(stepValue(base, "stock", step))}
-                    </CellLabel>
-                    <CellLabel>
-                      {LADDERS.quarters[step]}x ={" "}
-                      {px(stepValue(base, "quarters", step))}
-                    </CellLabel>
-                    <CellLabel>
-                      {site.uses} uses: {site.where}
-                      {dead ? ". A candidate for deletion." : ""}
-                    </CellLabel>
                     <div
                       style={cellStyle}
                       data-rnd-ladder="stock"
@@ -859,6 +1221,20 @@ export function RoundingBoard() {
                       className="flex min-w-0 items-center"
                     >
                       <StepSpecimen step={step} />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <CellLabel>
+                        {LADDERS.stock[step]}x ={" "}
+                        {px(stepValue(base, "stock", step))}
+                        {"  |  "}
+                        {LADDERS.quarters[step]}x ={" "}
+                        {px(stepValue(base, "quarters", step))}
+                      </CellLabel>
+                      <CellLabel>
+                        {site.uses} {site.uses === 1 ? "use" : "uses"}:{" "}
+                        {site.where}
+                        {dead ? ". A candidate for deletion." : ""}
+                      </CellLabel>
                     </div>
                   </div>
                 );
@@ -880,30 +1256,41 @@ export function RoundingBoard() {
         lede={
           <>
             <p>
-              The three action tokens name a 40px, a 48px and a 32px button.
-              Only the 32px one is the product: the default Button is h-8, and
+              The three action tokens name a 40px, a 48px and a 32px button, and
+              only the 32px one is the product: the default Button is h-8, and
               the in-between sizes derive from --radius-action at 0.6, 0.7 and
-              0.9. --radius-action itself has three call sites, all in the reel,
-              and --radius-action-lg has one. Every marketing CTA on the site is
-              size lg forced to h-11, so it wears 0.9x of a token defined for a
-              height it does not have.
+              0.9. Counted on this tree, --radius-action has{" "}
+              {ACTION_SITES.derived + ACTION_SITES.raw} raw uses in{" "}
+              {ACTION_SITES.files} files, {ACTION_SITES.derived} of them inside
+              button.tsx; --radius-action-lg has {ACTION_SITES.lg}. Every
+              marketing CTA is size lg forced to h-11, so it wears 0.9x of a
+              token defined for a height it does not have.
             </p>
             <p>
-              Each rung below is applied to every shipped height at once with
-              the ratio printed. The pill is the only rung whose shape does not
-              depend on the height, which is what makes the h-11 CTA a non-issue
-              under it and a rounding error under the other two.
+              The last row is the finding: the guest entry sheet is not a button
+              and it wears the action token anyway, at 1.4x. Each rung is
+              applied to every shipped height at once with the ratio printed.
+              The pill is the only rung whose shape does not depend on the
+              height, which is what makes the h-11 CTA a non-issue under it and
+              a half circle of the guest sheet.
             </p>
           </>
         }
       >
         <div className="rnd-wide">
           <div className="overflow-x-auto pb-1">
-            <div className="grid min-w-[52rem] grid-cols-[11rem_repeat(3,minmax(0,1fr))] gap-x-4 gap-y-5">
+            <div className="grid min-w-[44rem] grid-cols-[10rem_repeat(3,minmax(0,1fr))] gap-x-4 gap-y-5">
               <div />
               {ACTIONS.map((a) => (
                 <div key={a.id} className="flex flex-col gap-1.5">
-                  <p className="text-sm font-medium">{a.name}</p>
+                  <p className="text-sm font-medium">
+                    {a.name}
+                    {a.id === ANSWER.action ? (
+                      <span className="ml-1.5 rounded-action-sm bg-foreground px-1.5 py-0.5 text-[10px] font-medium text-background">
+                        the answer
+                      </span>
+                    ) : null}
+                  </p>
                   <CellLabel className="min-h-[4rem]">{a.rationale}</CellLabel>
                   <Button
                     size="xs"
@@ -956,6 +1343,27 @@ export function RoundingBoard() {
                   })}
                 </div>
               ))}
+
+              <div className="pt-1">
+                <p className="text-[11px] font-medium text-foreground">
+                  The guest entry sheet
+                </p>
+                <CellLabel className="mt-0.5">
+                  entry-shell.tsx, at 1.4 x --radius-action. Not a button, and
+                  the first surface every guest meets. Drawn here because the
+                  real one cannot be walked: the guest group mounts no design
+                  island, so a candidate never reaches it
+                </CellLabel>
+              </div>
+              {ACTIONS.map((a) => (
+                <div
+                  key={a.id}
+                  style={overrideStyle(surface, a)}
+                  className="min-w-0"
+                >
+                  <EntrySheetSpecimen action={a.values.action} />
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -963,9 +1371,10 @@ export function RoundingBoard() {
           Today&apos;s rung, and give the CTA a real size. The pill is a
           different product and quiet gives up the second half of bible 8; what
           is actually broken is that the loudest action on the site is an ad-hoc
-          h-11 with a className, so the ruling should add a cta size to the
-          Button (h-11 at 1.1 x --radius-action) and retire --radius-action-lg,
-          which names a height nothing uses.
+          h-11 with a className, and that a sheet is wearing a button&apos;s
+          token. The ruling should add a cta size to the Button (h-11 at 1.1 x
+          --radius-action), retire --radius-action-lg, and move the entry sheet
+          onto the floating layer.
         </Proposal>
       </Part>
 
@@ -975,45 +1384,50 @@ export function RoundingBoard() {
         lede={
           <>
             <p>
-              The same five columns as part A, each on its own 375 canvas at
-              1:1, because the phone is where most of these corners are actually
-              seen: the guest gallery is a phone surface first, and a 6px tile
-              is a different object beside a 180px photograph than it is beside
-              a 340px one. Part B walks one candidate at a time on a phone; this
-              is the row.
+              The four candidates, each on its own 375 canvas at 1:1, because
+              the phone is where most of these corners are actually seen: the
+              guest gallery is a phone surface first, and a 6px tile is a
+              different object beside a 180px photograph than beside a 340px
+              one. Part B walks one candidate at a time on a phone; this is the
+              row.
             </p>
             <p>
-              Five phones at true size do not fit across the lab column, and
-              shrinking one to make it fit is the error this board was rebuilt
-              to remove, so they wrap: three to a row at 1440, two on a narrower
-              window. The order is A, B, C, D, Live, so the three that decide
-              the surfaces stay together at the top.
+              Phones at true size do not fit across the lab column and shrinking
+              one to make it fit is the error this board was rebuilt to remove,
+              so they wrap: three to a row where there is room, two beside an
+              open tuner panel.
             </p>
           </>
         }
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <Toggle
-            ariaLabel="Phone composition"
-            options={COMPOSITION_OPTIONS}
-            value={phoneComposition}
-            onChange={setPhoneComposition}
-          />
-          <Toggle
-            ariaLabel="Phone ground"
-            options={[
-              { id: "app-light" as Ground, label: "Light" },
-              { id: "app-dark" as Ground, label: "Dark" },
-              { id: "cinema" as Ground, label: "Cinema" },
-            ]}
-            value={phoneGround}
-            onChange={setPhoneGround}
-          />
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          <Labeled label="Composition">
+            <Toggle
+              ariaLabel="Phone composition"
+              options={COMPOSITION_OPTIONS}
+              value={phoneComposition}
+              onChange={setPhoneComposition}
+            />
+          </Labeled>
+          <Labeled label="Ground">
+            <Toggle
+              ariaLabel="Phone ground"
+              options={[
+                { id: "app-light" as Ground, label: "Light" },
+                { id: "app-dark" as Ground, label: "Dark" },
+                { id: "cinema" as Ground, label: "Cinema" },
+              ]}
+              value={phoneGround}
+              onChange={setPhoneGround}
+            />
+          </Labeled>
         </div>
         <div className="rnd-wide">
+          {/* A 375 canvas is wider than the board is at 375, so this row
+              scrolls inside itself rather than taking the page with it. */}
           <div className="overflow-x-auto pb-1">
             <div className="flex flex-wrap gap-4">
-              {COLUMNS.map((c) => (
+              {CANDIDATES.map((c) => (
                 <div
                   key={c.id}
                   className="flex w-[375px] shrink-0 flex-col gap-2"
@@ -1021,18 +1435,18 @@ export function RoundingBoard() {
                   <div>
                     <p className="text-sm font-medium">
                       {c.letter}
-                      {c.values ? (
-                        <span className="ml-1.5 text-muted-foreground tabular-nums">
-                          {c.values.radius} / {c.values.float} / {c.values.tile}
-                        </span>
-                      ) : null}
+                      <span className="ml-1.5 text-muted-foreground tabular-nums">
+                        {c.values!.radius} / {c.values!.float} /{" "}
+                        {c.values!.tile}, card{" "}
+                        {px(stepValue(c.values!.radius, ladder, "xl"))}
+                      </span>
                     </p>
                     <CellLabel>{c.phone}</CellLabel>
                   </div>
                   <Stage mode="phone" ground={phoneGround} height={700}>
-                    {/* data-inview for the same reason as part B: the
-                        marketing card is held at opacity 0 by marketing.css
-                        until an ancestor says it is in view. */}
+                    {/* data-inview for the same reason as part B: the marketing
+                      card is held at opacity 0 by marketing.css until an
+                      ancestor says it is in view. */}
                     <div
                       className="h-full overflow-y-auto"
                       style={overrideStyle(c, action)}
@@ -1056,27 +1470,29 @@ export function RoundingBoard() {
         </Proposal>
       </Part>
 
-      <BoardMeta
-        question={QUESTION}
-        candidates={[
-          ...SURFACES.filter((s) => s.values).map((s) => ({
-            name: `Surfaces ${s.letter}, ${s.name}`,
-            rationale: s.rationale,
-          })),
-          ...ACTIONS.map((a) => ({
-            name: `Actions, ${a.name}`,
-            rationale: a.rationale,
-          })),
-          {
-            name: "The ladder, quarters",
-            rationale:
-              "0.5 / 0.75 / 1 / 1.25 / 1.5 / 1.75 / 2 in place of 0.6 / 0.8 / 1 / 1.4 / 1.8 / 2.2 / 2.6. Within half a pixel of stock at today's base; the difference is only visible once the base is round.",
-          },
-        ]}
-        asks={ASKS}
-        departures={DEPARTURES}
-        assets={ASSETS}
-      />
+      <div className="rnd-fit">
+        <BoardMeta
+          question={QUESTION}
+          candidates={[
+            ...CANDIDATES.map((s) => ({
+              name: `Surfaces ${s.letter}, ${s.name}`,
+              rationale: s.rationale,
+            })),
+            ...ACTIONS.map((a) => ({
+              name: `Actions, ${a.name}`,
+              rationale: a.rationale,
+            })),
+            {
+              name: "The ladder, quarters",
+              rationale:
+                "0.5 / 0.75 / 1 / 1.25 / 1.5 / 1.75 / 2 in place of 0.6 / 0.8 / 1 / 1.4 / 1.8 / 2.2 / 2.6. Within half a pixel of stock at today's base; the difference is only visible once the base is round.",
+            },
+          ]}
+          asks={ASKS}
+          departures={DEPARTURES}
+          assets={ASSETS}
+        />
+      </div>
 
       <MotionTuner controls={ROUNDING_TUNER_CONTROLS} />
     </div>

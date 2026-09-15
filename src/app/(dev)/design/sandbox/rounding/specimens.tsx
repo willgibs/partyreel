@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
-import { px } from "./candidates";
+import { cardMultiplier, type LadderId, px, stepValue } from "./candidates";
 
 /**
  * THE ROUNDING BOARD'S ATOMS (round two, 2026-09-14).
@@ -51,6 +51,12 @@ const DIALOG_PANEL =
   "grid w-full gap-4 rounded-float bg-popover p-4 text-sm text-popover-foreground shadow-float ring-1 ring-foreground/10";
 const DIALOG_FOOTER =
   "-mx-4 -mb-4 flex items-center justify-end gap-2 rounded-b-float border-t bg-muted/50 p-4";
+
+/** entry-shell.tsx, Drawer.Content: the guest entry sheet. ★ Its corner is
+ *  the ACTION token times 1.4, not --radius-float, which is the finding part E
+ *  is built on. Copied verbatim except for the fixed positioning. */
+const ENTRY_SHEET =
+  "flex flex-col rounded-t-[calc(var(--radius-action)*1.4)] bg-popover px-6 pt-3 pb-6 text-sm text-popover-foreground shadow-float ring-1 ring-foreground/10";
 
 export const TILES = [
   "wedding-golden",
@@ -125,6 +131,28 @@ export function CellLabel({
   );
 }
 
+/** A toggle group with a VISIBLE name. The shell's Toggle carries an
+ *  ariaLabel and nothing on screen, so three unlabelled pill groups in a row
+ *  is three questions a stranger has to answer by clicking (round three's cold
+ *  walk). The label is the answer, in four words. */
+export function Labeled({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    // flex-wrap, because the label plus a four-option group is 382px and the
+    // phone canvas is 375: unwrapped it took the whole document into a
+    // horizontal scroll for the sake of one word.
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <span className="text-[11px] text-muted-foreground">{label}</span>
+      {children}
+    </div>
+  );
+}
+
 /** A photograph at the tile radius, the shape the tile row is judging. */
 export function Tile({
   id,
@@ -149,8 +177,28 @@ export function Tile({
 /* ── The matrix rows ───────────────────────────────────────────────────── */
 
 /** --radius: the sharp family, on the components that carry it. Card is
- *  rounded-xl (1.4x), Input and the plate are rounded-lg (1x). */
-export function SurfaceSpecimen({ radius }: { radius: number | null }) {
+ *  rounded-xl, so its corner is the LADDER'S xl step (1.4x stock, 1.25x
+ *  quarters); Input and the plate are rounded-lg, which is 1x on both. */
+export function SurfaceSpecimen({
+  radius,
+  ladder,
+  card,
+}: {
+  radius: number | null;
+  /** The ladder in force on THIS subtree. ★ Never print a constant beside
+   *  the card: the board scopes a retune to a column, so the answer column
+   *  drew a 10px card under an 11.2px caption for two rounds. */
+  ladder?: LadderId;
+  /** The card's corner MEASURED off the page, for the live band, which sits
+   *  outside every scoped ladder and so has no multiplier to claim. */
+  card?: number | null;
+}) {
+  const tail =
+    ladder && radius !== null
+      ? `, card at ${cardMultiplier(ladder)}x = ${px(stepValue(radius, ladder, "xl"))}`
+      : card != null
+        ? `, card ${px(card)}`
+        : "";
   return (
     <div className="flex flex-col gap-2.5">
       <Card size="sm">
@@ -166,8 +214,8 @@ export function SurfaceSpecimen({ radius }: { radius: number | null }) {
         </CardContent>
       </Card>
       <CellLabel>
-        {radius === null ? "live" : px(radius)} base, card at 1.4x
-        {radius === null ? "" : ` = ${px(radius * 1.4)}`}
+        {radius === null ? "live" : px(radius)} base
+        {tail}
       </CellLabel>
     </div>
   );
@@ -194,7 +242,9 @@ export function FloatSpecimen({ float }: { float: number | null }) {
       </div>
       <CellLabel>
         {float === null ? "live" : px(float)} panel, 4px padding
-        {float === null ? "" : `, so a row nests at ${px(Math.max(0, float - 4))}`}
+        {float === null
+          ? ""
+          : `, so a row nests at ${px(Math.max(0, float - 4))}`}
       </CellLabel>
     </div>
   );
@@ -205,20 +255,24 @@ export function FloatSpecimen({ float }: { float: number | null }) {
 export function TileSpecimen({
   tile,
   gap,
+  count = 6,
 }: {
   tile: number | null;
   gap: number | null;
+  /** Six in the matrix (two rows, so a junction of four corners is in it);
+   *  three in the answer strip, where the row is one line tall. */
+  count?: number;
 }) {
   return (
     <div className="flex flex-col gap-2.5">
       <div className="grid grid-cols-3 gap-[var(--gap-gallery)]">
-        {TILES.slice(0, 6).map((id) => (
+        {TILES.slice(0, count).map((id) => (
           <Tile key={id} id={id} className="aspect-square" sizes="90px" />
         ))}
       </div>
       <CellLabel>
-        {tile === null ? "live" : px(tile)} tile, {gap === null ? "live" : px(gap)}{" "}
-        gap
+        {tile === null ? "live" : px(tile)} tile,{" "}
+        {gap === null ? "live" : px(gap)} gap
       </CellLabel>
     </div>
   );
@@ -231,9 +285,17 @@ export function TileSpecimen({
 export function ActionSpecimen({
   action,
   sm,
+  card,
 }: {
   action: number | null;
   sm: number | null;
+  /** The candidate's CARD corner (the base through the ladder in force, or
+   *  the live band's measurement), so the cell can print the CONTRAST, which
+   *  is the only thing that changes down this row: the rung is the same in
+   *  every column by design, and four identical cells read as a mistake. The
+   *  ratio is what bible 8 is actually claiming, and it is the card's corner
+   *  that carries it, so the ladder moves this number too. */
+  card?: number | null;
 }) {
   const pill = action !== null && action > 100;
   return (
@@ -261,6 +323,15 @@ export function ActionSpecimen({
             ? "a pill on h-11"
             : `${px(action * 0.9)} on the h-11 CTA`}
       </CellLabel>
+      {card !== undefined && card !== null && sm !== null ? (
+        <CellLabel className="text-foreground">
+          {card === 0
+            ? "A square card against a round action: the widest contrast there is."
+            : `Card ${px(card)} against action ${px(sm)}: ${
+                Math.round((sm / card) * 10) / 10
+              } to 1.`}
+        </CellLabel>
+      ) : null}
     </div>
   );
 }
@@ -275,77 +346,93 @@ export function ActionSpecimen({
  */
 export function NestedSpecimen({
   radius,
-  outerMultiplier = 1.4,
+  outerMultiplier,
   padding = 8,
   ringOffset = 6,
+  ringOnly = false,
 }: {
-  /** null on the live column: the arithmetic is printed as expressions. */
+  /** null when the tuner is driving: the arithmetic prints as expressions. */
   radius: number | null;
-  outerMultiplier?: number;
+  /** The card's step, from the ladder in force. ★ Required, not defaulted:
+   *  this card is drawn from an inline calc, so nothing else here follows a
+   *  ladder retune, and a default of 1.4 is how the board came to caption a
+   *  quarters card with a stock number. */
+  outerMultiplier: number;
   padding?: number;
   ringOffset?: number;
+  /** The across-candidates strip shows the ring pair only: the card pair is
+   *  drawn once, large, at the rail's candidate, because a 90px card cannot
+   *  carry an 8px argument. */
+  ringOnly?: boolean;
 }) {
   const outer = radius === null ? null : radius * outerMultiplier;
   const inner = outer === null ? null : Math.max(0, outer - padding);
   const ring = radius === null ? null : radius + ringOffset;
   return (
     <div className="flex flex-col gap-4">
-      {/* 1. A card with an inner media plate. */}
-      <div>
-        <div className="flex gap-3">
-          <div className="min-w-0 flex-1">
-            <div
-              className="bg-card p-3 ring-1 ring-foreground/10"
-              style={{ borderRadius: `calc(var(--radius) * ${outerMultiplier})` }}
-            >
+      {/* 1. A card with an inner media plate. Left out of the strip rather
+          than hidden: a hidden <Image> still loads. */}
+      {!ringOnly && (
+        <div>
+          <div className="flex gap-3">
+            <div className="min-w-0 flex-1">
               <div
-                className="relative aspect-[4/3] overflow-hidden bg-muted"
-                style={{
-                  borderRadius: `max(0px, calc(var(--radius) * ${outerMultiplier} - ${padding}px))`,
-                }}
-              >
-                <Image
-                  src={marketingImage("wedding-golden").src}
-                  alt=""
-                  fill
-                  sizes="160px"
-                  className="object-cover"
-                />
-              </div>
-            </div>
-            <CellLabel className="mt-1.5">
-              Concentric. inner ={" "}
-              {inner === null
-                ? `outer minus ${padding}`
-                : `${px(outer!)} - ${padding} = ${px(inner)}`}
-            </CellLabel>
-          </div>
-          <div className="min-w-0 flex-1">
-            <div
-              className="bg-card p-3 ring-1 ring-foreground/10"
-              style={{ borderRadius: `calc(var(--radius) * ${outerMultiplier})` }}
-            >
-              <div
-                className="relative aspect-[4/3] overflow-hidden bg-muted"
+                className="bg-card p-3 ring-1 ring-foreground/10"
                 style={{
                   borderRadius: `calc(var(--radius) * ${outerMultiplier})`,
                 }}
               >
-                <Image
-                  src={marketingImage("wedding-golden").src}
-                  alt=""
-                  fill
-                  sizes="160px"
-                  className="object-cover"
-                />
+                <div
+                  className="relative aspect-[4/3] overflow-hidden bg-muted"
+                  style={{
+                    borderRadius: `max(0px, calc(var(--radius) * ${outerMultiplier} - ${padding}px))`,
+                  }}
+                >
+                  <Image
+                    src={marketingImage("wedding-golden").src}
+                    alt=""
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                  />
+                </div>
               </div>
+              <CellLabel className="mt-1.5">
+                Concentric. inner ={" "}
+                {inner === null
+                  ? `outer minus ${padding}`
+                  : `${px(outer!)} - ${padding} = ${px(inner)}`}
+              </CellLabel>
             </div>
-            <CellLabel className="mt-1.5">
-              The same token twice. Two centres, one shape short.
-            </CellLabel>
+            <div className="min-w-0 flex-1">
+              <div
+                className="bg-card p-3 ring-1 ring-foreground/10"
+                style={{
+                  borderRadius: `calc(var(--radius) * ${outerMultiplier})`,
+                }}
+              >
+                <div
+                  className="relative aspect-[4/3] overflow-hidden bg-muted"
+                  style={{
+                    borderRadius: `calc(var(--radius) * ${outerMultiplier})`,
+                  }}
+                >
+                  <Image
+                    src={marketingImage("wedding-golden").src}
+                    alt=""
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+              <CellLabel className="mt-1.5">
+                The same token twice. Two centres, one shape short.
+              </CellLabel>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 2. A ring drawn AROUND an object at an offset. */}
       <div className="flex gap-3">
@@ -405,7 +492,9 @@ export function NestedSpecimen({
             </div>
           </div>
           <CellLabel className="mt-1.5">
-            The object&apos;s own radius. The corners drift apart.
+            {ringOnly && radius !== null
+              ? `Drawn at the object's own ${px(radius)}: ${px(ringOffset)} of drift.`
+              : "The object's own radius. The corners drift apart."}
           </CellLabel>
         </div>
       </div>
@@ -577,6 +666,53 @@ export function StaticDialog({ className }: { className?: string }) {
           <Copy data-icon="inline-start" /> Copy link
         </Button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * THE GUEST ENTRY SHEET, at the action token (round three's finding).
+ *
+ * ★ THIS IS NOT A BUTTON AND IT WEARS THE BUTTON'S TOKEN. entry-shell.tsx
+ * draws the sheet every guest meets before they see a single photograph with
+ * `rounded-t-[calc(var(--radius-action)*1.4)]`, so the action rung decides the
+ * corner of the biggest floating surface on the site: 22.4px today, 11.2 under
+ * quiet, and a half-circle under the pill, where 1.4 x 999 clamps to half the
+ * sheet's height. Drawn static from the class string above, because vaul
+ * portals the real one out of any stage.
+ */
+export function EntrySheetSpecimen({ action }: { action: number }) {
+  const corner = action > 100 ? null : action * 1.4;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="relative h-[230px] w-full overflow-hidden rounded-lg bg-muted/40 ring-1 ring-foreground/10">
+        <div
+          aria-hidden
+          className="grid grid-cols-3 gap-[var(--gap-gallery)] p-1 opacity-60"
+        >
+          {TILES.slice(0, 3).map((id) => (
+            <Tile key={id} id={id} className="aspect-square" sizes="70px" />
+          ))}
+        </div>
+        <div className={cn(ENTRY_SHEET, "absolute inset-x-0 bottom-0")}>
+          <span
+            aria-hidden
+            className="mx-auto mb-2 h-1 w-9 shrink-0 rounded-full bg-muted-foreground/30"
+          />
+          <p className="font-heading text-base leading-snug font-semibold">
+            Welcome to Summer wedding
+          </p>
+          <p className="mt-1 text-muted-foreground">
+            A shared gallery for the whole event.
+          </p>
+          <Button className="mt-3 w-full">Add your photos</Button>
+        </div>
+      </div>
+      <CellLabel>
+        {corner === null
+          ? "A half circle: 1.4 x 999 clamps to half the sheet"
+          : `${px(corner)} on the top corners, 1.4 x the action token`}
+      </CellLabel>
     </div>
   );
 }
