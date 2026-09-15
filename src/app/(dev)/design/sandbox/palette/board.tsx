@@ -745,88 +745,100 @@ export function PaletteBoard() {
           </>
         }
       >
-        <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2">
-          <Knob label="Dark">
-            <Toggle
-              ariaLabel="The dark set"
-              options={DARKS.map((d) => ({ id: d.id, label: d.label }))}
-              value={darkId}
-              onChange={setDarkId}
-            />
-          </Knob>
-          <Knob label="Light">
-            <Toggle
-              ariaLabel="The light set"
-              options={LIGHTS.map((l) => ({ id: l.id, label: l.label }))}
-              value={lightId}
-              onChange={setLightId}
-            />
-          </Knob>
-        </div>
-        <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2">
-          <Knob label="Accent">
-            <Toggle
-              ariaLabel="The accent"
-              options={ACCENTS.map((a) => ({ id: a.id, label: a.short }))}
-              value={accentId}
-              onChange={setAccentId}
-            />
-          </Knob>
-          <Knob label="Reach">
-            <Toggle
-              ariaLabel="The accent's reach"
-              options={REACHES.map((r) => ({ id: r.id, label: r.short }))}
-              value={reach}
-              onChange={setReach}
-            />
-          </Knob>
-          <Knob label="Mat">
-            <Toggle
-              ariaLabel="The mat"
-              options={[
-                { id: "register", label: "Register" },
-                { id: "alphas", label: "Alphas" },
-              ]}
-              value={matRegister ? "register" : "alphas"}
-              onChange={(v) => setMatRegister(v === "register")}
-            />
-          </Knob>
-        </div>
-        <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2">
-          <Knob label="Faint">
-            <Toggle
-              ariaLabel="The missing step"
-              options={[
-                { id: "on", label: "In" },
-                { id: "off", label: "Out" },
-              ]}
-              value={faintOnDimmed ? "on" : "off"}
-              onChange={(v) => setFaintOnDimmed(v === "on")}
-            />
-          </Knob>
-          <Knob label="Card">
-            <Toggle
-              ariaLabel="The dark card"
-              options={[
-                { id: "declared" as CardMode, label: "Declared" },
-                { id: "opaque" as CardMode, label: "Opaque" },
-                { id: "veil" as CardMode, label: "Veil" },
-              ]}
-              value={cardMode}
-              onChange={setCardMode}
-            />
-          </Knob>
-          <Knob label="Width">
-            <Toggle
-              ariaLabel="Viewport"
-              options={[
-                { id: "desktop" as Mode, label: "1440" },
-                { id: "phone" as Mode, label: "375" },
-              ]}
-              value={mode}
-              onChange={setMode}
-            />
-          </Knob>
+        {/* The three rows live in ONE column on purpose. The dock's control
+            cell sizes to its content, and three wrapping rows as SIBLINGS ask
+            for the sum of all three, which pushes the shell's own aside onto a
+            fourth line (measured: a 169px dock at 1440 against 129px with the
+            column). A block asks for the widest row instead. */}
+        <div className="flex w-full flex-col gap-y-2">
+          <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2">
+            <Knob label="Dark">
+              <Toggle
+                ariaLabel="The dark set"
+                options={DARKS.map((d) => ({ id: d.id, label: d.label }))}
+                value={darkId}
+                onChange={setDarkId}
+                /* Six options, and the shell's own note puts the overflow at
+                 about six: let them take a second row at 375 rather than
+                 push the dock into a horizontal scroll. */
+                wrap
+              />
+            </Knob>
+            <Knob label="Light">
+              <Toggle
+                ariaLabel="The light set"
+                options={LIGHTS.map((l) => ({ id: l.id, label: l.label }))}
+                value={lightId}
+                onChange={setLightId}
+                wrap
+              />
+            </Knob>
+          </div>
+          <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2">
+            <Knob label="Accent">
+              <Toggle
+                ariaLabel="The accent"
+                options={ACCENTS.map((a) => ({ id: a.id, label: a.short }))}
+                value={accentId}
+                onChange={setAccentId}
+              />
+            </Knob>
+            <Knob label="Reach">
+              <Toggle
+                ariaLabel="The accent's reach"
+                options={REACHES.map((r) => ({ id: r.id, label: r.short }))}
+                value={reach}
+                onChange={setReach}
+              />
+            </Knob>
+            <Knob label="Mat">
+              <Toggle
+                ariaLabel="The mat"
+                options={[
+                  { id: "register", label: "Register" },
+                  { id: "alphas", label: "Alphas" },
+                ]}
+                value={matRegister ? "register" : "alphas"}
+                onChange={(v) => setMatRegister(v === "register")}
+              />
+            </Knob>
+          </div>
+          <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2">
+            <Knob label="Faint">
+              <Toggle
+                ariaLabel="The missing step"
+                options={[
+                  { id: "on", label: "In" },
+                  { id: "off", label: "Out" },
+                ]}
+                value={faintOnDimmed ? "on" : "off"}
+                onChange={(v) => setFaintOnDimmed(v === "on")}
+              />
+            </Knob>
+            <Knob label="Card">
+              <Toggle
+                ariaLabel="The dark card"
+                options={[
+                  { id: "declared" as CardMode, label: "Declared" },
+                  { id: "opaque" as CardMode, label: "Opaque" },
+                  { id: "veil" as CardMode, label: "Veil" },
+                ]}
+                value={cardMode}
+                onChange={setCardMode}
+              />
+            </Knob>
+            <Knob label="Width">
+              <Toggle
+                ariaLabel="Viewport"
+                options={[
+                  { id: "desktop" as Mode, label: "1440" },
+                  { id: "phone" as Mode, label: "375" },
+                ]}
+                value={mode}
+                onChange={setMode}
+              />
+            </Knob>
+          </div>
         </div>
       </BoardDock>
 
@@ -1208,7 +1220,7 @@ export function PaletteBoard() {
       <Row
         n="07"
         name="The home arc, four real chapters"
-        reading="Four production sections from the home arc, in one canvas, on the room and then on the paper. They are the quiet ones on purpose: a chapter with a photograph is carried by the photograph, and the question this board asks is what a section looks like when there is no media to carry it, which is the case rule 1 was rewritten for. These are live components, so what you are reading is the real type, the real rhythm and the real reveal grammar."
+        reading="Four production sections from the home arc, in one canvas, on the room and then on the paper. They are the quiet ones on purpose: a chapter with a photograph is carried by the photograph, and the question this board asks is what a section looks like when there is no media to carry it, which is the case rule 1 was rewritten for. These are live components, so the type and the rhythm are the real ones, held at the SETTLED end of the entrance: an observer inside an iframe never trips below the visible strip, so every stage here pins the finished state that marketing.css already ships for a reduced-motion reader (real-ui.tsx). The entrance belongs to another board. This one judges a ground, and it shows every reader the same page."
       >
         <div className="flex flex-col gap-4">
           <LiveFrame
