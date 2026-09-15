@@ -527,21 +527,30 @@ now "One code, and the album fills." in place of "One code. Every angle.", subhe
 ## Handoff (round 3)
 
 - **Head**: the tip of `lp/hero-burst` (a manifest cannot name its own SHA). The work commit is
-  `3c77594`; every commit after it changes this file alone. Pushed. The board is at
+  `3c77594`; every commit after it changes this file alone, and the preview that was walked was built
+  from `03a4c69`. Pushed. The board is at
   `/design/c/home-hero?key=` (concept 3 of 4). **The round-three marker is the proposed h1 "Your
   album, from every angle."**; a surface without it is not this head. Two cheaper tells: 34
   `.hhb-card` nodes (round one had 26) and the stage control reading **Headline** rather than "h1".
-- ★ **NO PREVIEW WAS BUILT, and the launch-prep alias is showing ROUND ONE.** Vercel is at its daily
-  deployment cap for the project, so this branch's preview could not build and none was requested
-  (the round-two handoff's flagged workaround was deliberately not repeated). Worse for the review:
-  `partyreel-git-launch-prep-partyreel.vercel.app` currently serves the burst of **round one** (26
-  `.hhb-card` nodes, no `hhb-lab`, neither round's proposed copy), because the launch-prep preview
-  builds on request and has not been rebuilt since round two merged. **Whoever prepares Will's walk
-  has to get one build of this head onto a surface first**, or he will review work two rounds old.
-- **Verified on a LOCAL PRODUCTION BUILD instead** (`pnpm build` then `pnpm start`, driven over CDP
-  in a foreground page, both canvases, both copy modes, both headline steps, reduced motion
-  emulated). Every number below is off the live DOM of that build unless it says otherwise; the
-  numbers marked "dev" were taken on `pnpm dev` while iterating and are called out as such.
+- **The preview built after all, and it is walked.** The round was briefed that Vercel was at its
+  daily deployment cap and that no preview would build, so everything was verified on a local
+  production build first; the handoff push was then accepted and
+  `partyreel-git-lp-hero-burst-partyreel.vercel.app` went READY at the head. Fetched cache-busted and
+  served fresh (`x-vercel-cache: MISS`, `age: 0`) it carries 34 `.hhb-card` nodes, 4 `hhb-lab` hits,
+  the proposed h1, **0 `loading="lazy"`** and `overflow-clip`; the design gate is 404 there without
+  `?key=`. Walked at 1440 and 375: the h1 at opacity 1 and `transform: none` (72 / 96 px desktop, 36
+  / 48 phone), the step toggle flipping with the field still moving (19, 18, 23 cards in 400 ms), 0
+  px of horizontal overflow, the root unscrollable, and reduced motion standing all 34 frames still
+  around the code with 0 inline styles written. The 375 field measures the same there as locally:
+  12.6 frames on screen, 0.43 of the canvas, a photograph out from under the plate 11 times in 12 s.
+- ★ **The launch-prep alias is still showing ROUND ONE of this concept**, and that is the thing to
+  fix before Will walks: it serves 26 `.hhb-card` nodes, no `hhb-lab` and round one's "One code.
+  Every angle.", because the launch-prep preview builds on request and has not been rebuilt since
+  round two merged. Anyone pointing Will at the alias today shows him work two rounds old.
+- **Also verified on a LOCAL PRODUCTION BUILD** (`pnpm build` then `pnpm start`, driven over CDP in a
+  foreground page, both canvases, both copy modes, both headline steps, reduced motion emulated).
+  Every number below is off the live DOM of that build unless it says otherwise; the numbers marked
+  "dev" were taken on `pnpm dev` while iterating and are called out as such.
 - **launch-prep had not moved**: `origin/launch-prep` is still `fb395fe`, the SHA in `cut`. No sync
   merge was needed.
 - Gates on the tree: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing, on
