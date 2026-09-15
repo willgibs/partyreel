@@ -1,6 +1,6 @@
 ---
 track: rounding
-status: open
+status: handed-off
 cut: "ab45b03"
 merged_round_2: "2603465"
 preview: true           # Will reviews this board on its preview as it builds
@@ -239,15 +239,128 @@ Four findings, all on the board rather than in a comment. The guest gallery's ga
 
 ## Handoff (round 3)
 
-- Head <sha>, pushed; preview partyreel-git-lp-rounding-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/rounding`, pushed. The last code commit is `c79038b`
+  (the sync merge); the manifest commits follow it. The board is
+  `/design/c/rounding?key=`. **The round-three marker in the rendered HTML is
+  the heading "What the board answers"** (and the class `rnd-answer-grid`),
+  both present in the server-rendered markup; round two's marker, "The six
+  tokens, at true size", is still there as part A's heading, so the answer
+  block is what tells the two rounds apart.
+- ★ **The preview alias could not be refreshed and this track cannot fix it:
+  the project is at Vercel's ceiling of 100 deployments a day.** The branch's
+  last deployment is `45834a3`, round two's FIRST pass, at 21:32. None of this
+  round's five pushes produced one, and a forced redeploy
+  (`POST /v13/deployments` with the gitSource recipe the floating-surfaces
+  handoff wrote down) is refused with `payment_required`,
+  `api-deployments-free-per-day`, retried six times over forty minutes.
+  Deployments are landing project-wide about one every fifteen minutes as old
+  ones age out of the rolling window, so the alias may catch up on its own;
+  until it does, `partyreel-git-lp-rounding-partyreel.vercel.app` serves a
+  board two rounds old and reading it would re-read what the review already
+  read. The ceiling is account-wide and its handling is the Orchestrator's
+  call.
+- **Verified instead on the production build in this worktree**, which is what
+  the alias would serve: `pnpm build` then `next start`, plus `pnpm dev` for
+  the iteration. Both walked at 1440 and 375.
+- Synced with `launch-prep` at `dd4aa0b` (merge `c79038b`); it had moved 24
+  commits, all of them other tracks' sandbox files and manifests, none in this
+  lane.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 warnings, all
+  pre-existing and outside the lane), test ok (1719 in 193 files), build ok
+  (248 pages).
+- **Light QA, walked rather than asserted.** The board at **1440** and at
+  **375** on the production build, and at 1024 on the way. At both widths
+  `documentElement.scrollWidth - clientWidth` is 0 AND no unclipped element
+  has a right edge past the viewport (the second check is the one that
+  matters: the first pass of the new width machinery pushed the board 277px
+  past a 375 window and this found it). At 1440 the widest part measures
+  x=244 to x=1096 with the lab sidebar ending at 232 and the tuner panel
+  starting at 1108, so the board sits in the whole free width with 12px of
+  clearance at each end and nothing under the panel. **Reduced motion honoured
+  by having nothing to undo:** measured in the running page, zero elements
+  resolve an `animation-name` and `board.css` declares no keyframes at all.
+  Zero console errors.
+- **Cost, measured.** 158 `<img>` in the DOM against round two's 175 (the live
+  column's phone canvas is gone), about 30 decoded on the first screen because
+  every one is a lazily-loaded `next/image`; zero animations, zero keyframes,
+  and the only transform on the page is the shell Stage's own `zoom`. The
+  panel-aware width costs one ResizeObserver on two elements, one
+  MutationObserver on the tuner panel, and a resize listener; it runs on
+  layout changes, never on scroll.
+- **"Apply to the site" verified end to end** on the production build:
+  "Apply the answer" writes `rounding C, today actions, quarter ladder`, and
+  `/pricing` then resolves `--radius: 8px` with a plan card at 12px (1.5 x 8
+  on the quarter ladder) against 25.2 on stock at a 14px base, and `/help`
+  wears it too. **The guest page does not**, and that is a finding rather than
+  a fault of the paste: see the shell asks.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `src/app/(dev)/design/sandbox/rounding/{board.tsx,board.css,candidates.ts,specimens.tsx}`
+  plus this file. `compositions.tsx` is unchanged this round. No exceptions.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Shell changes proposed (the Orchestrator's files, none made):**
+  1. `src/app/(guest)/layout.tsx`: mount `<AppDesignIsland />`. Seconding the
+     floating-surfaces board. `CandidateStyle` mounts in the lab layout, the
+     marketing island and the app island, and the guest group has none of
+     them, so `/e/<token>` silently ignores every candidate block. This board
+     is the second reason: part E's finding (the entry sheet wears the ACTION
+     token at 1.4x) lives on that page, so it has to be drawn rather than
+     walked, and the board says so on its face.
+  2. `src/app/(dev)/design/touchpoints.ts`, the `rounding` entry, is still
+     round ONE's and is now the first thing a reader sees above a board that
+     contradicts it: `board.note` reads "One kit of every radius-bearing
+     surface in four columns..." and `board.variants` lists "B, soft surfaces"
+     and "C, the 16px column", neither of which has existed for two rounds.
+     Proposed note: "Six tokens as three decisions: the surface family, the
+     action rung and the derived ladder, each at true size on the shipped
+     components and appliable to the whole site"; proposed variants:
+     `["A, today", "B, square", "C, soft", "D, one family", "Live, the tuner"]`.
+     (Raised in round two, unchanged.)
+  3. `src/components/dev/motion-tuner-config.ts`, two things. The three action
+     knobs cap at 24px, which cannot express the pill rung, so Apply writes the
+     pill into the candidate block and clears the knob rather than leaving the
+     panel in a state a drag cannot return to; if the pill is ruled, the max
+     moves or the control gains a "pill" step. And the surface-radius knob's
+     description says "288 uses in 140 files", which the recount contradicts:
+     320 uses of a derived step in 154 files outside the lab.
+  4. `src/components/dev/board/`: two things every board is now writing for
+     itself. A stage that takes its height from its content (the brand-voice
+     board wrote it, this board wrote it again as `FitStage`, and a stage that
+     guesses leaves a hole under its composition), and a PANEL-AWARE width (the
+     tuner is fixed, 320px, and opens open, so any board whose evidence reaches
+     the right of the column is partly hidden on arrival; this board measures
+     `[data-motion-tuner]` and keeps clear of it, in about forty lines that
+     belong beside `Stage`).
+  5. `src/components/shared/glow-contract.test.ts` pins the exact set of
+     BorderBeam call sites. The beam around an action is the third bible-9
+     specimen part C wants (the beam is the case the system already gets right:
+     no radius prop, it reads the child's computed one), and adding it would
+     need one line in that test. The board draws a plain ring at the same
+     offset instead and says so. (Raised in round two, unchanged.)
+- Assets requested from Will: one, unchanged from round two.
+  - A worst-case tile set for the gallery gap · four photographs whose edges are
+    near-white and bright (a white tablecloth, an overexposed sky, a white dress
+    against a window), 1200px long edge, JPG, four of them · replaces the
+    `wedding-golden` / `party-dj` / `festival-lights` stills in part B's guest
+    grid and part F's phone row, so a corner hole between tiles is judged at
+    maximum contrast rather than against dark stills that hide it.
+- The asks, verbatim from BoardMeta:
+  1. "The surfaces: A, B, C or D (--radius, --radius-float and --radius-tile move together)"
+  2. "The actions: today, pill or quiet"
+  3. "The derived ladder: stock or quarters"
+  4. "The dead rungs (rounded-3xl, rounded-4xl, --radius-action-lg): keep or drop"
+  5. "The gallery gap: pinned to the tile, or free"
+- Look at first: the block at the top, **"What the board answers"**. It is the
+  five rulings in five words, with today's card beside the proposed one at true
+  size and one button that puts the whole paste on the site. If the five words
+  are right, the ruling is "yes" and the rest of the board is the evidence in
+  order. If one is wrong, part A settles the surfaces, part E settles the
+  actions (look at its last row, the guest entry sheet under the pill), and
+  part D settles the ladder. Then press **Apply the answer** and walk
+  `/pricing` and `/`: that is the real answer, and the board is the shortlist.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The rounding board was rebuilt over two rounds. Round one judged six numbers in four columns inside a zoom-fitted stage, where `zoom` scales paint with layout and every corner read about a third sharper than its own number; round two split the tokens into the three decisions they are (the surface family A to D, the action rung, the derived ladder) and rendered every comparison at 1:1 on the components that ship them: a four-row matrix, four real compositions, bible 9 drawn right and wrong, the seven derived steps beside a quarter-step retune, the action ladder at every shipped height, and every candidate on its own 375 canvas.
+Round three was the walk Will was about to take, taken first, and it found the board hiding its own evidence. The tuner panel is fixed at the bottom right, 320px wide, and opens open: it sat over the last two columns of the matrix, both specimen columns of the ladder, the third action rung and the third phone. The board measures the panel now and keeps every part clear of it, live, so closing it widens the board again; the live column, which sat under the panel that drove it, became one band; part B's stage takes its height from its content instead of guessing at it; and the answer comes first, as five one-word rulings with the two shapes the first one turns on at true size and one button that puts the whole paste on the site.
+Five findings, all on the board rather than in a comment. The guest gallery's gap is a literal in three files while its tiles ride the token, so any tile above 3 opens corner holes on the one grid every guest sees. The guest entry sheet, the first surface any guest meets, takes its corner from the ACTION token at 1.4x, which makes it a half circle under the pill rung. `--radius-action-lg` has one call site, and every marketing CTA is an ad-hoc h-11 in 26 files wearing 0.33 of its height against a documented 0.4. `rounded-3xl` and `rounded-4xl` have three uses between them. And the guest group mounts no design island, so the page those findings live on cannot wear a candidate at all.
+The board answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop the dead rungs and pin the gap, verified on `/pricing`, where a plan card lands at 12px against 25.2 on stock at a round base.
