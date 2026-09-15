@@ -482,24 +482,34 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
   partyreel-git-lp-light-partyreel.vercel.app. The board is `/design/c/light?key=...`; five anchors,
   `#lgt-a` .. `#lgt-e`, and the index at the top of the board links each of the eight calls to the
   part that argues it.
-- **The alias is refreshed: it serves the head, and the review-blocking gap is closed.** The
-  read-only review of `97602076` was right that the alias was pinned four commits back at `e108ec4`
-  (the Vercel `api-deployments-free-per-day` cap, not the lane), so the board Will would have opened
-  was missing part E's drive paragraph and the engine's one-line paste, the corrected canvas
+- ★ **THE ALIAS STILL SERVES `e108ec4` AND I COULD NOT REFRESH IT. The redeploy the review asks for
+  is the Orchestrator's first action on this track, and it cannot happen before 2026-09-15 23:42.**
+  The review was right on every point and the remedy is still one forced redeploy, but the door is
+  shut harder than last round, and this time it is provable rather than inferred: a forced API
+  deploy at this head is refused with `payment_required` / `api-deployments-free-per-day`
+  (remaining 0, reset 2026-09-15 23:42), AND the GitHub integration now refuses too, which it did
+  not before. GitHub's own commit status on `5079d1f` reads `Vercel / failure / "Deployment rate
+  limited, retry in 24 hours"`, so the push created no deployment and no canceled one either: there
+  is nothing queued to wait for. Other tracks' aliases built at 23:31 and 23:46 and then the
+  project hit the wall, so this is the shared daily ceiling with eight tracks pushing, not this
+  lane. The alias was re-fetched after all of it and is byte-for-byte what the review measured
+  (308,171 bytes). **Everything below was therefore verified on a local dev server at this head**,
+  which is what the round's own instruction says to do when the preview will not build: do not read
+  the local numbers as preview numbers. What the served build is still missing is unchanged from
+  the review's list: part E's drive paragraph and the engine's one-line paste, the corrected canvas
   heights, the drive reaching the middle and the room, the seam's knob note and the meter's
-  hidden-tab guard, while part B on that same build told him to press the drive toggle. Deployments
-  freed up and a forced deploy was taken at this head; the served board is verified below, not
-  assumed. Nothing about the fixes changed, only where they are readable.
-- **What the review asked to re-check on the real thing, checked there.** The two corrected canvas
-  heights were arrived at by measurement the last handoff called unreliable on a zoomed stage, so
-  they were re-measured on a rendered board rather than trusted: the honest instrument is a leaf
-  text node's own rect against the canvas's rect (both in the same post-zoom space), not
-  `scrollHeight` against `clientHeight`. At 1440 the lit-face matrix is 870px with its lowest text
-  46px clear of the bottom; at 375 it is 1370px with 27px clear. All 13 stages on both canvases have
-  positive headroom, and the document has zero horizontal overflow on either. The drive toggle now
-  moves three of the four lights (`[data-glw-drive]` flips mask to transform on the aurora, the
-  middle and the room); the fourth is the seam, and that is deliberate, which is the first defect
-  below.
+  hidden-tab guard. Until it is rebuilt, the served board asks Will ask 1 against a part E that
+  contradicts its own part B, so it should not go in front of him as it stands.
+- **What the review asked to re-check on the real thing, checked on a rendered board.** The two
+  corrected canvas heights were arrived at by measurement the last handoff itself called unreliable
+  on a zoomed stage, so they were re-measured rather than trusted. The honest instrument is a leaf
+  text node's own rect against the canvas's rect (both already in the same post-zoom space), not
+  `scrollHeight` against `clientHeight`, which is the pair that reports a phantom constant. At 1440
+  the lit-face matrix is 870px with its lowest text 46px clear of the bottom; at 375 it is 1370px
+  with 27px clear. All 13 stages on both canvases have positive headroom and the document has zero
+  horizontal overflow on either, so the fix holds where it was made. The drive toggle moves three of
+  the four lights (`[data-glw-drive]` flips mask to transform on the aurora, the middle and the
+  room); the fourth is the seam, and that is deliberate, which is the first defect below.
 - Synced with `launch-prep` at `dd4aa0b` (72 commits, all of them other tracks' lab lanes and their
   manifests: nothing in this lane and nothing in its `reads`). Merged clean at `74d96e1`.
 - Gates on the synced tree, re-run after the review fixes: typecheck ok, lint ok (0 errors, 0
@@ -578,8 +588,8 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
     `(marketing)/(cinema)`, `(marketing)/(paper)` and `(dev)/design`, and the `(guest)` group has
     none, so no board's candidate reaches `/e/[token]` at all. That page is off the line with the
     reason written beside it in `candidates.ts`; the island gap itself is the Orchestrator's, below.
-- Light QA at the head. The board on the served preview and on a local dev server in this worktree,
-  and the four applied blocks on the running app.
+- Light QA at the head, all of it on a local dev server in this worktree, because the alias is
+  frozen at `e108ec4` (above): the board itself, and the four applied blocks on the running app.
   - 1440: all 13 stages, no horizontal overflow on the document, no stage overflowing its canvas,
     and no text below any stage's bottom edge (the tightest is the lit-face matrix at 46px clear).
     The five real chapters mount and their reveal grammar fires on scroll.
@@ -653,6 +663,14 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
   aurora at both boundaries on the right of it, the copy in the clean middle of both. Then press
   Measure under it. Then part A's stacked photographs, and part E, which is the ruling with no
   translation left in it.
+- For the Orchestrator, first action on this track: **force one preview deploy of `lp/light` at
+  `5079d1f` after 2026-09-15 23:42**, when the daily deployment ceiling resets, and confirm the
+  alias serves it before Will walks the board. Nothing else is needed and nothing is queued: both
+  paths are refused today (the API with `api-deployments-free-per-day`, the git integration with
+  its own "retry in 24 hours" status on the commit), so the push left no pending build to wait on.
+  Worth one look after it lands, since they are the numbers the review flagged as previously
+  mismeasured: the lit-face matrix uncut at 1440 and at 375, and the drive toggle moving the
+  aurora, the middle and the room but not the seam.
 - For the Orchestrator: `touchpoints.ts` still describes this board as "Four parts" and it has been
   five since round two; the description is yours to rename at integration, I did not touch the file.
   Findings against a bible rule: none (10 and 11 are already under exploration naming this board),
