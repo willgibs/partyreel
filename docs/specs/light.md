@@ -219,13 +219,16 @@ designed.
 
 Round four mounted nine live production sections, which is what Will asked every board for, and that
 surfaced a cascade order bug in the lab itself. The lab's own Tailwind entry
-(`src/app/(dev)/design/design.css`) emits into `layer(utilities)` and loads AFTER `globals.css`, so at
-equal specificity an unprefixed utility from the lab sheet outranks a responsive one from the
-production sheet: `grid-cols-1` beats `lg:grid-cols-12`, `hidden` beats `sm:block`. **Every board that
-mounts a production component is therefore showing parts of it in its phone layout at 1440.** Measured
-on the light board: 115 elements across the nine sections change geometry when that sheet is removed,
-and it reproduces on a production build, so it is not a dev artifact.
+(`src/app/(dev)/design/design.css`) emitted into `layer(utilities)` and loads AFTER `globals.css`, so
+at equal specificity an unprefixed utility from the lab sheet outranked a responsive one from the
+production sheet: `grid-cols-1` beat `lg:grid-cols-12`, `hidden` beat `sm:block`. **Every board that
+mounted a production component was therefore showing parts of it in its phone layout at 1440.**
+Measured on the light board: 115 elements across the nine sections changed geometry when that sheet
+was removed, and it reproduced on a production build, so it was not a dev artifact.
 
-The remedy is one character, verified in the browser: emit into `layer(utilities.lab)` instead, so the
-lab's utilities sit in a sub-layer of `utilities` and lose to production's rules, which are in the
-layer directly. `design.css` is outside every track's lane, so this is the Orchestrator's to land.
+The remedy was one character: emit into `layer(utilities.lab)`, so the lab's utilities sit in a
+sub-layer of `utilities` and lose to production's rules, which sit in that layer directly (the same
+commit moves the string `css-source-policy.test.ts` pins). **It landed on `launch-prep` at `969f3b9`**
+and is verified on this board after the merge: the nine mounted sections now lay out at 1440 the way
+they do on the real page, and the board's disclosure paragraph, which asked a reviewer to disregard
+their layout, went with it.

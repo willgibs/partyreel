@@ -287,36 +287,6 @@ export function LightBoard() {
 
       <RuleIndex asks={ASKS} />
 
-      {/* ★ A LAB CASCADE DEFECT, FOUND BY MOUNTING NINE REAL SECTIONS, AND IT
-          IS NOT THIS BOARD'S TO FIX. Every board this round was asked for live
-          production components, and inside the lab they render their MOBILE
-          layout at 1440 wherever a base utility and a responsive override meet
-          on one element. The lab's own Tailwind entry (design.css) emits its
-          utilities into `layer(utilities)` and loads AFTER globals.css, so at
-          equal specificity `grid-cols-1` beats `lg:grid-cols-12` and `hidden`
-          beats `sm:block`. Measured on this board: 115 elements across the nine
-          sections change geometry when that sheet is removed, and it reproduces
-          on a production build, so it is not a dev artifact. The remedy is one
-          character in design.css and it is verified in the browser: emit into
-          `layer(utilities.lab)` instead, so the lab's utilities sit in a
-          sub-layer and lose to production's. It is in the Handoff for the
-          Orchestrator; the note stays here until it lands, because a reviewer
-          should not read a stacked hero as a design decision. */}
-      <p className="max-w-2xl rounded-lg border border-foreground/20 bg-card px-3.5 py-3 text-[11px] leading-relaxed text-muted-foreground">
-        <span className="font-medium text-foreground">
-          Reading the real sections:{" "}
-        </span>
-        every stage below mounts the shipped component, and the lab currently
-        renders parts of them at their phone layout even on the 1440 canvas. It
-        is a cascade order defect in the lab{"'"}s own stylesheet, not in the
-        components and not in the light: the lab sheet loads after the
-        production one and its unprefixed utilities outrank production{"'"}s
-        responsive ones, so a column that should split stays stacked and an
-        element that should appear at sm stays hidden. 115 elements on this
-        board are affected. The fix is one line in the lab sheet and it is in
-        the handoff; judge the LIGHT here, and the layout on the real page.
-      </p>
-
       <KitBlock />
 
       <TreatmentsPart

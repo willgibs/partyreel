@@ -522,7 +522,16 @@ export function ComposerPart({
   // the exact class of defect round three spent itself removing (a control that
   // says something the page does not show).
   const place: Placement = legal.includes(placement) ? placement : legal[0];
-  const refusal = current.refuses?.[treatment === "aurora" ? "aurora" : "seam"];
+  // ★ THE REFUSAL IS READ AT THE SELECTED TREATMENT'S OWN KEY. Collapsing
+  // every non-aurora treatment to the seam's key made the hero, the one
+  // section that declares two refusals, answer "The throw" with the SEAM's
+  // reason (a boundary band falling into the trust strip), which is neither
+  // what the data says nor what the stage shows: the same defect class as the
+  // snapped placement six lines up, and the one the lede above promises this
+  // block does not commit. `none` is the absence of a treatment, so it has no
+  // key and no refusal.
+  const refusal =
+    treatment === "none" ? undefined : current.refuses?.[treatment];
   // The section's own ground unless the dock is asking for the other one; the
   // footer is ink either way, because ink IS the footer's boundary.
   const stageGround: Ground =
@@ -691,7 +700,7 @@ export function ComposerPart({
         ) : null}
       </KnobNote>
 
-      {refusal && treatment !== "none" ? (
+      {refusal ? (
         <p className="max-w-2xl rounded-lg border border-foreground/30 bg-card px-3.5 py-3 text-xs leading-relaxed text-foreground">
           <span className="font-medium">
             {current.label} refuses this treatment.{" "}
