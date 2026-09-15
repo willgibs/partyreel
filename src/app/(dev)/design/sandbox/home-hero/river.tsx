@@ -221,7 +221,7 @@ type Geo = {
   fadeX: string;
   /** Where the bottom dissolve begins and where it is complete, as a fraction
    *  of the canvas height. The desktop takes the album out through the bottom
-   *  of the hero (84 to 100); the phone dissolves it just above the headline
+   *  of the hero (88 to 100); the phone dissolves it just above the headline
    *  (32 to 46), because a full-measure h1 at 375 leaves no corridor beside it
    *  and the clearing would otherwise read as cards flung out of the way. */
   fadeB0: string;
@@ -585,6 +585,29 @@ const boxW = (c: Card, geo: Geo) => geo.card * c.wf * c.sJit;
 const boxH = (c: Card, geo: Geo) => geo.card * c.sJit;
 
 /**
+ * The TOPMOST pixel a card can put on the page at this progress: its centre,
+ * minus the half-height of the TUMBLED box (a rotated frame reaches higher
+ * than its layout box, so the flat half would cut it early).
+ *
+ * ★ This, and never the centre, is what the loop's dead-line test asks for. A
+ * card is laid out and scaled about its own centre, so a centre-past-deadY
+ * test throws away the whole upper half of a frame at the moment it fires:
+ * on the desktop that is 150 to 165 px of a 340 px photograph still standing
+ * where the mask is fully opaque, gone in one frame, roughly every 0.6 s. The
+ * cut is only free when NOTHING of the card is above the dissolve's last stop.
+ */
+function topEdgeAt(c: Card, p: number, geo: Geo) {
+  const fall = fallAt(p);
+  const s = geo.sMin + (1 - geo.sMin) * clamp01(fall / geo.fullAt);
+  const rad = (angleAt(c, p) * Math.PI) / 180;
+  const half =
+    (boxH(c, geo) * s * Math.abs(Math.cos(rad)) +
+      boxW(c, geo) * s * Math.abs(Math.sin(rad))) /
+    2;
+  return geo.originY + fall * geo.travel - half;
+}
+
+/**
  * The whole composition for one card at one progress. The clearing is the only
  * clever part: the push is the |x| at which this card's PROJECTED inner edge
  * touches the lockup's silhouette at the heights the card actually spans, so
@@ -765,22 +788,33 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
       for (let i = 0; i < CARD_POOL.length; i++) {
         const el = nodes.current[i];
         if (!el) continue;
+        const c = CARD_POOL[i];
         const at = p[i];
         // Two ways a card is not worth a write: it is on the ground between
-        // flights, or it has fallen past the point the bottom dissolve has
-        // already taken to zero. The second is the performance pass's real
-        // cut: on the phone the mask is complete at 46% of the canvas, so
-        // roughly a third of the airborne cards would be writing transforms
-        // nobody can see. Cheap to skip, and exact, because the dissolve's end
-        // and the fall are both numbers this file already owns.
-        if (at > 1 || fallAt(at) * geo.travel + geo.originY > geo.deadY) {
+        // flights, or its TOP EDGE has fallen past the point the bottom
+        // dissolve has already taken to zero, which is the first moment none
+        // of it can be seen. The second is the performance pass's real cut: on
+        // the phone the mask is complete at 46% of the canvas, so a quarter of
+        // the airborne cards would be writing transforms nobody can see. Cheap
+        // to skip, and exact, because the dissolve's end and the fall are both
+        // numbers this file already owns.
+        //
+        // ★ The test is the EDGE, not the centre. Round two wrote it against
+        // the centre and it read as frames popping out of existence near the
+        // bottom of the stream: at the cut a desktop card's top edge was at y
+        // 763..779, where the mask is still at alpha 1, so 150 to 165 px of a
+        // 340 px photograph vanished in one frame, about every 0.6 s. Asking
+        // topEdgeAt costs 1.7 more card writes per frame on the desktop and
+        // 2.3 on the phone (0.0044 ms each, measured), and it is the price of
+        // the sentence the comment above was already making.
+        if (at > 1 || topEdgeAt(c, at, geo) > geo.deadY) {
           if (lastO.current[i] !== 0) {
             el.style.opacity = "0";
             lastO.current[i] = 0;
           }
           continue;
         }
-        el.style.transform = place(CARD_POOL[i], at, geo, lock);
+        el.style.transform = place(c, at, geo, lock);
         const o = opacityAt(at);
         if (o !== lastO.current[i]) {
           el.style.opacity = String(o);
@@ -951,12 +985,12 @@ export const river: Concept = {
   departures: [
     "THE AXIS, and the one real argument with the source: the code leaves the exact centre. The source's case was the still centre of a moving album, and it is a good one; this trades it for causality read top to bottom. A code in the middle of a composition is an object the page is arranged around, and a stranger reads it as a thing to scan for more information. A code at the TOP, in the eyebrow's slot, with the album falling out of it, is a beginning: everything below it is what the scan produced, which is the sentence the hero was asked to say. The stillness survives the move, and nothing about the card animates. The lockup is centred rather than left-aligned for the same reason, which is precedent and not law: left-aligning costs the symmetry of the two arms, not the mechanism.",
     "THE LINE UNDER THE CODE is printed on the card, and that is now the only build. Round two put both on the stage under a chip, a printed line and a line floating above a bare plate; walked cold the floating one loses plainly, so the chip is gone rather than left for Will to find, because it was also the one thing on the canvas that was not the composition. Say \"above\" and it comes back in a line: the mechanism does not care, it is the object that changes, and round one's argument against a line under a FLOATING plate (every frame has to escape sideways before it has fallen a card's height) is exactly what putting the line inside the white object dissolves.",
-    'THE COUNT under the buttons is a STAND-IN figure (241, ticking to 248, then held). It earns its place as the evidence for the line above it, because "See a real album" is a claim and a number still arriving is the proof, and the voice guide allows a count only where the product actually produced the number (docs/specs/brand-voice.md). So it is wired or it goes: before this is anywhere near production it reads the demo event\'s real media count. Flagged on the board rather than in a footnote, because a number nobody can stand behind is a claim and not a placeholder. It is the only invented number on this board; every other number in the concept was measured off the page.',
+    'THE COUNT under the buttons is a STAND-IN figure (241, ticking to 248, then held). It earns its place as the evidence for the line above it, because "See a real album" is a claim and a number still arriving is the proof, and the voice guide allows a count only where the product actually produced the number (docs/specs/brand-voice.md). So it is wired or it goes: before this is anywhere near production it reads the demo event\'s real media count. Flagged on the board rather than in a footnote, because a number nobody can stand behind is a claim and not a placeholder. It is the only invented number on this board; every other number in the concept was measured off the page. And it is not the only count on the page: the decomposition band two sections below already ships "Built from 214 photos. Shot by 23 guests.", which the voice board raised as a finding this round, and the guide allows one source and one pair of numbers on a page, not two. So the ruling is really keep it and read it from the same demo event the band reads, or drop it here and let the band carry the proof alone.',
     "BIBLE 13, decorative layer only: the stream's pre-pour state (every frame collapsed at the code) and the ticking count both sit inside the reduced-motion block, so with JavaScript off and motion allowed the stream rests at the code and the count shows its starting figure. Putting either in an effect instead would paint the album deployed and then snap it back. The h1, the code, the line, the subhead, the buttons and the count's settled figure are plain markup and never gated, and a reader who asked for less motion gets the stream fully deployed and the settled number. What this board took from the first wave, recorded here because there is no other row for it: the light spec's LIFT carries the cards' overlap at its cinema alphas (docs/specs/light.md), the voice guide's hero shape and its two-beat sentence wrote the proposed copy (docs/specs/brand-voice.md), and the media kit's \"readable at 120 px\" test is what the asks are written against (docs/specs/media-kit.md). This concept has no CSS-paste candidate and so offers no \"Apply to the site\" block: its ruling lands as a hero component in the wiring round, not as tokens.",
   ],
   assets: [
-    "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, framed tight enough to read at 110 px, which is the size a frame is as it leaves the code · ASSETS row 2, already requested and unchanged: the two arms carry disjoint halves, so with 24 every frame in the stream is unique, where the 12 landscape stand-ins double four of them · replaces the 12 landscape stand-ins in FRAMES (shared.tsx) and retires the per-frame crop table in river.tsx.",
-    "12 event photographs as 4:5 portraits, 720 x 900, one grade, 15 to 60 KB webp each, from the same shoot as the squares · ASSETS row 12, already requested and unchanged; the portrait third of row 3 or row 7 would serve instead and may be cheaper to unpark · replaces the portrait cards (wf 0.8) in CARD_POOL, which are cropped out of landscapes today.",
+    "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, framed tight enough to read at 110 px, which is the size a frame is as it leaves the code · ASSETS row 2, already requested and unchanged, and it is the SAME row the media kit's call sheet asks for (1:1 crops of that board's 36-frame shoot, codes W1 to T6, not a second setup), so this is one ask across two boards and Will answers it once: the two arms carry disjoint halves, so with 24 every frame in the stream is unique, where the 12 landscape stand-ins double four of them · replaces the 12 landscape stand-ins in FRAMES (shared.tsx) and retires the per-frame crop table in river.tsx.",
+    "12 event photographs as 4:5 portraits, 720 x 900, one grade, 15 to 60 KB webp each, from the same shoot as the squares · ASSETS row 12, already requested and unchanged, and again the media kit's call sheet asks for this row as 4:5 recrops of the same masters, so it costs no extra shooting; the portrait third of row 3 or row 7 would serve instead and may be cheaper to unpark · replaces the portrait cards (wf 0.8) in CARD_POOL, which are cropped out of landscapes today.",
     "Nothing else is a picture. The one ask left is the shell's: the demo event's live media count, as a number the hero can render (a demoCount prop beside qrUrl, from a build-time count on the demo event or the RPC the guest page already uses) · replaces COUNT_TO, the 248 stand-in, and COUNT_FROM becomes that count minus the arrivals shown. Better still, and the recommendation: if this hero ships, the frames in the stream should BE the demo event's own media (ASSETS row 5, the curated folder), so the count is literally the album the stream renders and the hero stops illustrating the product and starts being it.",
   ],
   render: (p) => <River {...p} />,
