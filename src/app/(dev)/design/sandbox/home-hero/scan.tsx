@@ -65,8 +65,16 @@ import {
  *    sat one word away from the burst's "One code. Every angle.", and three of
  *    the four concepts on the board opened with "One code". This one is the
  *    variation that puts the ACT in the frame and draws the code at scanning
- *    size, so its line no longer has to say "code" at all: "Every camera, one
- *    album." (the voice guide's two-beat hero shape, `docs/specs/brand-voice.md`).
+ *    size, so its line no longer has to say "code" at all: "Every camera in
+ *    the room, one album." (the voice guide's two-beat hero shape, in
+ *    `docs/specs/brand-voice.md`). Measured, and the reason the line is not
+ *    shorter still: a headline that fits on ONE line at the xl step is about
+ *    1060 px of ink sitting 112 px above the corridor's axis, where the
+ *    album's large frames reach it. The keep-out test found three
+ *    intersections with the h1's own ink there and none at all once the line
+ *    wraps to two, so this composition wants a headline of two lines at 1440.
+ *    That is true of any hero inheriting the source's band, its own short
+ *    proposal included.
  *
  * Measured and kept as it was: the corridor's physics, the clear lane, the
  * 375 compositions, the beat's order, and the centred lockup.
@@ -307,7 +315,7 @@ const GEO: Record<Mode, Geo> = {
     card: 150,
     travel: 1.65 * CANVAS.phone.w,
     perspective: 360,
-    offset: 162,
+    offset: 168,
     captionClass: "text-[13px]",
     countClass: "text-[12px]",
     sizes: "170px",
@@ -339,16 +347,25 @@ const GEO: Record<Mode, Geo> = {
         // the near field, and the supporting pair moves ABOVE the plate, which
         // is the only clear lane left once the device is in the frame.
         axis: 118,
-        lane: { at: -96, anchor: "bottom", max: 200 },
+        lane: { at: -92, anchor: "bottom", max: 220 },
         stacked: true,
         topInset: 34,
       },
       brackets: {
         // No near field to make room for, so the classic vertical rhythm:
         // headline, the band with the code, the pair, the sentence, the
-        // actions.
+        // actions. Round three retuned three numbers here, because walking
+        // the 375 canvas found the pair crushed: at a 200 measure the caption
+        // wrapped and left "code" alone on a second line, and the pair then
+        // reached far enough down that its box touched the subhead's, so the
+        // two lines read as attached to the sentence rather than to the code
+        // they describe. The measure is now 220 (the caption's ink is 207 at
+        // 13 px, so one line with slack for a metric shift), the lane sits at
+        // 96 and the sentence at 168: 34 px under the brackets, 28 px clear
+        // of the sentence, and 11 px of measured clearance from the nearest
+        // frame the corridor throws.
         axis: -6,
-        lane: { at: 100, anchor: "top", max: 200 },
+        lane: { at: 96, anchor: "top", max: 220 },
         stacked: false,
         topInset: 0,
       },
@@ -733,7 +750,7 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
           kill-mono sweep, so a figure that changes takes tabular-nums and
           nothing else: the digits hold their column while the number climbs. */}
       <Caption
-        className={`mx-auto mt-1.5 tabular-nums text-white/55 ${geo.countClass}`}
+        className={`mx-auto mt-1.5 text-white/55 tabular-nums ${geo.countClass}`}
         style={{ maxWidth: layout.lane.max }}
       >
         <span ref={countRef}>{countText(0)}</span>
@@ -937,7 +954,7 @@ export const scan: Concept = {
   eyebrow:
     "Settled: no eyebrow line. The code is the eyebrow and the caption under it names the act, because a word above the headline would be a fourth block of type in a composition that already carries a caption, a count, a sentence and two actions.",
   proposed: {
-    h1: "Every camera, one album.",
+    h1: "Every camera in the room, one album.",
     subhead:
       "Guests point a camera at the code, and their photos and videos land in your album, with no app and no account.",
     secondary: "See the album it made",
