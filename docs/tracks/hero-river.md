@@ -460,16 +460,29 @@ voice guide.
 
 ## Handoff (round 3)
 
-- Head `4aea15d` plus this commit (a manifest cannot name its own SHA). The work commit is
-  **`274dea4`**; `4aea15d` is the merge with `launch-prep` and the tree every gate below ran against.
+- Head **`d9040aa`** plus this commit (a manifest cannot name its own SHA). The round is three
+  commits: `274dea4` built it, `4aea15d` merged `launch-prep`, and **`d9040aa`** is the read-only
+  review's fix (the dead-line cut, plus the two board changes the re-read below produced). Every
+  gate and every measurement in this Handoff was re-run on `d9040aa`.
   Pushed. The board is `/design/c/home-hero?key=` (concept 4 of 4).
   **Marker for the round-three board: `hhv-delta`**, the stream wrapper's second class, which exists
   in no earlier round; the absence of `hhv-lab` (the cut chip) marks it too.
-- ★ **The preview alias is frozen again, and it is the same project-wide ceiling as round two.** The
-  GitHub commit status on `274dea4` reads `Vercel: "Deployment rate limited - retry in 24 hours."`
-  and no deployment record is created, so `partyreel-git-lp-hero-river-partyreel.vercel.app` still
-  serves `6915bd5`, round TWO's first commit. Nothing on the alias is this round. Per the round's own
-  instruction, the verification below ran on a local server instead and says which one each time.
+- ★ **The alias still serves round TWO, and the ceiling is a LEAKY BUCKET, not a 24 hour freeze.**
+  GitHub records the same refusal on `274dea4` (02:44), `6d53fab` (03:00) and `d9040aa` (03:31):
+  `Vercel: "Deployment rate limited, retry in 24 hours."`, and no deployment record is created, so
+  `partyreel-git-lp-hero-river-partyreel.vercel.app` still serves `6915bd5`, round two's first
+  commit. **Round three's first draft of this bullet took that message at its word and called it a
+  standing project-wide ceiling. That was wrong**, and two other tracks had already written down
+  why: the cap refills at about one deployment every 14.4 minutes and the next push on ANY branch
+  takes the slot, so a push is not a deploy, it is an entry in a race that is refused outright when
+  it misses (`docs/tracks/media-kit.md` round two; `lp/hero-burst` `8043b8e`). The deployment list
+  proves it across this branch's own failures: `lp/light` READY at 02:48, `lp/hero-scan` at 03:02,
+  `lp/hero-burst` at 03:17. **So the remedy is not to wait a day**: push again, or have the
+  Orchestrator force a redeploy of `d9040aa`, and confirm it by the SHA on the deployment rather
+  than by the push succeeding. One-line check that the alias is current:
+  `curl -s "<alias>/design/c/home-hero?key=" | grep -c hhv-delta` returns 1 on this round and 0 on
+  round two, where `grep -c hhv-lab` returns 1 instead. Per the round's own instruction the
+  verification below ran on a local production server, and says so each time.
 - **What the live pass ran against, and why it is not a downgrade.** `pnpm build` then `pnpm start` in
   the worktree, which serves the same production output the preview would at the same code. The one
   thing it cannot exercise is Vercel's own edge, and this board touches no route handler, no auth, no
@@ -480,7 +493,7 @@ voice guide.
   `git merge origin/launch-prep` at `4aea15d`, no conflicts. Of the files this track READS, only
   `scan.tsx` and `scan.css` moved; `shared.tsx`, `board.tsx`, `board.css`, `source.tsx`,
   `stage.tsx`, `bible.ts`, `marketing-media.ts` and `ASSETS.md` are untouched by the sync and by me.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing, on
+- Gates re-run on `d9040aa`: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing, on
   `contact-form.tsx`, `album-fill-grid.tsx`, `review-switch.tsx`, `jobs.ts` and `use-flip.ts`), test
   ok (1719 in 193 files), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-river.md`,
@@ -499,6 +512,76 @@ voice guide.
   `switches` field on `Concept` so the line-placement chip could live in `board.tsx`; that ask is
   WITHDRAWN, because the chip is cut. What remains is round one's and the scan's: **`demoCount`
   beside `qrUrl`**, the demo event's real media count, so no count ships as drawn.
+
+### What the read-only review found, and what each fix was
+
+The handoff went to a read-only review before Will. Three things came back; all three are fixed, and
+all three were inside this lane.
+
+1. **BLOCKING: the preview does not serve this round's board.** True, and still true at the time of
+   writing: the alias bullet above now carries the correct mechanism (a leaky bucket, not a day-long
+   freeze), the correct remedy (push again or force a redeploy, confirm by SHA) and the one-line
+   check. The review's own evidence, that other branches went READY at 02:48, 03:02 and 03:17, is
+   quoted there, because it is what disproves the first draft. Three pushes from this branch have
+   now been refused, at 02:44, 03:00 and 03:31; the push carrying this manifest is the next entry in
+   the race. The board itself is verified below on a local production server serving `d9040aa`,
+   which is the round's own stated fallback.
+2. **Frames popped out of existence near the bottom of the stream, on both canvases.** Correct, and
+   the one real break in the mechanism. The loop hid a card the moment its CENTRE passed `deadY`,
+   but a card is laid out and scaled about that centre, so the cut threw away the whole upper half
+   of a frame while the mask was still fully opaque there. **Measured on the running page under the
+   old rule**, by driving the real loop and reading the transforms it writes: 19 cards a cycle were
+   cut with their top edge at y 755.6 to 779.9, where the desktop mask is opaque until 818.4, so a
+   150 to 174 px slab of a 262 to 339 px wide photograph vanished in one frame, about every 0.61 s.
+   The phone was the same shape at a smaller size: 24 cuts a cycle, the worst at mask alpha 0.90
+   with a 96 px slab. The fix is a new `topEdgeAt`, the centre minus the half-height of the TUMBLED
+   box (a rotated frame reaches higher than its layout box), and the loop now drops a card at the
+   first moment none of it can be seen. **After: the mask alpha at the topmost pixel of a cut card
+   is at most 0.103 on the desktop and 0.088 on the phone**, which is the one-frame step at the
+   canvas's bottom edge rather than a slab, and the code's own comment, the `deadY` field doc and
+   the claim in this Handoff are all true again. Cost: **1.7 to 2.4 more card writes per frame,
+   measured** (1471 extra card-frames over 621 driven frames on the desktop, 1044 over 541 on the
+   phone), which is what the comment above the test was already claiming to buy.
+3. **Round 3 item (2) was silently dropped.** Correct. The re-read is its own section below, and it
+   changed the board twice, corrected the alias bullet, and left one dependency on the record.
+
+### The re-read (round 3 item 2), and what it changed
+
+- **The reviewer's findings on the round-two handoff: there are none in the record.** No findings
+  block was ever written into this manifest (`grep -ri reviewer docs/tracks/` on this branch hits
+  only the round-three brief's own sentence, in every track's copy of it), and none was handed to
+  the round. So there was nothing to re-read, and the right answer was to say so rather than leave
+  the item unanswered. Said here.
+- **`brand-voice`, round 3, finding 1: the home page is about to carry two different counts.** The
+  decomposition band two sections below the hero already ships "Built from 214 photos. Shot by 23
+  guests.", and the guide's Do 3 allows one source and one pair of numbers on a page. **This changed
+  the board**: the count departure now names that band, so the third ruling reads "keep it and read
+  it from the same demo event the band reads, or drop it here and let the band carry the proof
+  alone" rather than a bare keep-or-drop.
+- **`media-kit`, the call sheet: both of this board's picture asks are already rows on it.** That
+  board asks for the same 24 squares at 512x512 (ASSETS row 2) and the same 12 portraits at 720x900
+  (row 12), as 1:1 and 4:5 crops of ONE 36-frame shoot with codes W1 to T6, explicitly not a second
+  setup. **This changed the board**: both asks now say so, so Will answers one ask across two boards
+  instead of being asked twice for the same shoot.
+- **`media-kit` round two and `lp/hero-burst` `8043b8e` on the deployment ceiling.** Both had
+  already diagnosed the leaky bucket. Reading them is what corrected the alias bullet above, and it
+  is the clearest cost of having skipped item (2) the first time.
+- **`type-scale`, round 3: a dependency to record, not a change to make.** Its board asks for the
+  marketing ladder and recommends B, with C (the front of the site as a poster) as the overrule.
+  This concept's h1 renders at `LADDER.xl[mode]`, and the desktop silhouette table is the measured
+  ink of that face at 96 px. **If C is ruled, this lockup's ink table has to be re-measured before
+  the hero ships**; `river.tsx` already says that for a copy change, and this is the same trigger
+  from the other side.
+- **`light`, `palette`, `rounding`, `floating-surfaces`, `hero-scan`, `hero-burst`: nothing that
+  changes this board.** The LIFT alphas this concept borrows for the cards' overlap cue are
+  unchanged in `docs/specs/light.md`; no token this board reads moved; and the two sibling hero
+  concepts ask for the same `demoCount` shell prop this one does, which is the ask already recorded.
+- **The specs.** Only two have moved off `launch-prep` at all, both on their own branches:
+  `brand-voice.md` (now a round-three proposal: a utility-hero row and a Do 2 model sentence, both
+  about `/contact`, while the hero example and Do 3 this board quotes are unchanged in substance)
+  and `media-kit.md` (the call sheet, above). `light.md`, `palette.md`, `type-scale.md`,
+  `floating-surfaces.md` and `reel-v1.md` are untouched since round two, so the fourth departure's
+  three citations still read the text they were written against.
 
 ### What the cold walk found, and what each fix was
 
@@ -540,13 +623,18 @@ a line belonging to nothing beside it), and the chip was the only thing on the c
 the composition, which on a stage reads as product UI. One build, the printed card; the ruling
 survives as a one-word departure.
 
-### Verified at `4aea15d`, against the production build served locally
+### Verified at `d9040aa`, against the production build served locally
 
 - **The clearing is a geometric guarantee, measured and not eyeballed.** A probe read the rendered
   INK of the headline's two lines, the subhead's lines, both buttons and the count, and tested every
-  visible card's live rect against all of them, every frame, for a full 9.6 s cycle in each of the
-  four combinations of canvas and copy. **Desktop: 0 px of overlap, both copies, 4227 and 5280
-  card-frames checked.** Phone: 0 px of VISIBLE overlap, both copies; the raw layout boxes do reach
+  visible card's live rect against all of them, every frame, for a full cycle in each of the four
+  combinations of canvas and copy. Re-run at `d9040aa`, because the dead-line fix puts frames on
+  screen that used to be deleted there: **desktop 0 px of overlap, both copies, 9843 and 9880
+  card-frames checked over 621 driven frames**, of which **1471 are frames the fix restored** (past
+  the old centre cut), so the guarantee was re-tested exactly where the new frames appear. **Phone:
+  0 px of VISIBLE overlap, both copies, 6778 card-frames each, 1044 of them restored.** The box
+  tested is the TUMBLED one, wider and taller than the layout box, so the check is conservative.
+  As before, the phone's raw layout boxes do reach
   58 px into the headline's ink, and every one of those pixels is below the dissolve's last stop,
   which is 22 px above that ink. Both numbers are reported because the second one is the honest
   description of what the phone does.
@@ -582,9 +670,15 @@ survives as a one-word departure.
   cards' placement (the new silhouette clearing included) is **0.07 ms**; all FOUR concepts on the
   board together cost 0.59 to 1.08 ms per frame, under 7 percent of a 16.7 ms budget. 16 promoted
   layers, **5.65 MB** at the desktop canvas and **1.69 MB** at the phone, and a card's DOM box is its
-  LARGEST visible size, so nothing is rasterized above 1:1. The loop still skips any card that has
-  fallen past the dissolve's last stop. Nothing here earned a cut; the honest report is that the
-  stream is not the cost.
+  LARGEST visible size, so nothing is rasterized above 1:1. The loop still skips a card once the
+  dissolve has taken it to zero, but the test is now its TOP EDGE rather than its centre (the review
+  defect above), which costs **1.7 to 2.4 more card writes per frame, measured**. Re-measured at
+  `d9040aa` by the same stepped clock: all four concepts together, **0.17 ms per frame** at either
+  canvas. That is lower than the 0.59 to 1.08 ms above, which is machine state and not code; the
+  honest reading of the pair is that the whole board's loop is a small fraction of a 16.7 ms frame
+  either way, and both were taken with a stepped clock in a hidden tab, where a style write costs
+  its JS but no paint. Nothing here earned a cut; the honest report is that the stream is not the
+  cost.
 - The rAF CADENCE itself could not be sampled: the only browser available to this session drives a
   background tab, where rAF is suspended and a frame-time sampler records zeros
   (`docs/systems/testing-verification.md`). The loop was therefore driven by a stepped clock, the
@@ -595,39 +689,49 @@ survives as a one-word departure.
 - **Assets requested from Will (no new rows; round one's two asks, unchanged):**
   1. **24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each**, framed tight
      enough to read at 110 px, which is measured: that is the size a frame is as it leaves the code ·
-     `ASSETS.md` row 2, unchanged · replaces the 12 landscape stand-ins in `FRAMES` (`shared.tsx`)
-     and retires `CROP` in `river.tsx`.
+     `ASSETS.md` row 2, unchanged, and the SAME row the media kit's call sheet asks for (1:1 crops
+     of that board's 36-frame shoot, codes W1 to T6, not a second setup), so it is one ask across
+     two boards · replaces the 12 landscape stand-ins in `FRAMES` (`shared.tsx`) and retires `CROP`
+     in `river.tsx`.
   2. **12 event photographs as 4:5 portraits, 720 x 900, one grade, 15 to 60 KB webp each** · row 12,
-     unchanged; the portrait third of row 3 or row 7 serves instead and may be cheaper to unpark ·
-     replaces the portrait cards (`wf` 0.8) in `CARD_POOL`.
+     unchanged, and again the call sheet's own row, as 4:5 recrops of the same masters, so it costs
+     no extra shooting; the portrait third of row 3 or row 7 serves instead and may be cheaper to
+     unpark · replaces the portrait cards (`wf` 0.8) in `CARD_POOL`.
   3. **The demo event's live media count**, as a number the hero can render · not a picture, a shell
      change (`demoCount` beside `qrUrl`) · replaces `COUNT_TO`, the 248 stand-in.
 - **The asks, verbatim from BoardMeta** (this board renders them under "Asks" from `concept.assets`;
   the Orchestrator quotes them under Waiting on Will):
-  1. "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, framed tight enough
-     to read at 110 px, which is the size a frame is as it leaves the code · ASSETS row 2, already
-     requested and unchanged: the two arms carry disjoint halves, so with 24 every frame in the
-     stream is unique, where the 12 landscape stand-ins double four of them · replaces the 12
-     landscape stand-ins in FRAMES (shared.tsx) and retires the per-frame crop table in river.tsx."
+  1. "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, framed tight
+     enough to read at 110 px, which is the size a frame is as it leaves the code · ASSETS row 2,
+     already requested and unchanged, and it is the SAME row the media kit's call sheet asks for
+     (1:1 crops of that board's 36-frame shoot, codes W1 to T6, not a second setup), so this is one
+     ask across two boards and Will answers it once: the two arms carry disjoint halves, so with 24
+     every frame in the stream is unique, where the 12 landscape stand-ins double four of them ·
+     replaces the 12 landscape stand-ins in FRAMES (shared.tsx) and retires the per-frame crop
+     table in river.tsx."
   2. "12 event photographs as 4:5 portraits, 720 x 900, one grade, 15 to 60 KB webp each, from the
-     same shoot as the squares · ASSETS row 12, already requested and unchanged; the portrait third
-     of row 3 or row 7 would serve instead and may be cheaper to unpark · replaces the portrait cards
-     (wf 0.8) in CARD_POOL, which are cropped out of landscapes today."
-  3. "Nothing else is a picture. The one ask left is the shell's: the demo event's live media count,
-     as a number the hero can render (a demoCount prop beside qrUrl, from a build-time count on the
-     demo event or the RPC the guest page already uses) · replaces COUNT_TO, the 248 stand-in, and
-     COUNT_FROM becomes that count minus the arrivals shown. Better still, and the recommendation: if
-     this hero ships, the frames in the stream should BE the demo event's own media (ASSETS row 5,
-     the curated folder), so the count is literally the album the stream renders and the hero stops
-     illustrating the product and starts being it."
+     same shoot as the squares · ASSETS row 12, already requested and unchanged, and again the
+     media kit's call sheet asks for this row as 4:5 recrops of the same masters, so it costs no
+     extra shooting; the portrait third of row 3 or row 7 would serve instead and may be cheaper to
+     unpark · replaces the portrait cards (wf 0.8) in CARD_POOL, which are cropped out of
+     landscapes today."
+  3. "Nothing else is a picture. The one ask left is the shell's: the demo event's live media
+     count, as a number the hero can render (a demoCount prop beside qrUrl, from a build-time count
+     on the demo event or the RPC the guest page already uses) · replaces COUNT_TO, the 248 stand-
+     in, and COUNT_FROM becomes that count minus the arrivals shown. Better still, and the
+     recommendation: if this hero ships, the frames in the stream should BE the demo event's own
+     media (ASSETS row 5, the curated folder), so the count is literally the album the stream
+     renders and the hero stops illustrating the product and starts being it."
 - **The rulings, from the board's Departures. Three words settle this board:**
   1. **The code at the top rather than at the exact centre** (and the centred lockup with it). The
      one real argument with the source, and the first thing to overrule.
   2. **The line under the code, printed on the card.** Built one way now; say "above" and the
      floating version comes back in a line.
-  3. **The count under the buttons: keep it or drop it.** It is the evidence for "See a real album",
-     and it is the only invented number on the board; every other number in the concept was measured
-     off the page.
+  3. **The count under the buttons: keep it (read from the demo event) or drop it.** It is the
+     evidence for "See a real album", and it is the only invented number on the board; every other
+     number in the concept was measured off the page. The voice board's round-three finding sharpens
+     it: the decomposition band two sections below already ships its own pair of numbers, and the
+     guide allows one source per page, so keeping this means both read the demo event.
   Bible 13's decorative-layer gating is flagged as the fourth departure because the wave rules put
   bible departures on the board rather than in a footnote; it is not a ruling Will has to make.
 - **Look at first**: the FIRST TWO SECONDS on Desktop (the code and the words alone for 620 ms, then
