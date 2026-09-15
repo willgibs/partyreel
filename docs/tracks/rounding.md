@@ -102,7 +102,7 @@ tuner's and the ruling's.
 
 ## Handoff (round 2)
 
-- Head `7cf1927` (this manifest commit follows it), pushed; preview
+- Head `21b4130`, pushed; preview
   partyreel-git-lp-rounding-partyreel.vercel.app. The board is
   `/design/c/rounding?key=`; the round-two marker in the rendered HTML is the
   heading **"The six tokens, at true size"** (and the class `rnd-wide`).
