@@ -1,5 +1,7 @@
 // @contract-for: src/components/shared/glow.tsx
 // @contract-for: src/components/shared/glow-filter.tsx
+// @policy: shared · The spill engine keeps its shape
+// @refuses: a change to the lamp engine that renders as a hard-edged rectangle instead of light, with nothing else failing.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 

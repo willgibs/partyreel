@@ -1,8 +1,9 @@
 ---
 track: lab-rules
-status: open
-cut: "<filled at boot: the launch-prep SHA you cut from>"
-preview: false
+status: integrated
+cut: "2644310d"
+merged: "e52f97fd"      # the branch head merged into launch-prep
+preview: true
 owns:
   - src/app/(dev)/design/rules/influences.ts
   - src/app/(dev)/design/rules/influences.test.ts
@@ -140,22 +141,97 @@ policy, contract or `for` line changes without it. The gate and `pnpm lab:smoke`
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/design-system.md` "The craft guidance stack": the chapter MOVED to
+  `docs/design/guidance.md` (which the Library renders at `/design/library/guidance`) and the heading
+  stays with a five-line pointer, so the anchor CLAUDE.md and `docs.test.ts` both use still resolves.
+  The reason is a level, not a tidy-up: guidance is the thing you leave on purpose, and inside a
+  system doc it read as precedent.
+- `docs/systems/design-system.md` "Error taxonomy": "Copy rules: plain language, no em-dashes, no
+  internals" now points at bible 19 and adds that the wording itself is open (bible 21), so a round
+  that improves an error message knows it is not breaking a contract.
+- `docs/decisions/design-record.md`: the hand-written index table at the top (39 rows) is DELETED.
+  It restated `RULINGS` in a second hand and had already drifted from it; `/design/library/record`
+  derives the same table, and `record.test.ts` fails on drift in either direction.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Lab & design system: delete `_data/links.ts`'s hand-written `POLICY_TESTS` map and re-export
+  `_data/policies.ts` (a shared file, so it is the Handoff ask below). Until then
+  `rules-registry.test.ts` holds the hand list to what the tree says.
+- Lab & design system: delete the "asks, one word each" block from the four `docs/specs/*.md`
+  proposals once `sandbox/registry.ts` carries the boards' specs. NOT done this round, deliberately:
+  `BOARDS` is still the empty Phase 0 stub, so the proposals are today the ONLY home of those asks
+  and deleting them now would lose Will's open questions rather than move them. It belongs to the
+  round that lands the specs (`lab-kit`).
+- Lab & design system: the collector disambiguates a component-id collision by renaming BOTH files
+  (`sheet` becomes `ui-sheet`), so a NEW contract target whose stem matches a library component
+  silently re-ids the real one. `gallery.test.ts` catches it, but the error reads as a missing
+  gallery entry rather than as a collision; the id rule deserves a better answer.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-<track>-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Shared-file changes asked of the Orchestrator (a `_data/` module, `touchpoints.ts`, `next.config.ts`): none
-- Assets requested from Will: none
-- Look at first: ...
+- Head `0e0bb6d5` plus this manifest commit, pushed; preview
+  `partyreel-git-lp-lab-rules-partyreel.vercel.app`
+- Synced with `launch-prep` three times: `d15dae57` (the program principles as headings),
+  `216830cc` (the proxy gate; the record's `event-feed` fallback in my lane) and `34d73772` (no
+  viewport prefetch). The last merge is the head's parent.
+- Gates on the synced tree, each on its own exit code: typecheck ok, lint ok (0 errors, 6
+  pre-existing warnings), test ok (2043 in 208 files), build ok (256 static pages),
+  `pnpm lab:smoke --base http://localhost:3402` ok (250 checks, 0 failing).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is my owned paths and this file, plus
+  three exceptions:
+  - `docs/systems/design-system.md` (two edits, both listed above under System-doc edits).
+  - `src/app/(dev)/design/sandbox/media-kit/plan.test.ts` and the new `board-jsx.test.ts` beside it.
+    FORCED by the goal: the collector now throws on a directive past the 40-line header window, and
+    `plan.test.ts` was the case that proves it, carrying a real `// @contract-for:` at line 247 that
+    the collector had silently dropped for weeks. Its block is lifted into its own file as an
+    `engineering` POLICY, which is what it always was (a guard against a Next 16 SWC behaviour, not
+    a statement about a component), so it is visible now without adding a sandbox board to the
+    component index. `media-kit` is `integrated`, so no live track owns those paths.
+- Shared-file changes asked of the Orchestrator:
+  1. **`_data/links.ts`**: delete the hand-written `POLICY_TESTS` map and re-export the derived one,
+     `export { POLICY_TESTS } from "./policies";`. The map is now generated from the `// @policy:`
+     directives; the hand list has already fallen one policy behind (the media-kit JSX guard).
+     `rules-registry.test.ts` holds the two consistent until the swap and will keep passing after it.
+  2. Nothing else. `touchpoints.ts`, `rules/bible.ts`, `docs/design/rulings.md` and `docs/reviews/`
+     were not touched.
+- For the two peer tracks, mountable today, no change needed from me:
+  - `lab-library`'s component page: `bindsFor({ ownedPaths: [component.file] }).contracts` is the
+    "only its own contracts" list, and `<BindsStrip ownedPaths={[component.file]} compact />`
+    (`(shell)/library/rules/binds-strip.tsx`) is the one-line header version.
+  - `lab-kit`'s board page: `<BindsStrip board={spec.id} surface={ruling.surface} />` renders the
+    full strip, leading with the bible rules that are that board's own to rewrite.
+  - `lab-desk`: `boardStatus(board)` and `waitingOnWill(ids)` (`design/review/status.ts`) derive
+    answered-versus-open from the spec minus the ledger; `windowNotesFor(board)` gives a board the
+    window notes that name it plus the ones that name nobody.
+- Assets requested from Will: none.
+- Look at first:
+  1. `/design/library/rules` at 1440. It opens with the NINE LEVELS and a verdict per level (Binds /
+     Binds in scope / Informs), because that is the answer to the page's question. The contracts left
+     this page for the components they guard.
+  2. `/design/library/rules?board=palette#binds` (and `?board=light`). The Binds strip: what one
+     exploration actually obeys, leading with the bible rules it may rewrite. Try two boards; the
+     "yours to rewrite" block changes and the landmine count follows the surface.
+  3. `/design/library/rules#health`, the rule set auditing itself: 9 rules held at review only, 0
+     uncited design policies, 6 rules a board is still writing, 1 retiring.
+  4. `/design/library/policies`. Every policy now says what it REFUSES in its own words, read from a
+     `@refuses:` line in the test's header, with the bible rules that cite it beside it.
+  5. `docs/design/library.md`, the whole rule set as one greppable file for an agent in a worktree
+     with no dev server and no key. Regenerated by `pnpm design:rules` and freshness-guarded.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The rule layer: everything that influences design
+work, visible and levelled. `rules/influences.ts` gave every influence a LEVEL (law, contract,
+policy, program, guidance, precedent, proposal, ruling, landmine), each defined in exactly one place,
+`docs/design/README.md`, and read from there by a test, so the prose a human reads and the badge an
+agent sees cannot disagree; `bindsFor({board, surface, ownedPaths})` answers what one exploration
+obeys and deliberately omits the six levels that only inform. The collector gained
+`// @policy: <scope>` and `// @refuses:` beside `@contract-for` and now THROWS on a directive past
+the 40-line header window rather than dropping it, which surfaced a real `@contract-for` that had
+sat invisible at line 247 of `media-kit/plan.test.ts` for weeks. `/design/library/rules` was rebuilt
+around the levels with a computed health strip; `/design/library/policies` says what each policy
+refuses; guidance moved out of the system doc into `docs/design/guidance.md`; the record's
+hand-written index was deleted and derived, with `event-feed`'s long-standing drift named by a test;
+and `docs/design/library.md` renders the whole rule set as one greppable file. 2043 tests, 256
+static pages, 250 smoke checks.

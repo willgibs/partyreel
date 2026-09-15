@@ -55,6 +55,42 @@ client hook, and `pnpm lab:smoke --production` on a local production build prove
 
 ---
 
+## 2026-09-15 — The Library x Lab round, Phase 1: two of five tracks integrated (`a76578de`, `0fb9498e`)
+
+**`lab-library`** (merged `a76578de`). The library moved onto the shell's own templates: its five
+family pages, its component permalink and its home now compose `PageHeader`, `Section`, `Pager`,
+`Ref`, `Tag`, `Callout` and `StatRow` instead of the framing kit written before the shell existed,
+and `reference-ui.tsx` kept only what is genuinely the library's own (the reading column, the
+wrapping row, the live swatch) with `RefHeader`, `RefSection` and `Spec` delegating. A component
+page now answers what it is for, what it accepts, what it looks like and what binds it: its
+contracts as the only rules that bind one file, and the ★ landmines of its surface lifted out of
+the two system docs by naming it (10 of 87 components, no false positives). Every specimen gained
+Preview and Code with the JSX derived from the entry module rather than declared a second time
+(`collect-specimens.mjs` into `specimens.generated.json`, held fresh by a test), and the frame it
+sits in is now `Specimen`, since `Stage` was already the lab kit's word. `new` and `updated` became
+data on a gallery entry, cleared at a window's close. The round also found that the shell's table
+of contents rail had never rendered (the `utilities.lab` landmine) and that no `Section` anchor
+reached it; both fixes went to the shell track's lane.
+
+**`lab-rules`** (merged `0fb9498e`). The rule layer: everything that influences design work, visible
+and levelled. `rules/influences.ts` gave every influence a level (law, contract, policy, program,
+guidance, precedent, proposal, ruling, landmine), each defined in exactly one place,
+`docs/design/README.md`, and read from there by a test, so the prose a human reads and the badge an
+agent sees cannot disagree; `bindsFor({board, surface, ownedPaths})` answers what one exploration
+obeys and deliberately omits the six levels that only inform. The collector gained
+`// @policy: <scope>` and `// @refuses:` beside `@contract-for` and now throws on a directive past
+the 40-line header window rather than dropping it, which surfaced a real `@contract-for` that had
+sat invisible at line 247 of `media-kit/plan.test.ts` for weeks. `/design/library/rules` was rebuilt
+around the levels with a computed health strip; `/design/library/policies` says what each policy
+refuses; guidance moved out of the system doc into `docs/design/guidance.md`; the record's
+hand-written index was deleted and derived, with `event-feed`'s long-standing drift named by a
+test; and `docs/design/library.md` renders the whole rule set as one greppable file. At the merge
+the Orchestrator replaced the hand-written policy map in `_data/links.ts` with the derived one.
+Gate on the merged tree: 2046 tests, the build, 262 smoke checks. The weekly usage limit cut the
+other three tracks off mid-build the same hour; each was resumed with its state spelled out.
+
+---
+
 ## 2026-09-14 — The review wave: the bible's second edition, the record for parallel agents, seven tracks at once (`fa45a88` to `6c19d84`; integrations below)
 
 Will reviewed the 22-rule bible line by line while round two of the home hero was building. Nine

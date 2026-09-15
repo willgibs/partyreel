@@ -101,9 +101,9 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | track | board | preview | waits on |
 | --- | --- | --- | --- |
 | `lab-shell` | `/design/library` and `/design/lab` (the chrome) | its own alias at handoff | the Orchestrator (integration, first) |
-| `lab-rules` | `/design/library/rules`, `policies`, `guidance`, `rulings`, `doctrine`, `record`, `glossary` | its own alias at handoff | the Orchestrator (integration, second) |
+| `lab-rules` | `/design/library/rules`, `policies`, `guidance`, `rulings`, `doctrine`, `record`, `glossary` | the launch-prep alias (integrated, merged `0fb9498e`) | nothing: the desk and the kit read its `review/` and Binds strip |
 | `lab-kit` | `/design/lab/light`, `/design/lab/rounding`, `/design/lab/kit` | its own alias at handoff | the Orchestrator (integration, third) |
-| `lab-library` | `/design/library/<component>` and the five family galleries | its own alias at handoff | the Orchestrator (integration, fourth) |
+| `lab-library` | `/design/library/<component>` and the five family galleries | the launch-prep alias (integrated, merged `a76578de`) | nothing: the shell track reads `entry.badge` into the nav |
 | `lab-desk` | `/design/lab` (the desk, the review session), `tracks`, `proposals`, `tools` | its own alias at handoff | the Orchestrator (integration, last) |
 | `palette` | `/design/lab/palette` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `c0d60b94`) | Will's ruling |
 | `light` | `/design/lab/light` | the launch-prep alias once Vercel's window frees (round 4 integrated, merged `bc2390f2`) | Will's ruling |

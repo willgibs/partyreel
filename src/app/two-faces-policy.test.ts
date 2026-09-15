@@ -1,3 +1,6 @@
+// @policy: global · Two faces, and only two
+// @refuses: a third typeface: a font-mono class, a --font-mono token, or a mono loader anywhere in src.
+
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 

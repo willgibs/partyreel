@@ -1,3 +1,6 @@
+// @policy: global · Two Tailwind entries, one theme
+// @refuses: a lab-only utility reaching the production stylesheet, or a second copy of the theme tokens.
+
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
