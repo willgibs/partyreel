@@ -1,7 +1,7 @@
 ---
 track: lab-shell
 status: open
-cut: "<filled at boot: the launch-prep SHA you cut from>"
+cut: "2644310d"
 preview: false
 owns:
   - src/app/(dev)/design/(shell)/layout.tsx
