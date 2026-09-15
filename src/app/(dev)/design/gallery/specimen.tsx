@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Columns2, Copy } from "lucide-react";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 import type { SpecimenSkin } from "./entry";
@@ -64,100 +65,88 @@ export function Specimen({
   const inner =
     skin === "marketing" ? <div data-mkt="">{children}</div> : children;
 
-  return (
-    <div className="group/specimen overflow-hidden rounded-xl border border-border bg-card">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border py-1.5 pr-3 pl-4">
-        <p className="min-w-0 text-[13px] font-medium">
-          {label}
-          {!label && hint && <span className="sr-only">Specimen</span>}
-        </p>
-        <span className="flex shrink-0 items-center gap-2">
-          {hint && showing === "preview" && (
-            <span className="max-w-[24ch] truncate text-[11px] text-muted-foreground sm:max-w-none">
-              {hint}
-            </span>
-          )}
-          {code && (
-            <span role="tablist" className="flex items-center">
-              <Tab
-                selected={showing === "preview"}
-                onClick={() => setTab("preview")}
-              >
-                Preview
-              </Tab>
-              <Tab selected={showing === "code"} onClick={() => setTab("code")}>
-                Code
-              </Tab>
-            </span>
-          )}
-          {showing === "code" && code ? (
-            <CopyIconButton text={code} />
-          ) : (
-            <button
-              type="button"
-              onClick={() => setSplit((s) => !s)}
-              aria-pressed={split}
-              title={split ? "One theme" : "Light and dark, side by side"}
-              className={cn(
-                "flex size-6 items-center justify-center rounded-md transition-[color,opacity,transform] duration-150 ease-emphasis active:scale-90",
-                split
-                  ? "text-foreground"
-                  : "text-muted-foreground/60 group-hover/specimen:text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Columns2 className="size-3.5" />
-              <span className="sr-only">
-                {split ? "Show one theme" : "Show light and dark side by side"}
-              </span>
-            </button>
-          )}
-        </span>
-      </div>
+  const preview = split ? (
+    <div className="grid sm:grid-cols-2">
+      <ThemePane tone="light" className={well}>
+        {inner}
+      </ThemePane>
+      <ThemePane tone="dark" className={well}>
+        {inner}
+      </ThemePane>
+    </div>
+  ) : (
+    <div className={well}>{inner}</div>
+  );
 
-      {showing === "code" && code ? (
-        <pre className="overflow-x-auto p-4 text-[12px] leading-relaxed">
-          <code className="font-sans">{code}</code>
-        </pre>
-      ) : split ? (
-        <div className="grid sm:grid-cols-2">
-          <ThemePane tone="light" className={well}>
-            {inner}
-          </ThemePane>
-          <ThemePane tone="dark" className={well}>
-            {inner}
-          </ThemePane>
-        </div>
-      ) : (
-        <div className={well}>{inner}</div>
-      )}
+  const head = (
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border py-1.5 pr-3 pl-4">
+      <p className="min-w-0 text-[13px] font-medium">
+        {label}
+        {!label && hint && <span className="sr-only">Specimen</span>}
+      </p>
+      <span className="flex shrink-0 items-center gap-2">
+        {hint && showing === "preview" && (
+          <span className="max-w-[24ch] truncate text-[11px] text-muted-foreground sm:max-w-none">
+            {hint}
+          </span>
+        )}
+        {/* The real Tabs primitive, not a look-alike: the library is the one
+            place a component should be USED rather than only shown, and it
+            carries the roving focus and the aria wiring for free. */}
+        {code && (
+          <TabsList variant="line">
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="code">Code</TabsTrigger>
+          </TabsList>
+        )}
+        {showing === "code" && code ? (
+          <CopyIconButton text={code} />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setSplit((s) => !s)}
+            aria-pressed={split}
+            title={split ? "One theme" : "Light and dark, side by side"}
+            className={cn(
+              "flex size-6 items-center justify-center rounded-md transition-[color,opacity,transform] duration-150 ease-emphasis active:scale-90",
+              split
+                ? "text-foreground"
+                : "text-muted-foreground/60 group-hover/specimen:text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Columns2 className="size-3.5" />
+            <span className="sr-only">
+              {split ? "Show one theme" : "Show light and dark side by side"}
+            </span>
+          </button>
+        )}
+      </span>
     </div>
   );
-}
 
-function Tab({
-  selected,
-  onClick,
-  children,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
   return (
-    <button
-      role="tab"
-      type="button"
-      aria-selected={selected}
-      onClick={onClick}
-      className={cn(
-        "rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors",
-        selected
-          ? "bg-muted text-foreground"
-          : "text-muted-foreground hover:text-foreground",
+    <div className="group/specimen overflow-hidden rounded-xl border border-border bg-card">
+      {code ? (
+        <Tabs
+          value={showing}
+          onValueChange={(v) => setTab(v === "code" ? "code" : "preview")}
+          className="gap-0"
+        >
+          {head}
+          <TabsContent value="preview">{preview}</TabsContent>
+          <TabsContent value="code">
+            <pre className="overflow-x-auto p-4 text-[12px] leading-relaxed">
+              <code className="font-sans">{code}</code>
+            </pre>
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <>
+          {head}
+          {preview}
+        </>
       )}
-    >
-      {children}
-    </button>
+    </div>
   );
 }
 
