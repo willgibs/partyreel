@@ -1,6 +1,6 @@
 ---
 track: rounding
-status: open
+status: handed-off
 cut: "ca952b5"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
@@ -102,15 +102,81 @@ tuner's and the ruling's.
 
 ## Handoff (round 2)
 
-- Head <sha>, pushed; preview partyreel-git-lp-rounding-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta: ...
-- Look at first: ...
+- Head `7cf1927` (this manifest commit follows it), pushed; preview
+  partyreel-git-lp-rounding-partyreel.vercel.app. The board is
+  `/design/c/rounding?key=`; the round-two marker in the rendered HTML is the
+  heading **"The six tokens, at true size"** (and the class `rnd-wide`).
+- Synced with launch-prep at `4b035c1` (merged in, the design-system note about
+  the candidate block).
+- Gates on the synced tree: typecheck ok, lint ok (0 errors, 7 pre-existing
+  warnings in other files), test ok (1698 in 193 files), build ok (248 pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `src/app/(dev)/design/sandbox/rounding/{board.tsx,board.css,candidates.ts,specimens.tsx,compositions.tsx}`
+  plus this file. No exceptions.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Shell changes proposed (the Orchestrator's files, none made):**
+  1. `src/components/dev/board/stage.tsx`: a `fit={false}` escape hatch, or a
+     `TrueSize` sibling. A Stage fits 1440 into the lab's 992px column with
+     `zoom`, which scales paint as well as layout, so a board judging a
+     DIMENSION (a radius, a gap, a shadow offset, a stroke) reads about a third
+     under its own numbers there. This board works around it with `.rnd-wide`
+     in its own sheet, which has to assume the lab's sidebar width (232px) and
+     column (62rem); a shell-owned wide slot would delete both assumptions.
+  2. `src/components/dev/motion-tuner-config.ts`: the three action knobs cap at
+     24px, which cannot express the pill rung. If the pill is ruled, the max
+     moves (or the control gains a "pill" step). Apply writes the pill into the
+     candidate block and clears the knob rather than leaving the panel in a
+     state a drag cannot return to.
+  3. `src/components/shared/glow-contract.test.ts` pins the exact set of
+     BorderBeam call sites. The beam around an action is the third bible-9
+     specimen this board wanted (the beam is the case the system already gets
+     right: no radius prop, it reads the child's computed one), and adding it
+     would need one line in that test. The board draws a plain ring at the same
+     offset instead and says so.
+  4. `src/app/(dev)/design/touchpoints.ts`, the `rounding` entry, is round
+     one's: `board.note` still reads "One kit of every radius-bearing surface
+     in four columns..." and `board.variants` lists "B, soft surfaces" and
+     "C, the 16px column", neither of which exists now. Proposed note: "Six
+     tokens as three decisions: the surface family, the action rung and the
+     derived ladder, each at true size on the shipped components and appliable
+     to the whole site"; proposed variants: `["A, today", "B, square",
+     "C, soft", "D, one family", "Live, the tuner"]`.
+- Assets requested from Will: one.
+  - A worst-case tile set for the gallery gap · four photographs whose edges are
+    near-white and bright (a white tablecloth, an overexposed sky, a white dress
+    against a window), 1200px long edge, JPG, four of them · replaces the
+    `wedding-golden` / `party-dj` / `festival-lights` stills in part B's guest
+    grid, so a corner hole between tiles is judged at maximum contrast rather
+    than against dark stills that hide it.
+- The asks, verbatim from BoardMeta:
+  1. "The surfaces: A, B, C or D (--radius, --radius-float and --radius-tile move together)"
+  2. "The actions: today, pill or quiet"
+  3. "The derived ladder: stock or quarters"
+  4. "The dead rungs (rounded-3xl, rounded-4xl, --radius-action-lg): keep or drop"
+  5. "The gallery gap: pinned to the tile, or free"
+- Look at first: part A, the matrix at true size, which is the whole ruling on
+  one screen. Then press **Apply C** and walk `/`, `/pricing` and `/dashboard`
+  with it on: that is the real answer, and the board is only the shortlist.
+  Part B's guest composition carries the round's worst finding at its foot.
 
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The rounding board was rebuilt
+from the ground up. Round one judged six numbers in four columns inside a
+zoom-fitted stage, where `zoom` scales paint as well as layout and every corner
+rendered about a third sharper than the number printed under it; round two
+splits the tokens into the three decisions they are (the surface family A to D,
+the action rung, the derived ladder) and renders every comparison at 1:1. Part A
+is a four-row matrix of the shipped components, part B four real compositions
+built from `EventCard`, `EventTypeCard` and the primitives' own class strings,
+part C bible 9 drawn right and wrong under each candidate, part D the seven
+derived steps on the components that use them beside a quarter-step retune, and
+part E the action ladder at every height that ships. Each candidate applies to
+the whole site as the paste its ruling would land, verified on `/pricing` (a
+plan card at 21px under D's quarter ladder, 25.2 under stock). Four findings,
+all on the board: the guest gallery's gap is a literal `gap-[3px]` in three
+files while its tiles ride the token, so any tile above 3 opens corner holes on
+the one grid every guest sees; `--radius-action` names a 40px button that ships
+nowhere and `--radius-action-lg` has one call site; every marketing CTA is
+`size="lg"` forced to h-11, at 0.33 x height against a documented 0.4; and
+`rounded-3xl` and `rounded-4xl` have three uses between them.
