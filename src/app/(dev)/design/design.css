@@ -114,6 +114,48 @@
 html[data-lab-fit="true"] [data-lab-wide] {
   max-width: none;
 }
+/* Every in-page anchor lands under the bar. A board's dock adds its own height
+   to this property inline while it is mounted (dock.tsx); without the rule a
+   table-of-contents jump on a LIBRARY page put the heading behind the bar. */
+html:has(.lab-shell) {
+  scroll-padding-top: calc(var(--lab-topbar-h, 48px) + 12px);
+}
+
+/* ─────────────────────────── The shell's disclosure ────────────────────────
+   A sidebar section, or the narrow-window table of contents, opening and
+   closing. `grid-template-rows: 0fr -> 1fr` animates to the content's REAL
+   height with no measurement, no ResizeObserver and no max-height guess (the
+   child must carry `min-height: 0` and `overflow: hidden`, which the markup
+   does). 180ms on the emphasis curve: a disclosure is occasional, so it is
+   allowed to move, and it stays inside the craft standard's 300ms ceiling.
+   `visibility` rides the same transition so a closed section's rows leave the
+   accessibility tree once the collapse has finished, and `inert` in the markup
+   takes them out of the tab order immediately. */
+.lab-disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 180ms var(--ease-emphasis, ease),
+    visibility 0s linear 180ms;
+}
+.lab-disclosure[data-open="true"] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 180ms var(--ease-emphasis, ease),
+    visibility 0s;
+}
+.lab-chevron {
+  transition: transform 180ms var(--ease-emphasis, ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-disclosure,
+  .lab-disclosure[data-open="true"],
+  .lab-chevron {
+    transition: none;
+  }
+}
 
 /* ───────────────────────── The legacy mono dark ground ─────────────────────
    Kept ONLY for the two legacy marketing boards' `.mono` dark containers

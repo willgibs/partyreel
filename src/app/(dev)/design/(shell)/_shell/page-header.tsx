@@ -4,15 +4,22 @@ import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 
 import { breadcrumbs } from "@/app/(dev)/design/_data/catalog";
-import { CopyPage } from "./copy";
+import { CopyLink, CopyPage } from "./copy";
+import { useReportPageFacts } from "./page-facts";
+import { reactText } from "./page-markdown";
 import { LabLink, useNav } from "./shell-context";
 
 /**
  * EVERY PAGE OPENS THE SAME WAY (the Library x Lab round, 2026-09-15): the
  * breadcrumbs (area, section, item, from the nav and the pathname, so a page
  * never writes its own), the title, one paragraph, the status pills, the meta
- * pairs and the actions (Copy page always; a page adds its own). The pages
- * differ below the header, never in it.
+ * pairs and the actions (Copy link and Copy page always; a page adds its own).
+ * The pages differ below the header, never in it.
+ *
+ * It is also where Copy page gets its FACTS: the same props, reported as data
+ * (page-facts.ts), so a pasted page carries its title, its trail and its meta
+ * from the values the page passed rather than from a reading of the pixels.
+ * The header itself is `data-copy-skip`, or the copy would say all of it twice.
  */
 export function PageHeader({
   title,
@@ -34,8 +41,23 @@ export function PageHeader({
   const pathname = usePathname();
   const crumbs = breadcrumbs(nav, pathname);
 
+  useReportPageFacts({
+    title,
+    breadcrumbs: crumbs.map((c) => c.label),
+    description: reactText(description).trim() || undefined,
+    badges: badges
+      ? reactText(badges, " ")
+          .split(/\s{2,}|\n/)
+          .map((b) => b.trim())
+          .filter(Boolean)
+      : undefined,
+    meta: meta?.map(
+      ([k, v]) => [k, reactText(v, " ").trim()] as [string, string],
+    ),
+  });
+
   return (
-    <header className="pt-6">
+    <header className="pt-6" data-copy-skip>
       <div className="flex flex-wrap items-center justify-between gap-2">
         {eyebrow ?? (
           <nav
@@ -48,7 +70,10 @@ export function PageHeader({
                 {i === crumbs.length - 1 ? (
                   <span className="text-foreground/80">{c.label}</span>
                 ) : (
-                  <LabLink href={c.href} className="hover:text-foreground">
+                  <LabLink
+                    href={c.href}
+                    className="transition-colors duration-90 hover:text-foreground"
+                  >
                     {c.label}
                   </LabLink>
                 )}
@@ -58,6 +83,7 @@ export function PageHeader({
         )}
         <div className="flex items-center gap-1.5">
           {actions}
+          <CopyLink className="hidden sm:inline-flex" />
           <CopyPage />
         </div>
       </div>

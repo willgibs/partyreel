@@ -2,34 +2,40 @@
 
 import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
-import { FlaskConical, Menu, PanelLeft, X } from "lucide-react";
+import { FlaskConical, Menu, PanelLeft, Search } from "lucide-react";
 
 import { setLabPref, useLabPrefs } from "@/components/dev/board/lab-prefs";
 import { cn } from "@/lib/utils";
 
 import { AREA_HREF, areaOf } from "@/app/(dev)/design/_data/catalog";
 import { ThemeToggle } from "@/app/(dev)/design/theme-toggle";
-import { LabLink, useDesignKey, useNav } from "./shell-context";
+import { Kbd } from "./kbd";
+import { LabLink, useDesignKey, useNav, usePalette } from "./shell-context";
 
 /**
  * THE TOP BAR (the Library x Lab round, 2026-09-15): the mark, the two areas,
- * the sidebar toggle (the way back on a board page, where the sidebar is
- * tucked away), the theme control (the lab's single one, moved from the old
- * rail's footer) and the key chip. It measures itself into `--lab-topbar-h`
- * on <html>, which the sticky sidebar, the table of contents and a board's
- * dock all sit under.
+ * the search that opens the palette, the theme control (the lab's single one)
+ * and, on a wide page, the sidebar toggle. It measures itself into
+ * `--lab-topbar-h` on <html>, which the sticky sidebar, the table of contents
+ * and a board's dock all sit under.
+ *
+ * SEARCH IS THE BAR'S CENTREPIECE and the sidebar's field is a filter: two
+ * different jobs, named differently on purpose. This one crosses both areas
+ * and every kind of thing the lab holds; the sidebar's narrows the tree you
+ * are already looking at. From `md` it reads as a field with its ⌘K cap, which
+ * is the only way a shortcut gets learned; below that it is the icon, because
+ * a phone has no ⌘.
+ *
+ * Motion: the bar is on screen constantly, so nothing here eases except a
+ * hovered control's colour (90ms). The area switch tints instantly, because a
+ * sliding indicator would still be travelling when the next page paints.
  */
-export function TopBar({
-  menuOpen,
-  onMenu,
-}: {
-  menuOpen: boolean;
-  onMenu: () => void;
-}) {
+export function TopBar({ onMenu }: { onMenu: () => void }) {
   const ref = useRef<HTMLElement | null>(null);
   const nav = useNav();
   const pathname = usePathname();
   const key = useDesignKey();
+  const { setOpen } = usePalette();
   const { sidebar } = useLabPrefs();
   const area = areaOf(pathname);
 
@@ -54,45 +60,72 @@ export function TopBar({
   return (
     <header
       ref={ref}
-      className="lab-topbar sticky top-0 z-40 flex h-12 items-center gap-2 border-b border-border bg-background/90 px-3 backdrop-blur sm:px-4"
+      className="lab-topbar sticky top-0 z-40 flex h-12 items-center gap-1.5 border-b border-border bg-background/85 px-2.5 backdrop-blur-md sm:gap-2 sm:px-4"
     >
       <button
         type="button"
         onClick={onMenu}
-        aria-expanded={menuOpen}
         aria-controls="lab-sidebar"
-        aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-        className="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
+        aria-label="Open navigation"
+        className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-90 hover:bg-muted hover:text-foreground lg:hidden"
       >
-        {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+        <Menu className="size-4" />
       </button>
       <LabLink
         href="/design/library"
-        className="flex items-center gap-2 text-sm font-semibold"
+        className="flex shrink-0 items-center gap-2 rounded-md text-sm font-semibold"
       >
         <FlaskConical className="size-4" />
         <span className="hidden sm:inline">Partyreel Design</span>
+        <span className="sr-only sm:hidden">Partyreel Design</span>
       </LabLink>
-      <nav aria-label="Areas" className="ml-2 flex items-center gap-0.5">
+      <nav
+        aria-label="Areas"
+        className="ml-1 flex shrink-0 items-center gap-0.5 sm:ml-2"
+      >
         {nav.map((a) => (
           <LabLink
             key={a.id}
             href={AREA_HREF[a.id]}
             aria-current={area === a.id ? "page" : undefined}
+            title={a.blurb}
             className={cn(
-              "rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors",
+              "rounded-md px-2.5 py-1 text-[13px] font-medium",
               area === a.id
                 ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:text-foreground",
+                : "text-muted-foreground transition-colors duration-90 hover:text-foreground",
             )}
           >
             {a.label}
           </LabLink>
         ))}
       </nav>
-      <div className="ml-auto flex items-center gap-2">
+
+      <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Search the library and the lab"
+          className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors duration-90 hover:bg-muted hover:text-foreground md:hidden"
+        >
+          <Search className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="hidden h-8 w-48 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-left text-[13px] text-muted-foreground transition-colors duration-90 hover:border-ring/60 hover:text-foreground md:flex lg:w-56"
+        >
+          <Search className="size-3.5 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">Search everything</span>
+          <Kbd className="shrink-0">⌘K</Kbd>
+        </button>
         <span
-          className="hidden rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground sm:inline"
+          className={cn(
+            "hidden rounded-full border px-2 py-0.5 text-[10px] lg:inline",
+            key
+              ? "border-border text-muted-foreground"
+              : "border-border/70 text-muted-foreground/70",
+          )}
           title={
             key
               ? "The preview key rides every link on this page"
@@ -121,7 +154,12 @@ export function TopBar({
               : "Hide the sidebar on wide pages"
           }
           title="The sidebar on a board page"
-          className="hidden size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground lg:flex"
+          className={cn(
+            "hidden size-8 items-center justify-center rounded-md transition-colors duration-90 hover:bg-muted lg:flex",
+            sidebar === "open"
+              ? "text-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          )}
         >
           <PanelLeft className="size-4" />
         </button>
