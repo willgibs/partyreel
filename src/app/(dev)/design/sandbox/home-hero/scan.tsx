@@ -33,7 +33,43 @@ import {
 
 /**
  * THE SCAN (concept 2 of the home-hero board; round three variation 2, on the
- * axis THE CAUSE MADE LITERAL; round two of the variation, 2026-09-14).
+ * axis THE CAUSE MADE LITERAL; round three of the variation, 2026-09-14).
+ *
+ * WHAT ROUND THREE CHANGED, and why. Round three's brief was the last mile:
+ * walk the board cold, the way Will will, and fix every place a stranger
+ * stumbles. Walking it found five.
+ *
+ * A. THE SWITCH BROKE THE HERO. Clicking it scrolled the whole composition
+ *    600 px sideways with the headline cut off, because `overflow: hidden` is
+ *    still a SCROLL container and the corridor makes this one 3780 px wide;
+ *    focusing a button inside it made the browser "reveal" it. `overflow-clip`
+ *    clips the same pixels and creates no scroll container at all. The other
+ *    three concepts on the board carry the same `overflow-hidden` root and the
+ *    river carries a chip of its own, so this is filed for them too.
+ * B. THE BOARD OPENED ON THE READING THIS CONCEPT ARGUES AGAINST. The default
+ *    is now the room, which is the recommendation; the phone is the second
+ *    look. The switch also stopped speaking in the sheet's words ("Brackets
+ *    only") and now names what is doing the scanning: the room, or a phone.
+ * C. THE PAIR UNDER THE CODE WAS WEIGHTED BACKWARDS. The caption names the
+ *    act, which is this variation's entire axis, and it was the faintest type
+ *    in the frame; the count, the only fabricated thing on the concept and the
+ *    line most likely to be cut at wiring, was the loud one. They are swapped,
+ *    so the permanent true line leads and the composition survives the count
+ *    going.
+ * D. THE CAUSE WAS SPOKEN ONCE AND THEN NEVER AGAIN. The capture now repeats
+ *    on the album's own cycle (10800 ms, one full turn of the corridor), so
+ *    the sentence "a scan releases the album" is restated rather than
+ *    asserted: it reads as the next guest scanning. The brackets still lock
+ *    once and stay, because a camera acquires a code once.
+ * E. THE PROPOSED HEADLINE READ LIKE ITS NEIGHBOUR'S. "One code. Every photo."
+ *    sat one word away from the burst's "One code. Every angle.", and three of
+ *    the four concepts on the board opened with "One code". This one is the
+ *    variation that puts the ACT in the frame and draws the code at scanning
+ *    size, so its line no longer has to say "code" at all: "Every camera, one
+ *    album." (the voice guide's two-beat hero shape, `docs/specs/brand-voice.md`).
+ *
+ * Measured and kept as it was: the corridor's physics, the clear lane, the
+ * 375 compositions, the beat's order, and the centred lockup.
  *
  * The argument. The source is right and Will ruled it: the code holds the
  * centre and the album branches out of it, so a stranger thinks "if I scan
@@ -226,8 +262,8 @@ const GEO: Record<Mode, Geo> = {
     travel: 1.65 * CANVAS.desktop.w,
     perspective: 900,
     offset: 196,
-    captionClass: "text-[12px]",
-    countClass: "text-[15px]",
+    captionClass: "text-[15px]",
+    countClass: "text-[13px]",
     sizes: "360px",
     rotate: 9.5,
     yDrift: 44,
@@ -272,8 +308,8 @@ const GEO: Record<Mode, Geo> = {
     travel: 1.65 * CANVAS.phone.w,
     perspective: 360,
     offset: 162,
-    captionClass: "text-[11px]",
-    countClass: "text-[13px]",
+    captionClass: "text-[13px]",
+    countClass: "text-[12px]",
     sizes: "170px",
     rotate: 8.5,
     yDrift: 12,
@@ -528,9 +564,12 @@ function CauseSwitch({
   onChange: (c: Cause) => void;
   small: boolean;
 }) {
+  // The recommended reading first, and named for what is doing the scanning
+  // rather than for the mechanism that draws it ("Brackets only" was the
+  // sheet's word, not a reader's).
   const options: [Cause, string][] = [
-    ["phone", "Phone"],
-    ["brackets", "Brackets only"],
+    ["brackets", "The room"],
+    ["phone", "A phone"],
   ];
   return (
     <div
@@ -556,7 +595,11 @@ function CauseSwitch({
 
 function Scan({ mode, copy, qrUrl }: ConceptProps) {
   const geo = GEO[mode];
-  const [cause, setCause] = useState<Cause>("phone");
+  // Round three: the DEFAULT is the reading this concept recommends, so the
+  // board opens on the candidate it argues for and the switch is the second
+  // look rather than the first (it opened on the phone through round two,
+  // against the concept's own recommendation).
+  const [cause, setCause] = useState<Cause>("brackets");
   const layout = geo.layout[cause];
   const axis = layout.axis;
   const text = copyFor(scan, copy);
@@ -673,18 +716,24 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
           : { bottom: `calc(50% - ${axis + layout.lane.at}px)` }
       }
     >
+      {/* THE ACT, and it is the loud line of the pair. Round two had this the
+          other way round, the label quiet and the count heavy, and walking the
+          board cold showed the cost: the one sentence that carries this
+          variation's whole axis was the faintest type in the frame, and the
+          line shouting under it was the only fabricated thing on the concept.
+          Now the permanent, true line leads and the stand-in supports it, so
+          the composition survives the count being cut at wiring. */}
       <Caption
-        className={`mx-auto text-white/60 ${geo.captionClass}`}
+        className={`mx-auto text-white/85 ${geo.captionClass}`}
         style={{ maxWidth: layout.lane.max }}
       >
         Every guest scans the same code
       </Caption>
-      {/* The consequence, counted, and the heavier of the two: the label is a
-          label, the number is the payoff. One face in the product since the
+      {/* The consequence, counted, and quiet. One face in the product since the
           kill-mono sweep, so a figure that changes takes tabular-nums and
           nothing else: the digits hold their column while the number climbs. */}
       <Caption
-        className={`mx-auto mt-1.5 tabular-nums text-white/85 ${geo.countClass}`}
+        className={`mx-auto mt-1.5 tabular-nums text-white/55 ${geo.countClass}`}
         style={{ maxWidth: layout.lane.max }}
       >
         <span ref={countRef}>{countText(0)}</span>
@@ -726,7 +775,18 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
   return (
     <div
       ref={rootRef}
-      className="relative size-full overflow-hidden bg-background"
+      /* overflow-CLIP, not overflow-hidden, and the difference is a bug round
+         three found by walking the board: an `overflow: hidden` box is still a
+         SCROLL container, and this one's content is 3780 px wide (the corridor
+         throws every frame 1.65 canvases each way). Clicking the switch gave
+         its button focus, Chrome scrolled the container to "reveal" it under
+         the stage's zoom, and the whole composition jumped 600 px sideways with
+         the headline cut off. `overflow: clip` clips the same pixels and
+         creates no scroll container at all, so nothing in the hero can ever be
+         scrolled by a focus, a click or an anchor. Every concept on this board
+         carries the hidden version; only the two with a control in the canvas
+         can be made to show it. */
+      className="relative size-full overflow-clip bg-background"
     >
       {/* THE CORRIDOR, inherited from the source unchanged. Full bleed and
           decorative: the album is the consequence, but it is the type above
@@ -873,23 +933,23 @@ export const scan: Concept = {
   n: 2,
   name: "The scan",
   rationale:
-    "The source's corridor with the cause put in the frame: the brackets close on the code, the capture fires, and only then does the album branch out of the plate. Cause, then effect, in space and in time. The switch at the top right of the stage is lab chrome carrying the one ruling this concept needs. Phone puts a guest's device in the near field with its camera open on the code across the room; Brackets only drops the device and lets the room be the viewfinder, with the lock and the capture landing on the real plate. Everything else is identical between them, so the answer is one word. The recommendation: Brackets only, unless the hand-and-phone cutout gets shot (ASSETS row 8), because a DRAWN device is the compromise and the brackets carry the same sentence with nothing to mistake for an app; with the cutout in hand, Phone becomes the stronger of the two.",
+    "The source's corridor with the cause put in the frame: a scanner's brackets close on the real code, the capture fires, and only then does the album branch out of the plate. Cause, then effect, in space and in time. The stage opens on the reading this concept recommends, the room itself as the viewfinder with no device anywhere in the frame; the switch at the top right is lab chrome and flips to the other one, a guest's phone in the near field with its camera on the same code, and nothing else about the composition changes. A drawn phone is a compromise until the cutout is shot, and the room carries the same sentence with nothing to mistake for an app, so the ruling is one word: the room, or a phone.",
   eyebrow:
     "Settled: no eyebrow line. The code is the eyebrow and the caption under it names the act, because a word above the headline would be a fourth block of type in a composition that already carries a caption, a count, a sentence and two actions.",
   proposed: {
-    h1: "One code. Every photo.",
+    h1: "Every camera, one album.",
     subhead:
-      "Guests point a camera at it. Their photos and videos land in your album, with no app and no account.",
+      "Guests point a camera at the code, and their photos and videos land in your album, with no app and no account.",
     secondary: "See the album it made",
   },
   departures: [
-    "A PHONE IN THE HERO, the one ruling this concept needs and the reason for the switch on the stage: Will named it as the first thing he may overrule, because a phone can read as an app. Three things hold it to the camera rather than to software. The screen carries no chrome but the notch. The device is cropped by two edges of the frame, so it reads as a held object rather than a mockup. The code on its screen is small and bracketed, the way a code across a room looks in a viewfinder. In this reading the screen is also the one emissive object in a hero that is otherwise cinema and unlit: it lights itself and its own bezel, with no lamp, no Glow and no spill onto the room or onto a photograph. Rule Brackets only and both go, leaving one white capture bloom on the plate that is spent in 400 ms.",
-    "Precedent, not law, inherited from the source: the lockup is centred rather than left-aligned, because the code owns the axis. Kept, with the same caveat, and it is the second thing to overrule if the home hero should stay left. On the 375 canvas the phone reading also moves the sentence and the actions ABOVE the band, which is what frees the bottom third for the near field; the brackets reading keeps the classic order.",
-    "The count is a STAND-IN number, not a measurement: 282 photos from 48 guests at paint, climbing one per launch to 312 and holding. It is the strongest supporting element here and it must not ship as invented data: the wiring round reads the demo event's real totals, or the line goes.",
-    "Bible 13, decorative layers only: the corridor's pre-release state and the brackets' thrown-wide state sit inside the reduced-motion block, so with JavaScript off and motion allowed the album rests at the code and the brackets rest open. Putting either in an effect instead would paint the composition settled and then snap it back. The h1, the QR, the caption, the count, the sentence and the actions are plain markup and never gated, and reduced motion gets the whole composition deployed and locked.",
+    "A PHONE IN THE HERO, the one ruling this concept asks for and the reason for the switch on the stage: Will named it as the first thing he may overrule, because a phone can read as an app. Three things hold the drawn one to the camera rather than to software: no chrome on the screen but the notch, the device cropped by two edges so it reads as a held object rather than a mockup, and a small bracketed code on the screen, the size a code across a room really is in a viewfinder. In that reading the screen is also the hero's one emissive object, lighting itself and its own bezel, with no lamp, no Glow and no spill onto the room or onto a photograph. The room reading drops both and leaves one white capture bloom on the plate, spent in 400 ms. The recommendation is the room, until the cutout exists.",
+    "The count under the code is a STAND-IN, not a measurement: 282 photos from 48 guests at paint, climbing one per launch to 312 and holding. Keep it, wired to the demo event's real total, or cut the line. Round three made it the quiet half of the pair so the composition holds either way, and it must not ship as invented data.",
+    "The centred lockup, inherited from the source: precedent and not law, because the code owns the axis. Overrule it and this hero goes left with the source. On the 375 canvas the phone reading also moves the sentence and the actions ABOVE the band, which is what frees the bottom third for the near field; the room reading keeps the classic order.",
+    "Bible 13, decorative layers only: the corridor's pre-release state and the brackets' thrown-wide state live inside the reduced-motion block, because an effect would paint the composition settled and then snap it back. The h1, the code, the caption, the count, the sentence and the actions are plain markup and never gated, and reduced motion gets the whole composition deployed and locked.",
   ],
   assets: [
-    "ONLY IF THE PHONE IS RULED IN: a hand-and-phone cutout to replace the drawn device (.hhc-phone), already on the log as ASSETS row 8. PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live and real; shot from just behind the holder's shoulder, the phone held up and angled away to the right, in low warm event light so the body is nearly a silhouette with one highlight along the edge; two variants, a one-handed grip and a two-handed one. Rule Brackets only and the row can be withdrawn: that reading needs no asset at all.",
+    "ONLY IF A PHONE IS RULED IN: a hand-and-phone cutout to replace the drawn device (.hhc-phone), already on the log as ASSETS row 8. PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live and real; shot from just behind the holder's shoulder, the phone held up and angled away to the right, in low warm event light so the body is nearly a silhouette with one highlight along the edge; two variants, a one-handed grip and a two-handed one. Rule the room and the row can be withdrawn: that reading needs no asset at all.",
     "Not a new ask: the corridor runs on the 12 landscape stand-ins and wants the 24 squares already requested (ASSETS row 2, asked by hero-source), 512 x 512, one grade, framed tight enough to read at 120 px. Nothing here needs the three phone-up photographs from row 3, because the device is drawn rather than photographed.",
   ],
   render: (p) => <Scan {...p} />,

@@ -3,6 +3,12 @@
    is the source's, hh- the board's; keyframe names are document-global and
    keyframe-uniqueness.test.ts reads every sheet under the lab).
 
+   ROUND THREE also changed one thing that is not a look: the concept root is
+   `overflow-clip` rather than `overflow-hidden`. An `overflow: hidden` box is
+   still a scroll container, and this one's content is 3780 px wide, so giving
+   the switch's button focus made the browser scroll the hero 600 px sideways
+   under the stage's zoom. Clip clips the same pixels and can never scroll.
+
    HOUSE CONVENTION, and why the corridor's half of it looks inverted. FINAL
    states live OUTSIDE the media queries so a reduced-motion reader gets the
    settled composition with nothing to undo: the corridor stands fully deployed
@@ -24,7 +30,12 @@
    round one fired the capture 60 ms BEFORE the brackets landed). The camera
    finds the code (the brackets sweep in over 720 ms and snap), the capture
    fires at 730, and the corridor's clock starts at 780, on the capture's peak,
-   which is the concept's RELEASE_MS. Cause, then effect, in that order.
+   which is the concept's RELEASE_MS. Cause, then effect, in that order. Round
+   three made the capture REPEAT on the album's own cycle (10800 ms, CYCLE_MS
+   in scan.tsx), so the hero says its sentence again every twelve launches
+   instead of asserting it once and then pouring forever with no visible
+   cause; the brackets lock once and stay locked, because a camera acquires a
+   code once and then holds it.
 
    The two clocks (this sheet's animations and the concept's
    requestAnimationFrame) both start at mount, so they agree; `data-hh-loop` on
@@ -339,14 +350,27 @@
     animation: hhc-lock 720ms var(--ease-emphasis) both;
   }
 
-  /* The capture, 10 ms after the snap. The corridor's clock starts at 780,
-     which is this animation's peak, so the album leaves ON the flash. */
+  /* The capture, 10 ms after the snap, and then ONCE EVERY CORRIDOR CYCLE.
+     Round three's change, and the reason for it: the concept's sentence is
+     "a scan releases the album", and through round two that sentence was
+     spoken once, at 730 ms, after which the album poured forever with no
+     visible cause. A capture that repeats on the album's own clock says it
+     again, and reads as the next guest scanning rather than as a loop: the
+     period is 10800 ms, which is CYCLE_MS in scan.tsx (12 launches a side),
+     so every recapture lands on a launch pair rather than between them. The
+     pulse occupies the first 3 percent of the period and the element is at
+     zero for the other 97, so nothing here is a loop that glows; the curve
+     lives in the keyframes because a timing function stretched over 10.8 s
+     would flatten the pulse. Pointing at the code restarts it (relock), so a
+     reader who wants the beat again does not wait. Keep the three numbers in
+     step: the brackets snap at 720, this fires at 730, the corridor's clock
+     starts at 780 on the peak. */
   .hhc-flash {
-    animation: hhc-flash 300ms var(--ease-emphasis) 730ms both;
+    animation: hhc-flash 10800ms linear 730ms infinite both;
   }
 
   .hhc-bloom {
-    animation: hhc-bloom 400ms var(--ease-emphasis) 730ms both;
+    animation: hhc-bloom 10800ms linear 730ms infinite both;
   }
 
   .hhc-lab-btn {
@@ -370,13 +394,22 @@
   }
 }
 
+/* The percentages are the old 300 ms and 400 ms shapes re-expressed against
+   the 10800 ms period: 0.44% is 48 ms, 2.8% is 302 ms, 0.52% is 56 ms and
+   3.7% is 400 ms. Everything after that is flat at zero until the next
+   capture. */
 @keyframes hhc-flash {
-  0%,
+  0% {
+    opacity: 0;
+    animation-timing-function: var(--ease-emphasis);
+  }
+  0.44% {
+    opacity: 0.42;
+    animation-timing-function: var(--ease-emphasis);
+  }
+  2.8%,
   100% {
     opacity: 0;
-  }
-  16% {
-    opacity: 0.42;
   }
 }
 
@@ -384,10 +417,13 @@
   0% {
     opacity: 0;
     scale: 0.55;
+    animation-timing-function: var(--ease-emphasis);
   }
-  14% {
+  0.52% {
     opacity: 0.36;
+    animation-timing-function: var(--ease-emphasis);
   }
+  3.7%,
   100% {
     opacity: 0;
     scale: 1.18;
