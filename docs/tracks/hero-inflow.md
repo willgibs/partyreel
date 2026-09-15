@@ -1,7 +1,7 @@
 ---
 track: hero-inflow
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "c473707"       # the origin/launch-prep SHA this branch was cut from
 preview: true           # Will reviews this board on its preview as it builds (once Vercel's window frees)
 owns:
   - src/app/(dev)/design/sandbox/home-hero/inflow.tsx
