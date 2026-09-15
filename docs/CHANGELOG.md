@@ -45,7 +45,13 @@ block replaced by one Binds line; `pnpm lab:smoke` (every route 200, every legac
 key: 235 checks) and four new test files (the nav, the links, the docs, the redirects). Verified on
 the dev server at 1440 (the library index, the light board, the rulings page, the desk); the gate
 green (2004 tests, the build). Five tracks cut on disjoint lanes with their manifests as inits:
-`lab-shell`, `lab-rules`, `lab-kit`, `lab-library`, `lab-desk`.
+`lab-shell`, `lab-rules`, `lab-kit`, `lab-library`, `lab-desk`. The first alias build showed the
+gate leaking: a keyless request answered 200 with the shell's nav in the flight payload (a layout
+cannot read `searchParams`, so the page's `notFound()` came after the layout had streamed). The gate
+moved into `src/proxy.ts` (a real 404 before any lab layout renders; the key forwarded as a request
+header the shell reads; the pages keep their check), the shell dropped its Suspense boundary and its
+client hook, and `pnpm lab:smoke --production` on a local production build proved the closed door
+(242 checks; no key and a wrong key both 404 with no nav string in the body).
 
 ---
 

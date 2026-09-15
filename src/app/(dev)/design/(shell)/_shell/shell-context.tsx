@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { createContext, useContext } from "react";
 
 import { withDesignKey } from "@/lib/design-gate/links";
@@ -11,10 +10,11 @@ import type { Nav } from "@/app/(dev)/design/_data/catalog";
 /**
  * WHAT EVERY PIECE OF CHROME READS (the Library x Lab round, 2026-09-15): the
  * nav (built server-side by _data/nav.ts, handed down as props) and the gate
- * key (from the URL; layouts cannot see searchParams, so the provider reads it
- * with useSearchParams inside the layout's Suspense boundary). `LabLink` is
- * the only way the chrome links anywhere: it keeps the key on every internal
- * href, fragment included.
+ * key (forwarded by the proxy as a request header and read by the layout, so
+ * no client hook and no Suspense boundary is involved: with one around the
+ * page, a keyless request streamed the layout's props under a 200). `LabLink`
+ * is the only way the chrome links anywhere: it keeps the key on every
+ * internal href, fragment included.
  */
 type ShellValue = { nav: Nav; key: string | null };
 
@@ -22,13 +22,16 @@ const Ctx = createContext<ShellValue>({ nav: [], key: null });
 
 export function ShellProvider({
   nav,
+  designKey,
   children,
 }: {
   nav: Nav;
+  designKey: string | null;
   children: React.ReactNode;
 }) {
-  const key = useSearchParams().get("key");
-  return <Ctx.Provider value={{ nav, key }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={{ nav, key: designKey }}>{children}</Ctx.Provider>
+  );
 }
 
 export function useNav(): Nav {

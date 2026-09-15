@@ -56,8 +56,11 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
   `origin/lp/*` only open or handed-off ones (merged worktrees removed, merged remotes deleted);
   gates are green at the `launch-prep` tip and, when the round ended in a walk, its `[preview]`
   push is READY there (the integration preview is built on request since 2026-09-11); Vercel is
-  pruned (`node scripts/prune-vercel-deployments.mjs`); nothing a successor needs lives only in
-  the closing session.
+  pruned (`node scripts/prune-vercel-deployments.mjs`); the `new` and `updated` badges on gallery
+  entries and boards are cleared (they are data, never dates, so a Vercel build prints what the dev
+  server prints); Will's rulings from the window are appended to `docs/design/rulings.md` and his
+  review messages transcribed into `docs/reviews/` (`pnpm lab:review`); nothing a successor needs
+  lives only in the closing session.
 
 ### Init templates (Will copies one as the first prompt of a new session)
 
@@ -231,54 +234,79 @@ same session. The steps, so no milestone is reverse-engineered from git again (2
 
 ## Program principles
 
-- **Rising tides** (Will, 2026-08-27; redefined 2026-09-14 as bible 22): nothing is protected, and
-  every section, component, flow and line is judged from the ground up: what would the perfect
-  version be if it did not exist yet? Build that: elevate what already points there, rework what
-  does not, and raise the global system as you go. No round can know the finished bar in advance,
-  so the program is an iterative flow that keeps raising it; a page with a weak layout is torn down
-  and rebuilt rather than pushed a little further, and big swings that can be reverted beat small
-  cautious steps, but always reworking loses what we like and always polishing makes no progress,
-  so the call is the agent's, each time, and it may push past today's systems, components and rules
-  to set a new peak. The app's UI is inside this (Will, 2026-09-15: "the app is functionally great,
-  but UI design lags far behind... any UI that touches App in an active lab track may be worked on
-  before the dedicated app agents get to it later"): a lab track whose board shows an app surface may
-  redesign it as a candidate; the dedicated app rounds come after marketing. The older half still
-  holds: spread the rise across surfaces; don't gold-plate
-  two pages while others sit at wireframe, and every page still ends at the "would this hold up next
-  to the homepage?" screenshot check.
-- **Prototype-first for creative/UI magic** (the lab gate above) and **focused per-dimension rounds**
-  over mega-plans.
-- **Own fewer services / cost frugality:** no recurring SaaS pre-revenue; prefer free tiers and
-  in-house (the canvas engine replacing Lambda is the archetype).
-- **Model delegation:** the Orchestrator carries judgment/curation; volume work fans out to cheaper
-  subagents.
-- ★ **RULES ARE PROVISIONAL TOO; auditing them is everyone's duty and landing the change is the
-  Orchestrator's** (Will, 2026-09-01; widened to every agent 2026-09-12, when the design law became
-  the 22-rule bible plus the component contracts and everything else became precedent).
-  Will sets the big-picture goals, answers the follow-ups, and rules on UI. **Most of the laws,
-  doctrines and don't-revert notes in this repo were written by AGENTS**, to keep themselves
-  consistent, against a design system that has since moved. So every round, ask of the rules it
-  touches: *"is this a good rule that prevents bad choices, or a bad system that prevents good
-  choices?"* Keep the ones that encode a real scar, reshape the ones whose reason expired, and say
-  which you did and why in the commit. Rising tides is not confined to working inside the current
-  system: if a better system can be reshaped, reshape it. The failure this exists to stop is an
-  agent treating an agent-authored constraint as a ruling and quietly narrowing the work to fit it.
-  Related, and the same instinct one level down: the lab and production are **both** provisional and
-  the arrow points both ways ([design-system.md](systems/design-system.md)).
-- **Unlimited design resources** (Will, 2026-09-14): design as if any image, video, SVG, 3D or
-  generative asset can be made, because he makes them. Ask for exactly what the design needs (a row
-  of themed event-card images, a twenty-second party reel of fast highlight clips, an SVG plate for
-  the QR) in the manifest's Handoff under "Assets requested from Will", ship the manifest's stand-in
-  meanwhile, and swap by id when the asset lands.
-- **Exploration rounds are light and iterative** (Will, 2026-09-14): a lab-only round, one that
-  ships no production byte, verifies that its board renders on its preview at 1440 and 375 with
-  reduced motion honoured and the four-step gate green, and hands off. The deep red-team lands with
-  the wiring round. Iterate rather than perfect: a round that is thorough per pass spends the cycles
-  the iteration needs.
-- **Nothing is protected** (Will, 2026-09-14). The goal for this stretch: every page reaches a
-  cohesive informational flow, and every point of the design system and the marketing and app UI is
-  elevated platform-wide; a few elements are near production grade, the rest lags, and no surface is
-  exempt. Parallel agents run through the Orchestrator, which carries every back-and-forth.
+Each principle is a heading so the Library indexes it (`/design/library/doctrine/program`)
+and a Binds strip can cite it by anchor.
+
+### Rising tides
+
+**Rising tides** (Will, 2026-08-27; redefined 2026-09-14 as bible 22): nothing is protected, and
+every section, component, flow and line is judged from the ground up: what would the perfect version
+be if it did not exist yet? Build that: elevate what already points there, rework what does not, and
+raise the global system as you go. No round can know the finished bar in advance, so the program is
+an iterative flow that keeps raising it; a page with a weak layout is torn down and rebuilt rather
+than pushed a little further, and big swings that can be reverted beat small cautious steps, but
+always reworking loses what we like and always polishing makes no progress, so the call is the
+agent's, each time, and it may push past today's systems, components and rules to set a new peak.
+The app's UI is inside this (Will, 2026-09-15: "the app is functionally great, but UI design lags
+far behind... any UI that touches App in an active lab track may be worked on before the dedicated
+app agents get to it later"): a lab track whose board shows an app surface may redesign it as a
+candidate; the dedicated app rounds come after marketing. The older half still holds: spread the
+rise across surfaces; don't gold-plate two pages while others sit at wireframe, and every page still
+ends at the "would this hold up next to the homepage?" screenshot check.
+
+### Prototype first, focused rounds
+
+**Prototype-first for creative/UI magic** (the lab gate above) and **focused per-dimension rounds**
+over mega-plans.
+
+### Own fewer services, cost frugality
+
+**Own fewer services / cost frugality:** no recurring SaaS pre-revenue; prefer free tiers and
+in-house (the canvas engine replacing Lambda is the archetype).
+
+### Model delegation
+
+**Model delegation:** the Orchestrator carries judgment/curation; volume work fans out to cheaper
+subagents.
+
+### Rules are provisional
+
+★ **RULES ARE PROVISIONAL TOO; auditing them is everyone's duty and landing the change is the
+Orchestrator's** (Will, 2026-09-01; widened to every agent 2026-09-12, when the design law became
+the 22-rule bible plus the component contracts and everything else became precedent). Will sets the
+big-picture goals, answers the follow-ups, and rules on UI. **Most of the laws, doctrines and
+don't-revert notes in this repo were written by AGENTS**, to keep themselves consistent, against a
+design system that has since moved. So every round, ask of the rules it touches: *"is this a good
+rule that prevents bad choices, or a bad system that prevents good choices?"* Keep the ones that
+encode a real scar, reshape the ones whose reason expired, and say which you did and why in the
+commit. Rising tides is not confined to working inside the current system: if a better system can be
+reshaped, reshape it. The failure this exists to stop is an agent treating an agent-authored
+constraint as a ruling and quietly narrowing the work to fit it. Related, and the same instinct one
+level down: the lab and production are **both** provisional and the arrow points both ways
+([design-system.md](systems/design-system.md)).
+
+### Unlimited design resources
+
+**Unlimited design resources** (Will, 2026-09-14): design as if any image, video, SVG, 3D or
+generative asset can be made, because he makes them. Ask for exactly what the design needs (a row of
+themed event-card images, a twenty-second party reel of fast highlight clips, an SVG plate for the
+QR) in the manifest's Handoff under "Assets requested from Will", ship the manifest's stand-in
+meanwhile, and swap by id when the asset lands.
+
+### Exploration rounds are light and iterative
+
+**Exploration rounds are light and iterative** (Will, 2026-09-14): a lab-only round, one that ships
+no production byte, verifies that its board renders on its preview at 1440 and 375 with reduced
+motion honoured and the four-step gate green, and hands off. The deep red-team lands with the wiring
+round. Iterate rather than perfect: a round that is thorough per pass spends the cycles the
+iteration needs.
+
+### Nothing is protected
+
+**Nothing is protected** (Will, 2026-09-14). The goal for this stretch: every page reaches a
+cohesive informational flow, and every point of the design system and the marketing and app UI is
+elevated platform-wide; a few elements are near production grade, the rest lags, and no surface is
+exempt. Parallel agents run through the Orchestrator, which carries every back-and-forth.
 
 ## Settled — do not re-litigate (pointers, not restatements)
 
