@@ -244,6 +244,14 @@ the gate; the preview alias once Vercel's window frees.
   `src/app/(dev)/design/sandbox/river-visual/river.tsx`. **No exceptions**: the owned directory and this
   manifest.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte moved.
+- **One finding OUTSIDE this lane, reported and not touched.** `src/components/marketing/chrome/footer-qr.tsx`
+  carries the same arithmetic slip its copy in `river.tsx` did: its comment says "33 modules gives
+  ~4.1px per module at the default size", but the default size is 128 px over a span of **41** modules,
+  which is **3.12** px a module (4.1 would be 128 / 31, the count without its quiet zone). The render
+  is fine, and 3.12 still clears the 3 px floor the same comment cites, but only just: the production
+  footer draws at exactly 128 (`footer-demo.tsx`, `QR_PX`), so any caller that passes a smaller size is
+  under the floor. It is a comment in production marketing, not the board shell, so it is left for
+  whoever owns that file.
 - **Shell changes asked for: none.** The board composes `Stage` (at 1:1, with its own `height` per
   placement), `Toggle`, `BoardDock` and `BoardMeta` as they ship and needs nothing added to them. Two
   notes for whoever owns the shell next, neither a request:
