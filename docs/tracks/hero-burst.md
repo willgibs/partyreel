@@ -1,7 +1,7 @@
 ---
 track: hero-burst
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "fb395fe"
 merged_round_2: "4caffc3"
 merged_round_1: "2d0631e"
 preview: true           # Will reviews this concept on its preview as it builds
