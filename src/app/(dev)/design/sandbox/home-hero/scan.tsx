@@ -32,111 +32,75 @@ import {
 } from "./shared";
 
 /**
- * THE SCAN (concept 2 of the home-hero board; round three variation 2, on the
- * axis THE CAUSE MADE LITERAL; round three of the variation, 2026-09-14).
+ * THE SCAN (concept 2 of the home-hero board; the axis is THE CAUSE MADE
+ * LITERAL). Round four, 2026-09-15.
  *
- * WHAT ROUND THREE CHANGED, and why. Round three's brief was the last mile:
- * walk the board cold, the way Will will, and fix every place a stranger
- * stumbles. Walking it found five.
+ * WILL RULED THE PHONE IN. "I'm loving 1 and 2. Let's continue iterating on 1
+ * in its current emanating direction and 2 with its phone scan addition."
+ * Three rounds carried the phone as an open question with the room as the safe
+ * answer; that question is closed, so this round stops hedging and spends
+ * itself on the thing that was only ever a proposal: a guest's phone, in the
+ * frame, actually scanning.
  *
- * A. THE SWITCH BROKE THE HERO. Clicking it scrolled the whole composition
- *    600 px sideways with the headline cut off, because `overflow: hidden` is
- *    still a SCROLL container and the corridor makes this one 3780 px wide;
- *    focusing a button inside it made the browser "reveal" it. `overflow-clip`
- *    clips the same pixels and creates no scroll container at all. The other
- *    three concepts on the board carry the same `overflow-hidden` root and the
- *    river carries a chip of its own, so this is filed for them too.
- * B. THE BOARD OPENED ON THE READING THIS CONCEPT ARGUES AGAINST. The default
- *    is now the room, which is the recommendation; the phone is the second
- *    look. The switch also stopped speaking in the sheet's words ("Brackets
- *    only") and now names what is doing the scanning: the room, or a phone.
- * C. THE PAIR UNDER THE CODE WAS WEIGHTED BACKWARDS. The caption names the
- *    act, which is this variation's entire axis, and it was the faintest type
- *    in the frame; the count, the only fabricated thing on the concept and the
- *    line most likely to be cut at wiring, was the loud one. They are swapped,
- *    so the permanent true line leads and the composition survives the count
- *    going.
- * D. THE CAUSE WAS SPOKEN ONCE AND THEN NEVER AGAIN. The capture now repeats
- *    on the album's own cycle (10800 ms, one full turn of the corridor), so
- *    the sentence "a scan releases the album" is restated rather than
- *    asserted: it reads as the next guest scanning. The brackets still lock
- *    once and stay, because a camera acquires a code once.
- * E. THE PROPOSED HEADLINE READ LIKE ITS NEIGHBOUR'S. "One code. Every photo."
- *    sat one word away from the burst's "One code. Every angle.", and three of
- *    the four concepts on the board opened with "One code". This one is the
- *    variation that puts the ACT in the frame and draws the code at scanning
- *    size, so its line no longer has to say "code" at all: "Every camera in
- *    the room, one album." (the voice guide's two-beat hero shape, in
- *    `docs/specs/brand-voice.md`). Measured, and the reason the line is not
- *    shorter still: a headline that fits on ONE line at the xl step is about
- *    1060 px of ink sitting 112 px above the corridor's axis, where the
- *    album's large frames reach it. The keep-out test found three
- *    intersections with the h1's own ink there and none at all once the line
- *    wraps to two, so this composition wants a headline of two lines at 1440.
- *    That is true of any hero inheriting the source's band, its own short
- *    proposal included.
+ * WHAT ROUND FOUR CHANGED, and why.
  *
- * Measured and kept as it was: the corridor's physics, the clear lane, the
- * 375 compositions, the beat's order, and the centred lockup.
+ * A. THE PHONE IS THE COMPOSITION, not an option on top of one. It is the
+ *    default at both canvases, both canvases are laid out around it (the 1440
+ *    corridor lifts 18 px so the near field has a quadrant of its own; the 375
+ *    canvas puts the words at the top, the plate in the middle and the near
+ *    field across the bottom), and the room reading survives only as a
+ *    FOOTNOTE toggle in the corner, because it still teaches one thing: what
+ *    this hero looks like on the day the cutout has not been shot.
  *
- * The argument. The source is right and Will ruled it: the code holds the
- * centre and the album branches out of it, so a stranger thinks "if I scan
- * this, I get all of these". But that stranger still has to INFER the scan,
- * because the only actor in the frame is a QR. This variation puts the act
- * itself in the picture, and the hero becomes one sentence in time: a camera
- * finds the code, the code releases the album, the album never stops.
+ * B. THE SCAN BECAME A GESTURE. Through round three the phone was already up,
+ *    already aimed and already locked at the first frame, which is a diagram
+ *    of a scan rather than a scan. It now RISES into the frame over 620 ms
+ *    from below the edge, rolling the last few degrees into its aim, and only
+ *    then do the brackets begin to close. And it never stops being held: a
+ *    7.3 s drift of about a pixel and a quarter of a degree, on the one period
+ *    in the composition that is not a multiple of the album's, so the hand and
+ *    the album never march together. A phone that is perfectly still is a
+ *    phone on a stand.
  *
- * WHAT ROUND TWO CHANGED, and why.
+ * C. THE CAPTURE NOW LANDS ON THE CODE. This was the real fault, and three
+ *    rounds missed it: in the phone reading the capture fired on the SCREEN
+ *    and nothing whatever happened at the plate, so the one sentence the
+ *    concept exists to say ("the scan releases the album") had no visible
+ *    verb. The bloom left the room reading and became the plate's own answer
+ *    in both: the camera fires, the code answers, the album leaves. Three
+ *    objects, one beat, in causal order.
  *
- * 1. THE CAUSE IS NOW A RULING, not a guess. Will named the phone as the first
- *    thing he might overrule, and the cutout that would make a drawn device
- *    real (ASSETS row 8) has not been shot. So the concept carries BOTH
- *    readings and a switch in the corner of the stage flips between them:
- *      - PHONE: a guest's phone in the near field, cropped by the frame's own
- *        edges, its camera open on the code across the room;
- *      - BRACKETS ONLY: no device at all. The scanner's four corner brackets
- *        close on the REAL plate in the room and the capture blooms there.
- *        The room is the viewfinder, there is nothing to mistake for an app,
- *        and it needs no asset that does not exist.
- *    Everything else about the concept is identical between them, so the
- *    ruling is one word and nothing else moves with it.
+ * D. THE REPEAT READS AS A SCAN AGAIN, not as a light that blinks. Round three
+ *    made the capture repeat once per turn of the album but left the brackets
+ *    locked and motionless through it, so every recapture was a flash with no
+ *    cause. The brackets now tick inward on each one, the way a scanner
+ *    confirms a read, so the whole chain replays: brackets, flash, bloom,
+ *    album. It is four small elements moving about two pixels.
  *
- * 2. THE VIEWFINDER TELLS THE TRUTH. Round one put an 84 px code on the
- *    phone's screen, which made two white squares of nearly equal weight and
- *    sent the eye ping-ponging between them. A code across a room is SMALL in
- *    your viewfinder. It is now 46 px inside a 260 px device with the brackets
- *    tight around it, so the screen reads as a camera looking at something far
- *    away and the room's plate is unambiguously the object. The device itself
- *    is bigger and cropped by two edges (the left and the bottom) rather than
- *    floating whole, because a held phone is a near-field object that runs out
- *    of the frame, not a mockup on a slide.
+ * E. THE DEVICE IS BUILT FOR THE PHOTOGRAPH THAT WILL REPLACE IT. The drawn
+ *    phone used to be one box with the screen inside it, which is the one
+ *    shape a cutout cannot drop into. It is three flat layers now, in paint
+ *    order: the body, the live viewfinder, the bezel's rim and notch. The
+ *    hand-and-phone cutout (ASSETS row 8, now a standing ask) replaces the
+ *    first and the last, and the viewfinder underneath is untouched and still
+ *    live. The swap is one element, not a rebuild.
  *
- * 3. THE PHONE CANVAS IS A COMPOSITION, not a compression. At 375 the device
- *    reading reorders the hero: the words take the top of the screen, the
- *    corridor and the code sit under them, and the bottom third belongs to the
- *    phone, rising into frame almost centred and aiming straight up at the
- *    plate. The two codes then sit on ONE vertical axis about 160 px apart,
- *    which is the fastest read of "the same object at two scales" the concept
- *    has. The brackets reading has no near field to make room for, so it keeps
- *    the classic vertical rhythm. Each canvas gets the composition it wants.
+ * F. THE CAPTION NAMES THE ACT, AND THEN ITS RESULT. "Every guest scans the
+ *    same code" opened on the same word as the proposed headline and described
+ *    a mechanism. "Guests scan once. The album fills itself." names the actor,
+ *    the effort (once) and the payoff the corridor is already drawing. Its
+ *    LENGTH is a measured constraint rather than a taste: at 375 this is the
+ *    one block of type the corridor can reach, and the keep-out sweep buys
+ *    about five pixels of clearance for every thirty pixels of ink it loses
+ *    (the first draft ran 273 px wide and the footnote reading intersected).
  *
- * 4. THE SUPPORTING PAIR READS AS THE ALBUM FILLING. The act is named in a
- *    caption and the album is counted under it; the count now carries the
- *    weight (the consequence is the payoff, the label is only a label) and it
- *    LIFTS by two pixels on every launch, so the number moving is visibly the
- *    same event as a pair of frames leaving the code. It starts at its opening
- *    value in the server's own HTML, so nothing rewinds on the first beat.
- *
- * 5. THE BEAT IS IN THE RIGHT ORDER. Round one fired the flash 60 ms BEFORE
- *    the brackets landed. The sequence is now strictly causal: the brackets
- *    sweep and snap at 720 ms, the capture fires at 730, and the corridor's own
- *    clock starts at 780, on the flash's peak. Before that the room is
- *    genuinely empty: every frame is inside the code at scale 0.
- *
- * 6. POINT AT THE CODE AND THE CAMERA RE-ACQUIRES IT. Hovering or focusing the
- *    plate replays the lock, and only the lock: the album keeps running. In
- *    the phone reading that is the one interaction that proves the screen and
- *    the plate are the same object, because they answer each other.
+ * The argument, unchanged since round one. The source is right and Will ruled
+ * it: the code holds the centre and the album branches out of it, so a
+ * stranger thinks "if I scan this, I get all of these". But that stranger
+ * still has to INFER the scan, because the only actor in the frame is a QR.
+ * This variation puts the act itself in the picture, and the hero becomes one
+ * sentence in time: a camera finds the code, the code releases the album, the
+ * album never stops.
  *
  * What is inherited from the source, deliberately and without change: the
  * corridor's physics (24 cards, two pools by index parity, one launch a side
@@ -165,11 +129,35 @@ const REVEAL_MS = 1750;
  *  match: 24 composited layers stay at ~292px instead of ~820px. */
 const SCALE_GAIN = 2.81;
 
-/** THE CAUSE, in time. The album's clock starts on the capture, not at mount,
- *  so the album is released BY the scan rather than beside it. Kept in step
- *  with scan.css: the brackets sweep over 720 ms and the flash fires at 730,
- *  so the release lands on the flash's peak. Change the three together. */
-const RELEASE_MS = 780;
+/** Which reading of the cause is on the stage. Will ruled the phone in, so the
+ *  room is a footnote rather than a candidate; it is kept because it is the
+ *  only reading that needs no photograph, which is worth being able to see on
+ *  the day the cutout has not been shot. */
+type Cause = "phone" | "room";
+
+/**
+ * THE BEAT, per reading, in milliseconds from the stage's first frame. It is
+ * held here rather than in the sheet because the corridor's clock is JS while
+ * the lock, the flash and the bloom are CSS, and the two have to agree to the
+ * frame: the sheet reads `lock` and `cap` off custom properties this file
+ * writes onto the concept's root, so there is ONE set of numbers.
+ *
+ * The phone reading spends its first 300 ms on the gesture (the device rising
+ * into frame over RISE_MS), and only then does the camera begin to acquire:
+ * the sweep runs 300 to 1020, the capture fires at 1020, the plate answers,
+ * and the album is released 40 ms later on the capture's own peak. The room
+ * reading has no hand to raise, so it keeps round three's numbers exactly,
+ * which is also what makes the footnote a fair comparison.
+ */
+const LOCK_MS = 720;
+const RISE_MS = 620;
+const BEAT: Record<Cause, { lock: number; cap: number }> = {
+  phone: { lock: 300, cap: 300 + LOCK_MS },
+  room: { lock: 0, cap: LOCK_MS },
+};
+/** The capture's own peak is 48 ms into its pulse (scan.css); the album leaves
+ *  the plate there, so cause and effect share a frame rather than a cut. */
+const releaseFor = (cause: Cause) => BEAT[cause].cap + 40;
 
 /* The live album's count. A stand-in number, flagged on the board: the wiring
    round reads the demo event's real totals or the line goes. It starts at its
@@ -185,25 +173,21 @@ function countText(launches: number) {
   return `${n} photos from ${GUESTS} guests`;
 }
 
-/** Which reading of the cause is on the stage. The board's shell is shared and
- *  registered, so a concept with a ruling to offer carries the switch itself;
- *  it is lab chrome, not composition, and it leaves with the board. */
-type Cause = "phone" | "brackets";
-
 /** The chosen reading, held OUTSIDE the component on purpose. The board keys
  *  the stage on the canvas, the copy and the run, so Replay and every canvas
  *  change remount this concept from scratch: component state would silently
- *  drop the reading and put the room back, and a reviewer who flipped to the
- *  phone and then looked at 375 would be shown the composition he did not ask
- *  for. Module scope survives the remount and is safe here because the board
- *  renders one canvas at a time. It leaves with the switch. The initial value
- *  is the reading this concept recommends. (The river reached the same answer
- *  for its own chip; a `controls` slot on Concept would retire both.) */
-let causeChoice: Cause = "brackets";
+ *  drop the reading and put the phone back, and a reviewer who flipped to the
+ *  footnote and then looked at 375 would be shown the composition he did not
+ *  ask for. Module scope survives the remount and is safe here because the
+ *  board renders one canvas at a time. It leaves with the toggle. (The river
+ *  reached the same answer for its own chip; a `controls` slot on Concept
+ *  would retire both.) */
+let causeChoice: Cause = "phone";
 
-/** The phone in the near field: its box, its angle, and the viewfinder inside
- *  it. x and y are the CENTRE of the device, offset from the canvas centre, so
- *  the crop against a frame edge is a number rather than a guess. */
+/** The phone in the near field: its box, its angle, the viewfinder inside it,
+ *  and the gesture that brings it into frame. x and y are the CENTRE of the
+ *  device, offset from the canvas centre, so the crop against a frame edge is
+ *  a number rather than a guess. */
 type Device = {
   w: number;
   x: number;
@@ -219,6 +203,11 @@ type Device = {
    *  the frame, so biasing it up is what lets the phone be cropped hard by the
    *  bottom edge and still show what it has found. */
   qrY: number;
+  /** THE GESTURE: how far below its held position the device starts, and how
+   *  many extra degrees of roll it carries there. A hand comes up and turns
+   *  into its aim in one movement. */
+  lift: number;
+  liftRz: number;
 };
 
 /** A scanner's four corner brackets: the arm, the gap from the code, the
@@ -255,7 +244,7 @@ type Geo = {
   offset: number;
   captionClass: string;
   countClass: string;
-  /** Canvas-relative, never a vw value: the stage is zoomed. */
+  /** Canvas-relative, never a vw value: the stage is zoomed under Fit. */
   sizes: string;
   /** The corridor's half-angle in degrees, before the per-card jitter. */
   rotate: number;
@@ -291,33 +280,38 @@ const GEO: Record<Mode, Geo> = {
     h1Max: 1100,
     fade: "12%",
     device: {
-      // Bigger and cropped by TWO edges since round one (the left and the
-      // bottom), because a phone in your own hands is a near-field object that
-      // runs out of the frame, not a device floating whole on a slide.
-      w: 260,
-      x: -614,
-      y: 318,
-      rz: 12,
+      // ROUND FOUR: bigger, and still cropped by two edges (the left and the
+      // bottom). A phone entering at the lower left is ANOTHER guest's hand,
+      // which is the right person at 1440: the reader here is the host, and
+      // what a host should be shown is a room where this is already happening.
+      // The 375 canvas is deliberately the opposite; see below.
+      w: 296,
+      x: -600,
+      y: 352,
+      rz: 11,
       ry: -14,
-      qr: 46,
+      qr: 50,
       qrY: 0.3,
+      lift: 250,
+      liftRz: 7,
     },
-    viewLock: { arm: 13, pad: 5, stroke: 1.6, throw: 15 },
+    viewLock: { arm: 14, pad: 5, stroke: 1.7, throw: 16 },
     roomLock: { arm: 34, pad: 14, stroke: 2.5, throw: 34 },
     bloom: 2.3,
     layout: {
-      // The centred lockup leaves both lower quadrants empty on a 1440 canvas,
-      // so the device needs no layout of its own: it lives in the one the
-      // corridor already vacated.
+      // The corridor lifts 18 px in the ruled reading so the near field owns a
+      // quadrant rather than borrowing one. Eighteen pixels is nothing to look
+      // at and everything to compose with: it is the difference between the
+      // device crowding the actions and clearing them.
       phone: {
-        axis: 0,
-        lane: { at: 118, anchor: "top", max: 300 },
+        axis: -18,
+        lane: { at: 118, anchor: "top", max: 340 },
         stacked: false,
         topInset: 0,
       },
-      brackets: {
+      room: {
         axis: 0,
-        lane: { at: 118, anchor: "top", max: 300 },
+        lane: { at: 118, anchor: "top", max: 340 },
         stacked: false,
         topInset: 0,
       },
@@ -337,48 +331,59 @@ const GEO: Record<Mode, Geo> = {
     h1Max: 343,
     fade: "16%",
     device: {
-      // THE PHONE CANVAS'S OWN COMPOSITION. Round one hid a 112 px device in
-      // the bottom-left corner, where it read as a toy and sat BELOW the
-      // actions. Here the device owns the bottom third, rises into frame
-      // almost centred and aims straight up: the screen's code and the room's
-      // code end up on one vertical axis about 160 px apart, which is the
-      // fastest possible read of "the same object at two scales".
-      w: 232,
-      x: 6,
-      y: 456,
-      rz: 7,
+      // THE PHONE CANVAS'S OWN COMPOSITION, and it is first person where the
+      // 1440 one is third. A reader at 375 is holding the object being drawn,
+      // so the device rises almost centred out of the bottom edge and aims
+      // straight up the middle: it reads as HIS phone, and the screen's code
+      // and the room's code then stand on one vertical axis about 155 px
+      // apart, which is the fastest read of "the same object at two scales"
+      // the concept has.
+      w: 252,
+      x: 4,
+      y: 450,
+      rz: 6,
       ry: -8,
-      qr: 40,
-      qrY: 0.14,
+      qr: 44,
+      qrY: 0.13,
+      lift: 190,
+      liftRz: 6,
     },
-    viewLock: { arm: 11, pad: 4, stroke: 1.4, throw: 13 },
+    viewLock: { arm: 12, pad: 4, stroke: 1.5, throw: 14 },
     roomLock: { arm: 24, pad: 10, stroke: 2, throw: 24 },
     bloom: 2.3,
     layout: {
       phone: {
-        // The words move to the top of the screen so the bottom third can be
-        // the near field, and the supporting pair moves ABOVE the plate, which
-        // is the only clear lane left once the device is in the frame.
-        axis: 118,
-        lane: { at: -92, anchor: "bottom", max: 220 },
+        // The words take the top of the screen in one block, which is what
+        // frees the bottom third for the near field, and the supporting pair
+        // moves ABOVE the plate, the only clear lane left once the device is in
+        // the frame. Round four raised the axis to 96 and the block to 22: the
+        // device grew, and every pixel it grew by had to come from somewhere
+        // that was not the type.
+        //
+        // 22 was ten pixels too few, and the review caught it: the block's TOP
+        // is the only thing the lab's footnote pill has to sit above, and at 22
+        // the pill's box (y=6..26) cut 3.8 px off the first line's ascenders.
+        // 32 puts the ink at y=38.1 and clears the pill by 12. The ten pixels
+        // are paid back INSIDE the block (mt-3 under the headline, mt-4 under
+        // the sentence, both stacked-only) so nothing below the type moves: the
+        // actions still end 15 px above the caption lane, which is anchored to
+        // the plate and was never the thing in the way.
+        axis: 96,
+        lane: { at: -92, anchor: "bottom", max: 320 },
         stacked: true,
-        topInset: 34,
+        topInset: 32,
       },
-      brackets: {
+      room: {
         // No near field to make room for, so the classic vertical rhythm:
         // headline, the band with the code, the pair, the sentence, the
-        // actions. Round three retuned three numbers here, because walking
-        // the 375 canvas found the pair crushed: at a 200 measure the caption
-        // wrapped and left "code" alone on a second line, and the pair then
-        // reached far enough down that its box touched the subhead's, so the
-        // two lines read as attached to the sentence rather than to the code
-        // they describe. The measure is now 220 (the caption's ink is 207 at
-        // 13 px, so one line with slack for a metric shift), the lane sits at
-        // 96 and the sentence at 168: 34 px under the brackets, 28 px clear
-        // of the sentence, and 11 px of measured clearance from the nearest
-        // frame the corridor throws.
+        // actions. Round four moved the lane from 96 to 108 and narrowed the
+        // measure to 300: the new caption is 273 px of ink at 13 px rather
+        // than 207, which is wide enough at 375 to reach the corridor, and
+        // the sweep caught it (two intersections, 1 px of clearance). Twelve
+        // pixels further from the axis clears it by 20 and still leaves 20 px
+        // above the sentence at 168.
         axis: -6,
-        lane: { at: 96, anchor: "top", max: 220 },
+        lane: { at: 108, anchor: "top", max: 300 },
         stacked: false,
         topInset: 0,
       },
@@ -488,9 +493,9 @@ function transformFor(c: Card, p: number, geo: Geo) {
 const opacityAt = (p: number) => (p > 1 ? 0 : smoothstep(0, 0.24, p));
 
 /** The four corner brackets a scanner draws around a code it has found. One
- *  component for both readings: on the phone's screen they are 13 px arms
- *  around a 46 px code, in the room they are 34 px arms around the real plate.
- *  data-hh-loop is board.css's pause hook; these are one-shots that want it
+ *  component for both readings: on the phone's screen they are 14 px arms
+ *  around a 50 px code, in the room they are 34 px arms around the real plate.
+ *  data-hh-loop is board.css's pause hook; the lock is a one-shot that wants it
  *  anyway, because the concept holds its own clock on the same attribute and
  *  the beat and the corridor have to stay in step across a tab switch. */
 function Brackets() {
@@ -536,10 +541,28 @@ function Viewfinder({
   );
 }
 
-/** A guest's phone in the near field, camera open on the code across the room,
- *  cropped by the frame's own edges the way your own hands are cropped by your
- *  own field of view. Decorative in full: what it is looking at is the real
- *  plate, a few hundred pixels away. */
+/**
+ * A guest's phone in the near field, camera open on the code across the room,
+ * cropped by the frame's own edges the way your own hands are cropped by your
+ * own field of view. Decorative in full: what it is looking at is the real
+ * plate, a few hundred pixels away.
+ *
+ * THREE FLAT LAYERS, in paint order, and the split is the point (round four).
+ * The hand-and-phone cutout on ASSETS row 8 is a PNG with the screen area
+ * transparent, so the only structure it can drop into is one where the screen
+ * is a sibling UNDER the body rather than a child inside it:
+ *
+ *   .hhc-back    the body. The cutout replaces this.
+ *   .hhc-screen  the live viewfinder. Untouched by the swap, and it stays
+ *                live: the code on it is the real demo code, rendered.
+ *   .hhc-bezel   the rim, with .hhc-pill the notch. The cutout carries its
+ *                own, so both are deleted with the swap.
+ *
+ * Until then the drawn device is the stand-in, and it is drawn to be honest
+ * about what it is: no chrome on the screen but the notch, because the product
+ * needs no app, and a bezel radius that is a real phone's corner rather than a
+ * UI token, because a phone corner is not a surface.
+ */
 function HeldPhone({
   url,
   d,
@@ -562,73 +585,72 @@ function HeldPhone({
           "--hhc-w": `${d.w}px`,
           "--hhc-rz": `${d.rz}deg`,
           "--hhc-ry": `${d.ry}deg`,
+          "--hhc-lift": `${d.lift}px`,
+          "--hhc-lift-rz": `${d.liftRz}deg`,
+          "--hhc-rise-ms": `${RISE_MS}ms`,
         } as CSSProperties
       }
     >
-      <div className="hhc-phone w-full" style={{ aspectRatio: "0.472" }}>
+      {/* THE GESTURE: the hand coming up into frame. The perspective lives on
+          this element rather than on the device, so the phone stays the direct
+          child of a perspective parent and keeps its 3D through the wrapper. */}
+      <div data-hh-loop className="hhc-rise">
         <div
-          className="hhc-screen"
-          style={{ "--hhc-vy": `${d.qrY * 100}%` } as CSSProperties}
+          data-hh-loop
+          className="hhc-phone w-full"
+          style={{ aspectRatio: "0.472" }}
         >
-          <div className="hhc-viewpos" style={{ top: `${d.qrY * 100}%` }}>
-            <Viewfinder url={url} d={d} lock={lock} />
+          <div className="hhc-back" />
+          <div
+            className="hhc-screen"
+            style={{ "--hhc-vy": `${d.qrY * 100}%` } as CSSProperties}
+          >
+            <div className="hhc-viewpos" style={{ top: `${d.qrY * 100}%` }}>
+              <Viewfinder url={url} d={d} lock={lock} />
+            </div>
+            <div data-hh-loop className="hhc-flash" />
           </div>
+          <div className="hhc-bezel" />
           <div className="hhc-pill" />
-          <div data-hh-loop className="hhc-flash" />
         </div>
       </div>
     </div>
   );
 }
 
-/** The lab's own switch, in the corner of the canvas. The board's shell is
- *  shared and registered, so the concept that has a ruling to offer carries
- *  the control; it is deliberately chrome rather than composition, and it
- *  leaves with the board when the ruling lands. */
-function CauseSwitch({
-  value,
+/** The lab's footnote, in the corner of the canvas. It is not a candidate
+ *  switch any more: Will ruled the phone in, so this shows the one thing the
+ *  ruled-out reading still teaches, which is what the hero looks like before
+ *  the cutout exists. Chrome, never composition, and it leaves with the board.
+ *  (The board's shell is shared and registered, so a concept with a control of
+ *  its own has nowhere but the canvas to put it; the Handoff asks again for a
+ *  `controls` slot on Concept.) */
+function RoomToggle({
+  on,
   onChange,
   small,
 }: {
-  value: Cause;
-  onChange: (c: Cause) => void;
+  on: boolean;
+  onChange: (on: boolean) => void;
   small: boolean;
 }) {
-  // The recommended reading first, and named for what is doing the scanning
-  // rather than for the mechanism that draws it ("Brackets only" was the
-  // sheet's word, not a reader's).
-  const options: [Cause, string][] = [
-    ["brackets", "The room"],
-    ["phone", "A phone"],
-  ];
   return (
-    <div
-      className={`hhc-lab ${small ? "hhc-lab-sm" : ""}`}
-      role="group"
-      aria-label="The cause, on the stage"
-    >
-      <span className="hhc-lab-label">Cause</span>
-      {options.map(([id, label]) => (
-        <button
-          key={id}
-          type="button"
-          aria-pressed={value === id}
-          onClick={() => onChange(id)}
-          className="hhc-lab-btn"
-        >
-          {label}
-        </button>
-      ))}
+    <div className={`hhc-lab ${small ? "hhc-lab-sm" : ""}`}>
+      <span className="hhc-lab-label">Footnote</span>
+      <button
+        type="button"
+        aria-pressed={on}
+        onClick={() => onChange(!on)}
+        className="hhc-lab-btn"
+      >
+        Without the phone
+      </button>
     </div>
   );
 }
 
 function Scan({ mode, copy, qrUrl }: ConceptProps) {
   const geo = GEO[mode];
-  // Round three: the DEFAULT is the reading this concept recommends, so the
-  // board opens on the candidate it argues for and the switch is the second
-  // look rather than the first (it opened on the phone through round two,
-  // against the concept's own recommendation).
   const [cause, setCauseState] = useState<Cause>(causeChoice);
   const setCause = useCallback((c: Cause) => {
     causeChoice = c;
@@ -636,6 +658,8 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
   }, []);
   const layout = geo.layout[cause];
   const axis = layout.axis;
+  const beat = BEAT[cause];
+  const release = releaseFor(cause);
   const text = copyFor(scan, copy);
   const reduced = usePrefersReducedMotion();
 
@@ -684,8 +708,9 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
 
       // THE CAUSE. Nothing moves in the corridor until the capture: at elapsed
       // 0 every card is at progress 0, which is scale 0 and opacity 0, so the
-      // room is genuinely empty while the brackets are closing on the code.
-      const elapsed = since > RELEASE_MS ? since - RELEASE_MS : 0;
+      // room is genuinely empty while the phone is coming up and the brackets
+      // are closing on the code.
+      const elapsed = since > release ? since - release : 0;
 
       // The live album. One tick per launch, both arms, so the number rising is
       // the same event as a pair of frames being born, and it LIFTS as it
@@ -737,9 +762,9 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-    // `cause` is a dependency on purpose: switching the reading replays the
+    // `cause` is a dependency on purpose: flipping the footnote replays the
     // whole beat, so the two are compared from the same first frame.
-  }, [geo, reduced, cause]);
+  }, [geo, reduced, cause, release]);
 
   const lane = (
     <div
@@ -750,18 +775,16 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
           : { bottom: `calc(50% - ${axis + layout.lane.at}px)` }
       }
     >
-      {/* THE ACT, and it is the loud line of the pair. Round two had this the
-          other way round, the label quiet and the count heavy, and walking the
-          board cold showed the cost: the one sentence that carries this
-          variation's whole axis was the faintest type in the frame, and the
-          line shouting under it was the only fabricated thing on the concept.
-          Now the permanent, true line leads and the stand-in supports it, so
-          the composition survives the count being cut at wiring. */}
+      {/* THE ACT, and it is the loud line of the pair: the permanent, true line
+          leads and the stand-in count supports it, so the composition survives
+          the count being cut at wiring. Round four rewrote it to name the
+          result and not only the mechanism, and kept it short because at 375
+          this is the one line of type the corridor can reach. */}
       <Caption
         className={`mx-auto text-white/85 ${geo.captionClass}`}
         style={{ maxWidth: layout.lane.max }}
       >
-        Every guest scans the same code
+        Guests scan once. The album fills itself.
       </Caption>
       {/* The consequence, counted, and quiet. One face in the product since the
           kill-mono sweep, so a figure that changes takes tabular-nums and
@@ -790,7 +813,7 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
         {text.subhead}
       </p>
       <div
-        className={`flex flex-wrap items-center justify-center gap-3 ${layout.stacked ? "mt-5" : "mt-7"}`}
+        className={`flex flex-wrap items-center justify-center gap-3 ${layout.stacked ? "mt-4" : "mt-7"}`}
       >
         <Button asChild size="lg" className="h-11 px-6 text-base">
           <Link href={text.primary.href}>{text.primary.label}</Link>
@@ -812,15 +835,25 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
       /* overflow-CLIP, not overflow-hidden, and the difference is a bug round
          three found by walking the board: an `overflow: hidden` box is still a
          SCROLL container, and this one's content is 3780 px wide (the corridor
-         throws every frame 1.65 canvases each way). Clicking the switch gave
-         its button focus, Chrome scrolled the container to "reveal" it under
-         the stage's zoom, and the whole composition jumped 600 px sideways with
-         the headline cut off. `overflow: clip` clips the same pixels and
-         creates no scroll container at all, so nothing in the hero can ever be
-         scrolled by a focus, a click or an anchor. Every concept on this board
-         carries the hidden version; only the two with a control in the canvas
-         can be made to show it. */
+         throws every frame 1.65 canvases each way). Clicking the toggle gave
+         its button focus, Chrome scrolled the container to "reveal" it, and the
+         whole composition jumped 600 px sideways with the headline cut off.
+         `overflow: clip` clips the same pixels and creates no scroll container
+         at all, so nothing in the hero can ever be scrolled by a focus, a click
+         or an anchor. The other concepts on this board still carry the hidden
+         version; only one with a control inside the canvas can be made to show
+         it, which is why it is filed in the Handoff rather than fixed here. */
       className="relative size-full overflow-clip bg-background"
+      style={
+        {
+          // THE ONE SET OF BEAT NUMBERS. The sheet reads these and the rAF loop
+          // reads BEAT, so the beat changes in one place and both follow.
+          "--hhc-lock-delay": `${beat.lock}ms`,
+          "--hhc-cap-delay": `${beat.cap}ms`,
+          "--hhc-period": `${CYCLE_MS}ms`,
+          "--hhc-lock-ms": `${LOCK_MS}ms`,
+        } as CSSProperties
+      }
     >
       {/* THE CORRIDOR, inherited from the source unchanged. Full bleed and
           decorative: the album is the consequence, but it is the type above
@@ -874,9 +907,8 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
         </div>
       </div>
 
-      {/* THE CAUSE, reading one: a guest's phone in the near field, its camera
-          open on the code across the room. The screen carries no chrome but
-          the notch, because the product needs no app. */}
+      {/* THE CAUSE: a guest's phone in the near field, its camera open on the
+          code across the room. The ruled reading, and the default. */}
       {cause === "phone" && (
         <HeldPhone url={qrUrl} d={geo.device} lock={geo.viewLock} />
       )}
@@ -886,33 +918,36 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
           point, and a QR that breathes is a QR nobody can scan. Real, live and
           tappable; its own accessible name covers it. Pointing at it replays
           the lock, which is the one interaction that proves the screen and the
-          plate are the same object. */}
+          plate are the same object.
+
+          THE PLATE ANSWERS THE CAMERA, in both readings, and round four is
+          where that started being true: the bloom used to belong to the room
+          reading alone, so in the ruled reading the capture fired on the screen
+          and the code itself did nothing at all. Now the camera fires, the code
+          answers, and the album leaves it 40 ms later. The brackets stay the
+          room reading's alone, because in the ruled one the viewfinder is where
+          a scanner draws them. */}
       <div
         className="absolute left-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
         style={{ top: `calc(50% + ${axis}px)` }}
         onPointerEnter={relock}
         onFocus={relock}
       >
-        {cause === "brackets" ? (
-          // THE CAUSE, reading two: no device at all. The brackets close on the
-          // real plate and the capture blooms there, so the ROOM is the
-          // viewfinder. Nothing in the frame can be mistaken for an app, and
-          // nothing here waits on an asset that does not exist yet.
-          <div className="hhc-roomlock" style={lockVars(geo.roomLock)}>
-            <span
-              aria-hidden
-              data-hh-loop
-              className="hhc-bloom"
-              style={
-                { "--hhc-bloom": `${geo.qr * geo.bloom}px` } as CSSProperties
-              }
-            />
-            <DemoQr url={qrUrl} size={geo.qr} />
-            <Brackets />
-          </div>
-        ) : (
+        <div
+          className="hhc-roomlock"
+          style={cause === "room" ? lockVars(geo.roomLock) : undefined}
+        >
+          <span
+            aria-hidden
+            data-hh-loop
+            className="hhc-bloom"
+            style={
+              { "--hhc-bloom": `${geo.qr * geo.bloom}px` } as CSSProperties
+            }
+          />
           <DemoQr url={qrUrl} size={geo.qr} />
-        )}
+          {cause === "room" && <Brackets />}
+        </div>
       </div>
 
       {/* THE ACT, named, and its consequence, counted. Both live in a lane the
@@ -931,7 +966,10 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
           style={{ top: layout.topInset }}
         >
           {headline}
-          <div className="mt-4">{sentence}</div>
+          {/* mt-3, not mt-4: the ten pixels the top inset took back for the
+              footnote pill are returned here and at the actions, so the block
+              ends where it did and the lane below it is untouched. */}
+          <div className="mt-3">{sentence}</div>
         </div>
       ) : (
         <>
@@ -957,7 +995,11 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
         </>
       )}
 
-      <CauseSwitch value={cause} onChange={setCause} small={mode === "phone"} />
+      <RoomToggle
+        on={cause === "room"}
+        onChange={(on) => setCause(on ? "room" : "phone")}
+        small={mode === "phone"}
+      />
     </div>
   );
 }
@@ -967,24 +1009,25 @@ export const scan: Concept = {
   n: 2,
   name: "The scan",
   rationale:
-    "The source's corridor with the cause put in the frame: a scanner's brackets close on the real code, the capture fires, and only then does the album branch out of the plate. The capture then repeats once per turn of the album, so the cause is restated rather than asserted once and the hero reads as the next guest scanning. The stage opens on the reading this concept recommends, the room itself as the viewfinder with no device anywhere in the frame; the switch at the top right is lab chrome and flips to the other one, a guest's phone in the near field with its camera on the same code, and it changes nothing else. The ruling is one word: the room, or a phone.",
+    "The source's corridor with the cause put in the frame, and since Will ruled the phone in it is the phone that does it: a guest's hand rises into the near field, the camera finds the code across the room, the capture fires on the screen, the code blooms in answer, and only then does the album branch out of the plate. Three objects, one beat, in causal order. The camera re-acquires once per turn of the album, so the sentence is restated rather than asserted once, and the hero reads as the next guest scanning. The two canvases are two compositions rather than one compressed: at 1440 the hand enters from the left, another guest at work in a room the host is being shown; at 375, where the reader is holding the object being drawn, it rises almost centred out of the bottom edge and the two codes stand on one vertical axis. The toggle in the corner is a footnote and not a candidate: it shows what this hero looks like before the cutout on ASSETS row 8 is shot.",
   eyebrow:
     "Settled: no eyebrow line. The code is the eyebrow and the caption under it names the act; a word above the headline would be a fifth block of type in a composition that already carries a headline, a caption, a count, a sentence and two actions.",
   proposed: {
     h1: "Every camera in the room, one album.",
     subhead:
       "Guests point a camera at the code, and their photos and videos land in your album, with no app and no account.",
-    secondary: "See the album it made",
+    secondary: "See what it made",
   },
   departures: [
-    "THE ROOM, OR A PHONE. Will named a phone in the hero as the first thing he may overrule, because a phone can read as an app. The recommendation is the room, until the cutout on ASSETS row 8 is shot. Either reading also puts light in a hero that is cinema and unlit by the standing ruling, and it is the only light in the frame: in the phone reading the screen, lighting itself and its own bezel and nothing else; in the room reading one white capture bloom behind the plate, spent in 400 ms and repeated once per turn of the album. Both brighten, neither darkens: there is no scrim anywhere on this concept and every photograph is at 100 percent.",
-    "KEEP THE COUNT, OR CUT IT. 282 photos from 48 guests, climbing to 312, is a STAND-IN and must not ship as invented data: the wiring round reads the demo event's real total, or the line goes. Round three made it the quiet half of the pair, so the composition holds either way.",
+    "KEEP THE COUNT, OR CUT IT. 282 photos from 48 guests, climbing to 312, is a STAND-IN and must not ship as invented data: the wiring round reads the demo event's real total, or the line goes. It is the quiet half of the pair, so the composition holds either way. This is the one ruling left on the concept.",
     "THE CENTRED LOCKUP, inherited from the source: precedent and not law, because the code owns the axis. Overrule it and this hero goes left with the source.",
-    "Bible 13, decorative layers only: the corridor's pre-release state and the brackets' thrown-wide state live inside the reduced-motion block, so nothing paints settled and then snaps back. Every word, the code, the caption and the count are plain markup and never gated, and reduced motion gets the whole composition deployed and locked.",
+    "RULED AND FLAGGED, not a question: the phone. Will ruled it in on 2026-09-15, and three things still hold it to a camera rather than to software, because a phone that reads as an app would break the whole pitch. The screen carries no chrome but the notch, no title bar and no buttons; the device is cropped by two frame edges so it reads as a held object in the room rather than a mockup on a slide; and what it is looking at is visibly the same code standing a few hundred pixels away. Its bezel radius is a drawn object's proportion, a literal rather than a surface token, because a phone corner is not a UI surface.",
+    "THE LIGHT. The hero is cinema and unlit by the standing ruling, and this concept has two emissive things: the phone's screen, which lights itself and its own bezel and nothing else, and one white capture bloom behind the plate, spent in 400 ms and repeated once per turn of the album. Both brighten, neither darkens: there is no scrim anywhere on this concept and every photograph is at 100 percent.",
+    "Bible 13, decorative layers only: the corridor's pre-release state, the phone's off-frame start and the brackets' thrown-wide state live inside the reduced-motion block, so nothing paints settled and then snaps back. Every word, the code, the caption and the count are plain markup and never gated, and reduced motion gets the whole composition deployed, held and locked.",
   ],
   assets: [
-    "ONLY IF A PHONE IS RULED IN: a hand-and-phone cutout to replace the drawn device, already on the log as ASSETS row 8. PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live; shot from behind the holder's shoulder, the phone held up and angled away to the right, in low warm event light so the body is nearly a silhouette with one highlight along the edge; two grips, one-handed and two-handed. Rule the room and the row can be withdrawn.",
-    "Not a new ask: the corridor runs on the 12 landscape stand-ins and wants the 24 squares already requested (ASSETS row 2, asked by hero-source), 512 x 512, one grade, framed tight enough to read at 120 px. Nothing here needs row 3's phone-up photographs, because the device is drawn rather than photographed.",
+    "A hand-and-phone cutout, ASSETS row 8, now a STANDING ask rather than a conditional one, because the phone is ruled in and the drawn device is the stand-in. PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live and real; shot from just behind the holder's shoulder, the phone held up and angled away to the right, in low warm event light so the body is nearly a silhouette with one highlight along the edge; two variants, a one-handed grip and a two-handed one. The device is built in three flat layers for exactly this swap, so the cutout replaces the body and the rim and nothing else moves.",
+    "Not a new ask: the corridor runs on the 12 landscape stand-ins and wants the 24 squares already requested (ASSETS row 2, asked by hero-source), 512 x 512, one grade, framed tight enough to read at 120 px. Nothing here needs row 3's phone-up photographs, because the near field is a cutout rather than a whole photograph.",
   ],
   render: (p) => <Scan {...p} />,
 };
