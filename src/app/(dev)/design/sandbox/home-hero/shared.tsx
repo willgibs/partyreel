@@ -3,91 +3,87 @@ import Link from "next/link";
 import { type CSSProperties, type ReactNode } from "react";
 
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
-import {
-  MARKETING_REELS,
-  marketingImage,
-  type MarketingReel,
-} from "@/lib/constants/marketing-media";
+import { marketingImage } from "@/lib/constants/marketing-media";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
 import { cn } from "@/lib/utils";
 
+import { HOME_HERO } from "./spec";
+
 /**
- * THE HOME-HERO BOARD'S CONTRACT (round two, 2026-09-14; round three the same day).
+ * WHAT THE HOME-HERO CONCEPTS SHARE (round two, 2026-09-14; shrunk onto the lab
+ * kit in the Library x Lab migration wave, 2026-09-15).
  *
- * Round one asked "where does the type live so no photograph is dimmed" and
- * answered it with four grids. Will's read: bland, generic, the image-grid
- * idiom of ten to twenty years ago, and none of them captured the one thing
- * Partyreel is, the QR that becomes the whole event's album. Round two asks
- * one sharper question, THE HERO IS THE QR BECOMING THE ALBUM, and answers it
- * three ways, one mechanism each, built by three agents in parallel against
- * this file. Will's ruling on round two: THE SOURCE, "definitely my favorite
- * direction": a stranger landing on the site immediately gains "I bet if I
- * scan this QR I get all of these images", the starting point the supporting
- * elements and copy then clarify. The reel read as the video being the
- * product; the gathering's QR read as a scan-to-learn-more object rather than
- * the basis of the feature. Round three: three variations off the source,
- * built by three agents in parallel against this file, beside the source as
- * the reference. Everything a concept needs from the board comes through here;
- * a concept file imports nothing from lib/demo or lib/env (the demo URL
- * arrives as a prop), so every concept module stays pure for Vitest.
+ * ★ THIS FILE IS NO LONGER WHERE THE BOARD ARGUES. Through round four it
+ * carried the contract, the doctrine AND every concept's metadata; the argument
+ * now lives in `spec.ts` as data and the presentation lives in the kit
+ * (`@/components/lab`). What is left here is the three things the kit cannot
+ * know: the hero's own geometry constants, its photograph and QR atoms, and the
+ * copy resolver. A piece that belongs to every board belongs in the kit, and a
+ * piece that belongs to one concept belongs in that concept's file.
+ *
+ * ★ AND `Concept` IS NOW `{ id, render }`. A candidate's name, rationale, copy
+ * proposal, departures and assets are `spec.ts`'s, because `sandbox/registry.ts`
+ * is imported by a SERVER page and by node tests and a `.tsx` module would drag
+ * a client tree into both. The engines were not otherwise touched by the wave.
+ *
+ * ★ THIS FILE IS READ ACROSS LANES. The album-hero board imports `FRAMES`,
+ * `CANVAS`, `GUTTER`, `LADDER`, `Mode` and `Photo` from here, so those six are a
+ * published surface: shrink them in agreement with that track, never alone.
  *
  * What every concept holds fixed:
- *  - the media at 100% (bible 1): no darkening layer over a photograph; the
- *    one scrim on the board is B's text-layer radial, a toggle, so Will rules
- *    it rather than inherits it;
- *  - the h1 at paint and never gated (bible 13; marketing-h1-policy scans the
- *    lab too): no data-mkt-cut, no data-mkt-reveal, no .mkt-line on an h1;
+ *  - the media at 100% (bible 1): no darkening layer over a photograph;
+ *  - the h1 at paint and never gated (bible 13): no data-mkt-cut, no
+ *    data-mkt-reveal, no .mkt-line on an h1. marketing-h1-policy scans the
+ *    marketing tree and not the lab, so on a board it is discipline rather
+ *    than a test, and a hero that fails it here fails it at wiring;
  *  - the ladder (bible 5): LADDER below, resolved per canvas;
  *  - every animation inside `prefers-reduced-motion: no-preference` with a
  *    designed rest state (bible 14), and the loops paused on a hidden tab
  *    through the stage's data-paused;
  *  - cinema and unlit by the standing ruling; light only as a flagged
- *    departure, listed in `departures` so it is on the board, not buried.
+ *    departure, listed on the candidate in `spec.ts` so it is on the board.
  *
  * Board mechanics a concept must respect:
  *  - `sizes` on next/image is CANVAS-relative ("1440px" / "375px"), never a
- *    vw value: the stage is zoomed, so a vw picks the wrong candidate;
+ *    vw value: the stage may be zoomed, so a vw picks the wrong candidate;
  *  - `eager` is production truth for anything in the first screen;
  *  - Replay is a REMOUNT (the stage key), so entrances are CSS with
  *    `animation-fill-mode: both` and state resets for free;
  *  - a filling animation and [data-mkt-isolate] never share an element;
  *  - geometry for POSITION comes from CANVAS, never from getBoundingClientRect,
- *    which lies under zoom; a zoom-invariant RATIO off a rect (top / height,
- *    the gathering's parallax) is safe, because the zoom factor cancels;
+ *    which lies under zoom; a zoom-invariant RATIO off a rect (top / height) is
+ *    safe, because the zoom factor cancels;
  *  - tailwind-merge drops a `leading-*` that precedes a `text-{size}` in the
  *    same cn() (a size utility may carry a line-height), and LADDER's classes
  *    are size classes: put the leading AFTER the ladder class, always (it bit
  *    the reel twice);
- *  - the lab's pause source is useTabHidden below (the stage sets data-paused
- *    from it; a JS loop reads the same attribute); production swaps in
- *    useAmbientPause, which also pauses off-screen;
- *  - keyframes live in the concept's OWN sheet with its prefix (hhs-, hhr-,
- *    hhg-); keyframe-uniqueness.test.ts reads every sheet under the lab;
- *  - video follows the house pattern: no `autoplay` attribute, imperative
- *    play().catch(), the poster as a separate next/image beneath, cross-faded
- *    on onPlaying; useAmbientPause where production would pause;
+ *  - the lab's pause source is the kit's useTabHidden (the stage sets
+ *    data-paused from it; a JS loop reads the same attribute); production swaps
+ *    in useAmbientPause, which also pauses off-screen;
+ *  - keyframes live in the concept's OWN sheet with its prefix (hhs-, hhc-,
+ *    hhi-); keyframe-uniqueness.test.ts reads every sheet under the lab;
  *  - the media manifest is the only source of paths (bible 18).
  */
 
-/** Mode, CANVAS and useTabHidden moved to the shared board shell at the review
- *  wave (2026-09-14); re-exported here so the concept files keep one import. */
-export { CANVAS, useTabHidden, type Mode } from "@/components/dev/board";
-import type { Mode } from "@/components/dev/board";
+/** Mode, CANVAS and useTabHidden are the kit's; re-exported so a concept file
+ *  keeps one import and the album-hero lane's imports keep resolving. */
+export { CANVAS, useTabHidden, type Mode } from "@/components/lab";
+import type { Mode } from "@/components/lab";
+
 export type CopyMode = "ruled" | "proposed";
-/** Round three: the source stays as the reference; scan, burst and river vary it. */
-// burst and river left the board (Will, 2026-09-15: killed as heroes; the burst's
-// field is the album-hero track's seed, the river the river-visual track's), but
-// their seed files still export a Concept typed on this union.
-export type ConceptId = "source" | "scan" | "inflow" | "burst" | "river";
+
+/** The three concepts the board argues. The burst and the river were killed as
+ *  heroes on 2026-09-15 and left for their own boards, which own their ids. */
+export type ConceptId = "source" | "scan" | "inflow";
 
 export type ConceptProps = {
   mode: Mode;
-  /** Which lockup copy to render: the ruled thesis or the concept's proposal. */
+  /** Which lockup copy to render: the site thesis or the concept's proposal. */
   copy: CopyMode;
-  /** Round two's reel read it (a text-layer radial); no round-three concept
-   *  should need one (media at 100%), so the board passes false and shows no
-   *  toggle. Kept typed so a variation that wants a flagged scrim can read it. */
+  /** Round two's reel read a text-layer radial; no concept since has needed one
+   *  (media at 100%), so the board passes false and shows no toggle. Kept typed
+   *  so a variation that wants a flagged scrim can read it. */
   scrim: boolean;
   /** The live demo's guest URL, or null when no demo is configured. */
   qrUrl: string | null;
@@ -95,20 +91,9 @@ export type ConceptProps = {
   runId: number;
 };
 
+/** An engine, and nothing else. Everything a reviewer rules on is in spec.ts. */
 export type Concept = {
   id: ConceptId;
-  n: number;
-  name: string;
-  /** One or two sentences under the name: the argument, not the mechanics. */
-  rationale: string;
-  /** The eyebrow this concept proposes, in one line, so the board can list it. */
-  eyebrow: string;
-  /** The copy proposal beside the ruled line (bible 21: the thesis stays the default). */
-  proposed: { h1: string; subhead: string; secondary: string };
-  /** Flagged departures from the bible or a standing ruling, one line each. */
-  departures: string[];
-  /** The assets this concept asks Will for, one line each, specific. */
-  assets: string[];
   render: (p: ConceptProps) => ReactNode;
 };
 
@@ -130,8 +115,9 @@ export const GUTTER = {
 } as const;
 
 /** The stand-in frames: the twelve manifest images, sequenced for contrast.
- *  Eleven are landscape and none is wider than 900px; Will's 36-frame set
- *  (a third portrait, 24 also as 512-square) replaces them by id. */
+ *  Eleven are landscape and none is wider than 900px; Will's 34-square set
+ *  (ASSETS row 2) replaces them by id. The board's stand-ins section renders
+ *  this list at the size the corridor reads it, so the ask is visible. */
 export const FRAMES = [
   "wedding-golden",
   "party-dj",
@@ -153,22 +139,7 @@ export function frame(i: number) {
   );
 }
 
-/** The stand-in reels: the landscape one for B's highlight loop, the portrait
- *  one for C's vertical clips (cut by currentTime ranges). */
-export const REELS = {
-  landscape: "hero-candidate-02",
-  portrait: "hero-candidate-01",
-} as const;
-
-export function reelById(
-  id: (typeof REELS)[keyof typeof REELS],
-): MarketingReel {
-  const found = MARKETING_REELS.find((r) => r.id === id);
-  if (!found) throw new Error(`Unknown marketing reel: ${id}`);
-  return found;
-}
-
-/** The ruled copy (bible 21) and the one shared proposal for the secondary. */
+/** The site's own lockup: what a concept renders unless its proposal is on. */
 export const RULED = {
   h1: SITE_THESIS,
   subhead: SITE_SUBHEAD,
@@ -184,31 +155,40 @@ export type HeroCopy = {
   proposed: boolean;
 };
 
-/** The lockup copy for a concept under the board's copy toggle. */
-export function copyFor(concept: Concept, mode: CopyMode): HeroCopy {
-  if (mode === "proposed") {
-    return {
-      h1: concept.proposed.h1,
-      subhead: concept.proposed.subhead,
-      primary: RULED.primary,
-      secondary: concept.proposed.secondary,
-      proposed: true,
-    };
-  }
-  return {
+/**
+ * The lockup copy for a concept under the board's Copy control.
+ *
+ * ★ THE PROPOSAL COMES OUT OF THE SPEC, which is what stops three copies of it
+ * drifting. The candidate card, the rendered hero and the Words section all
+ * resolve through here, so a line reworded in `spec.ts` is reworded everywhere;
+ * before the migration the same strings sat in the concept file and in the
+ * board's meta table and had to be edited twice.
+ *
+ * It takes `{ id }` rather than the whole Concept so an engine can keep calling
+ * `copyFor(source, copy)` with its own module-level constant.
+ */
+export function copyFor(concept: { id: ConceptId }, mode: CopyMode): HeroCopy {
+  const ruled: HeroCopy = {
     h1: RULED.h1,
     subhead: RULED.subhead,
     primary: RULED.primary,
     secondary: RULED.secondary,
     proposed: false,
   };
+  if (mode !== "proposed") return ruled;
+  const proposed = HOME_HERO.candidates.find(
+    (c) => c.id === concept.id,
+  )?.proposed;
+  if (!proposed) return ruled;
+  return {
+    h1: proposed.h1 ?? ruled.h1,
+    subhead: proposed.subhead ?? ruled.subhead,
+    primary: RULED.primary,
+    secondary: proposed.secondary ?? ruled.secondary,
+    proposed: true,
+  };
 }
 
-/** Pause loops in a hidden tab only. No IntersectionObserver on purpose: the
- *  lab wants everything running side by side, and an IO here would also make
- *  the board unverifiable in a background tab, where observers never fire.
- *  Shared here because every concept that drives a video or a rAF loop needs
- *  it (three copies existed after round two's first pass). */
 /** One photograph at FULL luminance. No scrim prop, and there never will be:
  *  a concept that needs one has not solved the composition. Eager by default,
  *  which is production truth for a hero; pass eager={false} only for a frame
@@ -277,24 +257,5 @@ export function DemoQr({
     >
       {plate}
     </Link>
-  );
-}
-
-/** What a concept renders until its track lands: the ground, the name, and
- *  the track that owns it, so the board is reviewable while three agents
- *  build in parallel. */
-export function Placeholder({
-  concept,
-  track,
-}: {
-  concept: Pick<Concept, "name" | "rationale">;
-  track: string;
-}) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 bg-background px-8 text-center">
-      <p className="font-heading text-3xl text-white">{concept.name}</p>
-      <p className="max-w-md text-sm text-white/60">{concept.rationale}</p>
-      <p className="text-[11px] text-white/40">being built on lp/{track}</p>
-    </div>
   );
 }

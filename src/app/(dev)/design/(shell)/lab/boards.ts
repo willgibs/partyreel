@@ -28,7 +28,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
-  "home-hero": { Component: HomeHeroBoard, legacy: true },
+  "home-hero": { Component: HomeHeroBoard },
   "glow-doctrine": { Component: GlowDoctrineVariants, legacy: true },
   "glow-moments": { Component: GlowMomentsVariants, legacy: true },
   palette: { Component: PaletteBoard, legacy: true },
