@@ -1,7 +1,7 @@
 ---
 track: hero-scan
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "c473707"
 merged_round_3: "f7e9df6"
 merged_round_2: "8183147"
 merged_round_1: "aee5915"
