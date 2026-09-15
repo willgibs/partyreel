@@ -1101,7 +1101,12 @@ export const REAL_PAGES: {
     demo: true,
     label: "The guest album",
     why: "The surface most people who ever see Partyreel see, and the one no host signs in to. Its heading is an app heading on a guest page, so the app register is what re-lays it.",
+    // ★ MEASURED IN THE FRAME, round four, and it is a finding rather than a
+    // caption: the guest entry title is a THIRD hand-rolled heading, written
+    // inline as `font-heading text-[28px]`, so no register reaches it and it
+    // keeps font-heading's flat -0.03em under every pair. It is the surface
+    // most people who ever see Partyreel see, and the ruling stops short of it.
     reach:
-      "its header is a guest heading rather than a PageHeading, so the app register reaches its album title and not its wordmark",
+      "nothing here moves under any pair, and that is the point: the entry title is written inline as font-heading text-[28px], a third hand-rolled heading outside both registers, so the wiring round has to sweep it the way it sweeps the sixteen marketing ones",
   },
 ];

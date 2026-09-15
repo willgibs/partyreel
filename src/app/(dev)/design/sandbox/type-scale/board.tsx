@@ -584,15 +584,20 @@ function Reach({
             <span className="text-foreground">{n.where}</span> ({n.why})
           </span>
         ))}
-        . Two tiers move with the wiring round rather than with a paste, and a
-        heading that does not budge is one of them, not a broken block: the
-        app&rsquo;s section heading, which production writes as a label inside
-        an h2 with no class worth aiming at, and sixteen hand-rolled marketing
-        headings at 30 / 36 (the four feature families, careers, the footer, the
-        reel, the error screen and the stat register) that stop one rung short
-        of SectionShell&rsquo;s ramp. Aiming the section step at that second
-        group would grow them to 48 and make the Today pair move the real site,
-        which is the control this whole board rests on.
+        .{" "}
+        <span className="text-foreground">
+          Three tiers move with the wiring round rather than with a paste
+        </span>
+        , and a heading that does not budge is one of them, not a broken block:
+        the app&rsquo;s section heading, which production writes as a label
+        inside an h2 with no class worth aiming at; sixteen hand-rolled
+        marketing headings at 30 / 36 (the four feature families, careers, the
+        footer, the reel, the error screen and the stat register) that stop one
+        rung short of SectionShell&rsquo;s ramp; and, found in round four when
+        the guest album became a frame, the guest entry title, written inline as
+        font-heading text-[28px]. Aiming a step at any of the three would move
+        the real site under the Today pair, which is the control this whole
+        board rests on, so all three are the sweep and not a hook.
       </p>
     </div>
   );
@@ -600,8 +605,28 @@ function Reach({
 
 /* ─────────────── The real pages, at the pixels they ship ──────────────── */
 
-/** One id, so a re-paint replaces the block rather than stacking sheets. */
-const PAIR_STYLE_ID = "tsc-pair";
+/**
+ * ★ THE FRAME SHOWS THE PAGE SETTLED, exactly as every stage on this board
+ * does. marketing.css keys its entrances off `data-inview`, and `.mkt-name`
+ * transitions its tracking over 760ms from an OPEN squeeze (+0.022em) to the
+ * settled value: measured inside a frame before the page's own observer had
+ * flipped anything, the /about masthead reported +3.52px of tracking, which is
+ * a number no candidate proposes and which a screenshot taken then would have
+ * shown as the ruling. So the board flips `data-inview` on and stops that one
+ * transition, for the same reason board.css does it for the stages: motion is
+ * another board's question, and a size read mid-flight is not a size. The flip
+ * is re-applied through a MutationObserver, because the page's own islands set
+ * the attribute back to false when they hydrate.
+ */
+const SETTLE_CSS = `/* The board settles the frame's entrances; see PageFrame.
+   ★ The masthead rule must MATCH marketing.css's own shape. A bare .mkt-name
+   at (0,1,0) lost to its \`[data-mkt] .mkt-name\` at (0,2,0) whatever the source
+   order, and the frozen transition it left behind reported a 200px masthead at
+   a 160px ladder's tracking, which is a number no candidate proposes. */
+[data-mkt] .mkt-name,
+[data-mkt] [data-inview] .mkt-name { transition: none; }
+[data-mkt] [data-mkt-cut] { animation: none; opacity: 1; transform: none; }
+[data-mkt] .mkt-line { opacity: 1; transform: none; filter: none; transition: none; }`;
 
 /**
  * A ROUTE, AT THE CANVAS'S TRUE PIXELS, WEARING THE SELECTED PAIR.
@@ -637,22 +662,65 @@ function PageFrame({
   const [screens, setScreens] = useState(1);
   const { w, h } = CANVAS[mode];
 
+  /**
+   * ★ ADOPTED, NOT APPENDED. The first version appended a <style> to the
+   * frame's head and it was measured there, out of five sheets, NOT last:
+   * the page's own client chunks insert stylesheets after hydration, so the
+   * block would have been one Tailwind layer change away from silently losing
+   * a tie. A constructed stylesheet in `adoptedStyleSheets` is ordered after
+   * every sheet in the document by the cascade's own rules, which is at least
+   * as late as production's own CandidateStyle element, so a candidate that
+   * wins in a frame wins in a tab.
+   */
   const paint = useCallback(() => {
-    const doc = ref.current?.contentDocument;
-    if (!doc?.head) return;
-    const found = doc.getElementById(PAIR_STYLE_ID);
-    const style =
-      (found as HTMLStyleElement | null) ?? doc.createElement("style");
-    style.id = PAIR_STYLE_ID;
-    style.textContent = css;
-    // Appended (not inserted) every time, so it stays last in the head even
-    // after the page's own client chunks add stylesheets of their own.
-    doc.head.appendChild(style);
+    const frame = ref.current;
+    const doc = frame?.contentDocument;
+    const view = frame?.contentWindow as (Window & typeof globalThis) | null;
+    if (!doc || !view) return;
+    try {
+      const sheet = new view.CSSStyleSheet();
+      sheet.replaceSync(`${SETTLE_CSS}\n\n${css}`);
+      doc.adoptedStyleSheets = [sheet];
+    } catch {
+      // A browser without constructed sheets: the appended element is still
+      // after everything in the head, which is enough to read the board.
+      const style = doc.createElement("style");
+      style.textContent = `${SETTLE_CSS}\n\n${css}`;
+      doc.head?.appendChild(style);
+    }
+    for (const el of doc.querySelectorAll('[data-inview="false"]')) {
+      el.setAttribute("data-inview", "true");
+    }
   }, [css]);
 
   useEffect(() => {
     paint();
   }, [paint]);
+
+  // The page's islands set data-inview back to false as they hydrate, and a
+  // frame scrolled into view by hand would otherwise reveal a heading in the
+  // middle of its entrance. One observer per frame, attribute-filtered.
+  useEffect(() => {
+    const doc = ref.current?.contentDocument;
+    const view = ref.current?.contentWindow as
+      | (Window & typeof globalThis)
+      | null;
+    if (!doc || !view) return;
+    const observer = new view.MutationObserver((records) => {
+      for (const record of records) {
+        const el = record.target as Element;
+        if (el.getAttribute("data-inview") === "false") {
+          el.setAttribute("data-inview", "true");
+        }
+      }
+    });
+    observer.observe(doc.documentElement, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-inview"],
+    });
+    return () => observer.disconnect();
+  });
 
   return (
     <div className="flex flex-col gap-2">
@@ -677,7 +745,10 @@ function PageFrame({
         >
           Reload
         </button>
-        <span>Scroll inside the frame to walk the page.</span>
+        <span>
+          Scroll inside the frame to walk the page. Entrances are settled on
+          purpose: a size read mid-transition is not a size.
+        </span>
       </div>
       <div className="overflow-x-auto">
         <iframe
@@ -998,6 +1069,14 @@ export function TypeScaleBoard() {
     <div className="flex flex-col gap-6 py-4">
       <BoardDock
         label="The type scale board's controls"
+        /* The shell's own "Sidebar" pill is `fixed top-2 left-2 z-40` and the
+           dock is z-30, so with the sidebar tucked away the pill sits ON TOP of
+           whatever control is first in the bar: measured here, it covered the
+           left half of the viewport switch. This inset clears it from `sm` up,
+           where the dock is sticky. The real fix is the shell's (the pill is
+           redundant when a dock is on the page, since the dock carries its own
+           Sidebar control) and it is asked for in the handoff. */
+        className="sm:pl-20"
         aside={
           <ApplyPair
             ladder={ladder}
@@ -1124,13 +1203,14 @@ export function TypeScaleBoard() {
       />
 
       <div className="max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
-        Each frame below is the ROUTE, exactly {phone ? 375 : 1440} pixels wide,
-        with the pair injected into it. Nothing is scaled, so a size is judged
-        at the size it ships; the page&rsquo;s own breakpoints read the frame,
-        so the phone end is its real phone end; and every clamp is evaluated
-        rather than resolved by hand, so a frame shows the token the wiring
-        round bakes. Flip a ladder in the dock and every frame on the page
-        re-lays itself where it stands.
+        Each frame below is the ROUTE,{" "}
+        {phone ? "exactly 375 pixels wide" : "exactly 1440 pixels wide"}, with
+        the pair injected into it. Nothing is scaled, so a size is judged at the
+        size it ships; the page&rsquo;s own breakpoints read the frame, so the
+        phone end is its real phone end; and every clamp is evaluated rather
+        than resolved by hand, so a frame shows the token the wiring round
+        bakes. Flip a ladder in the dock and every frame on the page re-lays
+        itself where it stands.
       </div>
 
       {marketingPages.map((page, i) => (
