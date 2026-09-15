@@ -31,6 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -242,20 +243,34 @@ function Rows({
             >
               <RowBody row={row} direction={direction} />
             </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent
-              className={cn(
-                "flt-panel min-w-56",
-                direction === "card" && "p-1",
-              )}
-              sideOffset={6}
-            >
-              {direction === "card" ? (
-                <DropdownMenuLabel className="px-1.5 pt-0.5 pb-1.5 text-[11px] tracking-wide uppercase opacity-70">
-                  {row.sub.label}
-                </DropdownMenuLabel>
-              ) : null}
-              <Rows rows={row.sub.rows} direction={direction} />
-            </DropdownMenuSubContent>
+            {/* THE PORTAL IS NOT DECORATION, IT IS THE BUG FIX.
+                ui/dropdown-menu.tsx renders SubContent with no Portal while
+                Content carries `overflow-x-hidden overflow-y-auto`, so a
+                submenu is a DOM descendant of a box that clips it: measured on
+                this board, the panel opens at the right x and y, reports
+                visible with opacity 1, and paints NOTHING, because the
+                parent's overflow cuts it off at its own right edge. Every
+                nested menu in the product is invisible today. Nothing calls one
+                yet, which is why nobody has seen it. The primitive's fix is
+                this one wrapper; until the wiring round lands it, the board
+                composes it from outside so a direction can be judged on a
+                submenu that exists. */}
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent
+                className={cn(
+                  "flt-panel min-w-56",
+                  direction === "card" && "p-1",
+                )}
+                sideOffset={6}
+              >
+                {direction === "card" ? (
+                  <DropdownMenuLabel className="px-1.5 pt-0.5 pb-1.5 text-[11px] tracking-wide uppercase opacity-70">
+                    {row.sub.label}
+                  </DropdownMenuLabel>
+                ) : null}
+                <Rows rows={row.sub.rows} direction={direction} />
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
           </DropdownMenuSub>
         ) : (
           <DropdownMenuItem

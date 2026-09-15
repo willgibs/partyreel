@@ -173,6 +173,7 @@ const ASKS = [
  *  manifest, where the Orchestrator reads them: they are true whatever is ruled
  *  and none of them is a choice. */
 const DEPARTURES = [
+  "A SHIPPED BUG, found on this board and true whatever is ruled: a nested submenu is INVISIBLE in the product. ui/dropdown-menu.tsx renders DropdownMenuSubContent with no Portal while DropdownMenuContent carries overflow-x-hidden and overflow-y-auto, so the submenu is a DOM descendant of a box that clips it. Measured here: it opens at the right x and y, computes visible at opacity 1, and paints nothing, because elementFromPoint at its own centre returns the page behind it. No product surface opens a submenu yet, which is why nobody has seen it. The fix is one wrapper in the primitive; this board composes it from outside so a direction can be judged on a submenu that exists. If the submenu is deleted instead (the second ask), the bug goes with it.",
   "A DIRECTION IS TWO HALVES, and only one of them is a paste. The material, the radius and the motion are CSS over the primitives' own data-slots, so Apply to the site puts them on the real header nav, the real dashboard menus and the guest drawer. The anatomy (a header row, an icon rail, a footer rail) and the model (a field, and the deleted submenu) are components, so a ruling for card or command is a change to src/components/ui/dropdown-menu.tsx that the wiring round lands. The board says which is which on every row rather than blurring them.",
   "A FINDING AGAINST RULE 15, not a quiet choice. Rule 15's one entrance and rule 12's animate-by-frequency disagree on this family as they are written. The board recommends reading rule 15's line as one entrance LANGUAGE with rule 12 setting the clock inside it. That is a bible edit and it is Will's to make.",
   "The family is TEN surfaces, not nine. guest/entry-shell.tsx renders a raw vaul drawer that never goes through ui/drawer.tsx, and it is the floating layer most people on this product will ever see. Every direction reaches it through [data-entry-drawer], and row 4 shows it wearing each one.",
@@ -670,7 +671,7 @@ export function FloatingSurfacesBoard() {
       <Row
         n={2}
         name="The four answers, side by side, at true pixels"
-        note="The same event menu under each direction, each frame at its own real pixels, so a 4px corner is a 4px corner. Today is an anonymous list: no subject, no groups, and Delete the event one row from Download everything. Card gives it a title, sections, a rail and a footer. Glass takes the boxes out and lets the room through. Command replaces the list with a field. The canvas is 340 wide and says so on its face, because it is a detail frame and not a phone."
+        note="The same event menu under each direction, each frame at its own real pixels, so a 4px corner is a 4px corner. Today is an anonymous list: no subject, no groups, and Delete the event one row from Download everything. Card gives it a title, sections, a rail and a footer. Glass takes the boxes out and lets the room through. Command replaces the list with a field. The canvas is 328 wide and says so on its face, because it is a detail frame and not a phone, and because four of them plus their gaps have to clear the lab column at 1440."
       >
         <div className="flex flex-wrap gap-3">
           {DIRECTIONS.map((d) => (
@@ -686,7 +687,11 @@ export function FloatingSurfacesBoard() {
                 ground={ground}
                 ramp={ramp}
                 mode="phone"
-                width={340}
+                // 328, not 340: four of these plus their gaps and borders have
+                // to clear the lab column at 1440 MINUS the vertical scrollbar,
+                // which is what pushed the fourth answer onto a second line and
+                // turned a four-way comparison into a three-way one.
+                width={328}
                 height={420}
                 replay={replay}
                 designKey={designKey}
@@ -699,7 +704,7 @@ export function FloatingSurfacesBoard() {
       <Row
         n={3}
         name="The nested branch, kept and deleted"
-        note="The only nested menu in the product is Who can upload, and it exists to hold three mutually exclusive values behind a hover and a wait. Left: card opens a second panel, which is the best version of the tree. Right: command has no submenu at all, so the same three rows are a group in the one list and two letters is how you reach them. The board's recommendation takes the right-hand idea into the left-hand anatomy: card's panel, with those three values inline under their own label, and no branch anywhere in the product."
+        note="The only nested menu in the product is Who can upload, and it exists to hold three mutually exclusive values behind a hover and a wait. Left: card opens a second panel, which is the best version of the tree, and it only exists here because this board wraps it in a portal: shipped, a submenu is invisible (the departure below). Right: command has no submenu at all, so the same three rows are a group in the one list and two letters is how you reach them. The board's recommendation takes the right-hand idea into the left-hand anatomy: card's panel, with those three values inline under their own label, and no branch anywhere in the product. Which also makes the bug moot, which is the cheapest way to fix anything."
       >
         <div className="flex flex-wrap gap-3">
           <div className="flex max-w-full min-w-0 flex-col gap-1">
