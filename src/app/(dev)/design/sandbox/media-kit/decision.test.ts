@@ -22,7 +22,9 @@ import {
   POSTS_UNDER_RULE,
   ROUTE_SHIPS,
 } from "./decision";
+import { CLIPS_IF_LICENSED, HARD_FRAMES, TOTAL } from "./plan";
 import { MASTERS } from "./shoot";
+import { WEBSUMMIT_CC } from "./sources";
 
 /**
  * THE DECISION, PINNED (the media-kit track, round three).
@@ -103,9 +105,13 @@ describe("what the rule takes back", () => {
 });
 
 describe("the ruling surface", () => {
-  it("is four asks, and round two's fifth is folded into the route", () => {
+  it("is four asks, and round four swapped two of them for the sheet", () => {
     expect(ASKS).toHaveLength(4);
-    expect(ASKS.map((a) => a.id)).toEqual(["rule", "sources", "route", "kit"]);
+    // `sources` (rule on a list of licence names) and `route` are gone: the
+    // sourcing sheet ranks real places instead of asking for a yes to a list,
+    // and round four answers the route rather than re-asking it. `spend` and
+    // `crowds` are the two questions the sheet raised that nothing else answers.
+    expect(ASKS.map((a) => a.id)).toEqual(["rule", "spend", "crowds", "kit"]);
   });
 
   it("every answer is one word, so a ruling is four words", () => {
@@ -153,31 +159,66 @@ describe("the ruling surface", () => {
       BARRED_POSTS.length,
       CANDIDATES.length,
       MASTERS.length,
+      // Round four's money and the one catalogue count a ruling turns on. Every
+      // one of these is exported from plan.ts or sources.ts, so a figure on the
+      // ruling surface is a figure the plan table also shows.
+      TOTAL,
+      HARD_FRAMES,
+      CLIPS_IF_LICENSED,
+      WEBSUMMIT_CC,
     ]);
     const surfaces = [
       ...ASKS.map((a) => `${a.question} ${a.because}`),
       ...ROUTE_SHIPS.map((r) => `${r.ships} ${r.blog} ${r.cost} ${r.ends}`),
     ];
     for (const text of surfaces) {
-      // "ask 1" is a cross reference to a question, not a count of anything,
-      // and a digit welded to a word is a name (CC0), not a number either.
+      // "ask 1" is a cross reference to a question, not a count of anything, and
+      // a digit welded to a word is a name (CC0), not a number either. Thousands
+      // separators are stripped first so 87,066 reads as one number rather than
+      // as an 87 and an 066, which is how a big count would otherwise slip the
+      // guard entirely.
       for (const n of text
         .replace(/ask \d/g, "ask")
+        .replace(/(\d),(?=\d{3}\b)/g, "$1")
         .match(/(?<![A-Za-z])\d+/g) ?? []) {
         expect(derived, text).toContain(Number(n));
       }
     }
   });
 
-  it("ask 3 states the counts the rule leaves, not the ones it takes back", () => {
-    const route = ASKS.find((a) => a.id === "route");
-    expect(route?.question).toContain(
+  /**
+   * ★ THE MONEY IN AN ASK IS THE MONEY IN THE PLAN, OR THE BOARD LIES QUIETLY.
+   * The same class of fault as round three's stale count, in its round-four form:
+   * a price typed into a question and a plan table that moves under it would
+   * disagree with nothing to notice it. So the ask is asserted against the plan's
+   * own totals, and the route table still says the pre-rule counts it always did.
+   */
+  it("the spend ask quotes the plan's totals, never a typed price", () => {
+    const spend = ASKS.find((a) => a.id === "spend");
+    expect(spend?.question).toContain(`$${TOTAL}`);
+    expect(spend?.question).toContain(`${HARD_FRAMES} iStock frames`);
+    expect(spend?.recommend).toBe("Buy");
+    const kit = ASKS.find((a) => a.id === "kit");
+    expect(kit?.because).toContain(`$${TOTAL}`);
+    expect(kit?.because).toContain(`$${CLIPS_IF_LICENSED}`);
+    // The comparison only works one way round, and it is the round's point.
+    expect(CLIPS_IF_LICENSED).toBeGreaterThan(TOTAL);
+  });
+
+  it("the crowds ask names the catalogue that turns on it", () => {
+    const crowds = ASKS.find((a) => a.id === "crowds");
+    expect(crowds?.because).toContain(WEBSUMMIT_CC.toLocaleString("en-US"));
+    expect(crowds?.options).toEqual(["Subjects only", "All faces"]);
+  });
+
+  it("the route table still says the counts the rule leaves", () => {
+    const licensed = ROUTE_SHIPS.find((r) => r.route === "licensed");
+    expect(licensed?.ships).toContain(
       `${IDS_UNDER_RULE} of the ${IDS_TOTAL} ids`,
     );
-    expect(route?.question).not.toMatch(/ships twelve|twelve swaps|ships two/);
-    expect(route?.because).toContain(
-      `${BARRED_IDS.length} of its ${IDS_TOTAL} frames`,
-    );
+    expect(licensed?.blog).toContain(`${POSTS_UNDER_RULE} of 23`);
+    expect(licensed?.legal).toBe(false);
+    expect(BARRED_IDS.length).toBe(IDS_TOTAL - IDS_UNDER_RULE);
   });
 
   it("the route table covers every route the board can be switched to", () => {

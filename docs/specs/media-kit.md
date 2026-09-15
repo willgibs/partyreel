@@ -19,7 +19,12 @@
 > Licensed route were the counts BEFORE the rule in section 1.4, and under that rule they are smaller.
 > It also cut the asks from five to four (the route decides the bridge, so asking both asked the same
 > question twice) and found that one night of photography closes nine of the twelve rows in
-> [`../ASSETS.md`](../ASSETS.md). The board is `/design/c/media-kit`.
+> [`../ASSETS.md`](../ASSETS.md). **Round four turned the board into a sourcing sheet (section 8) and
+> found the thing three rounds had missed: the refusal at the heart of this track was of a TIER, not of
+> a company. Unsplash's free licence excludes recognisable people; Unsplash+ is model and property
+> released with a warranty behind it, perpetual for anything downloaded inside a month, and $20. The
+> whole bridge is buyable for $56.** Read section 8 first; sections 1 to 7 are what it stands on.
+> The board is `/design/c/media-kit`.
 
 ---
 
@@ -348,6 +353,13 @@ Surveyed 2026-09-14 by reading each license page. Every quotation below is verba
 named beside it. The test applied is the one this round was given: **does this source allow a
 commercial marketing use, without attribution, under terms we can name?**
 
+> **★ This section surveys LICENCES, and a licence is not a source.** Its first row below is CC0 1.0,
+> which is a legal instrument rather than a catalogue with photographs in it, and that conflation is
+> why this survey could not answer "where do I get a wedding". The places, with their prices, their
+> catalogues and their release positions, are **[section 8](#8-the-sourcing-sheet-where-the-frames-actually-come-from)**.
+> Two verdicts below were revised there: Unsplash is refused on its FREE licence only, and CC BY was
+> struck cheaply when nothing good was known to be under it (87,066 conference photographs are).
+
 ### 4.1 The five that pass
 
 **CC0 1.0** (`creativecommons.org/publicdomain/zero/1.0/`). The deed:
@@ -668,3 +680,156 @@ have to rediscover it.
    1200x630 share card, which centre-crops and will show a different part of the frame.
 9. **Delete the bridge.** Any licensed frame carried under the Mix route is removed, not left because
    it still looks fine.
+
+---
+
+## 8. The sourcing sheet: where the frames actually come from
+
+Added at round four (2026-09-15) on Will's note, which reopened the track on a different question:
+
+> "I haven't had any time to find or design any photos myself. The best use of this track next may be
+> for discovery/sourcing of those new assets. Could focus on a few different potential sources as
+> opposed to a few exact image picks. E.g. here's a real wedding album with a $5 license, here's a real
+> party gallery on Unsplash for free, here's a license-free conference image gallery, etc."
+
+Section 4 surveys **licences**. This section surveys **places**, which is not the same thing and is the
+distinction round four had to draw before it could answer anything: section 4's first row is CC0 1.0,
+which is a legal instrument and not a catalogue with photographs in it. The data is
+[`sources.ts`](../../src/app/\(dev\)/design/sandbox/media-kit/sources.ts) (`SOURCES` for the places,
+`LICENCES` for round three's survey) and the board renders both.
+
+### 8.1 The finding: the refusal was of a tier, not of a company
+
+Round one killed Unsplash on one sentence, and the sentence is still true:
+
+> "Note that the Unsplash License does not include the right to use: ... People's images if they are
+> recognizable in the Images"
+
+That is the **free** licence. **Unsplash+** is a separate agreement on the same site, and its whole
+product is the removal of that clause:
+
+> "an unlimited, perpetual, nonexclusive, worldwide license to download, copy, modify, distribute,
+> perform, and use Unsplash+ images ... including for commercial purposes, without requiring
+> attribution" (`unsplash.com/plus/license`, read 2026-09-15)
+
+Every Unsplash+ visual is model **and** property released, with a warranty of up to US $10,000 per
+licensed photo, and a frame downloaded while a subscription is live stays licensed forever with no
+project to register. List price $20 a month ($240 a year); a launch promotion was running at $7 and $84
+on the date read. Three rounds of "there is no stock we can name" had a twenty dollar answer the whole
+time, and nobody had looked at the paid tier of the site the first round had already ruled out.
+
+### 8.2 The ranking rule, and why it is not price
+
+Every vertical this product sells into is a room full of recognisable people. Under section 1.4 a
+recognisable face may not ship without a release. Therefore **a free library with no release is not the
+cheap option, it is the option that cannot supply the frames we came for**, and the sheet ranks every
+released source above every free one and draws a line between them. Six places sit above the line and
+seven below; the seven below are on the sheet because knowing why a source fails is worth more than a
+shorter list.
+
+| # | Place | Model | Price (2026-09-15) | Releases | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Unsplash+ | subscription | $20/mo, $240/yr | held, warranted to $10k | One month buys the whole kit, released, perpetual. The cheapest legal answer. |
+| 2 | Adobe Stock credit pack | per image | $49.99 for 5 credits ($9.99 each) | held (contributor files a signed release) | Right for a few hard frames, wrong for 36. |
+| 3 | iStock Essentials | per image | $12 a photo | held (Getty warrants and indemnifies) | The only paid per-image catalogue this board can draw before it is bought. |
+| 4 | Stocksy United | per image | $35 / $85 / $135 | held across the collection | The quality ceiling. $1,260 for a 36-frame kit. |
+| 5 | Envato Elements | subscription | $16.50/mo annual, $33 monthly | per item | Cheaper and worse: perpetual only for the project a file was registered to. |
+| 6 | Artgrid (clips) | subscription | from $25/mo, annual only ($299/yr) | held | The only clip licence that survives cancellation, and the most expensive line. |
+| | **the release line** | | | | |
+| 7 | Web Summit's Flickr archive | free | $0 plus a credit line | none | 87,066 CC BY 2.0 conference photographs. The best free catalogue for the vertical we cannot fill, and it still fails the release half, plus a bar the contact sheet found: a conference floor is a wall of other companies' trademarks (Meta and Huawei booths at full size). |
+| 8 | Flickr filtered to CC BY 2.0 | free | $0 plus a credit line | none | Not a gallery, a filter over everyone's. The deepest free corpus of real events that exists. |
+| 9 | Nappy | free | $0 | none (its own licence says so) | The best free library at the representation the rest of the corpus lacks. |
+| 10 | Mixkit (clips) | free | $0 | none | Freely revocable, liability capped at ten dollars. A lab stand-in only. |
+| 11 | Coverr (clips) | free | $0 | none | Audited this round: see 8.4. |
+| 12 | Death to Stock | rental | $20/mo, $199/yr | per item | The nicest pictures and the worst deal: cancel and the right ends. |
+| 13 | Creative Market bundles | one-off bundle | $7 to $15 a photo, $40 to $100 a collection | none | This is the note's cheap wedding album. The cheap tier forbids a business social account and a paid advert. |
+
+### 8.3 The plan, and the total
+
+The data is [`plan.ts`](../../src/app/\(dev\)/design/sandbox/media-kit/plan.ts); every figure in it is
+read off a source's own card and `plan.test.ts` refuses a total that is not the sum of its rows.
+
+- **All five verticals, photographs:** one month of Unsplash+, **$20**. Download the whole call sheet
+  inside the month; the licence on what was pulled is perpetual.
+- **Corporate and conferences:** three iStock Essentials frames, **$36**. This is the vertical round
+  three could not fill from the free corpus at all, and a curated premium library is thin on it too.
+- **The vertical films:** park them and shoot them. Licensing them properly is $299 a year, which is
+  more than every photograph above put together, and the film is the one asset a licence cannot stand
+  in for, because the product's claim is that the frames came from a real party.
+- **Total first spend: $56**, or $43 while the launch promotion runs.
+
+What the money does not buy: the film, the eight clips, the demo event's own album, the hand-and-phone
+cutout and the light board's overlapping pair, which are asset-log rows 1, 4, 5, 8 and 11 and are all
+one night's work. The bridge is reversible and costs less than a dinner; the shoot is still the answer.
+
+### 8.4 What the audit found, and why a source is audited rather than read
+
+Round one marked Coverr **allowed** on its licence text, which is generous and irrevocable and still
+true. Round four measured the catalogue behind it instead, and the catalogue had moved: a search for
+`party` returns 70 Coverr-hosted clips of which **23 are `user-ai-generation` uploads**, served on the
+same page as **34 iStock results** that are under no Coverr licence at all. A search for `wedding`
+returns 58, 24 of them AI, with the same 34 iStock results. Nothing about the licence changed. The
+lesson generalises and belongs with the rule: **a licence is read once and a catalogue moves
+continuously**, so a source approved on its terms is not a source approved.
+
+### 8.5 How the contact sheets are built, and why nothing is copied
+
+The board draws 26 contact sheets, 308 frames, each one **the source's own thumbnail hotlinked from the
+source's own CDN**: [`catalogue.ts`](../../src/app/\(dev\)/design/sandbox/media-kit/catalogue.ts) holds
+URLs and no files. That is the honest way to show a catalogue we have not bought. A watermarked comp
+stays a watermarked comp, a paid frame is never copied into this repo, and `plan.test.ts` refuses any
+entry that is a local path. The board renders them with a plain `<img>` rather than `next/image` for
+the same reason: the optimizer would cache a copy of another company's comp on our infrastructure.
+
+To rebuild it, read each source's public search page and take the thumbnail URLs out of the markup:
+
+- **Flickr** `flickr.com/search/?user_id=<id>&license=4&text=<query>` (license 4 is CC BY 2.0, 9 is
+  CC0), thumbnails on `live.staticflickr.com/<server>/<id>_<secret>_z.jpg`.
+- **iStock** `istockphoto.com/search/2/image?phrase=<query>`, watermarked comps on
+  `media.istockphoto.com/id/<id>/photo/<slug>.jpg`.
+- **Envato Elements** `elements.envato.com/photos?terms=<query>`, watermarked previews on
+  `elements-resized.envatousercontent.com` (the URLs are signed and long).
+- **Nappy** `nappy.co/search?q=<query>`, `images.nappy.co/photo/<id>.jpg`.
+- **Mixkit** `mixkit.co/free-stock-video/<topic>/`, poster frames on
+  `assets.mixkit.co/videos/<id>/<id>-thumb-360-0.jpg`.
+- **Unsplash+** `unsplash.com/s/photos/<query>?license=plus`, released frames on
+  `plus.unsplash.com/premium_photo-<id>`. Take them from the embedded search payload, never from the
+  `<link rel="preload">` tags in the head: those repeat ONE photo at twelve widths, and pairing a
+  thumbnail to the nearest anchor there maps two frames onto one photo page. Drop the `ixid` tracking
+  token and keep the rest of the source's own query string.
+
+**Six of the thirteen sources draw no sheet, and they are blank for four different reasons.** Two
+earlier drafts of this section got this wrong in the same way, and the correction is the useful part.
+The first said five sources and gave one reason for all of them, a 401 or a 403, which was true of
+three and wrong about the rest; two of the five it named (Pexels, Pixabay) are licences on this board
+and not sources at all. The second kept the shared shape and wrote seven reasons out per source, which
+is what exposed the real error: one of the seven was not refusing anything. Measured with a plain
+client on 2026-09-15:
+
+| Source | What a plain client gets | Why there is no sheet |
+| --- | --- | --- |
+| Adobe Stock | `403` | Refuses outright. Nothing to draw, and nothing to route around short of driving a browser. |
+| Stocksy United | `403` | The same. The most carefully curated library here is the one the board can show least of. |
+| Creative Market | `403` | The same. The cheap wedding album from Will's note is taken entirely on its own description. |
+| Artgrid | `200`, an empty application shell | The clips are fetched client side, so the markup carries no thumbnails. A 200 is not a readable catalogue. |
+| Death to Stock | `200` at the door, `404` on every browse path | The 15,000 visuals are behind the membership, the same wall its rental clause describes. |
+| Coverr | `200`, and it reads completely | Nothing refused it. The reading IS its verdict (8.4): its `party` page is 70 Coverr clips and 34 iStock results in one grid, so a sheet drawn from it would put two catalogues under one name. |
+
+**Unsplash+ was the seventh, and it draws now.** It had been left blank on the claim that the paid tier
+sits behind an account, which nobody had measured. `unsplash.com/s/photos/<query>?license=plus`
+answers a plain client with the plus results: 20 released frames on each of the five verticals, of
+which this sheet takes the first 12, so the source the plan actually asks Will to buy is the one the
+board now shows most of rather than the one it showed none of. The board's whole thesis is that a
+catalogue must be drawn rather than described, and an unchecked sentence about why a catalogue cannot
+be drawn is the same failure wearing the opposite costume.
+
+Each remaining reason lives on its own card, in `noSheet` on the source
+([`sources.ts`](../../src/app/\(dev\)/design/sandbox/media-kit/sources.ts)), and `plan.test.ts`
+refuses a source that has neither a sheet nor a reason, or two sources sharing one. The lesson is the
+round's own, turned on itself: one sentence covering seven cases is a description, and writing the
+seven out separately is what proved one of them false.
+
+Every URL on the sheet was confirmed to answer 200 with an image content type to a request carrying a
+`partyreel.com` referer on 2026-09-15, so none of them is hotlink-protected today. A tile whose URL
+stops answering falls back to a labelled slate naming its source, which is the sheet telling the truth
+about a catalogue that moved rather than a broken page.

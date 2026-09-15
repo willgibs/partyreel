@@ -37,6 +37,10 @@ import {
 } from "./bridge";
 import { candidate, CANDIDATES } from "./candidates";
 import type { Route } from "./kit";
+// Round four's asks are priced from the plan, so the money in an ask is the money
+// in the plan table by construction and cannot drift out of one of them.
+import { CLIPS_IF_LICENSED, HARD_FRAMES, TOTAL } from "./plan";
+import { WEBSUMMIT_CC } from "./sources";
 
 /** The frames the rule in ask 1 bars: a recognisable face and no release. */
 export const BARRED = CANDIDATES.filter((c) => c.people === "identifiable");
@@ -145,6 +149,23 @@ export type Ask = {
   href: string;
 };
 
+/**
+ * ★ ROUND FOUR REPLACED TWO OF THE FOUR ASKS, AND THE SHEET IS THE REASON.
+ *
+ * Round three asked Will to rule on an allowed LIST of licences. His note for
+ * round four asked for PLACES instead, and the sourcing sheet is that answer, so
+ * the list ask is gone: the sheet ranks thirteen real catalogues by the one test
+ * that decides them, and a ranking a reviewer can read beats a yes to eight
+ * licence names.
+ *
+ * Round three also asked for the route. Round four answers it rather than asking
+ * again. The recommendation is still Mix; what changed is where Mix's licensed
+ * half comes from, a bought frame with a release behind it instead of a staged
+ * CC0 frame that ask 1 bars. That is the same route with a better second half,
+ * so the question it actually needs is the money.
+ *
+ * The two that stay are the two nobody has ruled on: the rule, and the shoot.
+ */
 export const ASKS: readonly Ask[] = [
   {
     id: "rule",
@@ -153,26 +174,26 @@ export const ASKS: readonly Ask[] = [
     options: ["Yes", "No"],
     recommend: "Yes",
     because:
-      "It is already running on 22 records with a suite that refuses one missing a field. Saying yes is the thing that disqualifies four of the staged frames below, so it is the answer that costs something.",
+      "It is already running on 22 records with a suite that refuses one missing a field. Saying yes disqualifies four of the staged frames and drops every free library on the sheet below every paid one, so it is the answer that costs something.",
     href: "#mk-record",
   },
   {
-    id: "sources",
-    question:
-      "The allowed list: CC0, Pexels, Pixabay, Mixkit and Coverr in; Unsplash and CC BY out.",
-    options: ["Yes", "Strike one"],
-    recommend: "Yes",
+    id: "spend",
+    question: `The bridge, bought rather than scavenged: one month of Unsplash+ plus ${HARD_FRAMES} iStock frames for the conference rooms, $${TOTAL} in total, staged the way the CC0 batch was.`,
+    options: ["Buy", "Hold"],
+    recommend: "Buy",
     because:
-      "Ten license pages, quoted clause by clause on the date read. Unsplash is out on the sentence that excludes recognisable people, which is the sentence the whole round turns on.",
-    href: "#mk-sources",
+      "Every visual in that month is model and property released with a warranty behind it, which is the exact clause the twelve stand-ins never had, and a frame downloaded inside the month stays licensed forever with nothing to register. It is the cheapest line on the board and the only one that makes Mix legal this week.",
+    href: "#mk-plan",
   },
   {
-    id: "route",
-    question: `The route, which also decides the bridge: under ask 1 Licensed fills ${IDS_UNDER_RULE} of the ${IDS_TOTAL} ids, Mix fills ${MIX_IDS} of them now and sends the rest to the shoot, Ours sends all ${IDS_TOTAL}.`,
-    options: ["Mix", "Ours", "Licensed"],
-    recommend: "Mix",
-    because: `Licensed cannot be chosen under ask 1 as staged: ${BARRED_IDS.length} of its ${IDS_TOTAL} frames carry a face with no release, and it has nothing at all for the corporate and conference half of the business. Mix is the dated version of it.`,
-    href: "#mk-bridge",
+    id: "crowds",
+    question:
+      "Does the release rule bind every face, or only a frame's subject? A crowd shot is full of recognisable people and none of them is the picture.",
+    options: ["Subjects only", "All faces"],
+    recommend: "Subjects only",
+    because: `A risk call rather than a legal opinion, and worth ruling for what turns on it: Web Summit's ${WEBSUMMIT_CC.toLocaleString("en-US")} CC BY conference photographs and the whole Flickr corpus are crowds, and conferences are the one vertical no subscription on this sheet is deep in. Answer All faces and the free half of the sheet is decoration.`,
+    href: "#mk-sheet",
   },
   {
     id: "kit",
@@ -180,12 +201,10 @@ export const ASKS: readonly Ask[] = [
       "The kit: 36 masters, six per vertical, shot in one night at a real event running Partyreel.",
     options: ["Shoot", "Park"],
     recommend: "Shoot",
-    because:
-      "One night closes nine of the twelve rows in the asset log, because the squares, the portraits, the clips, the film, the cutout and the demo seed are all crops and cuts of it.",
+    because: `One night closes nine of the twelve rows in the asset log, and the sheet sharpened the case rather than softening it: licensing the photographs is $${TOTAL} and licensing the films is $${CLIPS_IF_LICENSED} a year, so the money was never in the stills.`,
     href: "#mk-kit",
   },
 ];
 
 /** The recommendation in one sentence, for the top of the board and the record. */
-export const RECOMMENDATION =
-  "Say yes to the rule and the list, take Mix, and shoot the kit at a real event we host. Mix is Licensed with an end date, and the end date is the shoot.";
+export const RECOMMENDATION = `Say yes to the rule, spend $${TOTAL} on a bridge that is actually released, rule on whether a crowd needs one, and shoot the kit at a real event we host. The route is still Mix. This round only changes where Mix's licensed half comes from.`;
