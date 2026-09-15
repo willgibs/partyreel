@@ -80,16 +80,39 @@
     overflow-y: auto;
   }
 }
+/* ★ THE TWO `xl:` SWITCHES ARE CSS, NOT UTILITIES (the Library x Lab round,
+   2026-09-15). The lab's sheet compiles into the `utilities.lab` SUB-layer, and
+   a rule in a sub-layer LOSES to one in its parent at equal specificity (the
+   landmine above). `hidden` is all over production, so it sits in `utilities`;
+   `xl:block` and `xl:hidden` are used NOWHERE outside the lab, so they compile
+   only into `utilities.lab` and lose. The result was that `hidden xl:block` on
+   the rail meant hidden at EVERY width (no table of contents above 1280 at
+   all), and `xl:hidden` on the narrow-window disclosure never hid it, so both
+   showed at once. An UNLAYERED rule beats every layer, so the pair lives here.
+   Every other responsive pairing in the shell is safe: `sm:`, `md:` and `lg:`
+   display utilities are all used by production too, so they land in
+   `utilities` and win by source order as usual. Check that before reaching for
+   a `<breakpoint>:` display utility that only the lab uses. */
+.lab-toc {
+  display: none;
+}
+.lab-toc-compact {
+  display: block;
+}
 @media (min-width: 1280px) {
   .lab-shell-body {
     grid-template-columns: var(--lab-sidebar-w) minmax(0, 1fr) var(--lab-toc-w);
   }
   .lab-toc {
+    display: block;
     position: sticky;
     top: var(--lab-topbar-h, 48px);
     max-height: calc(100dvh - var(--lab-topbar-h, 48px));
     overflow-y: auto;
     padding: 1.5rem 1rem 1.5rem 0;
+  }
+  .lab-toc-compact {
+    display: none;
   }
 }
 .lab-shell-body:has([data-lab-wide]) .lab-toc {
@@ -124,6 +147,48 @@ html[data-lab-fit="true"] [data-lab-wide] {
   }
   html[data-lab-panel="left"] .board-page {
     padding-left: calc(var(--lab-panel-w, 0px) + 1rem);
+  }
+}
+/* Every in-page anchor lands under the bar. A board's dock adds its own height
+   to this property inline while it is mounted (dock.tsx); without the rule a
+   table-of-contents jump on a LIBRARY page put the heading behind the bar. */
+html:has(.lab-shell) {
+  scroll-padding-top: calc(var(--lab-topbar-h, 48px) + 12px);
+}
+
+/* ─────────────────────────── The shell's disclosure ────────────────────────
+   A sidebar section, or the narrow-window table of contents, opening and
+   closing. `grid-template-rows: 0fr -> 1fr` animates to the content's REAL
+   height with no measurement, no ResizeObserver and no max-height guess (the
+   child must carry `min-height: 0` and `overflow: hidden`, which the markup
+   does). 180ms on the emphasis curve: a disclosure is occasional, so it is
+   allowed to move, and it stays inside the craft standard's 300ms ceiling.
+   `visibility` rides the same transition so a closed section's rows leave the
+   accessibility tree once the collapse has finished, and `inert` in the markup
+   takes them out of the tab order immediately. */
+.lab-disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 180ms var(--ease-emphasis, ease),
+    visibility 0s linear 180ms;
+}
+.lab-disclosure[data-open="true"] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 180ms var(--ease-emphasis, ease),
+    visibility 0s;
+}
+.lab-chevron {
+  transition: transform 180ms var(--ease-emphasis, ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-disclosure,
+  .lab-disclosure[data-open="true"],
+  .lab-chevron {
+    transition: none;
   }
 }
 

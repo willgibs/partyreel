@@ -1,7 +1,14 @@
-/** The count tiles a page opens with (rules, contracts, boards); one shape for all. */
+/**
+ * The count tiles a page opens with (rules, contracts, boards); one shape for
+ * all. `data-copy-row` makes the whole strip one line when the page is copied
+ * as markdown, rather than a paragraph per number.
+ */
 export function StatRow({ stats }: { stats: [string, number | string][] }) {
   return (
-    <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+    <div
+      className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4"
+      data-copy-row
+    >
       {stats.map(([label, n]) => (
         <div
           key={label}

@@ -5,10 +5,24 @@ import {
   FAMILY_LABEL,
   familyItems,
   type GalleryFamily,
+  ITEMS,
 } from "../gallery/registry";
-import { SANDBOX, SURFACE_LABEL, type Surface } from "../touchpoints";
-import type { Nav, NavItem, NavSection } from "./catalog";
-import { listSpecs, listTracks } from "./docs";
+import { COMPONENTS, componentTitle } from "../rules/rules";
+import { RULINGS, SANDBOX, SURFACE_LABEL, type Surface } from "../touchpoints";
+import { flatten, type Nav, type NavItem, type NavSection } from "./catalog";
+import {
+  DOCS,
+  type DocId,
+  headingsOf,
+  landminesOf,
+  listRulings,
+  listSpecs,
+  listTracks,
+  readDoc,
+} from "./docs";
+import { GLOSSARY, RETIRED } from "./glossary";
+import { POLICY_TESTS } from "./links";
+import type { SearchEntry, SearchIndex } from "./search";
 import { readTrackStates } from "./tracks";
 
 /**
@@ -100,6 +114,10 @@ export async function buildNav(): Promise<Nav> {
         label: it.title,
         id: it.entry.id,
         note: it.note?.for,
+        // The entry's own mark ("new"/"updated"), set by the registry and
+        // cleared by the Orchestrator at a window's close, so a Vercel build
+        // (which has no git) prints the same badge as the dev server.
+        badge: it.entry.badge,
         match: "exact" as const,
         keywords: [it.file ?? ""],
       })),
@@ -286,4 +304,223 @@ export async function buildNav(): Promise<Nav> {
       ],
     },
   ];
+}
+
+// ── The search index ─────────────────────────────────────────────────────────
+
+const clip = (text: string, n = 120): string =>
+  text.length <= n ? text : `${text.slice(0, n - 1).trimEnd()}…`;
+
+const entry = (
+  kind: SearchEntry["kind"],
+  id: string,
+  title: string,
+  href: string,
+  context?: string,
+  keywords?: string[],
+): SearchEntry => ({
+  key: `${kind}:${id}`,
+  kind,
+  id,
+  title,
+  href,
+  context: context ? clip(context) : undefined,
+  keywords: keywords?.length
+    ? keywords.filter(Boolean).join(" ").toLowerCase()
+    : undefined,
+});
+
+/** The doctrine whose headings are worth an index entry, shallowest first. */
+const INDEXED_DOCS: DocId[] = [
+  "design-system",
+  "marketing-content",
+  "program",
+  "agent-guide",
+  "craft",
+];
+
+/**
+ * ONE INDEX OVER EVERYTHING THE SHELL RENDERS (server-only, built beside the
+ * nav and handed to the palette as props). Doc headings are taken at depth 2
+ * on purpose: every `###` of five long documents would double the payload the
+ * layout ships for hits a reader reaches through the page's own table of
+ * contents anyway.
+ */
+export function buildSearchIndex(nav: Nav): SearchIndex {
+  const out: SearchIndex = [];
+  // The nav lists every component and every board as an item of its own, and
+  // each of those already has a richer entry below (its file, its family, its
+  // surface). The page entries are therefore added LAST and any whose href a
+  // specific kind already claims is dropped, or "Glow" would answer twice.
+  const pages = flatten(nav);
+
+  for (const r of BIBLE)
+    out.push(
+      entry(
+        "rule",
+        r.id,
+        `${r.n}. ${r.statement}`,
+        `/design/library/rules/${r.id}`,
+        r.why,
+        [
+          `bible ${r.n}`,
+          String(r.n),
+          BIBLE_GROUP_LABEL[r.group],
+          r.status ?? "",
+        ],
+      ),
+    );
+
+  const galleryById = new Map(ITEMS.map((i) => [i.entry.id, i]));
+  for (const c of COMPONENTS) {
+    const g = galleryById.get(c.id);
+    out.push(
+      entry(
+        "component",
+        c.id,
+        g?.title ?? componentTitle(c),
+        `/design/library/${c.id}`,
+        g?.note?.for ?? g?.entry.lede ?? c.file,
+        [c.file, ...c.names, g ? FAMILY_LABEL[g.entry.family] : ""],
+      ),
+    );
+  }
+
+  for (const r of SANDBOX)
+    out.push(
+      entry(
+        "board",
+        r.id,
+        r.title,
+        `/design/lab/${r.id}`,
+        r.board?.note ?? r.why,
+        [SURFACE_LABEL[r.surface], ...(r.board?.tracks ?? [])],
+      ),
+    );
+
+  for (const [id, file] of Object.entries(POLICY_TESTS))
+    out.push(
+      entry("policy", id, id, `/design/library/policies#${id}`, file, [file]),
+    );
+
+  for (const doc of ["design-system", "marketing-content"] as const) {
+    const { path, title } = DOCS[doc];
+    landminesOf(readDoc(path).body).forEach((mine, i) => {
+      const text = mine.text.replace(/[*`]/g, "").trim();
+      out.push(
+        entry(
+          "landmine",
+          `${doc}-${i}`,
+          clip(text, 90),
+          "/design/library/policies#landmines",
+          `★ in ${title}, under ${mine.under}`,
+          [mine.under],
+        ),
+      );
+    });
+  }
+
+  for (const r of RULINGS)
+    out.push(
+      entry(
+        "record",
+        r.id,
+        r.title,
+        `/design/library/record/${r.id}`,
+        r.shipped ?? r.why,
+        [SURFACE_LABEL[r.surface], r.ruled],
+      ),
+    );
+
+  for (const doc of INDEXED_DOCS) {
+    const { path, title } = DOCS[doc];
+    for (const h of headingsOf(readDoc(path).body, 2))
+      if (h.depth === 2)
+        out.push(
+          entry(
+            "doc",
+            `${doc}#${h.id}`,
+            h.text,
+            `/design/library/doctrine/${doc}#${h.id}`,
+            title,
+            [title],
+          ),
+        );
+  }
+
+  for (const s of listSpecs())
+    out.push(
+      entry(
+        "proposal",
+        s.slug,
+        s.title,
+        `/design/lab/proposals/${s.slug}`,
+        s.status ?? undefined,
+      ),
+    );
+
+  for (const t of listTracks())
+    out.push(
+      entry(
+        "track",
+        t.name,
+        `lp/${t.name}`,
+        `/design/lab/tracks/${t.name}`,
+        t.status,
+        [t.status],
+      ),
+    );
+
+  for (const h of listRulings())
+    out.push(
+      entry(
+        "ruling",
+        h.id,
+        h.text,
+        `/design/library/rulings#${h.id}`,
+        "Will's ruling, verbatim",
+      ),
+    );
+
+  for (const t of GLOSSARY)
+    out.push(
+      entry(
+        "glossary",
+        t.term.toLowerCase(),
+        t.term,
+        t.href ?? "/design/library/glossary",
+        t.meaning,
+      ),
+    );
+  for (const t of RETIRED)
+    out.push(
+      entry(
+        "glossary",
+        `retired-${t.term.toLowerCase()}`,
+        `${t.term} (retired)`,
+        "/design/library/glossary#retired",
+        `Now: ${t.now}`,
+        ["retired"],
+      ),
+    );
+
+  // The pages last, minus every href a specific kind already answers, and
+  // minus any repeat inside the page list itself.
+  const claimed = new Set(out.map((e) => e.href));
+  for (const it of pages) {
+    if (claimed.has(it.href)) continue;
+    claimed.add(it.href);
+    out.push(
+      entry("page", it.id ?? it.href, it.label, it.href, it.note, it.keywords),
+    );
+  }
+
+  // `key` must stay unique for React even when two entries of a kind share an
+  // href (every landmine points at the same anchor).
+  const keys = new Set<string>();
+  return out.filter((e) => {
+    if (keys.has(e.key)) return false;
+    keys.add(e.key);
+    return true;
+  });
 }
