@@ -813,7 +813,9 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
   placed at 23:46:11 was refused because it was TEN SECONDS EARLY, and the slot was gone by the time
   it retried. **So: read the newest READY timestamp out of the list, add 14m24s, and place the call
   a few seconds AFTER that, holding with short retries for a minute rather than firing early.**
-  Nothing this round won one, which is why this handoff is written against a local server.
+  Nothing this round won one: sixteen calls across four boundaries, including twelve placed across
+  the 00:00:50 boundary exactly as above, were all refused. That is why this handoff is written
+  against a local server, and why the alias is the Orchestrator's to refresh before Will walks it.
 - **So this round's QA was taken on a local production-equivalent dev server in the worktree**
   (`pnpm dev` in the worktree, the lab key on every URL), which serves the head exactly. Every
   number below was measured there through the DOM rather than eyeballed. One thing to know if you
