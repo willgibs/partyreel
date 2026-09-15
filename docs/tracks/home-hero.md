@@ -1,9 +1,11 @@
 ---
 track: home-hero
-status: open
+status: integrated
 cut: "260c015"       # the launch-prep SHA the branch was cut from (docs: record MILESTONE-24)
+merged: "6a75fcc1"      # the branch head merged into launch-prep
+cut_round_5: "1b647d76"  # the round-5 branch is a fresh cut: the old one was deleted at its integration
 merged_round_1: "393bacc"
-preview: false           # Will's review surface: every push builds partyreel-git-lp-home-hero
+preview: false           # intent only since 2026-09-15: the branch builds at handed-off or on [preview]
 owns:
   - src/app/(dev)/design/sandbox/home-hero/
 reads:
@@ -215,14 +217,65 @@ untouched, and the wiring waits on Will's ruling. The agent's recommendation is 
 
 ## Handoff (round 5)
 
-- Head <sha>, pushed; preview partyreel-git-lp-home-hero-partyreel.vercel.app
-- Synced with launch-prep at <sha>
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the three registration lines (exceptions and why)
-- Shared-file changes asked of the Orchestrator: none
-- Assets requested from Will: none
-- Look at first: ...
+- Head: the tip of `lp/home-hero`, which is THIS commit (a manifest cannot name its own SHA). The
+  last code commit is `b06e6202`, which is what everything below was measured at. Pushed; preview
+  `https://partyreel-git-lp-home-hero-partyreel.vercel.app`. **The board:
+  `/design/lab/home-hero`**, and it is worth opening it with `?candidate=source` to see that a link
+  now carries the concept.
+- Synced with launch-prep: **not needed**, it had not moved (`git rev-list --count
+  HEAD..origin/launch-prep` = 0 at handoff, base `1b647d76`).
+- Gates on the tree, each on its own exit code: typecheck ok, lint ok (0 errors; the 6 warnings are
+  the pre-existing ones on `contact-form.tsx`, two feature sections, `jobs.ts` and `use-flip.ts`),
+  test ok (2140 in 218 files), build ok (257 static pages), `pnpm lab:smoke --base
+  http://localhost:3413` ok (287 checks, 0 failing).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `src/app/(dev)/design/sandbox/home-hero/{spec.ts,board.tsx,shared.tsx,source.tsx,scan.tsx,inflow.tsx}`,
+  plus this manifest, plus **the three registration lines the wave's contract allows, for this
+  board's id only**: `sandbox/registry.ts` (the spec imported and added to `BOARDS` first, which is
+  `SANDBOX` order), `(shell)/lab/boards.ts` (`legacy: true` dropped from the `home-hero` entry), and
+  `src/components/lab/kit-discipline.test.ts` (`"home-hero"` deleted from `LEGACY`). Nothing else
+  outside the lane; the three are single adjacent lines, so the merge resolves by eye.
+- Shared-file changes asked of the Orchestrator: **none.**
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed:
+  `cinema-hero.tsx` is imported by the board and untouched.
+- Assets requested from Will: **no new ask.** The board's two are already logged and are now carried
+  in the spec's own `assets` shape so the fold is a no-op: **ASSETS row 2**, the 34 event squares
+  (512x512, one grade, 6 to 35 KB webp, tight enough to read at 120 px and to survive a centre crop
+  to 4:5 and 4:3), replacing `FRAMES` in `sandbox/home-hero/shared.tsx`; and **ASSETS row 8**, the
+  hand-and-phone cutout with a transparent screen area, replacing `.hhc-phone` in `scan.tsx`. Row 2
+  now has a section of its own on the board (section 3), which renders the twelve stand-ins at the
+  120 px the corridor reads them at, so the framing clause is a thing to look at rather than a
+  sentence to trust.
+- **Noted, not patched (another lane's file).** A board section lands about 158 px lower than its own
+  `scroll-margin-top`, because the shell sets `scroll-padding-top: 145px` on `<html>` AND
+  `BoardSection` sets `scroll-mt-[topbar + dock + 12]` on the section, so the two offsets add.
+  Measured identically on the `light` pilot (`scroll-padding-top` 145, `scroll-margin-top` 149,
+  section lands at 294), so it is the kit or shell lane's line to remove, not this board's. The walk
+  and the Sections menu both still land on the right section; it is a rhythm bug, not a miss.
+- **Look at first:** the board at 1440 with Concept on **All three**, scrolling from the source to
+  "Today, for reference" at the bottom. The whole case is that scroll: three heroes whose
+  photographs you can see, then the shipped one under three darkening layers. Then **Look first**,
+  which is now an executable six-step walk (it sets the canvas and the concept per step), and the
+  **Copy** knob, which swaps every lockup to its concept's own proposal. The answer block at the top
+  is the thing to reply to: four one-word calls, and the panel at the bottom composes the line.
 
 ## Record (round 5; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The home hero board moved onto the kit's
+template, and the move is mostly a subtraction: its argument had been scattered across three places
+(a prose block at the top of `board.tsx`, a hand-rolled `ConceptMeta` table at the foot of each
+stage, and a metadata block each concept file declared beside its engine), and it is now one
+`spec.ts` that the template, the desk, the record and the review ledger all read. `sandbox/home-hero`
+is two files at its root; the three engines are untouched apart from their exported object, which
+shrank to `{ id, render }`, and `copyFor` reads each copy proposal back out of the spec, so the words
+on the card, in the hero and in the new Words section cannot drift. A reviewer now meets the verdict
+and four one-word calls first instead of two paragraphs of history, and `?candidate=scan` opens one
+concept, so a note about a hero is a link. Two things changed rather than moved, both deliberate and
+both in the handoff: the shipped hero is the last section again, mounted from production code on
+approach, because round one's whole case was the scroll from the candidates to the thing they
+replace, and it was lost when round two rebuilt the board; and `bodySkin` left the stages, because
+flipping the page through `body:has()` made the lab's own chrome cinema-dark whatever theme the
+reviewer had chosen. The measurement that is the board's argument was re-taken on the migrated page
+and is unchanged: three darkening layers over media on the shipped hero, zero on all three
+candidates, whose only absolutely-positioned paints are the scan's two emissive layers, and every h1
+at `opacity: 1` with no transform at paint. No concept, number or recommendation changed.

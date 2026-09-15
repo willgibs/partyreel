@@ -1,9 +1,10 @@
 ---
 track: album-hero
-status: open
-cut: "c473707"
+status: integrated
+cut: "1b647d76"          # round 2 cut from origin/launch-prep
+merged: "f7a78883"      # the branch head merged into launch-prep
 merged_round_1: "bd5f63b5"
-preview: false           # Will reviews this board on its preview as it builds (once Vercel's window frees)
+preview: true            # status: handed-off builds the branch preview
 owns:
   - src/app/(dev)/design/sandbox/album-hero/
 reads:
@@ -22,6 +23,11 @@ reads:
   - docs/decisions/design-record.md
   - docs/reviews/README.md
   - docs/design/README.md
+  - src/app/(dev)/design/sandbox/home-hero/shared.tsx
+  - src/components/guest/
+  - src/components/marketing/
+  - src/app/(marketing)/(cinema)/features/album/
+  - src/lib/constants/feature-pages.ts
 
 ---
 
@@ -445,14 +451,173 @@ whether a reader with JavaScript off should get the settled album instead, and t
 
 ## Handoff (round 2)
 
-- Head <sha>, pushed; preview partyreel-git-lp-album-hero-partyreel.vercel.app
-- Synced with launch-prep at <sha>
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the three registration lines (exceptions and why)
-- Shared-file changes asked of the Orchestrator: none
-- Assets requested from Will: none
-- Look at first: ...
+- Head `04b20557` plus this manifest commit, pushed; preview
+  `partyreel-git-lp-album-hero-partyreel.vercel.app`, which builds on this push (`status: handed-off`).
+  Everything below was verified on **my own dev server on port 3411**, never the root checkout's, plus a
+  local production build for the gate.
+- Synced with `launch-prep` at `167d2cef` (it had moved five commits: the glow pair landed with its own
+  specs). ONE conflict, `sandbox/registry.ts`, and it is the adjacent-line collision the wave was expected
+  to produce: both sides add imports and both add a name to `BOARDS`. Resolved by keeping all five, with
+  `BOARDS` in the desk's order (`touchpoints.ts`), so `album-hero` sits after `rounding` where the board
+  pages page through it. Merge commit `04b20557`.
+- Gates, each on its own exit code, re-run on the merged tree: typecheck ok, lint ok (0 errors; the 8
+  warnings are pre-existing files outside this lane), test ok (2140 in 218 files), build ok (128 routes,
+  257 static pages), `pnpm lab:smoke --base http://localhost:3411` ok (290 checks, 0 failing).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+
+  ```
+  docs/tracks/album-hero.md
+  src/app/(dev)/design/(shell)/lab/boards.ts          <- registration (exception 2)
+  src/app/(dev)/design/sandbox/album-hero/board.css
+  src/app/(dev)/design/sandbox/album-hero/board.tsx
+  src/app/(dev)/design/sandbox/album-hero/field.tsx
+  src/app/(dev)/design/sandbox/album-hero/spec.ts
+  src/app/(dev)/design/sandbox/registry.ts            <- registration (exception 1)
+  src/components/lab/kit-discipline.test.ts           <- registration (exception 3)
+  ```
+
+  The three exceptions are the registration lines the round's contract allows for THIS board id only, and
+  each touches one place: the spec imported and added to `BOARDS`; `legacy: true` dropped from the
+  `album-hero` entry; `"album-hero"` deleted from `LEGACY`. Nothing else outside the lane, and no other
+  board's id was touched in any of the three.
+- Shared-file changes asked of the Orchestrator: **one, and it is a finding rather than a request to
+  land blind** (below, "A kit finding"). Nothing else. `src/components/dev/`, `touchpoints.ts` and
+  `bible.ts` were not touched.
+- Assets requested from Will: **the same three as round one, unchanged**, now carried by
+  `spec.ts`'s `assets` in the ASSETS.md shape rather than by prose, so the Orchestrator folds fields
+  rather than sentences: the 24 squares (row 2), the 11 4:5 portraits (row 9), and the 2 short clips
+  (still NEW, not on ASSETS). Round one's fourth bullet ("nothing else: no plate art, no lamp, no QR")
+  was not an asset request and is not an asset row; it is in the board's history instead.
+- Look at first: the board's own walk, which is executable now. Press **Look first** in the dock and
+  press Next five times: reading 1 at lg, reading 1 at xl (the ask that changes the composition rather
+  than the styling), the album as it ships at two columns, the album at four, the whole route with both
+  animations running, and the whole route at 375. Each step sets the dock and lands on its section.
+
+### What the migration did, and the two reconciliations
+
+- **Two files on the kit.** `spec.ts` is the argument as pure data through `defineBoard` (the question,
+  round 2 with what changed, round 1 as history, the context, the verdict, five asks, two candidates,
+  three departures, three assets, three sections with their ledes and arguments, three controls, a
+  six-step walk and two builder's notes). `board.tsx` is `BoardPage({spec, dock, evidence})` and nothing
+  else: the evidence for each declared section as a function of the declared state.
+- **The board's own shell code went to the kit.** Its measuring stage is the kit's `FitStage` (which also
+  re-measures when the webfont lands, which round one's did not); its stage captions are `Labeled`; its
+  Replay is `ReplayButton` + `useReplay`; its three hand-built `Toggle`s are `ControlKnobs` off
+  `spec.controls`, so the canvas, the headline step and the album's column rule are now URL state. The
+  board imports `@/components/lab` and never the `@/components/dev/board` shim.
+- **Reconciliation 1, the fifth ask.** Round one asked Will four things in `BoardMeta` but FIVE in its
+  Record, because "rule on whether the no-script frame should be the settled album anyway" was buried
+  inside a departure. It is an ask now (`no-script`: lockup or settled, recommended lockup) and the
+  departure keeps the trade without the question. No new argument: both strings are round one's.
+- **Reconciliation 2, where the width arithmetic lives.** `askBecause` caps at 300 characters and round
+  one's width ask was 1100. The number that DECIDES the call stays in the ask (632 px of content at every
+  viewport, so `columns-2` is about 314 px, and the candidate is the column rule AND a wider cap); the
+  full working, measured in the live DOM, is the album section's argument, where a reader who disagrees
+  will look for it. Every figure is round one's, re-measured on this tree: container 632, tile 314.5,
+  three columns 208.66, four columns of today's container 155.75, `max-w-6xl` 1112 and 275.75, and this
+  board's own frame 1154 with tiles of 575.5 and 286.
+- **One export was added to the field**, `FIELD_DENSITY` (plus `FIELD_FLIGHT_S`), so the stage caption
+  reads the pool size off `GEO` instead of carrying it as prose. Round one carried "fifty-two frames at
+  1440" in four separate strings and one of them was already stale at its first read-back. Nothing about
+  the field's geometry, pool or loop changed: the diff on `field.tsx` is the export and its comment.
+- **The two shell asks from round one are both already landed** on `launch-prep` and needed nothing from
+  me: `touchpoints.ts`'s `album-hero` entry carries the three readings as its variants and the replacement
+  note, and `burst.tsx` / `burst.css` are `field.tsx` / `field.css`.
+
+### An interpretive call, stated because the round's goal line can be read either way
+
+The goal says "the board reads the page three ways ... those become the spec's `controls` and the dock's
+switches". I read the three READINGS as the three declared SECTIONS, and the board's page-wide VARIANT
+switches (the canvas, the headline step, the album's column rule) as the declared `controls`. The reason
+is that a reading is not a variant of one specimen, it is a different specimen: as sections the three get
+anchors, the index, the dock's Sections menu, their asks restated over the evidence that argues them, and
+a walk that lands on them, and a link to one survives being pasted into a chat. Collapsed into a single
+switch they would share one anchor and the board would have exactly one section, which is the shape the
+template exists to replace. The three readings ARE reachable from anywhere on the page, through the dock's
+Sections menu, which is Will's note (a) satisfied. If the Orchestrator reads the line the other way, the
+change is a `reading` control plus one section, and it is small; it is written down here rather than
+decided silently.
+
+### A kit finding (a finding, not a wall, and not mine to land)
+
+**Every anchored section lands one dock-height lower than it should, on every migrated board.** The kit
+declares the offset TWICE: `BoardDock` writes `scroll-padding-top` on `<html>` (measured 145 px: the top
+bar plus the dock plus 8) and `BoardSection` also carries
+`scroll-mt-[calc(var(--lab-topbar-h)+var(--board-dock-h)+12px)]` (measured 149 px). A scroll-margin box is
+placed at the scroll-padding edge, so the two ADD and a section arrives 294 px down instead of ~149. It
+hides nothing, so it is air rather than a defect, but it is a duplicated single source. Reproduced on the
+`light` pilot with the same two numbers, so it is the kit's and not this board's, and
+`src/components/lab/` is only in this track's `reads`. The patch, if the Orchestrator wants it, is one
+line: drop the `scroll-mt-[...]` from `BoardSection`'s className in `src/components/lab/answer.tsx` and
+let the dock's `scroll-padding-top` own it (the dock already re-measures on resize and one frame after
+mount, which the static class cannot).
+
+### What was verified, and the three places the tooling lied
+
+- **The board on the dev server at 1440 and 375, light and dark.** The template's order is what a reviewer
+  meets: the dock, the answer (the question, the verdict, what would change it, the round-2 line), the
+  five ask pills with their recommendation filled, the index, then the three sections. In light the shell
+  chrome is light and the stage stays cinema at `oklch(0.11 0 0)`, which is right: the board's chrome
+  follows the theme and the stage carries the page's own ground.
+- **The three stages measure honestly**: 1440x930 for the hero (a viewport), 1440x1088 for the album, and
+  1440x10521 for the whole route, against a content height of 10518 plus `FitStage`'s 3 px of slack. All
+  nine children of the page reading are present in shipped order (the hero box at exactly one viewport,
+  the album, GettingIn 713, Everywhere 511, Quality 505, the paper chapter 5043, RelatedFeatures 468,
+  the FAQ 874, the CtaBand 389). **Round one's "13,796 px" should not be re-quoted**: the stage is derived
+  from its content, so the number moves with the sections and with the build, and this tree measures
+  10,521. Nothing is clipped at either number.
+- **The album's geometry**: the frame is 1154 px, the shipped `columns-2` gives 12 tiles at 576 px, the
+  candidate gives four columns, and the switch is a no-op at 375 by design (the caption and a builder's
+  note both say so). All twelve stand-ins load.
+- **The settled composition, which is what a reduced-motion reader gets**, re-proved at 1440: 52 cards,
+  zero outside the canvas, worst overhang 0 px. The reduced-motion CSS in `field.css` and `album.css` is
+  untouched by this round.
+- **The walk**: six steps, each setting its declared state (`step=xl`, then `columns=ship`, then
+  `columns=wide`, then `canvas=phone`) and landing on its declared section (hero, hero, album, album,
+  page, page).
+- **The review panel composes the ledger line exactly**, character for character against the grammar, and
+  `node scripts/lab-review.mjs --root <scratch>` recorded all five asks plus a board note into a SCRATCH
+  copy of `docs/reviews/` (never the repo's: `git status` is clean and `docs/reviews/` still holds only
+  `README.md` and `_window.json`). A deliberately bad token was refused by name against this spec
+  ("huge" is not an option of album-hero.headline (lg, xl)) and wrote nothing.
+- **`/design/lab` queues all five open asks** under the board, because the desk reads the registered spec.
+- **No horizontal document scroll**, and nothing inside the board overflows the viewport. The widest dock
+  knob is 223 px including its label, which clears 375 less the page's gutters, so the dock cannot take
+  the document sideways at the phone width the `Toggle` landmine is about.
+- **Three tooling lies, none of them a product fault**, and all three cost time before they were pinned
+  down. (1) **A synthetic mouse click does not reach React in either browser tool here**: a click
+  dispatched at the dock's own measured centre, with `elementFromPoint` returning that exact button and
+  nothing over it, changed nothing, while a programmatic `.click()` on the same node set `?step=xl` and
+  `data-step="xl"` immediately. The board is driven by its URL instead, which is the template's own share
+  format, and that is how everything above was set. (2) **A hidden tab suspends rAF outright**, so the
+  field reads as an empty canvas (0 of 104 cards animating, `data-paused` true, all 104 images
+  `complete`); seven tracks were driving the same browser and each new lab tab stole the foreground. A
+  builder's note on the hero section now tells the next reader to front the tab before concluding
+  anything. (3) **A hidden tab also drops `scrollIntoView({behavior:"smooth"})` on the floor** while
+  `behavior:"auto"` scrolls normally, which is why the walk's landings were measured with the smooth
+  branch forced to auto. The one console error on the board is a browser extension writing
+  `cz-shortcut-listen` onto `<body>`.
+- **What a human eye still owes this board is round one's thirty seconds**, unchanged: reading 1 at real
+  speed with nothing else on screen.
+
+### A stale figure in the round's own goal line
+
+The round-2 goal says "the forty-frame field at 1440 and thirty-six at 375 stays exactly as built". The
+field as built is **52 at 1440 and 44 at 375** (`GEO.cards`); the forty/thirty-six pair is the
+pre-read-back figure round one corrected on 2026-09-15. The field is exactly as built and untouched; the
+numbers should not be carried forward from that line.
 
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The album page's hero board moved onto the kit's
+template, and the argument it had been carrying in prop strings became data. `spec.ts` now holds the
+question, the verdict, the five one-word calls, the two candidates, the departures and the three assets;
+`board.tsx` holds only the evidence for each declared section as a function of the declared state. A
+reviewer's first screen is the answer and the words he can reply with rather than seventeen thousand
+pixels of field, and the three readings became anchored sections with an executable six-step walk that
+sets the dock and lands on its evidence. Two things round one had said in two places were reconciled
+rather than re-argued: the no-script question, buried in a departure while the Record counted it among
+the asks, is the fifth ask, and the width call's arithmetic moved from the ask into the album section,
+where the density limit could hold it. The board's own shell code went to the kit (the measuring stage,
+the captions, the Replay, the toggles), and the field gained one export so a caption reads its pool size
+off the geometry instead of repeating it in prose. No candidate, number or recommendation changed.

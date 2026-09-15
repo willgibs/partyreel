@@ -1004,30 +1004,14 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
   );
 }
 
+/**
+ * The engine, and nothing else (the Library x Lab migration wave, 2026-09-15).
+ * The name, the rationale, the copy proposal, the departures and the assets
+ * this concept asks for are `spec.ts`'s `scan` candidate now: a board's
+ * argument has to be pure data, because `sandbox/registry.ts` is imported by a
+ * server page and by node tests. Nothing above this line changed.
+ */
 export const scan: Concept = {
   id: "scan",
-  n: 2,
-  name: "The scan",
-  rationale:
-    "The source's corridor with the cause put in the frame, and since Will ruled the phone in it is the phone that does it: a guest's hand rises into the near field, the camera finds the code across the room, the capture fires on the screen, the code blooms in answer, and only then does the album branch out of the plate. Three objects, one beat, in causal order. The camera re-acquires once per turn of the album, so the sentence is restated rather than asserted once, and the hero reads as the next guest scanning. The two canvases are two compositions rather than one compressed: at 1440 the hand enters from the left, another guest at work in a room the host is being shown; at 375, where the reader is holding the object being drawn, it rises almost centred out of the bottom edge and the two codes stand on one vertical axis. The toggle in the corner is a footnote and not a candidate: it shows what this hero looks like before the cutout on ASSETS row 8 is shot.",
-  eyebrow:
-    "Settled: no eyebrow line. The code is the eyebrow and the caption under it names the act; a word above the headline would be a fifth block of type in a composition that already carries a headline, a caption, a count, a sentence and two actions.",
-  proposed: {
-    h1: "Every camera in the room, one album.",
-    subhead:
-      "Guests point a camera at the code, and their photos and videos land in your album, with no app and no account.",
-    secondary: "See what it made",
-  },
-  departures: [
-    "KEEP THE COUNT, OR CUT IT. 282 photos from 48 guests, climbing to 312, is a STAND-IN and must not ship as invented data: the wiring round reads the demo event's real total, or the line goes. It is the quiet half of the pair, so the composition holds either way. This is the one ruling left on the concept.",
-    "THE CENTRED LOCKUP, inherited from the source: precedent and not law, because the code owns the axis. Overrule it and this hero goes left with the source.",
-    "RULED AND FLAGGED, not a question: the phone. Will ruled it in on 2026-09-15, and three things still hold it to a camera rather than to software, because a phone that reads as an app would break the whole pitch. The screen carries no chrome but the notch, no title bar and no buttons; the device is cropped by two frame edges so it reads as a held object in the room rather than a mockup on a slide; and what it is looking at is visibly the same code standing a few hundred pixels away. Its bezel radius is a drawn object's proportion, a literal rather than a surface token, because a phone corner is not a UI surface.",
-    "THE LIGHT. The hero is cinema and unlit by the standing ruling, and this concept has two emissive things: the phone's screen, which lights itself and its own bezel and nothing else, and one white capture bloom behind the plate, spent in 400 ms and repeated once per turn of the album. Both brighten, neither darkens: there is no scrim anywhere on this concept and every photograph is at 100 percent.",
-    "Bible 13, decorative layers only: the corridor's pre-release state, the phone's off-frame start and the brackets' thrown-wide state live inside the reduced-motion block, so nothing paints settled and then snaps back. Every word, the code, the caption and the count are plain markup and never gated, and reduced motion gets the whole composition deployed, held and locked.",
-  ],
-  assets: [
-    "A hand-and-phone cutout, ASSETS row 8, now a STANDING ask rather than a conditional one, because the phone is ruled in and the drawn device is the stand-in. PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live and real; shot from just behind the holder's shoulder, the phone held up and angled away to the right, in low warm event light so the body is nearly a silhouette with one highlight along the edge; two variants, a one-handed grip and a two-handed one. The device is built in three flat layers for exactly this swap, so the cutout replaces the body and the rim and nothing else moves.",
-    "Not a new ask: the corridor runs on the 12 landscape stand-ins and wants the 24 squares already requested (ASSETS row 2, asked by hero-source), 512 x 512, one grade, framed tight enough to read at 120 px. Nothing here needs row 3's phone-up photographs, because the near field is a cutout rather than a whole photograph.",
-  ],
   render: (p) => <Scan {...p} />,
 };
