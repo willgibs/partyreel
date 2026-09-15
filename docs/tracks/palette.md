@@ -793,7 +793,7 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
   ceiling rather than anything about this branch or the ignore-build gate (the manifest says
   `preview: true`, which the gate honours). **The Orchestrator has to force a redeploy at the head
   once a slot frees and confirm READY before Will walks this alias**, or the walk will be round two's
-  board wearing round three's label. The poll that does it, from round two's handoff and re-verified
+  board wearing round three's label. The call that does it, from round two's handoff and re-verified
   here: `POST api.vercel.com/v13/deployments?forceNew=1` with
   `{"name":"partyreel","project":"prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB","gitSource":{"type":"github","repoId":1252816746,"ref":"lp/palette","sha":"<head>"}}`
   and no `target` field (a `target` of "preview" is rejected as invalid).
@@ -810,8 +810,11 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
   slot on its own. **So: one attempt per slot interval, aligned to the last successful deployment in
   the list, never a tight poll.**
 - **So this round's QA was taken on a local production-equivalent dev server in the worktree**
-  (`pnpm dev` on :3047, the lab key on every URL), which serves the head exactly. Every number below
-  was measured there through the DOM, in a foreground-equivalent read, not eyeballed.
+  (`pnpm dev` in the worktree, the lab key on every URL), which serves the head exactly. Every
+  number below was measured there through the DOM rather than eyeballed. One thing to know if you
+  do the same: running `pnpm build` in a worktree that has `pnpm dev` up will eventually kill the
+  dev server, because they share `.next`; restart it on another port rather than doubting the
+  page.
 - Synced with `launch-prep` at `dd4aa0b` (it had moved by 13 commits, all of them the
   floating-surfaces track's own lane plus its manifest and the round-three reopen; merged clean,
   nothing in this lane touched).
