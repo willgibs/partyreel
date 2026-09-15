@@ -98,6 +98,13 @@ export const SITE_PAGES: SitePage[] = [
  * ★ AND NEITHER FRAME TAKES THE GATE KEY. These are SITE routes, so no design
  * island mounts inside them, which is what keeps a block applied globally from
  * reaching the frames and doubling up on the one written into them.
+ *
+ * ★ THEY LOAD ON APPROACH, AND THAT IS NOT A NICETY. Two frames are two whole
+ * marketing pages, and the home arc alone decodes two dozen photographs; loaded
+ * eagerly they are paid for on every visit to a thirty thousand pixel board
+ * whose reader may never reach this section, and the renderer said so (a
+ * screenshot of the page timed out while both were decoding). `onApproach` is
+ * the kit's answer and it costs one prop.
  */
 export function SiteFrames({
   page,
@@ -126,6 +133,7 @@ export function SiteFrames({
           title="Today"
           caption="The page as it ships, with no sheet written into it, for the eye to come back to."
           reloadKey={reloadKey}
+          onApproach
         />
       ) : null}
       <Frame
@@ -141,6 +149,7 @@ export function SiteFrames({
             : "The ruling's own paste, written into this document. Flip a switch in the dock and the page re-skins in place, with no reload and no scroll lost."
         }
         reloadKey={reloadKey}
+        onApproach
       />
     </FrameRow>
   );

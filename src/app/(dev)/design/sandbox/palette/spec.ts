@@ -161,39 +161,42 @@ export const PALETTE = defineBoard({
     },
   ],
 
+  /**
+   * ★ NONE OF THESE IS "RECOMMENDED", AND THAT IS NOT AN OMISSION. The flag
+   * marks the one a board lands on among RIVALS; these five are one proposal
+   * with five parts, and their rival is the other option of the model ask
+   * ("grounds", today's five unnamed values plus a literal). Marking all five
+   * printed "the board's answer" five times, which reads as five competing
+   * answers to a question nobody asked.
+   */
   candidates: [
     {
       id: "room",
       name: "The room (.dark)",
-      recommended: true,
       rationale:
         "The page in dark mode: the deepest ground a reader stands in, and the one everything else is read against. Every dark marketing chapter takes it, so cinema is this rather than a third value, and so does the app's dark mode. Today it is two values pretending to be one, 0.140 and a 0.110 override.",
     },
     {
       id: "slab",
       name: "The slab (.surface-ink)",
-      recommended: true,
       rationale:
         "A dark leaf inside a light page, so it sits LIGHTER than the room: a room dropped into paper reads as a hole. It takes the footer on every marketing page. Today it is derived from the well at 0.155 and declares no card, popover or input, so a Card in the footer renders in the paper card colour.",
     },
     {
       id: "paper",
       name: "The paper (:root, .surface-paper)",
-      recommended: true,
       rationale:
         "The page in light mode: the brightest ground, and the one a card has to lift off. It takes the marketing body and the app in light mode. Today it is 0.990 with the card at 0.997 and the menu at 0.997, so five surfaces sit inside 0.037 and a card is its hairline and nothing else.",
     },
     {
       id: "mat",
       name: "The mat (.surface-mat, new)",
-      recommended: true,
       rationale:
         "The set-apart ground on paper: a band, a form panel, a facts strip, with the card back at the top so a card on a mat still lifts. Today it is not a register at all, it is --muted at six alphas of a token that also does hover, and 40 percent over 0.990 is a one percent step.",
     },
     {
       id: "well",
       name: "The well (--gallery)",
-      recommended: true,
       rationale:
         "The bed a photograph is laid on. Always dark and belonging to neither mode, because a light page does not want a bright hole where an image has not decoded. Today it is 0.155 doing the slab's job too, and the deepest surface in the product is a literal instead, bg-black/90.",
     },
@@ -499,9 +502,21 @@ export const PALETTE = defineBoard({
     spec: "docs/specs/palette.md",
     pages: [
       { label: "Home", path: "/", note: "room into paper into slab" },
-      { label: "Pricing", path: "/pricing", note: "the mat, the cards, the table" },
-      { label: "Help", path: "/help", note: "the facts band and the closer panel" },
-      { label: "Contact", path: "/contact", note: "the fifth ground, now the mat" },
+      {
+        label: "Pricing",
+        path: "/pricing",
+        note: "the mat, the cards, the table",
+      },
+      {
+        label: "Help",
+        path: "/help",
+        note: "the facts band and the closer panel",
+      },
+      {
+        label: "Contact",
+        path: "/contact",
+        note: "the fifth ground, now the mat",
+      },
       {
         label: "The dashboard",
         path: "/dashboard",

@@ -199,6 +199,30 @@ function PairStage({
 }
 
 /**
+ * The five surfaces of one block, as a line. It is read off the SAME strings
+ * the canvas above it paints, so a number here cannot drift from a colour there,
+ * and it sits under the canvas rather than on it: under a wipe, two lines of
+ * numbers one over the other would be sliced down the middle and read as
+ * garbled (they used to be drawn inside each half, one block each).
+ */
+function steps(
+  pair: Pair,
+  ground: BoardGround,
+  tone: "light" | "dark",
+): string {
+  const block = blockFor(pair, ground);
+  const at = (token: string) => {
+    const l = lOf(block[token] ?? "", block);
+    return l === null ? "none" : l.toFixed(3);
+  };
+  return `${tone === "dark" ? "room" : "paper"} ${at("--background")}, ${
+    tone === "dark" ? "panel" : "mat"
+  } ${at("--muted")}, card ${at("--card")}, menu ${at("--popover")}, hover ${at(
+    "--secondary",
+  )}`;
+}
+
+/**
  * TODAY AND THE CANDIDATE IN ONE CANVAS, WITH THE SEAM ON A SLIDER.
  *
  * ★ THE ROW IS THE SCROLLER, NOT EACH HALF. `Compare` stacks B over A
@@ -241,7 +265,7 @@ function PairWipe({
         className="h-full w-full overflow-hidden bg-background text-foreground"
         style={pairStyle(p, ground)}
       >
-        <SurfaceStack mode={mode} block={blockFor(p, ground)} tone={tone} />
+        <SurfaceStack mode={mode} tone={tone} />
       </div>
     </Stage>
   );
@@ -355,8 +379,18 @@ export function PaletteBoard() {
             return (
               <>
                 <Labeled
-                  name={`the stack, the room · ${pair.dark.label}`}
-                  note="Today's room is 0.14, the card 0.21 at 62 percent, the panel 0.245, the menu 0.23 and the hover fill 0.25: five surfaces inside 0.11, two of them the wrong way round."
+                  name={`the stack, the room · today beside ${pair.dark.label}`}
+                  note={
+                    <>
+                      <span className="block tabular-nums">
+                        Today: {steps(todayPair, "app-dark", "dark")}. Five
+                        surfaces inside 0.11, two of them the wrong way round.
+                      </span>
+                      <span className="block tabular-nums">
+                        {pair.dark.label}: {steps(pair, "app-dark", "dark")}.
+                      </span>
+                    </>
+                  }
                 >
                   <PairWipe
                     todayPair={todayPair}
@@ -371,8 +405,19 @@ export function PaletteBoard() {
                   />
                 </Labeled>
                 <Labeled
-                  name={`the stack, the paper · ${pair.light.label}`}
-                  note="On paper today's five sit inside 0.037, so a card is its hairline and nothing else."
+                  name={`the stack, the paper · today beside ${pair.light.label}`}
+                  note={
+                    <>
+                      <span className="block tabular-nums">
+                        Today: {steps(todayPair, "app-light", "light")}. Five
+                        surfaces inside 0.037, so a card is its hairline and
+                        nothing else.
+                      </span>
+                      <span className="block tabular-nums">
+                        {pair.light.label}: {steps(pair, "app-light", "light")}.
+                      </span>
+                    </>
+                  }
                 >
                   <PairWipe
                     todayPair={todayPair}
@@ -525,9 +570,9 @@ export function PaletteBoard() {
                   </button>
                 </div>
                 <CellLabel className="mt-0 max-w-2xl">
-                  These three change this section only, so they stay beside it. A
-                  link clicked inside a frame navigates that frame; Reload brings
-                  it back.
+                  These three change this section only, so they stay beside it.
+                  A link clicked inside a frame navigates that frame; Reload
+                  brings it back.
                 </CellLabel>
                 <CellLabel className="mt-0 max-w-2xl">{page.note}</CellLabel>
                 <SiteFrames
@@ -613,7 +658,9 @@ export function PaletteBoard() {
                     <GuestAlbum mode={mode} />
                   </PairStage>
                 </Labeled>
-                <Labeled name={`the guest album, the room · ${pair.dark.label}`}>
+                <Labeled
+                  name={`the guest album, the room · ${pair.dark.label}`}
+                >
                   <PairStage
                     pair={pair}
                     ground="app-dark"
@@ -759,9 +806,9 @@ export function PaletteBoard() {
                     measurement; what changes is what the third line in each
                     canvas above is MADE of. */}
                 <CellLabel className="max-w-2xl">
-                  {FAINT_ALPHAS.map((a) => `${a.alpha} percent x${a.uses}`).join(
-                    ", ",
-                  )}
+                  {FAINT_ALPHAS.map(
+                    (a) => `${a.alpha} percent x${a.uses}`,
+                  ).join(", ")}
                   {` = ${FAINT_USES} sites dimming the second step by hand, ${FAINT_ALPHAS[3].uses} of them at exactly the 70 percent --faint is.`}
                 </CellLabel>
               </>
@@ -832,16 +879,17 @@ export function PaletteBoard() {
                     label: applyLabel(pair, s.opts),
                     css: applyCss(pair, s.opts),
                     what: `Hands the site ${pair.dark.label} dark and ${pair.light.label} light, the accent, and both switches.`,
-                    pages: "the home arc, pricing, help, contact, the dashboard",
+                    pages:
+                      "the home arc, pricing, help, contact, the dashboard",
                   }}
                 />
                 <WalkPages pages={WALK_PAGES} />
                 <CellLabel className="max-w-2xl">
-                  {inWords(WALK_PAGES.length)} links, each opening with the block
-                  standing. It persists in this browser until Clear, and the
-                  tuner panel on any of those pages clears it too. The event page
-                  needs the signed-in host, so the walk goes to the dashboard and
-                  the event is one click on.
+                  {inWords(WALK_PAGES.length)} links, each opening with the
+                  block standing. It persists in this browser until Clear, and
+                  the tuner panel on any of those pages clears it too. The event
+                  page needs the signed-in host, so the walk goes to the
+                  dashboard and the event is one click on.
                 </CellLabel>
                 {/* The RESOLVED pair, which is the point: the two sets, the dark
                     card and the missing step are all already in `pair`, so this
@@ -870,7 +918,8 @@ export function PaletteBoard() {
                       The missing step is ruled OUT, so the block above declares
                       no <span className="text-foreground">--faint</span>{" "}
                       anywhere and theme.css needs nothing: the {FAINT_USES}{" "}
-                      sites keep compositing an alpha of the second step by hand.
+                      sites keep compositing an alpha of the second step by
+                      hand.
                     </li>
                   )}
                   <li>
@@ -878,8 +927,8 @@ export function PaletteBoard() {
                     new class. The token block lands with the paste; the{" "}
                     {MAT_USES} sites that write bg-muted/N today become sections
                     that carry the class, which is a mechanical follow-up rather
-                    than part of this ruling. The mat switch emulates it with one
-                    rule, on the walk and in the live frames.
+                    than part of this ruling. The mat switch emulates it with
+                    one rule, on the walk and in the live frames.
                   </li>
                 </ul>
               </>
