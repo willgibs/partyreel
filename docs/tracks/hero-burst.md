@@ -527,12 +527,51 @@ now "One code, and the album fills." in place of "One code. Every angle.", subhe
 ## Handoff (round 3)
 
 - **Head**: the tip of `lp/hero-burst` (a manifest cannot name its own SHA). The round-three work is
-  two commits: `3c77594` (the cold walk) and **`59ed9d4`, the review pass**, which is the head of the
-  source; every commit after it changes this file alone. Pushed. The board is at
-  `/design/c/home-hero?key=` (concept 3 of 4). **The marker of the review pass is the proposed h1 "It
-  all comes out of this code."**; a surface still showing "Your album, from every angle." is the
-  pre-review head, and one showing "One code. Every angle." is round one. Two cheaper tells: 34
-  `.hhb-card` nodes and the stage control reading **Headline** rather than "h1".
+  three commits: `3c77594` (the cold walk), `59ed9d4` (the first review pass) and **`edcdebf`, the
+  second review pass**, which is the head of the source; every commit after it changes this file
+  alone. Pushed. The board is at `/design/c/home-hero?key=` (concept 3 of 4). **The marker of this
+  head is the copy ask on the board reading "Both halves of the trade" with a WHAT IT BUYS and a WHAT
+  IT COSTS**; an ask that instead says "The whole trade, because it is the easiest one on this board"
+  is the previous head. Older tells still hold: the proposed h1 is "It all comes out of this code."
+  (one showing "Your album, from every angle." predates the first review pass and "One code. Every
+  angle." is round one), there are 34 `.hhb-card` nodes, and the stage control reads **Headline**
+  rather than "h1".
+- ★ **What the SECOND review pass changed** (this pass, the last before Will's walk). A read-only
+  review of the handoff below found two should-fix items; both are closed in `edcdebf`, and the
+  file's own header carries the ledger (section "AND WHAT THE SECOND REVIEW CAUGHT").
+  1. **The acceptance test was flying a box no card has, and the first fix is what introduced it.**
+     Moving the 4:5 share off the candidate index and onto the SLOT was right, and it left the
+     viability walk flying the field's MEAN shape while re-running only the clearance on the real
+     box. So rule 4, the rule this concept rests on (a direction the canvas has no room for is not
+     launched), was being decided on a shape nothing flies: a ray accepted as a square-ish mean card
+     could then be handed a box a quarter taller, which clears the type later and touches the rim
+     sooner. Measured on the geometry at the previous head: **1 of 34 cards failing at 1440 xl, 6 of
+     32 at 375 lg, 7 of 32 at 375 xl**, every one of them a 4:5, and the worst (`hhb-21` at 375 lg)
+     peaked at **0.10 opacity for two instants**, which is a launch slot putting nothing on the
+     canvas once every 9.6 s, on the canvas this handoff tells Will to look at third. The mean now
+     weighs the DIRECTION and only that (viability and visible mass, neither of which should depend
+     on a shape lottery); the tall box is flown as its own question; and the 4:5 goes to every third
+     slot whose direction was accepted flying one, passing to the next slot that was wherever one was
+     not. A square card needs no third walk, because its box is smaller than the mean one on both
+     axes at every rotation. **0 failing at all four configurations now**, on the geometry and on the
+     running DOM, and the share is unchanged at **32, 32, 31, 31 percent**. What it moved: **nothing
+     at all at 1440 lg**, where the pool is identical card for card to the previous head; 2 of 34
+     cards swap shape at 1440 xl, 12 of 32 at 375 lg and 14 of 32 at 375 xl, always in pairs, so the
+     count never moves and no direction leaves the field.
+  2. **The copy ask carried a stale fact and half a trade.** It described the river as having taken
+     this concept's subhead. It is the other way round: the river published that pair (its h1 "One
+     code, and the whole event lands here." over the sentence "Every phone in the room finds it and
+     uploads at full size, with nothing to install.") at 21:16 on 2026-09-14, and this concept's
+     round two arrived at the same sentence at 21:45, so the duplicate was ours. Checked against
+     `river.tsx` as integrated on launch-prep, which still proposes exactly that pair. The ask now
+     states what the proposed line BUYS and what it COSTS (it names the mechanism where round two's
+     line named the outcome, so the album moves into the subhead, and "It all" is a pronoun the
+     picture has to answer, which makes the line the burst's rather than the site's), and the
+     one-word offer to put round two's phrasing back now says what taking it back costs: that line is
+     the river's own opening, shortened, so both concepts would be arguing one sentence again.
+  - One correction the review did not ask for, found while checking the ask: the portrait asset ask
+    was for **10** portraits while the desktop field lays out **11** 4:5 slots, so one frame would
+    have doubled. It asks for 11.
 - ★ **What the review pass changed, and why it is worth reading before the board.** A read-only review
   of the first round-three handoff found three should-fix defects, all of them PROSE that had outrun
   its CODE, and all three in the two things round three said it had fixed. They are fixed in the code
@@ -575,20 +614,33 @@ now "One code, and the album fills." in place of "One code. Every angle.", subhe
     is worth more than that.
 - **How it was verified, and the one thing that was not.** The brief said Vercel is at its daily
   deployment cap, so **no preview was built and none was asked for**: everything below is off a **local
-  production build in this worktree** (`pnpm build`, then `pnpm start` on :3100), driven in a
-  FOREGROUND page, both canvases, both copy modes, both headline steps. Not done: nothing on the
-  launch-prep alias, and nothing on a preview of this branch. ★ **The launch-prep alias is still
-  showing ROUND ONE of this concept** (26 cards, "One code. Every angle.") because it builds on
-  request, so pointing Will at the alias shows him work two rounds old.
-- **launch-prep had not moved**: `origin/launch-prep` is still `fb395fe`, the SHA in `cut`. No sync
-  merge was needed.
+  production build in this worktree** (`pnpm build`, then `pnpm start` on :3100), driven in a VISIBLE
+  page, both canvases, both copy modes, both headline steps, plus the pure geometry re-run headlessly
+  out of the shipped file. Not done: nothing on the launch-prep alias, and nothing on a preview of
+  this branch. ★ **The launch-prep alias is still showing ROUND ONE of this concept** (26 cards,
+  "One code. Every angle.") because it builds on request, so pointing Will at the alias shows him work
+  three rounds old.
+- **Two test-tool blind spots this pass hit, recorded so the next agent does not chase them**
+  (`docs/systems/testing-verification.md`). A driven tab that is not the foreground tab reports
+  `visibilityState: hidden`, so the stage sets `data-paused` and rAF never fires: the field then sits
+  at its pre-burst frame and reads as broken when it is not. Every running number below was taken in
+  a page that reported `visible`, and a page whose stage is far off screen advances the loop's clock
+  in slow motion, so each configuration was scrolled into view and given time to settle before it was
+  sampled. Separately, in the browser pane the page's own screenshot came back solid black even for a
+  `position: fixed` red probe div while the same DOM measured correctly, so the stills were captured
+  in the other browser by writing one measured frame's transforms onto the cards (the loop is a pure
+  function of the clock, so a frame lifted off the running field paints identically).
+- **launch-prep HAS moved** since `cut`: `origin/launch-prep` is `778bdf1` (brand-voice round three)
+  against the `fb395fe` in `cut`. **Nothing under `src/app/(dev)/design/sandbox/home-hero/` changed
+  between them** (`git diff fb395fe origin/launch-prep -- <that dir>` is empty), so no sync merge was
+  taken, and the river this concept's copy ask cites is the one integrated there.
 - Gates on the tree at the head: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing, on
   `contact-form.tsx`, two album sections, `jobs.ts` and `use-flip.ts`), test ok (1761 in 197 files),
   build ok (248 static pages; this change adds no route).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-burst.md`,
   `src/app/(dev)/design/sandbox/home-hero/burst.css`,
-  `src/app/(dev)/design/sandbox/home-hero/burst.tsx`. **No exceptions.** The review pass itself touched
-  `burst.tsx` alone.
+  `src/app/(dev)/design/sandbox/home-hero/burst.tsx`. **No exceptions.** Each review pass touched
+  `burst.tsx` alone, and this one changed no CSS at all.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
 - **"Apply to the site" does not apply to this board.** The shell's candidate block hands the site a
   CSS paste; this concept is a composition, not a token change, so there is no block to apply and
@@ -605,12 +657,13 @@ now "One code, and the album fills." in place of "One code. Every angle.", subhe
      hands, a glass, a sparkler, a first dance), never a wide room shot · replaces the 12 landscape
      stand-ins the field cycles (`FRAMES` in `shared.tsx`). This is `docs/ASSETS.md` row 2, already
      requested for the source; the same 24 serve the burst.
-  2. **10 more as 4:5 portraits** · 512 x 640, same grade, and they may be recrops of the 24 rather
-     than new photography · replaces the square box on **every third slot** of the field, which is now
-     genuinely a third of it at every canvas and every headline step (measured 32, 32, 31, 31 percent;
-     before the review pass the phone at xl was 9 percent, so this quantity was being asked for against
-     a share the code did not produce). Takes the pool to 34 so no frame is on screen twice on the
-     desktop canvas.
+  2. **11 more as 4:5 portraits** · 512 x 640, same grade, and they may be recrops of the 24 rather
+     than new photography · one for every 4:5 slot the desktop field lays out (**11 of 34**; the phone
+     lays out 10 of 32), so with row 2's 24 squares no frame is on screen twice · replaces the square
+     box on the third of the field that lays out 4:5 at every canvas and every headline step
+     (measured 32, 32, 31, 31 percent; before the first review pass the phone at xl was 9 percent, so
+     this quantity was being asked for against a share the code did not produce, and the ask itself
+     said 10 against a field that shows 11).
   3. Nothing else. The QR is the real demo event's, live from `NEXT_PUBLIC_DEMO_QR_TOKEN`; no plate
      art, no lamp and no video in this concept.
 - **The asks, verbatim from the board** (the three "Rule on" lines; each answers in one word. The
@@ -623,18 +676,32 @@ now "One code, and the album fills." in place of "One code. Every angle.", subhe
      site ladder (bible 5)."
   2. "Rule on, the copy: proposed or ruled. Proposed is 'It all comes out of this code.' over 'Every
      guest shoots from a different spot, and all of it reaches you at full size. No app, no account.'
-     The whole trade, because it is the easiest one on this board to rule in the wrong word: round two
-     proposed 'One code, and the album fills.' and the river now opens 'One code, and' with my subhead
-     verbatim, so the pair had to move; round three's first answer moved off the code entirely to
-     'Your album, from every angle.', which gave up the wrong half, because the standing ruling on this
-     board is that the code as the basis of the feature is the distinct thing and a generic album is
-     the weak one. The collision was in the sentence, not in the code. This line keeps the code in the
-     headline, says what only this concept shows (every frame on screen came out of that object), and
-     collides with nothing the other three propose. If you would rather have round two's phrasing back,
-     say so and it returns with the subhead still rewritten. The ruled thesis stays the default under
-     the board's copy toggle (bible 21)."
+     Both halves of the trade, because this is the easiest thing on the board to rule in the wrong
+     word. WHAT IT BUYS: the code stays in the headline, which is the standing ruling here (the code
+     as the basis of the feature is the distinct thing; a generic album is the weak one), the line
+     says the one thing only this concept shows, that every frame on screen came out of that object,
+     and it collides with nothing the other three propose. WHAT IT COSTS: it names the mechanism where
+     round two's line named the outcome, so the album now arrives in the subhead instead of the
+     headline, and 'It all' is a pronoun the picture has to answer, which makes the line the burst's
+     rather than the site's. WHY IT MOVED: round two proposed 'One code, and the album fills.' over
+     the subhead the river had published half an hour earlier, and the river, now integrated on
+     launch-prep, opens 'One code, and the whole event lands here.' over that same sentence, so the
+     duplicate was this concept's to fix. Round three's first answer, 'Your album, from every angle.',
+     gave up the wrong half by giving up the code. Round two's phrasing can come back on one word, and
+     it comes back into that collision: the line is the river's own opening, shortened, and both
+     concepts would again be arguing one sentence. The ruled thesis stays the default under the
+     board's copy toggle (bible 21)."
   3. "Rule on, the lockup: centred or left. Precedent, not law. The code owns the axis here, so the
      type is centred on it. The first thing to overrule if the home hero should stay left."
+- **A finding on this concept's own subhead, flagged rather than acted on.** The voice guide's first
+  rule (`docs/specs/brand-voice.md`: lead with what arrives, an absence may be the second beat, never
+  the first, and never both) reads against the proposed subhead's closing "No app, no account.",
+  which is two absences in one beat; the river rewrote its own line to name a single absence for
+  exactly that reason. It was not changed on this pass: every keep-out box on this stage is the union
+  of BOTH copy modes' real ink, and a longer or shorter second sentence moves the phone's line count,
+  which would put the quiet zone back into the measurement queue on the last pass before the review.
+  It is a one-line change ("No app to install." is the obvious form) for whoever wires this concept,
+  with the boxes re-measured against it.
   The two DEPARTURES, flagged rather than asked (they need no ruling unless Will wants to reverse
   one): the frames' drop shadow, which is the light spec's LIFT family at four times the offsets in
   a hero the standing ruling says is unlit (bible 10, a shadow and never a lamp, nothing darkened);
@@ -667,20 +734,21 @@ now "One code, and the album fills." in place of "One code. Every angle.", subhe
      VISIBLE MASS rather than in directions launched (`BALANCE`, enforced after the eighth card,
      relaxed if the pool would come up short, and the selection put back into golden order so the
      launch cadence still alternates sides); and that mass is CLIPPED to the canvas, which is the
-     review-pass correction without which the first two were being cancelled out. Measured live:
-     **56 / 44** above and below at 375 against the 61 / 39 this pass started from, and 13.8 frames on
-     screen against the desktop canvas's 14.2.
+     review-pass correction without which the first two were being cancelled out. Measured live at
+     this head: **54 / 46** above and below at 375 lg and **50 / 50** at 375 xl, against the 61 / 39
+     this pass started from, and 11.8 frames on screen against the desktop canvas's 14.8.
   4. **The rest state was a freeze frame.** What reduced motion, a crawler, a cold paint and a reader
      with JavaScript off got was the running field stopped mid-flight: half of it dissolving at the
      rim, a hole in the middle, **10 of 32 frames visible at 375**. It is a composition of its own now
      (`restFrame`), solved rather than sampled: **34 of 34 and 32 of 32 whole, at opacity 1, none over
      a word and none behind the plate**, at both canvases and both headline steps.
-  5. **The copy had become the river's, and then lost the code.** Round two proposed "One code, and the
+  5. **The copy was the river's, and then lost the code.** Round two proposed "One code, and the
      album fills." with the subhead "Every phone in the room finds it and uploads at full size, with
-     nothing to install."; the river now proposes "One code, and the whole event lands here." over
-     **that same subhead, word for word**. Both lines are rewritten to what only this concept can say,
-     and the h1 keeps the code (see the review pass above). (The scan reached the same collision from
-     the other side in its round three and moved off "One code" too.)
+     nothing to install."; the river proposes "One code, and the whole event lands here." over **that
+     same subhead, word for word**, and it published that pair half an hour before this concept did,
+     so the duplicate was ours to fix. Both lines are rewritten to what only this concept can say,
+     and the h1 keeps the code (see the review passes above). (The scan reached the same collision
+     from the other side in its round three and moved off "One code" too.)
   6. **The one control on the stage said "h1" at 0.45 opacity.** It says **Headline**, sits at 0.68
      until hover, and is sized for the canvas it is on (the phone stage renders at 1:1 while the
      desktop one is zoom-fitted to 0.69, so the same pill was half again as loud at 375).
@@ -689,41 +757,52 @@ now "One code, and the album fills." in place of "One code. Every angle.", subhe
   "the album covers X of the canvas" is the union of the visible card rects CLIPPED to the canvas on an
   8 px grid, and the above/below and left/right splits are that same clipped area weighted by each
   card's opacity. A number measured another way is not comparable to these.
-  - **The field, sampled every 120 ms over 10 s at 1440 and 6 s elsewhere, in both copy modes** (the
-    two modes measured the same to within a frame, so one row each). 1440 lg: **14.2** frames on
-    screen, covering **0.29** of the canvas, **48 / 52** above and below the code and **51 / 49** left
-    and right, median frame 233 px, widest 482. 1440 xl: 12.0, 0.24, 46 / 54, 50 / 50, median 241,
-    widest 492. 375 lg: **13.8**, **0.23**, **56 / 44**, 47 / 53, median 89, widest 268. 375 xl: 10.7,
-    0.21, 43 / 57, 43 / 57, median 156, widest 274. A photograph slides out from under the plate
-    **5 times in 12 s at 1440** (one about every 2.4 s) and 16 times at 375.
+  - **The field, sampled every 120 ms over 10 s in a settled loop, in both copy modes** (the two
+    modes measured the same to within a frame and a point, so one row each; re-taken at this head,
+    and the whole table moved a little because the sampler is this pass's, so read these against each
+    other rather than against the last handoff's). 1440 lg: **14.8** frames on screen, covering
+    **0.32** of the canvas, **49 / 51** above and below the code and **51 / 49** left and right,
+    median frame 238 px, widest 513. 1440 xl: 12.8, 0.29, 49 / 51, 52 / 48, median 254, widest 531.
+    375 lg: **11.8**, **0.24**, **54 / 46**, 48 / 52, median 122, widest 273. 375 xl: 11.3, 0.25,
+    50 / 50, 51 / 49, median 174, widest 295.
   - **The quiet zone, eight runs** (1440 and 375, lg and xl, ruled and proposed), every visible card at
     every sample against the h1's, the caption's and the sentence's real INK rects and both buttons'
-    boxes: **zero overlaps in roughly 390 sampled frames**, closest approach **28.1 px** at 1440 and
-    **21.6 px** at 375. No photograph is ever under a word, at any moment of the loop, with no scrim
-    and no darkening layer anywhere.
+    boxes: **zero overlaps in 8482 card samples over 667 sampled frames**, closest approach **27.1 px**
+    at 1440 and **22.1 px** at 375. No photograph is ever under a word, at any moment of the loop,
+    with no scrim and no darkening layer anywhere, and that holds for the 4:5 boxes the shape map
+    moved this pass, because the clearance scan is re-run on the shape each card actually gets.
   - **The settled composition** (what reduced motion, a crawler, the cold paint and a reader with
     JavaScript off get), read off the `--hhb-rest` and `--hhb-rest-o` properties the reduced-motion
     cascade uses: **34 of 34 and 32 of 32 frames whole**, **0 cut by the rim**, **0 overlapping any
     word**, **0 behind the plate**, **every one at opacity 1**. It covers **0.51** of the 1440 canvas
-    at lg and 0.40 at xl, **0.36** of the 375 canvas at lg and 0.32 at xl, with frames from 82 to 341
-    px at 1440 and 38 to 175 at 375. (One phone frame at the xl step touches the rim inside the
-    transform's own two-decimal rounding; nothing is visibly cut.)
+    at lg and 0.40 at xl, **0.36** of the 375 canvas at lg and 0.33 at xl, with frames from 82 to 341
+    px at 1440 (82 to 318 at xl) and 38 to 175 at 375 (38 to 126 at xl). Re-taken at this head, on the
+    geometry as well as the DOM, because the shape map moved which cards are 4:5.
   - **Reduced motion.** The loop's own guard was exercised by forcing the media query true and
     remounting: **0 of 34 cards carry an inline transform and 0 move over 1200 ms**. The CSS half was
     exercised by deleting the `no-preference` rule, which is exactly what that reader's cascade does:
     **34 of 34 at 1440 and 32 of 32 at 375, all at opacity 1, 0 past the rim**.
   - **The shape mix**, counted off the rendered boxes: **11 of 34 portrait at 1440** (32 percent, both
-    steps) and **10 of 32 at 375** (31 percent, both steps). Before the review pass: 11, 9, 6, **3**.
-  - **The three beats after a Replay** (sampled live in a foreground page, 1440, from the click):
+    steps) and **10 of 32 at 375** (31 percent, both steps), unchanged by this pass, which moved which
+    cards carry the 4:5 and never how many. Before the first review pass: 11, 9, 6, **3**.
+  - **Rule 4 on the box each card really flies** (the defect this pass fixes), per card over a 13 s
+    window, which is longer than either canvas's cycle: **0 of 34 and 0 of 32 failing** at all four
+    configurations, minimum peak opacity **0.85** at 1440 xl and **0.75** at both 375 steps, minimum
+    time alive **1626 ms**. Re-run headlessly on the pure geometry: the same 0, 0, 0, 0 against the
+    **0, 1, 6, 7** the previous head produced.
+  - **The three beats after a Replay** (sampled live in a foreground page, 1440 lg, from the click,
+    at the previous head; they stand unchanged here because the 1440 lg pool is identical card for
+    card at this head and the entrance expression was not touched):
     nothing until **456 ms**; 5 frames from 456 to 915 ms growing 34 px to 90 px (the slip, most of it
     still behind the plate); 6 at 1007 (137 px), 11 at 1100, **17 at 1191**, 21 to 23 from 1283 to
     1466 with the widest going 340 px to 403 px (the eruption); settling to 15 to 19.
   - **Cost.** Frame interval median **8.3 ms, p99 9.4, max 9.4** over 239 frames on a 120 Hz display,
     **with all four concepts of the board mounted and running**, so not one frame was late against an
     8.3 ms budget. The loop writes only `transform`, `opacity` and `z-index` and its per-frame
-    expression is unchanged by this pass: everything the review pass added (the slot shapes, the
-    clearance re-scan, the solved still) runs ONCE while the pool is built, never per frame. One
-    compositor layer per card, 34 at 1440 and 32 at 375, nothing promoted twice.
+    expression is unchanged by either review pass: everything they added (the slot shapes, the second
+    acceptance walk at 4:5, the clearance re-scan, the solved still) runs ONCE while the pool is
+    built, never per frame, and the pool is built once per canvas and headline step and memoized.
+    One compositor layer per card, 34 at 1440 and 32 at 375, nothing promoted twice.
   - **The served HTML** (from the production build's own server): 34 `.hhb-card` nodes with 34
     `--hhb-rest` and 34 `--hhb-rest-o` declarations, so the settled album is in the markup; the h1
     at 72 px at lg and 96 px at xl (36 and 48 on the phone); **0 `font-mono`**, **0 em-dashes** and
@@ -731,7 +810,7 @@ now "One code, and the album fills." in place of "One code. Every angle.", subhe
   - **The design-key gate** on that build: `/design/c/home-hero` is **404** with no key, **404** with a
     wrong key, **200** with the key. **Page overflow** 0 px horizontally, and the concept's root
     cannot be scrolled at all. **Console**: 0 errors and no hydration warning across every toggle.
-- **Look at first**: **reduced motion**, which is the thing the review pass rebuilt and the honest test
+- **Look at first**: **reduced motion**, which is the thing the first review pass rebuilt and the honest test
   of the whole claim: the board becomes the entire album standing still around the code, every
   photograph complete, none of them over a word, which is also what a crawler and the first paint get.
   Then the first second and a half after a Replay, in a foreground tab, and specifically the moment a
