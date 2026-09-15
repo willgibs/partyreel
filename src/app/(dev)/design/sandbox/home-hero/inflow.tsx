@@ -596,30 +596,14 @@ function Inflow({ mode, copy, qrUrl }: ConceptProps) {
   );
 }
 
+/**
+ * The engine, and nothing else (the Library x Lab migration wave, 2026-09-15).
+ * The name, the rationale, the copy proposal, the departures and the assets
+ * this concept asks for are `spec.ts`'s `inflow` candidate now: a board's
+ * argument has to be pure data, because `sandbox/registry.ts` is imported by a
+ * server page and by node tests. Nothing above this line changed.
+ */
 export const inflow: Concept = {
   id: "inflow",
-  n: 3,
-  name: "The inflow",
-  rationale:
-    "The mirror of the source, built to answer one question honestly. Guests' photographs come out of the dark at the edges of the room, close on the code, and slide UNDER its white plate: nothing ever fades at the code, because an object hidden behind something opaque has gone somewhere and an object that dissolves has been erased. Each landing pushes a ring out of the plate and ticks the count under it, and on load the whole room closes on the code once before settling. The verdict, which is what this variation was built to give: in MOTION it reads, and it is the truer sentence. In a STILL it does not: the corridor is geometrically the same picture as the source, and the only cue left is the words. A directional soft edge on every frame was tried as the fix and abandoned, because at a strength you can see it is eating the photograph. The second finding is the one that decides it: the source's frames grow as they travel, so the album gets MORE legible the longer you look, while the inflow's shrink to nothing at the object you want looked at. Recommendation: keep the source as the home hero. Keep this one for a surface where the reader is already moving and 'everything lands here' is the sentence, the album page or /features/qr.",
-  eyebrow:
-    "The code itself, at the centre, with no label: the eyebrow is the object, and here it is the destination.",
-  proposed: {
-    h1: "Everything they shoot lands here.",
-    subhead:
-      "Guests scan the code, and every photo and video they take goes straight into your album. Nothing to install.",
-    secondary: "See a real album",
-  },
-  departures: [
-    "Bible 13, decorative layer only, and a milder trade than the source's: with JavaScript off and motion allowed the corridor rests one beat further out than its steady spacing, because the gather's first frame lives inside the reduced-motion block (an effect would paint the steady corridor and then jump it outward). Both states are a full corridor rather than a collapsed one, which the source's pre-burst frame was not. The h1, the code, the count, the subhead and the CTAs are plain markup and never gated, and reduced motion gets the corridor flowing at its steady spacing.",
-    "The splash ring carries an 18 px outer glow, which is the concept's one departure from the standing cinema-and-unlit ruling. Measured, not decorative: a hairline ring at the opacity a ripple wants is invisible the moment it crosses a photograph, and the plate is surrounded by photographs by construction, so at a hairline the landing is only legible over the dark. There is no inner glow, which would whiten the plate and the frames under it, and bible 1 does not allow that.",
-    "The count under the code is the one fabricated thing in the frame, and it is load-bearing here in a way it is not on the other concepts: it is what separates arriving from vanishing. At wiring it reads the demo event's real total and each tick is one real upload. Rule on whether a hero may carry a live number at all; if it may not, this concept loses its clearest signal and the recommendation to keep the source gets stronger.",
-    "Precedent, not law: the lockup is centred rather than left-aligned, inherited from the source because the code owns the axis. The first thing to overrule if the home hero should stay left.",
-  ],
-  assets: [
-    "The same 24 event photographs the source asks for, as 512 x 512 squares, one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals (docs/ASSETS.md row 2). No second set: both concepts cycle FRAMES in shared.tsx, the left arm taking the first twelve and the right arm the last twelve so the two arms never carry the same frame.",
-    "Framed tight enough to read at 120 px: a face, two hands, a glass, a sparkler, a first dance. The inflow needs this more than the source does, because its frames are at full strength for the whole of their approach rather than fading in, so a grey room shot is on screen and legible for four seconds.",
-    "Nothing else. The code is the real demo event's, live from NEXT_PUBLIC_DEMO_QR_TOKEN; there is no plate art, no lamp and no video in this concept.",
-  ],
   render: (p) => <Inflow {...p} />,
 };

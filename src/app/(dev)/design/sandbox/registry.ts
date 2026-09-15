@@ -2,6 +2,7 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
 import { GLOW_MOMENTS } from "./glow-moments/spec";
+import { HOME_HERO } from "./home-hero/spec";
 import { LIGHT } from "./light/spec";
 import { ROUNDING } from "./rounding/spec";
 
@@ -21,6 +22,7 @@ import { ROUNDING } from "./rounding/spec";
  * drops `legacy` flags board by board; this list only grows.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  HOME_HERO,
   GLOW_DOCTRINE,
   GLOW_MOMENTS,
   LIGHT,
