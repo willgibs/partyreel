@@ -69,10 +69,10 @@ import {
  * walked the board the way Will will and made it RULABLE: the board says what
  * it would ship, four asks instead of six, a glance table that answers "do two
  * of these read the same", and five stages cut because the paste or another
- * stage already told that story. Sixteen stages became eleven, and measured at
- * both canvases the walk came down from 11,847 to 10,785 pixels at 1440 and
- * from 17,412 to 14,770 at 375, with the whole ruling now inside the first
- * screen and a half instead of nowhere.
+ * stage already told that story. Sixteen stages became eleven, and measured off
+ * the DOM at the same 992px lab column the walk came down from 11,847 to 10,450
+ * pixels on the desktop canvas and from 17,412 to 14,089 on the phone one, with
+ * the whole ruling now inside the first screen and a half instead of nowhere.
  *
  * ── HOW TO READ IT ──
  * The answer is at the top. Under it, apply a candidate and walk the real site.
@@ -792,7 +792,7 @@ function specimenHeight(ladder: Ladder, mode: Mode): number {
     const spec = mode === "phone" ? pair.phone : pair.desktop;
     return sum + Math.max(spec.px * spec.lh, spec.px);
   }, 0);
-  return Math.round(ink + rows.length * (mode === "phone" ? 68 : 52) + 190);
+  return Math.round(ink + rows.length * (mode === "phone" ? 60 : 52) + 150);
 }
 
 function displayHeight(mode: Mode): number {
@@ -840,7 +840,10 @@ function lawHeight(ladder: Ladder, mode: Mode): number {
   const column = phone ? 335 : 1400;
   const chars = "Every photo, from every guest".length;
   const lines = Math.max(1, Math.ceil((spec.px * 0.45 * chars) / column));
-  return Math.round((phone ? 720 : 760) + 2 * lines * spec.px * spec.lh + 260);
+  // The constant is the rest of the stage measured off the DOM (the law rows,
+  // the two cards, the paragraphs) plus about forty pixels of slack, so the
+  // stage is neither half empty ground nor a crop.
+  return Math.round((phone ? 915 : 830) + 2 * lines * spec.px * spec.lh);
 }
 
 export function TypeScaleBoard() {
@@ -854,9 +857,14 @@ export function TypeScaleBoard() {
   const phone = mode === "phone";
   const tall = phone ? 760 : 930;
   // The app surfaces are short: a dashboard with three events fills a quarter
-  // of a 930px canvas, and three stages of empty ground is a lot of scroll
-  // between the tiers being compared. The phone canvas stays a real viewport.
+  // of a 930px canvas, and empty ground is a lot of scroll between the tiers
+  // being compared. Round three measured each stage's ink off the DOM and cut
+  // the desktop canvases to it (the dashboard is 243px of ink, the event page
+  // 498), so no stage is more than about a sixth empty ground. The phone canvas
+  // stays a real viewport: whether an app title reads right on a phone needs
+  // the phone.
   const app = phone ? 760 : 520;
+  const dash = phone ? 760 : 330;
 
   return (
     <div className="flex flex-col gap-6 py-4">
@@ -981,7 +989,7 @@ export function TypeScaleBoard() {
         {/* Deliberately taller than a phone viewport: three tiers stacked is
             more than 760px at 375, and a real phone answers that by scrolling.
             Cropping the cards here would hide the step this stage exists for. */}
-        <Frame mode={mode} ground="cinema" height={phone ? 1140 : tall}>
+        <Frame mode={mode} ground="cinema" height={phone ? 960 : tall}>
           <FeaturePage {...props} />
         </Frame>
       </Variant>
@@ -1009,7 +1017,7 @@ export function TypeScaleBoard() {
         rationale="PageHeading, the app's section tier and the card row, on the surface a host opens most. Today and A carry no step between the page title and the card, so the section heading renders what production ships: an 11px uppercase label inside an h2. Toggle today against C here to see the quiet register on a real dashboard."
         framed={false}
       >
-        <Frame mode={mode} ground="app-light" height={app}>
+        <Frame mode={mode} ground="app-light" height={dash}>
           <Dashboard {...props} />
         </Frame>
       </Variant>
@@ -1020,7 +1028,7 @@ export function TypeScaleBoard() {
         rationale="Production writes this tier three ways and none of them is a heading: 11px uppercase inside an h2 on the dashboard and the event feed, 14px in admin, and once sr-only so it is not drawn at all. Beside each, what the selected ladder puts there."
         framed={false}
       >
-        <Frame mode={mode} ground="app-light" height={phone ? 1180 : 660}>
+        <Frame mode={mode} ground="app-light" height={phone ? 1180 : 590}>
           <MissingMiddle {...props} />
         </Frame>
       </Variant>
@@ -1048,7 +1056,7 @@ export function TypeScaleBoard() {
         rationale="not-found-screen.tsx renders its title in Inter at 600, with a tracking-tight the theme zeroes. It is the marketing 404, the app 404, the admin 404 and a dead guest link. Putting it on the ladder is the fourth ask."
         framed={false}
       >
-        <Frame mode={mode} ground="app-light" height={phone ? 980 : 520}>
+        <Frame mode={mode} ground="app-light" height={phone ? 980 : 460}>
           <NotFoundStage {...props} />
         </Frame>
       </Variant>
