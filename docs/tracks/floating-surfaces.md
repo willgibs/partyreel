@@ -605,7 +605,7 @@ foreground Chrome tab, plus the same walk in dev.**
 7. **The asks are one word each** and the departures are only the four Will must rule on. The build
    findings moved down here, where the Orchestrator reads them.
 
-**Three shell changes the Orchestrator should carry (all outside this lane):**
+**Four things the Orchestrator should carry (all outside this lane):**
 
 1. **One line in `src/app/(guest)/layout.tsx`: mount `<AppDesignIsland />`.** `CandidateStyle` mounts
    in exactly three places (the lab layout, the marketing cinema island, the host app's island), so
@@ -622,7 +622,12 @@ foreground Chrome tab, plus the same walk in dev.**
    frame document's resident ground owner; the cover plus `nextjs-portal` hide; and round three's two
    additions, `useMountOnApproach` (row-level mounting, with the display-contents trap it fell into
    written down) and the "canvas at N%" badge. NOT this board's scenes, candidates or ramps.
-3. **Two small ones.** `BoardMeta`'s `grid-cols-[8rem_minmax(0,1fr)]` is not responsive: at 375 the
+3. **`docs/specs/floating-surfaces.md` needs its option lists trimmed at integration.** The
+   published proposal still offers the round-two rung sets in its angle brackets: line 36 lists
+   "origin true 200/130" and line 39 lists "a lit edge", both cut this round, and line 39's
+   "lighter is closer" is the baseline rather than a rung. The radius line (three rungs) is
+   unchanged. The spec is not in this lane's `owns`, so it is named here rather than edited.
+4. **Two small ones.** `BoardMeta`'s `grid-cols-[8rem_minmax(0,1fr)]` is not responsive: at 375 the
    label column eats 128 of 343 and every meta line wraps to three. A `sm:` on the two-column form
    would fix every board at once. And the touchpoint blurb for this board still says "All nine
    primitives ... three ladders at 1:1": the family is TEN (the guest entry shell) and there are two

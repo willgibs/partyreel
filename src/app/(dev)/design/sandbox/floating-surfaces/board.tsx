@@ -126,7 +126,7 @@ const LANDING: { ask: string; answer: string; why: string; row: number }[] = [
   {
     ask: "Light in dark",
     answer: "today",
-    why: "And it follows the light board rather than being ruled twice: the shadow rung is --lgt-float from docs/specs/light.md to the byte, so if a shadow comes back in dark there, this family takes it at those numbers. Until then today stands, because the popover already sits lighter than the card it opens from.",
+    why: "It follows the light board rather than being ruled twice: the shadow rung is --lgt-float from docs/specs/light.md to the byte, so if a shadow comes back in dark there, this family takes it at those numbers. Until then today stands, because the popover already sits lighter than the card it opens from.",
     row: 4,
   },
   {
