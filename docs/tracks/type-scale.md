@@ -388,9 +388,13 @@ by design)
 
 ## Handoff (round 2)
 
-- Head: this handoff commit, sitting on the review round's fix; both pushed. Preview
+- Head: this commit, sitting on the handoff and on the review round's fix; all pushed. Preview
   `partyreel-git-lp-type-scale-partyreel.vercel.app`, board at `/design/c/type-scale?key=`. The
-  alias follows the branch on its own; `[preview]` is in every build commit.
+  alias follows the branch on its own and `[preview]` is in every build commit, but the push of the
+  fix produced no deployment at all (GitHub created none for it, while other branches pushed before
+  and after it deployed normally), so the alias sat on the pre-fix build for twenty minutes. This
+  commit is the rebuild; if an alias ever looks a round behind, check for a MISSING deployment
+  before doubting the branch.
 - Synced with `launch-prep` at `4b035c1` (the cut: `ca952b5` had moved by one docs commit while the
   worktree was being made, so the branch was cut fresh from the newer tip). It has not moved since.
 - Gates on the synced tree, re-run after the review round's fix: typecheck ok, lint ok (0 errors, 7
