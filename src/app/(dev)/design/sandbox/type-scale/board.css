@@ -76,3 +76,14 @@
   border-bottom: 1px solid color-mix(in oklab, currentColor 20%, transparent);
   border-left: 1px solid color-mix(in oklab, currentColor 20%, transparent);
 }
+
+/* ROUND TWO: the 404 stage also changes FACE. The one h1 on the site that is
+   off the ladder is off it by face as well as by size (Inter 600, no
+   font-heading), so the "on the ladder" half of stage 14 has to set the heading
+   face and its weight as well as the step, or it would be comparing two sizes
+   of the wrong face. The same chain length as the rules above, for the same
+   reason. */
+[data-tsc] [data-tsc-page] [data-tsc-face] :is(h1, h2, h3) {
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: 700;
+}

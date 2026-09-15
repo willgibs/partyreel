@@ -48,8 +48,12 @@ export type StepPair = { phone: Spec; desktop: Spec };
 
 export type LadderId = "today" | "a" | "b" | "c";
 
+/** Every block the board can paste at the real site: the four ladders, plus the
+ *  tracking law on its own, which round two made adoptable without the sizes. */
+export type PasteId = LadderId | "law";
+
 export type Ladder = {
-  id: LadderId;
+  id: PasteId;
   name: string;
   /** One line on the board: what it is and why it might win. */
   rationale: string;
@@ -288,6 +292,8 @@ const C: Ladder = {
     "Two registers rather than one ladder. Marketing becomes editorial and much louder at the top; the app becomes an instrument and goes quieter, with weight carrying the hierarchy.",
   law: "Marketing and the app share the face and the tracking law and nothing else.",
   cost: "Two ladders to maintain, a 200px masthead that only holds one or two words, and an app page title that drops below today's.",
+  // The app register is round two's: 20 / 18 / 16, with the card step held at
+  // the floor. See the steps below for what was reconsidered and why.
   aliases: { prose: "section" },
   steps: {
     display: pair(s(80, 0.84, -0.05), s(200, 0.82, -0.05)),
@@ -296,9 +302,29 @@ const C: Ladder = {
     chapter: pair(s(32, 1.12, -0.03), s(56, 1.04, -0.034)),
     section: pair(s(26, 1.2, -0.026), s(40, 1.1, -0.03)),
     prose: pair(s(26, 1.2, -0.026), s(40, 1.1, -0.03)),
+    /**
+     * ★ ROUND TWO'S RECONSIDERATION (the brief asked for it from the ground
+     * up). Round one proposed 20 / 16 / 14. The page title at 20 SURVIVED:
+     * judged on the real dashboard, an app title is a locator rather than a
+     * headline, and 20 reads composed next to a 14px body. The card title at
+     * 14 did NOT. A Card sets `text-sm` on its whole subtree and
+     * CardDescription is `text-sm`, so a 14px CardTitle is exactly the size of
+     * the sentence beneath it: on the dashboard, where the event name is the
+     * one thing a host scans for, the title is then separated from its
+     * metadata by weight and colour alone. The site already ships that
+     * register deliberately (`Card size="sm"` steps the title down to 14), and
+     * a compact variant is not a default.
+     *
+     * So C keeps its quiet title and gains a FLOOR, which is the law round two
+     * adds and `ladders.test.ts` now pins for every ladder: no heading in the
+     * app is smaller than the body text it sits above (14px inside a card), so
+     * the card step stops at 16 and the section step takes 18. C is still the
+     * loudest claim on the board (a page title below today's 24); it is no
+     * longer the one that reads cheap.
+     */
     page: pair(s(20, 1.3, -0.014), s(20, 1.3, -0.014)),
-    subsection: pair(s(16, 1.4, -0.006), s(16, 1.4, -0.006)),
-    card: pair(s(14, 1.45, -0.002), s(14, 1.45, -0.002)),
+    subsection: pair(s(18, 1.35, -0.01), s(18, 1.35, -0.01)),
+    card: pair(s(16, 1.4, -0.006), s(16, 1.4, -0.006)),
   },
 };
 
@@ -387,3 +413,271 @@ export const FIXED_TOKENS: { token: string; size: string; note: string }[] = [
     note: "the Caption atom; the uppercase Eyebrow keeps its 0.14em.",
   },
 ];
+
+/* ───────────────── The tracking law, as a function of size ───────────────── */
+
+/**
+ * ROUND TWO: the law on its own (the third ask). "Letter-spacing and
+ * line-height run inverse to size" is the design system's own written rule and
+ * `font-heading`'s flat -0.03em is what does not implement it. Round one showed
+ * the law inside three candidates, where adopting it meant adopting a ladder
+ * too. It does not: the law is a FUNCTION of size, so it can be applied to the
+ * sizes the site already ships.
+ *
+ * B's rung table IS that function, sampled at fifteen points; `optics()` reads
+ * between the samples so any size has a law value, and `LAW_ONLY` below is
+ * today's ladder with nothing changed but its leading and its tracking.
+ */
+export function optics(px: number): { lh: number; ls: number } {
+  const exact = OPTICS[px];
+  if (exact) return exact;
+  const first = OPTICS[RUNGS[0]];
+  const last = OPTICS[RUNGS[RUNGS.length - 1]];
+  if (px <= RUNGS[0]) return first;
+  if (px >= RUNGS[RUNGS.length - 1]) return last;
+  const above = RUNGS.find((r) => r > px)!;
+  const below = RUNGS[RUNGS.indexOf(above) - 1];
+  const t = (px - below) / (above - below);
+  const a = OPTICS[below];
+  const b = OPTICS[above];
+  return {
+    lh: Number((a.lh + (b.lh - a.lh) * t).toFixed(3)),
+    ls: Number((a.ls + (b.ls - a.ls) * t).toFixed(4)),
+  };
+}
+
+/** A step re-optic'd: the same size, the law's leading and tracking. */
+const lawful = (spec: Spec): Spec => ({ px: spec.px, ...optics(spec.px) });
+
+/**
+ * Today's sizes under the law. Not a fifth ladder and never in `LADDERS`: it is
+ * the paste for "adopt the law, rule on the sizes later", and it is the only
+ * block on this board that moves no size at all.
+ */
+export const LAW_ONLY: Ladder = {
+  id: "law",
+  name: "The law alone",
+  rationale:
+    "Today's sizes, every one of them, with leading and tracking running inverse to size instead of a flat -0.03em. The smallest thing the board can ship.",
+  law: "Leading and tracking are read off the size, so no step chooses its own optics.",
+  cost: "None of today's three faults are fixed except the tracking one: the phone end still collapses and the app still has no middle.",
+  steps: Object.fromEntries(
+    STEPS.map((step) => {
+      const value = TODAY.steps[step.id];
+      return [
+        step.id,
+        value
+          ? { phone: lawful(value.phone), desktop: lawful(value.desktop) }
+          : null,
+      ];
+    }),
+  ) as Record<StepId, StepPair | null>,
+};
+
+/* ──────────────────── The app's floor (round two's law) ──────────────────── */
+
+/**
+ * A Card sets `text-sm` on its whole subtree and CardDescription is `text-sm`,
+ * so 14px is the body size a card title sits on top of. Round two's
+ * reconsideration of C turned that into a law the test pins for every ladder:
+ * an app heading is never smaller than the body under it, because below that
+ * line the hierarchy is carried by weight and colour alone and a host scanning
+ * a dashboard for an event name has nothing to aim at.
+ */
+export const APP_BODY_PX = 14;
+
+/* ─────────────── The paste: a candidate on the real site ──────────────── */
+
+/**
+ * WHERE EACH STEP LANDS IN PRODUCTION, as a selector.
+ *
+ * Round two's job was to make each candidate a real paste rather than a stage,
+ * so every step names the hook it has TODAY. Three kinds appear:
+ *  - a real hook: `.mkt-name` and `[data-slot="card-title"]` are named things;
+ *  - the ramp's top class: a step whose only signature is its Tailwind ramp is
+ *    matched by that ramp's widest class (`[class~="lg:text-7xl"]`). That is a
+ *    FEATURE here, not a hack: the four heroes that hand-roll the same ramp
+ *    (the home's cinema hero, qr-hero, reel-hero, events/[slug]) carry the same
+ *    class and move with the step, which is exactly what the ruling would do;
+ *  - no hook at all: the app's section heading is a label inside an h2 and has
+ *    no class worth matching, so the paste leaves it alone and says so.
+ *
+ * Tailwind's utilities live in `@layer utilities`, so any unlayered rule beats
+ * them whatever its specificity; the two selectors that have to beat
+ * marketing.css (unlayered, (0,3,0) on `.mkt-name`) match its shape and win on
+ * order, since the candidate style element is rendered after every stylesheet.
+ */
+export const HOOKS: Partial<
+  Record<StepId, { selector: string; note: string }>
+> = {
+  hero: {
+    selector: 'h1[class~="font-heading"][class~="lg:text-8xl"]',
+    note: "PageHero scale=xl, and the home hero that hand-rolls the same ramp",
+  },
+  title: {
+    selector: 'h1[class~="font-heading"][class~="lg:text-7xl"]',
+    note: "PageHero scale=lg: /help, the six feature heroes, qr, reel, an event page",
+  },
+  chapter: {
+    selector: '[class~="font-heading"][class~="lg:text-6xl"]',
+    note: "SectionShell scale=lg, and the article titles that stop at this step",
+  },
+  section: {
+    selector: '[class~="font-heading"][class~="lg:text-5xl"]',
+    note: "SectionShell default, about 70 sites",
+  },
+  prose: {
+    selector:
+      '[class~="font-heading"][class~="sm:text-3xl"]:not([class~="lg:text-5xl"])',
+    note: "the paper prose head: /about, /press, /help's sections, /contact",
+  },
+  page: {
+    selector:
+      'h1[class~="font-heading"]:is([class~="text-2xl"], [class~="text-3xl"], [class~="text-lg"]):not([class~="lg:text-5xl"])',
+    note: "PageHeading and its two size overrides (the event name, the admin bar)",
+  },
+  card: {
+    selector: '[data-slot="card-title"]',
+    note: "CardTitle, app and marketing",
+  },
+};
+
+const px3 = (n: number) => Number(n.toFixed(2));
+
+/** The three custom-property names for a step, in Tailwind v4's own font-size
+ *  shape, so the paste and the `@theme` bake use one set of names and a baked
+ *  step is a single utility class (`text-display` carries all three). */
+export function tokenNames(step: StepId) {
+  return {
+    size: `--text-${step}`,
+    lh: `--text-${step}--line-height`,
+    ls: `--text-${step}--letter-spacing`,
+  };
+}
+
+function tokenLines(ladder: Ladder, withSizes: boolean): string {
+  const lines: string[] = [];
+  for (const step of STEPS) {
+    const value = ladder.steps[step.id];
+    if (!value || ladder.aliases?.[step.id]) continue;
+    const n = tokenNames(step.id);
+    if (withSizes)
+      lines.push(`  ${n.size}: ${fluid(value.phone.px, value.desktop.px)};`);
+    lines.push(
+      `  ${n.lh}: ${fluid(px3(value.phone.px * value.phone.lh), px3(value.desktop.px * value.desktop.lh))};`,
+    );
+    lines.push(`  ${n.ls}: ${value.desktop.ls}em;`);
+  }
+  return lines.join("\n");
+}
+
+/** The step a folded alias reads from (C's prose is its section step). */
+const resolve = (ladder: Ladder, step: StepId): StepId =>
+  ladder.aliases?.[step] ?? step;
+
+function stepDecls(ladder: Ladder, step: StepId, withSizes: boolean): string {
+  const n = tokenNames(resolve(ladder, step));
+  const decls = [
+    `  line-height: var(${n.lh});`,
+    `  letter-spacing: var(${n.ls});`,
+  ];
+  if (withSizes) decls.unshift(`  font-size: var(${n.size});`);
+  return decls.join("\n");
+}
+
+/**
+ * THE BLOCK A RULING WOULD LAND, as the site can wear it today.
+ *
+ * `setCandidateCss` renders it as a style element after every stylesheet on
+ * every page with a key-gated island, so this is the candidate on the real
+ * home, the real /help and the real dashboard rather than on a stage. It is
+ * generated from the same data the stages render, so the two can never drift.
+ *
+ * The `law` block sets no font-size anywhere: that is what makes the third ask
+ * answerable on its own.
+ */
+export function candidateCss(ladder: Ladder): string {
+  const withSizes = ladder.id !== "law";
+  const out: string[] = [];
+  out.push(`/* The type scale: ${ladder.name}.
+   ${ladder.law}
+   Generated by the type-scale board from ladders.ts, which is the same data its
+   stages render. Token names are Tailwind v4's font-size shape, so the bake is
+   one @theme block and a baked step becomes one utility class.
+   ${withSizes ? "Sizes, leading and tracking." : "Leading and tracking only: not one size moves."} */`);
+  out.push(`:root {\n${tokenLines(ladder, withSizes)}\n}`);
+
+  const display = ladder.steps.display;
+  if (display) {
+    const n = tokenNames("display");
+    out.push(`/* The masthead (PageHero scale=display: /about, /press).
+   marketing.css settles .mkt-name at -0.03em from (0,3,0) selectors inside a
+   motion query, so the tracking is closed in those same two places and wins on
+   order, with nothing forced, and the opening squeeze is left running. */
+.mkt-name {
+${withSizes ? `  font-size: var(${n.size});\n` : ""}  line-height: var(${n.lh});
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-name {
+    letter-spacing: var(${n.ls});
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] [data-inview="true"] .mkt-name {
+    letter-spacing: var(${n.ls});
+  }
+}`);
+  }
+
+  for (const step of STEPS) {
+    if (step.id === "display") continue;
+    const hook = HOOKS[step.id];
+    const value = ladder.steps[step.id];
+    if (!hook || !value) continue;
+    out.push(
+      `/* ${step.label}: ${hook.note}. */\n${hook.selector} {\n${stepDecls(ladder, step.id, withSizes)}\n}`,
+    );
+  }
+
+  if (!ladder.steps.subsection) {
+    out.push(`/* The app's section heading has NO step in this ladder, and no hook either:
+   production writes it as an 11px uppercase label inside an h2 (the dashboard,
+   the event feed) or a 14px one (admin metrics, announcements). The paste
+   leaves it exactly as it ships; the board's stage 10 is where it is judged. */`);
+  } else {
+    out.push(`/* Subsection: the app's section heading. It has no hook today (an 11px
+   uppercase label inside an h2 on the dashboard, 14px in admin), so this step
+   cannot reach the real page from a paste. It needs the one-line hook the
+   board's handoff asks for; stage 10 shows what it does. */`);
+  }
+
+  const page = ladder.steps.page;
+  const prose = ladder.steps.prose ?? ladder.steps.section;
+  if (page && prose) {
+    out.push(`/* The 404, the one h1 on the site that is not on the ladder: it ships in
+   Inter at 600 (not-found-screen.tsx). Here it joins the ladder, at the app's
+   page step inside the app and at the prose step on marketing, which is the
+   fifth ask. */
+[data-not-found] h1 {
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: 700;
+${stepDecls(ladder, "page", withSizes)}
+}
+[data-mkt] [data-not-found] h1 {
+${stepDecls(ladder, ladder.steps.prose ? "prose" : "section", withSizes)}
+}`);
+  }
+
+  return out.join("\n\n") + "\n";
+}
+
+/**
+ * The same ladder as the `@theme` block the wiring round bakes into theme.css.
+ * Tailwind v4 reads `--text-x--line-height` and `--text-x--letter-spacing` as
+ * that size's defaults, so `class="text-title"` sets all three and the three
+ * four-breakpoint ramps in page-hero, section-shell and page-heading collapse
+ * to one class each.
+ */
+export function themeBlock(ladder: Ladder): string {
+  return `@theme {\n${tokenLines(ladder, true)}\n}\n`;
+}

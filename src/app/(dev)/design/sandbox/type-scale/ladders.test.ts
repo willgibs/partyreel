@@ -1,14 +1,20 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  APP_BODY_PX,
+  candidateCss,
   fluid,
+  HOOKS,
   LADDERS,
   ladderById,
+  LAW_ONLY,
+  optics,
   RUNGS,
   STEPS,
   type Ladder,
   type StepId,
   type Surface,
+  themeBlock,
   tokenTable,
 } from "./ladders";
 
@@ -188,5 +194,166 @@ describe("the token table", () => {
         expect(row.ls).toMatch(/em$/);
       }
     }
+  });
+});
+
+/* ─────────────────────────── Round two's laws ─────────────────────────── */
+
+describe("the app's floor: no heading under the body it sits on", () => {
+  // Round two's finding, from reconsidering C on a real dashboard: a Card sets
+  // `text-sm` on its whole subtree and CardDescription is `text-sm`, so 14px is
+  // the body an app heading sits above. A heading at or below it carries its
+  // rank on weight and colour alone, which is what C's 14px card title did to
+  // the event name, the one thing a host scans a dashboard for.
+  for (const ladder of LADDERS) {
+    it(`${ladder.id} keeps every app step above ${APP_BODY_PX}px`, () => {
+      for (const step of STEPS.filter((s) => s.surface === "app")) {
+        const value = ladder.steps[step.id];
+        if (!value) continue;
+        expect(value.phone.px).toBeGreaterThan(APP_BODY_PX);
+        expect(value.desktop.px).toBeGreaterThan(APP_BODY_PX);
+      }
+    });
+  }
+});
+
+describe("C's app register, as round two rebuilt it", () => {
+  const c = ladderById("c");
+  const today = ladderById("today");
+
+  it("is 20 / 18 / 16, quieter than today at the title and level at the card", () => {
+    expect(c.steps.page!.desktop.px).toBe(20);
+    expect(c.steps.subsection!.desktop.px).toBe(18);
+    expect(c.steps.card!.desktop.px).toBe(16);
+    expect(c.steps.page!.desktop.px).toBeLessThan(today.steps.page!.desktop.px);
+    expect(c.steps.card!.desktop.px).toBe(today.steps.card!.desktop.px);
+  });
+});
+
+describe("the tracking law, as a function of size", () => {
+  it("returns the rung's own optics at a rung", () => {
+    expect(optics(160)).toEqual({ lh: 0.86, ls: -0.045 });
+    expect(optics(16)).toEqual({ lh: 1.4, ls: -0.006 });
+  });
+
+  it("reads between the rungs and never inverts", () => {
+    const between = optics(30);
+    expect(between.lh).toBeLessThan(optics(28).lh);
+    expect(between.lh).toBeGreaterThan(optics(34).lh);
+    expect(between.ls).toBeLessThan(optics(28).ls);
+    expect(between.ls).toBeGreaterThan(optics(34).ls);
+  });
+
+  it("holds flat past both ends of the rung set", () => {
+    expect(optics(4)).toEqual(optics(RUNGS[0]));
+    expect(optics(400)).toEqual(optics(RUNGS[RUNGS.length - 1]));
+  });
+});
+
+describe("the law alone: today's sizes, nothing moved but the optics", () => {
+  const today = ladderById("today");
+
+  it("moves no size at either end", () => {
+    for (const step of STEPS) {
+      const law = LAW_ONLY.steps[step.id];
+      const now = today.steps[step.id];
+      expect(Boolean(law)).toBe(Boolean(now));
+      if (!law || !now) continue;
+      expect(law.phone.px).toBe(now.phone.px);
+      expect(law.desktop.px).toBe(now.desktop.px);
+    }
+  });
+
+  it("replaces the flat constant with a value per size", () => {
+    const tracking = new Set(
+      STEPS.filter((s) => LAW_ONLY.steps[s.id]).map(
+        (s) => LAW_ONLY.steps[s.id]!.desktop.ls,
+      ),
+    );
+    expect(tracking.size).toBeGreaterThanOrEqual(5);
+    expect(tracking.has(-0.03)).toBe(false);
+  });
+
+  it("is never in the candidate toggle", () => {
+    expect(LADDERS.map((l) => l.id)).not.toContain("law");
+  });
+});
+
+describe("the paste: a candidate against the real site", () => {
+  // Round two's centre of gravity: a candidate is a block of CSS applied to the
+  // whole site, so what it targets has to be REAL selectors that exist in
+  // production, never a stage-local class, and every custom property it spends
+  // has to be one it declares.
+  const ALL = [...LADDERS, LAW_ONLY];
+
+  it("targets the production hooks, not the board's own", () => {
+    for (const ladder of ALL) {
+      const css = candidateCss(ladder);
+      expect(css).toContain(".mkt-name");
+      expect(css).toContain('[data-slot="card-title"]');
+      expect(css).toContain("[data-not-found] h1");
+      expect(css).not.toContain("data-tsc");
+      expect(css).not.toContain("!important");
+    }
+  });
+
+  it("declares every token it spends", () => {
+    for (const ladder of ALL) {
+      const css = candidateCss(ladder);
+      const declared = new Set(
+        [...css.matchAll(/^\s*(--text-[a-z-]+):/gm)].map((m) => m[1]),
+      );
+      const spent = new Set(
+        [...css.matchAll(/var\((--text-[a-z-]+)\)/g)].map((m) => m[1]),
+      );
+      for (const token of spent) expect(declared).toContain(token);
+    }
+  });
+
+  it("moves no size in the law block, and every size in the others", () => {
+    expect(candidateCss(LAW_ONLY)).not.toContain("font-size:");
+    for (const ladder of LADDERS) {
+      expect(candidateCss(ladder)).toContain("font-size:");
+    }
+  });
+
+  it("closes the masthead's tracking in marketing.css's own two places", () => {
+    const css = candidateCss(ladderById("b"));
+    expect(css).toContain('[data-mkt] [data-inview="true"] .mkt-name');
+    expect(css).toContain("prefers-reduced-motion: reduce");
+  });
+
+  it("names a hook for every step that has one, and none for the app's middle", () => {
+    for (const step of STEPS) {
+      const hook = HOOKS[step.id];
+      if (step.id === "display" || step.id === "subsection") {
+        expect(hook).toBeUndefined();
+      } else {
+        expect(hook?.selector.length).toBeGreaterThan(5);
+      }
+    }
+  });
+});
+
+describe("the bake", () => {
+  it("emits Tailwind v4's font-size shape, so a step is one class", () => {
+    const block = themeBlock(ladderById("a"));
+    expect(block.startsWith("@theme {")).toBe(true);
+    expect(block).toContain("--text-title:");
+    expect(block).toContain("--text-title--line-height:");
+    expect(block).toContain("--text-title--letter-spacing:");
+  });
+});
+
+describe("the hero board's hand-rolled ladder", () => {
+  // The hero concepts resolve the xl step by hand (LADDER in
+  // sandbox/home-hero/shared.tsx: text-8xl on desktop, text-5xl on a phone) and
+  // stage 4 copies those two class strings rather than importing across boards.
+  // This is what keeps the copy honest: if today's hero step ever stops being
+  // 48/96, the copied strings are wrong and this fails.
+  it("is today's hero step at both ends", () => {
+    const hero = ladderById("today").steps.hero!;
+    expect(hero.phone.px).toBe(48);
+    expect(hero.desktop.px).toBe(96);
   });
 });
