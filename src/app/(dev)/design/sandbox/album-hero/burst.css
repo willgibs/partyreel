@@ -1,50 +1,48 @@
-/* The burst's own sheet (the home-hero board; round two of the concept,
-   2026-09-14). Keyframe prefix: hhb- (hhs- is the source's, hh- the board's;
-   keyframe names are document-global and keyframe-uniqueness.test.ts reads
-   every sheet under the lab). This sheet declares NONE, deliberately: the field
-   is one requestAnimationFrame loop writing inline transforms, so there is no
-   keyframe to collide with production and no [data-hh-loop] hook to mark (the
-   loop reads the stage's data-paused itself).
+/* The album hero field's own sheet (the album-hero track, round one,
+   2026-09-15). Keyframe prefix: alb- (keyframe names are document-global and
+   keyframe-uniqueness.test.ts reads every sheet under the lab). This sheet
+   declares NONE, deliberately: the field is one requestAnimationFrame loop
+   writing inline transforms, so there is no keyframe to collide with production
+   and no loop hook to mark (the loop reads the stage's data-paused itself).
 
    THE REST STATE / ENTRANCE SPLIT, and why it is inverted from the usual shape.
 
    House convention is "final states outside the media queries, entrances inside
    `no-preference`". That is exactly what this is, once you see which state is
-   which. The field's FINAL state is the album fully deployed around the code,
-   and it lives outside every query on `.hhb-card`, read from the per-card
-   custom properties the concept computes during render: a reduced-motion
-   reader, a crawler and the server's own HTML all get the burst standing still
-   at its steady-state positions, with nothing to undo.
+   which. The field's FINAL state is the album fully deployed around the vent,
+   and it lives outside every query on `.alb-card`, read from the per-card
+   custom properties the field computes during render: a reduced-motion reader,
+   a crawler and the server's own HTML all get the album standing still at its
+   steady-state positions, with nothing to undo.
 
-   The state inside `no-preference` is the burst's FIRST FRAME, every frame
-   collapsed inside the code. It has to live in CSS rather than in an effect,
-   because an effect runs after the server's paint: the field would paint
-   deployed, then snap back to the code, then burst. Put the pre-burst frame in
-   the same query the animation itself is allowed in and the burst is one beat.
-   It is also what the 260 ms hold rests on: for that first beat the loop writes
-   nothing at all, so this rule is the screen.
+   The state inside `no-preference` is the field's FIRST FRAME, every frame
+   collapsed on the origin at no size. It has to live in CSS rather than in an
+   effect, because an effect runs after the server's paint: the field would
+   paint deployed, then snap back to the origin, then bloom. Put the pre-bloom
+   frame in the same query the animation itself is allowed in and the bloom is
+   one beat. It is also what the 160 ms hold rests on: for that first beat the
+   loop writes nothing at all, so this rule is the screen.
 
    THE TRADE, flagged on the board under Departures: a reader with JavaScript
-   off who has NOT asked for less motion sees the field rest around the code.
-   Nothing that carries meaning is gated by it. The h1, the code, the caption,
-   the sentence and the actions are plain markup and never move. */
+   off who has NOT asked for less motion sees the album rest around the vent.
+   Nothing that carries meaning is gated by it. The eyebrow, the h1, the
+   sentence and the actions are plain markup and never move. */
 
-.hhb-field {
+.alb-field {
   position: absolute;
   inset: 0;
   /* Each card carries its own z-index so a near frame paints over a far one
      (the depth axis is the concept). This keeps that ordering contained: the
-     lockup and the plate above the field must not have to out-number 34 cards,
-     and the plate above the field is what hides a frame at its birth. */
+     lockup above the field must not have to out-number forty cards. */
   isolation: isolate;
 }
 
-.hhb-card {
+.alb-card {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: var(--hhb-rest);
-  opacity: var(--hhb-rest-o);
+  transform: var(--alb-rest);
+  opacity: var(--alb-rest-o);
   will-change: transform, opacity;
   backface-visibility: hidden;
 }
@@ -58,7 +56,7 @@
    The GEOMETRY and the CINEMA ALPHAS are the spec's verbatim: two sources, blur
    = 2x offset, spread = -offset/2, a single top light, 0.45 and 0.55 of black
    on a dark ground (0.06 over oklch(0.11) is arithmetically invisible, which is
-   the spec's whole point). The one number that is this concept's is the OFFSET
+   the spec's whole point). The one number that is this field's is the OFFSET
    SIZE, x4: LIFT separates two cards a pixel apart, and these are separated by
    a depth axis measured in hundreds of units. Flagged on the board.
 
@@ -66,88 +64,15 @@
    casts a small shadow and a near one a large one, which is what the depth axis
    wants and what a fixed pixel shadow could not give. It darkens the ground,
    never a photograph. */
-.hhb-card > * {
+.alb-card > * {
   box-shadow:
     0 8px 16px -4px oklch(0 0 0 / 0.45),
     0 16px 32px -8px oklch(0 0 0 / 0.55);
 }
 
-/* THE BOARD'S CONTROL, not part of the hero: the headline step, so the one
-   trade that changes the composition is ruled with both steps in view. Quiet
-   until it is wanted, on its own plate so it is legible over a photograph, and
-   it leaves with the board. */
-.hhb-lab {
-  position: absolute;
-  right: 14px;
-  bottom: 14px;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 4px 4px 9px;
-  border: 1px solid rgb(255 255 255 / 0.12);
-  border-radius: 999px;
-  background: rgb(0 0 0 / 0.6);
-  opacity: 0.68;
-  transition: opacity 140ms var(--ease-out, ease-out);
-}
-
-.hhb-lab:hover,
-.hhb-lab:focus-within {
-  opacity: 1;
-}
-
-/* The phone canvas is shown at 1:1 while the desktop one is zoom-fitted to
-   about 0.69, so the same pill is half again as loud at 375. This is the same
-   control, sized for the canvas it sits on. */
-.hhb-lab-sm {
-  right: 10px;
-  bottom: 10px;
-  padding: 3px 3px 3px 7px;
-  gap: 3px;
-}
-
-.hhb-lab-sm .hhb-lab-label {
-  font-size: 9px;
-}
-
-.hhb-lab-sm .hhb-lab-btn {
-  min-width: 22px;
-  padding: 1px 6px;
-  font-size: 10px;
-}
-
-.hhb-lab-label {
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgb(255 255 255 / 0.5);
-}
-
-.hhb-lab-btn {
-  min-width: 26px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  font-size: 11px;
-  line-height: 1.5;
-  color: rgb(255 255 255 / 0.6);
-  transition:
-    color 140ms var(--ease-out, ease-out),
-    background-color 140ms var(--ease-out, ease-out);
-}
-
-.hhb-lab-btn[aria-pressed="true"] {
-  background: rgb(255 255 255 / 0.16);
-  color: rgb(255 255 255 / 0.95);
-}
-
-.hhb-lab-btn:hover {
-  color: rgb(255 255 255 / 0.9);
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  /* The burst's first frame: every frame inside the code, at no size. */
-  .hhb-card {
+  /* The field's first frame: every frame on the origin, at no size. */
+  .alb-card {
     transform: translate3d(0, 0, 0) scale(0);
     opacity: 0;
   }

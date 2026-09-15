@@ -1,0 +1,50 @@
+/* The wide live album's sheet (the album-hero track, round one, 2026-09-15).
+   Keyframe prefix: alb-. */
+
+.alb-album {
+  /* The frame sits on the cinema ground of the chapter below the hero; the card
+     tokens inside it come from the stage's ground, so nothing is hard-coded. */
+  background: var(--background);
+}
+
+/* THE ONE PRODUCTION CHANGE THIS BOARD ARGUES FOR, made from the outside so the
+   shipped component is composed and never edited. `GuestMasonry` hard-codes
+   `columns-2`, which is the phone it was designed for; the album is also opened
+   on a laptop and shown on a marketing page, where two columns of 1440 are
+   700 px tiles. If Will rules the candidate in, the change in
+   src/components/guest/guest-masonry.tsx is this same declaration, responsive:
+   `columns-2 md:columns-3 xl:columns-4`. Driven by a variable here rather than
+   by a breakpoint because a lab stage is a CANVAS, and a Tailwind prefix inside
+   one reads the real browser viewport instead (stage.tsx). */
+.alb-grid :where([class~="columns-2"]) {
+  column-count: var(--alb-cols, 2);
+}
+
+/* The album's one live signal. The product's own --success, the state colour,
+   never a brand accent; 6 px, so it reads as a status light and not as motion.
+   Keyframe under the board's prefix (keyframe-uniqueness.test.ts). */
+.alb-live-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--success);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .alb-live-dot {
+    animation: alb-live-pulse 2s var(--ease-in-out, ease-in-out) infinite;
+  }
+}
+
+@keyframes alb-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--success) 45%, transparent);
+  }
+  50% {
+    opacity: 0.75;
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--success) 0%, transparent);
+  }
+}
