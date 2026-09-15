@@ -15,6 +15,7 @@ import {
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { SectionShell } from "@/components/marketing/system/section-shell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 import { Variant } from "../variant-frame";
@@ -24,10 +25,12 @@ import {
   CURATION_PAGE,
   FEATURES,
   GUEST_SURFACES,
+  HELP_HEADS,
   QUIET_SURFACES,
   REGISTERS,
   THESIS,
   UNFURL,
+  UTILITY_HEROES,
   VOICES,
   arcDiff,
   featureDiff,
@@ -36,40 +39,53 @@ import {
   pageCardDiff,
   pick,
   sectionHeadersPaste,
+  utilityDiff,
   voiceById,
   type ArcSection,
   type PageCard,
   type Surface,
   type Trio,
+  type UtilityHero,
   type VoiceId,
   type WholePage,
 } from "./voices";
 
 /**
- * THE BRAND-VOICE BOARD, ROUND TWO (2026-09-14).
+ * THE BRAND-VOICE BOARD, ROUND THREE (2026-09-14).
  *
- * WHAT CHANGED. Round one argued three voices on seven HEADERS and a handful
- * of sample surfaces. Will's read afterwards was that no track had reached
- * enough of its potential for a real review, and a voice is in any case judged
- * in a paragraph and a page, not a line. So round two walks WHOLE surfaces in
- * the selected voice: the home arc's fifteen sections top to bottom on their
- * real grounds, two feature pages whole, the six pages' thirty identity
- * strings with the paste the infusion round runs, the app's quiet copy, and
- * the guest surfaces with Partyreel nearly silent.
+ * WHAT ROUND TWO BUILT. Round one argued three voices on seven HEADERS; round
+ * two walked WHOLE surfaces in the selected voice, because a voice is judged in
+ * a paragraph and a page: the home arc's fifteen sections top to bottom on
+ * their real grounds, two feature pages whole, the six pages' thirty identity
+ * strings with the paste the infusion round runs, the app's quiet copy, and the
+ * guest surfaces with Partyreel nearly silent.
  *
- * THREE JUDGMENTS MADE FROM THE GROUND UP (bible 22), all flagged in
- * BoardMeta rather than buried:
- *  1. Candidate C was retired as a column. Its argument was the subject of one
- *     sentence, which over fifteen sections reads as B with a substitution.
- *     Its one real question, the ruled thesis, is now its own ask on the real
- *     hero (board 5).
- *  2. Every candidate ships as a PASTE. Copy is not CSS, so there is no "apply
- *     to the site" here; the equivalent is a block of real TypeScript for
- *     SECTION_HEADERS and FEATURE_PAGES, copied from the board.
- *  3. Every line a candidate HOLDS is marked, and each chapter carries a
- *     count. Where a voice does not bite is as much of the ruling as where it
- *     does, and it is the fastest way to see that A barely touches the feature
- *     pages.
+ * WHAT ROUND THREE CHANGED, which is the walk Will takes, taken first:
+ *  1. THE DECISION IS ON TOP. The recommendation, its cost and the three things
+ *     to look at open the board, the strongest candidate is the first column
+ *     and the default, and twelve chapters are a one-click index in the bar.
+ *     A fifteen-thousand-pixel board with its verdict at the bottom is a board
+ *     nobody rules on.
+ *  2. THE COST IS MEASURED, not asserted. A voice's price on a headline is how
+ *     many rows the h1 takes, so the board MEASURES all three columns at the
+ *     live canvas (RowCounts below) instead of printing a number typed into a
+ *     sentence months ago. The same ruler runs under the thesis.
+ *  3. THE PAGES THE ARC DOES NOT REACH. /help, /contact and /pricing carry the
+ *     site's two most generic lines and were on no board; the guide's own
+ *     surfaces table named a help article nothing had ever rendered. Chapter 9.
+ *  4. LESS TO RULE ON. Two departures moved into the asks they had become, the
+ *     twelve app and guest rewrites are marked as sweep work with the ONE row
+ *     bible 4 already decides called out (compelled, not an eighth ask: its
+ *     only choosable part, the noun, is ask 7), and the remaining departures
+ *     are only the ones Will must answer.
+ *
+ * STANDING JUDGMENTS from round two, kept: candidate C retired as a column
+ * (its one real question, the thesis, is chapter 5); every candidate ships as a
+ * real TypeScript PASTE, since copy cannot be applied to the site as CSS; every
+ * line a candidate HOLDS is marked and counted, because where a voice does not
+ * bite is as much of the ruling as where it does. A was re-judged from the
+ * ground up this round and keeps its column: it is the only answer that costs
+ * the feature pages almost nothing, which is an argument, not a shade of B.
  *
  * The lines live in ./voices.ts so this file is layout only. Nothing here is
  * imported by production and no production byte changed on this track.
@@ -88,30 +104,74 @@ import {
  * between sections is compressed so a chapter reads as one stretch.
  */
 
-const INTRO = [
-  "Round one wrote the voice down and argued it on seven headers. A voice is judged in a paragraph and a page, so round two walks whole surfaces: the home arc top to bottom on its real grounds, two feature pages whole, the thirty strings that carry the six feature pages, the app's quiet copy, and the guest surfaces.",
-  "Two candidates now, not three. A tunes the register the eight ratified lines already speak. B rebuilds it from the product's one idea, the code becoming the album. Candidate C from round one was retired as a column and its one real question, the ruled thesis, is board 5.",
-  "Every line a candidate keeps verbatim is marked held, and each chapter counts them, so the ruling can be a few words. Every candidate also ships as a paste: the boards below hand over the real SECTION_HEADERS and FEATURE_PAGES blocks.",
+/** The verdict, on top. A board this tall with its recommendation at the
+ *  bottom is a board that gets scrolled, not ruled on. */
+const LEAD = {
+  what: "What Partyreel sounds like, argued where a voice is actually judged: whole pages. Three columns, one toggle, and every line a candidate keeps verbatim marked held. Twelve chapters, and seven asks at the foot that each answer in one word.",
+  recommend: "B, the room.",
+  because:
+    "It is the only candidate built from the one thing only this product does, a code on a table becoming an album while the party is still going, and it is the reason a line here could not be said by a shared folder or a group chat.",
+  second:
+    "A, the house, is the cheap answer and a real one: it tunes the register the eight ratified lines already speak, and it barely touches the feature pages, which are finished.",
+};
+
+/** Three pointers, each an anchor. The round-three walk found that a stranger
+ *  reads the first screen and then scrolls looking for the argument. */
+const LOOK_AT = [
+  {
+    href: "#bv-2",
+    label: "Chapter 2 to 4, the arc top to bottom",
+    line: "Fifteen sections in shipped order on their real grounds. Read it once on Today and once on B; the bar counts what moved.",
+  },
+  {
+    href: "#bv-6",
+    label: "Chapters 6 and 7, the feature pages whole",
+    line: "Cards and all. The ledgers count what a voice costs there, and the answer is almost nothing: the arc is unwritten while these pages are finished.",
+  },
+  {
+    href: "#bv-9",
+    label: "Chapter 9, the pages the arc does not reach",
+    line: "/help, /contact and /pricing. Two of the site's most generic lines live here, and one of them is the model for the fence that keeps our support copy legal.",
+  },
+];
+
+/** The twelve chapters, for the index in the bar. */
+const CHAPTERS: { id: string; label: string }[] = [
+  { id: "bv-1", label: "1 voice" },
+  { id: "bv-2", label: "2 arc I" },
+  { id: "bv-3", label: "3 arc II" },
+  { id: "bv-4", label: "4 arc III" },
+  { id: "bv-5", label: "5 thesis" },
+  { id: "bv-6", label: "6 album" },
+  { id: "bv-7", label: "7 curation" },
+  { id: "bv-8", label: "8 strings" },
+  { id: "bv-9", label: "9 help, contact, pricing" },
+  { id: "bv-10", label: "10 the app" },
+  { id: "bv-11", label: "11 guests" },
+  { id: "bv-12", label: "12 unfurl" },
 ];
 
 const QUESTION =
-  "What Partyreel sounds like, argued on whole pages: the home arc top to bottom, two feature pages whole, the app's quiet copy and the guest surfaces, each in the selected voice beside today's.";
+  "What Partyreel sounds like, argued on whole pages: the home arc top to bottom, two feature pages whole, the three pages a reader reaches when they are deciding or when something broke, the app's quiet copy and the guest surfaces, each in the selected voice beside today's.";
 
+/** Every ask answers in ONE word. The recommendation is in the line, so a
+ *  ruling can be "B, whole, take, email, yes, keep, album". */
 const ASKS = [
-  "The voice: today, A the house, or B the room (the agent recommends B)",
-  "The seven provisional home headers: the selected voice whole, or line by line from the ledgers",
-  "The rest of the arc (the eyebrows, the supporting lines, the CTAs): take the selected voice, or hold today's",
-  "The account-required unfurl line: asks for an email, or asks to sign in with an email (the agent recommends asks for an email)",
-  "Bible 20's replacement, in one sentence: lead with what arrives, an absence may be the second beat and never the first, and never both",
-  "The thesis: keep in one album, or take as everyone saw it (the agent recommends keeping it)",
-  "One noun for the thing: album everywhere, or album on the site and gallery on a guest's screen (the agent recommends album everywhere)",
+  "The voice: B, A, or today (the agent recommends B)",
+  "The seven provisional home headers: whole in the selected voice, or line by line from the ledgers (the agent recommends whole)",
+  "The rest of the arc, its eyebrows, supporting lines and CTAs: take the selected voice, or hold today's (the agent recommends take)",
+  "Bible 20's replacement, in one sentence: lead with what arrives, an absence may be the second beat, never the first, and never both. Yes, or send it back",
+  "The thesis: keep in one album, or take as everyone saw it (the agent recommends keep)",
+  "One noun for the thing: album everywhere, or album on the site and gallery on a guest's screen (the agent recommends album)",
+  "The account-required unfurl line: email, or sign in (the agent recommends email)",
 ];
 
+/** Only what Will must rule on that is not already an ask. Round two's other
+ *  two departures became asks 4 and 6 and left. */
 const DEPARTURES = [
-  "Bible 20 as written blocks a RULED line. Say who we are, never who we are not reads on Scan, upload, done. No app to install. (ruled 2026-08-25) and on the whole no-app argument. The rule's target was a fenced use case, a host told to leave; an absence that IS the feature is a different thing. The guide proposes the sharper do, ask 5.",
-  "Candidate C was RETIRED as a column, which is a round-two judgment rather than a ruling. Across fifteen sections C read as B with everyone substituted in seven places, so it cost a third of the board and answered nothing B did not. Its one real question, the thesis, is board 5 and ask 6; say the word and it comes back as a column.",
-  "The product calls the same thing two names. The site says album in every heading, nav label and directory line; the guest surface says gallery in five places (a shared gallery for the whole event, see the full gallery, opening the gallery, view the gallery, the empty gallery). One of them is wrong and a guide cannot settle it, so it is ask 7.",
+  "Candidate C was RETIRED as a column, which is the board's judgment rather than a ruling. Across fifteen sections and two whole pages C read as B with everyone substituted in seven places, so it cost a third of the board and answered nothing B did not. Its one real question, the thesis, is chapter 5 and ask 5. Say the word and it comes back as a column.",
   "The five copy-alternative picks have lost their list: the queue item predates the docs consolidation and no list survives in the repo. The board reads it as the five headers carrying an appetite for a DIFFERENT line (liveDemo, album, curation, privacy, reel), marked with a dot in the ledgers. Correct it and the board adds the missing picks.",
+  "The home page is about to carry two different counts. The hero variations propose 312 photos from 48 guests as a stand-in, and the decomposition band two sections below ships Built from 214 photos. Shot by 23 guests. Do 3 of the guide (only proof the product produced) makes that one source and one pair of numbers, read from the demo event, wherever the composition pass lands them.",
 ];
 
 const VOICE_OPTIONS = VOICES.map((v) => ({ id: v.id, label: v.name }));
@@ -132,6 +192,80 @@ const CTA_HREF: Record<string, string> = {
 /* -------------------------------------------------------------------------
  * Small pieces
  * ---------------------------------------------------------------------- */
+
+/** A numbered chapter with an anchor, so the index in the bar can reach it.
+ *  `scroll-mt` clears the sticky bar, which is two rows tall once the index
+ *  wraps. */
+function Chapter({
+  id,
+  n,
+  name,
+  rationale,
+  children,
+}: {
+  id: string;
+  n: number;
+  name: string;
+  rationale: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div id={id} className="scroll-mt-28">
+      <Variant n={n} name={name} rationale={rationale} framed={false}>
+        {children}
+      </Variant>
+    </div>
+  );
+}
+
+/**
+ * A chapter's stage and what reads beside or beneath it.
+ *
+ * ★ WHY THE PHONE CANVAS PUTS THE LEDGER BESIDE THE STAGE. A 375 stage sits in
+ * a column three times its width, so the phone walk was twenty-three thousand
+ * pixels of board with eight hundred of dead ground on either side of every
+ * chapter, and the line being judged was a full screen away from the line it
+ * replaces. Side by side, the phone walk is the same length as the desktop one
+ * and the comparison is in one view. The desktop canvas keeps the ledger
+ * underneath: at 1440 the stage already fills the column.
+ *
+ * The `lg:` here is deliberate and correct, unlike a prefix INSIDE a stage: it
+ * is the board's own chrome, so the real browser viewport is exactly what it
+ * should key off.
+ */
+function ChapterBody({
+  mode,
+  stage,
+  aside,
+}: {
+  mode: Mode;
+  stage: React.ReactNode;
+  aside: React.ReactNode;
+}) {
+  if (mode === "phone") {
+    return (
+      <div className="grid items-start gap-6 lg:grid-cols-[375px_minmax(0,1fr)]">
+        {/* ★ min-w-0 on both cells. A grid item's default min-width is AUTO,
+            so the 375-wide canvas in the first cell sets the track's floor. On a
+            browser window at a real 375 the single-column grid therefore
+            measured 375 where the page's content box is 343: Stage read its
+            wrapper as wide enough, kept zoom 1, and pushed 16px of horizontal
+            scroll onto the document. With the floor removed the wrapper
+            measures 343 and Stage's own zoom-fit takes the canvas to 0.91,
+            which is what the other thirteen stages already do. At `lg` the
+            track is an explicit 375px, so nothing there moves. */}
+        <div className="min-w-0">{stage}</div>
+        <div className="min-w-0">{aside}</div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      {stage}
+      {aside}
+    </div>
+  );
+}
 
 /** The held marker: a candidate keeping the shipped line unchanged. */
 function Held() {
@@ -329,6 +463,128 @@ function FitStage({
 }
 
 /* -------------------------------------------------------------------------
+ * The ruler: what a voice costs a headline, measured
+ * ---------------------------------------------------------------------- */
+
+/**
+ * ★ WHY THE ROW COUNT IS MEASURED HERE RATHER THAN WRITTEN IN A SENTENCE.
+ * The one price a longer voice pays on a marketing page is rows: an h1 that
+ * takes four lines on a phone where today's takes three is the whole argument
+ * against B, and round two carried that number as PROSE ("four rows at 375"),
+ * typed once and never checked again. It was also unreadable off the board,
+ * since only one column renders at a time.
+ *
+ * So the board measures. A shallow clone of the LIVE heading (same class list,
+ * so it resolves the same restored ladder and the same face) is filled with
+ * each candidate's line at the heading's own width, and the line boxes are
+ * counted off a Range. Every number the board prints about wrapping comes from
+ * the element the reader is looking at, at the canvas they are looking at.
+ *
+ * The count is true of TODAY'S ladder. The type-scale board proposes ladders
+ * that would move the hero step, which would move these numbers with it; the
+ * caption says so rather than pretending a rendered measurement is a constant.
+ */
+function rowsOf(el: HTMLElement, text: string): number {
+  const probe = el.cloneNode(false) as HTMLElement;
+  probe.textContent = text;
+  probe.style.position = "absolute";
+  probe.style.visibility = "hidden";
+  probe.style.pointerEvents = "none";
+  probe.style.left = "0";
+  probe.style.top = "0";
+  // offsetWidth, not the rect: a Stage fits the lab column with `zoom`, so the
+  // rect is in the zoomed frame while layout px are not.
+  probe.style.width = `${el.offsetWidth}px`;
+  const parent = el.parentElement;
+  if (!parent) return 0;
+  parent.appendChild(probe);
+  const range = document.createRange();
+  range.selectNodeContents(probe);
+  const tops = Array.from(range.getClientRects())
+    .map((r) => r.top)
+    .sort((a, b) => a - b);
+  probe.remove();
+  // Group by line box: a rect per text run, several runs to a row.
+  let rows = 0;
+  let last = Number.NEGATIVE_INFINITY;
+  for (const t of tops) {
+    if (t - last > 2) rows += 1;
+    last = t;
+  }
+  return rows;
+}
+
+/** "B. The room" reads as "B" in a measured caption; Today stays a word. */
+const shortLabel = (name: string) => (name === "Today" ? "today" : name[0]);
+
+/** The home hero's h1 in all three columns, measured side by side so the cost
+ *  can be read without toggling and holding two numbers in your head. */
+const HERO_ROW_LINES = VOICES.map((v) => ({
+  label: shortLabel(v.name),
+  text: pick(ARC[0].header, v.id),
+}));
+
+/** The thesis pair, the two lines ask 5 chooses between. */
+const THESIS_ROW_LINES = [
+  { label: "in one album", text: THESIS.ruled },
+  { label: "as everyone saw it", text: THESIS.alternative },
+];
+
+/** The measured caption under a stage. `selector` is resolved inside `host`. */
+function RowCounts({
+  host,
+  selector,
+  lines,
+  mode,
+  lead,
+}: {
+  host: React.RefObject<HTMLDivElement | null>;
+  selector: string;
+  /** Label and the exact string to set on the clone, in column order. */
+  lines: { label: string; text: string }[];
+  mode: Mode;
+  lead: string;
+}) {
+  const [rows, setRows] = useState<number[] | null>(null);
+
+  useLayoutEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    let live = true;
+    const measure = () => {
+      if (!live) return;
+      const target = el.querySelector<HTMLElement>(selector);
+      if (!target) return;
+      setRows(lines.map((l) => rowsOf(target, l.text)));
+    };
+    measure();
+    // The webfont lands after the first layout and takes every wrap with it.
+    document.fonts?.ready.then(measure).catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [host, selector, lines, mode]);
+
+  if (!rows) return null;
+  return (
+    <p className="bv-rows mt-2 text-[11px] leading-relaxed text-muted-foreground">
+      <span className="text-foreground">
+        {lead}{" "}
+        {lines.map((l, i) => `${i > 0 ? " · " : ""}${l.label} ${rows[i]}`)}
+        .{" "}
+      </span>
+      {/* One template string, not JSX text around an expression: the space
+          after the canvas number kept disappearing through a reformat, and a
+          caption that reads "1440on" is a caption nobody trusts the numbers
+          in. */}
+      <span>
+        {`Measured at ${mode === "desktop" ? "1440" : "375"} on the heading above, at today\u2019s ladder: a ruling on the type scale moves these numbers with it.`}
+      </span>
+    </p>
+  );
+}
+
+/* -------------------------------------------------------------------------
  * The arc
  * ---------------------------------------------------------------------- */
 
@@ -470,8 +726,21 @@ function Ledger({
   const allHeld = (t: Trio | Trio[], id: VoiceId) =>
     Array.isArray(t) ? t.every((x) => held(x, id)) : held(t, id);
 
+  // The dot was a `title` tooltip, which on a board nobody hovers is a mark
+  // that means nothing. It says what it is now, once per ledger that has one.
+  const hasPick = sections.some((s) => s.pick);
+
   return (
     <dl className="bv-arc-ledger mt-4 space-y-3 text-xs">
+      {hasPick && (
+        <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+          <span className="inline-block size-1.5 rounded-full bg-foreground/60" />
+          <span>
+            one of the five copy-alternative picks · ruled means the shipped
+            line is already a ruling, so a rewrite is a bigger ask
+          </span>
+        </div>
+      )}
       {sections.map((s) => (
         <div key={s.id} className="space-y-1.5">
           <dt className="flex flex-wrap items-baseline gap-x-2 text-[11px] text-muted-foreground">
@@ -684,6 +953,18 @@ function SurfaceCard({ s, mode }: { s: Surface; mode: Mode }) {
         <p className="text-[11px] font-medium text-foreground">{s.surface}</p>
         <p className="text-[11px] text-muted-foreground">{s.where}</p>
         {unchanged && <Held />}
+        {/* The one row on these two chapters a bible rule already decides,
+            marked with the rule that owns it. Everything else here is the
+            infusion round's ordinary work, shown so the register can be read,
+            and round three marks the difference rather than leaving twelve
+            rewrites all looking like rulings. The mark is never an ask: the
+            asks are the seven in the bar, and this row's only choosable part
+            (the noun) is ask 7. */}
+        {s.compelled && (
+          <span className="rounded-full bg-foreground px-1.5 py-px text-[10px] text-background">
+            {s.compelled}
+          </span>
+        )}
       </div>
       <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
         {s.rule}
@@ -734,6 +1015,104 @@ function SurfaceCard({ s, mode }: { s: Surface; mode: Mode }) {
 }
 
 /* -------------------------------------------------------------------------
+ * The pages the arc does not reach
+ * ---------------------------------------------------------------------- */
+
+/** A help article's head, as the article renders it (the category badge and the
+ *  title on its own ramp), with the description beneath, which is where the
+ *  catalogue row and the search result read it. */
+function HelpHead({
+  category,
+  title,
+  description,
+}: {
+  category: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div data-bv-type="section-lg" className="mx-auto max-w-3xl px-6">
+      <Badge variant="secondary">{category}</Badge>
+      <h2 className="mt-4 font-heading text-balance">{title}</h2>
+      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+      <p className="mt-1.5 text-[11px] text-muted-foreground">
+        The description, which the article page never shows: it is the catalogue
+        row, the search result and the meta description.
+      </p>
+    </div>
+  );
+}
+
+function UtilityChapter({ voice, mode }: { voice: VoiceId; mode: Mode }) {
+  const util = utilityDiff(voice);
+  const hero = (h: UtilityHero) => (
+    <PageHero
+      key={h.route}
+      data-bv-type="hero-lg"
+      className="w-full"
+      scale="lg"
+      eyebrow={pick(h.eyebrow, voice)}
+      heading={pick(h.header, voice)}
+      subhead={pick(h.support, voice)}
+    />
+  );
+  return (
+    <div className="space-y-2">
+      <FitStage
+        mode={mode}
+        ground="cinema"
+        swapKey={voice}
+        className="space-y-12 py-12"
+      >
+        {UTILITY_HEROES.filter((h) => h.ground === "cinema").map(hero)}
+        {HELP_HEADS.map((a) => (
+          <HelpHead
+            key={a.slug}
+            category={a.category}
+            title={a.title}
+            description={a.description}
+          />
+        ))}
+      </FitStage>
+      <FitStage
+        mode={mode}
+        ground="paper"
+        swapKey={voice}
+        className="space-y-12 py-12"
+      >
+        {UTILITY_HEROES.filter((h) => h.ground === "paper").map(hero)}
+      </FitStage>
+      <div className="space-y-2 pt-3 text-xs leading-relaxed text-muted-foreground">
+        <p>
+          <span className="text-foreground">
+            {voice === "today"
+              ? `${util.total} lines across the three heroes.`
+              : `${util.moved} of ${util.total} lines move across the three heroes.`}
+          </span>{" "}
+          Both article heads hold in every column, which is the finding rather
+          than an omission: the 59 articles were written to the shape the guide
+          prescribes, so a voice ruling costs the help catalogue nothing.
+        </p>
+        {UTILITY_HEROES.map((h) => (
+          <p key={h.route}>
+            <span className="text-foreground">{h.route}. </span>
+            {h.note}
+          </p>
+        ))}
+        {HELP_HEADS.map((a) => (
+          <p key={a.slug}>
+            <span className="text-foreground">/help/{a.slug}. </span>
+            {a.note}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------
  * The board
  * ---------------------------------------------------------------------- */
 
@@ -748,18 +1127,54 @@ export function BrandVoiceBoard() {
   const desktop = mode === "desktop";
   const arc = arcDiff(voiceId);
   const feat = featureDiff(voiceId);
+  // The two stages the ruler measures inside.
+  const arcHeroRef = useRef<HTMLDivElement | null>(null);
+  const thesisRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <div className="bv-round-two flex flex-col gap-8 py-4">
-      <div className="max-w-2xl space-y-3 text-xs leading-relaxed text-muted-foreground">
-        {INTRO.map((p, i) => (
-          <p key={i}>{p}</p>
-        ))}
+    <div className="bv-round-three flex flex-col gap-8 py-4">
+      {/* THE VERDICT, ON TOP. Round three's walk: a stranger reads the first
+          screen and then scrolls fifteen thousand pixels looking for the
+          argument. It is here instead, with the three chapters that carry it. */}
+      <div className="max-w-3xl space-y-4">
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {LEAD.what}
+        </p>
+        <div className="rounded-lg border border-border bg-card px-5 py-4">
+          <p className="text-[11px] font-medium text-muted-foreground">
+            The recommendation
+          </p>
+          <p className="mt-1 font-heading text-2xl">{LEAD.recommend}</p>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            {LEAD.because}
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            {LEAD.second}
+          </p>
+        </div>
+        <dl className="space-y-1.5 text-xs leading-relaxed">
+          <dt className="text-[11px] font-medium text-muted-foreground">
+            Look at first
+          </dt>
+          {LOOK_AT.map((l) => (
+            <dd key={l.href}>
+              <a
+                href={l.href}
+                className="text-foreground underline underline-offset-2"
+              >
+                {l.label}
+              </a>
+              <span className="text-muted-foreground"> {l.line}</span>
+            </dd>
+          ))}
+        </dl>
       </div>
 
       {/* The switch follows the walk: the arc runs for several screens and a
-          voice toggle at the top of it is a toggle nobody reaches. */}
-      <div className="bv-controls sticky top-0 z-20 -mx-2 flex flex-wrap items-center gap-3 border-b border-border bg-background/95 px-2 py-3 backdrop-blur">
+          voice toggle at the top of it is a toggle nobody reaches. The index
+          rides with it for the same reason (borrowed from the palette board's
+          round two, which found the same thing on a board half this tall). */}
+      <div className="bv-controls sticky top-0 z-20 -mx-2 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-background/95 px-2 py-3 backdrop-blur">
         <Toggle
           ariaLabel="Viewport"
           options={[
@@ -777,16 +1192,33 @@ export function BrandVoiceBoard() {
         />
         <p className="text-[11px] text-muted-foreground">
           {voiceId === "today"
-            ? "The shipped lines."
-            : `Moves ${arc.moved} of ${arc.total} lines in the arc, ${feat.moved} of ${feat.total} on the feature pages.`}
+            ? "The shipped lines, the control."
+            : `${voiceId === "room" ? "Recommended. " : ""}Moves ${arc.moved} of ${arc.total} lines in the arc, ${feat.moved} of ${feat.total} on the feature pages.`}
         </p>
+        {/* One row, and it scrolls rather than wrapping: at 1440 the twelve fit
+            on a line, and on a narrow window a wrapping index turned the
+            sticky bar into four rows that ate a third of the viewport. */}
+        <nav
+          aria-label="Chapters"
+          className="flex w-full items-center gap-x-3 overflow-x-auto whitespace-nowrap"
+        >
+          {CHAPTERS.map((c) => (
+            <a
+              key={c.id}
+              href={`#${c.id}`}
+              className="text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {c.label}
+            </a>
+          ))}
+        </nav>
       </div>
 
-      <Variant
+      <Chapter
+        id="bv-1"
         n={1}
         name="The voice, in one paragraph"
         rationale="The first ask, with what each answer costs. The three registers below are shown once, because round one found that they do not fork with the voice: only the marketing register's default sentence shape moves."
-        framed={false}
       >
         <div className="space-y-5">
           <div
@@ -839,70 +1271,96 @@ export function BrandVoiceBoard() {
             </p>
           </div>
         </div>
-      </Variant>
+      </Chapter>
 
-      <Variant
+      <Chapter
+        id="bv-2"
         n={2}
         name="The home arc, chapter one: the event"
-        rationale="Seven sections in arc order on the cinema ground, on the real PageHero and SectionShell, in the selected voice. The ledger beneath carries today beside it, line by line, with every held line marked."
-        framed={false}
+        rationale="Seven sections in arc order on the cinema ground, on the real PageHero and SectionShell, in the selected voice. The ledger carries today beside it, line by line, with every held line marked, and the h1's rows are measured under the stage."
       >
-        <div>
-          <ArcChapter
-            sections={CHAPTER_1}
-            voice={voiceId}
-            mode={mode}
-            ground="cinema"
-          />
-          <Ledger sections={CHAPTER_1} voice={voiceId} />
-        </div>
-      </Variant>
+        <ChapterBody
+          mode={mode}
+          stage={
+            <div ref={arcHeroRef}>
+              <ArcChapter
+                sections={CHAPTER_1}
+                voice={voiceId}
+                mode={mode}
+                ground="cinema"
+              />
+            </div>
+          }
+          aside={
+            <>
+              <RowCounts
+                host={arcHeroRef}
+                selector="[data-bv-type='hero-xl'] h1"
+                lines={HERO_ROW_LINES}
+                mode={mode}
+                lead="The h1, in rows:"
+              />
+              <Ledger sections={CHAPTER_1} voice={voiceId} />
+            </>
+          }
+        />
+      </Chapter>
 
-      <Variant
+      <Chapter
+        id="bv-3"
         n={3}
         name="The home arc, the paper chapter: the morning after"
         rationale="The three sections of the host's desk, on paper. album opens it as a left masthead at the lg tier, which is why its line has to carry more weight than the two beneath it."
-        framed={false}
       >
-        <div>
-          <ArcChapter
-            sections={CHAPTER_PAPER}
-            voice={voiceId}
-            mode={mode}
-            ground="paper"
-          />
-          <Ledger sections={CHAPTER_PAPER} voice={voiceId} />
-        </div>
-      </Variant>
+        <ChapterBody
+          mode={mode}
+          stage={
+            <ArcChapter
+              sections={CHAPTER_PAPER}
+              voice={voiceId}
+              mode={mode}
+              ground="paper"
+            />
+          }
+          aside={<Ledger sections={CHAPTER_PAPER} voice={voiceId} />}
+        />
+      </Chapter>
 
-      <Variant
+      <Chapter
+        id="bv-4"
         n={4}
         name="The home arc, the close: the payoff"
         rationale="The last five, back on cinema. The arc has to land here in the same voice it opened in, which is the thing a header-by-header comparison cannot show."
-        framed={false}
       >
-        <div>
-          <ArcChapter
-            sections={CHAPTER_CLOSE}
-            voice={voiceId}
-            mode={mode}
-            ground="cinema"
-          />
-          <Ledger sections={CHAPTER_CLOSE} voice={voiceId} />
-          <div className="mt-5">
-            <CopyPaste
-              label="Copy the SECTION_HEADERS paste"
-              text={sectionHeadersPaste(voiceId)}
+        <ChapterBody
+          mode={mode}
+          stage={
+            <ArcChapter
+              sections={CHAPTER_CLOSE}
+              voice={voiceId}
+              mode={mode}
+              ground="cinema"
             />
-          </div>
-        </div>
-      </Variant>
+          }
+          aside={
+            <>
+              <Ledger sections={CHAPTER_CLOSE} voice={voiceId} />
+              <div className="mt-5">
+                <CopyPaste
+                  label="Copy the SECTION_HEADERS paste"
+                  text={sectionHeadersPaste(voiceId)}
+                />
+              </div>
+            </>
+          }
+        />
+      </Chapter>
 
-      <Variant
+      <Chapter
+        id="bv-5"
         n={5}
         name="The thesis, both ways"
-        rationale="All that survives of candidate C, on the surface it actually renders: the site's loudest line, at the hero tier, on cinema. One clause settles it."
-        framed={false}
+        rationale="All that survives of candidate C, on the surface it actually renders: the site's loudest line, at the hero tier, on cinema. One clause settles it, and the ruler under the pair says what the clause costs in rows."
       >
         <div className="space-y-3">
           {/* ★ THE STAGE THIS BOARD MOST HAD TO GET RIGHT. Ask 6 asks Will to
@@ -910,49 +1368,58 @@ export function BrandVoiceBoard() {
               nothing. It did: a 520px box against 616px of content cut the
               word "it." off the second thesis at 1440, and at 375 the line
               stopped at "as". Measured now, like every other stage. */}
-          <FitStage mode={mode} ground="cinema" className="space-y-10 py-12">
-            <PageHero
-              data-bv-type="hero-xl"
-              className="w-full"
-              scale="xl"
-              heading={THESIS.ruled}
-            />
-            <PageHero
-              data-bv-type="hero-xl"
-              className="w-full"
-              scale="xl"
-              heading={THESIS.alternative}
-            />
-          </FitStage>
+          <div ref={thesisRef}>
+            <FitStage mode={mode} ground="cinema" className="space-y-10 py-12">
+              <PageHero
+                data-bv-type="hero-xl"
+                className="w-full"
+                scale="xl"
+                heading={THESIS.ruled}
+              />
+              <PageHero
+                data-bv-type="hero-xl"
+                className="w-full"
+                scale="xl"
+                heading={THESIS.alternative}
+              />
+            </FitStage>
+          </div>
+          <RowCounts
+            host={thesisRef}
+            selector="[data-bv-type='hero-xl'] h1"
+            lines={THESIS_ROW_LINES}
+            mode={mode}
+            lead="The thesis, in rows:"
+          />
           <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
             {THESIS.note}
           </p>
         </div>
-      </Variant>
+      </Chapter>
 
-      <Variant
+      <Chapter
+        id="bv-6"
         n={6}
         name="A feature page, whole: /features/album"
         rationale="The page whole: the h1, the hero sub, every section eyebrow, header and supporting line, and every card with its title, in order, on the two grounds the page really uses. The cards are its body weight, so the ledger under the page counts what they cost."
-        framed={false}
       >
         <FeaturePageStage page={ALBUM_PAGE} voice={voiceId} mode={mode} />
-      </Variant>
+      </Chapter>
 
-      <Variant
+      <Chapter
+        id="bv-7"
         n={7}
         name="A feature page, whole: /features/curation"
         rationale="The second page, and the harder one: its whole body is one paper chapter of decisions, cards included, so the voice has to stay quiet enough to read as a working document and loud enough to still be marketing."
-        framed={false}
       >
         <FeaturePageStage page={CURATION_PAGE} voice={voiceId} mode={mode} />
-      </Variant>
+      </Chapter>
 
-      <Variant
+      <Chapter
+        id="bv-8"
         n={8}
         name="The thirty strings, as a paste"
         rationale="The shared identity layer behind all six feature pages: the nav label, the mega-panel one-liner, the h1, the hero sub and the directory line. navDescription holds its 45-character band and directoryLine its length band in every column, because the panel and the six hub doors wrap against them."
-        framed={false}
       >
         <div className="space-y-4">
           <div className="overflow-x-auto">
@@ -1003,13 +1470,22 @@ export function BrandVoiceBoard() {
             text={featurePagesPaste(voiceId)}
           />
         </div>
-      </Variant>
+      </Chapter>
 
-      <Variant
+      <Chapter
+        id="bv-9"
         n={9}
+        name="The pages the arc does not reach: /help, /contact, /pricing"
+        rationale="Round three's addition. The arc and the feature pages are where the site sells; these three are where a reader lands when they are deciding or when something broke, and they carry the site's two most generic lines. Two real help article heads close the last gap between the guide's surfaces table and this board."
+      >
+        <UtilityChapter voice={voiceId} mode={mode} />
+      </Chapter>
+
+      <Chapter
+        id="bv-10"
+        n={10}
         name="The quiet register, on real app copy"
-        rationale="The dashboard's empty state, an error, two notifications, an email subject with its first line, and the account page's labels. Shown once, not per candidate: the quiet register does not fork with the voice, which is why three of these hold unchanged."
-        framed={false}
+        rationale="The dashboard's empty state, an error, two notifications, an email subject with its first line, and the account page's labels. Shown once, not per candidate: the quiet register does not fork with the voice, which is why three of these hold unchanged. Nothing here is a ruling; it is the register, and the sweep's own work."
       >
         <FitStage mode={mode} ground="app-light" className="px-8 py-6">
           <div className="flex flex-col gap-3">
@@ -1018,13 +1494,13 @@ export function BrandVoiceBoard() {
             ))}
           </div>
         </FitStage>
-      </Variant>
+      </Chapter>
 
-      <Variant
-        n={10}
+      <Chapter
+        id="bv-11"
+        n={11}
         name="The guest register, with Partyreel nearly silent"
-        rationale="The demo guest page's real lines: the door in its three states, the upload prompt, the empty album, the upload confirmation. Bible 4 is the whole rule here, and the shipped account gate is the one line that breaks it."
-        framed={false}
+        rationale="The demo guest page's real lines: the door in its three states, the upload prompt, the empty album, the upload confirmation. Bible 4 is the whole rule here. Five of the six are sweep work like chapter 10; the marked one is compelled, not chosen, because the shipped line asks a guest for an account with us on the host's own page, which bible 4 already refuses. The rule decides it, so it is no ask: the noun it uses is ask 7, answered once for this line and the unfurl below."
       >
         <FitStage mode={mode} ground="app-light" className="px-8 py-6">
           <div className="flex flex-col gap-3">
@@ -1033,13 +1509,13 @@ export function BrandVoiceBoard() {
             ))}
           </div>
         </FitStage>
-      </Variant>
+      </Chapter>
 
-      <Variant
-        n={11}
+      <Chapter
+        id="bv-12"
+        n={12}
         name="The unfurl, both ways"
-        rationale="The parked ruling, on the surface it actually renders: what a host's group chat shows. The public variant sits above as the control, because the two lines have to read as one set."
-        framed={false}
+        rationale="The parked ruling, on the surface it actually renders: what a host's group chat shows. The public variant sits above as the control, because the two lines have to read as one set. The grey plate in each card is a stand-in for the link preview's own thumbnail."
       >
         <FitStage mode={mode} ground="app-light" className="px-8 py-8">
           <div className="flex flex-col gap-5">
@@ -1086,7 +1562,7 @@ export function BrandVoiceBoard() {
             </div>
           </div>
         </FitStage>
-      </Variant>
+      </Chapter>
 
       <BoardMeta
         question={QUESTION}
