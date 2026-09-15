@@ -39,9 +39,9 @@ import type { Dim, Ramp, Scene, Side } from "./constants";
  * documents cost 1020 requests and took 5.7s to settle, which is the "slow first
  * paint" a stranger meets before the first row says anything. So the unit is the
  * ROW (useMountOnApproach below): every frame in a row mounts together, a
- * viewport and a half before the row arrives, and rows one and two mount
- * immediately. A comparison is never half-loaded, because the things being
- * compared always arrive as one.
+ * viewport and a half before the row arrives, and row one mounts immediately
+ * because a reader meets it before they can scroll. A comparison is never
+ * half-loaded, because the things being compared always arrive as one.
  */
 
 /** Row-level mounting. `false` holds the box at its exact size and loads
@@ -52,8 +52,8 @@ const MountContext = createContext(true);
 /** Mount everything under `ref` when the element comes within a viewport and a
  *  half of the fold. The observed element must be a REAL box: the first version
  *  of this wrapped the row in `display: contents`, which produces no box at all,
- *  so the observer never fired and every row below the second one stayed empty.
- *  A row passes its own <section>. */
+ *  so the observer never fired and every row that was not marked eager stayed
+ *  empty. A row passes its own <section>. */
 export function useMountOnApproach(
   ref: React.RefObject<HTMLElement | null>,
   eager: boolean,
