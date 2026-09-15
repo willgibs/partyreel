@@ -368,7 +368,7 @@ by design)
 
 ## Handoff (round 2)
 
-- Head `HEAD_SHA`, pushed. Preview `partyreel-git-lp-type-scale-partyreel.vercel.app`, board at
+- Head: this handoff commit, sitting on the gated tree `964bf96`; both pushed. Preview `partyreel-git-lp-type-scale-partyreel.vercel.app`, board at
   `/design/c/type-scale?key=`. The alias follows the branch on its own; `[preview]` is in both
   build commits.
 - Synced with `launch-prep` at `4b035c1` (the cut: `ca952b5` had moved by one docs commit while the
