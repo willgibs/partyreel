@@ -140,30 +140,46 @@ h1 present at opacity 1 off the DOM; your preview alias once Vercel's window fre
 
 ## Handoff (round 1)
 
-- Head `<this commit>`, pushed (the last code commit is `5458719`, plus the merge of `launch-prep`);
-  preview `partyreel-git-lp-hero-inflow-partyreel.vercel.app`. **Vercel is capped, so the preview was
+- **Head**: the tip of `lp/hero-inflow`, which is this manifest commit (a manifest cannot name its
+  own SHA); the review fix is `46e23a3` and the sync merge of `launch-prep` is `386e024`. Pushed.
+  Preview `partyreel-git-lp-hero-inflow-partyreel.vercel.app`. **Vercel is capped, so the preview was
   not waited on and the Vercel API was not called.** Everything below was verified on a LOCAL
-  PRODUCTION BUILD (`pnpm build && pnpm start` on :3111) in a FOREGROUND browser tab, at Desktop 1440
-  and Phone 375, with the stages at 1:1.
-- Synced with `launch-prep` at `6484558` (it had moved by two commits: the PROGRAM note on the app's
-  UI and the orchestrator record). Merged, not rebased.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 6 warnings are the pre-existing ones
+  PRODUCTION BUILD of the merged tree (`pnpm build && pnpm start` on :3111), at Desktop 1440 and
+  Phone 375, both stages at 1:1.
+- **What the read-through found, and what changed** (second pass, 2026-09-15):
+  1. **The ring glow is on the board now.** The sheet shipped an 18 px outer glow on the live splash
+     ring and only a CSS comment flagged it. `BoardMeta` renders `concept.departures`, so the board
+     listed three departures and the concept's one move against the standing cinema-and-unlit ruling
+     was invisible on the surface Will rules from. It is the second string in `departures` now, in
+     the order this Handoff argues them, and the why-comment carries the shipped 0.22 (it read 0.25)
+     and points at the array so the two cannot drift apart again. Checked on the served board: the
+     three concepts list 2, 4 and 4 departures, and the string is in the server's own HTML, so it is
+     there with JavaScript off too.
+  2. **The board's page-wide switches are docked, landed upstream.** `board.tsx` is the
+     Orchestrator's (`docs/tracks/orchestrator.md` lists it under `owns`; the first draft of this
+     Handoff wrongly credited "the integrated home-hero track"). `launch-prep` moved to `07ad3b2`,
+     which puts Desktop / Phone 375, Ruled copy / Proposed copy and Replay into `BoardDock`, and this
+     branch merged it. Checked: the dock holds at the top of the window while the inflow's 930 px
+     stage is on screen, at both canvases, so comparing the source against the inflow no longer means
+     scrolling back past a stage. Global note (a) is met on this board.
+- Synced with `launch-prep` at `07ad3b2` (the dock round: the dock wraps at 375, `Toggle` wraps, the
+  hero board docks its switches). Merged, not rebased; the whole gate was re-run on the merged tree.
+- Gates on the merged tree: typecheck ok, lint ok (0 errors; the 6 warnings are the pre-existing ones
   on `contact-form.tsx`, two feature sections, `jobs.ts` and `use-flip.ts`), test ok (1804 in 199
   files), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-inflow.md`,
   `src/app/(dev)/design/sandbox/home-hero/inflow.css`,
   `src/app/(dev)/design/sandbox/home-hero/inflow.tsx`. **No exceptions**: the two owned files and this
-  manifest. `shared.tsx`, `board.tsx`, `source.tsx` and the shell were read and not touched.
+  manifest. `shared.tsx`, `board.tsx`, `source.tsx` and the shell were read and not touched. One
+  note for the merge: `pnpm format` on the two changed files also rewrapped four pre-existing spots
+  in `inflow.tsx` (long conditions and one JSX attribute list); no className string was altered.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
 - **Shell changes asked for** (the Orchestrator lands them):
-  1. **The home-hero board's page-wide switches are still at the top of the page**, not in
-     `BoardDock`: Desktop / Phone 375, Ruled copy / Proposed copy and Replay all change every stage
-     on the page, which is exactly global note (a). `board.tsx` is owned by the integrated `home-hero`
-     track and no round-four hero track claims it, so none of us can move them. Comparing the source
-     against the inflow means scrolling back past a 930 px stage for every flip.
-  2. Global note (c), "more real UI", is a board-level ask for the same reason. This concept already
-     renders the real `FooterQr` on the live demo token, the real `Button` and the real `Caption`;
-     what it cannot do from inside one concept file is put the hero on a whole real page.
+  1. **Closed.** The home-hero board's page-wide switches are in `BoardDock` as of `07ad3b2`, merged
+     here and walked at both canvases. Nothing left to land for this track.
+  2. Global note (c), "more real UI", stays open and stays board-level. This concept already renders
+     the real `FooterQr` on the live demo token, the real `Button` and the real `Caption`; what it
+     cannot do from inside one concept file is put the hero on a whole real page.
 - **Assets requested from Will**: no NEW asset. The inflow asks for exactly the source's row 2, so the
   two concepts share one set:
   - `24 event photographs · 512 x 512 squares, one grade, 6 to 35 KB webp each, across weddings,
@@ -173,8 +189,8 @@ h1 present at opacity 1 off the DOM; your preview alias once Vercel's window fre
     legible at 120 px · replaces the wide room shots among the stand-ins`. The inflow needs this more
     than the source does: its frames never fade, so a grey room shot is on screen at full strength
     for about four seconds on its way in.
-- **The asks, verbatim from BoardMeta** (the concept's `departures`, which is what the board lists
-  under Departures for Will to rule on):
+- **The asks, verbatim from BoardMeta** (the concept's `departures`; all four were read back off the
+  rendered board, in this order, before this Handoff was written):
   1. "Bible 13, decorative layer only, and a milder trade than the source's: with JavaScript off and
      motion allowed the corridor rests one beat further out than its steady spacing, because the
      gather's first frame lives inside the reduced-motion block (an effect would paint the steady
@@ -185,8 +201,9 @@ h1 present at opacity 1 off the DOM; your preview alias once Vercel's window fre
   2. "The splash ring carries an 18 px outer glow, which is the concept's one departure from the
      standing cinema-and-unlit ruling. Measured, not decorative: a hairline ring at the opacity a
      ripple wants is invisible the moment it crosses a photograph, and the plate is surrounded by
-     photographs by construction. There is no inner glow, which would whiten the plate and the frames
-     under it."
+     photographs by construction, so at a hairline the landing is only legible over the dark. There
+     is no inner glow, which would whiten the plate and the frames under it, and bible 1 does not
+     allow that."
   3. "The count under the code is the one fabricated thing in the frame, and it is load-bearing here
      in a way it is not on the other concepts: it is what separates arriving from vanishing. At
      wiring it reads the demo event's real total and each tick is one real upload. Rule on whether a
@@ -194,24 +211,43 @@ h1 present at opacity 1 off the DOM; your preview alias once Vercel's window fre
      the recommendation to keep the source gets stronger."
   4. "Precedent, not law: the lockup is centred rather than left-aligned, inherited from the source
      because the code owns the axis. The first thing to overrule if the home hero should stay left."
-- **What was verified, and how.** The Chrome MCP's screenshots of a background tab suspend
-  requestAnimationFrame and drop composited layers, so the loop was proved two ways: in the Browser
-  pane, where rAF keeps running (count 312 to 314 at 500 ms, 318 at 1 s, 320 at 2 s, 326 at 5 s, 338
-  at 10 s, so the gather's rush and the settle to 2.2 landings a second are both real; one card's x
-  ran -2112 to -1389 to -925 to -132 and then recycled), and in real Chrome by freezing the loop at a
-  chosen elapsed and shooting the still. Also proved: the stage's `data-paused` holds the clock on a
-  hidden tab (the count does not advance and does not teleport on return); Replay remounts to the
-  gather's first frame with the count back at 312 and every inline transform cleared; every h1 on the
-  page is at computed opacity 1 with no `data-mkt-cut`, `data-mkt-reveal` or `.mkt-line`; the server's
-  own HTML carries 24 `.hhi-card` nodes with both `--hhi-rest` and `--hhi-lag`; deleting the sheet's
-  one `no-preference` block (the reduced-motion simulation) leaves ten frames standing at their
-  steady spacing, the ring at opacity 0 and the count at its rest level; no em-dash anywhere in the
-  served page.
-- **Look at first**: the first two seconds, then the plate. On load the whole room closes on the code
-  once and settles. Then watch one photograph come in from the edge: it shrinks, it reaches the white
-  plate, and for about a fifth of a second it is half in and half out, like a print going into a
-  slot, and then the plate has it. Nothing fades. Then the answer to the question this variation was
-  built for, which is on the board under the name and repeated in the Record below.
+- **What was verified, and how** (all of it on the merged tree's production build, nothing on a
+  preview):
+  - **The motion**, in the Browser pane fronted, where `visibilityState` is `visible` and rAF keeps
+    running: the count went 328, then 334 at 2 s, then 342 at 6 s, which is the opening rush easing
+    to about 2.2 landings a second; one card's x ran -566 to -125 and then recycled to -2277, so a
+    frame is born at the edge, arrives, and is born again. A live ring measured
+    `rgba(255, 255, 255, 0.22) 0 0 18px 0` with its border at 0.78, which is exactly the glow flagged
+    in ask 2. Replay put the count back to 312 from 362.
+  - **The stills and the layout**, in real Chrome at Desktop 1440 (stage 1440 x 930) and Phone 375
+    (stage 375 x 760), both at 1:1, using the layer workaround this track filed: write
+    `will-change: auto` to the cards and shoot the NEXT capture, or the corridor photographs as empty
+    grey boxes. The h1 measures 341 px over three lines at 375. **Honest note on the tab**: the
+    Chrome tab could not be brought to the front (another session holds that window's active tab), so
+    it reports `visibilityState: "hidden"`, which froze the composition for the stills and proved the
+    pause at the same time (`data-paused` reads `"true"` on all three stages, the count does not
+    advance and does not teleport on return). The live half of the walk is the fronted Browser pane
+    above, not that tab.
+  - **The dock**, on the merged tree: `[data-board-dock]` is `position: sticky`, 49 px tall, writes
+    `scroll-padding-top: 190px`, carries Desktop / Phone 375 / Ruled copy / Proposed copy / Replay
+    plus the shell's 1:1, Fit, Sidebar and Desk, and sits at the top of the window while the inflow's
+    stage is in view.
+  - **The h1 and the served HTML**: four h1 elements on the page, every one at computed opacity 1,
+    none carrying `data-mkt-cut`, `data-mkt-reveal` or `.mkt-line`; the server's own HTML has 24
+    `.hhi-card` nodes with both `--hhi-rest` and `--hhi-lag`, and no em-dash anywhere in it.
+  - **Reduced motion, stated plainly as a SIMULATION plus a static proof**, because nothing in this
+    toolchain can set the OS preference. Static: `inflow.css` has exactly one `@media` block, the
+    `(prefers-reduced-motion: no-preference)` one, and both `animation:` declarations are inside it,
+    while the loop returns early on `usePrefersReducedMotion`. Simulated: clearing the loop's inline
+    transforms and deleting that one block leaves ten frames standing at their steady spacing, the
+    ring at opacity 0, the count at its 0.72 rest level and every h1 at 1. If Will wants the real
+    thing, it is one System Settings toggle and a reload on the board.
+- **Look at first**: the first two seconds, then the plate, then the four departures beside the
+  stage. On load the whole room closes on the code once and settles. Then watch one photograph come
+  in from the edge: it shrinks, it reaches the white plate, and for about a fifth of a second it is
+  half in and half out, like a print going into a slot, and then the plate has it. Nothing fades.
+  Then the answer to the question this variation was built for, which is on the board under the name
+  and repeated in the Record below.
 
 ## Record (round 1; the CHANGELOG paragraph for round 1, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
@@ -220,13 +256,10 @@ replaced its stub and answered Will's question. It runs the source's mechanics o
 frames are born out of the dark at the edges of the room, decelerate inward, and slide UNDER the
 code's white plate, so nothing ever fades at the destination (an object hidden behind something
 opaque has gone somewhere; an object that dissolves has been erased). The geometry is solved against
-the plate rather than guessed, so a frame is provably inside its footprint before the safety fade
-runs. Each landing pushes a ring out of the plate and ticks a count on the one lane of dark ground
-the funnel leaves clear, both driven in closed form off the loop's clock so a pause or the opening
-rush cannot desynchronise them. The entrance is a lag on that clock: the album plays at about 2.2x
-for 1.5 s and eases to its cadence, which makes the whole room close on the code once before a word
-is read, and leaves the JavaScript-off rest state a full corridor rather than a collapsed one. The
-phone got its own launch cadence after the source's put five frames on 188 px of runway. The verdict
-is on the board: it reads in motion and it is the truer sentence, but it needs the motion, and the
-source's frames grow as they travel while the inflow's shrink to nothing at the object you want
-looked at, so the recommendation is to keep the source as the home hero.
+the plate rather than guessed, and each landing pushes a ring out of the plate and ticks a count on
+the one lane of dark ground the funnel leaves clear, both driven in closed form off the loop's clock
+so a pause cannot desynchronise them. The entrance is a lag on that clock: the album plays at about
+2.2x for 1.5 s and eases to its cadence, so the whole room closes on the code once before a word is
+read. The verdict is on the board: it reads in motion and it is the truer sentence, but it needs the
+motion, and the source's frames grow as they travel while the inflow's shrink to nothing at the
+object you want looked at, so the recommendation is to keep the source as the home hero.
