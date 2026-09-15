@@ -4,47 +4,12 @@
 
 Deleted boards were last at `9b75ec1` (`git show 9b75ec1:<path>` reopens any of them) and were removed on 2026-09-02 in the library round; the thin registry the lab reads is [`src/app/(dev)/design/touchpoints.ts`](../../src/app/(dev)/design/touchpoints.ts) (`RULINGS`), rendered at `/design/record`.
 
-| id | surface | ruled | shipped |
-| --- | --- | --- | --- |
-| [entry](#entry) | guest | Phase 1 (June 2026) | V4 Adaptive sheet + ghost grid |
-| [upload](#upload) | guest | Phase 1 (June 2026) | V4 Floating + tile combo |
-| [gallery](#gallery) | guest | Phase 1 (June 2026) | V2 Masonry columns |
-| [header](#header) | guest | Phase 1 (June 2026) | V1 Left editorial |
-| [buttons](#buttons) | shared | Phase 1 (June 2026) | V4 Sharp surfaces, round actions |
-| [lightbox](#lightbox) | guest | Phase 1 (June 2026) | V2 Floating pill |
-| [event-card](#event-card) | host | Phase 1 (June 2026) | V3 Stat-forward overlay |
-| [forms](#forms) | host | Phase 1 (June 2026) | V1 Card sections |
-| [states](#states) | shared | Phase 1 (June 2026) | V3 Photographic promise |
-| [qr-card](#qr-card) | shared | Phase 1 (June 2026) | V1 Minimal ink |
-| [arrival](#arrival) | guest | 2026-06-11 | V1 Calm arrival |
-| [host-event](#host-event) | host | 2026-06-12 | V1 Gallery-first |
-| [host-dashboard](#host-dashboard) | host | 2026-06-12 | V3 Single feed |
-| [host-event-page](#host-event-page) | host | 2026-06-20 | V1 Composition: editorial |
-| [host-event-build](#host-event-build) | host | 2026-06-20 | V6 Review: focused mode |
-| [gallery-actions](#gallery-actions) | shared | 2026-06-20 | V1 Universal action colors + the grouped lightbox (the model) |
-| [marketing-identity](#marketing-identity) | marketing | 2026-07-05 (T1) | V1 Editorial gallery |
-| [marketing-voice](#marketing-voice) | marketing | 2026-08-25 | V1 Collection-led |
-| [marketing-decomposition](#marketing-decomposition) | marketing | open | open |
-| [marketing-hero-substrate](#marketing-hero-substrate) | marketing | open | open |
-| [home-hero](#home-hero) | marketing | open | open |
-| [pricing-plan-cards](#pricing-plan-cards) | marketing | 2026-08-27 | V2 Stacked photos |
-| [pricing-calculator](#pricing-calculator) | marketing | 2026-08-27 | V1 Album fill |
-| [contact-identity](#contact-identity) | marketing | 2026-08-28 | V2 The desk |
-| [press-identity](#press-identity) | marketing | 2026-08-28 | V1 The contact sheet |
-| [blog-identity](#blog-identity) | marketing | 2026-08-28 | V4 The Cutting Room |
-| [careers-identity](#careers-identity) | marketing | 2026-08-28 | nothing (all three rejected) |
-| [reel-reveal](#reel-reveal) | host | 2026-07-05 (T1), ratified as built 2026-07-08 | V1 Composite (ruled) |
-| [reel-experience](#reel-experience) | host | ADR-0023 | V1 Marquee in the feed |
-| [glow-doctrine](#glow-doctrine) | shared | 2026-08-28 and 08-31; open: the lit surface | open |
-| [glow-moments](#glow-moments) | shared | 2026-08-31; open: the publish beat's violet | open |
-| [event-feed](#event-feed) | host | 2026-06-22 | Condense, Fade, FLIP |
-| [palette](#palette) | shared | open (the review wave, 2026-09-14) | open |
-| [light](#light) | shared | open (the review wave, 2026-09-14) | open |
-| [type-scale](#type-scale) | shared | open (the review wave, 2026-09-14) | open |
-| [floating-surfaces](#floating-surfaces) | shared | open (the review wave, 2026-09-14) | open |
-| [brand-voice](#brand-voice) | marketing | open (the review wave, 2026-09-14) | open |
-| [media-kit](#media-kit) | marketing | open (the review wave, 2026-09-14) | open |
-| [rounding](#rounding) | shared | open (the review wave, 2026-09-14; Orchestrator-run) | open |
+The index that used to sit here (one row per ruling, by hand) is gone: it said the same thing as
+`RULINGS` in a second hand and had already drifted from it. The Library derives the table from the
+registry and from this file's own headings at
+[`/design/library/record`](../../src/app/(dev)/design/(shell)/library/record/page.tsx), and
+`record.test.ts` fails on any new drift in either direction: a section here with no registry entry,
+or a registry entry with no section here.
 
 ## entry
 

@@ -20,6 +20,15 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **`pnpm design:specimens`** (the `lab-library` track, 2026-09-15): give the specimen source collector a
+  script beside `design:rules` so `specimens.generated.json` regenerates by name rather than by path
+  (`node "src/app/(dev)/design/gallery/collect-specimens.mjs"`); the freshness test names the command.
+- **The proposals' "asks, one word each" blocks** (the `lab-rules` track, 2026-09-15): delete them from the
+  four `docs/specs/*.md` once `sandbox/registry.ts` carries the boards' specs (the `lab-kit` round lands
+  them); until then the proposals are the only home of Will's open questions.
+- **The collector's id collision** (the `lab-rules` track): a new contract target whose stem matches a
+  library component renames BOTH files (`sheet` becomes `ui-sheet`), so the real component is silently
+  re-id'd; `gallery.test.ts` catches it but reads as a missing entry; the id rule deserves a better answer.
 - **The policy directive sweep** (the Library x Lab round, 2026-09-15): the `lab-rules` track puts
   `// @policy: <scope>` on the fourteen policy tests the bible cites; the remaining tests that read
   the tree (`gallery.test.ts`, `touchpoints.test.ts`, the lane guard's siblings) get the same

@@ -1,6 +1,7 @@
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 
 import { FamilyGallery } from "@/app/(dev)/design/gallery/family-gallery";
+import { Column } from "@/app/(dev)/design/reference/reference-ui";
 
 // THE MARKETING LIBRARY (the library round, 2026-09-02; declared in the gallery
 // round, 2026-09-12): every component of the marketing system
@@ -24,15 +25,14 @@ export default async function MarketingLibraryPage({
       data-mkt
       data-mkt-skin="cinema"
     >
-      <main className="mx-auto w-full max-w-5xl px-6 pt-8 pb-20">
+      <Column className="max-w-5xl">
         <FamilyGallery
           family="marketing"
-          eyebrow="Reference · live · cinema skin"
           title="Marketing"
           blurb="The marketing system and the shared section atoms, rendered from production source on the real cinema skin, each with its declared variants. Every specimen uses the props that exist today; the motion is marketing.css's own grammar, loaded by the lab layout."
           link={(href) => withDesignKey(href, key)}
         />
-      </main>
+      </Column>
     </div>
   );
 }

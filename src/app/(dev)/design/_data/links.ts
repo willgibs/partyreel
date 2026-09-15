@@ -1,3 +1,4 @@
+import { POLICY_TESTS } from "./policies";
 import { BIBLE } from "@/app/(dev)/design/rules/bible";
 import { COMPONENTS } from "@/app/(dev)/design/rules/rules";
 import { SANDBOX } from "@/app/(dev)/design/touchpoints";
@@ -78,28 +79,12 @@ export const DOC_FILES: Record<LabDoc, string> = {
 };
 
 /**
- * THE POLICY TESTS, by stem (the id the policies page anchors on). Kept here
- * for now: the collector does not yet index `// @policy:` directives, so this
- * list is the one home until it does; when it does, derive it from the
- * artifact and delete this. A test path whose stem is not here is a plain
- * source ref (a component's contract test, for instance).
+ * The policy tests by stem, DERIVED from the `// @policy:` directives the
+ * collector reads (the lab-rules track, 2026-09-15); a test path whose stem
+ * is not here is a plain source ref (a component's contract test, for
+ * instance). Re-exported so the readers that import it from here keep working.
  */
-export const POLICY_TESTS: Record<string, string> = {
-  "no-em-dash-policy": "src/lib/no-em-dash-policy.test.ts",
-  "two-faces-policy": "src/app/two-faces-policy.test.ts",
-  "css-source-policy": "src/app/css-source-policy.test.ts",
-  "globals-theme-contract": "src/app/globals-theme-contract.test.ts",
-  "keyframe-uniqueness": "src/app/keyframe-uniqueness.test.ts",
-  "marketing-h1-policy": "src/app/(marketing)/marketing-h1-policy.test.ts",
-  "marketing-css-policy": "src/app/(marketing)/marketing-css-policy.test.ts",
-  "content-policy": "src/lib/content-policy.test.ts",
-  "marketing-media": "src/lib/constants/marketing-media.test.ts",
-  "glow-contract": "src/components/shared/glow-contract.test.ts",
-  "glow-placement": "src/components/shared/glow-placement.test.ts",
-  "border-beam-vendor": "src/components/dev/border-beam-vendor.test.ts",
-  "single-source-policy": "src/lib/single-source-policy.test.ts",
-  "track-manifests": "src/lib/track-manifests.test.ts",
-};
+export { POLICY_TESTS };
 
 const RECORD_FILE = "docs/decisions/design-record.md";
 const RULINGS_FILE = "docs/design/rulings.md";
