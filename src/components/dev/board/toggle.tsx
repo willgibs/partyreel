@@ -8,17 +8,24 @@ export function Toggle<T extends string>({
   value,
   onChange,
   ariaLabel,
+  wrap = false,
 }: {
   options: { id: T; label: string }[];
   value: T;
   onChange: (v: T) => void;
   ariaLabel: string;
+  /** Let the options wrap onto more rows (a toggle with more than about six
+   *  options overflows a 375 canvas otherwise; the rounding track's ask). */
+  wrap?: boolean;
 }) {
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className="inline-flex items-center gap-0.5 rounded-lg border border-border bg-muted/40 p-0.5"
+      className={cn(
+        "inline-flex items-center gap-0.5 rounded-lg border border-border bg-muted/40 p-0.5",
+        wrap && "flex-wrap",
+      )}
     >
       {options.map((o) => {
         const active = o.id === value;
