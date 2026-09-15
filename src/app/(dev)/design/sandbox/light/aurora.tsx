@@ -307,6 +307,7 @@ function Lit({
         >
           <Glow
             shape="seam"
+            drive={drive}
             vars={{ "--glw-h": `${band}px`, ...vars } as never}
           />
         </div>
@@ -323,6 +324,7 @@ function Lit({
     <div aria-hidden className="absolute inset-0">
       <Glow
         shape="throw"
+        drive={drive}
         vars={{
           ...vars,
           "--glw-blur": "48px",
@@ -607,6 +609,14 @@ export function AuroraPart({
         {current.note}
         <span className="mt-1 block">{REGISTER_NOTE[register]}</span>
         <span className="block">{TEMPERATURE_NOTE[temp]}</span>
+        {candidate === "seam" ? (
+          <span className="mt-1 block text-foreground">
+            The seam is the footer{"'"}s lamp verbatim, so it keeps the shipped
+            register (0.62 base and band, 210px, the site cadence) and takes no
+            grain. The register and grain knobs do not move it, and that is the
+            candidate rather than an omission.
+          </span>
+        ) : null}
       </KnobNote>
 
       {/* ★ ONE STAGE, WIPED, RATHER THAN TWO STACKED. Round two printed the
