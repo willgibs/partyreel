@@ -64,13 +64,13 @@ export type Voice = {
 
 export const VOICES: Voice[] = [
   {
-    id: "today",
-    name: "Today",
+    id: "room",
+    name: "B. The room",
     rationale:
-      "The shipped strings, verbatim. The voice is unwritten, so the arc drifts between an absence, a state and an instruction.",
+      "A rebuild from the product's one idea: the code becoming the album. Verb in front, present tense, the room as the setting, real counts as evidence. A sentence is about the moment, not the object.",
     paragraph:
-      "Unwritten. The only copy rule in the repo is the em-dash ban, so the voice is whatever the eight ratified golden lines happen to have in common: warm, plain, second person, two beats on a comma. Nothing says what a line should be ABOUT, which is why three of the seven provisional home headers are built out of an absence, one is a tautology, and the eyebrows above them name a category instead of a claim.",
-    cost: "Nothing to adopt, and nothing to hold the next hundred lines to.",
+      "Partyreel talks the way a good host talks while the party is still going: present tense, plain nouns, one breath per sentence. Every line is about something arriving. A code goes on a table, phones find it, an album fills with the event as everyone saw it, and the voice stays inside that moment instead of describing it from afterwards. It is warm because it is specific, not because it is friendly: it says photo, video, phone, code, album, guest, link, and it leaves memories, magic and journeys to someone else. It calls the host you and the guests everyone. It leads with what the reader gets, so the things Partyreel spares them (an app, an account, a group chat the morning after) land in the second half of a sentence and never the first. And it changes volume, not vocabulary: loud here, quiet in the product, nearly silent on a guest's screen.",
+    cost: "Its sentences run longer, and the hero pays for it: the row counter under the arc measures the h1 at both canvases. It also rewrites half again as much of the site as A.",
   },
   {
     id: "house",
@@ -82,13 +82,13 @@ export const VOICES: Voice[] = [
     cost: "It changes the least, so it lifts the least: the feature pages were already written in this register, so A moves six of their thirty strings and holds twenty-four.",
   },
   {
-    id: "room",
-    name: "B. The room",
+    id: "today",
+    name: "Today",
     rationale:
-      "A rebuild from the product's one idea: the code becoming the album. Verb in front, present tense, the room as the setting, real counts as evidence. A sentence is about the moment, not the object.",
+      "The shipped strings, verbatim. The voice is unwritten, so the arc drifts between an absence, a state and an instruction.",
     paragraph:
-      "Partyreel talks the way a good host talks while the party is still going: present tense, plain nouns, one breath per sentence. Every line is about something arriving. A code goes on a table, phones find it, an album fills with the event as everyone saw it, and the voice stays inside that moment instead of describing it from afterwards. It is warm because it is specific, not because it is friendly: it says photo, video, phone, code, album, guest, link, and it leaves memories, magic and journeys to someone else. It calls the host you and the guests everyone. It leads with what the reader gets, so the things Partyreel spares them (an app, an account, a group chat the morning after) land in the second half of a sentence and never the first. And it changes volume, not vocabulary: loud here, quiet in the product, nearly silent on a guest's screen.",
-    cost: "Its sentences run longer, so the hero h1 takes four rows at 375 against today's three, and it rewrites half again as much of the site as A.",
+      "Unwritten. The only copy rule in the repo is the em-dash ban, so the voice is whatever the eight ratified golden lines happen to have in common: warm, plain, second person, two beats on a comma. Nothing says what a line should be ABOUT, which is why three of the seven provisional home headers are built out of an absence, one is a tautology, and the eyebrows above them name a category instead of a claim.",
+    cost: "Nothing to adopt, and nothing to hold the next hundred lines to.",
   },
 ];
 
@@ -793,6 +793,130 @@ export function featureDiff(id: VoiceId): { moved: number; total: number } {
 }
 
 /* ---------------------------------------------------------------------------
+ * THE PAGES THE ARC DOES NOT REACH (round three)
+ * ------------------------------------------------------------------------ */
+
+/**
+ * ★ WHY THIS CHAPTER EXISTS. Round three's walk was the walk Will takes, and
+ * his list of pages named `/pricing`, `/help` and `/contact`. The board had
+ * argued the voice on the home arc and two feature pages, which are the pages
+ * that SELL; it had never shown the three a reader reaches when they are
+ * deciding or when something has broken. Those three carry the site's two most
+ * generic lines, and the guide's own surfaces table names a help article as a
+ * surface the board never rendered. So the chapter is small, and every `today`
+ * here is verbatim from the route.
+ */
+export type UtilityHero = {
+  route: string;
+  ground: "cinema" | "paper";
+  eyebrow: Trio;
+  header: Trio;
+  support: Trio;
+  /** What the shipped line does, and what the rewrite is arguing. */
+  note: string;
+};
+
+export const UTILITY_HEROES: UtilityHero[] = [
+  {
+    route: "/help",
+    ground: "cinema",
+    eyebrow: {
+      today: "Help center",
+      house: "Help center",
+      room: "Help center",
+    },
+    header: {
+      today: "How can we help?",
+      house: "Answers for hosts and guests.",
+      room: "Start with the short answer.",
+    },
+    support: {
+      today:
+        "Guides for hosts and guests: setup, sharing, privacy, plans, and the highlight reel.",
+      house:
+        "Guides for hosts and guests: setup, sharing, privacy, plans, and the highlight reel.",
+      room: "59 guides for hosts and guests: setup, sharing, privacy, plans, and the reel.",
+    },
+    note: "How can we help? is the line almost every help centre ships, so it fails the first judging question: a competitor could say it word for word. B answers with what the page actually does, since every article leads with its description and the description is the short answer. B's count has to be DERIVED from the catalogue rather than typed, or it is an invented number the first new article makes false.",
+  },
+  {
+    route: "/pricing",
+    ground: "cinema",
+    eyebrow: { today: "Pricing", house: "Pricing", room: "Pricing" },
+    header: {
+      today: "Start free, upgrade when you host again.",
+      house: "Start free, upgrade when you host again.",
+      room: "Start free, upgrade when you host again.",
+    },
+    support: {
+      today:
+        "No per-guest fees. Plans are sized by storage, so pick the room your event actually needs.",
+      house:
+        "Plans are sized by storage, so pick the room your event needs. Nobody pays per guest.",
+      room: "Pick the room your event needs. Plans are sized by storage, and nobody pays per guest.",
+    },
+    note: "The h1 holds in both, and it is one of the eight ratified golden lines, which is the guide protecting a line rather than moving one. The subhead opens on an absence, which is exactly the half of do 1 that sends an absence to the second beat. Worth the Orchestrator's eye: this page says upgrade when you host again while the home arc's ruled teaser says upgrade for more events. One promise, two wordings, and the infusion round has to pick one.",
+  },
+  {
+    route: "/contact",
+    ground: "paper",
+    eyebrow: { today: "Contact", house: "Contact", room: "Contact" },
+    header: {
+      today: "Talk to Partyreel.",
+      house: "Ask us anything about your event.",
+      room: "Every note gets a reply.",
+    },
+    support: {
+      today:
+        "An event you're planning, a plan you're weighing, something that broke. Every note gets a reply, usually within a day.",
+      house:
+        "An event you're planning, a plan you're weighing, something that broke. Every note gets a reply, usually within a day.",
+      room: "An event you're planning, a plan you're weighing, something that broke. Usually within a day.",
+    },
+    note: "The shipped h1 makes us the object of the reader's sentence. B promotes the line already in the subhead, which is the best sentence on the page and the model for do 2: it commits to an OUTCOME (a reply arrives) and never to who delivers it, which is what keeps it legal while a person answering or within one business day would not be.",
+  },
+];
+
+/** What a voice costs the three pages, counted like every other chapter. The
+ *  two article heads are outside the count and stated separately: they hold in
+ *  every column, which is the finding. */
+export function utilityDiff(id: VoiceId): { moved: number; total: number } {
+  let moved = 0;
+  let total = 0;
+  for (const h of UTILITY_HEROES) {
+    for (const t of [h.eyebrow, h.header, h.support]) {
+      total += 1;
+      if (!held(t, id)) moved += 1;
+    }
+  }
+  return { moved, total };
+}
+
+/**
+ * Two help article heads, verbatim from `content/help`. The guide's surfaces
+ * table names a help article and the board had never shown one; both hold, for
+ * two different reasons, which is the point of putting them here.
+ */
+export const HELP_HEADS = [
+  {
+    slug: "an-upload-wont-finish",
+    category: "Troubleshooting",
+    title: "An upload won't finish",
+    description:
+      "A stuck upload is almost always the connection: tap the dimmed tile to retry. A refused one tells you why (too large, wrong type, uploads closed). Big videos need a steady connection and time.",
+    note: "Held in both. The title is the reader's own words for the trouble and the description is the short answer, which is the shape the guide already prescribes. The 59 articles cost a voice ruling nothing.",
+  },
+  {
+    slug: "how-partyreel-works",
+    category: "Getting started",
+    title: "How Partyreel works",
+    description:
+      "You create an event and get a QR code. Guests scan it and add photos and videos from their phone browser, no app or account. It all lands in one live album you curate, share, and cut into a reel.",
+    note: "Held, and it is the one place the voice YIELDS. The title puts us in the subject, which the voice avoids everywhere else, but a help title is also the search string and the tab title: a reader types how does partyreel work. The reader's words outrank the voice on this surface, and the guide says so rather than pretending the rule is universal.",
+  },
+] as const;
+
+/* ---------------------------------------------------------------------------
  * TWO FEATURE PAGES, WHOLE
  * ------------------------------------------------------------------------ */
 
@@ -1288,6 +1412,17 @@ export type Surface = {
   today: { title: string; body?: string; action?: string };
   proposed: { title: string; body?: string; action?: string };
   note: string;
+  /**
+   * Set ONLY on the row a bible rule already decides, naming the rule. Round
+   * three's finding on these two chapters: twelve rewrites are shown and eleven
+   * are the infusion round's ordinary work, which made the chapter read like
+   * twelve rulings. The twelfth is not a ruling Will owes either, and the mark
+   * now says which rule owns it instead of implying an ask: bible 4 refuses the
+   * shipped line outright, so the infusion round has to change it whatever the
+   * voice. Its one choosable part, the noun (email or sign in), is ask 7, which
+   * settles this door line and the chapter 12 unfurl together.
+   */
+  compelled?: string;
 };
 
 /**
@@ -1422,7 +1557,8 @@ export const GUEST_SURFACES: Surface[] = [
       body: "Maya and Jay ask guests for an email. Add it once and you can add photos.",
       action: "Continue",
     },
-    note: "The shipped line asks the guest to create an account with US on the host's own page, which is exactly what bible 4 is about. The rewrite hands the ask back to the host, who is the one who turned it on.",
+    note: "The shipped line asks the guest to create an account with US on the host's own page, which is exactly what bible 4 is about. The rewrite hands the ask back to the host, who is the one who turned it on. Bible 4 decides that much on its own, so this row is not an ask; the noun it uses is, and that is ask 7, answered once for this line and the unfurl.",
+    compelled: "bible 4 refuses the shipped line",
   },
   {
     surface: "The door, a private event",

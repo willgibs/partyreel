@@ -154,11 +154,26 @@ const LIT_DARK = `inset 0 0 0 1px color-mix(in oklab, var(--foreground) 9%, tran
 const LIT_PAPER = `inset 0 0 0 1px color-mix(in oklab, var(--foreground) 8%, transparent),
     inset 0 -1px 0 color-mix(in oklab, var(--foreground) 7%, transparent)`;
 
+/**
+ * ★ THE GUEST PAGE IS NOT WALKABLE, AND IT IS NOT THIS BLOCK'S FAULT. Round
+ * three's cold walk followed this line to `/e/<demo token>` and found 18 real
+ * media tiles and NO candidate: the tuner island that renders an applied block
+ * mounts in `(app)`, `(marketing)/(cinema)`, `(marketing)/(paper)` and
+ * `(dev)/design`, and the `(guest)` group has none, so no board's candidate can
+ * reach a guest page at all. The page was dropped from this line rather than
+ * left as an instruction that leads a reviewer to a surface where the proposal
+ * provably does not land, which is the "control that does nothing visible"
+ * stumble this round exists to remove. Do NOT add it back without first giving
+ * `(guest)/layout.tsx` the island: that file is production and outside this
+ * track's lane, so it is flagged to the Orchestrator in the Handoff instead.
+ * The guest gallery is still the cue's best real surface, which is why the ask
+ * says "adopt, adapt or drop" on the three named surfaces and not on a page.
+ */
 export const LIT_FACE: LightCandidate = {
   label: "Light: the lit face (media frames, screens, plates)",
   what: "Every media tile, player and QR plate gains a hairline and a lip. Nothing else on the page changes.",
   pages:
-    "/ (the film strip), /features/qr, /features/album, an event page, the demo guest page",
+    "/ (the film strip), /features/qr, /features/album (three plates), an event page (the host gallery)",
   css: `/* THE LIT FACE (light board, part A).
    Not elevation: material. An inset hairline and a lip on a face that is
    catching light. Three surfaces: a media frame, a screen, a plate.
@@ -301,6 +316,36 @@ export const PAPER_FIVE: LightCandidate = {
   --lamp-5: ${PAPER_FIVE_VALUES[4]};
 }`,
 };
+
+/* ────────────────────  THE ENGINE'S ONE LINE (round three)  ─────────────── */
+
+/**
+ * NOT AN "APPLY" CANDIDATE, AND DELIBERATELY SO: nothing on the site uses the
+ * transform drive today, so applying this block to the running site would
+ * change nothing visible, and a button that does nothing is worse than no
+ * button. It is here because part B's cost row proposes that the FIELD take
+ * that drive, and the drive arrives with a law 4 defect that has never been
+ * seen precisely because no shipped lamp uses it.
+ *
+ * glw-drift-x runs `translate: 32% 0` to `-32% 0`, and the animation lives in
+ * the no-preference block, so the state a reduced-motion visitor gets is the
+ * unanimated one: translate 0, the comet parked dead centre at full
+ * --glw-strength. That is the same inversion the mask drive had fixed when its
+ * resting mask-position was moved to its own from-keyframe. One line puts the
+ * cheap drive back inside law 4.
+ */
+export const ENGINE_DRIVE_FIX = `/* THE TRANSFORM DRIVE'S REST STATE (light board, part B).
+   Law 4: the base is how a reduced-motion arrival still arrives, band away.
+   glw-drift-x's own from-keyframe, declared OUTSIDE the no-preference block,
+   exactly as [data-glw-drive="mask"] already declares mask-position: 150% 0.
+   Without it the drive's rest state is translate 0, which is the middle of
+   its travel: the comet parked dead centre at full strength, forever, for
+   every visitor who asked for less motion. No shipped lamp uses this drive
+   today, which is the only reason the defect has never been seen. */
+
+[data-glw-drive="transform"] [data-glw-band] {
+  translate: 32% 0;
+}`;
 
 export const LIGHT_CANDIDATES = [
   SHADOW_FAMILY,

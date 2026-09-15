@@ -26,20 +26,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
-import {
-  SECTION_HEADERS,
-  SITE_SUBHEAD,
-  SITE_THESIS,
-} from "@/lib/constants/marketing-voice";
+import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 import { cn } from "@/lib/utils";
 
-import {
-  APP_BODY_PX,
-  optics,
-  type Ladder,
-  type Spec,
-  type StepId,
-} from "./ladders";
+import { optics, type Ladder, type Spec, type StepId } from "./ladders";
 
 /**
  * THE REAL PAGES THE LADDER IS JUDGED ON.
@@ -90,8 +80,8 @@ export function Step({
 }
 
 /** The same wrapper driven by a bare spec rather than a ladder step, for the
- *  two stages that compare registers a ladder does not carry (round two's
- *  reconsideration of C, and the tracking law at one size under two values). */
+ *  two places that show a value no ladder carries: the tracking law at one size
+ *  under two tracking values, and the 404's title as production ships it. */
 export function SpecStep({
   spec,
   kind = "heading",
@@ -148,34 +138,11 @@ function Tile({ className }: { className?: string }) {
 
 /* ───────────────────────────── Marketing ─────────────────────────────── */
 
-/** The home hero. The shipped one (cinema-hero.tsx) hand-rolls this same ramp
- *  plus a `leading-[1.02]` of its own, which is the clearest evidence that the
- *  ladder owes each step a named line-height. */
-export function HomeHero({ ladder, mode }: PageProps) {
-  return (
-    <Step step="hero" ladder={ladder} mode={mode}>
-      <PageHero
-        entrance="cut"
-        scale="xl"
-        align="left"
-        className={isPhone(mode) ? "pt-16 pb-12" : "pt-28 pb-20"}
-        eyebrow="One QR code"
-        heading={SITE_THESIS}
-        subhead={SITE_SUBHEAD}
-        actions={
-          <>
-            <Button size="lg" className="h-11 px-6 text-base">
-              Start free
-            </Button>
-            <Button size="lg" variant="outline" className="h-11 px-5 text-base">
-              Try the live demo
-            </Button>
-          </>
-        }
-      />
-    </Step>
-  );
-}
+/* ROUND THREE cut `HomeHero` (PageHero at scale=xl in a full hero composition).
+   The hero step is judged on `HeroBoardLockup` below, which shows the SHIPPED
+   lockup beside the step, and the paste puts the step on the real home page in
+   one click; two stages of the same step is one stage too many. PageHero is
+   still on the board twice (the title step and the display step). */
 
 /** The home arc's two section tiers: the chapter anchor and a body section. */
 export function HomeSections({ ladder, mode }: PageProps) {
@@ -267,38 +234,10 @@ export function FeaturePage({ ladder, mode }: PageProps) {
   );
 }
 
-/** /help's masthead: the same title step in the blur register, with the front
- *  desk's quick links under it so the title is judged against real furniture. */
-export function HelpMasthead({ ladder, mode }: PageProps) {
-  return (
-    <Step step="title" ladder={ladder} mode={mode}>
-      <PageHero
-        entrance="blur"
-        scale="lg"
-        eyebrow="Help center"
-        heading="How can we help?"
-        subhead="Guides for hosts and guests: setup, sharing, privacy, plans, and the highlight reel."
-        className={cn(
-          "text-center",
-          isPhone(mode) ? "pt-14 pb-10" : "pt-20 pb-16",
-        )}
-      >
-        <div className="mt-8 flex flex-wrap justify-center gap-2">
-          {["Getting started", "For guests", "Sharing", "Plans"].map(
-            (label) => (
-              <span
-                key={label}
-                className="inline-flex rounded-full border px-3.5 py-1.5 text-[13px] text-muted-foreground"
-              >
-                {label}
-              </span>
-            ),
-          )}
-        </div>
-      </PageHero>
-    </Step>
-  );
-}
+/* ROUND THREE cut `HelpMasthead` (the title step, centred, in the blur
+   register). It is the same step as the feature page above it, and /help is one
+   click away in the walk with a candidate applied, where it is the real page
+   rather than a stage of it. */
 
 /** /about on paper: the display step over the prose tier, which is the only
  *  place the two loudest and quietest marketing steps meet on one page. */
@@ -495,73 +434,12 @@ export function EventPage({ ladder, mode }: PageProps) {
   );
 }
 
-export function AdminPage({ ladder, mode }: PageProps) {
-  return (
-    <div className="space-y-8 p-6">
-      <div>
-        <Step step="page" ladder={ladder} mode={mode}>
-          <PageHeading>Operations</PageHeading>
-        </Step>
-        <p className="text-sm text-muted-foreground">
-          Internal tools for running Partyreel.
-        </p>
-      </div>
-
-      <div className="space-y-3">
-        <AppSection ladder={ladder} mode={mode} idiom="label">
-          Today
-        </AppSection>
-        <Step
-          step="card"
-          ladder={ladder}
-          mode={mode}
-          kind="card"
-          className="grid gap-4"
-        >
-          <div
-            className="grid gap-4"
-            style={{
-              gridTemplateColumns: `repeat(${isPhone(mode) ? 1 : 2}, minmax(0, 1fr))`,
-            }}
-          >
-            {[
-              {
-                title: "Jobs",
-                body: "Every cron and worker, with its last run.",
-                count: 2,
-              },
-              {
-                title: "Accounts",
-                body: "Hosts, tiers and storage.",
-                count: 0,
-              },
-              {
-                title: "Reports",
-                body: "Guest reports awaiting a decision.",
-                count: 5,
-              },
-              {
-                title: "Security",
-                body: "Two-factor and portal access.",
-                count: 0,
-              },
-            ].map((card) => (
-              <Card key={card.title}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {card.title}
-                    {card.count > 0 ? <Badge>{card.count}</Badge> : null}
-                  </CardTitle>
-                  <CardDescription>{card.body}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </Step>
-      </div>
-    </div>
-  );
-}
+/* ROUND THREE cut the admin-page stage. It rendered the same two app steps as
+   the dashboard above it (PageHeading and CardTitle) with admin's own label
+   idiom, and that idiom is already on the missing-middle stage beside the
+   dashboard's. A paste cannot reach /admin anyway (no design island in
+   admin/layout.tsx, which is named on the board), so this stage was the third
+   telling of the same thing. */
 
 /* ─────────────────── Round two's four new compositions ────────────────── */
 
@@ -792,94 +670,13 @@ export function MissingMiddle({ ladder, mode }: PageProps) {
   );
 }
 
-/* ── C's app register, reconsidered ───────────────────────────────────── */
-
-/** The three app registers side by side (round two, the seventh goal). C's
- *  round-one column is kept as history: it is what the reconsideration
- *  rejected, and Will can see the rejected thing rather than read about it. */
-const REGISTERS: {
-  name: string;
-  note: string;
-  page: Spec;
-  section: Spec | null;
-  card: Spec;
-  verdict: string;
-}[] = [
-  {
-    name: "Today",
-    note: "24 page, no section step, 16 card",
-    page: { px: 24, lh: 1.333, ls: -0.03 },
-    section: null,
-    card: { px: 16, lh: 1.375, ls: -0.03 },
-    verdict:
-      "The title is the loudest thing on a page whose subject is photographs, and the tier under it is a label.",
-  },
-  {
-    name: "C, as round one proposed it",
-    note: "20 page, 16 section, 14 card",
-    page: { px: 20, lh: 1.3, ls: -0.014 },
-    section: { px: 16, lh: 1.4, ls: -0.006 },
-    card: { px: 14, lh: 1.45, ls: -0.002 },
-    verdict: `The card title is the size of the sentence under it. A card sets text-sm on its whole subtree, so at 14 the event name is separated from its ${APP_BODY_PX}px metadata by weight and colour alone.`,
-  },
-  {
-    name: "C, as round two ships it",
-    note: "20 page, 18 section, 16 card",
-    page: { px: 20, lh: 1.3, ls: -0.014 },
-    section: { px: 18, lh: 1.35, ls: -0.01 },
-    card: { px: 16, lh: 1.4, ls: -0.006 },
-    verdict: `The quiet title holds (in an app a title is a locator, not a headline) and the floor holds under it: no heading smaller than the ${APP_BODY_PX}px body it sits on.`,
-  },
-];
-
-export function AppRegisters({ mode }: { mode: Mode }) {
-  const phone = isPhone(mode);
-  return (
-    <div
-      className="grid gap-4 p-5"
-      style={{
-        gridTemplateColumns: `repeat(${phone ? 1 : 3}, minmax(0, 1fr))`,
-      }}
-    >
-      {REGISTERS.map((r) => (
-        <div key={r.name} className="flex flex-col gap-3">
-          <div>
-            <p className="text-[11px] font-medium text-foreground">{r.name}</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
-              {r.note}
-            </p>
-          </div>
-          <div className="rounded-lg border border-border bg-background p-4">
-            <SpecStep spec={r.page}>
-              <PageHeading>Dashboard</PageHeading>
-            </SpecStep>
-            <p className="text-sm text-muted-foreground">3 of 10 events used</p>
-            <div className="mt-4">
-              {r.section ? (
-                <SpecStep spec={r.section}>
-                  <h2 className="font-heading font-semibold">Your events</h2>
-                </SpecStep>
-              ) : (
-                <h2 className={IDIOM.uppercase.className}>Your events</h2>
-              )}
-              <SpecStep spec={r.card} kind="card" className="mt-2.5">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Mara and Tom</CardTitle>
-                    <CardDescription>214 photos, 23 guests</CardDescription>
-                  </CardHeader>
-                </Card>
-              </SpecStep>
-            </div>
-          </div>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
-            {r.verdict}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
-}
+/* ROUND THREE cut the app-registers stage (today, C as round one proposed it,
+   C as round two ships it). Its question was settled by round two's own
+   reconsideration: the floor is a law every ladder obeys and `ladders.test.ts`
+   pins it, so there was nothing left on that stage for Will to rule on, and a
+   rejected proposal kept on the board is an ask he has to read past. What it
+   showed, toggling the dashboard stage between today and C shows live. The
+   reasoning lives in the C comment in ladders.ts and in the manifest. */
 
 /* ── The 404 ──────────────────────────────────────────────────────────── */
 
@@ -958,17 +755,30 @@ export function NotFoundStage({ ladder, mode }: PageProps) {
 /* ── The tracking law, alone ──────────────────────────────────────────── */
 
 /**
- * THE THIRD ASK ON ITS OWN (round two, the third goal): the same word at 160
- * and the same card title at 16, under the flat -0.03em and under the law.
- * Nothing here moves a size, which is the point: the law can be adopted
- * whichever ladder wins, and it is the only fault of the three that today's
- * sizes can fix by themselves.
+ * THE TRACKING ASK ON ITS OWN, AND THE PAIRING UNDER IT.
+ *
+ * The same word at the masthead size and the same card title at 16, under the
+ * flat -0.03em and under the law. Nothing in the first half moves a size, which
+ * is the point: the law is adoptable whichever ladder wins, and it is the only
+ * fault of the three that today's numbers can fix by themselves.
+ *
+ * ★ ROUND THREE folded the pairing stage in here rather than giving it a stage
+ * of its own. The pairing and the tracking are the same evidence read twice:
+ * what makes Urbanist look wrong at a poster size is the constant, not the
+ * face, so the verdict belongs directly under the demonstration of the
+ * constant. The pairing is a departure with a verdict now, not an ask.
+ *
+ * The first half does NOT move with the ladder toggle (it is today's sizes
+ * under two tracking rules) and says so on the board; the pairing rows below
+ * take the selected ladder's title step.
  */
-export function TrackingLaw({ mode }: { mode: Mode }) {
+export function TrackingLaw({ ladder, mode }: PageProps) {
   const phone = isPhone(mode);
   const big = phone ? 52 : 160;
   const law = optics(big);
   const cardLaw = optics(16);
+  const titlePair = ladder.steps.title!;
+  const title = phone ? titlePair.phone : titlePair.desktop;
   const row = (label: string, ls: number, lh: number) => (
     <div>
       <p className="text-[11px] text-muted-foreground tabular-nums">
@@ -1017,7 +827,54 @@ export function TrackingLaw({ mode }: { mode: Mode }) {
         card title tight enough to cost legibility at the size that is read
         most. The law is a function of size, so it is adoptable on its own:
         today&rsquo;s sizes, nothing moved but the leading and the tracking.
+        Neither row above moves with the ladder toggle, which is what makes this
+        a separate ruling.
       </p>
+
+      <div className="flex flex-col gap-4 border-t border-foreground/10 pt-5">
+        <p className="text-[11px] font-medium">
+          And the face pairing, which the same evidence answers
+        </p>
+        <div>
+          <p className="text-[11px] text-muted-foreground tabular-nums">
+            Urbanist at the title step, tracked the way it ships: -0.03em at
+            every size
+          </p>
+          <p
+            className="font-heading"
+            style={{
+              fontSize: title.px,
+              lineHeight: title.lh,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            Every photo, from every guest
+          </p>
+        </div>
+        <div>
+          <p className="text-[11px] text-muted-foreground tabular-nums">
+            The same face and size at this step&rsquo;s own tracking, {title.ls}
+            em
+          </p>
+          <p
+            className="font-heading"
+            style={{
+              fontSize: title.px,
+              lineHeight: title.lh,
+              letterSpacing: `${title.ls}em`,
+            }}
+          >
+            Every photo, from every guest
+          </p>
+        </div>
+        <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
+          Inter underneath, unchanged. The board&rsquo;s verdict: the pairing
+          holds, so there is no face ask. A geometric sans at a poster size
+          wants more negative tracking than a UI label does, and the constant is
+          the whole of what makes Urbanist read loose at {big}px and cramped at
+          16. Fix the tracking and no case for a new face is left standing.
+        </p>
+      </div>
     </div>
   );
 }

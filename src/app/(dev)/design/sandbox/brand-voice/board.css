@@ -89,8 +89,15 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* ★ NO FILL MODE, and it is not a detail. `both` leaves every swapped block
+     holding a FINISHED animation for the life of the page: round three
+     measured seventeen of them sitting on this board at rest, one per stage,
+     each one a layer the compositor keeps for a move that ended in 180ms. The
+     keyframe's end state IS the resting state (opacity 1, no transform) and
+     there is no delay to cover, so the fill buys nothing and the animation is
+     free to release. Nothing runs on this board at rest now. */
   [data-bv-swap] {
-    animation: bv-swap-in 180ms var(--ease-emphasis) both;
+    animation: bv-swap-in 180ms var(--ease-emphasis);
   }
 
   @keyframes bv-swap-in {
