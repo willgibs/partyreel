@@ -1,7 +1,7 @@
 ---
 track: brand-voice
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "c473707"          # round four cut from origin/launch-prep (2026-09-15)
 merged_round_3: "4530f2e"
 merged_round_2: "b574cda"
 merged_round_1: "d988c88"
