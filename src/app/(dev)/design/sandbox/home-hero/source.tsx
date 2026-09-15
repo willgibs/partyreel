@@ -259,12 +259,16 @@ type Geo = {
    * still overlaps to about 1.5 canvas widths.
    *
    * THE COST OF THE STAND-INS, stated so it is not mistaken for a design fault:
-   * the two arms are offset by half the frame set, so with 24 frames the two
-   * arms' visible windows are disjoint and no photograph is ever on screen
-   * twice. With the 12 landscape stand-ins the windows overlap by four, so four
-   * photographs are on screen twice at any moment, on opposite arms, at very
-   * different sizes, and three of the four in different crops (the aspect
-   * assignment is offset by one arm). Will's 24 squares close it exactly.
+   * the pool above is 17 a side at 1440 and the two arms are offset by half the
+   * frame set, so the two windows are disjoint, and no photograph is on screen
+   * twice, only once the set is at least TWICE the pool. 34 is the first count
+   * that clears it, which is why the asks request 34 and not a round 24. The 12
+   * landscape stand-ins are a third of that, so the corridor goes round almost
+   * three times and every stand-in is in the air two or three times at once;
+   * the LEFT arm alone repeats five of them, because slot and slot + 12 land on
+   * the same picture and 12 is a multiple of both the lane count and the aspect
+   * count, so that copy is the same crop in the same lane. Will's 34 squares
+   * close it exactly: 17 a side, disjoint, nothing doubled at either canvas.
    */
   launch: number;
 };
@@ -391,10 +395,14 @@ type Card = {
 };
 
 /**
- * The two pools. The photograph offset is half the manifest's length, so the two
- * arms never carry the same frame at the same moment: the left arm's visible
- * window is FRAMES.length / 2 consecutive pictures and the right arm's is the
- * other half, exactly. That identity is what the cadence above is derived from.
+ * The two pools. The photograph offset is half the frame set, so the left arm's
+ * window is `pool` consecutive pictures from 0 and the right arm's is `pool`
+ * from FRAMES.length / 2. Those two windows are disjoint, and no photograph is
+ * on screen twice, EXACTLY WHEN FRAMES.length >= 2 * pool: 34 at 1440, where
+ * the pool is 17 a side. The 12 stand-ins are far below that and repeat, which
+ * is what the board's first ask is for. Do not shrink the set past 2 * pool,
+ * and do not restate the no-repeat identity as unconditional: it is a property
+ * of the set's SIZE, not of the offset.
  */
 function buildCards(mode: Mode, pool: number): Card[] {
   const geo = GEO[mode];
@@ -803,7 +811,7 @@ export const source: Concept = {
     "THE CENTRED LOCKUP, and it is the only one left. Precedent rather than law: every other marketing hero goes left, and this one is centred because the code owns the axis and the corridor is symmetrical about it. Overrule it and the composition changes shape, because the type would then have to live beside the corridor rather than above and below it. Everything else here is inside the bible: media at 100 percent with no scrim and no darkening layer anywhere, the h1 in the markup at full opacity, every animation inside the reduced-motion block with the deployed corridor as the rest state, and cinema and unlit with no lamp. Round three's second departure, a reader with scripting off and motion allowed getting an empty band, is fixed rather than flagged: a noscript companion rule restores the deployed corridor for exactly that reader.",
   ],
   assets: [
-    "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals. They replace the 12 landscape stand-ins the corridor cycles (FRAMES in shared.tsx); the left arm takes the first 12 and the right arm the last 12. They do not change the corridor: the cadence, the pool and the sizes are constants of the composition, so the 24 buy exactly one thing, that no photograph is ever on screen twice. With the 12 stand-ins the two arms' windows overlap by four, so four pictures are doubled at every moment, on opposite arms, at very different sizes and three of the four in different crops.",
+    "34 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals, cropped from 34 of the same 36 masters rather than shot again. They replace the 12 landscape stand-ins the corridor cycles (FRAMES in shared.tsx); the left arm takes the first 17 and the right arm the last 17. 34 rather than a round 24 because the count is the composition's: the corridor holds 17 frames a side in the air at 1440, the two arms are offset by half the set, and the two windows only come apart at twice the pool, which is what buys the one thing the pictures buy, that no photograph is ever on screen twice. Anything short of it still doubles: the 12 stand-ins go round almost three times, so every one of them is in the air two or three times at once, and 24 would still leave ten pictures shared between the two arms. Nothing else moves, because the cadence, the pool and the sizes are constants of the composition.",
     "Framed tight enough to read at 120 px AND to survive a centre crop to 4:5 and to 4:3: a face, two hands, a glass, a sparkler, a first dance. Half the corridor is portrait now, because that is what guests shoot. Frames are read between 117 and 370 px here, so a wide room shot is grey mush and a subject near an edge loses its head to the crop.",
     "Nothing else. The QR is the real demo event's, live from NEXT_PUBLIC_DEMO_QR_TOKEN, and there is no plate art, no lamp and no video in this concept.",
   ],
