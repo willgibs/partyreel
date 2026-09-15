@@ -1,6 +1,6 @@
 ---
 track: floating-surfaces
-status: open
+status: handed-off
 cut: "c473707"
 merged_round_3: "c0609e7"
 merged_round_2: "8a448fd"
@@ -8,6 +8,11 @@ merged_round_1: "3071cfc"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/floating-surfaces/
+  # Round four claims the board's own published proposal: the round-four goal
+  # says "the proposal in docs/specs/floating-surfaces.md becomes the directions
+  # with their contracts", and the media-kit and brand-voice tracks own theirs
+  # the same way. No other live track claims it.
+  - docs/specs/floating-surfaces.md
 reads:
   - src/components/ui/dropdown-menu.tsx
   - src/components/ui/tooltip.tsx
@@ -913,16 +918,231 @@ none above 0.01ms.
 
 ## Handoff (round 4)
 
-- Head <sha>, pushed; preview partyreel-git-lp-floating-surfaces-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/floating-surfaces`, pushed. The last code commit is `8f17d09`; everything after
+  it is this file and `docs/specs/floating-surfaces.md`. Board: `/design/c/floating-surfaces?key=`.
+  **The marker that says "this is round four" is the block the board OPENS with, "Three floating
+  layers, and the one this board would build"**; round three's opener was "Where this board lands", and
+  its absence is the fastest way to tell you are looking at the old one. A second marker in a different
+  place: the dock's first control is a Direction switch (Today / Card / Glass / Command), which round
+  three had nowhere.
+- **Synced with `launch-prep` at `07ad3b2`** (merge `e38462b`); it had moved three commits past the
+  `c473707` this branch was cut from, and one of them is the shell landing this board's own asks. The
+  merge is clean, nothing in this lane collided, and the whole gate re-ran on the merged tree.
+- **No preview was built and none was waited on.** Vercel is at the free plan's ceiling until the
+  afternoon, and the round-four brief says not to call the API. Every measurement below is from a LOCAL
+  PRODUCTION BUILD of this head in this worktree (`pnpm build` then `npx next start -p 3711`), driven in
+  a FOREGROUND Chrome tab. The lab is in no allow-list, so localhost renders the tip exactly, "Apply to
+  the site" included, and the marketing pages wear a candidate the same way.
+- Gates on this head: typecheck ok, lint ok (0 errors, 6 warnings, all pre-existing and outside the
+  lane), test ok (1804 in 199 files), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = this file, `docs/specs/floating-surfaces.md`
+  and the eleven files of `src/app/(dev)/design/sandbox/floating-surfaces/`. Nothing under
+  `src/components/ui/` was touched; every direction reaches the primitives from outside, and the one
+  place a primitive is BROKEN (the submenu, below) is worked around by composing a Portal the primitive
+  already exports, never by editing it.
+  **The spec is newly claimed in this manifest's `owns`.** Round four's goal says the proposal becomes
+  the directions with their contracts, the media-kit and brand-voice tracks own theirs the same way,
+  and the lane guard is green with no other live track claiming it. Say so at the merge if that reading
+  is wrong and the block moves back into the Record.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **One shell ask was already landed while this round was open, and it is worth saying rather than
+  repeating.** This board found that the lab chrome's fixed "Sidebar" pill sat on top of the dock's
+  first control on every board with a dock (`LabChrome` renders it `fixed top-2 left-2 z-40`, and
+  `BoardDock` is sticky at `top: 0`) and shipped a spacer as a visible workaround. `07ad3b2` fixed it
+  properly in `design.css`, hiding the pill on a board page that has a dock, so the spacer is DELETED
+  rather than left behind. Two other shell changes in that commit help here too: the dock's rows take
+  the full width below `sm` instead of squeezing the board's switches, and its height re-syncs a frame
+  after mount, which is the measurement a background tab was getting wrong.
+- **Shell changes asked for (the Orchestrator lands them):**
+  1. **`BoardMeta`'s `grid-cols-[8rem_minmax(0,1fr)]` is still not responsive** (round three asked for
+     this too): at 375 the label column eats 128 of 343 and every meta line wraps to three. A `sm:` on
+     the two-column form fixes every board at once.
+  2. **The frame still belongs in the shell** (round three's ask, unchanged in substance and now with
+     one thing removed): `frame.tsx` + `page.tsx` + the `flt-cover` rules are a second kind of stage, a
+     VIEWPORT (an iframe laid out at the canvas's true pixels, running a gated scene route in its own
+     document), because a radix panel portals to `globalThis.document.body` and leaves any zoom-fitted
+     div, its ground, its zoom and its canvas. What to absorb: the iframe box; the
+     `designKey === undefined` hold so a gated scene route is never hit keyless; the `flt:set` /
+     `flt:replay` same-origin dispatch, generalised to `board:set` / `board:replay`; the frame
+     document's resident ground owner; the cover plus the `nextjs-portal` hide; `useMountOnApproach`
+     with the display-contents trap written down; and the honest canvas label. What is GONE is the
+     ResizeObserver fit and the "canvas at N%" badge: round four stopped scaling, and the shell's own
+     Fit preference is the only scaling left.
+  3. **The touchpoint blurb for this board is now wrong twice.** It says "All nine primitives ... three
+     ladders at 1:1": the family is TEN, there are two ladders, and the board's subject is three
+     directions rather than three knobs. `touchpoints.ts` is not this lane's to edit.
+- Assets requested from Will: none. The board judges a layer over content and the real event photographs
+  in `public/marketing/img/` are the right content for it; nothing here is a stand-in.
+
+**Light QA, measured on a LOCAL PRODUCTION BUILD of this head, in a foreground Chrome tab.**
+
+- **At 1440** (a 1440x950 emulated viewport): the board mounts all **25 frames** and every one loads
+  (`.flt-cover` present in each `contentDocument`); `scrollWidth - clientWidth` is **0 at every scroll
+  position** from the top to the foot; **not one frame carries a transform** (`getComputedStyle(iframe)
+  .transform === "none"` for all 25), which is the round's second brief in one assertion; no panel in
+  any frame escapes its canvas; no em-dash in the served text; no `font-mono` class anywhere.
+- **At 375** (the board in a 375-wide same-origin iframe on the same server, since a Chrome window will
+  not go below 500 and the pane's emulation scales to fit): `innerWidth` exactly 375, no horizontal
+  scroll at any scroll position, all 25 frames mount and load, and the dock computes `position: static`
+  so it covers nothing. The dock is **238px** tall there, down from 457 before the knob row moved to
+  the section it drives. Re-run on the MERGED tree after `07ad3b2`: unchanged at 375, and at 1440 the
+  dock is 164px sticky with the lab chrome's pill computing `display: none`, which is the shell fix
+  doing its job.
+- **Reduced motion, re-measured on THIS head rather than quoted.** Every `prefers-reduced-motion` media
+  rule in the board document and in all 25 frame documents forced to the reduce state (**1596 rules**,
+  walked recursively so the `@layer base` guard in globals.css is included): all **38** floating
+  surfaces open at the census compute an animation and a transition duration of 0.01ms or less. None
+  leaks.
+- **Cost.** First paint is **one document**, 38 requests and 722 elements in the parent, because row 1
+  is the only eager row now (round three's was six documents). Walked end to end it reaches 25
+  documents, 49 requests and 144 photographs.
+- **Frame time.** At rest the board runs NOTHING: zero running animations, an 8.5ms median frame over
+  70 frames (a 120Hz display) with a 10.7ms worst. "Replay" with every frame mounted measures the same
+  8.5ms median with one 36.9ms frame, which is the glass blur and the card entrances starting together.
+- **"Apply to the site" was walked on the real pages, not asserted.** The card direction was applied
+  from the landing block and each page opened with `?key=`, reading the computed values off the live
+  DOM:
+  - `/` (the home arc): the REAL marketing header nav panel opens at `border-radius: 8px` with its links
+    at `4px` (the rule-9 nest, on a real page), running `flt-card-in` for 160ms, and its `--flt-float`
+    resolves to the DARK alphas because its nearest ground is `html.dark`.
+  - `/pricing`: a real plan tooltip opens at 8px running `flt-card-in`, and its `--flt-float` resolves
+    to the LIGHT alphas (0.09, 0.13) because its nearest ground is the section's `.surface-paper`, even
+    though `<html>` is still `dark`. That is the round-four correction below, verified where it
+    matters.
+  - `/contact` carries the block; its select is `ui/select.tsx` (`contact-form.tsx:296`) and that call
+    site overrides the floating radius with `rounded-xl`, which the paste beats because the block is
+    unlayered.
+  - `/dashboard` and an event page were NOT walked: the app group needs a signed-in host and localhost
+    is in no Supabase redirect allow-list by design, so a local build answers `/login`. Round three
+    walked them on the launch-prep alias; this round could not, because the alias serves round two and
+    Vercel is capped. Said here rather than quietly skipped.
+  - The stored candidate was cleared afterwards (the board's own "Applied to the site, clear", verified
+    gone from `localStorage`), so the lab is handed over clean.
+
+**What round four changed, and why.**
+
+1. **The board changed purpose.** Will's note says the track should explore new dropdown designs rather
+   than nail today's options, so the board is three DIRECTIONS now: card changes the anatomy, glass the
+   material, command the model. They are three different kinds of answer, not three shades of one, and
+   each is a working component on the real primitives plus a real paste for its material, radius and
+   motion. The board says on every row which half a paste can carry and which half is a component.
+2. **The direction is a dock switch, and so is every page-wide control** (the global note (a)). The
+   board adopts the shell's `BoardDock` whole; comparing two directions is a click from wherever you
+   are standing, and eleven surfaces answer the switch at once. The knobs for rows 8 to 11 ride the
+   dock's second line on a desktop and move down to their own section on a phone, where the dock is
+   static and its back-and-forth value is gone anyway.
+3. **Nothing is scaled** (the global note (b)). Every frame renders its canvas at real pixels and
+   scrolls sideways inside its own box when the column is narrower; the shell's Fit control still fits
+   one for a glance. Round three's "canvas at 69%" badge is gone with the shrinking, replaced by a
+   label that only appears on a canvas that is not a real viewport.
+4. **More real UI** (the global note (c)). The specimens are whole surfaces: a host's desk at 1440 with
+   the header panel, the event menu, the account menu and a tooltip open together; the same host on a
+   phone; the guest's own entry drawer; the dialog, the tooltip, the toast, the field and the edge
+   panel.
+5. **Round three's answer survives as one section**, still pasteable and still measuring the corner off
+   the live DOM, as the ruling for today's primitives if no direction wins.
+
+**Findings for whoever owns the primitives (not candidates, true whatever is ruled).**
+
+- **A NESTED SUBMENU IS INVISIBLE IN THE PRODUCT.** `ui/dropdown-menu.tsx` renders
+  `DropdownMenuSubContent` with no Portal while `DropdownMenuContent` carries `overflow-x-hidden
+  overflow-y-auto`, so the submenu is a DOM descendant of a box that clips it. Measured on this board:
+  it opens at the right x and y (288, 258, 241x117 inside a 680x380 canvas), computes `visibility:
+  visible` at opacity 1, and paints NOTHING, because `elementFromPoint` at its own centre returns the
+  page behind it. No product surface opens a submenu yet, which is why nobody has seen it, and it is
+  exactly the "nested menus" Will's note names. The fix is one wrapper (`<DropdownMenuPortal>`), which
+  this board composes from outside; if the second ask is ruled "delete", the bug goes with the feature.
+- **An entrance written for every panel beat the edge rule two lines under it.** `:is(ALL)` carries the
+  specificity of its most specific argument, `[data-slot="sheet-content"][data-side="bottom"]`, so the
+  sheet ZOOMED against the block's own comment, and the guest entry drawer was handed this family's
+  clock on top of vaul's own keyframes. Every entrance now addresses `ANCHORED` (menus plus the centred
+  box); the edge family takes the slide and the guest drawer takes neither, by name. This bug is round
+  two's and the rungs carried it, so `candidates.ts` is corrected with the directions.
+- **A panel takes the ground it SITS ON, not the ground of `<html>`.** Every ground-dependent value was
+  declared on `html:is(.dark, .surface-ink)`, and on a real marketing page `<html>` carries `dark` from
+  next-themes while the section carries `.surface-paper`: a tooltip on `/pricing` drew a light ground
+  with the dark shadow behind it. The fix is the mechanism globals.css already uses for `--foreground`:
+  declare on the ground CLASSES as elements so the nearest declaring ancestor wins by inheritance
+  rather than by cascade (`lightGround()` / `darkGround()`), light first and dark second.
+- **`ui/select.tsx`'s one product call site overrides the floating radius** with `rounded-xl`
+  (`contact-form.tsx:296`), so the select is doubly an outlier: a stock primitive whose only caller
+  disagrees with it.
+- `ui/tooltip.tsx` is inverted (`bg-foreground` with `primary-foreground` text), so any material that
+  repaints the background and leaves the colour alone puts dark text on a dark pane. Glass has to say
+  so; the other directions do not touch the background and are unaffected.
+- `guest/entry-shell.tsx` renders a RAW vaul drawer, outside `ui/drawer.tsx`, with a literal radius
+  `calc(var(--radius-action) * 1.4)`. It is a tenth floating surface and the one most people on this
+  product will ever see.
+- `ui/navigation-menu.tsx`'s viewport cannot size itself outside the marketing header, and radix centres
+  it under the trigger LIST, so a nav pinned to the left edge of a canvas hangs its panel off the left.
+  The desk scene centres its nav for that reason.
+- `ui/tooltip.tsx`'s arrow takes a literal `rounded-[2px]` instead of a token (bible 8).
+- Round one's reduced-motion "hole" still does not exist: `globals.css:855` has clamped every animation
+  and transition to 0.01ms under the preference since 2026-06-11. What the family lacks is bible 14's
+  FIRST line, a gate of its own, which row 11 offers as a paste.
+
+**Testing notes for the next session on this board.**
+
+- **The Chrome pane is SHARED between the parallel tracks.** Another session can front its own tab
+  mid-batch, and when it does, a `screenshot` of yours comes back black or lays the lab out in the
+  sidebar cell, a `wait` reports the wrong tab, and an `await`-ing script times out because
+  `requestAnimationFrame` never fires. Front your tab (`tabs_select`) in the SAME batch as the work,
+  read the DOM rather than the picture, and re-front before any rAF measurement.
+- **A row mounts from an IntersectionObserver, so it needs a REAL box, a REAL scroll and a rendering
+  document.** A 375 probe iframe in a backgrounded tab mounted exactly one frame; the same probe with
+  the tab fronted mounted all 25.
+- **A local `next start` does not survive the tool call that launched it** unless it is run as a
+  background command: three servers died mid-walk and served a stale build to a browser that reported
+  "denied or failed" rather than a connection error. Check the served HTML for this round's marker
+  before believing anything a walk tells you, and free the port before restarting.
+- The Chrome window will not go below 500px wide and the pane's viewport emulation SCALES TO FIT (a 375
+  preset reported `innerWidth` 696), so 375 has to be a 375-wide same-origin iframe.
+- **Reduced motion has no emulation**: force it by walking the CSSOM and flipping every
+  `prefers-reduced-motion` media rule, recursing into `@layer` blocks. Around 1600 rules across this
+  board and its 25 frames is the right order of magnitude; a few dozen means the walk is not recursing.
+- The lab page is shared browser state: "Apply to the site" persists in `localStorage` until cleared.
+
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
+  1. "The direction: today, card, glass or command (this board says card)"
+  2. "The submenu: keep it, or delete it and let the three values be a group (this board says delete)"
+  3. "The radius: sharp, nested or round (this board says nested, which is what card carries)"
+  4. "The entrance: one clock or by frequency (this board says by frequency, and that rule 15 means one
+     language)"
+  5. "The light in dark: today or the shadow (this board says whatever the light board is ruled, since
+     the numbers are the same)"
+- Look at first:
+  1. **Row 2, the four answers side by side at true pixels.** Today is an anonymous list; card has a
+     subject, sections, a rail and a footer; glass takes the boxes out; command replaces the list with
+     a field. Thirty seconds and the direction ask answers itself.
+  2. **Row 1, then flip the dock.** The whole desk changes under the switch: the header panel, the
+     event menu, the account menu and the tooltip at once. That is the comparison the review asked for,
+     and it costs a click from wherever you are standing.
+  3. **Row 3, the nested branch.** A submenu that only exists because the board portals it, beside the
+     model that deletes it. The board's recommendation is the right-hand idea in the left-hand anatomy.
+  4. **Row 6, where glass stops paying for itself.** The same direction on the album and on a flat app
+     ground, with card beside it. This is the one row that argues AGAINST the prettiest candidate.
+  5. **The landing block's "Apply card to the site", then `/` (hover Features) and `/pricing`.** The
+     direction on the board and the direction on the real page are the same string, and the shadow
+     follows the section's ground rather than the document's.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). Round four changed what the floating-surfaces board
+is for, on Will's note that the app's menus are the problem and the exact values of today's options are
+not: it now proposes three DIRECTIONS for the whole floating layer, deliberately three different kinds
+of answer rather than three shades of one. Card changes the anatomy (a header row carrying the menu's
+subject, labelled sections, an icon rail, a trailing column for state, and a footer rail under the
+action that cannot be undone); glass changes the material (one translucent pane of the room at a
+measured mix, lit along its top edge, with no boxes inside it); command changes the model (a field, one
+flat grouped list, keyboard first, and no nested menu anywhere). Each is a working component on the real
+primitives plus a real paste for its material, radius and motion, and the board says on every row which
+half a paste can carry. The direction is a switch on the shell's new dock, so comparing two is a click
+from anywhere on the page and eleven surfaces answer at once; no frame is scaled any more, so a 4px
+corner is 4px; and the specimens are whole surfaces (a host's desk at 1440, the same host on a phone,
+the guest's own entry drawer, the dialog, the tooltip, the toast, the field, the edge panel). Three real
+bugs came out of building it: a nested submenu is INVISIBLE in the product, because SubContent has no
+Portal while Content clips overflow; an entrance written for every panel beat the edge family's slide on
+specificity, so the sheet zoomed and the guest drawer was handed a clock on top of vaul's; and every
+ground-dependent value was read off `<html>` rather than off the section, so a tooltip on a paper page
+drew the dark shadow. Rounds one to three's three knobs survive as one section, corrected and still
+pasteable, as the ruling for today's primitives if no direction wins.

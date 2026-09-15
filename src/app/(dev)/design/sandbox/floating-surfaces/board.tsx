@@ -535,15 +535,6 @@ export function FloatingSurfacesBoard() {
       >
         <div className="flex w-full flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            {/* A spacer, not decoration. With the sidebar tucked away the lab
-                chrome renders a fixed "Sidebar" pill at top-left (design.css,
-                `html[data-lab-bleed] .lab-sidebar-pill`), which sits exactly on
-                top of the dock's first control once the dock is sticky at
-                top 0. The dock carries its own Sidebar button at its right end,
-                so the pill is redundant here; until the shell decides that, the
-                first row starts clear of it. Named in the Handoff as a shell
-                ask rather than left as a mystery indent. */}
-            <span className="hidden sm:block sm:w-16" aria-hidden />
             <Toggle
               ariaLabel="Direction"
               options={DIRECTIONS.map((d) => ({
