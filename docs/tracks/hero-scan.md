@@ -195,15 +195,6 @@ the live camera view composes under it) if you use a cutout; nothing else new.
   imported, because a concept file is self-contained by the contract and `source.tsx` exports only its
   `Concept`.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
-- **An operational note for the Orchestrator, not a code problem:** two of this track's four pushes
-  (`ab855c9` and `caa8539`) produced NO Vercel deployment at all, while other branches pushed in the
-  same minutes deployed normally, so the branch alias kept serving the previous commit. CI ran and
-  passed on every push, and `scripts/vercel-ignore-build.mjs` would have built them (this manifest
-  says `preview: true` and now `status: handed-off`), so the miss is upstream of the gate: GitHub
-  created no deployment for either SHA. Recovered by asking Vercel for one directly
-  (`POST /v13/deployments` with the branch's `gitSource`, the team token from `.env.local`), which
-  built and took the alias. Worth knowing if another track's preview looks stale: check the SHA the
-  alias serves rather than the clock.
 - **Verified on the preview** at the code tip (the alias was polled until its HTML carried
   `hhc-viewpos`, so the build is proven by a marker rather than by the clock):
   - The gate: 404 with no key, 404 with a wrong key, 200 with the key.
@@ -296,17 +287,36 @@ block so neither can flash.
   the board at `/design/c/home-hero?key=` (concept 2 of 4, after the source). The round-two board is
   the one whose stage carries a switch at the top right: look for `hhc-lab` in the served HTML, or
   for the words "Cause / Phone / Brackets only" on the stage.
+- **After the read-only review (this commit, documentation only: no code, no rebuild of the board).**
+  Two should-fix items, both in this manifest. (1) The operational note about the pushes that produced
+  no Vercel deployment had been written into round 1's Handoff, which is an integrated section and the
+  wrong place for a round-2 warning; round 1's own text was not altered, and the note now sits in this
+  section, where the Orchestrator reads it at this merge. (2) Round-2 goal item 6 (read the burst and
+  the river, take what serves the scan) carried only a lane-compliance line and no ruling; the bullet
+  below now states what each sibling offered, what was taken from them and what was declined, with the
+  reason. `scan.tsx` and `scan.css` are byte-identical to the verified tip `ab855c9`, so every
+  verification below still stands at the code it names.
 - Synced with `launch-prep` at `4b035c1` (a docs-only commit; merged clean, nothing in this lane).
 - Gates on the synced tree: typecheck ok, lint ok (0 errors; the 7 warnings are the pre-existing ones
   on `review-switch.tsx`, `contact-form.tsx`, two feature sections, `jobs.ts` and `use-flip.ts`, none
   in this lane), test ok (1698 in 193 files), build ok (248 static pages, the `launch-prep` count
-  unchanged).
+  unchanged). Re-run whole after the review fix above, with the same four results.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-scan.md`,
   `src/app/(dev)/design/sandbox/home-hero/scan.css`,
   `src/app/(dev)/design/sandbox/home-hero/scan.tsx`. **No exceptions**: the two owned files and this
   manifest. `shared.tsx`, `board.tsx`, `source.tsx`, `burst.tsx` and `river.tsx` were read and not
-  touched.
+  touched; what the burst and the river gave this concept is a ruling of its own below.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- **An operational note for the Orchestrator, not a code problem (it belongs to this round's pushes;
+  it was filed against round 1's section by mistake and is moved here):** two of round two's pushes
+  (`ab855c9` and `caa8539`) produced NO Vercel deployment at all, while other branches pushed in the
+  same minutes deployed normally, so the branch alias kept serving the previous commit. CI ran and
+  passed on every push, and `scripts/vercel-ignore-build.mjs` would have built them (this manifest
+  says `preview: true` and now `status: handed-off`), so the miss is upstream of the gate: GitHub
+  created no deployment for either SHA. Recovered by asking Vercel for one directly
+  (`POST /v13/deployments` with the branch's `gitSource`, the team token from `.env.local`), which
+  built and took the alias. Worth knowing if another track's preview looks stale: check the SHA the
+  alias serves rather than the clock.
 - **A shell change to consider (not made, not needed):** a `Concept` has no slot for a control of its
   own, and the home-hero board renders `concept.render(props)` straight into the stage, so a concept
   that carries a RULING (here: phone or no phone) has to draw its own switch inside the canvas. It is
@@ -317,6 +327,28 @@ block so neither can flash.
 - **"Apply to the site" does not apply to this board.** The candidate is a composition, not a CSS
   block: nothing here can be handed to `/` as a paste, and the pages to walk are the board's own
   stages. The wiring round is what lands it in `PageHero`.
+- **The burst and the river, read for what serves the scan (goal item 6): one thing taken, two
+  mechanisms declined.** Both siblings solve this concept's problem out loud. The burst gives the type
+  a keep-out box per BLOCK of the lockup, measured off the rendered stage, and gates each card once on
+  the progress after which it is permanently clear of every block (`scanClear`), so a frame is simply
+  not drawn while it would sit under a word. The river holds a falling card's PROJECTED inner edge on
+  the lockup's wall while it crosses the band (the parting), so the clearing keeps a constant width
+  however large the frame has grown. **Taken: the burst's method, not its mechanism.** Its lesson is
+  that a quiet zone should be "the shape of the type and not a guess about it", so this round measured
+  the caption and count boxes off the rendered stage and replayed the corridor's own math against them
+  for a full cycle at 25 ms steps, at both canvases in both readings: zero intersections, worst
+  clearance 12 to 30 canvas px (the clear-lane measurement in the verification below). The scan's
+  clear lane stopped being a hope and became a number, which is what `scanClear` buys the burst.
+  **Declined: both per-card mechanisms.** A frame here is launched by one capture and its path is
+  fixed at launch; making a frame hide itself, or shove sideways, as it nears the words would read as
+  the album avoiding the headline rather than as the consequence of the scan, and it would bend the
+  corridor's physics this round was told to keep. The scan does not need either one: a frame is a
+  speck while it is near the plate and only grows once it is far out horizontally, so the column above
+  and below the code is empty by construction rather than by negotiation. **Corroborated, not
+  borrowed:** the river's ruling that its caption sits ABOVE the plate, because a line under it is the
+  one thing the stream cannot get around, is the same answer the 375 device reading reaches here,
+  where the near field owns the bottom third and the supporting pair moves above the code. The
+  invariant all three share is held either way: no scrim, no darkening layer, media at 100 percent.
 - **Verified on the preview** at the code tip (the alias was polled until its HTML carried `hhc-lab`,
   so the build is proven by a marker rather than by the clock):
   - **The beat, sampled live in a foreground tab from a Replay remount:** t=90 ms the brackets are
