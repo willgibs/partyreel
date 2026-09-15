@@ -1,6 +1,6 @@
 ---
 track: brand-voice
-status: open
+status: handed-off
 cut: "1b647d76"          # round five cut from origin/launch-prep (2026-09-15)
 merged_round_4: "fa118649"
 merged_round_3: "4530f2e"
@@ -1140,14 +1140,173 @@ production byte changed.
 
 ## Handoff (round 5)
 
-- Head <sha>, pushed; preview partyreel-git-lp-brand-voice-partyreel.vercel.app
-- Synced with launch-prep at <sha>
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the three registration lines (exceptions and why)
-- Shared-file changes asked of the Orchestrator: none
-- Assets requested from Will: none
-- Look at first: ...
+- Head: the tip of `lp/brand-voice` (this manifest commit, on the sync merge `52e5190`), pushed;
+  preview `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the board at
+  `/design/lab/brand-voice`, the guide at `docs/specs/brand-voice.md`. **The round-five board is the
+  one with no legacy-layout tag on its header, whose first block is the question and the verdict
+  with seven ask pills under it, and whose specimens sit in captioned frames rather than in stages.**
+- Synced with `launch-prep` at **`a489d563`** (it had moved by fourteen commits: the glow pair,
+  home-hero and river-visual migrating, and the shell's "anchors land once, not twice"). One
+  conflict, in `sandbox/registry.ts`, and it was the adjacent-line kind this wave expects: two
+  tracks adding an import and a `BOARDS` entry. Resolved by keeping both and placing `BRAND_VOICE`
+  in the same order the rest of the list already follows, `touchpoints.ts`'s `SANDBOX` order, which
+  puts it after `LIGHT` and before `ROUNDING`. Whole gate re-run on the merged tree.
+- Gates on the synced tree, each on its own exit code: typecheck ok, lint ok (0 errors; 6 warnings,
+  all pre-existing and none in this lane), test ok (2,140 in 218 files), build ok (compiled clean,
+  257 static pages), `pnpm lab:smoke --base http://localhost:3417` ok (300 checks, 0 failing).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: `docs/specs/brand-voice.md`,
+  `docs/tracks/brand-voice.md`, and four files under `src/app/(dev)/design/sandbox/brand-voice/`
+  (`spec.ts`, `board.tsx`, `frames.tsx`, `board.css`). **Three exceptions, the registration lines
+  the wave allows, for this board id only:** `sandbox/registry.ts` (the spec imported and added to
+  `BOARDS`), `(shell)/lab/boards.ts` (`legacy: true` dropped from the `brand-voice` entry),
+  `components/lab/kit-discipline.test.ts` (`"brand-voice"` deleted from `LEGACY`). Nothing else
+  outside the lane, and no production byte changed. The read-only production imports are unchanged
+  from round four (`album-copy.ts`, `recently-deleted.ts`, `event-card.tsx`, `tiers.ts`), so the
+  board still quotes the product rather than a retyped memory of it.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Assets requested from Will: none. The board is type on the real grounds and on the real
+  components; its stand-ins are the shipped ghost pack behind the two empty states and the grey
+  plate in the three unfurl cards, which stands for a link preview's own thumbnail and says so.
+- **Where it was verified.** A local dev server in this worktree on port 3417, in a fronted tab, at
+  a real 1440 viewport and a real 375 one, after the sync merge. Every number below was measured
+  there rather than asserted.
+
+### Shared-file changes asked of the Orchestrator (two, both written and working in this lane)
+
+1. **`height="measured"` on the kit's `Frame`.** The migration contract named it and the kit does
+   not have it yet: `Frame` takes `h: number`. This board's `frames.tsx` has the working version in
+   about twenty lines (`useMeasured`): a callback ref that observes the portalled scene with the
+   FRAME's own ResizeObserver, returns its teardown (React 19 ref cleanup), and hands the height
+   back. Lifting it retires the literal height from every board that portals a scene, the way the
+   `fit` prop retired the zoom. ★ Two traps came with it, and both are in the code with the
+   measurement that found them: **the whole `fonts` chain has to be guarded** (on the top document
+   `fonts.ready` is always a promise, which is why the kit writes `fonts?.ready.then(...)`; an
+   about:blank document holds a FontFaceSet whose `ready` is still undefined on the tick a portal
+   mounts into it, and `.then` on undefined threw inside a layout effect and took the whole board to
+   its error boundary on a fast scroll), and **a frame's reserved height should be remembered**
+   (`MEASURED`, a module map keyed by frame id and canvas: without it the board shrank by tens of
+   thousands of pixels as fifty frames landed, and every flip of the voice or the canvas paid again).
+2. **`useAnchorAfterSettle` into the kit**, beside the Walk. A board of lazily mounted,
+   self-measuring frames cannot honour a hash at load: the browser applies it once, while every
+   frame still holds a reserved canvas. Measured before the fix: a link carrying
+   `#brand-voice-guest` landed on its section and then watched it rise 14,500px. The hook re-applies
+   the hash on a short schedule while the board settles, cancelled by a wheel, a touch or a key
+   (a programmatic scroll fires none of those, so the cancel cannot cancel itself), four corrections
+   and it stops. It is thirty lines in `frames.tsx` and it is true of every board with frames, so it
+   belongs in the kit rather than in this one. **The kit's own `Walk` wants the same tick**: a step
+   scrolls, and on a board still measuring itself the section keeps moving after it.
+
+### What the migration actually changed, and the one thing it fixed
+
+- **The board is two files on the kit.** `spec.ts` is pure data: the question, the round line, the
+  four earlier rounds as history, the context, the verdict with what would change it, the seven asks
+  with stable kebab ids and one-token options, the three candidates, the four departures, the
+  thirteen sections with their ledes, the three page-wide controls, a six-step walk and three
+  builder's notes. `board.tsx` is the evidence per section as a function of the declared state.
+  Deleted with the shell: the hand-drawn lead card, the `Chapter`/`Variant` wrapper, the
+  thirteen-chapter index in the dock, the `Toggle` cluster, the `CopyPaste` button, `BoardMeta`'s
+  prop strings, the `ChapterBody` layout and the board's own `FitStage`. `board.tsx` lost 1,641
+  lines and gained 625.
+- **Every specimen moved into a real document, and that is the round's one substantive fix.** A
+  Stage is a div, so a Tailwind breakpoint prefix inside it reads the BROWSER's width rather than the
+  canvas's: inside the 375 stage the hero rendered at 96px and `Container` took the 2rem desktop
+  gutter. On a board about colour that is survivable; on the one board whose whole argument is where
+  a sentence breaks it is the argument. Round four restored four heading tiers and the gutter by
+  hand in `board.css`, keyed to a `data-bv-canvas` attribute, which was a literal copy of a type
+  scale the `type-scale` track is actively proposing to change. **Measured now at the phone canvas:
+  52 frames, each a 375 viewport, the hero's h1 at 48px and the gutter at 16px, which is what the
+  site renders.** The block is deleted and nothing replaces it. (The other half of that old finding,
+  the lab's Tailwind entry outranking production's responsive utilities, was cured by the shell's
+  sub-layer: a bare `lg:text-8xl` now resolves to 96px on a lab page with nothing restoring it.)
+- **`Compare` is used where the board compares two states** (it takes an `a` and a `b` by
+  construction) and the three-voice rows carry the same contract in the same words: every usage
+  surface states "What separates them here" under it, from `UseCase.distinction`, which is a
+  required field. That is round four's ruling made mechanical in the DATA rather than only in the
+  component, and it is why no comparison on this board can print the word unchanged: where all three
+  voices land on the same string the row prints the REASON, and a row the same in all three WITHOUT
+  one is counted as a defect on the board itself (47 of 66 differ, 19 explained, 0 unexplained).
+
+### Light QA, in numbers (a dev server on 3417, a fronted tab, real viewports)
+
+- **At a real 1440 viewport:** 52 frames, every one of them a live document (52 bodies, 52 with the
+  parent's stylesheets copied in), **0** still holding a reserved height, **0** scrolling in either
+  axis inside the frame (nothing clipped, nothing floating in dead ground), **0** horizontal
+  document overflow, **0** of the `[data-mkt-reveal]` slots below opacity 1, dock 89px, board
+  48,394px. Every hero measured 1440 -> 96px.
+- **At the phone canvas:** the same six zeros, every frame reporting `innerWidth` 375, the hero at
+  48px and `Container` at a 16px gutter. **At a real 375 browser window:** 0 document overflow and 0
+  body overflow, with each frame's rail scrolling sideways inside itself, which is correct.
+- **The copied link reopens the exact state.** `?voice=house&canvas=phone&app=app-dark#brand-voice-guest`
+  restores all three switches from the URL and lands the section at 145px, the scroll-padding the
+  dock writes, with no double count (the shell's "anchors land once" merged mid-round and this was
+  re-measured after it).
+- **The walk sets the dock and the review panel composes a real ruling.** Six steps, each setting
+  the declared state (step 2 to the phone canvas, step 3 to the app's dark) and scrolling to its
+  section. The panel's message, `review brand-voice r5: voice=b "the hero settles it";
+  headers=whole; arc=take; note: "the frames make the phone honest"`, was run through
+  `pnpm lab:review --root <scratch>` and recorded four rows in a SCRATCH `docs/reviews/`; the repo's
+  ledger was never touched (`git status docs/reviews/` clean).
+- **`/design/lab` queues all seven asks** under "Waiting on you" with their recommendations, beside
+  light's nine and rounding's five.
+- **Motion.** The board's only two rules (`[data-bv-swap]` and its keyframes) both resolve inside
+  `(prefers-reduced-motion: no-preference)` in the SERVED stylesheet, so under `reduce` there is
+  nothing to undo and the settled composition renders. **At rest the board runs 0 animations**, in
+  the top document and inside every frame. Arguments, wiring notes, pastes and the history are all
+  collapsed on open (18 disclosure buttons, 0 of the board's open).
+- ★ **A caution for the next reviewer, and it cost this round half an hour.** Smooth scrolling is
+  DISABLED in the automated browser: `scrollIntoView({behavior:"smooth"})` and
+  `window.scrollTo({behavior:"smooth"})` both leave `scrollY` at 0, while `behavior:"auto"` scrolls
+  correctly. It reads exactly like a broken Walk button. The control that settles it is the light
+  pilot, which has no frames at all and fails the same way. Measure a walk with `auto`, or front the
+  tab and use your eyes. The same shared browser also backgrounds a tab whenever another session
+  fronts one, and a background tab does not run the IntersectionObserver that mounts a frame: a
+  probe then reads 0 frames on a board that has 52.
+
+### Findings the Orchestrator must carry
+
+1. **The two kit asks above**, which are the round's real output beyond this board: a measured
+   height on `Frame`, and an anchor that survives a board settling.
+2. **The desk reads a board's round from its manifest, not from its spec.** `/design/lab` shows
+   "The brand voice, round 4" while `spec.round.n` is 5 and the Answer block says "Round 5,
+   2026-09-15". Two homes for one number; the spec is the one that a reviewer sees on the board.
+3. **Carried from round four, unchanged and still Will's to rule on:** the three app lines that are
+   CORRECTIONS rather than rewrites (the wizard's "events never expire" against a product with no
+   end date, "hidden from everyone" that the host can still see, and the storage notification that
+   names the machinery and then threatens the host with it); the event card's amber chip being a
+   component edit where its two neighbours are props; the email subject being one ruling for ten
+   templates; the home page's two different counts; and `/pricing` and the home arc saying one
+   promise two ways.
+4. **The guide lost its asks block.** `docs/specs/brand-voice.md` now points at `spec.ts` as the one
+   home for the questions and names an ask by its id, and the sweep steps name their sections by
+   anchor rather than by a chapter number a re-cut would move.
+
+### Look at first
+
+- **The first section, at the phone canvas.** Three real 375 documents abreast, one per voice, on
+  the real cinema ground. This is the round in one screen: B's extra row on the h1 is visible rather
+  than asserted, because those are viewports and not scaled boxes.
+- **The answer block.** Seven asks, each answerable in one word, with the board's own answer filled
+  and "See it" pointing at the section that argues it. A ruling is now "b, whole, take, yes, keep,
+  album, email" and the panel at the foot composes it.
+- **The home arc, and the ledger beside it at 375.** Fifteen sections in shipped order in one
+  document, with today line by line beside them and the h1's rows measured inside the frame.
+- **The pricing pair and the event card.** Both are the shipped markup with the shipped numbers, and
+  both now render at the width they ship at inside a document that agrees with them.
 
 ## Record (round 5; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The brand-voice board moved onto the kit's
+template and became two files: a `spec.ts` carrying the question, the verdict, the seven one-word
+calls, the candidates, the departures and the thirteen sections as data, and a `board.tsx` that is
+nothing but the evidence for each declared section as a function of the declared state. The
+hand-drawn lead card, chapter wrapper, chapter index, toggle cluster, copy button, meta panel and
+the board's own FitStage all retired to the kit, and the desk, the walk and the review panel now
+read the same list the board renders. The substantive change underneath it was that every specimen
+moved off the Stage into a real document: a breakpoint prefix inside a div reads the browser rather
+than the canvas, so the 375 stage had been rendering the hero at 96px in a 2rem desktop gutter, and
+round four had been restoring four heading tiers by hand in the board's own sheet. Fifty-two frames
+now each carry their canvas as a true viewport, the hand-restored ladder is deleted, and the phone
+canvas measures what the site renders. Three defects came out of walking it: a font-set read that
+took the board to its error boundary on a fast scroll, a reserved height that shrank the board under
+the reader, and a hash anchor that could not survive the settle. No candidate, number or
+recommendation changed, and no production byte changed.
