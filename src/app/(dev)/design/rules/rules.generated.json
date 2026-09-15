@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "components": [
     {
       "id": "marketing-footer",
@@ -793,7 +793,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 72
+          "line": 74
         },
         {
           "title": "mirrors the pause state onto data-paused for CSS to read",
@@ -801,7 +801,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 84
+          "line": 86
         },
         {
           "title": "always renders the base beside the band, UNCONDITIONALLY",
@@ -809,7 +809,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 88
+          "line": 90
         },
         {
           "title": "arms a one-shot by attribute rather than by mounting it",
@@ -817,7 +817,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 116
+          "line": 118
         },
         {
           "title": "arms a one-shot against the VIEWPORT, not against its own height",
@@ -825,7 +825,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 124
+          "line": 126
         },
         {
           "title": "accepts no className",
@@ -833,7 +833,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 139
+          "line": 141
         },
         {
           "title": "never renders the filter host itself",
@@ -841,7 +841,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 152
+          "line": 154
         },
         {
           "title": "declares the blur on the element, never only in a keyframe",
@@ -849,7 +849,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 163
+          "line": 165
         },
         {
           "title": "ships the -webkit- pair on every mask declaration",
@@ -857,7 +857,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 179
+          "line": 181
         },
         {
           "title": "isolates, so the edge layers cannot paint over the lit content",
@@ -865,7 +865,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 194
+          "line": 196
         },
         {
           "title": "lets an ancestor drive the lamp's position",
@@ -873,7 +873,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 203
+          "line": 205
         },
         {
           "title": "keeps the scalar drive at the same specificity as the shared mask block",
@@ -881,7 +881,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 214
+          "line": 216
         },
         {
           "title": "carries the forced-colors, print and no-mask fallbacks",
@@ -889,7 +889,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 233
+          "line": 235
         },
         {
           "title": "hides the WHOLE lamp where masking is unsupported",
@@ -897,7 +897,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 241
+          "line": 243
         },
         {
           "title": "keeps every animation inside the no-preference block",
@@ -905,7 +905,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 273
+          "line": 275
         },
         {
           "title": "namespaces every keyframe it adds under glw-",
@@ -913,7 +913,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 292
+          "line": 294
         },
         {
           "title": "does not collide with a keyframe name already defined elsewhere",
@@ -921,7 +921,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 298
+          "line": 300
         },
         {
           "title": "rests the comet where its own animation starts",
@@ -929,7 +929,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 341
+          "line": 343
         },
         {
           "title": "rests an UNARMED bloom where its own animation starts",
@@ -937,7 +937,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 369
+          "line": 371
         },
         {
           "title": "has exactly one filter host, and the footer is now on it",
@@ -945,7 +945,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 410
+          "line": 412
         },
         {
           "title": "declares the filter in exactly one module",
@@ -953,7 +953,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 448
+          "line": 450
         },
         {
           "title": "mounts it exactly once, in the root layout",
@@ -961,7 +961,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 458
+          "line": 460
         },
         {
           "title": "has no knob the engine does not read",
@@ -969,7 +969,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 467
+          "line": 469
         },
         {
           "title": "keeps the host a server component",
@@ -977,7 +977,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 480
+          "line": 482
         },
         {
           "title": "found the call sites at all",
@@ -985,7 +985,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 544
+          "line": 546
         },
         {
           "title": "passes theme explicitly, and never 'auto'",
@@ -993,7 +993,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 554
+          "line": 556
         }
       ]
     },
@@ -1014,7 +1014,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 72
+          "line": 74
         },
         {
           "title": "mirrors the pause state onto data-paused for CSS to read",
@@ -1022,7 +1022,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 84
+          "line": 86
         },
         {
           "title": "always renders the base beside the band, UNCONDITIONALLY",
@@ -1030,7 +1030,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 88
+          "line": 90
         },
         {
           "title": "arms a one-shot by attribute rather than by mounting it",
@@ -1038,7 +1038,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 116
+          "line": 118
         },
         {
           "title": "arms a one-shot against the VIEWPORT, not against its own height",
@@ -1046,7 +1046,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 124
+          "line": 126
         },
         {
           "title": "accepts no className",
@@ -1054,7 +1054,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 139
+          "line": 141
         },
         {
           "title": "never renders the filter host itself",
@@ -1062,7 +1062,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 152
+          "line": 154
         },
         {
           "title": "declares the blur on the element, never only in a keyframe",
@@ -1070,7 +1070,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 163
+          "line": 165
         },
         {
           "title": "ships the -webkit- pair on every mask declaration",
@@ -1078,7 +1078,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 179
+          "line": 181
         },
         {
           "title": "isolates, so the edge layers cannot paint over the lit content",
@@ -1086,7 +1086,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 194
+          "line": 196
         },
         {
           "title": "lets an ancestor drive the lamp's position",
@@ -1094,7 +1094,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 203
+          "line": 205
         },
         {
           "title": "keeps the scalar drive at the same specificity as the shared mask block",
@@ -1102,7 +1102,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 214
+          "line": 216
         },
         {
           "title": "carries the forced-colors, print and no-mask fallbacks",
@@ -1110,7 +1110,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 233
+          "line": 235
         },
         {
           "title": "hides the WHOLE lamp where masking is unsupported",
@@ -1118,7 +1118,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 241
+          "line": 243
         },
         {
           "title": "keeps every animation inside the no-preference block",
@@ -1126,7 +1126,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 273
+          "line": 275
         },
         {
           "title": "namespaces every keyframe it adds under glw-",
@@ -1134,7 +1134,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 292
+          "line": 294
         },
         {
           "title": "does not collide with a keyframe name already defined elsewhere",
@@ -1142,7 +1142,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 298
+          "line": 300
         },
         {
           "title": "rests the comet where its own animation starts",
@@ -1150,7 +1150,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 341
+          "line": 343
         },
         {
           "title": "rests an UNARMED bloom where its own animation starts",
@@ -1158,7 +1158,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 369
+          "line": 371
         },
         {
           "title": "has exactly one filter host, and the footer is now on it",
@@ -1166,7 +1166,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 410
+          "line": 412
         },
         {
           "title": "declares the filter in exactly one module",
@@ -1174,7 +1174,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 448
+          "line": 450
         },
         {
           "title": "mounts it exactly once, in the root layout",
@@ -1182,7 +1182,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 458
+          "line": 460
         },
         {
           "title": "has no knob the engine does not read",
@@ -1190,7 +1190,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 467
+          "line": 469
         },
         {
           "title": "keeps the host a server component",
@@ -1198,7 +1198,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 480
+          "line": 482
         },
         {
           "title": "found the call sites at all",
@@ -1206,7 +1206,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 544
+          "line": 546
         },
         {
           "title": "passes theme explicitly, and never 'auto'",
@@ -1214,7 +1214,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 554
+          "line": 556
         },
         {
           "title": "scanned the production lamps",
@@ -1222,7 +1222,7 @@
             "no lamp sits inside a clipping ancestor"
           ],
           "file": "src/components/shared/glow-placement.test.ts",
-          "line": 50
+          "line": 52
         },
         {
           "title": "never nests a lamp in TiltCard or Conveyor",
@@ -1230,7 +1230,7 @@
             "no lamp sits inside a clipping ancestor"
           ],
           "file": "src/components/shared/glow-placement.test.ts",
-          "line": 59
+          "line": 61
         },
         {
           "title": "never declares the lamp's own wrapper as overflow-hidden",
@@ -1238,7 +1238,7 @@
             "no lamp sits inside a clipping ancestor"
           ],
           "file": "src/components/shared/glow-placement.test.ts",
-          "line": 77
+          "line": 79
         },
         {
           "title": "passes a sampled palette wherever media is present",
@@ -1246,7 +1246,7 @@
             "no lamp sits inside a clipping ancestor"
           ],
           "file": "src/components/shared/glow-placement.test.ts",
-          "line": 96
+          "line": 98
         },
         {
           "title": "keeps the box the screen's width and ends its sides in a pool",
@@ -1254,7 +1254,7 @@
             "the reel screen's lamp is held to the screen"
           ],
           "file": "src/components/shared/glow-placement.test.ts",
-          "line": 110
+          "line": 112
         }
       ]
     },
@@ -1918,6 +1918,113 @@
           "line": 160
         }
       ]
+    }
+  ],
+  "policies": [
+    {
+      "file": "src/app/(dev)/design/sandbox/media-kit/board-jsx.test.ts",
+      "scope": "engineering",
+      "title": "A count can never glue itself to its noun",
+      "summary": "a multi-line JSX text run that opens with a space and holds an HTML entity, which Next 16's SWC renders as \"24marketing\".",
+      "line": 1
+    },
+    {
+      "file": "src/app/(marketing)/marketing-css-policy.test.ts",
+      "scope": "marketing",
+      "title": "Marketing CSS stays contained",
+      "summary": "a declaration in marketing.css that leaks app-wide once any marketing route has loaded.",
+      "line": 1
+    },
+    {
+      "file": "src/app/(marketing)/marketing-h1-policy.test.ts",
+      "scope": "marketing",
+      "title": "The marketing h1 never moves",
+      "summary": "a reveal-hidden or animated state on a marketing h1, which delays the page's largest paint.",
+      "line": 1
+    },
+    {
+      "file": "src/app/css-source-policy.test.ts",
+      "scope": "global",
+      "title": "Two Tailwind entries, one theme",
+      "summary": "a lab-only utility reaching the production stylesheet, or a second copy of the theme tokens.",
+      "line": 1
+    },
+    {
+      "file": "src/app/globals-theme-contract.test.ts",
+      "scope": "global",
+      "title": "The grounds keep their mechanism",
+      "summary": "a refactor that drops one of the three facts behind the mixed-theme chapters, which fails silently in the browser.",
+      "line": 1
+    },
+    {
+      "file": "src/app/keyframe-uniqueness.test.ts",
+      "scope": "engineering",
+      "title": "Keyframe names are unique",
+      "summary": "a second @keyframes of the same name in any stylesheet, which shadows the first for the rest of the session.",
+      "line": 1
+    },
+    {
+      "file": "src/app/two-faces-policy.test.ts",
+      "scope": "global",
+      "title": "Two faces, and only two",
+      "summary": "a third typeface: a font-mono class, a --font-mono token, or a mono loader anywhere in src.",
+      "line": 1
+    },
+    {
+      "file": "src/components/dev/border-beam-vendor.test.ts",
+      "scope": "shared",
+      "title": "The vendored beam stays vendored",
+      "summary": "a drifted copy of the vendored border-beam, or an import that reaches around it.",
+      "line": 1
+    },
+    {
+      "file": "src/components/shared/glow-contract.test.ts",
+      "scope": "shared",
+      "title": "The spill engine keeps its shape",
+      "summary": "a change to the lamp engine that renders as a hard-edged rectangle instead of light, with nothing else failing.",
+      "line": 3
+    },
+    {
+      "file": "src/components/shared/glow-placement.test.ts",
+      "scope": "shared",
+      "title": "A lamp is placed where light can fall",
+      "summary": "a lamp mounted where its spill has nothing to land on, which shipped twice and was reverted twice.",
+      "line": 2
+    },
+    {
+      "file": "src/lib/constants/marketing-media.test.ts",
+      "scope": "marketing",
+      "title": "One manifest gates the marketing media",
+      "summary": "an asset in public/marketing with no manifest entry, or an entry pointing at a file that is not there.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/content-policy.test.ts",
+      "scope": "marketing",
+      "title": "MDX prose obeys the copy rules",
+      "summary": "an em-dash or a broken internal link in the MDX reading surfaces, which the TypeScript AST guard cannot see.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/no-em-dash-policy.test.ts",
+      "scope": "global",
+      "title": "No em-dashes in user-facing copy",
+      "summary": "an em-dash inside any string, template literal or JSX text under app, components or lib; comments and internal docs are exempt.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/single-source-policy.test.ts",
+      "scope": "engineering",
+      "title": "One name, one module",
+      "summary": "the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/track-manifests.test.ts",
+      "scope": "engineering",
+      "title": "Every track claims its lane",
+      "summary": "a malformed track manifest, or two live tracks claiming the same path prefix.",
+      "line": 1
     }
   ]
 }
