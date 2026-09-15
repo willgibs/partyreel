@@ -1,4 +1,4 @@
-import type { Ground } from "@/components/dev/board";
+import type { Ground } from "@/components/lab";
 
 import {
   ENTRANCE_LABEL,

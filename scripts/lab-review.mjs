@@ -29,7 +29,13 @@
  * Flags: --root <dir> (default: cwd, and what the test points at a scratch
  * tree), --by <name> (default Will), --at <iso>, --dry, --json, --help.
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -189,7 +195,7 @@ function numberAt(src, range) {
  */
 export function readSpec(id, source) {
   const masked = mask(source);
-  const open = masked.indexOf("{", masked.indexOf("defineBoard"));
+  const open = masked.indexOf("{", masked.indexOf("defineBoard("));
   if (open < 0) throw new ReviewError(`${id}/spec.ts: no defineBoard({ ... })`);
   const top = entriesOf(masked, open + 1, matchBracket(masked, open));
   const roundRange = top.get("round");
@@ -215,7 +221,9 @@ export function readSpec(id, source) {
       }
       const close = matchBracket(masked, i);
       const fields = entriesOf(masked, i + 1, close);
-      const askId = fields.has("id") ? stringAt(source, fields.get("id")) : null;
+      const askId = fields.has("id")
+        ? stringAt(source, fields.get("id"))
+        : null;
       const options = fields.has("options")
         ? stringsIn(source, fields.get("options"))
         : [];
@@ -305,10 +313,10 @@ export function parseLine(raw, lineNo = 1) {
   if (!line.trim() || line.trim().startsWith("#")) return null;
   const head = /^\s*review\s+/.exec(line);
   if (!head) {
-    throw new ReviewError(
-      'a line must start with "review <board> r<n>:"',
-      { line: lineNo, column: skipSpace(line, 0) + 1 },
-    );
+    throw new ReviewError('a line must start with "review <board> r<n>:"', {
+      line: lineNo,
+      column: skipSpace(line, 0) + 1,
+    });
   }
   let i = head[0].length;
   const board = readToken(line, i, lineNo, "a board id");
@@ -536,7 +544,10 @@ export function writeLedgers(root, ledgers) {
   const dir = join(root, ...REVIEWS);
   mkdirSync(dir, { recursive: true });
   for (const [board, ledger] of ledgers) {
-    writeFileSync(ledgerPath(root, board), `${JSON.stringify(ledger, null, 2)}\n`);
+    writeFileSync(
+      ledgerPath(root, board),
+      `${JSON.stringify(ledger, null, 2)}\n`,
+    );
   }
 }
 
@@ -544,7 +555,10 @@ export function writeLedgers(root, ledgers) {
  * The whole run: parse, validate against the specs, apply, write. Nothing is
  * written unless every line is good.
  */
-export function run(text, { root = process.cwd(), by = "Will", at, dry = false } = {}) {
+export function run(
+  text,
+  { root = process.cwd(), by = "Will", at, dry = false } = {},
+) {
   const stamp = at ?? new Date().toISOString().replace(/\.\d+Z$/, "Z");
   const entries = parseMessage(text);
   if (entries.length === 0) throw new ReviewError("nothing to record");

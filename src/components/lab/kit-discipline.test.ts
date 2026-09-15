@@ -59,7 +59,6 @@ const OWNED = [
  */
 const LEGACY: readonly string[] = [
   "brand-voice",
-  "floating-surfaces",
   "media-kit",
   "palette",
 ];
