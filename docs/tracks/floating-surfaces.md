@@ -918,8 +918,16 @@ none above 0.01ms.
 
 ## Handoff (round 4)
 
-- Head `8265667`, pushed. The last code commit is `8265667` itself (it deletes the spacer the shell fix
-  made dead); the code before it lands at `8f17d09`, and `e38462b` is the sync merge. Board: `/design/c/floating-surfaces?key=`.
+- Head `HEADSTAMP`, pushed. Round four's CODE ends at `8265667` (the last code commit; it deletes the
+  spacer the shell fix made dead); `8f17d09` is the code before it and `e38462b` the sync merge.
+  Everything after `8265667` is this manifest and nothing else. **The fix pass that followed the
+  read-only review (2026-09-15, morning) touched no file under `src/`**: it rewrote what is now shell
+  ask 1 below, which had quoted a touchpoint string that exists nowhere in the repo and asked for two
+  corrections the Orchestrator had already landed, so the one live correction (the copy above the board
+  still describing round three) was buried and at risk of being deferred or landed wrong. The ask now
+  quotes the three real strings at `07ad3b2` with a paste-ready replacement for each and says which to
+  land first. The gate was re-run green on this head and the board re-walked at 1440 and 375 on a local
+  production build of it. Board: `/design/c/floating-surfaces?key=`.
   **The marker that says "this is round four" is the block the board OPENS with, "Three floating
   layers, and the one this board would build"**; round three's opener was "Where this board lands", and
   its absence is the fastest way to tell you are looking at the old one. A second marker in a different
@@ -954,10 +962,40 @@ none above 0.01ms.
   the full width below `sm` instead of squeezing the board's switches, and its height re-syncs a frame
   after mount, which is the measurement a background tab was getting wrong.
 - **Shell changes asked for (the Orchestrator lands them):**
-  1. **`BoardMeta`'s `grid-cols-[8rem_minmax(0,1fr)]` is still not responsive** (round three asked for
+  1. **The touchpoint copy above the board still describes round THREE, and it is the first thing Will
+     reads.** Land this one before the walk; the other two can wait. `c/[touchpoint]/page.tsx` renders
+     `board.note` (line 78) and `ruling.why` (line 95) as the two paragraphs directly above the board,
+     and `c/page.tsx:88` renders the note again on the index. At `07ad3b2` both still describe radius,
+     entrance and light as the subject, so the header contradicts the block the board now OPENS with
+     ("Three floating layers, and the one this board would build") at the first sentence. Round three's
+     other two corrections already LANDED (line 554 says ten surfaces and names no ladders), so this is
+     all that is left, and it is copy, not code. `touchpoints.ts` is not this lane's to edit, so here
+     are the three strings verbatim with a replacement for each, ready to paste:
+     - **`touchpoints.ts:548`, `why`.** Today: "Bible 15 under exploration: every floating primitive on
+       every ground, today beside two candidate treatments of radius, entrance and light or shadow in
+       dark." Proposed: "Bible 15 under exploration, with the question moved: not what today's floating
+       layer should be tuned to, but what it should BE. Three ground-up directions for the whole family,
+       beside today, on the real primitives."
+     - **`touchpoints.ts:554`, `board.note`.** Today: "Opens with the five answers it recommends, one
+       word each, and one button that applies them; ten surfaces (the guest entry drawer found as the
+       tenth) on every ground at both widths with radius, entrance and light as independent knobs made
+       of the CSS the site is handed; the rule-9 corner measured off the live DOM at 6x". Proposed:
+       "Opens with the five answers it recommends, one word each, and one button that applies them;
+       then three directions for all ten surfaces, card changing the anatomy, glass the material and
+       command the model, each a working component on the real primitives plus a real paste, at true
+       pixels on five grounds at both widths and switched for the whole page from the dock; the rule-9
+       corner measured off the live DOM at 6x". (Both strings render with a period appended, so neither
+       ends in one.)
+     - **`touchpoints.ts:555-561`, `variants`.** Today: "Radius: sharp, nested, round" / "Entrance: one
+       clock, by frequency" / "Light in dark: a soft shadow" / "The corner, measured" / "The guest
+       drawer at 375". Proposed: "Today" / "Card, the object" / "Glass, the room" / "Command, the
+       model" / "The corner, measured". Lowest priority of the three: `board.variants` is declared data
+       that neither board page renders today, so it costs Will nothing at the walk and is only the
+       record being wrong at the merge.
+  2. **`BoardMeta`'s `grid-cols-[8rem_minmax(0,1fr)]` is still not responsive** (round three asked for
      this too): at 375 the label column eats 128 of 343 and every meta line wraps to three. A `sm:` on
      the two-column form fixes every board at once.
-  2. **The frame still belongs in the shell** (round three's ask, unchanged in substance and now with
+  3. **The frame still belongs in the shell** (round three's ask, unchanged in substance and now with
      one thing removed): `frame.tsx` + `page.tsx` + the `flt-cover` rules are a second kind of stage, a
      VIEWPORT (an iframe laid out at the canvas's true pixels, running a gated scene route in its own
      document), because a radix panel portals to `globalThis.document.body` and leaves any zoom-fitted
@@ -968,9 +1006,6 @@ none above 0.01ms.
      with the display-contents trap written down; and the honest canvas label. What is GONE is the
      ResizeObserver fit and the "canvas at N%" badge: round four stopped scaling, and the shell's own
      Fit preference is the only scaling left.
-  3. **The touchpoint blurb for this board is now wrong twice.** It says "All nine primitives ... three
-     ladders at 1:1": the family is TEN, there are two ladders, and the board's subject is three
-     directions rather than three knobs. `touchpoints.ts` is not this lane's to edit.
 - Assets requested from Will: none. The board judges a layer over content and the real event photographs
   in `public/marketing/img/` are the right content for it; nothing here is a stand-in.
 
@@ -1018,6 +1053,22 @@ none above 0.01ms.
     Vercel is capped. Said here rather than quietly skipped.
   - The stored candidate was cleared afterwards (the board's own "Applied to the site, clear", verified
     gone from `localStorage`), so the lab is handed over clean.
+- **Re-walked on the fix pass** (2026-09-15, after the read-only review; the change was this file only, so
+  the board is byte-identical and the numbers are a re-measurement rather than a new claim). A fresh
+  `pnpm build` of this head served by `npx next start -p 3712`, driven in a FOREGROUND pane tab (the
+  shared pane backgrounds a tab the moment a parallel track fronts its own, and a hidden tab mounted 1
+  frame where a fronted one mounts 25: `document.visibilityState` is the thing to assert before believing
+  a count). At **1440x950**: all **25** frames mount and load, **none** carries a transform, `scrollWidth
+  - clientWidth` is **0** at every scroll position, no em-dash and no `font-mono` in the served text; the
+  dock computes `sticky` at **129px** with the lab chrome's Sidebar pill at `display: none`; the Direction
+  switch moves every LIVE frame at once (`data-flt-direction` on each frame's root went `card` to `glass`
+  and back, while row 2's four pinned comparison frames kept their own) and the Apply button relabels with
+  it. At **375** (a 375-wide same-origin iframe of the same server, since the pane scales its 375 preset):
+  `innerWidth` exactly 375, all 25 frames mount and load, none transformed, no horizontal scroll anywhere,
+  the dock `static` at **238px**. **Reduced motion** forced again by flipping every `prefers-reduced-motion`
+  rule in the board and all 25 frame documents (**1596** rules, the same census as above): **36** open
+  floating surfaces measured by their `data-slot`, **none** above 0.011ms of animation or transition. No
+  candidate was applied and `localStorage` holds none, so the lab is still handed over clean.
 
 **What round four changed, and why.**
 
