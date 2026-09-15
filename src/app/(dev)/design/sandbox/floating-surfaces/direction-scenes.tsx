@@ -60,7 +60,7 @@ import {
   HeaderPanelBody,
   MenuPanel,
 } from "./menus";
-import { Backdrop, useNextFrame, useReplay } from "./stage-bits";
+import { Backdrop, useNextFrame, useSceneReplay } from "./stage-bits";
 
 /**
  * THE DIRECTION SCENES (round four, 2026-09-15).
@@ -137,7 +137,7 @@ function AppBar({
  *  once on the ground they open over. This is the canvas rule 15 is about, and
  *  it is where a direction either reads as one language or does not. */
 function DeskScene({ direction }: { direction: Direction }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   const navOn = useNextFrame(on);
   return (
     <>
@@ -181,7 +181,7 @@ function DeskScene({ direction }: { direction: Direction }) {
  *  keyboard is a bottom sheet with big rows, which is the shape the model takes
  *  where most of this product's traffic lives. */
 function PocketScene({ direction }: { direction: Direction }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   return (
     <>
       <Backdrop phone chrome={false} />
@@ -222,7 +222,7 @@ function PocketScene({ direction }: { direction: Direction }) {
 /** ONE MENU, ONE DIRECTION, on a calm ground: the frame the board stands four of
  *  side by side at 1:1 so the four answers can be read as four answers. */
 function MenuScene({ direction }: { direction: Direction }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   return (
     <>
       <Backdrop phone chrome={false} variant="calm" />
@@ -245,7 +245,7 @@ function MenuScene({ direction }: { direction: Direction }) {
  *  the one list and the field is how you reach them. The scene seeds the field
  *  with two letters rather than describing what typing would do. */
 function SubScene({ direction }: { direction: Direction }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   return (
     <>
       <Backdrop phone={false} chrome={false} variant="calm" />
@@ -296,7 +296,7 @@ function SurfacesScene({
   direction: Direction;
   phone: boolean;
 }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   return (
     <>
       <Backdrop phone chrome={false} />
@@ -397,7 +397,7 @@ const UPLOAD_CHOICES = [
  *  command replaces it with a searchable list, which is the same argument the
  *  submenu row makes, one level down. */
 function FieldScene({ direction }: { direction: Direction }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   const [value, setValue] = useState("anyone");
   return (
     <div className="absolute inset-0 flex flex-col gap-3 bg-background p-6">
