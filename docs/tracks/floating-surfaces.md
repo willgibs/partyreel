@@ -1,6 +1,6 @@
 ---
 track: floating-surfaces
-status: open
+status: handed-off
 cut: "ca952b5"
 merged_round_1: "3071cfc"
 preview: true           # Will reviews this board on its preview as it builds
@@ -196,6 +196,16 @@ The board, plus the rewritten contract in the Record. Read `components/ui/*`; ch
   marketing header (its width rides `md:w-(--radix-navigation-menu-viewport-width)` and the
   var never lands on a lab page while the un-varianted height one does), so any surface that
   renders the mega-menu outside `marketing-nav.tsx` gets a 0-wide panel.
+- App-polish bucket (round 2): `guest/entry-shell.tsx` carries a literal radius,
+  `calc(var(--radius-action) * 1.4)`, and bypasses `ui/drawer.tsx` entirely, so the
+  guest's own surface sits outside both the token law (bible 8) and the floating-layer
+  contract (bible 15).
+- Lab bucket (round 2): the guest route group has no design island, so a board's
+  candidate block cannot be walked on `/e/<token>`, the surface a guest actually meets.
+  One `<AppDesignIsland />` in `src/app/(guest)/layout.tsx` closes it.
+- Lab bucket (round 2): the board shell has no VIEWPORT stage (an iframe at the canvas's
+  true pixels) beside `Stage`, so every board that renders a portalled layer rebuilds
+  `frame.tsx` from scratch.
 
 ## Handoff (round 1)
 
@@ -305,15 +315,108 @@ contract, a centre origin detaches the panel from its trigger, and a scale with 
 
 ## Handoff (round 2)
 
-- Head <sha>, pushed; preview partyreel-git-lp-floating-surfaces-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `HEADSHA`, pushed; preview `partyreel-git-lp-floating-surfaces-partyreel.vercel.app`
+- Board: `/design/c/floating-surfaces?key=` (nine rows). Marker for "is this my head":
+  the row heading "The corner, measured", which did not exist in round one.
+- Synced with `launch-prep` at `4b035c1` (merge `881c258`); it had moved one commit
+  (`docs/systems/design-system.md`, outside the lane).
+- Gates on the synced tree: typecheck ok, lint ok (0 errors, 7 warnings, all pre-existing
+  and outside the lane), test ok (1698 in 193 files), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = this file plus the eight
+  files of `src/app/(dev)/design/sandbox/floating-surfaces/`. No exceptions; nothing under
+  `src/components/ui/` was touched, and every candidate reaches the primitives from outside.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Assets requested from Will: none. The board judges a layer over content and the real event
+  photographs in `public/marketing/img/` are the right content for it; nothing here is a
+  stand-in waiting to be replaced.
+
+**Two shell changes the Orchestrator should carry (both outside this lane):**
+
+1. **One line in `src/app/(guest)/layout.tsx`: mount `<AppDesignIsland />`.** `CandidateStyle`
+   mounts in exactly three places (the lab layout, the marketing cinema island, the host app's
+   island), so the GUEST group cannot wear a candidate at all. The surface this board makes
+   primary, the entry drawer at `/e/<token>`, is therefore the one page a sitting cannot walk.
+   The island is already key-gated, server-validated and lazy, so the cost is one import.
+   Row 9 of the board says so on its face rather than pretending.
+2. **The frame belongs in the shell.** `frame.tsx` + `page.tsx` + the `flt-cover` rules are a
+   second kind of stage and should move into `src/components/dev/board/` beside `Stage`: a
+   VIEWPORT (an iframe laid out at the canvas's true pixels, running a gated scene route in its
+   own document), because a radix panel portals to `globalThis.document.body` and leaves any
+   zoom-fitted div, its ground, its zoom and its canvas. What the shell should absorb, exactly:
+   the iframe box with its ResizeObserver fit and `fit` cap; the `designKey === undefined`
+   hold, so a gated scene route is never hit keyless; the `flt:set` / `flt:replay` same-origin
+   dispatch, generalised to `board:set` / `board:replay`; the frame document's resident ground
+   owner (the mutation observer that re-asserts the ground class after next-themes re-adds
+   `dark`); and the cover plus `nextjs-portal` hide. What should NOT move: this board's scenes,
+   its candidates, and its ramp blocks.
+
+**Findings for whoever owns the primitives (not candidates, true whatever is ruled):**
+
+- `guest/entry-shell.tsx` renders a RAW vaul drawer, outside `ui/drawer.tsx`, with a literal
+  radius `calc(var(--radius-action) * 1.4)`. It is a tenth floating surface and the one most
+  people on this product will ever see. The family is ten, not nine.
+- `ui/sheet.tsx` has exactly one product call site, the marketing mobile menu, and it enters
+  from the TOP. Round one's candidates covered bottom and right, so they reached nothing that
+  ships. Every rung now covers all four sides.
+- A bare `box-shadow` on a panel DELETES the ring it ships (`ring-1` is a box-shadow in
+  Tailwind v4). Every light rung composes `var(--tw-ring-shadow, 0 0 #0000)` back in first.
+- Radix renders `Dialog.Overlay` only in MODAL mode, so a non-modal dialog has no scrim to
+  style at all. The Overlays scene paints the overlay's own rectangle instead, because a board
+  of nineteen iframes cannot afford a focus trap in each.
+- A custom property set ON an element beats the same property inherited from `<html>` whatever
+  the ground rule's specificity. A per-panel rung therefore needs its dark values declared on
+  the panel too, qualified by the ground as an ancestor; without that the light ladder drew its
+  LIGHT values on cinema and the dark answers were never on the board (round one's did).
+- A browser defers a LAZY image inside an iframe that is off the parent's screen, so a board of
+  frames meets empty grids on the way down. The backdrops load eagerly now; it costs nine URLs.
+
+**Testing note (for the next session on this board).** The board's own screenshots come back
+BLACK or misaligned through the Chrome MCP once it holds nineteen frames, while the DOM is
+correct and the scene routes screenshot perfectly on their own. Verify this board by the DOM
+(`contentDocument` is same-origin, so the loupe's own measurements can be read straight out of
+it) or by opening a single scene route at its canvas size, per
+`docs/systems/testing-verification.md`.
+
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
+  1. "The radius: sharp, nested or round, and whether the big boxes take a second token or the
+     same one"
+  2. "The entrance: one clock (rule 15) or by frequency (rule 12), and which rule gives way on
+     this family"
+  3. "The light in dark: lighter is closer, a soft shadow, or a lit edge, ruled on the palette
+     ramp you intend to keep"
+  4. "The edge family: which ONE of sheet and drawer survives, and does the guest entry shell
+     adopt it"
+  5. "The select: onto the contract, or dropped for the dropdown with radio items"
+- Look at first:
+  1. **Row 2, the corner, measured.** Four frames, each reading its own panel off the live DOM
+     and drawing the panel's corner, the row's corner and the corner the row NEEDS at 6x. Today
+     is the only rung where the dashed line and the solid one are different lines. Ninety
+     seconds and the radius ask answers itself.
+  2. **Row 1 at 375.** The guest entry drawer beside the house sheet on its real side. This is
+     the floating layer this product is mostly made of, and it was not on round one's board.
+  3. **Row 3, then press "Apply to the site" under a rung and walk `/` (hover Features, then
+     the menu at 375), `/pricing` and `/dashboard`.** The rung on the board and the rung on the
+     real page are the same string; that is the whole point of round two.
+  4. **Row 5, Replay, twice.** Rule 12 and rule 15 running side by side on the same three
+     primitives, with both statements quoted from the bible above them.
+  5. **Row 4 with the ramp on A, then B.** Whether a shadow has to come back in dark is a
+     question about the ground, and the palette board has three grounds on offer.
 
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). Round two rebuilt the floating-surfaces
+board around one change: every rung is now generated as real CSS against the primitives' own
+data-slots (`candidates.ts`, three scopes) and the board renders the same string it hands the
+site through `setCandidateCss`, so "Apply to the site" is the candidate rather than a demo of
+it, and a rung cannot drift from its own proposal. The guest entry shell became the primary
+specimen at 375 and turned out to be a tenth floating surface, a raw vaul drawer outside
+`ui/drawer.tsx` carrying a literal radius; `ui/sheet.tsx`'s one product call site turned out to
+enter from the TOP, so the edge rungs now cover all four sides. The rule-9 miss is measured off
+the live DOM and drawn at 6x with its arithmetic rather than asserted, the palette board's dark
+ramps A and B are a knob under the panels, the light rung adopts the light board's own
+`--lgt-float` family so the two boards propose one shadow, the entrance is posed as rule 12
+against rule 15 with both statements quoted from the bible, and the outliers gained a third
+column showing what replaces them. Four fixes came out of the build: the light rungs no longer
+delete the ring a panel ships, a panel-scoped rung's dark values now land on the panel, the
+backdrops load eagerly so a frame is never empty on the way down, and every entrance sits inside
+its own reduced-motion block.
