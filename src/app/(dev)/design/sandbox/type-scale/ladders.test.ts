@@ -928,3 +928,51 @@ describe("what each register fixes, counted per register", () => {
     expect(moved(c, "desktop", "app").of).toBe(2);
   });
 });
+
+/**
+ * ROUND FOUR, AFTER THE REVIEW. BoardMeta advertises the four ladders plus the
+ * law alone, and the dock's two switches reach only LADDERS, so the law block
+ * is the one candidate that needs an apply control of its own. The first cut of
+ * this round replaced round three's five apply buttons with a single "apply the
+ * pair" and left the candidate advertised with nothing on the page that reaches
+ * it: the same "a control that does nothing" fault round three was sent to
+ * remove, from the other direction. The board's source is where that fact
+ * lives, so it is read here rather than described.
+ */
+describe("every candidate the board advertises has a control", () => {
+  const BOARD = readFileSync(
+    join(process.cwd(), "src/app/(dev)/design/sandbox/type-scale/board.tsx"),
+    "utf8",
+  );
+
+  it("has exactly one candidate that no ladder switch reaches", () => {
+    // The switches are built from LADDERS; BoardMeta lists LADDERS plus this.
+    expect(LADDERS.map((l) => l.id)).not.toContain(LAW_ONLY.id);
+    expect(LAW_ONLY.id).toBe("law");
+  });
+
+  it("generates the law block and hands it to the dock's apply cluster", () => {
+    expect(BOARD).toContain("candidateCss(LAW_ONLY)");
+    expect(BOARD).toContain("function ApplyPair");
+    const cluster = BOARD.slice(
+      BOARD.indexOf("function ApplyPair"),
+      BOARD.indexOf("function Reach"),
+    );
+    expect(cluster).toContain("LAW_CSS");
+    expect(cluster).toContain("setCandidateCss(");
+  });
+
+  it("keeps the law block moving no size at all, which is why it is separate", () => {
+    const today = ladderById("today");
+    for (const step of STEPS) {
+      const law = LAW_ONLY.steps[step.id];
+      const now = today.steps[step.id];
+      if (!law || !now) {
+        expect(law).toBe(now ?? null);
+        continue;
+      }
+      expect(law.phone.px).toBe(now.phone.px);
+      expect(law.desktop.px).toBe(now.desktop.px);
+    }
+  });
+});

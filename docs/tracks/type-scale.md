@@ -946,21 +946,36 @@ Two one-line mounts would fix it for every board in the wave.
 
 ## Handoff (round 4)
 
-- Head: this commit, over `b71246c` (the sync merge), `80c0dd9`, `443ffa6` and `5244620`; all pushed.
-  Board at `/design/c/type-scale?key=`. **Vercel is capped, so nothing here was verified on a
-  preview**: the whole walk below was measured on `pnpm dev` from this worktree at
-  `http://localhost:3117/design/c/type-scale?key=`, in a foreground browser tab, at 1440 and at 375,
-  and the gate was closed with a real `pnpm build`. The `[preview]` marker is in every commit so the
-  alias builds when the window frees.
+- Head: this commit, over `e33f197` (round four's first hand-off), `b71246c` (the sync merge),
+  `80c0dd9`, `443ffa6` and `5244620`; all pushed. Board at `/design/c/type-scale?key=`.
+  **Vercel is capped, so nothing here was verified on a preview**: the walk below was re-taken on a
+  LOCAL PRODUCTION BUILD (`pnpm build`, then `next start -p 3118`) from this worktree at
+  `http://localhost:3118/design/c/type-scale?key=`, at 1440 and at 375, and the gate was closed with
+  a real `pnpm build`. The `[preview]` marker is in every commit so the alias builds when the window
+  frees.
+- **Where the walk was watched, said plainly, because the rule asks for a FOREGROUND tab.** Two
+  contexts, and the split is a limit of this session rather than a shortcut. The page-level passes
+  (the dock at both canvases, the stages, the frames' widths, the apply and clear round trip, the
+  overflow counts) were taken in the app's own browser pane, which reported
+  `document.hidden === false` at a true 375x812 and a true 1440x900 viewport. The per-frame type
+  measurements were taken in a Chrome tab this session can drive but cannot RAISE: its window sits
+  behind another Chrome window, so that tab reports `document.hidden === true` and throttles
+  requestAnimationFrame. The only class of check that costs is time-based motion inside a frame, and
+  no number in this hand-off rests on one: `SETTLE_CSS` sets `transition: none` and `animation: none`
+  on exactly those entrances (fault two of round four), which is why the /about masthead reads the
+  same settled value in both contexts. Layout and computed style do not depend on visibility, and
+  every number below reproduced in both contexts.
 - Marker, so a reviewer can tell which round a build serves: round four renders **"The pair, chosen
   separately"**, **"Real pages, at the pixels they ship"** and **"One token set, two registers"**.
   None of the three exists in round three.
 - Synced with `launch-prep` at `6484558` (it had moved by two docs commits since the `c473707` cut:
   `docs/PROGRAM.md` and `docs/tracks/orchestrator.md`). Nothing it landed touches a path in this
   track's `reads`; the merge was clean and the gates were re-run on the merged tree.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 pre-existing warnings, none in this
-  lane), test ok (**1821 in 199 files**; `ladders.test.ts` is 95 cases, 19 of them round four's),
-  build ok (248 pages).
+- Gates, re-run whole after the review fix: typecheck ok, lint ok (0 errors, 6 pre-existing
+  warnings, none in this lane), test ok (**1824 in 199 files**; `ladders.test.ts` is 96 cases, three
+  of them the fix's), build ok (248 pages). Prettier clean on all five changed files. (The first
+  hand-off said 95 cases in this file; the true count at that commit was 93, so that line was wrong
+  rather than the suite.)
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = the four files under
   `src/app/(dev)/design/sandbox/type-scale/` plus this manifest. No exceptions. (`board.css` did not
   need to change again: round two's doubled `[data-tsc][data-tsc]` chain still outranks every paste,
@@ -969,6 +984,31 @@ Two one-line mounts would fix it for every board in the wave.
   production byte changed. `page-hero.tsx`, `section-shell.tsx`, `page-heading.tsx`, `card.tsx`,
   `not-found-screen.tsx`, `metric-card.tsx`, `globals.css`, `theme.css` and `marketing.css` were
   read and left alone.
+
+### The review fix, after a read-only review of the first hand-off
+
+A read-only review of `e33f197` found two should-fix omissions of record. Both are fixed here, in
+this lane, with no shell change and no new dependency.
+
+1. **The law alone got its control back, because the board never stopped advertising the
+   candidate.** Round three shipped five apply buttons and one of them was "Apply the law alone";
+   round four replaced the bar with one "apply the pair" and did not replace that button, while
+   `BoardMeta` went on listing "The law alone" as a candidate. The dock's two switches are built
+   from `LADDERS`, and `LAW_ONLY` is deliberately not in `LADDERS`, so the one block that settles
+   ask three had nothing on the page that reached it: a candidate with no control, which is the
+   fault round three was sent to remove read from the other side. The dock's aside is now
+   **"Apply to the site: The pair | The law alone | Clear"**, both blocks generated by the same
+   `candidateCss()` the frames wear. Two consequences carried with it: the copy button under the
+   glance tables now copies whichever block is applied and names it, and the walk line reads
+   "The law alone is applied. Walk it signed in on ..." rather than "walk the pair" when the pair is
+   not the thing on the site. `ladders.test.ts` pins the reachability itself now, so a later round
+   cannot drop the control and keep the candidate.
+2. **The three app surfaces that stayed composed stages are declined in writing, where Will reads
+   it.** The goal named nine surfaces as real pages; six marketing routes and the guest album
+   became frames and the dashboard, the event page and admin did not, and the only statement of why
+   was a code comment that was also half wrong ("behind a sign-in or outside every design island").
+   It is in the Handoff below now, and on the BOARD, as a paragraph under act three beside the
+   three stages it is about. The comment in `pages.tsx` was rewritten to the real reasons.
 
 ### Shell changes asked for (the Orchestrator lands them)
 
@@ -990,7 +1030,12 @@ Two one-line mounts would fix it for every board in the wave.
    sideways by 32px on Will's own screen. Dropping the page's horizontal padding at 1:1 (the stages
    already carry their own border and the frames their own box) would make the desktop canvas land
    exactly.
-4. **Not an ask, a thank-you, and it changed this board:** `admin/layout.tsx` and
+4. **Optional, and it would make the walk one step shorter.** The candidate store
+   (`tuner-store.ts`) notifies in-tab listeners only, with no `storage` listener, so a page that is
+   already open keeps the block it loaded with until it reloads. A `window.addEventListener
+   ("storage", ...)` beside the existing listener set would make "apply, then look at the tab you
+   already had open" work the way a reviewer expects. Every board with an Apply control has this.
+5. **Not an ask, a thank-you, and it changed this board:** `admin/layout.tsx` and
    `(guest)/layout.tsx` mount `AppDesignIsland` now (`fb395fe`), which is the one-line change round
    three's handoff, floating-surfaces and rounding all asked for. The walk here gained `/admin` and
    the guest album, `NO_ISLAND` is down to the root 404, and the walk list is no longer a hand-kept
@@ -1021,6 +1066,26 @@ Two one-line mounts would fix it for every board in the wave.
   375 the page's real phone layout runs and the generated clamp is EVALUATED rather than described.
   Measured: at 375 every frame reports `innerWidth` 375 and zero internal horizontal overflow, and
   the home hero renders the real mobile nav and the real phone film strip.
+- **And the three app surfaces that did NOT become frames, declined on purpose.** The goal named
+  nine surfaces; the guest album and the six marketing routes are frames, and the dashboard, an
+  event page and admin are still composed from the production components. The reason is not reach,
+  and the round's own island finding says so: `/dashboard` has mounted a design island all along,
+  `admin` and the guest routes mount one now, all three are in `WALK`, and an applied block reaches
+  all three in a real tab. What a frame of them cannot do is hold still.
+  (a) `/admin` is behind `requireAdmin()` and a second factor, so a frame of it renders a 404 or an
+  MFA enrollment screen for the host account this board is reviewed on, not the portal.
+  (b) The dashboard and the event page render whichever events the REVIEWER's own account holds that
+  morning, so the surface being compared would change between two flips of the switch, and a type
+  ruling wants the same words under both.
+  (c) Sign-in does not resolve on localhost by design (the Supabase redirect allow-list), so with
+  Vercel capped this round a signed-in frame could not have been verified at all before the
+  hand-off, and an unverified frame is the control-that-shows-nothing this board keeps removing.
+  A composed stage also carries the one thing no frame can, a tier production does not have
+  (stage 11), since a frame only ever moves what a hook reaches. **If Will would rather see them
+  framed, the change is small and the wiring is already written** (`PageFrame` over a `REAL_PAGES`
+  row); it wants a preview he is signed into, and it should be his call rather than a silent one.
+  The paragraph is on the board under act three so the decline is read where the stages are.
+
 - **Note 3, the two registers, and the board's call on the shape.** The dock carries two switches;
   `composePair()` composes any of the sixteen pairs into ONE nine-step ladder, and the paste, the
   token table and the `@theme` bake are all generated from the pair. **The call: one token set with
@@ -1057,6 +1122,30 @@ Two one-line mounts would fix it for every board in the wave.
   the board composes identically with and without it; the animations inside a frame are the
   production page's own, which is what a frame is for, and the marketing entrances are settled
   (below) so no size is ever read mid-transition.
+
+- **Re-walked on the local production build after the fix**, and every number above reproduced:
+  the seven frames at 1440 report `innerWidth` 1440, one adopted sheet each and zero internal
+  horizontal overflow; at 375 all seven report 375 with zero internal overflow; all eight stages
+  report `data-stage-fit="true"` with zoom 1; the board page has zero horizontal overflow at both
+  canvases; no stage is cropped (every stage's `scrollHeight` equals its `clientHeight`) and no
+  stage's CONTENT exceeds its canvas (`scrollWidth` is exactly 1440 on all eight, never more). The
+  32px each stage scrolls sideways is the canvas against `.board-page`'s own `px-4`, which is shell
+  ask 3 below and not the board's. `document.getAnimations()` is empty after every toggle settles.
+- **The restored control, proven end to end on a real page.** With "The law alone" applied, a fresh
+  tab at `/help?key=` carries one block titled "The type scale: The law alone" and its h1 reads
+  **72 / 69.12 / -2.63**: today's size, unmoved, with the law's leading and tracking. Clear it,
+  reload, and the same h1 is back to the shipped **72 / 72 / -2.16**. That is ask three judged on
+  the real site with no size moving underneath the answer, which is the capability the first cut of
+  round four dropped.
+- **The dock holds both buttons at both canvases.** At 1440 the dock is one 49px row with the aside
+  reading "Apply to the site: The pair | The law alone" plus the shell's own controls, and the
+  lab's fixed sidebar pill ends at x=71 while the dock's first control starts at x=83, so the
+  `sm:pl-20` mitigation still clears it with the second button present. At 375 the dock is static,
+  204px, five wrapped rows, and both buttons sit inside the canvas (the second ends at x=278 of
+  375).
+- **One shell behaviour worth knowing before the walk** (not a fault of this board): the candidate
+  store is in-tab only, so applying a block reaches a tab that loads AFTER it. Apply first, then
+  open a walk link; a tab already open keeps whatever it loaded with until it reloads.
 
 ### Three faults the frames found, each fixed in this round
 
@@ -1128,8 +1217,12 @@ face) is answered on the board: the pairing holds.
    board's strongest argument and this is the first round where it can be seen on the real page.
 3. **Apply the pair (Today, Today) and watch the frames not move.** That is the paste's own proof.
 4. **The guest album frame**, for the opposite reason: nothing moves, and the board says why.
-5. Then the app half of the glance table, stage 11 (the tier the app does not have, in the three
-   idioms production writes it as) and stage 15 (the tracking law, which moves no size).
+5. **"Apply to the site: the law alone", then open a walk link.** Today's sizes, unmoved, with the
+   law's leading and tracking on the real page. That is the third ask on its own, and it is the one
+   block on this board that changes no size at all.
+6. Then the app half of the glance table, stage 11 (the tier the app does not have, in the three
+   idioms production writes it as) and stage 15 (the tracking law, which moves no size), and the
+   paragraph under act three that says why the three app surfaces are stages rather than frames.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
@@ -1149,7 +1242,10 @@ faults and fixed them: the injected block was landing fifth of five sheets and i
 stylesheet now, a masthead was being read mid-entrance and reported a tracking no candidate
 proposes, and the shell's sidebar pill was covering the dock's first control. And the frames found a
 third hand-rolled heading outside both registers, on the guest album, the surface most people who
-ever see Partyreel see. Lab only; no production byte changed.
+ever see Partyreel see. A review of the hand-off put two things back that the round had dropped
+quietly: the law alone kept its own apply button, so the tracking ask can still be ruled on the real
+site with no size moving, and the three app surfaces that stayed composed stages are declined in
+writing on the board rather than in a comment. Lab only; no production byte changed.
 
 ### The token table the wiring round bakes
 

@@ -475,9 +475,9 @@ const readKey = () => new URLSearchParams(window.location.search).get("key");
 const NO_KEY = () => null;
 
 /**
- * THE DOCK'S RIGHT-HAND CLUSTER: the pair, handed to the whole site.
+ * THE DOCK'S RIGHT-HAND CLUSTER: the two blocks the board hands the whole site.
  *
- * `setCandidateCss` renders the block as a style element after every stylesheet
+ * `setCandidateCss` renders a block as a style element after every stylesheet
  * on every page with a design island, so the ruling can also be made in a real
  * tab, signed in, on the surfaces a frame on this page cannot reach. It is the
  * same generated block the frames wear, so the two can never disagree.
@@ -486,7 +486,20 @@ const NO_KEY = () => null;
  * ladder resolved, so if the paste is honest the site does not move at 1440 or
  * at 375. That is the block's own proof. (In between those widths it will move,
  * on purpose: a clamp is smooth where a four-breakpoint ramp steps.)
+ *
+ * ★ AND THE LAW ALONE KEEPS ITS OWN BUTTON, because the tracking ask is its
+ * own ruling. LAW_ONLY is today's sizes with nothing changed but leading and
+ * tracking, so it is the only block on this board that moves no size at all,
+ * and walking the real site under it is the only way to judge that ask without
+ * a ladder moving underneath the answer. Round three shipped it as one of five
+ * apply buttons; the first cut of round four's pair dropped it while BoardMeta
+ * still advertised the candidate, which is a candidate with no control on the
+ * page. Both blocks are page-wide, so both live in the dock under Will's note
+ * (a), which names "Apply to the site" as a dock control.
  */
+const LAW_LABEL = `type-scale: ${LAW_ONLY.name}`;
+const LAW_CSS = candidateCss(LAW_ONLY);
+
 function ApplyPair({
   ladder,
   css,
@@ -496,22 +509,36 @@ function ApplyPair({
   css: string;
   active: string | null;
 }) {
-  const label = `type-scale: ${ladder.name}`;
-  const on = active === label;
+  const pairLabel = `type-scale: ${ladder.name}`;
+  // Two buttons and a shared verb rather than two full sentences: the dock is
+  // one row at 1440 with the viewport and both ladder switches already in it.
+  const blocks: { label: string; name: string; css: string }[] = [
+    { label: pairLabel, name: "The pair", css },
+    { label: LAW_LABEL, name: "The law alone", css: LAW_CSS },
+  ];
   return (
     <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={() => setCandidateCss(label, css)}
-        className={cn(
-          "rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors",
-          on
-            ? "border-foreground bg-foreground text-background"
-            : "border-border text-muted-foreground hover:text-foreground",
-        )}
-      >
-        {on ? "Applied to the site" : "Apply the pair to the site"}
-      </button>
+      <span className="text-[11px] font-medium text-foreground">
+        Apply to the site
+      </span>
+      {blocks.map((block) => {
+        const on = active === block.label;
+        return (
+          <button
+            key={block.name}
+            type="button"
+            onClick={() => setCandidateCss(block.label, block.css)}
+            className={cn(
+              "rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors",
+              on
+                ? "border-foreground bg-foreground text-background"
+                : "border-border text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {on ? `${block.name}, applied` : block.name}
+          </button>
+        );
+      })}
       {active && (
         <button
           type="button"
@@ -538,9 +565,15 @@ function Reach({
 }) {
   const key = useSyncExternalStore(NEVER_CHANGES, readKey, NO_KEY);
   const [copied, setCopied] = useState(false);
+  // The copy button names what it copies. With the law alone applied, the block
+  // on the site is LAW_ONLY's rather than the pair's, and handing a reviewer
+  // the other one is how a paste and a tab quietly disagree.
+  const onLaw = active === LAW_LABEL;
+  const block = onLaw ? LAW_CSS : css;
+  const blockName = onLaw ? LAW_ONLY.name : ladder.name;
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(css);
+      await navigator.clipboard.writeText(block);
       setCopied(true);
     } catch {
       // A lab affordance: a browser that refuses the clipboard just does not
@@ -551,8 +584,11 @@ function Reach({
     <div className="flex flex-col gap-2 rounded-lg border border-border bg-card px-4 py-3">
       <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
         <span className="text-foreground">
-          {active ? `${active.replace("type-scale: ", "")} is applied.` : null}{" "}
-          Walk the pair signed in on
+          {/* The line names the block that is actually on the site: with the
+              law alone applied, "walk the pair" would be the wrong sentence. */}
+          {active
+            ? `${active.replace("type-scale: ", "")} is applied. Walk it signed in on`
+            : "Apply a block in the dock, then walk it signed in on"}
         </span>
         {WALK.map((p) => (
           <span key={p.href}>
@@ -575,7 +611,7 @@ function Reach({
           onClick={() => void copy()}
           className="underline underline-offset-2 hover:text-foreground"
         >
-          {copied ? "copied the block" : `copy ${ladder.name} as CSS`}
+          {copied ? "copied the block" : `copy ${blockName} as CSS`}
         </button>
       </p>
       <p className="max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
@@ -1282,6 +1318,25 @@ export function TypeScaleBoard() {
         </Variant>
       )}
 
+      <div className="max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
+        The album above is the one real page in this act. The dashboard, the
+        event page and admin below are composed from the production components
+        instead, and the reason is not reach: the dashboard has mounted a design
+        island all along, admin and the guest routes mount one now, and all
+        three are in the walk above, so an applied block reaches them in a real
+        tab. What a frame of them cannot do is hold still. /admin is behind
+        requireAdmin() and a second factor, so it renders a 404 or an enrollment
+        screen for the host account this board is reviewed on; the dashboard and
+        the event page render whichever events the reviewer&rsquo;s own account
+        holds that morning, so the surface being compared would change between
+        two flips of the switch; and sign-in does not resolve on localhost by
+        design, so with Vercel capped this round a signed-in frame could not
+        have been verified before the handoff. A composed stage also carries the
+        one thing no frame can, a tier production does not have (stage 11),
+        since a frame only moves what a hook reaches. Judge these three as real
+        pages from the walk links above, signed in, with a block applied.
+      </div>
+
       <Variant
         n={10}
         name="The dashboard"
@@ -1346,7 +1401,7 @@ export function TypeScaleBoard() {
       <Variant
         n={15}
         name="The tracking law, alone, and the pairing under it"
-        rationale="The same word at the masthead size and the same card title at 16, under the flat -0.03em and under the law. No size moves in the top half, which is what makes this a separate ruling: adopt it whichever pair wins. The pairing check sits underneath because it is the same evidence read twice."
+        rationale="The same word at the masthead size and the same card title at 16, under the flat -0.03em and under the law. No size moves in the top half, which is what makes this a separate ruling: adopt it whichever pair wins. The dock applies it to the site on its own (Apply to the site, then the law alone), so this ask can be walked on the real pages with no size moving underneath the answer. The pairing check sits underneath because it is the same evidence read twice."
         framed={false}
       >
         <Frame mode={mode} ground="paper" height={lawHeight(ladder, mode)}>

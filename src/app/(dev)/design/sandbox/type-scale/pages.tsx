@@ -32,10 +32,30 @@ import { optics, type Ladder, type Spec, type StepId } from "./ladders";
  *
  * Since round four the MARKETING surfaces are the routes themselves, in frames
  * at the canvas's true pixels (board.tsx's PageFrame over REAL_PAGES), so what
- * is left here is the four surfaces a frame cannot reach: the dashboard, an
- * event page, an admin page and the 404 are all behind a sign-in or outside
- * every design island, plus the two stages that are arguments rather than
- * pages (the app's missing middle, and the tracking law on its own).
+ * is left here is four surfaces that stay composed, plus the two stages that
+ * are arguments rather than pages (the app's missing middle, and the tracking
+ * law on its own).
+ *
+ * WHY THESE FOUR ARE NOT FRAMES, since three of them are perfectly reachable.
+ * The dashboard has always mounted a design island, and admin and the guest
+ * routes mount one now (round four), so all three are in WALK and wear an
+ * applied block in a real tab. It is judging them in a frame that does not
+ * work, for three separate reasons:
+ *  - /admin is behind `requireAdmin()` and a second factor, so a frame of it
+ *    renders a 404 or an MFA enrollment screen for the host account this board
+ *    is reviewed on, not the portal;
+ *  - the dashboard and the event page render whatever events the REVIEWER's own
+ *    account holds, so the thing being compared changes between two flips of
+ *    the switch, and a type ruling wants the same words under both;
+ *  - sign-in does not resolve on localhost by design (the Supabase redirect
+ *    allow-list), so with Vercel capped this round a signed-in frame could not
+ *    have been verified at all before the handoff, and an unverified frame is
+ *    exactly the control-that-shows-nothing this board keeps removing.
+ * The root 404 is the fourth, and that one really is unreachable: it renders
+ * outside every island (NO_ISLAND in ladders.ts). A composed stage also carries
+ * what no frame can, the tier production does not have (MissingMiddle), since a
+ * frame only ever moves what a hook reaches. The decline is written on the
+ * board itself, under act three.
  *
  * Each is composed from the production components (PageHeading, Card, Button,
  * Badge, NotFoundScreen) with production copy, and none of them is modified: a
