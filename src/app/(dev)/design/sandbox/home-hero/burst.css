@@ -87,8 +87,8 @@
   padding: 4px 4px 4px 9px;
   border: 1px solid rgb(255 255 255 / 0.12);
   border-radius: 999px;
-  background: rgb(0 0 0 / 0.55);
-  opacity: 0.45;
+  background: rgb(0 0 0 / 0.6);
+  opacity: 0.68;
   transition: opacity 140ms var(--ease-out, ease-out);
 }
 
@@ -97,8 +97,28 @@
   opacity: 1;
 }
 
-.hhb-lab-label {
+/* The phone canvas is shown at 1:1 while the desktop one is zoom-fitted to
+   about 0.69, so the same pill is half again as loud at 375. This is the same
+   control, sized for the canvas it sits on. */
+.hhb-lab-sm {
+  right: 10px;
+  bottom: 10px;
+  padding: 3px 3px 3px 7px;
+  gap: 3px;
+}
+
+.hhb-lab-sm .hhb-lab-label {
+  font-size: 9px;
+}
+
+.hhb-lab-sm .hhb-lab-btn {
+  min-width: 22px;
+  padding: 1px 6px;
   font-size: 10px;
+}
+
+.hhb-lab-label {
+  font-size: 10.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgb(255 255 255 / 0.5);
