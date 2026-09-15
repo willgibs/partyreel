@@ -159,8 +159,7 @@ export const BRIDGE: readonly BridgePost[] = [
   {
     slug: "group-trip-photo-sharing",
     shot: "T3",
-    title:
-      "Bachelorette and group trip photos: one album for the whole crew",
+    title: "Bachelorette and group trip photos: one album for the whole crew",
     vertical: "trips",
     cover: "festival-lights",
     crop: "22% 45%",
@@ -230,8 +229,7 @@ export const BRIDGE: readonly BridgePost[] = [
   {
     slug: "qr-code-for-wedding-photos",
     shot: "W4",
-    title:
-      "QR code for wedding photos: the complete guest photo sharing guide",
+    title: "QR code for wedding photos: the complete guest photo sharing guide",
     vertical: "weddings",
     cover: "wedding-golden",
     crop: "50% 55%",
@@ -313,3 +311,51 @@ export const BRIDGE_BY_ID: Readonly<Record<string, string>> = {
 
 /** The two frames the Mix route keeps licensed: details nobody studies. */
 export const MIX_LICENSED = ["wedding-rings", "wedding-arch"] as const;
+
+/**
+ * What a route does with one post: hand it a licensed frame, or hand it to the
+ * shoot. One function, so the sheet, the stage and the applied CSS can never
+ * disagree about what a route means.
+ *
+ * ★ THE SHOOT'S FRAME COMES FROM THE POST'S VERTICAL (`shot`), NEVER FROM THE
+ * COVER IT CARRIES TODAY. Inheriting today's id would hand the conference post a
+ * festival frame again, in the route that exists to end exactly that.
+ */
+export function routeOutcome(
+  post: BridgePost,
+  route: "licensed" | "ours" | "mix",
+): { kind: "licensed"; key: string | null } | { kind: "ours" } {
+  if (route === "ours") return { kind: "ours" };
+  if (route === "licensed") return { kind: "licensed", key: post.candidate };
+  // Mix: licensed only where the photograph is furniture, which on the blog is
+  // the two details nobody studies; everything else goes to the shoot.
+  return (MIX_LICENSED as readonly string[]).includes(post.candidate ?? "")
+    ? { kind: "licensed", key: post.candidate }
+    : { kind: "ours" };
+}
+
+/**
+ * The three posts the stage enlarges at the real card size.
+ *
+ * ★ ROUND THREE CHANGED ONE OF THEM SO THE ROUTE TOGGLE IS NOT INERT. Round two
+ * staged three corporate and conference posts: the right argument (today they
+ * wear an empty wedding hall and two music festivals, every one chosen by hand
+ * out of eleven frames) and the wrong SET, because none of the three is one of
+ * the two details Mix keeps licensed, so flipping Mix against Ours changed
+ * nothing on the largest element of the board. These three differ under all
+ * three routes, and bridge.test.ts refuses a set that does not.
+ */
+export const STAGE_SLUGS = [
+  // Filled by a frame with a readable face, which ask 1 bars.
+  "company-offsite-photos",
+  // The hole: no conference frame exists in the corpus at all.
+  "conference-photo-sharing-no-app",
+  // A ring detail, which is exactly what the Mix route keeps licensed.
+  "does-whatsapp-compress-photos",
+] as const;
+
+export const STAGE_POSTS: readonly BridgePost[] = STAGE_SLUGS.map((slug) => {
+  const post = BRIDGE.find((p) => p.slug === slug);
+  if (!post) throw new Error(`media-kit stage: no post ${slug}`);
+  return post;
+});

@@ -9,13 +9,17 @@
 > (a wiring round's commit). **GROWS BY:** refine in place; the settled part is promoted into the
 > system layer by the Orchestrator once Will rules.
 
-> **STATUS: A PROPOSAL, revised at round two (2026-09-14).** Nothing here is in force. Bible 18
+> **STATUS: A PROPOSAL, revised at round three (2026-09-15).** Nothing here is in force. Bible 18
 > ("every frame is ours") is ratified; the operative detail below is this track's recommendation and
 > waits on Will's ruling. No production byte changed on this track: the twelve stand-ins are untouched
 > and the candidate batch is staged under `public/design/media-kit/`, which no marketing surface reads.
 > Round two corrected three things round one got wrong, each marked ★ in place: the exposure (the site,
 > not the blog), the blog covers (chosen in frontmatter, not hashed) and the reel runbook (no code edit
-> needed). The board is `/design/c/media-kit`.
+> needed). Round three corrected one thing round two got wrong, also ★: the counts it printed for the
+> Licensed route were the counts BEFORE the rule in section 1.4, and under that rule they are smaller.
+> It also cut the asks from five to four (the route decides the bridge, so asking both asked the same
+> question twice) and found that one night of photography closes nine of the twelve rows in
+> [`../ASSETS.md`](../ASSETS.md). The board is `/design/c/media-kit`.
 
 ---
 
@@ -48,29 +52,49 @@ differ from what the hash would have returned. A person chose every miscast cove
 and festival frames, which is why `/blog/conference-photo-sharing-no-app` is illustrated with an outdoor
 music festival. That changes what the fix is: the bridge is **23 frontmatter lines**, not twelve files.
 
-**What is being asked.** Three routes, argued on the board at
-`/design/c/media-kit`:
+**What is being asked. Four questions, each answered in one word** (round two asked five; the fifth,
+"ship the bridge or hold it", is decided by the third, so it is a consequence on the board now rather
+than a word of Will's):
 
-| Route | What it is | Cost | What it buys |
+| # | Ask | Answers | Recommended |
 | --- | --- | --- | --- |
-| Licensed | Replace the twelve with frames under a license we can name and record | none of Will's time | The letter of bible 18, not its point |
-| Ours | 36 masters across six verticals, made by Will, everything else derived | two shoots or two generation passes | The rule as written, and the product's own claim made true |
-| Mix | Ours on the frames a reader studies, licensed as a dated bridge on the rest | one shoot now, one later | A correct site this month and the real kit by launch |
+| 1 | The sourcing rule (section 1): author, source, the clause quoted, a retrieval date and a people field required on every entry, and no recognisable face without a release | Yes / No | **Yes** |
+| 2 | The allowed list (section 4): CC0, Pexels, Pixabay, Mixkit and Coverr in; Unsplash and CC BY out | Yes / Strike one | **Yes** |
+| 3 | The route, which also decides the bridge | Mix / Ours / Licensed | **Mix** |
+| 4 | The kit (section 5): 36 masters, six per vertical, shot in one night at a real event running Partyreel | Shoot / Park | **Shoot** |
 
-**The recommendation is Mix**, with the bridge dated: licensed frames are legal to ship and are deleted
-the day the kit lands. Ten of the twelve go to the shoot because they are studied (the hero, the four
-reel clips, the four blog posts that all ride one empty banquet hall); two are detail shots nobody
+The three routes, argued on the board at `/design/c/media-kit`:
+
+| Route | What it ships the week it is chosen | Cost | Legal under ask 1 as staged |
+| --- | --- | --- | --- |
+| **Mix** | 2 of the 12 ids swapped for a licensed detail, the other 10 left until the shoot | One night of photography, and two frames of staging | Yes |
+| Ours | Nothing until the shoot, then all 36 masters at once | One night of photography and a release at the door | Yes |
+| Licensed | 10 of the 12 ids, not 12 (`reception-hall` and `party-dj` carry a face with no release) | None, which is the whole of its case | **No** |
+
+**The recommendation is Mix**, with the bridge dated: the two licensed frames are legal to ship and are
+deleted the day the kit lands. Ten of the twelve go to the shoot because they are studied (the hero, the
+four reel clips, the four blog posts that all ride one empty banquet hall); two are detail shots nobody
 studies and can carry a licensed bridge until then.
+
+**★ Round two's counts for the Licensed route were the counts before the rule, and the rule takes some
+back.** The board said "all twelve ids fill" and "21 of the 23 posts fill", both true of the staged
+batch and neither true under section 1.4, which bars a recognisable face without a release. Four of the
+22 staged frames carry one. Two of those four are the swap for a manifest id and three carry a blog
+post, so under the rule this board proposes, Licensed fills **10 of the 12 ids and 18 of the 23 posts**.
+The two ids it cannot fill are `reception-hall` (a dance floor) and `party-dj`, which are the two frames
+a product about parties needs most. `decision.ts` derives both numbers from the batch and
+`decision.test.ts` pins them, so the smaller number is the one a ruling is made on.
 
 **★ The second search closed all four of round one's holes, and that moves the argument rather than
 winning it.** The first pass searched the corpus by the words on a manifest entry ("party balloons"
 returned hot air balloons, six for six) and staged eight of twelve. The second searched by the SCENE,
 in the one pocket of the corpus with the right aesthetic (the pre-5-June-2017 Unsplash archive that
 Commons mirrors), and found a dance floor, a table with people at it, real balloons and a portrait: 16
-more frames, 22 staged in all, all twelve ids fillable. So the corpus *can* dress the site. What it
-still cannot do is put a recognisable private celebration in frame: **18 of the 22 work only because
-nobody in them is recognisable, and the four with a face are the four that need a release nobody here
-holds.** The frames worth anything to this product are the ones with faces in them.
+more frames, 22 staged in all, all twelve ids fillable **on paper, ten of them under the rule**. So the
+corpus *can* dress the site. What it still cannot do is put a recognisable private celebration in frame:
+**18 of the 22 work only because nobody in them is recognisable, and the four with a face are the four
+that need a release nobody here holds.** The frames worth anything to this product are the ones with
+faces in them.
 
 **★ What the corpus actually is, which is the more useful result.** Scene searches for "office party
 colleagues", "conference audience" and "dinner party friends" return government photo-ops, UN panels,
@@ -90,13 +114,30 @@ provenance hunt could close. Even in the best case, where all twelve really are 
 were downloaded in good faith, the license they were taken under never covered the thing that makes
 them worth having. This is not a filing problem. It is a sourcing problem, and only new frames fix it.
 
-**The finding that makes it affordable.** Round two's three hero concepts each asked for their own
-batch: 24 squares at 512 px (`hero-source`), 36 photographs at 1600 px plus 8 vertical clips
-(`hero-gathering`), and a 15 to 20 s film (`hero-reel`). Those are not four deliveries. They are **one
-library at three crops and one cut**: 36 masters, six per vertical, from which the 512 squares are
-crops, the clips are the same events shot as video, and a film is cut from that footage.
-`shared.tsx:130` already says so in the tree, describing the replacement as "Will's 36-frame set (a
-third portrait, 24 also as 512-square)".
+**★ The finding that makes it affordable, and round three made it bigger.** Round two's three hero
+concepts each asked for their own batch: 24 squares at 512 px (`hero-source`), 36 photographs at 1600 px
+plus 8 vertical clips (`hero-gathering`), and a 15 to 20 s film (`hero-reel`). Those are not four
+deliveries. They are **one library at three crops and one cut**: 36 masters, six per vertical, from
+which the 512 squares are crops, the clips are the same events shot as video, and a film is cut from
+that footage. `shared.tsx:130` already says so in the tree, describing the replacement as "Will's
+36-frame set (a third portrait, 24 also as 512-square)".
+
+Round three read the whole asset log rather than the four manifests that had asked this track for
+something, and the answer got bigger. [`../ASSETS.md`](../ASSETS.md) holds twelve rows. Row 7 IS this
+shoot, row 6 is the ruling above, and row 10 is a 256 px noise tile and not a photograph. **Every one of
+the other nine is a crop, a recrop, a cut or a setup of the same night**: the film (1), the squares (2),
+the gathering's 36 (3, which is row 7 specified by box instead of by vertical), the clips (4), the demo
+event's curated folder (5), the hand-and-phone cutout (8, the one separate setup), the burst's portrait
+crops (9), the light board's worst-case overlapping pair (11, which is `W3` and `C1` on the call sheet
+already, shot knowing they will be laid over each other) and the river's portraits (12). The full table
+is on the board under "One night, nine rows of the asset log", and `shoot.ts`'s `DERIVED` is its source.
+
+**Row 5 is the one that changes the shape of the answer.** It is the media the live demo event is seeded
+from, and the QR on every hero board points at that event. If the shoot is run AS a Partyreel event, the
+guests upload through the product, the demo stops being seeded with fixtures and starts being a real
+album, and the sourcing rule and the product's own claim become the same sentence. The `hero-river`
+board reached the same idea from the other end in its round two ("the frames in the stream should BE the
+demo event's own media"), which is two boards arriving at it independently.
 
 The round-two ruling proved the point the same day: the gathering and the reel were not ruled in, so
 `ASSETS.md` rows 3 and 4 went to `parked` and `withdrawn` while round three opened three new hero
@@ -512,6 +553,22 @@ in one night, and it seeds `ASSETS.md` row 5 (the demo event's curated folder) a
 because the demo event should be a real event. A second one in a different season covers the verticals
 one night cannot.
 
+**The nine rows it closes**, which is the argument that the kit is the cheapest item on the asset log
+rather than the most expensive one. `shoot.ts`'s `DERIVED` is the source of this table and the board
+renders it under "One night, nine rows of the asset log".
+
+| Row | What | How it comes out of the night | Asked by |
+| --- | --- | --- | --- |
+| 1 | The hero film | The cut of the night's footage, not a second production | `hero-reel` |
+| 2 | 24 squares at 512x512 | 1:1 crops of the 24 masters marked `512 square` | `hero-source` |
+| 3 | 36 photographs for the gathering's field | The same 36 as row 7, specified by box rather than by vertical | `hero-gathering` |
+| 4 | 8 vertical clips with posters | Filmed between the frames, at the same events | `hero-gathering` |
+| 5 | The demo event's curated folder | The guests' own uploads, if the shoot is run AS a Partyreel event | the demo seed |
+| 8 | A hand-and-phone cutout | The one separate setup: same event, darkest wall, `K3`'s light | `hero-scan` |
+| 9 | 10 portrait crops at 512x640 | 4:5 recrops of ten of the 24 squares. Ten, not the log's eight: `hero-burst` raised it in round two | `hero-burst` |
+| 11 | A worst-case overlapping pair | `W3` and `C1` are that pair already; they need the intent, not a setup | `light` |
+| 12 | 12 portraits at 720x900 | `W4`, `B5` and `S3` shot portrait, the other nine recropped | `hero-river` |
+
 ---
 
 ## 6. The batch, and the bridge
@@ -559,6 +616,13 @@ office party at night, indoors, with colleagues in it, under a license we can na
 Both are at the corporate end of the product, which is half the business. A third,
 `/blog/corporate-event-photo-sharing-pricing`, is filled with laptops and hands and is shown precisely
 because it reads as a stock office photograph, which is the exact thing bible 18 exists to stop.
+
+**★ And three more of the 21 are filled by a frame section 1.4 will not let ship**, which round two did
+not say: `/blog/best-way-to-share-event-photos`, `/blog/company-offsite-photos` and
+`/blog/group-chat-party-photos` each carry a readable face with no release. So the honest number for the
+Licensed route is **18 of 23**, not 21, and **10 of the 12 ids**, not 12. It is stated on the board as
+the route table's own row and derived in `decision.ts`, because a route that cannot be shipped should
+not be presented with the count of a route that can.
 
 **The recommendation on the batch: yes as a dated bridge, no as an answer.** Ship licensed frames only
 where the photograph is furniture, delete them the day the kit lands, and never on the hero. A stock

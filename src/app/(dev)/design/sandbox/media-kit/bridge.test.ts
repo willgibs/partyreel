@@ -3,7 +3,14 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { BRIDGE, BRIDGE_BY_ID, MIX_LICENSED } from "./bridge";
+import {
+  BRIDGE,
+  BRIDGE_BY_ID,
+  MIX_LICENSED,
+  routeOutcome,
+  STAGE_POSTS,
+  STAGE_SLUGS,
+} from "./bridge";
 import { candidate } from "./candidates";
 import { STAND_INS } from "./kit";
 import { master } from "./shoot";
@@ -62,7 +69,10 @@ describe("the per-post bridge", () => {
     // Round one's board said the covers were hashed. They are not: the hash is
     // only reached when frontmatter omits `cover:`, and none of them does.
     for (const slug of SLUGS) {
-      expect(frontmatter(slug).cover, `${slug} has no explicit cover`).toBeTruthy();
+      expect(
+        frontmatter(slug).cover,
+        `${slug} has no explicit cover`,
+      ).toBeTruthy();
     }
   });
 
@@ -83,7 +93,10 @@ describe("the per-post bridge", () => {
   it("every candidate named by a post resolves to a staged file", () => {
     for (const post of BRIDGE) {
       if (!post.candidate) continue;
-      expect(() => candidate(post.candidate as string), post.slug).not.toThrow();
+      expect(
+        () => candidate(post.candidate as string),
+        post.slug,
+      ).not.toThrow();
     }
   });
 
@@ -115,5 +128,42 @@ describe("the bridge per manifest id", () => {
       const c = candidate(BRIDGE_BY_ID[id]);
       expect(c.people, id).not.toBe("identifiable");
     }
+  });
+});
+
+describe("the three posts the stage enlarges", () => {
+  it("are real posts, in the order the stage draws them", () => {
+    expect(STAGE_POSTS.map((p) => p.slug)).toEqual([...STAGE_SLUGS]);
+    for (const p of STAGE_POSTS) expect(BRIDGE).toContain(p);
+  });
+
+  /**
+   * ★ THE TOGGLE HAS TO DO SOMETHING VISIBLE, AND ROUND TWO'S SET MEANT IT DID
+   * NOT. All three of its posts went to the shoot under Mix AND under Ours, so
+   * the board's largest element was identical on two of its three routes. This
+   * is the test that keeps that from coming back: across the three routes the
+   * stage's row of outcomes has to take three distinct shapes.
+   */
+  it("read differently under every route, so no route flip is inert", () => {
+    const shape = (route: "licensed" | "ours" | "mix") =>
+      STAGE_POSTS.map((p) => {
+        const out = routeOutcome(p, route);
+        return out.kind === "ours" ? "ours" : (out.key ?? "empty");
+      }).join("|");
+    const shapes = [shape("licensed"), shape("ours"), shape("mix")];
+    expect(new Set(shapes).size).toBe(3);
+  });
+
+  it("cover the three ways this goes wrong: a barred face, a hole, a detail", () => {
+    const people = STAGE_POSTS.map((p) =>
+      p.candidate ? candidate(p.candidate).people : "empty",
+    );
+    expect(people).toContain("identifiable");
+    expect(people).toContain("empty");
+    expect(
+      STAGE_POSTS.some((p) =>
+        (MIX_LICENSED as readonly string[]).includes(p.candidate ?? ""),
+      ),
+    ).toBe(true);
   });
 });

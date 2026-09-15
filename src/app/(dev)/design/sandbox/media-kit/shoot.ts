@@ -204,7 +204,8 @@ export const MASTERS: readonly Master[] = [
     code: "C1",
     vertical: "corporate",
     subject: "The offsite long table, warm, phones face down",
-    framing: "From the end at seated height, the table running away from camera",
+    framing:
+      "From the end at seated height, the table running away from camera",
     light: "Evening, practicals only, no overhead office light anywhere in it",
     crops: [LADDER, SHARE, CORRIDOR],
     orientation: "landscape",
@@ -245,7 +246,8 @@ export const MASTERS: readonly Master[] = [
   {
     code: "C5",
     vertical: "corporate",
-    subject: "The van at the end of the night, doors open, people still talking",
+    subject:
+      "The van at the end of the night, doors open, people still talking",
     framing: "From across the car park, the van at a third, the dark around it",
     light: "The van's interior light and a street lamp",
     crops: [LADDER, SHARE],
@@ -358,7 +360,8 @@ export const MASTERS: readonly Master[] = [
       "Two friends on shoulders over a crowd at sunset, one of them filming on a phone",
     framing:
       "From below and behind, the pair against the sky, the phone held up and readable",
-    light: "Sun behind them, faces dark, the phone's screen the brightest thing",
+    light:
+      "Sun behind them, faces dark, the phone's screen the brightest thing",
     crops: [LADDER, SHARE, CORRIDOR, TALL],
     orientation: "portrait",
     replaces: [],
@@ -367,7 +370,8 @@ export const MASTERS: readonly Master[] = [
   {
     code: "S4",
     vertical: "festivals",
-    subject: "A light rig from underneath at dusk, the sky still blue behind it",
+    subject:
+      "A light rig from underneath at dusk, the sky still blue behind it",
     framing: "Directly under the rig looking up, the truss framing the sky",
     light:
       "Cool stage light against the last blue. The coolest frame in the set, and the one a warm ramp has to survive",
@@ -392,7 +396,8 @@ export const MASTERS: readonly Master[] = [
     vertical: "festivals",
     subject: "The camp at dawn, one person awake",
     framing: "Wide, low, the tents small, the person at a third",
-    light: "First light, cold, the one frame that is allowed to be cool and calm",
+    light:
+      "First light, cold, the one frame that is allowed to be cool and calm",
     crops: [LADDER, SHARE],
     orientation: "landscape",
     replaces: [],
@@ -413,7 +418,8 @@ export const MASTERS: readonly Master[] = [
     code: "T2",
     vertical: "trips",
     subject: "A terrace table at night, the town below",
-    framing: "From the end of the table, the lights of the town behind the heads",
+    framing:
+      "From the end of the table, the lights of the town behind the heads",
     light: "One bulb over the table, the town as the background exposure",
     crops: [LADDER, SHARE, CORRIDOR],
     orientation: "landscape",
@@ -464,10 +470,26 @@ export const MASTERS: readonly Master[] = [
 ];
 
 /**
- * What the shoot also yields without a second call. ASSETS rows 2, 8, 9 and 12 are
- * the round-three hero variations' asks; three of the four are crops and cuts of
- * the same 36, and row 8 is the only one that is genuinely a separate setup, which
- * is why it is listed here rather than folded away.
+ * WHAT THE SHOOT ALSO YIELDS, WITHOUT A SECOND CALL.
+ *
+ * ★ ROUND THREE READ THE WHOLE ASSET LOG AND THE ANSWER GOT BIGGER. Round two
+ * listed four derived rows. The log has twelve rows; one of them (row 7) IS this
+ * shoot, one (row 6) is the ruling this board asks for, and one (row 10) is a
+ * noise tile and not a photograph. Every single one of the other NINE is a crop,
+ * a recrop, a cut or a setup of the same night. That is the strongest argument
+ * the Ours route has, and it was sitting in a file nobody had read end to end.
+ *
+ * ★ ROW 5 IS THE ONE THAT CHANGES THE SHAPE OF THE ANSWER. "The demo event's
+ * curated folder" is the media the live demo event is seeded from, and the live
+ * QR on every hero board points at it. If the shoot IS a Partyreel event, the
+ * guests upload through the product, the demo event stops being seeded with
+ * fixtures and starts being a real album, and the sourcing rule and the product's
+ * own claim become the same sentence. The hero-river board reached the same idea
+ * from the other end in its round two ("the frames in the stream should BE the
+ * demo event's own media"), which is two boards arriving independently.
+ *
+ * Counts are the requesting board's latest, not the log's: hero-burst raised row
+ * 9 from eight portraits to ten in its round two, and the log still says eight.
  */
 export type Derived = {
   row: number;
@@ -481,12 +503,46 @@ export type Derived = {
 
 export const DERIVED: readonly Derived[] = [
   {
+    row: 1,
+    what: "The hero film",
+    spec: "15 to 20 s, 12 to 18 shots, 1920x1080 and a 1080x1920 crop of the same edit, mp4 under 1.5 MB plus a webm and two posters, silent, plus the cut list",
+    from: "The cut of the night's footage. Film the eight clips (row 4) as one continuous shoot and the film is an edit, not a second production",
+    replaces: "hero-candidate-02 (8.25 s, four shots) and its poster",
+    askedBy: "hero-reel",
+  },
+  {
     row: 2,
     what: "24 squares",
     spec: "512x512, one grade, 6 to 35 KB webp each",
     from: "1:1 crops of the 24 masters marked 512 square above. No second shoot",
-    replaces: "FRAMES in sandbox/home-hero/shared.tsx, which every round-three hero variation cycles",
+    replaces:
+      "FRAMES in sandbox/home-hero/shared.tsx, which every round-three hero variation cycles",
     askedBy: "hero-source",
+  },
+  {
+    row: 3,
+    what: "36 photographs for the gathering's field",
+    spec: "1600 px long edge, a third portrait, placed in 3:2, 16:9, 1:1, 4:3, 4:5, 3:4 and 2:3 boxes",
+    from: "This row and row 7 are the same 36 frames. Row 7 specifies them by vertical and row 3 by the boxes they land in, and the crop rules on every card above already satisfy both",
+    replaces: "all twelve stand-ins, the same twelve row 7 names",
+    askedBy: "hero-gathering",
+  },
+  {
+    row: 4,
+    what: "8 vertical clips with posters",
+    spec: "3 to 5 s each, 1080x1920, silent, each with its own poster at 1080x1920",
+    from: "Filmed at the same events as the stills, between the frames. Three run at once on desktop, so they need to cut together",
+    replaces:
+      "the three currentTime ranges cut out of hero-candidate-01, which share one poster today",
+    askedBy: "hero-gathering",
+  },
+  {
+    row: 5,
+    what: "The demo event's curated folder",
+    spec: "The photographs and clips the live demo event is seeded from, curated as a host would curate them",
+    from: "The guests' own uploads, if the shoot is run AS a Partyreel event: they scan the QR, the album fills, and the seed stops being fixtures. The live QR on every hero board already points here",
+    replaces: "the seed's current fixtures in scripts/seed-demo-event.mjs",
+    askedBy: "the demo seed",
   },
   {
     row: 8,
@@ -498,19 +554,48 @@ export const DERIVED: readonly Derived[] = [
   },
   {
     row: 9,
-    what: "8 portrait crops of the squares",
-    spec: "512x640, the same photograph recropped, the same grade",
-    from: "4:5 crops of eight of the same 24. Pick the eight whose subject sits off centre, because a centred subject survives a square and loses the tall crop",
+    what: "10 portrait crops of the squares",
+    spec: "512x640, the same photograph recropped, the same grade. Ten, not the log's eight: hero-burst raised the count in its round two so no frame is on screen twice on the desktop canvas",
+    from: "4:5 crops of ten of the same 24. Pick the ten whose subject sits off centre, because a centred subject survives a square and loses the tall crop",
     replaces: "the square box on a third of the burst's field",
     askedBy: "hero-burst",
+  },
+  {
+    row: 11,
+    what: "A worst-case pair of overlapping photographs",
+    spec: "Two frames whose touching edges are both dark and low contrast, 1200 px long edge, so the depth cue is judged against the case it exists for",
+    from: "W3 and C1 are already that pair: a dance floor lit by one lamp, and an evening table with no overhead light. Shoot them knowing they will be laid over each other",
+    replaces:
+      "the reception-hall and wedding-toast pair in sandbox/light/depth.tsx",
+    askedBy: "light",
   },
   {
     row: 12,
     what: "12 portraits",
     spec: "4:5 at 720x900, one grade, 15 to 60 KB webp, legible at 110 px",
     from: "W4, B5 and S3 are shot portrait; the other nine are 4:5 crops of masters whose subject is vertical (a person, a rig, a bottle, a flame). Guests shoot vertical, so about 45 percent of the river's stream runs portrait",
-    replaces: "the portrait cards (wf 0.8) in sandbox/home-hero/river.tsx's CARD_POOL, cropped hard from landscape today",
+    replaces:
+      "the portrait cards (wf 0.8) in sandbox/home-hero/river.tsx's CARD_POOL, cropped hard from landscape today",
     askedBy: "hero-river",
+  },
+];
+
+/** The rows in the asset log that are NOT cut from the shoot, and why. */
+export const NOT_DERIVED: readonly {
+  row: number;
+  what: string;
+  why: string;
+}[] = [
+  {
+    row: 6,
+    what: "A per-batch OK on the twelve stills",
+    why: "This board's own ruling, not a file",
+  },
+  { row: 7, what: "The kit, 36 masters", why: "The shoot itself" },
+  {
+    row: 10,
+    what: "A grain tile",
+    why: "256 px of noise. Not a photograph, and the light board can generate it",
   },
 ];
 
