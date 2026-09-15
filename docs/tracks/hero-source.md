@@ -282,7 +282,10 @@ so the burst cannot flash.
   three times at once, and the LEFT arm alone repeats five of them in the SAME lane and the SAME
   crop (slot and slot + 12, and 12 is a multiple of both `LANES.length` and `ASPECTS.length`).
   The fix keeps the promise and moves the ask: 34 squares, which is 17 a side, exactly disjoint,
-  with all 34 on canvas at 1440 and 28 of them at 375. The promise is what the composition is worth
+  with all 34 on canvas at 1440 and 28 of them at 375. Goal item 5 is what authorises the move
+  ("the assets unchanged, row 2, the 24 squares, unless the composition needs something new"): the
+  count was set against round three's 24 cards on one plane, and round four's corridor is 34 across
+  three lanes, so the composition is exactly what changed under it. The promise is what the composition is worth
   asking for, and 34 costs no second shoot (see the bookkeeping note under the asks). The same claim
   was mirrored in three places and all three moved with it: `Geo.launch`'s cost-of-the-stand-ins
   note and `buildCards`'s doc comment now state the CONDITION (`FRAMES.length >= 2 * pool`) rather
