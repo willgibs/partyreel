@@ -1,5 +1,6 @@
 import type { Viewport } from "next";
 
+import { MarketingMotionTuner } from "@/components/dev/marketing-motion-tuner";
 import { MarketingFooter } from "@/components/marketing/chrome/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
 
@@ -27,6 +28,9 @@ export default function PaperLayout({
       <MarketingHeader />
       <main className="flex-1">{children}</main>
       <MarketingFooter />
+      {/* Key-gated, inert for everyone else: the tuner and a board's candidate
+          block reach the paper group too (the second round, 2026-09-14). */}
+      <MarketingMotionTuner />
     </div>
   );
 }

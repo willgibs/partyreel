@@ -1,8 +1,8 @@
 ---
 track: hero-scan
-status: integrated
-cut: "b34993e3f6a2cc670e2b38cf7119cd10abc96099"
-merged: "aee5915"      # the branch head merged into launch-prep
+status: open
+cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_1: "aee5915"
 preview: true           # Will reviews this concept on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/home-hero/scan.tsx
@@ -22,6 +22,67 @@ reads:
 ---
 
 # lp/hero-scan
+
+## Round 2 (Will, 2026-09-14: "another iterative round on all active tracks before review")
+
+**Round 2 (the goal).** The scan's beat is the idea (cause, then effect); now make the variation the
+best version of itself. Judge it from the ground up against Will's criterion: a stranger's first read
+is "if I scan this, I get all of these", and the supporting elements and copy clarify from there. (1)
+**The phone**: the cutout is asked for (row 8) and not here; find the composition where the drawn
+device earns its place or where the device is minimal (the viewfinder alone, the brackets alone) and
+show both as a toggle, so Will rules the phone on the board. (2) **The first two seconds** tuned:
+the lock, the flash, the release; the room genuinely empty until the lock. (3) **The supporting
+elements**: the Caption line and the count (a stand-in; keep it flagged) placed where they read as
+the album filling; the eyebrow question settled (the code is the eyebrow, or a line is). (4) **The
+phone canvas** as a first-class composition, not a compression. (5) **Performance**: measure the
+loop (frame time, layer count, paint) at both canvases and cut what does not earn its cost. (6) Read
+the burst and the river (`burst.tsx`, `river.tsx`, read-only) and take what serves the scan (the
+per-card quiet zone, the parting) only if it stays the scan. (7) Tighten the departures to the ones
+Will must rule on. Keep the corridor's physics; keep the h1 at paint and media at 100 percent.
+
+### The rules of round two (every track)
+
+- **Why a second round.** Will (2026-09-14, after the first wave integrated): "They all seemed to be
+  making progress in their directions, but a single round of context didn't seem to be enough for
+  any of them to reach enough of their full potential for a real review." Read your round-1 Handoff
+  and Record below as your own notes, look at the board as it stands on the launch-prep alias, and
+  judge it from the ground up (bible 22): what would the perfect version of THIS board be, as a
+  surface Will can rule on in a few words after walking it? Elevate what points there, rework what
+  does not. Every candidate should be complete enough to ship as a paste; every ask a one-word answer.
+- **The other boards are inputs now.** Every proposal from the first wave is in `docs/specs/`
+  (`palette.md`, `light.md`, `type-scale.md`, `floating-surfaces.md`, `brand-voice.md`,
+  `media-kit.md`). Use what sharpens your board (the palette's ramps under your surfaces, the light
+  spec's shadow family on your cards, the type tables on your headings) and say so in BoardMeta; you
+  still own only your lane, so read those boards' files, never edit them.
+- **"Apply to the site".** The shell now lets a board hand the WHOLE site a CSS block, the same paste
+  its ruling would land, so Will judges a candidate on the real pages and not only on a stage:
+  `setCandidateCss(label, css)`, `clearCandidate()` and `useTunerCandidate()` from
+  `@/components/dev/board`. One block at a time (the newest replaces the last); it renders as a
+  `<style>` after every stylesheet on every lab page, every marketing page and the host app (all with
+  `?key=`), persists in the browser until cleared (the tuner panel shows it with a clear button; your
+  board shows a badge and its own clear). A block must be real CSS with the real selectors
+  (`:root, .surface-paper`, `.dark`, `.surface-ink`, `.dark[data-mkt-skin="cinema"]`, a primitive's
+  own class), never a stage-local class. Where your candidate is a CSS paste, offer it per candidate
+  ("Apply A to the site") and list in BoardMeta the pages to walk with it on: `/`, `/pricing`,
+  `/help`, `/contact`, `/dashboard` and an event page (the app needs the signed-in host), the demo
+  guest page. The knobs are reachable too: `setTunerValue(control, value)` from
+  `@/components/dev/tuner-store` with a control from `motion-tuner-config.ts`.
+- **The same lane, the same wave rules.** You own exactly what your front matter says; never
+  `touchpoints.ts`, `bible.ts`, the shell, `docs/ASSETS.md`, CHANGELOG, STATUS, ROADMAP, PROGRAM,
+  CLAUDE, AGENTS. No mono (there is no mono face in the product now; `two-faces-policy.test.ts`
+  refuses a `font-mono` class), no em-dashes, keyframes under your prefix, sheets never import
+  tailwindcss, `<Glow>` only. Unlimited design resources: ask for exactly what the design needs, one
+  bullet per asset in the fixed shape. Light QA: the board on your preview at 1440 and 375, reduced
+  motion honoured, the gate green on the synced tree.
+- **Boot.** Round one's branch and worktree are gone; cut fresh: `git fetch origin`, then
+  `git worktree add ../partyreel-wt/<track> -b lp/<track> origin/launch-prep`, install, copy
+  `.env.local`, fill `cut` below with the SHA you branched from, commit this manifest alone
+  (`docs(tracks): reopen <track> for round two`), push `-u`; `pnpm test` green. Sync only per
+  PROGRAM.md.
+- **Handoff.** Fill "Handoff (round 2)" and "Record (round 2)" below (round 1's stay as history),
+  `status: handed-off`, push; the chat report is one line, "handed off at <sha>".
+
+## Round 1, for reference (integrated; the brief it was built to)
 
 **Goal.** The scan, variation 2 of the home-hero board's third round (Will, 2026-09-14: three more variations off the source). Your axis: THE CAUSE MADE LITERAL. The source shows the code and the album streaming out of it; a stranger infers the scan. This variation puts the act of scanning in the frame so the causality is seen, not inferred: the album is born from a scan. Two candidate mechanics to judge and pick one (or find a better one): (a) a guest's phone raised at the code, the camera view on its screen framing the QR (a phone frame from `src/components/marketing/frames/phone-frame.tsx` or your own; it shows the CAMERA, never an app: the product needs no app, bible 4 and the whole pitch), and the frames pour out of the phone's screen and the code together into the corridor; (b) the code's own scan beat: the house pulse ring on the demo QR (`DemoQr`) beats, and each beat births a frame, so the code visibly emits the album on a heartbeat. Supporting elements clarify from there: one Caption line under the code that names the act ("Point your camera at it" / "Every guest scans the same one"), a count that reads like a live album ("312 photos from 48 guests", proposed, not measured), the CTAs. Phone 375: the composition must still read as cause and effect (the code at scanning size, the birth visible). Media at 100 percent, no darkening layer anywhere.
 
@@ -114,7 +175,7 @@ the live camera view composes under it) if you use a cutout; nothing else new.
 
 - none yet
 
-## Handoff (replaces the chat report)
+## Handoff (round 1)
 
 - Head: the tip of `lp/hero-scan`, which is THIS commit (a manifest cannot name its own SHA). The last
   code commit is `bd112d0`; the merge of `launch-prep` that follows it carries no change of mine.
@@ -203,7 +264,7 @@ the live camera view composes under it) if you use a cutout; nothing else new.
   the album comes out of the plate. That order is the whole variation. Then: whether the phone earns
   its place at all (departure 1), and whether the count should live under the plate or go.
 
-## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+## Record (round 1)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). The scan, variation 2 of the home-hero board's
 third round, replaced its placeholder. It inherits the ruled source's corridor unchanged, 24 cards in
@@ -218,3 +279,18 @@ beneath it climbs with the launches and settles at 312, both sitting in the one 
 leaves clear by its physics. The whole composition, deployed and locked, is the rest state in the
 server's own HTML, with the pre-burst frame and the thrown-wide brackets inside the reduced-motion
 block so neither can flash.
+
+## Handoff (round 2)
+
+- Head <sha>, pushed; preview partyreel-git-lp-hero-scan-partyreel.vercel.app
+- Synced with launch-prep at <sha> (or: launch-prep had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
+- Look at first: ...
+
+## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...

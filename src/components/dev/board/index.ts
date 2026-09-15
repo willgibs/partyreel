@@ -7,3 +7,10 @@
 export { BoardMeta, type BoardMetaProps } from "./board-meta";
 export { CANVAS, Stage, useTabHidden, type Ground, type Mode } from "./stage";
 export { Toggle } from "./toggle";
+// A board offers "Apply to the site": its candidate block, as the paste the
+// ruling would land, rendered on every page with a tuner island.
+export {
+  clearCandidate,
+  setCandidateCss,
+  useTunerCandidate,
+} from "../candidate-style";

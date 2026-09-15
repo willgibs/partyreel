@@ -1,8 +1,8 @@
 ---
 track: light
-status: integrated
-cut: "6c19d84"
-merged: "72b20da"      # the branch head merged into launch-prep
+status: open
+cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_1: "72b20da"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/light/
@@ -22,6 +22,71 @@ reads:
 ---
 
 # lp/light
+
+## Round 2 (Will, 2026-09-14: "another iterative round on all active tracks before review")
+
+**Round 2 (the goal).** The board wrote the doctrine; now make every claim in it something Will can
+see on a real surface and, where it is CSS, wear on the site. (1) **Apply to the site**: the shadow
+family (LIFT and FLOAT with the alpha ramp per ground) as a candidate block on the real primitives'
+classes and the real card, so the dashboard's cards, a real menu and a real dialog carry it; the lit
+face as a second block on real media frames and the QR plate; the cadence as knobs (`setTunerValue`
+on the `--spill-cadence` control: "8s on the site" / "11s on the site"). (2) **The aurora on real
+chapters**: rebuild the home arc's media-less chapters from production components inside the board
+(find them: the trust strip, the pricing pointer, the how-it-works closer, whichever have no
+photograph) and light each with the aurora at the ruled register on cinema and on paper, beside the
+same chapter unlit; the placement grammar (top and bottom edges, never the middle) proven on a real
+chapter, not a box; the drift at a lamp's clock and at the aurora's, side by side. (3) **The grain**:
+the tile is asked for (row 10); meanwhile make the stand-in honest at 1x and 2x, and show the aurora
+with and without it. (4) **The paper five**, hand-tuned, on a real paper chapter beside the flat row.
+(5) **The lit face** on the three surfaces the doctrine names (a media frame, a screen, a plate), on
+cinema and paper, beside the ring lift and the shadow, so "material, not elevation" is visible. (6)
+**The doctrine as a diff**: in the spec's shape, the exact paragraphs that replace `design-system.md`'s
+SPILL laws, BEAM laws, registers and elevation contract, so the ruling is a paste. (7) Every part on
+the phone canvas; every lamp's rest state designed. Keep the four-part structure and the anchors.
+
+### The rules of round two (every track)
+
+- **Why a second round.** Will (2026-09-14, after the first wave integrated): "They all seemed to be
+  making progress in their directions, but a single round of context didn't seem to be enough for
+  any of them to reach enough of their full potential for a real review." Read your round-1 Handoff
+  and Record below as your own notes, look at the board as it stands on the launch-prep alias, and
+  judge it from the ground up (bible 22): what would the perfect version of THIS board be, as a
+  surface Will can rule on in a few words after walking it? Elevate what points there, rework what
+  does not. Every candidate should be complete enough to ship as a paste; every ask a one-word answer.
+- **The other boards are inputs now.** Every proposal from the first wave is in `docs/specs/`
+  (`palette.md`, `light.md`, `type-scale.md`, `floating-surfaces.md`, `brand-voice.md`,
+  `media-kit.md`). Use what sharpens your board (the palette's ramps under your surfaces, the light
+  spec's shadow family on your cards, the type tables on your headings) and say so in BoardMeta; you
+  still own only your lane, so read those boards' files, never edit them.
+- **"Apply to the site".** The shell now lets a board hand the WHOLE site a CSS block, the same paste
+  its ruling would land, so Will judges a candidate on the real pages and not only on a stage:
+  `setCandidateCss(label, css)`, `clearCandidate()` and `useTunerCandidate()` from
+  `@/components/dev/board`. One block at a time (the newest replaces the last); it renders as a
+  `<style>` after every stylesheet on every lab page, every marketing page and the host app (all with
+  `?key=`), persists in the browser until cleared (the tuner panel shows it with a clear button; your
+  board shows a badge and its own clear). A block must be real CSS with the real selectors
+  (`:root, .surface-paper`, `.dark`, `.surface-ink`, `.dark[data-mkt-skin="cinema"]`, a primitive's
+  own class), never a stage-local class. Where your candidate is a CSS paste, offer it per candidate
+  ("Apply A to the site") and list in BoardMeta the pages to walk with it on: `/`, `/pricing`,
+  `/help`, `/contact`, `/dashboard` and an event page (the app needs the signed-in host), the demo
+  guest page. The knobs are reachable too: `setTunerValue(control, value)` from
+  `@/components/dev/tuner-store` with a control from `motion-tuner-config.ts`.
+- **The same lane, the same wave rules.** You own exactly what your front matter says; never
+  `touchpoints.ts`, `bible.ts`, the shell, `docs/ASSETS.md`, CHANGELOG, STATUS, ROADMAP, PROGRAM,
+  CLAUDE, AGENTS. No mono (there is no mono face in the product now; `two-faces-policy.test.ts`
+  refuses a `font-mono` class), no em-dashes, keyframes under your prefix, sheets never import
+  tailwindcss, `<Glow>` only. Unlimited design resources: ask for exactly what the design needs, one
+  bullet per asset in the fixed shape. Light QA: the board on your preview at 1440 and 375, reduced
+  motion honoured, the gate green on the synced tree.
+- **Boot.** Round one's branch and worktree are gone; cut fresh: `git fetch origin`, then
+  `git worktree add ../partyreel-wt/<track> -b lp/<track> origin/launch-prep`, install, copy
+  `.env.local`, fill `cut` below with the SHA you branched from, commit this manifest alone
+  (`docs(tracks): reopen <track> for round two`), push `-u`; `pnpm test` green. Sync only per
+  PROGRAM.md.
+- **Handoff.** Fill "Handoff (round 2)" and "Record (round 2)" below (round 1's stay as history),
+  `status: handed-off`, push; the chat report is one line, "handed off at <sha>".
+
+## Round 1, for reference (integrated; the brief it was built to)
 
 **Goal.** The light exploration of the review wave (2026-09-14): light, shadow and lamp as one system, with the aurora infused as identity. Bible 10 was rewritten (in dark, depth is light first; a shadow is allowed where stacked or overlapping objects need separating) and bible 11 is retiring (a lamp may light a section without media; the footer's seam is the model; this board writes the doctrine that replaces the source-and-direction law). The parked light rulings ride this board: the lit surface, the publish beat's violet, the cadence at 8s or 11s. Lab only: no production byte changes on this track; the doctrine is proposed in the Record.
 **Rulings in force.** The bible's second edition: rules 10 and 11 as rewritten (under exploration and retiring, both naming this board), rule 3 (the lamp hues are light, never UI: never a text, border, background, state or brand color; the fence in `globals-theme-contract.test.ts`), rule 14 (every animation inside the reduced-motion block), rule 1 as rewritten (marketing may carry color of its own where there is no media).
@@ -151,7 +216,7 @@ The board, plus a draft of the replacement doctrine in the Record (one paragraph
 
 - none.
 
-## Handoff (replaces the chat report)
+## Handoff (round 1)
 
 - Head: the tip of `lp/light` (the sync merge `0672ad9`, this manifest committed on top), pushed; preview
   partyreel-git-lp-light-partyreel.vercel.app. The board is `/design/c/light?key=...`; each part has
@@ -184,7 +249,7 @@ The board, plus a draft of the replacement doctrine in the Record (one paragraph
   rule about existing things. Then part A's stacked-photographs row, which is the whole case for
   letting a shadow back into dark.
 
-## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+## Record (round 1)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). The light exploration replaced its stub with a
 four-part board at `/design/c/light` and drafted the doctrine that replaces the source-and-direction
@@ -263,3 +328,18 @@ as a distance. The four-question LampCard. Every animation inside the reduced-mo
 lamp's rest state designed, which is the argument that decides part D on its own: the shipped publish
 beat declares nothing outside its animation, so a visitor who asked for less motion is told nothing at
 all when their reel goes live.
+
+## Handoff (round 2)
+
+- Head <sha>, pushed; preview partyreel-git-lp-light-partyreel.vercel.app
+- Synced with launch-prep at <sha> (or: launch-prep had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
+- Look at first: ...
+
+## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...

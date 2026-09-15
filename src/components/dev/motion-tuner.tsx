@@ -9,7 +9,9 @@ import {
   type TunerControl,
   type TunerGroup,
 } from "@/components/dev/motion-tuner-config";
+import { useTunerCandidate } from "@/components/dev/candidate-style";
 import {
+  clearCandidate,
   clearTunerValues,
   getTunerServerSnapshot,
   getTunerSnapshot,
@@ -108,6 +110,7 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
     getTunerSnapshot,
     getTunerServerSnapshot,
   );
+  const candidate = useTunerCandidate();
 
   // Apply the working set to the DOM on every mount and on every change: a
   // fresh [data-mkt] wrapper after a navigation, a remount after a Replay, a
@@ -226,6 +229,22 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
               </button>
             </div>
           </div>
+
+          {candidate && (
+            <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-amber-400/10 px-3 py-2">
+              <span className="min-w-0 truncate text-amber-200">
+                Candidate on the site: {candidate.label}
+              </span>
+              <button
+                type="button"
+                onClick={clearCandidate}
+                className="shrink-0 rounded px-1.5 py-0.5 text-neutral-300 hover:bg-white/10 hover:text-neutral-100"
+                title="Take the candidate block off the site (the board that applied it can apply it again)"
+              >
+                clear
+              </button>
+            </div>
+          )}
 
           <div className="max-h-[64vh] space-y-4 overflow-y-auto px-3 py-3">
             {controls.length === 0 && (

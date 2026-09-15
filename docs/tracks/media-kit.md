@@ -1,8 +1,8 @@
 ---
 track: media-kit
-status: integrated
-cut: "6c19d84"
-merged: "c1aa5c6"      # the branch head merged into launch-prep         # the launch-prep SHA the branch was cut from (the review wave, round two)
+status: open
+cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_1: "c1aa5c6"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/media-kit/
@@ -23,6 +23,69 @@ reads:
 ---
 
 # lp/media-kit
+
+## Round 2 (Will, 2026-09-14: "another iterative round on all active tracks before review")
+
+**Round 2 (the goal).** The survey found the exposure and the corpus's limits; now turn the board
+into the two things Will can act on. (1) **The blog bridge, concrete**: a mapping of all 23 posts to a
+candidate cover (the staged CC0 batch plus whatever the allowed sources yield on a second, harder
+search: the exact verticals the corpus failed on, tried by subject synonyms and by scene rather than
+by keyword, on every source in the allowed list), each shown in place at the blog card's and the OG
+card's real geometry, with the provenance line under it and the posts that stay miscast named
+honestly; if a frame cannot be filled under the rule, say so and leave it empty. (2) **The kit as a
+shootable brief**: one card per master frame (36 by vertical, plus the derived rows 2, 8, 9 and 12
+from the hero rounds and the palette's four hard cases from `docs/ASSETS.md` row 7), each with the
+subject, the framing, the light, the crop it must survive (22 to 78 percent, 4:5, 1:1, 120 px
+legibility), and the stand-in it replaces by id, laid out as a contact sheet Will can shoot from.
+(3) **The provenance schema** prototyped: `provenance.json` mirrors the fields `marketing-media.ts`
+would gain (`author`, `sourceUrl`, `license`, `clause`, `retrieved`, `people`), and the test pins
+that every staged file has every field. (4) **The reel re-render runbook** made executable: the
+steps, the page, the finish command, tried once as far as the lab allows, with what the wiring round
+must add. (5) The asks reduced to one-word answers; the route recommendation kept.
+
+### The rules of round two (every track)
+
+- **Why a second round.** Will (2026-09-14, after the first wave integrated): "They all seemed to be
+  making progress in their directions, but a single round of context didn't seem to be enough for
+  any of them to reach enough of their full potential for a real review." Read your round-1 Handoff
+  and Record below as your own notes, look at the board as it stands on the launch-prep alias, and
+  judge it from the ground up (bible 22): what would the perfect version of THIS board be, as a
+  surface Will can rule on in a few words after walking it? Elevate what points there, rework what
+  does not. Every candidate should be complete enough to ship as a paste; every ask a one-word answer.
+- **The other boards are inputs now.** Every proposal from the first wave is in `docs/specs/`
+  (`palette.md`, `light.md`, `type-scale.md`, `floating-surfaces.md`, `brand-voice.md`,
+  `media-kit.md`). Use what sharpens your board (the palette's ramps under your surfaces, the light
+  spec's shadow family on your cards, the type tables on your headings) and say so in BoardMeta; you
+  still own only your lane, so read those boards' files, never edit them.
+- **"Apply to the site".** The shell now lets a board hand the WHOLE site a CSS block, the same paste
+  its ruling would land, so Will judges a candidate on the real pages and not only on a stage:
+  `setCandidateCss(label, css)`, `clearCandidate()` and `useTunerCandidate()` from
+  `@/components/dev/board`. One block at a time (the newest replaces the last); it renders as a
+  `<style>` after every stylesheet on every lab page, every marketing page and the host app (all with
+  `?key=`), persists in the browser until cleared (the tuner panel shows it with a clear button; your
+  board shows a badge and its own clear). A block must be real CSS with the real selectors
+  (`:root, .surface-paper`, `.dark`, `.surface-ink`, `.dark[data-mkt-skin="cinema"]`, a primitive's
+  own class), never a stage-local class. Where your candidate is a CSS paste, offer it per candidate
+  ("Apply A to the site") and list in BoardMeta the pages to walk with it on: `/`, `/pricing`,
+  `/help`, `/contact`, `/dashboard` and an event page (the app needs the signed-in host), the demo
+  guest page. The knobs are reachable too: `setTunerValue(control, value)` from
+  `@/components/dev/tuner-store` with a control from `motion-tuner-config.ts`.
+- **The same lane, the same wave rules.** You own exactly what your front matter says; never
+  `touchpoints.ts`, `bible.ts`, the shell, `docs/ASSETS.md`, CHANGELOG, STATUS, ROADMAP, PROGRAM,
+  CLAUDE, AGENTS. No mono (there is no mono face in the product now; `two-faces-policy.test.ts`
+  refuses a `font-mono` class), no em-dashes, keyframes under your prefix, sheets never import
+  tailwindcss, `<Glow>` only. Unlimited design resources: ask for exactly what the design needs, one
+  bullet per asset in the fixed shape. Light QA: the board on your preview at 1440 and 375, reduced
+  motion honoured, the gate green on the synced tree.
+- **Boot.** Round one's branch and worktree are gone; cut fresh: `git fetch origin`, then
+  `git worktree add ../partyreel-wt/<track> -b lp/<track> origin/launch-prep`, install, copy
+  `.env.local`, fill `cut` below with the SHA you branched from, commit this manifest alone
+  (`docs(tracks): reopen <track> for round two`), push `-u`; `pnpm test` green. Sync only per
+  PROGRAM.md.
+- **Handoff.** Fill "Handoff (round 2)" and "Record (round 2)" below (round 1's stay as history),
+  `status: handed-off`, push; the chat report is one line, "handed off at <sha>".
+
+## Round 1, for reference (integrated; the brief it was built to)
 
 **Goal.** The media-kit exploration of the review wave (2026-09-14). Bible 18 (every frame is ours) was "an unspoken rule": no stock at launch, and a licensed kit found under allowed licenses. This track writes the licensing rule down as a proposal (`docs/specs/media-kit.md`), surveys the sources whose terms allow a marketing use, plans the kit Will produces himself (he makes any image, video, SVG, 3D or generative asset), and stages a candidate first batch on a contact-sheet board beside the current twelve stills with provenance under each. The batch is staged, not wired: the stand-ins stay until a wiring round. No production byte changes on this track.
 **Rulings in force.** The bible's second edition: rule 18 (every frame is ours; `marketing-media.test.ts` enforces the manifest), rule 1 as rewritten (media is the color), the unlimited-design-resources policy (PROGRAM.md: Will makes the assets; ask specifically). Every asset request goes through `docs/ASSETS.md` via the Orchestrator; never edit it.
@@ -131,7 +194,7 @@ clause; the first batch, OK or not, item by item; the kit plan.
 - Docs: the marketing media manifest and its test have no home in `docs/systems/`; fold
   `docs/specs/media-kit.md` section 2 into `marketing-content.md` when the rule is ruled.
 
-## Handoff (replaces the chat report)
+## Handoff (round 1)
 
 - Head: the tip of `lp/media-kit`, pushed. The last commit touching the board, the spec or the batch
   is `14bd665`; `f78800f` merged `launch-prep`; the commits after it are this manifest.
@@ -192,7 +255,7 @@ clause; the first batch, OK or not, item by item; the kit plan.
   floor". Then "In place", which is the whole argument in one image: a conference post illustrated
   with a music festival, on the real blog geometry with the real derived crop.
 
-## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+## Record (round 1)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). The media-kit exploration wrote bible 18 down as a
 proposed sourcing law (`docs/specs/media-kit.md`): two provenance classes and no third, `author`,
@@ -207,3 +270,18 @@ CC0 candidates under `public/design/media-kit/` with `provenance.json` and a tes
 together; the four it could not fill are the argument. The kit plan generalises round two's parked
 asks into 36 masters by vertical, with the squares, clips and film derived from one shoot. No
 production byte changed.
+
+## Handoff (round 2)
+
+- Head <sha>, pushed; preview partyreel-git-lp-media-kit-partyreel.vercel.app
+- Synced with launch-prep at <sha> (or: launch-prep had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
+- Look at first: ...
+
+## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...

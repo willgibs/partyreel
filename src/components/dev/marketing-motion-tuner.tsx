@@ -2,6 +2,7 @@
 
 import { lazy, Suspense, useEffect, useState } from "react";
 
+import { CandidateStyle } from "@/components/dev/candidate-style";
 import { MARKETING_TUNER_CONTROLS } from "@/components/dev/motion-tuner-config";
 
 // Lazy so the tuner's JS never ships to a normal visitor's first paint; the
@@ -42,8 +43,12 @@ export function MarketingMotionTuner() {
 
   if (!open) return null;
   return (
-    <Suspense fallback={null}>
-      <MotionTuner controls={MARKETING_TUNER_CONTROLS} />
-    </Suspense>
+    <>
+      {/* A board's candidate block, worn by this page (the second round, 2026-09-14). */}
+      <CandidateStyle />
+      <Suspense fallback={null}>
+        <MotionTuner controls={MARKETING_TUNER_CONTROLS} />
+      </Suspense>
+    </>
   );
 }

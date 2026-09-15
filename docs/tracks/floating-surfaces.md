@@ -1,8 +1,8 @@
 ---
 track: floating-surfaces
-status: integrated
-cut: "6c19d84"
-merged: "3071cfc"      # the branch head merged into launch-prep
+status: open
+cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_1: "3071cfc"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/floating-surfaces/
@@ -26,6 +26,70 @@ reads:
 ---
 
 # lp/floating-surfaces
+
+## Round 2 (Will, 2026-09-14: "another iterative round on all active tracks before review")
+
+**Round 2 (the goal).** The board found the contract misses bible 9 inside itself and gave three
+rungs; now let Will open the real menus with a rung on. (1) **Apply to the site**: each rung (radius,
+entrance, light in dark, and the reduced-motion guard that closes the `tw-animate-css` hole) as a
+candidate block on the real primitives' own classes and data attributes, so the real header nav
+panel, a real dropdown, a real dialog and the guest sheet on the demo page carry it; list the pages
+and the interactions to try. (2) **The guest sheet at 375 as the primary specimen**, on the phone
+canvas first, with the two corners that stay on screen at each rung. (3) **The palette's dark ramps
+under the panels** (`docs/specs/palette.md`): a toggle that renders the panels over today's dark and
+over ramp A and B, since a floating layer's light in dark depends on the ground it floats over. (4)
+**The nested-corner finding made unmissable**: a 1:1 close-up of the lit row inside the panel under
+each rung, with the arithmetic (container radius, padding, item radius) printed. (5) **The entrance
+question as a bible ask**: one clock against by-frequency on the same three primitives, with what
+rule 12 and rule 15 each say, so Will rules the principle, not the number. (6) The outliers decided
+from the ground up: for `select`, `drawer` and `sheet`, show them on the winning rung AND the
+"dropped" answer (what replaces them), so the ask is a choice between two real things. (7) The
+iframe frame you built is the right tool for a portalled layer; keep it, and say in Handoff exactly
+what the shell should absorb.
+
+### The rules of round two (every track)
+
+- **Why a second round.** Will (2026-09-14, after the first wave integrated): "They all seemed to be
+  making progress in their directions, but a single round of context didn't seem to be enough for
+  any of them to reach enough of their full potential for a real review." Read your round-1 Handoff
+  and Record below as your own notes, look at the board as it stands on the launch-prep alias, and
+  judge it from the ground up (bible 22): what would the perfect version of THIS board be, as a
+  surface Will can rule on in a few words after walking it? Elevate what points there, rework what
+  does not. Every candidate should be complete enough to ship as a paste; every ask a one-word answer.
+- **The other boards are inputs now.** Every proposal from the first wave is in `docs/specs/`
+  (`palette.md`, `light.md`, `type-scale.md`, `floating-surfaces.md`, `brand-voice.md`,
+  `media-kit.md`). Use what sharpens your board (the palette's ramps under your surfaces, the light
+  spec's shadow family on your cards, the type tables on your headings) and say so in BoardMeta; you
+  still own only your lane, so read those boards' files, never edit them.
+- **"Apply to the site".** The shell now lets a board hand the WHOLE site a CSS block, the same paste
+  its ruling would land, so Will judges a candidate on the real pages and not only on a stage:
+  `setCandidateCss(label, css)`, `clearCandidate()` and `useTunerCandidate()` from
+  `@/components/dev/board`. One block at a time (the newest replaces the last); it renders as a
+  `<style>` after every stylesheet on every lab page, every marketing page and the host app (all with
+  `?key=`), persists in the browser until cleared (the tuner panel shows it with a clear button; your
+  board shows a badge and its own clear). A block must be real CSS with the real selectors
+  (`:root, .surface-paper`, `.dark`, `.surface-ink`, `.dark[data-mkt-skin="cinema"]`, a primitive's
+  own class), never a stage-local class. Where your candidate is a CSS paste, offer it per candidate
+  ("Apply A to the site") and list in BoardMeta the pages to walk with it on: `/`, `/pricing`,
+  `/help`, `/contact`, `/dashboard` and an event page (the app needs the signed-in host), the demo
+  guest page. The knobs are reachable too: `setTunerValue(control, value)` from
+  `@/components/dev/tuner-store` with a control from `motion-tuner-config.ts`.
+- **The same lane, the same wave rules.** You own exactly what your front matter says; never
+  `touchpoints.ts`, `bible.ts`, the shell, `docs/ASSETS.md`, CHANGELOG, STATUS, ROADMAP, PROGRAM,
+  CLAUDE, AGENTS. No mono (there is no mono face in the product now; `two-faces-policy.test.ts`
+  refuses a `font-mono` class), no em-dashes, keyframes under your prefix, sheets never import
+  tailwindcss, `<Glow>` only. Unlimited design resources: ask for exactly what the design needs, one
+  bullet per asset in the fixed shape. Light QA: the board on your preview at 1440 and 375, reduced
+  motion honoured, the gate green on the synced tree.
+- **Boot.** Round one's branch and worktree are gone; cut fresh: `git fetch origin`, then
+  `git worktree add ../partyreel-wt/<track> -b lp/<track> origin/launch-prep`, install, copy
+  `.env.local`, fill `cut` below with the SHA you branched from, commit this manifest alone
+  (`docs(tracks): reopen <track> for round two`), push `-u`; `pnpm test` green. Sync only per
+  PROGRAM.md.
+- **Handoff.** Fill "Handoff (round 2)" and "Record (round 2)" below (round 1's stay as history),
+  `status: handed-off`, push; the chat report is one line, "handed off at <sha>".
+
+## Round 1, for reference (integrated; the brief it was built to)
 
 **Goal.** The floating-surfaces exploration of the review wave (2026-09-14). Bible 15 (every floating surface rides one contract: one radius, one entrance, one light) gets its dedicated exploration: every floating primitive on every ground at both widths, today beside two candidate treatments of radius, entrance and light-or-shadow in dark, with the outliers brought onto whichever contract wins. Lab only: no production byte changes on this track.
 **Rulings in force.** The bible's second edition: rule 15 (under exploration, naming this board), rule 8 (tokens, never literals: floating layers take `--radius-float`), rule 9 (radius plus offset), rule 10 as rewritten (a shadow is allowed where a layer sits over content), rule 12 (animate by frequency; custom easing on every control), rule 14 (reduced motion).
@@ -133,7 +197,7 @@ The board, plus the rewritten contract in the Record. Read `components/ui/*`; ch
   var never lands on a lab page while the un-varianted height one does), so any surface that
   renders the mega-menu outside `marketing-nav.tsx` gets a 0-wide panel.
 
-## Handoff (replaces the chat report)
+## Handoff (round 1)
 
 - Head `91c8dac`, pushed; preview `partyreel-git-lp-floating-surfaces-partyreel.vercel.app`
 - Synced with `launch-prep` at `7d389d4` (merge `56c1664`); it had moved 46 commits
@@ -168,7 +232,7 @@ The board, plus the rewritten contract in the Record. Read `components/ui/*`; ch
   4. **Row 5 with the width at 375.** The sheet is the guest's surface, and its top corners
      are the largest radius on the site under every rung.
 
-## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+## Record (round 1)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). The floating-surfaces exploration put all
 nine primitives on one canvas and found that the contract misses bible 9 inside itself: a menu
@@ -238,3 +302,18 @@ contract, a centre origin detaches the panel from its trigger, and a scale with 
 - The board's frame (`frame.tsx` + `page.tsx`) is offered to the shell's owner as an addition
   to `src/components/dev/board/`: a `Stage` is right for a hero and cannot hold a portalled
   layer, and any future board that renders one will hit the same wall.
+
+## Handoff (round 2)
+
+- Head <sha>, pushed; preview partyreel-git-lp-floating-surfaces-partyreel.vercel.app
+- Synced with launch-prep at <sha> (or: launch-prep had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
+- Look at first: ...
+
+## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...

@@ -1,8 +1,8 @@
 ---
 track: brand-voice
-status: integrated
-cut: 6c19d8437438ce718c9b3bb2901a03c31cc560cf
-merged: "d988c88"      # the branch head merged into launch-prep
+status: open
+cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_1: "d988c88"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/brand-voice/
@@ -23,6 +23,68 @@ reads:
 ---
 
 # lp/brand-voice
+
+## Round 2 (Will, 2026-09-14: "another iterative round on all active tracks before review")
+
+**Round 2 (the goal).** The guide exists and three voices were argued on headers; now argue them on
+whole pages, since a voice is judged in a paragraph and a page, not a line. (1) **The home arc, top
+to bottom**, in A and in B (the recommended two; keep C only if it still earns a column): every
+section's eyebrow, header, supporting text and CTA on the real section shells in order, so the arc
+reads as one voice. (2) **Two feature pages whole** (`/features/album` and one more): the h1, the
+hero sub, the cards and their titles, the nav label and description, the directory line, in the
+chosen voice, beside today's; and the 30 feature-page strings in B as a table the infusion round can
+paste. (3) **The quiet register on real app copy**: the dashboard's empty state, an error, a
+notification line, an email subject and its first line, the account page's labels, in the voice.
+(4) **The guest register**: the demo guest page's real lines (the door, the upload prompt, the
+account-required unfurl both ways) with Partyreel nearly silent. (5) **The spec's do's tightened**
+so each sentence shape has one example per surface written in the voice, and the fences read as
+do's; the bible-20 replacement stated in one sentence. (6) The unfurl line and the five headers stay
+on the board as the asks Will answers with a word. No "Apply to the site" (copy is not CSS); the
+board is the surface. Read at 375 as well as 1440.
+
+### The rules of round two (every track)
+
+- **Why a second round.** Will (2026-09-14, after the first wave integrated): "They all seemed to be
+  making progress in their directions, but a single round of context didn't seem to be enough for
+  any of them to reach enough of their full potential for a real review." Read your round-1 Handoff
+  and Record below as your own notes, look at the board as it stands on the launch-prep alias, and
+  judge it from the ground up (bible 22): what would the perfect version of THIS board be, as a
+  surface Will can rule on in a few words after walking it? Elevate what points there, rework what
+  does not. Every candidate should be complete enough to ship as a paste; every ask a one-word answer.
+- **The other boards are inputs now.** Every proposal from the first wave is in `docs/specs/`
+  (`palette.md`, `light.md`, `type-scale.md`, `floating-surfaces.md`, `brand-voice.md`,
+  `media-kit.md`). Use what sharpens your board (the palette's ramps under your surfaces, the light
+  spec's shadow family on your cards, the type tables on your headings) and say so in BoardMeta; you
+  still own only your lane, so read those boards' files, never edit them.
+- **"Apply to the site".** The shell now lets a board hand the WHOLE site a CSS block, the same paste
+  its ruling would land, so Will judges a candidate on the real pages and not only on a stage:
+  `setCandidateCss(label, css)`, `clearCandidate()` and `useTunerCandidate()` from
+  `@/components/dev/board`. One block at a time (the newest replaces the last); it renders as a
+  `<style>` after every stylesheet on every lab page, every marketing page and the host app (all with
+  `?key=`), persists in the browser until cleared (the tuner panel shows it with a clear button; your
+  board shows a badge and its own clear). A block must be real CSS with the real selectors
+  (`:root, .surface-paper`, `.dark`, `.surface-ink`, `.dark[data-mkt-skin="cinema"]`, a primitive's
+  own class), never a stage-local class. Where your candidate is a CSS paste, offer it per candidate
+  ("Apply A to the site") and list in BoardMeta the pages to walk with it on: `/`, `/pricing`,
+  `/help`, `/contact`, `/dashboard` and an event page (the app needs the signed-in host), the demo
+  guest page. The knobs are reachable too: `setTunerValue(control, value)` from
+  `@/components/dev/tuner-store` with a control from `motion-tuner-config.ts`.
+- **The same lane, the same wave rules.** You own exactly what your front matter says; never
+  `touchpoints.ts`, `bible.ts`, the shell, `docs/ASSETS.md`, CHANGELOG, STATUS, ROADMAP, PROGRAM,
+  CLAUDE, AGENTS. No mono (there is no mono face in the product now; `two-faces-policy.test.ts`
+  refuses a `font-mono` class), no em-dashes, keyframes under your prefix, sheets never import
+  tailwindcss, `<Glow>` only. Unlimited design resources: ask for exactly what the design needs, one
+  bullet per asset in the fixed shape. Light QA: the board on your preview at 1440 and 375, reduced
+  motion honoured, the gate green on the synced tree.
+- **Boot.** Round one's branch and worktree are gone; cut fresh: `git fetch origin`, then
+  `git worktree add ../partyreel-wt/<track> -b lp/<track> origin/launch-prep`, install, copy
+  `.env.local`, fill `cut` below with the SHA you branched from, commit this manifest alone
+  (`docs(tracks): reopen <track> for round two`), push `-u`; `pnpm test` green. Sync only per
+  PROGRAM.md.
+- **Handoff.** Fill "Handoff (round 2)" and "Record (round 2)" below (round 1's stay as history),
+  `status: handed-off`, push; the chat report is one line, "handed off at <sha>".
+
+## Round 1, for reference (integrated; the brief it was built to)
 
 **Goal.** The brand-voice exploration of the review wave (2026-09-14). Bible 20 (affirmative only) was "messy: don'ts without do's" and bible 21 (ruled copy) was killed: all copy is open until the voice exists. This track writes the voice guide as a proposal (`docs/specs/brand-voice.md`) and shows it on a board: sample headings and lines beside today's on real section shells, with the home arc's seven provisional section headers rewritten in the proposed voice as the worked example. A later round, `voice-infusion`, carries the ruled voice site-wide; not this one. Lab and spec only: no production copy changes on this track.
 **Rulings in force.** The bible's second edition: rule 20 as rewritten (affirmative only; the two fences that are product truth stand: no human-response or human-moderation promise, no automation absolutes; `content-policy.test.ts` assertion 3), rule 21 (copy is open), rule 19 (no em-dashes), rule 4 (a guest surface belongs to the host's event: the guest register is the host's voice, Partyreel nearly silent), rule 6 (a masthead is one or two words).
@@ -133,7 +195,7 @@ the album) with new sentence shapes; one that questions a ruled line (flagged). 
   in the board shell's doctrine (a board's own markup keys off the `mode` prop, while the real
   marketing components carry their own prefixes and are judged as they ship).
 
-## Handoff (replaces the chat report)
+## Handoff (round 1)
 
 - Head: the branch tip (the board and spec at `4d0052d`, the spec's read-through fixes after it), pushed; preview
   `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the board at
@@ -167,7 +229,7 @@ the album) with new sentence shapes; one that questions a ruled line (flagged). 
     copy-alternative picks have lost their list, so the board reads them as the five headers with an
     appetite for a different line. Both are in Departures.
 
-## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+## Record (round 1)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). The brand voice was written down for the first
 time. `docs/specs/brand-voice.md` is the guide as a proposal: the voice in one paragraph, the three
@@ -181,3 +243,18 @@ lines already speak, B rebuilt it from the code becoming the album, and C made t
 subject and rewrote the ruled thesis to do it. The home arc's seven provisional headers were
 rewritten in each, beside today's line and Will's recorded appetite; the unfurl was shown both ways.
 Three departures were flagged rather than buried, and no production byte changed.
+
+## Handoff (round 2)
+
+- Head <sha>, pushed; preview partyreel-git-lp-brand-voice-partyreel.vercel.app
+- Synced with launch-prep at <sha> (or: launch-prep had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
+- Look at first: ...
+
+## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...

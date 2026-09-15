@@ -24,7 +24,6 @@ owns:
   - src/app/(dev)/design/sandbox/home-hero/shared.tsx
   - src/app/(dev)/design/sandbox/home-hero/source.tsx
   - src/app/(dev)/design/sandbox/home-hero/source.css
-  - src/app/(dev)/design/sandbox/rounding/
   - src/components/dev/
   - src/components/marketing/mdx/
   - src/components/marketing/mdx-components.tsx
@@ -50,6 +49,7 @@ announces:
   - theme.css line 18 (--font-mono) was deleted pre-spawn; Tailwind's default mono stack carries every surviving font-mono until kill-mono lands, and no new mono is written anywhere (bible 7, retiring)
   - no @contract-for test is added on launch-prep until kill-mono integrates (it regenerates rules.generated.json); the Orchestrator reruns pnpm design:rules at each merge
   - "kill-mono landed (2026-09-14, `69af90d`): no mono face in the product; `src/app/two-faces-policy.test.ts` refuses a `font-mono` class, a mono loader or a `--font-mono` token; `MonoCaption` is gone (`Caption` is the one atom); `@contract-for` tests may be added again (the artifact was regenerated at the merge)"
+  - "round two of the review wave (2026-09-14): src/components/dev/tuner-store.ts gained the candidate block (setCandidateCss, clearCandidate; persisted under its own key), src/components/dev/candidate-style.tsx renders it, the lab layout, the cinema and paper islands and a new app-layout island (src/components/dev/app-design-island.tsx, key-gated like the marketing one) mount it; src/components/dev/board/ re-exports the API for boards. sandbox/rounding/ is released to the rounding track for its second round"
   - "the rounding round landed (2026-09-14): the radius tokens, --gap-gallery, --spill-cadence and the --tune-* knobs moved into their own :root block in globals.css (no value changed) and left the lab's .mono sheet; the Button's in-between sizes derive from --radius-action (button.tsx, same numbers); the tuner has a persisted store (tuner-store.ts), descriptions and groups, and nine specimen-less knobs retired from the panel. A lane reading globals.css, design.css or button.tsx: nothing to sync unless it copied a token block"
 ---
 
@@ -68,7 +68,7 @@ sweep) and round three of the hero (three variations off the ruled source) cut t
 **all ten integrated the same day**, one window per handoff, each folded into the CHANGELOG, its asks
 quoted under Waiting on Will, its proposal kept in `docs/specs/` so it outlives the manifest. The
 rounding and tweaking GUI round ran on this side and earned its sitting. Every worktree and `lp/*`
-branch is pruned; Vercel is pruned. **The window is closed and the next moves are Will's rulings**
+branch is pruned; Vercel is pruned. Will's read at the close: one round of context was not enough for a real review, so **every board and hero variation is reopened for a second round, ten tracks at once**, with a new lever in the shell: a board can apply its candidate block to the whole site (`setCandidateCss`; the tuner islands and the lab layout render it, and the host app now mounts a key-gated island too). **After round two integrates, the next moves are Will's rulings**
 (nine items below), after which: the composition pass (one Orchestrator board stacking the ruled
 blocks on the home arc and the dashboard), the hero's wiring round, the floating and light wiring
 rounds, `voice-infusion`. The record the Orchestrator keeps between windows is the two lists below
@@ -81,17 +81,17 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 
 | track | board | preview | waits on |
 | --- | --- | --- | --- |
-| `palette` | `/design/c/palette` | the launch-prep alias (integrated `d5847ad`) | Will's ruling (Waiting on Will, item 2) |
-| `light` | `/design/c/light` | the launch-prep alias (integrated `ae03a94`) | Will's ruling (Waiting on Will, item 2) |
-| `type-scale` | `/design/c/type-scale` | the launch-prep alias (integrated `838a5f6`) | Will's ruling (Waiting on Will, item 2) |
-| `floating-surfaces` | `/design/c/floating-surfaces` | the launch-prep alias (integrated `e1f06d6`) | Will's ruling (Waiting on Will, item 2) |
-| `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | the launch-prep alias (integrated `749e29a`) | Will's ruling (Waiting on Will, item 2) |
-| `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | the launch-prep alias (integrated `797f692`) | Will's ruling (Waiting on Will, item 2), and the blog-cover decision |
+| `palette` | `/design/c/palette` | `partyreel-git-lp-palette-partyreel.vercel.app` (round 2 building; round 1 on the launch-prep alias) | round two: the board taken to its full potential for a real review; Will's ruling after it |
+| `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` (round 2 building; round 1 on the launch-prep alias) | round two: the board taken to its full potential for a real review; Will's ruling after it |
+| `type-scale` | `/design/c/type-scale` | `partyreel-git-lp-type-scale-partyreel.vercel.app` (round 2 building; round 1 on the launch-prep alias) | round two: the board taken to its full potential for a real review; Will's ruling after it |
+| `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` (round 2 building; round 1 on the launch-prep alias) | round two: the board taken to its full potential for a real review; Will's ruling after it |
+| `brand-voice` | `/design/c/brand-voice` | `partyreel-git-lp-brand-voice-partyreel.vercel.app` (round 2 building; round 1 on the launch-prep alias) | round two: the board taken to its full potential for a real review; Will's ruling after it |
+| `media-kit` | `/design/c/media-kit` | `partyreel-git-lp-media-kit-partyreel.vercel.app` (round 2 building; round 1 on the launch-prep alias) | round two: the board taken to its full potential for a real review; Will's ruling after it |
 | `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
-| `hero-scan` | `/design/c/home-hero` (variation 2) | the launch-prep alias (integrated `66b4ebe`) | Will's ruling on round three (Waiting on Will, item 1) |
-| `hero-burst` | `/design/c/home-hero` (variation 3) | the launch-prep alias (integrated `3aeef1a`) | Will's ruling on round three (Waiting on Will, item 1) |
-| `hero-river` | `/design/c/home-hero` (variation 4) | the launch-prep alias (integrated `ff0291a`) | Will's ruling on round three (Waiting on Will, item 1) |
-| the rounding round (Orchestrator) | `/design/c/rounding` + the tuner on every cinema page | the launch-prep alias | built; Will's sitting (Waiting on Will, item 3) |
+| `hero-scan` | `/design/c/home-hero (variation 2)` | `partyreel-git-lp-hero-scan-partyreel.vercel.app` (round 2 building; round 1 on the launch-prep alias) | round two: the board taken to its full potential for a real review; Will's ruling after it |
+| `hero-burst` | `/design/c/home-hero (variation 3)` | `partyreel-git-lp-hero-burst-partyreel.vercel.app` (round 2 building; round 1 on the launch-prep alias) | round two: the board taken to its full potential for a real review; Will's ruling after it |
+| `hero-river` | `/design/c/home-hero (variation 4)` | `partyreel-git-lp-hero-river-partyreel.vercel.app` (round 2 building; round 1 on the launch-prep alias) | round two: the board taken to its full potential for a real review; Will's ruling after it |
+| `rounding` (round 2 as an agent track; round 1 was the Orchestrator's) | `/design/c/rounding` + the tuner on every cinema page and the app | `partyreel-git-lp-rounding-partyreel.vercel.app` (round 2 building; round 1 on the launch-prep alias) | round two: real compositions, the nested corner, the derived scale, try-on-the-site; then Will's sitting |
 
 ## Waiting on Will
 

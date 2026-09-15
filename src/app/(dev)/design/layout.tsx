@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { CandidateStyle } from "@/components/dev/candidate-style";
+
 import { LabNav } from "./lab-nav";
 import "./design.css";
 // The production marketing sheet loads in the lab on purpose (the library round,
@@ -34,6 +36,9 @@ export default function DesignLayout({
         <LabNav />
       </Suspense>
       <div className="min-w-0">{children}</div>
+      {/* A board's "Apply to the site" block, worn by every lab page too, so a
+          candidate palette or shadow family is judged on the other boards. */}
+      <CandidateStyle />
     </div>
   );
 }
