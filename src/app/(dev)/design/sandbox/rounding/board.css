@@ -8,6 +8,39 @@
    entrances and loops live inside `no-preference` only, and any infinite loop
    is marked [data-rnd-loop] so the stage's data-paused stops it on a hidden tab. */
 
+/* ★ THE BOARD IS WIDER THAN THE LAB COLUMN, ON PURPOSE (round two). The lab
+   page is max-w-5xl (992px of content) and a radius has to be compared across
+   five columns at 1:1, because the only honest size for a corner is its own.
+   `margin-left: 50%` plus a translate re-centres the block without changing
+   what the element's own layout box does to its siblings, and the width is
+   capped under the viewport, so there is no horizontal scrollbar at any width:
+   at 375 it resolves to the column it already had. */
+.rnd-wide {
+  width: min(1400px, calc(100vw - 2.5rem));
+  margin-left: 50%;
+  translate: -50%;
+}
+
+/* The live column's measuring probe: six boxes carrying border-radius:
+   var(--token) and one carrying the gallery gap, read back as used pixels
+   (board.tsx explains why measuring beats parsing a custom property). It has
+   to be laid out for the values to resolve, so it is clipped rather than
+   hidden; the element itself carries aria-hidden. */
+.rnd-probe {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  pointer-events: none;
+}
+
+.rnd-probe > span {
+  display: block;
+  width: 1px;
+  height: 1px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   [data-paused="true"] [data-rnd-loop] {
     animation-play-state: paused;

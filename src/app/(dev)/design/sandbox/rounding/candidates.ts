@@ -1,0 +1,295 @@
+/**
+ * THE ROUNDING BOARD'S NUMBERS (round two, 2026-09-14).
+ *
+ * One home for everything the board is asking Will to rule on, so the
+ * specimens, the printed arithmetic and the CSS paste can never disagree: a
+ * cell renders what `blockFor()` writes, and `blockFor()` writes what a ruling
+ * lands.
+ *
+ * THREE AXES, because the tokens are three independent decisions and a board
+ * that bundles them makes the ruling harder, not easier:
+ *
+ *   SURFACES  --radius, --radius-float, --radius-tile (+ --gap-gallery, which
+ *             is pinned to the tile so a corner never opens a hole). Four
+ *             candidates, A to D.
+ *   ACTIONS   --radius-action, -lg, -sm. Three rungs, because "round actions"
+ *             has a low end and a high end and today's 0.4 x height sits
+ *             between them.
+ *   THE LADDER  the seven derived steps (rounded-sm to rounded-4xl). Stock
+ *             today; the retune exists because the multipliers were chosen
+ *             against a 2px base and 1.8x of a round base is a shape nobody
+ *             asked for.
+ *
+ * ★ THE LADDER CANNOT BE RETUNED WITH A TOKEN. `@theme inline` in theme.css
+ * substitutes each derived step INTO its utility at build time, so
+ * `rounded-xl` ships as `border-radius: calc(var(--radius) * 1.4)` and
+ * `--radius-xl` is empty at runtime. That is why an override of --radius
+ * restyles a whole subtree (the board's columns rely on it) and why a ladder
+ * retune is a theme.css edit rather than a token. `ladderCss()` writes the
+ * utilities directly so the board can SHOW the retune before anyone commits
+ * to it; the ruling lands in theme.css's @theme inline block, one line a step.
+ * (First found by the floating-surfaces board; confirmed here.)
+ */
+
+export type SurfaceValues = {
+  /** --radius, the base every derived step is a multiple of. */
+  radius: number;
+  /** --radius-float, the floating layer's one corner (bible 15). */
+  float: number;
+  /** --radius-tile, a photograph in a tight-gap grid. */
+  tile: number;
+  /** --gap-gallery, pinned to the tile: gap below the radius opens holes. */
+  gap: number;
+};
+
+export type SurfaceCandidate = {
+  id: "today" | "square" | "soft" | "family" | "live";
+  /** A, B, C, D, or Live: the ruling is this letter. */
+  letter: string;
+  name: string;
+  rationale: string;
+  /** Absent on the live column, which reads whatever the tuner wrote. */
+  values?: SurfaceValues;
+  /** The ladder this candidate wants, stated rather than implied. */
+  wants?: LadderId;
+};
+
+export type ActionValues = {
+  /** --radius-action, the nominal 40px button. */
+  action: number;
+  /** --radius-action-lg, the nominal 48px button. */
+  lg: number;
+  /** --radius-action-sm, the 32px button: the one the app actually ships. */
+  sm: number;
+};
+
+export type ActionRung = {
+  id: "today" | "pill" | "quiet";
+  name: string;
+  rationale: string;
+  values: ActionValues;
+};
+
+export type LadderId = "stock" | "quarters";
+
+/** The gap a tile radius wants. Below the radius, the four corners meeting at
+ *  a junction open a visible diamond; 3px is the floor because the 3px gap is
+ *  the album tell (press-sheet.tsx says so out loud). */
+export function gapFor(tile: number): number {
+  return Math.max(3, tile);
+}
+
+export const SURFACES: SurfaceCandidate[] = [
+  {
+    id: "today",
+    letter: "A",
+    name: "Today",
+    rationale:
+      "2 / 8 / 3. Sharp surfaces, round actions, as shipped. The base is small enough that the seven derived steps are all within 4px of each other, so the ladder does nothing.",
+    values: { radius: 2, float: 8, tile: 3, gap: 3 },
+    wants: "stock",
+  },
+  {
+    id: "square",
+    letter: "B",
+    name: "Square",
+    rationale:
+      "0 / 6 / 0. Bible 8 taken at its word: surfaces and photographs are square, the float rung stays round because sharp reads broken there, and the whole contrast is carried by the actions.",
+    values: { radius: 0, float: 6, tile: 0, gap: 3 },
+    wants: "stock",
+  },
+  {
+    id: "soft",
+    letter: "C",
+    name: "Soft",
+    rationale:
+      "8 / 12 / 4. Surfaces come up to meet the actions. The contrast narrows from eight times to two and survives; the ladder starts to matter (a plan card lands at 14.4).",
+    values: { radius: 8, float: 12, tile: 4, gap: 4 },
+    wants: "stock",
+  },
+  {
+    id: "family",
+    letter: "D",
+    name: "One family",
+    rationale:
+      "14 / 14 / 6. Surfaces, floats and actions all read as one shape and the contrast is carried by size alone. Wants the quarter ladder: on stock, a plan card lands at 25.2 and a badge at 36.4.",
+    values: { radius: 14, float: 14, tile: 6, gap: 6 },
+    wants: "quarters",
+  },
+  {
+    id: "live",
+    letter: "Live",
+    name: "The tuner",
+    rationale:
+      "Reads the tokens as the tuner writes them, so a knob moves this column and every real page together.",
+  },
+];
+
+export const ACTIONS: ActionRung[] = [
+  {
+    id: "today",
+    name: "Today, 0.4 x height",
+    rationale:
+      "16 / 19.2 / 12.8. The shipped ratio: round enough to read as pressable, short of a pill.",
+    values: { action: 16, lg: 19.2, sm: 12.8 },
+  },
+  {
+    id: "pill",
+    name: "Pill",
+    rationale:
+      "999 everywhere. The full round, and the only rung whose shape does not depend on the height: it is the one rung the h-11 marketing CTA cannot fall off.",
+    values: { action: 999, lg: 999, sm: 999 },
+  },
+  {
+    id: "quiet",
+    name: "Quiet, 0.2 x height",
+    rationale:
+      "8 / 9.6 / 6.4. Half of today. An action still rounder than a surface under A and B, and indistinguishable from one under C and D.",
+    values: { action: 8, lg: 9.6, sm: 6.4 },
+  },
+];
+
+/** The seven derived steps, in the order theme.css declares them. */
+export const STEPS = [
+  "sm",
+  "md",
+  "lg",
+  "xl",
+  "2xl",
+  "3xl",
+  "4xl",
+] as const;
+export type Step = (typeof STEPS)[number];
+
+/** Stock: the multipliers theme.css ships. Quarters: the retune, an even
+ *  quarter a step, which is within half a pixel of stock at today's 2px base
+ *  and only bites once the base is round. */
+export const LADDERS: Record<LadderId, Record<Step, number>> = {
+  stock: { sm: 0.6, md: 0.8, lg: 1, xl: 1.4, "2xl": 1.8, "3xl": 2.2, "4xl": 2.6 },
+  quarters: {
+    sm: 0.5,
+    md: 0.75,
+    lg: 1,
+    xl: 1.25,
+    "2xl": 1.5,
+    "3xl": 1.75,
+    "4xl": 2,
+  },
+};
+
+/** Where each derived step actually lands, counted on the shipped tree
+ *  (non-lab uses of the utility, 2026-09-14). The two dead rungs at the top
+ *  are an ask, not an aside. */
+export const STEP_CALL_SITES: Record<
+  Step,
+  { uses: number; where: string; specimen: string }
+> = {
+  sm: { uses: 7, where: "the tooltip arrow, a select item", specimen: "Tooltip" },
+  md: {
+    uses: 88,
+    where: "menu rows, segmented thumbs",
+    specimen: "A menu row",
+  },
+  lg: {
+    uses: 104,
+    where: "inputs, plates, the lab's own toggles",
+    specimen: "Input",
+  },
+  xl: {
+    uses: 61,
+    where: "Card, and the dashboard event card",
+    specimen: "Event card",
+  },
+  "2xl": {
+    uses: 49,
+    where: "the pricing plan cards, the help cards",
+    specimen: "Plan card",
+  },
+  "3xl": {
+    uses: 1,
+    where: "one demo modal on /features/sharing",
+    specimen: "One modal",
+  },
+  "4xl": {
+    uses: 2,
+    where: "Badge, and one attribution stage",
+    specimen: "Badge",
+  },
+};
+
+export function px(n: number): string {
+  // Two decimals at most, and never a trailing zero: 19.2, not 19.20.
+  return `${Math.round(n * 100) / 100}px`;
+}
+
+/** The step's value under a candidate, for the arithmetic the board prints. */
+export function stepValue(radius: number, ladder: LadderId, step: Step): number {
+  return radius * LADDERS[ladder][step];
+}
+
+/** The ladder as CSS. `scope` prefixes every selector so the board can show a
+ *  retune inside one column; the empty scope is the paste a ruling lands. */
+export function ladderCss(ladder: LadderId, scope = ""): string {
+  const m = LADDERS[ladder];
+  const lines: string[] = [];
+  for (const step of STEPS) {
+    const v = `calc(var(--radius) * ${m[step]})`;
+    lines.push(`${scope}.rounded-${step} { border-radius: ${v}; }`);
+    lines.push(
+      `${scope}.rounded-t-${step} { border-top-left-radius: ${v}; border-top-right-radius: ${v}; }`,
+    );
+    lines.push(
+      `${scope}.rounded-b-${step} { border-bottom-left-radius: ${v}; border-bottom-right-radius: ${v}; }`,
+    );
+  }
+  return lines.join("\n");
+}
+
+/**
+ * THE PASTE. A surface candidate, an action rung and a ladder, written as the
+ * block a ruling lands: the radius tokens live on `:root` ONLY (globals.css
+ * says never to alias them to .surface-paper, because a paper chapter would
+ * re-declare them and the tuner's inline value on <html> would stop piercing),
+ * so `:root` is the whole selector list and there is nothing theme-dependent
+ * here.
+ */
+export function blockFor(
+  surface: SurfaceCandidate,
+  action: ActionRung,
+  ladder: LadderId,
+): string {
+  const v = surface.values;
+  if (!v) return "";
+  const head = `/* Rounding: surfaces ${surface.letter}, actions ${action.id}, ladder ${ladder}. */`;
+  const root = [
+    ":root {",
+    `  --radius: ${px(v.radius)};`,
+    `  --radius-float: ${px(v.float)};`,
+    `  --radius-tile: ${px(v.tile)};`,
+    `  --gap-gallery: ${px(v.gap)};`,
+    `  --radius-action: ${px(action.values.action)};`,
+    `  --radius-action-lg: ${px(action.values.lg)};`,
+    `  --radius-action-sm: ${px(action.values.sm)};`,
+    "}",
+  ].join("\n");
+  if (ladder === "stock") return `${head}\n${root}`;
+  return [
+    head,
+    root,
+    "",
+    "/* The derived ladder, previewed as utilities. @theme inline bakes each",
+    "   step into its utility at build time, so the ruling lands on the",
+    "   multipliers in theme.css and not on a token. */",
+    ladderCss(ladder),
+  ].join("\n");
+}
+
+/** The label the tuner panel shows while a block is applied. */
+export function blockLabel(
+  surface: SurfaceCandidate,
+  action: ActionRung,
+  ladder: LadderId,
+): string {
+  const tail = ladder === "stock" ? "" : ", quarter ladder";
+  return `rounding ${surface.letter}, ${action.id} actions${tail}`;
+}
