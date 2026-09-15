@@ -134,8 +134,8 @@ export function Stage({
       data-stage-fit={trueScale ? "true" : "zoom"}
       className={
         trueScale
-          ? "overflow-x-auto overflow-y-hidden"
-          : "flex justify-center overflow-hidden"
+          ? "min-w-0 overflow-x-auto overflow-y-hidden"
+          : "flex min-w-0 justify-center overflow-hidden"
       }
     >
       <div
