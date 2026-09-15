@@ -3,7 +3,7 @@
 // the board's own sheet; it leaves with the board when the ruling lands.
 import "./board.css";
 
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 
 import {
   BoardMeta,
@@ -38,7 +38,7 @@ import {
   type Dim,
   type Ramp,
 } from "./constants";
-import { Frame, Mount } from "./frame";
+import { Frame, MountProvider, useMountOnApproach } from "./frame";
 
 /** A ladder asks for exactly the width its rungs need, so it renders 1:1 in the
  *  lab column: judging a 6px corner against a 12px one at half scale judges the
@@ -125,8 +125,8 @@ const LANDING: { ask: string; answer: string; why: string; row: number }[] = [
   },
   {
     ask: "Light in dark",
-    answer: "whatever the light board is ruled",
-    why: "These are the same numbers: the shadow rung is --lgt-float from docs/specs/light.md to the byte. If a shadow comes back in dark there, this family takes it; if it does not, today stands, because the popover already sits lighter than the card it opens from. Nothing to decide twice.",
+    answer: "today",
+    why: "And it follows the light board rather than being ruled twice: the shadow rung is --lgt-float from docs/specs/light.md to the byte, so if a shadow comes back in dark there, this family takes it at those numbers. Until then today stands, because the popover already sits lighter than the card it opens from.",
     row: 4,
   },
   {
@@ -137,7 +137,7 @@ const LANDING: { ask: string; answer: string; why: string; row: number }[] = [
   },
   {
     ask: "The select",
-    answer: "keep it, on the contract",
+    answer: "keep",
     why: "A form field is a listbox, and a dropdown with radio items is a menu wearing one: typeahead, the value semantics and the label all come free in the primitive and have to be rebuilt in the replacement. Five lines bring it onto the contract. Row 7 shows both, so the cheaper answer is there to take.",
     row: 7,
   },
@@ -232,8 +232,14 @@ function Row({
   eager?: boolean;
   children: React.ReactNode;
 }) {
+  const ref = useRef<HTMLElement | null>(null);
+  const mounted = useMountOnApproach(ref, eager);
   return (
-    <section className="flex scroll-mt-40 flex-col gap-3" id={`flt-row-${n}`}>
+    <section
+      ref={ref}
+      className="flex scroll-mt-40 flex-col gap-3"
+      id={`flt-row-${n}`}
+    >
       <div>
         <p className="text-sm font-semibold">
           <span className="mr-2 inline-flex size-5 items-center justify-center rounded-md bg-foreground text-[11px] tabular-nums text-background">
@@ -245,7 +251,7 @@ function Row({
           {note}
         </p>
       </div>
-      <Mount eager={eager}>{children}</Mount>
+      <MountProvider value={mounted}>{children}</MountProvider>
     </section>
   );
 }
@@ -383,10 +389,10 @@ export function FloatingSurfacesBoard() {
 
   return (
     <div className="flex flex-col gap-10 py-4">
-      <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
-        {QUESTION}
-      </p>
-
+      {/* The board's own question is NOT repeated here. The touchpoint header
+          above states the subject, BoardMeta carries the question in full at the
+          foot, and a third paragraph between them was pushing the one thing a
+          reader needs first below the fold. */}
       {/* WHERE THIS LANDS, before anything that needs scrolling. The rows are
           the evidence for these five lines; the number beside each one is the
           row that argues it. */}
@@ -402,7 +408,7 @@ export function FloatingSurfacesBoard() {
           {LANDING.map((l) => (
             <div
               key={l.ask}
-              className="grid gap-x-3 gap-y-1 sm:grid-cols-[10rem_minmax(0,1fr)]"
+              className="grid gap-x-3 gap-y-1 sm:grid-cols-[11rem_minmax(0,1fr)]"
             >
               <dt className="text-xs">
                 <span className="text-muted-foreground">{l.ask}: </span>
@@ -597,7 +603,7 @@ export function FloatingSurfacesBoard() {
                 ground={ground}
                 ramp={ramp}
                 mode="phone"
-                height={250}
+                height={200}
                 fit={375}
                 replay={replay}
                 designKey={designKey}
@@ -609,7 +615,6 @@ export function FloatingSurfacesBoard() {
 
       <Row
         n={2}
-        eager
         name="The corner, measured"
         note="The finding the round turned on, at 6x, read off the live DOM rather than claimed in a caption. The solid outer arc is the panel, the solid inner arc is the lit row, and the dashed arc is where the row's corner has to sit for the two to share a centre (bible 9: the container is the object plus its offset). On today's rung the dashed arc and the row's arc are different lines, and they are the same line on all three candidates. That is the whole argument for changing anything."
       >

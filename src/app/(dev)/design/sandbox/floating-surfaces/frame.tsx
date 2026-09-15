@@ -38,9 +38,10 @@ import type { Dim, Ramp, Scene, Side } from "./constants";
  * right about a frame and wrong about a board: measured on the walk, nineteen
  * documents cost 1020 requests and took 5.7s to settle, which is the "slow first
  * paint" a stranger meets before the first row says anything. So the unit is the
- * ROW (Mount below): every frame in a row mounts together, a full viewport
- * before the row arrives, and rows one and two mount immediately. A comparison
- * is never half-loaded, because the things being compared always arrive as one.
+ * ROW (useMountOnApproach below): every frame in a row mounts together, a
+ * viewport and a half before the row arrives, and rows one and two mount
+ * immediately. A comparison is never half-loaded, because the things being
+ * compared always arrive as one.
  */
 
 /** Row-level mounting. `false` holds the box at its exact size and loads
@@ -48,38 +49,36 @@ import type { Dim, Ramp, Scene, Side } from "./constants";
  *  reloads a document. */
 const MountContext = createContext(true);
 
-export function Mount({
-  children,
-  eager = false,
-}: {
-  children: React.ReactNode;
-  /** The rows above the fold, which a reader sees before they can scroll. */
-  eager?: boolean;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
+/** Mount everything under `ref` when the element comes within a viewport and a
+ *  half of the fold. The observed element must be a REAL box: the first version
+ *  of this wrapped the row in `display: contents`, which produces no box at all,
+ *  so the observer never fired and every row below the second one stayed empty.
+ *  A row passes its own <section>. */
+export function useMountOnApproach(
+  ref: React.RefObject<HTMLElement | null>,
+  eager: boolean,
+): boolean {
   const [on, setOn] = useState(eager);
   useEffect(() => {
     if (on) return;
     const el = ref.current;
     if (!el) return;
-    // A viewport of lead time: at a normal scroll speed the documents are
-    // painted before the row is on screen, and a reader who jumps to the bottom
-    // waits for one row rather than for nineteen.
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) setOn(true);
       },
-      { rootMargin: "900px 0px" },
+      // A viewport and a half of lead time: at a reading scroll the documents
+      // are painted before the row is on screen, and a reader who jumps to the
+      // bottom waits for one row rather than for nineteen.
+      { rootMargin: "1400px 0px" },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [on]);
-  return (
-    <div ref={ref} className="contents">
-      <MountContext.Provider value={on}>{children}</MountContext.Provider>
-    </div>
-  );
+  }, [on, ref]);
+  return on;
 }
+
+export const MountProvider = MountContext.Provider;
 
 export type FrameProps = {
   scene: Scene;
