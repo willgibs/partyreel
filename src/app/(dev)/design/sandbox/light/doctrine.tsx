@@ -86,7 +86,8 @@ every-section-gets-a-version failure under another name) · the admin portal.`,
   },
   {
     id: "registers",
-    where: "Light: SPILL, BEAM, and the lamp set > The lamp set, and its three registers",
+    where:
+      "Light: SPILL, BEAM, and the lamp set > The lamp set, and its three registers",
     today:
       'The Paper row says "Uniform L/C today, so a hand-tuned paper five is still an open design task", and there is no register for a field at chapter scale.',
     argued: "Part B, the paper five and the register toggle",
@@ -111,7 +112,8 @@ oklch(0.11).`,
   },
   {
     id: "aurora",
-    where: "Light: SPILL, BEAM, and the lamp set > a new subsection after the registers",
+    where:
+      "Light: SPILL, BEAM, and the lamp set > a new subsection after the registers",
     today: 'The word "aurora" appears nowhere in src/ or docs/.',
     argued: "Part B, the four candidates on the real chapters",
     markdown: `### The aurora
@@ -130,7 +132,12 @@ register, placed at the centre, puts the copy inside the light instead of betwee
 
 A **MOTION**: a drift several times slower than a lamp's, because a field the size of a chapter
 moving at a lamp's clock reads as a screensaver. The cadence is a lamp's property, not the system's:
-\`--spill-cadence\` is the lamp's clock and the aurora takes a multiple of it.
+\`--spill-cadence\` is the lamp's clock, at whatever number the cadence ruling lands on, and the
+aurora takes a MULTIPLE of it under a name of its own,
+\`--aurora-cadence: calc(var(--spill-cadence) * 3)\`. Three laps, so the ratio survives the lamp's
+ruling: 33s against today's 11s, 24s against the engine's 8s. The one thing it must never be is
+\`--spill-cadence\` re-tuned to the field's number, which would slow every shipped lamp, the footer
+seam first.
 
 Its **COLOUR** is the house five, narrowed to a temperature by the chapter itself through the
 engine's own documented ancestor hook (\`--lamp-*\` is inherited and \`[data-glw]\` reads it, so a
@@ -164,7 +171,7 @@ lightness in both modes, and a menu over scrolling content has to detach in both
 | --- | --- |
 | A surface that is simply a different plane from the page | **The surface step.** bg 0.14 to card 0.21 to popover 0.23+ in dark, the paper steps in light. Lighter is closer |
 | An edge that needs stating without implying height | **The ring.** \`ring-1 ring-foreground/5\` on surfaces, \`/10\` on media frames. 77 uses and, until the light ruling, in no document |
-| Two objects of the same lightness, one in front of the other | **LIFT.** \`--shadow-lift\`: two overlapping photographs, a card over a card |
+| Two objects of the same lightness, one in front of the other, or a media card sitting on a ground of its own lightness | **LIFT.** \`--shadow-lift\`: two overlapping photographs, a card over a card, the dashboard's event cards (a photograph with no surface step and no hairline between it and the page) |
 | A layer over content that keeps living behind it | **FLOAT.** \`--shadow-layer\`: menu, dialog, sheet, popover, tooltip, toast |
 | A flat surface with nothing behind it and nothing over it | **Neither shadow**, in either mode. Its step and its hairline, unchanged. A shadow here is a smudge |
 
@@ -298,8 +305,13 @@ export function DoctrinePart() {
             The same four blocks the apply buttons above hand the site. The
             token names are the doctrine{"'"}s, lift and layer; re-pointing the
             38 shadow-float call sites and the roughly 30 raw Tailwind shadows
-            is the wiring round{"'"}s sweep, and until it runs the old token
-            aliases the new one so nothing breaks in between.
+            is the wiring round{"'"}s sweep. Until it runs, the old token
+            aliases the new one on the light grounds, where the two are the same
+            bytes and nothing moves. On the dark grounds it keeps its zero by
+            contract, so the surfaces that take a shadow in dark are named one
+            by one instead: aliasing the old token there would hand a shadow to
+            all 26 of its consumers, flat surfaces included, which is not what
+            any of this proposes.
           </p>
         </div>
         {LIGHT_CANDIDATES.map((c) => (

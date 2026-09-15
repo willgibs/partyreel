@@ -48,13 +48,16 @@ export type LightCandidate = {
  * on the site for no reason anyone had asked for. The finding was never that
  * the light values are wrong: it is that DARK has no ramp at all, because 6
  * percent of black over oklch(0.11) is arithmetically invisible. So the
- * proposal is purely additive. Paper does not move. Dark gains the family it
- * always should have had, and the family gains its second size.
+ * proposal is purely additive: not one shipped alpha changes, dark gains the
+ * ramp it never had, and the family gains its second size. What it adds is
+ * named surface by surface rather than through the shipped token, which is
+ * the difference between a proposal and a side effect.
  */
 export const SHADOW_FAMILY: LightCandidate = {
   label: "Light: the shadow family (lift + float)",
-  what: "Every menu, dialog, sheet and toast in the dark app gains a shadow; paper does not move a pixel.",
-  pages: "/dashboard (a menu, the event cards), /pricing, /help, an event page",
+  what: "The menus, dialogs, sheets and toasts gain the float; the dashboard's event cards and the host's gallery tiles gain the lift. No other surface moves, and no alpha on paper changes.",
+  pages:
+    "/dashboard (the event cards, a menu), /pricing, /help, an event page (the host gallery)",
   css: `/* THE SHADOW FAMILY (light board, part A).
    One geometry, two sizes, one alpha ramp per ground.
    LIFT separates two objects of the same lightness that overlap.
@@ -69,6 +72,9 @@ export const SHADOW_FAMILY: LightCandidate = {
   /* The same geometry at double the offsets. */
   --shadow-layer:
     0 4px 8px -2px oklch(0 0 0 / 0.09), 0 8px 16px -4px oklch(0 0 0 / 0.13);
+  /* The bridge until the sweep re-points the call sites. On a light ground the
+     old token and the new one are the same bytes, so this alias changes
+     nothing and nothing breaks in between. */
   --shadow-float: var(--shadow-lift);
 }
 
@@ -80,7 +86,12 @@ export const SHADOW_FAMILY: LightCandidate = {
     0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
   --shadow-layer:
     0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
-  --shadow-float: var(--shadow-lift);
+  /* NO BRIDGE HERE, ON PURPOSE. globals.css zeroes --shadow-float on both dark
+     grounds by contract (ui/sheet.tsx states it at its call site) and 26 files
+     read the token. Aliasing it to lift here would hand a shadow to every one
+     of them in dark, flat surfaces included, which is far wider than what this
+     proposal claims and wider than the doctrine sanctions. The surfaces that
+     do take a shadow in dark are named one by one below. */
 }
 
 /* The layers that detach take the larger size. --tw-shadow, never box-shadow:
@@ -99,6 +110,21 @@ export const SHADOW_FAMILY: LightCandidate = {
 /* Sonner owns its own sheet and no ring, so the toast takes the property. */
 [data-sonner-toast] {
   box-shadow: var(--shadow-layer);
+}
+
+/* THE REAL CARD, which is what makes this a proposal about the app and not
+   about the primitives: the dashboard's event cards (and the host gallery's
+   static tiles) are photographs sitting on a ground of their own lightness,
+   with no surface step and no hairline between them and the page. That is
+   LIFT's case exactly. [data-media-tile][data-static] is the host pair
+   globals.css already uses to opt these surfaces out of the guest arrival
+   fade; the wrapper carries no ring and no shadow utility, so it takes the
+   property itself, and the tile radius is re-stated so the shadow follows the
+   card's corner rather than a square box. The wiring round gives them a hook
+   of their own. */
+[data-media-tile][data-static] {
+  border-radius: var(--radius-tile);
+  box-shadow: var(--shadow-lift);
 }`,
 };
 
@@ -127,7 +153,8 @@ const LIT_PAPER = `inset 0 0 0 1px color-mix(in oklab, var(--foreground) 8%, tra
 export const LIT_FACE: LightCandidate = {
   label: "Light: the lit face (media frames, screens, plates)",
   what: "Every media tile, player and QR plate gains a hairline and a lip. Nothing else on the page changes.",
-  pages: "/ (the film strip), /features/qr, /features/album, an event page, the demo guest page",
+  pages:
+    "/ (the film strip), /features/qr, /features/album, an event page, the demo guest page",
   css: `/* THE LIT FACE (light board, part A).
    Not elevation: material. An inset hairline and a lip on a face that is
    catching light. Three surfaces: a media frame, a screen, a plate.
@@ -165,13 +192,22 @@ export const LIT_FACE: LightCandidate = {
  * themselves inline. The footer seam passes one var (its cadence) and takes
  * the rest from the engine, so it moves; the QR hero's bloom hard-codes its
  * base and reach inline, so it does not. That split is the doctrine's own:
- * FILL takes the field's register, MARK keeps its own. The clock rides
- * --spill-cadence rather than --glw-dur for the same reason: the seam passes
- * var(--spill-cadence) inline, so the token is the only handle that reaches it.
+ * FILL takes the field's register, MARK keeps its own.
+ *
+ * ★ THE CLOCK IS A SIBLING TOKEN, NEVER A RE-TUNE OF --spill-cadence. The
+ * cadence is a lamp's property and part C rules its number, so the aurora
+ * takes a MULTIPLE of it (three laps, the board's own ratio) under a name of
+ * its own. Writing 33s into --spill-cadence would be the opposite ruling: it
+ * would slow every shipped lamp, the footer seam that is the board's model
+ * first, and it would fight part C's two knobs, which write that same token.
+ * Nothing on the site consumes the sibling yet, because the aurora's mounts
+ * are markup and markup is the wiring round's; the register below is the half
+ * of the ruling a paste can carry, and the drift row on part B is where the
+ * ratio is judged.
  */
 export const AURORA_REGISTER: LightCandidate = {
   label: "Light: the aurora register",
-  what: "Every ambient lamp drops to the field's register and clock. The page should read as a room with a temperature, not as things glowing.",
+  what: "Every ambient lamp drops to the field's register, so the page reads as a room with a temperature rather than as things glowing. The lamp's clock is untouched: the aurora's is a sibling token, three laps of it.",
   pages: "/ (the footer seam, the film strip), /pricing, /help, /contact",
   css: `/* THE AURORA'S REGISTER (light board, part B).
    A low base with a band near zero, and a clock several times slower than a
@@ -180,7 +216,11 @@ export const AURORA_REGISTER: LightCandidate = {
    alone: a bloom tunes itself inline and an inline style wins. */
 
 :root {
-  --spill-cadence: 33s;
+  /* The lamp's clock keeps its token and its number, whichever part C rules.
+     The aurora gains a SIBLING, a multiple of it: 33s against today's 11s,
+     24s against the engine's ruled 8s. Re-pointing --spill-cadence itself
+     would slow every shipped lamp, which is a different ruling entirely. */
+  --aurora-cadence: calc(var(--spill-cadence) * 3);
 }
 
 [data-glw] {
@@ -240,7 +280,8 @@ export const PAPER_FLAT_VALUES = [
 export const PAPER_FIVE: LightCandidate = {
   label: "Light: the paper five",
   what: "Every lamp on a paper chapter is re-lit for a near-white page. The clearest look is the footer seam where the paper chapter meets the ink slab.",
-  pages: "/ (the paper chapter: the album, curation, privacy), /pricing, /help, /contact",
+  pages:
+    "/ (the paper chapter: the album, curation, privacy), /pricing, /help, /contact",
   css: `/* THE PAPER FIVE (light board, part B).
    globals.css declares the lamp set once, at the dark register, and nothing
    re-declares it on paper: a house lamp on a near-white page is wearing a
