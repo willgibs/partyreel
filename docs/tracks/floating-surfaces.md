@@ -187,9 +187,13 @@ The board, plus the rewritten contract in the Record. Read `components/ui/*`; ch
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- Hardening bucket (R8, WCAG): `tw-animate-css` ships no reduced-motion guard, so every
-  `animate-in` / `animate-out` utility, the whole floating layer included, still animates
-  for a reader who asked for less motion; bible 14 is enforced by hand today.
+- App-polish bucket (round 2, CORRECTED): the floating layer has no reduced-motion gate
+  of its OWN. What holds bible 14 there today is `globals.css:855`, a global `@layer base`
+  clamp (every animation and transition to 0.01ms, `!important`) carried since 2026-06-11,
+  and that guard's own comment calls a component-level gate the first line. Round two's
+  `REDUCED_MOTION_CSS` is that gate, ready to paste. (Round one recorded this as an open
+  HOLE, which it is not: measured on the board with the preference forced, all 36 floating
+  surfaces come back at 0.01ms.)
 - App-polish bucket: `ui/tooltip.tsx`'s arrow takes a literal `rounded-[2px]` instead of a
   token (bible 8), the one literal radius left on the floating layer.
 - App-polish bucket: `ui/navigation-menu.tsx`'s viewport cannot size itself outside the
@@ -315,25 +319,57 @@ contract, a centre origin detaches the panel from its trigger, and a scale with 
 
 ## Handoff (round 2)
 
-- Head: the tip of `lp/floating-surfaces`, pushed. The last code commit is `6a5fc46`; `881c258`
-  is the merge of `launch-prep`, and everything after it is this manifest. Preview:
+- Head: the tip of `lp/floating-surfaces`, pushed. The last code commit is `e57b5ec`;
+  everything after it is this manifest. Preview:
   `partyreel-git-lp-floating-surfaces-partyreel.vercel.app`
 - Board: `/design/c/floating-surfaces?key=` (nine rows). Marker for "is this round two":
   the row heading "The corner, measured", which did not exist in round one.
-- **The preview alias is BEHIND the branch: it serves `64f81f7`.** Vercel stopped creating
-  deployments project-wide at 2026-09-14 21:49 local (the last one on any branch is
-  `lp/media-kit` `b05c7c3`; nothing after it, on any branch, was created), so this is a
-  plan-level limit rather than the branch gate, which says build (`preview: true` and
-  `status: handed-off`). Round two's substance is on the alias; what is not is `6a5fc46`:
-  the walk list's honesty about the guest group, the sr-only description on the compact
-  sheet, the chevron on the radio trigger, the "three knobs, as one paste" label, and the
-  `min-w-0` that removes 16px of horizontal scroll from the BOARD page at 375 (the frames
-  themselves are right at both widths on the alias). The next deployment the project gets
-  picks it up; a redeploy of the branch tip is enough.
+- **The preview alias is BEHIND the branch, and the cause is a project ceiling, not the
+  branch gate.** It serves `64f81f7`. The gate is not refusing:
+  `scripts/vercel-ignore-build.mjs` builds an `lp/` branch whose manifest says
+  `preview: true` or `status: handed-off`, and this one says both. Nor did deployments stop
+  project-wide: `lp/media-kit` `b05c7c3` was created at 21:49:42 and `lp/hero-scan`
+  `caa8539` at 22:04:10, both AFTER this branch pushed `6a5fc46` at 21:41:35 and after the
+  22:01 manifest commit. (The first version of this bullet claimed otherwise and was
+  wrong.) What is actually happening: the project is at Vercel's ceiling of 100 deployments
+  a day. A `POST /v13/deployments` for the tip is refused with `payment_required`,
+  `api-deployments-free-per-day`, `total 100, remaining 0`, reset Tue 2026-09-15 22:13 EDT;
+  the project's deployment list for the trailing 24 hours returns exactly 100 rows and the
+  oldest of them is Mon 16:18, so no slot frees until Tuesday afternoon. The few builds that
+  did land between 21:41 and 22:04 took slots as older ones aged out of the rolling window.
+  Five pushes on this branch produced zero deployments.
+- **Remedy, Orchestrator, outside this lane:** force a redeploy of the tip once a slot
+  exists and confirm READY before the walk, e.g. `POST /v13/deployments` with
+  `gitSource {type: github, repoId: 1252816746, ref: lp/floating-surfaces, sha: <tip>}`.
+  Another push will NOT fix it while the ceiling holds, so do not read a silent push as a
+  deploy. The branch's own agent could not clear this: it is a plan limit, not a code fact.
+- **If the walk happens before that redeploy, skip `/e/<token>` and read row 9 with care.**
+  The served build is `64f81f7`, whose row 9 lists the guest entry drawer among the pages to
+  walk with no caveat, and the guest route group has no `AppDesignIsland`, so that page
+  cannot wear a candidate at all: applying a rung and opening it shows no change, which
+  reads as a broken candidate on the one surface row 1 argues matters most. `6a5fc46` fixed
+  the copy and is not on the alias. That build also predates the `min-w-0` / `max-w-full`
+  fix, so the board page itself carries about 16px of horizontal scroll at 375 there, and
+  predates row 8's correction below, so it still presents reduced motion as an open hole.
+- **The true board needs no deploy: `pnpm dev`, then
+  `http://localhost:3000/design/c/floating-surfaces?key=`.** The lab sits in no allow-list,
+  so localhost renders the tip exactly, "Apply to the site" included (the local marketing
+  pages and dashboard wear a rung the same way). That is the review surface until the alias
+  catches up.
 - Synced with `launch-prep` at `4b035c1` (merge `881c258`); it had moved one commit
   (`docs/systems/design-system.md`, outside the lane).
-- Gates on the synced tree: typecheck ok, lint ok (0 errors, 7 warnings, all pre-existing
-  and outside the lane), test ok (1698 in 193 files), build ok (248 static pages).
+- Gates on the synced tree at `e57b5ec`: typecheck ok, lint ok (0 errors, 7 warnings, all
+  pre-existing and outside the lane), test ok (1698 in 193 files), build ok (248 static
+  pages).
+- **Light QA, run and named rather than asserted.** The board at 1440 and at 375, on
+  `pnpm dev` at the head above rather than on the alias, which cannot be rebuilt while the
+  ceiling holds. At both widths `documentElement.scrollWidth - clientWidth` is 0, so there
+  is no horizontal scroll anywhere on the page, and all nineteen frames mount and paint.
+  Reduced motion verified as BEHAVIOUR, not as a code fact: with every
+  `prefers-reduced-motion` media rule in the board document and in all nineteen frame
+  documents forced to the reduce state (1388 rules), all 36 floating surfaces compute an
+  animation duration and a transition duration of 0.01ms or less, at both widths. Nothing
+  leaks, and finding out WHY is what corrected row 8 (below).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = this file plus the eight
   files of `src/app/(dev)/design/sandbox/floating-surfaces/`. No exceptions; nothing under
   `src/components/ui/` was touched, and every candidate reaches the primitives from outside.
@@ -364,6 +400,19 @@ contract, a centre origin detaches the panel from its trigger, and a scale with 
 
 **Findings for whoever owns the primitives (not candidates, true whatever is ruled):**
 
+- **Round one's reduced-motion finding was WRONG, and the board now says so.**
+  `tw-animate-css` ships no guard of its own, but `globals.css:855` has carried a global one
+  since 2026-06-11: `@layer base`, every animation and transition clamped to 0.01ms,
+  `!important`, which is why it beats an unimportant utility in a higher layer. So the
+  floating layer does NOT animate for a reader who asked for less motion, and bible 14 is not
+  unenforced there. What the family lacks is the FIRST line that guard's own comment names, a
+  gate on the components themselves; `REDUCED_MOTION_CSS` is that gate, and it is safe to
+  paste, because radix's Presence unmounts a panel immediately when its computed animation
+  name is `none` (`react-presence@1.1.5`, `index.mjs:59`), which is the failure the global
+  clamp chose 0.01ms rather than 0 to avoid. Row 8's name and note, the departure, the
+  candidate note, the paste's comment and the board's own sheet are all corrected at
+  `e57b5ec`. This SUPERSEDES the same claim in round one's Record, in "What the wiring round
+  inherits", and the deferred one-liner above is rewritten.
 - `guest/entry-shell.tsx` renders a RAW vaul drawer, outside `ui/drawer.tsx`, with a literal
   radius `calc(var(--radius-action) * 1.4)`. It is a tenth floating surface and the one most
   people on this product will ever see. The family is ten, not nine.
@@ -388,6 +437,15 @@ correct and the scene routes screenshot perfectly on their own. Verify this boar
 (`contentDocument` is same-origin, so the loupe's own measurements can be read straight out of
 it) or by opening a single scene route at its canvas size, per
 `docs/systems/testing-verification.md`.
+
+**Testing note 2, reduced motion.** The test browser has no reduced-motion emulation, so the
+preference is forced by walking the CSSOM and flipping every `prefers-reduced-motion` media
+rule (reduce to `all`, no-preference to `not all`) in the board document and in each frame's
+`contentDocument`. The walk MUST recurse into `@layer` blocks: a first pass that flipped only
+top-level media rules missed the global guard, which lives in `@layer base`, and produced a
+convincing false leak (the guest drawer appearing to run vaul's 0.5s `slideFromBottom` under
+reduce, which is exactly the headline this board would have got wrong twice). 1388 rules is
+the right order of magnitude for this board; a few dozen means the walk is not recursing.
 
 - The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
   1. "The radius: sharp, nested or round, and whether the big boxes take a second token or the
@@ -428,7 +486,10 @@ the live DOM and drawn at 6x with its arithmetic rather than asserted, the palet
 ramps A and B are a knob under the panels, the light rung adopts the light board's own
 `--lgt-float` family so the two boards propose one shadow, the entrance is posed as rule 12
 against rule 15 with both statements quoted from the bible, and the outliers gained a third
-column showing what replaces them. Four fixes came out of the build: the light rungs no longer
-delete the ring a panel ships, a panel-scoped rung's dark values now land on the panel, the
-backdrops load eagerly so a frame is never empty on the way down, and every entrance sits inside
-its own reduced-motion block.
+column showing what replaces them. Five corrections came out of the build: the light rungs no
+longer delete the ring a panel ships, a panel-scoped rung's dark values now land on the panel,
+the backdrops load eagerly so a frame is never empty on the way down, every entrance sits inside
+its own reduced-motion block, and round one's reduced-motion finding turned out to be false,
+since globals.css has clamped every animation and transition to 0.01ms under the preference
+since June, so row 8 now offers the gate as bible 14's missing first line rather than as a
+rescue.
