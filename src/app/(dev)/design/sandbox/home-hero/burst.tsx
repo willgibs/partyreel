@@ -725,6 +725,10 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
+    // `cards` is in here on purpose: toggling the headline step re-solves the
+    // pool, so the loop restarts and the burst plays again from the code. That
+    // is the honest thing to show, because the field really is a different
+    // field once the quiet zone changes shape.
   }, [cards, cycle, geo, halfH, halfW, reduced]);
 
   const phone = mode === "phone";
@@ -786,8 +790,16 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
           return (
             <div
               key={c.key}
+              // The React 19 cleanup form rather than the null call, because
+              // the pool CHANGES INSIDE ONE MOUNT when the headline step is
+              // toggled: the keys are candidate indices, so a position can be
+              // deleted and recreated in the same commit, and a stale null
+              // would freeze that card at its CSS state for ever.
               ref={(el) => {
                 nodes.current[i] = el;
+                return () => {
+                  nodes.current[i] = null;
+                };
               }}
               className="hhb-card"
               style={
