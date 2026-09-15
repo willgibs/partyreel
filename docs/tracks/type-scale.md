@@ -1,6 +1,6 @@
 ---
 track: type-scale
-status: open
+status: handed-off
 cut: "c473707"
 merged_round_4: "9b8af70d"
 merged_round_3: "3faf6ad"
@@ -1302,14 +1302,152 @@ only the root 404 is outside every island. Round four adds two.
 
 ## Handoff (round 5)
 
-- Head <sha>, pushed; preview partyreel-git-lp-type-scale-partyreel.vercel.app
-- Synced with launch-prep at <sha>
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the three registration lines (exceptions and why)
-- Shared-file changes asked of the Orchestrator: none
-- Assets requested from Will: none
-- Look at first: ...
+- **Head: this commit**, over `2af59444` (the sync merge), `cfddcfc7` (the first sync merge),
+  `a095c8d7`, `44fd7c21` and `d3db6278`; all pushed. Board at `/design/lab/type-scale`.
+  **No preview**: Vercel is over its monthly deployment storage for the wave, so no commit here
+  carries the marker and this push builds nothing. Everything below was verified on this worktree's
+  dev server at `http://localhost:3414`, and the gate was closed with a real `pnpm build`.
+- **Synced with `launch-prep` twice**, both merges and both gated whole: first at `a61fd366`
+  (19 commits, the album-hero round-two merge and the glow/home-hero/river-visual migrations), then
+  at `9ab89cdd` (6 more, the new build gate and the floating-surfaces migration). Three conflicts
+  across the two, every one an adjacent registration line of the wave: `registry.ts` (TYPE_SCALE
+  joins after LIGHT, which is the order touchpoints.ts holds them in; nothing else in the list
+  moved), `kit-discipline.test.ts` (both sides deleted a different id from LEGACY, so both deletions
+  were kept) and `boards.ts` (both sides dropped a different `legacy` flag, so both were dropped).
+- **Gates on the synced tree, each on its own exit code:** typecheck 0, lint 0 (0 errors, 6
+  pre-existing warnings, none in this lane), test 0 (**2141 in 218 files**), build 0.
+  `pnpm lab:smoke --base http://localhost:3414` **307 checks, 0 failing**. `pnpm format` clean on
+  every changed file; no dynamic className was touched by it.
+- **Lane check**, `git diff --name-only origin/launch-prep...HEAD`:
+  `docs/specs/type-scale.md`, `src/app/(dev)/design/sandbox/type-scale/{spec.ts,board.tsx,ladders.ts,ladders.test.ts,pages.tsx}`
+  (owned), this manifest, plus **the three declared registration lines and nothing else**:
+  `sandbox/registry.ts` (the import and one entry in `BOARDS`), `(shell)/lab/boards.ts` (`legacy`
+  dropped from the `type-scale` entry), `components/lab/kit-discipline.test.ts` (`"type-scale"`
+  deleted from `LEGACY`). `board.css` did not need to change: round two's doubled
+  `[data-tsc][data-tsc]` chain still outranks every paste and `ladders.test.ts` still computes that
+  rather than asserting it.
+- **Shared-file changes asked of the Orchestrator: none.** Everything outside the lane was read and
+  left alone.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes: none.** Lab only, as briefed: not
+  one production byte changed.
+- **Assets requested from Will: none**, and that is a real answer rather than an omission. The board
+  judges type on the production components and the production routes; the only specimen it sets is
+  the brand word, whose nine letters carry an ascender, a descender, three rounds and three
+  straights, which is what a tracking change is judged on. `spec.assets` is empty and the meta panel
+  prints "none".
+- **Nothing was re-argued.** Every ladder, number, candidate, departure and recommendation is round
+  four's to the byte; `ladders.test.ts` now pins that the spec's candidate list, its recommendation
+  and its two control defaults all equal the ladder data, so the two files cannot drift.
+
+### Three judgement calls a reviewer should see, since each departs from round four's shape
+
+1. **The two Apply buttons left the dock and sit beside the candidates they apply.** Round four put
+   them in the dock on Will's note (a). The kit states the opposite rule in its own file
+   (`apply.tsx` and `dock.tsx`: "Applying a block is a per-candidate decision and its button stays
+   beside the candidate; seeing that one is live, and turning it off, is page-wide"), and the dock
+   carries `AppliedBadge`, which says which block stands and clears it. So the pair's apply is under
+   the token table and the law's is under the tracking evidence, which is the ask it settles, and
+   the page-wide half of the control is still in the dock. If Will wants both buttons back in the
+   dock the change is four lines, but it would be the board disagreeing with the kit's contract.
+2. **The per-frame "one / two / three screens tall" button is gone.** The kit's `Frame` takes a
+   fixed viewport, and a frame three screens tall is not a taller view of the same page: it is a
+   2790px viewport, so a `100svh` hero inside it grows to 2790px and the board would show a hero no
+   visitor ever sees. Scrolling inside the frame walks the page instead, and one "Reload frames"
+   pill in the dock replaces seven per-frame reloads.
+3. **The glance tables are transposed.** A ladder is a row read left to right (its six or three
+   sizes, then the faults it fixes) rather than a column held in the head, because the kit's
+   `SelectTable` makes the row itself the control and a row a keyboard can reach is a button rather
+   than a click handler on a cell. Same numbers, same computed fix marks, same click-to-choose.
+
+### What the kit bought back, measured
+
+- **Every hand-computed stage height is gone.** Round three measured each stage's ink off the DOM
+  and wrote the answer down as three height functions round four then had to keep in step with four
+  ladders. `FitStage` measures what it is handed: on the merged tree the eight stages report 246,
+  400, 501, 517, 942, 1042 and so on, each fitted, none cropped, none floating in dead ground. That
+  also bought back a fact the crop had cost: each step's `where` line prints at 375 again, where
+  round four had to drop it.
+- **The law stage's line count is measured rather than estimated, and printed.** It used to be
+  `ceil(px * 0.45 * chars / column)`, an internal guess nobody could see. `useLineCount` reads it
+  off the rendered text after the webfont lands: measured live, the pairing line reads **1 line at
+  1440 and 2 at 375**, and it follows the dock. A DOM measurement of the same paragraph
+  (`height / line-height` = 84 / 42) agrees.
+- **★ A stage may not remount if something is measuring inside it.** The first cut keyed every
+  `FitStage` on the pair with `swapKey`, and a remount hands `useLineCount` a NEW node while its
+  ResizeObserver keeps watching the detached one: the count printed nothing at all at 375. Dropping
+  the key (this board animates nothing, so it never needed one) leaves both observers on live nodes.
+  Worth carrying to any board that measures inside a stage.
+
+### The settle, and how it was proved
+
+`PageFrame`'s MutationObserver is gone. marketing.css keys its entrances off `data-inview` and
+`.mkt-name` transitions its tracking over 760ms from an open squeeze, so round four rewrote every
+`data-inview="false"` back to true, per frame, re-arming as the page's islands hydrated. The kit's
+`Frame` writes a stylesheet and hands back no document, so the settle is CSS now: `SETTLED` freezes
+the three reveal registers attribute-free at (0,2,0), and `CLOSED` spends **the candidate's own
+`--text-display--letter-spacing`** on `.mkt-name` at (0,3,0), which is not optional, because both
+marketing.css and the paste close that squeeze through a `[data-inview="true"]` selector that can
+never match in a settled frame. Without it every ladder would show one open tracking and the
+loudness section would compare four identical claims.
+
+Measured end to end, inside the real frames on the dev server, with `data-inview` still `"false"`:
+
+| | masthead size | masthead tracking | `--text-display--letter-spacing` |
+| --- | --- | --- | --- |
+| Marketing B | 159.936px | -7.197px | -0.045em |
+| Marketing C | 200px | -10px | -0.05em |
+
+`[data-mkt-reveal]` reads opacity 1 and transform none in the `/` frame; the guest album frame
+reports its entry title at **28px under every pair**, which is the inline `font-heading text-[28px]`
+the spec's note records. Flipping the dock re-skins a frame live, with no reload.
+
+### Verified
+
+- The board on the dev server at **1440 and 375, light and dark**: the answer block is the first
+  screen, the four ask pills link under the dock, all eight sections are anchored
+  (`type-scale-glance` … `type-scale-law`) and in the dock's Sections menu, arguments and pastes are
+  collapsed. At 375 the dock wraps to five rows and the document does not scroll sideways
+  (`scrollWidth === innerWidth`); the two glance tables scroll inside their own scroller, which is
+  the kit's, and the stages inside theirs.
+- **Reduced motion:** the board declares no keyframes at all (board.css says so, and
+  `keyframe-uniqueness.test.ts` reads it), the production entrances it renders are settled by
+  board.css on the stages and by `SETTLED` in the frames, and the kit's walk scrolls with
+  `behavior: "auto"` under the preference. The board reads identically with and without it.
+- **The walk** sets the dock and lands on its section: step three puts the board at
+  `canvas=phone, marketing=today` and scrolls to the pair, which is what its note describes.
+- **A copied link reopens the same canvas, candidate and section:**
+  `?canvas=phone&marketing=c&app=today#type-scale-loudness` reopens with `data-canvas="phone"`,
+  `data-marketing="c"`, `data-app="today"` and a 375 stage.
+- **The review panel's message parses.** The panel composed
+  `review type-scale r5: marketing=c; tracking=keep`, and
+  `node scripts/lab-review.mjs --root <scratch> '<line>'` recorded both answers into a SCRATCH copy
+  of `docs/reviews/`. No ledger is committed here.
+- **`/design/lab` queues the board's four open asks** with their recommended options, in board
+  order, beside light's and rounding's.
+
+### One test-tooling note, so the next session does not chase it
+
+A Chrome tab this session can drive but cannot RAISE reports `document.hidden === true`, and a
+hidden tab throttles `IntersectionObserver` and `requestAnimationFrame` to a standstill: the frames
+never mounted there, because the kit's `onApproach` is an IntersectionObserver. Nothing is wrong
+with the board. The same page in the app's own browser pane (`document.hidden === false`) mounts
+and skins every frame, and that is where the frame measurements above were taken. The pane has the
+mirror-image limit, deferring some nested iframe navigations, so the two were used together.
 
 ## Record (round 5; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The type-scale board moved onto the lab kit's
+template and is two files now: a `spec.ts` that is pure data (the question, the verdict, the four
+one-word calls, the five candidates, the departures, three declared controls, eight sections and an
+executable walk) and a `board.tsx` that is the evidence per section as a function of that state.
+Four board-local mechanisms retired into the kit: the hand-built answer block became the template's
+Answer, the two glance tables became `SelectTable` turned on their side so a ladder is a row that is
+also the control, the four acts became declared sections the dock's menu and the walk drive, and the
+page frames became the kit's `Frame`, whose settle is CSS spending the candidate's own display
+token rather than a MutationObserver rewriting `data-inview` per frame. `FitStage` retired every
+hand-computed stage height, which also restored each step's "where it lives" line at 375, and the
+law stage's estimated line count is measured with `useLineCount` and printed (1 line at 1440, 2 at
+375). The asks, the walk list and the register call left `ladders.ts` for the spec, which is the one
+list the template, the desk and the review ledger read, and a new test pins the spec's candidates,
+recommendation and control defaults to the ladder data. No ladder, number, candidate or
+recommendation changed; lab only, and not one production byte moved.
