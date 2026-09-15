@@ -804,13 +804,30 @@ changed.
 
 ## Handoff (round 4)
 
-- Head: the tip of `lp/brand-voice`. Round four's board landed at `ec839ba` and the review pass
-  corrected it at `9c3e929` (code and manifest in one commit); this commit sits on top and only
-  names the head, so `9c3e929` is the board a walker sees.
+- Head: the tip of `lp/brand-voice`, which is THIS commit: the second review pass lands its code,
+  its guide and this manifest together, so the head a walker opens and the head this text describes
+  are the same SHA. Round four's board landed at `ec839ba`, the first review pass corrected it at
+  `9c3e929`, and `07ad3b21` from `launch-prep` is merged in.
   The board is at `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
   `docs/specs/brand-voice.md`. **The round-four board is the one whose root div carries
   `class="bv-round-four"`, opens on "The voices in use: marketing, loud" as chapter 1, and whose
   headnote reads "47 of 66 lines differ across the three columns."**
+- **A SECOND review pass ran on this handoff and closed three items, all in place.** (a) Two of the
+  three shell asks had already LANDED on `launch-prep` while the round finished, and this text was
+  still presenting them as open; they are now recorded as landed, the board's dock workaround is
+  deleted, and the walk below was re-measured on the merged tree (see the bullet above the asks).
+  (b) Chapter 3's rationale said "two of these lines are marked as compelled" where exactly ONE row
+  in the whole data set carries `compelled`; on a board selling a recomputed count, a hand-typed one
+  that contradicts the rendered pills is the one thing that cannot be wrong, so the rationale now
+  names the row in the singular and this manifest says the same. (c) The guide's "The sixteen
+  surfaces, written" was 53 of the board's 66 rows while promising a wiring round it could rewrite a
+  surface without opening the board. It is now **all 66** (25 marketing, 24 app, 17 guest, 19 held,
+  each figure checked against `voices.ts`), the thirteen missing rows written from the same data the
+  board renders: the feature band's subhead and cards 2 and 3, the pricing pair's two feature lines
+  and Pro footnote, the album chapter's eyebrow, the help opening's first paragraph, the wizard's QR
+  step body and both notification titles. The section now states its own count, carries the file for
+  each of the sixteen surfaces (its preamble claimed one "named beside it" and none was), and the
+  guest note's "five held" is corrected to six.
 - **A review pass ran after the first handoff and fixed two accuracy defects**, both recorded in
   place rather than appended: (a) shell ask 3 below quoted a `touchpoints.ts` note that no longer
   existed (it was round two's string, copied out of round three's handoff instead of re-read from
@@ -832,20 +849,23 @@ changed.
   below was measured on **a local PRODUCTION build in this worktree** (`pnpm build && pnpm start -p
   3035`), in a browser tab, at a real 1440 viewport and a real 375 one, after a walk on the dev
   server at `-p 3034`. The one-line check that the right head is on screen: the root div reads
-  `bv-round-four`. **The review pass re-ran the whole gate and re-walked the board the same way**
-  (fresh `pnpm build`, then `pnpm start -p 3035`), and the numbers below are that SECOND
-  measurement. Same method as the first: the board was opened and read in the shared test window,
-  and the 1440 and 375 figures were taken inside same-origin iframes pinned to those exact widths,
-  because twelve sessions share one window tonight and a resize lands on whoever is fronted. The
-  error surface was also looked at by eye at both widths.
-- Synced with `launch-prep` at `6484558` (it had moved by two docs commits, `PROGRAM.md` and the
-  orchestrator manifest; nothing in this lane or its `reads`). Merged clean, gate re-run on the
-  merged tree.
+  `bv-round-four`. **The SECOND review pass re-ran the whole gate and re-walked the board again on
+  a fresh production build** (`pnpm build`, then `pnpm start -p 3147`, since another session holds
+  3035), and the numbers below are that THIRD measurement, taken after the shell merge and after the
+  dock workaround was deleted. Same method throughout: the 1440 and 375 figures come from
+  same-origin iframes pinned to those exact widths, because twelve sessions share one window tonight
+  and a resize lands on whoever is fronted. The dock was also read by eye at both widths this pass,
+  since it is the part the merge moved.
+- Synced with `launch-prep` at **`07ad3b21`**, the shell commit that answered this track's two dock
+  and Stage asks (the earlier sync at `6484558` was one commit behind it). Merged clean, no conflict
+  in this lane, and the whole gate re-run on the merged tree.
 - Gates on the synced tree: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing and none
   in this lane), test ok (1,804 in 199 files), build ok (compiled clean, 248 static pages).
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/brand-voice.md`,
-  `docs/tracks/brand-voice.md` and the three files under
-  `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `board.css`, `voices.ts`). No
+- Lane check, re-run on the merged tree at the head above: `git diff --name-only
+  origin/launch-prep...HEAD` = `docs/specs/brand-voice.md`, `docs/tracks/brand-voice.md` and the
+  three files under `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `board.css`,
+  `voices.ts`); this second review pass touched the first four of those and left `voices.ts`
+  untouched, since every line it needed was already in the data. No
   exceptions, and no production byte changed. The read-only production imports grew by two, both
   pure constants modules with no server import in their chain, so the cards and the pricing pair
   quote the product rather than a retyped memory of it: `board.tsx` now imports the real
@@ -853,28 +873,30 @@ changed.
   `MAX_EVENTS`) beside round two's `album-copy.ts` and `recently-deleted.ts`. The production build
   is unchanged at 248 static pages.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
-- **Shell changes asked for (the Orchestrator lands them).**
-  1. **NEW, measured this round: `BoardDock`'s control cell collapses on a phone.** The dock lays
-     out as `[children: flex-1 min-w-0] [shell cluster: ml-auto]`. `flex-1` is `flex: 1 1 0%`, so
-     the children cell has a basis of zero and never forces the row to wrap: at a real 375 window
-     the shell's own cluster (1:1/Fit, Sidebar, Desk, Collapse) takes 286 of the 343 available and
-     the board's switches are squeezed into a **44px column, 281px tall**. Any board with more than
-     two page-wide switches has it, and this round asked every board to put its switches there. The
-     fix is one class in `dock.tsx` (`basis-full sm:basis-auto` on the children cell, or let the
-     cluster wrap first). This board works around it in its own sheet, scoped under its root class,
-     which took the dock from 298px to 194px at 375; that workaround should be deleted when the
-     shell lands the fix.
-  2. **Round three's four findings are all still open** and still true of every board that stages a
-     marketing component: the lab never compiles the heading ladder (a `PageHero` on a Stage
-     renders at its base class, 48px where the site renders 96px); a Tailwind prefix inside a Stage
-     reads the REAL viewport, so the 375 stage takes desktop gutters and desktop heading steps; a
-     `Stage` cannot be handed a literal height it can keep (this board's `FitStage`, about thirty
-     lines, is the working fix, and a `fit` height mode on `Stage` would retire the literal from
-     every board at once); and `Stage`'s zoom-fit is defeated by a grid or flex cell whose default
-     `min-width` is auto (`min-w-0` on `Stage`'s own outer wrapper would immunise every board). The
-     first two matter MORE at 1:1 than they did at zoom, because a specimen is now judged at the
-     pixels it claims.
-  3. **The registration line is one round behind, and it is the FIRST thing a walker reads.**
+- **Two of this track's shell asks are LANDED, not open.** `origin/launch-prep` moved to `07ad3b21`
+  ("the dock wraps at 375...") while this round was finishing, and that commit carries both by name:
+  **the dock's control cell now wraps** (`dock.tsx:98` reads
+  `flex basis-full flex-wrap items-center gap-2 sm:min-w-0 sm:flex-1 sm:basis-auto`, which is
+  exactly what was asked), and **`Stage`'s wrapper is `min-w-0`**, so a grid or flex cell can no
+  longer defeat the fit. The previous handoff listed both as open because the track had merged
+  `launch-prep` at `6484558`, one commit behind, and the review pass pushed without re-fetching.
+  **This pass merged `07ad3b21` and DELETED the board's dock workaround** (`board.css`, the
+  `@media (max-width: 767px)` block on `.bv-round-four`), which had stopped being redundant and
+  started being wrong: it forced `flex-basis: 100%` up to 767px while the shell returns to
+  `basis-auto` at 640px, so between 640 and 767 this board's dock stood a row taller than every
+  other board's. Re-measured on the merged tree with the shell's own rule doing the work, below.
+- **Shell changes asked for (the Orchestrator lands them).** Three: two carried from round three,
+  one measured this pass on the merged shell.
+  1. **Three of round three's four findings are still open** (the fourth, `Stage`'s `min-w-0`,
+     landed at `07ad3b21`) and still true of every board that stages a marketing component: the lab
+     never compiles the heading ladder (a `PageHero` on a Stage renders at its base class, 48px
+     where the site renders 96px); a Tailwind prefix inside a Stage reads the REAL viewport, so the
+     375 stage takes desktop gutters and desktop heading steps; and a `Stage` cannot be handed a
+     literal height it can keep (this board's `FitStage`, about thirty lines, is the working fix,
+     and a `fit` HEIGHT mode on `Stage` would retire the literal from every board at once, which the
+     round-four `fit` prop does not do: that prop pins the SCALE). The first two matter MORE at 1:1
+     than they did at zoom, because a specimen is now judged at the pixels it claims.
+  2. **The registration line is one round behind, and it is the FIRST thing a walker reads.**
      `touchpoints.ts:576` currently reads, in full: "Two voices on whole pages beside today's: the
      home arc's fifteen sections, two feature pages whole, help, contact and pricing, the thirty
      identity strings as a paste, the app's quiet and guest copy on twelve surfaces; twelve chapters
@@ -889,6 +911,22 @@ changed.
      upload sheet, album and mail at 375. Then ten ledger chapters price the sweep whole page by
      whole page; thirteen chapters indexed in the dock, the recommendation and its measured cost
      with them". `variants` needs no change: the board still runs Today, A and B.
+  3. **NEW, measured this pass: the dock's fix for 375 has two knock-ons, and one of them puts a
+     board off the side of the screen.** `dock.tsx:98` now reads
+     `flex basis-full flex-wrap items-center gap-2 sm:min-w-0 sm:flex-1 sm:basis-auto`. (a) `min-w-0`
+     is now conditional, so BELOW `sm` the control cell is sized by its content's minimum. A board
+     whose controls contain a `whitespace-nowrap` scroll row therefore hands the cell that row's
+     full content width however loudly the row says `overflow-x-auto`: this board's thirteen-chapter
+     index measured 911px, the cell took 911 inside a 343px row, and the DOCUMENT went to 927px on a
+     375px window. That is a sideways-scrolling board, not a cosmetic issue, and it is silent until
+     someone measures the document. This board defended itself in its own markup (`w-0 basis-full
+     grow` on the nav, which reports zero and still fills its line, with the reason in a comment),
+     but `min-w-0` unconditional on the shell's cell would immunise every board the way `Stage`'s
+     new `min-w-0` just did. (b) `sm:basis-auto` sizes the cell by its content at desktop too, so a
+     control-rich dock now takes the whole row and the shell's cluster wraps under it: 74px to 114px
+     at 1440 on this board. That one reads FINE here (three clean rows, and the chapter index gets a
+     full line), so it is reported rather than asked for, since the boards with one or two switches
+     are the ones that would pay for it.
 - Assets requested from Will: none. The board is type on the real grounds and on the real
   components; its stand-ins are the shipped ghost pack behind the two empty states (the product's
   own decorative asset, used as the product uses it) and the grey plate in the three unfurl cards,
@@ -952,9 +990,18 @@ zoomed** (note b): every Stage renders at 1:1, which a copy board needed more th
 
 - **At a real 1440 viewport:** 52 stages, **0** boxes crossing a stage edge, **0** stage scroll in
   either axis, **0** horizontal document overflow, **0** of the 22 `[data-mkt-reveal]` slots below
-  opacity 1, dock 74px, board 41,486px tall.
-- **At a real 375 viewport:** the same four zeros, dock 195px (from 298 before the workaround
-  above), board 58,738px.
+  opacity 1, dock **114px**, board 41,526px tall. The dock was 74px before the shell merge: with
+  `sm:basis-auto` the control cell is sized by its own content, so it takes the whole row and the
+  shell's cluster (1:1/Fit, Sidebar, Desk, Collapse) wraps under it. Read by eye: three tidy rows,
+  the voice, canvas and theme switches on the first, all thirteen chapters on the second, the
+  shell's own controls on the third. Taller, not worse, and it is the shell's call rather than this
+  board's (the ask is below).
+- **At a real 375 viewport:** the same four zeros, dock 195px, board 58,738px, document exactly 375
+  wide. Getting the last of those zeros needed a one-class fix in this board, described in the ask
+  below: the merged shell drops `min-w-0` from the control cell under `sm`, and this board's
+  thirteen-chapter index is a `whitespace-nowrap` scroll row, which reported its 911px content to
+  the cell and scrolled the whole board sideways (a 927px document on a 375px window) until the nav
+  was given `w-0 basis-full grow`. Measured before and after, both ways.
 - **What "stage" means in those two lines**, because the two boxes give different answers: the
   clip and scroll counts are taken on the CANVAS (the `[data-ground]` box that holds the specimen),
   which is the thing a reader looks at. Its parent, the `[data-stage-fit]` rail, carries
@@ -1020,11 +1067,12 @@ zoomed** (note b): every Stage renders at 1:1, which a copy board needed more th
 - "One noun for the thing: album everywhere, or album on the site and gallery on a guest's screen (the agent recommends album)"
 - "The account-required unfurl line: email, or sign in (the agent recommends email)"
 
-Seven, unchanged from round three, and nothing new on the board is waiting on Will. The two MARKED
-rows in chapter 3 (the account-required door, `components/guest/entry-modal.tsx`) are compelled by
-bible 4 rather than chosen: the shipped line asks a guest to make an account with us on the host's
-own page, so the sweep rewrites it whichever voice wins, and its only choosable part is the noun,
-which is ask 6.
+Seven, unchanged from round three, and nothing new on the board is waiting on Will. The ONE marked
+row in chapter 3 (the account-required line on the door, `components/guest/entry-modal.tsx`) is
+compelled by bible 4 rather than chosen: the shipped line asks a guest to make an account with us on
+the host's own page, so the sweep rewrites it whichever voice wins, and its only choosable part is
+the noun, which is ask 6. It is the only `compelled` in the data set, and the chapter rationale now
+says so in the singular, because a walker counts the black pills.
 
 ### Look at first
 
@@ -1055,7 +1103,8 @@ usage chapters now have every voice write every line while the ledgers keep pric
 where all three still agree the row carries the reason rather than the word: 47 of 66 lines differ,
 19 are explained, and an unexplained match is counted as a defect on the board itself. The
 page-wide switches moved into the shell's dock, the phone canvas reads three abreast, and the guide
-grew the section a wiring round can rewrite a surface from without opening the board, including
-three app lines that are corrections rather than rewrites (an event that "never expires", a photo
+grew a section that writes all sixteen surfaces line by line, all 66 rows with the 19 held ones
+carrying their reason, so a wiring round can rewrite a surface without opening the board. Three of
+those app lines are corrections rather than rewrites (an event that "never expires", a photo
 "hidden from everyone" the host can still see, and a storage warning that names the machinery). No
 production byte changed.

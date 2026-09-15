@@ -2140,10 +2140,21 @@ export function BrandVoiceBoard() {
         </p>
         {/* One row, and it scrolls rather than wrapping: at 1440 the thirteen
             fit on a line, and on a narrow window a wrapping index turned the
-            bar into four rows that ate a third of the viewport. */}
+            bar into four rows that ate a third of the viewport.
+
+            ★ `w-0 basis-full grow`, not `w-full`. A percentage width is treated
+            as content-sized when the browser asks a flex item what it MEASURES,
+            so a `whitespace-nowrap` row reports its 911px max-content to the
+            dock's control cell however loudly it says `overflow-x-auto`. The
+            shell's cell carries `min-w-0` only from `sm` up (dock.tsx), so at
+            375 that measurement escaped the cell and scrolled the whole board
+            sideways (927px document on a 375px window). `w-0` makes the
+            measurement zero, `basis-full` keeps the index on its own line, and
+            `grow` fills the line it is on: 1440 shows all thirteen, 375 scrolls
+            them. Measured both ways before it was written. */}
         <nav
           aria-label="Chapters"
-          className="flex w-full items-center gap-x-3 overflow-x-auto whitespace-nowrap"
+          className="flex w-0 min-w-0 grow basis-full items-center gap-x-3 overflow-x-auto whitespace-nowrap"
         >
           {CHAPTERS.map((c) => (
             <a
@@ -2182,7 +2193,7 @@ export function BrandVoiceBoard() {
         id="bv-3"
         n={3}
         name="The voices in use: a guest's phone, and the inbox"
-        rationale="Four surfaces at 375, always, because that is the only place they render. Bible 4 decides more here than the voice does: the event belongs to the host and Partyreel stays nearly silent, which is why two of these lines are marked as compelled rather than chosen."
+        rationale="Four surfaces at 375, always, because that is the only place they render. Bible 4 decides more here than the voice does: the event belongs to the host and Partyreel stays nearly silent, which is why the door's account-required line is marked as compelled rather than chosen."
       >
         <GuestUseChapter ground={appGround} />
       </Chapter>

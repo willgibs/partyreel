@@ -161,15 +161,38 @@ Each surface, the shapes that belong on it, and the rule that decides between th
 
 Round four (2026-09-15). The table above says which shape belongs on which surface; this section
 writes the line, so the `voice-infusion` round can rewrite a surface from this guide without opening
-the board. Every `today` is the shipped string, quoted from the file named beside it. **In the
-voice** is the recommended answer (B, the room). **If A wins** is the same line in candidate A, and
-it is given only where A writes something different: where the column is blank, A writes the
-recommended line.
+the board. **It is the whole board, not a sample: all sixteen surfaces and all sixty-six lines the
+board renders, in the board's own order** (25 marketing, 24 app, 17 guest). Every `today` is the
+shipped string, quoted from the file listed for its surface below. **In the voice** is the
+recommended answer (B, the room). **If A wins** is the same line in candidate A, and it is given
+only where A writes something different: where the column is blank, A writes the recommended line.
 
-A line that is the same in every voice is marked `held` with the reason, because that is a finding
-rather than an omission: a button the host is about to press, a help title that is also the search
-string, and an empty state that was already written in the voice are all places where a voice that
-improved on the line would be a voice getting in the way.
+Nineteen of the sixty-six are marked `held`, the same nineteen the board counts, and each carries
+the reason rather than the word unchanged, because a held line is a finding rather than an omission:
+a button the host is about to press, a help title that is also the search string, and an empty state
+that was already written in the voice are all places where a voice that improved on the line would
+be a voice getting in the way.
+
+Where each surface lives, so a rewrite starts in the right file:
+
+| Surface | File |
+| --- | --- |
+| Home hero | `app/(marketing)/(cinema)/page.tsx`, `SITE_THESIS` and `SITE_SUBHEAD` |
+| Chapter (album) | `components/marketing/sections/home/album-section.tsx` |
+| Feature card set | `components/marketing/sections/features/album/album-copy.ts`, `GETTING_IN` |
+| Pricing pair | `components/marketing/sections/pricing/plan-cards.tsx`, numbers from `tiers.ts` |
+| Help article opening | `content/help/an-upload-wont-finish.mdx`, front matter and first paragraph |
+| Dashboard empty state | `components/app/dashboard/events-empty-teaser.tsx` |
+| Event card pills | `components/app/event-card.tsx`, labels from `dashboard/events-section.tsx` |
+| Create-event wizard | `components/app/create-event-wizard.tsx` |
+| Toasts | `components/app/event-feed/event-feed.tsx` and `app/host-media-grid.tsx` |
+| Errors | `components/guest/enter-event-prompt.tsx` and `components/guest/guest-upload.tsx` |
+| Notifications | `lib/notifications/build.ts` |
+| Account page | `app/(app)/account/page.tsx` |
+| Guest door | `components/guest/entry-modal.tsx` |
+| Guest upload sheet | `components/guest/file-dropzone.tsx`, `guest-upload.tsx`, `save-account-prompt.tsx` |
+| Empty album | `components/guest/gallery-empty-state.tsx` |
+| Email | `lib/email/templates.ts`, `inactivityWarningEmail` |
 
 ### Marketing, loud
 
@@ -179,17 +202,27 @@ improved on the line would be a voice getting in the way.
 | Home hero, h1 | The whole event, in one album. | One code on the table, and the album starts filling. | (keeps today's, which is A's argument) |
 | Home hero, subhead | Partyreel collects the photos and videos from your guests with one QR code. No more chasing group chats the morning after. | Every phone in the room finds it, uploads at full size, and you end up with the whole event in one place. | (keeps today's) |
 | Home hero, CTAs | Start free · Watch a sample reel | Start free · Watch a reel | Start free · Watch a sample reel |
+| Chapter eyebrow (album) | The album | `held`: an eyebrow on this page is a chapter mark, and the chapter is the album. Renaming it names a different section, which is a structure question rather than a copy one. | |
 | Chapter header (album) | Every photo comes to you first. | Two hundred photos you never had to ask for. | The whole event, and it's yours to keep. |
 | Chapter body (album) | Every phone in the room feeds one album, and the album is yours: look through it, tidy it up, and share it when you are ready. | Every phone in the room feeds one album. Look through it, tidy it up, and send it when you are ready. | (keeps today's) |
 | Chapter chevron | Inside the live album | `held`: a chevron names the place it goes, not a sentence. | |
-| Feature card, title | No app, ever | It opens in a browser | The browser they already have |
-| Feature card, body | The code opens the album in the browser they already have. Point, tap, add. Nothing to install. | A camera finds the code and the album opens in the browser already on the phone. Point, tap, add. | The code opens the album in the browser on their phone, and they are adding a tap later. Nothing to install. |
+| Feature band, subhead | Guests point a camera at the code, land on a welcome screen, and start adding. New events ask for an email first. | A phone finds the code, a welcome screen opens, and photos start arriving. New events ask for an email first. | A camera, a code, a welcome screen, and your guests are adding. New events ask for an email first. |
+| Feature card 1, title | No app, ever | It opens in a browser | The browser they already have |
+| Feature card 1, body | The code opens the album in the browser they already have. Point, tap, add. Nothing to install. | A camera finds the code and the album opens in the browser already on the phone. Point, tap, add. | The code opens the album in the browser on their phone, and they are adding a tap later. Nothing to install. |
+| Feature card 2, title | Names, if you want them | Names, if you ask for them | A name on every photo, if you want one |
+| Feature card 2, body | Require accounts and guests confirm an email once. Switch it off and anyone with the link can add. | Ask for an email and a guest confirms one once, on the phone they are already holding. Switch it off and anyone with the link adds. | Ask for an email and each guest confirms one once, so every photo arrives with a name on it. Switch it off and anyone with the link can add. |
+| Feature card 3, title | One link, forever | The code is the album | One link, and it keeps working |
+| Feature card 3, body | The code is the album link. Scan it, tap it in a chat, open it later. Pro and Event Pass can name it. | Scan it at the door, tap it in the group chat, open it next March. It is the same link the whole time, and Pro can name it. | The code is the album link: scan it at the door, tap it in a chat, open it next year. Pro and Event Pass can name it. |
 | Pricing, Free tagline | Your first event, covered. | One event, and every photo that lands in it. | Your first event, and everyone in it. |
+| Pricing, Free item | No watermark on photos or the album | Photos come out the size they went in | Full-size photos, no watermark |
+| Pricing, CTA | Start free | `held`: two words, a verb and the price. A voice that improves on a button has started selling on it. | |
 | Pricing, Free footnote | No card. Upgrade only when you host again. | No card. Upgrade when you host the next one. | No card, and you upgrade only when you host again. |
 | Pricing, Pro tagline | For hosts who host again. | For hosts already planning the next one. | For the next one, and the one after. |
-| Pricing, CTA | Start free | `held`: a verb and the price. A voice that improves on a button has started selling on it. | |
+| Pricing, Pro item | Password-locked albums and custom links | Lock an album, name its link | Password-locked albums, and links you name |
+| Pricing, Pro footnote | Change size or cancel any time in the billing portal. | Move up a size or stop any time, from the billing portal. | Change the size, or stop, any time in the billing portal. |
 | Help article, title | An upload won't finish | `held`: a help title is the search string and the tab title, so the reader's words outrank the voice. | |
 | Help article, description | A stuck upload is almost always the connection: tap the dimmed tile to retry. A refused one tells you why (too large, wrong type, uploads closed). Big videos need a steady connection and time. | Tap the dimmed tile and a stuck upload usually finishes: it is almost always the connection. A refused one says why, and a big video needs a steady signal and time. | A stuck upload is almost always the connection, and a tap on the dimmed tile finishes it. A refused one tells you why: too large, wrong type, uploads closed. |
+| Help article, first paragraph | Uploads go one file at a time, and each one either lands with a green check or turns dim with Tap to retry. The message on the toast tells you which of these it is. | Files go up one at a time. Each one lands with a green check or turns dim with Tap to retry, and the toast says which it was. | Uploads go one file at a time, and each one either lands with a green check or turns dim with Tap to retry. The toast tells you which. |
 
 Two things the marketing table settles. The **hero is the whole ruling in one lockup**: A writes
 today's two ratified lines back, because keeping them is A's argument, so the eyebrow and the second
@@ -212,13 +245,16 @@ grid, two rows per body), so a rewrite that gains a row has spent the page's rhy
 | Wizard, step labels | Details · Design · Share | Name · Code · Share | Details · Design · Share |
 | Wizard, date helper | Just for your reference: events never expire. | For your own reference. An event stays until you delete it. | For your reference only. Events never expire. |
 | Wizard, QR step heading | Guest join QR | The code your guests scan | The QR your guests scan |
+| Wizard, QR step body | Pick a style for the QR your guests scan. You can change it anytime. | Pick a style now, change it any time. | Pick a style. You can change it any time. |
 | Wizard, share step body | Print or display the QR, or share the link. Guests just open it. No app, no account. | Put the code on a table or send the link. A guest opens it and starts adding. | Print the QR, put it on a table, or send the link. Guests just open it. |
 | Toast, review on | Review is on. New uploads wait here for approval. | Review is on. New uploads wait here for you. | Review is on. New uploads wait for your approval. |
 | Toast, hidden | Hidden from everyone | Hidden. Only you can see it. | Hidden from your guests |
 | Error, sign-in | That email and password didn't match. Try the email link instead. | `held`: the shape is already there, and the pointer to the email link is an account-enumeration decision rather than a preference. | |
 | Error, upload refused | Couldn't add that photo | `held`: the app's own verb, and the reason arrives underneath. | |
 | Error, upload reason | That file type isn't supported. | Photos go up as JPEG, PNG, WebP, HEIC, HEIF or AVIF. | Photos need to be JPEG, PNG, WebP, HEIC, HEIF or AVIF. |
+| Notification, review title | 3 uploads to review | `held`: a count and the host's own noun, front-loaded for a list that truncates. | |
 | Notification, review body | Guests are waiting for your approval. | Approve them and they are in the album. | They go into the album as soon as you approve them. |
+| Notification, storage title | You're over your storage limit | `held`: the fact about the host's own account, in the fewest words. A softer opening here would be a kindness that costs the host their photos. | |
 | Notification, storage body | Upgrade or remove media before we auto-reduce it. | Upgrade or clear some space, and nothing has to go. | Upgrade or clear some space and everything stays. |
 | Account, section labels | Profile · Public profile · Connections · Password · Email preferences | `held`: five nouns the host already reads correctly. | |
 | Account, profile help | Your page on Partyreel: the events you host and choose to share, plus events you joined. Follower counts stay private to you. | The events you host and share, and the ones you joined. Follower counts stay private to you. | The events you host and share, plus the ones you joined. Follower counts stay private to you. |
@@ -260,8 +296,9 @@ subject is a real trade**: A keeps *Partyreel* in it because an inbox sorts and 
 and this mail arrives months after the party, while B puts the reader's own event first, which is
 the guide's rule everywhere else. Decide it once, for all ten templates.
 
-Five of the guest rows are held, which is the chapter's finding rather than a gap: the guest
-surface was the closest thing to a written voice this product had before anyone wrote one down.
+Six of the seventeen guest rows are held, which is the chapter's finding rather than a gap: the
+guest surface was the closest thing to a written voice this product had before anyone wrote one
+down.
 What moves there is only where a host is the one deciding, which is where **the host's name replaces
 "the host"** and **gallery becomes album**.
 

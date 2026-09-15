@@ -111,22 +111,3 @@
     }
   }
 }
-
-/* ─────────────────── THE DOCK, ON A NARROW WINDOW ───────────────────────
-   ★ A SHELL FACT THIS BOARD HAS TO WORK AROUND, reported in the handoff.
-   BoardDock lays its control row out as [controls (flex-1 min-w-0)] [shell cluster
-   (ml-auto)]. `flex-1` is `flex: 1 1 0%`, so the controls cell has a basis of
-   zero and never forces the row to wrap: at a 375 window the shell's own
-   cluster (1:1, Sidebar, Desk, Collapse) takes 286 of the 343 available and
-   the board's switches are squeezed into a 44px column, 281px tall. Measured,
-   not guessed. Any board with more than two page-wide switches has it.
-
-   The fix belongs in the shell (a basis of 100% below `sm`, or the cluster
-   wrapping first). Until it lands, this board gives its own dock's control
-   cell a full-width basis on a narrow window, which is scoped under the
-   board's root class and touches no other board. */
-@media (max-width: 767px) {
-  .bv-round-four [data-board-dock] > div > div:first-child {
-    flex-basis: 100%;
-  }
-}
