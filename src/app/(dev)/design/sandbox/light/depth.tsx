@@ -10,6 +10,7 @@ import {
   ApplyToSite,
   Cell,
   Copy,
+  Knob,
   Labeled,
   matrixCols,
   Part,
@@ -379,7 +380,7 @@ function LitFaceMatrix({ mode, ground }: { mode: Mode; ground: Ground }) {
   );
 }
 
-export function DepthPart({ mode }: { mode: Mode }) {
+export function DepthPart({ mode, rules }: { mode: Mode; rules: string[] }) {
   const [ground, setGround] = useState<Ground>("cinema");
   const small = mode === "phone";
   const cols = matrixCols(mode, 4);
@@ -389,6 +390,7 @@ export function DepthPart({ mode }: { mode: Mode }) {
     <Part
       n="A"
       title="Depth: the cue is the relationship, not the mode"
+      rules={rules}
       lede={
         <>
           <p>
@@ -406,17 +408,28 @@ export function DepthPart({ mode }: { mode: Mode }) {
             because shadows are wrong in dark; it lacked one because 6 percent
             of black over a near black room is arithmetically invisible.
           </p>
+          <p>
+            <span className="font-medium text-foreground">
+              One ruling, two boards.
+            </span>{" "}
+            The floating-surfaces board asks the same question for its own
+            family, as item 5 of its contract: the light in dark, lighter is
+            closer against a soft shadow against a lit edge. The middle subject
+            here is that question, and the three answers are the same three
+            columns. A ruling on this row answers both, and FLOAT is the
+            shadow-tuned-for-dark option written out with values.
+          </p>
         </>
       }
     >
-      <div className="flex flex-wrap items-center gap-3">
+      <Knob label="Ground">
         <Toggle
           ariaLabel="Ground"
           options={GROUNDS}
           value={ground}
           onChange={setGround}
         />
-      </div>
+      </Knob>
 
       {/* The canvas is taller than a viewport on purpose: a matrix is not a
           screen, and 375 pairs the four cues into two rows per subject, so the

@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useRef, useState } from "react";
 
 import { Stage, Toggle, type Ground, type Mode } from "@/components/dev/board";
 import { LAMP_SET } from "@/components/dev/lamp-set";
@@ -14,7 +14,18 @@ import {
   PAPER_FLAT_VALUES,
 } from "./candidates";
 import { CHAPTERS, chapterById, type ChapterId } from "./chapters";
-import { AURORA_CADENCE, ApplyToSite, Labeled, Part, Proposal } from "./shared";
+import {
+  AURORA_CADENCE,
+  ApplyToSite,
+  CostMeter,
+  Knob,
+  KnobNote,
+  Labeled,
+  Part,
+  Proposal,
+  WipeControl,
+  type GlowDriveId,
+} from "./shared";
 
 /**
  * PART B: THE LAMP WITHOUT MEDIA, AND THE AURORA.
@@ -64,11 +75,17 @@ type Candidate = "seam" | "aurora" | "middle" | "room";
 type Register = "accent" | "identity";
 type Temperature = "house" | "warm" | "cool";
 
+/** ★ ROUND THREE: THE STRONGEST FIRST, AND THE LOSERS NAMED AS LOSERS. Round
+ *  two lettered these A to D and led with the seam, which reads as a ranking
+ *  and ranks the proposal third. Two of the four were never candidates at all:
+ *  the middle is the placement error and the room is the engine's own warning,
+ *  both on the board as evidence. Calling them candidates asked Will to rule
+ *  on four options when there are two. */
 const CANDIDATES: { id: Candidate; label: string }[] = [
-  { id: "seam", label: "A. The seam" },
-  { id: "aurora", label: "B. The aurora" },
-  { id: "middle", label: "C. The middle" },
-  { id: "room", label: "D. The room" },
+  { id: "aurora", label: "The aurora" },
+  { id: "seam", label: "The seam" },
+  { id: "middle", label: "The middle: the error" },
+  { id: "room", label: "The room: the warning" },
 ];
 
 const REGISTERS: { id: Register; label: string }[] = [
@@ -81,6 +98,26 @@ const TEMPERATURES: { id: Temperature; label: string }[] = [
   { id: "warm", label: "Warm" },
   { id: "cool", label: "Cool" },
 ];
+
+const DRIVES: { id: GlowDriveId; label: string }[] = [
+  { id: "mask", label: "Mask" },
+  { id: "transform", label: "Transform" },
+];
+
+/** What each knob's current setting MEANS, in one line, under the knobs. A
+ *  toggle says what it is; this says what it does. */
+const REGISTER_NOTE: Record<Register, string> = {
+  accent:
+    "Accent: one chapter on a page carries the light, so it can be seen. Base 0.30 on cinema, 0.52 on paper.",
+  identity:
+    "Identity: every chapter carries it, which is only survivable much lower. Base 0.17 on cinema, 0.30 on paper.",
+};
+
+const TEMPERATURE_NOTE: Record<Temperature, string> = {
+  house: "House five: the lamp set in its own order, nothing narrowed.",
+  warm: "Warm: coral, amber and violet take all five slots. Green and blue drop out of the field.",
+  cool: "Cool: blue, violet and green take the slots. A narrowing, never a sixth hue.",
+};
 
 const GROUNDS: { id: Ground; label: string }[] = [
   { id: "cinema", label: "Cinema" },
@@ -150,10 +187,12 @@ function Band({
   edge,
   height,
   vars,
+  drive = "mask",
 }: {
   edge: "top" | "bottom";
   height: number;
   vars: GlowVars;
+  drive?: GlowDriveId;
 }) {
   return (
     <div
@@ -167,6 +206,7 @@ function Band({
     >
       <Glow
         shape="seam"
+        drive={drive}
         vars={{ "--glw-h": `${height}px`, ...vars } as never}
       />
     </div>
@@ -180,6 +220,8 @@ function Lit({
   height,
   grain,
   clock,
+  drive = "mask",
+  grainWipe,
 }: {
   candidate: Candidate | null;
   ground: Ground;
@@ -187,8 +229,32 @@ function Lit({
   height: number;
   grain: boolean;
   clock: string;
+  drive?: GlowDriveId;
+  /** Percent GRAINED, left to right, for the grain row's own wipe. */
+  grainWipe?: number;
 }) {
   const r = registerVars(ground, register);
+  // ★ ONE GRAIN NODE, WIPED OR WHOLE. The grain row compares the same field
+  // with and without the dither, and the two states have to touch or the
+  // comparison is a memory test: a band's soft edge is the most forgettable
+  // thing on this board.
+  const grainNode = !grain ? null : grainWipe === undefined ? (
+    <div data-lgt-grain className="absolute inset-0" />
+  ) : (
+    <>
+      <div
+        data-lgt-wipe
+        style={{ "--lgt-wipe": `${100 - grainWipe}%` } as CSSProperties}
+      >
+        <div data-lgt-grain className="absolute inset-0" />
+      </div>
+      <div
+        data-lgt-wipe-line
+        aria-hidden
+        style={{ "--lgt-wipe": `${100 - grainWipe}%` } as CSSProperties}
+      />
+    </>
+  );
   if (candidate === null) return null;
 
   if (candidate === "seam") {
@@ -219,9 +285,9 @@ function Lit({
   if (candidate === "aurora") {
     return (
       <>
-        <Band edge="top" height={band} vars={vars} />
-        <Band edge="bottom" height={band} vars={vars} />
-        {grain ? <div data-lgt-grain className="absolute inset-0" /> : null}
+        <Band edge="top" height={band} vars={vars} drive={drive} />
+        <Band edge="bottom" height={band} vars={vars} drive={drive} />
+        {grainNode}
       </>
     );
   }
@@ -243,7 +309,7 @@ function Lit({
             vars={{ "--glw-h": `${band}px`, ...vars } as never}
           />
         </div>
-        {grain ? <div data-lgt-grain className="absolute inset-0" /> : null}
+        {grainNode}
       </>
     );
   }
@@ -264,7 +330,7 @@ function Lit({
           "--glw-reach": "120%",
         }}
       />
-      {grain ? <div data-lgt-grain className="absolute inset-0" /> : null}
+      {grainNode}
     </div>
   );
 }
@@ -281,6 +347,10 @@ function ChapterStage({
   grain,
   clock = "var(--lgt-aurora-dur, 33s)",
   paperRow,
+  drive,
+  wipe,
+  grainWipe,
+  height: heightOverride,
 }: {
   id: ChapterId;
   mode: Mode;
@@ -291,9 +361,27 @@ function ChapterStage({
   grain: boolean;
   clock?: string;
   paperRow?: readonly string[];
+  drive?: GlowDriveId;
+  /** Percent LIT, left to right. Undefined renders the light whole. */
+  wipe?: number;
+  /** Percent GRAINED, left to right. Undefined renders the grain whole. */
+  grainWipe?: number;
+  height?: number;
 }) {
   const chapter = chapterById(id);
-  const height = chapter.h[mode];
+  const height = heightOverride ?? chapter.h[mode];
+  const lit = (
+    <Lit
+      candidate={candidate}
+      ground={ground}
+      register={register}
+      height={height}
+      grain={grain}
+      clock={clock}
+      drive={drive}
+      grainWipe={grainWipe}
+    />
+  );
   return (
     <Stage mode={mode} ground={ground} height={height}>
       {/* The shipped composition's skeleton: `relative isolate` so the light
@@ -304,14 +392,24 @@ function ChapterStage({
         className="relative isolate flex h-full flex-col justify-center"
         style={lampVars(ground, temp, paperRow)}
       >
-        <Lit
-          candidate={candidate}
-          ground={ground}
-          register={register}
-          height={height}
-          grain={grain}
-          clock={clock}
-        />
+        {wipe === undefined ? (
+          lit
+        ) : (
+          <>
+            {/* The clip runs from the left, so the var is the UNLIT share. */}
+            <div
+              data-lgt-wipe
+              style={{ "--lgt-wipe": `${100 - wipe}%` } as CSSProperties}
+            >
+              {lit}
+            </div>
+            <div
+              data-lgt-wipe-line
+              aria-hidden
+              style={{ "--lgt-wipe": `${100 - wipe}%` } as CSSProperties}
+            />
+          </>
+        )}
         <div className="relative">{chapter.render()}</div>
       </div>
     </Stage>
@@ -393,19 +491,31 @@ function FiveSwatches({
   );
 }
 
-export function AuroraPart({ mode }: { mode: Mode }) {
+export function AuroraPart({
+  mode,
+  rules,
+}: {
+  mode: Mode;
+  rules: string[];
+}) {
   const [ground, setGround] = useState<Ground>("cinema");
   const [chapter, setChapter] = useState<ChapterId>("guests");
   const [candidate, setCandidate] = useState<Candidate>("aurora");
   const [register, setRegister] = useState<Register>("accent");
   const [temp, setTemp] = useState<Temperature>("house");
   const [grain, setGrain] = useState(true);
+  const [drive, setDrive] = useState<GlowDriveId>("mask");
+  // The wipe opens at half, which is the whole point of it: the first frame a
+  // reviewer sees already has the unlit chapter and the lit one touching.
+  const [wipe, setWipe] = useState(50);
+  const specimen = useRef<HTMLDivElement | null>(null);
   const current = chapterById(chapter);
 
   return (
     <Part
       n="B"
       title="Lamps without media: the model, then the aurora on real chapters"
+      rules={rules}
       lede={
         <>
           <p>
@@ -426,14 +536,14 @@ export function AuroraPart({ mode }: { mode: Mode }) {
         </>
       }
     >
-      <div className="flex flex-wrap items-center gap-3">
+      <Knob label="Ground">
         <Toggle
           ariaLabel="Ground"
           options={GROUNDS}
           value={ground}
           onChange={setGround}
         />
-      </div>
+      </Knob>
 
       <Labeled
         name="The model"
@@ -442,76 +552,87 @@ export function AuroraPart({ mode }: { mode: Mode }) {
         <TheModel mode={mode} ground={ground} />
       </Labeled>
 
-      <div className="flex flex-wrap items-center gap-3 pt-2">
-        <Toggle
-          ariaLabel="Chapter"
-          options={CHAPTERS.map((c) => ({ id: c.id, label: c.label }))}
-          value={chapter}
-          onChange={setChapter}
-        />
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-2">
+        <Knob label="Chapter">
+          <Toggle
+            ariaLabel="Chapter"
+            options={CHAPTERS.map((c) => ({ id: c.id, label: c.label }))}
+            value={chapter}
+            onChange={setChapter}
+          />
+        </Knob>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <Toggle
-          ariaLabel="Candidate"
-          options={CANDIDATES}
-          value={candidate}
-          onChange={setCandidate}
-        />
-        <Toggle
-          ariaLabel="Register"
-          options={REGISTERS}
-          value={register}
-          onChange={setRegister}
-        />
-        <Toggle
-          ariaLabel="Temperature"
-          options={TEMPERATURES}
-          value={temp}
-          onChange={setTemp}
-        />
-        <Toggle
-          ariaLabel="Grain"
-          options={[
-            { id: "on", label: "Grain" },
-            { id: "off", label: "No grain" },
-          ]}
-          value={grain ? "on" : "off"}
-          onChange={(v) => setGrain(v === "on")}
-        />
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <Knob label="Light">
+          <Toggle
+            ariaLabel="Candidate"
+            options={CANDIDATES}
+            value={candidate}
+            onChange={setCandidate}
+          />
+        </Knob>
+        <Knob label="Register">
+          <Toggle
+            ariaLabel="Register"
+            options={REGISTERS}
+            value={register}
+            onChange={setRegister}
+          />
+        </Knob>
+        <Knob label="Temperature">
+          <Toggle
+            ariaLabel="Temperature"
+            options={TEMPERATURES}
+            value={temp}
+            onChange={setTemp}
+          />
+        </Knob>
+        <Knob label="Grain">
+          <Toggle
+            ariaLabel="Grain"
+            options={[
+              { id: "on", label: "On" },
+              { id: "off", label: "Off" },
+            ]}
+            value={grain ? "on" : "off"}
+            onChange={(v) => setGrain(v === "on")}
+          />
+        </Knob>
       </div>
 
-      <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
+      <KnobNote>
         <span className="font-medium text-foreground">{current.label}</span>{" "}
         ships on {current.ships === "paper" ? "paper" : "the cinema room"}.{" "}
         {current.note}
-      </p>
+        <span className="mt-1 block">{REGISTER_NOTE[register]}</span>
+        <span className="block">{TEMPERATURE_NOTE[temp]}</span>
+      </KnobNote>
 
-      <Labeled name="Unlit" note="The chapter as it ships today.">
-        <ChapterStage
-          id={chapter}
-          mode={mode}
-          ground={ground}
-          candidate={null}
-          register={register}
-          temp={temp}
-          grain={false}
-        />
-      </Labeled>
+      {/* ★ ONE STAGE, WIPED, RATHER THAN TWO STACKED. Round two printed the
+          chapter unlit and then lit, 800px apart, and asked the eye to carry a
+          field this quiet across the gap. Here the two states touch: drag the
+          handle and the light arrives across the chapter, with the copy, the
+          rules and the type identical on both sides of it. */}
+      <WipeControl value={wipe} onChange={setWipe} />
 
-      <Labeled
-        name={CANDIDATES.find((c) => c.id === candidate)?.label ?? ""}
-        note={NOTES[candidate]}
-      >
-        <ChapterStage
-          id={chapter}
-          mode={mode}
-          ground={ground}
-          candidate={candidate}
-          register={register}
-          temp={temp}
-          grain={grain}
-        />
-      </Labeled>
+      <div ref={specimen} data-lgt-solo-target>
+        <Labeled
+          name={CANDIDATES.find((c) => c.id === candidate)?.label ?? ""}
+          note={`${NOTES[candidate]} Left of the handle is the chapter exactly as it ships.`}
+        >
+          <ChapterStage
+            id={chapter}
+            mode={mode}
+            ground={ground}
+            candidate={candidate}
+            register={register}
+            temp={temp}
+            grain={grain}
+            drive={drive}
+            wipe={wipe}
+          />
+        </Labeled>
+      </div>
 
       <Proposal>
         A lamp needs a place, not an object: an edge, a boundary, a screen, a
@@ -528,12 +649,113 @@ export function AuroraPart({ mode }: { mode: Mode }) {
 
       <ApplyToSite candidate={AURORA_REGISTER} />
 
+      <CostRow
+        drive={drive}
+        setDrive={setDrive}
+        specimen={specimen}
+        candidate={candidate}
+      />
+
       <DriftRow mode={mode} chapter={chapter} ground={ground} temp={temp} />
 
       <PaperFiveRow mode={mode} temp={temp} />
 
       <GrainRow mode={mode} chapter={chapter} ground={ground} temp={temp} />
     </Part>
+  );
+}
+
+/* ──────────────────────────────  THE COST  ──────────────────────────────── */
+
+/**
+ * WHAT THE FIELD COSTS, AND THE DRIVE FINDING UNDER IT (round three).
+ *
+ * The aurora is the one proposal on this board that ADDS work to every frame,
+ * and two rounds asserted it was cheap without measuring it. It is also the
+ * one place where the engine already has a cheaper option and the doctrine
+ * never said which to use: [data-glw-drive] is "mask" by default, a static
+ * colour field windowed by a travelling mask, which globals.css itself calls
+ * "faithful but repainting every frame", against "transform", which moves the
+ * comet on the compositor and which the same comment calls "the cheap one".
+ * At pill size that difference is noise. At chapter size it is two filtered
+ * layers of roughly 1500 by 360 css pixels each.
+ *
+ * ★ AND THE CHEAP DRIVE ARRIVES WITH A LAW 4 DEFECT, WHICH IS THE REAL
+ * FINDING. glw-drift-x runs from translate 32% to -32%, and the rest state
+ * outside the reduced-motion block is therefore translate 0: the comet parked
+ * dead centre at full --glw-strength. That is precisely the bug the mask drive
+ * had fixed when its resting mask-position was moved to its own from-keyframe
+ * ("the band at full strength was that law inverted", globals.css). Nobody has
+ * seen it because no shipped lamp uses the transform drive. Switching the
+ * field to it without that one line would hand every reduced-motion visitor
+ * the brightest frame of the animation as their permanent state. The line is
+ * in part E.
+ */
+function CostRow({
+  drive,
+  setDrive,
+  specimen,
+  candidate,
+}: {
+  drive: GlowDriveId;
+  setDrive: (d: GlowDriveId) => void;
+  specimen: React.RefObject<HTMLDivElement | null>;
+  candidate: Candidate;
+}) {
+  return (
+    <div className="flex flex-col gap-3 pt-6">
+      <div className="max-w-2xl space-y-2 text-xs leading-relaxed text-muted-foreground">
+        <h3 className="text-[13px] font-semibold text-foreground">
+          What it costs, and which drive it should take
+        </h3>
+        <p>
+          A field at chapter scale is the one thing on this board that adds work
+          to every frame, so the board measures it rather than claiming it is
+          cheap. The engine already has two ways to move a lamp and the doctrine
+          never said which a field should take: the mask drive repaints the
+          whole filtered layer every frame, and the transform drive moves the
+          comet on the compositor. globals.css calls the second one the cheap
+          one in its own comment.
+        </p>
+        <p>
+          Press the drive toggle and watch the light rather than the numbers
+          first: the mask drive reads as a shimmer passing over a fixed field,
+          the transform drive as a light source going by. If they are the same
+          to you at this register, the field should take the cheap one.
+        </p>
+      </div>
+
+      <Knob label="Drive">
+        <Toggle
+          ariaLabel="Drive"
+          options={DRIVES}
+          value={drive}
+          onChange={setDrive}
+        />
+      </Knob>
+
+      {candidate === "aurora" ? null : (
+        <p className="text-[11px] text-muted-foreground">
+          The drive and the meter act on the light above, whichever candidate is
+          selected. The numbers below are the aurora{"'"}s when the aurora is
+          the one showing.
+        </p>
+      )}
+
+      <CostMeter drive={drive} setDrive={setDrive} targetRef={specimen} />
+
+      <Proposal>
+        The field takes the transform drive and a lamp keeps the mask drive:
+        same light, a fraction of the repaint, and the difference between the
+        two only reads at a size no lamp ever is. One line of the engine has to
+        move with it, and it is a law 4 fix rather than a new feature: the
+        transform band{"'"}s rest state is the comet parked dead centre at full
+        strength, because glw-drift-x runs from 32 percent to minus 32 and zero
+        is the middle of its travel. Declare the from-keyframe outside the
+        reduced-motion block, exactly as the mask drive already does, and the
+        cheap drive rests off-layer like every other lamp.
+      </Proposal>
+    </div>
   );
 }
 
@@ -663,41 +885,68 @@ function PaperFiveRow({ mode, temp }: { mode: Mode; temp: Temperature }) {
         />
       </div>
 
-      <Labeled
-        name="As they ship: the dark five on paper"
-        note="No paper override exists, so this is what a media-less lamp on the paper chapter is wearing today."
+      {/* ★ ROUND THREE: THE THREE ARE ADJACENT NOW. They were stacked full
+          width, 900px apart, which is the one layout in which three tints
+          cannot be compared at all: by the time the third is on the screen the
+          first is a memory. Side by side the type is small, and that is the
+          right trade, because the question in this row is colour. The winner
+          is printed at full size directly under them. */}
+      <div
+        className={cn(
+          "grid gap-4",
+          mode === "desktop" ? "grid-cols-3" : "grid-cols-1",
+        )}
       >
-        <ChapterStage
-          id="privacy"
-          mode={mode}
-          ground="paper"
-          candidate="aurora"
-          register="accent"
-          temp={temp}
-          grain
-          paperRow={LAMP_SET}
-        />
-      </Labeled>
+        <Labeled
+          name="As they ship: the dark five"
+          note="No paper override exists. This is what a media-less lamp on the paper chapter wears today."
+        >
+          <ChapterStage
+            id="privacy"
+            mode={mode}
+            ground="paper"
+            candidate="aurora"
+            register="accent"
+            temp={temp}
+            grain
+            paperRow={LAMP_SET}
+          />
+        </Labeled>
+        <Labeled
+          name="The flat paper row"
+          note="l 0.88, c 0.08 for every hue. Cleaner than the dark five, and the amber and the green still sit flat."
+        >
+          <ChapterStage
+            id="privacy"
+            mode={mode}
+            ground="paper"
+            candidate="aurora"
+            register="accent"
+            temp={temp}
+            grain
+            paperRow={PAPER_FLAT_VALUES}
+          />
+        </Labeled>
+        <Labeled
+          name="The hand-tuned five (proposed)"
+          note="Same hues. 85 and 155 lifted and desaturated, 255 and 305 left to carry the chroma."
+        >
+          <ChapterStage
+            id="privacy"
+            mode={mode}
+            ground="paper"
+            candidate="aurora"
+            register="accent"
+            temp={temp}
+            grain
+            paperRow={PAPER_FIVE_VALUES}
+          />
+        </Labeled>
+      </div>
 
       <Labeled
-        name="The flat paper row"
-        note="l 0.88, c 0.08 for every hue. Cleaner than the dark five, and the amber and the green still sit flat."
-      >
-        <ChapterStage
-          id="privacy"
-          mode={mode}
-          ground="paper"
-          candidate="aurora"
-          register="accent"
-          temp={temp}
-          grain
-          paperRow={PAPER_FLAT_VALUES}
-        />
-      </Labeled>
-
-      <Labeled
-        name="The hand-tuned five (proposed)"
-        note="Same hues. 85 and 155 lifted and desaturated, 255 and 305 left to carry the chroma."
+        name="The hand-tuned five, at size"
+        note="The proposal on the real paper chapter, full width, so the tint is judged at the scale it ships at."
       >
         <ChapterStage
           id="privacy"
@@ -741,6 +990,7 @@ function GrainRow({
   ground: Ground;
   temp: Temperature;
 }) {
+  const [grainWipe, setGrainWipe] = useState(50);
   return (
     <div className="flex flex-col gap-3 pt-6">
       <div className="max-w-2xl space-y-2 text-xs leading-relaxed text-muted-foreground">
@@ -786,23 +1036,15 @@ function GrainRow({
         </Labeled>
       </div>
 
+      <WipeControl
+        value={grainWipe}
+        onChange={setGrainWipe}
+        left="No grain"
+        right="Grain"
+      />
       <Labeled
-        name="Without grain"
-        note="Look at the band's soft edge, three quarters of the way up the light."
-      >
-        <ChapterStage
-          id={chapter}
-          mode={mode}
-          ground={ground}
-          candidate="aurora"
-          register="accent"
-          temp={temp}
-          grain={false}
-        />
-      </Labeled>
-      <Labeled
-        name="With grain"
-        note="The same field, the same register, 5.5 percent of noise over it."
+        name="The same field, dithered right of the handle"
+        note="5.5 percent of noise. Watch the band's soft edge, three quarters of the way up the light, where it crosses the handle."
       >
         <ChapterStage
           id={chapter}
@@ -812,6 +1054,7 @@ function GrainRow({
           register="accent"
           temp={temp}
           grain
+          grainWipe={grainWipe}
         />
       </Labeled>
     </div>

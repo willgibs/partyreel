@@ -219,3 +219,57 @@
 [data-lgt-rest] [data-rxp-pubglow] {
   animation: none;
 }
+
+/* ─────────────── 5. THE WALK'S OWN TOOLS (round three)
+
+   Three small mechanisms the third round added, all of them about the WALK
+   rather than about the light: a wipe that puts unlit and lit in one frame, a
+   solo switch the cost meter uses to measure one lamp instead of twenty-two,
+   and a clamp on the pastes so part E can be scanned before it is read. */
+
+/* THE WIPE. The light layers are clipped at the handle and nothing else in the
+   chapter is touched, so the seam down the middle is the whole difference
+   between lit and unlit. The clip runs from the LEFT, so 0 percent is the
+   chapter as it ships and 100 percent is the chapter fully lit.
+
+   ★ THE HANDLE'S LINE IS A SIBLING, NOT A CHILD. Inside the clipped wrapper it
+   would be clipped by its own handle and vanish at 100 percent, which reads as
+   the control breaking at the end of its travel. */
+[data-lgt-wipe] {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 0 0 var(--lgt-wipe, 0%));
+}
+[data-lgt-wipe-line] {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  left: var(--lgt-wipe, 0%);
+  background: color-mix(in oklab, var(--foreground) 24%, transparent);
+  pointer-events: none;
+}
+
+/* THE SOLO SWITCH. The cost meter sets data-lgt-solo on the document element
+   for the six seconds it runs. "none" hides every lamp on the board; "target"
+   hides every lamp except the ones inside the specimen it is measuring. Both
+   rules are attribute selectors of equal weight, so the second one wins on
+   source order, which is why it is written second. */
+[data-lgt-solo] [data-glw] {
+  display: none;
+}
+[data-lgt-solo="target"] [data-lgt-solo-target] [data-glw] {
+  display: block;
+}
+
+/* THE PASTE CLAMP. Collapsed, a paste shows its first lines and fades out;
+   the button under it is the only way to see the rest, which is deliberate:
+   nine full-height blocks were a third of the board's height and a reviewer
+   does not read them end to end on a walk. The fade is a mask rather than a
+   gradient overlay so it works on either ground without a second colour. */
+[data-lgt-paste] {
+  max-height: calc(var(--lgt-paste-lines, 6) * 1.625em + 2rem);
+  overflow-y: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+}

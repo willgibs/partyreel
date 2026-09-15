@@ -236,11 +236,12 @@ const STAYS = [
   "Every animation inside the reduced-motion block, and every lamp's rest state designed.",
 ];
 
-export function DoctrinePart() {
+export function DoctrinePart({ rules }: { rules: string[] }) {
   return (
     <Part
       n="E"
       title="The ruling, as a paste"
+      rules={rules}
       lede={
         <>
           <p>
