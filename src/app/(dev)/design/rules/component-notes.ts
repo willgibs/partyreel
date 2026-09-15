@@ -320,4 +320,40 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/lib/shared/sampled-palette.ts": {
     for: "law 3 made real: the spill takes its hues from the photograph it is lighting",
   },
+
+  /* the lab kit (src/components/lab) */
+  "src/components/lab/index.ts": {
+    for: "the lab kit's one import surface; nothing outside /design may import it (boundary.test.ts)",
+    unspecimened: "a barrel, not a component",
+  },
+  "src/components/lab/board-spec.ts": {
+    for: "what an exploration board IS as data: the question, the verdict, the asks, the sections, the controls, the walk",
+    unspecimened:
+      "pure types and the density limits; the specimen is any board",
+  },
+  "src/components/lab/board-page.tsx": {
+    for: "the template every board renders through: the dock, the answer, the index, the sections, the meta, in one fixed order",
+    unspecimened: "its specimen is a whole board (/design/lab/light)",
+  },
+  "src/components/lab/board-state.tsx": {
+    for: "a board's declared controls, read from the URL rather than mirrored to it, so a link reopens the exact canvas and candidate",
+    unspecimened: "a hook; the dock on any board is the specimen",
+  },
+  "src/components/lab/dock.tsx": {
+    for: "a board's page-wide controls, always on screen, with the shell's reading controls at its right end",
+  },
+  "src/components/lab/frame.tsx": {
+    for: "the only 1:1 surface the lab has: a same-origin iframe wearing a candidate as an adopted stylesheet, in scroll-locked rows",
+    unspecimened:
+      "it loads real pages; mounting one on a library page would load the site into the library",
+  },
+  "src/components/lab/specimen.tsx": {
+    for: "the judged thing and the line that names it; a label is never inside the judged area and a stage never goes in a Cell",
+  },
+  "src/components/lab/apply.tsx": {
+    for: "hands the whole site the exact block a ruling would land; a radio across a board, never a checkbox on each candidate",
+  },
+  "src/app/(dev)/design/sandbox/registry.ts": {
+    for: "every standing board's spec, imported here and nowhere else, so the desk, the board page and the ledger read one list",
+  },
 };

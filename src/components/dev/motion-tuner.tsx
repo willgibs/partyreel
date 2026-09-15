@@ -116,6 +116,26 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
   // fresh [data-mkt] wrapper after a navigation, a remount after a Replay, a
   // reload (hydrate reads the store once). Cleanup erases nothing, on purpose:
   // the store, not the panel, owns the values; Reset erases.
+  // The shell reads where the panel is (the Library x Lab round, 2026-09-15):
+  // `data-lab-panel` names the side it sits on and `--lab-panel-w` its width,
+  // so design.css can pad a wide board page clear of it on a desktop window
+  // (at 375 the answer is to collapse the panel, not to squeeze the board).
+  // Cleared on unmount, like the dock clears --board-dock-h.
+  useEffect(() => {
+    const html = document.documentElement;
+    if (open) {
+      html.setAttribute("data-lab-panel", side);
+      html.style.setProperty("--lab-panel-w", "20rem");
+    } else {
+      html.removeAttribute("data-lab-panel");
+      html.style.setProperty("--lab-panel-w", "0px");
+    }
+    return () => {
+      html.removeAttribute("data-lab-panel");
+      html.style.removeProperty("--lab-panel-w");
+    };
+  }, [open, side]);
+
   useEffect(() => {
     hydrateTuner();
     const set = getTunerSnapshot();

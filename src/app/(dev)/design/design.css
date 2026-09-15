@@ -114,6 +114,18 @@
 html[data-lab-fit="true"] [data-lab-wide] {
   max-width: none;
 }
+/* The tuner panel (motion-tuner.tsx sets data-lab-panel to its side and
+   --lab-panel-w to its width while open): a wide page keeps its evidence
+   clear of it on a desktop window; below 1024 the reader collapses the panel
+   instead, because a board squeezed into 43px is worse than a covered corner. */
+@media (min-width: 1024px) {
+  html[data-lab-panel="right"] .board-page {
+    padding-right: calc(var(--lab-panel-w, 0px) + 1rem);
+  }
+  html[data-lab-panel="left"] .board-page {
+    padding-left: calc(var(--lab-panel-w, 0px) + 1rem);
+  }
+}
 
 /* ───────────────────────── The legacy mono dark ground ─────────────────────
    Kept ONLY for the two legacy marketing boards' `.mono` dark containers

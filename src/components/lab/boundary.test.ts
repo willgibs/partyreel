@@ -5,9 +5,9 @@
 // lab-library and lab-rules lanes, so the nine lines are asked for in this
 // track's Handoff with the exact patch. The tests below RUN either way: the
 // marker publishes a contract, it does not create one.
-// @contract-for-pending: src/components/lab/index.ts
-// @contract-for-pending: src/components/lab/frame.tsx
-// @contract-for-pending: src/components/lab/apply.tsx
+// @contract-for: src/components/lab/index.ts
+// @contract-for: src/components/lab/frame.tsx
+// @contract-for: src/components/lab/apply.tsx
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 

@@ -2,6 +2,574 @@
   "version": 3,
   "components": [
     {
+      "id": "registry",
+      "file": "src/app/(dev)/design/sandbox/registry.ts",
+      "names": [
+        "BOARDS"
+      ],
+      "specimens": [
+        "/design/lab",
+        "/design/lab/[board]",
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "holds a unique, directory-backed id for every spec",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 41
+        },
+        {
+          "title": "finds a board by id and nothing by a missing one",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 53
+        },
+        {
+          "title": "keeps every spec free of React, CSS and its own board",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 58
+        },
+        {
+          "title": "holds every string inside its limit",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 73
+        },
+        {
+          "title": "points every ask, note and walk step at a section that exists",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 120
+        },
+        {
+          "title": "declares every state a note or a walk step asks for",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 158
+        },
+        {
+          "title": "registers every board that has a spec, and only those",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 193
+        },
+        {
+          "title": "computes one anchor everywhere",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 206
+        }
+      ]
+    },
+    {
+      "id": "apply",
+      "file": "src/components/lab/apply.tsx",
+      "names": [
+        "ApplyToSite"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is imported only from the lab",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 57
+        },
+        {
+          "title": "never reaches into a board",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 69
+        },
+        {
+          "title": "keeps the two faces: no board or kit file uses a mono face",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 88
+        }
+      ]
+    },
+    {
+      "id": "board-page",
+      "file": "src/components/lab/board-page.tsx",
+      "names": [
+        "BoardPage"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "holds a unique, directory-backed id for every spec",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 41
+        },
+        {
+          "title": "finds a board by id and nothing by a missing one",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 53
+        },
+        {
+          "title": "keeps every spec free of React, CSS and its own board",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 58
+        },
+        {
+          "title": "holds every string inside its limit",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 73
+        },
+        {
+          "title": "points every ask, note and walk step at a section that exists",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 120
+        },
+        {
+          "title": "declares every state a note or a walk step asks for",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 158
+        },
+        {
+          "title": "registers every board that has a spec, and only those",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 193
+        },
+        {
+          "title": "computes one anchor everywhere",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 206
+        }
+      ]
+    },
+    {
+      "id": "board-spec",
+      "file": "src/components/lab/board-spec.ts",
+      "names": [
+        "LIMITS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "holds a unique, directory-backed id for every spec",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 41
+        },
+        {
+          "title": "finds a board by id and nothing by a missing one",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 53
+        },
+        {
+          "title": "keeps every spec free of React, CSS and its own board",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 58
+        },
+        {
+          "title": "holds every string inside its limit",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 73
+        },
+        {
+          "title": "points every ask, note and walk step at a section that exists",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 120
+        },
+        {
+          "title": "declares every state a note or a walk step asks for",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 158
+        },
+        {
+          "title": "registers every board that has a spec, and only those",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 193
+        },
+        {
+          "title": "computes one anchor everywhere",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 206
+        }
+      ]
+    },
+    {
+      "id": "board-state",
+      "file": "src/components/lab/board-state.tsx",
+      "names": [
+        "ControlKnobs",
+        "RESERVED_PARAMS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "declares nothing the kit owns",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 83
+        },
+        {
+          "title": "imports the kit from its new home, never the shim",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 101
+        },
+        {
+          "title": "is two files at its root: a spec and a board",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 113
+        },
+        {
+          "title": "is never also on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 121
+        },
+        {
+          "title": "leaves only boards that exist on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 126
+        }
+      ]
+    },
+    {
+      "id": "dock",
+      "file": "src/components/lab/dock.tsx",
+      "names": [
+        "AppliedBadge",
+        "BoardDock",
+        "DOCK_PILL",
+        "DockRow",
+        "Knob",
+        "MotionToggle",
+        "ReplayButton"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "declares nothing the kit owns",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 83
+        },
+        {
+          "title": "imports the kit from its new home, never the shim",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 101
+        },
+        {
+          "title": "is two files at its root: a spec and a board",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 113
+        },
+        {
+          "title": "is never also on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 121
+        },
+        {
+          "title": "leaves only boards that exist on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 126
+        }
+      ]
+    },
+    {
+      "id": "frame",
+      "file": "src/components/lab/frame.tsx",
+      "names": [
+        "Frame",
+        "FrameRow"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is imported only from the lab",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 57
+        },
+        {
+          "title": "never reaches into a board",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 69
+        },
+        {
+          "title": "keeps the two faces: no board or kit file uses a mono face",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 88
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "file": "src/components/lab/index.ts",
+      "names": [
+        "Answer",
+        "AppliedBadge",
+        "ApplyBlock",
+        "ApplyToSite",
+        "Ask",
+        "Asset",
+        "BoardApi",
+        "BoardDock",
+        "BoardIndex",
+        "BoardLinks",
+        "BoardMeta",
+        "BoardPage",
+        "BoardPageContextValue",
+        "BoardPageProvider",
+        "BoardSection",
+        "BoardSectionLink",
+        "BoardSpec",
+        "BoardState",
+        "CANVAS",
+        "Candidate",
+        "Cell",
+        "CellLabel",
+        "Compare",
+        "CompareMode",
+        "ConceptCard",
+        "Control",
+        "ControlKnobs",
+        "CopyButton",
+        "CostMeter",
+        "CostPhase",
+        "DOCK_PILL",
+        "Departure",
+        "DockRow",
+        "FitStage",
+        "Frame",
+        "FrameProps",
+        "FrameRow",
+        "Ground",
+        "Knob",
+        "LIMITS",
+        "LabFit",
+        "LabPrefs",
+        "LabSidebar",
+        "Labeled",
+        "LookFirst",
+        "Loupe",
+        "Mode",
+        "MotionToggle",
+        "Note",
+        "Notes",
+        "Paste",
+        "RESERVED_PARAMS",
+        "ReplayButton",
+        "ReviewQuestions",
+        "Round",
+        "Section",
+        "SectionIdOf",
+        "SelectTable",
+        "Specimen",
+        "Stage",
+        "TRAPS",
+        "Toggle",
+        "Trap",
+        "Verdict",
+        "Walk",
+        "WalkPage",
+        "WalkPages"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is imported only from the lab",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 57
+        },
+        {
+          "title": "never reaches into a board",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 69
+        },
+        {
+          "title": "keeps the two faces: no board or kit file uses a mono face",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 88
+        }
+      ]
+    },
+    {
+      "id": "specimen",
+      "file": "src/components/lab/specimen.tsx",
+      "names": [
+        "Cell",
+        "CellLabel",
+        "Labeled",
+        "Specimen"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "declares nothing the kit owns",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 83
+        },
+        {
+          "title": "imports the kit from its new home, never the shim",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 101
+        },
+        {
+          "title": "is two files at its root: a spec and a board",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 113
+        },
+        {
+          "title": "is never also on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 121
+        },
+        {
+          "title": "leaves only boards that exist on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 126
+        }
+      ]
+    },
+    {
       "id": "marketing-footer",
       "file": "src/components/marketing/chrome/marketing-footer.tsx",
       "names": [

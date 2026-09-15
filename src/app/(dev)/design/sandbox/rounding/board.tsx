@@ -651,7 +651,6 @@ export function RoundingBoard() {
 
   const SiteEvidence = (
     <>
-
       <div className="rnd-controls">
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
           <Knob label="Page">
@@ -674,10 +673,10 @@ export function RoundingBoard() {
       </div>
       <CellLabel className="max-w-2xl">{route.note}</CellLabel>
       <CellLabel className="max-w-2xl">
-        A 1440 canvas does not fit in a 1440 window beside a fixed tuner
-        panel, so the row scrolls inside itself rather than taking the page
-        with it. Collapse the panel (its cross) or send it left (its arrow)
-        and the row widens live to the whole column.
+        A 1440 canvas does not fit in a 1440 window beside a fixed tuner panel,
+        so the row scrolls inside itself rather than taking the page with it.
+        Collapse the panel (its cross) or send it left (its arrow) and the row
+        widens live to the whole column.
       </CellLabel>
       <div className="rnd-wide rnd-frames">
         <PageFrames
@@ -692,25 +691,24 @@ export function RoundingBoard() {
         />
       </div>
       <Proposal>
-        The home arc is where the four groups meet, and it is the one place
-        the ruling can be judged as a whole: a card corner at the chapters, a
-        photograph corner in the film strip, a plan card at the band, and a
-        CTA at every one of them. Take it at 1440 and then at 375 with the
-        dock, on C, and the second read is the one that settles the tile. Then
-        take the guest album on D: the tiles come up to 6px and the gap stays
-        at the 3px its masonry hard-codes, which is the round&apos;s worst
-        finding drawn by the real page rather than argued about.
+        The home arc is where the four groups meet, and it is the one place the
+        ruling can be judged as a whole: a card corner at the chapters, a
+        photograph corner in the film strip, a plan card at the band, and a CTA
+        at every one of them. Take it at 1440 and then at 375 with the dock, on
+        C, and the second read is the one that settles the tile. Then take the
+        guest album on D: the tiles come up to 6px and the gap stays at the 3px
+        its masonry hard-codes, which is the round&apos;s worst finding drawn by
+        the real page rather than argued about.
       </Proposal>
     </>
   );
   const AppEvidence = (
     <>
-
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <CellLabel>
-          The screen is picked in the dock, beside the app ground: part G
-          loads the same one into its four phones, so it is a page-wide switch
-          rather than this part&apos;s.
+          The screen is picked in the dock, beside the app ground: part G loads
+          the same one into its four phones, so it is a page-wide switch rather
+          than this part&apos;s.
         </CellLabel>
         <a
           href={screenPath(screen, ground, designKey)}
@@ -741,9 +739,9 @@ export function RoundingBoard() {
         three files while its tiles ride the token, so every candidate above a
         3px tile opens corner holes on the one grid every guest sees. The door
         screen is the second: the entry sheet takes its top corners from the
-        ACTION token at 1.4x, so the action rung, not the floating rung,
-        decides the shape of the first surface any guest meets. Put the rail
-        on the pill and look at it.
+        ACTION token at 1.4x, so the action rung, not the floating rung, decides
+        the shape of the first surface any guest meets. Put the rail on the pill
+        and look at it.
       </Proposal>
     </>
   );
@@ -871,8 +869,8 @@ export function RoundingBoard() {
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <p className="text-sm font-medium">Live, from the tuner</p>
             <CellLabel className="max-w-lg">
-              {LIVE.rationale} The numbers are read off the page, not parsed
-              out of the variables.
+              {LIVE.rationale} The numbers are read off the page, not parsed out
+              of the variables.
             </CellLabel>
           </div>
           <div className="flex flex-wrap items-start gap-6">
@@ -891,14 +889,13 @@ export function RoundingBoard() {
         which makes the sharp half of bible 8 a claim rather than a look; B is
         the honest version of that claim and reads like a spreadsheet next to
         photographs; D gives up the contrast the law exists for. C keeps the
-        contrast at two to one, which is enough to read, and lets a card have
-        a corner.
+        contrast at two to one, which is enough to read, and lets a card have a
+        corner.
       </Proposal>
     </>
   );
   const NestedEvidence = (
     <>
-
       <div className="rnd-fit flex flex-col gap-4">
         <div
           style={overrideStyle(surface, action)}
@@ -937,8 +934,8 @@ export function RoundingBoard() {
                 The same ring, every base
               </p>
               <CellLabel className="mt-1.5">
-                A ring at 6px offset should be the radius plus 6. The right
-                half of each pair is the object&apos;s own radius.
+                A ring at 6px offset should be the radius plus 6. The right half
+                of each pair is the object&apos;s own radius.
               </CellLabel>
             </div>
             {CANDIDATES.map((c) => (
@@ -961,23 +958,19 @@ export function RoundingBoard() {
       </div>
       <Proposal>
         Whatever the surfaces are ruled at, the nesting is arithmetic and
-        belongs in a token: a plate inside a card at the card&apos;s own
-        padding is the same subtraction every time. The floating-surfaces
-        board asks for exactly this on the floating layer
-        (--radius-float-item, the panel minus its padding). One ruling should
-        cover both.
+        belongs in a token: a plate inside a card at the card&apos;s own padding
+        is the same subtraction every time. The floating-surfaces board asks for
+        exactly this on the floating layer (--radius-float-item, the panel minus
+        its padding). One ruling should cover both.
       </Proposal>
     </>
   );
   const LadderEvidence = (
     <>
-
       <div className="rnd-wide">
         <div className="overflow-x-auto pb-1">
           <div className="grid min-w-[44rem] grid-cols-[3rem_minmax(0,11rem)_minmax(0,11rem)_1fr] items-center gap-x-4 gap-y-4">
-            <CellLabel className="font-medium text-foreground">
-              Step
-            </CellLabel>
+            <CellLabel className="font-medium text-foreground">Step</CellLabel>
             <CellLabel className="font-medium text-foreground">
               Stock, at {px(base)}
             </CellLabel>
@@ -1038,14 +1031,13 @@ export function RoundingBoard() {
       <Proposal>
         Quarters, and delete the top two rungs. rounded-3xl has one call site
         and rounded-4xl has two, one of which is the Badge, which wants a pill
-        and should say so with rounded-full rather than borrowing 2.6x of a
-        base that is about to move.
+        and should say so with rounded-full rather than borrowing 2.6x of a base
+        that is about to move.
       </Proposal>
     </>
   );
   const ActionsEvidence = (
     <>
-
       <div className="rnd-wide">
         <div className="overflow-x-auto pb-1">
           <div className="grid min-w-[44rem] grid-cols-[10rem_repeat(3,minmax(0,1fr))] gap-x-4 gap-y-5">
@@ -1118,10 +1110,9 @@ export function RoundingBoard() {
                 The guest entry sheet
               </p>
               <CellLabel className="mt-0.5">
-                entry-shell.tsx, at 1.4 x --radius-action. Not a button, and
-                the first surface every guest meets. The production shell
-                itself is part B&apos;s door screen; this row is the three
-                rungs at once
+                entry-shell.tsx, at 1.4 x --radius-action. Not a button, and the
+                first surface every guest meets. The production shell itself is
+                part B&apos;s door screen; this row is the three rungs at once
               </CellLabel>
             </div>
             {ACTIONS.map((a) => (
@@ -1137,19 +1128,18 @@ export function RoundingBoard() {
         </div>
       </div>
       <Proposal>
-        Today&apos;s rung, and give the CTA a real size. The pill is a
-        different product and quiet gives up the second half of bible 8; what
-        is actually broken is that the loudest action on the site is an ad-hoc
-        h-11 with a className, and that a sheet is wearing a button&apos;s
-        token. The ruling should add a cta size to the Button (h-11 at 1.1 x
-        --radius-action), retire --radius-action-lg, and move the entry sheet
-        onto the floating layer.
+        Today&apos;s rung, and give the CTA a real size. The pill is a different
+        product and quiet gives up the second half of bible 8; what is actually
+        broken is that the loudest action on the site is an ad-hoc h-11 with a
+        className, and that a sheet is wearing a button&apos;s token. The ruling
+        should add a cta size to the Button (h-11 at 1.1 x --radius-action),
+        retire --radius-action-lg, and move the entry sheet onto the floating
+        layer.
       </Proposal>
     </>
   );
   const PhonesEvidence = (
     <>
-
       <div ref={phonesRef} className="rnd-wide rnd-frames">
         {phonesSeen ? (
           <PhoneRow
@@ -1248,10 +1238,12 @@ export function RoundingBoard() {
       />
 
       {/* The board's own tuner panel: the "Tuner" surface candidate IS this
-          panel, so the board mounts it rather than borrowing the lab's. It is
-          fixed to the corner and can cover the evidence beside it; until the
-          panel sets --lab-panel-w on <html> (asked for in the track's Handoff)
-          usePanelAwareWidth above measures it and holds the wide parts clear. */}
+          panel, so the board mounts it rather than borrowing the lab's. The
+          panel now sets data-lab-panel and --lab-panel-w on <html> and
+          design.css pads a wide page clear of it (landed at the kit's
+          integration, 2026-09-15); usePanelAwareWidth above still measures it
+          because it also grows the wide parts into the gutters, and its panel
+          half is the migration wave's to retire. */}
       <MotionTuner controls={ROUNDING_TUNER_CONTROLS} />
     </div>
   );
