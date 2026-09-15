@@ -17,14 +17,17 @@ import { TopBar } from "./top-bar";
  */
 export function Shell({
   nav,
+  designKey,
   children,
 }: {
   nav: Nav;
+  /** The gate key the proxy forwarded; null in open dev. */
+  designKey: string | null;
   children: React.ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <ShellProvider nav={nav}>
+    <ShellProvider nav={nav} designKey={designKey}>
       <div className="lab-shell min-h-dvh bg-background text-foreground">
         <TopBar menuOpen={menuOpen} onMenu={() => setMenuOpen((o) => !o)} />
         <div className="lab-shell-body">

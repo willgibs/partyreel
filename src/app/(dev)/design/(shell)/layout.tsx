@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { headers } from "next/headers";
 
 import { LabChrome } from "@/components/dev/board/lab-chrome";
 
@@ -17,13 +17,16 @@ export default async function ShellLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const nav = await buildNav();
+  // The gate key, forwarded by the proxy (a layout cannot read searchParams,
+  // and a client useSearchParams here would need a Suspense boundary around
+  // the page, which let a keyless request stream the nav under a 200 before
+  // the proxy gate existed). Empty in open dev; the links stay unkeyed then.
+  const designKey = (await headers()).get("x-design-key") || null;
   return (
     <>
-      {/* useSearchParams (the key) needs a Suspense boundary; every lab route
-          is already dynamic via requireDesignKey, so this never suspends long. */}
-      <Suspense>
-        <Shell nav={nav}>{children}</Shell>
-      </Suspense>
+      <Shell nav={nav} designKey={designKey}>
+        {children}
+      </Shell>
       {/* The reading preferences (1:1 stages, the sidebar tucked away on a
           board page) applied to <html>; see dev/board/lab-prefs.ts. */}
       <LabChrome />
