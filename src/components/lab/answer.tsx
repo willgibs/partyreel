@@ -4,7 +4,12 @@ import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { anchorFor, type Ask, type BoardSpec, type Section } from "./board-spec";
+import {
+  anchorFor,
+  type Ask,
+  type BoardSpec,
+  type Section,
+} from "./board-spec";
 
 /**
  * THE ANSWER, FIRST.
@@ -189,7 +194,7 @@ export function BoardSection({
   return (
     <section
       id={anchorFor(boardId, section.id)}
-      className="flex scroll-mt-[calc(var(--lab-topbar-h,0px)+var(--board-dock-h,0px)+12px)] flex-col gap-4"
+      className="flex flex-col gap-4"
     >
       <div className="max-w-2xl">
         <h2 className="text-sm font-semibold tracking-tight">
@@ -231,13 +236,7 @@ export function BoardSection({
   );
 }
 
-function Fold({
-  label,
-  lines,
-}: {
-  label: string;
-  lines?: readonly string[];
-}) {
+function Fold({ label, lines }: { label: string; lines?: readonly string[] }) {
   const [open, setOpen] = useState(false);
   if (!lines?.length) return null;
   return (

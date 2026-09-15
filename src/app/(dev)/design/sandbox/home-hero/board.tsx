@@ -3,168 +3,283 @@
 // the board's own sheet; it leaves with the board when the ruling lands.
 import "./board.css";
 
-import { RotateCcw } from "lucide-react";
-import { useState } from "react";
-
 import {
-  BoardDock,
-  Stage as ShellStage,
-  Toggle,
+  type BoardApi,
+  BoardPage,
+  Cell,
+  ConceptCard,
+  FitStage,
+  Labeled,
   type Mode,
-} from "@/components/dev/board";
+  ReplayButton,
+  Specimen,
+  Stage,
+  useMountOnApproach,
+  useReplay,
+} from "@/components/lab";
+import { CinemaHero } from "@/components/marketing/sections/home/cinema-hero";
 import { DEMO_EVENT_URL } from "@/lib/demo";
-import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
-import { Variant } from "../variant-frame";
 import { inflow } from "./inflow";
 import { scan } from "./scan";
-import { type Concept, type CopyMode } from "./shared";
+import {
+  type Concept,
+  type ConceptId,
+  copyFor,
+  type CopyMode,
+  FRAMES,
+  GUTTER,
+  LADDER,
+  Photo,
+} from "./shared";
 import { source } from "./source";
+import { HOME_HERO } from "./spec";
 
 /**
- * Touchpoint: THE HOME HERO, round three (Will, 2026-09-14). The contract and
- * the doctrine are in shared.tsx. Round two's three concepts were ruled the
- * same day: the source won ("definitely my favorite direction"), so it stays
- * on the board as the reference and three variations off it are one file
- * each, built by tracks in parallel (round four: hero-source, hero-scan, hero-inflow;
- * the burst and the river left for their own boards on 2026-09-15)
- * and imported here in the order the board argues them. The reel and the
- * gathering left the board at ba82222 (`git show ba82222:<path>`).
+ * THE HOME HERO BOARD (rounds one to four, 2026-09-12 to 2026-09-15; on the
+ * kit's template since the Library x Lab migration wave, 2026-09-15).
  *
- * Lab convention, deliberate: nothing here wires use-ambient-pause on scroll
- * (the lab never pauses; side-by-side comparison wants everything running).
- * Loops pause on a hidden TAB only, through the stage's data-paused, which
- * costs nothing and cannot misfire. Production wiring is use-ambient-pause,
- * exactly as the shipped hero has it.
+ * What the board ARGUES lives in `spec.ts` and only there: the question, the
+ * verdict, the four one-word calls, the three concepts with the copy each one
+ * proposes, the departures and the assets. What is left here is what a board
+ * should be and nothing else, the evidence for each declared section as a
+ * function of the declared state.
+ *
+ * Three things the migration changed about how it reads, all of them the
+ * template's rather than this board's taste:
+ *
+ * 1. THE ANSWER IS THE FIRST SCREEN. Round four opened with two paragraphs of
+ *    how the ruling got here and hung each concept's metadata off the foot of
+ *    its stage in an 11px table. The verdict and the pills a reviewer can reply
+ *    with are above everything now, and the history is one collapsed button at
+ *    the end.
+ * 2. THE CONCEPT SWITCH IS DECLARED STATE, so `?candidate=scan` opens the scan
+ *    alone and a review note can be pasted as a link. Clicking a card's name
+ *    isolates it and clicking again returns the comparison.
+ * 3. THE SHIPPED HERO IS BACK AT THE BOTTOM. Round one's whole case was the
+ *    scroll from the candidates to the thing they replace, and round two lost
+ *    it when the board was rebuilt around the QR question. It is mounted from
+ *    production code, on approach, in the same canvas.
+ *
+ * ★ NO `bodySkin` ON THESE STAGES, and that is a deliberate reversal of round
+ * four. `data-mkt-skin` flips the whole page through `body:has(...)`, which
+ * made the lab's own chrome cinema-dark whatever theme the reviewer had chosen;
+ * harmless when the board was three stages and nothing else, wrong now that the
+ * first screen is the answer block and the last is the review panel. Will's
+ * lab-surface ruling is that dark and light are chosen separately. The stages
+ * carry cinema themselves, which is where it belongs.
+ *
+ * Lab convention, deliberate and unchanged: nothing here wires
+ * use-ambient-pause on scroll (the lab never pauses; side-by-side comparison
+ * wants everything running). Loops pause on a hidden TAB only, through the
+ * stage's data-paused, which costs nothing and cannot misfire. Production
+ * wiring is use-ambient-pause, exactly as the shipped hero has it.
  */
 
-const CONCEPTS: Concept[] = [source, scan, inflow];
-
-/** The stage: the shell's, on the cinema ground with the group's body skin
- *  (this board is cinema-only, so the lab page matches the route group). */
-function Stage({ mode, children }: { mode: Mode; children: React.ReactNode }) {
-  return (
-    <ShellStage mode={mode} ground="cinema" bodySkin>
-      {children}
-    </ShellStage>
-  );
-}
-
-/** What a concept proposes beyond its stage, on the board where it can be
- *  ruled on: the eyebrow, the departures it flags, the assets it asks for. */
-function ConceptMeta({ concept }: { concept: Concept }) {
-  const rows: [string, string[]][] = [
-    ["Eyebrow", [concept.eyebrow]],
-    [
-      "Proposed copy",
-      [
-        `${concept.proposed.h1} / ${concept.proposed.subhead} / ${concept.proposed.secondary}`,
-      ],
-    ],
-    ["Departures", concept.departures.length ? concept.departures : ["none"]],
-    ["Asks", concept.assets.length ? concept.assets : ["none yet"]],
-  ];
-  return (
-    <dl className="mt-3 grid grid-cols-[7rem_minmax(0,1fr)] gap-x-3 gap-y-1 text-xs text-muted-foreground">
-      {rows.map(([label, lines]) => (
-        <div key={label} className="contents">
-          <dt className="text-[11px]">{label}</dt>
-          <dd>
-            {lines.map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
+/** The engines, by the id the spec's candidates carry. */
+const ENGINES: Record<ConceptId, Concept> = { source, scan, inflow };
+const ORDER: readonly ConceptId[] = ["source", "scan", "inflow"];
 
 export function HomeHeroBoard() {
-  const [mode, setMode] = useState<Mode>("desktop");
-  const [copy, setCopy] = useState<CopyMode>("ruled");
-  const [runId, setRunId] = useState(0);
-  const reduced = usePrefersReducedMotion();
+  const { runId, replay } = useReplay();
   const qrUrl = DEMO_EVENT_URL ?? null;
+  // The shipped hero is 25 images with 7 of them eager; mounting it with the
+  // board would cost the three candidates their first paint for nothing.
+  const [todayRef, todaySeen] = useMountOnApproach();
 
   return (
-    <div className="flex flex-col gap-6 py-4">
-      {/* The page-wide switches ride the dock (Will, 2026-09-15: a board's
-          controls fixed on screen, so the source and the scan can be compared
-          at 375 without scrolling back past a 930px stage for every flip). */}
-      <BoardDock
-        aside={
-          <button
-            type="button"
-            onClick={() => setRunId((n) => n + 1)}
-            className="flex h-7 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-transform active:scale-95"
-          >
-            <RotateCcw className="size-3.5" />
-            Replay
-          </button>
+    <BoardPage
+      spec={HOME_HERO}
+      dock={() => <ReplayButton runId={runId} onReplay={replay} />}
+      evidence={(id, state, api) => {
+        const mode = state.canvas as Mode;
+        const copy = state.copy as CopyMode;
+        const pick = state.candidate as ConceptId | "all";
+        switch (id) {
+          case "concepts":
+            return (
+              <Concepts
+                mode={mode}
+                copy={copy}
+                pick={pick}
+                qrUrl={qrUrl}
+                runId={runId}
+                api={api}
+              />
+            );
+          case "words":
+            return <Words mode={mode} />;
+          case "stand-ins":
+            return <StandIns mode={mode} />;
+          case "today":
+            return (
+              <div ref={todayRef}>
+                <Labeled
+                  name="The shipped hero"
+                  note="cinema-hero.tsx, from production code, in the canvas the candidates are judged in."
+                >
+                  <Stage
+                    key={`today-${mode}-${runId}`}
+                    mode={mode}
+                    ground="cinema"
+                  >
+                    {todaySeen ? <CinemaHero /> : null}
+                  </Stage>
+                </Labeled>
+              </div>
+            );
+          default:
+            return null;
         }
-      >
-        <Toggle
-          ariaLabel="Viewport"
-          options={[
-            { id: "desktop" as Mode, label: "Desktop" },
-            { id: "phone" as Mode, label: "Phone 375" },
-          ]}
-          value={mode}
-          onChange={setMode}
-        />
-        <Toggle
-          ariaLabel="Copy"
-          options={[
-            { id: "ruled" as CopyMode, label: "Ruled copy" },
-            { id: "proposed" as CopyMode, label: "Proposed copy" },
-          ]}
-          value={copy}
-          onChange={setCopy}
-        />
-        {reduced && (
-          <span className="text-[11px] text-muted-foreground">
-            Reduced motion: every composition settled, the album already there.
-          </span>
-        )}
-      </BoardDock>
-      <div className="max-w-2xl space-y-3 text-xs leading-relaxed text-muted-foreground">
-        <p>
-          Round two asked one question, the hero is the QR becoming the album,
-          and answered it three ways. Will ruled the source: a stranger landing
-          here should immediately think &quot;if I scan this, I get all of
-          these&quot;, and the supporting elements and copy clarify from there.
-          The reel read as the video being the product; the gathering&apos;s QR
-          read as a scan-to-learn-more object beside an album, not the basis of
-          the feature.
-        </p>
-        <p>
-          Round four continues the two Will loves (2026-09-15): the source in
-          its emanating direction and the scan with its phone. The inflow is the
-          new variation off the source, the album streaming into the code rather
-          than out of it, built to answer honestly whether the truer reading
-          presents as well. The burst and the river were killed as heroes and
-          moved to their own boards: the burst&apos;s field is the album
-          page&apos;s hero, the river a feature visual in the bank. Each
-          proposes its own supporting elements and copy, names its assets, and
-          flags any departure on the board rather than in a footnote.
-        </p>
-      </div>
+      }}
+    />
+  );
+}
 
-      {CONCEPTS.map((c) => (
-        <Variant
-          key={c.id}
-          n={c.n}
-          name={c.name}
-          rationale={c.rationale}
-          framed={false}
-        >
-          <Stage mode={mode} key={`${c.id}-${mode}-${runId}-${copy}`}>
-            {c.render({ mode, copy, scrim: false, qrUrl, runId })}
-          </Stage>
-          <ConceptMeta concept={c} />
-        </Variant>
+/**
+ * The three concepts, each on its own cinema canvas inside the kit's card.
+ *
+ * ★ THE STAGE IS KEYED ON EVERY PIECE OF STATE THAT CHANGES THE COMPOSITION.
+ * Every arrival on this board is a CSS animation with `animation-fill-mode:
+ * both`, so the honest way to run one again is a remount; a canvas or a copy
+ * flip is a different composition and has to arrive rather than cut.
+ */
+function Concepts({
+  mode,
+  copy,
+  pick,
+  qrUrl,
+  runId,
+  api,
+}: {
+  mode: Mode;
+  copy: CopyMode;
+  pick: ConceptId | "all";
+  qrUrl: string | null;
+  runId: number;
+  api: BoardApi;
+}) {
+  const shown = pick === "all" ? ORDER : [pick];
+  return (
+    <div className="flex flex-col gap-8">
+      {shown.map((id) => {
+        const candidate = HOME_HERO.candidates.find((c) => c.id === id);
+        if (!candidate) return null;
+        return (
+          <ConceptCard
+            key={id}
+            candidate={candidate}
+            selected={pick === id}
+            // The name is the switch: one click isolates this concept (and
+            // writes it into the URL), a second returns the comparison.
+            onSelect={() =>
+              api.setState({ candidate: pick === id ? "all" : id })
+            }
+          >
+            <Stage
+              key={`${id}-${mode}-${copy}-${runId}`}
+              mode={mode}
+              ground="cinema"
+            >
+              {ENGINES[id].render({ mode, copy, scrim: false, qrUrl, runId })}
+            </Stage>
+          </ConceptCard>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * The four lockups at the size they ship.
+ *
+ * ★ THE HEADLINE IS A `<p>` HERE, NOT AN `<h1>`, and this is the only place on
+ * the board where that is true. The candidates above render real h1s inside
+ * real compositions, which is what the h1 rules are about; four more h1s in a
+ * type specimen would put four page titles in one document for a screen reader
+ * and prove nothing the classes do not. The face, the ladder rung and the
+ * leading are the shipped ones.
+ *
+ * ★ AND THE LEADING COMES AFTER THE LADDER CLASS. A Tailwind size utility may
+ * carry a line-height, so a `leading-*` written before it is the one that
+ * loses; it bit two concepts before it was written down.
+ */
+function Words({ mode }: { mode: Mode }) {
+  const lockups = [
+    {
+      id: "ruled",
+      name: "The site thesis",
+      note: "marketing-voice.ts, ruled 2026-08-25. What every concept renders unless the Copy knob is on its proposal.",
+      copy: copyFor({ id: "source" }, "ruled"),
+    },
+    // No note on a proposal: the card above already carries the concept's
+    // case, and a second gloss here would be the same sentence twice.
+    ...ORDER.map((id) => ({
+      id,
+      name: `Proposed by ${HOME_HERO.candidates.find((c) => c.id === id)?.name ?? id}`,
+      note: undefined,
+      copy: copyFor({ id }, "proposed"),
+    })),
+  ];
+
+  return (
+    <div className="flex flex-col gap-8">
+      {lockups.map((l) => (
+        <Labeled key={l.id} name={l.name} note={l.note}>
+          <FitStage mode={mode} ground="cinema">
+            <div
+              className={`flex flex-col items-center gap-5 py-14 text-center ${GUTTER[mode].x}`}
+            >
+              <p
+                className={`font-heading text-balance text-white ${LADDER.xl[mode]} leading-[1.02]`}
+              >
+                {l.copy.h1}
+              </p>
+              <p
+                className={`max-w-[46ch] text-white/70 ${mode === "desktop" ? "text-lg" : "text-sm"} leading-relaxed`}
+              >
+                {l.copy.subhead}
+              </p>
+              <p className="text-[11px] tracking-wide text-white/45 uppercase">
+                {l.copy.primary.label}
+                <span className="mx-2 text-white/25">|</span>
+                {l.copy.secondary}
+              </p>
+            </div>
+          </FitStage>
+        </Labeled>
       ))}
     </div>
+  );
+}
+
+/**
+ * The twelve stand-ins at 120px, the size the corridor reads them at.
+ *
+ * The asset ask on this board is the biggest one it carries and it is written
+ * as a sentence about framing ("tight enough to read at 120 px, never a wide
+ * room shot"). A sentence about a size is a thing to look at, so it is looked
+ * at: on the cinema ground, at that size, in the order the corridor cycles
+ * them. Lazy on purpose, the one place on the board where that is right: these
+ * are not a hero, they are a catalogue of what a hero is waiting for.
+ */
+function StandIns({ mode }: { mode: Mode }) {
+  return (
+    <FitStage mode={mode} ground="cinema">
+      <div className={`py-8 ${GUTTER[mode].x}`}>
+        <Specimen cols={mode === "desktop" ? 6 : 2} gap={4}>
+          {FRAMES.map((id, i) => (
+            <Cell key={id} name={id}>
+              <Photo
+                index={i}
+                sizes="120px"
+                eager={false}
+                className="size-[120px] rounded-[3px]"
+              />
+            </Cell>
+          ))}
+        </Specimen>
+      </div>
+    </FitStage>
   );
 }

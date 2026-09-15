@@ -60,10 +60,8 @@ const OWNED = [
 const LEGACY: readonly string[] = [
   "album-hero",
   "brand-voice",
-  "home-hero",
   "media-kit",
   "palette",
-  "river-visual",
   "type-scale",
 ];
 
