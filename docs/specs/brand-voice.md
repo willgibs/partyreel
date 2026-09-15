@@ -2,17 +2,17 @@
 
 > ROLE: the voice guide. What Partyreel sounds like, in one paragraph and three registers, as
 > sentence shapes with an example per surface, plus the procedure the infusion round rewrites by.
-> BELONGS HERE: the voice, the registers, the shapes, the do's, the word list, the judging test, the
-> sweep order. · NOT HERE: the lines themselves (the one home is
+> BELONGS HERE: the voice, the registers, the shapes, the sixteen surfaces written, the do's, the
+> word list, the judging test, the sweep order. · NOT HERE: the lines themselves (the one home is
 > [`marketing-voice.ts`](../../src/lib/constants/marketing-voice.ts)), the pages that carry them
 > (→ [`../systems/marketing-content.md`](../systems/marketing-content.md)), the help authoring brief
 > (→ [`../../content/help/AUTHORING.md`](../../content/help/AUTHORING.md)).
 > GROWS BY: refine in place.
 
-> **STATUS: a PROPOSAL (the `brand-voice` track, round three, 2026-09-14).** Bible 20 says the
+> **STATUS: a PROPOSAL (the `brand-voice` track, round four, 2026-09-15).** Bible 20 says the
 > brand-voice exploration writes the do's that replace it, and bible 21 opened every line until the
-> voice exists. This is that guide, written from the ground up (bible 22) and argued on whole pages
-> at `/design/c/brand-voice`. Nothing here binds until Will rules; on his ruling the Orchestrator
+> voice exists. This is that guide, written from the ground up (bible 22), shown in use on sixteen real
+> surfaces and argued on whole pages at `/design/c/brand-voice`. Nothing here binds until Will rules; on his ruling the Orchestrator
 > promotes it to `docs/systems/brand-voice.md` and the `voice-infusion` round carries it site-wide.
 > The board holds the candidates, the pastes and the seven asks; this doc is the recommended answer.
 
@@ -157,6 +157,151 @@ Each surface, the shapes that belong on it, and the rule that decides between th
 | Error | 5, then 4 | Say what did not happen, in the app's own noun, then the one thing to do next. Never apologise, never blame the reader, never explain the system. |
 | Guest surface | 2, 4, 5 | The event's name leads. The host's business stated plainly, in the guest's words. |
 
+## The sixteen surfaces, written
+
+Round four (2026-09-15). The table above says which shape belongs on which surface; this section
+writes the line, so the `voice-infusion` round can rewrite a surface from this guide without opening
+the board. **It is the whole board, not a sample: all sixteen surfaces and all sixty-six lines the
+board renders, in the board's own order** (25 marketing, 24 app, 17 guest). Every `today` is the
+shipped string, quoted from the file listed for its surface below. **In the voice** is the
+recommended answer (B, the room). **If A wins** is the same line in candidate A, and it is given
+only where A writes something different: where the column is blank, A writes the recommended line.
+
+Nineteen of the sixty-six are marked `held`, the same nineteen the board counts, and each carries
+the reason rather than the word unchanged, because a held line is a finding rather than an omission:
+a button the host is about to press, a help title that is also the search string, and an empty state
+that was already written in the voice are all places where a voice that improved on the line would
+be a voice getting in the way.
+
+Where each surface lives, so a rewrite starts in the right file:
+
+| Surface | File |
+| --- | --- |
+| Home hero | `app/(marketing)/(cinema)/page.tsx`, `SITE_THESIS` and `SITE_SUBHEAD` |
+| Chapter (album) | `components/marketing/sections/home/album-section.tsx` |
+| Feature card set | `components/marketing/sections/features/album/album-copy.ts`, `GETTING_IN` |
+| Pricing pair | `components/marketing/sections/pricing/plan-cards.tsx`, numbers from `tiers.ts` |
+| Help article opening | `content/help/an-upload-wont-finish.mdx`, front matter and first paragraph |
+| Dashboard empty state | `components/app/dashboard/events-empty-teaser.tsx` |
+| Event card pills | `components/app/event-card.tsx`, labels from `dashboard/events-section.tsx` |
+| Create-event wizard | `components/app/create-event-wizard.tsx` |
+| Toasts | `components/app/event-feed/event-feed.tsx` and `app/host-media-grid.tsx` |
+| Errors | `components/guest/enter-event-prompt.tsx` and `components/guest/guest-upload.tsx` |
+| Notifications | `lib/notifications/build.ts` |
+| Account page | `app/(app)/account/page.tsx` |
+| Guest door | `components/guest/entry-modal.tsx` |
+| Guest upload sheet | `components/guest/file-dropzone.tsx`, `guest-upload.tsx`, `save-account-prompt.tsx` |
+| Empty album | `components/guest/gallery-empty-state.tsx` |
+| Email | `lib/email/templates.ts`, `inactivityWarningEmail` |
+
+### Marketing, loud
+
+| Surface, slot | Today | In the voice | If A wins |
+| --- | --- | --- | --- |
+| Home hero, eyebrow | One QR. No app. No account. | One code. Every phone. Live. | One code. Every phone. One album. |
+| Home hero, h1 | The whole event, in one album. | One code on the table, and the album starts filling. | (keeps today's, which is A's argument) |
+| Home hero, subhead | Partyreel collects the photos and videos from your guests with one QR code. No more chasing group chats the morning after. | Every phone in the room finds it, uploads at full size, and you end up with the whole event in one place. | (keeps today's) |
+| Home hero, CTAs | Start free · Watch a sample reel | Start free · Watch a reel | Start free · Watch a sample reel |
+| Chapter eyebrow (album) | The album | `held`: an eyebrow on this page is a chapter mark, and the chapter is the album. Renaming it names a different section, which is a structure question rather than a copy one. | |
+| Chapter header (album) | Every photo comes to you first. | Two hundred photos you never had to ask for. | The whole event, and it's yours to keep. |
+| Chapter body (album) | Every phone in the room feeds one album, and the album is yours: look through it, tidy it up, and share it when you are ready. | Every phone in the room feeds one album. Look through it, tidy it up, and send it when you are ready. | (keeps today's) |
+| Chapter chevron | Inside the live album | `held`: a chevron names the place it goes, not a sentence. | |
+| Feature band, subhead | Guests point a camera at the code, land on a welcome screen, and start adding. New events ask for an email first. | A phone finds the code, a welcome screen opens, and photos start arriving. New events ask for an email first. | A camera, a code, a welcome screen, and your guests are adding. New events ask for an email first. |
+| Feature card 1, title | No app, ever | It opens in a browser | The browser they already have |
+| Feature card 1, body | The code opens the album in the browser they already have. Point, tap, add. Nothing to install. | A camera finds the code and the album opens in the browser already on the phone. Point, tap, add. | The code opens the album in the browser on their phone, and they are adding a tap later. Nothing to install. |
+| Feature card 2, title | Names, if you want them | Names, if you ask for them | A name on every photo, if you want one |
+| Feature card 2, body | Require accounts and guests confirm an email once. Switch it off and anyone with the link can add. | Ask for an email and a guest confirms one once, on the phone they are already holding. Switch it off and anyone with the link adds. | Ask for an email and each guest confirms one once, so every photo arrives with a name on it. Switch it off and anyone with the link can add. |
+| Feature card 3, title | One link, forever | The code is the album | One link, and it keeps working |
+| Feature card 3, body | The code is the album link. Scan it, tap it in a chat, open it later. Pro and Event Pass can name it. | Scan it at the door, tap it in the group chat, open it next March. It is the same link the whole time, and Pro can name it. | The code is the album link: scan it at the door, tap it in a chat, open it next year. Pro and Event Pass can name it. |
+| Pricing, Free tagline | Your first event, covered. | One event, and every photo that lands in it. | Your first event, and everyone in it. |
+| Pricing, Free item | No watermark on photos or the album | Photos come out the size they went in | Full-size photos, no watermark |
+| Pricing, CTA | Start free | `held`: two words, a verb and the price. A voice that improves on a button has started selling on it. | |
+| Pricing, Free footnote | No card. Upgrade only when you host again. | No card. Upgrade when you host the next one. | No card, and you upgrade only when you host again. |
+| Pricing, Pro tagline | For hosts who host again. | For hosts already planning the next one. | For the next one, and the one after. |
+| Pricing, Pro item | Password-locked albums and custom links | Lock an album, name its link | Password-locked albums, and links you name |
+| Pricing, Pro footnote | Change size or cancel any time in the billing portal. | Move up a size or stop any time, from the billing portal. | Change the size, or stop, any time in the billing portal. |
+| Help article, title | An upload won't finish | `held`: a help title is the search string and the tab title, so the reader's words outrank the voice. | |
+| Help article, description | A stuck upload is almost always the connection: tap the dimmed tile to retry. A refused one tells you why (too large, wrong type, uploads closed). Big videos need a steady connection and time. | Tap the dimmed tile and a stuck upload usually finishes: it is almost always the connection. A refused one says why, and a big video needs a steady signal and time. | A stuck upload is almost always the connection, and a tap on the dimmed tile finishes it. A refused one tells you why: too large, wrong type, uploads closed. |
+| Help article, first paragraph | Uploads go one file at a time, and each one either lands with a green check or turns dim with Tap to retry. The message on the toast tells you which of these it is. | Files go up one at a time. Each one lands with a green check or turns dim with Tap to retry, and the toast says which it was. | Uploads go one file at a time, and each one either lands with a green check or turns dim with Tap to retry. The toast tells you which. |
+
+Two things the marketing table settles. The **hero is the whole ruling in one lockup**: A writes
+today's two ratified lines back, because keeping them is A's argument, so the eyebrow and the second
+CTA are the only places A differs. And a **feature card is judged across a row, not down a column**:
+`album-copy.ts` states the band these were written to (about forty characters a row on a three-up
+grid, two rows per body), so a rewrite that gains a row has spent the page's rhythm on a sentence.
+
+### The app, quiet
+
+| Surface, slot | Today | In the voice | If A wins |
+| --- | --- | --- | --- |
+| Dashboard empty, heading | Your events land here | `held`: an arrival, present tense, the host's own noun. Every voice writes it. | |
+| Dashboard empty, body | Create an event and your guests add photos and videos in seconds. No app, no account, just a QR code. | Create an event and share one code. Photos start arriving in seconds, from any phone in the room. | Create an event, share the code, and your guests add photos and videos in seconds. |
+| Dashboard empty, button | Create your first event | `held`: the verb the host is about to press. | |
+| Event card, items pill | 128 items | 128 in the album | 128 in the album |
+| Event card, status pill | Open | `held`: a state pill is a state. | |
+| Event card, review chip | 3 to review | 3 waiting on you | 3 to review |
+| Wizard, card title | Create an event | `held`: the page's job title, three words. | |
+| Wizard, card description | Name it, pick a QR style, and you're ready to collect photos. | Name it, style the code, and it's ready for your guests to scan. | Name it, pick a QR style, and it's ready for your guests. |
+| Wizard, step labels | Details · Design · Share | Name · Code · Share | Details · Design · Share |
+| Wizard, date helper | Just for your reference: events never expire. | For your own reference. An event stays until you delete it. | For your reference only. Events never expire. |
+| Wizard, QR step heading | Guest join QR | The code your guests scan | The QR your guests scan |
+| Wizard, QR step body | Pick a style for the QR your guests scan. You can change it anytime. | Pick a style now, change it any time. | Pick a style. You can change it any time. |
+| Wizard, share step body | Print or display the QR, or share the link. Guests just open it. No app, no account. | Put the code on a table or send the link. A guest opens it and starts adding. | Print the QR, put it on a table, or send the link. Guests just open it. |
+| Toast, review on | Review is on. New uploads wait here for approval. | Review is on. New uploads wait here for you. | Review is on. New uploads wait for your approval. |
+| Toast, hidden | Hidden from everyone | Hidden. Only you can see it. | Hidden from your guests |
+| Error, sign-in | That email and password didn't match. Try the email link instead. | `held`: the shape is already there, and the pointer to the email link is an account-enumeration decision rather than a preference. | |
+| Error, upload refused | Couldn't add that photo | `held`: the app's own verb, and the reason arrives underneath. | |
+| Error, upload reason | That file type isn't supported. | Photos go up as JPEG, PNG, WebP, HEIC, HEIF or AVIF. | Photos need to be JPEG, PNG, WebP, HEIC, HEIF or AVIF. |
+| Notification, review title | 3 uploads to review | `held`: a count and the host's own noun, front-loaded for a list that truncates. | |
+| Notification, review body | Guests are waiting for your approval. | Approve them and they are in the album. | They go into the album as soon as you approve them. |
+| Notification, storage title | You're over your storage limit | `held`: the fact about the host's own account, in the fewest words. A softer opening here would be a kindness that costs the host their photos. | |
+| Notification, storage body | Upgrade or remove media before we auto-reduce it. | Upgrade or clear some space, and nothing has to go. | Upgrade or clear some space and everything stays. |
+| Account, section labels | Profile · Public profile · Connections · Password · Email preferences | `held`: five nouns the host already reads correctly. | |
+| Account, profile help | Your page on Partyreel: the events you host and choose to share, plus events you joined. Follower counts stay private to you. | The events you host and share, and the ones you joined. Follower counts stay private to you. | The events you host and share, plus the ones you joined. Follower counts stay private to you. |
+
+Three of these rows are corrections rather than preferences, and belong to the sweep whichever voice
+wins. **Events never expire** is not what the product does: an event stays until the host deletes it
+(there is deliberately no end date, which is the anti-abuse core), so the wizard's date helper is
+currently promising the wrong thing. **Hidden from everyone** is true and still wrong, because the
+host can still see the photo, and a warning toast is the worst place to make a reader work that out.
+And **auto-reduce** names the machinery and then threatens the host with it, which is the fence do 2
+exists for: copy commits to outcomes, never to what does the work.
+
+### A guest's phone, and the inbox
+
+| Surface, slot | Today | In the voice | If A wins |
+| --- | --- | --- | --- |
+| Door, title | Welcome to Maya & Jay's Wedding | `held`: the host's event name, first and largest (bible 4). | |
+| Door, public body | A shared gallery for the whole event. | One album, filling up all night. | One album, from everyone who came. |
+| Door, account-required body | Create a free account to see the full gallery and add your own photos. | Maya and Jay ask for an email first. Add it once and you're in. | Maya and Jay ask guests for an email. Add it once and you can add photos. |
+| Door, private body | Enter the event password to view it. | Enter the password Maya and Jay sent you. | Enter the password Maya and Jay gave you. |
+| Door, action | Continue | `held`: one word, and the guest has already decided. | |
+| Upload sheet, dropzone title | Add photos & videos | `held`: the verb and the two nouns it takes. | |
+| Upload sheet, dropzone hint | Tap to choose, or drag them here | `held`: a verb, then how. The guest register's own shape, shipped. | |
+| Upload sheet, review note | The host reviews uploads before they appear in the gallery. | Maya and Jay see everything first. Approved photos appear in the album. | Maya and Jay review photos before they appear in the album. |
+| Upload sheet, save card title | Keep these photos | `held`: the guest's own reason for tapping. | |
+| Upload sheet, save card body | Create a free account to save this event and come back to the gallery whenever you want. | Save the album and open it again whenever you want. A free account keeps it on your list. | Save this event and come back to the album whenever you want. A free account keeps it. |
+| Upload confirmation | Sent, waiting for host approval | Sent. Maya and Jay see it next. | Sent. Maya and Jay will approve it. |
+| Empty album, heading | This is where it all lands | `held`: an arrival, present tense, no brand. The best line in the product. | |
+| Empty album, action | Be the first to add a photo | Add the first photo | Be the first to add a photo |
+| Email, subject | Your Partyreel event will be removed soon | Maya & Jay's Wedding will be removed soon | Your Partyreel event will be removed soon |
+| Email, headline | Keep your event active | Open it and it stays | Keep your event |
+| Email, first line | Your event Maya & Jay's Wedding hasn't been used in a while. To keep free accounts tidy, we remove events after 6 months of inactivity. Yours is set for removal on 14 March. Just sign in or open it before then to keep it. | Open Maya & Jay's Wedding before 14 March and it stays, photos and all. Free events are removed after six months without a visit. | Open Maya & Jay's Wedding before 14 March and it stays. Free events are removed after 6 months without a visit. |
+| Email, button | Keep my event | Open the album | Keep my event |
+
+Two rulings live in this table. The **account-required door is compelled by bible 4, not chosen**:
+the shipped line asks a guest to make an account with us on the host's own page, so the sweep
+rewrites it whichever voice wins, and the only choosable part is the noun (ask 6). And the **email
+subject is a real trade**: A keeps *Partyreel* in it because an inbox sorts and searches by our name
+and this mail arrives months after the party, while B puts the reader's own event first, which is
+the guide's rule everywhere else. Decide it once, for all ten templates.
+
+Six of the seventeen guest rows are held, which is the chapter's finding rather than a gap: the
+guest surface was the closest thing to a written voice this product had before anyone wrote one
+down.
+What moves there is only where a host is the one deciding, which is where **the host's name replaces
+"the host"** and **gallery becomes album**.
+
 ## The eight do's
 
 The two fences that are product truth
@@ -242,6 +387,11 @@ Four questions, in order. The first failure is the rewrite.
 - **The anchor.** A heading that is a link target keeps its id, or every link to it changes in the
   same commit.
 - **The register.** A better marketing sentence moved into the app is still a regression.
+- **Know which strings are props.** Some app copy arrives from the page and some is written inside
+  the component, and the difference sets the size of the change: the event card's two pills come
+  from `dashboard/events-section.tsx` while its amber review chip is hardcoded in
+  `event-card.tsx`, so the same-looking row is a label change in one case and a component edit in
+  the other.
 
 ### The two pastes the board hands over
 
@@ -255,16 +405,17 @@ reaches `marketing-voice.ts` and `feature-pages.ts` without anything being retyp
 
 1. **[`marketing-voice.ts`](../../src/lib/constants/marketing-voice.ts) first**: the thesis, the
    subhead, the seven home headers, the decomposition facts. Everything downstream is written
-   against the register these set, so they move before anything quotes them. (Chapter 4's paste.)
+   against the register these set, so they move before anything quotes them. (Chapter 7's paste on the board.)
 2. **[`feature-pages.ts`](../../src/lib/constants/feature-pages.ts) and
    [`marketing-nav.ts`](../../src/lib/constants/marketing-nav.ts) together**, in one commit: the nav
    mirror test pins the 44 labels and 15 descriptions against the six pages' identity strings, so
-   the pair cannot move separately. (Chapter 8's paste.)
+   the pair cannot move separately. (Chapter 11's paste on the board.)
 3. **The marketing sections and pages**, chapter by chapter, a page at a time. The home arc's
-   eyebrows, supporting lines and CTAs are on chapters 2 to 4; the two feature pages whole are on
-   chapters 6 and 7, cards included; `/help`, `/contact` and `/pricing` are on chapter 9, and they
-   are the cheapest three lines on the list with the largest effect, since two of them are the most
-   generic sentences on the site. **The card sets are the surprise in this step, and the cheapest
+   eyebrows, supporting lines and CTAs are on chapters 5 to 7 of the board; the two feature pages
+   whole are on chapters 9 and 10, cards included; `/help`, `/contact` and `/pricing` are on chapter
+   12, and they are the cheapest three lines on the list with the largest effect, since two of them
+   are the most generic sentences on the site. The hero, the album chapter, a card set, the pricing
+   pair and a help opening are each written out in "The sixteen surfaces, written" above. **The card sets are the surprise in this step, and the cheapest
    part of it:** across the album page's nineteen cards and the curation page's five, A moves three
    strings of forty-eight and B six. Will's 2026-09-02 finish pass already wrote them in one length
    band with every number derived from the constants the product enforces, so a rewrite that ignores
@@ -275,11 +426,18 @@ reaches `marketing-voice.ts` and `feature-pages.ts` without anything being retyp
 4. **The help catalogue** (59 articles, 2,959 lines): the frontmatter `description` first, since it
    is the short answer and the meta description both, then the body. Anything inside `<UiLabel>` is
    a quotation and is not rewritten here at all.
-5. **The app's inline copy**, which has no module and lives in the components. Renaming a control is
-   a two-file change by construction: `help-ui-labels.test.ts` requires every `<UiLabel>` string the
-   help centre quotes to exist in the app source, so the app string and the quoting article move in
-   the same commit or the gate fails.
+5. **The app's inline copy**, which has no module and lives in the components: the dashboard's
+   empty state, the event card's pills, the create wizard, the toasts, the errors, the notification
+   bodies, the account page and every guest surface are written out in "The sixteen surfaces,
+   written" above, with the file named on each row. Renaming a control is a two-file change by
+   construction: `help-ui-labels.test.ts` requires every `<UiLabel>` string the help centre quotes
+   to exist in the app source, so the app string and the quoting article move in the same commit or
+   the gate fails. Three rows in that table are CORRECTIONS rather than rewrites (the wizard's
+   "events never expire", the "Hidden from everyone" toast and the storage notification's
+   "auto-reduce"), so they land whichever voice is ruled.
 6. **The ten email templates** ([`templates.ts`](../../src/lib/email/templates.ts), subjects inline).
+   Settle the subject question once for all ten: whether "Partyreel" stays in it for the inbox's
+   sort, or the reader's own event leads. The inactivity mail is written both ways above.
 7. **Legal last and lightest** (`legal-privacy.tsx`, `legal-terms.tsx`, 1,366 lines): its register is
    its own, and do 2 above is the only rule from this guide that reaches it.
 8. **Gate after each step.** `pnpm test` runs the em-dash AST guard and the content policy over
@@ -325,12 +483,17 @@ upgrade when you host again." (a ratified golden line) and the arc's ruled tease
 upgrade for more events." Both are Will's. A rewrite is not needed; a choice is, and the infusion
 round makes it once rather than page by page.
 
-**7. The quiet and guest registers did not fork with the voice.** Round one found it on four sample
-surfaces; round two confirmed it on eleven real ones. Of the six app surfaces the board walks, the
-five labels and three of the lines hold unchanged; of the six guest surfaces, three hold. The
-register was already mostly written in the voice. The exception worth ruling on is the guest
-account gate, which asks a guest to "create a free account" with us on the host's own page: that is
-the one shipped line bible 4 refuses.
+**7. The quiet and guest registers barely fork with the voice, and round four measured how much.**
+Round one found it on four sample surfaces and round two confirmed it on eleven; round four wrote
+all sixteen surfaces in all three voices and counted every row: **47 of 66 lines differ across the
+three columns, and the 19 that do not each carry the reason.** The holds cluster exactly where you
+would want them to: buttons the host is about to press, a help title that is also the search string,
+the two state pills on an event card, the sign-in error whose pointer to the email link is a safety
+decision rather than a preference, and the guest surface's own shape (five of its rows hold),
+which was the closest thing to a written voice this product had. What moves on a guest surface is
+only where a host is the one deciding. The exception worth ruling on is the guest account gate,
+which asks a guest to "create a free account" with us on the host's own page: that is the one
+shipped line bible 4 refuses outright.
 
 ## If Will picks A instead
 
