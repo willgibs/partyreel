@@ -1,14 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {
-  Aperture,
-  Calendar,
-  Check,
-  Images,
-  QrCode,
-  Sparkles,
-} from "lucide-react";
+import { Aperture, Calendar, Check, Images, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,19 +13,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { EventCard } from "@/components/app/event-card";
-import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { Logo } from "@/components/shared/logo";
-import { PageHeading } from "@/components/shared/page-heading";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 import type { Mode } from "@/components/dev/board";
 
+import { StateRow } from "./specimens";
+
 /**
- * THE REAL SECTIONS the ramps are judged on. A palette board that shows
- * swatches proves nothing: a ramp is right or wrong at the moment a card sits
- * on a ground with a photograph beside it, so every specimen here is built from
- * the production components (Card, Button, Badge, EventCard, FeedSection,
+ * THE MARKETING AND LEAF SECTIONS the ramps are judged on (the app, the guest
+ * album, the grounds, the depth cues and the text steps live in specimens.tsx).
+ * A palette board that shows swatches proves nothing: a ramp is right or wrong
+ * at the moment a card sits on a ground with a photograph beside it, so every
+ * specimen here is built from the production components (Card, Button, Badge,
  * Logo) and the licensed marketing images.
  *
  * ★ Breakpoints do NOT work inside a Stage: the stage is a 1440 or 375 wide box
@@ -159,137 +152,6 @@ export function MarketingChapter({ mode }: { mode: Mode }) {
           How it works
         </Button>
       </div>
-    </div>
-  );
-}
-
-/* ── The app's dashboard ────────────────────────────────────────────────── */
-
-const EVENTS = [
-  {
-    name: "Mia and Theo",
-    cover: marketingImage(IMAGES[0]).src,
-    date: "Sat 14 Jun",
-    items: "312 items",
-    status: "Open",
-    pending: 8,
-  },
-  {
-    name: "Ollie turns 30",
-    cover: marketingImage(IMAGES[1]).src,
-    date: "Fri 2 May",
-    items: "97 items",
-    status: "Open",
-    pending: 0,
-  },
-  {
-    name: "Studio launch",
-    cover: null,
-    date: "Thu 9 Apr",
-    items: "0 items",
-    status: "Closed",
-    pending: 0,
-  },
-];
-
-export function AppDashboard({ mode }: { mode: Mode }) {
-  const desktop = mode === "desktop";
-  return (
-    <div
-      className={cn(
-        "flex h-full flex-col overflow-hidden",
-        desktop ? "gap-6 px-10 py-8" : "gap-4 px-4 py-6",
-      )}
-    >
-      <div className="flex items-center justify-between gap-4">
-        <PageHeading className={desktop ? undefined : "text-xl"}>
-          Your events
-        </PageHeading>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <QrCode className="size-4" />
-            {desktop ? "Share a code" : null}
-          </Button>
-          <Button size="sm">New event</Button>
-        </div>
-      </div>
-
-      {/* The storage row, copied from dashboard/storage-meter.tsx's trigger so
-          the muted track and the foreground/70 fill are the real ones. */}
-      <div className="flex w-full items-center gap-3 rounded-lg px-1.5 py-1">
-        <span className="shrink-0 text-xs font-medium text-muted-foreground">
-          Storage
-        </span>
-        <span className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-          <span
-            className="block h-full rounded-full bg-foreground/70"
-            style={{ width: "38%" }}
-          />
-        </span>
-        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-          3.8 GB / 10 GB
-        </span>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-1.5">
-        {["All", "Events", "Uploads", "Likes", "Deleted"].map((chip, i) => (
-          <span
-            key={chip}
-            className={cn(
-              "flex h-8 items-center rounded-full px-3.5 text-sm font-medium",
-              i === 0
-                ? "bg-foreground text-background"
-                : "border border-border text-muted-foreground",
-            )}
-          >
-            {chip}
-          </span>
-        ))}
-      </div>
-
-      <FeedSection heading="Hosting">
-        <ul
-          className={cn("grid gap-4", desktop ? "grid-cols-3" : "grid-cols-1")}
-        >
-          {(desktop ? EVENTS : EVENTS.slice(0, 2)).map((e) => (
-            <li key={e.name}>
-              <EventCard
-                href={null}
-                name={e.name}
-                coverUrl={e.cover}
-                dateLabel={e.date}
-                itemsLabel={e.items}
-                statusLabel={e.status}
-                pendingCount={e.pending}
-                qrSlot={
-                  <span className="flex items-center justify-center rounded-[var(--radius-tile)] bg-white p-1.5 text-black shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
-                    <QrCode className="size-5" aria-hidden />
-                  </span>
-                }
-              />
-            </li>
-          ))}
-        </ul>
-      </FeedSection>
-
-      {desktop ? (
-        <FeedSection heading="Needs you">
-          <Card size="sm">
-            <CardHeader>
-              <CardTitle>Eight photos are waiting for review</CardTitle>
-              <CardDescription>
-                Approve them and they appear in the album for every guest.
-              </CardDescription>
-            </CardHeader>
-            <CardFooter className="gap-2">
-              <Button size="sm">Review</Button>
-              <Button size="sm" variant="ghost">
-                Later
-              </Button>
-            </CardFooter>
-          </Card>
-        </FeedSection>
-      ) : null}
     </div>
   );
 }
@@ -537,11 +399,25 @@ export function InkLeaf({ mode }: { mode: Mode }) {
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Aperture className="size-4 text-brand" />
-          <span className="tabular-nums">2026</span>
-          <Calendar className="size-3.5" />
-          <Images className="size-3.5" />
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="secondary">
+              Copy the link
+            </Button>
+            <div className="flex h-8 items-center rounded-lg border border-input px-3 text-xs text-muted-foreground">
+              partyreel.com/e/mia-and-theo
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Aperture className="size-4 text-brand" />
+            <span className="tabular-nums">2026</span>
+            <Calendar className="size-3.5" />
+            <Images className="size-3.5" />
+            <span style={{ color: "var(--faint, var(--muted-foreground))" }}>
+              Faint text on the leaf
+            </span>
+          </div>
+          <StateRow compact />
         </div>
       </div>
     </div>

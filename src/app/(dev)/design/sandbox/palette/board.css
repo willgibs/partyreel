@@ -29,3 +29,43 @@
       color 220ms var(--ease-emphasis);
   }
 }
+
+/* ─────────────── THE DEPTH CUES, BORROWED (round two)
+
+   The light exploration's proposal (docs/specs/light.md, values from its own
+   board sheet) rendered ON this board's candidates, because a ramp and a depth
+   cue fail together: a shadow has to be DARKER than what it falls on, so the
+   same alpha reads one way on a 0.105 cinema room and another on a 0.185 ink
+   leaf, and a card only 0.007 above the page needs an edge a card a real step
+   above it does not.
+
+   ONE geometry, TWO sizes, ONE alpha ramp per ground; `lift` is --shadow-float's
+   geometry verbatim and `float` is it at double the offsets. These values are
+   NOT part of this board's paste: depth is the light track's lane and its
+   ruling lands there. They live here so the two can be judged in one look.
+
+   Scoped by [data-ground] (the Stage sets it) rather than by .dark, so the
+   cinema room, the app's dark and the ink leaf take the dark ramp without any
+   one of them owning the rule. */
+[data-pal-cues] {
+  --pal-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.1), 0 4px 8px -2px oklch(0 0 0 / 0.14);
+  --pal-float:
+    0 4px 8px -2px oklch(0 0 0 / 0.12), 0 8px 16px -4px oklch(0 0 0 / 0.16);
+}
+
+[data-ground="cinema"] [data-pal-cues],
+[data-ground="ink"] [data-pal-cues],
+[data-ground="app-dark"] [data-pal-cues] {
+  --pal-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
+  --pal-float:
+    0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
+}
+
+[data-pal-cue="lift"] {
+  box-shadow: var(--pal-lift);
+}
+[data-pal-cue="float"] {
+  box-shadow: var(--pal-float);
+}
