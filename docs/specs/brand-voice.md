@@ -9,12 +9,19 @@
 > (→ [`../../content/help/AUTHORING.md`](../../content/help/AUTHORING.md)).
 > GROWS BY: refine in place.
 
-> **STATUS: a PROPOSAL (the `brand-voice` track, round four, 2026-09-15).** Bible 20 says the
+> **STATUS: a PROPOSAL (the `brand-voice` track, round five, 2026-09-15).** Bible 20 says the
 > brand-voice exploration writes the do's that replace it, and bible 21 opened every line until the
 > voice exists. This is that guide, written from the ground up (bible 22), shown in use on sixteen real
-> surfaces and argued on whole pages at `/design/lab/brand-voice`. Nothing here binds until Will rules; on his ruling the Orchestrator
-> promotes it to `docs/systems/brand-voice.md` and the `voice-infusion` round carries it site-wide.
-> The board holds the candidates, the pastes and the seven asks; this doc is the recommended answer.
+> surfaces and argued on whole pages at `/design/lab/brand-voice`, where every surface now renders
+> inside a real 1440 or 375 document rather than a scaled box. Nothing here binds until Will rules;
+> on his ruling the Orchestrator promotes it to `docs/systems/brand-voice.md` and the
+> `voice-infusion` round carries it site-wide.
+> **The asks live in one place, and it is not here:** the board's own spec
+> ([`spec.ts`](../../src/app/%28dev%29/design/sandbox/brand-voice/spec.ts)) holds every question,
+> its options and the recommendation, the board's Rule on panel composes the answer, and
+> `docs/reviews/brand-voice.json` records it. A list of them in this doc would be a second home that
+> goes stale the moment one is reworded, so the guide names an ask by its id where it has to refer to
+> one. This doc is the recommended ANSWER: what the voice is, and how a line is rewritten in it.
 
 ## The voice, in one paragraph
 
@@ -291,7 +298,7 @@ exists for: copy commits to outcomes, never to what does the work.
 
 Two rulings live in this table. The **account-required door is compelled by bible 4, not chosen**:
 the shipped line asks a guest to make an account with us on the host's own page, so the sweep
-rewrites it whichever voice wins, and the only choosable part is the noun (ask 6). And the **email
+rewrites it whichever voice wins, and the only choosable part is the noun (the `noun` ask). And the **email
 subject is a real trade**: A keeps *Partyreel* in it because an inbox sorts and searches by our name
 and this mail arrives months after the party, while B puts the reader's own event first, which is
 the guide's rule everywhere else. Decide it once, for all ten templates.
@@ -405,15 +412,15 @@ reaches `marketing-voice.ts` and `feature-pages.ts` without anything being retyp
 
 1. **[`marketing-voice.ts`](../../src/lib/constants/marketing-voice.ts) first**: the thesis, the
    subhead, the seven home headers, the decomposition facts. Everything downstream is written
-   against the register these set, so they move before anything quotes them. (Chapter 7's paste on the board.)
+   against the register these set, so they move before anything quotes them. (The paste under "The home arc III: the payoff", `#brand-voice-arc-close`.)
 2. **[`feature-pages.ts`](../../src/lib/constants/feature-pages.ts) and
    [`marketing-nav.ts`](../../src/lib/constants/marketing-nav.ts) together**, in one commit: the nav
    mirror test pins the 44 labels and 15 descriptions against the six pages' identity strings, so
-   the pair cannot move separately. (Chapter 11's paste on the board.)
+   the pair cannot move separately. (The paste under "The thirty strings, as a paste", `#brand-voice-strings`.)
 3. **The marketing sections and pages**, chapter by chapter, a page at a time. The home arc's
-   eyebrows, supporting lines and CTAs are on chapters 5 to 7 of the board; the two feature pages
-   whole are on chapters 9 and 10, cards included; `/help`, `/contact` and `/pricing` are on chapter
-   12, and they are the cheapest three lines on the list with the largest effect, since two of them
+   eyebrows, supporting lines and CTAs are the three home arc sections of the board; the two feature
+   pages whole are `#brand-voice-album-page` and `#brand-voice-curation-page`, cards included;
+   `/help`, `/contact` and `/pricing` are `#brand-voice-utility`, and they are the cheapest three lines on the list with the largest effect, since two of them
    are the most generic sentences on the site. The hero, the album chapter, a card set, the pricing
    pair and a help opening are each written out in "The sixteen surfaces, written" above. **The card sets are the surprise in this step, and the cheapest
    part of it:** across the album page's nineteen cards and the curation page's five, A moves three
@@ -463,7 +470,7 @@ own recommendation is to KEEP the ruled thesis: it is the one line the site has 
 to be recognised, and B already carries the perspective argument in the hero's second line.
 
 **3. The product calls the same thing two names.** Album on the site, gallery on a guest's screen.
-See "One noun for the thing" above; it is the board's seventh ask.
+See "One noun for the thing" above; it is the board's `noun` ask.
 
 **4. The "five copy-alternative picks" have lost their list.** The queue item predates the docs
 consolidation and no list survives in the repo. The board reads it as the five provisional headers

@@ -3,16 +3,9 @@
 // the board's own sheet; it leaves with the board when the ruling lands.
 import "./board.css";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-import {
-  BoardDock,
-  BoardMeta,
-  Stage,
-  Toggle,
-  type Ground,
-  type Mode,
-} from "@/components/dev/board";
+import { BoardPage, type Ground, type Mode, Paste } from "@/components/lab";
 import { ImagePlus } from "lucide-react";
 
 import { EventCard } from "@/components/app/event-card";
@@ -26,7 +19,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { MAX_EVENTS, planById, plansForTier } from "@/lib/constants/tiers";
 import { formatBytes } from "@/lib/utils";
 
-import { Variant } from "../variant-frame";
+import {
+  ChapterFrame,
+  COLUMNS,
+  useAnchorAfterSettle,
+  VOICE_TAG,
+  VoiceCanvas,
+  VoiceFrames,
+} from "./frames";
+import { BRAND_VOICE } from "./spec";
 import {
   ALBUM_PAGE,
   APP_USE,
@@ -65,165 +66,51 @@ import {
 } from "./voices";
 
 /**
- * THE BRAND-VOICE BOARD, ROUND FOUR (2026-09-15).
+ * THE BRAND-VOICE BOARD (round five, the Library x Lab migration wave,
+ * 2026-09-15). What the board ARGUES lives in `spec.ts` now, and only there:
+ * the question, the verdict, the seven one-word calls, the candidates, the
+ * departures and the thirteen sections with their ledes. What is left here is
+ * what a board should be and nothing else: the evidence for each declared
+ * section, as a function of the declared state.
  *
- * WHAT ROUND FOUR CHANGED, which is Will’s review of round three, taken
- * literally:
- *  1. USAGE COMES FIRST. "There’s a handful of notes about the voices, but
- *     not a lot of actual usage examples that I can get a feel for each voice
- *     through... I would love to see the brand voices previewed on a few
- *     different production UI areas across marketing and app." So the board now
- *     opens on the voices WRITING: sixteen real surfaces, each written three
- *     ways, on the component that ships it. A hero, a chapter, a card set, the
- *     pricing pair, a help opening; the dashboard’s empty state, its event
- *     card, the create wizard, a toast, an error, a notification, the account
- *     page; a guest’s door, the upload sheet, the empty album, an email.
- *     Round three's twelve chapters follow as the price list, minus the two the
- *     usage chapters replaced: ten of them, renumbered 4 to 13.
+ * ★ AND EVERY SPECIMEN MOVED INTO A REAL DOCUMENT. The reason, and the
+ * hand-restored heading ladder it retires, are written down once in
+ * `frames.tsx`. In one line: a Stage is a div, so a breakpoint prefix inside it
+ * reads the browser rather than the canvas, and on a board whose whole argument
+ * is where a sentence breaks, that is the argument.
+ *
+ * WHAT ROUND FOUR BUILT, unchanged by the migration:
+ *  1. USAGE COMES FIRST. Will, on round three: "there's a handful of notes
+ *     about the voices, but not a lot of actual usage examples that I can get a
+ *     feel for each voice through... I would love to see the brand voices
+ *     previewed on a few different production UI areas across marketing and
+ *     app." So the board opens on the voices WRITING: sixteen real surfaces,
+ *     each written three ways, on the component that ships it. Then ten
+ *     chapters price a ruling on whole pages.
  *  2. EVERY COMPARISON SHOWS A DIFFERENCE. "A lot just have the exact same
- *     versions with a note that says unchanged... it’s absolutely useless
- *     for a brand voice comparison." In the usage chapters every voice WRITES
- *     every line, even where a sweep would keep today’s; where all three
- *     land on the same string anyway, the row carries the REASON the voice does
- *     not touch it, never the word unchanged. The counter in chapter 1 states
- *     both numbers, and counts any row that is the same in all three WITHOUT a
- *     reason as a defect, out loud.
- *  3. THE DOCK. Every page-wide switch (the voice, the canvas, the app’s
- *     theme, the chapter index) rides the shell’s BoardDock, so a candidate
- *     can be flipped from anywhere on a board this tall. Nothing on this board
- *     is zoomed: every Stage renders at 1:1 (the shell’s round-four
- *     default), which is what a copy board needed most of all.
- *  4. THE APP’S UI IS OPEN, so the app surfaces render as UI rather than as
- *     text in a card, which is what round three did and what made the quiet
- *     register hard to judge at all.
+ *     versions with a note that says unchanged... it's absolutely useless for a
+ *     brand voice comparison." In the usage sections every voice WRITES every
+ *     line; where all three land on the same string anyway, the row carries the
+ *     REASON, never the word unchanged. The counter states both numbers and
+ *     counts an unexplained match as a defect, out loud.
+ *  3. THE APP'S UI IS OPEN (Will, 2026-09-15), so the app surfaces render as UI
+ *     rather than as text in a card, which is what made the quiet register hard
+ *     to judge at all.
  *
- * WHAT ROUND TWO BUILT. Round one argued three voices on seven HEADERS; round
- * two walked WHOLE surfaces in the selected voice, because a voice is judged in
- * a paragraph and a page: the home arc's fifteen sections top to bottom on
- * their real grounds, two feature pages whole, the six pages' thirty identity
- * strings with the paste the infusion round runs, the app's quiet copy, and the
- * guest surfaces with Partyreel nearly silent.
- *
- * WHAT ROUND THREE CHANGED, which is the walk Will takes, taken first:
- *  1. THE DECISION IS ON TOP. The recommendation, its cost and the three things
- *     to look at open the board, the strongest candidate is the first column
- *     and the default, and twelve chapters are a one-click index in the bar.
- *     A fifteen-thousand-pixel board with its verdict at the bottom is a board
- *     nobody rules on.
- *  2. THE COST IS MEASURED, not asserted. A voice's price on a headline is how
- *     many rows the h1 takes, so the board MEASURES all three columns at the
- *     live canvas (RowCounts below) instead of printing a number typed into a
- *     sentence months ago. The same ruler runs under the thesis.
- *  3. THE PAGES THE ARC DOES NOT REACH. /help, /contact and /pricing carry the
- *     site's two most generic lines and were on no board; the guide's own
- *     surfaces table named a help article nothing had ever rendered. Chapter 9.
- *  4. LESS TO RULE ON. Two departures moved into the asks they had become, the
- *     twelve app and guest rewrites are marked as sweep work with the ONE row
- *     bible 4 already decides called out (compelled, not an eighth ask: its
- *     only choosable part, the noun, is ask 6), and the remaining departures
- *     are only the ones Will must answer.
- *
- * STANDING JUDGMENTS from round two, kept: candidate C retired as a column
- * (its one real question, the thesis, is chapter 8); every candidate ships as a
- * real TypeScript PASTE, since copy cannot be applied to the site as CSS; every
- * line a candidate HOLDS is marked and counted, because where a voice does not
- * bite is as much of the ruling as where it does. A was re-judged from the
- * ground up this round and keeps its column: it is the only answer that costs
- * the feature pages almost nothing, which is an argument, not a shade of B.
+ * STANDING JUDGMENTS from round two, kept: candidate C retired as a column (its
+ * one real question, the thesis, is its own section); every candidate ships as
+ * a real TypeScript PASTE, since copy cannot be applied to the site as CSS; and
+ * every line a candidate HOLDS is marked and counted, because where a voice
+ * does not bite is as much of the ruling as where it does.
  *
  * The lines live in ./voices.ts so this file is layout only. Nothing here is
  * imported by production and no production byte changed on this track.
- *
- * ★ WHY THE STAGES FORCE data-inview: the marketing reveal grammar rests every
- * [data-mkt-reveal] slot at opacity 0 in BOTH motion preferences (marketing.css
- * chapter 1) and waits on the Reveal island. This is a READING board, so a
- * subhead that has to be scrolled into view is a subhead Will cannot rule on.
- * The wrapper sets the final state the CSS already defines, which is the house
- * convention (final states outside the media queries) rather than an override.
- * The sections take reveal="none" for the same reason, through the real prop.
  *
  * ★ WHY THE SECTIONS ARE COMPRESSED: the board judges the LINE, not the arc's
  * vertical rhythm, which belongs to the home page and is ruled elsewhere. The
  * type, the ground and the heading tiers are the real ones; only the air
  * between sections is compressed so a chapter reads as one stretch.
  */
-
-/** The verdict, on top. A board this tall with its recommendation at the
- *  bottom is a board that gets scrolled, not ruled on. */
-const LEAD = {
-  what: "What Partyreel sounds like, shown in use before it is argued: sixteen real surfaces across marketing, the app and a guest's phone, each written three ways on the component that ships it. Then ten chapters that price a ruling on whole pages, and seven asks at the foot that each answer in one word.",
-  recommend: "B, the room.",
-  because:
-    "It is the only candidate built from the one thing only this product does, a code on a table becoming an album while the party is still going, and it is the reason a line here could not be said by a shared folder or a group chat.",
-  second:
-    "A, the house, is the cheap answer and a real one: it tunes the register the eight ratified lines already speak, and it barely touches the feature pages, which are finished.",
-};
-
-/** Three pointers, each an anchor. Round four repoints them at the usage
- *  chapters: a voice is chosen by reading it, and priced afterwards. */
-const LOOK_AT = [
-  {
-    href: "#bv-1",
-    label: "Chapter 1, the voices writing marketing",
-    line: "Five surfaces, three versions each, at 1:1 on the real ground. The hero is the sharpest pair on the board: A writes today's two ruled lines back, because keeping them is A's whole argument.",
-  },
-  {
-    href: "#bv-2",
-    label: "Chapter 2, the voices writing the app",
-    line: "Seven surfaces of real app UI. The wizard's date helper and the storage notification are findings rather than preferences: one of them says something the product does not do.",
-  },
-  {
-    href: "#bv-3",
-    label: "Chapter 3, a guest's phone",
-    line: "Four surfaces at 375, where bible 4 decides more than the voice does, and where the album and gallery split is visible in one screen.",
-  },
-];
-
-/** The chapters, for the index in the dock. Round four recut them: usage
- *  first (1 to 3), then round three's twelve minus the two the usage chapters
- *  replaced (the quiet register and the guest register, which were text cards
- *  and are now real UI). */
-const CHAPTERS: { id: string; label: string }[] = [
-  { id: "bv-1", label: "1 in use, marketing" },
-  { id: "bv-2", label: "2 in use, the app" },
-  { id: "bv-3", label: "3 in use, a guest" },
-  { id: "bv-4", label: "4 voice" },
-  { id: "bv-5", label: "5 arc I" },
-  { id: "bv-6", label: "6 arc II" },
-  { id: "bv-7", label: "7 arc III" },
-  { id: "bv-8", label: "8 thesis" },
-  { id: "bv-9", label: "9 album" },
-  { id: "bv-10", label: "10 curation" },
-  { id: "bv-11", label: "11 strings" },
-  { id: "bv-12", label: "12 help, contact, pricing" },
-  { id: "bv-13", label: "13 unfurl" },
-];
-
-const QUESTION =
-  "What Partyreel sounds like, shown writing sixteen real surfaces across marketing, the host's app and a guest's phone, and then argued on whole pages: the home arc top to bottom, two feature pages whole, the three pages a reader reaches when they are deciding or when something broke.";
-
-/** Every ask answers in ONE word. The recommendation is in the line, so a
- *  ruling can be "B, whole, take, email, yes, keep, album". */
-const ASKS = [
-  "The voice: B, A, or today (the agent recommends B)",
-  "The seven provisional home headers: whole in the selected voice, or line by line from the ledgers (the agent recommends whole)",
-  "The rest of the arc, its eyebrows, supporting lines and CTAs: take the selected voice, or hold today's (the agent recommends take)",
-  "Bible 20's replacement, in one sentence: lead with what arrives, an absence may be the second beat, never the first, and never both. Yes, or send it back",
-  "The thesis: keep in one album, or take as everyone saw it (the agent recommends keep)",
-  "One noun for the thing: album everywhere, or album on the site and gallery on a guest's screen (the agent recommends album)",
-  "The account-required unfurl line: email, or sign in (the agent recommends email)",
-];
-
-/** Only what Will must rule on that is not already an ask. Round two's other
- *  two departures became asks 4 and 6 and left. */
-const DEPARTURES = [
-  "Candidate C was RETIRED as a column, which is the board's judgment rather than a ruling. Across fifteen sections and two whole pages C read as B with everyone substituted in seven places, so it cost a third of the board and answered nothing B did not. Its one real question, the thesis, is chapter 8 and ask 5. Say the word and it comes back as a column.",
-  "The five copy-alternative picks have lost their list: the queue item predates the docs consolidation and no list survives in the repo. The board reads it as the five headers carrying an appetite for a DIFFERENT line (liveDemo, album, curation, privacy, reel), marked with a dot in the ledgers. Correct it and the board adds the missing picks.",
-  "The home page is about to carry two different counts. The hero variations propose 312 photos from 48 guests as a stand-in, and the decomposition band two sections below ships Built from 214 photos. Shot by 23 guests. Do 3 of the guide (only proof the product produced) makes that one source and one pair of numbers, read from the demo event, wherever the composition pass lands them.",
-  "The create wizard's date helper says events never expire, and the product's rule is that an event stays until the host deletes it (there is deliberately no end date; that is the anti-abuse core). Chapter 2 shows the line in all three voices, and the fix belongs to the sweep whichever voice wins.",
-];
-
-const VOICE_OPTIONS = VOICES.map((v) => ({ id: v.id, label: v.name }));
 
 /** The real hrefs behind each section's chevron CTA, so the board renders the
  *  shipped LearnMoreLink rather than a look-alike. */
@@ -238,119 +125,12 @@ const CTA_HREF: Record<string, string> = {
   "events-teaser": "/events",
 };
 
-/* -------------------------------------------------------------------------
- * Small pieces
- * ---------------------------------------------------------------------- */
-
-/** A numbered chapter with an anchor, so the index in the bar can reach it.
- *  `scroll-mt` clears the sticky bar, which is two rows tall once the index
- *  wraps. */
-function Chapter({
-  id,
-  n,
-  name,
-  rationale,
-  children,
-}: {
-  id: string;
-  n: number;
-  name: string;
-  rationale: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div id={id} className="scroll-mt-28">
-      <Variant n={n} name={name} rationale={rationale} framed={false}>
-        {children}
-      </Variant>
-    </div>
-  );
-}
-
-/**
- * A chapter's stage and what reads beside or beneath it.
- *
- * ★ WHY THE PHONE CANVAS PUTS THE LEDGER BESIDE THE STAGE. A 375 stage sits in
- * a column three times its width, so the phone walk was twenty-three thousand
- * pixels of board with eight hundred of dead ground on either side of every
- * chapter, and the line being judged was a full screen away from the line it
- * replaces. Side by side, the phone walk is the same length as the desktop one
- * and the comparison is in one view. The desktop canvas keeps the ledger
- * underneath: at 1440 the stage already fills the column.
- *
- * The `lg:` here is deliberate and correct, unlike a prefix INSIDE a stage: it
- * is the board's own chrome, so the real browser viewport is exactly what it
- * should key off.
- */
-function ChapterBody({
-  mode,
-  stage,
-  aside,
-}: {
-  mode: Mode;
-  stage: React.ReactNode;
-  aside: React.ReactNode;
-}) {
-  if (mode === "phone") {
-    return (
-      <div className="grid items-start gap-6 lg:grid-cols-[375px_minmax(0,1fr)]">
-        {/* ★ min-w-0 on both cells. A grid item's default min-width is AUTO,
-            so the 375-wide canvas in the first cell sets the track's floor. On a
-            browser window at a real 375 the single-column grid therefore
-            measured 375 where the page's content box is 343: Stage read its
-            wrapper as wide enough, kept zoom 1, and pushed 16px of horizontal
-            scroll onto the document. With the floor removed the wrapper
-            measures 343 and Stage's own zoom-fit takes the canvas to 0.91,
-            which is what the other thirteen stages already do. At `lg` the
-            track is an explicit 375px, so nothing there moves. */}
-        <div className="min-w-0">{stage}</div>
-        <div className="min-w-0">{aside}</div>
-      </div>
-    );
-  }
-  return (
-    <div>
-      {stage}
-      {aside}
-    </div>
-  );
-}
-
 /** The held marker: a candidate keeping the shipped line unchanged. */
 function Held() {
   return (
     <span className="bv-held rounded-full border border-border px-1.5 py-px text-[10px] text-muted-foreground">
       held
     </span>
-  );
-}
-
-/** A copy-to-clipboard block: a candidate is only ruled on if it can ship, and
- *  copy cannot be applied to the site as CSS, so the paste IS the artifact. */
-function CopyPaste({ label, text }: { label: string; text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => {
-          void navigator.clipboard
-            ?.writeText(text)
-            .then(() => {
-              setCopied(true);
-              window.setTimeout(() => setCopied(false), 1600);
-            })
-            .catch(() => setCopied(false));
-        }}
-      >
-        {copied ? "Copied" : label}
-      </Button>
-      <p className="text-[11px] text-muted-foreground">
-        {text.split("\n").length} lines of real TypeScript, ready for the
-        infusion round.
-      </p>
-    </div>
   );
 }
 
@@ -414,103 +194,6 @@ function Items({
   );
 }
 
-/** Border (2) plus the worst rounding a fractional zoom can add. Dead ground,
- *  not a guess at the copy: it is the same number on every stage. */
-const FIT_SLACK = 8;
-
-/**
- * A Stage whose height is its CONTENT's height, measured rather than written.
- *
- * ★ WHY NO STAGE ON THIS BOARD CARRIES A LITERAL HEIGHT ANY MORE. A Stage is a
- * fixed box with `overflow: hidden`, so a number typed into it is a promise
- * about content that has to hold for three voices, two canvases, and every
- * window width the board is read at. That last one is not obvious and is the
- * reason round two's hand-tuned numbers failed review: a real marketing
- * component inside a Stage resolves its own `sm:`/`lg:` rungs against the REAL
- * browser window, not the canvas, so the arc's chapters measure up to 40px
- * taller in a 1512 window than in a narrow one, in the same voice. Two stages clipped a heading,
- * one of them the hero board 5 asks a ruling on, which is the worst possible
- * place to lose a word. A literal also cannot survive an edit to the copy
- * above it, and editing copy is the entire activity on a copy board.
- *
- * So the stage takes the height from the content: one layout pass before the
- * first paint (useLayoutEffect, so nothing is ever painted at the default
- * canvas height), then a ResizeObserver for the two things that move a wrap
- * afterwards, the webfont settling and the window resizing. The children drop
- * `min-h-full` for the same reason: the ground is the Stage's own background,
- * and content stretched to fill a box cannot be used to measure it.
- *
- * offsetHeight, not getBoundingClientRect: the Stage fits the lab column with
- * `zoom`, and a rect is in the zoomed frame while the height prop is not.
- */
-function FitStage({
-  mode,
-  ground,
-  swapKey,
-  className,
-  children,
-}: {
-  mode: Mode;
-  ground: Ground;
-  /** Remounts the inner block so the voice swap still animates. It is a level
-   *  BELOW the measured node on purpose: a key change on the measured node
-   *  would swap the element out from under the observer. */
-  swapKey?: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [height, setHeight] = useState<number | undefined>(undefined);
-
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    // scrollHeight as well as offsetHeight, so a descendant sitting a hair past
-    // the block is inside the box; then FIT_SLACK, which is not a fudge for the
-    // copy but for two mechanical facts: the Stage is border-box, so its 1px
-    // border comes OUT of the height it is handed, and it fits the lab column
-    // with a fractional `zoom`, which rounds the box at the device pixel. Both
-    // showed up as a constant few-pixel clip on every stage at once, in every
-    // voice, which is how you tell them from a line that does not fit.
-    const sync = () =>
-      setHeight(
-        Math.ceil(Math.max(el.offsetHeight, el.scrollHeight)) + FIT_SLACK,
-      );
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(el);
-    window.addEventListener("resize", sync);
-    // The webfont lands after the first layout and takes every wrap with it.
-    document.fonts?.ready.then(sync).catch(() => {});
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", sync);
-    };
-    // swapKey is a dependency, not just an RO's problem: a voice change swaps
-    // every string in the stage at once, and the observer was measurably late
-    // on it (a stage stayed a few pixels short until something else nudged it).
-    // In a layout effect the new copy is measured before the frame is painted.
-  }, [mode, swapKey]);
-
-  return (
-    <Stage mode={mode} ground={ground} height={height}>
-      {/* flow-root, so a child's margin cannot collapse out of the thing being
-          measured and hand back a height shorter than what is drawn. */}
-      <div ref={ref} className="flow-root">
-        <div
-          key={swapKey}
-          data-inview="true"
-          data-bv-canvas={mode}
-          data-bv-swap
-          className={className}
-        >
-          {children}
-        </div>
-      </div>
-    </Stage>
-  );
-}
-
 /* -------------------------------------------------------------------------
  * The ruler: what a voice costs a headline, measured
  * ---------------------------------------------------------------------- */
@@ -534,6 +217,12 @@ function FitStage({
  * caption says so rather than pretending a rendered measurement is a constant.
  */
 function rowsOf(el: HTMLElement, text: string): number {
+  // ★ THE CLONE AND THE RANGE BELONG TO THE FRAME'S DOCUMENT, not to this one.
+  // The heading being measured lives inside an iframe now, and a Range created
+  // here and pointed at a node there is a cross-document Range: the engines
+  // that do not throw on it measure against the wrong layout box, which is
+  // worse, because the number still prints.
+  const doc = el.ownerDocument;
   const probe = el.cloneNode(false) as HTMLElement;
   probe.textContent = text;
   probe.style.position = "absolute";
@@ -541,13 +230,11 @@ function rowsOf(el: HTMLElement, text: string): number {
   probe.style.pointerEvents = "none";
   probe.style.left = "0";
   probe.style.top = "0";
-  // offsetWidth, not the rect: a Stage fits the lab column with `zoom`, so the
-  // rect is in the zoomed frame while layout px are not.
   probe.style.width = `${el.offsetWidth}px`;
   const parent = el.parentElement;
   if (!parent) return 0;
   parent.appendChild(probe);
-  const range = document.createRange();
+  const range = doc.createRange();
   range.selectNodeContents(probe);
   const tops = Array.from(range.getClientRects())
     .map((r) => r.top)
@@ -573,21 +260,30 @@ const HERO_ROW_LINES = VOICES.map((v) => ({
   text: pick(ARC[0].header, v.id),
 }));
 
-/** The thesis pair, the two lines ask 5 chooses between. */
+/** The thesis pair, the two lines the thesis ask chooses between. */
 const THESIS_ROW_LINES = [
   { label: "in one album", text: THESIS.ruled },
   { label: "as everyone saw it", text: THESIS.alternative },
 ];
 
-/** The measured caption under a stage. `selector` is resolved inside `host`. */
+/**
+ * The measured caption under a frame. `selector` is resolved inside `node`.
+ *
+ * ★ IT TAKES A NODE, NOT A REF, because the thing it measures is in another
+ * document and arrives later than this component does. A frame portals its
+ * scene in only once the frame's own document exists, so a ref read in a layout
+ * effect is null on the first pass and nothing ever re-runs it. A state-held
+ * node IS the dependency: the effect runs when the scene lands, and again when
+ * the canvas or the copy moves.
+ */
 function RowCounts({
-  host,
+  node,
   selector,
   lines,
   mode,
   lead,
 }: {
-  host: React.RefObject<HTMLDivElement | null>;
+  node: HTMLElement | null;
   selector: string;
   /** Label and the exact string to set on the clone, in column order. */
   lines: { label: string; text: string }[];
@@ -596,23 +292,29 @@ function RowCounts({
 }) {
   const [rows, setRows] = useState<number[] | null>(null);
 
-  useLayoutEffect(() => {
-    const el = host.current;
-    if (!el) return;
+  useEffect(() => {
+    if (!node) return;
     let live = true;
     const measure = () => {
       if (!live) return;
-      const target = el.querySelector<HTMLElement>(selector);
+      const target = node.querySelector<HTMLElement>(selector);
       if (!target) return;
       setRows(lines.map((l) => rowsOf(target, l.text)));
     };
     measure();
-    // The webfont lands after the first layout and takes every wrap with it.
-    document.fonts?.ready.then(measure).catch(() => {});
+    // The webfont lands after the first layout and takes every wrap with it,
+    // and it is the FRAME's font set that matters here, not this page's. The
+    // whole chain is guarded: a frame's document can hold a FontFaceSet whose
+    // `ready` is still undefined (frames.tsx has the measurement).
+    try {
+      node.ownerDocument.fonts?.ready?.then(measure).catch(() => {});
+    } catch {
+      // A document torn down between the read and the call.
+    }
     return () => {
       live = false;
     };
-  }, [host, selector, lines, mode]);
+  }, [node, selector, lines, mode]);
 
   if (!rows) return null;
   return (
@@ -627,7 +329,7 @@ function RowCounts({
           caption that reads "1440on" is a caption nobody trusts the numbers
           in. */}
       <span>
-        {`Measured at ${mode === "desktop" ? "1440" : "375"} on the heading above, at today\u2019s ladder: a ruling on the type scale moves these numbers with it.`}
+        {`Measured at ${mode === "desktop" ? "1440" : "375"} inside the frame above, at today\u2019s ladder: a ruling on the type scale moves these numbers with it.`}
       </span>
     </p>
   );
@@ -723,24 +425,43 @@ function ArcBlock({
   );
 }
 
-/** One chapter of the arc, on its real ground, in arc order. */
+/** One chapter of the arc, in arc order, in ONE document on its real ground. */
 function ArcChapter({
+  id,
   sections,
   voice,
   mode,
   ground,
+  caption,
+  bodyRef,
 }: {
+  id: string;
   sections: ArcSection[];
   voice: VoiceId;
   mode: Mode;
   ground: Ground;
+  caption?: React.ReactNode;
+  bodyRef?: (el: HTMLElement | null) => void;
 }) {
   return (
-    <FitStage mode={mode} ground={ground} swapKey={voice}>
-      {sections.map((s) => (
-        <ArcBlock key={s.id} section={s} voice={voice} mode={mode} />
-      ))}
-    </FitStage>
+    <ChapterFrame
+      id={id}
+      mode={mode}
+      ground={ground}
+      title={VOICE_TAG[voice]}
+      caption={caption}
+      bodyRef={bodyRef}
+    >
+      {/* Keyed on the voice so a swap remounts and re-animates: switching
+          voices is an occasional act, so it gets the standard beat under 300ms
+          (board.css, which the frame's document inherits with the page's other
+          sheets) and the eye lands on the new sentence rather than on a move. */}
+      <div key={voice} data-bv-swap>
+        {sections.map((s) => (
+          <ArcBlock key={s.id} section={s} voice={voice} mode={mode} />
+        ))}
+      </div>
+    </ChapterFrame>
   );
 }
 
@@ -908,7 +629,13 @@ function FeaturePageStage({
 
   return (
     <div className="space-y-2">
-      <FitStage mode={mode} ground="cinema" swapKey={voice}>
+      <ChapterFrame
+        id={`${page.slug}-hero`}
+        mode={mode}
+        ground="cinema"
+        title={VOICE_TAG[voice]}
+        caption={`The hero of /features/${page.slug}, on cinema.`}
+      >
         <PageHero
           data-bv-type="hero-lg"
           className="w-full py-10"
@@ -917,10 +644,17 @@ function FeaturePageStage({
           heading={pick(strings?.h1, voice)}
           subhead={pick(strings?.heroSub, voice)}
         />
-      </FitStage>
+      </ChapterFrame>
       {chunks.map((chunk, i) => (
-        <FitStage key={i} mode={mode} ground={chunk.ground} swapKey={voice}>
-          <>
+        <ChapterFrame
+          key={i}
+          id={`${page.slug}-chunk-${i}`}
+          mode={mode}
+          ground={chunk.ground}
+          title={VOICE_TAG[voice]}
+          caption={`${chunk.items.length} ${chunk.items.length === 1 ? "section" : "sections"} of the page, on ${chunk.ground}, in shipped order.`}
+        >
+          <div key={voice} data-bv-swap>
             {chunk.items.map((s, j) => (
               <SectionShell
                 key={j}
@@ -948,8 +682,8 @@ function FeaturePageStage({
                 )}
               </SectionShell>
             ))}
-          </>
-        </FitStage>
+          </div>
+        </ChapterFrame>
       ))}
       <CardLedger page={page} voice={voice} />
     </div>
@@ -1033,30 +767,38 @@ function UtilityChapter({ voice, mode }: { voice: VoiceId; mode: Mode }) {
   );
   return (
     <div className="space-y-2">
-      <FitStage
+      <ChapterFrame
+        id="utility-cinema"
         mode={mode}
         ground="cinema"
-        swapKey={voice}
+        title={VOICE_TAG[voice]}
+        caption="/help and /contact, and two real help article heads."
         className="space-y-12 py-12"
       >
-        {UTILITY_HEROES.filter((h) => h.ground === "cinema").map(hero)}
-        {HELP_HEADS.map((a) => (
-          <HelpHead
-            key={a.slug}
-            category={a.category}
-            title={a.title}
-            description={a.description}
-          />
-        ))}
-      </FitStage>
-      <FitStage
+        <div key={voice} data-bv-swap className="space-y-12">
+          {UTILITY_HEROES.filter((h) => h.ground === "cinema").map(hero)}
+          {HELP_HEADS.map((a) => (
+            <HelpHead
+              key={a.slug}
+              category={a.category}
+              title={a.title}
+              description={a.description}
+            />
+          ))}
+        </div>
+      </ChapterFrame>
+      <ChapterFrame
+        id="utility-paper"
         mode={mode}
         ground="paper"
-        swapKey={voice}
+        title={VOICE_TAG[voice]}
+        caption="/pricing, on the paper ground the page ships on."
         className="space-y-12 py-12"
       >
-        {UTILITY_HEROES.filter((h) => h.ground === "paper").map(hero)}
-      </FitStage>
+        <div key={voice} data-bv-swap className="space-y-12">
+          {UTILITY_HEROES.filter((h) => h.ground === "paper").map(hero)}
+        </div>
+      </ChapterFrame>
       <div className="space-y-2 pt-3 text-xs leading-relaxed text-muted-foreground">
         <p>
           <span className="text-foreground">
@@ -1092,137 +834,22 @@ function UtilityChapter({ voice, mode }: { voice: VoiceId; mode: Mode }) {
 /**
  * ★ THE ONE LAYOUT RULE, and why it is not the same for every surface.
  *
- * Nothing on this board is scaled: a Stage renders at 1:1 (the shell's
- * round-four default), so a specimen is judged at the pixels it ships at. That
- * leaves one honest question per surface, which is how to get three of them in
- * front of a reader at once:
+ * Nothing on this board is scaled: a frame is a document at its canvas's exact
+ * pixels, so a specimen is judged at the pixels it ships at. That leaves one
+ * honest question per surface, which is how to get three of them in front of a
+ * reader at once. The three answers are in `frames.tsx`:
  *
- *  - STACK, at the full canvas, for anything whose WIDTH is part of the
+ *  - `VoiceFrames`, three documents, for anything whose WIDTH is part of the
  *    judgment: a hero, a chapter, a card row, the pricing pair, the wizard.
- *    Three canvases, one per voice, one above the other. Comparing costs a
- *    scroll; scaling would cost the truth.
- *  - ROW, inside one canvas, for chrome whose real width is already under
+ *    Stacked at 1440 and abreast at 375, because three 375 documents fit a
+ *    desktop window and three 1440 documents fit nothing.
+ *  - `VoiceCanvas`, one document, for chrome whose real width is already under
  *    400px: an event card in the dashboard's own three-up grid, a toast at
  *    sonner's 356, a notification row. Three of them side by side IS the
  *    shipped layout, at the shipped width.
- *  - PHONES for the guest surfaces, which only ever render on a phone: three
- *    375 canvases side by side, which fit a 1440 window with room to spare.
- *
- * The `lg:` prefixes in this section are the BOARD's own chrome, so keying off
- * the real browser viewport is exactly right (unlike a prefix inside a Stage).
+ *  - `ChapterFrame`, one document in the SELECTED voice, for a whole arc
+ *    chapter or a whole feature page, with the ledger beside it.
  */
-
-const VOICE_TAG: Record<VoiceId, string> = {
-  today: "Today",
-  house: "A, the house",
-  room: "B, the room",
-};
-
-/** Today first, then the two candidates: a comparison reads from the control. */
-const COLUMNS: VoiceId[] = ["today", "house", "room"];
-
-function VoiceTag({ id }: { id: VoiceId }) {
-  return (
-    <p className="mb-1.5 flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
-      <span
-        aria-hidden
-        className={
-          id === "today"
-            ? "inline-block size-1.5 rounded-full bg-muted-foreground/50"
-            : "inline-block size-1.5 rounded-full bg-foreground"
-        }
-      />
-      {VOICE_TAG[id]}
-      {id === "room" && (
-        <span className="text-muted-foreground/70">recommended</span>
-      )}
-    </p>
-  );
-}
-
-/**
- * Three canvases, one per voice: stacked at 1440, side by side at 375.
- *
- * ★ Three 375 canvases are 1,125px plus gaps, which fits a 1440 window with
- * room to spare, so stacking them would leave a thousand pixels of dead ground
- * beside every specimen and put the line being judged a screen away from the
- * line it replaces. Round three found the same thing on its ledgers and fixed
- * it the same way. At 1440 there is no such room and the stack is the only
- * honest layout, since scaling a specimen is what this round exists to stop.
- */
-function VoiceStack({
-  mode,
-  ground,
-  render,
-}: {
-  mode: Mode;
-  ground: Ground;
-  render: (voice: VoiceId) => React.ReactNode;
-}) {
-  const side = mode === "phone";
-  return (
-    <div
-      className={
-        side ? "grid items-start gap-4 lg:grid-cols-3" : "space-y-4"
-      }
-    >
-      {COLUMNS.map((id) => (
-        <div key={id} className={side ? "min-w-0" : undefined}>
-          <VoiceTag id={id} />
-          <FitStage mode={mode} ground={ground} swapKey={id}>
-            {render(id)}
-          </FitStage>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** One canvas, three real-width columns: the dashboard's own grid, a row of
- *  toasts, a stack of notification panels. */
-function VoiceRow({
-  mode,
-  ground,
-  width,
-  render,
-}: {
-  mode: Mode;
-  ground: Ground;
-  /** The specimen's REAL width in CSS pixels. Never a guess: a toast is 356,
-   *  a dashboard card is its grid cell, a notification panel is 380. */
-  width: number;
-  render: (voice: VoiceId) => React.ReactNode;
-}) {
-  const phone = mode === "phone";
-  return (
-    <FitStage mode={mode} ground={ground} className="px-6 py-8">
-      <div
-        className={
-          phone ? "flex flex-col gap-6" : "flex flex-wrap items-start gap-6"
-        }
-      >
-        {COLUMNS.map((id) => (
-          <div key={id} style={{ width: phone ? undefined : width }}>
-            <VoiceTag id={id} />
-            {render(id)}
-          </div>
-        ))}
-      </div>
-    </FitStage>
-  );
-}
-
-/** Three phones, side by side: the guest surfaces only ever render there, so
- *  this chapter ignores the canvas switch and says so in its rationale. */
-function VoicePhones({
-  ground,
-  render,
-}: {
-  ground: Ground;
-  render: (voice: VoiceId) => React.ReactNode;
-}) {
-  return <VoiceStack mode="phone" ground={ground} render={render} />;
-}
 
 /**
  * The line table under a surface: every slot, three columns, and the reason a
@@ -1288,13 +915,7 @@ function LineTable({ u }: { u: UseCase }) {
 
 /** One surface: what it is, where it lives, the rule it obeys, the specimens,
  *  the lines, and what separates the voices here. */
-function UseFrame({
-  u,
-  children,
-}: {
-  u: UseCase;
-  children: React.ReactNode;
-}) {
+function UseFrame({ u, children }: { u: UseCase; children: React.ReactNode }) {
   return (
     <section className="space-y-3 border-t border-border pt-6 first:border-t-0 first:pt-0">
       <div className="max-w-3xl">
@@ -1341,9 +962,7 @@ function PricingPair({ voice, mode }: { voice: VoiceId; mode: Mode }) {
           {free.priceLabel}
         </p>
         <ul className="mt-6 flex-1 space-y-2.5 text-sm">
-          <li>
-            {MAX_EVENTS.free} event, every guest, the album and the reel
-          </li>
+          <li>{MAX_EVENTS.free} event, every guest, the album and the reel</li>
           <li>{line("free-item")}</li>
         </ul>
         <p className="mt-6 text-sm text-muted-foreground">
@@ -1440,11 +1059,7 @@ function WizardCard({ voice, mode }: { voice: VoiceId; mode: Mode }) {
   const u = APP_USE.find((c) => c.id === "wizard") as UseCase;
   const steps = say(u, "steps", voice).split("·");
   return (
-    <div
-      className={
-        mode === "desktop" ? "px-8 py-10" : "px-4 py-8"
-      }
-    >
+    <div className={mode === "desktop" ? "px-8 py-10" : "px-4 py-8"}>
       <div className="mx-auto w-full max-w-xl rounded-xl border border-border bg-card p-6">
         <h3 className="font-heading text-lg">{say(u, "title", voice)}</h3>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -1586,7 +1201,9 @@ function ErrorPanel({ voice }: { voice: VoiceId }) {
           <Input placeholder="you@example.com" readOnly />
           <Input placeholder="Password" readOnly />
         </div>
-        <p className="mt-2 text-sm text-destructive">{say(u, "signin", voice)}</p>
+        <p className="mt-2 text-sm text-destructive">
+          {say(u, "signin", voice)}
+        </p>
       </div>
       <div className="rounded-lg border border-border bg-card px-4 py-3 shadow-lg">
         <p className="text-sm font-medium">{say(u, "upload-title", voice)}</p>
@@ -1625,7 +1242,13 @@ function AccountPanel({ voice }: { voice: VoiceId }) {
 }
 
 /** A guest's door, in the entry modal's own lockup. */
-function GuestDoor({ voice, gate }: { voice: VoiceId; gate: "public" | "gated" | "private" }) {
+function GuestDoor({
+  voice,
+  gate,
+}: {
+  voice: VoiceId;
+  gate: "public" | "gated" | "private";
+}) {
   const u = GUEST_USE.find((c) => c.id === "guest-door") as UseCase;
   const body =
     gate === "public"
@@ -1642,7 +1265,11 @@ function GuestDoor({ voice, gate }: { voice: VoiceId; gate: "public" | "gated" |
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-card px-5 py-6 text-center">
       <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-        {gate === "public" ? "You are invited" : gate === "gated" ? "One step" : "Private"}
+        {gate === "public"
+          ? "You are invited"
+          : gate === "gated"
+            ? "One step"
+            : "Private"}
       </p>
       <p className="font-heading text-[22px] leading-tight text-balance">
         {title}
@@ -1688,7 +1315,17 @@ function UploadSheet({ voice }: { voice: VoiceId }) {
 /** The empty album a guest lands on. */
 function GuestEmpty({ voice }: { voice: VoiceId }) {
   const u = GUEST_USE.find((c) => c.id === "guest-empty") as UseCase;
-  const ghosts = ["g01", "g02", "g03", "g04", "g05", "g06", "g01", "g02", "g03"];
+  const ghosts = [
+    "g01",
+    "g02",
+    "g03",
+    "g04",
+    "g05",
+    "g06",
+    "g01",
+    "g02",
+    "g03",
+  ];
   return (
     <div className="relative px-3 py-5">
       <div
@@ -1743,7 +1380,8 @@ function EmailCard({ voice }: { voice: VoiceId }) {
 
 /** The marketing five: the surfaces a reader meets before they sign up. */
 function MarketingUseChapter({ mode }: { mode: Mode }) {
-  const byId = (id: string) => MARKETING_USE.find((u) => u.id === id) as UseCase;
+  const byId = (id: string) =>
+    MARKETING_USE.find((u) => u.id === id) as UseCase;
   const hero = byId("home-hero");
   const chapter = byId("album-chapter");
   const cards = byId("feature-cards");
@@ -1756,7 +1394,8 @@ function MarketingUseChapter({ mode }: { mode: Mode }) {
   return (
     <div className="space-y-8">
       <UseFrame u={hero}>
-        <VoiceStack
+        <VoiceFrames
+          id="use-hero"
           mode={mode}
           ground="cinema"
           render={(v) => (
@@ -1789,7 +1428,8 @@ function MarketingUseChapter({ mode }: { mode: Mode }) {
       </UseFrame>
 
       <UseFrame u={chapter}>
-        <VoiceStack
+        <VoiceFrames
+          id="use-chapter"
           mode={mode}
           ground="paper"
           render={(v) => (
@@ -1810,7 +1450,8 @@ function MarketingUseChapter({ mode }: { mode: Mode }) {
       </UseFrame>
 
       <UseFrame u={cards}>
-        <VoiceStack
+        <VoiceFrames
+          id="use-cards"
           mode={mode}
           ground="paper"
           render={(v) => (
@@ -1829,7 +1470,8 @@ function MarketingUseChapter({ mode }: { mode: Mode }) {
       </UseFrame>
 
       <UseFrame u={byId("pricing-card")}>
-        <VoiceStack
+        <VoiceFrames
+          id="use-pricing"
           mode={mode}
           ground="paper"
           render={(v) => <PricingPair voice={v} mode={mode} />}
@@ -1844,11 +1486,15 @@ function MarketingUseChapter({ mode }: { mode: Mode }) {
       </UseFrame>
 
       <UseFrame u={help}>
-        <VoiceStack
+        <VoiceFrames
+          id="use-help"
           mode={mode}
           ground="paper"
           render={(v) => (
-            <div data-bv-type="section-lg" className="mx-auto max-w-3xl px-6 py-10">
+            <div
+              data-bv-type="section-lg"
+              className="mx-auto max-w-3xl px-6 py-10"
+            >
               <Badge variant="secondary">Troubleshooting</Badge>
               <h2 className="mt-4 font-heading text-balance">
                 {say(help, "title", v)}
@@ -1875,7 +1521,8 @@ function AppUseChapter({ mode, ground }: { mode: Mode; ground: Ground }) {
   return (
     <div className="space-y-8">
       <UseFrame u={byId("dashboard-empty")}>
-        <VoiceStack
+        <VoiceFrames
+          id="use-dash"
           mode={mode}
           ground={ground}
           render={(v) => <DashboardEmpty voice={v} mode={mode} />}
@@ -1885,7 +1532,8 @@ function AppUseChapter({ mode, ground }: { mode: Mode; ground: Ground }) {
       <UseFrame u={card}>
         {/* Three cards side by side IS the dashboard's own grid at 1440, so the
             row layout here is the shipped layout rather than a board's. */}
-        <VoiceRow
+        <VoiceCanvas
+          id="use-card"
           mode={mode}
           ground={ground}
           width={352}
@@ -1907,16 +1555,16 @@ function AppUseChapter({ mode, ground }: { mode: Mode; ground: Ground }) {
             the candidates differ. Worth knowing before the sweep: two of these
             three pills are props and the third is a component edit. */}
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-          The amber chip reads the same on all three cards on purpose: its
-          words are hardcoded in event-card.tsx while the other two pills
-          arrive as props from the dashboard. The row below is where the
-          candidates part, and the difference is a component edit rather than a
-          label change.
+          The amber chip reads the same on all three cards on purpose: its words
+          are hardcoded in event-card.tsx while the other two pills arrive as
+          props from the dashboard. The row below is where the candidates part,
+          and the difference is a component edit rather than a label change.
         </p>
       </UseFrame>
 
       <UseFrame u={byId("wizard")}>
-        <VoiceStack
+        <VoiceFrames
+          id="use-wizard"
           mode={mode}
           ground={ground}
           render={(v) => <WizardCard voice={v} mode={mode} />}
@@ -1924,7 +1572,8 @@ function AppUseChapter({ mode, ground }: { mode: Mode; ground: Ground }) {
       </UseFrame>
 
       <UseFrame u={toast}>
-        <VoiceRow
+        <VoiceCanvas
+          id="use-toast"
           mode={mode}
           ground={ground}
           width={356}
@@ -1938,7 +1587,8 @@ function AppUseChapter({ mode, ground }: { mode: Mode; ground: Ground }) {
       </UseFrame>
 
       <UseFrame u={byId("error")}>
-        <VoiceRow
+        <VoiceCanvas
+          id="use-error"
           mode={mode}
           ground={ground}
           width={356}
@@ -1947,7 +1597,8 @@ function AppUseChapter({ mode, ground }: { mode: Mode; ground: Ground }) {
       </UseFrame>
 
       <UseFrame u={byId("notification")}>
-        <VoiceRow
+        <VoiceCanvas
+          id="use-notif"
           mode={mode}
           ground={ground}
           width={380}
@@ -1956,7 +1607,8 @@ function AppUseChapter({ mode, ground }: { mode: Mode; ground: Ground }) {
       </UseFrame>
 
       <UseFrame u={byId("account")}>
-        <VoiceRow
+        <VoiceCanvas
+          id="use-account"
           mode={mode}
           ground={ground}
           width={380}
@@ -1974,7 +1626,9 @@ function GuestUseChapter({ ground }: { ground: Ground }) {
   return (
     <div className="space-y-8">
       <UseFrame u={byId("guest-door")}>
-        <VoicePhones
+        <VoiceFrames
+          id="use-door"
+          mode="phone"
           ground={ground}
           render={(v) => (
             <div className="flex flex-col gap-3 px-4 py-5">
@@ -1987,15 +1641,30 @@ function GuestUseChapter({ ground }: { ground: Ground }) {
       </UseFrame>
 
       <UseFrame u={byId("upload-sheet")}>
-        <VoicePhones ground={ground} render={(v) => <UploadSheet voice={v} />} />
+        <VoiceFrames
+          id="use-upload"
+          mode="phone"
+          ground={ground}
+          render={(v) => <UploadSheet voice={v} />}
+        />
       </UseFrame>
 
       <UseFrame u={byId("guest-empty")}>
-        <VoicePhones ground={ground} render={(v) => <GuestEmpty voice={v} />} />
+        <VoiceFrames
+          id="use-empty"
+          mode="phone"
+          ground={ground}
+          render={(v) => <GuestEmpty voice={v} />}
+        />
       </UseFrame>
 
       <UseFrame u={byId("email")}>
-        <VoicePhones ground={ground} render={(v) => <EmailCard voice={v} />} />
+        <VoiceFrames
+          id="use-email"
+          mode="phone"
+          ground={ground}
+          render={(v) => <EmailCard voice={v} />}
+        />
       </UseFrame>
     </div>
   );
@@ -2020,8 +1689,8 @@ function UsageNote() {
         a sentence you can disagree with: a button the host is about to press, a
         help title that is also the search string, an empty state that was
         already written in the voice. A row the same in all three WITHOUT a
-        reason is a defect on this board, and there {t.unexplained === 1 ? "is" : "are"}{" "}
-        {t.unexplained} of them.
+        reason is a defect on this board, and there{" "}
+        {t.unexplained === 1 ? "is" : "are"} {t.unexplained} of them.
       </p>
       <p>
         Two different questions live on this board and round three had them in
@@ -2042,491 +1711,395 @@ const CHAPTER_1 = ARC.slice(0, 7);
 const CHAPTER_PAPER = ARC.slice(7, 10);
 const CHAPTER_CLOSE = ARC.slice(10);
 
+/**
+ * The ledger beside the frame at 375, under it at 1440.
+ *
+ * ★ A 375 DOCUMENT SITS IN A COLUMN THREE TIMES ITS WIDTH. Round three walked
+ * the phone canvas at twenty-three thousand pixels with eight hundred of dead
+ * ground either side of every chapter, and the line being judged a full screen
+ * away from the line it replaces. Side by side, the phone walk is the same
+ * length as the desktop one and the comparison is in one view. The `lg:` here
+ * is the BOARD's own chrome, so keying off the real browser viewport is exactly
+ * right, unlike a prefix inside a specimen.
+ */
+function LedgerBeside({
+  mode,
+  frame,
+  ledger,
+}: {
+  mode: Mode;
+  frame: React.ReactNode;
+  ledger: React.ReactNode;
+}) {
+  if (mode === "phone") {
+    return (
+      <div className="grid items-start gap-6 lg:grid-cols-[375px_minmax(0,1fr)]">
+        <div className="min-w-0">{frame}</div>
+        <div className="min-w-0">{ledger}</div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      {frame}
+      {ledger}
+    </div>
+  );
+}
+
+/** What the selected voice costs, in the dock, because it is a fact about the
+ *  whole page rather than about one specimen. */
+function MovedCount({ voice }: { voice: VoiceId }) {
+  const arc = arcDiff(voice);
+  const feat = featureDiff(voice);
+  return (
+    <span className="text-[11px] text-muted-foreground tabular-nums">
+      {voice === "today"
+        ? "The shipped lines, the control."
+        : `Moves ${arc.moved} of ${arc.total} arc lines, ${feat.moved} of ${feat.total} feature strings.`}
+    </span>
+  );
+}
+
 export function BrandVoiceBoard() {
-  const [mode, setMode] = useState<Mode>("desktop");
-  const [voiceId, setVoiceId] = useState<VoiceId>("room");
-  // The app's own theme, for the chapters that render app UI. The marketing
-  // chapters keep the ground the page really ships on (cinema, paper): a
-  // ground toggle there would lie about where the line renders.
-  const [appGround, setAppGround] = useState<Ground>("app-light");
-  const voice = voiceById(voiceId);
-  const desktop = mode === "desktop";
-  const arc = arcDiff(voiceId);
-  const feat = featureDiff(voiceId);
-  // The two stages the ruler measures inside.
-  const arcHeroRef = useRef<HTMLDivElement | null>(null);
-  const thesisRef = useRef<HTMLDivElement | null>(null);
+  // ★ THE RULER'S TWO HEADINGS ARE HELD AS STATE, NOT AS REFS. They live inside
+  // a frame's document and arrive when the scene portals in, which is after
+  // this component's first effect; a ref read then is null and nothing re-runs
+  // it. A state-held node is the dependency the measurement needs.
+  const [arcHeroNode, setArcHeroNode] = useState<HTMLElement | null>(null);
+  const [thesisNode, setThesisNode] = useState<HTMLElement | null>(null);
+  useAnchorAfterSettle(BRAND_VOICE.id);
 
   return (
-    <div className="bv-round-four flex flex-col gap-8 py-4">
-      {/* THE VERDICT, ON TOP. Round three's walk: a stranger reads the first
-          screen and then scrolls fifteen thousand pixels looking for the
-          argument. It is here instead, with the three chapters that carry it. */}
-      <div className="max-w-3xl space-y-4">
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          {LEAD.what}
-        </p>
-        <div className="rounded-lg border border-border bg-card px-5 py-4">
-          <p className="text-[11px] font-medium text-muted-foreground">
-            The recommendation
-          </p>
-          <p className="mt-1 font-heading text-2xl">{LEAD.recommend}</p>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            {LEAD.because}
-          </p>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            {LEAD.second}
-          </p>
-        </div>
-        <dl className="space-y-1.5 text-xs leading-relaxed">
-          <dt className="text-[11px] font-medium text-muted-foreground">
-            Look at first
-          </dt>
-          {LOOK_AT.map((l) => (
-            <dd key={l.href}>
-              <a
-                href={l.href}
-                className="text-foreground underline underline-offset-2"
-              >
-                {l.label}
-              </a>
-              <span className="text-muted-foreground"> {l.line}</span>
-            </dd>
-          ))}
-        </dl>
-      </div>
+    <BoardPage
+      spec={BRAND_VOICE}
+      dock={(state) => <MovedCount voice={state.voice as VoiceId} />}
+      evidence={(id, state) => {
+        const voiceId = state.voice as VoiceId;
+        const voice = voiceById(voiceId);
+        const mode = state.canvas as Mode;
+        const ground = state.app as Ground;
 
-      {/* The switch follows the walk: the arc runs for several screens and a
-          voice toggle at the top of it is a toggle nobody reaches. The index
-          rides with it for the same reason (borrowed from the palette board's
-          round two, which found the same thing on a board half this tall). */}
-      {/* ★ THE DOCK, not a bar of this board's own. Will, on every board this
-          round: "for any pagewide configs, the GUI control should be fixed so
-          that variants can be toggled on different previews anywhere on the
-          page... having to scroll back to the top makes it very hard to review
-          differences." The shell's BoardDock carries the three switches that
-          change the whole page (the voice, the canvas, the app's theme), the
-          chapter index, and the shell's own reading controls, and it writes its
-          height into scroll-padding-top so a chapter anchor lands under it. */}
-      <BoardDock label="The brand-voice board's controls">
-        <Toggle
-          ariaLabel="Voice"
-          options={VOICE_OPTIONS}
-          value={voiceId}
-          onChange={setVoiceId}
-        />
-        <Toggle
-          ariaLabel="Canvas"
-          options={[
-            { id: "desktop" as Mode, label: "1440" },
-            { id: "phone" as Mode, label: "375" },
-          ]}
-          value={mode}
-          onChange={setMode}
-        />
-        <Toggle
-          ariaLabel="The app's theme"
-          options={[
-            { id: "app-light" as Ground, label: "App light" },
-            { id: "app-dark" as Ground, label: "App dark" },
-          ]}
-          value={appGround}
-          onChange={setAppGround}
-        />
-        <p className="text-[11px] text-muted-foreground">
-          {voiceId === "today"
-            ? "The shipped lines, the control."
-            : `${voiceId === "room" ? "Recommended. " : ""}Moves ${arc.moved} of ${arc.total} lines in the arc, ${feat.moved} of ${feat.total} on the feature pages.`}
-        </p>
-        {/* One row, and it scrolls rather than wrapping: at 1440 the thirteen
-            fit on a line, and on a narrow window a wrapping index turned the
-            bar into four rows that ate a third of the viewport.
-
-            ★ `w-0 basis-full grow`, not `w-full`. A percentage width is treated
-            as content-sized when the browser asks a flex item what it MEASURES,
-            so a `whitespace-nowrap` row reports its 911px max-content to the
-            dock's control cell however loudly it says `overflow-x-auto`. The
-            shell's cell carries `min-w-0` only from `sm` up (dock.tsx), so at
-            375 that measurement escaped the cell and scrolled the whole board
-            sideways (927px document on a 375px window). `w-0` makes the
-            measurement zero, `basis-full` keeps the index on its own line, and
-            `grow` fills the line it is on: 1440 shows all thirteen, 375 scrolls
-            them. Measured both ways before it was written. */}
-        <nav
-          aria-label="Chapters"
-          className="flex w-0 min-w-0 grow basis-full items-center gap-x-3 overflow-x-auto whitespace-nowrap"
-        >
-          {CHAPTERS.map((c) => (
-            <a
-              key={c.id}
-              href={`#${c.id}`}
-              className="text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {c.label}
-            </a>
-          ))}
-        </nav>
-      </BoardDock>
-
-      <Chapter
-        id="bv-1"
-        n={1}
-        name="The voices in use: marketing, loud"
-        rationale="Five surfaces a reader meets before they sign up, each written three ways on the component that ships it, at 1:1 on the real ground. Every voice writes every line here, even where a sweep would keep today's: a comparison exists to show a difference. What a sweep would actually MOVE is the ledgers, chapters 5 to 12."
-      >
-        <div className="space-y-6">
-          <UsageNote />
-          <MarketingUseChapter mode={mode} />
-        </div>
-      </Chapter>
-
-      <Chapter
-        id="bv-2"
-        n={2}
-        name="The voices in use: the host's app, quiet"
-        rationale="Seven surfaces of real app UI on the app's own theme. The app's design is open to a lab track this round, so these render as UI rather than as text in a card, which is what round three did and what made the quiet register hard to judge."
-      >
-        <AppUseChapter mode={mode} ground={appGround} />
-      </Chapter>
-
-      <Chapter
-        id="bv-3"
-        n={3}
-        name="The voices in use: a guest's phone, and the inbox"
-        rationale="Four surfaces at 375, always, because that is the only place they render. Bible 4 decides more here than the voice does: the event belongs to the host and Partyreel stays nearly silent, which is why the door's account-required line is marked as compelled rather than chosen."
-      >
-        <GuestUseChapter ground={appGround} />
-      </Chapter>
-
-      <Chapter
-        id="bv-4"
-        n={4}
-        name="The voice, in one paragraph"
-        rationale="The first ask, with what each answer costs. The three registers below are shown once, because round one found that they do not fork with the voice: only the marketing register's default sentence shape moves."
-      >
-        <div className="space-y-5">
-          <div
-            key={voice.id}
-            data-bv-swap
-            className="rounded-lg border border-border bg-card px-5 py-4"
-          >
-            <p className="text-[11px] font-medium text-muted-foreground">
-              {voice.name}
-            </p>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-foreground">
-              {voice.paragraph}
-            </p>
-            <p className="mt-3 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-              {voice.rationale}
-            </p>
-            <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-              <span className="text-foreground">What it costs. </span>
-              {voice.cost}
-            </p>
-          </div>
-          <dl className="grid gap-3 sm:grid-cols-3">
-            {REGISTERS.map((r) => (
-              <div
-                key={r.name}
-                className="rounded-lg border border-border bg-card px-4 py-3"
-              >
-                <dt className="text-xs font-medium text-foreground">
-                  {r.name}
-                </dt>
-                <dd className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                  {r.rule}
-                </dd>
+        switch (id) {
+          case "marketing":
+            return (
+              <div className="space-y-6">
+                <UsageNote />
+                <MarketingUseChapter mode={mode} />
               </div>
-            ))}
-          </dl>
-          <div className="rounded-lg border border-border bg-card px-5 py-4">
-            <p className="text-[11px] font-medium text-muted-foreground">
-              Bible 20&rsquo;s replacement, in one sentence (ask 4)
-            </p>
-            <p className="mt-2 max-w-3xl font-heading text-xl text-balance">
-              Lead with what arrives; an absence may be the second beat, never
-              the first, and never both.
-            </p>
-            <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-              It keeps the ruled line (Scan, upload, done. No app to install.)
-              and kills the doubled-absence one (Nothing to install. Nothing to
-              sign up for.), which is the rule the whole arc below is written
-              against.
-            </p>
-          </div>
-        </div>
-      </Chapter>
+            );
 
-      <Chapter
-        id="bv-5"
-        n={5}
-        name="The home arc, chapter one: the event"
-        rationale="Seven sections in arc order on the cinema ground, on the real PageHero and SectionShell, in the selected voice. The ledger carries today beside it, line by line, with every held line marked, and the h1's rows are measured under the stage."
-      >
-        <ChapterBody
-          mode={mode}
-          stage={
-            <div ref={arcHeroRef}>
-              <ArcChapter
-                sections={CHAPTER_1}
+          case "app":
+            return <AppUseChapter mode={mode} ground={ground} />;
+
+          case "guest":
+            return <GuestUseChapter ground={ground} />;
+
+          case "voice":
+            return (
+              <div className="space-y-5">
+                <div
+                  key={voice.id}
+                  data-bv-swap
+                  className="rounded-lg border border-border bg-card px-5 py-4"
+                >
+                  <p className="text-[11px] font-medium text-muted-foreground">
+                    {voice.name}
+                  </p>
+                  <p className="mt-2 max-w-3xl text-sm leading-relaxed text-foreground">
+                    {voice.paragraph}
+                  </p>
+                  <p className="mt-3 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+                    {voice.rationale}
+                  </p>
+                  <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+                    <span className="text-foreground">What it costs. </span>
+                    {voice.cost}
+                  </p>
+                </div>
+                <dl className="grid gap-3 sm:grid-cols-3">
+                  {REGISTERS.map((r) => (
+                    <div
+                      key={r.name}
+                      className="rounded-lg border border-border bg-card px-4 py-3"
+                    >
+                      <dt className="text-xs font-medium text-foreground">
+                        {r.name}
+                      </dt>
+                      <dd className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                        {r.rule}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="rounded-lg border border-border bg-card px-5 py-4">
+                  <p className="text-[11px] font-medium text-muted-foreground">
+                    Bible 20&rsquo;s replacement, in one sentence
+                  </p>
+                  <p className="mt-2 max-w-3xl font-heading text-xl text-balance">
+                    Lead with what arrives; an absence may be the second beat,
+                    never the first, and never both.
+                  </p>
+                  <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+                    It keeps the ruled line (Scan, upload, done. No app to
+                    install.) and kills the doubled-absence one (Nothing to
+                    install. Nothing to sign up for.), which is the rule the
+                    whole arc below is written against.
+                  </p>
+                </div>
+              </div>
+            );
+
+          case "arc-event":
+            return (
+              <LedgerBeside
+                mode={mode}
+                frame={
+                  <ArcChapter
+                    id="arc-event"
+                    sections={CHAPTER_1}
+                    voice={voiceId}
+                    mode={mode}
+                    ground="cinema"
+                    caption="The first seven sections of the home arc, in shipped order, on cinema."
+                    bodyRef={setArcHeroNode}
+                  />
+                }
+                ledger={
+                  <>
+                    <RowCounts
+                      node={arcHeroNode}
+                      selector="[data-bv-type='hero-xl'] h1"
+                      lines={HERO_ROW_LINES}
+                      mode={mode}
+                      lead="The h1, in rows:"
+                    />
+                    <Ledger sections={CHAPTER_1} voice={voiceId} />
+                  </>
+                }
+              />
+            );
+
+          case "arc-paper":
+            return (
+              <LedgerBeside
+                mode={mode}
+                frame={
+                  <ArcChapter
+                    id="arc-paper"
+                    sections={CHAPTER_PAPER}
+                    voice={voiceId}
+                    mode={mode}
+                    ground="paper"
+                    caption="The host's desk: three sections on paper, the album chapter as a left masthead."
+                  />
+                }
+                ledger={<Ledger sections={CHAPTER_PAPER} voice={voiceId} />}
+              />
+            );
+
+          case "arc-close":
+            return (
+              <LedgerBeside
+                mode={mode}
+                frame={
+                  <ArcChapter
+                    id="arc-close"
+                    sections={CHAPTER_CLOSE}
+                    voice={voiceId}
+                    mode={mode}
+                    ground="cinema"
+                    caption="The last five sections, back on cinema, where the arc has to land."
+                  />
+                }
+                ledger={
+                  <>
+                    <Ledger sections={CHAPTER_CLOSE} voice={voiceId} />
+                    <div className="mt-5">
+                      <Paste
+                        label="The SECTION_HEADERS paste, for marketing-voice.ts"
+                        code={sectionHeadersPaste(voiceId)}
+                      />
+                    </div>
+                  </>
+                }
+              />
+            );
+
+          case "thesis":
+            return (
+              <div className="space-y-3">
+                <ChapterFrame
+                  id="thesis"
+                  mode={mode}
+                  ground="cinema"
+                  title="The ruled line, and the alternative"
+                  caption="Both at the hero tier, in one document, so the pair is read at the size it ships at."
+                  className="space-y-10 py-12"
+                  bodyRef={setThesisNode}
+                >
+                  <PageHero
+                    data-bv-type="hero-xl"
+                    className="w-full"
+                    scale="xl"
+                    heading={THESIS.ruled}
+                  />
+                  <PageHero
+                    data-bv-type="hero-xl"
+                    className="w-full"
+                    scale="xl"
+                    heading={THESIS.alternative}
+                  />
+                </ChapterFrame>
+                <RowCounts
+                  node={thesisNode}
+                  selector="[data-bv-type='hero-xl'] h1"
+                  lines={THESIS_ROW_LINES}
+                  mode={mode}
+                  lead="The thesis, in rows:"
+                />
+                <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
+                  {THESIS.note}
+                </p>
+              </div>
+            );
+
+          case "album-page":
+            return (
+              <FeaturePageStage page={ALBUM_PAGE} voice={voiceId} mode={mode} />
+            );
+
+          case "curation-page":
+            return (
+              <FeaturePageStage
+                page={CURATION_PAGE}
                 voice={voiceId}
                 mode={mode}
-                ground="cinema"
               />
-            </div>
-          }
-          aside={
-            <>
-              <RowCounts
-                host={arcHeroRef}
-                selector="[data-bv-type='hero-xl'] h1"
-                lines={HERO_ROW_LINES}
-                mode={mode}
-                lead="The h1, in rows:"
-              />
-              <Ledger sections={CHAPTER_1} voice={voiceId} />
-            </>
-          }
-        />
-      </Chapter>
+            );
 
-      <Chapter
-        id="bv-6"
-        n={6}
-        name="The home arc, the paper chapter: the morning after"
-        rationale="The three sections of the host's desk, on paper. album opens it as a left masthead at the lg tier, which is why its line has to carry more weight than the two beneath it."
-      >
-        <ChapterBody
-          mode={mode}
-          stage={
-            <ArcChapter
-              sections={CHAPTER_PAPER}
-              voice={voiceId}
-              mode={mode}
-              ground="paper"
-            />
-          }
-          aside={<Ledger sections={CHAPTER_PAPER} voice={voiceId} />}
-        />
-      </Chapter>
-
-      <Chapter
-        id="bv-7"
-        n={7}
-        name="The home arc, the close: the payoff"
-        rationale="The last five, back on cinema. The arc has to land here in the same voice it opened in, which is the thing a header-by-header comparison cannot show."
-      >
-        <ChapterBody
-          mode={mode}
-          stage={
-            <ArcChapter
-              sections={CHAPTER_CLOSE}
-              voice={voiceId}
-              mode={mode}
-              ground="cinema"
-            />
-          }
-          aside={
-            <>
-              <Ledger sections={CHAPTER_CLOSE} voice={voiceId} />
-              <div className="mt-5">
-                <CopyPaste
-                  label="Copy the SECTION_HEADERS paste"
-                  text={sectionHeadersPaste(voiceId)}
+          case "strings":
+            return (
+              <div className="space-y-4">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[46rem] text-xs">
+                    <thead>
+                      <tr className="border-b border-border text-left text-[11px] text-muted-foreground">
+                        <th className="py-2 pr-3 font-medium">Page</th>
+                        <th className="py-2 pr-3 font-medium">Slot</th>
+                        <th className="py-2 pr-3 font-medium">Today</th>
+                        <th className="py-2 font-medium">{voice.name}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {FEATURES.map((f) =>
+                        (
+                          [
+                            ["navLabel", f.navLabel],
+                            ["navDescription", f.navDescription],
+                            ["h1", f.h1],
+                            ["heroSub", f.heroSub],
+                            ["directoryLine", f.directoryLine],
+                          ] as const
+                        ).map(([slotName, trio], i) => (
+                          <tr
+                            key={`${f.slug}-${slotName}`}
+                            className="border-b border-border/50 align-top"
+                          >
+                            <td className="py-1.5 pr-3 text-muted-foreground">
+                              {i === 0 ? f.slug : ""}
+                            </td>
+                            <td className="py-1.5 pr-3 text-muted-foreground">
+                              {slotName}
+                            </td>
+                            <td className="py-1.5 pr-3 text-muted-foreground">
+                              {trio.today}
+                            </td>
+                            <td className="py-1.5 text-foreground">
+                              {held(trio, voiceId) ? (
+                                <Held />
+                              ) : (
+                                pick(trio, voiceId)
+                              )}
+                            </td>
+                          </tr>
+                        )),
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <Paste
+                  label="The FEATURE_PAGES paste, for feature-pages.ts"
+                  code={featurePagesPaste(voiceId)}
                 />
               </div>
-            </>
-          }
-        />
-      </Chapter>
+            );
 
-      <Chapter
-        id="bv-8"
-        n={8}
-        name="The thesis, both ways"
-        rationale="All that survives of candidate C, on the surface it actually renders: the site's loudest line, at the hero tier, on cinema. One clause settles it, and the ruler under the pair says what the clause costs in rows."
-      >
-        <div className="space-y-3">
-          {/* ★ THE STAGE THIS BOARD MOST HAD TO GET RIGHT. Ask 5 asks Will to
-              choose between two lines, so a stage that clips one of them asks
-              nothing. It did: a 520px box against 616px of content cut the
-              word "it." off the second thesis at 1440, and at 375 the line
-              stopped at "as". Measured now, like every other stage. */}
-          <div ref={thesisRef}>
-            <FitStage mode={mode} ground="cinema" className="space-y-10 py-12">
-              <PageHero
-                data-bv-type="hero-xl"
-                className="w-full"
-                scale="xl"
-                heading={THESIS.ruled}
-              />
-              <PageHero
-                data-bv-type="hero-xl"
-                className="w-full"
-                scale="xl"
-                heading={THESIS.alternative}
-              />
-            </FitStage>
-          </div>
-          <RowCounts
-            host={thesisRef}
-            selector="[data-bv-type='hero-xl'] h1"
-            lines={THESIS_ROW_LINES}
-            mode={mode}
-            lead="The thesis, in rows:"
-          />
-          <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
-            {THESIS.note}
-          </p>
-        </div>
-      </Chapter>
+          case "utility":
+            return <UtilityChapter voice={voiceId} mode={mode} />;
 
-      <Chapter
-        id="bv-9"
-        n={9}
-        name="A feature page, whole: /features/album"
-        rationale="The page whole: the h1, the hero sub, every section eyebrow, header and supporting line, and every card with its title, in order, on the two grounds the page really uses. The cards are its body weight, so the ledger under the page counts what they cost."
-      >
-        <FeaturePageStage page={ALBUM_PAGE} voice={voiceId} mode={mode} />
-      </Chapter>
-
-      <Chapter
-        id="bv-10"
-        n={10}
-        name="A feature page, whole: /features/curation"
-        rationale="The second page, and the harder one: its whole body is one paper chapter of decisions, cards included, so the voice has to stay quiet enough to read as a working document and loud enough to still be marketing."
-      >
-        <FeaturePageStage page={CURATION_PAGE} voice={voiceId} mode={mode} />
-      </Chapter>
-
-      <Chapter
-        id="bv-11"
-        n={11}
-        name="The thirty strings, as a paste"
-        rationale="The shared identity layer behind all six feature pages: the nav label, the mega-panel one-liner, the h1, the hero sub and the directory line. navDescription holds its 45-character band and directoryLine its length band in every column, because the panel and the six hub doors wrap against them."
-      >
-        <div className="space-y-4">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[46rem] text-xs">
-              <thead>
-                <tr className="border-b border-border text-left text-[11px] text-muted-foreground">
-                  <th className="py-2 pr-3 font-medium">Page</th>
-                  <th className="py-2 pr-3 font-medium">Slot</th>
-                  <th className="py-2 pr-3 font-medium">Today</th>
-                  <th className="py-2 font-medium">{voice.name}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {FEATURES.map((f) =>
-                  (
-                    [
-                      ["navLabel", f.navLabel],
-                      ["navDescription", f.navDescription],
-                      ["h1", f.h1],
-                      ["heroSub", f.heroSub],
-                      ["directoryLine", f.directoryLine],
-                    ] as const
-                  ).map(([slot, trio], i) => (
-                    <tr
-                      key={`${f.slug}-${slot}`}
-                      className="border-b border-border/50 align-top"
-                    >
-                      <td className="py-1.5 pr-3 text-muted-foreground">
-                        {i === 0 ? f.slug : ""}
-                      </td>
-                      <td className="py-1.5 pr-3 text-muted-foreground">
-                        {slot}
-                      </td>
-                      <td className="py-1.5 pr-3 text-muted-foreground">
-                        {trio.today}
-                      </td>
-                      <td className="py-1.5 text-foreground">
-                        {held(trio, voiceId) ? <Held /> : pick(trio, voiceId)}
-                      </td>
-                    </tr>
-                  )),
-                )}
-              </tbody>
-            </table>
-          </div>
-          <CopyPaste
-            label="Copy the FEATURE_PAGES paste"
-            text={featurePagesPaste(voiceId)}
-          />
-        </div>
-      </Chapter>
-
-      <Chapter
-        id="bv-12"
-        n={12}
-        name="The pages the arc does not reach: /help, /contact, /pricing"
-        rationale="Round three's addition. The arc and the feature pages are where the site sells; these three are where a reader lands when they are deciding or when something broke, and they carry the site's two most generic lines. Two real help article heads close the last gap between the guide's surfaces table and this board."
-      >
-        <UtilityChapter voice={voiceId} mode={mode} />
-      </Chapter>
-
-      <Chapter
-        id="bv-13"
-        n={13}
-        name="The unfurl, both ways"
-        rationale="The parked ruling, on the surface it actually renders: what a host's group chat shows. The public variant sits above as the control, because the two lines have to read as one set. The grey plate in each card is a stand-in for the link preview's own thumbnail."
-      >
-        <FitStage mode={mode} ground="app-light" className="px-8 py-8">
-          <div className="flex flex-col gap-5">
-            <div className="max-w-md">
-              <p className="text-[11px] font-medium text-muted-foreground">
-                A public event, for reference
-              </p>
-              <div className="mt-1.5 overflow-hidden rounded-[var(--radius)] border border-border bg-card">
-                <div className="h-10 bg-muted" />
-                <div className="px-4 py-2.5">
-                  <p className="text-sm font-medium">{UNFURL.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {UNFURL.publicLine}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div
-              className={
-                desktop
-                  ? "grid grid-cols-2 items-start gap-6"
-                  : "flex flex-col gap-5"
-              }
-            >
-              {UNFURL.options.map((o) => (
-                <div key={o.id} className="space-y-1.5">
-                  <p className="text-[11px] font-medium text-foreground">
-                    {o.label}
-                  </p>
-                  <div className="overflow-hidden rounded-[var(--radius)] border border-border bg-card">
-                    <div className="h-10 bg-muted" />
-                    <div className="px-4 py-2.5">
-                      <p className="text-sm font-medium">{UNFURL.title}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {o.line}
-                      </p>
+          case "unfurl":
+            return (
+              <ChapterFrame
+                id="unfurl"
+                mode={mode}
+                ground="app-light"
+                title="A host's group chat"
+                caption="The grey plate in each card is a stand-in for the link preview's own thumbnail."
+                className="px-8 py-8"
+              >
+                <div className="flex flex-col gap-5">
+                  <div className="max-w-md">
+                    <p className="text-[11px] font-medium text-muted-foreground">
+                      A public event, for reference
+                    </p>
+                    <div className="mt-1.5 overflow-hidden rounded-[var(--radius)] border border-border bg-card">
+                      <div className="h-10 bg-muted" />
+                      <div className="px-4 py-2.5">
+                        <p className="text-sm font-medium">{UNFURL.title}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {UNFURL.publicLine}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <p className="text-[11px] leading-relaxed text-muted-foreground">
-                    {o.note}
-                  </p>
+                  <div
+                    className={
+                      mode === "desktop"
+                        ? "grid grid-cols-2 items-start gap-6"
+                        : "flex flex-col gap-5"
+                    }
+                  >
+                    {UNFURL.options.map((o) => (
+                      <div key={o.id} className="space-y-1.5">
+                        <p className="text-[11px] font-medium text-foreground">
+                          {o.label}
+                        </p>
+                        <div className="overflow-hidden rounded-[var(--radius)] border border-border bg-card">
+                          <div className="h-10 bg-muted" />
+                          <div className="px-4 py-2.5">
+                            <p className="text-sm font-medium">
+                              {UNFURL.title}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {o.line}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-[11px] leading-relaxed text-muted-foreground">
+                          {o.note}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </FitStage>
-      </Chapter>
+              </ChapterFrame>
+            );
 
-      <BoardMeta
-        question={QUESTION}
-        candidates={VOICES.filter((v) => v.id !== "today").map((v) => ({
-          name: v.name,
-          rationale: v.rationale,
-        }))}
-        asks={ASKS}
-        departures={DEPARTURES}
-      />
-    </div>
+          default:
+            return null;
+        }
+      }}
+    />
   );
 }
