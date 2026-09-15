@@ -1475,31 +1475,48 @@ island. Lab only, no production byte.
 
 ## Handoff (round 4)
 
-- Head **`75351fbd`** (this manifest's own commit sits on top; no board byte differs), pushed. Board at `/design/c/palette?key=`. **The round-four board is the one
+- Head **`7b4b6715`** (this manifest's own commit sits on top; no board byte differs), pushed. Board at `/design/c/palette?key=`. **The round-four board is the one
   whose FIRST block is headed "The model: two modes, two grounds each, and one well that belongs to
   neither"**; round three's opened on a candidate card instead. Its dock carries two candidate
   switches (Dark: Today, Ladder, One room, Ember, Slate, Lift · Light: Today, Paper, Bright, Warm,
   Cool) where round three's bar had one ramp toggle and a temperature switch, and the paste at row 15
   prints a `.surface-mat` block that has never existed before.
+- **What changed after the read-only review** (three should-fix items, all closed; no candidate, no
+  paste, no ask and no measurement of the palette itself moved). Row 07's caption no longer claims
+  "the real reveal grammar" that the same round's stage deliberately pins, and says what the row does
+  show and why. The dock's two long switches take the shell's new `wrap` option, and its three rows
+  sit in one column. Shell ask 2 is struck because it landed on `launch-prep` while this round was
+  finishing, and every dock number below was re-measured against the landed dock. Shell ask 1, the
+  touchpoints line, is still out of lane and still asked for, now with the exact line to paste.
 - **Vercel is capped, so nothing here was verified on a preview** and the alias will still be serving
-  round three when Will opens it. Everything below was measured on a **local PRODUCTION build** in
-  this worktree (`pnpm build` then `next start`, ports 3044 and 3045), in a browser tab at a real
-  1440-class window (the window clamps at 1424 of inner width, so "1440" is the board's own canvas
-  toggle, which is what the rows render at) and at the board's 375 canvas, with an earlier iteration
-  pass on `pnpm dev` (3043). Readings are through the DOM; a driven tab is `document.hidden`, which
-  freezes the transition clock and pauses rAF, so every colour was read off a custom property
-  (never transitioned) rather than off a transitioned one, and two screenshots were taken to eyeball
-  what the DOM cannot say.
-- Synced with `launch-prep` at **`6484558`** (2 commits, PROGRAM and the orchestrator's own rows;
-  nothing in this lane). The gate below is the run on the synced tree.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 warnings, all pre-existing and none in
-  a file this track owns), test ok (**1822** in 199 files, 31 of them this round's
-  `registers.test.ts`, up from 15), build ok (248 static pages).
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` plus nine
+  round three when Will opens it. Everything below was measured on a **local PRODUCTION build** of
+  this head in this worktree (`pnpm build`, then `next start` on port **3060**; the first pass's 3046
+  server was still holding its port with an older build, which is the sort of thing that reads as a
+  fix not working, so the port moved rather than the reading being trusted), at a 1440 viewport, at
+  the board's 375 canvas, and at a 500 window, which is the narrowest a macOS Chrome window goes.
+  Readings are through the DOM and every box is read with `getBoundingClientRect`, which forces the
+  layout rather than trusting a cached one; screenshots at 1440 and at 500 eyeball what the DOM
+  cannot say. **Said plainly rather than quietly downgraded: the tab could not be brought to the
+  front.** This round's parallel tracks share one browser window and its front tab belongs to another of
+  them, so
+  this tab stays `document.hidden`, which freezes the transition clock and pauses rAF. Every colour
+  is therefore read off a custom property (never transitioned) rather than off a transitioned one,
+  and the one number a hidden tab genuinely gets wrong is the dock's own `--board-dock-h`, which a
+  fresh hidden tab records as 550px against a measured 129px until the first resize wakes it. That
+  is the exact lag the shell's new `requestAnimationFrame` and resize listener close for a real
+  reader, and it is why the dock heights below are rects rather than the custom property.
+- Synced with `launch-prep` at **`07ad3b21`** (3 commits: PROGRAM, the orchestrator's own rows, and
+  the shell's own round-four landing, which is the one that matters here; see shell ask 2). Nothing
+  in this lane. The gate below is the re-run on the synced tree after the fixes.
+- Gates on the synced tree, re-run after the fixes: typecheck ok, lint ok (0 errors, 6 warnings, all
+  pre-existing and none in a file this track owns), test ok (**1822** in 199 files, 31 of them this
+  round's `registers.test.ts`, up from 15), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` plus ten
   paths under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `call-sites.tsx`, `sections.tsx`,
   `specimens.tsx`, the new `registers.ts`, `model.tsx`, `real-ui.tsx` and `registers.test.ts`, and the
-  deletions of `ramps.ts` and `temperature.test.ts`). No exceptions. No production byte changed:
-  `globals.css`, `theme.css` and `marketing.css` were read and not touched.
+  deletions of `ramps.ts` and `temperature.test.ts`). Eleven paths, no exceptions; the `launch-prep`
+  merge carries the shell's own commit but this branch authors no byte of it. No production byte
+  changed: `globals.css`, `theme.css` and `marketing.css` were read and not touched.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
 
 ### What round four changed, and the answer to the question that opened it
@@ -1541,10 +1558,13 @@ island. Lab only, no production byte.
    paper page, the real `PlanPair` on the paper and then on the mat, four real home-arc chapters
    (`TrustStrip`, `NoApp`, `FullQuality`, `Privacy`) on the room and on the paper, and the real
    `Dialog`, `DropdownMenu` and `Popover`. Rows 06 to 09.
-6. **Every page-wide switch is in `BoardDock`** (three rows at 1440, 129px: the two candidates and
-   the accent, then the reach, the mat, the faint step, the card and the canvas), and Apply/Clear sit
-   in its aside. The accent wall's own ground toggle stayed beside the wall, because it changes one
-   specimen.
+6. **Every page-wide switch is in `BoardDock`** (three rows at 1440, 129px: the two candidate sets,
+   then the accent, its reach and the mat, then the faint step, the card and the canvas), and
+   Apply/Clear sit in its aside. The three rows are one COLUMN rather than three siblings, because
+   the dock's control cell sizes to its content and three wrapping siblings ask for the sum of all
+   three. The two long sets take the shell's `wrap` option, which is what keeps the six-option dark
+   set inside the cell on a phone. The accent wall's own ground toggle stayed beside the wall,
+   because it changes one specimen.
 7. **The accent's reach finally moves a pixel.** It had been an ask for two rounds with no control
    anywhere on the page, which is exactly the failure round three found in the faint switch and
    fixed. A job outside the ruled reach renders on INK on the accent wall, which is what the ruling
@@ -1593,11 +1613,13 @@ island. Lab only, no production byte.
 
 ### Light QA, measured on the local production build
 
-- **Zero clipped elements and zero horizontal page scroll at both canvases.** 19 ordinary stages plus
-  5 iframe stages; the audit walks every descendant's rect against its stage's, ignores anything
-  inside an `overflow-x` scroller (the dashboard's filter chips are one on purpose) and ignores the
-  production footer glow's deliberate `inset: -40px` bleed, which the stage clips exactly as the
-  page's own box does. Inside the iframes: zero right and zero bottom overflow at 1440 and at 375.
+- **Zero clipped elements and zero horizontal page scroll at both canvases**, re-measured on this
+  head. 24 stages (19 ordinary plus 5 iframes); the audit walks every descendant's rect against its
+  stage's, ignores anything inside an `overflow-x` scroller (the dashboard's filter chips are one on
+  purpose) and ignores the production footer glow's deliberate `inset: -40px` bleed, which the stage
+  clips exactly as the page's own box does. Inside the five iframes at the 375 canvas: zero right and
+  zero bottom overflow, and zero of their 47 reveal-marked elements sits under full opacity, which is
+  the SETTLED rule holding and the thing row 07's caption now claims instead of the entrance.
 - **Every switch repaints the board from one resolver**, so none can label an answer the page does
   not show. Read off custom properties at row 04 and row 06's iframe: Ember room `oklch(0.12 0.008
   60)` / card `0.205 0.01 60` / well `0.085 0.006 60` / slab `0.165 0.008 60`; Slate `0.145 0.007
@@ -1616,28 +1638,45 @@ island. Lab only, no production byte.
 - **The real floating layer works and wears the pair.** The production `Dialog` opens on
   `oklch(0.25 0.01 60)`, which is Ember's menu step; it portals to the body, so the buttons apply the
   pair to the page first, and the row says so.
-- **Reduced motion and the two-faces rule**, read off the SERVED production sheets: zero `pal-`
-  keyframes; exactly one `data-pal-*` motion rule in the whole document and it sits inside
-  `(prefers-reduced-motion: no-preference)`; nothing on this board loops. Zero elements render in a
-  mono stack and zero text nodes carry an em-dash.
-- **Cost, measured on the head rather than asserted:** 4784 DOM nodes, 80 images, page height
-  31042px, DOMContentLoaded 185ms on the production server, dock 129px. The page is long because the
+- **Reduced motion and the two-faces rule**, read off the SERVED production sheets and re-read on
+  this head: zero `pal-` keyframes; exactly one `data-pal-*` motion rule in the whole document and it
+  sits inside `(prefers-reduced-motion: no-preference)`; nothing on this board loops. Zero elements
+  render in a mono stack and zero text nodes carry an em-dash, the rewritten caption included.
+- **The dock, re-measured against the landed shell** (the review's point: the earlier numbers were
+  taken against the superseded one). At 1440 it is **129px**, three rows, with the shell's own aside
+  on the first row beside the two candidate sets, and zero page overflow. At 500, the narrowest a
+  macOS Chrome window goes, it is 289px with each knob on its own row and still zero page overflow.
+  A 375 window cannot be opened, so the phone case was measured where it actually bites, by holding
+  the dock's control cell at the **343px** of content width a 375 viewport leaves it: the dark set
+  wraps to two rows and ends exactly on the cell's edge (0px past, dock 397px), and with the wrap
+  taken away the same set runs **36px past the cell** and squeezes "One room" from 80px to 54px. That
+  is the case the shell's new `wrap` option exists for, and both long sets now pass it.
+- **Cost, measured on the head rather than asserted:** 4779 DOM nodes, 80 images, page height
+  31074px, DOMContentLoaded 224ms on the production server, dock 129px. The page is long because the
   five live sections are real; the dock is what keeps it walkable.
 - Seven walk links, the sixth resolving to `/e/<demo token>?key=` and dropped when the env has no
   demo event.
 
 - **Shell changes asked for (the Orchestrator lands them).**
-  1. `src/app/(dev)/design/touchpoints.ts` still describes round three for this board ("Today beside
-     the candidate in one canvas: two ramps and a warm temperature switch any ramp can wear... the
-     panel as one token"). It is two independent sets now, six darks and five lights, with the mat as
-     a register. It is the first paragraph a stranger reads above the board, and it currently
-     contradicts the dock. One line, at integration.
-  2. `BoardDock` writes its measured height to `--board-dock-h` and `scroll-padding-top` from a
-     ResizeObserver. In a tab that is `document.hidden` the lab lays out in a narrow cell and the
-     observer records that height, then lags one layout behind when the tab wakes: measured 546px,
-     then 201px, against a real 169px. It self-corrects on the next resize and it only affects where
-     an anchor jump lands, so it is a note rather than a blocker; a `requestAnimationFrame` before
-     the first `sync()`, or a re-sync on `visibilitychange`, would close it.
+  1. **Still open, and the only one.** `src/app/(dev)/design/touchpoints.ts` still describes round
+     three for this board ("Today beside the candidate in one canvas: two ramps and a warm
+     temperature switch any ramp can wear", ending "the panel as one token"), and that is the first
+     paragraph Will reads above the board, rendered by the touchpoint page. It is two independent
+     sets now, six darks and five lights, with the mat as a register and no temperature switch at
+     all, so the header contradicts the dock under it. The exact line, so it is a paste rather than a
+     rewrite:
+     - `note`: "Two independent sets in one canvas, six darks beside five lights, thirty pairs and
+       one paste from whichever pair is up, judged on the real footer, the real pricing pair, four
+       real home chapters and the real floating layer; the accent as four hues against every job it
+       does; the /contact panel named as the fifth ground"
+     - `variants`: "The model", "The dark set", "The light set", "The accent by job", "The mat as a
+       register"
+  2. **Struck: it landed already, and it is merged in here.** The shell's own round-four commit
+     (`07ad3b21`, pushed to `launch-prep` two minutes before this round's head) gives `BoardDock` a
+     `requestAnimationFrame` before the first sync plus a window resize listener, which closes the
+     height-lag note this handoff used to carry, and gives `Toggle` the `wrap` option the six-option
+     dark set needed at 375. Both are in use on this head and every dock number above was measured
+     against them. Nothing to land.
   3. Nothing else. `Stage`, `Toggle`, `BoardMeta`, `lab-prefs` and the candidate-style island all did
      exactly what this round needed; the 1:1 default is the single biggest improvement to this board
      since it was cut.
