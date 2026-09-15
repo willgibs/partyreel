@@ -878,9 +878,17 @@ export function MediaKitBoard() {
               The twelve are referenced in {PRODUCTION_FILES} production files
               across {ROUTES.length} routes, and four of them sit in the footer
               strip and two in the nav panel, both of which live in the group
-              layouts, so they are on all {`${MARKETING_PAGES} marketing`} pages
-              before a reader scrolls. Apply &ldquo;The exposure&rdquo; below
-              and walk the site to see it.
+              layouts, so they are on all {MARKETING_PAGES}{" "}
+              {/* ★ That space is an explicit {" "} because Next 16's SWC drops the
+                  leading whitespace of a JSXText run that BOTH spans more than one
+                  source line AND contains an HTML entity (&ldquo; below). Measured on
+                  the build, not inferred: the plain `{n} noun` shape is correct and
+                  renders its space five other times on this page (PRODUCTION_FILES
+                  three lines up, the sheet's h2 and its two counts), because those
+                  runs carry no entity. Only this run trips it. Rebuild and read the
+                  rendered text before removing this. */}
+              marketing pages before a reader scrolls. Apply &ldquo;The
+              exposure&rdquo; below and walk the site to see it.
             </p>
             <p>
               The second, harder search closed all four holes round one could

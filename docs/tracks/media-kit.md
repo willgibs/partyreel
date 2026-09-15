@@ -716,9 +716,27 @@ No production byte changed.
 
 ## Handoff (round 4)
 
-- Head `74fa8ea`, pushed, plus the one commit after it that names this line (a manifest cannot name its
-  own commit; `git rev-parse origin/lp/media-kit` is the truth). Board at `/design/c/media-kit?key=`.
+- Head `HEADSHA`, pushed, plus the one commit after it that names this line (a manifest cannot name
+  its own commit; `git rev-parse origin/lp/media-kit` is the truth). Board at `/design/c/media-kit?key=`.
   Preview `partyreel-git-lp-media-kit-partyreel.vercel.app`.
+- ★ **A fifth pass was asked to strike finding 0c as false. It is not false, and the review that
+  called it false used the wrong compiler, so this pass fixed the actual defect instead.** 0c reported
+  the board printing "26pulls" / "24marketing pages" but explained it as a JSX rule and planted
+  **NEVER `{n} noun`** in `sheet.tsx`; the review disproved the rule with `tsc` and concluded the
+  symptom was a DOM-walk artifact. The symptom is real. Next compiles with SWC, not `tsc`, and SWC
+  drops the leading whitespace of a JSXText run that both spans more than one source line and holds an
+  HTML entity (measured here on Next 16's own bindings over a variant matrix, and confirmed in
+  `.next/server/chunks`). **Round four's fix had also never worked:** it moved the glue one word along
+  and the board shipped **"24 marketingpages"** for the round. So this pass deleted the false rule and
+  the comment carrying it, put `sheet.tsx` back to the plain `{n} noun` shape (correct, and checked in
+  the compiled output), fixed the one genuinely affected site in `board.tsx` with an explicit `{" "}`
+  plus a note naming the real trigger, rewrote 0c to the measured mechanism, and added a guard in
+  `plan.test.ts` that scans both files for the trigger so a prettier reflow cannot glue two words in
+  silence. Also corrected: that section's intro count, stale at "seven" once 0c made eight findings.
+  **The commit message on `74fa8ea` still carries the wrong explanation and cannot be amended after a
+  push; the correcting commit contradicts it by name.** Nothing else moved: no copy, no data, no
+  derived number. **Will's 10-second look, if he wants one: the exposure paragraph should read "on all
+  24 marketing pages", with a space on each side of the 24.**
 - ★ **Verified on a LOCAL PRODUCTION BUILD, not on a preview, and no Vercel API was called.** The
   round's brief said Vercel is capped, so every check below was run on `pnpm build` + `next start` in
   this worktree at 1440 and at 375 (finally `-p 3233`; the port moves because a rebuild swaps `.next`
@@ -732,9 +750,10 @@ No production byte changed.
   and that shell commit lands exactly on the surface this board's 375 fix works around. It is merged now
   and everything below was re-measured on it. The lesson for the next round is the cheap one: re-read
   `origin/launch-prep` at the moment of the handoff, not at the moment of the merge.
-- Gates on that synced tree: typecheck ok, lint ok (0 errors, 6 warnings, all pre-existing and none
-  in this lane), test ok (1822 in 200 files; this track holds 77 across 7 suites, 18 of them new this
-  round in `plan.test.ts` plus 3 rewritten in `decision.test.ts`), build ok (248 static pages).
+- Gates on that synced tree, re-run whole at the corrected head: typecheck ok, lint ok (0 errors, 6
+  warnings, all pre-existing and none in this lane), test ok (1823 in 200 files; this track holds 78
+  across 7 suites, 19 of them new this round in `plan.test.ts` plus 3 rewritten in `decision.test.ts`),
+  build ok (248 static pages). The extra test over the previous handoff is the JSX-run guard in 0c.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
   `docs/tracks/media-kit.md` and eight files under `src/app/(dev)/design/sandbox/media-kit/`
   (`board.tsx`, `catalogue.ts`, `decision.ts`, `decision.test.ts`, `plan.ts`, `plan.test.ts`,
@@ -918,9 +937,10 @@ used. Everything the first handoff measured on the stale shell was thrown away a
 
 ### Findings against a rule
 
-None against the bible. Seven against this track's own earlier work and one against a source, all
-acted on. **The first two were found by a review of the handoff, after the round called itself done,
-and they are the two worth reading:**
+None against the bible. Eight against this track's own earlier work and one against a source, all
+acted on. **The first three were found by reading the round after it called itself done (0a and 0b by
+a review of the handoff, 0c by a review of the fix that closed them and then by measuring what both
+of those passes had each asserted without rebuilding), and they are the three worth reading:**
 
 0a. ★★ **The board printed a false technical claim on 7 of its 13 cards, and it contradicted the card
    standing next to it.** Every source with no contact sheet shared one categorical slate: "This
@@ -944,12 +964,29 @@ and they are the two worth reading:**
    claim about why something CANNOT be shown is the same failure as an unverified claim about what it
    contains, and it is harder to spot because it looks like diligence.
 
-0c. **A count and its noun must live in ONE JSX expression.** `{SHEET_COUNT} pulls` rendered as
-   "26pulls" on the production build, and the identical shape in `board.tsx` rendered "24marketing
-   pages". Both had been live for a round, because the copy reads as one word in source and nobody
-   rebuilds to re-read a sentence they wrote. Both are template literals now, with the trap written
-   down where the next agent will hit it. Found by walking the rendered DOM for `\d+[a-z]{3,}`, which
-   is a cheap check worth repeating on any board that prints derived numbers.
+0c. ★★ **A real rendering defect, a wrong explanation, a wrong disproof, and a fix that moved the
+   bug instead of removing it. Four passes touched this line and only the build knew the answer.**
+   Round four saw the board print "26pulls" and "24marketing pages", which was TRUE and is the only
+   part of the story that survived. It explained the symptom as "JSX drops the space after `{n}`" and
+   wrote a ★ rule into `sheet.tsx` saying **NEVER `{n} noun`**, three lines under an h2 that does
+   exactly that and renders correctly. The review that followed transpiled the pre-fix sources with
+   the repo's `tsc`, saw the space preserved, and called the whole finding false. **Both were wrong,
+   and acting on either alone ships a visible defect:** the rule is not real, but the bug is, and
+   `tsc` cannot see it because Next does not compile with `tsc`. Measured this pass by driving Next
+   16's own SWC bindings over a variant matrix: **SWC drops the leading whitespace of a JSXText run
+   that BOTH spans more than one source line AND contains an HTML entity.** One line with an entity
+   is fine, two lines without one are fine, two lines with `&ldquo;` anywhere in the run glue the
+   words. That is why exactly one site on this page was ever broken and five identical `{n} noun`
+   shapes beside it were always correct. Worse, round four's own fix never worked: `` {`${N}
+   marketing`} pages `` compiles to `` `${N} marketing` `` followed by `"pages before…"`, so the board
+   spent the round printing **"24 marketingpages"** instead, one word further along, and neither the
+   fix nor the review caught it because neither rebuilt and read the rendered text. Now: the one
+   affected site carries an explicit `{" "}` and a note naming the trigger, `sheet.tsx` is back to the
+   plain shape and verified in the compiled chunk, and `plan.test.ts` scans both files for the trigger
+   so prettier cannot reflow a safe run into a broken one in silence. The lesson is not about JSX.
+   **A claim about what a page renders is settled by reading what the page rendered.** Two passes
+   argued it from transpiled source, one of them with the wrong compiler, and the answer was sitting
+   in `.next/server/chunks` the entire time.
 
 1. ★ **The refusal that shaped three rounds was of a TIER, not of a company.** Round one read
    Unsplash's free terms, found the sentence excluding recognisable people, marked the source

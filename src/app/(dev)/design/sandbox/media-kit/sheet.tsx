@@ -406,23 +406,15 @@ export function SourcingSheet({ vertical }: { vertical: Vertical | "all" }) {
         <h2 className="text-sm font-semibold">
           {SOURCES.length} places, ranked by whether they hold a release
         </h2>
-        {/* ★ A NUMBER AND ITS NOUN GO IN ONE EXPRESSION, NEVER `{n} noun`.
-            JSX dropped the space after `{SHEET_COUNT}` here and the board
-            printed "26pulls of the source's own thumbnails" on the production
-            build (it survived a round because the count read as one word and
-            nobody rebuilt to look). The same bug was live on the exposure
-            paragraph in board.tsx. A template literal cannot be split, so the
-            space cannot be lost; if you add another count to this sentence,
-            write it the same way and REBUILD before believing the copy. */}
         <Caption className="mt-1 max-w-3xl leading-relaxed">
           Not by price. Our five verticals are rooms full of recognisable
           people, so a free library with no release is not a cheaper source, it
           is a source that cannot supply the frames we came for. Each clause is
           quoted word for word from the licence page on {RETRIEVED}. The sheet
-          is {`${SHEET_COUNT} pulls`} of the sources&rsquo; own thumbnails,{" "}
-          {`${FRAME_COUNT} frames`} in all, taken on {HARVESTED} and hotlinked
-          rather than copied. Nothing here is licensed to us: every tile is a
-          preview, and some sources serve theirs unwatermarked.
+          is {SHEET_COUNT} pulls of the sources&rsquo; own thumbnails,{" "}
+          {FRAME_COUNT} frames in all, taken on {HARVESTED} and hotlinked rather
+          than copied. Nothing here is licensed to us: every tile is a preview,
+          and some sources serve theirs unwatermarked.
         </Caption>
       </div>
 
