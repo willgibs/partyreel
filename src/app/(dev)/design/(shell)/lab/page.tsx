@@ -15,7 +15,13 @@ import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 import { SANDBOX, SURFACE_LABEL } from "@/app/(dev)/design/touchpoints";
 
 import { readLedgers, readWindowNotes } from "./_desk/ledger";
-import { type AskState, type BoardRow, deskRows } from "./_desk/queue";
+import {
+  type AskState,
+  type BoardRow,
+  deskRows,
+  holdId,
+  stepId,
+} from "./_desk/queue";
 import { ReviewSession, type SessionStep } from "./_desk/review-session";
 import { SAMPLE_BOARD } from "./_desk/sample-spec";
 import { StartReview } from "./_desk/start-review";
@@ -74,9 +80,13 @@ function toSteps(
   });
 }
 
-const holdKey = (s: SessionStep) => `${s.board}.r${s.round}.${s.askId}`;
+const holdKey = (s: SessionStep) => holdId(s.board, s.round, s.askId);
 
-export default async function DeskPage({ searchParams }: { searchParams: Params }) {
+export default async function DeskPage({
+  searchParams,
+}: {
+  searchParams: Params;
+}) {
   const key = await requireDesignKey(searchParams);
   const session = (await searchParams).session;
   const param = typeof session === "string" ? session : null;
@@ -168,10 +178,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Params 
         blurb="Every ask with no answer in its board's current round, in board order. The review walks them one at a time and ends in one message to paste."
         aside={
           queue.length > 0 ? (
-            <StartReview
-              total={steps.length}
-              stepKeys={steps.map(holdKey)}
-            />
+            <StartReview total={steps.length} stepKeys={steps.map(holdKey)} />
           ) : undefined
         }
       >
@@ -186,7 +193,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Params 
                 style={{ "--i": i } as React.CSSProperties}
               >
                 <LabLink
-                  href={`${DESK_HREF}?session=${a.board}.${a.ask.id}`}
+                  href={`${DESK_HREF}?session=${stepId(a.board, a.ask.id)}`}
                   className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3 transition-colors duration-150 hover:bg-muted/40"
                 >
                   <span className="text-xs text-muted-foreground">
@@ -269,7 +276,9 @@ export default async function DeskPage({ searchParams }: { searchParams: Params 
                   </LabLink>
                   <Tag>{t.status}</Tag>
                   {t.rounds > 0 && <Tag>{`round ${t.rounds}`}</Tag>}
-                  {t.status === "handed-off" && (
+                  {/* Built at handed-off, or on a [preview] commit while the
+                      manifest says it intends one. */}
+                  {(t.status === "handed-off" || t.preview) && (
                     <a
                       href={withDesignKey(
                         `${trackAlias(t.track)}/design/lab`,
@@ -362,7 +371,9 @@ function BoardCard({
         {row.legacy && <Tag badge="legacy" />}
         {row.spec && <Tag>{`round ${row.spec.round.n}`}</Tag>}
         {built.map((b) => (
-          <Tag key={b.name}>{b.status ? `${b.name} · ${b.status}` : b.name}</Tag>
+          <Tag key={b.name}>
+            {b.status ? `${b.name} · ${b.status}` : b.name}
+          </Tag>
         ))}
       </div>
 
@@ -378,7 +389,7 @@ function BoardCard({
                 href={
                   a.answer
                     ? `/design/lab/${row.id}`
-                    : `${DESK_HREF}?session=${row.id}.${a.ask.id}`
+                    : `${DESK_HREF}?session=${stepId(row.id, a.ask.id)}`
                 }
                 className={
                   a.answer

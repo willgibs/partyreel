@@ -12,7 +12,8 @@ import { useSyncExternalStore } from "react";
  * (lab-prefs.ts, tuner-store.ts) and the reason there is no effect here: the
  * server snapshot is empty, the client snapshot is the stored answers, and the
  * desk's "carry on" count and the session's resume point both derive from the
- * same value during render.
+ * same value during render. The key an answer is held under is `holdId`
+ * (queue.ts), so the desk and the session agree on it.
  */
 
 export type Held = { choice: string; note: string };
@@ -77,6 +78,3 @@ export function setReviewStore(next: ReviewStore): void {
 export function useReviewStore(): ReviewStore {
   return useSyncExternalStore(subscribe, getReviewStore, () => EMPTY_REVIEW);
 }
-
-export const holdKeyOf = (board: string, round: number, ask: string) =>
-  `${board}.r${round}.${ask}`;

@@ -141,17 +141,16 @@ export function openQueue(rows: BoardRow[]): AskState[] {
   return rows.flatMap((r) => r.open);
 }
 
-/** The step id the URL carries: `?session=<board>.<ask>`. */
-export function stepId(step: { board: string; ask: { id: string } }): string {
-  return `${step.board}.${step.ask.id}`;
+/**
+ * The step id the URL carries: `?session=<board>.<ask>`. One home for the
+ * grammar, so the desk's links, the session's URL and the test all spell a
+ * step the same way.
+ */
+export function stepId(board: string, ask: string): string {
+  return `${board}.${ask}`;
 }
 
-/**
- * Where a session resumes. An unknown or answered step falls back to the first
- * open ask, so a stale link never strands the reader on a step that is gone.
- */
-export function stepIndex(queue: AskState[], id: string | null): number {
-  if (!id) return 0;
-  const at = queue.findIndex((s) => stepId(s) === id);
-  return at < 0 ? 0 : at;
+/** The key an answer is held under while a review is in progress. */
+export function holdId(board: string, round: number, ask: string): string {
+  return `${board}.r${round}.${ask}`;
 }

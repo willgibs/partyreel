@@ -9,6 +9,7 @@ import { CopyButton } from "@/app/(dev)/design/(shell)/_shell/copy";
 import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { registerReviewKeys, reviewKeysOwned } from "./review-keys";
+import { holdId, stepId } from "./queue";
 import {
   composeMessage,
   type SessionAnswer,
@@ -16,7 +17,6 @@ import {
 } from "./review-message";
 import {
   EMPTY_REVIEW,
-  holdKeyOf,
   type ReviewStore,
   setReviewStore,
   useReviewStore,
@@ -58,8 +58,8 @@ export type SessionStep = {
   boardHref: string;
 };
 
-const holdKey = (s: SessionStep) => holdKeyOf(s.board, s.round, s.askId);
-const stepParam = (s: SessionStep) => `${s.board}.${s.askId}`;
+const holdKey = (s: SessionStep) => holdId(s.board, s.round, s.askId);
+const stepParam = (s: SessionStep) => stepId(s.board, s.askId);
 /**
  * The summary's own URL value. The dry run namespaces it, so finishing a dry
  * run and reloading returns to the dry run rather than to the real queue's

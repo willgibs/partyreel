@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   askStates,
   deskRows,
+  holdId,
   type Ledger,
   openQueue,
   stepId,
-  stepIndex,
 } from "./queue";
 import { SAMPLE_BOARD } from "./sample-spec";
 
@@ -92,11 +92,14 @@ describe("the queue", () => {
     );
   });
 
-  it("resolves a step id, and falls back when it is stale", () => {
+  it("spells a step and a held answer one way", () => {
+    // The desk links a step, the session writes it to the URL and holds the
+    // answer under the round: one home for both, or they drift apart.
     const queue = openQueue(deskRows([BOARD], [SAMPLE_BOARD], new Map()));
-    expect(stepId(queue[1])).toBe(`${SAMPLE_BOARD.id}.${queue[1].ask.id}`);
-    expect(stepIndex(queue, stepId(queue[1]))).toBe(1);
-    expect(stepIndex(queue, "gone.missing")).toBe(0);
-    expect(stepIndex(queue, null)).toBe(0);
+    const s = queue[1];
+    expect(stepId(s.board, s.ask.id)).toBe(`${SAMPLE_BOARD.id}.${s.ask.id}`);
+    expect(holdId(s.board, s.round, s.ask.id)).toBe(
+      `${SAMPLE_BOARD.id}.r${SAMPLE_BOARD.round.n}.${s.ask.id}`,
+    );
   });
 });

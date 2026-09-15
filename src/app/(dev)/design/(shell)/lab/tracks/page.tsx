@@ -60,14 +60,21 @@ export default async function TracksPage({
               {board.title}
             </LabLink>
           )}
-          {t.status === "handed-off" && (
+          {/* A branch builds its preview at handed-off or on a [preview]
+              commit, and `preview: true` is the manifest's statement that it
+              intends one. Either is worth a link; an open track's may lag its
+              tip, so the label says so. */}
+          {(t.status === "handed-off" ||
+            (t.preview && t.status === "open")) && (
             <a
               href={withDesignKey(`${trackAlias(t.track)}/design/lab`, key)}
               target="_blank"
               rel="noreferrer"
               className="text-[11px] text-muted-foreground underline underline-offset-2"
             >
-              its preview
+              {t.status === "handed-off"
+                ? "its preview"
+                : "its preview, as of its last [preview] push"}
             </a>
           )}
         </div>
