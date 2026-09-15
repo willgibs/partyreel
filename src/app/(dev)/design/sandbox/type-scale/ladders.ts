@@ -488,6 +488,26 @@ export const ASKS: {
   },
 ];
 
+const ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth"];
+
+/**
+ * An ask's position, in words, READ OFF `ASKS` rather than typed beside it.
+ *
+ * ★ Round three cut two asks and the generated paste went on calling the 404
+ * "the fifth ask", so a reviewer reading the block he is about to apply hunted
+ * for a question that no longer existed. A number about a list belongs to the
+ * list: every place that names an ask's position calls this, so cutting or
+ * reordering `ASKS` moves all of them at once.
+ */
+export function askOrdinal(startsWith: string): string {
+  const i = ASKS.findIndex((a) => a.ask.startsWith(startsWith));
+  return i >= 0 && i < ORDINALS.length ? ORDINALS[i] : "unnumbered";
+}
+
+/** The 404 ask, which three places name by position (the paste's comment, the
+ *  departure and the stage that shows it). */
+export const ASK_404 = "The 404's h1";
+
 /* ────────────────── Where a paste can be walked, and where not ───────────── */
 
 /**
@@ -851,7 +871,7 @@ ${withSizes ? `  font-size: var(${n.size});\n` : ""}  line-height: var(${n.lh});
     out.push(`/* The 404, the one h1 on the site that is not on the ladder: it ships in
    Inter at 600 (not-found-screen.tsx). Here it joins the ladder, at the app's
    page step inside the app and at the prose step on marketing, which is the
-   fifth ask. */
+   ${askOrdinal(ASK_404)} ask. */
 [data-not-found] h1 {
   font-family: var(--font-display, var(--font-sans));
   font-weight: 700;

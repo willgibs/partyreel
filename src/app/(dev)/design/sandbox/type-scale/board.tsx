@@ -24,6 +24,8 @@ import { cn } from "@/lib/utils";
 
 import { Variant } from "../variant-frame";
 import {
+  ASK_404,
+  askOrdinal,
   ASKS,
   candidateCss,
   FIXED_TOKENS,
@@ -99,18 +101,25 @@ const QUESTION =
   "One heading ladder for marketing and one for the app, on real pages at 1440 and 375 and pasteable at the whole site: which sizes, line-heights and tracking, proposed as tokens the wiring round bakes?";
 
 /**
- * ROUND THREE: FOUR DEPARTURES, ONLY THE ONES WILL MUST RULE ON.
+ * ROUND THREE: THE DEPARTURES WILL MUST RULE ON, AND THE WAVE'S OWN INPUTS.
  * Round two flagged six. Two of them are settled rather than open (C's app
  * register was rebuilt inside round two, and the floor under it is a law every
  * ladder now obeys), so they are in the manifest's record and not here: a
  * departure a reviewer cannot act on is a paragraph he has to read past.
+ *
+ * The last line is the wave's standing rule (round two: say on the board what
+ * another board's work changed here). It is on the board rather than only in
+ * the manifest because "we read the other boards and nothing moved" is itself
+ * something a reviewer should be able to check, and two of the four items
+ * below DID move something.
  */
 const DEPARTURES = [
   "C collapses marketing's six heading steps to five and folds the 24/30 prose tier into the section step, so /about's story sections and /press's sections move up a tier. That contradicts design-system.md's documented three-tier h2 ladder; it is C's argument, not an oversight.",
   "B states bible 2 as arithmetic: marketing travels four rungs between 375 and 1440 and the app travels one. That turns 'marketing may be louder' from a judgement into a rule, which is a bible finding if B is adopted, and B is what the board recommends.",
-  "Bible 5 says one heading face on one site ladder, and the 404's h1 has always been outside both: Inter at 600, the only page title on the site that is not the heading face. Every paste puts it on the ladder, which is a change no ruling has made yet, so it is the fourth ask rather than a silent fix.",
+  `Bible 5 says one heading face on one site ladder, and the 404's h1 has always been outside both: Inter at 600, the only page title on the site that is not the heading face. Every paste puts it on the ladder, which is a change no ruling has made yet, so it is the ${askOrdinal(ASK_404)} ask rather than a silent fix.`,
   "The pairing is NOT departed from, and it is no longer an ask. Inter with Urbanist survives the loudest step once tracking runs inverse to size: what reads wrong at 160px and again at 16px is the constant -0.03em, not the face. The evidence sits under the tracking law on the last stage, and a face round would be its own ruling.",
   "Every candidate closes the masthead's tracking squeeze (.mkt-name opens to +0.022em) onto the display step's OWN tracking, between -0.04em and -0.05em, rather than the shared -0.03em constant it lands on today. The paste closes it in marketing.css's own two places and leaves the squeeze itself running.",
+  "What the other boards changed here (the wave's specs and every open track's handoff, re-read in round three). Two things moved. The kill-mono sweep put the stat register on the heading face at 30 / 36 (StatBand, /reel and the help band's neighbours), a heading size no hook on this board reaches, so the wiring round takes it as a step and not as a class. The brand-voice board found that the lab compiles no responsive heading rung, so a hero on a stage can render at its base size: it does not reach these stages, because every size here is handed to the production component as this board's own custom property and is measured step by step at both canvases, which is why the sizes below are the site's and not the lab's. Two things did not move. The voice board's two candidate theses are both about thirty characters, so the lockup stage counts the same lines either way, and the hero-scan board measured the shipped h1 at 96px over 97.92px of leading, which is today's hero step wearing the hand-rolled leading this board calls fault two. Palette, light, floating-surfaces and media-kit move no size, leading or tracking; floating-surfaces' shared wall is the candidate mount named in the walk above.",
 ];
 
 /* ──────────────────────────── The board's frame ───────────────────────── */
@@ -562,7 +571,14 @@ function ApplyBar({ active }: { active: string | null }) {
         . The app&rsquo;s section heading is the other thing a paste cannot
         reach, for a different reason: production writes it as a label inside an
         h2 and there is no class worth aiming at, which is what the
-        missing-middle stage is for.
+        missing-middle stage is for. Marketing has one of those too, found in
+        round three: sixteen hand-rolled h2s (the feature sections, careers, the
+        footer, the reel and the stat register) stop one rung short of
+        SectionShell&rsquo;s ramp and ship at 30 / 36, so no paste moves them
+        and a section that does not budge is the page, not the block. Aiming the
+        section step at them would grow them to 48 and make Today move the real
+        site, which is the control this whole board rests on, so they are the
+        wiring round&rsquo;s sweep rather than a hook.
       </p>
     </div>
   );
@@ -1053,7 +1069,7 @@ export function TypeScaleBoard() {
       <Variant
         n={10}
         name="The 404, the one h1 that is not on the ladder"
-        rationale="not-found-screen.tsx renders its title in Inter at 600, with a tracking-tight the theme zeroes. It is the marketing 404, the app 404, the admin 404 and a dead guest link. Putting it on the ladder is the fourth ask."
+        rationale={`not-found-screen.tsx renders its title in Inter at 600, with a tracking-tight the theme zeroes. It is the marketing 404, the app 404, the admin 404 and a dead guest link. Putting it on the ladder is the ${askOrdinal(ASK_404)} ask.`}
         framed={false}
       >
         <Frame mode={mode} ground="app-light" height={phone ? 980 : 460}>

@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   APP_BODY_PX,
+  ASK_404,
+  askOrdinal,
   ASKS,
   candidateCss,
   FIXES,
@@ -554,6 +556,24 @@ describe("the board answers before it asks", () => {
       expect(ask.answer.split(" ").length).toBeLessThanOrEqual(3);
       expect(ask.because.length).toBeGreaterThan(40);
       expect(ask.overrule.length).toBeGreaterThan(20);
+    }
+  });
+
+  // ★ Round three cut two asks and left "the fifth ask" inside the block Will
+  // copies, so this counts the position here, off ASKS, with its own word list:
+  // a cut, a reorder or a hand-typed ordinal in the paste fails it.
+  it("names the 404 ask by the position it actually holds, everywhere it is named", () => {
+    const words = ["first", "second", "third", "fourth", "fifth", "sixth"];
+    const i = ASKS.findIndex((a) => /404/.test(a.ask));
+    expect(i).toBeGreaterThanOrEqual(0);
+    const ordinal = words[i];
+    expect(askOrdinal(ASK_404)).toBe(ordinal);
+    for (const ladder of [...LADDERS, LAW_ONLY]) {
+      const css = candidateCss(ladder);
+      expect(css).toContain(`${ordinal} ask`);
+      for (const other of words.filter((w) => w !== ordinal)) {
+        expect(css).not.toContain(`${other} ask`);
+      }
     }
   });
 
