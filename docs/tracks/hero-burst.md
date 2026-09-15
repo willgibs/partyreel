@@ -293,15 +293,21 @@ word was 36 px, with no scrim and no darkening layer anywhere.
   is at `/design/c/home-hero?key=` (concept 3 of 4). **The round-two marker in the served HTML is
   `hhb-lab`**, the headline toggle on the stage, which round one did not have: if a surface does not
   carry it, it is not this head.
-- **The preview blocker is CLEARED** (it was the whole wave's, not this track's). The Vercel project
-  hit its daily deployment rate limit at about 22:05 on 2026-09-14, every push was rejected with
-  "Deployment rate limited, retry in 24 hours", and `partyreel-git-lp-hero-burst-partyreel.vercel.app`
-  went on serving ROUND ONE (`8333f9d`) while this branch's round-two head sat unbuilt. The limit
-  lifted at about 22:18 the same evening (the project's own deployment list shows branch builds
-  going READY again from then), the branch was pushed, and the alias was walked. What the alias
-  serves is recorded in the preview bullet at the end of the Verified block. The check for anyone
-  who opens it later: `hhb-lab` in the HTML, 34 `.hhb-card` nodes, and the h1 reading "One code, and
-  the album fills." If a surface is missing any of the three it is not this head.
+- ★ **The preview blocker, and what it actually is** (it is the whole wave's, not this track's, and
+  the earlier reading of it was half right). From about 22:05 on 2026-09-14 every push to the
+  project answered "Deployment rate limited, retry in 24 hours", and
+  `partyreel-git-lp-hero-burst-partyreel.vercel.app` went on serving ROUND ONE (`8333f9d`) while
+  this branch's round-two head sat unbuilt. It is NOT a flat 24-hour freeze: the project's own
+  deployment list shows builds going READY right through it at 22:04:10, 22:18:42, 22:33:19 and
+  22:48:02, one about every 14 and a half minutes, so the limit is a leaky bucket that admits one
+  deployment per slot across ALL branches, and eight round-two tracks are pushing into it. A push
+  that misses the slot is not queued, it is refused: the refusal lands on the commit as a GitHub
+  status, which is the fastest way to tell a lost race from a broken build
+  (`gh api repos/willgibs/partyreel/commits/<sha>/status`). **For the Orchestrator**: the alias
+  only needs ONE build of any commit carrying the round-two concept, since the manifest is not
+  served; if the alias still shows round one, re-push rather than assume the branch is broken. The
+  check on any surface claiming to be this head: `hhb-lab` in the HTML, 34 `.hhb-card` nodes, and
+  the h1 reading "One code, and the album fills." Missing any of the three, it is not this head.
 - **Synced with launch-prep at `521ea66`** (22 commits: the light, palette, type-scale, rounding,
   floating-surfaces, media-kit, brand-voice and hero-river round-two landings). Under
   `sandbox/home-hero/` only `river.tsx` and `river.css` moved, which are another track's lane;
