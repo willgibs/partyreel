@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
 import {
+  CANVAS,
   type Concept,
   type ConceptProps,
   DemoQr,
@@ -49,9 +50,13 @@ import {
  * what a 375 screen is shaped for: the source's corridor has to compress two
  * horizontal rows into one strip there, while a river only gets narrower. So
  * the phone is a composition of its own rather than a squeezed desktop: ONE
- * braided lane of large frames on a slower cadence, and past the headline the
- * album leaves through both side edges, which is the claim said out loud, that
- * the album is wider than the screen.
+ * braided lane of frames that start LARGE, on a cadence of its own, dissolving
+ * just above the headline. That last part is the phone's real constraint said
+ * out loud: a full-measure h1 at 375 leaves no corridor beside it, so the
+ * album cannot run past the words there however the parting is tuned. The
+ * parting still runs (the guarantee is one expression on both canvases), but
+ * on the phone the stream has dissolved before it would be flung aside, and
+ * the read is the album pouring out of the code and dissolving into the words.
  *
  * WHAT ROUND TWO CHANGED, and why each one.
  *
@@ -222,19 +227,37 @@ type Geo = {
   gapSub: number;
   gapCta: number;
   gapCount: number;
-  /** How much of each edge the stream dissolves over. */
+  /** How much of each SIDE edge the stream dissolves over. */
   fadeX: string;
-  fadeB: string;
+  /** Where the bottom dissolve begins and where it is complete, as a fraction
+   *  of the canvas height. The desktop takes the album out through the bottom
+   *  of the hero (84 to 100); the phone dissolves it just above the headline
+   *  (34 to 48), because a full-measure h1 at 375 leaves no corridor beside it
+   *  and the parting would otherwise read as cards flung out of the way. */
+  fadeB0: string;
+  fadeB1: string;
+  /** The canvas y past which the bottom dissolve has taken the stream to zero.
+   *  Derived from fadeB1, not typed by hand: the loop stops writing a card's
+   *  transform below it, because nothing there can be seen. On the phone that
+   *  is most of the flight, which is the performance pass's one real cut. */
+  deadY: number;
 };
 
 const GEO: Record<Mode, Geo> = {
   desktop: {
     qr: 124,
-    originY: 152,
+    // High enough that the code reads as an eyebrow and low enough that the
+    // floating line still has room above it: the "above" placement is what
+    // sets this floor, and both placements pin the QR's centre to it.
+    originY: 140,
     clearHalf: 400,
     bandTop: 428,
     bandBot: 836,
-    enter: 170,
+    // 130 rather than round one's 170: the parting used to start seven pixels
+    // below the birth point, which emptied the band directly under the code
+    // before a frame had been read there. Shortening the ramp buys back that
+    // band and the push is still gradual, because gravity is slow up there.
+    enter: 130,
     release: 320,
     card: 340,
     sMin: 0.32,
@@ -250,45 +273,66 @@ const GEO: Record<Mode, Geo> = {
     gapCta: 34,
     gapCount: 18,
     fadeX: "7%",
-    fadeB: "16%",
+    fadeB0: "84%",
+    fadeB1: "100%",
+    deadY: CANVAS.desktop.h,
   },
+  // THE PHONE IS ITS OWN COMPOSITION, not the desktop squeezed. Everything it
+  // has is spent on ONE THING: the band between the code and the headline, a
+  // quarter of the screen, is where this concept has to be won at 375. So it
+  // runs on its own clock, its own size and its own fan, all worked backwards
+  // from "how many readable frames cross that band, and how big are they".
+  //
+  //   the band     the card's bottom (178) to the headline (376)
+  //   a frame      emerges at about 0.41 of its flight and leaves at 0.74,
+  //                so it is on show for 2.8 s of its 8.4
+  //   the cadence  575 ms between arrivals across the two arms, which puts
+  //                four or five frames in the band at any moment
+  //   the size     133 px wide as it clears the card, 176 px by the headline,
+  //                which is the whole reason the flight is short: a frame is
+  //                never a thumbnail here
+  //
+  // Round one's phone got none of this: two arms at a drift of 84 against
+  // cards of 152 sat inside each other's boxes, a 1800 ms cadence put one or
+  // two frames on screen, and a 560 px travel spent most of the clock below
+  // the fold. The numbers below are the same expression, solved for the band.
   phone: {
-    qr: 104,
-    originY: 112,
+    qr: 96,
+    // The floor the "above" placement sets: a floating line, its gap and the
+    // plate's own padding all have to fit above this with a margin left over,
+    // and at 375 that margin is the whole difference between an eyebrow and a
+    // line jammed against the top edge.
+    originY: 104,
     clearHalf: 158,
     bandTop: 376,
     bandBot: 742,
-    // Short on the phone, where the parting has to happen LATE: the album's
-    // readable life is the band above the headline, and a long ramp empties
-    // the middle of the screen before a single frame has been read.
-    enter: 62,
-    release: 210,
-    // ONE braided lane of LARGE frames, which is round two's phone. Round one
-    // ran two arms at a drift of 84 against cards of 152, so each arm sat
-    // inside the other's boxes and the axis was a mush. A phone gets fewer,
-    // bigger, slower frames instead: four or five airborne rather than six and
-    // a half, each large enough to read a face in.
-    card: 190,
-    sMin: 0.42,
-    drift: 34,
-    travel: 560,
-    // Full size as it reaches the headline, not at the canvas's bottom edge:
-    // past the words the stream is leaving through the side edges, so a ramp
-    // that peaked down there would only ever be seen at its small end.
+    // Short, because the parting has to happen LATE here: the album's readable
+    // life IS the band, and a long ramp empties it before a frame is read.
+    enter: 60,
+    release: 200,
+    card: 186,
+    // High, and the phone's most consequential number: a frame is 102 px as it
+    // sits inside the card, 139 as it clears its bottom edge and 186 by the
+    // time it dissolves. The desktop can afford a speck at the code because it
+    // has 990 px of fall to grow in; the phone has 200, so it starts big.
+    sMin: 0.55,
+    // A narrow fan, so the two arms read as one braided lane rather than two
+    // columns: at 375 there is no room for two of anything.
+    drift: 78,
+    travel: 470,
     fullAt: 0.4,
     flight: 8400,
-    launch: 1800,
+    launch: 1250,
     sizes: "200px",
     h1Max: 316,
     subMax: 330,
     gapSub: 22,
     gapCta: 22,
     gapCount: 14,
-    // Narrower than round one's 13%, so the slivers of album running down
-    // BESIDE the headline survive to be read: that band is the phone saying
-    // the album is wider than the screen.
-    fadeX: "9%",
-    fadeB: "13%",
+    fadeX: "10%",
+    fadeB0: "34%",
+    fadeB1: "48%",
+    deadY: CANVAS.phone.h * 0.48,
   },
 };
 
@@ -649,8 +693,14 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
         const el = nodes.current[i];
         if (!el) continue;
         const at = p[i];
-        if (at > 1) {
-          // On the ground between flights, and far below the edge besides.
+        // Two ways a card is not worth a write: it is on the ground between
+        // flights, or it has fallen past the point the bottom dissolve has
+        // already taken to zero. The second is the performance pass's real
+        // cut: on the phone the mask is complete at 48% of the canvas, so
+        // roughly a third of the airborne cards are writing transforms nobody
+        // can see. Cheap to skip, and exact, because the dissolve's end and
+        // the fall are both numbers this file already owns.
+        if (at > 1 || fallAt(at) * geo.travel + geo.originY > geo.deadY) {
           if (lastO.current[i] !== 0) {
             el.style.opacity = "0";
             lastO.current[i] = 0;
@@ -704,7 +754,8 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
         style={
           {
             "--hhv-fade-x": geo.fadeX,
-            "--hhv-fade-b": geo.fadeB,
+            "--hhv-fade-b0": geo.fadeB0,
+            "--hhv-fade-b1": geo.fadeB1,
             "--hhv-origin": `${geo.originY}px`,
           } as CSSProperties
         }
