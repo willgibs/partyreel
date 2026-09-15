@@ -483,6 +483,20 @@ readings, with zero intersections and 12 to 30 canvas px to spare.
   `src/components/dev/board/stage.tsx` were read and not touched; `docs/specs/brand-voice.md` and
   `type-scale.md` were read as inputs.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- ★ **BLOCKER FOR THE WHOLE PROJECT, not for this track: Vercel is at its daily deployment cap.**
+  `POST /v13/deployments` answers `payment_required`, `"api-deployments-free-per-day"`, limit 100,
+  **remaining 0**, and the GitHub commit status on `f34af1c` reads
+  `Vercel: "Deployment rate limited - retry in 24 hours."`, so no deployment record is created at all.
+  The same limit froze several aliases in round two. **The consequence to carry: the alias
+  `partyreel-git-lp-hero-scan-partyreel.vercel.app` serves `3fbd9c0`**, which is this round's board in
+  full (the scroll fix, the default, the switch's words, the re-weighted pair, the two-line headline,
+  the 375 lane, the repeating capture, the halved bloom box and the tightened departures) and is
+  missing exactly ONE change: `f34af1c`, which keeps the chosen reading across Replay and a canvas
+  change. Everything below was verified on that alias unless a line says otherwise; the one change the
+  alias does not carry was verified on `pnpm build` + `pnpm start` in the worktree, which serves the
+  same production output at the head, and it touches six lines of React state and no CSS at all. The
+  head is pushed and the gate is green on it; nothing needs a rebuild to be reviewed once the limit
+  clears.
 
 ### The cold walk, which is what this round was
 
@@ -590,6 +604,12 @@ being ruled in.
   the bloom is the only permanent one and its box is now half what it was. First paint is 24 card
   nodes but **12 image requests**, because the two arms share the 12 landscape stand-ins;
   `sizes` is canvas-relative (360px at 1440, 170px at 375).
+- **The one commit the alias does not carry, checked against the local production build** (`pnpm
+  build` then `pnpm start`, the same output the preview would serve, at `f34af1c`): the lab gate is
+  404 with no key, 404 with a wrong key, 200 with the key; choosing "A phone", switching to Phone 375
+  and then hitting Replay leaves the switch pressed on "A phone" with `.hhc-device` rendered, where
+  before each remount put the room back; the root computes `overflow: clip`; the caption resolves at
+  13 px and white/85 on the 375 canvas.
 - Test-tooling note, unchanged from round two and it cost time again: a hidden or driven tab throttles
   rAF AND `setTimeout`, pauses the stage through `data-paused`, and returns black screenshots right
   after a navigation. Every timing number above was taken in a fronted tab; compositions were shot
