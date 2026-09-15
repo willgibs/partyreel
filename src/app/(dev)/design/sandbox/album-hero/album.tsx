@@ -92,7 +92,11 @@ export function AlbumVisual({
 }) {
   const phone = mode === "phone";
   return (
-    <div className={`alb-album ${phone ? "px-4 py-8" : "px-16 py-14"}`}>
+    /* The album is its own chapter under a full-bleed hero, so it opens on
+       real air rather than butting the field's dissolving edge: the top pad is
+       deliberately larger than the bottom one, which is the hand-off Will asked
+       to be able to judge (the hero is the feeling, this is the product). */
+    <div className={`alb-album ${phone ? "px-4 pt-12 pb-10" : "px-16 pt-20 pb-16"}`}>
       <BrowserFrame
         label={EVENT.url}
         className={phone ? "" : "mx-auto max-w-[1180px]"}

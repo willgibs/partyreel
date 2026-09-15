@@ -13,7 +13,7 @@
 import "./burst.css";
 
 import Link from "next/link";
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef } from "react";
 
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { Button } from "@/components/ui/button";
@@ -108,8 +108,13 @@ import { CANVAS, GUTTER, LADDER, type Mode, Photo } from "../home-hero/shared";
  *  out of what is left. */
 const GOLDEN = 2.399963229728653;
 
-/** One card's full life, in ms. Shared by both canvases. */
-const FLIGHT_MS = 8400;
+/** One card's full life, in ms. Shared by both canvases. Longer than the
+ *  burst's 8400 because this hero is not an entrance that resolves: it is the
+ *  page's weather, and a frame that crosses the canvas more slowly reads as an
+ *  album arriving rather than as a launch. `cards / launch` decides how many
+ *  are in the air at once, and `cards * launch` has to stay comfortably above
+ *  this or the round-robin runs out of frames to recycle. */
+const FLIGHT_MS = 9600;
 /** The empty canvas, before the first frame is born. Shorter than the burst's
  *  260, which was the beat the code held alone: there is no object to hold. */
 const HOLD_MS = 160;
@@ -138,37 +143,41 @@ type KeepPart = { x: number; y: number; hw: number; hh: number; r: number };
 const KEEP: Record<Mode, Record<Step, KeepPart[]>> = {
   desktop: {
     lg: [
-      { x: 0, y: -288, hw: 56, hh: 6, r: 22 }, // the eyebrow
-      { x: 0, y: -185, hw: 262, hh: 81, r: 26 }, // the headline, two lines at 72
-      { x: 0, y: 110, hw: 232, hh: 24, r: 28 }, // the sentence, two lines
-      { x: 0, y: 177, hw: 164, hh: 22, r: 28 }, // the actions, one row
+      { x: 0, y: -277, hw: 61, hh: 7, r: 22 }, // the eyebrow
+      { x: 0, y: -170, hw: 366, hh: 79, r: 26 }, // the h1, two lines at 72
+      { x: 0, y: 110, hw: 187, hh: 25, r: 26 }, // the sentence, two lines at 18
+      { x: 0, y: 192, hw: 157, hh: 22, r: 28 }, // the actions, one row
     ],
     xl: [
-      { x: 0, y: -340, hw: 56, hh: 6, r: 22 },
-      { x: 0, y: -211, hw: 349, hh: 107, r: 26 }, // the headline, two lines at 96
-      { x: 0, y: 110, hw: 232, hh: 24, r: 28 },
-      { x: 0, y: 177, hw: 164, hh: 22, r: 28 },
+      { x: 0, y: -321, hw: 61, hh: 7, r: 22 },
+      { x: 0, y: -192, hw: 488, hh: 105, r: 26 }, // the h1, two lines at 96
+      { x: 0, y: 110, hw: 187, hh: 25, r: 26 },
+      { x: 0, y: 192, hw: 157, hh: 22, r: 28 },
     ],
   },
   phone: {
     lg: [
-      { x: 0, y: -162, hw: 56, hh: 6, r: 16 },
-      { x: 0, y: -108, hw: 131, hh: 38, r: 20 }, // the headline, two lines at 36
-      { x: 0, y: 96, hw: 162, hh: 34, r: 20 }, // the sentence, two or three lines
-      { x: 0, y: 166, hw: 142, hh: 20, r: 20 }, // the actions, one row
+      { x: 0, y: -215, hw: 61, hh: 7, r: 16 },
+      { x: 0, y: -123, hw: 133, hh: 60, r: 20 }, // the h1, three lines at 36
+      { x: 0, y: 100, hw: 123, hh: 39, r: 20 }, // the sentence, four lines at 18
+      { x: 0, y: 196, hw: 157, hh: 22, r: 20 }, // the actions, 314 of a 373 canvas
     ],
     xl: [
-      { x: 0, y: -242, hw: 56, hh: 6, r: 16 },
-      { x: 0, y: -148, hw: 152, hh: 78, r: 20 }, // the headline, two or three at 48
-      { x: 0, y: 96, hw: 162, hh: 34, r: 20 },
-      { x: 0, y: 166, hw: 142, hh: 20, r: 20 },
+      { x: 0, y: -297, hw: 61, hh: 7, r: 16 },
+      { x: 0, y: -164, hw: 127, hh: 102, r: 20 }, // the h1, four lines at 48
+      { x: 0, y: 100, hw: 123, hh: 39, r: 20 },
+      { x: 0, y: 196, hw: 157, hh: 22, r: 20 },
     ],
   },
 };
 
 type Geo = {
   /** How many cards the canvas throws. cards * launch is the round trip, so a
-   *  few are always on the ground: that slack is what the round-robin needs. */
+   *  few are always on the ground: that slack is what the round-robin needs.
+   *  This is also the one dial that makes the album read FULL rather than
+   *  sparse, which is what Will asked the hero for: with the page's own lockup
+   *  in the middle the quiet zone is large, so the field has to be dense enough
+   *  that the ring around it never thins out. */
   cards: number;
   /** ms between launches. flight / launch is how many are in the air at once. */
   launch: number;
@@ -241,8 +250,8 @@ type Geo = {
 
 const GEO: Record<Mode, Geo> = {
   desktop: {
-    cards: 40,
-    launch: 250,
+    cards: 52,
+    launch: 210,
     card: 365,
     ax: 660,
     ay: 455,
@@ -261,17 +270,17 @@ const GEO: Record<Mode, Geo> = {
     crossHold: 0.3,
     warp: 0.3,
     laneSign: 1,
-    fade: 0.1,
+    fade: 0.07,
     vent: 116,
     gapTop: 40,
     gapBottom: 24,
-    subMax: 470,
+    subMax: 576,
     tilt: 15,
     sizes: "440px",
   },
   phone: {
-    cards: 36,
-    launch: 265,
+    cards: 44,
+    launch: 240,
     card: 225,
     ax: 270,
     ay: 470,
@@ -290,27 +299,32 @@ const GEO: Record<Mode, Geo> = {
     crossHold: 0.4,
     warp: 0.2,
     laneSign: -1,
-    fade: 0.1,
+    fade: 0.07,
     vent: 84,
     gapTop: 24,
     gapBottom: 16,
-    subMax: 330,
+    subMax: 343,
     tilt: 13,
     sizes: "250px",
   },
 };
 
-/** The headline's measure and leading per step, so the ladder change is a real
- *  change of shape and not only of size. Both are cinema steps of the one site
- *  ladder; LADDER resolves the classes (bible 5). */
+/** The headline's measure and leading per step. `lg` IS THE SHIPPED HERO,
+ *  measured off /features/album rather than chosen: PageHero centres its lockup
+ *  at max-w-3xl (768) and the lg ramp lands on text-7xl at 1440 with
+ *  leading-[1.0], which puts this h1 on two lines at 732 px of ink. `xl` is the
+ *  louder step, and its measure is opened to 1040 so the line stays two rows:
+ *  at 768 the same words run to three at 96 px, which is a wall rather than a
+ *  promise. Both are cinema steps of the one site ladder (bible 5); LADDER
+ *  resolves the classes. */
 const HEAD: Record<Mode, Record<Step, { max: number; lead: string }>> = {
   desktop: {
-    lg: { max: 640, lead: "leading-[1.03]" },
-    xl: { max: 860, lead: "leading-[1.0]" },
+    lg: { max: 768, lead: "leading-[1.0]" },
+    xl: { max: 1040, lead: "leading-[0.98]" },
   },
   phone: {
-    lg: { max: 330, lead: "leading-[1.06]" },
-    xl: { max: 340, lead: "leading-[1.02]" },
+    lg: { max: 343, lead: "leading-[1.06]" },
+    xl: { max: 343, lead: "leading-[1.02]" },
   },
 };
 
@@ -877,8 +891,10 @@ const R2A = 0.7548776662;
 const R2B = 0.569840291;
 
 /** The smallest progress the settled size is drawn from: the far end of the
- *  field's range, a frame well clear of the plate but still small. */
+ *  field's range, a frame well clear of the vent but still small. */
 const REST_LO = 0.16;
+/** The still's rim margin; see restSpan for why it is not slop. */
+const RIM_GUARD = 6;
 /** Resolution of the walk that closes the window: 128 steps over a range never
  *  wider than 1, so the largest holdable size is found to under a percent. */
 const REST_SCAN = 128;
@@ -918,8 +934,14 @@ function restSpan(
   );
   const lo = Math.max(clearAlong(keep, c.ux, c.uy, aw, ah), vent);
   // How far the centre may go before a corner touches the rim, per axis.
-  const ex = ax === 0 ? Infinity : (halfW - aw) / ax;
-  const ey = ay === 0 ? Infinity : (halfH - ah) / ay;
+  // RIM_GUARD is not slop: `extents` models the card's 2D rotation only, and
+  // the per-card 3D tilt goes through a perspective(760px), which can push the
+  // NEAR edge of the projected box a couple of pixels wider than the rotated
+  // half-extent says. Measured on the settled field at 1440: one card of 52
+  // hung 3 px past the left rim. Six closes it with room, and it costs the
+  // composition nothing, because the placement already backs off the far bound.
+  const ex = ax === 0 ? Infinity : (halfW - aw - RIM_GUARD) / ax;
+  const ey = ay === 0 ? Infinity : (halfH - ah - RIM_GUARD) / ay;
   return { lo, span: Math.min(ex, ey) - lo, s, proj };
 }
 
@@ -1068,7 +1090,6 @@ export function AlbumHeroField({ mode, step }: { mode: Mode; step: Step }) {
     // field once the quiet zone changes shape.
   }, [cards, cycle, geo, halfH, halfW, reduced]);
 
-  const phone = mode === "phone";
 
   return (
     <div
@@ -1114,6 +1135,18 @@ export function AlbumHeroField({ mode, step }: { mode: Mode; step: Step }) {
                   zIndex: Number(rest.z),
                   "--alb-rest": rest.transform,
                   "--alb-rest-o": rest.opacity,
+                  // THE CROP, per card. Twelve stand-in photographs have to
+                  // fill fifty-two frames, so the same picture is on screen
+                  // three or four times at once and the eye pairs them
+                  // immediately. Moving each frame's object-position is an
+                  // honest answer rather than a trick (a crop is a crop, and
+                  // the guest media these stand in for is cropped to the tile
+                  // exactly this way): the same photograph shows a different
+                  // part of itself in each frame, so the field reads as an
+                  // album rather than as a deck with repeats. It costs nothing
+                  // once Will's 24 squares land, and it stays, because 24
+                  // photographs still have to fill 52 frames.
+                  "--alb-pos": `${35 + Math.round(hash01(i + 401) * 30)}% ${35 + Math.round(hash01(i + 503) * 30)}%`,
                 } as CSSProperties
               }
             >
@@ -1143,12 +1176,13 @@ export function AlbumHeroField({ mode, step }: { mode: Mode; step: Step }) {
         className={`absolute inset-x-0 z-10 text-center ${GUTTER[mode].x}`}
         style={{ bottom: `calc(50% + ${geo.vent / 2 + geo.gapTop}px)` }}
       >
-        <Eyebrow data-alb-block="eyebrow" className="text-white/55">
-          {page.navLabel}
-        </Eyebrow>
+        {/* The shipped lockup's own parts, at the shipped lockup's own gap
+            (PageHero stacks at gap-6), so what is being judged is this page's
+            hero and not a board's idea of one. */}
+        <Eyebrow data-alb-block="eyebrow">{page.navLabel}</Eyebrow>
         <h1
           data-alb-block="h1"
-          className={`mx-auto font-heading text-balance text-white ${phone ? "mt-2.5" : "mt-4"} ${LADDER[step][mode]} ${head.lead}`}
+          className={`mx-auto mt-6 font-heading text-balance ${LADDER[step][mode]} ${head.lead}`}
           style={{ maxWidth: head.max }}
         >
           {page.h1}
@@ -1166,28 +1200,24 @@ export function AlbumHeroField({ mode, step }: { mode: Mode; step: Step }) {
       >
         <p
           data-alb-block="sub"
-          className={`mx-auto leading-relaxed text-pretty text-white/80 ${phone ? "text-[14px]" : "text-[15px]"}`}
+          className="mx-auto text-lg text-balance text-muted-foreground"
           style={{ maxWidth: geo.subMax }}
         >
           {page.heroSub}
         </p>
+        {/* mt-8 is PageHero's gap-6 plus the mt-2 a control row takes, which is
+            the offset every feature hero ships. The buttons are the shipped
+            hero's, verbatim, with no cinema-only tinting: the cinema ground
+            already resolves the outline variant correctly, and a board that
+            re-tints them stops telling the truth about the page. */}
         <div
           data-alb-block="actions"
-          className={`flex flex-wrap items-center justify-center gap-3 ${phone ? "mt-4" : "mt-6"}`}
+          className="mt-8 flex flex-wrap items-center justify-center gap-3"
         >
-          <Button
-            asChild
-            size="lg"
-            className={phone ? "h-10 px-5 text-sm" : "h-11 px-6 text-base"}
-          >
+          <Button asChild size="lg" className="h-11 px-6 text-base">
             <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
           </Button>
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className={`border-white/35 bg-white/5 text-white hover:border-white/50 hover:bg-white/15 hover:text-white ${phone ? "h-10 px-4 text-sm" : "h-11 px-5 text-base"}`}
-          >
+          <Button asChild size="lg" variant="outline" className="h-11 px-6 text-base">
             <Link href="/how-it-works">See how it works</Link>
           </Button>
         </div>

@@ -64,6 +64,13 @@
    casts a small shadow and a near one a large one, which is what the depth axis
    wants and what a fixed pixel shadow could not give. It darkens the ground,
    never a photograph. */
+/* THE CROP, per card: burst.tsx writes --alb-pos from the card's own hash so
+   the same stand-in photograph shows a different part of itself in each frame.
+   It has to live here because next/image writes its own class onto the <img>. */
+.alb-card img {
+  object-position: var(--alb-pos, 50% 50%);
+}
+
 .alb-card > * {
   box-shadow:
     0 8px 16px -4px oklch(0 0 0 / 0.45),

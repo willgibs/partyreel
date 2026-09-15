@@ -3,7 +3,7 @@
 import "./board.css";
 
 import { RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import {
   BoardDock,
@@ -64,10 +64,6 @@ export function AlbumHeroBoard() {
   // and the caption under the stage says so rather than leaving a stranger to
   // wonder whether the control is broken.
   const cols = wide ? (phone ? 2 : 4) : 2;
-  // The page stage: the hero's viewport, the album, and the chapter after it.
-  // Measured off the rendered stage rather than guessed, and deliberately a
-  // little long: the ground below the last section is the page's own.
-  const pageH = phone ? 3180 : 3080;
 
   return (
     <div className="alb-board pt-2">
@@ -136,15 +132,9 @@ export function AlbumHeroBoard() {
                 : `The shipped guest album, composed: the same masonry, the same tiles, the same lightbox, at ${cols} columns. Its only motion is the product's own entrance, so it never competes with the hero.`
             }
           />
-          <Stage
-            mode={mode}
-            ground="cinema"
-            bodySkin
-            height={phone ? 1180 : 980}
-            key={`album-${mode}-${cols}-${runId}`}
-          >
+          <MeasuredStage mode={mode} key={`album-${mode}-${cols}-${runId}`}>
             <AlbumVisual mode={mode} cols={cols} runId={runId} />
-          </Stage>
+          </MeasuredStage>
         </section>
 
         <section className="space-y-2">
@@ -152,22 +142,17 @@ export function AlbumHeroBoard() {
             title="3 · The page"
             body="The hand-off, whole: the hero, the album, and the first chapter of the real page under them. The one stage where both animations are on screen at once, which is the thing to judge."
           />
-          <Stage
+          <MeasuredStage
             mode={mode}
-            ground="cinema"
-            bodySkin
-            height={pageH}
             key={`page-${mode}-${step}-${cols}-${runId}`}
           >
-            <div className="relative size-full overflow-clip bg-background">
-              <div style={{ height: CANVAS[mode].h }}>
-                <AlbumHeroField mode={mode} step={step} />
-              </div>
-              <AlbumVisual mode={mode} cols={cols} runId={runId} />
-              <GettingInSection />
-              <EverywhereSection />
+            <div style={{ height: CANVAS[mode].h }}>
+              <AlbumHeroField mode={mode} step={step} />
             </div>
-          </Stage>
+            <AlbumVisual mode={mode} cols={cols} runId={runId} />
+            <GettingInSection />
+            <EverywhereSection />
+          </MeasuredStage>
         </section>
 
         <BoardMeta
@@ -204,6 +189,49 @@ export function AlbumHeroBoard() {
         />
       </div>
     </div>
+  );
+}
+
+/**
+ * A STAGE AS TALL AS WHAT IT HOLDS. The board's second and third readings are
+ * compositions rather than viewports, and a hand-set canvas height is wrong
+ * twice over: the first guess cut the page reading's second chapter in half,
+ * and any number written down goes stale the moment a section or an asset
+ * changes. So the content measures itself and the canvas follows. It converges
+ * in one pass, because the content's own height is auto and never reads the
+ * canvas's, so setting the canvas cannot change the measurement; and it
+ * re-measures when the photographs finish decoding, which is the case a
+ * one-shot measurement misses. Remount it with a key from the caller so the
+ * whole thing, height included, resets with the reading it is showing.
+ */
+function MeasuredStage({
+  mode,
+  children,
+}: {
+  mode: Mode;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [h, setH] = useState<number>(CANVAS[mode].h);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const sync = () =>
+      setH((prev) => {
+        const next = Math.ceil(el.scrollHeight);
+        return next > 0 && next !== prev ? next : prev;
+      });
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <Stage mode={mode} ground="cinema" bodySkin height={h}>
+      <div ref={ref} className="relative w-full overflow-clip">
+        {children}
+      </div>
+    </Stage>
   );
 }
 
