@@ -1,6 +1,6 @@
 ---
 track: hero-scan
-status: open
+status: handed-off
 cut: "c473707"
 merged_round_3: "f7e9df6"
 merged_round_2: "8183147"
@@ -808,16 +808,240 @@ cause is restated rather than asserted once, on one animation and half the raste
 
 ## Handoff (round 4)
 
-- Head <sha>, pushed; preview partyreel-git-lp-hero-scan-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/hero-scan`, which is THIS commit (a manifest cannot name its own SHA). The last
+  CODE commit is `0afc9f8`; everything after it is this manifest and the `launch-prep` merge, which
+  carries no change of mine, so `scan.tsx` and `scan.css` are byte-identical to the tree every
+  verification below names. Pushed. **Marker for the round-four board: the class `hhc-bezel` in the
+  served HTML**, which exists nowhere before this round; the caption "Guests scan once. The album fills
+  itself." and the corner toggle's words "Without the phone" mark it too.
+- Synced with `launch-prep` at **`6484558`** (it had moved two docs-only commits: PROGRAM's rising-tides
+  line for the app's UI and the Orchestrator's In flight rows). Merged clean; the diff touches
+  `docs/PROGRAM.md` and `docs/tracks/orchestrator.md` and no path this track reads.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 6 warnings are the pre-existing ones on
+  `contact-form.tsx`, `album-fill-grid.tsx`, `review-switch.tsx`, `jobs.ts` and `use-flip.ts`, none in
+  this lane and none new), test ok (1804 in 199 files), build ok (248 static pages, the `launch-prep`
+  count unchanged).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-scan.md`,
+  `src/app/(dev)/design/sandbox/home-hero/scan.css`,
+  `src/app/(dev)/design/sandbox/home-hero/scan.tsx`. **No exceptions**: the two owned files and this
+  manifest. `shared.tsx`, `board.tsx`, `source.tsx`, `src/components/dev/board/{stage,dock,lab-prefs}.ts(x)`
+  and the other tracks' manifests were read and not touched.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+
+### What round four did, and why
+
+Will ruled the phone in ("continue iterating on ... 2 with its phone scan addition"), so the concept
+stopped carrying it as one of two equal readings and spent the round on the thing that had only ever
+been a proposal: a phone that actually scans.
+
+1. **The phone is the composition.** It is the default at both canvases, and both canvases were laid
+   out around it rather than around a gap it could sit in: at 1440 the corridor lifts 18 px so the near
+   field owns a quadrant, and the device grew from 260 to 296 px and is still cropped by two frame
+   edges; at 375 it grew to 252 px, rises almost centred out of the bottom edge and now clears the
+   plate by 17 px instead of 8. The two canvases are deliberately two different points of view: at 1440
+   the hand enters from the left, which is ANOTHER guest at work in a room the host is being shown; at
+   375, where the reader is holding the object being drawn, it is his own hand coming up.
+2. **The scan became a gesture.** Through round three the phone was already up, already aimed and
+   already locked at the first frame, which is a diagram of a scan. It now rises into frame over 620 ms
+   rolling the last few degrees into its aim, and the brackets only start closing once it is nearly
+   home. And it never stops being held: a 7.3 s drift of about a pixel and a quarter of a degree, on
+   the one period in the composition that is NOT a multiple of the album's 10.8 s, so the hand and the
+   album never fall into step.
+3. ★ **The capture now lands on the code, and this was a real fault three rounds missed.** The bloom
+   belonged to the room reading alone, so in the reading the concept argues for, the capture fired on
+   the phone's screen and the plate did nothing at all: the one sentence this variation exists to say
+   had no visible verb. The bloom is now the plate's answer in both readings, 40 ms before the album
+   leaves it. Camera, code, album, in that order, measured below.
+4. **The repeat reads as a scan again.** Round three made the capture repeat once per turn of the album
+   but left the brackets locked and motionless through it, so a recapture was a flash with no cause.
+   The brackets now tick about two pixels inward on every capture, the way a scanner confirms a read,
+   so the whole chain replays. It is four 14 px elements and one keyframe.
+5. **The device is built for the photograph that will replace it.** It used to be one box with the
+   screen inside it, which is the one shape a cutout with a transparent screen cannot drop into. It is
+   three flat layers now, in paint order: `.hhc-back` (the body), `.hhc-screen` (the live viewfinder)
+   and `.hhc-bezel` with `.hhc-pill` (the rim and the notch). ASSETS row 8 replaces the first and the
+   last; the viewfinder underneath is untouched and stays live. The ask is unconditional now.
+6. **One set of beat numbers.** The sheet used to carry the timings as literals while the corridor's JS
+   carried its own. `BEAT` in `scan.tsx` is now the only home, and the sheet reads it through
+   `--hhc-lock-delay`, `--hhc-cap-delay`, `--hhc-period` and `--hhc-lock-ms` on the concept's root. The
+   footnote reading keeps round three's beat exactly, which is what makes it a fair comparison.
+7. **The corner control stopped asking a settled question.** It was a two-option switch labelled
+   "Cause"; the ruling is made, so it is one button, "Without the phone", under the word "Footnote".
+8. **The copy.** The caption names the result and not only the mechanism, and its LENGTH turned out to
+   be a measured constraint rather than a taste: at 375 it is the one block of type the corridor can
+   reach, and the keep-out sweep buys about five pixels of clearance for every thirty pixels of ink it
+   loses. "Your guests scan once. The album fills itself." (273 px) intersected the corridor in the
+   footnote reading; "Guests scan once. The album fills itself." (243 px) clears it.
+
+### Two defects this round found and fixed, both invisible until they were measured
+
+1. **The proposed secondary action wrapped to a second row at 375 and landed ON the caption.** "See the
+   album it made" is 212 px beside a 122 px primary in a 343 px column: three pixels too wide, so the
+   row wrapped and the second button's box overlapped the caption's. The line is now "See what it made"
+   (173 px) and an ink-versus-ink overlap test runs in every combination.
+2. **The new caption intersected the corridor at 375 in the footnote reading** (two intersections, 1 px
+   of clearance). Fixed twice over: the lane moved from 96 to 108 px off the axis with the measure cut
+   from 320 to 300, and the caption itself lost 30 px of ink. Clearance is now 10 px there and 15 px in
+   the ruled reading.
+
+### Verified at `0afc9f8`, on a LOCAL PRODUCTION BUILD (`pnpm build` then `pnpm start`, port 3421) and a dev server (3411), in a FOREGROUND tab
+
+Vercel is capped, so nothing here was verified on a preview; every number below was taken on the local
+production output at the head, in a tab whose `document.hidden` was false (the pane's own tab, fronted
+before each reading). Where a check is a DOM or stylesheet read rather than a timing, it is marked.
+
+- **The beat, sampled live from a Replay remount on the PRODUCTION build** (the clock is the click, so
+  each number carries the React remount): t=0 the phone is 250 px below its held position at opacity 0,
+  the brackets are thrown 16 px wide at opacity 0, and the corridor is EMPTY (0 of 24); t=157 the phone
+  is 59 px out, still empty; t=332 the phone is 6.9 px out and the brackets have begun (13.6 px out,
+  opacity 0.26); t=640 the phone is home, the brackets 0.7 px out at opacity 1; t=1015 locked, the
+  capture still at 0, the room STILL empty; t=1074 the flash is at 0.413 and the PLATE's bloom at
+  0.299, with the brackets ticked 1.28 px inward; t=1115 the bloom peaks at 0.326; t=1507 all 24 frames
+  are up; t=2207 settled. Cause, then effect, with nothing in the room until the code answers.
+- **The recapture fires on the album's own clock.** The bloom's animation reads duration 10800 ms, delay
+  1020 ms, iterations infinite. A 13-second watch in a fronted tab caught a peak of 0.353 at animation
+  clock 55075 ms, which is 55 ms into the SIXTH iteration.
+- **Point at the code and the whole chain replays while the album keeps running.** A pointer over the
+  plate throws the brackets back to 16 px at opacity 0; they sweep in and land by 760 ms, the capture
+  fires at 1040 (flash 0.118, bloom 0.085) and peaks at 1080 (0.408 / 0.352) with the brackets ticking
+  inward, and 20 to 22 frames stay in flight throughout.
+- **The keep-out lane is measured against INK, over a full corridor cycle at 50 ms steps, in all EIGHT
+  combinations of canvas, reading and copy: zero intersections, and zero ink-over-ink overlaps.** Worst
+  clearance 34 canvas px at 1440 (either reading, either copy), 15 px at 375 in the ruled reading,
+  10 px at 375 in the footnote. The test measures the rendered ink of the h1, the caption, the count,
+  the subhead and both actions with Range rects, and the rendered box of every visible card. No scrim
+  anywhere, every photograph at 100 percent.
+- **Reduced motion, simulated exactly** by deleting all 27 `no-preference` blocks from the live sheets
+  and clearing the loop's inline writes in the same synchronous pass: the phone stands in its held
+  position (`.hhc-rise` translate none, opacity 1, `animation-name: none`) and does not drift
+  (`.hhc-phone` animation-name none); all four brackets rest LOCKED (translate none, opacity 1); the
+  flash and the bloom are spent at 0; 22 of 24 frames stand at the steady-state spacing; the h1 is at
+  opacity 1 with transform none; the count holds its number.
+- **The PRODUCTION stylesheet, audited over HTTP, which is the one thing a dev server cannot prove.**
+  All FIVE `.hhc-*` rules that declare an animation (`.hhc-rise`, `.hhc-phone`, `.hhc-bracket`,
+  `.hhc-flash`, `.hhc-bloom`) sit inside `@media (prefers-reduced-motion: no-preference)`, and the only
+  keyframes the sheet declares are `hhc-rise`, `hhc-hold`, `hhc-lock`, `hhc-tick`, `hhc-flash` and
+  `hhc-bloom`, all under this track's prefix. Every arbitrary utility resolves in the shipped bytes:
+  `text-[15px]` -> `font-size:15px`, `text-[13px]`, `text-[12px]`, `text-white/85` -> `#ffffffd9`,
+  `text-white/55`, `tabular-nums`, `overflow-clip` -> `overflow:clip`.
+- **The served HTML** carries the whole composition, deployed and locked: 24 `.hhc-card` nodes with 48
+  `--hhc-rest*` declarations, the device with `hhc-rise`, `hhc-back`, `hhc-screen`, `hhc-bezel` and
+  `hhc-pill`, the 4 brackets, the bloom, the flash, the roomlock, `overflow-clip`, the caption and the
+  count at its opening value (282). No em-dash and no `font-mono` in the payload. Both concept h1s carry
+  only `class` and `style`, with no `data-mkt-cut` / `data-mkt-reveal` / `.mkt-line` on any h1 (the two
+  `data-mkt-cut` strings in the payload are on a `div` in the lab shell's own header). The gate: 404
+  with no key, 404 with a wrong key, 200 with the key, on the production server.
+- **The footnote survives Replay and a canvas change** (round three's fix, re-checked because the beat
+  now differs between the two readings): pressed through a canvas change, a Replay and a change back,
+  four remounts, and restoring it puts the device back.
+- **Performance, measured rather than guessed.** With every concept on the board running, rAF deltas
+  over 200 frames on a 120 Hz display: median 8.3 ms, p95 10.0 ms, max 10.4 ms, **zero dropped frames**.
+  The scan's own tick (its math plus its 24 style writes, run 300 times against the real nodes) is
+  **0.107 ms**, about 0.6 percent of a 60 Hz frame, with a 0.4 ms style flush for all 300 together,
+  which is round three's number unchanged. The honest cost this round added: the concept now runs SEVEN
+  infinite animations where it ran one (the device's drift, four bracket ticks, the flash and the
+  bloom) out of 12 total. All seven are transform or opacity only, and none of them adds a layer: the
+  device subtree was already composited by its own `rotateY`/`rotateZ`, the brackets are 14 px, and the
+  flash is an opacity on a box that already exists. First paint is still 24 card nodes but 12 image
+  requests, because the two arms share the 12 landscape stand-ins.
+- Test-tooling notes, both of which cost time and are worth carrying while twelve tracks run at once.
+  (a) **A hidden tab returns a STALE screenshot, not a black one, and that is worse.** Writing 24 card
+  transforms into a background tab and screenshotting it returned the composition as it had been
+  before the write, with the DOM insisting the write had landed. Every visual here was taken in a
+  fronted tab and cross-checked against `getBoundingClientRect`. (b) **Both browser surfaces are shared
+  between the tracks running tonight**, so a tab can be fronted by another session between one call and
+  the next; a screenshot batched after a long wait comes back black. Front the tab in the same batch as
+  the screenshot, and do the waiting in a separate call.
+
+### Shell changes for the Orchestrator to carry (none blocks this board)
+
+1. **The home-hero board has not adopted `BoardDock`.** Its page-wide switches (Desktop / Phone 375,
+   Ruled / Proposed copy, Replay) still sit in a row at the top of `board.tsx`, so comparing the source
+   against the scan at 375 means scrolling back up for every flip, which is the exact complaint Will's
+   note (a) makes. The dock exists and takes them as children; `board.tsx` is the Orchestrator's file.
+2. **An optional `controls` (or `switches`) slot on `Concept`, rendered by `board.tsx` beside its own
+   toggles.** Third filing. A concept with a control of its own has nowhere but inside the canvas to
+   draw one, which is where round three's 600 px scroll bug came from; this round's toggle is one
+   button instead of two, but it is still chrome living inside a composition.
+3. **`demoCount` beside `qrUrl`.** Fourth filing. The shell hands a concept the demo URL and nothing
+   else, so the album's count is invented here. With it the count stops being a stand-in and the second
+   departure below resolves itself.
+4. ★ **A hero stage is 64 px taller than a hero.** Measured on the production home page: the real
+   marketing header is 64 px and sits in FLOW at the top (`sticky top-0`, the first section starts at
+   y=64), so a hero section on the real page gets 866 px of a 930 px viewport, not 930. Every concept
+   on this board is composing with 64 px it will not have, which matters most to the two that anchor
+   off the canvas centre. The fix is the board's or the shell's, not a lane's: either the hero canvas
+   becomes 866, or (better, and it answers Will's note (c) about more real UI) the hero stages render
+   the production `SiteHeader` at the top so a hero is judged as the real first screen. Doing it in one
+   lane would make the two variations Will is comparing incomparable, so it is filed rather than done.
+5. **The other concepts still carry `overflow-hidden` on their root** (`source.tsx:300`), which is
+   round three's finding: an `overflow: hidden` box is a scroll container, and the corridor makes this
+   one 3780 px wide, so any focus inside it can scroll the hero sideways. One word each.
+
+### "Apply to the site" does not apply to this board
+
+The candidate is a composition, not a CSS block: there are no selectors here that would mean anything
+on `/`, `/pricing`, `/help`, `/contact`, the dashboard or the demo guest page, and offering a paste
+would be the light or palette board's paste wearing this track's name. The pages to walk are the
+board's own two stages; the ruling lands in `PageHero` at the wiring round.
+
+- **Assets requested from Will** (one of them changed status this round):
+  1. **NOW A STANDING ASK, no longer conditional: the hand-and-phone cutout, ASSETS row 8** · PNG with
+     alpha, 1200 px on the long edge, the SCREEN AREA fully transparent, shot from just behind the
+     holder's shoulder with the phone held up and angled away to the right, in low warm event light so
+     the body is nearly a silhouette with one highlight along the edge, 2 variants (a one-handed grip
+     and a two-handed one) · replaces the drawn device's `.hhc-back` and `.hhc-bezel`, with the live
+     viewfinder `.hhc-screen` composing underneath unchanged.
+  2. Nothing else new. The corridor runs on the 12 landscape stand-ins and wants the 24 squares already
+     requested (**ASSETS row 2**, asked by `hero-source`), 512 x 512, one grade, framed tight enough to
+     read at 120 px. Nothing here needs row 3's phone-up photographs, because the near field is a
+     cutout rather than a whole photograph.
+- **The asks, verbatim from BoardMeta** (the Orchestrator quotes them under Waiting on Will):
+  1. "A hand-and-phone cutout, ASSETS row 8, now a STANDING ask rather than a conditional one, because
+     the phone is ruled in and the drawn device is the stand-in. PNG with alpha, 1200 px on the long
+     edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live and
+     real; shot from just behind the holder's shoulder, the phone held up and angled away to the right,
+     in low warm event light so the body is nearly a silhouette with one highlight along the edge; two
+     variants, a one-handed grip and a two-handed one. The device is built in three flat layers for
+     exactly this swap, so the cutout replaces the body and the rim and nothing else moves."
+  2. "Not a new ask: the corridor runs on the 12 landscape stand-ins and wants the 24 squares already
+     requested (ASSETS row 2, asked by hero-source), 512 x 512, one grade, framed tight enough to read
+     at 120 px. Nothing here needs row 3's phone-up photographs, because the near field is a cutout
+     rather than a whole photograph."
+- **The rulings left, from the board's Departures, each one word from Will**:
+  1. **Keep the count, or cut it.** 282 climbing to 312 is a stand-in and must not ship as invented
+     data. It is the quiet half of the pair, so the composition holds either way. The only ruling the
+     concept still asks for.
+  2. **The centred lockup**, precedent and not law, shared with the source. Overrule it and this hero
+     goes left with the source.
+  3. Flagged, not rulings: the phone (ruled in, and the three things that hold it to a camera rather
+     than to software are on the board), the light (the screen and one capture bloom, both brightening,
+     no scrim anywhere), and bible 13 (the pre-release, off-frame and thrown-wide states inside the
+     reduced-motion block).
+- **Look at first**: the first second and a half, in a FOREGROUND tab, on Desktop, after a Replay. A
+  hand comes up into the lower left with a camera open on it, the brackets close on the code it has
+  found, the capture fires on the screen, **the code in the room blooms back**, and the album comes out
+  of the plate. That last step is what round four added and it is the whole variation: through three
+  rounds the phone fired at a code that did nothing. Then wait about eleven seconds and watch it happen
+  again, brackets included. Then 375, which is the same sentence from the other side of the hand: the
+  words at the top, the plate in the middle, and your own phone rising out of the bottom edge with the
+  two codes on one vertical axis. The toggle in the corner is a footnote, not a question.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). Will ruled the phone in, so the scan stopped carrying
+it as one of two equal readings and became the composition it had only been proposing. The phone is the
+default at both canvases and both canvases were laid out around it, as two points of view rather than
+one compressed: at 1440 the hand enters from the left, another guest at work in a room the host is being
+shown, and at 375 it is the reader's own hand rising out of the bottom edge with the two codes on one
+vertical axis. The scan became a gesture, a hand coming up over 620 ms and rolling into its aim before
+the brackets close, and then never quite still, on a drift period deliberately out of step with the
+album's. The round's real find was that the capture had never landed on the code: the bloom belonged to
+the ruled-out reading, so the phone fired while the plate did nothing and the concept's one sentence had
+no verb. The plate answers in both readings now, 40 ms before the album leaves it, and the brackets tick
+inward on every recapture so the repeat reads as the next guest scanning rather than as a light. The
+drawn device was rebuilt as three flat layers so the cutout on ASSETS row 8 drops in over an untouched
+live viewfinder, and that ask stopped being conditional. Two defects fell out of measuring rather than
+looking: a proposed action row three pixels too wide wrapped onto the caption at 375, and the new
+caption intersected the corridor in the footnote reading; both are fixed and all eight combinations of
+canvas, reading and copy now clear the album's own ink by 10 to 34 pixels.
