@@ -1,6 +1,6 @@
 ---
 track: floating-surfaces
-status: open
+status: handed-off
 cut: "c473707"
 merged_round_4: "c2f7d05b"
 merged_round_3: "c0609e7"
@@ -1227,14 +1227,169 @@ pasteable, as the ruling for today's primitives if no direction wins.
 
 ## Handoff (round 5)
 
-- Head <sha>, pushed; preview partyreel-git-lp-floating-surfaces-partyreel.vercel.app
-- Synced with launch-prep at <sha>
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the three registration lines (exceptions and why)
-- Shared-file changes asked of the Orchestrator: none
-- Assets requested from Will: none
-- Look at first: ...
+- Head `d81e79f1` plus the one commit on top of it that stamps this file, pushed. Board:
+  `/design/lab/floating-surfaces?key=`. The preview at
+  `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` builds on this handoff push.
+  **The marker that says "this is round five" is that the board has NO block of its own above the
+  dock**: it opens with the kit's answer (the question, the verdict, then five ask pills with the
+  recommended option filled). Round four opened with a hand-built card titled "Three floating layers,
+  and the one this board would build"; its absence is the fastest way to tell the two apart. A second
+  marker: the dock's knobs are NAMED now (Direction, Ground, Radius, Entrance, Light, Ramp), and the
+  address bar fills in as you press them.
+- **Synced with `launch-prep` at `a489d563`** (merge `d81e79f1`); it had moved four commits past the
+  `1b647d76` this branch was cut from, and three of them are migrations of other boards.
+  **Two conflicts, both the ones the round brief predicted, both resolved by keeping BOTH sides:**
+  `sandbox/registry.ts` (home-hero, river-visual and the glow pair had been added to the same import
+  block and the same array; `FLOATING_SURFACES` now sits after them and before `LIGHT`) and
+  `lab/kit-discipline.test.ts` (each side deleted a different id from `LEGACY`; both deletions kept,
+  so the list is now album-hero, brand-voice, media-kit, palette, type-scale). Nothing else in this
+  lane collided, and the whole gate re-ran on the merged tree.
+- Gates on the merged tree, each on its own exit code: **typecheck ok**, **lint ok** (0 errors, 6
+  warnings, all pre-existing and outside the lane), **test ok** (2140 in 218 files), **build ok** (257
+  static pages), **`pnpm lab:smoke --base http://localhost:3415` ok** (288 checks, 0 failing, with
+  `/design/sandbox/floating-surfaces`, `/design/lab/floating-surfaces` and
+  `/design/lab/proposals/floating-surfaces` all 200).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/floating-surfaces.md`,
+  the eleven files of `src/app/(dev)/design/sandbox/floating-surfaces/` (two of them deletions), and
+  **the three registration lines this round was allowed, for this board id only**:
+  `sandbox/registry.ts` (import the spec, add it to `BOARDS`), `(shell)/lab/boards.ts` (drop
+  `legacy: true`), `lab/kit-discipline.test.ts` (delete `"floating-surfaces"` from `LEGACY`). Nothing
+  under `src/components/ui/` was touched; every direction still reaches the primitives from outside.
+- **Shared-file change asked of the Orchestrator, one line, and it is a real bug rather than a
+  preference.** `scripts/lab-review.mjs:readSpec` finds a board's data with
+  `masked.indexOf("{", masked.indexOf("defineBoard"))`. The first occurrence of `defineBoard` is the
+  IMPORT, so the first `{` after it is the brace of the NEXT import statement when a spec has one:
+  the scanner then parses that import as the board, finds no `asks`, and refuses every clause with
+  `"direction" is not an ask on floating-surfaces ()` while writing nothing. It is quiet, it looks
+  like the reviewer mistyped, and a ruling cannot be filed. Found by running this board's own
+  Rule-on line through it while the spec still imported `DIRECTION_META`. The fix:
+
+  ```
+  -  const open = masked.indexOf("{", masked.indexOf("defineBoard"));
+  +  const open = masked.indexOf("{", masked.indexOf("defineBoard("));
+  ```
+
+  This round worked around it by making `spec.ts` import nothing but `defineBoard` (the theses moved
+  into the candidates, which is where they belong anyway), so nothing is blocked; but the next spec
+  that needs a second import will hit it, and the trap is worth the one character.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Assets requested from Will: none. The board judges a layer over content and the real event
+  photographs in `public/marketing/img/` are the right content for it; nothing here is a stand-in.
+
+**Light QA, on a dev server at `:3415`, in a FRONTED pane tab (the pane is shared: a hidden tab
+mounted 1 frame where a fronted one mounts 25, so `document.visibilityState` is asserted before
+believing any count).**
+
+- **At 1440x950**: all **25** frames mount and load (`.flt-cover` in each `contentDocument`), **not
+  one carries a transform**, `scrollWidth - clientWidth` is **0** at every scroll position, no
+  em-dash and no `font-mono` in the served text, no frame draws the kit's "could not be re-skinned"
+  banner. The dock computes `sticky` at **129px** and writes `scroll-padding-top: 185px`.
+- **At 375** (a 375-wide same-origin iframe of the same server, since the pane will not go below
+  500): `innerWidth` exactly 375, **no horizontal scroll anywhere on the document**, the dock
+  computes `static` so it covers nothing, and its Collapse takes it from **344px to 84px**. A row's
+  frames past the first mount when the ROW is scrolled sideways rather than on arrival, which is the
+  kit's `onApproach` reading the viewport in both axes; verified by scrolling the answers row, where
+  1 frame became 4 and the document still did not scroll sideways. That is correct lazy behaviour on
+  a phone, not a miss.
+- **Reduced motion**: every `prefers-reduced-motion` media rule in the board document and all 25
+  frame documents forced to the reduce state (**1014** rules across **26** documents, walked
+  recursively so the `@layer base` guard in globals.css is included); **36** open floating surfaces
+  measured by their `data-slot`, **none** above 0.011ms of animation or transition.
+- **The template's own machinery, each checked rather than assumed**: the twelve sections are
+  anchored `floating-surfaces-<id>` and all twelve are in the dock's Sections menu; every ask pill's
+  "See it" lands its section under the dock; the seven-step walk sets the state AND lands on its
+  section (measured with a 2.5s settle, because a smooth scroll over 10,000px is still in flight at
+  700ms and the first measurement blamed the walk for the scroll); a pasted link
+  (`?direction=command&ground=app-dark&radius=round#floating-surfaces-corner`) reopens that exact
+  candidate, ground and rung.
+- **Nothing reloads when the dock moves.** Flipping Direction re-rendered the desk frame's contents
+  in the SAME document (`contentDocument` identity unchanged) and the URL became `?direction=glass`;
+  Ground and Ramp wrote `surface-paper` and `data-flt-ramp="b"` inside the frame, with the cinema
+  room's inline `--background` following ramp B to `oklch(0.125 0 0)`; Replay closed 6 open panels
+  and re-opened all 6, in the same document, with the count on its label.
+- **"Apply to the site" still lands the real paste.** Card applied from the directions section; the
+  dock's badge read "On the site: the card direction"; `/` with `?key=` carried exactly one block
+  (guarded `html:not([data-flt-frame])`) and the REAL marketing header nav panel opened at
+  `border-radius: 8px` with its links at `4px`, running `flt-card-in` for 160ms. The board's own
+  frames did not carry the site block, which is the guard doing its job. The candidate was cleared
+  afterwards and `localStorage` holds none, so the lab is handed over clean.
+- **The review line round-trips.** `pnpm lab:review` was run against a SCRATCH copy of the tree
+  (`--root` pointed at a temp directory holding a copy of `src/` and an empty `docs/reviews/`), with
+  the line the board's own Rule-on panel composed:
+  `review floating-surfaces r5: direction=card "the desk sells it"; submenu=delete; radius=nested;
+  entrance=by-frequency; light=follow-light; note: "walked at 1440 and 375"`. All five answers and
+  the note were recorded. The repo's `docs/reviews/` was not touched (`git status` clean).
+- **`/design/lab` queues the board's five open asks** with their recommendations (direction card,
+  submenu delete, radius nested, entrance by-frequency, light follow-light), read off the spec.
+
+**What round five changed, and what it did not.**
+
+1. **The argument became data.** `spec.ts` carries the question, the verdict, the five one-word
+   calls, the five candidates, the six departures and twelve declared sections with their ledes and
+   folded arguments. `board.tsx` is the evidence per section and nothing else. No direction, number
+   or recommendation changed: the wave moved the argument, it did not re-argue it.
+2. **The dock came home.** This board's sticky bar was the model for the shell's; now its switches
+   are the template's declared controls, so they ride the URL, the walk can set them, a review note
+   is a link, and the board's root carries each one as `data-<id>` for its own sheet.
+3. **The frame retired to the kit.** `frame.tsx` and `frame-page.tsx` are gone. The candidate CSS is
+   built in the parent and written into the frame's own realm as an adopted stylesheet, so a section
+   and its Apply button are one string built in one place; only what the scene RENDERS from (the
+   anatomy, the ground, the ramp, the replay) still travels, and it travels as one `lab:set` rather
+   than this board's two private events. The ground triple is also seeded into the frame's src ONCE,
+   because the src is the frame's React key: seeded, a paper board never flashes cinema; re-read, the
+   dock would remount two dozen iframes to change one colour.
+4. **Three subtractions.** The lazy `Row` became the template's sections; `Apply` became
+   `ApplyToSite`; and the `compact` strip on the edge scene, which round four replaced with the nest
+   scene and its loupe, is deleted rather than left as a branch no call site reaches.
+5. **One control was dropped on purpose.** Round four's dock carried a 1440/375 canvas toggle that
+   moved exactly ONE frame, the light ladder: every other specimen is pinned to the canvas it is
+   evidence for, because the desk IS the 1440 read and the phone section IS the 375 one. A page-wide
+   switch that changes one frame is the "control that does nothing visible" round three's cold walk
+   went looking for, so the canvas is a section here and not a switch.
+
+**Findings for whoever owns the primitives** (unchanged from round four, and none of them is a
+choice): a nested submenu is INVISIBLE in the product (`SubContent` has no Portal while `Content`
+clips overflow); `guest/entry-shell.tsx` is a tenth floating surface outside `ui/drawer.tsx` with a
+literal radius; `ui/select.tsx`'s one product call site overrides the floating radius with
+`rounded-xl`; `ui/tooltip.tsx` is inverted, so any material that repaints the background must say so;
+`ui/tooltip.tsx`'s arrow takes a literal `rounded-[2px]`; `ui/navigation-menu.tsx`'s viewport cannot
+size itself outside the marketing header. The reduced-motion "hole" still does not exist, and the
+patch the outliers section offers is bible 14's first line rather than a fix.
+
+- The asks, verbatim from the spec (the Orchestrator quotes them under Waiting on Will):
+  1. "The direction" (today, card, glass, command) - this board says **card**
+  2. "The submenu" (keep, delete) - this board says **delete**
+  3. "The radius" (sharp, nested, round) - this board says **nested**
+  4. "The entrance" (one-clock, by-frequency) - this board says **by-frequency**
+  5. "The light in dark" (today, shadow, follow-light) - this board says **follow-light**
+- Look at first:
+  1. **Press "Look first" in the dock.** Seven steps, each setting the state it was written in. It is
+     the whole board in about a minute, and it is new this round.
+  2. **Section 02, the four answers at true pixels.** Today is an anonymous list; card has a subject,
+     sections, a rail and a footer; glass takes the boxes out; command replaces the list with a
+     field. Thirty seconds and the direction ask answers itself.
+  3. **Section 01, then flip Direction on the dock.** The whole desk changes under the switch, and the
+     address bar changes with it, so the comparison you found is the link you send.
+  4. **Section 06, where glass stops paying for itself.** The one section that argues against the
+     prettiest candidate.
+  5. **The Rule-on panel at the foot.** Five words, one line, and it validates before it is filed.
 
 ## Record (round 5; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The floating-surfaces board moved onto the lab
+kit's template, and the move was a homecoming: its own sticky bar had been the model the shell's dock
+was generalised from, and its iframe-at-true-pixels had become the kit's `Frame`. Round four's
+argument is now DATA in `spec.ts` (the question, the verdict, the five one-word calls, the five
+candidates, the six departures, twelve sections with their ledes and their arguments folded under the
+evidence), and `board.tsx` is the evidence per section and nothing else; no direction, number or
+recommendation changed. The seven `useState` switches became six declared controls that ride the URL,
+so a review note is a link, the guided walk sets the state it was written in, and the board's root
+carries each control as a data attribute its own sheet can select. `frame.tsx` and `frame-page.tsx`
+retired: the candidate CSS is built in the parent and written into each frame's own realm as an
+adopted stylesheet, so a section and its Apply button are one string, and only the anatomy, the
+ground, the ramp and the replay still travel inside, as one `lab:set` instead of two private events.
+The lazy `Row` became the template's sections, `Apply` became `ApplyToSite`, the dead compact strip
+went, and the canvas toggle went with it (it moved one frame; the desk is the 1440 read and the phone
+section the 375 one). Building it turned up a quiet bug in the review pipeline: `lab:review` finds a
+board at the first brace after the word `defineBoard`, so a spec with a second import hands the
+scanner the wrong object and refuses every ruling as "not an ask on this board".
