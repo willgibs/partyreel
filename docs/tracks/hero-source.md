@@ -226,9 +226,14 @@ so the burst cannot flash.
   merge that synced launch-prep a second time, for the dock (below). Pushed. The preview at
   `partyreel-git-lp-hero-source-partyreel.vercel.app` was NOT
   waited on: Vercel is capped for the day, so the board was verified on this worktree's own
-  production build (`pnpm build && pnpm start` on :3213) and on its dev server (:3214), in a
-  FOREGROUND Browser-pane tab at 1440 and at 375, with every number taken off the DOM rather than
-  off a screenshot.
+  PRODUCTION build (`pnpm build && pnpm start` on :3213, rebuilt and re-walked after the review pass
+  on the final tree), in a FOREGROUND Browser-pane tab at 1440 and at 375, with every number taken
+  off the DOM rather than off a screenshot. A screenshot is not evidence here and was not used as
+  any: the Browser pane's captures desync from the page's own scroll on this board (the Deferred
+  bullet above), and the pane is shared, so a parallel session fronting another tab hides this one,
+  which correctly sets the stage's `data-paused` and holds the corridor. Both were hit again this
+  pass and both are tooling, not the concept: re-fronting the tab gives 16 frames on canvas and a
+  running loop immediately.
 - **What the review pass changed** (five should-fix findings, no blocker; the concept's design is
   unchanged, and only one string a person reads moved):
   1. **The dock.** Will's note (a) was not satisfied on this board, and the ask had been filed rather
