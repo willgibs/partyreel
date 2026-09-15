@@ -23,6 +23,8 @@
  * `components/` and the index would start claiming it lives somewhere else.
  */
 
+import type { NavBadge } from "@/app/(dev)/design/_data/catalog";
+
 export type GalleryFamily =
   | "components"
   | "patterns"
@@ -85,10 +87,10 @@ export type SpecimenSkin =
   /** The always-dark media surface the gallery components live on. */
   | "gallery";
 
-export type Specimen = {
+export type SpecimenDef = {
   /** The specimen's name, in the frame's header. */
   label?: string;
-  /** The mono hint beside it: the props, the file, the thing to notice. */
+  /** The quiet hint beside it: the props, the file, the thing to notice. */
   hint?: string;
   node: React.ReactNode;
   /** Break out of the frame's padding (a band, a hero, a full-bleed grid). */
@@ -122,10 +124,25 @@ export type GalleryEntry = {
   /** One line, only when COMPONENT_NOTES cannot say it better. */
   lede?: string;
   variants?: VariantAxis[];
-  specimens: Specimen[];
+  specimens: SpecimenDef[];
   /** The id of a config panel in playgrounds.tsx, mounted above the specimens. */
   play?: string;
+  /**
+   * WHAT CHANGED, as data (the Library x Lab round, 2026-09-15). A reviewer's
+   * first question of a library this size is "what is new since I last
+   * looked", and a date cannot answer it: a Vercel build has no git, so
+   * anything derived from history prints differently there than on a dev
+   * server. So the mark is declared on the entry by the round that touched
+   * the component, read by the sidebar through `_data/nav.ts` and listed on
+   * the library's home, and CLEARED by the Orchestrator at a window's close.
+   * `new` means the component did not exist at the last close; `updated`
+   * means it was reworked.
+   */
+  badge?: EntryBadge;
 };
+
+/** The two marks an entry may carry; the same words `NavBadge` spells. */
+export type EntryBadge = Extract<NavBadge, "new" | "updated">;
 
 // Section ORDER is declaration order (registry.familySections walks the array),
 // so there is deliberately no separate order list to keep in sync.
