@@ -1,7 +1,7 @@
 ---
 track: palette
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "4e52287"
 merged_round_2: "499a1ad"
 merged_round_1: "bf1a6ef"
 preview: true           # Will reviews this board on its preview as it builds
