@@ -73,6 +73,8 @@ git diff --name-only origin/launch-prep...HEAD
 | `src/components/marketing/mdx/spec-shared.tsx` | never (read it) | grows it by promotion |
 | `src/lib/env.ts`, migrations, Workers, Vercel / Stripe / Supabase config | propose in Handoff | applies |
 | `docs/ASSETS.md` (the asset log) | never (ask in Handoff, one bullet per asset) | folds each ask into a row at integration; Will marks a row delivered; the wiring round marks it wired |
+| `docs/design/rulings.md` (Will's rulings, verbatim and dated) | never (read it; rendered at `/design/library/rulings`) | appends a section from a review message or from chat, with what it became |
+| `docs/reviews/<board>.json` (the review ledgers) | never (a board's review panel composes a message; the UI never writes) | transcribes Will's pasted line with `pnpm lab:review`; the desk and the boards read the ledgers |
 
 ## The template
 

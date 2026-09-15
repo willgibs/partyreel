@@ -20,6 +20,16 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The policy directive sweep** (the Library x Lab round, 2026-09-15): the `lab-rules` track puts
+  `// @policy: <scope>` on the fourteen policy tests the bible cites; the remaining tests that read
+  the tree (`gallery.test.ts`, `touchpoints.test.ts`, the lane guard's siblings) get the same
+  directive in a follow-up so `/design/library/policies` lists every line the gate holds.
+- **The design-system doc's em-dashes**: `docs/systems/design-system.md` still uses em-dashes in
+  prose (internal docs are exempt from the policy); sweep them when the doc is next rewritten, so
+  the doctrine page reads in the voice the site uses.
+- **The lab subdomain round is unchanged by the Library x Lab round**: the routes moved under
+  `/design/library` and `/design/lab` on the one domain; a `design.partyreel.com` mapping would
+  rewrite the two prefixes and `_data/legacy-routes.ts` in one place.
 - **CI caches only the pnpm store**, so every run compiles cold (about 2m20s with the build skipped;
   longer with it). If the wall time starts to bite, cache `.next/cache` too, keyed on the lockfile plus a
   source hash (the `ci-workflow` track's note, 2026-09-02).
