@@ -153,7 +153,13 @@
   top: 10px;
   left: 10px;
   z-index: 30;
-  opacity: 0.5;
+  /* Scaled down on the phone canvas: the shell's Toggle is sized for the lab
+     page's chrome, and at 375 that is 40 percent of the composition's width.
+     Transform rather than a font size, so it stays the board's own control and
+     not a second design of it. */
+  scale: var(--hhv-lab-scale, 1);
+  transform-origin: top left;
+  opacity: 0.45;
   transition: opacity 120ms ease-out;
 }
 

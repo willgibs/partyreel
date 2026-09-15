@@ -303,7 +303,7 @@ const GEO: Record<Mode, Geo> = {
     // and at 375 that margin is the whole difference between an eyebrow and a
     // line jammed against the top edge.
     originY: 104,
-    clearHalf: 158,
+    clearHalf: 168,
     bandTop: 376,
     bandBot: 742,
     // Short, because the parting has to happen LATE here: the album's readable
@@ -324,7 +324,11 @@ const GEO: Record<Mode, Geo> = {
     flight: 8400,
     launch: 1250,
     sizes: "200px",
-    h1Max: 316,
+    // 336 of the 343 the site's own 16 px gutters leave: at 316 the ruled
+    // thesis broke "The whole / event, in / one album." and text-balance can
+    // only even out what the measure allows. clearHalf tracks it, which the
+    // parting reads and the dissolve hides.
+    h1Max: 336,
     subMax: 330,
     gapSub: 22,
     gapCta: 22,
@@ -861,7 +865,12 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
           and the board's own toggles live in board.tsx, which this track does
           not own (the shell ask is in the Handoff). This chip is not part of
           the composition and leaves with the ruling. */}
-      <div className="hhv-lab">
+      <div
+        className="hhv-lab"
+        style={
+          { "--hhv-lab-scale": mode === "phone" ? 0.7 : 1 } as CSSProperties
+        }
+      >
         <Toggle
           ariaLabel="Lab: where the line sits"
           options={[
