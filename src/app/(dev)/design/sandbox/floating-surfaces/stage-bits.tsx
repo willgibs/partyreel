@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * THE STAGE BITS every scene shares (extracted at round four, when the
@@ -88,23 +88,41 @@ export function Backdrop({
   );
 }
 
-/** Closes every held-open panel and re-opens it a frame later, so an entrance
- *  can be replayed without hunting for triggers. The parent board fires
- *  `flt:replay` straight at this window: same origin, no postMessage dance. */
-export function useReplay(initial = true) {
+/**
+ * CLOSES EVERY HELD-OPEN PANEL AND RE-OPENS IT A FRAME LATER, so an entrance can
+ * be replayed without hunting for triggers.
+ *
+ * ★ IT RIDES THE KIT'S ONE CHANNEL. The board used to fire a `flt:replay` event
+ * of its own at each frame; the migration wave puts the run number in the kit
+ * Frame's `push`, so the ground, the ramp, the direction and the replay all
+ * arrive as one `lab:set` and there is a single thing to reason about when a
+ * frame does not answer. The guard is the VALUE, not the event: `push` is
+ * re-dispatched on every load and on every parent render, and a hook that
+ * replayed on each of those would re-open thirty panels while the reader is
+ * reading one.
+ *
+ * ★ AND THE RE-OPEN IS A TIMER, NOT requestAnimationFrame: rAF does not fire in
+ * a background tab, and a board with several frames is exactly where a panel
+ * would sit half-replayed on a tab nobody is looking at. 60ms is long enough for
+ * radix to unmount the panel and the browser to paint the closed state.
+ */
+export function useSceneReplay(initial = true) {
   const [on, setOn] = useState(initial);
+  const last = useRef<string | null>(null);
   useEffect(() => {
-    const replay = () => {
+    const onSet = (e: Event) => {
+      const run = (e as CustomEvent<{ run?: string }>).detail?.run;
+      if (run === undefined) return;
+      if (last.current === null || last.current === run) {
+        last.current = run;
+        return;
+      }
+      last.current = run;
       setOn(false);
-      // A timer, not requestAnimationFrame: rAF does not fire while the tab is
-      // in the background, and a board with several frames is exactly where a
-      // panel would sit half-replayed on a tab nobody is looking at. Long
-      // enough for radix to unmount the panel and the browser to paint the
-      // closed state before the entrance starts again.
       window.setTimeout(() => setOn(true), 60);
     };
-    window.addEventListener("flt:replay", replay);
-    return () => window.removeEventListener("flt:replay", replay);
+    window.addEventListener("lab:set", onSet);
+    return () => window.removeEventListener("lab:set", onSet);
   }, []);
   return on;
 }
