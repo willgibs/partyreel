@@ -663,8 +663,8 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
   aurora at both boundaries on the right of it, the copy in the clean middle of both. Then press
   Measure under it. Then part A's stacked photographs, and part E, which is the ruling with no
   translation left in it.
-- For the Orchestrator, first action on this track: **force one preview deploy of `lp/light` at
-  `5079d1f` after 2026-09-15 23:42**, when the daily deployment ceiling resets, and confirm the
+- For the Orchestrator, first action on this track: **force one preview deploy of the tip of
+  `lp/light` after 2026-09-15 23:42**, when the daily deployment ceiling resets, and confirm the
   alias serves it before Will walks the board. Nothing else is needed and nothing is queued: both
   paths are refused today (the API with `api-deployments-free-per-day`, the git integration with
   its own "retry in 24 hours" status on the commit), so the push left no pending build to wait on.
