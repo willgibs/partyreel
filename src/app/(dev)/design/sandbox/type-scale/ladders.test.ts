@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -355,5 +358,168 @@ describe("the hero board's hand-rolled ladder", () => {
     const hero = ladderById("today").steps.hero!;
     expect(hero.phone.px).toBe(48);
     expect(hero.desktop.px).toBe(96);
+  });
+});
+
+/* ────────── The board's own sheet against the paste it hands out ────────── */
+
+/**
+ * ★ THE PASTE LANDS ON THE BOARD TOO, AND WINS EVERY TIE.
+ *
+ * A candidate is rendered as a <style> after every stylesheet on every page
+ * with a key-gated island, and the board is a page on that site: an applied
+ * candidate reaches the board's own stages and, at equal specificity, beats
+ * board.css on source order. Every stage depends on the opposite, because a
+ * stage shows the ladder its TOGGLE selects, not the one that happens to be
+ * applied. The failure is silent and it is the whole argument of a stage: with
+ * the page step tied, stage 13's three app registers all collapsed onto the
+ * applied ladder's one page size while their captions still read 24 / 20 / 20.
+ *
+ * No reader can check this by eye. The page hook scores three attribute tokens
+ * AND a type, which is exactly what a three-attribute chain ending in
+ * `:is(h1, h2, h3)` scores, so the two were (0,3,1) against (0,3,1). This
+ * computes both sides and fails the moment a hook grows a token, or the
+ * doubled `[data-tsc][data-tsc]` in board.css is tidied away.
+ */
+
+type Spec3 = [number, number, number];
+
+/** Split on a separator at bracket and paren depth zero. */
+function splitTop(selector: string, sep: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let cur = "";
+  for (const ch of selector) {
+    if (ch === "(" || ch === "[") depth += 1;
+    else if (ch === ")" || ch === "]") depth -= 1;
+    if (ch === sep && depth === 0) {
+      out.push(cur);
+      cur = "";
+    } else cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+const cmp = (a: Spec3, b: Spec3) =>
+  a[0] - b[0] || a[1] - b[1] || a[2] - b[2] || 0;
+
+/** Selectors Level 4 counting, for the shapes these two sheets use: ids,
+ *  classes, attributes, pseudo-classes and types, with `:is()`/`:not()`/
+ *  `:has()` taking their most specific argument and `:where()` taking none. */
+function specificity(selector: string): Spec3 {
+  const s = selector.trim();
+  const word = /[\w-]/;
+  let [a, b, c] = [0, 0, 0];
+  let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (ch === "#" || ch === ".") {
+      if (ch === "#") a += 1;
+      else b += 1;
+      i += 1;
+      while (i < s.length && word.test(s[i])) i += 1;
+    } else if (ch === "[") {
+      let depth = 1;
+      i += 1;
+      while (i < s.length && depth > 0) {
+        if (s[i] === "[") depth += 1;
+        else if (s[i] === "]") depth -= 1;
+        i += 1;
+      }
+      b += 1;
+    } else if (ch === ":") {
+      const element = s[i + 1] === ":";
+      i += element ? 2 : 1;
+      let name = "";
+      while (i < s.length && word.test(s[i])) {
+        name += s[i];
+        i += 1;
+      }
+      if (s[i] === "(") {
+        let depth = 1;
+        const start = (i += 1);
+        while (i < s.length && depth > 0) {
+          if (s[i] === "(") depth += 1;
+          else if (s[i] === ")") depth -= 1;
+          i += 1;
+        }
+        const inner = s.slice(start, i - 1);
+        const fn = name.toLowerCase();
+        if (fn === "where") continue;
+        if (fn === "is" || fn === "not" || fn === "has" || fn === "matches") {
+          let best: Spec3 = [0, 0, 0];
+          for (const arg of splitTop(inner, ",")) {
+            const got = specificity(arg);
+            if (cmp(got, best) > 0) best = got;
+          }
+          a += best[0];
+          b += best[1];
+          c += best[2];
+        } else b += 1;
+      } else if (element) c += 1;
+      else b += 1;
+    } else if (word.test(ch)) {
+      while (i < s.length && word.test(s[i])) i += 1;
+      c += 1;
+    } else i += 1;
+  }
+  return [a, b, c];
+}
+
+const BOARD_CSS = readFileSync(
+  join(process.cwd(), "src/app/(dev)/design/sandbox/type-scale/board.css"),
+  "utf8",
+);
+
+/** Every selector a sheet declares, flattened; at-rule preludes dropped. */
+function selectorsOf(css: string): string[] {
+  return [...css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{/g)]
+    .map((m) => m[1].trim())
+    .filter((prelude) => prelude.length > 0 && !prelude.startsWith("@"))
+    .flatMap((prelude) => splitTop(prelude, ",").map((one) => one.trim()))
+    .filter(Boolean);
+}
+
+describe("the board's sheet outranks any paste", () => {
+  /** The rules that spend a step's own properties on a stage. */
+  const stepRules = selectorsOf(BOARD_CSS).filter((s) =>
+    /\[data-tsc-(step|ships|face)/.test(s),
+  );
+  const pasteSelectors = [...LADDERS, LAW_ONLY].flatMap((ladder) =>
+    selectorsOf(candidateCss(ladder)),
+  );
+
+  it("counts a selector the way the cascade does", () => {
+    expect(specificity("h1")).toEqual([0, 0, 1]);
+    expect(specificity('[data-mkt] [data-inview="true"] .mkt-name')).toEqual([
+      0, 3, 0,
+    ]);
+    // The tie that cost stage 13 its argument, both halves of it.
+    expect(specificity(HOOKS.page!.selector)).toEqual([0, 3, 1]);
+    expect(
+      specificity(
+        '[data-tsc] [data-tsc-page] [data-tsc-step="heading"] :is(h1, h2, h3)',
+      ),
+    ).toEqual([0, 3, 1]);
+  });
+
+  it("finds both sides to compare", () => {
+    expect(stepRules.length).toBeGreaterThanOrEqual(4);
+    expect(pasteSelectors.length).toBeGreaterThanOrEqual(20);
+  });
+
+  it("puts every stage rule above every selector a candidate emits", () => {
+    const worst = pasteSelectors.reduce((most, one) =>
+      cmp(specificity(one), specificity(most)) > 0 ? one : most,
+    );
+    for (const rule of stepRules) {
+      // Reported as an object so a failure names the rule that lost.
+      expect({
+        rule,
+        beats: worst,
+        outranks: cmp(specificity(rule), specificity(worst)) > 0,
+      }).toEqual({ rule, beats: worst, outranks: true });
+    }
   });
 });
