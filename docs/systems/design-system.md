@@ -819,6 +819,13 @@ the real cinema pages, the rounding board); a knob without one is retired rather
 untouched). Contract: an increment APPENDS its knobs with all three fields and a specimen in the same commit,
 the config `default` MIRRORS the CSS default, and any JS-read var (`run()`'s `readCssMs`) falls back to a
 constant that ALSO mirrors it. Bake a tuned value: Copy CSS (grouped, per scope) → set it as the default → Reset.
+**The candidate block** (the review wave's second round, 2026-09-14): a lab board can hand the whole site one
+CSS paste, the same block its ruling would land (a token set, a shadow family, a floating rung), through
+`setCandidateCss(label, css)` / `clearCandidate()` in `tuner-store.ts`; `CandidateStyle` renders it as a `<style>`
+after every stylesheet wherever a key-gated island mounts (the lab layout, the cinema and paper islands, the
+host app's `AppDesignIsland`), so Will judges a candidate on the real pages with `?key=`. One block at a time,
+labelled, persisted in the browser until cleared from the panel or the board; real selectors only
+(`:root, .surface-paper`, `.dark`, `.surface-ink`, a primitive's class), never a production path.
 
 **State-colored toasts (global policy, S4):** sonner's `data-type` is mapped to the design state colors —
 `success` = `--success` green, `warning` = `--warning` amber, `error`/destructive = `--destructive` red;
