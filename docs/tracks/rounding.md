@@ -239,8 +239,9 @@ Four findings, all on the board rather than in a comment. The guest gallery's ga
 
 ## Handoff (round 3)
 
-- Head: the tip of `lp/rounding`, pushed. The last code commit is `c79038b`
-  (the sync merge); the manifest commits follow it. The board is
+- Head: the tip of `lp/rounding`, pushed. The last code commit is `6dd4d7a`,
+  which sits ON the sync merge `c79038b`; the manifest commits follow it. The
+  board is
   `/design/c/rounding?key=`. **The round-three marker in the rendered HTML is
   the heading "What the board answers"** (and the class `rnd-answer-grid`),
   both present in the server-rendered markup; round two's marker, "The six
@@ -265,9 +266,9 @@ Four findings, all on the board rather than in a comment. The guest gallery's ga
 - Synced with `launch-prep` at `dd4aa0b` (merge `c79038b`); it had moved 24
   commits, all of them other tracks' sandbox files and manifests, none in this
   lane.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 warnings, all
-  pre-existing and outside the lane), test ok (1719 in 193 files), build ok
-  (248 pages).
+- Gates on the synced tree, re-run after the last code commit: typecheck ok,
+  lint ok (0 errors, 6 warnings, all pre-existing and outside the lane), test
+  ok (1719 in 193 files), build ok (248 pages).
 - **Light QA, walked rather than asserted.** The board at **1440** and at
   **375** on the production build, and at 1024 on the way. At both widths
   `documentElement.scrollWidth - clientWidth` is 0 AND no unclipped element
