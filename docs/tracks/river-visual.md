@@ -1,7 +1,8 @@
 ---
 track: river-visual
 status: open
-cut: "c473707"          # origin/launch-prep at boot, 2026-09-15
+cut: "1b647d76"         # origin/launch-prep at the round-2 boot, 2026-09-15
+cut_round_1: "c473707"
 merged_round_1: "232dfd29"
 preview: false           # Will reviews this board on its preview as it builds (once Vercel's window frees)
 owns:
