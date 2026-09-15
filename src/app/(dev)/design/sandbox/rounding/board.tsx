@@ -760,8 +760,10 @@ export function RoundingBoard() {
             leaving it beside part B meant a reader standing at the phone row
             had to scroll back up to change what the phones were showing:
             exactly the friction Will's note names. It is five options and the
-            shell's Toggle never wraps, so the group scrolls inside itself at
-            375 rather than widening the dock. */}
+            shell's Toggle is nowrap: measured at 375 the group comes to 343
+            inside 343 of dock, so it fits with nothing to spare. The wrapper
+            carries an overflow guard rather than a fix, so one longer screen
+            name scrolls the group instead of widening the dock. */}
         <div className="rnd-dock-wide">
           <Labeled label="App screen">
             <Toggle
