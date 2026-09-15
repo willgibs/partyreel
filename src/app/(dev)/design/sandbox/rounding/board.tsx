@@ -116,8 +116,10 @@ import {
  * surface any guest meets, takes its corner from the ACTION token at 1.4x, so
  * the action rung decides the shape of a floating sheet; --radius-action-lg
  * has exactly one call site; every marketing CTA is size lg forced to h-11,
- * which puts it at 0.33 x height while globals.css documents 0.4; and the top
- * two rungs of the derived ladder have three uses between them.
+ * which puts it at 0.33 x height while globals.css documents 0.4; the top
+ * two rungs of the derived ladder have three uses between them; and, found by
+ * walking the real pages with the answer applied, 64 corners in 28 files are
+ * px literals no candidate can move, 52 of them photographs.
  */
 
 const QUESTION =
@@ -526,6 +528,7 @@ const DEPARTURES = [
   "--radius-action-lg has exactly one call site, the reel builder, on an h-11. Every marketing CTA is size lg forced to h-11 with a className in 26 files, so the loudest action on the site wears 0.9 x --radius-action at 0.33 of its height while globals.css documents the ladder as 0.4. The proposal is a cta size on the Button (h-11 at 1.1 x --radius-action) and the retirement of a token named for a height nothing uses.",
   "The derived ladder cannot be retuned with a token. @theme inline substitutes each step into its utility at build time, so --radius-xl is empty at runtime and part D renders the retune as utility overrides. The ruling lands on the multipliers in theme.css, one line a step, which is the Orchestrator's file.",
   "The guest group cannot wear a candidate. CandidateStyle mounts in the lab layout, the marketing island and the app island, and (guest)/layout.tsx mounts none of them, so /e/<token> ignores every paste this board offers. The floating-surfaces board asks for the same one line, and this board is the second reason: the surface part E turns on is on that page.",
+  "Sixty-four corners on the site are literals rather than tokens, and the walk is where that shows. rounded-[2px], -[3px] and -[4px] account for 52 of them across 24 non-lab files (the film strip, the live demo, the decomposition frames, the album grids, the reel filmstrip), so under any candidate but A a photograph keeps today's corner while the card around it moves: the home page alone holds 48 corners at 2px and 22 at 3px with the answer applied, beside cards at 10 and 12. They are the same argument as the gallery gap, one layer out, and they want var(--radius-tile). A ruling of C is a ruling to sweep them.",
 ];
 
 const ASSETS = [
