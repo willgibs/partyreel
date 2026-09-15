@@ -1,7 +1,7 @@
 ---
 track: type-scale
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "c473707"
 merged_round_3: "3faf6ad"
 merged_round_2: "c97d799"
 merged_round_1: "5186fb8"
