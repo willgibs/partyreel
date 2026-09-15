@@ -3,7 +3,12 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { CHROME, FILE_COUNTS, MARKETING_PAGES, PRODUCTION_FILES } from "./exposure";
+import {
+  CHROME,
+  FILE_COUNTS,
+  MARKETING_PAGES,
+  PRODUCTION_FILES,
+} from "./exposure";
 
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 
@@ -98,5 +103,32 @@ describe("what the twelve unverified stills actually reach", () => {
     };
     walk(join(process.cwd(), "src", "app", "(marketing)"));
     expect(pages).toBe(MARKETING_PAGES);
+  });
+
+  /**
+   * ★ ROUND THREE'S CLAIM, PINNED: the ruling touches marketing and nothing
+   * else. The board tells a reviewer not to bother walking the dashboard, an
+   * event page, the admin portal or a guest link with a block applied, because
+   * no marketing still is referenced under any of them. That is only worth
+   * saying if it cannot quietly stop being true.
+   */
+  it("no still reaches the app, the guest link or the admin portal", () => {
+    const outside = FILES.filter((f) =>
+      ["(app)", "(guest)", "(auth)", "admin"].some(
+        (seg) =>
+          f.path.includes(join("src", "app", seg) + "/") ||
+          f.path.includes(
+            join("src", "components", seg.replace(/[()]/g, "")) + "/",
+          ),
+      ),
+    );
+    for (const image of MARKETING_IMAGES) {
+      for (const f of outside) {
+        expect(
+          f.text.includes(`"${image.id}"`),
+          `${f.path} / ${image.id}`,
+        ).toBe(false);
+      }
+    }
   });
 });

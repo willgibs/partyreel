@@ -11,18 +11,46 @@
  * one substring selector catches the frame in both forms on every surface it
  * appears on: the blog card, the footer strip, the nav panel, a feature mock.
  *
+ * ★ AND THE BLOG IS SWAPPED PER POST, BECAUSE THE SHEET IS PER POST. A file name
+ * can only carry an id, and the bridge's whole finding is that the blog is 23
+ * frontmatter lines rather than twelve files: fourteen of the 21 filled posts get
+ * a DIFFERENT photograph from the one their cover's id is bridged with (the
+ * timeline post keeps wedding-arch.jpg while the id `wedding-arch` is bridged by
+ * bridge-ceremony.jpg, because the empty aisle is right for that post and wrong
+ * for the footer strip). So a block that could only swap by id showed a walk
+ * something the board's own sheet contradicts. The site does name a post: the
+ * card is `a[data-cover-morph][href="/blog/<slug>"]` and the article's hero plate
+ * is reachable through the canonical link in the head, so both carry a per-slug
+ * rule that outranks the id rule on specificity and lands exactly what the sheet
+ * shows. Every other route on the site reads the ids, and those keep the id rule.
+ *
  * ★ `content` ON AN <img> IS A CHROME AND SAFARI BEHAVIOUR. Replacing the content
  * of a replaced element is how a stylesheet can swap a photograph without touching
  * a component; Firefox ignores it and the page simply shows today's frame, which
  * is a harmless failure and worth knowing before a walk. Will reviews in Chrome.
+ * `:has()` (the article rule) is the same story on the same browsers.
+ *
+ * ★ THE SWAP NEVER MOVES A CROP, AND THAT IS TRUE OF THE REAL FIX TOO. `content`
+ * replaces the image and leaves `object-position` alone, and `coverFor` derives
+ * that position from the SLUG alone, so a frontmatter edit will not move it
+ * either: a candidate lands at the post's own rung of the crop ladder on the walk
+ * and after the wiring. The board's plates are drawn at that rung for the same
+ * reason.
  *
  * Nothing here ships. The blocks exist so a ruling can be made in front of the
  * real pages; the wiring round changes files and manifest entries, not CSS.
  */
 
-import { BRIDGE_BY_ID, MIX_LICENSED } from "./bridge";
+import {
+  BRIDGE,
+  BRIDGE_BY_ID,
+  routeOutcome,
+  routeOutcomeForId,
+  type BridgePost,
+} from "./bridge";
 import { candidate } from "./candidates";
-import { MASTERS } from "./shoot";
+import type { Route } from "./kit";
+import { master, MASTERS } from "./shoot";
 
 /** The pages to walk with a block applied. Quoted in BoardMeta. */
 export const WALK = [
@@ -41,6 +69,12 @@ const ALL_FRAMES = [
   'img[src*="hero-candidate-0"]',
   'video[poster*="hero-candidate-0"]',
 ].join(",\n");
+
+/** The shot a frame's id inherits, for the slate. Declared above the blocks
+ *  because every block below is built at module init and may reach for it. */
+const SHOT_BY_ID = new Map(
+  MASTERS.flatMap((m) => m.replaces.map((id) => [id, m] as const)),
+);
 
 /**
  * A. THE EXPOSURE. Outline every frame whose provenance we cannot state and drain
@@ -61,18 +95,83 @@ function swap(id: string, key: string): string {
 }
 
 /**
- * B. LICENSED. The twelve replaced by the staged batch, by id, everywhere they
- * appear. Round one could fill eight; the second search filled all twelve.
+ * The blog card on the index and on an article's "Keep reading" row. PostCard
+ * puts `data-cover-morph` on the link and the slug in its href, which is the
+ * only place the running site names a post to a stylesheet.
  */
-export const BRIDGE_CSS = `/* media-kit B: the licensed bridge, all twelve, staged CC0 */
-${Object.entries(BRIDGE_BY_ID)
-  .map(([id, key]) => swap(id, key))
-  .join("\n")}`;
+function cardSelector(slug: string): string {
+  return `a[data-cover-morph][href="/blog/${slug}"] img`;
+}
 
-/** The shot a frame's id inherits, for the slate. */
-const SHOT_BY_ID = new Map(
-  MASTERS.flatMap((m) => m.replaces.map((id) => [id, m] as const)),
-);
+/**
+ * The article's own hero plate. The page carries no slug in its body, but its
+ * head carries `<link rel="canonical" href=".../blog/<slug>">`, so `:has()` on
+ * the document reaches it. `$=` rather than `=` because the canonical is absolute
+ * and its origin differs between localhost, a preview and production; a test
+ * refuses a slug that is a suffix of another, which is the one way `$=` could
+ * name two posts at once.
+ */
+function articleSelector(slug: string): string {
+  return `html:has(link[rel="canonical"][href$="/blog/${slug}"]) [data-cover-plate="target"] img`;
+}
+
+/** One post's rule: what the sheet shows for it, on the card and on the article. */
+function blogRule(post: BridgePost, route: Route): string {
+  const out = routeOutcome(post, route);
+  const shot = master(post.shot);
+  const url =
+    out.kind === "licensed" && out.key
+      ? `/design/media-kit/${candidate(out.key).file}`
+      : out.kind === "licensed"
+        ? // Licensed with nothing to fill it: the two posts the corpus has no
+          // frame for at all. The sheet leaves the plate empty; the site says so.
+          slateUri(
+            "None",
+            "Nothing in the corpus fills this",
+            `no licensed frame, ${post.cover} would have to stay`,
+          )
+        : // ★ The shot comes from the POST's vertical, so the conference post
+          // wears K1 here and not the festival frame's shot, which is the whole
+          // miscasting this route exists to end.
+          slateUri(
+            shot.code,
+            shot.subject,
+            `to be shot, replaces ${post.cover}`,
+          );
+  return `${cardSelector(post.slug)},\n${articleSelector(post.slug)} { content: url("${url}"); }`;
+}
+
+/**
+ * Every block below is the board's own route function, asked of the twelve ids
+ * AND of the 23 posts, and answered in CSS.
+ *
+ * ★ THE BLOCK IS BUILT BY THE ROUTE FUNCTIONS, NEVER BY A SECOND READING OF THE
+ * MIX LIST. Round three's first cut matched the mix list against an id here and
+ * against a candidate key on the sheet, so Mix put bridge-ceremony.jpg on a page
+ * the board's own sheet showed wearing wedding-arch.jpg. A route means one thing
+ * or the walk is a lie about what a ruling would ship.
+ */
+function blockFor(route: Route): string {
+  return [
+    ...Object.keys(BRIDGE_BY_ID).map((id) => {
+      const out = routeOutcomeForId(id, route);
+      return out.kind === "licensed" && out.key ? swap(id, out.key) : slate(id);
+    }),
+    // The per-post rules come last and outrank the id rules on specificity
+    // ((0,2,2) and (0,3,3) against (0,1,1)), so order and weight agree.
+    ...BRIDGE.map((post) => blogRule(post, route)),
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+/**
+ * B. LICENSED. The twelve replaced by the staged batch, by id, everywhere they
+ * appear, and every blog cover replaced by the candidate its own post names.
+ * Round one could fill eight; the second search filled all twelve.
+ */
+export const BRIDGE_CSS = `/* media-kit B: the licensed bridge, all twelve ids and all 23 posts, staged CC0 */
+${blockFor("licensed")}`;
 
 /** Wrap to at most `lines` rows of `max` characters, breaking on spaces. */
 function wrap(text: string, max: number, lines: number): string[] {
@@ -92,7 +191,7 @@ function wrap(text: string, max: number, lines: number): string[] {
 }
 
 /**
- * The slate a frame becomes under the Ours block.
+ * The slate itself: a code, two rows of subject, one line of why it is here.
  *
  * ★ SQUARE VIEWBOX, CENTRED TEXT, SHORT LINES. The first cut drew a 1200x800
  * slate with the type at the left margin, and every surface that shows a frame
@@ -101,25 +200,30 @@ function wrap(text: string, max: number, lines: number): string[] {
  * a 4:5 card, a 1:1 tile, a 40:21 share card and a 120 px corridor frame, which
  * means a square source and nothing important outside the middle 60 percent.
  */
-function slate(id: string): string {
-  const m = SHOT_BY_ID.get(id);
-  if (!m) return "";
-  const rows = wrap(m.subject.split(",")[0], 26, 2);
+function slateUri(head: string, body: string, foot: string): string {
+  const rows = wrap(body.split(",")[0], 26, 2);
   const svg = [
     `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000'>`,
     `<rect width='1000' height='1000' fill='%23141414'/>`,
     `<g font-family='system-ui,sans-serif' text-anchor='middle' fill='%23f5f5f5'>`,
-    `<text x='500' y='420' font-size='128' font-weight='600'>${esc(m.code)}</text>`,
+    `<text x='500' y='420' font-size='128' font-weight='600'>${esc(head)}</text>`,
     rows
       .map(
         (row, i) =>
           `<text x='500' y='${520 + i * 46}' font-size='36' fill='%23a3a3a3'>${esc(row)}</text>`,
       )
       .join(""),
-    `<text x='500' y='650' font-size='28' fill='%23737373'>to be shot, replaces ${esc(id)}</text>`,
+    `<text x='500' y='650' font-size='28' fill='%23737373'>${esc(foot)}</text>`,
     `</g></svg>`,
   ].join("");
-  return `img[src*="mkt-${id}-01"] { content: url("data:image/svg+xml,${svg}"); }`;
+  return `data:image/svg+xml,${svg}`;
+}
+
+/** The slate a manifest id becomes: the shot that replaces that frame. */
+function slate(id: string): string {
+  const m = SHOT_BY_ID.get(id);
+  if (!m) return "";
+  return `img[src*="mkt-${id}-01"] { content: url("${slateUri(m.code, m.subject, `to be shot, replaces ${id}`)}"); }`;
 }
 
 /**
@@ -147,25 +251,28 @@ function esc(s: string): string {
 }
 
 /**
- * C. OURS. Every frame becomes the slate of the shot that replaces it. Walked
- * with this block on, the site says exactly how much photography the route costs,
- * frame by frame, on the pages that carry it.
+ * C. OURS. Every frame becomes the slate of the shot that replaces it, and every
+ * blog cover the slate of the shot its own post is owed. Walked with this block
+ * on, the site says exactly how much photography the route costs, frame by frame,
+ * on the pages that carry it.
  */
 export const SHOOT_CSS = `/* media-kit C: every frame as the shot that replaces it */
-${Object.keys(BRIDGE_BY_ID)
-  .map(slate)
-  .filter(Boolean)
-  .join("\n")}`;
+${blockFor("ours")}`;
 
 /**
- * D. MIX, which is the recommendation: licensed on the two frames nobody studies,
- * the slate on the ten that carry the argument. It is the only block of the three
- * that shows the site as it would actually look in the weeks before the shoot.
+ * D. MIX, which is the recommendation: a licensed photograph only where the
+ * frame is furniture, the slate everywhere the frame carries the argument. It is
+ * the only block of the three that shows the site as it would actually look in
+ * the weeks before the shoot, with every frame the shoot owes marked rather than
+ * quietly left as it is.
+ *
+ * ★ ON THE TWELVE IDS THAT IS ONE FRAME, ON THE BLOG IT IS TWO. Mix keeps two
+ * staged candidates licensed, but only one of the twelve ids is bridged by
+ * either: the id `wedding-arch` is bridged by a ceremony with people in it,
+ * which is not furniture, so it goes to the shoot with the rest. On the blog,
+ * where a post names its candidate directly, both details survive, and the
+ * per-post rules above are why a walk now shows both. decision.ts derives both
+ * numbers from these same functions rather than counting the list.
  */
-export const MIX_CSS = `/* media-kit D: the mix, licensed on the two details, the shoot on the ten */
-${Object.entries(BRIDGE_BY_ID)
-  .map(([id, key]) =>
-    (MIX_LICENSED as readonly string[]).includes(id) ? swap(id, key) : slate(id),
-  )
-  .filter(Boolean)
-  .join("\n")}`;
+export const MIX_CSS = `/* media-kit D: the mix, licensed where the frame is furniture, the shoot everywhere else */
+${blockFor("mix")}`;

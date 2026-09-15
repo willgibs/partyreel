@@ -159,8 +159,7 @@ export const BRIDGE: readonly BridgePost[] = [
   {
     slug: "group-trip-photo-sharing",
     shot: "T3",
-    title:
-      "Bachelorette and group trip photos: one album for the whole crew",
+    title: "Bachelorette and group trip photos: one album for the whole crew",
     vertical: "trips",
     cover: "festival-lights",
     crop: "22% 45%",
@@ -230,8 +229,7 @@ export const BRIDGE: readonly BridgePost[] = [
   {
     slug: "qr-code-for-wedding-photos",
     shot: "W4",
-    title:
-      "QR code for wedding photos: the complete guest photo sharing guide",
+    title: "QR code for wedding photos: the complete guest photo sharing guide",
     vertical: "weddings",
     cover: "wedding-golden",
     crop: "50% 55%",
@@ -311,5 +309,107 @@ export const BRIDGE_BY_ID: Readonly<Record<string, string>> = {
   "wedding-petals": "bridge-portrait-dusk",
 };
 
-/** The two frames the Mix route keeps licensed: details nobody studies. */
+/**
+ * The frames the Mix route keeps licensed: the details nobody studies.
+ *
+ * ★ THESE ARE CANDIDATE KEYS, AND ONLY CANDIDATE KEYS. Round three's first cut
+ * read this list in two namespaces at once: `routeOutcome` matched it against a
+ * post's candidate while the applied CSS matched it against a manifest id, and
+ * both only appeared to work because "wedding-rings" and "wedding-arch" happen
+ * to name a staged frame AND a manifest entry. They do not mean the same thing.
+ * The id `wedding-arch` is bridged by `bridge-ceremony` (the empty aisle is
+ * right for the timeline post and wrong for the footer strip, which is that
+ * candidate's own caution), so the sheet said wedding-arch.jpg while the paste
+ * said bridge-ceremony.jpg on the same route and the same page. It was also one
+ * edit from silence: swap either name for a key that is not also an id and every
+ * post falls through to "ours", which makes Mix identical to Ours and is the
+ * inert toggle this round exists to kill. One namespace now, one predicate, and
+ * `routeOutcomeForId` asks the same question of an id.
+ *
+ * ★ THE TWO NAMESPACES BOTH REACH THE SITE, WHICH IS THE SECOND HALF OF THE FIX.
+ * Reading one list in two namespaces was the bug; pasting only one of them was
+ * the rest of it. A file name can carry an id and nothing else, so a block built
+ * on ids alone showed a walk the post-by-post sheet's answer for 7 of the 21
+ * filled posts and the id's answer for the other 14. `apply.ts` now writes a rule
+ * per id (for the 21 routes that read a frame directly) AND a rule per slug (for
+ * every blog cover, keyed on the card's own href and the article's canonical), so
+ * the sheet, the stage and the block a walk wears cannot disagree again.
+ */
 export const MIX_LICENSED = ["wedding-rings", "wedding-arch"] as const;
+
+/** The one predicate: does Mix keep a licensed photograph for this frame? */
+export function mixKeepsLicensed(key: string | null): boolean {
+  return key !== null && (MIX_LICENSED as readonly string[]).includes(key);
+}
+
+export type RouteOutcome =
+  | { kind: "licensed"; key: string | null }
+  | { kind: "ours" };
+
+/** The route rule itself, stated once, in candidate keys. */
+function outcomeFor(
+  key: string | null,
+  route: "licensed" | "ours" | "mix",
+): RouteOutcome {
+  if (route === "ours") return { kind: "ours" };
+  if (route === "licensed") return { kind: "licensed", key };
+  // Mix: licensed only where the photograph is furniture; the rest go to the shoot.
+  return mixKeepsLicensed(key) ? { kind: "licensed", key } : { kind: "ours" };
+}
+
+/**
+ * What a route does with one post: hand it a licensed frame, or hand it to the
+ * shoot. One function, so the sheet, the stage and the applied CSS can never
+ * disagree about what a route means.
+ *
+ * ★ THE SHOOT'S FRAME COMES FROM THE POST'S VERTICAL (`shot`), NEVER FROM THE
+ * COVER IT CARRIES TODAY. Inheriting today's id would hand the conference post a
+ * festival frame again, in the route that exists to end exactly that.
+ */
+export function routeOutcome(
+  post: BridgePost,
+  route: "licensed" | "ours" | "mix",
+): RouteOutcome {
+  return outcomeFor(post.candidate, route);
+}
+
+/**
+ * The same question asked of a MANIFEST ID. The blog is 23 frontmatter lines,
+ * but the other 21 routes read the twelve ids directly, and a route has to mean
+ * one thing on both. "Apply to the site" pastes BOTH answers: `apply.ts` calls
+ * this for the twelve file names and `routeOutcome` for the 23 slugs, so the
+ * block a walk wears is the board's own sheet turned into CSS rather than the
+ * id's answer standing in for the post's.
+ */
+export function routeOutcomeForId(
+  id: string,
+  route: "licensed" | "ours" | "mix",
+): RouteOutcome {
+  return outcomeFor(BRIDGE_BY_ID[id] ?? null, route);
+}
+
+/**
+ * The three posts the stage enlarges at the real card size.
+ *
+ * ★ ROUND THREE CHANGED ONE OF THEM SO THE ROUTE TOGGLE IS NOT INERT. Round two
+ * staged three corporate and conference posts: the right argument (today they
+ * wear an empty wedding hall and two music festivals, every one chosen by hand
+ * out of eleven frames) and the wrong SET, because none of the three is one of
+ * the two details Mix keeps licensed, so flipping Mix against Ours changed
+ * nothing on the largest element of the board. These three differ under all
+ * three routes, and bridge.test.ts refuses a set that does not.
+ */
+export const STAGE_SLUGS = [
+  // Filled by a frame with a readable face, which ask 1 bars.
+  "company-offsite-photos",
+  // The hole: no conference frame exists in the corpus at all.
+  "conference-photo-sharing-no-app",
+  // A ring detail, which is exactly what the Mix route keeps licensed.
+  "does-whatsapp-compress-photos",
+] as const;
+
+export const STAGE_POSTS: readonly BridgePost[] = STAGE_SLUGS.map((slug) => {
+  const post = BRIDGE.find((p) => p.slug === slug);
+  if (!post) throw new Error(`media-kit stage: no post ${slug}`);
+  return post;
+});
