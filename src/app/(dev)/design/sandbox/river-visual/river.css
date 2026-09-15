@@ -139,3 +139,19 @@
     opacity: 0;
   }
 }
+
+/* ★ THE AUTHORED REST STATE, and the one rule that makes it legible to a reader
+   who has NOT asked for less motion. The `still` prop puts data-rvr-still on the
+   root (river.tsx) and stops the loop; without this rule the pre-pour frame
+   above would then hold every card collapsed inside the object, so the board's
+   Rest knob would show an empty box and read as a bug rather than as the state a
+   reduced-motion reader actually gets.
+
+   Written OUTSIDE the query on purpose, so it is true for both readers at once,
+   and it beats the block above on specificity rather than on source order
+   (.rvr[data-rvr-still] .rvr-card is 0,3,0 against 0,1,0), which keeps it
+   correct wherever a bundler decides to put it. */
+.rvr[data-rvr-still] .rvr-card {
+  transform: var(--rvr-rest);
+  opacity: var(--rvr-rest-o);
+}

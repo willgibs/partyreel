@@ -165,7 +165,11 @@ export default async function PoliciesPage({
   );
 }
 
-const SCROLL_MT = "scroll-mt-[calc(var(--lab-topbar-h,0px)+12px)]";
+// The anchor offset lives on <html> (scroll-padding-top: the shell rule on a
+// library page, the dock's inline value on a board); a scroll-margin here
+// would add to it and land every section a bar's height too low (found by
+// the home-hero migration, 2026-09-15).
+const SCROLL_MT = "";
 
 /**
  * One policy. The `refuses` sentence is the row's body rather than a footnote:

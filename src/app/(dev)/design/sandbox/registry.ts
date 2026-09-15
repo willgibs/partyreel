@@ -1,7 +1,11 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { BRAND_VOICE } from "./brand-voice/spec";
+import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
+import { GLOW_MOMENTS } from "./glow-moments/spec";
+import { HOME_HERO } from "./home-hero/spec";
 import { LIGHT } from "./light/spec";
+import { RIVER_VISUAL } from "./river-visual/spec";
 import { ROUNDING } from "./rounding/spec";
 
 /**
@@ -19,7 +23,15 @@ import { ROUNDING } from "./rounding/spec";
  * desk shows its touchpoints.ts note instead. The migration wave adds specs and
  * drops `legacy` flags board by board; this list only grows.
  */
-export const BOARDS: readonly BoardSpec[] = [BRAND_VOICE, LIGHT, ROUNDING];
+export const BOARDS: readonly BoardSpec[] = [
+  HOME_HERO,
+  RIVER_VISUAL,
+  GLOW_DOCTRINE,
+  GLOW_MOMENTS,
+  LIGHT,
+  BRAND_VOICE,
+  ROUNDING,
+];
 
 export function boardSpec(id: string): BoardSpec | undefined {
   return BOARDS.find((b) => b.id === id);
