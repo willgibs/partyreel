@@ -1,8 +1,10 @@
 ---
 track: palette
-status: open
-cut: "c473707"
+status: integrated
+cut: "1b647d76"
+merged: "66797acd"      # the branch head merged into launch-prep
 merged_round_4: "5cd20bdc"
+cut_round_4: "c473707"
 merged_round_3: "0d5bb64"
 merged_round_2: "499a1ad"
 merged_round_1: "bf1a6ef"
@@ -1824,14 +1826,129 @@ so a real breakpoint measures the canvas. Lab only, no production byte.
 
 ## Handoff (round 5)
 
-- Head <sha>, pushed; preview partyreel-git-lp-palette-partyreel.vercel.app
-- Synced with launch-prep at <sha>
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the three registration lines (exceptions and why)
-- Shared-file changes asked of the Orchestrator: none
-- Assets requested from Will: none
-- Look at first: ...
+- Head: the tip of `lp/palette`, which is the commit that stamps this line; the last code commit is
+  `d203bb38`'s parent chain through `e7835a27` (the second sync) back to `65e02eb2` (the walk's fixes).
+  Pushed. **No preview**: Vercel is over its monthly deployment storage, so the wave's
+  `lp/*` pushes build nothing unless the message says `[preview]`, and no commit on this branch does.
+  The board is verified on a local dev server instead (see Verified below), and the Orchestrator
+  builds the `launch-prep` alias once at the wave's close.
+- Synced with `launch-prep` TWICE, ending at `9ab89cdd` (the branch moved 14 commits, then 6 more:
+  the home-hero, river-visual, album-hero, glow-specs and floating-surfaces migrations, then the
+  Vercel ignore-build change). Four conflicts across the two merges, every one of them in the three
+  registration lines every migrating board touches, and every one resolved by keeping BOTH sides:
+  `registry.ts` gains `PALETTE` beside `FLOATING_SURFACES` in the touchpoints order (after the glow
+  pair, before `LIGHT`), `boards.ts` keeps everyone's dropped `legacy` flag, and
+  `kit-discipline.test.ts`'s LEGACY list is down to the three boards still unmigrated. Nothing of
+  another track's was overwritten; each list is strictly the union.
+- Gates on the synced tree, each on its own exit code: typecheck ok, lint ok (0 errors, 6 pre-existing
+  warnings, none in this lane), test ok (2140 in 218 files), build ok (257 static pages),
+  `pnpm lab:smoke --base http://localhost:3416` ok (311 checks, 0 failing).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`:
+
+  ```
+  docs/specs/palette.md
+  docs/tracks/palette.md
+  src/app/(dev)/design/(shell)/lab/boards.ts          <- registration line (exception)
+  src/app/(dev)/design/sandbox/palette/board.css
+  src/app/(dev)/design/sandbox/palette/board.tsx
+  src/app/(dev)/design/sandbox/palette/call-sites.tsx
+  src/app/(dev)/design/sandbox/palette/ladders.tsx
+  src/app/(dev)/design/sandbox/palette/live.tsx
+  src/app/(dev)/design/sandbox/palette/model.tsx
+  src/app/(dev)/design/sandbox/palette/real-ui.tsx
+  src/app/(dev)/design/sandbox/palette/registers.ts
+  src/app/(dev)/design/sandbox/palette/sections.tsx
+  src/app/(dev)/design/sandbox/palette/spec.ts
+  src/app/(dev)/design/sandbox/palette/specimens.tsx
+  src/app/(dev)/design/sandbox/registry.ts            <- registration line (exception)
+  src/components/lab/kit-discipline.test.ts           <- registration line (exception)
+  ```
+
+  The three exceptions are the registration lines the round's contract allows, for this board's id
+  only: the spec imported and added to `BOARDS`, `legacy` dropped from the `palette` entry, and
+  `palette` deleted from `LEGACY`. No system-doc edits.
+- **Shared-file change asked of the Orchestrator (one line, and it is a bug, not a preference).**
+  `src/components/lab/paste.tsx` sets `data-lab-paste` and `--lab-paste-lines` on its `<pre>` and its
+  own comment says `design.css` reads them. It does not: nothing in the repo matches
+  `[data-lab-paste]`, so every migrated board's collapsed paste is the whole block (measured here:
+  2054px for a 113 line paste) and its "Read all N lines" button toggles nothing. The light and
+  rounding boards have it too. The patch, at the end of `src/app/(dev)/design/design.css`:
+
+  ```css
+  /* The kit's Paste, collapsed: the <pre> carries --lab-paste-lines and the
+     attribute, and this is the rule paste.tsx says lives here. The arithmetic is
+     the <pre>'s own, 11px type at leading-relaxed plus its p-4, so the box is
+     exactly the requested number of lines. */
+  pre[data-lab-paste] {
+    max-height: calc(var(--lab-paste-lines, 6) * 1.625em + 2rem);
+  }
+  ```
+
+  Until it lands, `sandbox/palette/board.css` carries a copy scoped to
+  `[data-board="palette"]`, with a comment saying to delete it when the shell has the rule. Nothing
+  else is asked for; no migrations, Workers, Vercel, Stripe or env changes.
+- **Two deviations from the round's brief, both declared rather than quiet.** (1) The brief says "the
+  six darks and the three lights"; there are FIVE lights (`today`, `paper`, `bright`, `warm`, `cool`,
+  `LIGHTS` in registers.ts, and round four's own record says "six dark sets beside five light ones").
+  All five are the `light` ask's options, because the contract's stronger rule is that a migration
+  changes no candidate. (2) `ScopedTokens` did NOT stay local, it went: its only consumer was
+  `RealFooter`, and a real route in a frame declares `.surface-ink` from the paste itself, with the
+  real selector and no stage id to scope to. Verified in the browser rather than assumed: in the
+  candidate frame `.surface-ink` computes `--background: oklch(0.165 0.008 60)`, `--card:
+  oklch(0.205 0.01 60)`, `--popover: oklch(0.25 0.01 60)` and `--brand: oklch(0.7 0.2 330)`, against
+  today's frame where the card is still the 62 percent veil and `--brand` is near white. That is the
+  accent-in-the-slab departure demonstrated on the real footer, which is what the scoped sheet
+  existed to fake.
+- Assets requested from Will: unchanged, and both are lines on the media-kit track's existing shot
+  list rather than a second delivery. They now live in `spec.ts` in the ASSETS.md shape, so the
+  Orchestrator folds them from there:
+  `Four hard cases inside the media kit's shot list · one high key (a white dress against a white wall), one low key (a dance floor lit by one lamp), one candle-warm, one stage-cool: four of the 36 masters at 1600px long edge, landscape, one grade · replaces the four stand-ins this board renders most (wedding-golden, party-balloons, concert-confetti, reception-table)`
+  `A portrait pair for the guest masonry · two of the same 36 at 1600px long edge, PORTRAIT, the same grade · replaces the hand-set tile ratios in specimens.tsx`
+- **Look at first:** section 05, "The real site, today beside the pair", on Home. It is the round's
+  whole argument in one row: the site as it ships on the left, the ruling's own paste on the right,
+  scrolled together, and the seam where the paper ends and the footer slab begins is the only place
+  the model's dark half is a fact rather than a claim. Then section 03 with the wipe handle dragged
+  across the card, which is where a 0.02 step is actually decidable.
+
+### Verified (round 5)
+
+Walked on a local dev server (port 3416), at 1440 and at 375, light and dark, on the synced tree.
+There is no branch preview this round, by the wave's storage rule.
+
+- The template's order holds: the dock, the answer with the eight ask pills, the thirteen-section
+  index, the sections, the review panel, the meta, the collapsed history. No prose before section 01.
+- Every section anchored and in the dock's Sections menu; all thirteen render evidence (measured:
+  none empty, 2 frames and 19 stages across the board).
+- The walk runs: "Look first" opens step 1 of 7 on the model, and step 2 both scrolls to the stack
+  AND sets `dark=today&light=today`, which is what the step's note describes.
+- A copied link reopens the same canvas, candidate and section:
+  `?canvas=phone&dark=lift&light=cool&accent=violet&card=veil#palette-stack` comes back with the dock
+  on all five and the caption reading Lift's own lightnesses.
+- The review panel composes `review palette r5: model=registers; dark=lift; card=veil`, and that line
+  parses against a SCRATCH tree (`--root`, a copy of `docs/reviews/` plus the spec; the repo's ledger
+  is untouched, `git status docs/` clean). Red-teamed: `dark=amber` is refused naming the six real
+  options, and `r4` is refused as "palette is in round 5".
+- `/design/lab` queues all eight asks under "Waiting on you" and the board's card shows the verdict
+  instead of the legacy note.
+- Reduced motion: the board's only motion is the swap transition, declared inside
+  `@media (prefers-reduced-motion: no-preference)` in board.css, so a reduced-motion reader gets the
+  jump cut with no rule to undo. Unchanged from round four.
+- Three things the walk found and fixed, each a control that was lying: the wipe compared nothing
+  (the specimen sat in the half `Compare` clips away), the paste's "Read all 113 lines" toggled
+  nothing, and two eagerly-loaded marketing pages timed the renderer out.
 
 ## Record (round 5; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The palette board moved onto the lab kit, and the
+migration was mostly a promotion. Its question, model, eight one-word calls, five registers, six
+departures and two asset asks left `board.tsx` for a `spec.ts` that the board, the desk's "Waiting on
+you", the review panel's message and `pnpm lab:review`'s validator now all read, so the asks have one
+home and `docs/specs/palette.md` gave up its copy of them. Three pieces of evidence got better rather
+than moved. The live sections became live PAGES: the four production sections the board used to
+portal into an iframe of its own making retired to the kit's `Frame` loading the real routes, today
+on the left and the pair on the right, scrolled together and wearing the exact block the Apply button
+hands the site, which is how the footer slab's missing `--card` and the accent that never reaches the
+mark are now shown on the real footer instead of argued about. Today-beside-the-candidate became a
+wipe with the seam on a slider, so a 0.02 step is judged across four pixels; the two set cards became
+two tables where the row is the dock control. `TrueViewport`, its entrance-settling sheet and
+`ScopedTokens` went with them. No set, number or recommendation changed. Lab only, no production byte.

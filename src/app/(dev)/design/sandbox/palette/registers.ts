@@ -1,4 +1,4 @@
-import type { Ground } from "@/components/dev/board";
+import type { Ground } from "@/components/lab";
 
 /**
  * THE PALETTE BOARD'S DATA, ROUND FOUR: the register model, and the two sides

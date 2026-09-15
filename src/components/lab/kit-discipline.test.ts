@@ -59,7 +59,6 @@ const OWNED = [
  */
 const LEGACY: readonly string[] = [
   "media-kit",
-  "palette",
   "type-scale",
 ];
 

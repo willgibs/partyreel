@@ -11,7 +11,7 @@ import {
 } from "@/components/marketing/frames";
 import { Logo } from "@/components/shared/logo";
 import { cn } from "@/lib/utils";
-import type { Mode } from "@/components/dev/board";
+import type { Mode } from "@/components/lab";
 
 import { StateRow } from "./specimens";
 import {
