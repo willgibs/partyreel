@@ -919,7 +919,14 @@ const BRIGHT: LightSet = {
     "--ring": inkVeil(80),
   },
   mat: {
-    "--background": inkVeil(5),
+    // ★ NOT `inkVeil(5)`. A custom property whose own value reads `var()` on
+    // ITSELF is a cycle: in real CSS the whole declaration becomes invalid at
+    // computed-value time, and in this board's own reader it recursed until the
+    // stack gave out (the 500 that caught it). The mat is derived from the CARD
+    // instead, which is this set's paper white, so the value is the same 5
+    // percent of ink over the same white and the chain is muted -> background
+    // -> card -> a literal.
+    "--background": "color-mix(in oklab, var(--foreground) 5%, var(--card))",
     "--card": "oklch(0.99 0 0)",
     "--popover": "oklch(0.998 0 0)",
     "--muted": inkVeil(9),
@@ -1204,7 +1211,12 @@ export function blockFor(pair: Pair, ground: BoardGround): TokenMap {
 /* ── Reading a value back, for the ladder labels ─────────────────────────── */
 
 const OKLCH = /^oklch\(\s*([\d.]+)/;
-const MIX = /color-mix\(in oklab,\s*var\(--foreground\)\s*([\d.]+)%/;
+/** `color-mix(in oklab, var(--a) N%, <rest>)`: the two operands and the ratio,
+ *  read out of the string rather than assumed. The old form hard-coded
+ *  `var(--foreground)` and `var(--background)`, which was wrong twice over: it
+ *  missed the shipped slab's `var(--gallery)` mix entirely, and it resolved a
+ *  mat whose own background is a mix by looking that background up again. */
+const MIX = /^color-mix\(in oklab,\s*var\((--[\w-]+)\)\s*([\d.]+)%,\s*(.+)\)$/;
 
 /**
  * The lightness of a token value in a given block, or null when the string is
@@ -1215,16 +1227,25 @@ const MIX = /color-mix\(in oklab,\s*var\(--foreground\)\s*([\d.]+)%/;
  * A translucent value still HAS a lightness (today's dark card is 0.21 at 62
  * percent), so it is returned; `alphaOf` is the separate question.
  */
-export function lOf(value: string, block: TokenMap): number | null {
-  const mix = MIX.exec(value);
+export function lOf(value: string, block: TokenMap, depth = 0): number | null {
+  // A guard rather than a trust: a token block is data a candidate author
+  // writes, and one self-reference in it used to take the whole page down with
+  // a stack overflow rather than a wrong number.
+  if (depth > 6) return null;
+  const v = value.trim();
+  const mix = MIX.exec(v);
   if (mix) {
-    const pct = Number(mix[1]) / 100;
-    const fg = lOf(block["--foreground"] ?? "", block);
-    const bg = lOf(block["--background"] ?? "", block);
-    if (fg === null || bg === null) return null;
-    return fg * pct + bg * (1 - pct);
+    const a = lOf(block[mix[1]] ?? "", block, depth + 1);
+    const pct = Number(mix[2]) / 100;
+    const restRaw = mix[3].trim();
+    const ref = /^var\((--[\w-]+)\)$/.exec(restRaw);
+    const b = ref
+      ? lOf(block[ref[1]] ?? "", block, depth + 1)
+      : lOf(restRaw, block, depth + 1);
+    if (a === null || b === null) return null;
+    return a * pct + b * (1 - pct);
   }
-  const hit = OKLCH.exec(value);
+  const hit = OKLCH.exec(v);
   return hit ? Number(hit[1]) : null;
 }
 

@@ -13,6 +13,7 @@ import {
   jobTakesAccent,
   keepsCinemaOverride,
   keepsSlabRegister,
+  lOf,
   matRegisterCss,
   pairStyle,
   resolvePair,
@@ -274,6 +275,71 @@ describe("the register model", () => {
   it("gives every light set a mat block", () => {
     for (const set of LIGHTS) {
       expect(set.mat["--background"], `${set.id} mat`).toBeDefined();
+    }
+  });
+});
+
+describe("no token block can reference itself", () => {
+  /**
+   * ★ THE 500 THIS TEST EXISTS FOR. A derived mat was written as
+   * `--background: color-mix(in oklab, var(--foreground) 5%, var(--background))`.
+   * In real CSS a custom property that reads var() on ITSELF is a cycle and the
+   * declaration becomes invalid at computed-value time; in this board's own
+   * reader it recursed until the stack gave out, and the page 500'd on the
+   * server. Neither failure named the token, so the rule is pinned rather than
+   * remembered: a value may reference any other property, never its own name,
+   * and never a chain that returns to it.
+   */
+  const blocks: [string, Record<string, string>][] = [
+    ...DARKS.flatMap((d): [string, Record<string, string>][] => [
+      [`${d.id}.room`, d.room],
+      [`${d.id}.slab`, d.slab],
+      [`${d.id}.well`, d.well],
+    ]),
+    ...LIGHTS.flatMap((l): [string, Record<string, string>][] => [
+      [`${l.id}.paper`, l.paper],
+      [`${l.id}.mat`, l.mat],
+      // The mat as it actually cascades: layered on its own paper, which is
+      // how pairStyle renders it and where a cycle would really bite.
+      [`${l.id}.mat-on-paper`, { ...l.paper, ...l.mat }],
+    ]),
+  ];
+
+  const refs = (v: string) =>
+    [...v.matchAll(/var\((--[\w-]+)\)/g)].map((m) => m[1]);
+
+  it("has no direct or transitive self-reference in any block", () => {
+    for (const [name, block] of blocks) {
+      for (const key of Object.keys(block)) {
+        const seen = new Set<string>();
+        const walk = (token: string): boolean => {
+          if (seen.has(token)) return false;
+          seen.add(token);
+          const value = block[token];
+          if (!value) return false;
+          for (const r of refs(value)) {
+            if (r === key) return true;
+            if (walk(r)) return true;
+          }
+          return false;
+        };
+        expect(walk(key), `${name} ${key} references itself`).toBe(false);
+      }
+    }
+  });
+
+  it("reads a lightness back out of every block it renders", () => {
+    // The ladders, the rulers and the register strips all print lOf(); a null
+    // where a number belongs is the visible half of the same bug.
+    for (const [name, block] of blocks) {
+      if (name.endsWith(".well")) continue;
+      // A bare mat block is never rendered alone: pairStyle always layers it on
+      // its own paper, and `mat-on-paper` below is that cascade.
+      if (name.endsWith(".mat")) continue;
+      if (name.startsWith("today.slab")) continue; // var(--gallery), read at row 03
+      const bg = block["--background"];
+      if (!bg) continue;
+      expect(lOf(bg, block), `${name} --background`).not.toBeNull();
     }
   });
 });
