@@ -796,17 +796,24 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
   board wearing round three's label. The poll that does it, from round two's handoff and re-verified
   here: `POST api.vercel.com/v13/deployments?forceNew=1` with
   `{"name":"partyreel","project":"prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB","gitSource":{"type":"github","repoId":1252816746,"ref":"lp/palette","sha":"<head>"}}`
-  and no `target` field (a `target` of "preview" is rejected as invalid), retried until it stops
-  answering `payment_required`.
+  and no `target` field (a `target` of "preview" is rejected as invalid).
+- ★ **Correction to round two's recovery advice: do NOT poll that endpoint.** Round two recorded
+  "two attempts 45 seconds apart was enough", which was luck. Seven attempts over seven minutes here
+  freed nothing, and the `limit.reset` the refusal returns came back as EXACTLY the attempt's own
+  timestamp plus 24 hours every time (23:11:27, 23:12:13, 23:13:23 ... 23:18:02). Either a refused
+  attempt is counted against the window, in which case polling pushes recovery further away, or the
+  field is only ever "24 hours from now" and carries no information at all. Both readings say the
+  same thing: make ONE attempt when a slot is plausibly free, never a loop. A GitHub push will also
+  take the alias on its own once the window rolls.
 - **So this round's QA was taken on a local production-equivalent dev server in the worktree**
   (`pnpm dev` on :3047, the lab key on every URL), which serves the head exactly. Every number below
   was measured there through the DOM, in a foreground-equivalent read, not eyeballed.
 - Synced with `launch-prep` at `dd4aa0b` (it had moved by 13 commits, all of them the
   floating-surfaces track's own lane plus its manifest and the round-three reopen; merged clean,
   nothing in this lane touched).
-- Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 warnings, all pre-existing and none
-  in a file this track owns), test ok (1727 in 194 files, 8 of them this round's
-  `temperature.test.ts`), build ok (248 static pages).
+- Gates on the synced tree, re-run at the head: typecheck ok, lint ok (0 errors, 6 warnings, all
+  pre-existing and none in a file this track owns), test ok (1727 in 194 files, 8 of them this
+  round's `temperature.test.ts`), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` plus four
   files under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `ramps.ts`, `sections.tsx`, and
   the new `temperature.test.ts`). No exceptions. No production byte changed: `globals.css`,
@@ -844,7 +851,10 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
      near-black bars and now prints each room's lightness, which is the only way 0.110 against 0.140
      is a reading; the ink leaf said "today this is near white" under a candidate that had just fixed
      it, and both captions follow the ramp now; the menu specimen sat ON the panel's own explanation
-     at 1440 and hid three lines of it at 375, and now overlaps the card's corner from outside; nine
+     at 1440 and hid three lines of it at 375, and now hangs off the card's top corner on desktop and
+     sits over the action row on the phone, where a 224px menu cannot clear a 335px card at all
+     (checked by intersecting the menu's box with every text node at both canvases, which is how the
+     first attempt at this fix was caught still covering the title); nine
      stages were clipping or running up to 515px empty at one width or the other and were resized
      against measured content; the board opened by asking the same question three times over (the
      touchpoint blurb, the shell's exploration line, its own paragraph) and the paragraph now says
@@ -859,14 +869,19 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
   nothing to pause; the one colour fade on the token wrapper lives inside
   `prefers-reduced-motion: no-preference`, so a reduced-motion reader gets the jump cut and the same
   settled composition. No element renders in a mono stack and no text node carries an em-dash.
-- Light QA, measured through the DOM on the head: thirteen rows `#pal-01` to `#pal-13` in the new
-  order with the index matching; zero page-level horizontal scroll at 1440 and at 375 under both
-  stage toggles; every stage holds its canvas (the guest album was laying out 952 into 760 and
-  cutting its last row mid-tile, and now fits); the paired frames render two token blocks in one
-  canvas with the correct grounds on each side (dark 0.14 beside 0.145, paper 0.99 beside 0.977);
-  the warm switch produces C's exact light, dark and canvas values in the paste; Apply lands one
-  `<style>` with the real selectors and `/pricing` wears it (background 0.145, muted 0.195, faint
-  0.55, the mark in flare); Clear removes it and leaves nothing in `localStorage`.
+- Light QA, measured through the DOM on the head, at a real 375-wide browser (a viewport-emulating
+  pane) and at the widest the test browser gives (1456; its window clamps below 1440 plus chrome, so
+  a true 1440 browser is not reachable here, as round two also found): thirteen rows `#pal-01` to
+  `#pal-13` in the new order with the index matching; zero page-level horizontal scroll at either
+  width under both stage toggles; all twenty stages hold their canvas with zero overflow at both
+  widths (the guest album had been laying out 952 into 760 and cutting its last row mid-tile, and
+  now fits); the paired frames render two token blocks in one canvas with the right ground on each
+  side (dark 0.14 beside 0.145, paper 0.99 beside 0.977); the warm switch produces C's exact light,
+  dark and canvas values in the paste, and warm B warms only the room (`oklch(0.125 0.005 60)`)
+  while every color-mix under it is untouched, which is the combination the old board could not
+  show; Apply lands one `<style>` with the real selectors and `/pricing` wears it (background 0.145,
+  muted 0.195, faint 0.55, the mark in flare); Clear removes it and leaves nothing in
+  `localStorage`.
 - ★ **Two tooling notes earned this round, for whoever verifies next.** A driven tab is
   `document.hidden`, which FREEZES the transition clock at `currentTime: 0`: a colour read straight
   after a toggle is the value the element had BEFORE the toggle, and 32 transitions sit in
