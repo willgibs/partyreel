@@ -405,6 +405,10 @@ the pre-pour frame lives inside the reduced-motion block so the pour cannot flas
   - **The held beat:** after Replay the first frame crosses 5 percent opacity at **803 ms** (a 620 ms
     hold plus the growth), so the code and the words stand alone for four fifths of a second. The
     count holds at 241 until the pour and ticks with the arrivals.
+    ★ **This claim was FALSE on the Desktop canvas from round two until `2ed6cba`**, and it is left
+    standing here with this marker rather than rewritten, because it is what round two reported. The
+    first frame did cross 5 percent at 803 ms, but sixteen OTHER frames stood at the bottom of the
+    hero through the whole hold. Round three finding 5 has the measurement and the fix.
   - **The line placement survives Replay** (the board remounts the stage, so the choice lives in a
     module store rather than in component state), and the QR's CENTRE is pinned to the same y in both
     placements: 141 on the desktop, 97 on the phone, so the toggle moves one line and nothing else.
@@ -433,7 +437,8 @@ the pre-pour frame lives inside the reduced-motion block so the pour cannot flas
     already taken to zero, which on the phone is roughly a third of the flight, plus an opacity write
     only when it changes.
 - **Look at first**: the FIRST TWO SECONDS on Desktop, which is now a designed beat rather than an
-  accident (the code and the words alone, then the album pours). Then the chip at the top left, twice:
+  accident (the code and the words alone, then the album pours). ★ Not true on the Desktop canvas
+  as round two shipped it; see round three finding 5. Then the chip at the top left, twice:
   the code as a printed card with its line, and the code as a bare plate with the line floating above
   it. That is the ruling. Then the phone, where the composition is new: at 375 a full-measure h1
   leaves no corridor beside it, so the album pours out of the code and DISSOLVES into the words
@@ -461,13 +466,15 @@ voice guide.
 ## Handoff (round 3)
 
 - **Head: this commit** (a manifest cannot name its own SHA), on top of `5e7d58b`, the second
-  `launch-prep` merge. The round's last commit of SOURCE is **`3a4ceb3`**, and the code is three
+  `launch-prep` merge. The round's last commit of SOURCE is **`2ed6cba`**, and the code is four
   commits in all: `274dea4` built it, `d9040aa` fixed the dead line the first read-only review
-  found, and `3a4ceb3` answers the second review (the phone's rest-state count, said truly in the
-  code and here). `4aea15d` and `5e7d58b` merged `launch-prep`; every other commit in the round is
-  this manifest.
-  The whole gate was re-run on `3a4ceb3`; which measurements were re-taken at this head and which
-  stand from `d9040aa` on identical executable code is named under Verified below.
+  found, `3a4ceb3` answered the second review (the phone's rest-state count), and **`2ed6cba`
+  answers the third: the held beat did not hold on the desktop.** `4aea15d` and `5e7d58b` merged
+  `launch-prep`; every other commit in the round is this manifest.
+  The whole gate was re-run on `2ed6cba`, and **every measurement that depends on the clock actually
+  running was re-taken at that head**, in a real foreground page rather than off a stepped clock.
+  Which those are, and what stands from `d9040aa` on code the diff proves identical, is named under
+  Verified below.
   Pushed. The board is `/design/c/home-hero?key=` (concept 4 of 4).
   **Marker for the round-three board: `hhv-delta`**, the stream wrapper's second class, which exists
   in no earlier round; the absence of `hhv-lab` (the cut chip) marks it too.
@@ -482,35 +489,42 @@ voice guide.
   race and not a deploy. This branch entered it five times and lost every one, the last by five
   seconds. Round three's first draft of this bullet took the message at its word and called it a
   standing 24 hour freeze, which was wrong and is corrected here. **No further attempt was made this
-  round and the Vercel API was not called**: the round's own instruction is to verify locally and say
-  so, which is the next bullet. Nothing about the build is at fault, and the alias serves this head
+  round and the Vercel API was not called**, this third pass included, which was also its explicit
+  instruction: the cap still stands, so verify locally and say so, which is the next bullet. Nothing about the build is at fault, and the alias serves this head
   the moment any push from this branch wins a slot. One line tells Will which round an alias is
   serving: `curl -s "<alias>/design/c/home-hero?key=" | grep -c hhv-delta` returns 1 on round three
   and 0 on round two, where `grep -c hhv-lab` returns 1 instead.
 - **How the board was verified instead: a local production build, at BOTH canvases.** `pnpm build`
-  then `pnpm start` in the worktree (port 3161), which serves the same production output the preview
-  would at the same code, and the board opened there at `/design/c/home-hero?key=` and driven at
-  **Desktop 1440 and Phone 375**: Replay, reduced motion, the h1 at paint and the dead line at this
-  head; the copy toggle at `d9040aa`, where the clearing probe ran both copies at both canvases on
-  this head's identical executable code. The one thing this cannot
+  then `pnpm start` in the worktree, which serves the same production output the preview would at
+  the same code, and the board opened there at `/design/c/home-hero?key=` and driven at **Desktop
+  1440 and Phone 375**: Replay, the held beat, the clearing, the dead line and the steady state at
+  this head; reduced motion and the copy toggle at `d9040aa`, on identical executable code. The one thing this cannot
   exercise is Vercel's own edge, and this board touches no route handler, no auth, no R2 and no
   Stripe: it is a static lab page behind the `DESIGN_PREVIEW_KEY` gate, and that gate was tested on
-  the production server (404 with no key, 404 with a wrong key, 200 with the key).
-  **The method, because it is not screenshots.** Screenshots come back BLACK from this session's
-  browser, which drives a background tab: rAF is suspended there and the stage sets `data-paused`, so
-  the canvas renders nothing to capture (`docs/systems/testing-verification.md`). Everything below was
-  therefore measured off the DOM and the markup, which is stronger than an eyeballed still and is
-  what every number in this Handoff rests on:
-  - a standalone replication of the concept's pure math was checked against the SERVER's own output
-    first, and reproduces all **16 `--hhv-rest` strings character for character**, so anything it
-    computes is the page's arithmetic and not a second opinion about it;
-  - the rest state was read off the LIVE cascade at each canvas after deleting all 27
-    `no-preference` blocks from the running sheets, which is exactly what a reduced-motion reader
-    resolves, and it matches that replication to 0.1 px;
-  - the running loop was driven by a stepped clock, its own `requestAnimationFrame` callbacks
-    invoked at deterministic timestamps after `data-paused` was removed, 1200 frames per canvas.
-    The per-frame COST that gives is real JS time; the per-frame BUDGET is arithmetic, not a
-    measured 60 fps.
+  the production server at this head (404 with no key, 404 with a wrong key, 200 with the key).
+  **The method, and what it cost the round to get wrong twice.** Two things bit, and both are
+  recorded here because either one alone can turn a measurement into fiction:
+  - ★ **A BACKGROUND tab is not a slow foreground tab, it is a stopped one.** rAF does not fire
+    there and the stage sets `data-paused`, so the concept's clock never leaves `elapsed` 0, nothing
+    is written, and the canvas also screenshots black
+    (`docs/systems/testing-verification.md`). Rounds one to three worked around that by DRIVING the
+    loop off a stepped clock, which is exact for geometry and blind to anything that depends on the
+    clock actually starting: the held beat is precisely that, and that is how a 620 ms defect lived
+    through the round that introduced it, the cold walk that re-judged the board and two read-only
+    reviews. **Every number below was re-taken in a real FOREGROUND
+    page**, measured at 121 fps with an 8 ms median frame gap and ~1077 real frames per walk, with
+    the fps and `document.visibilityState` asserted in the same call (one walk here silently lost
+    the foreground mid-run and reported 13 frames in 11 s; it was thrown away and re-run).
+  - ★ **A rebuilt chunk can keep its old filename, and `next start` serves it `immutable`.** An A/B
+    against the pre-fix build on the same port measured the CACHED chunk and cleanly "disproved" a
+    defect that was really there. Each build was therefore served on its **own port** (the fix on
+    3163 and 3164, the pre-fix baseline on 3162), and the served bundle was grepped for the guard
+    before trusting a single reading.
+  What still holds from the earlier passes, on identical code: a standalone replication of the
+  concept's pure math reproduces all **16 `--hhv-rest` strings character for character** off the
+  SERVER's own output, and the rest state read off the LIVE cascade at each canvas (after deleting
+  all 27 `no-preference` blocks from the running sheets, which is exactly what a reduced-motion
+  reader resolves) matches it to 0.1 px.
 - Synced with `launch-prep` **twice**. First at `dd4aa0b` (84 commits: the round-two merges of
   brand-voice, type-scale, palette, light, media-kit, floating-surfaces, rounding and hero-scan),
   `git merge origin/launch-prep` at `4aea15d`. Then again at the review fix, at **`fb395fe`**
@@ -523,10 +537,9 @@ voice guide.
   re-checked on the merged tree: 16 `.hhv-card` nodes, all **16 `--hhv-rest` strings still character
   for character** what the concept's own math computes, `hhv-delta` present, `hhv-lab` absent, no
   em-dash, no `font-mono`, no `MonoCaption`, and the lab gate 404 / 404 / 200.
-- Gates re-run on `3a4ceb3` and again on the merged tree at `5e7d58b`: typecheck ok, lint ok
-  (0 errors; 6 warnings, all pre-existing, on `contact-form.tsx`, `album-fill-grid.tsx`,
-  `review-switch.tsx`, `jobs.ts` and `use-flip.ts`), test ok (**1761 in 197 files** on the merged
-  tree, 1719 in 193 before it), build ok (248 static pages).
+- Gates re-run at each head, last on **`2ed6cba`**: typecheck ok, lint ok (0 errors; 6 warnings,
+  all pre-existing, on `contact-form.tsx`, `album-fill-grid.tsx`, `review-switch.tsx`, `jobs.ts` and
+  `use-flip.ts`), test ok (**1761 in 197 files**), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-river.md`,
   `src/app/(dev)/design/sandbox/home-hero/river.css`,
   `src/app/(dev)/design/sandbox/home-hero/river.tsx`. **No exceptions**: the two owned files and this
@@ -546,12 +559,15 @@ voice guide.
 
 ### What the read-only reviews found, and what each fix was
 
-The handoff went to a read-only review twice before Will. **The first pass** read `6d53fab` and
-returned three findings; **the second** read the same `6d53fab` and returned four, of which two
+The handoff went to a read-only review three times before Will. **The first pass** read `6d53fab`
+and returned three findings; **the second** read the same `6d53fab` and returned four, of which two
 (the popping frames and the dropped re-read) had already been fixed at `d9040aa` and `f87f906` by
 the time it arrived, one restates the capped preview, and one is new and real: the phone's
-reduced-motion count. All of them are answered here, and all were inside this lane except the
-deployment cap, which belongs to the project.
+reduced-motion count. **The third** read `0749a99`, found the four prior defects answered, and
+returned ONE finding, which is the most serious the round produced: the held beat did not hold on
+the Desktop canvas, and this Handoff stated the opposite as a measured number. All of them are
+answered here, and all were inside this lane except the deployment cap, which belongs to the
+project.
 
 1. **BLOCKING, both passes: the preview does not serve this round's board.** True, and still true.
    Not this track's to fix: the cap is the project's, the alias bullet above carries the mechanism
@@ -596,6 +612,28 @@ deployment cap, which belongs to the project.
    is what lets a card recycle without popping. Filling the band would make the reduced-motion still
    denser than the stream it stands for. The reasoning is now a comment above the rest transform in
    `river.tsx`, so the code cannot drift from this claim again.
+5. **THIRD pass, and the one that matters: the held beat did not hold on the Desktop canvas, and
+   this Handoff stated the opposite as a measured number.** Correct in every particular, and fixed
+   at `2ed6cba`. The loop's clock ran negative through the hold and the comment claimed that put
+   every progress above 1, so the loop wrote nothing. `mod` does the opposite: it wraps a negative t
+   to the END of the cycle, and the cycle is deliberately a hair shorter than the flight, so the
+   largest progress the modulo can return is 0.9796 on the desktop and 0.9809 on the phone and the
+   `at > 1` cut can never fire at all. **Measured on the pre-fix build, served on its own port, in a
+   foreground page:** all 71 sampled desktop frames of the hold carried 16 cards at opacity 1, in
+   two piles at canvas x -377..359 with their top edges at y 846..929 against a `deadY` of 930. The
+   first third of a second was the album sliding out of the bottom of the hero, not the code and the
+   words alone. The phone measured 0 visible throughout, so it read correctly by accident: its
+   dead-line test at 46% of the canvas hides exactly those progresses. **After the fix, same method,
+   on its own port:** desktop 71 hold frames with zero cards visible and a maximum opacity of 0,
+   first frame over 5 percent at 795 ms; phone 72 frames, same, at 768 ms. The clock is now clamped
+   at zero and the stream hidden while it is held, which is also the pour's own first instant, so
+   there is no seam between the hold and the pour.
+   Two further comments the same arithmetic disproves were corrected in the same commit: the file
+   header's held-beat paragraph, and the claim that `at > 1` guards a reachable state.
+   **Why it survived the round that shipped it, the cold walk that re-judged the board and two
+   reviews** is the method note above: every earlier reading drove the loop off a stepped clock,
+   which is exact for geometry and blind to a defect that lives in whether the clock starts. That lesson, and the `immutable`-chunk one beside it, are the two
+   things this round would tell the next agent first.
 
 ### The re-read (round 3 item 2), and what it changed
 
@@ -675,14 +713,16 @@ a line belonging to nothing beside it), and the chip was the only thing on the c
 the composition, which on a stage reads as product UI. One build, the printed card; the ruling
 survives as a one-word departure.
 
-### Verified at `3a4ceb3`, against the production build served locally
+### Verified at `2ed6cba`, against the production build served locally
 
-**Which numbers were re-run at this head, and which stand from `d9040aa`.** This head differs from
-`d9040aa` in comment lines only (`git diff d9040aa..HEAD -- src` is one comment block in
-`river.tsx`), so every measurement below runs on identical executable code. Re-run at this head: the
-gate, the served markup, the lab gate, the dead line at both canvases, the rest state at both
-canvases, the visible count of the running stream at both canvases, and bible 13. Standing from
-`d9040aa` on that same code: the clearing probe, the held beat, the silhouette table and the cost
+**Which numbers were re-run at this head.** `2ed6cba` is the first head in the round whose
+executable code differs from `d9040aa`, and the difference is confined to the hold: for every
+`elapsed >= HOLD_MS` the loop is byte-for-byte what it was, which is why the steady-state numbers
+below are unchanged rather than merely unrechecked. Re-run at this head, in a foreground page: the
+gate, the served markup, the lab gate, the HELD BEAT at both canvases, the clearing against the
+lockup's rendered ink at both canvases, the dead line at both canvases, the visible count of the
+running stream at both canvases, and a fresh production load's console. Standing from `d9040aa` on
+code the diff proves identical: the rest state, the silhouette table, bible 13 and the cost
 figures.
 
 - **The clearing is a geometric guarantee, measured and not eyeballed.** A probe read the rendered
@@ -698,9 +738,29 @@ figures.
   58 px into the headline's ink, and every one of those pixels is below the dissolve's last stop,
   which is 22 px above that ink. Both numbers are reported because the second one is the honest
   description of what the phone does.
-- **The held beat, measured after a Replay:** the first frame crosses 5 percent opacity at **800 ms**
-  (a 620 ms hold plus the growth), so the code and the words stand alone for four fifths of a second.
-  The count first ticks at 1.84 s and settles at 9.04 s.
+  **Re-measured at `2ed6cba` in a foreground page**, against the rendered ink of the lockup's own
+  text nodes and each card's live tumbled rect clipped at the dissolve's last stop: **desktop 0 px
+  of overlap, raw and visible, over 602 frames and 75,960 card-against-line checks; phone 0 px of
+  VISIBLE overlap over 601 frames and 78,210 checks**, with the raw layout boxes reaching 57.5 px,
+  which is the same 58 px said the same way. The guarantee is intact after the hold fix.
+- **The dead line, re-measured in the same foreground walks.** Every recycle still fires only once
+  none of the card can be seen: **desktop 5 cuts in 5 s, phone 10, and at every one of them the
+  card's top edge was already 0.53 px (desktop) and 0.29 px (phone) BELOW the dissolve's last
+  stop.** Nothing visible is thrown away, which is the `d9040aa` fix holding under the new hold.
+- **The held beat, measured after a Replay in a FOREGROUND page, at 121 fps, on the fixed build
+  served on its own port.** This is the number the third review caught the round stating falsely, so
+  it is stated here as what was sampled rather than as what the code intends. **Desktop: 71 sampled
+  frames from the loop's first write through 620 ms, zero cards visible on every one of them, and a
+  maximum opacity across all sixteen cards of exactly 0**; the first frame crosses 5 percent opacity
+  at **795 ms** (the 620 ms hold plus the growth), so the code and the words stand alone for four
+  fifths of a second. **Phone: 72 frames, the same result, first frame over 5 percent at 768 ms.**
+  The count holds at 241 through the hold, first ticks at 1.84 s and settles at 9.04 s.
+  One thing the fix does NOT remove, said plainly because it is visible if you look for it:
+  **exactly ONE frame of the rest state paints at the mount itself** (33 ms on the desktop walk,
+  22 ms on the phone), because the server's HTML is the rest state and this is a passive effect, so
+  the earliest any JS hide can land is after that commit has painted. Only a layout effect could
+  move it, at the cost of a server-render warning, and the alternative is hiding the stream in the
+  markup, which is the reduced-motion reader's own still. Said in the code too, above the hold.
 - **The silhouette is measured, not guessed.** The desktop table is the rendered ink of both copies:
   headline line 1 at 421.8..537 (half 348 ruled, 297 proposed), line 2 at 519.7..634.9 (270 / 291),
   the subhead at 662.4..704.8 (249 / 244), the buttons at 745.1..789.1 (150 / 156), the count at
@@ -711,8 +771,13 @@ figures.
   the printed card, `hhv-delta`, and the count's SETTLED figure (248) as the markup with the ticking
   241 hidden outside the reduced-motion block. No `hhv-lab`, no em-dash, no `font-mono`, no
   `MonoCaption`, and no `data-mkt-cut` / `data-mkt-reveal` / `.mkt-line` on any h1 on the page. The
-  lab gate on the production server: 404 with no key, 404 with a wrong key, 200 with the key. A fresh
-  production page load logs nothing to the console at all, so the printed card hydrates clean.
+  lab gate on the production server: 404 with no key, 404 with a wrong key, 200 with the key. All
+  re-checked at `2ed6cba`. **A fresh production page load, in a clean tab, logs nothing to the
+  console at all** on both the pre-fix and the fixed build, so the printed card hydrates clean. (The
+  one thing that does log is a run of Replays in a single tab: `next/image` preloads the board's
+  shared media on every remount and the browser warns that three of them went unused at the width it
+  preloaded. It is the board's four concepts sharing one media pool, not the river, and it never
+  appears on a page load.)
 - **Reduced motion, per canvas, with the count the MASK leaves rather than the count the markup
   carries.** A reduced-motion reader's effect returns before it writes a single inline style, so what
   they get is exactly the 16 rest transforms the server printed, resolved through the bottom
@@ -726,9 +791,12 @@ figures.
     so three cards stand entirely below it with nothing on screen and a fourth is a 9 px band at
     alpha 0.082. Earlier rounds said "all 16 standing", which was true of the inline opacity and
     false of the page; this is the corrected claim.
-  - **The rest state is still the settled composition, and that is the point**: the driven loop shows
-    12 to 14 frames visible at any instant on the phone (mean 12.5 over 19 samples) and 14 to 16 on
-    the desktop (mean 15.5), so the still is a true frame of the stream and not a thinned one. The
+  - **The rest state is still the settled composition, and that is the point**: the RUNNING stream,
+    sampled every real frame for the five seconds after it settles at `2ed6cba`, shows **12 to 14
+    frames visible at any instant on the phone (mean 12.86) and 15 to 16 on the desktop (mean
+    15.7)**, so the still is a true frame of the stream and not a thinned one. Those are the driven
+    clock's earlier figures (12.5 and 15.5) confirmed in real time, which is worth one line because
+    the driven clock is the instrument the third review found a blind spot in. The
     tail below the dissolve is load-bearing: a card may only recycle once none of it can be seen, so
     without it the recycle is the pop the dead-line test exists to prevent. Moving the rest state up
     to fill the band would buy four frames in the still by making it denser than the stream it stands
@@ -816,9 +884,13 @@ figures.
      guide allows one source per page, so keeping this means both read the demo event.
   Bible 13's decorative-layer gating is flagged as the fourth departure because the wave rules put
   bible departures on the board rather than in a footnote; it is not a ruling Will has to make.
-- **Look at first**: the FIRST TWO SECONDS on Desktop (the code and the words alone for 620 ms, then
-  the album pours out from behind the card, and the first frames are still inside the card's own
-  width, which is the thing round two could not do). Then let it settle and watch ONE bank: it opens
+- **Look at first**: the FIRST TWO SECONDS on Desktop, **and press Replay to see them**, because a
+  cold load spends its first frames hydrating. The code and the words stand alone for 620 ms with
+  nothing falling (measured: 71 frames of the hold with zero cards visible, and the first frame
+  crossing 5 percent at 795 ms), then the album pours out from behind the card, and the first frames
+  are still inside the card's own width, which is the thing round two could not do. Round three
+  shipped this beat broken on the desktop and the third review caught it, so it is the first thing
+  to look at rather than the last. Then let it settle and watch ONE bank: it opens
   to the headline's width, and then visibly closes as the type narrows, past the subhead, past the
   buttons, until the two arms are almost rejoined as they leave the bottom of the hero. That shape is
   the lockup's own silhouette and it is the round's one real idea. Then the phone, where the same
@@ -831,12 +903,12 @@ figures.
 Merged into `launch-prep` at `<sha>` (2026-09-14). Two rounds turned the river from a diagram into a
 composition. Round two answered its own round-one departure: the caption line CAN sit under the
 code, because putting it inside the white object makes the plate the card an event puts on a table,
-and the stream is born behind that card instead of bowing around a floating line; it also held the
-pour's first beat, settled the count, straightened the frames as they land, took the light spec's
-LIFT for the overlap cue and rebuilt the phone as one braided lane. Round three walked it cold and
-found the desktop failing its own sentence, because its lateral law was written against the clock
-while everything a reader sees is written against the fall. The fan now opens over the first third
-of the DISTANCE, so the album leaves the card; the clearing took the lockup's measured ink row by
-row in place of one rectangle, so the banks open around the headline and close under the buttons;
-the cadence divides the flight; the chip was cut to one build; and two reviews caught the loop
-dropping a frame by its CENTRE, now cut by its top edge, and a rest-state count the mask disproved.
+and the stream is born behind that card instead of bowing around a floating line; it also proposed
+the pour's held first beat, settled the count, straightened the frames as they land, took the light
+spec's LIFT for the overlap cue and rebuilt the phone as one braided lane. Round three walked it
+cold and found the desktop failing its own sentence, because its lateral law was written against the
+clock while everything a reader sees is written against the fall. The fan now opens over the first
+third of the DISTANCE, so the album leaves the card; the clearing took the lockup's measured ink row
+by row, so the banks open around the headline and close under the buttons; the cadence divides the
+flight; the chip was cut to one build; and three reviews caught a frame dropped by its CENTRE, a
+rest-state count the mask disproved, and a held beat that never held until this round clamped it.
