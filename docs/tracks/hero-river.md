@@ -476,10 +476,15 @@ voice guide.
   why: the cap refills at about one deployment every 14.4 minutes and the next push on ANY branch
   takes the slot, so a push is not a deploy, it is an entry in a race that is refused outright when
   it misses (`docs/tracks/media-kit.md` round two; `lp/hero-burst` `8043b8e`). The deployment list
-  proves it across this branch's own failures: `lp/light` READY at 02:48, `lp/hero-scan` at 03:02,
-  `lp/hero-burst` at 03:17. **So the remedy is not to wait a day**: push again, or have the
-  Orchestrator force a redeploy of `d9040aa`, and confirm it by the SHA on the deployment rather
-  than by the push succeeding. One-line check that the alias is current:
+  proves it, and the refill is close to exact: deployments went READY at 02:04:10, 02:18:42,
+  02:33:19, 02:48:02, 03:02:50, 03:17:14, 03:31:57 and 03:46:21, one every **14.5 minutes**, taken
+  in turn by `lp/hero-scan`, `lp/palette`, `lp/floating-surfaces`, `lp/light`, `lp/hero-scan`,
+  `lp/hero-burst`, `lp/media-kit` and `lp/rounding`. This branch's four pushes all landed between
+  slots, twice by under a minute (03:31:06 against a slot at 03:31:57, and 03:45:19 against
+  03:46:21). **So the remedy is not to wait a day, and it is not a blind retry either: the next
+  slot is PREDICTABLE.** Take the newest deployment's timestamp, add 14.5 minutes, and push (or
+  force a redeploy of the head) just after it; confirm it by the SHA on the deployment rather than
+  by the push succeeding. One-line check that the alias is current:
   `curl -s "<alias>/design/c/home-hero?key=" | grep -c hhv-delta` returns 1 on this round and 0 on
   round two, where `grep -c hhv-lab` returns 1 instead. Per the round's own instruction the
   verification below ran on a local production server, and says so each time.
@@ -655,8 +660,9 @@ survives as a one-word departure.
   production page load logs nothing to the console at all, so the printed card hydrates clean.
 - **Reduced motion, read off the MARKUP**, which is the honest way: a reduced-motion reader's effect
   returns before it writes a single inline style, so what they get is exactly the 16 rest transforms
-  the server printed. Parsed from the served HTML: the 16 spread from y 175 to y 1068 at scales 0.32
-  to 1.0, **all 16 above 0.05 opacity** (round two had 15 of 16; the rest state now uses the loop's
+  the server printed. Parsed from the served HTML: the 16 spread from y 175.1 to y 1067.8 at scales
+  0.35 to 1.00 (re-read at `d9040aa`; round three's figure of 0.32 was `sMin`, not the smallest card
+  the server actually prints), **all 16 above 0.05 opacity**, the lowest 0.731 (round two had 15 of 16; the rest state now uses the loop's
   own modulo, so a card whose slot jitter went negative lands at the bottom of the fall instead of
   above the code). On the running page, deleting all 27 `no-preference` blocks from the live sheets
   leaves 16 of 16 cards standing, the ticking count hidden and the settled 248 shown.
