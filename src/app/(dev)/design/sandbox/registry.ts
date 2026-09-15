@@ -1,5 +1,8 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
+import { ALBUM_HERO } from "./album-hero/spec";
+import { BRAND_VOICE } from "./brand-voice/spec";
+import { FLOATING_SURFACES } from "./floating-surfaces/spec";
 import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
 import { GLOW_MOMENTS } from "./glow-moments/spec";
 import { HOME_HERO } from "./home-hero/spec";
@@ -28,9 +31,12 @@ export const BOARDS: readonly BoardSpec[] = [
   RIVER_VISUAL,
   GLOW_DOCTRINE,
   GLOW_MOMENTS,
+  FLOATING_SURFACES,
   LIGHT,
+  BRAND_VOICE,
   MEDIA_KIT,
   ROUNDING,
+  ALBUM_HERO,
 ];
 
 export function boardSpec(id: string): BoardSpec | undefined {

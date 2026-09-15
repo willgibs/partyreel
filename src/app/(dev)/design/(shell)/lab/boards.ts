@@ -34,10 +34,10 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   palette: { Component: PaletteBoard, legacy: true },
   light: { Component: LightBoard },
   "type-scale": { Component: TypeScaleBoard, legacy: true },
-  "floating-surfaces": { Component: FloatingSurfacesBoard, legacy: true },
-  "brand-voice": { Component: BrandVoiceBoard, legacy: true },
+  "floating-surfaces": { Component: FloatingSurfacesBoard },
+  "brand-voice": { Component: BrandVoiceBoard },
   "media-kit": { Component: MediaKitBoard },
   rounding: { Component: RoundingBoard },
-  "album-hero": { Component: AlbumHeroBoard, legacy: true },
+  "album-hero": { Component: AlbumHeroBoard },
   "river-visual": { Component: RiverVisualBoard },
 };

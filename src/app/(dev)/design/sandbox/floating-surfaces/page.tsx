@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import type { Ground } from "@/components/dev/board";
+import type { Ground } from "@/components/lab";
 import { requireDesignKey } from "@/lib/design-gate/server";
 
 import {
@@ -15,24 +15,30 @@ import {
   type Side,
 } from "./constants";
 import { DIRECTIONS, type Direction } from "./directions";
-import { FramePage } from "./frame-page";
+import { SceneShell } from "./scene-shell";
 
 /**
  * THE FLOATING-SURFACES SCENE ROUTE, the board's viewport.
  *
  * It exists because of one fact about the family this board judges: every radix
- * panel portals its content to `globalThis.document.body`. Inside the shell's
- * zoom-fitted Stage that means the panel escapes the ground it is supposed to be
- * judged on, escapes the zoom (drawing at 1.0 beside a trigger at 0.65) and
- * escapes the canvas (`position: fixed` resolving against the browser viewport,
- * so a "375" bottom sheet spans 1440). Verified on the board, 2026-09-14.
+ * panel portals its content to `globalThis.document.body`. Inside a div that
+ * means the panel escapes the ground it is supposed to be judged on, escapes any
+ * zoom, and escapes the canvas (`position: fixed` resolving against the browser
+ * viewport, so a "375" bottom sheet spans 1440). Verified on the board,
+ * 2026-09-14.
  *
  * A document of its own is the only fix that keeps the primitives untouched: the
- * board mounts this page in an iframe laid out at exactly 1440x930 or 375x760,
- * where `globalThis.document` IS the frame, `fixed` means the canvas, `sm:`
- * resolves at the canvas width (both sheet and dialog branch on it, and so does
- * the guest entry shell, which is a drawer below 640 and a dialog above) and
- * prefers-reduced-motion still applies.
+ * board mounts this page in the kit's `Frame`, laid out at exactly 1440x930 or
+ * 375x760, where `globalThis.document` IS the frame, `fixed` means the canvas,
+ * `sm:` resolves at the canvas width (both sheet and dialog branch on it, and so
+ * does the guest entry shell, which is a drawer below 640 and a dialog above)
+ * and prefers-reduced-motion still applies.
+ *
+ * ★ THE PARAMS ARE ONLY WHAT A RELOAD IS FOR. The candidate CSS arrives from the
+ * parent as an adopted stylesheet and the ground, ramp, direction and replay
+ * arrive as `lab:set`, so the three knob params round four carried are gone: a
+ * change to any of those must not reload two dozen documents. What is left is
+ * what the scene is, and the ground triple that seeds the first paint.
  *
  * Gated like every lab route, and never linked: the board builds the URL with
  * the key it was opened with.
@@ -68,7 +74,7 @@ export default async function FloatingSurfacesScenePage({
   const params = await searchParams;
 
   return (
-    <FramePage
+    <SceneShell
       scene={pick<Scene>(SCENES, one(params, "scene"), "family")}
       ground={pick<Ground>(GROUNDS, one(params, "ground"), "cinema")}
       ramp={pick<Ramp>(RAMPS, one(params, "ramp"), "today")}
@@ -82,10 +88,6 @@ export default async function FloatingSurfacesScenePage({
           : undefined
       }
       rung={one(params, "rung")}
-      compact={one(params, "compact") === "1"}
-      radius={one(params, "radius") ?? "off"}
-      entrance={one(params, "entrance") ?? "off"}
-      light={one(params, "light") ?? "off"}
     />
   );
 }

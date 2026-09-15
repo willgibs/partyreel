@@ -78,7 +78,7 @@ import { cn } from "@/lib/utils";
 import { RUNGS, type Dim, type Scene as SceneId, type Side } from "./constants";
 import { DirectionScene } from "./direction-scenes";
 import type { Direction } from "./directions";
-import { Backdrop, useNextFrame, useReplay } from "./stage-bits";
+import { Backdrop, useNextFrame, useSceneReplay } from "./stage-bits";
 
 /**
  * THE SCENES (floating-surfaces, round two). Everything here renders INSIDE a
@@ -119,7 +119,7 @@ const UPLOAD_CHOICES = [
 /** The anchored family, all of it open at once: this is the canvas rule 15 is
  *  actually about, because a stray one only reads wrong beside its siblings. */
 function FamilyScene({ phone, rung }: { phone: boolean; rung?: string }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   const navOn = useNextFrame(on);
   const cls = cn("flt-panel", rung);
   return (
@@ -233,7 +233,7 @@ function FamilyScene({ phone, rung }: { phone: boolean; rung?: string }) {
  *  The toast is the real sonner surface, rendered through its own class hook so
  *  the same candidate reaches it. */
 function OverlayScene({ phone, rung }: { phone: boolean; rung?: string }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   const cls = cn("flt-panel", rung);
   return (
     <>
@@ -305,52 +305,39 @@ function Toast({ on, rung }: { on: boolean; rung?: string }) {
 }
 
 /** The edge family. The side is the real one for the width: a guest on a phone
- *  gets the bottom sheet, a host at 1440 gets the right one. `compact` is the
- *  corner strip's variant: a short body, so the two corners that stay on screen
- *  sit inside a 260-tall canvas and can be read at 1:1. */
+ *  gets the bottom sheet, a host at 1440 gets the right one.
+ *
+ *  ★ THE CORNER IS READ AT THE CORNER, NOT HERE. Round three had a `compact`
+ *  strip on this scene for that, and round four replaced it with the nest scene
+ *  and its loupe; the migration deletes the prop rather than leaving a branch no
+ *  call site reaches. A full-height edge panel keeps the photographs, because
+ *  that is the condition bible 10 is written for. */
 function EdgeScene({
   phone,
   variant,
   side,
   rung,
-  compact = false,
 }: {
   phone: boolean;
   variant: "sheet" | "drawer";
   side?: Side;
   rung?: string;
-  compact?: boolean;
 }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   const cls = cn("flt-panel", rung);
   // The default is the real side for the width; `side` names the product's own
   // call site where it differs (the marketing mobile menu enters from the top).
   const edge: Side = side ?? (phone ? "bottom" : "right");
-  const rows = compact
-    ? ["Everything"]
-    : ["Everything", "In the reel", "Hidden", "Liked"];
+  const rows = ["Everything", "In the reel", "Hidden", "Liked"];
   return (
     <>
-      {/* ROUND THREE: the compact strip is the CORNER strip, and a corner is read
-          at the corner. A photograph behind an 8px arc hides the one thing the
-          strip exists to compare, and four of these frames were loading 96
-          images to do it. The full-height edge scenes keep the photographs,
-          because that is the condition bible 10 is written for. */}
-      <Backdrop
-        phone={phone}
-        chrome={!compact}
-        variant={compact ? "calm" : "photos"}
-      />
+      <Backdrop phone={phone} variant="photos" />
       {variant === "sheet" ? (
         <Sheet open={on} modal={false}>
           <SheetContent className={cls} side={edge} showCloseButton={false}>
             <SheetHeader>
               <SheetTitle>Filter the album</SheetTitle>
-              {/* sr-only rather than absent in the compact strip: radix warns
-                  (rightly) when a dialog surface has no description, and a
-                  board that drops an accessible name to save 18px is not a
-                  board anyone should copy. */}
-              <SheetDescription className={compact ? "sr-only" : undefined}>
+              <SheetDescription>
                 Narrow the gallery down to what you are looking for.
               </SheetDescription>
             </SheetHeader>
@@ -375,7 +362,7 @@ function EdgeScene({
           <DrawerContent className={cls}>
             <DrawerHeader>
               <DrawerTitle>Filter the album</DrawerTitle>
-              <DrawerDescription className={compact ? "sr-only" : undefined}>
+              <DrawerDescription>
                 The vaul drawer, which no product surface calls through
                 ui/drawer.tsx.
               </DrawerDescription>
@@ -405,7 +392,7 @@ function EdgeScene({
  *  (a real drag handle, keyboard repositioning), the centred Dialog above it.
  *  Rendered here as itself, so a rung either reaches it or is shown not to. */
 function GuestScene({ phone, rung }: { phone: boolean; rung?: string }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   return (
     <>
       <Backdrop phone={phone} />
@@ -451,7 +438,7 @@ function GuestScene({ phone, rung }: { phone: boolean; rung?: string }) {
  *  frame. The rung rides the panel's own className, which is what lets four
  *  answers share a document. */
 function LadderScene({ phone, dim }: { phone: boolean; dim: Dim }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   const rungs = RUNGS[dim];
   return (
     <>
@@ -656,7 +643,7 @@ function Loupe({ corner }: { corner: Corner | null }) {
  *  the finding: today's panel is the only one where the dashed arc and the
  *  row's arc are different lines. */
 function NestScene({ rung }: { rung?: string }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   const corner = useCorner(on);
   return (
     <>
@@ -702,7 +689,7 @@ function NestScene({ rung }: { rung?: string }) {
  *  board.css for this scene only, so all three entrances can be watched at
  *  once; the scrim's own fade is judged in the Overlays scene. */
 function TrioScene({ rung }: { rung?: string }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   const cls = cn("flt-panel", rung);
   return (
     <>
@@ -765,7 +752,7 @@ function TrioScene({ rung }: { rung?: string }) {
  *  a modal grip on the document: two of them cannot stand open side by side, so
  *  the comparison is two frames rather than two panels. */
 function SelectScene({ rung }: { rung?: string }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   return (
     <div className="absolute inset-0 flex items-start justify-center bg-background p-6">
       <Select open={on}>
@@ -790,7 +777,7 @@ function SelectScene({ rung }: { rung?: string }) {
  *  a SelectTrigger, which is the honest cost of the drop: the field loses the
  *  input chrome and has to look like a control on its own. */
 function RadioScene({ rung }: { rung?: string }) {
-  const on = useReplay();
+  const on = useSceneReplay();
   const [value, setValue] = useState("anyone");
   return (
     <div className="absolute inset-0 flex items-start justify-center bg-background p-6">
@@ -840,7 +827,6 @@ export function Scene({
   variant,
   side,
   rung,
-  compact,
 }: {
   scene: SceneId;
   /** Round four: which floating layer this frame is rendering. The direction
@@ -852,7 +838,6 @@ export function Scene({
   variant: "sheet" | "drawer";
   side?: Side;
   rung?: string;
-  compact?: boolean;
 }) {
   if ((DIRECTION_SCENES as readonly string[]).includes(scene)) {
     return (
@@ -867,13 +852,7 @@ export function Scene({
   if (scene === "overlay") return <OverlayScene phone={phone} rung={rung} />;
   if (scene === "edge")
     return (
-      <EdgeScene
-        phone={phone}
-        variant={variant}
-        side={side}
-        rung={rung}
-        compact={compact}
-      />
+      <EdgeScene phone={phone} variant={variant} side={side} rung={rung} />
     );
   if (scene === "guest") return <GuestScene phone={phone} rung={rung} />;
   if (scene === "ladder") return <LadderScene phone={phone} dim={dim} />;
