@@ -48,10 +48,19 @@ export function useKeyed(): (href: string) => string {
   return (href) => withDesignKey(href, key);
 }
 
+/**
+ * No viewport prefetch by default (the Library x Lab round, 2026-09-15): the
+ * sidebar alone holds about twenty-five links, every lab route is dynamic
+ * (the docs reader runs at request time), and Next prefetches a dynamic
+ * route's shell WITHOUT its search params, so each prefetch was a keyless
+ * request the proxy gate 404s: twenty-five server renders and twenty-five
+ * console errors per page load, for nothing. Hover prefetch still applies.
+ */
 export function LabLink({
   href,
+  prefetch = false,
   ...rest
 }: Omit<React.ComponentProps<typeof Link>, "href"> & { href: string }) {
   const to = useKeyed();
-  return <Link href={to(href)} {...rest} />;
+  return <Link href={to(href)} prefetch={prefetch} {...rest} />;
 }
