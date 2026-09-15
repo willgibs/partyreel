@@ -1,19 +1,24 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
+import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
+import { Pager } from "@/app/(dev)/design/(shell)/_shell/pager";
+import { Section, Sub } from "@/app/(dev)/design/(shell)/_shell/section";
 import { EntryBlock } from "@/app/(dev)/design/gallery/gallery-ui";
 import { itemById } from "@/app/(dev)/design/gallery/registry";
-import {
-  RefHeader,
-  RefSection,
-  Spec,
-  Swatch,
-} from "@/app/(dev)/design/reference/reference-ui";
+import { Specimen } from "@/app/(dev)/design/gallery/specimen";
+import { Column, Swatch } from "@/app/(dev)/design/reference/reference-ui";
 
-// THE LIVE FOUNDATIONS REFERENCE. Every swatch fills with the REAL CSS var and
-// every specimen uses the REAL utilities, so this page tracks globals.css by
-// construction: edit a token, this updates. Inherits the root next-themes theme
-// (toggle in the sidebar) to show light + dark truthfully.
+/**
+ * THE TOKENS. Every swatch fills with the REAL CSS var and every specimen uses
+ * the REAL utilities, so this page tracks the theme by construction: edit a
+ * token, this updates. It inherits the root next-themes theme (the toggle is
+ * in the top bar), and any block's split button shows light and dark at once.
+ *
+ * Every token GROUP is a heading with an anchor (the Library x Lab round,
+ * 2026-09-15), so the table of contents is a list of the token families and a
+ * ruling can link straight at "the lamp set" rather than at the page.
+ */
 export default async function FoundationsPage({
   searchParams,
 }: {
@@ -27,19 +32,24 @@ export default async function FoundationsPage({
   const glow = itemById("glow");
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-6 pt-8 pb-20">
-      <RefHeader
-        eyebrow="Reference · live"
+    <Column>
+      <PageHeader
         title="Foundations"
-        blurb="The design tokens, rendered from the real CSS variables. Toggle the theme in the sidebar to see light and dark; everything here flips with the app because it IS the app."
+        description="The design tokens, rendered from the real CSS variables. Everything here flips with the app because it IS the app: these are the same vars every surface reads."
+        meta={[
+          ["source", "src/app/theme.css"],
+          ["themes", "light and dark, per block"],
+        ]}
       />
 
-      <RefSection
+      <Section
+        id="color"
         title="Color"
         blurb="Grayscale surfaces and ink; color is reserved for state and for the media itself. Each swatch is the live var."
       >
-        <div className="space-y-5">
+        <div className="space-y-1">
           <SwatchGroup
+            id="surfaces"
             caption="Surfaces"
             tokens={[
               ["Background", "--background"],
@@ -51,6 +61,7 @@ export default async function FoundationsPage({
             ]}
           />
           <SwatchGroup
+            id="ink"
             caption="Ink"
             tokens={[
               ["Foreground", "--foreground"],
@@ -62,7 +73,9 @@ export default async function FoundationsPage({
             ]}
           />
           <SwatchGroup
-            caption="State (punctuation only, never a wash)"
+            id="state"
+            caption="State"
+            blurb="Punctuation only, never a wash."
             tokens={[
               ["Destructive", "--destructive"],
               ["Success", "--success"],
@@ -71,7 +84,9 @@ export default async function FoundationsPage({
             ]}
           />
           <SwatchGroup
-            caption="Gallery (always dark, theme-independent, so media is the hero)"
+            id="gallery-ground"
+            caption="Gallery"
+            blurb="Always dark and theme-independent, so media is the hero."
             tokens={[
               ["Gallery", "--gallery"],
               ["Gallery foreground", "--gallery-foreground"],
@@ -80,7 +95,9 @@ export default async function FoundationsPage({
             ]}
           />
           <SwatchGroup
-            caption="Charts (grayscale ramp)"
+            id="charts"
+            caption="Charts"
+            blurb="A grayscale ramp; the data carries the meaning, not the hue."
             tokens={[
               ["Chart 1", "--chart-1"],
               ["Chart 2", "--chart-2"],
@@ -90,14 +107,15 @@ export default async function FoundationsPage({
             ]}
           />
         </div>
-      </RefSection>
+      </Section>
 
-      <RefSection
+      <Section
+        id="type"
         title="Type"
-        blurb="Urbanist is the identity face (page titles, event names, marquees): bold at minus three percent tracking, via the font-heading utility. Inter carries everything functional. That split is the system rule."
+        blurb="Urbanist is the identity face (page titles, event names, marquees): bold at minus three percent tracking, via the font-heading utility. Inter carries everything functional. Two faces, and no third."
       >
         <div className="grid gap-3 sm:grid-cols-2">
-          <Spec label="Identity" hint="font-heading · Urbanist 700">
+          <Specimen label="Identity" hint="font-heading · Urbanist 700">
             <div className="space-y-2">
               <p className="font-heading text-3xl">
                 Maya &amp; Jay&rsquo;s Wedding
@@ -105,8 +123,8 @@ export default async function FoundationsPage({
               <p className="font-heading text-xl">Create an event</p>
               <p className="font-heading text-base">Your photos land here</p>
             </div>
-          </Spec>
-          <Spec label="Functional" hint="font-sans · Inter">
+          </Specimen>
+          <Specimen label="Functional" hint="font-sans · Inter">
             <div className="space-y-2">
               <p className="text-sm font-semibold">Guest uploads</p>
               <p className="text-sm text-muted-foreground">
@@ -117,11 +135,12 @@ export default async function FoundationsPage({
                 Smaller supporting text, captions, and metadata.
               </p>
             </div>
-          </Spec>
+          </Specimen>
         </div>
-      </RefSection>
+      </Section>
 
-      <RefSection
+      <Section
+        id="radius"
         title="Radius"
         blurb="Sharp surfaces, round actions: the radius contrast itself signals what is pressable. One root knob (--radius) scales the surface family."
       >
@@ -147,9 +166,10 @@ export default async function FoundationsPage({
             className="rounded-[var(--radius-action)]"
           />
         </div>
-      </RefSection>
+      </Section>
 
-      <RefSection
+      <Section
+        id="motion"
         title="Motion"
         blurb="Strong custom curves only (the built-ins are too weak). UI stays under 300ms; exits run faster than enters. Hover a track to play its curve."
       >
@@ -174,37 +194,38 @@ export default async function FoundationsPage({
           />
         </div>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <Spec label="Durations" hint="under 300ms">
+          <Specimen label="Durations" hint="under 300ms">
             <ul className="space-y-1 text-sm text-muted-foreground">
               <li>Press feedback: 100 to 160ms</li>
               <li>Tooltips, popovers: 125 to 200ms</li>
               <li>Dropdowns, selects: 150 to 250ms</li>
               <li>Sheets, reveals: 200 to 280ms (exits faster)</li>
             </ul>
-          </Spec>
-          <Spec label="Shimmer" hint="--animate-shimmer · linear">
+          </Specimen>
+          <Specimen label="Shimmer" hint="--animate-shimmer · linear">
             <div className="space-y-2">
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-4 w-1/2" />
               <Skeleton className="h-20 w-full" />
             </div>
-          </Spec>
+          </Specimen>
         </div>
-      </RefSection>
+      </Section>
 
-      <RefSection
+      <Section
+        id="elevation"
         title="Elevation"
-        blurb="One depth technique per mode: in light, a single soft shadow on the floating layer; in dark, no shadows, lighter surface steps do the lifting."
+        blurb="One depth technique per mode: in light, a single soft shadow on the floating layer; in dark, no shadows, lighter surface steps do the lifting. Split a block to see both at once."
       >
         <div className="grid gap-3 sm:grid-cols-2">
-          <Spec label="Floating layer" hint="shadow-float">
+          <Specimen label="Floating layer" hint="shadow-float">
             <div className="flex h-24 items-center justify-center rounded-[var(--radius-float)] bg-popover shadow-float">
               <span className="text-sm text-muted-foreground">
                 Menu / tooltip / toast
               </span>
             </div>
-          </Spec>
-          <Spec label="Surface steps" hint="bg / card / popover">
+          </Specimen>
+          <Specimen label="Surface steps" hint="bg / card / popover">
             <div className="space-y-2">
               <div className="rounded-lg bg-background p-2 text-center text-xs text-muted-foreground">
                 background
@@ -214,52 +235,58 @@ export default async function FoundationsPage({
                 </div>
               </div>
             </div>
-          </Spec>
+          </Specimen>
         </div>
-      </RefSection>
+      </Section>
 
-      <RefSection
+      <Section
+        id="light"
         title="Light"
         blurb="SPILL is light from a lit thing; BEAM is the live subject lit at its edge. Five lamps, our palette; the engine (Glow) reads them from these tokens, and the turbulence filter it warps through mounts once, in the root layout."
       >
-        <div className="space-y-5">
-          <SwatchGroup
-            caption="The lamp set (--lamp-1..5; the literals JavaScript needs live in components/dev/lamp-set.ts)"
-            tokens={[
-              ["Lamp 1", "--lamp-1"],
-              ["Lamp 2", "--lamp-2"],
-              ["Lamp 3", "--lamp-3"],
-              ["Lamp 4", "--lamp-4"],
-              ["Lamp 5", "--lamp-5"],
-            ]}
-          />
-          {glow && (
+        <SwatchGroup
+          id="lamps"
+          caption="The lamp set"
+          blurb="--lamp-1..5; the literals JavaScript needs live in components/dev/lamp-set.ts."
+          tokens={[
+            ["Lamp 1", "--lamp-1"],
+            ["Lamp 2", "--lamp-2"],
+            ["Lamp 3", "--lamp-3"],
+            ["Lamp 4", "--lamp-4"],
+            ["Lamp 5", "--lamp-5"],
+          ]}
+        />
+        {glow && (
+          <div className="pt-6">
             <EntryBlock item={glow} link={(href) => withDesignKey(href, key)} />
-          )}
-        </div>
-      </RefSection>
-    </main>
+          </div>
+        )}
+      </Section>
+
+      <Pager />
+    </Column>
   );
 }
 
 function SwatchGroup({
+  id,
   caption,
+  blurb,
   tokens,
 }: {
+  id: string;
   caption: string;
+  blurb?: string;
   tokens: [string, string][];
 }) {
   return (
-    <div>
-      <p className="mb-2 text-[11px] font-medium text-muted-foreground">
-        {caption}
-      </p>
+    <Sub id={id} title={caption} blurb={blurb}>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
         {tokens.map(([name, varName]) => (
           <Swatch key={varName} name={name} varName={varName} />
         ))}
       </div>
-    </div>
+    </Sub>
   );
 }
 

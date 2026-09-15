@@ -5,17 +5,25 @@ import { Markdown } from "@/app/(dev)/design/(shell)/_shell/markdown";
 import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
 import { Pager } from "@/app/(dev)/design/(shell)/_shell/pager";
 import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
-import { Section } from "@/app/(dev)/design/(shell)/_shell/section";
-import { DOCS, readDoc, sectionOf } from "@/app/(dev)/design/_data/docs";
+import { headingsOf, readDoc } from "@/app/(dev)/design/_data/docs";
+import { LEVEL_BY_ID } from "@/app/(dev)/design/rules/influences";
 
-const CRAFT_ANCHOR = "the-craft-guidance-stack";
+import { LevelBadge } from "../rules/level-badge";
+
+const FILE = "docs/design/guidance.md";
 
 /**
- * GUIDANCE (the Library x Lab round, 2026-09-15): the craft stack and the
- * skills, the default an agent leaves on purpose. Phase 0 renders the craft
- * chapter of the design system doc where it still lives; the lab-rules track
- * moves it to docs/design/guidance.md with the skills table and this page
- * renders that file.
+ * GUIDANCE (the Library x Lab round, 2026-09-15): the craft stack, the skills,
+ * and how a board is built so a review is quick. The level below the law, the
+ * contracts and the policies: it never binds, and a departure from it is
+ * flagged on the board rather than argued for in advance.
+ *
+ * It used to be a chapter of `design-system.md`, which made it read as
+ * precedent (what shipped) rather than as guidance (what to reach for). This
+ * round moved it to `docs/design/guidance.md`, beside the levels that define
+ * it, and left a pointer in the system doc. The page renders the file at
+ * request time, so the file is the page: nothing about the craft stack is
+ * written twice.
  */
 export default async function GuidancePage({
   searchParams,
@@ -23,59 +31,41 @@ export default async function GuidancePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const key = await requireDesignKey(searchParams);
-  const sys = DOCS["design-system"];
-  const craft = sectionOf(readDoc(sys.path).body, CRAFT_ANCHOR);
+  const { body } = readDoc(FILE);
+  const chapters = headingsOf(body, 2).filter((h) => h.depth === 2);
+
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title="Guidance"
-        description="The craft stack and the skills: what an agent reaches for by default, and leaves only on purpose. Guidance never binds; the bible and the contracts do."
+        description="The craft stack, the installed skills, and the shape a board takes so one screen answers its question. This is what an agent reaches for by default, and leaves only on purpose."
+        badges={<LevelBadge level={LEVEL_BY_ID.guidance} />}
+        meta={[
+          [
+            "Source",
+            <Ref key="src" to={{ kind: "source", file: FILE }} quiet />,
+          ],
+          ["Chapters", String(chapters.length)],
+          [
+            "The primary skill",
+            <Ref key="craft" to={{ kind: "doc", doc: "craft" }} quiet>
+              emil-design-eng
+            </Ref>,
+          ],
+        ]}
       />
+
       <Callout kind="provisional" className="mt-6">
-        Guidance is the third level: below the law and the contracts, above
-        precedent. The craft skill (
-        <Ref to={{ kind: "doc", doc: "craft" }}>emil-design-eng</Ref>) is
-        declared primary.
+        Guidance never binds. Departing from it is a normal move, and the only
+        thing it owes you is a line saying what you departed from and what it
+        cost: a departure with its cost written down is a finding, and the same
+        departure unmentioned is a regression nobody can tell from a decision.
       </Callout>
-      <Section
-        id="craft"
-        title="The craft stack"
-        blurb="Rendered from the design system doc's chapter until docs/design/guidance.md exists."
-        aside={
-          <Ref
-            to={{ kind: "doc", doc: "design-system", anchor: CRAFT_ANCHOR }}
-            quiet
-          >
-            the chapter
-          </Ref>
-        }
-      >
-        {craft ? (
-          <Markdown source={craft} from={sys.path} designKey={key} />
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            The chapter has moved; read the design system doc.
-          </p>
-        )}
-      </Section>
-      <Section
-        id="skills"
-        title="Skills"
-        blurb="The installed skills and when to invoke them."
-      >
-        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card text-sm">
-          <li className="flex flex-wrap items-baseline gap-x-3 px-4 py-2">
-            <span className="font-medium">emil-design-eng</span>
-            <span className="text-muted-foreground">
-              primary; every UI change (motion by frequency, press feedback,
-              custom easing).
-            </span>
-            <Ref to={{ kind: "doc", doc: "craft" }} quiet>
-              read it
-            </Ref>
-          </li>
-        </ul>
-      </Section>
+
+      <div className="mt-8">
+        <Markdown source={body} from={FILE} designKey={key} skipTitle />
+      </div>
+
       <Pager />
     </div>
   );

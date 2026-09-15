@@ -229,7 +229,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/shared/route-error.tsx": {
     for: "the route error boundary",
     unspecimened:
-      "fires Sentry on mount; /design/patterns renders a static mock of its screen",
+      "fires Sentry on mount; /design/library/patterns renders a static mock of its screen",
   },
   "src/components/shared/set-name-step.tsx": {
     for: "the one required add-your-name step, reused at every gate that asks for one",
@@ -298,7 +298,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/ui/sonner.tsx": {
     for: "the themed Toaster",
     unspecimened:
-      "mounted once in the root layout; the toast demo on /design/components fires it",
+      "mounted once in the root layout; the toast demo on /design/library/components fires it",
   },
   "src/components/ui/switch.tsx": {
     for: "the settings toggle, from an event's upload rules to the admin kill switches",

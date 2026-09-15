@@ -1,3 +1,6 @@
+// @policy: engineering · Every track claims its lane
+// @refuses: a malformed track manifest, or two live tracks claiming the same path prefix.
+
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 

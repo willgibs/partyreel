@@ -1,3 +1,6 @@
+// @policy: global · The grounds keep their mechanism
+// @refuses: a refactor that drops one of the three facts behind the mixed-theme chapters, which fails silently in the browser.
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -62,7 +65,9 @@ describe("globals.css surface-paper contract", () => {
     const ink = globals.indexOf("\n.surface-ink {");
     const paper = globals.lastIndexOf(".surface-paper {");
     expect(ink, "the .surface-ink block is missing").toBeGreaterThan(0);
-    expect(ink, ".surface-ink must come after .surface-paper").toBeGreaterThan(paper);
+    expect(ink, ".surface-ink must come after .surface-paper").toBeGreaterThan(
+      paper,
+    );
     expect(globals.match(/\.surface-ink \{/g)?.length).toBe(1);
   });
 });

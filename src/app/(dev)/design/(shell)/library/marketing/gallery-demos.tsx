@@ -217,6 +217,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ─────────────────────────────── Heroes ─────────────────────────────── */
   {
     id: "page-hero",
+    badge: "updated",
     family: "marketing",
     section: "Heroes",
     play: "page-hero",
@@ -320,6 +321,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "screen-lamp",
+    badge: "updated",
     family: "marketing",
     section: "Heroes",
     specimens: [
@@ -368,6 +370,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "caption",
+    badge: "new",
     family: "marketing",
     section: "Type atoms and links",
     play: "caption",
@@ -720,6 +723,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ─────────────────────────────── Beats ──────────────────────────────── */
   {
     id: "stat-band",
+    badge: "updated",
     family: "marketing",
     section: "Beats",
     lede: "It server-renders the FINAL digits, so no-JS and search always read the true numbers and the motion is pure enhancement.",
@@ -816,6 +820,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ──────────────────────────── Conversion ────────────────────────────── */
   {
     id: "cta-band",
+    badge: "updated",
     family: "marketing",
     section: "Conversion",
     lede: "The one conversion band, composed from SectionShell so its heading scale and its entrance stay with every other section.",
@@ -847,6 +852,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "demo-ticket",
+    badge: "updated",
     family: "marketing",
     section: "Conversion",
     lede: "The demo pieces render only when a demo event is configured (NEXT_PUBLIC_DEMO_QR_TOKEN); without it this and DemoCtaLink render nothing, by design, so a dead demo CTA is impossible.",

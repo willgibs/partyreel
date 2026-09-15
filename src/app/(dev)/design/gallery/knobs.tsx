@@ -6,7 +6,7 @@ import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import type { SpecimenSkin } from "./entry";
-import { CopyLine } from "./stage";
+import { CopyLine } from "./specimen";
 
 /**
  * THE CONFIG PANEL (the gallery round, 2026-09-12): ONE reusable knob kit, so
