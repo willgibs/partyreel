@@ -364,6 +364,35 @@ export function FloatingSurfacesBoard() {
   const [outlier, setOutlier] = useState<Outlier>("select");
   const [replay, setReplay] = useState(0);
   const reduced = useReducedMotion();
+  const boardRef = useRef<HTMLDivElement | null>(null);
+
+  /** "Replay every entrance" has to DO something from wherever it is pressed.
+   *  Below sm the control bar is static at the top of the document (sticky, it
+   *  stands 310px tall and covers the specimen), so the press can land with no
+   *  frame on screen at all, and round three's first pass then dropped it: a
+   *  control that did nothing visible, which is the exact stumble this round set
+   *  out to remove. Two halves fix it. `Frame` remembers a press it could not
+   *  run and plays it the moment the frame arrives; this half carries you to the
+   *  nearest frame, so the arrival is the press rather than a scroll away. When
+   *  a frame IS on screen nothing moves, which is every press at 1440. */
+  const replayEverything = () => {
+    setReplay((n) => n + 1);
+    const root = boardRef.current;
+    if (!root) return;
+    const frames = Array.from(root.querySelectorAll("iframe"));
+    const vh = window.innerHeight;
+    const anyOnScreen = frames.some((f) => {
+      const r = f.getBoundingClientRect();
+      return r.bottom > 0 && r.top < vh;
+    });
+    if (anyOnScreen) return;
+    const next =
+      frames.find((f) => f.getBoundingClientRect().top >= 0) ?? frames.at(-1);
+    next?.scrollIntoView({
+      block: "center",
+      behavior: reduced ? "auto" : "smooth",
+    });
+  };
 
   const knobs = { radius, entrance, light };
   const phone = mode === "phone";
@@ -388,7 +417,7 @@ export function FloatingSurfacesBoard() {
   };
 
   return (
-    <div className="flex flex-col gap-10 py-4">
+    <div ref={boardRef} className="flex flex-col gap-10 py-4">
       {/* The board's own question is NOT repeated here. The touchpoint header
           above states the subject, BoardMeta carries the question in full at the
           foot, and a third paragraph between them was pushing the one thing a
@@ -443,7 +472,10 @@ export function FloatingSurfacesBoard() {
 
       {/* The bar is sticky from sm up and static on a phone: at 375 it stands
           310px tall, which is 38 percent of the viewport, and a control bar that
-          covers the specimen is worse than one you scroll back to. */}
+          covers the specimen is worse than one you scroll back to. What static
+          costs is that Replay can be pressed with no frame on screen; that is
+          paid for in `replayEverything` above and in Frame's deferred replay,
+          not by covering the specimen. */}
       <div className="z-20 -mx-4 flex flex-col gap-2 border-b border-border bg-background/90 px-4 py-3 backdrop-blur sm:sticky sm:top-0">
         <div className="flex flex-wrap items-center gap-2">
           <Toggle
@@ -501,7 +533,7 @@ export function FloatingSurfacesBoard() {
           />
           <button
             type="button"
-            onClick={() => setReplay((n) => n + 1)}
+            onClick={replayEverything}
             className="rounded-lg border border-border px-3 py-1 text-[12px] font-medium transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-muted active:scale-[0.97]"
           >
             Replay every entrance

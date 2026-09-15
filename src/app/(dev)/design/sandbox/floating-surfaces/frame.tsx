@@ -200,20 +200,40 @@ export function Frame({
     );
   }, [ground, ramp, radius, entrance, light, ready]);
 
-  // Replay runs the frames you can SEE. Measured on the walk: one press with
-  // fourteen frames mounted closed and re-opened about thirty panels across
-  // fourteen documents at once and cost a 150ms hitch, all of it spent on
-  // entrances nobody was looking at. A row is always visible as a row, so the
-  // comparisons that matter (the two trios of row 5, the four rungs of a
-  // ladder) still replay together.
+  // Replay runs the frames you can SEE, and REMEMBERS the ones you cannot.
+  // Measured on the walk: one press with fourteen frames mounted closed and
+  // re-opened about thirty panels across fourteen documents at once and cost a
+  // 150ms hitch, all of it spent on entrances nobody was looking at. A row is
+  // always visible as a row, so the comparisons that matter (the two trios of
+  // row 5, the four rungs of a ladder) still replay together.
+  //
+  // ROUND THREE, SECOND PASS: dropping the press for an off-screen frame made
+  // the button dead at 375, where the control bar is static at the top of the
+  // document and nothing is on screen from up there, and no amount of scrolling
+  // afterwards brought the entrance back (the effect had already run). A frame
+  // that was off screen when the press landed now waits for its own arrival and
+  // replays then, so a press is never swallowed: you scroll down and every row
+  // plays as you reach it. The observer lives exactly one press.
   useEffect(() => {
     if (!replay) return;
     const el = frameRef.current;
     if (!el) return;
+    const run = () => el.contentWindow?.dispatchEvent(new Event("flt:replay"));
     const r = el.getBoundingClientRect();
-    const onScreen = r.bottom > -200 && r.top < window.innerHeight + 200;
-    if (!onScreen) return;
-    el.contentWindow?.dispatchEvent(new Event("flt:replay"));
+    if (r.bottom > -200 && r.top < window.innerHeight + 200) {
+      run();
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        run();
+      },
+      { rootMargin: "200px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
   }, [replay]);
 
   const mounted = useContext(MountContext);
