@@ -1303,16 +1303,13 @@ body:has([data-mkt-skin="cinema"]) {
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). Rounds two and three turned the palette board from
 a proof that the ramp is wrong into a surface a ruling can be read off in a few words. Round two made
-every candidate leave the board as the paste its ruling would land, handed to the whole site through
-the shell's `setCandidateCss`, and widened the judged surfaces to what the product is made of: the
-event page, the dashboard, the guest album on the canvas, the ink leaf hosting a card and a menu, the
-state hues under every ramp, the light spec's depth cues on each candidate's grounds. Round three
-walked it cold and cut rather than added. Candidate C was A's ladder at a temperature by its own
-admission, so it became a switch any ramp can wear, pinned by a test to C's published blocks token for
-token, and warm B became askable; two of the eight asks were consequences of the letter and are now
-printed as what it already decides; and the strongest evidence leads, today beside the candidate in one
-canvas on both grounds, because a 0.02 step is what an eye cannot hold across a toggle. Two counts the
-board had quoted were wrong and are measured (the panel ships at 35 sites, not 45; the undocumented
-ring at 37, not 77), and the walk's seven pages are links, the last of them the demo guest page,
-which a candidate could not reach until the shell mounted its island. Lab only: no production byte
-changed.
+every candidate leave the board as the paste its ruling lands, handed to the whole site through the
+shell's `setCandidateCss`, and widened the judged surfaces to what the product is made of: the event
+page, the dashboard, the guest album, the ink leaf hosting a card and a menu, the state hues and the
+light spec's depth cues on every candidate's grounds. Round three walked it cold and cut, not added. Candidate C was A's ladder at a temperature by its own admission, so it became
+a switch any ramp can wear, pinned by a test to C's published blocks token for token, and warm B
+became askable; two asks were consequences of the letter and are printed as what it already decides;
+and today sits beside the candidate in one canvas, because a 0.02 step is what an eye cannot hold
+across a toggle. Two quoted counts were wrong and are measured (the panel ships at 35 sites, not 45;
+the ring nobody wrote down at 37, not 77), and the walk is seven clickable pages, the last the guest
+album, which no board could reach until the shell mounted its island. Lab only, no production byte.
