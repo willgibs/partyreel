@@ -243,7 +243,10 @@ function ArcBlock({
   voice: VoiceId;
   mode: Mode;
 }) {
-  const pad = mode === "desktop" ? "py-10" : "py-7";
+  // twMerge cannot drop SectionShell's `sm:py-24` with a bare `py-10`, and a
+  // Tailwind prefix inside a Stage reads the REAL viewport, so the sm rung has
+  // to be named explicitly or every chapter walks with 96px of dead air per cut.
+  const pad = mode === "desktop" ? "py-10 sm:py-10" : "py-7 sm:py-7";
 
   if (section.id === "trust-strip") {
     return (
@@ -273,6 +276,7 @@ function ArcBlock({
   if (section.tier === "hero") {
     return (
       <PageHero
+        data-bv-type="hero-xl"
         className="w-full py-10"
         scale="xl"
         eyebrow={pick(section.eyebrow, voice)}
@@ -300,6 +304,7 @@ function ArcBlock({
 
   return (
     <SectionShell
+      data-bv-type={section.tier === "lg" ? "section-lg" : "section"}
       className={pad}
       reveal="none"
       scale={section.tier === "lg" ? "lg" : "default"}
@@ -330,7 +335,13 @@ function ArcChapter({
 }) {
   return (
     <Stage mode={mode} ground={ground} height={height}>
-      <div key={voice} data-inview="true" data-bv-swap className="min-h-full">
+      <div
+        key={voice}
+        data-inview="true"
+        data-bv-canvas={mode}
+        data-bv-swap
+        className="min-h-full"
+      >
         {sections.map((s) => (
           <ArcBlock key={s.id} section={s} voice={voice} mode={mode} />
         ))}
@@ -349,7 +360,13 @@ const SLOT_LABEL: Record<string, string> = {
 
 /** The ledger under a chapter: every slot, today beside the candidate, with
  *  held marked. This is the surface a line-by-line ruling is written on. */
-function Ledger({ sections, voice }: { sections: ArcSection[]; voice: VoiceId }) {
+function Ledger({
+  sections,
+  voice,
+}: {
+  sections: ArcSection[];
+  voice: VoiceId;
+}) {
   const rows = (s: ArcSection): { slot: string; trio: Trio | Trio[] }[] => {
     const out: { slot: string; trio: Trio | Trio[] }[] = [];
     if (s.eyebrow) out.push({ slot: "eyebrow", trio: s.eyebrow });
@@ -418,15 +435,20 @@ function FeaturePageStage({
   page,
   voice,
   mode,
-  height,
+  heroHeight,
+  chunkHeights,
 }: {
   page: WholePage;
   voice: VoiceId;
   mode: Mode;
-  height: { cinema: number; paper: number };
+  /** [desktop, phone]. Measured on the rendered board, not guessed: a stage is
+   *  a fixed box with overflow hidden, so a short height clips a section and a
+   *  tall one pads the chapter with dead ground. */
+  heroHeight: [number, number];
+  chunkHeights: [number, number][];
 }) {
   const strings = FEATURES.find((f) => f.slug === page.slug);
-  const pad = mode === "desktop" ? "py-10" : "py-7";
+  const pad = mode === "desktop" ? "py-10 sm:py-10" : "py-7 sm:py-7";
   // The page's own chapters: consecutive same-ground sections share a stage,
   // exactly as PaperChapter groups them on the real route.
   const chunks: { ground: "cinema" | "paper"; items: typeof page.sections }[] =
@@ -441,11 +463,18 @@ function FeaturePageStage({
     <div className="space-y-2">
       <Stage
         mode={mode}
-        ground={page.slug === "curation" ? "cinema" : "cinema"}
-        height={mode === "desktop" ? 420 : 620}
+        ground="cinema"
+        height={heroHeight[mode === "desktop" ? 0 : 1]}
       >
-        <div key={voice} data-inview="true" data-bv-swap className="min-h-full">
+        <div
+          key={voice}
+          data-inview="true"
+          data-bv-canvas={mode}
+          data-bv-swap
+          className="min-h-full"
+        >
           <PageHero
+            data-bv-type="hero-lg"
             className="w-full py-10"
             scale="lg"
             eyebrow={pick(strings?.navLabel, voice)}
@@ -459,21 +488,19 @@ function FeaturePageStage({
           key={i}
           mode={mode}
           ground={chunk.ground}
-          height={
-            mode === "desktop"
-              ? chunk.items.length * (height.cinema / 2)
-              : chunk.items.length * height.paper
-          }
+          height={(chunkHeights[i] ?? [600, 900])[mode === "desktop" ? 0 : 1]}
         >
           <div
             key={voice}
             data-inview="true"
+            data-bv-canvas={mode}
             data-bv-swap
             className="min-h-full"
           >
             {chunk.items.map((s, j) => (
               <SectionShell
                 key={j}
+                data-bv-type="section"
                 className={pad}
                 reveal="none"
                 eyebrow={pick(s.eyebrow, voice)}
@@ -500,7 +527,7 @@ function FeaturePageStage({
  * A quiet or guest surface
  * ---------------------------------------------------------------------- */
 
-function SurfaceCard({ s }: { s: Surface }) {
+function SurfaceCard({ s, mode }: { s: Surface; mode: Mode }) {
   const unchanged =
     s.today.title === s.proposed.title &&
     s.today.body === s.proposed.body &&
@@ -515,7 +542,16 @@ function SurfaceCard({ s }: { s: Surface }) {
       <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
         {s.rule}
       </p>
-      <div className="mt-2 grid gap-y-3 sm:grid-cols-2 sm:gap-x-5">
+      {/* mode, never a `sm:` prefix: a Tailwind breakpoint inside a Stage reads
+          the REAL viewport, so sm:grid-cols-2 would put two columns in a
+          375-wide box. */}
+      <div
+        className={
+          mode === "desktop"
+            ? "mt-2 grid grid-cols-2 gap-x-5 gap-y-3"
+            : "mt-2 grid gap-y-3"
+        }
+      >
         {(["today", "proposed"] as const).map((col) => {
           const v = s[col];
           return (
@@ -671,7 +707,7 @@ export function BrandVoiceBoard() {
             voice={voiceId}
             mode={mode}
             ground="cinema"
-            height={desktop ? 1820 : 3180}
+            height={desktop ? 2000 : 2020}
           />
           <Ledger sections={CHAPTER_1} voice={voiceId} />
         </div>
@@ -689,7 +725,7 @@ export function BrandVoiceBoard() {
             voice={voiceId}
             mode={mode}
             ground="paper"
-            height={desktop ? 1000 : 1720}
+            height={desktop ? 970 : 1060}
           />
           <Ledger sections={CHAPTER_PAPER} voice={voiceId} />
         </div>
@@ -707,7 +743,7 @@ export function BrandVoiceBoard() {
             voice={voiceId}
             mode={mode}
             ground="cinema"
-            height={desktop ? 1280 : 2180}
+            height={desktop ? 1240 : 1200}
           />
           <Ledger sections={CHAPTER_CLOSE} voice={voiceId} />
           <div className="mt-5">
@@ -726,13 +762,22 @@ export function BrandVoiceBoard() {
         framed={false}
       >
         <div className="space-y-3">
-          <Stage mode={mode} ground="cinema" height={desktop ? 560 : 760}>
+          <Stage mode={mode} ground="cinema" height={desktop ? 520 : 330}>
+            {/* min-h-full, never h-full: a flex column at the stage's exact
+                height shrinks both lockups to a line and a half. */}
             <div
               data-inview="true"
-              className="flex h-full flex-col justify-center gap-10 py-10"
+              data-bv-canvas={mode}
+              className="min-h-full space-y-10 py-12"
             >
-              <PageHero className="w-full" scale="xl" heading={THESIS.ruled} />
               <PageHero
+                data-bv-type="hero-xl"
+                className="w-full"
+                scale="xl"
+                heading={THESIS.ruled}
+              />
+              <PageHero
+                data-bv-type="hero-xl"
                 className="w-full"
                 scale="xl"
                 heading={THESIS.alternative}
@@ -755,7 +800,12 @@ export function BrandVoiceBoard() {
           page={ALBUM_PAGE}
           voice={voiceId}
           mode={mode}
-          height={{ cinema: 520, paper: 300 }}
+          heroHeight={[380, 390]}
+          chunkHeights={[
+            [800, 830],
+            [1340, 1320],
+            [265, 290],
+          ]}
         />
       </Variant>
 
@@ -769,7 +819,11 @@ export function BrandVoiceBoard() {
           page={CURATION_PAGE}
           voice={voiceId}
           mode={mode}
-          height={{ cinema: 520, paper: 300 }}
+          heroHeight={[380, 350]}
+          chunkHeights={[
+            [940, 930],
+            [265, 260],
+          ]}
         />
       </Variant>
 
@@ -836,11 +890,11 @@ export function BrandVoiceBoard() {
         rationale="The dashboard's empty state, an error, two notifications, an email subject with its first line, and the account page's labels. Shown once, not per candidate: the quiet register does not fork with the voice, which is why three of these hold unchanged."
         framed={false}
       >
-        <Stage mode={mode} ground="app-light" height={desktop ? 1180 : 2200}>
+        <Stage mode={mode} ground="app-light" height={desktop ? 1110 : 2440}>
           <div className="h-full overflow-hidden px-8 py-6">
             <div className="flex flex-col gap-3">
               {QUIET_SURFACES.map((s) => (
-                <SurfaceCard key={s.surface} s={s} />
+                <SurfaceCard key={s.surface} s={s} mode={mode} />
               ))}
             </div>
           </div>
@@ -853,11 +907,11 @@ export function BrandVoiceBoard() {
         rationale="The demo guest page's real lines: the door in its three states, the upload prompt, the empty album, the upload confirmation. Bible 4 is the whole rule here, and the shipped account gate is the one line that breaks it."
         framed={false}
       >
-        <Stage mode={mode} ground="app-light" height={desktop ? 1180 : 2200}>
+        <Stage mode={mode} ground="app-light" height={desktop ? 1170 : 2100}>
           <div className="h-full overflow-hidden px-8 py-6">
             <div className="flex flex-col gap-3">
               {GUEST_SURFACES.map((s) => (
-                <SurfaceCard key={s.surface} s={s} />
+                <SurfaceCard key={s.surface} s={s} mode={mode} />
               ))}
             </div>
           </div>
@@ -870,7 +924,7 @@ export function BrandVoiceBoard() {
         rationale="The parked ruling, on the surface it actually renders: what a host's group chat shows. The public variant sits above as the control, because the two lines have to read as one set."
         framed={false}
       >
-        <Stage mode={mode} ground="app-light" height={desktop ? 430 : 780}>
+        <Stage mode={mode} ground="app-light" height={desktop ? 360 : 600}>
           <div className="flex h-full flex-col justify-center gap-5 px-8">
             <div className="max-w-md">
               <p className="text-[11px] font-medium text-muted-foreground">

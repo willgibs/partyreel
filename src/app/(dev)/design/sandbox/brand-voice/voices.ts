@@ -69,7 +69,7 @@ export const VOICES: Voice[] = [
       "A tuning. The voice already exists in the eight ratified lines; write it down, then bring back the lines that drifted. A sentence is about what the host ends up holding.",
     paragraph:
       "Partyreel sounds like a good host: plain, warm, specific, with nothing abstract in it. A line is a noun phrase and a turn, hinged on a comma, and it is about what the host ends up holding. It says photo, video, phone, code, album, guest and link, and it leaves memories and magic to someone else. It calls the host you, it leads with what the reader gets, and it lets whatever we spare them arrive in the second half of the sentence. This is the voice the eight ratified lines already speak; the guide writes it down and tunes the lines that have not caught up.",
-    cost: "It changes the least, so it lifts the least: the feature pages were already written in this register, and A holds most of their thirty strings unchanged.",
+    cost: "It changes the least, so it lifts the least: the feature pages were already written in this register, so A moves six of their thirty strings and holds twenty-four.",
   },
   {
     id: "room",
@@ -78,7 +78,7 @@ export const VOICES: Voice[] = [
       "A rebuild from the product's one idea: the code becoming the album. Verb in front, present tense, the room as the setting, real counts as evidence. A sentence is about the moment, not the object.",
     paragraph:
       "Partyreel talks the way a good host talks while the party is still going: present tense, plain nouns, one breath per sentence. Every line is about something arriving. A code goes on a table, phones find it, an album fills with the event as everyone saw it, and the voice stays inside that moment instead of describing it from afterwards. It is warm because it is specific, not because it is friendly: it says photo, video, phone, code, album, guest, link, and it leaves memories, magic and journeys to someone else. It calls the host you and the guests everyone. It leads with what the reader gets, so the things Partyreel spares them (an app, an account, a group chat the morning after) land in the second half of a sentence and never the first. And it changes volume, not vocabulary: loud here, quiet in the product, nearly silent on a guest's screen.",
-    cost: "Its sentences run longer, so the hero h1 takes four lines at 375 against today's two, and it rewrites more of the site than any other answer.",
+    cost: "Its sentences run longer, so the hero h1 takes four rows at 375 against today's three, and it rewrites half again as much of the site as A.",
   },
 ];
 
