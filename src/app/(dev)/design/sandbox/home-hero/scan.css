@@ -220,11 +220,18 @@
   height: var(--hhc-bloom);
   translate: -50% -50%;
   border-radius: 999px;
+  /* The stops reach transparent AT the edge rather than at 72 percent of it,
+     and the box shrank by the same 0.72 (bloom 3.2 -> 2.3 plate widths), so
+     the disc on screen is pixel-identical and the box the compositor has to
+     keep for an infinite animation is half the area: 331 px square at 1440
+     and 248 at 375, where it was 460 and 324. The only thing this concept
+     animates forever is this one element, so its box is the only raster the
+     recapture costs. */
   background: radial-gradient(
     closest-side,
     oklch(1 0 0 / 0.5) 0%,
-    oklch(1 0 0 / 0.16) 46%,
-    transparent 72%
+    oklch(1 0 0 / 0.16) 64%,
+    transparent 100%
   );
   opacity: 0;
   pointer-events: none;

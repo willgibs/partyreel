@@ -258,7 +258,9 @@ type Geo = {
   /** The brackets on the phone's screen, and the ones on the room's plate. */
   viewLock: Lock;
   roomLock: Lock;
-  /** The capture bloom's diameter, in plate widths. */
+  /** The capture bloom's diameter, in plate widths. The gradient reaches
+   *  transparent at the box's own edge (scan.css), so this IS the visible
+   *  disc rather than a box with a transparent margin. */
   bloom: number;
   layout: Record<Cause, Layout>;
 };
@@ -291,7 +293,7 @@ const GEO: Record<Mode, Geo> = {
     },
     viewLock: { arm: 13, pad: 5, stroke: 1.6, throw: 15 },
     roomLock: { arm: 34, pad: 14, stroke: 2.5, throw: 34 },
-    bloom: 3.2,
+    bloom: 2.3,
     layout: {
       // The centred lockup leaves both lower quadrants empty on a 1440 canvas,
       // so the device needs no layout of its own: it lives in the one the
@@ -340,7 +342,7 @@ const GEO: Record<Mode, Geo> = {
     },
     viewLock: { arm: 11, pad: 4, stroke: 1.4, throw: 13 },
     roomLock: { arm: 24, pad: 10, stroke: 2, throw: 24 },
-    bloom: 3,
+    bloom: 2.3,
     layout: {
       phone: {
         // The words move to the top of the screen so the bottom third can be
@@ -950,9 +952,9 @@ export const scan: Concept = {
   n: 2,
   name: "The scan",
   rationale:
-    "The source's corridor with the cause put in the frame: a scanner's brackets close on the real code, the capture fires, and only then does the album branch out of the plate. Cause, then effect, in space and in time. The stage opens on the reading this concept recommends, the room itself as the viewfinder with no device anywhere in the frame; the switch at the top right is lab chrome and flips to the other one, a guest's phone in the near field with its camera on the same code, and nothing else about the composition changes. A drawn phone is a compromise until the cutout is shot, and the room carries the same sentence with nothing to mistake for an app, so the ruling is one word: the room, or a phone.",
+    "The source's corridor with the cause put in the frame: a scanner's brackets close on the real code, the capture fires, and only then does the album branch out of the plate. The capture then repeats once per turn of the album, so the cause is restated rather than asserted once and the hero reads as the next guest scanning. The stage opens on the reading this concept recommends, the room itself as the viewfinder with no device anywhere in the frame; the switch at the top right is lab chrome and flips to the other one, a guest's phone in the near field with its camera on the same code, and it changes nothing else. The ruling is one word: the room, or a phone.",
   eyebrow:
-    "Settled: no eyebrow line. The code is the eyebrow and the caption under it names the act, because a word above the headline would be a fourth block of type in a composition that already carries a caption, a count, a sentence and two actions.",
+    "Settled: no eyebrow line. The code is the eyebrow and the caption under it names the act; a word above the headline would be a fifth block of type in a composition that already carries a headline, a caption, a count, a sentence and two actions.",
   proposed: {
     h1: "Every camera in the room, one album.",
     subhead:
@@ -960,14 +962,14 @@ export const scan: Concept = {
     secondary: "See the album it made",
   },
   departures: [
-    "A PHONE IN THE HERO, the one ruling this concept asks for and the reason for the switch on the stage: Will named it as the first thing he may overrule, because a phone can read as an app. Three things hold the drawn one to the camera rather than to software: no chrome on the screen but the notch, the device cropped by two edges so it reads as a held object rather than a mockup, and a small bracketed code on the screen, the size a code across a room really is in a viewfinder. In that reading the screen is also the hero's one emissive object, lighting itself and its own bezel, with no lamp, no Glow and no spill onto the room or onto a photograph. The room reading drops both and leaves one white capture bloom on the plate, spent in 400 ms. The recommendation is the room, until the cutout exists.",
-    "The count under the code is a STAND-IN, not a measurement: 282 photos from 48 guests at paint, climbing one per launch to 312 and holding. Keep it, wired to the demo event's real total, or cut the line. Round three made it the quiet half of the pair so the composition holds either way, and it must not ship as invented data.",
-    "The centred lockup, inherited from the source: precedent and not law, because the code owns the axis. Overrule it and this hero goes left with the source. On the 375 canvas the phone reading also moves the sentence and the actions ABOVE the band, which is what frees the bottom third for the near field; the room reading keeps the classic order.",
-    "Bible 13, decorative layers only: the corridor's pre-release state and the brackets' thrown-wide state live inside the reduced-motion block, because an effect would paint the composition settled and then snap it back. The h1, the code, the caption, the count, the sentence and the actions are plain markup and never gated, and reduced motion gets the whole composition deployed and locked.",
+    "THE ROOM, OR A PHONE. Will named a phone in the hero as the first thing he may overrule, because a phone can read as an app. The phone reading is also the one thing that lights this hero: its screen lights itself and its own bezel, and nothing else, in a composition that is otherwise cinema and unlit. The recommendation is the room, until the cutout on ASSETS row 8 is shot.",
+    "KEEP THE COUNT, OR CUT IT. 282 photos from 48 guests, climbing to 312, is a STAND-IN and must not ship as invented data: the wiring round reads the demo event's real total, or the line goes. Round three made it the quiet half of the pair, so the composition holds either way.",
+    "THE CENTRED LOCKUP, inherited from the source: precedent and not law, because the code owns the axis. Overrule it and this hero goes left with the source.",
+    "Bible 13, decorative layers only: the corridor's pre-release state and the brackets' thrown-wide state live inside the reduced-motion block, so nothing paints settled and then snaps back. Every word, the code, the caption and the count are plain markup and never gated, and reduced motion gets the whole composition deployed and locked.",
   ],
   assets: [
-    "ONLY IF A PHONE IS RULED IN: a hand-and-phone cutout to replace the drawn device (.hhc-phone), already on the log as ASSETS row 8. PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live and real; shot from just behind the holder's shoulder, the phone held up and angled away to the right, in low warm event light so the body is nearly a silhouette with one highlight along the edge; two variants, a one-handed grip and a two-handed one. Rule the room and the row can be withdrawn: that reading needs no asset at all.",
-    "Not a new ask: the corridor runs on the 12 landscape stand-ins and wants the 24 squares already requested (ASSETS row 2, asked by hero-source), 512 x 512, one grade, framed tight enough to read at 120 px. Nothing here needs the three phone-up photographs from row 3, because the device is drawn rather than photographed.",
+    "ONLY IF A PHONE IS RULED IN: a hand-and-phone cutout to replace the drawn device, already on the log as ASSETS row 8. PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live; shot from behind the holder's shoulder, the phone held up and angled away to the right, in low warm event light so the body is nearly a silhouette with one highlight along the edge; two grips, one-handed and two-handed. Rule the room and the row can be withdrawn.",
+    "Not a new ask: the corridor runs on the 12 landscape stand-ins and wants the 24 squares already requested (ASSETS row 2, asked by hero-source), 512 x 512, one grade, framed tight enough to read at 120 px. Nothing here needs row 3's phone-up photographs, because the device is drawn rather than photographed.",
   ],
   render: (p) => <Scan {...p} />,
 };
