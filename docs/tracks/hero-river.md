@@ -477,14 +477,17 @@ voice guide.
   takes the slot, so a push is not a deploy, it is an entry in a race that is refused outright when
   it misses (`docs/tracks/media-kit.md` round two; `lp/hero-burst` `8043b8e`). The deployment list
   proves it, and the refill is close to exact: deployments went READY at 02:04:10, 02:18:42,
-  02:33:19, 02:48:02, 03:02:50, 03:17:14, 03:31:57 and 03:46:21, one every **14.5 minutes**, taken
-  in turn by `lp/hero-scan`, `lp/palette`, `lp/floating-surfaces`, `lp/light`, `lp/hero-scan`,
-  `lp/hero-burst`, `lp/media-kit` and `lp/rounding`. This branch's four pushes all landed between
-  slots, twice by under a minute (03:31:06 against a slot at 03:31:57, and 03:45:19 against
-  03:46:21). **So the remedy is not to wait a day, and it is not a blind retry either: the next
-  slot is PREDICTABLE.** Take the newest deployment's timestamp, add 14.5 minutes, and push (or
-  force a redeploy of the head) just after it; confirm it by the SHA on the deployment rather than
-  by the push succeeding. One-line check that the alias is current:
+  02:33:19, 02:48:02, 03:02:50, 03:17:14, 03:31:57, 03:46:21 and 04:00:47, one every **14 minutes
+  24 seconds to 14 minutes 48 seconds** (measured across nine slots), taken in turn by
+  `lp/hero-scan`, `lp/palette`, `lp/floating-surfaces`, `lp/light`, `lp/hero-scan`, `lp/hero-burst`,
+  `lp/media-kit`, `lp/rounding` and `lp/media-kit` again. **So the remedy is not to wait a day, and
+  it is not a blind retry either: the next slot is PREDICTABLE.** Take the newest deployment's
+  timestamp, add about 14.5 minutes, and push (or force a redeploy of the head) at that second;
+  confirm it by the SHA on the deployment rather than by the push succeeding. This branch has now
+  entered the race five times and lost every one, three of them by under a minute and the last
+  **by five seconds** (pushed 04:00:52; `lp/media-kit` took the slot at 04:00:47), which is the
+  whole character of the thing: with eight tracks polling, whoever pushes first inside a 14 minute
+  window takes it, and losing says nothing about the branch or the build. One-line check that the alias is current:
   `curl -s "<alias>/design/c/home-hero?key=" | grep -c hhv-delta` returns 1 on this round and 0 on
   round two, where `grep -c hhv-lab` returns 1 instead. Per the round's own instruction the
   verification below ran on a local production server, and says so each time.
@@ -527,10 +530,12 @@ all three were inside this lane.
    writing: the alias bullet above now carries the correct mechanism (a leaky bucket, not a day-long
    freeze), the correct remedy (push again or force a redeploy, confirm by SHA) and the one-line
    check. The review's own evidence, that other branches went READY at 02:48, 03:02 and 03:17, is
-   quoted there, because it is what disproves the first draft. Three pushes from this branch have
-   now been refused, at 02:44, 03:00 and 03:31; the push carrying this manifest is the next entry in
-   the race. The board itself is verified below on a local production server serving `d9040aa`,
-   which is the round's own stated fallback.
+   quoted there, because it is what disproves the first draft. **Five pushes from this branch have
+   now been refused** (02:44, 03:00, 03:31, 03:45 and 04:00, the last five seconds after another
+   track took the slot), including two timed deliberately at the predicted refill. The board is
+   verified below on a local production server serving the head, which is the round's own stated
+   fallback, and the alias will serve this round the moment any push or forced redeploy from this
+   branch wins a slot: nothing about the build is at fault and no rebuild is needed beyond that.
 2. **Frames popped out of existence near the bottom of the stream, on both canvases.** Correct, and
    the one real break in the mechanism. The loop hid a card the moment its CENTRE passed `deadY`,
    but a card is laid out and scaled about that centre, so the cut threw away the whole upper half
