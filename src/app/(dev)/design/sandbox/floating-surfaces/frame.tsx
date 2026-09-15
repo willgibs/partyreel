@@ -200,9 +200,20 @@ export function Frame({
     );
   }, [ground, ramp, radius, entrance, light, ready]);
 
+  // Replay runs the frames you can SEE. Measured on the walk: one press with
+  // fourteen frames mounted closed and re-opened about thirty panels across
+  // fourteen documents at once and cost a 150ms hitch, all of it spent on
+  // entrances nobody was looking at. A row is always visible as a row, so the
+  // comparisons that matter (the two trios of row 5, the four rungs of a
+  // ladder) still replay together.
   useEffect(() => {
     if (!replay) return;
-    frameRef.current?.contentWindow?.dispatchEvent(new Event("flt:replay"));
+    const el = frameRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const onScreen = r.bottom > -200 && r.top < window.innerHeight + 200;
+    if (!onScreen) return;
+    el.contentWindow?.dispatchEvent(new Event("flt:replay"));
   }, [replay]);
 
   const mounted = useContext(MountContext);

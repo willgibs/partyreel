@@ -657,7 +657,10 @@ export function FloatingSurfacesBoard() {
           ramp={ramp}
           mode={mode}
           width={phone ? undefined : ladderWidth("radius")}
-          height={phone ? 470 : 300}
+          // Shorter than the light ladder on purpose: this one stands on a calm
+          // ground (a corner is read at the corner), so the room under the menus
+          // is dead space rather than the content the panel floats over.
+          height={phone ? 430 : 250}
           replay={replay}
           designKey={designKey}
         />
@@ -871,7 +874,7 @@ export function FloatingSurfacesBoard() {
       <Row
         n={8}
         name="Bible 14: the net holds, the first line is missing"
-        note="Round one called this a hole. It is not one, and the correction is the useful part. Bible 14 says every animation lives inside the reduced-motion block; tw-animate-css, which every primitive's entrance rides, ships no such block of its own. But globals.css has carried a global guard since 2026-06-11 that clamps every animation and transition to 0.01ms under the preference, with !important, so it wins over the utility. Measured on this board with the preference forced: all 36 floating surfaces across the 19 frames come back at 0.01ms. What the layer lacks is the FIRST line that guard's own comment asks for, a gate on the family itself, and the button hands it over as a paste: a stop rather than a clamp. It competes with nothing above, it is optional, and it is safe (radix unmounts a panel immediately when its animation name computes to none)."
+        note="Round one called this a hole. It is not one, and the correction is the useful part. Bible 14 says every animation lives inside the reduced-motion block; tw-animate-css, which every primitive's entrance rides, ships no such block of its own. But globals.css has carried a global guard since 2026-06-11 that clamps every animation and transition to 0.01ms under the preference, with !important, so it wins over the utility. Measured on this board with the preference forced: all 30 floating surfaces across the 18 frames come back at 0.01ms. What the layer lacks is the FIRST line that guard's own comment asks for, a gate on the family itself, and the button hands it over as a paste: a stop rather than a clamp. It competes with nothing above, it is optional, and it is safe (radix unmounts a panel immediately when its animation name computes to none)."
       >
         <div className="flex flex-wrap items-center gap-2">
           <Apply
