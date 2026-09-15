@@ -1,6 +1,6 @@
 ---
 track: lab-shell
-status: open
+status: handed-off
 cut: "2644310d"
 preview: false
 owns:
@@ -92,22 +92,52 @@ pastes readable markdown; the 375 sheet, the inline TOC, the static dock. `pnpm 
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Lab & design system: the shell's `Section` puts its id on the heading; the gallery's older
+  `RefSection` (`reference/reference-ui.tsx`, lab-library's lane) still puts it on the wrapper. The
+  table of contents reads both, but one shape is better than two: fold `RefSection` into `Section`.
+- Lab & design system: `design.css` still carries the `.mono` dark ground for the two legacy
+  marketing boards (`marketing-decomposition`, `marketing-hero-substrate`); it goes when they retire
+  to the record in the migration wave.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-<track>-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Shared-file changes asked of the Orchestrator (a `_data/` module, `touchpoints.ts`, `next.config.ts`): none
+- Head `832f1b4b`, pushed; preview partyreel-git-lp-lab-shell-partyreel.vercel.app
+- Synced with launch-prep at `995959c4` (the library and the rules layers), merged clean, no conflicts
+- Gates on the synced tree: typecheck ok, lint ok, test ok (2085 in 210 files), build ok (256 static
+  pages), `pnpm lab:smoke --base http://localhost:3417` ok (262 checks, 0 failing)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = this manifest plus `(shell)/layout.tsx`,
+  `(shell)/_shell/*`, `_data/{catalog.test,nav,search,state}.ts` and `design.css`. No exceptions.
+- Shared-file changes asked of the Orchestrator: none. The three you asked for are all in, plus the
+  `it.entry.badge` read, now typed directly (`EntryBadge` is `Extract<NavBadge, …>`, derived from the
+  shell's own union, so no bridge was needed once lab-library landed).
 - Assets requested from Will: none
-- Look at first: ...
+- **Two removals to read by eye.** (1) `_shell/preview-code.tsx` is DELETED: `gallery/specimen.tsx`
+  now frames a specimen with the real Tabs primitive, which is what Phase 0's `PreviewCode` imitated,
+  and it had no consumers left. If `lab-kit` or `lab-desk` added one on their branch, point it at
+  `Specimen` instead. (2) `PageHeader` no longer reports its description, badges and meta as data:
+  those props are usually ELEMENTS (a `<Ref>`), and a reader of the React tree sees a component's
+  children but never what it renders, so `Enforced by` copied as an empty line. They are read from
+  the rendered header by structure instead; the title and the trail still come from the props.
+- Look at first: `/design/library/doctrine/design-system` at 1440 (the rail, with its h3s indented
+  under their h2s, and Back to top), then ⌘K and type `glow`, `bible 22`, `landmine`, `stage`; then
+  `[` and `]` from any page; then Copy page on `/design/library/policies` and paste it somewhere.
+  At 375: the menu opens the sheet, the compact "On this page" names the heading you are in.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The lab shell went from Phase 0's skeleton to the
+grade the round asked for. `_data/state.ts` gave the lab one URL vocabulary (`key`, `canvas`,
+`ground`, `candidate`, `s`, `session`) split sticky from local, so the reading context rides every
+link and a page's own position never leaves it, plus the keyboard contract as a pure function; the
+desk's review session plugs into `useDigitKeys` for `1`..`9`. `_data/search.ts` and `buildSearchIndex`
+put every rule, component, board, policy, landmine, record entry, doc heading, proposal, track,
+ruling and glossary term in one index behind ⌘K. Three faults that hid the table of contents were
+fixed at their source: `Section` anchored its wrapper rather than its heading; a collapsed disclosure
+kept 8px because a grid item's padding survives `0fr`; and ★ `hidden xl:block` lost to production's
+`.hidden`, because `xl:` display utilities exist only in the lab and so compile into the losing
+`utilities.lab` sub-layer, which meant no rail above 1280 at all. Copy page writes real markdown now,
+the sidebar is a sheet below `lg`, and `PreviewCode` retired to `gallery/specimen.tsx`.
