@@ -2,6 +2,7 @@
 track: palette
 status: open
 cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_2: "499a1ad"
 merged_round_1: "bf1a6ef"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
@@ -20,6 +21,25 @@ reads:
 ---
 
 # lp/palette
+
+## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
+
+**Round 3 (the goal): the last mile, walked first by you.** Two rounds built the board; this one is the
+walk Will will take, taken before him. (1) **Walk it cold**, the way he will: the board on the launch-prep
+alias (round 2 is integrated there) and then on your preview, in a foreground tab, at 1440 and then
+375, every toggle, every candidate, and every "Apply to the site" block on the pages you listed (the home
+arc, `/pricing`, `/help`, `/contact`, the dashboard and an event page with `?key=`, the demo guest page).
+Note every place a stranger would stumble: an unexplained toggle, two candidates that read the same, a
+stage that needs a caption or has one too many, a slow first paint, a layout that breaks at 375, a
+control that does nothing visible. Fix each. (2) **Re-read the reviewer's findings** on your round-2
+handoff (below) and the other boards' latest Handoffs in `docs/tracks/` and proposals in `docs/specs/`:
+anything there that changes your answer changes your board. (3) **Make the decision easy**: the strongest
+candidate first; a candidate cut if it no longer earns its column (say so); every ask a one-word answer
+and no more asks than Will must answer; the departures only the ones he must rule on. (4) **Honesty and
+cost**: every number on the board is measured or labelled a stand-in; measure what runs (frame time, layer
+count) and cut what does not earn its cost; reduced motion gets the settled composition. (5) **The
+record**: "Handoff (round 3)" and "Record (round 3)" below; the Record is the paragraph the CHANGELOG
+carries for rounds 2 and 3 together, so write it as the whole story of what the board became.
 
 ## Round 2 (Will, 2026-09-14: "another iterative round on all active tracks before review")
 
@@ -195,7 +215,7 @@ The board, plus the three token blocks written in the Record so the ruling is a 
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (lab only; the findings above are the Orchestrator's to fold at the ruling)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -204,6 +224,14 @@ The board, plus the three token blocks written in the Record so the ruling is a 
 - The lab bucket: the Chrome tooling returns a flat black screenshot of any lab page scrolled past
   the fold, so a board is read by moving the content under a scroll position of zero (a negative body
   margin) or by measuring the DOM; a board that looks blank in a screenshot is not broken.
+- The lab bucket (round 2): the lab shell's nav is a Suspense boundary that does not resolve while
+  `document.hidden`, so a board read in a driven background tab lays out inside the 232px sidebar
+  cell and every measurement off it is wrong; read a lab page in a foreground tab or by the DOM.
+- The lab bucket (round 2): `src/app/(guest)/layout.tsx` mounts no design island, so a board's
+  "Apply to the site" block cannot reach `/e/[qr_token]`; one `<AppDesignIsland />` fixes it.
+- The design-system bucket (round 2): the lightbox backdrop is a literal `bg-black/90`
+  (`media-lightbox.tsx:617`), not the canvas token, so the deepest surface in the product moves with
+  nothing; fold it into whatever the grounds ruling says.
 
 ## Handoff (round 1)
 
@@ -560,6 +588,198 @@ body:has([data-mkt-skin="cinema"]) {
 
 ## Handoff (round 2)
 
+- Head: the tip of `lp/palette`, pushed, and the preview alias serves THE HEAD'S BOARD. The alias
+  `partyreel-git-lp-palette-partyreel.vercel.app` serves `b4be6a2` (deployment
+  `partyreel-ka5icno5j`, READY, alias assigned), proved on the served HTML rather than on the
+  deploy's existence: it carries "Today it has no --card of its own" and `break-inside-avoid` and
+  no longer carries "Near white until a candidate completes the set". The tip adds only this
+  manifest, so no board byte differs between `b4be6a2` and the tip. Board at
+  `/design/c/palette?key=`. The round-two board is the one whose control bar carries the class
+  `pal-walk-bar` (and thirteen rows with ids `#pal-01` to `#pal-13`); round one's had neither. The
+  last commit touching the board is the album fix; the `4b035c1` sync merge sits between it and the
+  first round-two commit.
+- Synced with `launch-prep` at `4b035c1` (it had moved from the `ca952b5` cut by one docs commit,
+  `docs/systems/design-system.md`; merged clean, no conflict, nothing in this lane touched).
+- Gates, re-run at this head on the synced tree: typecheck ok, lint ok (0 errors, 7 warnings, all
+  pre-existing and none in this lane, none in a file this track owns), test ok (1698 in 193 files),
+  build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` and the six
+  files under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `board.css`, `ramps.ts`,
+  `sections.tsx`, `call-sites.tsx`, and the new `specimens.tsx`). No exceptions. No production byte
+  changed: `globals.css`, `theme.css` and `marketing.css` were read and not touched.
+- Light QA, measured rather than eyeballed, and split by where each measurement was actually taken.
+  ON THE REBUILT PREVIEW, through the DOM: thirteen rows `#pal-01` to `#pal-13`, the walk bar 126
+  tall, the album's twenty four tiles every one `break-inside: avoid` with an IN-FLOW image whose
+  box coincides with its tile (so the fragment bug cannot come back unseen), the ink slab's computed
+  background equal to the value its own caption prints under every ramp (Today 0.155, A 0.185, B
+  0.125, C 0.185 at 0.006 chroma) with the card on the leaf following it, the Apply walk landing one
+  `<style>` with the real selectors (`:root, .surface-paper`, `.dark`, `.surface-ink` and the accent
+  block) and the badge then reading "This page wears it too", Clear removing it and leaving nothing
+  in `localStorage`, zero page-level horizontal scroll under BOTH stage toggles (Desktop 1440 and
+  Phone 375), zero running animations, no element in a mono stack, no em-dash in any text node.
+  ON A LOCAL PRODUCTION BUILD OF THE SAME COMMIT, at the two browser widths the test browser cannot
+  give (its window width is pinned at a 1120 viewport, so a 1440 and a 375 BROWSER have to be
+  measured locally): the content column is 1024 wide, every row's `scroll-mt-32` clears the bar, and
+  all nineteen stages hold their canvas with zero overflow at 1440 AND at 375 under all four ramps.
+  The one colour fade on the token wrapper lives inside `prefers-reduced-motion: no-preference`, so
+  a reduced-motion reader gets the jump cut and the same composition.
+  ★ The board reads as a 232px column in a HIDDEN tab: the lab shell's nav is a Suspense boundary
+  that does not resolve while `document.hidden`, so the content lands in the sidebar's grid cell.
+  It is a test-tool artifact, not a defect, and it hits every board in the lab: verify a lab page in
+  a FOREGROUND tab or by the DOM.
+- ★ **A rate-limited push leaves the alias STALE with nothing on the branch to say so: prove the
+  review surface by a marker string from the newest commit, never by the push.** The project sits
+  on a 100-deployments-per-day cap (`api-deployments-free-per-day`), which the first wave of tracks
+  exhausted, so the three pushes after `e440961` got "Deployment rate limited, retry in 24 hours"
+  as a GitHub commit status and produced NO deployment at all. The alias went on serving `e440961`,
+  which is how a read-only review came to walk a board without the three fixes below and report
+  them as live defects. Recovery, for the next agent to hit this: the cap is a ROLLING window, so
+  slots free a few at a time. Poll `POST api.vercel.com/v13/deployments` with
+  `{"gitSource":{"type":"github","repoId":1252816746,"ref":"lp/<track>","sha":"<sha>"}}` until it
+  stops answering `payment_required` (two attempts 45 seconds apart was enough here, at 22:18); the
+  deployment it creates takes the branch alias on its own. Then fetch the board and grep for a
+  string only the newest commit has.
+- What the fix pass after the first read-only review changed: NO board byte. All three defects that
+  review reported were already fixed in the tree at `b4be6a2`; what was broken was the review
+  SURFACE, an alias three commits behind the branch because the quota refused every push. The pass
+  rebuilt the alias at `b4be6a2`, re-ran the four gates at this head, re-measured all three fixes on
+  the SERVED build instead of a local one (see Light QA above), and corrected this Handoff, which
+  had claimed its QA "on the preview" when half of it was measured locally.
+- Three defects caught while verifying, all fixed, all worth knowing: the guest album fragmented and
+  then painted black (a CSS column will split an aspect-ratio box, and an ABSOLUTELY positioned
+  child of a column item is placed against the first column fragment in Chrome, so every tile past
+  column two drew its photograph on top of column one; `break-inside-avoid` plus an IN-FLOW image is
+  the fix, which is what production's masonry already does); the grounds row's ink slab wore the
+  SHIPPED `.surface-ink` while its caption named the candidate's value; and the accent never reached
+  `.surface-ink` at all (see departure 4).
+- ★ Two lab-tooling traps, for the next agent: a board read in a DRIVEN BACKGROUND tab lays out in
+  the 232px sidebar cell (the lab nav is a Suspense boundary that does not resolve while
+  `document.hidden`), and shifting a lab page with a negative body margin to dodge the black-
+  screenshot bug perturbs the Stage's own ResizeObserver, so every stage collapses to a thumbnail
+  and the screenshot lies twice. Read a lab page in a FOREGROUND tab at a normal scroll position,
+  or measure the DOM.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Shell change proposed (the Orchestrator's, not this lane's): the demo guest page cannot wear a
+  candidate.** `src/app/(guest)/layout.tsx` mounts no design island, so `setCandidateCss` never
+  reaches `/e/[qr_token]`. One line adds it, the same `<AppDesignIsland />` the host app's layout
+  mounts (it is a client island that reads `?key=` itself, so a layout that cannot await
+  `searchParams` is not a problem). Until then the walk covers `/`, `/pricing`, `/help`, `/contact`,
+  `/dashboard` and an event page, and the guest album is judged on the board (row 04).
+- Assets requested from Will:
+  - **Four hard cases inside the kit the `media-kit` track already asked for** (its 36 masters
+    replace all twelve stand-ins by id, so this is a line on that shot list, not a second delivery)
+    · one high key (a white dress against a white wall), one low key (a dance floor lit by one lamp),
+    one candle-warm, one stage-cool; four of the 36 at 1600 px long edge, landscape, one grade
+    · replaces the four this board leans on (`wedding-golden`, `party-balloons`, `concert-confetti`,
+    `reception-table`)
+  - **A portrait pair for the guest masonry** · two of the same 36 at 1600 px long edge, PORTRAIT,
+    same grade · replaces the hand-set tile ratios in `specimens.tsx` (eleven of the twelve stand-ins
+    are landscape, so the column flow the guest album actually ships is being faked)
+  - Why a palette board needs them: a ramp is only ever wrong against media that fights it, and the
+    stand-ins are mid-key and warm, so the light end of every candidate is going untested.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will; every one
+  takes a one-word answer):
+  1. The ramp: today, A, B or C.
+  2. The accent: ink, blue, violet or flare.
+  3. The accent's reach: all three jobs, attention only, or identity only.
+  4. The panel: one token, or the alphas.
+  5. The dark grounds: a ladder, or one room.
+  6. The canvas and the ink slab: split, or one.
+  7. The missing step: faint in, or out.
+  8. The dark card: opaque, or the veil.
+- The departures, verbatim from BoardMeta:
+  1. Round one's departure list said only candidate B kept the system's one translucent surface. That
+     was wrong: B's card is a color-mix off the room, which is fully opaque, so all three candidates
+     retire the veil and none of them said so. Row 08 renders both answers over a photograph and ask
+     8 makes it a ruling rather than a side effect.
+  2. A finding against bible 16, sharpened and changed. Counted by the job it does, the deepest dark
+     surface in the product is not a token at all: the lightbox paints its backdrop with a literal
+     `bg-black/90` (`media-lightbox.tsx:617`). What `--gallery` actually does is the media WELL (a
+     tile before its image decodes, a coverless event card, the reel frame) and, through
+     `.surface-ink`, the footer SLAB, and those two want opposite things. Rule 16 counts four
+     grounds; there are at least six surfaces and one of them is a literal. Row 02.
+  3. C re-opens a decision `globals.css` records as closed: zero-chroma purity IS the brand point,
+     and saturating the neutrals was consciously declined. C is that decision re-argued at 0.003 to
+     0.008 chroma, on the board rather than in a comment.
+  4. The accent has to be written into `.surface-ink` or it never reaches the footer. Today the leaf
+     declares `--brand: var(--gallery-foreground)`, and a class rule outranks a value inherited from
+     the page around it, so a hue ruled for the whole site would reach every surface in the product
+     except the mark that sits at the bottom of every page. The accent paste therefore carries a
+     third block, and every candidate's ink map keeps a `--brand` line of its own so a ruling of ink
+     alone cannot leave the leaf inheriting the PAPER ink onto a dark slab. Row 06.
+  5. B deletes the cinema override in `marketing.css`, the skin block's only surface value. The
+     cinema-to-footer seam then belongs entirely to light, which is the light board's lane.
+  6. All three candidates complete `.surface-ink` (no `--card`, `--popover`, `--secondary`,
+     `--accent` or `--input` ships today), so an ink leaf can finally host a card and a menu.
+  7. Each candidate adds one custom property, `--faint`, which needs one line in `theme.css`'s
+     `@theme inline` block (`--color-faint: var(--faint);`) before a `text-faint` utility exists.
+     The board reaches it with an arbitrary value.
+  8. Row 07 borrows the light exploration's proposed shadow family and its named ring
+     (`docs/specs/light.md`) so the ramp and the depth cue are judged in one look. Those values are
+     NOT in this board's paste: depth is that track's lane and its ruling lands there.
+  9. The demo guest page cannot wear a candidate today (the shell change above).
+- **What round two took from the other boards:** the light spec's shadow family (one geometry, two
+  sizes, one alpha ramp per ground) and its named ring lift, rendered on every candidate's grounds in
+  row 07; the shell's `setCandidateCss` for the walk. The media-kit track's shot list carries both
+  asset asks rather than a second delivery.
+- Look at first: **row 01**, the four rulers with the ladder tables and the state row under each.
+  Then **row 02** (the grounds counted by job: the literal, the well, the slab, with Today's
+  near-white card on the slab and a candidate's completed set one toggle away), then **row 03** (the
+  event page and the dashboard in both modes, the densest chrome in the product). Then press
+  **Apply A to the site** and walk `/`, `/pricing`, `/help`, `/contact`: the panel switch and the
+  faint switch ride along, so four of the eight asks are answerable on real pages. **Row 12** is the
+  accent, all four hues on every job at once with the state hues at the foot.
+
+## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-14). Round two turned the palette board from a proof
+into a ruling surface. Every candidate now leaves the board: the full token block plus the selected
+accent, the panel at one token and `--faint` on the 37 alpha-dimmed sites, handed to the whole site
+through the shell's `setCandidateCss`, so four of the eight asks are answered on `/`, `/pricing`,
+`/help` and `/contact` rather than on a stage. The judged surfaces widened to what the product is
+made of: the event page's stat band, command strip and review queue, the dashboard with the real
+filter chips, the guest album on the canvas, the ink leaf hosting a card and a menu, the text steps
+in real copy, the six state hues under every ramp in both modes. Depth is judged with the ramp (the
+light spec's lift and float and the named ring), and three findings sharpened: the deepest surface in
+the product is a literal `bg-black/90`, not the canvas token, so `--gallery` is the media well and
+the ink slab; round one was wrong that B kept the translucent card, so the card became a three-way
+toggle that folds into the paste; and the accent never reaches `.surface-ink` unless the paste says
+so. The asks now take one-word answers. Lab only: no production byte changed.
+
+## The paste, round two (what changed in it)
+
+The ruling is a candidate letter plus an accent word; the blocks are generated by the board itself
+(`tokenBlock()` and `accentBlock()` in `ramps.ts`), so row 13 renders exactly what lands and nothing
+here needs retyping. Round one's three blocks are above, unchanged in every value; round two adds
+two lines to each candidate's `.surface-ink` (`--brand: var(--primary)` and its foreground, without
+which a pasted ink block inherits the PAPER ink onto a dark slab), and the accent's own paste is:
+
+```css
+/* globals.css, the accent (nothing prints for a ruling of "ink": it is the alias that ships) */
+:root,
+.surface-paper {
+  --brand: <the hue's light value>;
+  --brand-foreground: <its light foreground>;
+}
+
+.dark {
+  --brand: <the hue's dark value>;
+  --brand-foreground: <its dark foreground>;
+}
+
+/* the footer leaf neutralises --brand today; the accent has to reach it */
+.surface-ink {
+  --brand: <the hue's dark value>;
+  --brand-foreground: <its dark foreground>;
+}
+```
+
+The four hues, as they sit in `ramps.ts`: blue `oklch(0.55 0.17 252)` light and `oklch(0.72 0.15 252)`
+dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58 0.22 330)` and
+`oklch(0.7 0.2 330)`. Ink is today's alias and changes no line.
+
+## Handoff (round 3)
+
 - Head <sha>, pushed; preview partyreel-git-lp-palette-partyreel.vercel.app
 - Synced with launch-prep at <sha> (or: launch-prep had not moved)
 - Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
@@ -569,6 +789,6 @@ body:has([data-mkt-skin="cinema"]) {
 - The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
 - Look at first: ...
 
-## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (<date>). ...
