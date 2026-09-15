@@ -786,10 +786,12 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
 
 ## The paste, round three (every combination a ruling can be)
 
-The ruling is a letter plus a temperature plus an accent word, so there are six token blocks a ruling
-can land and every one of them is written down. The board generates all of them from the same
-`tokenBlock()` the paste uses, so nothing here is retyped and nothing can disagree with what row 02
-renders.
+The ruling is a letter plus a temperature plus an accent word plus two one-word answers about the
+dark card and the missing step. The letter and the temperature are the two that rewrite whole
+blocks, so their six combinations are written out in full below; the card and the faint answers each
+move ONE line, and what that line becomes is printed here rather than left for the reader to derive.
+The board generates all of it from the same `resolveRamp()` + `tokenBlock()` the paste uses, so
+nothing here is retyped and nothing can disagree with what row 02 renders.
 
 | The ruling | What lands |
 | --- | --- |
@@ -801,10 +803,41 @@ renders.
 | B, warm | the block below, "B, warm". |
 
 The accent's own block (`accentBlock()`, three selectors) is in "The paste, round two" above and is
-unchanged; a ruling of "ink" prints nothing there. The panel and `--faint` switches are utility
-rewrites rather than token values and ride the walk, not the paste; `--faint` itself is a new custom
-property in both candidates and wants one line in `theme.css`'s `@theme inline` block
-(`--color-faint: var(--faint);`) before a `text-faint` utility exists.
+unchanged; a ruling of "ink" prints nothing there.
+
+**Ask 7, the dark card, is the third dimension, and it IS in the paste.** `resolveRamp()` runs the
+card answer before the temperature, so it reaches `tokenBlock()` rather than the walk: it rewrites
+`--card` in `.dark` and in `.surface-ink`, and nothing else in any block moves. The control offers
+the same three positions the ask does. What each lands, per letter, neutral (pinned by
+`temperature.test.ts`, "the dark card ruling, per letter"):
+
+| The letter | declared | opaque | the veil |
+| --- | --- | --- | --- |
+| today | `oklch(0.21 0 0 / 0.62)` | `oklch(0.21 0 0)` | as declared |
+| A | `oklch(0.235 0 0)` | as declared | `oklch(0.235 0 0 / 0.62)` |
+| B | `color-mix(in oklab, var(--foreground) 12%, var(--background))` | as declared | the same mix at 62 percent: `color-mix(in oklab, <that value> 62%, transparent)` |
+
+Three things that table says out loud. Today is the only letter where "opaque" moves a value, because
+today is the only letter that still declares the translucent card; on both candidates the moving
+answer is "the veil", which ADDS translucency back. Today's `.surface-ink` declares no `--card` at
+all (the gap row 06 is about), so on today the ruling lands one line rather than two, while on A and
+B it lands the same value in both blocks. And on a WARM ruling the opaque form takes the room's hue
+like any other surface (`oklch(0.21 0.006 60)` for today) while the veiled form stays at chroma 0 on
+purpose: `warm()` leaves every veil alone because a veil borrows the surface under it, which in a
+warm room is already warm.
+
+**Ask 6, the missing step, moves one line in each of the three blocks.** "In" is what every block
+below prints. "Out" is a ruling that the custom property is never declared, so it DELETES the
+`--faint` line from `:root/.surface-paper`, from `.dark` and from `.surface-ink`, leaves the
+37 call sites compositing an alpha of the second step by hand exactly as they do today, and
+drops the `theme.css` prerequisite with it (with no `--faint` there is no `--color-faint` line and no
+`text-faint` utility to grow). The board does this to the ramp itself rather than to one renderer,
+so "out" also empties the rung at row 01 and sends row 10's third step back to the fallback; row 13
+prints whichever answer is set.
+
+**The panel switch is the one answer that is NOT in the paste**, and cannot be: it deletes an alpha
+at 35 call sites (six distinct ones) rather than moving a token value, so it rides the walk instead,
+as a stylesheet the lab hands the real pages. Scaffolding, not shippable CSS.
 
 **A, warm, and C's one correction.** `warm(A)` reproduces section C's five blocks token for token
 with two differences, both deliberate: the two `--brand` lines round two added to every candidate's
@@ -985,16 +1018,51 @@ body:has([data-mkt-skin="cinema"]) {
 
 ## Handoff (round 3)
 
-- Head: the tip of `lp/palette`, pushed. Every board byte is at **`54a2d3d`** (the fix pass after
-  the read-only review); the commits after it are this manifest's own, so no board byte differs
-  between `54a2d3d` and the tip. Board at `/design/c/palette?key=`.
+- Head: the tip of `lp/palette`, pushed. Every board byte is at **`d773ad6`** (the SECOND fix pass,
+  after the read-only re-review); the commits after it are this manifest's own, so no board byte
+  differs between `d773ad6` and the tip. Board at `/design/c/palette?key=`.
   **The round-three board is the one whose candidate card is followed by a panel headed "What the
   letter already decides", and whose control bar reads "Put it on the real pages"; round two's had
   neither, and round two's ramp toggle had a fourth button, C. The FIX PASS on top of it is the one
   whose meta panel is preceded by a panel headed "From the other boards", whose Departures list has
-  six lines rather than ten, and whose walk at row 13 is seven links rather than six.**
-- **What the fix pass changed, one line each (the read-only review's four should-fix items, plus two
-  the fix walk found itself).**
+  six lines rather than ten, and whose walk at row 13 is seven links rather than six. The SECOND fix
+  pass is the one whose bar reads "The missing step" and "Declared Opaque Veil 62%": press Out and
+  row 01's faint rung goes hatched on all three ramps, row 10's third caption reads
+  `text-muted-foreground/70`, and the paste at row 13 loses its three `--faint` lines.**
+- **What the SECOND fix pass changed (the read-only re-review's two should-fix items, plus the
+  cause the fix found underneath the first of them).**
+  1. **The missing step moves the board, because it is a ramp edit now rather than a renderer
+     flag.** The review was right that "The faint step: In / Out" changed no pixel: `faintOnDimmed`
+     reached `applyCss`/`applyLabel` and nothing else. Answering it in one renderer would have been
+     the wrong repair, because a ruling of "out" means the custom property is never declared, not
+     that one specimen draws differently. So `resolveRamp()` takes the answer and `withoutFaint()`
+     deletes `--faint` from the light, dark and ink blocks, and every reader of the ramp follows at
+     once: row 01's ladder draws the hatched "none" rung it already draws for today, row 10's third
+     step falls back to the alpha the 37 sites composite by hand (its label reads
+     `text-muted-foreground/70`, and the caption under the frames says which of the two is on
+     screen), the frame labels read "faint in" / "faint out", and row 13 prints a paste with no
+     `--faint` line and drops the `theme.css` prerequisite that goes with it.
+  2. **The cause underneath it: two rows resolved their own ramp.** Rows 01 and 03 called
+     `resolveRamp()` themselves and had never been given the new answer, which is exactly how a
+     switch goes decorative. Every ramp on the board goes through ONE local resolver now
+     (`resolved()` in `PaletteBoard`), with the reason written at it, so a row cannot answer a
+     different question from the bar again. Verified by DOM: with Out pressed, all six ladder rungs
+     (three ramps x two modes) read "none"; with In pressed, today's two read "none" and the
+     candidates' four read their value.
+  3. **The paste section covers the card dimension, and ask 7 reads its control.** "The paste,
+     round three" now prints what each card answer lands per letter in both blocks it touches, with
+     the three things that table says out loud (today is the only letter where "opaque" moves a
+     value; today's `.surface-ink` declares no `--card` at all, so it lands one line rather than
+     two; a warm ruling warms the opaque form and leaves the veiled one to the room showing
+     through). Ask 7 offers the control's three answers rather than two of them, and the control's
+     first position is "Declared" rather than "As declared" so both read as one word. The same
+     section now also states what the faint answer does to the paste, and that the panel answer is
+     the one switch that cannot be in it. Every cell of that table was read back off the board's own
+     `<pre>` rather than derived: A declared/opaque `oklch(0.235 0 0)` and veil
+     `oklch(0.235 0 0 / 0.62)` in `.dark` and `.surface-ink` both; today two lines, not three; B's
+     veil the mix inside a mix. `temperature.test.ts` pins all of it (15 tests, up from 8).
+- **What the FIRST fix pass changed, one line each (the read-only review's four should-fix items,
+  plus two the fix walk found itself).**
   1. **Row 02 can no longer pair a set with itself.** `today` is one of the three answers ask 1
      offers, and pressing it made the candidate the same object as the left half: the row printed
      "Today" beside "Today", five identical lightnesses under each half, and two children on one
@@ -1025,8 +1093,8 @@ body:has([data-mkt-skin="cinema"]) {
 - ★ **The preview alias is STALE and cannot be refreshed today: the project is at Vercel's
   100-deployments-a-day ceiling.** `partyreel-git-lp-palette-partyreel.vercel.app` still serves
   round two's `b4be6a2` (22:18), and it still carries "C. Film stock", which round three cut. After
-  the fix pass it is two heads behind rather than one, and the marker to check on the rebuilt alias
-  is the panel headed "From the other boards". Three
+  the second fix pass it is three heads behind, and the marker to check on the rebuilt alias is the
+  bar reading "The missing step" with a "Declared" position on the card control. Three
   pushes after it produced no deployment at all, and a forced redeploy of the head answers
   `payment_required`, `api-deployments-free-per-day`, `remaining: 0`, `reset` tomorrow. Other
   branches deployed inside the same window before the last slots went, so this is the whole project's
@@ -1056,14 +1124,17 @@ body:has([data-mkt-skin="cinema"]) {
   Nothing this round won one: sixteen calls across four boundaries, including twelve placed across
   the 00:00:50 boundary exactly as above, were all refused. That is why this handoff is written
   against a local server, and why the alias is the Orchestrator's to refresh before Will walks it.
-- **So this round's QA, and the fix pass's, were taken on a local server in the worktree**
-  (`pnpm dev` on port 3021, the lab key on every URL) plus a local `pnpm build`, which serve the head
-  exactly. The fix pass called the Vercel API not at all, by instruction: the project is still at the
-  ceiling and the alias is the Orchestrator's to refresh. Every
-  number below was measured there through the DOM rather than eyeballed. One thing to know if you
-  do the same: running `pnpm build` in a worktree that has `pnpm dev` up will eventually kill the
-  dev server, because they share `.next`; restart it on another port rather than doubting the
-  page.
+- **So this round's QA, and both fix passes', were taken on a local server in the worktree**
+  (round three and the first fix pass on `pnpm dev`, port 3021; the SECOND fix pass on a local
+  PRODUCTION build, `pnpm build` then `next start -p 3031`, which is the closest thing to the alias
+  available today), the lab key on every URL. Neither fix pass called the Vercel API at all, by
+  instruction: the project is still at the ceiling and the alias is the Orchestrator's to refresh.
+  Every number below was measured there through the DOM rather than eyeballed. Two things to know if
+  you do the same. Running `pnpm build` in a worktree that has `pnpm dev` up will eventually kill the
+  dev server, because they share `.next`; restart it on another port rather than doubting the page.
+  And the browser window here caps at an inner width of 1424, so "1440" is the board's own stage
+  toggle (which sets the canvas width) rather than the window: the stage is what the rows render at,
+  and the document's own horizontal overflow was 0 at both settings.
 - Synced with `launch-prep` FOUR times as the wave integrated around this round, every one clean
   and none of them touching this lane: `dd4aa0b` (13 commits, floating-surfaces' own lane),
   `1c2d0ea` (13 more, hero-scan's round three), `8d8d0af` (13 more, light's round three) and
@@ -1071,10 +1142,10 @@ body:has([data-mkt-skin="cinema"]) {
   shell change this track had asked for twice). The fourth sync is the one that changed the board:
   `fb395fe` mounts the key-gated `AppDesignIsland` in `(guest)/layout.tsx`, so the guest page joined
   the walk. The gate below is the run on the fourth synced tree.
-- Gates on the synced tree, re-run at the fix-pass head: typecheck ok, lint ok (0 errors, 6
-  warnings, all pre-existing and none in a file this track owns), test ok (1769 in 198 files, 8 of
-  them this round's `temperature.test.ts`; the count rose with the fourth sync, not with this lane),
-  build ok (248 static pages).
+- Gates on the synced tree, re-run at the second fix pass's head: typecheck ok, lint ok (0 errors, 6
+  warnings, all pre-existing and none in a file this track owns), test ok (1776 in 198 files, 15 of
+  them this round's `temperature.test.ts`, up from 8 with the card and faint rulings pinned), build
+  ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` plus six
   files under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `ramps.ts`, `sections.tsx`,
   `specimens.tsx`, `call-sites.tsx` and the new `temperature.test.ts`; the fix pass added
@@ -1302,15 +1373,15 @@ body:has([data-mkt-skin="cinema"]) {
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (2026-09-14). Rounds two and three turned the palette board from
-a proof that the ramp is wrong into a surface a ruling can be read off in a few words. Round two made
-every candidate leave the board as the paste its ruling lands, handed to the whole site through the
-shell's `setCandidateCss`, and widened the judged surfaces to what the product is made of: the event
-page, the dashboard, the guest album, the ink leaf hosting a card and a menu, the state hues and the
-light spec's depth cues on every candidate's grounds. Round three walked it cold and cut, not added. Candidate C was A's ladder at a temperature by its own admission, so it became
-a switch any ramp can wear, pinned by a test to C's published blocks token for token, and warm B
-became askable; two asks were consequences of the letter and are printed as what it already decides;
-and today sits beside the candidate in one canvas, because a 0.02 step is what an eye cannot hold
-across a toggle. Two quoted counts were wrong and are measured (the panel ships at 35 sites, not 45;
-the ring nobody wrote down at 37, not 77), and the walk is seven clickable pages, the last the guest
-album, which no board could reach until the shell mounted its island. Lab only, no production byte.
+Merged into `launch-prep` at `<sha>` (2026-09-14). Rounds two and three turned the palette board
+from a proof that the ramp is wrong into a surface a ruling reads off. Round two made every
+candidate leave the board as the paste its ruling lands, handed to the whole site through the shell,
+and widened the judged surfaces to the event page, the dashboard, the guest album and the ink leaf
+hosting a card and a menu. Round three walked it cold and cut, not added: candidate C was A's ladder
+at a temperature by its own admission, so it became a switch any ramp can wear, pinned by a test to
+C's blocks, and warm B became askable; two asks were consequences of the letter and print as such;
+and today sits beside the candidate, because a 0.02 step is not a memory test. Every switch in the
+bar repaints the board from one resolver, so none can label an answer the page does not show. Two
+counts were wrong and are measured (the panel at 35 sites, not 45; the ring at 37), and the walk is
+seven pages, the last the guest album, which no board could reach until the shell mounted its
+island. Lab only, no production byte.
