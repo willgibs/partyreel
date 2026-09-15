@@ -222,14 +222,37 @@ so the burst cannot flash.
 ## Handoff (round 4)
 
 - Head: the tip of `lp/hero-source`, which is THIS commit (a manifest cannot name its own SHA). The
-  last code commit is `dc4040c`, and `eeadf45` is the merge that synced launch-prep. Pushed. The
-  preview at `partyreel-git-lp-hero-source-partyreel.vercel.app` was NOT
+  last code commit is `505df89`, the review pass; `dc4040c` is round four's build and `f12841b` the
+  merge that synced launch-prep a second time, for the dock (below). Pushed. The preview at
+  `partyreel-git-lp-hero-source-partyreel.vercel.app` was NOT
   waited on: Vercel is capped for the day, so the board was verified on this worktree's own
-  production build (`pnpm build && pnpm start` on :3212) and on its dev server (:3210), in a
+  production build (`pnpm build && pnpm start` on :3213) and on its dev server (:3214), in a
   FOREGROUND Browser-pane tab at 1440 and at 375, with every number taken off the DOM rather than
   off a screenshot.
-- Synced with launch-prep at `6484558` (it had moved two commits, both in docs this track does not
-  own: `docs/PROGRAM.md` and `docs/tracks/orchestrator.md`). Merged clean, no conflicts.
+- **What the review pass changed** (five should-fix findings, no blocker; the concept's design is
+  unchanged, and only one string a person reads moved):
+  1. **The dock.** Will's note (a) was not satisfied on this board, and the ask had been filed rather
+     than met. The Orchestrator had landed it on `launch-prep` in the meantime, so this branch merged
+     that and walked the docked board: see shell ask 1 below, now marked landed and verified.
+  2. **A wrong sentence on the board.** `concept.assets[0]` ended with "Twelve stand-ins cap the
+     corridor at six frames a side; 24 doubles the cadence with no other change." That is false in
+     both halves: the pool is `ceil(FLIGHT_MS / launch) + 1`, 17 a side, the cadence is the constant
+     `Geo.launch`, and `FRAMES.length` is read in exactly one place, the photograph offset. So the
+     assets change neither number. It was replaced with what the 24 actually buy, which is what the
+     file's own `Geo.launch` comment already said: no photograph on screen twice.
+  3. **The asks are now quoted, not paraphrased.** The three asset lines below are `concept.assets`
+     itself, diffed against the branch head with whitespace normalised. They previously diverged
+     enough that quoting the manifest would have quoted text Will never sees.
+  4. **The inflow.** Round four's goal item 3 asked for a Handoff statement of what the sibling can
+     reuse, and the Handoff had none. It is now its own bullet below.
+  5. **The scan.** Goal item 2 was answered only as a lane statement. The design fact, that round
+     four moved every shared corridor constant and the scan did not, is now a bullet with the delta.
+  Also fixed while in there: the file's cadence comment said 1.47 canvas widths of photograph and its
+  header said 1.33, for the same quantity. Both are now one measured number on one stated definition.
+- Synced with launch-prep TWICE: at `6484558` (two doc commits this track does not own) and then at
+  `07ad3b2`, the Orchestrator's shell round, which is what landed this board's dock (shell ask 1
+  below). Both merged clean, no conflicts. The second sync is why the board Will opens carries its
+  switches on screen.
 - Gates on the synced tree: typecheck ok, lint ok (0 errors; the 6 warnings are the pre-existing
   ones on `contact-form.tsx`, two feature sections, `jobs.ts` and `use-flip.ts`), test ok (1804 in
   199 files), build ok (248 static pages, unchanged from launch-prep), re-run on the final tree.
@@ -238,14 +261,74 @@ so the burst cannot flash.
   `src/app/(dev)/design/sandbox/home-hero/source.tsx`. **No exceptions.** `shared.tsx`, `board.tsx`,
   `scan.tsx`, `inflow.tsx`, `../album-hero/burst.tsx` and the shell were read and not touched.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- **What the inflow can take** (round four's goal item 3, the half addressed to the sibling track).
+  The long version is the file header of `source.tsx`, the block titled "WHAT THE INFLOW CAN TAKE";
+  this is the short one, because `hero-inflow` reads `docs/tracks/`, not this branch's unmerged file.
+  - **The direction is ONE constant.** `FLOW: 1 | -1` near the top of the file, read in exactly one
+    place: `phaseOf(raw) = FLOW === 1 ? raw : 1 - raw`. Set it to -1 and the whole corridor runs
+    inward with nothing else changed. A frame enters large at the canvas edge, shrinks as it travels
+    in, and the ramp that fades a frame UP at the code fades it DOWN there instead, because opacity
+    is a function of the phase and an inward phase ends at zero. Nothing else in the file knows
+    which direction it is.
+  - **Liftable whole, all of it direction-agnostic:** the three depth lanes (`LANES`, one multiplier
+    scaling a frame's size, travel, vertical drift and turn together, so a far frame is small AND
+    slow AND near the axis); the aspect mix (`ASPECTS`, half 4:5, a quarter square, a quarter 4:3,
+    all centre-cropped from the same squares, so it asks for no new asset); the funnel
+    (`Geo.spread`, the drift multiplied by how far out the frame already is, which is what makes the
+    two arms a cone with the object at the apex); `fitOf`, which sizes each DOM box to that card's
+    own largest on-canvas moment so no frame is ever rasterized above 1:1 where a person can see it,
+    and returns the progress past which the loop can stop writing to it; `reachOf` plus `build`'s
+    `lock`, which solve the lane the type sits in off the running corridor instead of choosing it;
+    the rest state written as per-card custom properties; and `NOSCRIPT_RULE`.
+  - **The two things an inflow should reconsider rather than inherit:** the reveal (a branch-out is
+    an outward idea, so an inflow's first beat probably wants the corridor already arriving) and the
+    paint order (near-over-far still holds, but an inflow's nearest frames are the ones at the
+    edges, so the corridor converges on the plate rather than opening out of it).
+  - Timing, said plainly rather than implied: `hero-inflow` handed its round one off at `dfc6f09`
+    built on round three's source, so it carries 24 cards on one plane, `launch: 900` and
+    `SCALE_GAIN 2.81`, and has seen none of this. So this bullet is for the Orchestrator at
+    integration and for the inflow's next round, not a live handoff.
+- **The scan, its sibling** (round four's goal item 2, as a design fact and not only a lane
+  statement). `scan.tsx` is in this track's `reads:` and was not touched. But round four moved every
+  constant the two concepts shared, so unless the scan moves with it, concepts 1 and 2 will no longer
+  read as the same corridor on one page, which is the comparison the item exists to protect. Checked
+  rather than assumed: `origin/lp/hero-scan` handed off round four at `0872b4c` and its constants
+  block is unchanged, so the divergence is real. Its header still opens "The corridor's constants
+  (the source's numbers, kept exactly)", which is no longer true. What moved:
+
+  | the shared constant | round 3, which the scan still carries | round 4, the source now |
+  | --- | --- | --- |
+  | cards | 24 on one plane | 34 desktop, 28 phone, across 3 depth lanes |
+  | pool per side | 12 (`CARDS / 2`) | `ceil(FLIGHT_MS / launch) + 1` = 17 desktop, 14 phone |
+  | cadence | `LAUNCH_MS` 900, both canvases | `Geo.launch` 620 desktop, 780 phone |
+  | flight, reveal | 9600, 1750 | unchanged |
+  | the two curves | `travelAt`, `scaleAt` | unchanged, exactly |
+  | opacity ramp | `smoothstep(0, 0.24, p)` | `smoothstep(0, 0.16, p)` |
+  | scale gain | `SCALE_GAIN` 2.81, one hand-tuned number | `gain` 2.6 over a per-card `fitOf` divisor |
+  | card box | 330 desktop, 140 phone, always square | 300, 155, times the lane, times the aspect |
+  | travel | 1.65 canvases, both | 1.72 desktop, 2.05 phone, times the lane |
+  | rotate | 9.5, 8.5 | 8.5, 7.5, times `(0.62 + 0.55 * depth)` |
+  | perspective | 900, 360 | 1100, 420 |
+  | vertical drift | 44, 12 | 54, 24, times the lane, times the funnel |
+  | the h1's measure | 1100 | 920, and both lockup offsets are solved, not chosen |
+
+  The call is the Orchestrator's or Will's and not this track's, so it is put rather than taken: the
+  honest reading is that the cheapest way back to one corridor is the scan lifting round four's
+  wholesale, which is mechanical (the lanes, the aspects, the funnel, the cadence, the fit solver)
+  and leaves the scan's own cause, the phone and the release, untouched. Moving the source back
+  instead costs the density Will's own board note asked about. If neither happens before the ruling,
+  the scan's header should at least stop saying the numbers are kept exactly.
 - **Shell changes asked for** (the Orchestrator lands them):
-  1. `sandbox/home-hero/board.tsx` still carries its page-wide switches (Desktop / Phone 375, Ruled
-     copy / Proposed copy, Replay) in a static bar at the top of the page. The album-hero board has
-     already moved its to `BoardDock`. This board is THREE full-viewport stages stacked, so it is
-     the one where Will's note (a) bites hardest: comparing the source against the scan at 375 means
-     scrolling back past a 930 px stage for every flip. The file is the Orchestrator's; the concepts
-     need no change for it.
-  2. A stage whose Tailwind breakpoints read the CANVAS rather than the browser window. This is the
+  1. **LANDED, and verified here.** The ask was that `sandbox/home-hero/board.tsx` stop carrying its
+     page-wide switches (Desktop / Phone 375, Ruled copy / Proposed copy, Replay) in a static bar at
+     the top of a page of THREE full-viewport stages, which is where Will's note (a) bites hardest:
+     comparing the source against the scan at 375 meant scrolling back past a 930 px stage for every
+     flip. The Orchestrator landed it at `07ad3b2` and this branch merged that at `f12841b`, so the
+     walk below was done on the docked board: the three switches sit in `BoardDock`, fixed on screen,
+     at both canvases. Nothing in this track's two files changed for it. Note for the Orchestrator:
+     this branch now carries `07ad3b2`, so a merge of `lp/hero-source` brings no shell change of its
+     own, only the sync.
+  2. **Still open.** A stage whose Tailwind breakpoints read the CANVAS rather than the browser window. This is the
      one thing blocking note (c), "more real UI", on a hero board: the concept already renders the
      real `Button`, the real `Caption`, the real server-rendered `FooterQr` and real `next/image`,
      but the site header cannot go in the stage, because `sm:`/`md:` inside a 375 stage fire off the
@@ -253,20 +336,31 @@ so the burst cannot flash.
      header actually sits on (it is a transparent 4rem overlay), and round four had to solve the
      headline's ceiling against a header it could not draw. A container-query shim on `Stage` would
      let every board show real chrome.
-- **Assets requested from Will** (unchanged in kind, refined in spec; the board lists them too):
-  1. **24 event photographs, 512 x 512 squares, one grade, 6 to 35 KB webp each** (ASSETS row 2,
-     already asked), across weddings, birthdays, corporate and festivals. They replace the 12
-     landscape stand-ins the corridor cycles (`FRAMES` in `shared.tsx`); the left arm takes the
-     first 12 and the right the last 12.
-  2. **The refinement round four earned**: each square must survive a CENTRE CROP to 4:5 and to 4:3
-     as well as reading at 120 px. Half the corridor is portrait now, because that is what guests
-     shoot, and the crops come out of the same square, so this costs no new shoot. A subject near
-     an edge loses its head to the 4:5 crop.
-  3. What the 24 buy, stated so the cost of not having them is legible: the two arms are offset by
-     half the frame set, so with 24 the arms' visible windows are disjoint and no photograph is on
-     screen twice. With the 12 stand-ins four are, on opposite arms, at very different sizes, three
-     of the four in different crops. Nothing else is asked: the QR is the real demo event's, and
-     there is no plate art, no lamp and no video in this concept.
+- **Assets requested from Will.** The three lines below are `concept.assets` quoted, which is
+  exactly what the board's Asks row renders under the stage, so the manifest and the board say the
+  same words and the Orchestrator can quote either. Only this file's line wrapping differs; the text
+  was diffed against the branch head with whitespace normalised and matches character for character.
+  1. "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, across weddings,
+     birthdays, corporate and festivals. They replace the 12 landscape stand-ins the corridor cycles
+     (FRAMES in shared.tsx); the left arm takes the first 12 and the right arm the last 12. They do
+     not change the corridor: the cadence, the pool and the sizes are constants of the composition,
+     so the 24 buy exactly one thing, that no photograph is ever on screen twice. With the 12
+     stand-ins the two arms' windows overlap by four, so four pictures are doubled at every moment,
+     on opposite arms, at very different sizes and three of the four in different crops."
+  2. "Framed tight enough to read at 120 px AND to survive a centre crop to 4:5 and to 4:3: a face,
+     two hands, a glass, a sparkler, a first dance. Half the corridor is portrait now, because that
+     is what guests shoot. Frames are read between 117 and 370 px here, so a wide room shot is grey
+     mush and a subject near an edge loses its head to the crop."
+  3. "Nothing else. The QR is the real demo event's, live from NEXT_PUBLIC_DEMO_QR_TOKEN, and there
+     is no plate art, no lamp and no video in this concept."
+
+  Context for the Orchestrator, which is deliberately NOT on the board because it is bookkeeping and
+  not a ruling: this is `docs/ASSETS.md` row 2, already asked. Round four refined the spec rather
+  than adding a row, and the refinement is the centre-crop requirement in line 2, which costs no new
+  shoot because both crops come out of the same 512 square. Line 1's last two sentences are the
+  correction round four owed the board: the 24 do not change the corridor's density (the cadence
+  `Geo.launch` and the pool `ceil(FLIGHT_MS / launch) + 1` are constants, and `FRAMES.length` is read
+  in exactly one place, the photograph offset), so what they buy is that no picture is doubled.
 - **The asks, verbatim from the board** (this board renders `ConceptMeta`, not `BoardMeta`; its
   Departures and Asks rows are the ruling surface, and the Departures row is now ONE line):
   - "THE CENTRED LOCKUP, and it is the only one left. Precedent rather than law: every other
@@ -278,24 +372,40 @@ so the burst cannot flash.
     deployed corridor as the rest state, and cinema and unlit with no lamp. Round three's second
     departure, a reader with scripting off and motion allowed getting an empty band, is fixed rather
     than flagged: a noscript companion rule restores the deployed corridor for exactly that reader."
-  - The three Asks lines are the asset bullets above, verbatim on the board.
+  - The three Asks lines are the three quoted lines in **Assets requested from Will** above, which
+    are `concept.assets` itself. Quote either; they are the same text.
   - And the copy proposal, which is a ruling in one word: h1 "The whole event comes back to you.",
     subhead "Guests scan the code. Every photo and video they take lands in your album, with no app
     and no account.", secondary "See a real album", plus the new caption under the code, "Every
     photo here came from a guest who scanned it", which is the only line that is on the concept in
     BOTH copy modes.
-- **What was measured, not asserted** (every number off the running DOM in a foreground tab):
-  - No photograph is ever under a word. 120 samples a canvas, ten seconds each, testing every
+- **What was measured, not asserted** (every number off the running DOM in a foreground tab; every
+  one of them re-run after the review on a fresh `pnpm build && pnpm start` at :3213, on the docked
+  board, at both canvases):
+  - No photograph is ever under a word. 121 samples a canvas, ten seconds each, testing every
     visible card's rendered box against the h1's and the caption's and the sentence's true INK
     (a `Range` over the text, not the block box) and against the two real buttons: **zero
-    intersections at 1440 and zero at 375.**
+    intersections at 1440 and zero at 375**, with the closest approach of the whole run 32 px at
+    1440 and 34 px at 375.
+  - The dock, which is what Will's note (a) asked for: scrolled to the bottom of a page of three
+    stages, `[data-board-dock]` still reports `position: sticky` at `top: 0`, 49 px tall, carrying
+    Desktop / Phone 375, Ruled copy / Proposed copy and Replay beside the shell's 1:1 / Fit,
+    Sidebar and Collapse. Both canvases were flipped from it without scrolling.
   - The corridor's own reach, measured on the rendered boxes with rotation and perspective in them:
     143 units from the axis at the headline's measure (the headline sits at 192), 80 at the
     caption's (the caption sits at 117), and 54 at the centre column, which is entirely behind the
     144 px plate. The model that places the type carries an 8 percent allowance over this; measured
     inflation from rotation and perspective is 2.9 percent, so the allowance covers it twice.
-  - Density: 14 to 19 frames on screen at 1440 (median 16) at 241 to 373 px, and 10 to 14 at 375
-    (median 12) at 117 to 188 px. Round three ran ten at 70 to 290.
+  - Density, re-measured after the review on ONE definition so the two rounds are comparable at all
+    (the on-canvas width of every visible frame, summed, over the canvas width, sampled every 80 ms
+    for ten seconds): at 1440, 14 to 18 frames on screen, median 16, in DOM boxes of 239 to 370 px,
+    which is 1.08 to 1.28 canvas widths of photograph, median 1.12. Round three's model under
+    exactly that definition is 10 frames and 0.9 canvas widths. At 375, 11 to 14 frames, median 12,
+    in boxes of 117 to 187 px, overlapping to 1.35 to 1.63 canvas widths, median 1.48. The round-three
+    comparison was recomputed offline from that round's own constants and the round-four model
+    reproduced the DOM's counts exactly (14/16/18), which is what makes the pair trustworthy. The
+    earlier handoff quoted 1.33 here and the file's own cadence comment quoted 1.47: two different
+    unstated definitions of the same quantity, now one definition in both places.
   - The site header's ceiling: the h1's ink starts 79 px from the top of the 1440 canvas and 89 px
     from the top of the 375 canvas, both clear of the 4rem transparent overlay header.
   - The server's own HTML carries 34 `.hhs-card` nodes, 34 `--hhs-rest` transforms, 34
@@ -310,8 +420,9 @@ so the burst cannot flash.
   - No em-dash anywhere in the served page.
 - **Look at first**: the first two seconds, which are unchanged in shape and better in substance:
   the QR alone, then the whole album unfolding out of it in one beat, now with depth in it. Then
-  the two things a ruling turns on: whether the corridor at 1.33 canvas widths of photograph is the
-  right density (round three's was 0.8 and Will asked the question on the board), and whether the
+  the two things a ruling turns on: whether the corridor at 1.1 canvas widths of photograph is the
+  right density (round three's was 0.9 on the same measurement and Will asked the question on the
+  board), and whether the
   centred lockup is right for the home hero, which is the one precedent this concept still breaks.
   And at 375, whether the corridor should stay a horizontal stream at all or become the phone's own
   shape, which is the next thing this lane would take up.
