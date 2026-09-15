@@ -1,6 +1,6 @@
 ---
 track: hero-river
-status: open
+status: handed-off
 cut: "1cf4cea"
 merged_round_2: "047d269"
 merged_round_1: "46138e6"
@@ -460,15 +460,202 @@ voice guide.
 
 ## Handoff (round 3)
 
-- Head <sha>, pushed; preview partyreel-git-lp-hero-river-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `4aea15d` plus this commit (a manifest cannot name its own SHA). The work commit is
+  **`274dea4`**; `4aea15d` is the merge with `launch-prep` and the tree every gate below ran against.
+  Pushed. The board is `/design/c/home-hero?key=` (concept 4 of 4).
+  **Marker for the round-three board: `hhv-delta`**, the stream wrapper's second class, which exists
+  in no earlier round; the absence of `hhv-lab` (the cut chip) marks it too.
+- ★ **The preview alias is frozen again, and it is the same project-wide ceiling as round two.** The
+  GitHub commit status on `274dea4` reads `Vercel: "Deployment rate limited - retry in 24 hours."`
+  and no deployment record is created, so `partyreel-git-lp-hero-river-partyreel.vercel.app` still
+  serves `6915bd5`, round TWO's first commit. Nothing on the alias is this round. Per the round's own
+  instruction, the verification below ran on a local server instead and says which one each time.
+- **What the live pass ran against, and why it is not a downgrade.** `pnpm build` then `pnpm start` in
+  the worktree, which serves the same production output the preview would at the same code. The one
+  thing it cannot exercise is Vercel's own edge, and this board touches no route handler, no auth, no
+  R2 and no Stripe: it is a static lab page behind the `DESIGN_PREVIEW_KEY` gate, and that gate was
+  tested on the production server (404 with no key, 404 with a wrong key, 200 with the key).
+- Synced with `launch-prep` at **`dd4aa0b`** (it had moved 84 commits: the round-two merges of
+  brand-voice, type-scale, palette, light, media-kit, floating-surfaces, rounding and hero-scan).
+  `git merge origin/launch-prep` at `4aea15d`, no conflicts. Of the files this track READS, only
+  `scan.tsx` and `scan.css` moved; `shared.tsx`, `board.tsx`, `board.css`, `source.tsx`,
+  `stage.tsx`, `bible.ts`, `marketing-media.ts` and `ASSETS.md` are untouched by the sync and by me.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing, on
+  `contact-form.tsx`, `album-fill-grid.tsx`, `review-switch.tsx`, `jobs.ts` and `use-flip.ts`), test
+  ok (1719 in 193 files), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-river.md`,
+  `src/app/(dev)/design/sandbox/home-hero/river.css`,
+  `src/app/(dev)/design/sandbox/home-hero/river.tsx`. **No exceptions**: the two owned files and this
+  manifest.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte moved.
+- **"Apply to the site": still not applicable, and still deliberately.** This concept's candidate is a
+  composition, not a token block: there is no CSS paste whose selectors would mean anything on `/` or
+  `/pricing`, and offering one would be the light or palette board's paste wearing this track's name.
+  So the page walk the round asks for (`/`, `/pricing`, `/help`, `/contact`, `/dashboard`, an event
+  page, the demo guest page) has nothing from this board to wear and was not run: nothing this track
+  produces can appear on those pages until the wiring round. Its ruling lands as a hero component
+  there.
+- **Shell change the Orchestrator should carry: one, down from two.** Round two asked for a per-concept
+  `switches` field on `Concept` so the line-placement chip could live in `board.tsx`; that ask is
+  WITHDRAWN, because the chip is cut. What remains is round one's and the scan's: **`demoCount`
+  beside `qrUrl`**, the demo event's real media count, so no count ships as drawn.
+
+### What the cold walk found, and what each fix was
+
+Walked the round-two board first, at 1440 and then 375, every toggle and both copies, before touching
+anything. Six things a stranger would stumble on; all six are fixed.
+
+1. **The album never came out of the code.** At the steady state the nearest frame to the plate was
+   319 px off axis 96 px below it, and the top of the hero read as a code alone with photographs
+   beside it. Cause, measured: the arm's fan opened over the first fifth of the FLIGHT, and gravity
+   makes a fifth of the flight a tenth of the distance, so the fan was fully open 96 px down. The fan
+   is now a function of the DISTANCE fallen. The first three frames now sit at x 3, -22 and 47 with
+   the card 164 px wide, so they are inside the object they were born in.
+2. **Three lanes collapsed into two ruled columns.** The clearing was one 800 px rectangle across the
+   whole block, so every card was pinned to the same wall from 210 px of fall to the bottom of the
+   hero: the concept's own claim, the album opens around the headline and closes under it, was never
+   on screen. The clearing is now the lockup's measured ink, row by row. The banks open to 350 at the
+   headline and close to 110 under the count, in view.
+3. **The stream had holes.** Eight launches per arm against a nine-and-a-half-launch flight left a
+   fifth of the cards on the ground and put three frames in the hero's top third. The cadence now
+   divides the flight (1200 against 9800 on the desktop, 1030 against 8400 on the phone), so every
+   frame is airborne and gravity does the spacing. 14 frames on the desktop canvas where there were
+   11, 11 on the phone where there were 9.
+4. **The phone threw frames off the side of the screen at 83 percent opacity.** The clearing's gate
+   read a card's whole layout box, most of which was already below the dissolve. It now reads the
+   card's VISIBLE box, clipped at the dissolve's last stop, which on the phone means the clearing
+   correctly never fires and the album simply dissolves where it is. The guarantee is not weakened,
+   it is stated properly, and it re-arms by itself if the dissolve is ever retuned.
+5. **A control that did nothing.** "Scan the demo" was an inert `<Button>`. It is the button a
+   stranger presses first, because it is the one that says show me; it is now a link to the demo
+   event, the same place the code goes.
+6. **The proposed copy ran three headline lines and pushed the count to y 893 of 930.** It is now
+   "One code, and the album fills.", which is the voice guide's two-beat shape trimmed to hold two
+   lines at the xl step, and the subhead's measure went from 560 to 500 so both copies set the same
+   block shape. One measured silhouette now serves both.
+
+And one cut, which is the round's answer to "a candidate cut if it no longer earns its column":
+**the line-placement chip is gone.** Walked cold, the floating line loses plainly (a bare plate with
+a line belonging to nothing beside it), and the chip was the only thing on the canvas that was not
+the composition, which on a stage reads as product UI. One build, the printed card; the ruling
+survives as a one-word departure.
+
+### Verified at `4aea15d`, against the production build served locally
+
+- **The clearing is a geometric guarantee, measured and not eyeballed.** A probe read the rendered
+  INK of the headline's two lines, the subhead's lines, both buttons and the count, and tested every
+  visible card's live rect against all of them, every frame, for a full 9.6 s cycle in each of the
+  four combinations of canvas and copy. **Desktop: 0 px of overlap, both copies, 4227 and 5280
+  card-frames checked.** Phone: 0 px of VISIBLE overlap, both copies; the raw layout boxes do reach
+  58 px into the headline's ink, and every one of those pixels is below the dissolve's last stop,
+  which is 22 px above that ink. Both numbers are reported because the second one is the honest
+  description of what the phone does.
+- **The held beat, measured after a Replay:** the first frame crosses 5 percent opacity at **800 ms**
+  (a 620 ms hold plus the growth), so the code and the words stand alone for four fifths of a second.
+  The count first ticks at 1.84 s and settles at 9.04 s.
+- **The silhouette is measured, not guessed.** The desktop table is the rendered ink of both copies:
+  headline line 1 at 421.8..537 (half 348 ruled, 297 proposed), line 2 at 519.7..634.9 (270 / 291),
+  the subhead at 662.4..704.8 (249 / 244), the buttons at 745.1..789.1 (150 / 156), the count at
+  807.1..823 (106 in both). The knots sit outside each of those by 2 to 6 px, and the profile is
+  monotone between knots, so the largest half-width over a card's own vertical extent is exactly an
+  endpoint or a knot: the check is exact rather than sampled.
+- **The served HTML** carries 16 `.hhv-card` nodes, 16 `--hhv-rest` transforms, 16 `--hhv-pos` crops,
+  the printed card, `hhv-delta`, and the count's SETTLED figure (248) as the markup with the ticking
+  241 hidden outside the reduced-motion block. No `hhv-lab`, no em-dash, no `font-mono`, no
+  `MonoCaption`, and no `data-mkt-cut` / `data-mkt-reveal` / `.mkt-line` on any h1 on the page. The
+  lab gate on the production server: 404 with no key, 404 with a wrong key, 200 with the key. A fresh
+  production page load logs nothing to the console at all, so the printed card hydrates clean.
+- **Reduced motion, read off the MARKUP**, which is the honest way: a reduced-motion reader's effect
+  returns before it writes a single inline style, so what they get is exactly the 16 rest transforms
+  the server printed. Parsed from the served HTML: the 16 spread from y 175 to y 1068 at scales 0.32
+  to 1.0, **all 16 above 0.05 opacity** (round two had 15 of 16; the rest state now uses the loop's
+  own modulo, so a card whose slot jitter went negative lands at the bottom of the fall instead of
+  above the code). On the running page, deleting all 27 `no-preference` blocks from the live sheets
+  leaves 16 of 16 cards standing, the ticking count hidden and the settled 248 shown.
+- **Bible 13:** the h1 measures opacity 1, transform none, clip-path none, with no `data-mkt-cut`,
+  no `data-mkt-reveal` and no `.mkt-line`. Its line pitch measures 98 px against a 96 px face, so
+  `leading-[1.02]` is in effect: worth saying because the type-scale board found this same lockup
+  losing that leading to tailwind-merge. It cannot happen here, because the class is a template
+  literal and never passes through `cn()`.
+- **Cost, measured on the production build at both canvases rather than asserted.** The river's own
+  loop, including every style write: **0.156 ms per frame** on the desktop canvas, of which the 16
+  cards' placement (the new silhouette clearing included) is **0.07 ms**; all FOUR concepts on the
+  board together cost 0.59 to 1.08 ms per frame, under 7 percent of a 16.7 ms budget. 16 promoted
+  layers, **5.65 MB** at the desktop canvas and **1.69 MB** at the phone, and a card's DOM box is its
+  LARGEST visible size, so nothing is rasterized above 1:1. The loop still skips any card that has
+  fallen past the dissolve's last stop. Nothing here earned a cut; the honest report is that the
+  stream is not the cost.
+- The rAF CADENCE itself could not be sampled: the only browser available to this session drives a
+  background tab, where rAF is suspended and a frame-time sampler records zeros
+  (`docs/systems/testing-verification.md`). The loop was therefore driven by a stepped clock, the
+  same callbacks at a deterministic timestamp, which is what every measurement above ran on; the
+  per-frame COST is real JS time and the per-frame BUDGET is arithmetic, not a measured 60 fps.
+- Light QA: the board read at 1440 and at 375, both copies, Replay, reduced motion, the h1 at paint.
+  The 375 screenshots are the composition described below, not a black frame.
+- **Assets requested from Will (no new rows; round one's two asks, unchanged):**
+  1. **24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each**, framed tight
+     enough to read at 110 px, which is measured: that is the size a frame is as it leaves the code ·
+     `ASSETS.md` row 2, unchanged · replaces the 12 landscape stand-ins in `FRAMES` (`shared.tsx`)
+     and retires `CROP` in `river.tsx`.
+  2. **12 event photographs as 4:5 portraits, 720 x 900, one grade, 15 to 60 KB webp each** · row 12,
+     unchanged; the portrait third of row 3 or row 7 serves instead and may be cheaper to unpark ·
+     replaces the portrait cards (`wf` 0.8) in `CARD_POOL`.
+  3. **The demo event's live media count**, as a number the hero can render · not a picture, a shell
+     change (`demoCount` beside `qrUrl`) · replaces `COUNT_TO`, the 248 stand-in.
+- **The asks, verbatim from BoardMeta** (this board renders them under "Asks" from `concept.assets`;
+  the Orchestrator quotes them under Waiting on Will):
+  1. "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, framed tight enough
+     to read at 110 px, which is the size a frame is as it leaves the code · ASSETS row 2, already
+     requested and unchanged: the two arms carry disjoint halves, so with 24 every frame in the
+     stream is unique, where the 12 landscape stand-ins double four of them · replaces the 12
+     landscape stand-ins in FRAMES (shared.tsx) and retires the per-frame crop table in river.tsx."
+  2. "12 event photographs as 4:5 portraits, 720 x 900, one grade, 15 to 60 KB webp each, from the
+     same shoot as the squares · ASSETS row 12, already requested and unchanged; the portrait third
+     of row 3 or row 7 would serve instead and may be cheaper to unpark · replaces the portrait cards
+     (wf 0.8) in CARD_POOL, which are cropped out of landscapes today."
+  3. "Nothing else is a picture. The one ask left is the shell's: the demo event's live media count,
+     as a number the hero can render (a demoCount prop beside qrUrl, from a build-time count on the
+     demo event or the RPC the guest page already uses) · replaces COUNT_TO, the 248 stand-in, and
+     COUNT_FROM becomes that count minus the arrivals shown. Better still, and the recommendation: if
+     this hero ships, the frames in the stream should BE the demo event's own media (ASSETS row 5,
+     the curated folder), so the count is literally the album the stream renders and the hero stops
+     illustrating the product and starts being it."
+- **The rulings, from the board's Departures. Three words settle this board:**
+  1. **The code at the top rather than at the exact centre** (and the centred lockup with it). The
+     one real argument with the source, and the first thing to overrule.
+  2. **The line under the code, printed on the card.** Built one way now; say "above" and the
+     floating version comes back in a line.
+  3. **The count under the buttons: keep it or drop it.** It is the evidence for "See a real album",
+     and it is the only invented number on the board; every other number in the concept was measured
+     off the page.
+  Bible 13's decorative-layer gating is flagged as the fourth departure because the wave rules put
+  bible departures on the board rather than in a footnote; it is not a ruling Will has to make.
+- **Look at first**: the FIRST TWO SECONDS on Desktop (the code and the words alone for 620 ms, then
+  the album pours out from behind the card, and the first frames are still inside the card's own
+  width, which is the thing round two could not do). Then let it settle and watch ONE bank: it opens
+  to the headline's width, and then visibly closes as the type narrows, past the subhead, past the
+  buttons, until the two arms are almost rejoined as they leave the bottom of the hero. That shape is
+  the lockup's own silhouette and it is the round's one real idea. Then the phone, where the same
+  mechanism reads as a dense braid pouring out of the card and dissolving into the headline with
+  nothing flung aside. Last, the count under the buttons: it settles at 248, and it is the only thing
+  on the board nobody can stand behind yet.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). Two rounds turned the river from a diagram into a
+composition. Round two answered its own round-one departure: the caption line CAN sit under the code,
+because putting it inside the white object makes the plate the card an event actually puts on a
+table, and the stream is born behind that card instead of bowing around a floating line; it also gave
+the pour a held first beat, settled the count instead of letting it climb forever, straightened
+frames as they land, cropped the stand-ins off the photograph, took the light spec's LIFT for the
+overlap cue and rebuilt the phone as one braided lane of large frames. Round three walked the board
+cold before Will and found that the desktop still failed its own sentence, for one reason: the
+stream's lateral law was written against the clock while everything a reader sees is written against
+the fall. The fan now opens over the first third of the DISTANCE, so the album leaves the card
+instead of appearing beside it; the clearing took the lockup's measured ink row by row in place of
+one 800 px rectangle, so the banks open around the headline and visibly close again under the
+buttons; the cadence was made to divide the flight, so the stream has no gaps; the clearing's gate
+reads a card's VISIBLE box, which stopped the phone flinging frames off the side at 83 percent
+opacity; the second button was wired to the demo; and the line-placement chip was cut to one build
+with the ruling kept as one word. Zero overlap, re-measured across a full cycle at both canvases and
+both copies, at 0.156 ms of loop per frame.
