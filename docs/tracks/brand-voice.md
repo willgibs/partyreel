@@ -295,6 +295,14 @@ Three departures were flagged rather than buried, and no production byte changed
     `[data-mkt-reveal]` slots in the stages compute to opacity 1, so no line depends on motion to
     be read. The only console error is a `cz-shortcut-listen` hydration warning from a browser
     extension on `<body>`, not from this board.
+- **The preview alias is stale through no fault of this branch, and Will should know before he
+  walks it.** Every push since roughly 22:00 on 2026-09-14 has produced NO deployment, on any
+  track: the newest build in the project is `lp/palette` at `b4be6a2`, and the lp/palette track
+  reported the same thing as a Vercel daily deployment rate limit. So
+  `partyreel-git-lp-brand-voice-partyreel.vercel.app` still serves `1c109b1`, the board WITH the
+  two clipped stages and without the cards. It will pick up `43c55f5` on the next build the
+  project is allowed; nothing needs to be pushed again. Until then the evidence for the fixes is
+  the local walk above, which is stated in numbers rather than impressions for that reason.
 - Gates on the synced tree, re-run after the fixes: typecheck ok, lint ok (0 errors; 6 warnings,
   all pre-existing and none in this lane), test ok (1,698 in 193 files), build ok (114 routes, 248
   static pages).
