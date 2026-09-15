@@ -612,9 +612,11 @@ export function AuroraPart({
         {candidate === "seam" ? (
           <span className="mt-1 block text-foreground">
             The seam is the footer{"'"}s lamp verbatim, so it keeps the shipped
-            register (0.62 base and band, 210px, the site cadence) and takes no
-            grain. The register and grain knobs do not move it, and that is the
-            candidate rather than an omission.
+            register (0.62 base and band, 210px, the site cadence), the shipped
+            mask drive, and no grain. The register, grain and drive knobs do
+            not move it, and that is the candidate rather than an omission:
+            re-tune any of them and it is a different candidate wearing its
+            name. The other three lights take the drive toggle.
           </span>
         ) : null}
       </KnobNote>

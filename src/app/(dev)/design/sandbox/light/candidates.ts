@@ -154,11 +154,26 @@ const LIT_DARK = `inset 0 0 0 1px color-mix(in oklab, var(--foreground) 9%, tran
 const LIT_PAPER = `inset 0 0 0 1px color-mix(in oklab, var(--foreground) 8%, transparent),
     inset 0 -1px 0 color-mix(in oklab, var(--foreground) 7%, transparent)`;
 
+/**
+ * ★ THE GUEST PAGE IS NOT WALKABLE, AND IT IS NOT THIS BLOCK'S FAULT. Round
+ * three's cold walk followed this line to `/e/<demo token>` and found 18 real
+ * media tiles and NO candidate: the tuner island that renders an applied block
+ * mounts in `(app)`, `(marketing)/(cinema)`, `(marketing)/(paper)` and
+ * `(dev)/design`, and the `(guest)` group has none, so no board's candidate can
+ * reach a guest page at all. The page was dropped from this line rather than
+ * left as an instruction that leads a reviewer to a surface where the proposal
+ * provably does not land, which is the "control that does nothing visible"
+ * stumble this round exists to remove. Do NOT add it back without first giving
+ * `(guest)/layout.tsx` the island: that file is production and outside this
+ * track's lane, so it is flagged to the Orchestrator in the Handoff instead.
+ * The guest gallery is still the cue's best real surface, which is why the ask
+ * says "adopt, adapt or drop" on the three named surfaces and not on a page.
+ */
 export const LIT_FACE: LightCandidate = {
   label: "Light: the lit face (media frames, screens, plates)",
   what: "Every media tile, player and QR plate gains a hairline and a lip. Nothing else on the page changes.",
   pages:
-    "/ (the film strip), /features/qr, /features/album, an event page, the demo guest page",
+    "/ (the film strip), /features/qr, /features/album (three plates), an event page (the host gallery)",
   css: `/* THE LIT FACE (light board, part A).
    Not elevation: material. An inset hairline and a lip on a face that is
    catching light. Three surfaces: a media frame, a screen, a plate.
