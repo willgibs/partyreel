@@ -3,8 +3,8 @@ import type { ComponentType } from "react";
 import { AlbumHeroBoard } from "@/app/(dev)/design/sandbox/album-hero/board";
 import { BrandVoiceBoard } from "@/app/(dev)/design/sandbox/brand-voice/board";
 import { FloatingSurfacesBoard } from "@/app/(dev)/design/sandbox/floating-surfaces/board";
-import { GlowDoctrineVariants } from "@/app/(dev)/design/sandbox/glow-doctrine-variants";
-import { GlowMomentsVariants } from "@/app/(dev)/design/sandbox/glow-moments-variants";
+import { GlowDoctrineBoard } from "@/app/(dev)/design/sandbox/glow-doctrine/board";
+import { GlowMomentsBoard } from "@/app/(dev)/design/sandbox/glow-moments/board";
 import { HomeHeroBoard } from "@/app/(dev)/design/sandbox/home-hero/board";
 import { LightBoard } from "@/app/(dev)/design/sandbox/light/board";
 import { MediaKitBoard } from "@/app/(dev)/design/sandbox/media-kit/board";
@@ -29,8 +29,8 @@ export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "home-hero": { Component: HomeHeroBoard, legacy: true },
-  "glow-doctrine": { Component: GlowDoctrineVariants, legacy: true },
-  "glow-moments": { Component: GlowMomentsVariants, legacy: true },
+  "glow-doctrine": { Component: GlowDoctrineBoard },
+  "glow-moments": { Component: GlowMomentsBoard },
   palette: { Component: PaletteBoard, legacy: true },
   light: { Component: LightBoard },
   "type-scale": { Component: TypeScaleBoard, legacy: true },
