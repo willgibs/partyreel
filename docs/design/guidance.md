@@ -15,19 +15,19 @@ work, don't stop at "correct": surface a creative delight opportunity (a conside
 micro-interaction, a rare-moment beat) and RECOMMEND it by default, rather than waiting to be asked. Beauty
 is leverage, the unseen details compound, and "feels like magic" is Partyreel's differentiator. The
 discipline that keeps delight from becoming noise is **animate by FREQUENCY** (emil): HIGH-frequency actions
-(a workspace opened many times a day, moderation/select switches) stay INSTANT/minimal — never add theater
+(a workspace opened many times a day, moderation/select switches) stay INSTANT/minimal: never add theater
 there; OCCASIONAL surfaces (modals, takeovers, route nav) get standard entrances (≤300ms, custom easing,
 `@starting-style`, reduced-motion fallback); RARE/first-time moments (empty states, a first action,
 celebrations) can carry real delight. Everything CSS-first + `prefers-reduced-motion`-safe + exits ≤ enters.
 
 **emil-design-eng (the installed skill) is PRIMARY; Hobday's Safe Rules
 (anthonyhobday.com/sideprojects/saferules) are a SECONDARY advisory; neither is a bible.**
-Synthesis (Phase 2): *adopted* — no pure white surfaces, the elevation contract (no dark shadows,
+Synthesis (Phase 2): *adopted*, no pure white surfaces, the elevation contract (no dark shadows,
 lighter-is-closer, one depth technique per mode), nested-corner math, muted paired icons,
-small-label tracking, the 4px-grid + radius-ratio math. *Already true* — near-black/near-white
+small-label tracking, the 4px-grid + radius-ratio math. *Already true*, near-black/near-white
 extremes, contrast hierarchy, brightness-distinct palette, ~2x horizontal button padding, two
 typefaces (mono left the product in the 2026-09-14 sweep), ~70ch prose. *Declined or
-deferred with reasons* — saturate-neutrals DECLINED (zero-chroma identity); 12-column grid noted for
+deferred with reasons*, saturate-neutrals DECLINED (zero-chroma identity); 12-column grid noted for
 the Phase 6 marketing rebuild. **Guest reading-copy rule (NOW REAL, Phase 4):** guest-facing reading
 copy is 15-16px (`text-[15px]`/`text-base` on event description, gate prompts, growth cards, entry
 sheet rows); dense/structural UI (captions, counters, secondary labels) stays sm/xs. Host/admin keep
