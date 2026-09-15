@@ -716,7 +716,7 @@ No production byte changed.
 
 ## Handoff (round 4)
 
-- Head `HEADSHA`, pushed, plus the one commit after it that names this line (a manifest cannot name
+- Head `c937549`, pushed, plus the one commit after it that names this line (a manifest cannot name
   its own commit; `git rev-parse origin/lp/media-kit` is the truth). Board at `/design/c/media-kit?key=`.
   Preview `partyreel-git-lp-media-kit-partyreel.vercel.app`.
 - ★ **A fifth pass was asked to strike finding 0c as false. It is not false, and the review that
