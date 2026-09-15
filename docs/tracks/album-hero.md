@@ -1,6 +1,6 @@
 ---
 track: album-hero
-status: open
+status: handed-off
 cut: "c473707"
 preview: true           # Will reviews this board on its preview as it builds (once Vercel's window frees)
 owns:
@@ -119,24 +119,145 @@ gate; the preview alias once Vercel's window frees.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. The board is lab-only and ships no production byte; the wiring round owns
+  `docs/systems/design-system.md` when Will rules this in.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing overhaul: wire the album hero onto `/features/album` once Will rules the step and the
+  column rule (the field replaces `ArrivalsHero`'s `ArrivalsStage`; the album visual goes under it).
+- App overhaul: the guest album's column rule, `columns-2` -> `columns-2 md:columns-3 xl:columns-4`
+  in `src/components/guest/guest-masonry.tsx`, if the board's candidate is ruled in.
 
 ## Handoff (round 1)
 
-- Head <sha>, pushed; preview partyreel-git-lp-album-hero-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `6fca2d8` plus this manifest commit, pushed. The preview at `partyreel-git-lp-album-hero-partyreel.vercel.app` was NOT
+  waited on and the Vercel API was not called (the deployment cap). **Everything below was verified on
+  a LOCAL PRODUCTION BUILD** (`pnpm build && pnpm start -p 3011`, my own worktree's server, never the
+  root checkout's on 3000) in a FOREGROUND browser tab at 1440 and at 375.
+- Synced with `launch-prep` at `6484558` (it had moved two doc commits since the cut; merged clean).
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 6 warnings are all pre-existing files
+  outside this lane), test ok (1804 in 199 files), build ok (114 routes, 248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/album-hero/`
+  (board.tsx, board.css, burst.tsx, burst.css, album.tsx, album.css) + this file. No exceptions.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+
+### What the board is now
+
+Three readings of the top of `/features/album`, every page-wide switch in `BoardDock` (canvas,
+headline step, the album's column rule, Replay), every stage at 1:1:
+
+1. **The hero.** The burst's field with its centre taken out. The origin is nothing visible: a vent
+   the album emanates from. Because the QR plate used to be what hid a birth, the birth had to become
+   a POINT (`s0` 0.24 -> 0.035, so a new frame is about 13 px at 1440 and 8 px at 375 and grows out of
+   nothing), and `geo.vent` is what `geo.qr` was, at 116 against 140. The lockup is
+   `/features/album`'s SHIPPED lockup, measured off the real page rather than restyled: PageHero's
+   `max-w-3xl` measure, the lg ramp's `text-7xl` at `leading-[1.0]` (two lines, 732 px of ink), the
+   `text-lg` subhead at `max-w-xl`, the two shipped buttons untinted, the real eyebrow. It loops for
+   ever with no resolution, which is the "live" Will asked for.
+2. **The live album, wide.** The shipped guest album COMPOSED, not drawn: `GuestMasonry`, `MediaTile`,
+   the lightbox trigger, the host's own event chrome in the shape the guest page ships (name, byline,
+   stats), inside the marketing `BrowserFrame`. Its only motion is the product's own entrance
+   (globals.css's `[data-media-tile]` fade-rise, 45 ms stagger capped at 540) plus one 6 px green
+   status dot, so it never competes with the hero.
+3. **The page.** Hero, album, then the real `GettingInSection` and `EverywhereSection`, so the
+   hand-off from feeling to product to chapters is judged whole. The album and page stages MEASURE
+   their own content (`MeasuredStage`), so no section is ever clipped in half.
+
+### What was measured (local production build, foreground tab, 1440 and 375)
+
+- **The quiet zone holds at every combination.** A running-field probe sampled the four
+  canvas-and-step combinations and tested every visible card's bounding box against the five ink
+  boxes of the lockup: 1450 card-instants, **zero overlaps**, worst overlap 0 px2. The probe uses the
+  card's AABB, which is larger than the rotated card, so the test is stricter than the guarantee.
+- **The settled composition is whole.** With the loop suppressed (the reduced-motion state), every
+  card at desktop lg, phone lg and phone xl is entirely inside the canvas. It was not, before: one
+  card of 52 hung 3 px past the left rim, because `extents()` models the 2D rotation only and the
+  per-card 3D tilt goes through a `perspective(760px)`. `RIM_GUARD` (6 px) closes it; worst margin is
+  now 4 px INSIDE at 1440 and 7 px at 375.
+- **Density.** 52 frames at 1440 and 44 at 375 over a 9.6 s flight; steady state 19 to 27 on screen
+  at 1440 and 13 to 22 at 375. The pool fills at every combination (52/52 and 44/44), which means the
+  acceptance walk still found that many watchable directions against a lockup this large.
+- **Density costs nothing on the wire.** 52 frames are **12 image requests, 536 KB, 45 KB average**,
+  because the browser dedupes the shared sources. 120 fps with two fields running (104 cards), 34 MB
+  heap.
+- **The server's own HTML** carries the h1 at full opacity with no `data-mkt-cut`, `data-mkt-reveal`
+  or `.mkt-line` on it (bible 13), and 104 cards with their rest-state transforms, so a crawler and a
+  reader with JavaScript off get the settled album. Zero em-dashes in the rendered page.
+- **The production components work in the board**: a tile opens the real lightbox and Escape closes
+  it; the column switch flips the shipped `columns-2` to 4 and back.
+- **The lab's screenshot blind-spot bit twice** and neither was a product bug
+  (`docs/systems/testing-verification.md`): a capture past about 1000 px of scroll comes back black
+  even though the DOM is correct, and a long async probe in a tab that is not fronted throttles rAF
+  so the field reads as empty. Both were closed by DOM measurement and by fronting the tab; the
+  visual checks were taken with the other stages hidden so the one being judged sat at scroll 0.
+
+### Shell changes asked for (the Orchestrator lands them)
+
+- **Rename `sandbox/album-hero/burst.tsx` and `burst.css` to `field.tsx` / `field.css`** when
+  `lp/hero-source` closes. The file is no longer the home hero's burst and the name says the wrong
+  thing, but `docs/tracks/hero-source.md` declares that exact path in its `reads`, so renaming it now
+  turns a LIVE track's lane guard red (`track-manifests.test.ts` caught it). The rename is one
+  `git mv` plus the two import lines in `board.tsx` and the sheet import in the file itself.
+- Nothing else. `src/components/dev/`, `touchpoints.ts` and `bible.ts` were not touched.
+
+### Assets requested from Will
+
+- 24 event photographs as 512 x 512 squares · one grade, 6 to 35 KB webp each, across weddings,
+  birthdays, corporate and festivals, framed tight enough to read at 90 px (a face, two hands, a
+  glass, a sparkler, a first dance), never a wide room shot · replaces the 12 landscape stand-ins the
+  field cycles (`FRAMES` in the home hero's `shared.tsx`). Already `docs/ASSETS.md` row 2; the same
+  24 serve BOTH the hero field and the wide album grid.
+- 11 more of the same as 4:5 portraits · 512 x 640, same grade, recrops of the 24 are fine · one for
+  every 4:5 slot the field lays out. Already ASSETS row 9. Guests shoot vertical: eleven of the twelve
+  stand-ins are landscape, which is why the wide album grid reads flatter than a real album does.
+- 2 short clips as album tiles · 6 to 10 s, 4:5 or 9:16, muted, under 2 MB each, poster frame
+  included · so the album grid can show a real video tile with the corner play badge the guest album
+  ships. Every tile is a photograph today because `MediaTile` renders a real `<video>` and pointing
+  one at a jpg shows an empty box. NEW: not on ASSETS yet.
+- Nothing else. No plate art, no lamp, no QR: the code left the composition with Will's ruling.
+
+### The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will)
+
+- "Rule on, the headline step: lg or xl. It is the one choice that changes the composition rather than the styling, because the field is re-solved against the lockup the step draws. lg (text-7xl at 1440, text-4xl at 375) leaves the album the canvas and keeps the corridor beside the vent wide enough to be born in; xl (text-8xl, text-5xl) is the louder promise and takes about 80 px of quiet zone in every direction, which at 375 drops a further slice of the compass out of the pool."
+- "Rule on, the album's column rule, and it is an APP-UI change, not a marketing one. Shipped is columns-2 at every width, which is right for the phone it was designed for; the candidate is two on a phone and four on a laptop (columns-2 md:columns-3 xl:columns-4 in guest-masonry.tsx). WHAT IT BUYS: a host opening their own album on a laptop sees twelve photographs where they now see four, and the marketing page can show the album wide at all. WHAT IT COSTS: a smaller tile, so a face at 1440 goes from about 700 px to about 280 px, and the masonry's natural-ratio signature reads quieter the more columns it has."
+- "Rule on, the album's life: the pulse alone, or an arrival. It ships with one live signal, a 6 px green dot pulsing every 2 s, and nothing else; the product's real behaviour is a new tile landing at the head of the album every few seconds with its green check. The second is the truer demonstration of live and is the thing most likely to fight the hero, which is why it is an ask and not a default."
+- "Rule on, the copy: the page's own lines stand (bible 21 leaves them open). The hero renders /features/album's shipped eyebrow, h1 and subhead verbatim from feature-pages.ts. The brand-voice board's proposal would rewrite the subhead here; this board proposes nothing of its own, because the field is the argument and the sentence is the page's."
+
+### Look at first
+
+`/design/c/album-hero?key=` at 1440. Reading 1 for thirty seconds with nothing else on screen: the
+album should never stop arriving, and no word should ever sit on a photograph. Then reading 3, which
+is the only place both animations run at once and therefore the only place Will's worry about them
+fighting can be answered. Then flip **Headline lg / xl** from the dock at any scroll position, which
+is the ask that changes the composition rather than the styling.
+
+### Findings against a rule (a finding, not a wall)
+
+- **Bible 10 (the hero is unlit)**: the frames carry the light spec's LIFT shadow at four times the
+  offsets, inherited from the burst and re-flagged here. It is a shadow and never a lamp; without an
+  edge the depth axis collapses into a flat scatter.
+- **Bible 13, decorative layer only**: the field's pre-bloom state lives inside the reduced-motion
+  block, so a reader with JavaScript off who has NOT asked for less motion sees the album resting
+  around the vent rather than blooming out of it. Nothing that carries meaning is gated.
+- **No rule blocked the work.** The one thing that blocked a change was another track's lane claim
+  (the rename above), which is the guard doing its job.
 
 ## Record (round 1; the CHANGELOG paragraph for round 1, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The burst, killed as the home hero, became the
+live album's. Its centre came out: with no QR plate to hide a birth behind, the birth became a point
+(a frame is born at 13 px at 1440 and 8 px at 375 and grows out of nothing) and the plate's radius
+became a vent the album emanates from. The lockup over it is `/features/album`'s SHIPPED lockup,
+measured off the real page rather than restyled, and the field is denser and slower than the home
+hero's so the album reads full and never resolves: 52 frames at 1440 and 44 at 375 over a 9.6 s
+flight, 19 to 27 on screen, and 12 image requests for all of them. Under the hero the board put the
+shipped guest album itself, composed and not drawn (GuestMasonry, MediaTile, the lightbox, the
+host's own chrome), calm by design: the product's own entrance and one status dot, so the two halves
+of the page do not fight. A third reading stacks hero, album and the page's first two chapters on a
+stage that measures its own content. The quiet zone was re-proved on the running field at all four
+canvas-and-step combinations: 1450 card-instants, no word ever under a photograph; and the settled
+composition, which is what reduced motion and a crawler get, was found hanging 3 px past the rim and
+guarded. The board asks Will for the headline step, the guest album's column rule (an app-UI
+candidate, argued from outside the shipped component), whether the album should breathe, and three
+short clips.
