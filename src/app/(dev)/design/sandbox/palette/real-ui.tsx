@@ -107,8 +107,24 @@ import type { Pair, TokenMap } from "./registers";
  * reader: the settled state, unconditionally, inside the stage only. It is also
  * the honest one for THIS board, which judges a ground and not an entrance, and
  * it means the reduced-motion reader and everyone else see the same page.
+ *
+ * ★ SETTLE BOTH GRAMMARS, NOT JUST THE ATTRIBUTE ONE. The entrance has two
+ * shapes in marketing.css, and only one of them is an attribute. TextsReveal
+ * keys on a CLASS (`.mkt-lines.is-shown`, the recipe's own shape) off the same
+ * in-view observer, and `[data-mkt] .mkt-line` rests at opacity 0, so a rule
+ * that names only `[data-mkt-reveal]` leaves TrustStrip, row 07's FIRST
+ * chapter, as an empty bordered band at the top of both stages. Settling the
+ * class too is what makes the caption's claim true. Anything added here later
+ * that hides at rest by class (`.mkt-text-swap`, `.mkt-skel-content`,
+ * `.mkt-check`) needs the same line.
  */
-const SETTLED = `[data-mkt-reveal],[data-mkt-cut]{opacity:1!important;transform:none!important;filter:none!important;animation:none!important;}`;
+const SETTLED = [
+  `[data-mkt-reveal],[data-mkt-cut]{opacity:1!important;transform:none!important;filter:none!important;animation:none!important;}`,
+  // marketing.css declares the rest state at `[data-mkt] .mkt-line`, so this
+  // needs !important rather than a matching selector: the iframe's wrapper is
+  // the [data-mkt] element and a bare class would be outranked.
+  `.mkt-line{opacity:1!important;transform:none!important;filter:none!important;transition:none!important;}`,
+].join("");
 
 export function TrueViewport({
   width,
