@@ -577,9 +577,9 @@ being ruled in.
 - **The clear lane is measured against the INK, not the box, which caught what round two missed.**
   The corridor's own math was replayed against the rendered ink of the h1, the caption, the count,
   the sentence and both actions, over a full 10800 ms cycle at 50 ms steps, in every combination of
-  canvas, reading and copy: **zero intersections in all of them.** Worst clearance 11 px (375, the
-  caption), 21 to 36 px elsewhere at 375, and 28 px (1440, the h1 under the proposed copy) to 158 px
-  at 1440. No scrim anywhere, every photograph at 100 percent.
+  canvas, reading and copy: **zero intersections in all of them.** The tightest is 11 px (375, the
+  caption in the room reading); every other block at 375 clears by 16 to 130 px, and at 1440 by 28 px
+  (the h1 under the proposed copy) to 158 px. No scrim anywhere, every photograph at 100 percent.
 - **Reduced motion, simulated exactly** by deleting every `no-preference` block from the live sheets
   and clearing the loop's inline writes: all four brackets rest LOCKED (`animation-name: none`,
   `translate: none`, opacity 1), the bloom is spent at 0, 20 of the 24 frames stand at the
