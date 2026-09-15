@@ -460,48 +460,61 @@ voice guide.
 
 ## Handoff (round 3)
 
-- Head **`d9040aa`** plus this commit (a manifest cannot name its own SHA). The round is three
-  commits: `274dea4` built it, `4aea15d` merged `launch-prep`, and **`d9040aa`** is the read-only
-  review's fix (the dead-line cut, plus the two board changes the re-read below produced). Every
-  gate and every measurement in this Handoff was re-run on `d9040aa`.
+- Head **`3a4ceb3`** plus this commit (a manifest cannot name its own SHA). The round's code is
+  three commits: `274dea4` built it, `d9040aa` fixed the dead line the first read-only review found,
+  and **`3a4ceb3`** answers the second review (the phone's rest-state count, said truly in the code
+  and here); `4aea15d` merged `launch-prep` and every other commit in the round is this manifest.
+  The whole gate was re-run on `3a4ceb3`; which measurements were re-taken at this head and which
+  stand from `d9040aa` on identical executable code is named under Verified below.
   Pushed. The board is `/design/c/home-hero?key=` (concept 4 of 4).
   **Marker for the round-three board: `hhv-delta`**, the stream wrapper's second class, which exists
   in no earlier round; the absence of `hhv-lab` (the cut chip) marks it too.
-- ★ **The alias still serves round TWO, and the ceiling is a LEAKY BUCKET, not a 24 hour freeze.**
-  GitHub records the same refusal on `274dea4` (02:44), `6d53fab` (03:00) and `d9040aa` (03:31):
-  `Vercel: "Deployment rate limited, retry in 24 hours."`, and no deployment record is created, so
-  `partyreel-git-lp-hero-river-partyreel.vercel.app` still serves `6915bd5`, round two's first
-  commit. **Round three's first draft of this bullet took that message at its word and called it a
-  standing project-wide ceiling. That was wrong**, and two other tracks had already written down
-  why: the cap refills at about one deployment every 14.4 minutes and the next push on ANY branch
-  takes the slot, so a push is not a deploy, it is an entry in a race that is refused outright when
-  it misses (`docs/tracks/media-kit.md` round two; `lp/hero-burst` `8043b8e`). The deployment list
-  proves it, and the refill is close to exact: deployments went READY at 02:04:10, 02:18:42,
-  02:33:19, 02:48:02, 03:02:50, 03:17:14, 03:31:57, 03:46:21 and 04:00:47, one every **14 minutes
-  24 seconds to 14 minutes 48 seconds** (measured across nine slots), taken in turn by
-  `lp/hero-scan`, `lp/palette`, `lp/floating-surfaces`, `lp/light`, `lp/hero-scan`, `lp/hero-burst`,
-  `lp/media-kit`, `lp/rounding` and `lp/media-kit` again. **So the remedy is not to wait a day, and
-  it is not a blind retry either: the next slot is PREDICTABLE.** Take the newest deployment's
-  timestamp, add about 14.5 minutes, and push (or force a redeploy of the head) at that second;
-  confirm it by the SHA on the deployment rather than by the push succeeding. This branch has now
-  entered the race five times and lost every one, three of them by under a minute and the last
-  **by five seconds** (pushed 04:00:52; `lp/media-kit` took the slot at 04:00:47), which is the
-  whole character of the thing: with eight tracks polling, whoever pushes first inside a 14 minute
-  window takes it, and losing says nothing about the branch or the build. One-line check that the alias is current:
-  `curl -s "<alias>/design/c/home-hero?key=" | grep -c hhv-delta` returns 1 on this round and 0 on
-  round two, where `grep -c hhv-lab` returns 1 instead. Per the round's own instruction the
-  verification below ran on a local production server, and says so each time.
-- **What the live pass ran against, and why it is not a downgrade.** `pnpm build` then `pnpm start` in
-  the worktree, which serves the same production output the preview would at the same code. The one
-  thing it cannot exercise is Vercel's own edge, and this board touches no route handler, no auth, no
-  R2 and no Stripe: it is a static lab page behind the `DESIGN_PREVIEW_KEY` gate, and that gate was
-  tested on the production server (404 with no key, 404 with a wrong key, 200 with the key).
+- ★ **The preview alias serves round TWO, and that is not this track's to fix.** Every push from
+  this branch since `274dea4` has been refused by Vercel with
+  `Vercel: "Deployment rate limited, retry in 24 hours."` and no deployment record is created at all,
+  so `partyreel-git-lp-hero-river-partyreel.vercel.app` still serves `6915bd5`, round two's first
+  commit. The ceiling is the PROJECT's daily deployment cap, spent by eight tracks pushing previews
+  on one afternoon, and it refills as a leaky bucket rather than lifting at a fixed hour
+  (`docs/tracks/media-kit.md` round two; `lp/hero-burst` `8043b8e`): a slot opens about every 14.5
+  minutes and whichever branch pushes first inside that window takes it, so a push is an entry in a
+  race and not a deploy. This branch entered it five times and lost every one, the last by five
+  seconds. Round three's first draft of this bullet took the message at its word and called it a
+  standing 24 hour freeze, which was wrong and is corrected here. **No further attempt was made this
+  round and the Vercel API was not called**: the round's own instruction is to verify locally and say
+  so, which is the next bullet. Nothing about the build is at fault, and the alias serves this head
+  the moment any push from this branch wins a slot. One line tells Will which round an alias is
+  serving: `curl -s "<alias>/design/c/home-hero?key=" | grep -c hhv-delta` returns 1 on round three
+  and 0 on round two, where `grep -c hhv-lab` returns 1 instead.
+- **How the board was verified instead: a local production build, at BOTH canvases.** `pnpm build`
+  then `pnpm start` in the worktree (port 3161), which serves the same production output the preview
+  would at the same code, and the board opened there at `/design/c/home-hero?key=` and driven at
+  **Desktop 1440 and Phone 375**: Replay, reduced motion, the h1 at paint and the dead line at this
+  head; the copy toggle at `d9040aa`, where the clearing probe ran both copies at both canvases on
+  this head's identical executable code. The one thing this cannot
+  exercise is Vercel's own edge, and this board touches no route handler, no auth, no R2 and no
+  Stripe: it is a static lab page behind the `DESIGN_PREVIEW_KEY` gate, and that gate was tested on
+  the production server (404 with no key, 404 with a wrong key, 200 with the key).
+  **The method, because it is not screenshots.** Screenshots come back BLACK from this session's
+  browser, which drives a background tab: rAF is suspended there and the stage sets `data-paused`, so
+  the canvas renders nothing to capture (`docs/systems/testing-verification.md`). Everything below was
+  therefore measured off the DOM and the markup, which is stronger than an eyeballed still and is
+  what every number in this Handoff rests on:
+  - a standalone replication of the concept's pure math was checked against the SERVER's own output
+    first, and reproduces all **16 `--hhv-rest` strings character for character**, so anything it
+    computes is the page's arithmetic and not a second opinion about it;
+  - the rest state was read off the LIVE cascade at each canvas after deleting all 27
+    `no-preference` blocks from the running sheets, which is exactly what a reduced-motion reader
+    resolves, and it matches that replication to 0.1 px;
+  - the running loop was driven by a stepped clock, its own `requestAnimationFrame` callbacks
+    invoked at deterministic timestamps after `data-paused` was removed, 1200 frames per canvas.
+    The per-frame COST that gives is real JS time; the per-frame BUDGET is arithmetic, not a
+    measured 60 fps.
 - Synced with `launch-prep` at **`dd4aa0b`** (it had moved 84 commits: the round-two merges of
   brand-voice, type-scale, palette, light, media-kit, floating-surfaces, rounding and hero-scan).
   `git merge origin/launch-prep` at `4aea15d`, no conflicts. Of the files this track READS, only
   `scan.tsx` and `scan.css` moved; `shared.tsx`, `board.tsx`, `board.css`, `source.tsx`,
   `stage.tsx`, `bible.ts`, `marketing-media.ts` and `ASSETS.md` are untouched by the sync and by me.
-- Gates re-run on `d9040aa`: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing, on
+- Gates re-run on `3a4ceb3`: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing, on
   `contact-form.tsx`, `album-fill-grid.tsx`, `review-switch.tsx`, `jobs.ts` and `use-flip.ts`), test
   ok (1719 in 193 files), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-river.md`,
@@ -521,21 +534,23 @@ voice guide.
   WITHDRAWN, because the chip is cut. What remains is round one's and the scan's: **`demoCount`
   beside `qrUrl`**, the demo event's real media count, so no count ships as drawn.
 
-### What the read-only review found, and what each fix was
+### What the read-only reviews found, and what each fix was
 
-The handoff went to a read-only review before Will. Three things came back; all three are fixed, and
-all three were inside this lane.
+The handoff went to a read-only review twice before Will. **The first pass** read `6d53fab` and
+returned three findings; **the second** read the same `6d53fab` and returned four, of which two
+(the popping frames and the dropped re-read) had already been fixed at `d9040aa` and `f87f906` by
+the time it arrived, one restates the capped preview, and one is new and real: the phone's
+reduced-motion count. All of them are answered here, and all were inside this lane except the
+deployment cap, which belongs to the project.
 
-1. **BLOCKING: the preview does not serve this round's board.** True, and still true at the time of
-   writing: the alias bullet above now carries the correct mechanism (a leaky bucket, not a day-long
-   freeze), the correct remedy (push again or force a redeploy, confirm by SHA) and the one-line
-   check. The review's own evidence, that other branches went READY at 02:48, 03:02 and 03:17, is
-   quoted there, because it is what disproves the first draft. **Five pushes from this branch have
-   now been refused** (02:44, 03:00, 03:31, 03:45 and 04:00, the last five seconds after another
-   track took the slot), including two timed deliberately at the predicted refill. The board is
-   verified below on a local production server serving the head, which is the round's own stated
-   fallback, and the alias will serve this round the moment any push or forced redeploy from this
-   branch wins a slot: nothing about the build is at fault and no rebuild is needed beyond that.
+1. **BLOCKING, both passes: the preview does not serve this round's board.** True, and still true.
+   Not this track's to fix: the cap is the project's, the alias bullet above carries the mechanism
+   (a leaky bucket, not a day-long freeze) and the one-line marker check, and the second pass's own
+   instruction was to verify locally and say so rather than keep racing for a slot. **Five pushes
+   from this branch have been refused**, the last five seconds after another track took the slot,
+   and no sixth was attempted this round. The bullet above states how the board was verified on a
+   local production build at BOTH canvases, by what method, and that `hhv-delta` is the marker that
+   tells round three from round two.
 2. **Frames popped out of existence near the bottom of the stream, on both canvases.** Correct, and
    the one real break in the mechanism. The loop hid a card the moment its CENTRE passed `deadY`,
    but a card is laid out and scaled about that centre, so the cut threw away the whole upper half
@@ -546,14 +561,31 @@ all three were inside this lane.
    The phone was the same shape at a smaller size: 24 cuts a cycle, the worst at mask alpha 0.90
    with a 96 px slab. The fix is a new `topEdgeAt`, the centre minus the half-height of the TUMBLED
    box (a rotated frame reaches higher than its layout box), and the loop now drops a card at the
-   first moment none of it can be seen. **After: the mask alpha at the topmost pixel of a cut card
-   is at most 0.103 on the desktop and 0.088 on the phone**, which is the one-frame step at the
-   canvas's bottom edge rather than a slab, and the code's own comment, the `deadY` field doc and
-   the claim in this Handoff are all true again. Cost: **1.7 to 2.4 more card writes per frame,
-   measured** (1471 extra card-frames over 621 driven frames on the desktop, 1044 over 541 on the
-   phone), which is what the comment above the test was already claiming to buy.
-3. **Round 3 item (2) was silently dropped.** Correct. The re-read is its own section below, and it
-   changed the board twice, corrected the alias bullet, and left one dependency on the record.
+   first moment none of it can be seen. **After, re-measured at this head by driving the real loop
+   for 1200 frames at each canvas: nothing visible is thrown away.** Desktop, 18 cuts in 15 s, every
+   one with the card's top edge at y 927.7 to 929.7, at or below the canvas's own bottom edge, so
+   the mask alpha there is 0 and the discarded slab is 0 px of a 301 to 332 px box. Phone, 29 cuts,
+   top edge y 348.3 to 349.5 against a dissolve that ends at 349.6, alpha at most 0.003 and at most
+   0.3 px discarded. The code's own comment, the `deadY` field doc and the claim in this Handoff are
+   all true again. Cost: **1.7 to 2.4 more card writes per frame, measured**, which is what the
+   comment above the test was already claiming to buy.
+3. **Round 3 item (2) was silently dropped.** Correct, and fixed at `f87f906` before the second pass
+   read the branch. The re-read is its own section below: it says plainly that no reviewer findings
+   on the round-two handoff exist in the record, lists what was read from the other tracks
+   (`brand-voice`, `media-kit`, `type-scale`, `light`, `palette`, `rounding`, `floating-surfaces`,
+   `hero-scan`, `hero-burst`) and names the two things it changed on the board, the alias bullet it
+   corrected and the one dependency it left on the record.
+4. **The reduced-motion claim was true of the inline opacity and false of the page, on the PHONE.**
+   Correct, and the second pass's one new finding. "All 16 cards standing" was read off
+   `--hhv-rest-o`, which the bottom dissolve then overrides: at 375 the dissolve is complete at
+   y 349.6 while the fall runs to y 545, so three cards stand entirely under it and a fourth is a
+   9 px band at alpha 0.082. **The phone shows 12 of 16, and the Handoff now says so per canvas**
+   (the desktop does stand all 16, the last two dissolving out through the bottom edge). The rest
+   state itself was NOT moved, deliberately: the driven loop shows 12 to 14 frames visible at any
+   instant on the phone, so the still is a true frame of the stream, and the tail below the dissolve
+   is what lets a card recycle without popping. Filling the band would make the reduced-motion still
+   denser than the stream it stands for. The reasoning is now a comment above the rest transform in
+   `river.tsx`, so the code cannot drift from this claim again.
 
 ### The re-read (round 3 item 2), and what it changed
 
@@ -633,12 +665,20 @@ a line belonging to nothing beside it), and the chip was the only thing on the c
 the composition, which on a stage reads as product UI. One build, the printed card; the ruling
 survives as a one-word departure.
 
-### Verified at `d9040aa`, against the production build served locally
+### Verified at `3a4ceb3`, against the production build served locally
+
+**Which numbers were re-run at this head, and which stand from `d9040aa`.** This head differs from
+`d9040aa` in comment lines only (`git diff d9040aa..HEAD -- src` is one comment block in
+`river.tsx`), so every measurement below runs on identical executable code. Re-run at this head: the
+gate, the served markup, the lab gate, the dead line at both canvases, the rest state at both
+canvases, the visible count of the running stream at both canvases, and bible 13. Standing from
+`d9040aa` on that same code: the clearing probe, the held beat, the silhouette table and the cost
+figures.
 
 - **The clearing is a geometric guarantee, measured and not eyeballed.** A probe read the rendered
   INK of the headline's two lines, the subhead's lines, both buttons and the count, and tested every
   visible card's live rect against all of them, every frame, for a full cycle in each of the four
-  combinations of canvas and copy. Re-run at `d9040aa`, because the dead-line fix puts frames on
+  combinations of canvas and copy. Re-run at `d9040aa`, on this head's code, because the dead-line fix puts frames on
   screen that used to be deleted there: **desktop 0 px of overlap, both copies, 9843 and 9880
   card-frames checked over 621 driven frames**, of which **1471 are frames the fix restored** (past
   the old centre cut), so the guarantee was re-tested exactly where the new frames appear. **Phone:
@@ -663,14 +703,28 @@ survives as a one-word departure.
   `MonoCaption`, and no `data-mkt-cut` / `data-mkt-reveal` / `.mkt-line` on any h1 on the page. The
   lab gate on the production server: 404 with no key, 404 with a wrong key, 200 with the key. A fresh
   production page load logs nothing to the console at all, so the printed card hydrates clean.
-- **Reduced motion, read off the MARKUP**, which is the honest way: a reduced-motion reader's effect
-  returns before it writes a single inline style, so what they get is exactly the 16 rest transforms
-  the server printed. Parsed from the served HTML: the 16 spread from y 175.1 to y 1067.8 at scales
-  0.35 to 1.00 (re-read at `d9040aa`; round three's figure of 0.32 was `sMin`, not the smallest card
-  the server actually prints), **all 16 above 0.05 opacity**, the lowest 0.731 (round two had 15 of 16; the rest state now uses the loop's
-  own modulo, so a card whose slot jitter went negative lands at the bottom of the fall instead of
-  above the code). On the running page, deleting all 27 `no-preference` blocks from the live sheets
-  leaves 16 of 16 cards standing, the ticking count hidden and the settled 248 shown.
+- **Reduced motion, per canvas, with the count the MASK leaves rather than the count the markup
+  carries.** A reduced-motion reader's effect returns before it writes a single inline style, so what
+  they get is exactly the 16 rest transforms the server printed, resolved through the bottom
+  dissolve. Both canvases were read on the running page by deleting all 27 `no-preference` blocks
+  from the live sheets, which is the exact cascade that reader gets, and then measuring every card's
+  tumbled top edge against the dissolve's own stops.
+  - **Desktop: 16 of 16 stand**, spread y 175.1 to 1067.8 at scales 0.35 to 1.00, inline opacity 0.731
+    at the lowest. The last two are dissolving as they leave: 76 px of one at peak alpha 0.69 and 23 px
+    of the next at 0.21, which is the album going out through the bottom of the hero.
+  - **Phone: 12 of 16 read, not 16.** The dissolve is complete at y 349.6 and the fall runs to y 545,
+    so three cards stand entirely below it with nothing on screen and a fourth is a 9 px band at
+    alpha 0.082. Earlier rounds said "all 16 standing", which was true of the inline opacity and
+    false of the page; this is the corrected claim.
+  - **The rest state is still the settled composition, and that is the point**: the driven loop shows
+    12 to 14 frames visible at any instant on the phone (mean 12.5 over 19 samples) and 14 to 16 on
+    the desktop (mean 15.5), so the still is a true frame of the stream and not a thinned one. The
+    tail below the dissolve is load-bearing: a card may only recycle once none of it can be seen, so
+    without it the recycle is the pop the dead-line test exists to prevent. Moving the rest state up
+    to fill the band would buy four frames in the still by making it denser than the stream it stands
+    for, which is the one thing a designed rest state may not be. Said in the code as well, above the
+    rest transform.
+  - The ticking count is hidden and the settled 248 shown in that cascade, on both canvases.
 - **Bible 13:** the h1 measures opacity 1, transform none, clip-path none, with no `data-mkt-cut`,
   no `data-mkt-reveal` and no `.mkt-line`. Its line pitch measures 98 px against a 96 px face, so
   `leading-[1.02]` is in effect: worth saying because the type-scale board found this same lockup
@@ -695,8 +749,15 @@ survives as a one-word departure.
   (`docs/systems/testing-verification.md`). The loop was therefore driven by a stepped clock, the
   same callbacks at a deterministic timestamp, which is what every measurement above ran on; the
   per-frame COST is real JS time and the per-frame BUDGET is arithmetic, not a measured 60 fps.
-- Light QA: the board read at 1440 and at 375, both copies, Replay, reduced motion, the h1 at paint.
-  The 375 screenshots are the composition described below, not a black frame.
+- Light QA: the board read at 1440 and at 375, both copies, Replay, reduced motion, the h1 at paint,
+  all of it on the local production build. **What a screenshot cannot do here, said plainly:** this
+  session's browser drives a BACKGROUND tab, so a capture of either canvas comes back black and the
+  stage is paused inside it. That is the tooling, not the board (`docs/systems/testing-verification.md`),
+  and it is why every claim above is a measurement off the DOM, the live cascade or the served
+  markup rather than an eyeballed still. The composition at 375 is described below and its geometry
+  is in the numbers; the last thing only an eye can settle, whether that geometry LOOKS right at
+  375, is a thirty second look on the alias once a slot opens, or on any foreground tab at
+  `localhost` with the board open.
 - **Assets requested from Will (no new rows; round one's two asks, unchanged):**
   1. **24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each**, framed tight
      enough to read at 110 px, which is measured: that is the size a frame is as it leaves the code ·
@@ -767,5 +828,5 @@ found the desktop failing its own sentence, because its lateral law was written 
 while everything a reader sees is written against the fall. The fan now opens over the first third
 of the DISTANCE, so the album leaves the card; the clearing took the lockup's measured ink row by
 row in place of one rectangle, so the banks open around the headline and close under the buttons;
-the cadence divides the flight; the chip was cut to one build; and a review caught the loop dropping
-a frame by its CENTRE, deleting half a photograph in full view, where it now goes by the top edge.
+the cadence divides the flight; the chip was cut to one build; and two reviews caught the loop
+dropping a frame by its CENTRE, now cut by its top edge, and a rest-state count the mask disproved.
