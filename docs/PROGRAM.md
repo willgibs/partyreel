@@ -238,7 +238,11 @@ same session. The steps, so no milestone is reverse-engineered from git again (2
   and rebuilt rather than pushed a little further, and big swings that can be reverted beat small
   cautious steps, but always reworking loses what we like and always polishing makes no progress,
   so the call is the agent's, each time, and it may push past today's systems, components and rules
-  to set a new peak. The older half still holds: spread the rise across surfaces; don't gold-plate
+  to set a new peak. The app's UI is inside this (Will, 2026-09-15: "the app is functionally great,
+  but UI design lags far behind... any UI that touches App in an active lab track may be worked on
+  before the dedicated app agents get to it later"): a lab track whose board shows an app surface may
+  redesign it as a candidate; the dedicated app rounds come after marketing. The older half still
+  holds: spread the rise across surfaces; don't gold-plate
   two pages while others sit at wireframe, and every page still ends at the "would this hold up next
   to the homepage?" screenshot check.
 - **Prototype-first for creative/UI magic** (the lab gate above) and **focused per-dimension rounds**
