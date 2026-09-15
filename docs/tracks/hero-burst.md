@@ -1,6 +1,6 @@
 ---
 track: hero-burst
-status: open
+status: handed-off
 cut: "ca952b5"
 merged_round_1: "2d0631e"
 preview: true           # Will reviews this concept on its preview as it builds
@@ -287,14 +287,28 @@ word was 36 px, with no scrim and no darkening layer anywhere.
 ## Handoff (round 2)
 
 - **Head**: the tip of `lp/hero-burst` (a manifest cannot name its own SHA). The work commits are
-  `fdc0aad` (round two of the field) and `3386667` (the birth size); the sync merge with
-  `origin/launch-prep` is `cbca83e`. Pushed; preview
-  `https://partyreel-git-lp-hero-burst-partyreel.vercel.app`, the board at `/design/c/home-hero?key=`
-  (concept 3 of 4). **The round-two marker in the served HTML is `hhb-lab`** (the headline toggle on
-  the stage, which round one did not have): if the preview does not carry it, it is not this head.
-- **Synced with launch-prep at `4b035c1`** (it had moved one commit, a design-system doc line about
-  the candidate block). Nothing under `sandbox/home-hero/` moved and none of my `reads` changed, so
-  the contract is identical to round one's.
+  `fdc0aad` (round two of the field), `3386667` (the birth size) and `c25c7b3` (the ref form the
+  step toggle needs); the sync merge with `origin/launch-prep` is `cbca83e`. Pushed; the board is at
+  `/design/c/home-hero?key=` (concept 3 of 4). **The round-two marker in the served HTML is
+  `hhb-lab`**, the headline toggle on the stage, which round one did not have: if a surface does not
+  carry it, it is not this head.
+- ★ **BLOCKER, and it is the whole wave's, not this track's: the Vercel project hit its daily
+  deployment rate limit at about 22:05 (2026-09-14) and every push since is rejected with "Deployment
+  rate limited, retry in 24 hours".** Checked across four other round-two branches (`lp/hero-scan`,
+  `lp/rounding`, `lp/palette`, `lp/light`): all four have the same failure on their latest commit, so
+  it is project-wide. **`partyreel-git-lp-hero-burst-partyreel.vercel.app` therefore still serves
+  ROUND ONE (`8333f9d`)**, and a reviewer who opens it will walk the old board: check for `hhb-lab`
+  in the HTML before believing the preview. What that costs, precisely: the light-QA line "the board
+  on your preview at 1440 and 375" could not run on the preview. Everything it asks for was run
+  instead on the synced tree at both canvases with the gate green (below), and this board has no
+  auth, CORS, email or Stripe surface, so localhost renders exactly what the preview would. The
+  Orchestrator's call: wait out the limit, or the plan decision Will has to make.
+- **Synced with launch-prep at `521ea66`** (22 commits: the light, palette, type-scale, rounding,
+  floating-surfaces, media-kit, brand-voice and hero-river round-two landings). Under
+  `sandbox/home-hero/` only `river.tsx` and `river.css` moved, which are another track's lane;
+  `shared.tsx`, `board.tsx`, `source.tsx` and the whole board shell (`src/components/dev/`) are
+  untouched, so this concept's contract is identical to round one's. The light spec's board grew a
+  `candidates.ts`, which is where the LIFT numbers this concept adopts now live.
 - Gates on the synced tree: typecheck ok, lint ok (0 errors; the same 7 pre-existing warnings, on
   `brand-voice/board.tsx`, `contact-form.tsx`, two album sections, `jobs.ts` and `use-flip.ts`), test
   ok (1698 in 193 files), build ok (248 static pages; this change adds no route).
