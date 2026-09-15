@@ -713,11 +713,14 @@ B's rungs, so any size has a value and no step chooses its own)
   measured. For the Orchestrator, and it is mandatory before Will walks anything, because this branch
   is handed off and pushes no more: force a redeploy at the tip (`POST /v13/deployments`, `gitSource
   {type: github, repoId: 1252816746, ref: lp/type-scale, sha: <tip>}`), confirm READY, and check the
-  build is round three by curling for **"The four ladders at a glance"**. The fix push (`aa74879`,
-  23:37) produced no deployment either: the 23:31:57 slot had just gone to `lp/media-kit`. An Agent
-  cannot force one, and should not: `POST /v13/deployments` is refused to this session by policy, and
-  a deploy is the Orchestrator's under the branch protocol, which is exactly why this is written down
-  rather than worked around. **The `launch-prep` alias
+  build is round three by curling for **"The four ladders at a glance"**. The ceiling behaves as a
+  token bucket rather than a midnight reset: one deployment is granted 14.4 minutes after the last
+  one, to whichever push arrives first. The fix pass spent two tries on it (`aa74879` pushed at 23:37,
+  between tokens; `65f20ab` pushed at 23:46:19 and lost the 23:46:21 token to `lp/rounding` by two
+  seconds), so assume the alias is a build behind when you read this: curl it for the marker BEFORE
+  walking, and force the redeploy if the marker is missing. An Agent cannot force one and should not:
+  `POST /v13/deployments` is refused to this session by policy, and a deploy is the Orchestrator's
+  under the branch protocol, which is why this is written down rather than worked around. **The `launch-prep` alias
   is further behind still: it serves round ONE of this board** (eleven stages, no Apply bar), which
   is the same ceiling, so round two was never walkable there either.
 - Marker, so a reviewer can tell which round a build serves: round three renders
