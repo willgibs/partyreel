@@ -98,6 +98,24 @@ import {
 const QUESTION =
   "The achromatic ramp between black and white in both modes, the accent's role where there is no media, and the muted panel as a real register: what would the perfect version be if none of today's greys existed?";
 
+/** The rows, in walking order; the nav under the control bar renders these and
+ *  each Row carries the matching id. */
+const ROWS = [
+  { n: "01", name: "the ladder" },
+  { n: "02", name: "the grounds" },
+  { n: "03", name: "the app" },
+  { n: "04", name: "the guest album" },
+  { n: "05", name: "a menu over a card" },
+  { n: "06", name: "the ink leaf" },
+  { n: "07", name: "depth" },
+  { n: "08", name: "the card over a photograph" },
+  { n: "09", name: "the panel" },
+  { n: "10", name: "the text steps" },
+  { n: "11", name: "a marketing chapter" },
+  { n: "12", name: "the accent" },
+  { n: "13", name: "the paste" },
+];
+
 const ASKS = [
   "The ramp: today, A, B or C.",
   "The accent: ink, blue, violet or flare.",
@@ -113,7 +131,7 @@ const DEPARTURES = [
   "Round one's departure list said only candidate B kept the system's one translucent surface. That was wrong: B's card is a color-mix off the room, which is fully opaque, so all three candidates retire the veil and none of them said so. Row 07 renders both answers over a photograph and ask 8 makes it a ruling rather than a side effect.",
   "A finding against bible 16, sharpened and changed. Counted by the job it does, the deepest dark surface in the product is not a token at all: the lightbox paints its backdrop with a literal bg-black/90 (media-lightbox.tsx:617). What --gallery actually does is the media WELL (a tile before its image decodes, a coverless event card, the reel frame) and, through .surface-ink, the footer SLAB, and those two want opposite things. Rule 16 counts four grounds; there are at least six surfaces and one of them is a literal. Row 02.",
   "C re-opens a decision globals.css records as closed: zero-chroma purity IS the brand point, and saturating the neutrals was consciously declined. C is that decision re-argued at 0.003 to 0.008 chroma, on the board rather than in a comment.",
-  "Every candidate's .surface-ink block drops today's --brand: var(--gallery-foreground) override. Under the ink alias the line is a no-op (the block already re-points --primary, which --brand aliases), and under a hue it is the one line that stops the accent reaching the footer mark. Dropping it is deliberate, and row 06 shows the mark on the leaf.",
+  "The accent has to be written into .surface-ink or it never reaches the footer. Today the leaf declares --brand: var(--gallery-foreground), and a class rule outranks a value inherited from the page around it, so a hue ruled for the whole site would reach every surface in the product except the mark that sits at the bottom of every page. The accent paste therefore carries a third block, and every candidate's ink map keeps a --brand line of its own so a ruling of ink alone cannot leave the leaf inheriting the PAPER ink onto a dark slab. Row 06 shows the mark on the leaf.",
   "B deletes the cinema override in marketing.css, the skin block's only surface value. The cinema-to-footer seam then belongs entirely to light, which is the light board's lane.",
   "All three candidates complete .surface-ink (no --card, --popover, --secondary, --accent or --input ships today), so an ink leaf can finally host a card and a menu.",
   "Each candidate adds one custom property, --faint, which needs one line in theme.css's @theme inline block (--color-faint: var(--faint);) before a text-faint utility exists. The board reaches it with an arbitrary value.",
@@ -141,7 +159,9 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-3">
+    // The id and the scroll margin are the walk's index: the control bar is
+    // sticky, so a jump that lands a heading at y=0 would land it UNDER the bar.
+    <section id={`pal-${n}`} className="flex scroll-mt-32 flex-col gap-3">
       <div>
         <p className="text-sm font-semibold">
           <span className="mr-2 inline-flex size-5 items-center justify-center rounded-md bg-foreground text-[11px] text-background tabular-nums">
@@ -158,13 +178,21 @@ function Row({
   );
 }
 
-/** A stage under one candidate's tokens. */
+/**
+ * A stage under one candidate's tokens.
+ *
+ * `extra` lands on the SAME element as the ramp, which matters for the accent
+ * on ink: `.surface-ink` declares --brand itself, and a class rule outranks a
+ * custom property inherited from a wrapper outside the stage, so an accent set
+ * on an ancestor would silently not reach the leaf. Inline on the element wins.
+ */
 function Frame({
   ramp,
   ground,
   mode,
   height,
   label,
+  extra,
   children,
 }: {
   ramp: Ramp;
@@ -172,6 +200,7 @@ function Frame({
   mode: Mode;
   height: number;
   label: string;
+  extra?: React.CSSProperties;
   children: React.ReactNode;
 }) {
   return (
@@ -181,7 +210,7 @@ function Frame({
         <div
           data-pal-swap
           className="h-full w-full overflow-hidden bg-background text-foreground"
-          style={rampStyle(ramp, ground)}
+          style={{ ...rampStyle(ramp, ground), ...extra }}
         >
           {children}
         </div>
@@ -358,7 +387,7 @@ export function PaletteBoard() {
 
       {/* The control bar follows the walk: every stage below repaints from it,
           so it has to stay reachable at row 12 as well as row 01. */}
-      <div className="sticky top-0 z-20 -mx-4 flex flex-col gap-2.5 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm">
+      <div className="pal-walk-bar sticky top-0 z-20 -mx-4 flex flex-col gap-2.5 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm">
         <div className="flex flex-wrap items-center gap-2.5">
           <Toggle
             ariaLabel="Ramp"
@@ -427,23 +456,33 @@ export function PaletteBoard() {
           />
         </div>
 
-        <p className="text-[11px] text-muted-foreground">
+        <p className="truncate text-[11px] text-muted-foreground">
           {applied ? (
             <span className="font-medium text-foreground">
-              Applied: {applied.label}.{" "}
+              Applied: {applied.label}
             </span>
-          ) : null}
-          Walk it on{" "}
-          {WALK.map((w, i) => (
-            <span key={w.href}>
-              {i > 0 ? ", " : ""}
-              <span className="text-foreground">{w.href}</span> ({w.name})
-            </span>
-          ))}
-          , every one with the lab key on the end. The block persists in this
-          browser until Clear, and the tuner panel on any page can clear it too.
+          ) : (
+            "Nothing applied. The pages to walk are listed at row 13."
+          )}
         </p>
       </div>
+
+      {/* The walk, in one line. A board this long is only judgeable if a row can
+          be reached and re-reached without scrolling past the other twelve. */}
+      <nav
+        aria-label="The rows"
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground"
+      >
+        {ROWS.map((r) => (
+          <a
+            key={r.n}
+            href={`#pal-${r.n}`}
+            className="transition-colors hover:text-foreground"
+          >
+            <span className="tabular-nums">{r.n}</span> {r.name}
+          </a>
+        ))}
+      </nav>
 
       <div className="rounded-lg border border-border bg-card px-4 py-3">
         <p className="text-sm font-semibold">{declared.name}</p>
@@ -502,11 +541,16 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="paper"
           mode={mode}
-          height={h(560, 1180)}
+          height={h(560, 1240)}
           label={`paper · ${ramp.label}`}
         >
           <GroundsRow mode={mode} ramp={ramp} />
         </Frame>
+        <p className="text-[11px] text-muted-foreground">
+          The four dark values of each set, side by side: B answers one room for
+          all of them, A and C answer a ladder with the canvas sent deeper than
+          any room, today answers four numbers with no reason written down.
+        </p>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {RAMPS.map((r) => (
             <div key={r.id} className="space-y-1.5">
@@ -539,7 +583,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-dark"
             mode={mode}
-            height={h(880, 1220)}
+            height={h(1090, 1260)}
             label={`an event, dark · ${ramp.label}`}
           >
             <AppEvent mode={mode} />
@@ -548,7 +592,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-light"
             mode={mode}
-            height={h(880, 1220)}
+            height={h(1090, 1260)}
             label={`an event, light · ${ramp.label}`}
           >
             <AppEvent mode={mode} />
@@ -620,19 +664,18 @@ export function PaletteBoard() {
       <Row
         n="06"
         name="The ink leaf, hosting a card and a menu"
-        reading="The footer's set, rendered the way it ships: on a paper page, so the gap shows. Today .surface-ink declares no --card and no --popover, which is why the card and the menu at the foot of this frame are near white on a dark slab. Every candidate completes the set, and every candidate drops the --brand override, so the mark on the leaf carries whatever accent is selected below."
+        reading="The footer's set, rendered the way it ships: on a paper page, so the gap shows. Today .surface-ink declares no --card and no --popover, which is why the card and the menu at the foot of this frame are near white on a dark slab. Every candidate completes the set, and the accent selected below is written into the leaf, so the mark at the bottom of every page carries it too."
       >
-        <div style={accentStyle(accent, true)}>
-          <Frame
-            ramp={ramp}
-            ground="ink"
-            mode={mode}
-            height={h(740, 1120)}
-            label={`ink on a paper page · ${ramp.label} · ${accent.label}`}
-          >
-            <InkLeaf mode={mode} />
-          </Frame>
-        </div>
+        <Frame
+          ramp={ramp}
+          ground="ink"
+          mode={mode}
+          height={h(740, 1120)}
+          label={`ink on a paper page · ${ramp.label} · ${accent.label}`}
+          extra={accentStyle(accent, true)}
+        >
+          <InkLeaf mode={mode} />
+        </Frame>
       </Row>
 
       <Row
@@ -799,7 +842,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground={accentGround}
           mode={mode}
-          height={h(1080, 1680)}
+          height={h(1560, 1800)}
           label={`${accentGround} · ${ramp.label} · all four hues`}
         >
           <AccentWall mode={mode} dark={accentGround === "cinema"} />
@@ -830,6 +873,20 @@ export function PaletteBoard() {
             {applied ? applied.label : "nothing applied"}
           </span>
         </div>
+        <p className="max-w-3xl text-[11px] text-muted-foreground">
+          Walk it on{" "}
+          {WALK.map((w, i) => (
+            <span key={w.href}>
+              {i > 0 ? ", " : ""}
+              <span className="text-foreground">{w.href}</span> ({w.note})
+            </span>
+          ))}
+          , every one with the lab key on the end. The block persists in this
+          browser until Clear, and the tuner panel on any of those pages clears
+          it too. The demo guest page is missing from the list on purpose: the
+          guest layout mounts no design island, so a candidate cannot reach it
+          yet (see the departures, and row 04 for the album on the board).
+        </p>
         <pre className="max-h-96 overflow-auto rounded-lg border border-border bg-muted/40 p-4 font-sans text-[11px] leading-relaxed whitespace-pre tabular-nums">
           {[tokenBlock(ramp), accentBlock(accent)].filter(Boolean).join("\n\n")}
         </pre>

@@ -104,6 +104,8 @@ const TODAY: Ramp = {
     "--background": "var(--gallery)",
     "--foreground": "var(--gallery-foreground)",
     "--card-foreground": "var(--gallery-foreground)",
+    "--brand": "var(--gallery-foreground)",
+    "--brand-foreground": "var(--gallery)",
     "--border": "var(--gallery-border)",
     "--muted":
       "color-mix(in oklab, var(--gallery) 85%, var(--gallery-foreground))",
@@ -196,6 +198,8 @@ const A: Ramp = {
     "--ring": "oklch(0.965 0 0)",
     "--primary": "oklch(0.965 0 0)",
     "--primary-foreground": "oklch(0.185 0 0)",
+    "--brand": "var(--primary)",
+    "--brand-foreground": "var(--primary-foreground)",
     "--shadow-float": "0 0 0 0 oklch(0 0 0 / 0)",
   },
   gallery: {
@@ -285,6 +289,8 @@ const B: Ramp = {
     "--ring": inkVeil(85),
     "--primary": "oklch(0.96 0 0)",
     "--primary-foreground": "oklch(0.125 0 0)",
+    "--brand": "var(--primary)",
+    "--brand-foreground": "var(--primary-foreground)",
     "--shadow-float": "0 0 0 0 oklch(0 0 0 / 0)",
   },
   gallery: {
@@ -369,6 +375,8 @@ const C: Ramp = {
     "--ring": "oklch(0.965 0.002 85)",
     "--primary": "oklch(0.965 0.002 85)",
     "--primary-foreground": "oklch(0.185 0.006 60)",
+    "--brand": "var(--primary)",
+    "--brand-foreground": "var(--primary-foreground)",
     "--shadow-float": "0 0 0 0 oklch(0 0 0 / 0)",
   },
   gallery: {
@@ -745,8 +753,17 @@ export function tokenBlock(ramp: Ramp): string {
   ].join("\n");
 }
 
-/** The accent half of the paste. Ink is the alias that ships, so it prints
- *  nothing: a ruling of "ink" is a ruling to change no line. */
+/**
+ * The accent half of the paste. Ink is the alias that ships, so it prints
+ * nothing: a ruling of "ink" is a ruling to change no line.
+ *
+ * The third block is the one that is easy to miss. `.surface-ink` declares
+ * `--brand: var(--gallery-foreground)` today, which NEUTRALISES any hue on the
+ * footer leaf, and that line outranks an inherited value from the page around
+ * it. So a hue that is not also written into the ink block reaches every
+ * surface in the product except the one place the mark actually sits at the
+ * bottom of every page. Writing it here keeps the walk and the paste identical.
+ */
 export function accentBlock(accent: Accent): string {
   if (accent.id === "ink") return "";
   return [
@@ -758,6 +775,12 @@ export function accentBlock(accent: Accent): string {
     "}",
     "",
     ".dark {",
+    `  --brand: ${accent.dark};`,
+    `  --brand-foreground: ${accent.darkForeground};`,
+    "}",
+    "",
+    "/* the footer leaf neutralises --brand today; the accent has to reach it */",
+    ".surface-ink {",
     `  --brand: ${accent.dark};`,
     `  --brand-foreground: ${accent.darkForeground};`,
     "}",
