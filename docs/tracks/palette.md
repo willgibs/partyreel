@@ -1,6 +1,6 @@
 ---
 track: palette
-status: open
+status: handed-off
 cut: "4e52287"
 merged_round_2: "499a1ad"
 merged_round_1: "bf1a6ef"
@@ -780,15 +780,153 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
 
 ## Handoff (round 3)
 
-- Head <sha>, pushed; preview partyreel-git-lp-palette-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/palette`, pushed. Board at `/design/c/palette?key=`. **The round-three board
+  is the one whose candidate card is followed by a panel headed "What the letter already decides",
+  and whose control bar reads "Put it on the real pages"; round two's had neither, and round two's
+  ramp toggle had a fourth button, C.**
+- ★ **The preview alias is STALE and cannot be refreshed today: the project is at Vercel's
+  100-deployments-a-day ceiling.** `partyreel-git-lp-palette-partyreel.vercel.app` still serves
+  round two's `b4be6a2` (22:18), and it still carries "C. Film stock", which round three cut. Three
+  pushes after it produced no deployment at all, and a forced redeploy of the head answers
+  `payment_required`, `api-deployments-free-per-day`, `remaining: 0`, `reset` tomorrow. Other
+  branches deployed inside the same window before the last slots went, so this is the whole project's
+  ceiling rather than anything about this branch or the ignore-build gate (the manifest says
+  `preview: true`, which the gate honours). **The Orchestrator has to force a redeploy at the head
+  once a slot frees and confirm READY before Will walks this alias**, or the walk will be round two's
+  board wearing round three's label. The poll that does it, from round two's handoff and re-verified
+  here: `POST api.vercel.com/v13/deployments?forceNew=1` with
+  `{"name":"partyreel","project":"prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB","gitSource":{"type":"github","repoId":1252816746,"ref":"lp/palette","sha":"<head>"}}`
+  and no `target` field (a `target` of "preview" is rejected as invalid), retried until it stops
+  answering `payment_required`.
+- **So this round's QA was taken on a local production-equivalent dev server in the worktree**
+  (`pnpm dev` on :3047, the lab key on every URL), which serves the head exactly. Every number below
+  was measured there through the DOM, in a foreground-equivalent read, not eyeballed.
+- Synced with `launch-prep` at `dd4aa0b` (it had moved by 13 commits, all of them the
+  floating-surfaces track's own lane plus its manifest and the round-three reopen; merged clean,
+  nothing in this lane touched).
+- Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 warnings, all pre-existing and none
+  in a file this track owns), test ok (1727 in 194 files, 8 of them this round's
+  `temperature.test.ts`), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` plus four
+  files under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `ramps.ts`, `sections.tsx`, and
+  the new `temperature.test.ts`). No exceptions. No production byte changed: `globals.css`,
+  `theme.css` and `marketing.css` were read and not touched.
+- **What round three changed, in one list.**
+  1. **Candidate C is cut, and every value it held is still reachable.** C was A's ladder at a
+     temperature, and round two wrote the reason in C's own move list: "The spacing is A's exactly,
+     so a ruling between A and C is a ruling on temperature alone and nothing else moves." A column
+     that moves no step is a switch wearing a letter. `warm()` in `ramps.ts` is that switch, read off
+     C rather than invented (a surface carries the temperature and ink does not; paper takes hue 85
+     above L 0.8, the rooms take 60, the near-whites 0.002 at 85, a veil is left alone), and
+     `temperature.test.ts` pins `warm(A)` to C's five published blocks token for token. The board is
+     three columns wide instead of four, the ramp ask is three options instead of four, and **warm B**
+     (which the old board could not ask at all) is one click: B derives every surface from the room
+     by color-mix, so a warmed room carries its whole ladder, which is the clearest thing the split
+     says about B.
+  2. **Two asks were consequences, not rulings.** "The dark grounds: a ladder or one room" and "the
+     canvas and the ink slab: split or one" are both answered by the letter. They are a panel under
+     the candidate now, headed "What the letter already decides", so an answer cannot contradict the
+     paste the letter generates. Asks: seven, down from eight, each still one word.
+  3. **The board's strongest evidence leads the walk, and it stopped being a memory test.** Round two
+     taught this to the accent row ("four hues cannot be ruled on from memory") and left every
+     SURFACE row on a toggle, which is the harder memory test of the two. Row 02 is now the same
+     frame with today on the left and the candidate on the right, inside one canvas, on BOTH grounds:
+     dark (0.140 / 0.245 / 0.210 / 0.230 / 0.250 beside A's 0.145 / 0.195 / 0.235 / 0.285 / 0.325)
+     and paper (0.990 / 0.965 / 0.997 / 0.997 / 0.960 beside A's 0.977 / 0.948 / 0.998 / 0.998 /
+     0.925), each half printing its own five steps. It was row 05, behind 4400px of app stages.
+  4. **The counts are re-measured and two were wrong.** The panel ships at **35** sites, not 45
+     (plus 8 hover fills wearing the same utility, which the switch leaves alone); the undocumented
+     ring is at **37**, not 77. The faint step is 37 sites at five alphas, 19 of them at exactly the
+     70 percent `--faint` is. A hue ruling reaches 34 utilities in 16 files. Every count now lives in
+     `ramps.ts` beside the grep that produced it, so the next agent re-runs rather than re-remembers.
+  5. **The stumbles a stranger hits, fixed.** Four unlabelled segmented controls in a row (two of
+     them unreadable without the file open) all have visible names; the grounds strip printed four
+     near-black bars and now prints each room's lightness, which is the only way 0.110 against 0.140
+     is a reading; the ink leaf said "today this is near white" under a candidate that had just fixed
+     it, and both captions follow the ramp now; the menu specimen sat ON the panel's own explanation
+     at 1440 and hid three lines of it at 375, and now overlaps the card's corner from outside; nine
+     stages were clipping or running up to 515px empty at one width or the other and were resized
+     against measured content; the board opened by asking the same question three times over (the
+     touchpoint blurb, the shell's exploration line, its own paragraph) and the paragraph now says
+     how to rule from here.
+  6. **The walk is six links.** The pages were printed as prose, so walking a candidate meant
+     retyping six paths and remembering the lab key on each. They are links now, carrying THIS page's
+     own key (read at runtime, never written into the file), each opening in its own tab, and the
+     event page's row goes to the dashboard rather than to a path with a placeholder in it.
+- **Cost, measured on the head rather than asserted** (the round's honesty item): 3871 DOM nodes, 81
+  images, **zero running animations** at rest, a forced layout of 0.2ms, DOMContentLoaded 320ms and
+  load 822ms on a dev server, page height 15593px. Nothing on this board loops, so `data-paused` has
+  nothing to pause; the one colour fade on the token wrapper lives inside
+  `prefers-reduced-motion: no-preference`, so a reduced-motion reader gets the jump cut and the same
+  settled composition. No element renders in a mono stack and no text node carries an em-dash.
+- Light QA, measured through the DOM on the head: thirteen rows `#pal-01` to `#pal-13` in the new
+  order with the index matching; zero page-level horizontal scroll at 1440 and at 375 under both
+  stage toggles; every stage holds its canvas (the guest album was laying out 952 into 760 and
+  cutting its last row mid-tile, and now fits); the paired frames render two token blocks in one
+  canvas with the correct grounds on each side (dark 0.14 beside 0.145, paper 0.99 beside 0.977);
+  the warm switch produces C's exact light, dark and canvas values in the paste; Apply lands one
+  `<style>` with the real selectors and `/pricing` wears it (background 0.145, muted 0.195, faint
+  0.55, the mark in flare); Clear removes it and leaves nothing in `localStorage`.
+- ★ **Two tooling notes earned this round, for whoever verifies next.** A driven tab is
+  `document.hidden`, which FREEZES the transition clock at `currentTime: 0`: a colour read straight
+  after a toggle is the value the element had BEFORE the toggle, and 32 transitions sit in
+  `playState: "running"` forever without consuming a frame. Read a custom property
+  (`getComputedStyle(el).getPropertyValue("--background")`) instead, which is never transitioned, or
+  reload with the state you want. And the flat-black screenshot of a lab page scrolled past the fold
+  is intermittent rather than reliable: the same scroll position screenshots correctly on a retry a
+  few seconds later, so a black frame is worth one retry before it is worth a workaround.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Three one-line changes that are NOT this lane's, for the Orchestrator.**
+  1. `src/app/(dev)/design/touchpoints.ts:488` still says "three complete candidate token sets"; it
+     is two plus a temperature switch now. One line, at integration.
+  2. `src/app/(guest)/layout.tsx` mounts no design island, so "Apply to the site" cannot reach
+     `/e/[qr_token]` (carried from round two, unchanged). One `<AppDesignIsland />` fixes it; the
+     guest album is judged on the board (row 05) until then.
+  3. The ruling's own paste needs one line in `theme.css`'s `@theme inline` block
+     (`--color-faint: var(--faint);`) before a `text-faint` utility exists. The board reaches the
+     token with an arbitrary value.
+- Assets requested from Will (unchanged from round two, both still lines on the media-kit track's
+  existing shot list rather than a second delivery):
+  - **Four hard cases inside the kit the `media-kit` track already asked for** · one high key (a
+    white dress against a white wall), one low key (a dance floor lit by one lamp), one candle-warm,
+    one stage-cool; four of the 36 at 1600 px long edge, landscape, one grade · replaces the four
+    this board leans on (`wedding-golden`, `party-balloons`, `concert-confetti`, `reception-table`)
+  - **A portrait pair for the guest masonry** · two of the same 36 at 1600 px long edge, PORTRAIT,
+    same grade · replaces the hand-set tile ratios in `specimens.tsx` (every stand-in in the kit but
+    one is landscape, so the column flow the guest album actually ships is being faked)
+  - Why a palette board needs them: a ramp is only ever wrong against media that fights it, and the
+    stand-ins are mid-key and warm, so the light end of every candidate is going untested.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will; each takes
+  one word):
+  1. The ramp: today, A or B.
+  2. The temperature: neutral, or warm.
+  3. The accent: ink, blue, violet or flare.
+  4. The accent's reach: all three jobs, attention only, or identity only.
+  5. The panel: one token, or the alphas.
+  6. The missing step: faint in, or out.
+  7. The dark card: opaque, or the veil.
+- Look at first: **row 02**, the same frame twice, dark then paper. It is the whole ramp argument in
+  two looks and it needs no toggle. Then **row 01** for the ladder tables and the state hues, and the
+  panel beside the candidate card ("What the letter already decides") so the two cut asks stay cut.
+  Then press **Warm** and look at row 02 again, then at **row 11** on cinema, which is where a
+  temperature either reads as film or as a mistake. Then **A** on "Put it on the real pages" and the
+  six links under row 13. **Row 12** is the accent, all four hues on every job at once.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). Rounds two and three turned the palette board
+from a proof that the ramp is wrong into a surface a ruling can be read off in a few words. Round
+two made every candidate leave the board: the full token block plus the accent, the panel at one
+token and `--faint` on the alpha-dimmed sites, handed to the whole site through the shell's
+`setCandidateCss`, and widened the judged surfaces to what the product is made of (the event page's
+stat band and review queue, the dashboard, the guest album on the canvas, the ink leaf hosting a card
+and a menu, the six state hues under every ramp, the light spec's depth cues on each candidate's
+grounds). Round three walked it cold and cut rather than added: candidate C was A's ladder at a
+temperature by its own admission, so it became a switch that any ramp can wear (`warm(A)` still
+reproduces C's five published blocks token for token, pinned by a test) and warm B became askable for
+the first time; two of the eight asks were consequences of the ramp letter, so they are printed as
+what the letter already decides; and the board's strongest evidence now leads it, with today's ramp
+beside the candidate in one canvas on both grounds, because a 0.02 step is exactly what an eye cannot
+hold across a toggle. Two counts the board had been quoting were wrong and are measured now (the
+panel ships at 35 sites, not 45; the undocumented ring at 37, not 77), the six pages of the walk are
+links rather than prose, and every control has a name. Lab only: no production byte changed.
