@@ -152,18 +152,23 @@ export default async function LibraryHomePage({
             blurb="Lines held across the tree; the gate is red without them."
           />
         </div>
+        {/* Links only: the paragraph above already says what each level is
+            worth, and saying it twice would make the short law read long. */}
         <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-          Everything else is precedent (
+          The rest, when you need it:{" "}
           <Ref to={{ kind: "page", href: "/design/library/guidance" }}>
             guidance
           </Ref>
           ,{" "}
           <Ref to={{ kind: "doc", doc: "design-system" }}>the system docs</Ref>,{" "}
           <Ref to={{ kind: "page", href: "/design/library/rulings" }}>
-            the rulings
+            Will&rsquo;s rulings
+          </Ref>{" "}
+          and{" "}
+          <Ref to={{ kind: "page", href: "/design/library/record" }}>
+            the record
           </Ref>
-          ), and a rule that blocks better work is a finding in your Handoff,
-          not a wall.
+          .
         </p>
       </Section>
 
