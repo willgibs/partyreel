@@ -215,7 +215,7 @@ grid, two rows per body), so a rewrite that gains a row has spent the page's rhy
 | Wizard, share step body | Print or display the QR, or share the link. Guests just open it. No app, no account. | Put the code on a table or send the link. A guest opens it and starts adding. | Print the QR, put it on a table, or send the link. Guests just open it. |
 | Toast, review on | Review is on. New uploads wait here for approval. | Review is on. New uploads wait here for you. | Review is on. New uploads wait for your approval. |
 | Toast, hidden | Hidden from everyone | Hidden. Only you can see it. | Hidden from your guests |
-| Error, sign-in fallback | Check the form and retry. | That email and password didn't match. Try again. | Couldn't sign you in. Check the email and password. |
+| Error, sign-in | That email and password didn't match. Try the email link instead. | `held`: the shape is already there, and the pointer to the email link is an account-enumeration decision rather than a preference. | |
 | Error, upload refused | Couldn't add that photo | `held`: the app's own verb, and the reason arrives underneath. | |
 | Error, upload reason | That file type isn't supported. | Photos go up as JPEG, PNG, WebP, HEIC, HEIF or AVIF. | Photos need to be JPEG, PNG, WebP, HEIC, HEIF or AVIF. |
 | Notification, review body | Guests are waiting for your approval. | Approve them and they are in the album. | They go into the album as soon as you approve them. |
@@ -448,10 +448,11 @@ round makes it once rather than page by page.
 
 **7. The quiet and guest registers barely fork with the voice, and round four measured how much.**
 Round one found it on four sample surfaces and round two confirmed it on eleven; round four wrote
-all sixteen surfaces in all three voices and counted every row: **48 of 66 lines differ across the
-three columns, and the 18 that do not each carry the reason.** The holds cluster exactly where you
+all sixteen surfaces in all three voices and counted every row: **47 of 66 lines differ across the
+three columns, and the 19 that do not each carry the reason.** The holds cluster exactly where you
 would want them to: buttons the host is about to press, a help title that is also the search string,
-the two state pills on an event card, and the guest surface's own shape (five of its rows hold),
+the two state pills on an event card, the sign-in error whose pointer to the email link is a safety
+decision rather than a preference, and the guest surface's own shape (five of its rows hold),
 which was the closest thing to a written voice this product had. What moves on a guest surface is
 only where a host is the one deciding. The exception worth ruling on is the guest account gate,
 which asks a guest to "create a free account" with us on the host's own page: that is the one

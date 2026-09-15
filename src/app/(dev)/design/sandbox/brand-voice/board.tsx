@@ -1573,7 +1573,9 @@ function NotificationPanel({ voice }: { voice: VoiceId }) {
   );
 }
 
-/** The two errors: a form's fallback, and the toast a refused upload raises. */
+/** The two errors: the password sign-in a guest actually meets (the credential
+ *  mismatch, not the unreachable validation fallback above it in the file), and
+ *  the toast a refused upload raises. */
 function ErrorPanel({ voice }: { voice: VoiceId }) {
   const u = APP_USE.find((c) => c.id === "error") as UseCase;
   return (

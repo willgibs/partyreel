@@ -808,14 +808,34 @@ changed.
   before it. The board is at `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
   `docs/specs/brand-voice.md`. **The round-four board is the one whose root div carries
   `class="bv-round-four"`, opens on "The voices in use: marketing, loud" as chapter 1, and whose
-  headnote reads "48 of 66 lines differ across the three columns."**
+  headnote reads "47 of 66 lines differ across the three columns."**
+- **A review pass ran after the first handoff and fixed two accuracy defects**, both recorded in
+  place rather than appended: (a) shell ask 3 below quoted a `touchpoints.ts` note that no longer
+  existed (it was round two's string, copied out of round three's handoff instead of re-read from
+  the file) and told a false history; it now carries the line as `touchpoints.ts:576` actually reads
+  it, its real provenance, and the replacement text. (b) The "An error" surface compared the
+  candidates against the WRONG shipped string: `signin` carried the zod validation fallback
+  ("Check the form and retry.", `enter-event-prompt.tsx:126`), which sits behind a per-field message
+  and is effectively unreachable, while both candidates rewrote it as a CREDENTIAL MISMATCH, which
+  is a different state with its own shipped line two branches below (`:138`). B's proposal was very
+  nearly that shipped line with the pointer to the email link removed, and that pointer is an
+  account-enumeration decision (the comment at `:107-109`), not a preference. The row is now the
+  line a guest actually meets, held in all three voices with the reason stated, so the count fell
+  from 48 of 66 to **47 of 66 differing, 19 the same, 0 unexplained** (recomputed by the board, and
+  re-read off the served page). The guide row at `docs/specs/brand-voice.md:218` was corrected the
+  same way, because the infusion round is told it can paste from there without opening the board.
 - **Where it was verified, and why not on the preview.** Vercel is capped for the trailing day
   (the round-four brief says so; round three measured the exact 402, `api-deployments-free-per-day`,
   remaining 0), so nothing here waited on a build and the Vercel API was not called. Every number
   below was measured on **a local PRODUCTION build in this worktree** (`pnpm build && pnpm start -p
   3035`), in a browser tab, at a real 1440 viewport and a real 375 one, after a walk on the dev
   server at `-p 3034`. The one-line check that the right head is on screen: the root div reads
-  `bv-round-four`.
+  `bv-round-four`. **The review pass re-ran the whole gate and re-walked the board the same way**
+  (fresh `pnpm build`, then `pnpm start -p 3035`), and the numbers below are that SECOND
+  measurement. Same method as the first: the board was opened and read in the shared test window,
+  and the 1440 and 375 figures were taken inside same-origin iframes pinned to those exact widths,
+  because twelve sessions share one window tonight and a resize lands on whoever is fronted. The
+  error surface was also looked at by eye at both widths.
 - Synced with `launch-prep` at `6484558` (it had moved by two docs commits, `PROGRAM.md` and the
   orchestrator manifest; nothing in this lane or its `reads`). Merged clean, gate re-run on the
   merged tree.
@@ -852,12 +872,21 @@ changed.
      `min-width` is auto (`min-w-0` on `Stage`'s own outer wrapper would immunise every board). The
      first two matter MORE at 1:1 than they did at zoom, because a specimen is now judged at the
      pixels it claims.
-  3. **The registration line is still stale, and now doubly so.** `touchpoints.ts` describes the
-     board as "Three candidate voices ... the seven provisional home headers rewritten in each
-     beside today's line; the unfurl both ways." It has been wrong since round two and it is the
-     FIRST thing a walker reads. Round four is: two candidates and today, shown writing sixteen
-     real surfaces across marketing, the app and a guest's phone, then priced on whole pages;
-     thirteen chapters.
+  3. **The registration line is one round behind, and it is the FIRST thing a walker reads.**
+     `touchpoints.ts:576` currently reads, in full: "Two voices on whole pages beside today's: the
+     home arc's fifteen sections, two feature pages whole, help, contact and pricing, the thirty
+     identity strings as a paste, the app's quiet and guest copy on twelve surfaces; twelve chapters
+     indexed in the bar, the recommendation and its measured cost first". That is round three's
+     board, written by the Orchestrator at `abf0d74` ("the desk's board notes read rounds two and
+     three"), and it was accurate when it landed. Round four moved the front of the board: sixteen
+     surfaces rather than twelve, thirteen chapters rather than twelve, and the usage chapters now
+     come FIRST with the ledgers behind them. Suggested replacement, at the desk's own length:
+     "Two voices and today writing sixteen real surfaces on the components that ship them, at 1:1:
+     the home hero, a chapter, a card set, the pricing pair and a help opening; the host's
+     dashboard, event cards, wizard, toasts, errors, notifications and account; a guest's door,
+     upload sheet, album and mail at 375. Then ten ledger chapters price the sweep whole page by
+     whole page; thirteen chapters indexed in the dock, the recommendation and its measured cost
+     with them". `variants` needs no change: the board still runs Today, A and B.
 - Assets requested from Will: none. The board is type on the real grounds and on the real
   components; its stand-ins are the shipped ghost pack behind the two empty states (the product's
   own decorative asset, used as the product uses it) and the grey plate in the three unfurl cards,
@@ -910,7 +939,7 @@ and the ledger chapters keep counting what a sweep actually moves (A 23 of 65 ar
 Where all three still land on the same string, the row carries **the reason**, never the word
 unchanged: a button the host is about to press, a help title that is also the search string, a state
 pill that is a state. The board states its own compliance as a measurement rather than a promise:
-**48 of 66 lines differ, 18 are the same in every voice and each says why, and a row the same in all
+**47 of 66 lines differ, 19 are the same in every voice and each says why, and a row the same in all
 three WITHOUT a reason is counted as a defect out loud (there are 0).**
 
 **The dock** (Will's global note a) carries the voice, the canvas, the app's theme and the
@@ -921,9 +950,15 @@ zoomed** (note b): every Stage renders at 1:1, which a copy board needed more th
 
 - **At a real 1440 viewport:** 52 stages, **0** boxes crossing a stage edge, **0** stage scroll in
   either axis, **0** horizontal document overflow, **0** of the 22 `[data-mkt-reveal]` slots below
-  opacity 1, dock 73px, board 41,420px tall.
-- **At a real 375 viewport:** the same four zeros, dock 194px (from 298 before the workaround
-  above), board 58,577px.
+  opacity 1, dock 74px, board 41,486px tall.
+- **At a real 375 viewport:** the same four zeros, dock 195px (from 298 before the workaround
+  above), board 58,738px.
+- **What "stage" means in those two lines**, because the two boxes give different answers: the
+  clip and scroll counts are taken on the CANVAS (the `[data-ground]` box that holds the specimen),
+  which is the thing a reader looks at. Its parent, the `[data-stage-fit]` rail, carries
+  `overflow-x-auto` by design and DOES scroll wherever a 1:1 canvas is wider than the lab column
+  (40 of 52 at 1440, all 52 at 375). That is the price of the round's own "nothing is zoomed" rule,
+  not a defect, and it is why the canvas is the box that gets counted.
 - **The phone CANVAS reads three abreast**, which was a change this round: three 375 canvases are
   1,125px and fit a 1440 window, so stacking them left a thousand pixels of dead ground beside every
   specimen and put the line being judged a screen away from the line it replaces (round three found
@@ -932,7 +967,11 @@ zoomed** (note b): every Stage renders at 1:1, which a copy board needed more th
 - **Reduced motion gets the settled composition**, verified in the SERVED stylesheet rather than the
   source: both `[data-bv-swap]` rules (the rule and the `bv-swap-in` keyframes) resolve inside
   `(prefers-reduced-motion: no-preference)`, so under `reduce` there is nothing to undo.
-- **At rest the board runs 0 animations**, re-measured on the production build. ★ A caution for the
+- **At rest the board runs 0 animations**, measured on the production build at the first handoff.
+  The review pass could NOT re-measure it honestly: twelve sessions share one browser tonight and
+  the tab reported `document.hidden` at every attempt, which is exactly the trap below. Nothing in
+  the review pass touches motion (`board.css` is byte-identical and the two fixes are prose and one
+  string), so the count stands on the first measurement rather than on a hidden-tab reading. ★ A caution for the
   next reviewer, and it cost this round twenty minutes: a HIDDEN tab freezes every mount animation
   at `currentTime` 0 and they report `playState: "running"` forever, so a probe run in a background
   tab reads 53 animations on a board that is actually at rest. Twelve tracks share one browser
@@ -958,7 +997,13 @@ zoomed** (note b): every Stage renders at 1:1, which a copy board needed more th
 3. **The email subject is one ruling for ten templates**, not a line-by-line call: A keeps
    "Partyreel" in it because an inbox sorts and searches by our name and this mail arrives months
    after the party; B puts the reader's own event first, which is the guide's rule everywhere else.
-4. **Carried from round three, unchanged:** the home page is about to carry two different counts
+4. **The guest sign-in form has two error strings and only one of them can appear.** The zod
+   fallback at `enter-event-prompt.tsx:126` ("Check the form and retry.") sits behind
+   `parsed.error.issues[0]?.message ?? ...`, and zod always supplies a message, so the fallback is
+   dead copy; the line a guest meets is the credential mismatch at `:138`. The sweep should not
+   spend a rewrite on the dead one, and whoever touches that file could delete it. Found by the
+   round-four review pass, which is also why the board's `signin` row now shows `:138`.
+5. **Carried from round three, unchanged:** the home page is about to carry two different counts
    (312 from 48 as a hero stand-in against the shipped "Built from 214 photos. Shot by 23 guests.");
    `/pricing` and the home arc say one promise two ways ("upgrade when you host again" against
    "upgrade for more events"); and the five copy-alternative picks have lost their list.
@@ -992,7 +1037,7 @@ which is ask 6.
 - **Chapter 3, the door.** Three gates, three voices, nine cards, and bible 4 deciding more than the
   voice does. The album-and-gallery split is visible in one screen.
 - **The counter under chapter 1's headnote.** It is the round's answer to the second note, stated as
-  a number the board recomputes rather than a promise: 48 of 66 differ, 18 explained, 0 unexplained.
+  a number the board recomputes rather than a promise: 47 of 66 differ, 19 explained, 0 unexplained.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
@@ -1005,8 +1050,8 @@ grid, the create wizard, two toasts, the two errors, a notification and the acco
 door in three gates, the upload sheet, the empty album and an email, all at 375. The "unchanged"
 rows that made the old comparison useless were a symptom of two questions sharing one table, so the
 usage chapters now have every voice write every line while the ledgers keep pricing a sweep, and
-where all three still agree the row carries the reason rather than the word: 48 of 66 lines differ,
-18 are explained, and an unexplained match is counted as a defect on the board itself. The
+where all three still agree the row carries the reason rather than the word: 47 of 66 lines differ,
+19 are explained, and an unexplained match is counted as a defect on the board itself. The
 page-wide switches moved into the shell's dock, the phone canvas reads three abreast, and the guide
 grew the section a wiring round can rewrite a surface from without opening the board, including
 three app lines that are corrections rather than rewrites (an event that "never expires", a photo

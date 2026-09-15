@@ -2009,10 +2009,13 @@ export const APP_USE: UseCase[] = [
       {
         slot: "signin",
         trio: {
-          today: "Check the form and retry.",
-          house: "Couldn't sign you in. Check the email and password.",
-          room: "That email and password didn't match. Try again.",
+          today:
+            "That email and password didn't match. Try the email link instead.",
+          house:
+            "That email and password didn't match. Try the email link instead.",
+          room: "That email and password didn't match. Try the email link instead.",
         },
+        same: "The error a guest actually meets on the password path, and it already writes the shape: what did not happen, then the one move left. Its pointer to the email link is load-bearing rather than stylistic, because a line that named which half was wrong would confirm whether an account exists, so no voice touches it. The validation fallback two branches above it sits behind a per-field message and is effectively unreachable, which is why the reachable line is the one on the board.",
       },
       {
         slot: "upload-title",
@@ -2033,7 +2036,7 @@ export const APP_USE: UseCase[] = [
       },
     ],
     distinction:
-      "The shipped sign-in fallback names no failure and hands the reader an audit of their own form, which is the one thing the guide's error shape refuses. Both candidates name what did not happen first. They split on blame: A puts the failure on the app (couldn't sign you in), B puts it on the pair of values (didn't match), and the second is more precise and fractionally colder. The description underneath is the other half of an error: a type that is not supported is useless without the list of the ones that are.",
+      "The sign-in error is settled before the voices arrive: it names what did not happen and then the one move left, and its pointer to the email link is an account-enumeration decision rather than a preference, so all three write it back. The upload pair is where the voices work, and the title holds there too, because four words in the app's own verb is already the shape. So the whole difference falls on the description underneath, which is the other half of an error: a type that is not supported is useless without the list of the ones that are. A writes that list as a requirement (photos need to be), B as a fact about what the product does (photos go up as), and the second spends no words instructing a guest whose only move is to pick another file.",
   },
   {
     id: "notification",
