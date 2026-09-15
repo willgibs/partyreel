@@ -69,23 +69,3 @@
 [data-pal-cue="float"] {
   box-shadow: var(--pal-float);
 }
-
-/* ─────────────── THE PASTE'S CLAMP, SCOPED, UNTIL THE SHELL CARRIES IT
-
-   The kit's `Paste` sets `data-lab-paste` and `--lab-paste-lines` on its <pre>
-   and its own comment says design.css reads them. design.css does not: no rule
-   anywhere matches `[data-lab-paste]`, so the collapsed preview is the whole
-   block (measured: 2054px for a 113 line paste) and "Read all 113 lines" is a
-   control with no consequence, which is the one thing a board must never ship.
-
-   ★ DELETE THIS BLOCK when the shell lands the general rule. The exact patch is
-   in this track's Handoff, unscoped and in design.css, where the kit expects it;
-   this copy is scoped to the palette board so it cannot reach another board's
-   paste in the meantime.
-
-   The arithmetic is the <pre>'s own: 11px type at leading-relaxed (1.625) plus
-   its p-4, so the box is exactly the requested number of lines and the reader
-   can tell a clamp from a short paste. */
-[data-board="palette"] pre[data-lab-paste] {
-  max-height: calc(var(--lab-paste-lines, 6) * 1.625em + 2rem);
-}
