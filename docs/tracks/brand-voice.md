@@ -246,8 +246,8 @@ Three departures were flagged rather than buried, and no production byte changed
 
 ## Handoff (round 2)
 
-- Head `43c55f5` (the round-two review fixes, `da618a2` and `43c55f5`; this manifest commit sits on
-  top of them), pushed; preview
+- Head: the branch tip, pushed. The round-two review fixes are `da618a2` and `43c55f5`; the
+  manifest commits sit on top of them. Preview
   `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the board at
   `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
   The round-two board is the one whose root div carries `class="bv-round-two"` and whose control
@@ -309,7 +309,12 @@ Three departures were flagged rather than buried, and no production byte changed
 - Lane check: `docs/specs/brand-voice.md`, `docs/tracks/brand-voice.md` and the three files under
   `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `board.css`, `voices.ts`). No
   exceptions. Nothing production imports anything on this branch; `marketing-voice.ts`,
-  `feature-pages.ts` and the tests are untouched, and no production byte changed.
+  `feature-pages.ts` and the tests are untouched, and no production byte changed. The arrow now
+  runs the other way in two places, which is deliberate and worth the Orchestrator's eye:
+  `voices.ts` IMPORTS `sections/features/album/album-copy.ts` and
+  `lib/lifecycle/recently-deleted.ts`, read-only, so the cards' `today` column is the shipped
+  object rather than a retyped copy of it. Both are pure modules with no server import in their
+  chain, and the production build is unchanged at 114 routes.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
 - Assets requested from Will: none. The board is type on the real grounds; its only stand-ins are
   the grey plates behind the unfurl cards, which stand for a link preview's own thumbnail.
