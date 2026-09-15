@@ -918,7 +918,8 @@ none above 0.01ms.
 
 ## Handoff (round 4)
 
-- Head `HEADSTAMP`, pushed. Round four's CODE ends at `8265667` (the last code commit; it deletes the
+- Head `e528748` plus the one commit on top of it that stamps this line, pushed; `e528748` is the last
+  commit that changes anything else. Round four's CODE ends at `8265667` (the last code commit; it deletes the
   spacer the shell fix made dead); `8f17d09` is the code before it and `e38462b` the sync merge.
   Everything after `8265667` is this manifest and nothing else. **The fix pass that followed the
   read-only review (2026-09-15, morning) touched no file under `src/`**: it rewrote what is now shell
