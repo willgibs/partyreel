@@ -1,7 +1,7 @@
 ---
 track: river-visual
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "c473707"          # origin/launch-prep at boot, 2026-09-15
 preview: true           # Will reviews this board on its preview as it builds (once Vercel's window frees)
 owns:
   - src/app/(dev)/design/sandbox/river-visual/
