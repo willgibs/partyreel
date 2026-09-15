@@ -193,6 +193,189 @@ asks into 36 masters by vertical, with the squares, clips and film derived from 
 production byte changed.
 
 
+**Rounds two and three, the same night** (Will, after the first wave: "a single round of context didn't
+seem to be enough for any of them to reach enough of their full potential for a real review"; then,
+at dinner, "let's go ahead and run a third"). Every board and every hero variation was reopened twice
+with its own handoff as its notes; the shell gained the candidate block (`setCandidateCss`: a board
+hands the whole site the paste its ruling would land, rendered by the tuner islands on the lab, the
+marketing pages, the host app, the guest surface and the admin portal), so a candidate is judged on
+the real pages; the rounding board became an agent track. Each round ran as a workflow: build, a
+read-only skeptic refuting the handoff (the lane, the wave rules, the manifest, the round's goal, the
+preview or a local production build), a fix, a second review. Vercel's free-plan cap of 100
+deployments a day was hit at 23:31 on the 14th, so the third round verified on local production
+builds and the alias walk waits for the window (16:30 on the 15th).
+
+**palette, rounds two and three** (round 2 head `499a1ad`; round 3 head `0d5bb64`, merged `b6da35d`). Rounds two and three turned the palette board
+from a proof that the ramp is wrong into a surface a ruling reads off. Round two made every
+candidate leave the board as the paste its ruling lands, handed to the whole site through the shell,
+and widened the judged surfaces to the event page, the dashboard, the guest album and the ink leaf
+hosting a card and a menu. Round three walked it cold and cut, not added: candidate C was A's ladder
+at a temperature by its own admission, so it became a switch any ramp can wear, pinned by a test to
+C's blocks, and warm B became askable; two asks were consequences of the letter and print as such;
+and today sits beside the candidate, because a 0.02 step is not a memory test. Every switch in the
+bar repaints the board from one resolver, so none can label an answer the page does not show. Two
+counts were wrong and are measured (the panel at 35 sites, not 45; the ring at 37), and the walk is
+seven pages, the last the guest album, which no board could reach until the shell mounted its
+island. Lab only, no production byte.
+
+**light, rounds two and three** (round 2 head `6203d62`; round 3 head `83fdc71`, merged `8d8d0af`). Two rounds turned the light board from an
+argument into a ruling. Round two made every claim wearable: four candidates became pastes in one
+source (`candidates.ts`), each with an Apply to the site button handing the whole site the exact
+block a ruling would land (the shadow family on the primitives and the dashboard's real event cards,
+the lit face on media frames, screens and plates, the aurora's register with a sibling clock, a
+hand-tuned paper five), and part B mounted the home arc's five real media-less chapters instead of a
+specimen built to suit the proposal. Round three walked the board the way Will would and rebuilt
+what a stranger stumbles on: eight calls, each a one word answer, indexed at the top and named on
+every part from one array; every knob labelled and explaining its own setting; the aurora judged
+through a wipe that puts the unlit chapter and the lit one in a single frame; the field's cost
+measured on the machine reading it, which turned into a doctrine line (the field takes the cheap
+transform drive) and a law 4 defect nobody had seen (that drive's rest state is the comet at full
+strength); the paper five made comparable in a three-up row; part E collapsed from 6,300px to 3,100;
+one candidate withdrawn with its reason; and a clipped stage found at last, the lit-face matrix
+cutting off the label that carries its own proposal, hidden for two rounds by a zoomed stage
+misreporting its own overflow. The board went 17,064px to about 13,700 and reads shorter than that.
+
+**type-scale, rounds two and three** (round 2 head `c97d799`; round 3 head `3faf6ad`, merged `5277925`). **The type scale, applied to the site, then made
+rulable.** Round one wrote the ladder down; round two made every candidate a PASTE (one generated
+block of real CSS against the real production hooks, handed to the whole site through the shell's
+candidate store) so a ruling is made on the real home page rather than on a canvas, rebuilt C's app
+register against a real dashboard (the quiet 20px title held, the 14px card title did not, because a
+Card sets `text-sm` on its whole subtree) and pinned the floor under every ladder. Round three walked
+the board the way Will would and turned it from a menu into a verdict: it opens on the ladder it
+would ship, states four rulings with its own answer and the one thing that would overrule each, and
+puts all four ladders' nine steps side by side at the selected canvas with the four faults each one
+fixes computed from the data. Six asks became four and sixteen stages eleven, because an ask already
+answered and a stage the paste replaced are both things to read past; the walk lost 1,400 desktop
+pixels and 3,300 phone ones, measured. Two dead walk links were found and fixed: `/admin` and the
+root 404 mount no design island, so no candidate ever reached them, and the paste now says where its
+reach stops, sixteen hand-rolled marketing headings that ship one rung short of the section ramp
+included, so a heading that does not budge reads as the page rather than as a broken block. Lab
+only; no production byte changed.
+
+**floating-surfaces, rounds two and three** (round 2 head `8a448fd`; round 3 head `c0609e7`, merged `e7309d7`). Rounds two and three turned the floating-surfaces
+exploration into a board that can be ruled on in a few words. Round two made every rung real CSS
+against the primitives' own data-slots (`candidates.ts`, three scopes), so the board renders the same
+string "Apply to the site" hands the whole site and a candidate cannot drift from its proposal; it
+made the guest entry shell the primary specimen at 375 and found it is a TENTH floating surface, a raw
+vaul drawer outside `ui/drawer.tsx` carrying a literal radius; it measured the rule-9 miss off the live
+DOM and drew it at 6x with its arithmetic; and it posed the entrance as rule 12 against rule 15 with
+both statements quoted from the bible. Round three walked the board the way Will would and spent
+itself on the ruling: it opens with the five answers it recommends, one word each, with the row that
+argues each and one button that applies them; three rungs were cut because a rung has to be a
+different answer, not a different drawing (the "lighter is closer" light rung WAS today, the lit edge
+belongs to the light board's material face, and "origin true" answers how a panel moves rather than
+how fast); the shadow rung's light-ground alphas were corrected to the light board's own 0.09 and
+0.13, so the two boards propose one shadow to the byte. Its cost came down with it: frames mount by
+row a viewport ahead of arrival (six documents at first paint instead of nineteen, 1.25s instead of
+5.7), the corner strip dropped the 96 photographs it was hiding its own corners behind, Replay runs
+only the frames in view (a 150ms hitch became none), and every frame smaller than its canvas says so
+on its face. Reduced motion was re-measured on the board it describes: 1356 rules forced, 30 surfaces,
+none above 0.01ms.
+
+**brand-voice, rounds two and three** (round 2 head `b574cda`; round 3 head `4530f2e`, merged `778bdf1`). Rounds two and three took the voice from three
+candidate headers to a board a ruling can be read off. Round two argued it where a voice is judged,
+on whole pages: the home arc's fifteen sections top to bottom on their real grounds, `/features/album`
+and `/features/curation` whole with all 24 card sets, the thirty identity strings as a paste, and the
+app's quiet and guest copy on twelve surfaces; candidate C was retired after it read as B with a
+substitution, and counting every held line produced the sharpest finding, that the arc is unwritten
+while the feature pages are finished. Round three took Will's walk before him: the recommendation,
+its cost and three pointers open the board, the strongest candidate is the first column, twelve
+chapters are an index in the bar, and the voice's one real price is MEASURED off the live heading
+rather than asserted (B's h1 takes 3 rows at 1440 and 4 at 375, against today's 2 and 3). A new
+chapter put `/help`, `/contact` and `/pricing` on a board for the first time, where the voice does
+its most visible work and costs the least. Four lab facts that had been making boards lie about
+their own content were fixed and reported to the shell, the newest found by walking at a real 375
+window (a fixed-width stage in a grid cell defeats its own zoom-fit), and the board's own cost was
+cut from seventeen finished animations sitting at rest to none. The guide gained an example per
+surface for each shape, the eight do's bible 20 asked for, and seven findings. No production byte
+changed.
+
+**media-kit, rounds two and three** (round 2 head `2307446`; round 3 head `6c6ab14`, merged `db2af14`). Two rounds turned the media-kit survey into a
+surface Will can rule on in four words. Round two found the exposure was the site and not the blog
+(the twelve unverified stills are named in 40 production files across 22 routes, six of them in the
+footer and nav of every marketing page), that nobody hashed the blog covers (all 23 posts set
+`cover:` by hand, so the fix is 23 frontmatter lines), and that a recorded reel re-renders with no
+code edit; a second, harder search by scene rather than by keyword staged 22 CC0 candidates and
+handed the running site four CSS blocks it can wear. Round three walked the board the way a reviewer
+would and found the argument was buried under its own evidence, so the ruling is now the first thing
+on the page: four questions with one-word answers, the recommendation marked, each linked to the
+section that argues it. Asking the route and the bridge separately was asking one question twice, so
+there are four asks and a table of what each route ships. The round's real correction is a number:
+the rule this board proposes bars a recognisable face without a release, four of the 22 staged frames
+carry one, and so the Licensed route fills ten of the twelve ids and eighteen of the 23 posts rather
+than twelve and 21, with the dance floor and the DJ the two it cannot fill. The stage was drawing
+440 px plates on the paper ground when the real blog card is 320x400 on a cinema page, and all three
+of its posts went to the shoot under the default route, so it opened blank and two of its three
+routes looked identical; it is now the real card at the real size with today's row above the route's
+row, and a test refuses a stage set that leaves a route flip inert. A review of the handoff found the
+same class of fault twice more: the ask a reviewer answers first still quoted the pre-rule count, and
+the list of frames the Mix route keeps licensed was read as candidate keys on the board and as
+manifest ids in the CSS the board hands the site, so the recommended route pasted a photograph the
+sheet did not show. One function now answers a route for a post and for an id, every digit in the
+ruling surface is interpolated from the batch, and Mix swaps one of the twelve ids and two of the 23
+covers. Reading the whole asset log
+closed the cost argument: one night of photography produces nine of its twelve rows, the demo event's
+own seed among them, so the shoot is the cheapest item on the list rather than the most expensive.
+No production byte changed.
+
+**rounding, rounds two and three** (round 2 head `2603465`; round 3 head `a32981a`, merged `93017e2`). The rounding board was rebuilt over two rounds. Round one judged six numbers in four columns inside a zoom-fitted stage, where `zoom` scales paint with layout and every corner read about a third sharper than its own number; round two split the tokens into the three decisions they are (the surface family A to D, the action rung, the derived ladder) and rendered every comparison at 1:1 on the components that ship them: a four-row matrix, four real compositions, bible 9 drawn right and wrong, the seven derived steps beside a quarter-step retune, the action ladder at every shipped height, and every candidate on its own 375 canvas.
+Round three was the walk Will was about to take, taken first, and it found the board hiding its own evidence. The tuner panel is fixed at the bottom right, 320px wide, and opens open: it sat over the last two columns of the matrix, both specimen columns of the ladder, the third action rung and the third phone. The board measures the panel now and keeps every part clear of it, live, so closing it widens the board again; the live column, which sat under the panel that drove it, became one band; part B's stage takes its height from its content instead of guessing at it; and the answer comes first, as five one-word rulings with the two shapes the first one turns on at true size and one button that puts the whole paste on the site.
+Six findings, all on the board rather than in a comment. The guest gallery's gap is a literal in three files while its tiles ride the token, so any tile above 3 opens corner holes on the one grid every guest sees. The guest entry sheet, the first surface any guest meets, takes its corner from the ACTION token at 1.4x, which makes it a half circle under the pill rung. `--radius-action-lg` has one call site, and every marketing CTA is an ad-hoc h-11 in 26 files wearing 0.33 of its height against a documented 0.4. `rounded-3xl` and `rounded-4xl` have three uses between them. The guest group mounts no design island, so the page those findings live on cannot wear a candidate at all. And the sixth came from walking all seven surfaces with the answer applied rather than from reading the tree: 64 corners in 28 files are px literals, 52 of them photographs, so the home page alone keeps 70 corners at 2 and 3px while the cards around them move to 10 and 12.
+The board answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop the dead rungs and pin the gap, verified on `/pricing`, where a plan card lands at 12px against 25.2 on stock at a round base.
+
+**hero-scan, rounds two and three** (round 2 head `8183147`; round 3 head `f7e9df6`, merged `1c2d0ea`). Two rounds turned the scan from one composition
+into a board with a single ruling on it. Round two carried both readings of the cause and a switch
+between them, rebuilt the phone to tell the truth about what a camera sees (a 46 px code inside a
+260 px device, cropped by two edges so it reads as a held object), gave the 375 canvas its own
+composition rather than a compression, and put the beat in causal order so the room is genuinely
+empty until the capture. Round three walked the board cold, the way its reviewer would, and fixed
+what that found: the switch had been scrolling the whole hero 600 px sideways on every click, because
+an `overflow: hidden` box is still a scroll container and the corridor makes this one 3780 px wide;
+the board had been opening on the reading the concept argues against; the caption that names the act
+had been the faintest type in the frame while the fabricated count was the loud one; the reading had
+not survived Replay; and the proposed headline had read like its neighbour's. The keep-out test was
+rewritten to measure the INK of every block rather than its box, which found a real fault nobody had
+seen: a headline that fits on one line at the xl step gets a photograph behind it, so this
+composition wants two lines at 1440, and that is true of the source's band and not only of this
+variation. The round's one addition is that the capture repeats once per turn of the album, so the
+cause is restated rather than asserted once, on one animation and half the raster it used to cost.
+
+**hero-burst, rounds two and three** (round 2 head `4caffc3`; round 3 head `10e6d03`, merged `78e9538`). Two rounds turned the burst from a field around
+the code into the code emitting the field. Round two made the QR the emitter rather than a hole in
+it: the plate lost its keep-out, so a frame is born behind the object that paints above it and slides
+out from under it; travel and size moved onto ease-out curves in world units with the perspective
+term supplying the acceleration; birth depth and reach became a function of the direction, so the
+axis a canvas has room on takes the near-camera flights; and the pool became an acceptance walk, so a
+direction this canvas and this lockup cannot carry is never launched. Round three walked the board
+cold and fixed what a stranger would trip over: every frame loads eagerly (31 of 34 were lazy on a
+stage fifteen thousand pixels down a page, so the album a reader scrolled to was grey boxes), the
+root is `overflow-clip` so focusing the stage control cannot shove the composition sideways, and the
+pool is selected to be even in the photograph a reader actually sees rather than in the directions
+thrown. A review of that handoff then caught three claims that had outrun their code, and finishing
+them is most of what the round became: the 4:5 share is assigned by slot rather than by candidate
+index, so it survives the balance pass dropping candidates (it had collapsed to 9 percent on the
+phone); the settled state is solved rather than sampled off the flight, so all 34 and all 32 frames
+stand whole, at full opacity, none over a word and none behind the code; the balance integral clips
+to the canvas, which took the phone from 61/39 to 56/44 above and below; and the proposed headline
+keeps the code ("It all comes out of this code.") after the first answer to a collision with the
+river had given up the wrong half of the trade. The keep-out boxes are the union of both copy modes
+again, which closed a hole over the proposed actions row on the phone. Zero photographs under a word
+in roughly 390 sampled frames, and the loop still writes only transform, opacity and z-index, one
+compositor layer per card, not a frame late on a 120 Hz display with all four concepts running.
+
+**hero-river, rounds two and three** (round 2 head `047d269`; round 3 head `8a55535`, merged `39113bb`). Two rounds turned the river from a diagram into a
+composition. Round two answered its own round-one departure: the caption line CAN sit under the
+code, because putting it inside the white object makes the plate the card an event puts on a table,
+and the stream is born behind that card instead of bowing around a floating line; it also proposed
+the pour's held first beat, settled the count, straightened the frames as they land, took the light
+spec's LIFT for the overlap cue and rebuilt the phone as one braided lane. Round three walked it
+cold and found the desktop failing its own sentence, because its lateral law was written against the
+clock while everything a reader sees is written against the fall. The fan now opens over the first
+third of the DISTANCE, so the album leaves the card; the clearing took the lockup's measured ink row
+by row, so the banks open around the headline and close under the buttons; the cadence divides the
+flight; the chip was cut to one build; and three reviews caught a frame dropped by its CENTRE, a
+rest-state count the mask disproved, and a held beat that never held until this round clamped it.
+
 **brand-voice** (`lp/brand-voice`, `d988c88`, merged `749e29a`). The brand voice was written down for
 the first time. `docs/specs/brand-voice.md` is the guide as a proposal: the voice in one paragraph,
 the three registers with a table of what changes between them, five sentence shapes, an example on

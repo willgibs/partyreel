@@ -93,6 +93,16 @@ multi-line variable becomes one iteration (one curl of a three-line "URL" return
   off the underlying state change instead (the RPC's effect, a new row, a redirect, a network response),
   screenshot off that, or hand the human the look. (Unit tests mock `sonner` globally — see
   [design-system.md](design-system.md).)
+- **Three more instrument traps from the round-3 fix passes** (2026-09-15): (1) the in-app Browser pane's
+  `resize_window` reports success and changes nothing (innerWidth stayed about 1456 whatever was asked; the
+  rounding track), so a "375 walk" driven that way is a desktop walk: load the page in a 375-wide
+  same-origin iframe, or drive real Chrome, and assert `innerWidth` in the same call as the measurement;
+  (2) a rebuilt chunk can keep its filename and `next start` serves it `immutable`, so an A/B against a
+  previous build on the SAME port measures the cached bundle (the river track "disproved" a real defect
+  this way): serve each build on its own port and grep the served bundle for the change before trusting
+  a reading; (3) a `next start` launched from a tool call can be reaped mid-walk (exit 144), and the
+  symptom is a same-origin iframe turning "cross-origin" or the board's error boundary, not a product bug:
+  check the server before filing anything.
 - **Two more costumes of the hidden-tab trap, both on lab boards** (palette, round 2, 2026-09-14): (1) the
   lab shell's nav is a Suspense boundary that does not resolve while `document.hidden`, so a board read
   in a driven background tab lays out inside the 232px sidebar cell and every width measured off it is
