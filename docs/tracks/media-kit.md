@@ -409,8 +409,38 @@ site four blocks it can wear. No production byte changed.
 ## Handoff (round 3)
 
 - Head: the tip of `lp/media-kit`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot
-  name its own commit). The last commit that changes what the board draws is `3e6eae0`; the one
-  after it is this manifest. Board at `/design/c/media-kit?key=`.
+  name its own commit). The last commit that changes what the board draws is the third pass's
+  (`lab(media-kit): the block a walk wears is the sheet, post by post`); the one after it is this
+  manifest. Board at `/design/c/media-kit?key=`.
+- **Third pass (a second read-only review raised two should-fix items; both are closed here, in the
+  lane, and both were the same fault seen from two sides: the board and the site were not looking at
+  the same thing).**
+  1. *The block could only speak in ids, and the sheet speaks in posts.* `BRIDGE[].candidate` is per
+     POST and a file name can only carry an id, so the applied CSS matched `BRIDGE_BY_ID` and 14 of
+     the 21 filled posts wore a different photograph on the walk from the one the board's own row
+     showed (the timeline post wore bridge-ceremony.jpg under Licensed while the sheet showed
+     wedding-arch.jpg). It also made the route table unreachable: the Mix row promises two covers and
+     exactly one id can change. The site does name a post, in two places, so the blocks now carry a
+     per-slug rule as well as the per-id one: `a[data-cover-morph][href="/blog/<slug>"] img` for the
+     card (the index and an article's "Keep reading" row), and
+     `html:has(link[rel="canonical"][href$="/blog/<slug>"]) [data-cover-plate="target"] img` for the
+     article's own hero, both outranking the id rule on specificity. A post that nothing licensed can
+     fill draws a `None` slate rather than keeping today's frame, and under Ours a post draws the
+     shot ITS vertical is owed (the conference post wears `K1`, not the festival frame's shot), which
+     is the miscasting the route exists to end said on the real page. Five assertions in
+     `apply.test.ts` pin every post's rule to `routeOutcome`, pin that the 14 genuinely diverge, pin
+     that no slug is a suffix of another (the canonical is matched by suffix, because its origin
+     differs between localhost, a preview and production), and pin the route table's blog column to
+     the number of licensed rules in the block.
+  2. *The candidate was drawn centred and the real card does not draw it centred.* `coverFor` derives
+     object-position from the SLUG alone, so a `content` swap leaves it where it was and the wiring
+     round's frontmatter edit will not move it either: a candidate lands at the post's own rung of
+     the crop ladder. The stage and the sheet drew it at `50% 50%`, which flattered every candidate
+     by exactly what the real card takes off its side. Both are drawn at `post.crop` now, on both
+     rows, and the file header and the two captions say why.
+  3. The two doc comments that claimed the sheet and the block "cannot disagree" (`bridge.ts`) are
+     corrected to say what is actually true now, and `decision.ts` carries the note that its `blog`
+     column is a number a reviewer can count on the real /blog.
 - **Second pass (a read-only review of the first handoff raised three should-fix items, all fixed
   here, none blocking and none outside the lane).**
   1. *Ask 3 still carried round two's pre-rule count.* It read "Licensed ships twelve swaps, Mix
@@ -436,17 +466,19 @@ site four blocks it can wear. No production byte changed.
      walk row, with the counts under Light QA below.
 - ★ **Verified on a LOCAL PRODUCTION BUILD, not on a preview.** Vercel was at its daily deployment
   ceiling for the whole round, so the `lp/media-kit` alias serves round two's build and no push in
-  this round produced a deployment, and the second pass called no Vercel API at all. The round was
-  walked on `pnpm build` + `next start` in this worktree against the real Supabase and R2 (`-p 3112`
-  in the first pass, `-p 3210` in the second; `pnpm dev -p 3111` during the work). The alias will be
+  this round produced a deployment, and neither the second nor the third pass called a Vercel API at
+  all. The round was walked on `pnpm build` + `next start` in this worktree against the real Supabase
+  and R2 (`-p 3112` in the first pass, `-p 3210` in the second, `-p 3211` in the third;
+  `pnpm dev -p 3111` during the work). The alias will be
   round three's as soon as a slot frees: confirm by the SHA on the deployment, never by the push
   succeeding (round two's note on how the cap behaves still holds, one slot every 14.4 minutes and
   the next push on any branch takes it).
-- Synced with `launch-prep`: it had not moved. The cut `fb395fe` is still its tip, so the tree
-  under test is the integration tree.
+- Synced with `launch-prep` at `778bdf1` (it had moved one merge past the cut `fb395fe`, the
+  brand-voice track's round three, which touches nothing this lane reads; merged in before handoff
+  so the tree under test is the integration tree).
 - Gates on that tree, re-run after `pnpm format` on the changed files: typecheck ok, lint ok
-  (0 errors, 6 warnings, all pre-existing and none in this lane), test ok (1781 in 198 files; this
-  track holds 54 across six suites, 20 of them new this round), build ok (248 static pages).
+  (0 errors, 6 warnings, all pre-existing and none in this lane), test ok (1786 in 198 files; this
+  track holds 59 across six suites, 25 of them new this round), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
   `docs/tracks/media-kit.md` and nine files under `src/app/(dev)/design/sandbox/media-kit/`
   (`apply.ts`, `apply.test.ts`, `board.tsx`, `bridge.ts`, `bridge.test.ts`, `decision.ts`,
@@ -508,15 +540,34 @@ site four blocks it can wear. No production byte changed.
 - **Look at first**: the card at the top. It is the whole ruling in four rows, and a reviewer who
   reads nothing else can still answer it. Then press **Licensed** in "Apply to the site" and click
   `/blog` in the walk row (the links carry the key and open in a new tab now): the whole library
-  wears the CC0 bridge on the real cards. Come back, flip the route toggle to **Licensed** on the
-  stage, and read the three plates at their real 320x400: a group around a fire with `A face, no
-  release` under it, the conference frame that stays empty with the reason in it, and a ring detail
-  that is legitimately licensed. That row is the argument in one line: the corpus can dress the site
-  and cannot dress the half of it that matters.
+  wears the CC0 bridge on the real cards, and every card wears the candidate its own row on the
+  sheet names rather than whatever its cover's id is bridged with, so the walk and the board can be
+  read against each other line by line. Press **Mix** and walk it again: two covers keep a
+  photograph and the other 21 become the shot they are owed, which is the route table's blog column
+  standing on the page. Come back, flip the route toggle to **Licensed** on the stage, and read the
+  three plates at their real 320x400, each cut at its post's own rung of the crop ladder: a group
+  around a fire with `A face, no release` under it, the conference frame that stays empty with the
+  reason in it, and a ring detail that is legitimately licensed. That row is the argument in one
+  line: the corpus can dress the site and cannot dress the half of it that matters.
 - **Light QA.** Walked cold at 1440 on the local production build: every toggle, all three routes
   against both geometries and both viewport modes, and the four applied blocks.
-  **The applied block is now walked on every page in the walk row, which the first pass reported for
-  `/blog` only.** With **Mix** applied from the board's own button (not by hand into the store) and
+  **The third pass re-walked every page after the block was rebuilt, on `next start -p 3211`.**
+  Under **Licensed** all 23 posts land exactly what `routeOutcome` says, checked by computed
+  `content` on every rendered card (13 on page 1, 11 on page 2, all 23 slugs covered, zero
+  mismatches) and on three article heroes through the canonical rule:
+  `/blog/scanned-a-qr-code-where-your-photos-go` wears bridge-ceremony.jpg (its own candidate, where
+  the id would have given wedding-golden.jpg), `/blog/qr-code-for-wedding-photos` wears
+  wedding-golden.jpg, and the conference post wears the `None` slate. The reviewer's own example is
+  the clearest: `/blog/wedding-day-photo-collection-timeline` now wears wedding-arch.jpg at
+  `50% 42%`, which is what its row on the sheet shows, rather than bridge-ceremony.jpg centred.
+  Under **Mix**, exactly **2** of the 23 covers keep a photograph and 21 wear their shot, which is
+  the number the route table promises and one more than the old block could land; the frames on
+  every other page still come from the id rules (`/` 117 frames: 9 licensed, 105 slated, 3 reel
+  posters no route touches; `/pricing` 26: 2 and 24; `/help` 8: 0 and 8; `/contact` 5: 0 and 5;
+  `/features/album` 66: 6 and 59), and `scrollWidth === clientWidth === 1440` on each. The stage and
+  the sheet were re-measured the same way: every `today` plate and its `bridge` plate now report the
+  same computed `object-position`, across all three routes.
+  **Round three's first-pass walk, unchanged:** With **Mix** applied from the board's own button (not by hand into the store) and
   `?key=` carrying the gate, every page mounts the island's `<style data-tuner-candidate="Mix">` and
   wears it. Marketing stills on the page, then the count wearing the licensed ring and the count
   wearing a slate: `/` 114 (9 and 105), `/pricing` 26 (2 and 24), `/help` 8 (0 and 8), `/contact` 5
@@ -538,21 +589,28 @@ site four blocks it can wear. No production byte changed.
   `overflow-x: auto` container reaching past 376 px. The route table is the one wide element and it
   sits in its own scroller (736 px table inside a 343 px wrapper, the page still 375). The second
   pass also re-walked the applied block at an emulated 375: `/`, `/blog` and `/pricing` wear it with
-  `scrollWidth - innerWidth === 0` on each, so a slate never widens a page. Reduced motion
+  `scrollWidth - innerWidth === 0` on each, so a slate never widens a page. The third pass re-ran
+  both: the board in a 375 iframe is 375 wide at eight sampled scroll positions down all 30,799 px
+  of it, and `/blog` and `/pricing` at 375 with the Mix block on are 375 wide too, so the per-slug
+  rules add nothing to a phone's width. Reduced motion
   is honoured: this board still mints no keyframe and runs no loop, the develop beat's settled state
   lives outside the media query in `marketing.css`, the only rule `board.css` adds is a transition
   delay inside `prefers-reduced-motion: no-preference`, and round three added
   `motion-reduce:transition-none motion-reduce:active:scale-100` to the press feedback on the applied
   blocks, which round two left unguarded. No console message of any kind on the production build, so
   the `useSyncExternalStore` read of the lab key hydrates clean.
-- **Findings against a rule** (for Will, not acted on): none against the bible. Three against this
+- **Findings against a rule** (for Will, not acted on): none against the bible. Five against this
   track's own earlier work, all corrected in place and all now pinned by a test: the Licensed route's
   counts were the counts before the rule the same board proposes; the stage was drawing the wrong
-  geometry on the wrong ground while its route toggle was inert between two of its three routes; and
-  the mix list was read in two namespaces at once, so the board's sheet and the CSS it hands the site
-  disagreed about one frame on the recommended route. The shape of all three is the same, and it is
-  worth saying once: a number or a rule written into a sentence goes stale silently, and a list read
-  in two places means two things. Both are now derived from one function and refused by a test.
+  geometry on the wrong ground while its route toggle was inert between two of its three routes; the
+  mix list was read in two namespaces at once, so the board's sheet and the CSS it hands the site
+  disagreed about one frame on the recommended route; the block could only ever speak one of those
+  two namespaces, so a walk showed the id's answer on 14 of the 21 filled posts and the route table's
+  blog column was a number no walk could produce; and the candidate was drawn centred on a board
+  whose whole claim is that it draws the real card. The shape of all five is one shape, and it is
+  worth saying once: a number or a rule written into a sentence goes stale silently, a list read in
+  two places means two things, and a surface that cannot express half of an argument will quietly
+  show the other half instead. Each is derived from one function now and refused by a test.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
