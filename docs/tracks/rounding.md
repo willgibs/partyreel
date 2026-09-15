@@ -102,12 +102,23 @@ tuner's and the ruling's.
 
 ## Handoff (round 2)
 
-- Head: the tip of `lp/rounding` (the last code commit is `6db270c`; this
-  manifest commit follows it), pushed; preview
-  partyreel-git-lp-rounding-partyreel.vercel.app. The board is
-  `/design/c/rounding?key=`; the round-two marker in the rendered HTML is the
-  heading **"The six tokens, at true size"** (and the class `rnd-wide`), and
-  the second pass adds part F, **"Every candidate on the phone"**.
+- Head: the tip of `lp/rounding` (the last code commit is `6db270c`; the
+  manifest commits follow it), pushed. The board is `/design/c/rounding?key=`;
+  the round-two marker in the rendered HTML is the heading **"The six tokens,
+  at true size"** (and the class `rnd-wide`), and the second pass adds part F,
+  **"Every candidate on the phone"**.
+- ★ **The preview alias is STALE and cannot be refreshed: the Vercel account is
+  out of deployments for the day.** No deployment has been created anywhere in
+  the project since 22:04 (hero-scan's `caa8539`); the push of this pass made
+  none, and asking the REST API for one returns
+  `api-deployments-free-per-day`, "more than 100", remaining 0, reset
+  1789525175349 (about 24 hours). So
+  partyreel-git-lp-rounding-partyreel.vercel.app still serves `45834a3`, the
+  FIRST pass, which has neither the overflow fix nor part F: reviewing it now
+  re-reviews the board the review already read. It refreshes by itself on the
+  first push after the reset, or sooner if the plan changes. This is account
+  wide, so the integration preview is in the same state (the Orchestrator's
+  call, not this track's lane).
 - **Second pass (the read-only review of this handoff found three should-fix
   items; all three are fixed here).**
   1. `.rnd-wide` overflowed the lab column at every width between `lg` and
@@ -130,16 +141,20 @@ tuner's and the ruling's.
   at this handoff, so the tree is the merged one the gates ran on).
 - Gates on the synced tree: typecheck ok, lint ok (0 errors, 7 pre-existing
   warnings in other files), test ok (1698 in 193 files), build ok (248 pages).
-- Light QA, walked rather than assumed: the board at **1440** and at **375**,
-  both with zero horizontal overflow on the document and zero console errors;
-  **reduced motion honoured** by having nothing to undo, since `board.css`
-  declares no keyframes and no element on the board resolves an
-  `animation-name` at all (checked in the page, not only in the source). The
-  overflow fix was measured at 375, 768, 1000, 1023, 1024, 1100, 1180, 1256,
-  1280, 1360, 1440 and 1920: zero at every one, and the 1440 geometry is
-  unchanged from the first pass. Below 375 the page does overflow, from the
-  shell's own `Toggle` groups and the fixed tuner panel rather than from
-  anything in this lane.
+- Light QA, walked rather than assumed, and walked TWICE because the preview
+  could not be rebuilt: once on `next dev` and once on `next start` over the
+  same `pnpm build` output the gate produced, both from this worktree. The
+  board at **1440** and at **375**, both with zero horizontal overflow on the
+  document and zero console errors; **reduced motion honoured** by having
+  nothing to undo, since `board.css` declares no keyframes and no element on
+  the page resolves an `animation-name` at all (checked in the running page,
+  not only in the source). The overflow fix was measured at 375, 768, 1000,
+  1023, 1024, 1100, 1180, 1256, 1280, 1360, 1440 and 1920: zero at every one,
+  and the 1440 geometry (`x=248 w=1176`) is unchanged from the first pass.
+  Below 375 the page does overflow, from the shell's own `Toggle` groups and
+  the fixed tuner panel rather than from anything in this lane. What the
+  production server cannot stand in for is the alias itself, so the first walk
+  on the refreshed preview is still owed.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` =
   `src/app/(dev)/design/sandbox/rounding/{board.tsx,board.css,candidates.ts,specimens.tsx,compositions.tsx}`
   plus this file. No exceptions.
