@@ -31,8 +31,34 @@ export default async function RecordEntryPage({
   const key = await requireDesignKey(searchParams);
   const { id } = await params;
   const ruling = getRuling(id);
-  if (!ruling) notFound();
-  const long = sectionOf(readDoc(RECORD).body, ruling.id);
+  // The record doc carries sections the registry does not (event-feed, a
+  // ruling that never got a touchpoints.ts entry); render those from the doc
+  // alone rather than 404 a link the docs write.
+  const long = /^[a-z0-9-]+$/.test(id)
+    ? sectionOf(readDoc(RECORD).body, id)
+    : null;
+  if (!ruling && !long) notFound();
+  if (!ruling) {
+    return (
+      <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
+        <PageHeader
+          title={id.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase())}
+          description="A section of the record doc with no registry entry: the long form is the whole record."
+          badges={<Tag>record only</Tag>}
+          meta={[
+            [
+              "Source",
+              <Ref key="src" to={{ kind: "source", file: RECORD }} quiet />,
+            ],
+          ]}
+        />
+        <div className="mt-6">
+          <Markdown source={long!} from={RECORD} designKey={key} />
+        </div>
+        <Pager />
+      </div>
+    );
+  }
   const i = RULINGS.findIndex((r) => r.id === ruling.id);
   const prev = RULINGS[i - 1];
   const next = RULINGS[i + 1];

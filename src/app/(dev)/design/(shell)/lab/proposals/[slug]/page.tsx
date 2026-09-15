@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
 import { notFound } from "next/navigation";
 
 import { requireDesignKey } from "@/lib/design-gate/server";
@@ -20,12 +23,19 @@ export default async function ProposalPage({
 }) {
   const key = await requireDesignKey(searchParams);
   const { slug } = await params;
-  const specs = listSpecs();
-  const i = specs.findIndex((s) => s.slug === slug);
-  if (i === -1) notFound();
-  const spec = specs[i];
+  // Any docs/specs file renders (a doc may link one the listing leaves out,
+  // such as the shipped reel spec); the listing is what the nav shows.
+  if (!/^[a-z0-9-]+$/.test(slug)) notFound();
   const file = `docs/specs/${slug}.md`;
+  if (!existsSync(join(process.cwd(), file))) notFound();
+  const listed = listSpecs().find((s) => s.slug === slug);
   const { body } = readDoc(file);
+  const h1 = body.split("\n").find((l) => /^# /.test(l));
+  const spec = listed ?? {
+    slug,
+    title: h1 ? h1.replace(/^# /, "") : slug,
+    status: "A settled spec, not an open proposal.",
+  };
   const board = SANDBOX.some((r) => r.id === slug);
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
