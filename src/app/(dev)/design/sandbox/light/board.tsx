@@ -11,7 +11,7 @@ import { AuroraPart } from "./aurora";
 import { CadencePart, VioletPart } from "./beats";
 import { DepthPart } from "./depth";
 import { DoctrinePart } from "./doctrine";
-import { AppliedBanner } from "./shared";
+import { AppliedBanner, Knob, RuleIndex, type Ask } from "./shared";
 
 /**
  * THE LIGHT BOARD (the review wave, 2026-09-14).
@@ -61,42 +61,64 @@ const QUESTION =
 
 const CANDIDATES = [
   {
-    name: "Tune",
-    rationale:
-      "Keep SPILL and BEAM and their eight laws; amend law 1 so a boundary counts as a source, and let a shadow into dark for overlapping media. The smallest change that makes the footer legal.",
-  },
-  {
     name: "Regroup (the board's recommendation)",
     rationale:
       "One doctrine in three jobs: separate, fill, mark. The elevation contract moves inside it and stops being per mode; the lamp needs a place rather than an object; the aurora is named as the fill register at chapter scale. Part E is this candidate, written out, ready to paste.",
   },
   {
-    name: "Replace",
+    name: "Tune",
     rationale:
-      "The aurora becomes the primary layer: every chapter carries a temperature drawn from the five, spill becomes an aurora anchored to an object, and the laws collapse to two, place and falloff. Candidate D in part B is what that looks like.",
+      "Keep SPILL and BEAM and their eight laws; amend law 1 so a boundary counts as a source, and let a shadow into dark for overlapping media. The smallest change that makes the footer legal, and it leaves the ring undocumented and the elevation contract outside the light doctrine.",
+  },
+  {
+    name: "Replace (withdrawn in round three, and why)",
+    rationale:
+      "Round one's third column: the aurora becomes the primary layer, spill becomes an aurora anchored to an object, the laws collapse to place and falloff. Two rounds of specimens took it apart. The half that survived is on the board as options rather than as a doctrine (the identity register is every chapter carrying the light; the room is a chapter-wide fill, and it is the engine's own warning), and the half that did not was never built, because an anchored aurora is a spill with a different name. Nothing is lost by cutting it, and a column that cannot be chosen makes the other two harder to read.",
   },
 ];
 
-const ASKS = [
-  "Depth in dark: the cue set for stacked media cards, a layer over content and a flat card",
-  "The lit face: adopt, adapt or drop, on the three surfaces it names",
-  "The section aurora: yes or no",
-  "Its register: accent or identity",
-  "Its placement: both boundaries, the top edge alone, or the room",
-  "The cadence: 8s or 11s",
-  "The paper five: hand-tuned, the flat row, or leave the dark set",
-  "The publish beat's violet: 300 as shipped, the house five, or the five leaned to 305",
-  "Part E as pasted: land it, or name what to change",
+/**
+ * THE CALLS (round three). Eight, each one answered in a word, and the FIRST
+ * one is the whole board: part E is the doctrine as a paste, so "land it" is a
+ * complete ruling and the seven under it are the places to differ. Round two
+ * asked nine in the meta panel only, at the bottom of seventeen thousand
+ * pixels, in the order the board happened to be built. `at` is the part that
+ * argues each one: the index at the top, each part's own header and the meta
+ * panel all read this array.
+ */
+const ASKS: Ask[] = [
+  { at: "e", text: "Part E, as pasted: land it, or name what to change" },
+  {
+    at: "a",
+    text: "Depth in dark: the family (lift and float), lift only, or neither",
+  },
+  { at: "a", text: "The lit face: adopt, adapt or drop" },
+  {
+    at: "b",
+    text: "The aurora: no, the seam, both boundaries, or the room",
+  },
+  { at: "b", text: "Its register: accent or identity" },
+  {
+    at: "b",
+    text: "The paper five: hand-tuned, the flat row, or the dark set",
+  },
+  { at: "c", text: "The cadence: 8s or 11s" },
+  {
+    at: "d",
+    text: "The publish beat: 300 as shipped, the house five, or 305",
+  },
 ];
 
+const rulesFor = (at: string) =>
+  ASKS.filter((a) => a.at === at).map((a) => a.text);
+
 const DEPARTURES = [
-  "Part A proposes a shadow family in DARK (--shadow-lift, --shadow-layer). The elevation contract still reads 'Dark: NO shadows anywhere' and --shadow-float is zeroed in .dark; bible 10's rewrite anticipates this, the values are new. On a LIGHT ground lift is today's shipped value to the byte, so paper does not move (round one proposed 0.10 / 0.14 there, which would have re-tuned every paper card as a side effect; that is withdrawn).",
+  "Part A proposes a shadow family in DARK (--shadow-lift, --shadow-layer). The elevation contract still reads 'Dark: NO shadows anywhere' and --shadow-float is zeroed in .dark; bible 10's rewrite anticipates this, the values are new. On a LIGHT ground lift is today's shipped value to the byte, so paper does not move.",
   "Part A moves the ring lift into the contract. It has 77 uses across the app and appears in no document; naming it makes a fourth technique official.",
-  "Part A's lit-face paste reaches the real components through [data-media-tile], .bg-gallery and a :has selector for the plate, because none of the three has a hook of its own. The wiring round would add one data-lit attribute and drop all three selectors.",
   "Part B lets a section retune --lamp-* for everything inside it. The engine already documents the hook and bible 3 still holds (light, never UI), but a per-chapter temperature is a new licence and it is the aurora's whole identity claim.",
-  "Part B candidate D is the fill globals.css warns against by name ('a seam is a band, not a fill'). On the board so the warning can be tested rather than quoted.",
   "Part B proposes a hand-tuned paper five declared on .surface-paper. design-system.md calls that an open design task; this is a proposal for it, and it is the first time --lamp-* would be re-declared per ground.",
-  "Part B ships a grain layer over the aurora, and halves its tile at 2dppx. An 8-bit gradient at that size bands, and a tile laid out at its own pixel size is doubled on a 2x screen, so the dither stops dithering. The tile is a generated stand-in.",
+  "Part B candidate 'the room' is the fill globals.css warns against by name ('a seam is a band, not a fill'). On the board so the warning can be tested rather than quoted.",
+  "Part B asks for one line of the ENGINE, and it is a law 4 fix rather than a feature: if the field takes the cheap transform drive, glw-drift-x's from-keyframe (translate: 32% 0) has to be declared outside the reduced-motion block, or a reduced-motion visitor gets the comet parked dead centre at full strength. Nobody has seen the defect because no shipped lamp uses that drive.",
   "Part D changes a ratified beat: the publish flourish's oklch(0.62 0.2 300) becomes the lamp set's 305, and the beat decays to a base instead of returning to nothing.",
 ];
 
@@ -148,38 +170,45 @@ export function LightBoard() {
         </p>
         <p>
           <span className="font-medium text-foreground">
-            Round two made every claim wearable.
+            What the board does beyond arguing.
           </span>{" "}
           Where a candidate is CSS it carries an Apply to the site button, which
           hands the whole site the exact block a ruling would land, so the
           shadow family can be judged on the real dashboard and the paper five
-          on the real paper chapter. Part B{"'"}s aurora is no longer lit on a
-          section built to suit it: the home arc{"'"}s actual media-less
-          chapters are mounted, each printed twice, unlit and lit. Part E is the
-          doctrine written in design-system.md{"'"}s own shape, so the ruling is
-          a paste rather than a translation.
+          on the real paper chapter. Part B lights the home arc{"'"}s actual
+          media-less chapters rather than a section built to suit it, wipes the
+          light on across one of them so the lit and unlit states touch, and
+          measures what the field costs on this machine. Part E is the doctrine
+          written in design-system.md{"'"}s own shape, so the ruling is a paste
+          rather than a translation.
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Toggle
-          ariaLabel="Viewport"
-          options={[
-            { id: "desktop" as Mode, label: "Desktop 1440" },
-            { id: "phone" as Mode, label: "Phone 375" },
-          ]}
-          value={mode}
-          onChange={setMode}
-        />
-        <Toggle
-          ariaLabel="Motion"
-          options={[
-            { id: "live", label: "Live" },
-            { id: "rest", label: "Rest state" },
-          ]}
-          value={rest ? "rest" : "live"}
-          onChange={(v) => setRest(v === "rest")}
-        />
+      <RuleIndex asks={ASKS} />
+
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <Knob label="Viewport">
+          <Toggle
+            ariaLabel="Viewport"
+            options={[
+              { id: "desktop" as Mode, label: "Desktop 1440" },
+              { id: "phone" as Mode, label: "Phone 375" },
+            ]}
+            value={mode}
+            onChange={setMode}
+          />
+        </Knob>
+        <Knob label="Motion">
+          <Toggle
+            ariaLabel="Motion"
+            options={[
+              { id: "live", label: "Live" },
+              { id: "rest", label: "Rest state" },
+            ]}
+            value={rest ? "rest" : "live"}
+            onChange={(v) => setRest(v === "rest")}
+          />
+        </Knob>
         <span className="text-[11px] text-muted-foreground">
           Rest state is what a visitor with reduced motion sees, on every lamp
           on this board at once.
@@ -188,16 +217,16 @@ export function LightBoard() {
 
       <AppliedBanner />
 
-      <DepthPart mode={mode} />
-      <AuroraPart mode={mode} />
-      <CadencePart mode={mode} />
-      <VioletPart mode={mode} />
-      <DoctrinePart />
+      <DepthPart mode={mode} rules={rulesFor("a")} />
+      <AuroraPart mode={mode} rules={rulesFor("b")} />
+      <CadencePart mode={mode} rules={rulesFor("c")} />
+      <VioletPart mode={mode} rules={rulesFor("d")} />
+      <DoctrinePart rules={rulesFor("e")} />
 
       <BoardMeta
         question={QUESTION}
         candidates={CANDIDATES}
-        asks={ASKS}
+        asks={ASKS.map((a) => a.text)}
         departures={DEPARTURES}
         assets={ASSETS}
       />
