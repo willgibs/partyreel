@@ -1,6 +1,6 @@
 ---
 track: hero-source
-status: open
+status: handed-off
 cut: "c473707"          # origin/launch-prep at the round-four cut
 merged_round_1: "0298c21"
 preview: true           # Will's review surface: every push builds partyreel-git-lp-hero-source
@@ -131,16 +131,25 @@ exploration-round principle: nothing more.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- Testing and verification: record the two live-motion blind spots this round hit, in
+- Testing and verification: record the live-motion blind spots these rounds hit, in
   `docs/systems/testing-verification.md`. An occluded real-Chrome window suspends
   requestAnimationFrame completely (measured: 0 frames in 2.9 s), so a JS-driven loop photographs
   as an empty stage there; the Browser pane keeps ticking rAF while hidden but its screenshots go
-  stale and desync from the page's own scroll. The way through, and the reason a loop should be a
-  pure function of elapsed time, is to freeze the loop at a chosen elapsed and shoot the still.
+  stale and desync from the page's own scroll (hit again at round four: the DOM reported the stage
+  at y=70 while the screenshot still showed it at y=640). The way through, and the reason a loop
+  should be a pure function of elapsed time, is to freeze the loop at a chosen elapsed and shoot
+  the still, or to set the transform and read the rect synchronously in one task, which the loop
+  cannot race.
+- Testing and verification: THE BROWSER PANE IS SHARED between parallel agent sessions. Round four
+  had three tabs navigated out from under it mid-measurement by other tracks' sessions. Every
+  in-page script should assert its own URL on its first line and every check should be one
+  `browser_batch` (select, navigate, measure) rather than a sequence of calls.
 - Home hero (the wiring round, if the source is ruled): production wires the loop to
-  `useAmbientPause` rather than to the stage's `data-paused`, and the pre-burst frame wants a
-  `<noscript>` companion rule so a reader with JavaScript off and motion allowed still gets the
-  deployed corridor (the one departure flagged on the board).
+  `useAmbientPause` rather than to the stage's `data-paused`; and the geometry is now solved
+  against a 4rem overlay site header (the headline's ink starts 79 px down at 1440, 89 at 375), so
+  the wiring round re-checks that number against PageHero's real top padding rather than assuming
+  the canvas is the whole hero. The `<noscript>` companion rule this bucket asked for is DONE, on
+  the board.
 
 ## Handoff (replaces the chat report)
 
@@ -212,16 +221,115 @@ so the burst cannot flash.
 
 ## Handoff (round 4)
 
-- Head <sha>, pushed; preview partyreel-git-lp-hero-source-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/hero-source`, which is THIS commit (a manifest cannot name its own SHA). The
+  last code commit is `dc4040c`, and `eeadf45` is the merge that synced launch-prep. Pushed. The
+  preview at `partyreel-git-lp-hero-source-partyreel.vercel.app` was NOT
+  waited on: Vercel is capped for the day, so the board was verified on this worktree's own
+  production build (`pnpm build && pnpm start` on :3212) and on its dev server (:3210), in a
+  FOREGROUND Browser-pane tab at 1440 and at 375, with every number taken off the DOM rather than
+  off a screenshot.
+- Synced with launch-prep at `6484558` (it had moved two commits, both in docs this track does not
+  own: `docs/PROGRAM.md` and `docs/tracks/orchestrator.md`). Merged clean, no conflicts.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 6 warnings are the pre-existing
+  ones on `contact-form.tsx`, two feature sections, `jobs.ts` and `use-flip.ts`), test ok (1804 in
+  199 files), build ok (248 static pages, unchanged from launch-prep), re-run on the final tree.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-source.md`,
+  `src/app/(dev)/design/sandbox/home-hero/source.css`,
+  `src/app/(dev)/design/sandbox/home-hero/source.tsx`. **No exceptions.** `shared.tsx`, `board.tsx`,
+  `scan.tsx`, `inflow.tsx`, `../album-hero/burst.tsx` and the shell were read and not touched.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- **Shell changes asked for** (the Orchestrator lands them):
+  1. `sandbox/home-hero/board.tsx` still carries its page-wide switches (Desktop / Phone 375, Ruled
+     copy / Proposed copy, Replay) in a static bar at the top of the page. The album-hero board has
+     already moved its to `BoardDock`. This board is THREE full-viewport stages stacked, so it is
+     the one where Will's note (a) bites hardest: comparing the source against the scan at 375 means
+     scrolling back past a 930 px stage for every flip. The file is the Orchestrator's; the concepts
+     need no change for it.
+  2. A stage whose Tailwind breakpoints read the CANVAS rather than the browser window. This is the
+     one thing blocking note (c), "more real UI", on a hero board: the concept already renders the
+     real `Button`, the real `Caption`, the real server-rendered `FooterQr` and real `next/image`,
+     but the site header cannot go in the stage, because `sm:`/`md:` inside a 375 stage fire off the
+     1440 window and the phone stage would show the desktop header. The hero is the one surface the
+     header actually sits on (it is a transparent 4rem overlay), and round four had to solve the
+     headline's ceiling against a header it could not draw. A container-query shim on `Stage` would
+     let every board show real chrome.
+- **Assets requested from Will** (unchanged in kind, refined in spec; the board lists them too):
+  1. **24 event photographs, 512 x 512 squares, one grade, 6 to 35 KB webp each** (ASSETS row 2,
+     already asked), across weddings, birthdays, corporate and festivals. They replace the 12
+     landscape stand-ins the corridor cycles (`FRAMES` in `shared.tsx`); the left arm takes the
+     first 12 and the right the last 12.
+  2. **The refinement round four earned**: each square must survive a CENTRE CROP to 4:5 and to 4:3
+     as well as reading at 120 px. Half the corridor is portrait now, because that is what guests
+     shoot, and the crops come out of the same square, so this costs no new shoot. A subject near
+     an edge loses its head to the 4:5 crop.
+  3. What the 24 buy, stated so the cost of not having them is legible: the two arms are offset by
+     half the frame set, so with 24 the arms' visible windows are disjoint and no photograph is on
+     screen twice. With the 12 stand-ins four are, on opposite arms, at very different sizes, three
+     of the four in different crops. Nothing else is asked: the QR is the real demo event's, and
+     there is no plate art, no lamp and no video in this concept.
+- **The asks, verbatim from the board** (this board renders `ConceptMeta`, not `BoardMeta`; its
+  Departures and Asks rows are the ruling surface, and the Departures row is now ONE line):
+  - "THE CENTRED LOCKUP, and it is the only one left. Precedent rather than law: every other
+    marketing hero goes left, and this one is centred because the code owns the axis and the
+    corridor is symmetrical about it. Overrule it and the composition changes shape, because the
+    type would then have to live beside the corridor rather than above and below it. Everything else
+    here is inside the bible: media at 100 percent with no scrim and no darkening layer anywhere,
+    the h1 in the markup at full opacity, every animation inside the reduced-motion block with the
+    deployed corridor as the rest state, and cinema and unlit with no lamp. Round three's second
+    departure, a reader with scripting off and motion allowed getting an empty band, is fixed rather
+    than flagged: a noscript companion rule restores the deployed corridor for exactly that reader."
+  - The three Asks lines are the asset bullets above, verbatim on the board.
+  - And the copy proposal, which is a ruling in one word: h1 "The whole event comes back to you.",
+    subhead "Guests scan the code. Every photo and video they take lands in your album, with no app
+    and no account.", secondary "See a real album", plus the new caption under the code, "Every
+    photo here came from a guest who scanned it", which is the only line that is on the concept in
+    BOTH copy modes.
+- **What was measured, not asserted** (every number off the running DOM in a foreground tab):
+  - No photograph is ever under a word. 120 samples a canvas, ten seconds each, testing every
+    visible card's rendered box against the h1's and the caption's and the sentence's true INK
+    (a `Range` over the text, not the block box) and against the two real buttons: **zero
+    intersections at 1440 and zero at 375.**
+  - The corridor's own reach, measured on the rendered boxes with rotation and perspective in them:
+    143 units from the axis at the headline's measure (the headline sits at 192), 80 at the
+    caption's (the caption sits at 117), and 54 at the centre column, which is entirely behind the
+    144 px plate. The model that places the type carries an 8 percent allowance over this; measured
+    inflation from rotation and perspective is 2.9 percent, so the allowance covers it twice.
+  - Density: 14 to 19 frames on screen at 1440 (median 16) at 241 to 373 px, and 10 to 14 at 375
+    (median 12) at 117 to 188 px. Round three ran ten at 70 to 290.
+  - The site header's ceiling: the h1's ink starts 79 px from the top of the 1440 canvas and 89 px
+    from the top of the 375 canvas, both clear of the 4rem transparent overlay header.
+  - The server's own HTML carries 34 `.hhs-card` nodes, 34 `--hhs-rest` transforms, 34
+    `--hhs-rest-o` values and 34 `data-hhs-lane` attributes, so the deployed corridor is in the
+    markup: a crawler, a cold paint and a reduced-motion reader all get the album standing still.
+  - Reduced motion: simulated by deleting the `no-preference` block from the live sheet and clearing
+    the loop's inline writes in the SAME synchronous task, which is exactly the cascade a
+    reduced-motion reader gets. The corridor stands fully deployed, 16 frames on canvas, band half
+    height 207. It is a better still than any frame of the running loop.
+  - Replay: the stage remounts, every card is back at the branch-out's first frame
+    (`scale(0)`, opacity 0), and the corridor re-opens.
+  - No em-dash anywhere in the served page.
+- **Look at first**: the first two seconds, which are unchanged in shape and better in substance:
+  the QR alone, then the whole album unfolding out of it in one beat, now with depth in it. Then
+  the two things a ruling turns on: whether the corridor at 1.33 canvas widths of photograph is the
+  right density (round three's was 0.8 and Will asked the question on the board), and whether the
+  centred lockup is right for the home hero, which is the one precedent this concept still breaks.
+  And at 375, whether the corridor should stay a horizontal stream at all or become the phone's own
+  shape, which is the next thing this lane would take up.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). Will ruled the source's direction a second time,
+so round four kept the silhouette and rebuilt everything inside it. The corridor stopped being a
+plane: three depth lanes now scale a frame's size, travel, drift and turn together, paint order
+follows apparent size so near frames pass over far ones, and the arms open as they go, which makes
+the two rows read as one cone with the code at its apex. Half the frames became 4:5 portraits and a
+quarter 4:3, cropped from the same squares, because an album is what guests shoot and not a contact
+sheet. Density went from ten frames on screen at 70 to 290 px to sixteen at 241 to 373. Two numbers
+stopped being chosen and started being measured: each card's DOM box is now its own largest
+on-canvas moment, so no photograph is ever rasterized above 1:1 where a person can see it, and the
+lane the type sits in is solved off the running corridor, so "no photograph is ever under a word" is
+the condition the composition is drawn from (120 samples a canvas against the type's true ink found
+zero intersections). The one departure round three flagged is gone: a noscript companion rule gives
+a reader with motion allowed and scripting off the deployed corridor instead of an empty band. A
+caption under the code names where the frames came from, and the geometry was tuned against the site
+header's 4rem overlay, which the stage cannot draw.
