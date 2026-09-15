@@ -161,3 +161,83 @@ export function Stage({
     </div>
   );
 }
+
+/**
+ * A STAGE THAT TAKES ITS HEIGHT FROM ITS CONTENT (lifted from the brand-voice
+ * board at the kit round, 2026-09-15).
+ *
+ * `Stage` draws a viewport: a fixed canvas a hero is judged inside. A section
+ * board is not a viewport, it is a block of arbitrary height on a real ground,
+ * and pinning it to 930 either clips it or floats it in dead space. FitStage
+ * measures what it was handed and hands that height to the Stage, so the ground
+ * ends where the block does.
+ *
+ * ★ THE MEASURED NODE IS NOT THE KEYED ONE. `swapKey` remounts the child a
+ * level below the measured box, because a key change on the measured node swaps
+ * the element out from under the observer and the height freezes at the last
+ * one. And the slack is not a fudge for the copy: the Stage is border-box, so
+ * its 1px border comes OUT of the height it is handed, and a zoom-fitted stage
+ * rounds at the device pixel. Both read as a constant few-pixel clip on every
+ * stage at once, which is how you tell them from a line that really does not
+ * fit.
+ */
+const FIT_SLACK = 3;
+
+export function FitStage({
+  mode,
+  ground,
+  swapKey,
+  bodySkin,
+  fit,
+  className,
+  children,
+}: {
+  mode: Mode;
+  ground?: Ground;
+  /** Remounts the inner block (a candidate swap that must re-animate). */
+  swapKey?: string;
+  bodySkin?: boolean;
+  fit?: LabFit;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState<number | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const sync = () =>
+      setHeight(
+        Math.ceil(Math.max(el.offsetHeight, el.scrollHeight)) + FIT_SLACK,
+      );
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    window.addEventListener("resize", sync);
+    // The webfont lands after the first layout and takes every wrap with it.
+    document.fonts?.ready.then(sync).catch(() => {});
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", sync);
+    };
+  }, [mode, swapKey]);
+
+  return (
+    <Stage
+      mode={mode}
+      ground={ground}
+      height={height}
+      bodySkin={bodySkin}
+      fit={fit}
+    >
+      {/* flow-root, so a child's margin cannot collapse out of the measured box
+          and hand back a height shorter than what is drawn. */}
+      <div ref={ref} className="flow-root">
+        <div key={swapKey} className={className}>
+          {children}
+        </div>
+      </div>
+    </Stage>
+  );
+}

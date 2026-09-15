@@ -6,6 +6,8 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { withDesignKey } from "@/lib/design-gate/links";
 import { cn } from "@/lib/utils";
 
+import { clearCandidate, useTunerCandidate } from "@/components/dev/candidate-style";
+
 import { useBoardPage } from "./board-page-context";
 import { setLabPref, useLabPrefs } from "./lab-prefs";
 import { Toggle } from "./toggle";
@@ -85,8 +87,7 @@ export function BoardDock({
     };
   }, []);
 
-  const pill =
-    "rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground";
+  const pill = DOCK_PILL;
 
   return (
     <div
@@ -185,5 +186,146 @@ export function BoardDock({
         </div>
       </div>
     </div>
+  );
+}
+
+/* ────────────────────────────  THE DOCK'S ATOMS  ────────────────────────── */
+
+/**
+ * The pill every dock control wears. Exported because the board-state knobs,
+ * the walk and the review panel all draw one and three copies of a border
+ * radius is how a dock stops looking like one thing.
+ */
+export const DOCK_PILL =
+  "rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground";
+
+/**
+ * A NAMED CONTROL (lifted from the light board's `Knob`, 2026-09-15).
+ *
+ * The `Toggle` carries an ariaLabel and nothing visible, which is right for a
+ * board with one switch and wrong for a dock with five: "Accent | Identity"
+ * beside "House five | Warm | Cool" with no names on them is the first thing a
+ * stranger stumbles over, and prose further down does not repair it, because
+ * the prose is read after the control is pressed. The name goes on the control.
+ */
+export function Knob({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[11px] font-medium text-muted-foreground">
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+/** One wrapping row of knobs inside the dock. A board with more switches than
+ *  fit a line groups them rather than letting the wrap choose the grouping. */
+export function DockRow({
+  label,
+  children,
+}: {
+  /** Names the row for a screen reader; the knobs carry the visible names. */
+  label?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      role={label ? "group" : undefined}
+      aria-label={label}
+      className="flex min-w-0 flex-wrap items-center gap-2"
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * WHICH BLOCK STANDS ON THE SITE, AND THE SWITCH OFF (lifted from the light
+ * board's `AppliedCandidate`).
+ *
+ * Applying a block is a per-candidate decision and its button stays beside the
+ * candidate; seeing that one is live, and turning it off, is page-wide. It is
+ * the one thing in the dock that is sometimes absent: it renders nothing while
+ * no block stands, so the dock never carries an empty slot. The label truncates
+ * rather than wraps, so a long candidate name cannot push the dock to a second
+ * row at 375.
+ */
+export function AppliedBadge() {
+  const applied = useTunerCandidate();
+  if (!applied) return null;
+  return (
+    <span className="flex items-center gap-1.5 rounded-lg border border-foreground/25 bg-card py-1 pr-1 pl-2 text-[11px]">
+      <span className="text-muted-foreground">On the site</span>
+      <span
+        title={applied.label}
+        className="max-w-[14ch] truncate font-medium text-foreground sm:max-w-[26ch]"
+      >
+        {applied.label.replace(/^[^:]+:\s*/, "")}
+      </span>
+      <button
+        type="button"
+        onClick={clearCandidate}
+        className="rounded-[calc(var(--radius-action-sm)-2px)] border border-border px-2 py-0.5 font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none"
+      >
+        Clear
+      </button>
+    </span>
+  );
+}
+
+/**
+ * ONE REPLAY FOR EVERY ONE-SHOT ON THE BOARD. A one-shot fires by REMOUNT, not
+ * by an animationend listener, so an incrementing key is the whole mechanism
+ * (useReplay in motion.ts holds it). The count is on the label because a replay
+ * that looks identical to the last one is indistinguishable from a dead button.
+ */
+export function ReplayButton({
+  runId,
+  onReplay,
+}: {
+  runId: number;
+  onReplay: () => void;
+}) {
+  return (
+    <button type="button" onClick={onReplay} className={DOCK_PILL}>
+      {runId === 0 ? "Replay" : `Replay ${runId}`}
+    </button>
+  );
+}
+
+/**
+ * LIVE OR REST, board-wide. "Every lamp's rest state designed, not absent" is a
+ * claim about the whole page, and a per-specimen toggle would let it be true in
+ * one place and quietly false in the next, so this is never a per-part control.
+ * The board's own sheet does the freezing, scoped to its own animations: a
+ * blanket `animation: none` also freezes the marketing reveal grammar, whose
+ * pre-animation state is opacity 0, and the board reads as broken.
+ */
+export function MotionToggle({
+  rest,
+  onChange,
+}: {
+  rest: boolean;
+  onChange: (rest: boolean) => void;
+}) {
+  return (
+    <Knob label="Motion">
+      <Toggle
+        ariaLabel="Motion"
+        options={[
+          { id: "live", label: "Live" },
+          { id: "rest", label: "Rest" },
+        ]}
+        value={rest ? "rest" : "live"}
+        onChange={(v) => onChange(v === "rest")}
+      />
+    </Knob>
   );
 }

@@ -1,18 +1,30 @@
 /**
- * THE BOARD SHELL (the review wave, 2026-09-14): the pieces every exploration
- * board in the lab composes, so a board is its candidates and nothing else.
- * Stage (a real viewport on a real ground, 1:1 by default), Toggle (the
- * board's switches), BoardDock (the page-wide switches, always on screen),
- * BoardMeta (the question, the candidates, the asks Will rules on).
+ * THE OLD BOARD SHELL'S PATH, as a re-export shim (the kit round, 2026-09-15).
+ *
+ * The kit lives at `src/components/lab` now. This file stays only until the
+ * last board migrates onto the template, so the boards still on the legacy path
+ * keep compiling while they wait their turn in the migration wave; the
+ * discipline test (`src/components/lab/kit-discipline.test.ts`) names the boards
+ * still allowed to import it, and that list only ever shrinks. When it empties,
+ * delete this directory.
+ *
+ * New code imports `@/components/lab`. Nothing new belongs here; the kit's own
+ * BoardMeta derives the panel from a spec, and `board-meta.tsx` beside this file
+ * is the hand-written one the unmigrated boards still pass strings to.
  */
 export { BoardMeta, type BoardMetaProps } from "./board-meta";
-export { BoardDock } from "./dock";
+export {
+  clearCandidate,
+  setCandidateCss,
+  useTunerCandidate,
+} from "@/components/dev/candidate-style";
 export {
   type BoardPageContextValue,
   BoardPageProvider,
   type BoardSectionLink,
   useBoardPage,
-} from "./board-page-context";
+} from "@/components/lab/board-page-context";
+export { BoardDock, Knob } from "@/components/lab/dock";
 export {
   getLabPrefs,
   type LabFit,
@@ -20,13 +32,12 @@ export {
   type LabSidebar,
   setLabPref,
   useLabPrefs,
-} from "./lab-prefs";
-export { CANVAS, Stage, useTabHidden, type Ground, type Mode } from "./stage";
-export { Toggle } from "./toggle";
-// A board offers "Apply to the site": its candidate block, as the paste the
-// ruling would land, rendered on every page with a tuner island.
+} from "@/components/lab/lab-prefs";
 export {
-  clearCandidate,
-  setCandidateCss,
-  useTunerCandidate,
-} from "../candidate-style";
+  CANVAS,
+  type Ground,
+  type Mode,
+  Stage,
+  useTabHidden,
+} from "@/components/lab/stage";
+export { Toggle } from "@/components/lab/toggle";

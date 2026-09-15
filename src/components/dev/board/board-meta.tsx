@@ -1,4 +1,9 @@
 /**
+ * THE LEGACY META PANEL (kept in the shim, the kit round 2026-09-15). The kit's
+ * BoardMeta derives this panel from the board's spec instead, so a board on the
+ * template never writes these strings twice. This copy stays only for the boards
+ * that have not migrated yet and goes with the last of them.
+ *
  * THE BOARD'S META PANEL: what a board proposes beyond its stages, on the board
  * where it can be ruled on. Generalised from the home hero's ConceptMeta at the
  * review wave (2026-09-14): every exploration board ends in "Rule on", the
