@@ -1,3 +1,6 @@
+// @policy: shared · The vendored beam stays vendored
+// @refuses: a drifted copy of the vendored border-beam, or an import that reaches around it.
+
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 

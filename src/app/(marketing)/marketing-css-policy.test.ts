@@ -1,3 +1,6 @@
+// @policy: marketing · Marketing CSS stays contained
+// @refuses: a declaration in marketing.css that leaks app-wide once any marketing route has loaded.
+
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";

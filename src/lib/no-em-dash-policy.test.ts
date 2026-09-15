@@ -1,3 +1,6 @@
+// @policy: global · No em-dashes in user-facing copy
+// @refuses: an em-dash inside any string, template literal or JSX text under app, components or lib; comments and internal docs are exempt.
+
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 

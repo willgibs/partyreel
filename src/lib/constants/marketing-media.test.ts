@@ -1,3 +1,6 @@
+// @policy: marketing · One manifest gates the marketing media
+// @refuses: an asset in public/marketing with no manifest entry, or an entry pointing at a file that is not there.
+
 import { readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -43,7 +46,10 @@ describe("marketing media manifest", () => {
     ]);
     for (const sub of ["img", "reels", "posters"]) {
       for (const name of filesUnder(join(MARKETING_DIR, sub))) {
-        expect(referenced.has(`/marketing/${sub}/${name}`), `orphan: ${sub}/${name}`).toBe(true);
+        expect(
+          referenced.has(`/marketing/${sub}/${name}`),
+          `orphan: ${sub}/${name}`,
+        ).toBe(true);
       }
     }
   });
@@ -75,7 +81,10 @@ describe("marketing media manifest", () => {
       }
       for (const boundary of reel.shotBoundaries) {
         // 24fps frames: boundary * 24 must land on an integer (within float noise).
-        expect(Math.abs(boundary * 24 - Math.round(boundary * 24)), `${reel.id}@${boundary}`).toBeLessThan(1e-6);
+        expect(
+          Math.abs(boundary * 24 - Math.round(boundary * 24)),
+          `${reel.id}@${boundary}`,
+        ).toBeLessThan(1e-6);
       }
     }
   });
