@@ -1,6 +1,6 @@
 ---
 track: type-scale
-status: open
+status: handed-off
 cut: "c473707"
 merged_round_3: "3faf6ad"
 merged_round_2: "c97d799"
@@ -946,16 +946,234 @@ Two one-line mounts would fix it for every board in the wave.
 
 ## Handoff (round 4)
 
-- Head <sha>, pushed; preview partyreel-git-lp-type-scale-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: this commit, over `b71246c` (the sync merge), `80c0dd9`, `443ffa6` and `5244620`; all pushed.
+  Board at `/design/c/type-scale?key=`. **Vercel is capped, so nothing here was verified on a
+  preview**: the whole walk below was measured on `pnpm dev` from this worktree at
+  `http://localhost:3117/design/c/type-scale?key=`, in a foreground browser tab, at 1440 and at 375,
+  and the gate was closed with a real `pnpm build`. The `[preview]` marker is in every commit so the
+  alias builds when the window frees.
+- Marker, so a reviewer can tell which round a build serves: round four renders **"The pair, chosen
+  separately"**, **"Real pages, at the pixels they ship"** and **"One token set, two registers"**.
+  None of the three exists in round three.
+- Synced with `launch-prep` at `6484558` (it had moved by two docs commits since the `c473707` cut:
+  `docs/PROGRAM.md` and `docs/tracks/orchestrator.md`). Nothing it landed touches a path in this
+  track's `reads`; the merge was clean and the gates were re-run on the merged tree.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 pre-existing warnings, none in this
+  lane), test ok (**1821 in 199 files**; `ladders.test.ts` is 95 cases, 19 of them round four's),
+  build ok (248 pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the four files under
+  `src/app/(dev)/design/sandbox/type-scale/` plus this manifest. No exceptions. (`board.css` did not
+  need to change again: round two's doubled `[data-tsc][data-tsc]` chain still outranks every paste,
+  and `ladders.test.ts` still computes that rather than asserting it.)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. Lab only, as briefed: not one
+  production byte changed. `page-hero.tsx`, `section-shell.tsx`, `page-heading.tsx`, `card.tsx`,
+  `not-found-screen.tsx`, `metric-card.tsx`, `globals.css`, `theme.css` and `marketing.css` were
+  read and left alone.
+
+### Shell changes asked for (the Orchestrator lands them)
+
+1. **The lab's Sidebar pill sits on top of a dock's first control.** `LabChrome` renders
+   `.lab-sidebar-pill` as `fixed top-2 left-2 z-40` and `BoardDock` is `z-30`, so with the sidebar
+   tucked away (the default) the pill covered the left half of this board's viewport switch,
+   measured at 1440. The pill is also redundant on a board page, because the dock carries its own
+   Sidebar control: the fix is to hide it while a dock is mounted. **Mitigated locally** by passing
+   `className="sm:pl-20"` to `BoardDock` here (commented as a mitigation); that class should come
+   off when the shell lands the fix. Every board with a dock has this.
+2. **`BoardDock`'s `scroll-padding-top` sticks at its first measurement.** The dock writes its
+   height to `scrollPaddingTop` and `--board-dock-h` from a `ResizeObserver`, and in a background
+   tab the observer does not re-fire: measured 246px and then 97px on a dock whose real height is
+   49px, so an anchor would land well below it. A `requestAnimationFrame` re-sync after mount (or a
+   window `resize` listener alongside the observer) settles it. No anchor on this board depends on
+   it, so it is cosmetic here and would not be on a board that uses anchors.
+3. **Optional, and it would make 1:1 exact:** `.board-page` keeps its `px-4` at
+   `html[data-lab-fit="true"]`, so a 1440 canvas never fits a 1440 window and every stage scrolls
+   sideways by 32px on Will's own screen. Dropping the page's horizontal padding at 1:1 (the stages
+   already carry their own border and the frames their own box) would make the desktop canvas land
+   exactly.
+4. **Not an ask, a thank-you, and it changed this board:** `admin/layout.tsx` and
+   `(guest)/layout.tsx` mount `AppDesignIsland` now (`fb395fe`), which is the one-line change round
+   three's handoff, floating-surfaces and rounding all asked for. The walk here gained `/admin` and
+   the guest album, `NO_ISLAND` is down to the root 404, and the walk list is no longer a hand-kept
+   list: `ladders.test.ts` resolves every walk link to its real layout file and fails if a mount
+   ever disappears.
+
+### What round four changed, and why each was the note it answers
+
+- **Note 1, "I can't actually judge the font sizes in usage themselves scaled down."** Nothing on
+  the board scales any more. All eight stages report `data-stage-fit="true"`, and the board removed
+  no scaling of its own because it never had any: the fault was the shell's zoom-fit, which round
+  four's `lab-prefs` turned off by default. The one place the board added its own scale handling is
+  the frames, below, and only so Fit is not a dead control.
+- **Note 2a, the fixed configurator.** Every page-wide switch is in `BoardDock`: the canvas, the
+  marketing ladder, the app ladder, and Apply/Clear. A control that changes one specimen stayed
+  beside that specimen (the token table's "show the bake", each frame's height and reload). The
+  glance tables are also switches now: clicking a column sets that register.
+- **Note 2b, "more UI examples for comparison, especially if they can be live production
+  components".** Four reconstructions came OFF the board (the home's two section tiers, a feature
+  page, /about on paper, the hero board's lockup) and seven real ROUTES went on, each in a frame
+  exactly the canvas wide with the selected pair injected into its document: the home arc top to
+  bottom, `/pricing`, `/features/curation`, `/help`, a help article, `/about`, and the real guest
+  album at the demo token. An admin stage came back (round three had cut it) because the app
+  register is ruled on its own now and admin is where it is quietest.
+  **Why a frame beats a reconstruction, and it is not convenience:** a Tailwind breakpoint prefix
+  inside a stage reads the browser WINDOW and a `vw` inside one measures the window too, which is
+  why this board has always resolved every clamp by hand. Inside a frame both read the frame, so at
+  375 the page's real phone layout runs and the generated clamp is EVALUATED rather than described.
+  Measured: at 375 every frame reports `innerWidth` 375 and zero internal horizontal overflow, and
+  the home hero renders the real mobile nav and the real phone film strip.
+- **Note 3, the two registers, and the board's call on the shape.** The dock carries two switches;
+  `composePair()` composes any of the sixteen pairs into ONE nine-step ladder, and the paste, the
+  token table and the `@theme` bake are all generated from the pair. **The call: one token set with
+  two registers, not two sets.** Two sets would name the same nine roles twice and then have to
+  answer which set a `Card` wears, since `CardTitle` is one component that ships on `/pricing` and on
+  the dashboard, and they would duplicate the tracking law, which is a function of size and not of
+  surface. Nothing in the set is computed from anything else in it, which is exactly why the halves
+  can be ruled separately without the set splitting. It is on the board under the glance tables and
+  as the first departure, and `ladders.test.ts` proves the claim for all sixteen pairs: one `@theme`
+  block each, no register prefix in any token name, a pair of the same ladder byte-identical to that
+  ladder's own paste, and a crossed pair spending the marketing hooks from one half and the app
+  hooks from the other.
+
+### Measured, not eyeballed (the walk, on `pnpm dev`, foreground tab)
+
+- **The paste reaches every frame and wins.** All seven frames report exactly one adopted
+  stylesheet and zero `[data-inview="false"]`, and every heading in every frame matches the selected
+  ladder to the pixel. Under B at 1440: the home hero 100 / 89.97 / -4.2 (rung 100, lh 0.9,
+  ls -0.042), `/pricing`, the feature page and `/help` 80 / 75.2 / -3.04, the help article
+  64 / 62.69 / -2.24, the /about masthead 160 / 137.58 / -7.197. Under C's marketing: the home hero
+  120 / 105.58 / -5.397 and the masthead 200 / 164 / -10.
+- **The control still holds on the real pages, which is the whole board's foundation.** Apply the
+  pair (Today, Today) and the frames reproduce the shipped values exactly: the home hero 96 / 96 /
+  -2.88, `/help` 72 / 71.94 / -2.16, the help article 60 / 60 / -1.80, the masthead 160 / 136 /
+  -4.80. Every one of those is today's ladder, and the paste moves nothing else.
+- **At 375, every frame is 375 wide with no internal horizontal overflow**, and the ladder reads
+  its phone end: the home hero 42 / 46.21 / -1.765, the title step 34 / 39.45 / -1.292, the chapter
+  step 28 / 34.16 / -0.98, the masthead 64 / 62.72 / -2.88. The tracking is the desktop end by
+  design (an em already rides the fluid size), which is why -1.765 at 42px is -0.042em.
+- **No crop and no overflow anywhere.** All eight stages at both canvases, under all four pairs and
+  under a crossed pair (marketing C with the app on today): zero cropped stages, zero horizontally
+  overflowing stages, and the board page itself has zero horizontal overflow at both canvases.
+- **Reduced motion.** `document.getAnimations()` on the board is empty after every toggle settles, so
+  the board composes identically with and without it; the animations inside a frame are the
+  production page's own, which is what a frame is for, and the marketing entrances are settled
+  (below) so no size is ever read mid-transition.
+
+### Three faults the frames found, each fixed in this round
+
+1. **The injected block landed fifth of five sheets.** The first version appended a `<style>` to the
+   frame's head and it was measured there, NOT last: the page's own client chunks insert stylesheets
+   after hydration, so the block was one Tailwind layer change away from silently losing a tie. It
+   is a constructed sheet in `adoptedStyleSheets` now, which the cascade orders after every sheet in
+   the document, so it is at least as late as production's own `CandidateStyle` element and a
+   candidate that wins in a frame wins in a tab.
+2. **A frame read its masthead mid-entrance, and then held a stale number.** marketing.css
+   transitions `.mkt-name` over 760ms from an open squeeze, and measured before the page's own
+   observer had flipped `data-inview` the /about masthead reported **+3.52px** of tracking; after a
+   ladder change it then held **-7.197px** on a 200px masthead, which is a 160px ladder's value and
+   a number no candidate proposes. The board settles a frame the way `board.css` settles a stage
+   (`data-inview` flipped on, re-applied through a `MutationObserver` because the page's islands set
+   it back as they hydrate, plus the cut and blur registers). ★ The settle rule had to MATCH
+   marketing.css's own `[data-mkt] .mkt-name` shape at (0,2,0): a bare `.mkt-name` at (0,1,0) lost
+   whatever the source order, which is the same specificity lesson this board learned in round two
+   from the other direction.
+3. **The dock's first control was half-covered** by the shell's fixed Sidebar pill (shell ask 1).
+
+### Findings for the wiring round, and one for the Orchestrator
+
+- **A THIRD hand-rolled heading, found because the guest album became a frame.** Nothing on that
+  page moves under any pair: the entry title is written inline as `font-heading text-[28px]`, so it
+  keeps the flat -0.03em under every ladder. It is the surface most people who ever see Partyreel
+  see, and the ruling stops short of it. It joins the two already recorded (the app's section
+  heading, which production writes as a label inside an h2, and the sixteen marketing headings at
+  30 / 36 that stop one rung short of SectionShell's ramp) as the wiring round's SWEEP, not a hook:
+  aiming a step at any of the three would move the real site under the Today pair, which is the
+  control the board rests on. All three are named on the board beside the walk.
+- **Not this board's, but seen in the frame and worth one line:** at 375 the home hero's rotating
+  lockup breaks as "The whole / <word> / , in one album.", with the comma opening its own line. It
+  does that under all four ladders including today's, so it is the lockup's composition and not a
+  consequence of any candidate; the home-hero family owns it.
+- **The other boards, re-read in round four** (every manifest in `docs/tracks/` and every spec in
+  `docs/specs/`): one thing moved, and it is the shell's (the island mounts, above). The hero tracks
+  independently corroborate this board's fault two: hero-river, hero-scan and hero-reel all record
+  the hand-rolled `leading-[1.02]` and the tailwind-merge ordering trap around it. Nothing in
+  palette, light, floating-surfaces, media-kit or brand-voice moves a size, a leading or a tracking.
+  brand-voice's "the lab never compiles the heading ladder" is answered rather than carried now: a
+  frame runs the page's own stylesheet at the canvas's own width.
+
+### The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will)
+
+- "The marketing ladder: B rungs, C registers, A tuned or today"
+- "The app ladder: B rungs, C registers, A tuned or today"
+- "The tracking law: adopt, or keep the flat -0.03em"
+- "The 404's h1: put it on the ladder, or leave it off"
+
+Four, unchanged, and still one word each. The board answers all four itself (marketing **B**, the
+app **B**, the law **adopt**, the 404 **on the ladder**) with the one thing that would overrule each,
+so a ruling can be "all four as proposed". The shape question Will handed to the board is NOT a
+fifth ask: it is answered (one set, two registers) and stated as the first departure, because an ask
+whose answer is already made is an ask he has to read past.
+
+### Assets requested from Will
+
+None. A type board needs no asset, and the one ask that could have wanted one (a licensed display
+face) is answered on the board: the pairing holds.
+
+### Look at first
+
+1. **The dock, and the two ladder switches.** Flip Marketing to C and leave App on B: the home
+   frame's hero goes 100 to 120 and the /about masthead 160 to 200 where they stand, with no scroll
+   back to the top. That flip is the whole of round four.
+2. **The home arc frame at Phone 375.** It is the real mobile page, not a stage: the hamburger nav,
+   the phone film strip, the hero at the ladder's own phone end. Today's phone end is still the
+   board's strongest argument and this is the first round where it can be seen on the real page.
+3. **Apply the pair (Today, Today) and watch the frames not move.** That is the paste's own proof.
+4. **The guest album frame**, for the opposite reason: nothing moves, and the board says why.
+5. Then the app half of the glance table, stage 11 (the tier the app does not have, in the three
+   idioms production writes it as) and stage 15 (the tracking law, which moves no size).
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). **The type scale, on the pages themselves, and the
+two registers ruled apart.** Will could not judge a size on a stage scaled to 0.7, so round four
+stopped showing stages of marketing at all: four hand-composed reconstructions came off and seven
+real ROUTES went on, each in a frame exactly the canvas wide with the candidate injected into its
+own document. A frame gets what no stage on this board could: the canvas's own breakpoints, so the
+phone end is the page's real phone end, and an EVALUATED clamp rather than one resolved here by
+hand, so the board shows the token the wiring round bakes instead of arithmetic about it. The two
+registers became two switches in the dock, with the board's call on the shape argued rather than
+assumed (one token set, two registers, because two sets would name every role twice and then have to
+answer which set a Card wears, and would duplicate a tracking law that is a function of size and not
+of surface); any of the sixteen pairs composes into one nine-step set, one `@theme` block and one
+paste, which is the claim the tests now prove for all sixteen. Measuring the frames found three
+faults and fixed them: the injected block was landing fifth of five sheets and is an adopted
+stylesheet now, a masthead was being read mid-entrance and reported a tracking no candidate
+proposes, and the shell's sidebar pill was covering the dock's first control. And the frames found a
+third hand-rolled heading outside both registers, on the guest album, the surface most people who
+ever see Partyreel see. Lab only; no production byte changed.
+
+### The token table the wiring round bakes
+
+**Unchanged by round four: not one size, leading or tracking moved.** The five tables are above under
+"Record (round 2)" and they are generated, never typed: `tokenTable()` and `themeBlock()` in
+`ladders.ts` emit them from the same data the stages render and the paste spends, and
+`docs/specs/type-scale.md` should be replaced with that output rather than hand-edited. What round
+four added is that the table is now generated for a PAIR: the marketing rows come from one ladder
+and the app rows from the other, the names are the same nine either way, and each row says which
+register it came from.
+
+### What the wiring round inherits
+
+Round two's list stands in full (the one `@theme` block, the three hooks, the hand-rolled twins, the
+masthead's settled tracking, the two size overrides that disappear, the `--tracking-tight` deletion).
+Round three's one addition is CLOSED: `CandidateStyle` reaches `/admin` and the guest routes now, so
+only the root 404 is outside every island. Round four adds two.
+
+1. **The sweep is three headings, not two.** The app's section heading (a label inside an h2, no
+   class worth aiming at), sixteen hand-rolled marketing headings at 30 / 36 that stop one rung
+   short of SectionShell's ramp, and the guest entry title, written inline as
+   `font-heading text-[28px]`, found when the album became a frame. None of the three can be a
+   HOOK, because aiming a step at any of them would move the real site under the Today control; all
+   three are the wiring round's sweep onto the ruled step.
+2. **The bake is one `@theme` block whatever the pair is.** A ruling of "marketing B, app C" is not
+   two token sets and not a compromise: it is the same nine names with each half standing on its own
+   rungs, which is what lets Will rule the two registers in two words without the system splitting.
