@@ -1,6 +1,6 @@
 ---
 track: light
-status: open
+status: handed-off
 cut: "521ea6633021e20756b75aba5b723213867d82cf"
 merged_round_2: "6203d62"
 merged_round_1: "72b20da"
@@ -478,15 +478,146 @@ beside a board-wide Rest switch. Nine asks, two assets, eight departures.
 
 ## Handoff (round 3)
 
-- Head <sha>, pushed; preview partyreel-git-lp-light-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `abee07b`, pushed; preview partyreel-git-lp-light-partyreel.vercel.app. The board is
+  `/design/c/light?key=...`; five anchors, `#lgt-a` .. `#lgt-e`, and the index at the top of the
+  board links each of the eight calls to the part that argues it.
+- ★ **The alias serves `e108ec4`, four commits behind the head, and it is the Vercel daily cap
+  rather than the lane.** Neither push created a deployment (the GitHub integration made none while
+  the project sat at its ceiling); one forced API deploy got through at `e108ec4` and every attempt
+  since is refused with `payment_required` / `api-deployments-free-per-day`, remaining 0, reset
+  about 24h from 2026-09-14 23:09. `e108ec4` is the whole structural round (the index, the labelled
+  knobs, the wipe, the cost meter, the paper row, the collapsed pastes), so the board Will walks is
+  round three. What is NOT on it: part E's drive paragraph and the engine's one-line paste, the
+  corrected canvas heights, the drive reaching the middle and the room, the seam's knob note and the
+  meter's hidden-tab guard. All five were walked on a local dev server in this worktree instead, and
+  the Orchestrator only has to force one redeploy once a slot frees.
+- Synced with `launch-prep` at `dd4aa0b` (72 commits, all of them other tracks' lab lanes and their
+  manifests: nothing in this lane and nothing in its `reads`). Merged clean at `74d96e1`.
+- Gates on the synced tree: typecheck ok, lint ok (0 findings in the lane; 7 pre-existing warnings
+  elsewhere), test ok (1719), build ok (248 static pages, 114 routes).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/light.md` +
+  `src/app/(dev)/design/sandbox/light/{aurora,beats,board,candidates,depth,doctrine,shared}` and
+  `board.css`. No exceptions, no production byte: the board composes `<Glow>`, imports five
+  marketing sections read-only, and everything it proposes lives in its own sheet under `lgt-` or in
+  `candidates.ts` as a string.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **What round three changed, and why (the walk, taken cold, in Will's order).**
+  - **The calls are at the top and on every part.** Nine asks lived only in the meta panel at the
+    bottom of 17,000px. There are eight now, each answered in one word, the first of them the whole
+    board (part E as pasted), and they are printed three times from one array: an index at the top
+    that links each to its part, a line under each part's heading, and the panel. A reviewer now
+    knows what he is being asked before the first stage rather than after the last.
+  - **Every knob carries its name, and says what it does.** Part B had four unlabelled toggles in a
+    row ("Accent | Identity" beside "House five | Warm | Cool"), which is the first thing a stranger
+    stumbles over, and the prose that explained them sat below the stage, read after the control is
+    pressed. Each toggle has its label; a line under them says what the current register and
+    temperature mean; and the seam says why the register and grain knobs do not move it.
+  - **The aurora is judged against the chapter it touches.** Round two printed the chapter unlit
+    above and lit below, 800px apart, which asks the eye to carry a field this quiet across a
+    scroll. One stage now, with a wipe: unlit left of the handle, lit right of it, everything else
+    identical. It is the sharpest thing on the board and it cost 800px rather than adding them. The
+    grain row took the same treatment.
+  - **The cost is measured, not asserted.** A new block at the end of part B prints what is actually
+    on the screen, read off the specimen (2 lamps, 6 painted layers, each field 1517 by 359 css px
+    at 1:1 under `url(#glw-warp) blur(38px)`), and a Measure button runs three 1.8s samples on that
+    chapter with every other lamp on the board hidden: no lamp, the aurora as built, the aurora on
+    the transform drive. Measured here at `e108ec4` on the preview in headless Chrome: 16.7ms mean
+    and 0 frames over 17ms in all three, which says the field is inside budget on that machine and
+    nothing about the raster a frame gap cannot see. The caption says exactly that, and the meter
+    says when the tab was behind something while it ran.
+  - **The drive is now part of the aurora's definition, and it carries a law 4 defect.** The engine
+    has two drives and the doctrine never said which a field takes; globals.css calls `transform`
+    "the cheap one" and `mask` "repainting every frame", which at chapter scale is two filtered
+    layers of about 1500 by 360. Moving the field to the cheap drive takes one line of the engine
+    with it: `glw-drift-x` runs from `translate: 32% 0`, so its unanimated state is translate 0, the
+    comet parked dead centre at full strength, which is exactly the inversion the mask drive had
+    fixed when its resting `mask-position` moved to its own from-keyframe. Nobody has seen it
+    because no shipped lamp uses that drive. The one line is a paste in part E.
+  - **The paper five can be compared.** Three tints stacked 900px apart cannot be: by the time the
+    third is on the screen the first is a memory. They are a three-up row now, with the proposal
+    printed full width under them.
+  - **Part E can be scanned.** Nine pastes at full height were 6,300px, more than a third of the
+    board. Each opens on its first six lines with a Read all button and a Copy that always takes the
+    whole block. Part E went 6,300px to 3,100 and the whole board 17,064 to about 13,700.
+  - **One candidate withdrawn, two lights renamed.** "Replace" is cut from the meta panel with its
+    reason on the board: the half of it that survived two rounds of specimens is on the board as
+    options (the identity register, the room), and the half that did not was never built. Part B's
+    four lights led with the seam and lettered A to D, which reads as a ranking that ranks the
+    proposal third; the aurora is first now and the other two are named as what they are, the
+    placement error and the engine's warning, because only two of the four were ever candidates.
+  - **A clipped row, found by the cold walk.** The lit-face matrix, the stage that carries the
+    "material, not elevation" proposal, was 780px at 1440 against 856px of content and 1180 against
+    1363 at 375: the plate's row and its label were cut off the bottom on both canvases, through two
+    rounds of QA. ★ The reason it survived: a stage carries `zoom`, and Chrome reports
+    `scrollHeight` and `clientHeight` on a zoomed element in different spaces, so the obvious check
+    reports a constant phantom overflow that does not move when the height does. The honest measures
+    are a child's own rect divided by the computed zoom, and, sharper, whether any text sits below
+    the stage's bottom. Both canvases are re-measured and nothing is cut at 1440 or 375.
+  - **The floating board's ruling is folded in rather than asked twice.** Its contract's fifth line
+    ("the light in dark: lighter is closer, a soft shadow, or a lit edge") is part A's middle subject
+    with the same three columns, so part A says so and part E's elevation block says bible 15
+    inherits the ruling.
+- Light QA, at the head, on a local dev server in this worktree (the alias is capped, above):
+  - 1440: all 13 stages, no horizontal overflow on the document, no stage overflowing its canvas,
+    and no text below any stage's bottom edge. The five real chapters mount and their reveal grammar
+    fires on scroll.
+  - 375: every stage measures exactly 375 css px, nothing cut on any of them, the paper row stacks
+    to one column and part A pairs its cues two by two.
+  - Reduced motion: the board-wide Rest switch computes `animation-name: none` on all 22 lamps'
+    bands and on the three phase markers at once; the board's one keyframe stays inside the
+    `prefers-reduced-motion: no-preference` block.
+  - On the preview at `e108ec4`: the index, the labelled knobs, the wipe at 50 percent, the cost
+    meter's three rows and its static line, the paper three-up and part E's ten collapsed pastes,
+    all seen in screenshots at 1440.
+- Assets requested from Will (unchanged from round two, both still standing):
+  - A grain tile, so the aurora stops banding · seamless monochrome noise, 256x256, PNG-8, fine
+    grain (one tile pixel), neutral, mean 50 percent grey, used at about 5 percent over the light
+    AND laid out at 128 CSS px on a 2x screen (one tile pixel per device pixel; laid out at 256 it
+    doubles and the band returns) · replaces the inline feTurbulence stand-in in `board.css`
+    (`[data-lgt-grain]`).
+  - A worst-case pair of overlapping photographs for part A · two images whose touching edges are
+    both dark and low contrast (a night reception, a dim dance floor), 1200px long edge, JPG ·
+    replaces the `reception-hall` + `wedding-toast` pair in `depth.tsx`.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will). The first
+  is the whole board; the seven under it are the individual calls inside it, so only the ones Will
+  wants to differ on need an answer:
+  - Part E, as pasted: land it, or name what to change
+  - Depth in dark: the family (lift and float), lift only, or neither
+  - The lit face: adopt, adapt or drop
+  - The aurora: no, the seam, both boundaries, or the room
+  - Its register: accent or identity
+  - The paper five: hand-tuned, the flat row, or the dark set
+  - The cadence: 8s or 11s
+  - The publish beat: 300 as shipped, the house five, or 305
+- Look at first: part B's wipe, on the guest ledger at accent on cinema. Drag it once and the
+  whole proposal is in one frame: the chapter exactly as it ships on the left of the handle, the
+  aurora at both boundaries on the right of it, the copy in the clean middle of both. Then press
+  Measure under it. Then part A's stacked photographs, and part E, which is the ruling with no
+  translation left in it.
+- For the Orchestrator: `touchpoints.ts` still describes this board as "Four parts" and it has been
+  five since round two; the description is yours to rename at integration, I did not touch the file.
+  Findings against a bible rule: none (10 and 11 are already under exploration naming this board),
+  but two cross-board notes. (1) The floating-surfaces contract's fifth line is this board's part A
+  question for one family: one ruling should close both, and part E says so. (2) All three palette
+  candidates re-declare `--shadow-float` zeroed on the dark grounds; whichever ramp is ruled here,
+  the palette block inherits it, and the two should land in one pass rather than overwrite each
+  other.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). Two rounds turned the light board from an
+argument into a ruling. Round two made every claim wearable: four candidates became pastes in one
+source (`candidates.ts`), each with an Apply to the site button handing the whole site the exact
+block a ruling would land (the shadow family on the primitives and the dashboard's real event cards,
+the lit face on media frames, screens and plates, the aurora's register with a sibling clock, a
+hand-tuned paper five), and part B mounted the home arc's five real media-less chapters instead of a
+specimen built to suit the proposal. Round three walked the board the way Will would and rebuilt
+what a stranger stumbles on: eight calls, each a one word answer, indexed at the top and named on
+every part from one array; every knob labelled and explaining its own setting; the aurora judged
+through a wipe that puts the unlit chapter and the lit one in a single frame; the field's cost
+measured on the machine reading it, which turned into a doctrine line (the field takes the cheap
+transform drive) and a law 4 defect nobody had seen (that drive's rest state is the comet at full
+strength); the paper five made comparable in a three-up row; part E collapsed from 6,300px to 3,100;
+one candidate withdrawn with its reason; and a clipped stage found at last, the lit-face matrix
+cutting off the label that carries its own proposal, hidden for two rounds by a zoomed stage
+misreporting its own overflow. The board went 17,064px to about 13,700 and reads shorter than that.
