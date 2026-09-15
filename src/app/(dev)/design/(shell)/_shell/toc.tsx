@@ -126,7 +126,7 @@ export function Toc({ variant }: { variant: "column" | "inline" }) {
 
   if (variant === "inline") {
     return (
-      <div className="mt-4 mb-1 xl:hidden">
+      <div className="lab-toc-compact mt-4 mb-1">
         <button
           type="button"
           aria-expanded={open}

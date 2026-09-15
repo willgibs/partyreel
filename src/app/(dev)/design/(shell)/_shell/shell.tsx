@@ -54,7 +54,7 @@ export function Shell({
             </div>
             {children}
           </main>
-          <aside className="lab-toc hidden xl:block">
+          <aside className="lab-toc">
             <Toc variant="column" />
           </aside>
         </div>

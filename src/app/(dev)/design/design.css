@@ -80,16 +80,39 @@
     overflow-y: auto;
   }
 }
+/* ★ THE TWO `xl:` SWITCHES ARE CSS, NOT UTILITIES (the Library x Lab round,
+   2026-09-15). The lab's sheet compiles into the `utilities.lab` SUB-layer, and
+   a rule in a sub-layer LOSES to one in its parent at equal specificity (the
+   landmine above). `hidden` is all over production, so it sits in `utilities`;
+   `xl:block` and `xl:hidden` are used NOWHERE outside the lab, so they compile
+   only into `utilities.lab` and lose. The result was that `hidden xl:block` on
+   the rail meant hidden at EVERY width (no table of contents above 1280 at
+   all), and `xl:hidden` on the narrow-window disclosure never hid it, so both
+   showed at once. An UNLAYERED rule beats every layer, so the pair lives here.
+   Every other responsive pairing in the shell is safe: `sm:`, `md:` and `lg:`
+   display utilities are all used by production too, so they land in
+   `utilities` and win by source order as usual. Check that before reaching for
+   a `<breakpoint>:` display utility that only the lab uses. */
+.lab-toc {
+  display: none;
+}
+.lab-toc-compact {
+  display: block;
+}
 @media (min-width: 1280px) {
   .lab-shell-body {
     grid-template-columns: var(--lab-sidebar-w) minmax(0, 1fr) var(--lab-toc-w);
   }
   .lab-toc {
+    display: block;
     position: sticky;
     top: var(--lab-topbar-h, 48px);
     max-height: calc(100dvh - var(--lab-topbar-h, 48px));
     overflow-y: auto;
     padding: 1.5rem 1rem 1.5rem 0;
+  }
+  .lab-toc-compact {
+    display: none;
   }
 }
 .lab-shell-body:has([data-lab-wide]) .lab-toc {

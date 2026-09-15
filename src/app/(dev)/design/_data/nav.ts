@@ -87,6 +87,34 @@ function roundBadge(track?: { rounds?: number }): NavItem["badge"] {
   return track?.rounds ? `round ${track.rounds}` : undefined;
 }
 
+const ENTRY_BADGES = new Set([
+  "new",
+  "updated",
+  "exploring",
+  "shipped",
+  "proposal",
+  "retired",
+  "tool",
+  "legacy",
+]);
+
+/**
+ * A gallery entry's own mark, when it carries one ("new" on a component the
+ * window added, "updated" on one it reworked; the Orchestrator clears them at
+ * the window's close, which is why they are data and never a date).
+ *
+ * Read STRUCTURALLY rather than off the type: `badge` arrives on GalleryEntry
+ * with the lab-library track, and the nav has to compile on either side of that
+ * landing. An unknown value is dropped, so a typo in the registry shows as no
+ * badge rather than an unstyled pill.
+ */
+function entryBadge(entry: unknown): NavItem["badge"] {
+  const value = (entry as { badge?: unknown }).badge;
+  if (typeof value !== "string") return undefined;
+  if (ENTRY_BADGES.has(value)) return value as NavItem["badge"];
+  return /^round \d+$/.test(value) ? (value as NavItem["badge"]) : undefined;
+}
+
 export async function buildNav(): Promise<Nav> {
   const tracks = readTrackStates();
   const specs = listSpecs();
@@ -114,6 +142,7 @@ export async function buildNav(): Promise<Nav> {
         label: it.title,
         id: it.entry.id,
         note: it.note?.for,
+        badge: entryBadge(it.entry),
         match: "exact" as const,
         keywords: [it.file ?? ""],
       })),
