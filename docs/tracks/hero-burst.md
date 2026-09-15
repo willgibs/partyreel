@@ -1,8 +1,8 @@
 ---
 track: hero-burst
-status: integrated
-cut: "ca952b5"
-merged: "4caffc3"      # the branch head merged into launch-prep
+status: open
+cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_2: "4caffc3"
 merged_round_1: "2d0631e"
 preview: true           # Will reviews this concept on its preview as it builds
 owns:
@@ -23,6 +23,25 @@ reads:
 ---
 
 # lp/hero-burst
+
+## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
+
+**Round 3 (the goal): the last mile, walked first by you.** Two rounds built the board; this one is the
+walk Will will take, taken before him. (1) **Walk it cold**, the way he will: the board on the launch-prep
+alias (round 2 is integrated there) and then on your preview, in a foreground tab, at 1440 and then
+375, every toggle, every candidate, and every "Apply to the site" block on the pages you listed (the home
+arc, `/pricing`, `/help`, `/contact`, the dashboard and an event page with `?key=`, the demo guest page).
+Note every place a stranger would stumble: an unexplained toggle, two candidates that read the same, a
+stage that needs a caption or has one too many, a slow first paint, a layout that breaks at 375, a
+control that does nothing visible. Fix each. (2) **Re-read the reviewer's findings** on your round-2
+handoff (below) and the other boards' latest Handoffs in `docs/tracks/` and proposals in `docs/specs/`:
+anything there that changes your answer changes your board. (3) **Make the decision easy**: the strongest
+candidate first; a candidate cut if it no longer earns its column (say so); every ask a one-word answer
+and no more asks than Will must answer; the departures only the ones he must rule on. (4) **Honesty and
+cost**: every number on the board is measured or labelled a stand-in; measure what runs (frame time, layer
+count) and cut what does not earn its cost; reduced motion gets the settled composition. (5) **The
+record**: "Handoff (round 3)" and "Record (round 3)" below; the Record is the paragraph the CHANGELOG
+carries for rounds 2 and 3 together, so write it as the whole story of what the board became.
 
 ## Round 2 (Will, 2026-09-14: "another iterative round on all active tracks before review")
 
@@ -504,3 +523,18 @@ pool is built by acceptance, so a direction this canvas and this lockup cannot c
 is what makes the headline step a toggle on the stage. A 260 ms hold turned the opening into three
 beats; the shadow became the light spec's LIFT family at four times the offsets; the proposed h1 is
 now "One code, and the album fills." in place of "One code. Every angle.", subhead rewritten to match.
+
+## Handoff (round 3)
+
+- Head <sha>, pushed; preview partyreel-git-lp-hero-burst-partyreel.vercel.app
+- Synced with launch-prep at <sha> (or: launch-prep had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
+- Look at first: ...
+
+## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...
