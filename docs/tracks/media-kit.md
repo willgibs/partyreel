@@ -273,8 +273,8 @@ production byte changed.
 
 ## Handoff (round 2)
 
-- Head: the tip of `lp/media-kit`. The last commit touching the board, the batch or the spec is
-  `763423a`; `085c571` is the handoff and this line names it. Preview
+- Head: the tip of `lp/media-kit`, pushed. The last commit touching the board, the batch or the spec
+  is `763423a`; the commits after it are this manifest. Preview
   `partyreel-git-lp-media-kit-partyreel.vercel.app`, board at `/design/c/media-kit?key=`
 - ★ **The preview alias is behind the head.** The project hit Vercel's daily deployment limit during
   this round (the palette track hit it too and recorded the same), so the push at `763423a` built no
