@@ -1,7 +1,7 @@
 ---
 track: brand-voice
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "ca952b5"
 merged_round_1: "d988c88"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
