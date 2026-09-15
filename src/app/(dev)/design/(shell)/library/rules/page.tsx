@@ -25,8 +25,9 @@ import {
   policiesByScope,
   POLICY_SCOPE_LABEL,
 } from "@/app/(dev)/design/rules/rules";
-import { SANDBOX } from "@/app/(dev)/design/touchpoints";
+import { getRuling, SANDBOX } from "@/app/(dev)/design/touchpoints";
 
+import { BindsStrip } from "./binds-strip";
 import { LevelBadge, LevelVerdict } from "./level-badge";
 
 /**
@@ -52,10 +53,18 @@ export default async function RulesPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const params = await searchParams;
   await requireDesignKey(searchParams);
   const scopes = policiesByScope();
   const findings = health().filter((f) => f.id !== "uncontracted");
   const binding = LEVELS.filter((l) => l.weight !== "informs");
+
+  // `?board=<id>` turns the page into the answer for ONE board: the same strip
+  // a board page mounts, rendered here so the question "what binds this
+  // exploration" has a URL of its own and does not need the board to be open.
+  const asked = typeof params.board === "string" ? params.board : null;
+  const board = asked && SANDBOX.some((r) => r.id === asked) ? asked : null;
+  const ruling = board ? getRuling(board) : undefined;
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
@@ -93,6 +102,43 @@ export default async function RulesPage({
           ["policies", POLICY_VIEWS.length],
         ]}
       />
+
+      <Section
+        id="binds"
+        title={board ? `What binds ${board}` : "What binds one board"}
+        blurb={
+          board
+            ? "The same strip a board page mounts: the law with this board's own rules marked, the policies on its surface, the landmines it can step on. Everything that only informs is left out."
+            : "Pick a board to see exactly what its exploration obeys, and which bible rules are its own to rewrite. This is the strip a board page mounts, and the question every agent opens with."
+        }
+        aside={
+          board && (
+            <LabLink
+              href="/design/library/rules"
+              className="text-[11px] text-muted-foreground hover:text-foreground"
+            >
+              clear
+            </LabLink>
+          )
+        }
+      >
+        {board ? (
+          <BindsStrip board={board} surface={ruling?.surface ?? null} />
+        ) : (
+          <ul className="flex flex-wrap gap-1.5">
+            {SANDBOX.map((r) => (
+              <li key={r.id}>
+                <LabLink
+                  href={`/design/library/rules?board=${r.id}#binds`}
+                  className="inline-flex rounded-md border border-border px-2 py-1 text-[12px] hover:bg-muted/40"
+                >
+                  {r.id}
+                </LabLink>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
 
       <Section
         id="levels"

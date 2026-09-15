@@ -683,7 +683,9 @@ action. Small labels get positive tracking; letter-spacing/line-height run inver
 stay narrow and MUST fit inside it (compiler-enforced by `codes.test.ts` — adding a route code
 without taxonomy copy fails the build). Failure arms are `{ ok: false, code, message? }`; clients
 surface via `showActionError`/`showErrorToast` (producer message > `FALLBACK_MESSAGES[code]` >
-generic default). Copy rules: plain language, no em-dashes, no internals.
+generic default). Copy rules: plain language, no em-dashes (bible 19), no internals; the
+wording itself is open like every other line on the site (bible 21), so a round that improves
+an error message is doing its job, not breaking a contract.
 
 **Boundaries:** every route group has an `error.tsx` → the shared `RouteError` (generic copy +
 `digest` as the support handle — it NEVER renders `error.message`; that's the security invariant)
