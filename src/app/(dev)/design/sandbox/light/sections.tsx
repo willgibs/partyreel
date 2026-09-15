@@ -42,10 +42,15 @@ import type { TreatmentId } from "./kit";
  * visible and keeps the board's own files from growing nine import blocks that
  * look like production wiring.
  *
- * The heights are MEASURED off the rendered stage, never guessed: a stage that
- * clips a section's bottom boundary hides the exact thing the composer is
- * about, and a clipped stage hid its own overflow for two rounds (round
- * three's finding: `zoom` makes scrollHeight and clientHeight disagree).
+ * The heights are MEASURED off the rendered stage at both canvases, never
+ * guessed: a stage that clips a section's bottom boundary hides the exact thing
+ * the composer is about, and a clipped stage hid its own overflow for two
+ * rounds (round three's finding: `zoom` makes scrollHeight and clientHeight
+ * disagree, so the honest instrument is a text node's own rect). Each number is
+ * the section's natural height plus a little air, which is what the real page
+ * gives it: the trust strip is 86px of type in a 240px canvas because that is
+ * what a thin chapter has between its neighbours, and an aurora needs the
+ * section's real boundaries rather than a box drawn around its type.
  */
 export type SectionId =
   | "hero"
@@ -88,7 +93,7 @@ export const SECTIONS: Section[] = [
     kind: "hero",
     ships: "cinema",
     note: "Twenty four drifting photographs behind a wall of type. The loudest ground on the site.",
-    h: { desktop: 930, phone: 900 },
+    h: { desktop: 880, phone: 1120 },
     refuses: {
       aurora:
         "The hero is the one section that refuses the aurora, and the reason is on the record rather than in taste: the reverted lamp round put a light here and it failed on three of the four things a lamp needs (the wall was the ground rather than the source, the ground was twenty four drifting photographs rather than open dark, and the edge was invented mid frame). A field at a boundary needs a quiet ground to fall on. The hero has none.",
@@ -102,7 +107,7 @@ export const SECTIONS: Section[] = [
     kind: "chapter",
     ships: "cinema",
     note: "44px of type between two hairlines. The thinnest chapter on the page, and the one an edge light can drown.",
-    h: { desktop: 260, phone: 340 },
+    h: { desktop: 240, phone: 300 },
     render: () => <TrustStrip />,
   },
   {
@@ -111,7 +116,7 @@ export const SECTIONS: Section[] = [
     kind: "chapter",
     ships: "cinema",
     note: "Left aligned, rules edge to edge. The copy sits high, so the top boundary is the one that has to behave.",
-    h: { desktop: 760, phone: 1080 },
+    h: { desktop: 790, phone: 1100 },
     render: () => <NoApp />,
   },
   {
@@ -121,7 +126,7 @@ export const SECTIONS: Section[] = [
     ships: "cinema",
     note: "Forty eight frames on a conveyor, with three scene cards positioned below to catch the light.",
     carries: "the strip's underlight (film-strip-glow.tsx): a seam, 220px, sampled from the frames on the strip",
-    h: { desktop: 900, phone: 1020 },
+    h: { desktop: 810, phone: 1120 },
     refuses: {
       aurora:
         "A media strip already has a lamp, and it is the right one: the strip's own bottom edge, sampled from the photographs on it. A field at this section's boundaries would be a second light inside one scarcity distance, and the weaker of the two.",
@@ -134,7 +139,7 @@ export const SECTIONS: Section[] = [
     kind: "media strip",
     ships: "paper",
     note: "The host's masthead and the album print laid on the desk. A media strip on a near-white ground.",
-    h: { desktop: 1060, phone: 1260 },
+    h: { desktop: 950, phone: 840 },
     render: () => <Album />,
   },
   {
@@ -143,7 +148,7 @@ export const SECTIONS: Section[] = [
     kind: "chapter",
     ships: "paper",
     note: "The paper chapter's document card. Where the house five are wearing a colour picked for a near black room.",
-    h: { desktop: 900, phone: 1500 },
+    h: { desktop: 840, phone: 1440 },
     render: () => <Privacy />,
   },
   {
@@ -154,7 +159,7 @@ export const SECTIONS: Section[] = [
     note: "Three cards, and the Pro card already wears the doctrine's one standing exception.",
     carries:
       "the Pro card's beam (pro-card-beam.tsx): BorderBeam at the live register, the premium object at rest",
-    h: { desktop: 900, phone: 1620 },
+    h: { desktop: 750, phone: 960 },
     render: () => <PricingTeaser />,
   },
   {
@@ -163,7 +168,7 @@ export const SECTIONS: Section[] = [
     kind: "chapter",
     ships: "cinema",
     note: "The CTA band on the cinema cut, one viewport above the footer seam. Two lamps, one scarcity distance apart.",
-    h: { desktop: 620, phone: 760 },
+    h: { desktop: 510, phone: 600 },
     render: () => <CinemaClose />,
   },
   {
@@ -174,7 +179,7 @@ export const SECTIONS: Section[] = [
     note: "The model. The one production lamp with nothing emitting, and the reason law 1 needs its correction.",
     carries:
       "the footer seam (footer-glow.tsx): 210px, 0.62 base and band, the house five, the site cadence",
-    h: { desktop: 900, phone: 1520 },
+    h: { desktop: 1460, phone: 1520 },
     refuses: {
       aurora:
         "The footer already IS the boundary treatment, at the one cut on the page that has two grounds meeting. Adding a field to it would be the same light twice.",

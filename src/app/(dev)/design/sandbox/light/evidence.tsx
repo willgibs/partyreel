@@ -2,7 +2,13 @@
 
 import { type CSSProperties, useRef, useState } from "react";
 
-import { Stage, Toggle, type Ground, type Mode } from "@/components/dev/board";
+import {
+  Stage,
+  Toggle,
+  type Ground,
+  type LabFit,
+  type Mode,
+} from "@/components/dev/board";
 import { LAMP_SET } from "@/components/dev/lamp-set";
 import { Glow } from "@/components/shared/glow";
 import { cn } from "@/lib/utils";
@@ -63,6 +69,7 @@ function LitSection({
   drive = "transform",
   grain = true,
   placement = "both",
+  fit,
   wipe,
 }: {
   id: SectionId;
@@ -75,6 +82,16 @@ function LitSection({
   drive?: GlowDriveId;
   grain?: boolean;
   placement?: "both" | "middle";
+  /**
+   * ★ A SIDE-BY-SIDE ROW PINS `zoom`, AND THAT IS NOT A CONTRADICTION OF THE
+   * 1:1 RULE. Will's rule is that a specimen whose SIZE is being judged is
+   * never scaled, and nothing in this block is judged on size: the clock pair
+   * is judged on motion and the paper three-up on colour. At 1:1 a 1440 canvas
+   * inside a one-third column shows 300px of itself behind a scrollbar, which
+   * would make the comparison impossible rather than pixel-perfect. Full-width
+   * specimens keep the lab preference.
+   */
+  fit?: LabFit;
   /** Percent lit, left to right. Undefined renders the light whole. */
   wipe?: number;
 }) {
@@ -93,7 +110,7 @@ function LitSection({
     />
   );
   return (
-    <Stage mode={mode} ground={ground} height={height}>
+    <Stage mode={mode} ground={ground} height={height} fit={fit}>
       <div
         className="relative isolate flex h-full flex-col justify-center"
         style={lampVars(ground, temp, paperRow)}
@@ -263,6 +280,12 @@ export function EvidencePart({
             together rather than either alone.
           </p>
         </div>
+        <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
+          This pair and the three-up below are the two rows on the board that
+          are fitted rather than rendered at true pixels. Nothing in them is
+          judged on size: one is judged on motion and the other on colour, and
+          at 1:1 a 1440 canvas in a one-third column shows 300px of itself.
+        </p>
         <div className="grid gap-4 lg:grid-cols-2">
           <Labeled
             name="At the lamp's clock"
@@ -274,6 +297,7 @@ export function EvidencePart({
               ground={ground === "paper" ? "paper" : "cinema"}
               register={register}
               clock="lamp"
+              fit="zoom"
             />
           </Labeled>
           <Labeled
@@ -286,6 +310,7 @@ export function EvidencePart({
               ground={ground === "paper" ? "paper" : "cinema"}
               register={register}
               clock="aurora"
+              fit="zoom"
             />
           </Labeled>
         </div>
@@ -370,6 +395,7 @@ export function EvidencePart({
               register={register}
               clock="aurora"
               paperRow={LAMP_SET}
+              fit="zoom"
             />
           </Labeled>
           <Labeled
@@ -383,6 +409,7 @@ export function EvidencePart({
               register={register}
               clock="aurora"
               paperRow={PAPER_FLAT_VALUES}
+              fit="zoom"
             />
           </Labeled>
           <Labeled
@@ -396,6 +423,7 @@ export function EvidencePart({
               register={register}
               clock="aurora"
               paperRow={PAPER_FIVE_VALUES}
+              fit="zoom"
             />
           </Labeled>
         </div>
