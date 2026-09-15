@@ -65,7 +65,9 @@ import {
   ROUTE_OPTIONS,
   ROUTES,
   type RouteId,
+  ScreenFrames,
   screenPath,
+  useScrollLock,
 } from "./frames";
 import { SCREEN_NOTE, SCREEN_OPTIONS, type ScreenId } from "./screen-ids";
 import {
@@ -119,10 +121,13 @@ import {
  * 3. PART G IS THE FOUR CANDIDATES AT ONCE, four 375 viewports side by side,
  *    which is where the tile is settled.
  * 4. THE DOCK CARRIES EVERY PAGE-WIDE SWITCH (the shell's BoardDock, new this
- *    round): the candidate, the action rung, the ladder, the canvas, the
- *    ground and the paste. Will's note on the wave: "Having to scroll back to
- *    the top makes it very hard to review differences." Nothing that changes
- *    the whole page is left beside one specimen.
+ *    round): the candidate, the action rung, the ladder, the canvas, Compare,
+ *    the app screen, the app ground and the paste. Will's note on the wave:
+ *    "Having to scroll back to the top makes it very hard to review
+ *    differences." Nothing that changes more than one part is left beside a
+ *    part. The one control still beside a part is part A's page picker, which
+ *    chooses that part's one specimen and nothing else; the app screen looked
+ *    like its twin and is not, because part G loads it too.
  *
  * What rounds two and three built is kept and moved under the evidence it
  * explains: the answer block first (five one-word rulings and one button),
@@ -445,7 +450,7 @@ const ROWS: Row[] = [
 
 /** Every height an action ships at, and the token each one wears. h-10 and
  *  h-12 are here because the tokens are named for them and both are nearly
- *  empty in the product, which is half of part E's finding. */
+ *  empty in the product, which is half of part F's finding. */
 const HEIGHTS: {
   label: string;
   where: string;
@@ -506,10 +511,10 @@ const ASKS = [
 
 const DEPARTURES = [
   "The guest gallery's gap is a literal. guest-masonry.tsx, gallery-skeleton.tsx and ghost-grid.tsx write gap-[3px] while their tiles ride var(--radius-tile), so any tile above 3 opens corner holes on the one grid every guest sees and nowhere else. Bible 8, second clause. Part B shows the pair; the fix is in another track's lane.",
-  "The guest ENTRY SHEET wears the action token. entry-shell.tsx draws the first surface any guest meets with rounded-t-[calc(var(--radius-action)*1.4)], so the action rung, not the floating rung, decides the corner of a sheet: 22.4px today, and a half circle under the pill. Part E draws it. Either the sheet moves to the floating layer's token (which is the floating-surfaces board's --radius-float-lg) or the action rung is ruled knowing it owns a sheet.",
+  "The guest ENTRY SHEET wears the action token. entry-shell.tsx draws the first surface any guest meets with rounded-t-[calc(var(--radius-action)*1.4)], so the action rung, not the floating rung, decides the corner of a sheet: 22.4px today, and a half circle under the pill. Part F draws the three rungs on it, and part B's door screen is the production shell drawing it at a real 375 viewport. Either the sheet moves to the floating layer's token (which is the floating-surfaces board's --radius-float-lg) or the action rung is ruled knowing it owns a sheet.",
   "The float rung is being ruled on two boards. This one sets --radius-float; the floating-surfaces proposal adds --radius-float-item (the panel minus its row padding) and --radius-float-lg. They have to agree, and bible 9 says the item token is right: today a menu draws an 8px panel around 1.6px rows sitting in 4px of padding.",
   "--radius-action-lg has exactly one call site, the reel builder, on an h-11. Every marketing CTA is size lg forced to h-11 with a className in 26 files, so the loudest action on the site wears 0.9 x --radius-action at 0.33 of its height while globals.css documents the ladder as 0.4. The proposal is a cta size on the Button (h-11 at 1.1 x --radius-action) and the retirement of a token named for a height nothing uses.",
-  "The derived ladder cannot be retuned with a token. @theme inline substitutes each step into its utility at build time, so --radius-xl is empty at runtime and part D renders the retune as utility overrides. The ruling lands on the multipliers in theme.css, one line a step, which is the Orchestrator's file.",
+  "The derived ladder cannot be retuned with a token. @theme inline substitutes each step into its utility at build time, so --radius-xl is empty at runtime and part E renders the retune as utility overrides. The ruling lands on the multipliers in theme.css, one line a step, which is the Orchestrator's file.",
   "The guest group mounts a design island now (it landed on launch-prep between rounds three and four), so /e/<token> wears an applied candidate in your own tab with the key on the URL. Part A no longer depends on that either way: it writes the rail into the frame directly, which is how the gap finding is drawn on the live demo album beside today.",
   "Sixty-four corners on the site are literals rather than tokens, and the walk is where that shows. rounded-[2px], -[3px] and -[4px] account for 52 of them across 24 non-lab files (the film strip, the live demo, the decomposition frames, the album grids, the reel filmstrip), so under any candidate but A a photograph keeps today's corner while the card around it moves: the home page alone holds 48 corners at 2px and 22 at 3px with the answer applied, beside cards at 10 and 12. They are the same argument as the gallery gap, one layer out, and they want var(--radius-tile). A ruling of C is a ruling to sweep them.",
 ];
@@ -584,6 +589,23 @@ export function RoundingBoard() {
     () => "",
   );
   const designKey = new URLSearchParams(search).get("key");
+
+  // ★ A GATED FRAME MUST NOT BE SERVER RENDERED, because the key it needs is
+  // browser-only. The server has no search string, so a frame built from it
+  // would ship `<iframe src=".../screen?screen=dashboard">` in the HTML and the
+  // browser would start that load before hydration; requireDesignKey answers a
+  // keyless lab URL with notFound() on every build but local dev, so the
+  // reader would watch the lab's 404 paint in the app frames and then watch
+  // them reload once hydration supplied the key. Parts B and G hold their
+  // frames until this is true (part G's were already held by its intersection
+  // gate, which is client-only for the same reason). Part A's frames are the
+  // SITE's own routes, take no key, and render on the server as they always
+  // did.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const surface = SURFACES.find((s) => s.id === surfaceId) ?? SURFACES[0];
   const action = ACTIONS.find((a) => a.id === actionId) ?? ACTIONS[0];
@@ -733,6 +755,23 @@ export function RoundingBoard() {
             onChange={setMode}
           />
         </Labeled>
+        {/* ★ THE SCREEN IS PAGE WIDE, and it did not look it. It picks part
+            B's specimen AND the screen part G loads into all four phones, so
+            leaving it beside part B meant a reader standing at the phone row
+            had to scroll back up to change what the phones were showing:
+            exactly the friction Will's note names. It is five options and the
+            shell's Toggle never wraps, so the group scrolls inside itself at
+            375 rather than widening the dock. */}
+        <div className="rnd-dock-wide">
+          <Labeled label="App screen">
+            <Toggle
+              ariaLabel="App screen"
+              options={SCREEN_OPTIONS}
+              value={screen}
+              onChange={setScreen}
+            />
+          </Labeled>
+        </div>
         <Labeled label="App ground">
           <Toggle
             ariaLabel="App ground"
@@ -1001,62 +1040,44 @@ export function RoundingBoard() {
               phone.
             </p>
             <p>
-              Will&apos;s round four note opens the app&apos;s UI to the lab.
-              Nothing here is a redesign yet: it is the app as it ships, at the
-              size it ships, so the radius can be ruled on before the app tracks
-              start.
+              Compare in the dock works here exactly as it does on the site:
+              today beside the rail, the two scrolled together, or one frame
+              that re-skins in place. Will&apos;s round four note opens the
+              app&apos;s UI to the lab; nothing here is a redesign yet, because
+              it is the app as it ships, at the size it ships, so the radius can
+              be ruled on before the app tracks start.
             </p>
           </>
         }
       >
-        <div className="rnd-controls">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-            <Labeled label="Screen">
-              <Toggle
-                ariaLabel="App screen"
-                options={SCREEN_OPTIONS}
-                value={screen}
-                onChange={setScreen}
-              />
-            </Labeled>
-            <a
-              href={screenUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
-            >
-              Open this screen in a tab
-            </a>
-          </div>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <CellLabel>
+            The screen is picked in the dock, beside the app ground: part G
+            loads the same one into its four phones, so it is a page-wide switch
+            rather than this part&apos;s.
+          </CellLabel>
+          <a
+            href={screenUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            Open this screen in a tab
+          </a>
         </div>
         <CellLabel className="max-w-2xl">{SCREEN_NOTE[screen]}</CellLabel>
         <div className="rnd-wide rnd-frames">
-          <div className="overflow-x-auto pb-2">
-            <div className="flex w-fit gap-4">
-              {split ? (
-                <PageFrame
-                  id="app-left"
-                  path={screenUrl}
-                  w={w}
-                  h={h}
-                  css={todayCss}
-                  title="Today"
-                  caption="2 / 8 / 3, stock ladder."
-                  reloadKey={reloadKey}
-                />
-              ) : null}
-              <PageFrame
-                id="app-right"
-                path={screenUrl}
-                w={w}
-                h={h}
-                css={railCss}
-                title={railLabel}
-                caption="The rail, written into this document."
-                reloadKey={reloadKey}
-              />
-            </div>
-          </div>
+          <ScreenFrames
+            url={screenUrl}
+            w={w}
+            h={h}
+            split={split}
+            railCss={railCss}
+            railLabel={railLabel}
+            todayCss={todayCss}
+            reloadKey={reloadKey}
+            ready={mounted}
+          />
         </div>
         <Proposal>
           The gap screen is the round&apos;s worst finding and it is not a
@@ -1526,7 +1547,10 @@ export function RoundingBoard() {
             </p>
             <p>
               Four viewports are four page loads, so the row waits until you
-              reach it. They scroll together.
+              reach it. Scroll any one of them and the other three follow, which
+              is the only way four candidates are compared at the same place on
+              the same screen. The screen in them is the dock&apos;s, so it can
+              be changed from here without scrolling back to part B.
             </p>
           </>
         }
@@ -1583,7 +1607,10 @@ export function RoundingBoard() {
 
 /** The four candidates side by side at 375, each frame wearing its own paste.
  *  Its own component so the four frames mount and unmount together with the
- *  row rather than on every rail change above them. */
+ *  row rather than on every rail change above them, and so the row can hold a
+ *  scroll lock of its own: four candidates compared at four different scroll
+ *  positions are not compared at all. Always on here, unlike the split rows
+ *  above, because the row exists for nothing else. */
 function PhoneRow({
   path,
   ladder,
@@ -1595,6 +1622,7 @@ function PhoneRow({
   action: ActionRung;
   reloadKey: number;
 }) {
+  const register = useScrollLock(true);
   return (
     <div className="overflow-x-auto pb-2">
       <div className="flex w-fit gap-4">
@@ -1609,6 +1637,7 @@ function PhoneRow({
             title={`${c.letter}, ${c.values!.radius} / ${c.values!.float} / ${c.values!.tile}`}
             caption={c.phone}
             reloadKey={reloadKey}
+            register={register}
           />
         ))}
       </div>

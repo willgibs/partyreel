@@ -28,8 +28,10 @@ import { cardMultiplier, type LadderId, px, stepValue } from "./candidates";
  *    LAYOUT and PAINT together: a 16px corner renders at 11 physical pixels
  *    and every candidate reads a third sharper than it is. Round one judged
  *    the whole kit that way. So the comparison parts render at 1:1 in the lab
- *    page (widened by .rnd-wide, board.css) and the Stage is kept for part B,
- *    where the question is the real layout and the distortion is stated.
+ *    page (widened by .rnd-wide, board.css) at their own size, and no Stage is
+ *    used on this board at all: where the question is a whole page or a real
+ *    app screen, parts A, B and G load it into a viewport of its own instead
+ *    (frames.tsx), which is 1:1 by construction.
  *
  * 2. THE SPECIMEN IS THE SHIPPED COMPONENT, NOT A RECTANGLE. Card, Button,
  *    Input and Badge are imported, so a candidate is judged on the corner the
@@ -47,7 +49,7 @@ const MENU_ROW =
   "flex items-center justify-between gap-1.5 rounded-md px-1.5 py-1 text-sm";
 
 /** entry-shell.tsx, Drawer.Content: the guest entry sheet. ★ Its corner is
- *  the ACTION token times 1.4, not --radius-float, which is the finding part E
+ *  the ACTION token times 1.4, not --radius-float, which is the finding part F
  *  is built on. Copied verbatim except for the fixed positioning. */
 const ENTRY_SHEET =
   "flex flex-col rounded-t-[calc(var(--radius-action)*1.4)] bg-popover px-6 pt-3 pb-6 text-sm text-popover-foreground shadow-float ring-1 ring-foreground/10";
@@ -330,7 +332,7 @@ export function ActionSpecimen({
   );
 }
 
-/* ── Part C: the nested corner ─────────────────────────────────────────── */
+/* ── Part D: the nested corner ─────────────────────────────────────────── */
 
 /**
  * BIBLE 9 AS A SPECIMEN. Three pairs, each the same shape drawn twice: once
@@ -551,7 +553,7 @@ export function ActionRingSpecimen({
   );
 }
 
-/* ── Part D: the ladder ────────────────────────────────────────────────── */
+/* ── Part E: the ladder ────────────────────────────────────────────────── */
 
 /** The real component each derived step lands on, at whatever the step
  *  resolves to in this subtree. A rectangle would make every step look equally

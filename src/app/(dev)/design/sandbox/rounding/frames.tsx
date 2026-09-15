@@ -35,9 +35,17 @@ import { cn } from "@/lib/utils";
  *    same specificity wins only on source order. Every injection appends,
  *    which moves it back to the end, and a settle pass re-appends after Next
  *    has finished adding its own.
- * 2. THE FRAME IS LOADED WITHOUT `?key=`, so no design island mounts inside
- *    it. A frame therefore shows the rail and ONLY the rail: whatever is
- *    applied to the site globally does not reach it, and cannot double up.
+ * 2. WHAT A FRAME WEARS DEPENDS ON WHETHER ITS ROUTE IS GATED, and the two
+ *    kinds on this board differ. Part A loads the SITE's own routes, which
+ *    take no key, so no design island mounts inside those frames: they show
+ *    the rail and ONLY the rail, and a block applied to the site globally
+ *    neither reaches them nor doubles up. Parts B and G load this lane's own
+ *    screen route, which is a lab route and therefore gated, so their URL
+ *    MUST carry the key and the island DOES mount in them. That is why the
+ *    paste goes last in the body rather than the head (see `inject`), and why
+ *    those frames wait for the key instead of rendering on the server without
+ *    it: a keyless lab URL answers `notFound()` on every build but local dev,
+ *    so a server-rendered src would load the lab's 404 and then reload.
  * 3. A FRAME THAT CANNOT BE RE-SKINNED MUST SAY SO. Every access is guarded,
  *    and a failure renders a warning on the frame rather than an unstyled page
  *    that reads as a candidate.
@@ -126,15 +134,22 @@ export const ROUTE_OPTIONS = ROUTES.map((r) => ({ id: r.id, label: r.label }));
 /* ── The scroll lock ───────────────────────────────────────────────────── */
 
 /**
- * Two frames of the same page, scrolled together, is the whole point of the
- * split: a difference of four pixels in a corner is invisible unless the two
+ * Frames of the same page, scrolled together, is the whole point of a row of
+ * them: a difference of four pixels in a corner is invisible unless the two
  * shapes are at the same place on the same screen at the same moment.
  *
  * The guard is a frame flag rather than a distance test: a distance test
- * cannot tell the echo of a programmatic scroll from a real one when the two
- * documents are the same height, which they are here by construction.
+ * cannot tell the echo of a programmatic scroll from a real one when the
+ * documents are the same height, which they are here by construction (every
+ * frame in a row loads the same route and differs only in its radius).
+ *
+ * ★ ONE LOCK PER ROW, NEVER ONE PER PAGE. Each call owns its own Map, so the
+ * site's two frames, the app's two and the phone row's four move with their
+ * own row and not with each other. Every row on this board holds a lock: part
+ * A's (PageFrames), part B's (ScreenFrames) and part G's (PhoneRow, in
+ * board.tsx, which is why this is exported).
  */
-function useScrollLock(enabled: boolean) {
+export function useScrollLock(enabled: boolean) {
   const wins = useRef<Map<string, { win: Window; handler: () => void }>>(
     new Map(),
   );
@@ -263,9 +278,24 @@ export function PageFrame({
     };
   }, [inject, loads]);
 
+  // ★ THE LOCK IS JOINED FROM AN EFFECT, NOT FROM onLoad ALONE. A frame in the
+  // server-rendered HTML starts loading before React hydrates, so its load
+  // event is gone by the time an onLoad handler exists: measured on a local
+  // production build, the split did not scroll together on first open and only
+  // began to after "Reload frames" (which remounts the element, so its load
+  // lands after hydration). The effect re-runs on every load, and `register`
+  // drops the previous window for this id first, so a frame is in the row
+  // exactly once whichever path got there.
   useEffect(() => {
+    let win: Window | null = null;
+    try {
+      win = ref.current?.contentWindow ?? null;
+    } catch {
+      win = null; // A frame the reader navigated off-origin.
+    }
+    register?.(id, win);
     return () => register?.(id, null);
-  }, [id, register]);
+  }, [id, register, loads]);
 
   return (
     <figure className={cn("m-0 flex min-w-0 flex-col gap-2", className)}>
@@ -301,12 +331,10 @@ export function PageFrame({
           height={h}
           className="block h-full w-full border-0"
           onLoad={() => {
+            // The count is what re-runs the injection AND the registration
+            // above: one signal, so a frame that loads twice cannot end up
+            // holding two listeners or a stale window.
             setLoads((n) => n + 1);
-            try {
-              register?.(id, ref.current?.contentWindow ?? null);
-            } catch {
-              register?.(id, null);
-            }
             setReach(inject());
           }}
         />
@@ -394,4 +422,110 @@ export function screenPath(
   const q = new URLSearchParams({ screen, ground });
   if (key) q.set("key", key);
   return `/design/sandbox/rounding/screen?${q.toString()}`;
+}
+
+/**
+ * A frame's box before it is allowed to load, so the row holds its place and
+ * nothing jumps when the real frame arrives. It is here rather than a spinner
+ * because the wait is one tick: the board holds a gated frame until it is
+ * mounted and the key is readable (header note 2).
+ */
+function FrameHold({ w, h, title }: { w: number; h: number; title: string }) {
+  return (
+    <figure className="m-0 flex min-w-0 flex-col gap-2">
+      <figcaption className="flex flex-col gap-0.5" style={{ width: w }}>
+        <span className="text-sm font-medium">{title}</span>
+        <span className="min-h-[2.75rem] text-[11px] leading-snug text-muted-foreground">
+          The app screens are served from a gated lab route, so this frame waits
+          for the key on the URL rather than loading a 404 first.
+        </span>
+      </figcaption>
+      <div
+        className="shrink-0 bg-background"
+        style={{
+          width: w,
+          height: h,
+          outline: "1px solid var(--border)",
+          outlineOffset: 0,
+        }}
+      />
+    </figure>
+  );
+}
+
+/**
+ * Part B's row: the same pair as part A, on this lane's screen route instead
+ * of the site's. It is a component of its own for two reasons, both of which
+ * were bugs when it was written inline on the board: it needs a scroll lock of
+ * its own (the app's two frames scroll with each other, and the dock's
+ * "Compare" promises that on every part, not only part A), and it must not
+ * render a keyless frame on the server.
+ */
+export function ScreenFrames({
+  url,
+  w,
+  h,
+  split,
+  railCss,
+  railLabel,
+  todayCss,
+  reloadKey,
+  ready,
+}: {
+  url: string;
+  w: number;
+  h: number;
+  split: boolean;
+  railCss: string;
+  railLabel: string;
+  todayCss: string;
+  reloadKey: number;
+  /** False until the browser has the gate key. See header note 2. */
+  ready: boolean;
+}) {
+  const register = useScrollLock(split);
+  const frame = (
+    id: string,
+    css: string,
+    title: string,
+    caption: string,
+  ): React.ReactNode =>
+    ready ? (
+      <PageFrame
+        id={id}
+        path={url}
+        w={w}
+        h={h}
+        css={css}
+        title={title}
+        caption={caption}
+        reloadKey={reloadKey}
+        register={register}
+      />
+    ) : (
+      <FrameHold w={w} h={h} title={title} />
+    );
+
+  return (
+    <div className="overflow-x-auto pb-2">
+      <div className="flex w-fit gap-4">
+        {split
+          ? frame(
+              "app-left",
+              todayCss,
+              "Today",
+              "2 / 8 / 3, stock ladder. The app as built, for the eye to come back to.",
+            )
+          : null}
+        {frame(
+          "app-right",
+          railCss,
+          split ? railLabel : `${railLabel}, live`,
+          split
+            ? "The rail, written into this document and scrolled with the frame beside it."
+            : "The rail, written into this document. Flip the dock and this screen re-skins in place.",
+        )}
+      </div>
+    </div>
+  );
 }

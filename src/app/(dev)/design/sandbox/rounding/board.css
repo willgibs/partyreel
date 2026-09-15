@@ -133,3 +133,17 @@
     padding-inline: 0;
   }
 }
+
+/* ── A dock group wider than a phone (round four, second pass) ────────────
+
+   The screen picker moved into the dock, because it feeds part B AND part G's
+   four phones and a page-wide switch belongs where it is always on screen.
+   The shell's Toggle is `inline-flex` and never wraps (see .rnd-controls), and
+   five screen names are wider than a 375 dock, so the group scrolls inside
+   itself rather than widening the dock or the document. The same `wrap` option
+   asked for in the Handoff retires this too. */
+.rnd-dock-wide {
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
