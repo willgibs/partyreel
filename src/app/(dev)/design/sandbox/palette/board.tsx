@@ -188,7 +188,7 @@ const ASKS = [
   "The accent's reach: all three jobs, attention only, or identity only.",
   "The panel: one token, or the alphas.",
   "The missing step: faint in, or out.",
-  "The dark card: opaque, or the veil.",
+  "The dark card: declared, opaque, or the veil.",
 ];
 
 /**
@@ -223,7 +223,7 @@ const ASSETS = [
 /* ── Board furniture ────────────────────────────────────────────────────── */
 
 /** A control with a VISIBLE name. Four unlabelled segmented controls in a row
- *  is a puzzle, and two of the four ("Today A B", "As declared Opaque Veil")
+ *  is a puzzle, and two of the four ("Today A B", "Declared Opaque Veil")
  *  are unreadable without the file open. */
 function Knob({
   label,
@@ -539,10 +539,17 @@ export function PaletteBoard() {
   const [faintOnDimmed, setFaintOnDimmed] = useState(true);
 
   const declared = RAMP_BY_ID[rampId];
-  const ramp = resolveRamp(declared, cardMode, temperature);
+  // ★ ONE PLACE ANSWERS THE BAR. Every ramp this board renders goes through
+  // here, so no row can show an answer the bar is not claiming and no switch in
+  // the bar can be decorative. A row that called `resolveRamp` for itself is
+  // exactly how the missing step went decorative: it reached the paste and row
+  // 10 and not the ladder at row 01, which is the row the ask is ABOUT.
+  const resolved = (r: Ramp) =>
+    resolveRamp(r, cardMode, temperature, faintOnDimmed);
+  const ramp = resolved(declared);
   // Today, resolved the same way, so a row that pairs the two is comparing two
   // ramps and not a ramp against an unanswered card question.
-  const todayRamp = resolveRamp(RAMP_BY_ID.today, cardMode, temperature);
+  const todayRamp = resolved(RAMP_BY_ID.today);
   // Row 02 is a PAIR only while there are two sets to pair. A ruling of "today"
   // is one of the three answers, and it makes the candidate the left half, so
   // the frame renders once and takes a single half's height and its own label.
@@ -585,7 +592,7 @@ export function PaletteBoard() {
     temperature,
   };
   const apply = (id: RampId) => {
-    const r = resolveRamp(RAMP_BY_ID[id], cardMode, temperature);
+    const r = resolved(RAMP_BY_ID[id]);
     setCandidateCss(applyLabel(r, opts), applyCss(r, opts));
   };
 
@@ -604,10 +611,15 @@ export function PaletteBoard() {
           so it has to stay reachable at row 12 as well as row 01.
 
           ★ Round three labelled every group. A walk found four unlabelled
-          segmented controls in a row, two of which ("Today A B", "As declared
+          segmented controls in a row, two of which ("Today A B", "Declared
           Opaque Veil 62%") mean nothing at all to someone who has not read the
           file, and one of which changes the answer to an ask. An aria-label is
-          not a label: nobody reading this board is using a screen reader. */}
+          not a label: nobody reading this board is using a screen reader.
+
+          ★ Every knob here repaints the board. The second fix pass found the
+          faint switch was reaching the paste and nothing else, so its label
+          was a claim the page did not honour; a control that names an ask has
+          to move a pixel in the evidence for that ask. */}
       <div className="pal-walk-bar sticky top-0 z-20 -mx-4 flex flex-col gap-2.5 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Knob label="The ramp">
@@ -633,7 +645,7 @@ export function PaletteBoard() {
             <Toggle
               ariaLabel="The dark card"
               options={[
-                { id: "declared" as CardMode, label: "As declared" },
+                { id: "declared" as CardMode, label: "Declared" },
                 { id: "opaque" as CardMode, label: "Opaque" },
                 { id: "veil" as CardMode, label: "Veil 62%" },
               ]}
@@ -652,9 +664,9 @@ export function PaletteBoard() {
               onChange={(v) => setPanelSingle(v === "single")}
             />
           </Knob>
-          <Knob label="The faint step">
+          <Knob label="The missing step">
             <Toggle
-              ariaLabel="The faint step"
+              ariaLabel="The missing step"
               options={[
                 { id: "on", label: "In" },
                 { id: "off", label: "Out" },
@@ -830,7 +842,7 @@ export function PaletteBoard() {
       >
         <div className="space-y-2.5">
           {RAMPS.map((r) => (
-            <Spectrum key={r.id} ramp={resolveRamp(r, cardMode, temperature)} />
+            <Spectrum key={r.id} ramp={resolved(r)} />
           ))}
         </div>
         {/* The board's OWN chrome keys off the real viewport, not the stage
@@ -838,18 +850,10 @@ export function PaletteBoard() {
             honest here, and four 77px columns at 375 is unreadable. */}
         <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {RAMPS.map((r) => (
-            <Ladder
-              key={`${r.id}-light`}
-              ramp={resolveRamp(r, cardMode, temperature)}
-              tone="light"
-            />
+            <Ladder key={`${r.id}-light`} ramp={resolved(r)} tone="light" />
           ))}
           {RAMPS.map((r) => (
-            <Ladder
-              key={`${r.id}-dark`}
-              ramp={resolveRamp(r, cardMode, temperature)}
-              tone="dark"
-            />
+            <Ladder key={`${r.id}-dark`} ramp={resolved(r)} tone="dark" />
           ))}
         </div>
       </Row>
@@ -919,7 +923,7 @@ export function PaletteBoard() {
             cannot see 0.015 of lightness on an unlabelled swatch. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {RAMPS.map((r) => {
-            const set = resolveRamp(r, cardMode, temperature);
+            const set = resolved(r);
             return (
               <div key={r.id} className="space-y-1.5">
                 <p className="text-[11px] font-medium">{set.label}</p>
@@ -1126,23 +1130,31 @@ export function PaletteBoard() {
             ground="paper"
             mode={mode}
             height={h(350, 840)}
-            label={`paper · ${ramp.label}`}
+            label={`paper · ${ramp.label} · ${faintOnDimmed ? "faint in" : "faint out"}`}
           >
-            <TextSteps mode={mode} />
+            <TextSteps mode={mode} faint={faintOnDimmed} />
           </Frame>
           <Frame
             ramp={ramp}
             ground="cinema"
             mode={mode}
             height={h(350, 840)}
-            label={`cinema · ${ramp.label}`}
+            label={`cinema · ${ramp.label} · ${faintOnDimmed ? "faint in" : "faint out"}`}
           >
-            <TextSteps mode={mode} />
+            <TextSteps mode={mode} faint={faintOnDimmed} />
           </Frame>
         </div>
+        {/* The count is the same either way, because it is a measurement; what
+            changes is what the third line in each frame above is MADE of, and
+            the switch in the bar is the thing that changes it. */}
         <p className="text-[11px] text-muted-foreground">
           {FAINT_ALPHAS.map((a) => `${a.alpha} percent x${a.uses}`).join(", ")}
-          {` = ${FAINT_USES} sites dimming the second step by hand, ${FAINT_ALPHAS[3].uses} of them at exactly the 70 percent --faint is.`}
+          {` = ${FAINT_USES} sites dimming the second step by hand, ${FAINT_ALPHAS[3].uses} of them at exactly the 70 percent --faint is. `}
+          <span className="text-foreground">
+            {faintOnDimmed
+              ? "In: the third line is one token, so it is the same grey on the page, on a card and on the panel, and the ladder at row 01 has a rung at it."
+              : "Out: the third line stays 70 percent of the second, so it composites against whatever is behind it and the three grounds in each frame give three different faints. The rung at row 01 is hatched, which is where today already is."}
+          </span>
         </p>
       </Row>
 
@@ -1221,7 +1233,7 @@ export function PaletteBoard() {
       <Row
         n="13"
         name="The ruling, as a paste"
-        reading="The selected candidate as the block that lands in globals.css and marketing.css, with the card question, the temperature and the accent folded in exactly as the board is showing them. The manifest carries the same blocks in writing (A and B neutral, and the warm form of each), so a ruling is a few words and the Orchestrator pastes rather than rewrites."
+        reading="The selected candidate as the block that lands in globals.css and marketing.css, with the card question, the temperature, the missing step and the accent folded in exactly as the board is showing them. The manifest carries the same blocks in writing (A and B neutral, the warm form of each, and what the card ruling lands per letter), so a ruling is a few words and the Orchestrator pastes rather than rewrites."
       >
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -1283,13 +1295,39 @@ export function PaletteBoard() {
             carried as a departure: --faint is a new custom property and Tailwind
             only grows a `text-faint` utility once theme.css maps it. The board
             itself reaches the token with an arbitrary value, so nothing here
-            depends on that line landing first. */}
+            depends on that line landing first.
+
+            It is conditional because the block below is: a ruling of "faint
+            out" prints no --faint line in any of the three blocks (the ramp
+            itself loses the token, `withoutFaint` in ramps.ts), and a
+            prerequisite for a token nobody is declaring is noise. */}
         <p className="max-w-3xl text-[11px] text-muted-foreground">
-          One line goes with it, for the Orchestrator rather than for the
-          ruling: theme.css needs{" "}
-          <span className="text-foreground">--color-faint: var(--faint);</span>{" "}
-          in its @theme inline block before a text-faint utility exists.
+          {faintOnDimmed ? (
+            <>
+              One line goes with it, for the Orchestrator rather than for the
+              ruling: theme.css needs{" "}
+              <span className="text-foreground">
+                --color-faint: var(--faint);
+              </span>{" "}
+              in its @theme inline block before a text-faint utility exists.
+            </>
+          ) : (
+            <>
+              The missing step is ruled OUT, so the block below declares no{" "}
+              <span className="text-foreground">--faint</span> in any of its
+              three sets and theme.css needs nothing: the {FAINT_USES + " "}
+              sites keep compositing an alpha of the second step by hand.
+            </>
+          )}
         </p>
+        {/* The RESOLVED ramp, which is the point: the letter, the temperature,
+            the dark card and the missing step are all already in `ramp`, so
+            this block is the paste that this bar's answers land and it cannot
+            drift from what every frame above is rendering. The panel switch is
+            the one answer that is not here, and it cannot be: it deletes an
+            alpha at six call sites rather than moving a value (the walk
+            emulates it with a stylesheet, which is scaffolding and not
+            shippable CSS). */}
         <pre className="max-h-96 overflow-auto rounded-lg border border-border bg-muted/40 p-4 font-sans text-[11px] leading-relaxed whitespace-pre tabular-nums">
           {[tokenBlock(ramp), accentBlock(accent)].filter(Boolean).join("\n\n")}
         </pre>

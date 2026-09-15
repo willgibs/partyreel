@@ -895,36 +895,55 @@ export function PhotoCards({ mode }: { mode: Mode }) {
  * Every text step with real product copy at it, on the three grounds a line of
  * type actually lands on: the page, a card, and the panel. The hole in the
  * light ramp is only a hole once you try to write the third line.
+ *
+ * `faint` is ask 6, and it is the reason the third step paints from a `var()`
+ * with a fallback rather than from a value. A ruling of "out" deletes --faint
+ * from the ramp itself (`withoutFaint` in ramps.ts), so the fallback takes
+ * over and the third line becomes what ships today: 70 percent of the second
+ * step, composited against whatever ground it happens to sit on. That is why
+ * this specimen renders all three grounds side by side. One token is one grey
+ * on all three; an alpha is three different greys, and the caption under the
+ * row says which of the two you are looking at.
  */
-export function TextSteps({ mode }: { mode: Mode }) {
+export function TextSteps({ mode, faint }: { mode: Mode; faint: boolean }) {
   const desktop = mode === "desktop";
   const stack = (where: string) => (
     <div className="space-y-2">
       <p className="text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
         {where}
       </p>
-      {TEXT_STEPS.map((s) => (
-        <div key={s.token}>
-          <p
-            className={cn(desktop ? "text-base" : "text-sm")}
-            style={
-              s.token === "--foreground"
-                ? undefined
-                : s.token === "--muted-foreground"
-                  ? { color: "var(--muted-foreground)" }
-                  : {
-                      color:
-                        "var(--faint, color-mix(in oklab, var(--muted-foreground) 70%, transparent))",
-                    }
-            }
-          >
-            {s.copy}
-          </p>
-          <p className="text-[10px] text-muted-foreground">
-            {s.token} <span>{s.today}</span>
-          </p>
-        </div>
-      ))}
+      {TEXT_STEPS.map((s) => {
+        const isFaint = s.token === "--faint";
+        return (
+          <div key={s.token}>
+            <p
+              className={cn(desktop ? "text-base" : "text-sm")}
+              style={
+                s.token === "--foreground"
+                  ? undefined
+                  : s.token === "--muted-foreground"
+                    ? { color: "var(--muted-foreground)" }
+                    : {
+                        color:
+                          "var(--faint, color-mix(in oklab, var(--muted-foreground) 70%, transparent))",
+                      }
+              }
+            >
+              {s.copy}
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              {isFaint && !faint ? "text-muted-foreground/70" : s.token}{" "}
+              <span>
+                {isFaint
+                  ? faint
+                    ? "one token, the same grey on all three grounds"
+                    : s.today
+                  : s.today}
+              </span>
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
   return (

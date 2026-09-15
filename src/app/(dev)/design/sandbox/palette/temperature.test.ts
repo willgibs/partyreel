@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { RAMP_BY_ID, warm, warmthAt } from "./ramps";
+import { RAMP_BY_ID, resolveRamp, warm, warmthAt } from "./ramps";
 
 /**
  * THE PROOF THAT CUTTING CANDIDATE C LOST NOTHING (round three).
@@ -165,5 +165,98 @@ describe("the rule the transform holds", () => {
   it("is a no-op on a ramp that is already warm", () => {
     const once = warm(RAMP_BY_ID.a);
     expect(warm(once)).toEqual(once);
+  });
+});
+
+/**
+ * THE OTHER TWO SWITCHES, pinned for the same reason (round three, the second
+ * fix pass). The manifest prints what a ruling lands, and a value printed in a
+ * document and computed in a file is a value that goes stale in one of them.
+ * These are the numbers under "The paste, round three" in
+ * docs/tracks/palette.md.
+ */
+describe("the dark card ruling, per letter", () => {
+  const card = (
+    id: "today" | "a" | "b",
+    mode: "declared" | "opaque" | "veil",
+  ) => resolveRamp(RAMP_BY_ID[id], mode).dark["--card"];
+
+  it("strips today's veil for opaque and leaves it for the veil", () => {
+    // Today is the one ramp that declares the translucent card, so it is the
+    // one letter where "opaque" is the answer that moves a value.
+    expect(card("today", "declared")).toBe("oklch(0.21 0 0 / 0.62)");
+    expect(card("today", "opaque")).toBe("oklch(0.21 0 0)");
+    expect(card("today", "veil")).toBe("oklch(0.21 0 0 / 0.62)");
+    // And the shipped ink leaf declares no card at all, which is the gap row
+    // 06 is about: the ruling lands nothing there.
+    expect(RAMP_BY_ID.today.ink["--card"]).toBeUndefined();
+  });
+
+  it("makes the veil the moving answer on both candidates", () => {
+    // Both candidates already retired the veil, so "opaque" is a no-op on them
+    // and the ruling only ever ADDS a translucent card back.
+    expect(card("a", "declared")).toBe("oklch(0.235 0 0)");
+    expect(card("a", "opaque")).toBe("oklch(0.235 0 0)");
+    expect(card("a", "veil")).toBe("oklch(0.235 0 0 / 0.62)");
+    const bCard = RAMP_BY_ID.b.dark["--card"];
+    expect(card("b", "opaque")).toBe(bCard);
+    expect(card("b", "veil")).toBe(
+      `color-mix(in oklab, ${bCard} 62%, transparent)`,
+    );
+  });
+
+  it("reaches the ink leaf as well as the room, on both candidates", () => {
+    for (const id of ["a", "b"] as const) {
+      expect(resolveRamp(RAMP_BY_ID[id], "veil").ink["--card"]).toBe(
+        resolveRamp(RAMP_BY_ID[id], "veil").dark["--card"],
+      );
+    }
+  });
+
+  it("warms an opaque card and leaves a veiled one to the room under it", () => {
+    // The card resolves before the temperature, so forcing today's card opaque
+    // hands warm() a plain literal and it takes the room's hue.
+    expect(resolveRamp(RAMP_BY_ID.today, "opaque", "warm").dark["--card"]).toBe(
+      "oklch(0.21 0.006 60)",
+    );
+    // A veil is left alone by design (see the rule pinned above): it borrows
+    // the surface under it, and in a warm room that surface is warm.
+    expect(resolveRamp(RAMP_BY_ID.a, "veil", "warm").dark["--card"]).toBe(
+      "oklch(0.235 0 0 / 0.62)",
+    );
+  });
+});
+
+describe("the missing step ruling", () => {
+  it("declares --faint on both candidates when it is in", () => {
+    for (const id of ["a", "b"] as const) {
+      const r = resolveRamp(RAMP_BY_ID[id], "declared", "neutral", true);
+      expect(r.light["--faint"]).toBeDefined();
+      expect(r.dark["--faint"]).toBeDefined();
+      expect(r.ink["--faint"]).toBeDefined();
+    }
+  });
+
+  it("deletes it from all three blocks when it is out", () => {
+    // A ruling of "out" is a ruling that the custom property is never
+    // declared, so it has to leave the RAMP rather than one renderer: the
+    // ladder, every specimen's var() fallback and the printed paste all read
+    // this one object.
+    for (const id of ["a", "b"] as const) {
+      const r = resolveRamp(RAMP_BY_ID[id], "declared", "neutral", false);
+      expect("--faint" in r.light).toBe(false);
+      expect("--faint" in r.dark).toBe(false);
+      expect("--faint" in r.ink).toBe(false);
+      // and nothing else moves with it
+      expect(r.light["--muted-foreground"]).toBe(
+        RAMP_BY_ID[id].light["--muted-foreground"],
+      );
+    }
+  });
+
+  it("is in by default, so an old call site cannot silently drop the step", () => {
+    expect(resolveRamp(RAMP_BY_ID.a, "declared").light["--faint"]).toBe(
+      RAMP_BY_ID.a.light["--faint"],
+    );
   });
 });

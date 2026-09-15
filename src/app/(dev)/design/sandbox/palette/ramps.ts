@@ -478,21 +478,61 @@ export function withAlpha(value: string, alpha: number): string {
 }
 
 /**
- * The ramp with BOTH switches answered, which is what every renderer and the
- * paste read, so the board can never show one thing and paste another.
+ * The ramp with ALL THREE switches answered, which is what every renderer and
+ * the paste read, so the board can never show one thing and paste another.
  *
  * The card runs first and the temperature second: forcing the veiled card
  * opaque strips its alpha, and the value that comes out has to take the
  * temperature like any other surface, or an opaque card would be the one cold
- * thing in a warm room.
+ * thing in a warm room. (A card forced to a VEIL keeps the alpha form and
+ * stays at chroma 0 on purpose: `warm()` leaves every veil alone because a
+ * veil borrows the surface under it, and in a warm room that surface is warm.)
+ *
+ * The faint step runs last, and it is a ramp edit rather than a renderer flag
+ * for the reason `withoutFaint` gives.
  */
 export function resolveRamp(
   ramp: Ramp,
   mode: CardMode,
   temperature: Temperature = "neutral",
+  faint = true,
 ): Ramp {
   const carded = applyCardMode(ramp, mode);
-  return temperature === "warm" ? warm(carded) : carded;
+  const tempered = temperature === "warm" ? warm(carded) : carded;
+  return faint ? tempered : withoutFaint(tempered);
+}
+
+/**
+ * ★ THE FAINT RULING IS A RAMP EDIT, NOT A RENDERER FLAG (round three, the
+ * second fix pass). "Out" does not mean "draw the third step differently", it
+ * means the new custom property is never declared, so it has to reach every
+ * reader of the ramp at once or the bar is labelling a switch that changes
+ * nothing. Dropping the key here does all of that at once:
+ *
+ *   row 01   the ladder draws the hatched "none" rung it already draws for
+ *            today, which declares no --faint either. The missing step,
+ *            missing.
+ *   row 10   every specimen paints the third step from
+ *            `var(--faint, <the alpha the 37 sites composite by hand>)`, so
+ *            the fallback takes over and the three grounds give three
+ *            different faints, which is the whole argument for the token.
+ *   row 13   `tokenBlock` stops printing the line in all three blocks.
+ *
+ * Do NOT "fix" a renderer by hard-coding one answer: the fallback inside the
+ * `var()` is the evidence, and this is the single place the answer lives.
+ */
+function withoutFaint(ramp: Ramp): Ramp {
+  const drop = (m: TokenMap): TokenMap => {
+    const out = { ...m };
+    delete out["--faint"];
+    return out;
+  };
+  return {
+    ...ramp,
+    light: drop(ramp.light),
+    dark: drop(ramp.dark),
+    ink: drop(ramp.ink),
+  };
 }
 
 function applyCardMode(ramp: Ramp, mode: CardMode): Ramp {
@@ -916,7 +956,10 @@ export function accentBlock(accent: Accent): string {
  *               delete the alpha, so the walk needs the same thing from the
  *               outside.
  *   --faint     FAINT_USES sites write `text-muted-foreground/<alpha>`; the
- *               ruling would point them at the new step.
+ *               ruling would point them at the new step. The TOKEN half of
+ *               that ruling is not here: it rides the resolved ramp
+ *               (`withoutFaint`), so a ruling of "out" reaches this block as a
+ *               ramp with no --faint line left to print.
  *
  * Both are matched on the class attribute with a leading space or start anchor,
  * so a VARIANT of the same utility (`hover:bg-muted/40`, which is a hover fill
