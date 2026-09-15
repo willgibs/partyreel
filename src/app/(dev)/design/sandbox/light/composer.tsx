@@ -722,7 +722,14 @@ export function ComposerPart({
               aria-hidden
               style={{ "--lgt-wipe": `${100 - wipe}%` } as CSSProperties}
             />
-            <div className="relative">{current.render()}</div>
+            {/* ★ shrink-0: the wrapper is a column flex box, and a section
+                taller than its canvas would otherwise COMPRESS to fit rather
+                than overflow it. That is worse than a clip, because a squashed
+                section renders at a layout the real page never gives it and
+                nothing says so: the footer measured 1414 here and 1642 in a
+                stage that let it be itself. Let it overflow; the height is the
+                thing to fix, and a clip is visible. */}
+            <div className="relative shrink-0">{current.render()}</div>
           </div>
         </Stage>
       </Labeled>

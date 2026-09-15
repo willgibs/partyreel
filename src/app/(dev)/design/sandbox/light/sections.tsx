@@ -179,7 +179,7 @@ export const SECTIONS: Section[] = [
     note: "The model. The one production lamp with nothing emitting, and the reason law 1 needs its correction.",
     carries:
       "the footer seam (footer-glow.tsx): 210px, 0.62 base and band, the house five, the site cadence",
-    h: { desktop: 1460, phone: 1520 },
+    h: { desktop: 1690, phone: 1760 },
     refuses: {
       aurora:
         "The footer already IS the boundary treatment, at the one cut on the page that has two grounds meeting. Adding a field to it would be the same light twice.",

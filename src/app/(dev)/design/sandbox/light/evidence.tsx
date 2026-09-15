@@ -132,7 +132,10 @@ function LitSection({
             />
           </>
         )}
-        <div className="relative">{section.render()}</div>
+        {/* shrink-0: see the composer. A column flex box compresses a child
+            taller than the canvas instead of overflowing it, which renders a
+            layout the real page never gives it. */}
+        <div className="relative shrink-0">{section.render()}</div>
       </div>
     </Stage>
   );
@@ -603,7 +606,7 @@ function GrainWipeSection({
           aria-hidden
           style={{ "--lgt-wipe": `${100 - wipe}%` } as CSSProperties}
         />
-        <div className="relative">{section.render()}</div>
+        <div className="relative shrink-0">{section.render()}</div>
       </div>
     </Stage>
   );
