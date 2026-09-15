@@ -758,19 +758,14 @@ survives as a one-word departure.
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). Two rounds turned the river from a diagram into a
-composition. Round two answered its own round-one departure: the caption line CAN sit under the code,
-because putting it inside the white object makes the plate the card an event actually puts on a
-table, and the stream is born behind that card instead of bowing around a floating line; it also gave
-the pour a held first beat, settled the count instead of letting it climb forever, straightened
-frames as they land, cropped the stand-ins off the photograph, took the light spec's LIFT for the
-overlap cue and rebuilt the phone as one braided lane of large frames. Round three walked the board
-cold before Will and found that the desktop still failed its own sentence, for one reason: the
-stream's lateral law was written against the clock while everything a reader sees is written against
-the fall. The fan now opens over the first third of the DISTANCE, so the album leaves the card
-instead of appearing beside it; the clearing took the lockup's measured ink row by row in place of
-one 800 px rectangle, so the banks open around the headline and visibly close again under the
-buttons; the cadence was made to divide the flight, so the stream has no gaps; the clearing's gate
-reads a card's VISIBLE box, which stopped the phone flinging frames off the side at 83 percent
-opacity; the second button was wired to the demo; and the line-placement chip was cut to one build
-with the ruling kept as one word. Zero overlap, re-measured across a full cycle at both canvases and
-both copies, at 0.156 ms of loop per frame.
+composition. Round two answered its own round-one departure: the caption line CAN sit under the
+code, because putting it inside the white object makes the plate the card an event puts on a table,
+and the stream is born behind that card instead of bowing around a floating line; it also held the
+pour's first beat, settled the count, straightened the frames as they land, took the light spec's
+LIFT for the overlap cue and rebuilt the phone as one braided lane. Round three walked it cold and
+found the desktop failing its own sentence, because its lateral law was written against the clock
+while everything a reader sees is written against the fall. The fan now opens over the first third
+of the DISTANCE, so the album leaves the card; the clearing took the lockup's measured ink row by
+row in place of one rectangle, so the banks open around the headline and close under the buttons;
+the cadence divides the flight; the chip was cut to one build; and a review caught the loop dropping
+a frame by its CENTRE, deleting half a photograph in full view, where it now goes by the top edge.
