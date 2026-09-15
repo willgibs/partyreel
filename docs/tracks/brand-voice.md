@@ -415,12 +415,20 @@ own page. No production byte changed.
 
 ## Handoff (round 3)
 
-- Head: the tip of `lp/brand-voice` (this manifest commit); the board's code head is `1d9c6c2`, on
-  top of the sync merge `e769c27`. Preview `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the
-  board at `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
-  `docs/specs/brand-voice.md`. **The round-three board is the one whose root div carries
-  `class="bv-round-three"`, opens with a card reading "The recommendation / B, the room." and
-  carries a twelve-chapter index in the control bar.**
+- Head: the tip of `lp/brand-voice` (this manifest commit); the board's code head is `cfb443d`, on
+  top of the sync merge `e769c27`. The board is at
+  `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
+  **The round-three board is the one whose root div carries `class="bv-round-three"`, opens with a
+  card reading "The recommendation / B, the room." and carries a twelve-chapter index in the control
+  bar.**
+- **The preview alias serves round TWO, not this head, and that is not this track's to fix.**
+  `partyreel-git-lp-brand-voice-partyreel.vercel.app` still serves `0f40d41` (`bv-round-two`): the
+  project is at Vercel's daily deployment ceiling, so no push from any track builds reliably, and
+  the branch gate is not the cause. The measurement and the exact error are under "The preview
+  alias, and where this head was actually verified" below. **Every claim this handoff makes was
+  verified instead on a local server in this worktree, `pnpm dev -p 3031`, at a real 1440 viewport
+  and a real 375 one, six passes (two canvases by three columns).** The one-line check that the
+  right head is on screen either way: the root div reads `bv-round-three`.
 - Synced with `launch-prep` at `dd4aa0b` (it had moved by the palette and floating-surfaces
   round-two merges and their manifests; nothing in this lane or its `reads`). Merged clean, gate
   re-run on the merged tree.
@@ -437,11 +445,27 @@ own page. No production byte changed.
 - Assets requested from Will: none. The board is type on the real grounds; its only stand-in is the
   grey plate in the three unfurl cards, which stands for a link preview's own thumbnail and now
   says so on the board.
+- **No "Apply to the site" block, and none is coming: copy is not CSS.** A tuner board hands the
+  site a candidate STYLESHEET; a voice board hands it SENTENCES, which reach the pages only as
+  TypeScript. The equivalent artifact is the pair of pastes, rendered per candidate and copyable off
+  the board: `sectionHeadersPaste()` in chapter 4 (the seven home headers as the `SECTION_HEADERS`
+  edit for `marketing-voice.ts`) and `featurePagesPaste()` at the foot of chapter 8 (the thirty
+  identity strings as the `FEATURE_PAGES` array for `feature-pages.ts`). Nothing in this lane calls
+  `setCandidateCss`, so the candidate-block check is N/A here by construction. The pages the goal
+  names were brought to the board instead: the full reasoning is under "The goal's 'Apply to the
+  site' block, and the real pages it names" below.
+- **The one MARKED row in chapter 11 is a bible-4 compliance fix, not an eighth ask.** The shipped
+  guest account gate asks a guest to make an account with us on the host's own page, which bible 4
+  refuses whatever the voice, so the infusion round rewrites it either way. The board says so in the
+  field name (`compelled`), the badge ("bible 4 refuses the shipped line") and the chapter headnote;
+  the only choosable part is the noun, which is ask 7. **The asks stay at seven.**
 
-### The review pass on this handoff (three defects, what each one got)
+### The review passes on this handoff (two of them, and what each defect got)
 
-A read-only review of the round-three handoff found one blocking and two should-fix items. All three
-are answered at this head:
+A read-only review of the round-three handoff found one blocking and two should-fix items; a second
+read-only review re-raised the same three as should-fix. All three are answered at this head, and
+the second pass also produced one real defect of its own, found by re-walking rather than re-reading
+(the phone canvas at a REAL 375 browser window, item 4 below).
 
 1. **The preview alias does not serve this head (blocking).** Not caused by this lane and not
    fixable from inside it. The cause is now measured rather than guessed, with the exact error, and
@@ -458,6 +482,17 @@ are answered at this head:
    manifest: the row is compelled by bible 4, not chosen, so the field, the badge and the chapter
    headnote now say so and point at ask 7 for the one part of it that IS a choice. The asks stay at
    seven. Walk item 5 and the line under the asks say it in the record too.
+4. **Found by the re-walk, not by the review: the phone canvas overflowed a real 375 window
+   (`cfb443d`).** Round three's own beside-the-stage grid put the 375-wide canvas in a grid item,
+   whose default `min-width` is AUTO, so at a 375 browser window the single-column grid measured
+   375 where the page's content box is 343: `Stage` read its wrapper as wide enough, kept `zoom: 1`
+   instead of fitting, and pushed 16px of horizontal scroll onto the document in all three columns.
+   Three of the sixteen stages took that path; the other thirteen were fitting correctly at 0.91.
+   `min-w-0` on both cells removes the floor and `Stage`'s own zoom-fit takes over: all sixteen
+   stages now measure 343 at a 375 window with **zero** document overflow, and at `lg` the track is
+   an explicit 375px so the ledger still sits beside the stage at 1440 (cells 375 and 593). Worth
+   the Orchestrator's eye because it is really a fifth shell finding: a fixed-width `Stage` inside
+   any grid or flex cell needs that floor removed, and the shell could do it once.
 
 ### The walk, taken cold, and what it changed
 
@@ -533,10 +568,15 @@ Restating the standing judgment here, because round three's record dropped it:
 
 ### Light QA, in numbers (six passes: Desktop and Phone 375, each on Today, A and B)
 
-- **Nothing clips, anywhere.** 16 stages; a scan of every `h1/h2/h3/p/span/td/li/button/dd/dt/div`
+- **Nothing clips, anywhere.** 16 stages; a scan of every `h1/h2/h3/p/span/td/li/button/dd/dt`
   inside every stage for a box crossing the stage edge returns empty in all six passes, and
-  `scrollHeight - clientHeight` is 0 on all 16 stages in all six. No horizontal document overflow in
-  any pass.
+  `scrollHeight - clientHeight` and `scrollWidth - clientWidth` are 0 on all 16 stages in all six.
+- **No horizontal document overflow in any pass, which took a fix this pass.** At a real 1440
+  window it was already 0 on both canvases. At a real 375 window the phone canvas was scrolling the
+  document 16px in all three columns, because three stages were escaping `Stage`'s zoom-fit; see
+  item 4 of the review passes above. Re-measured after `cfb443d`: `document.scrollWidth -
+  clientWidth` is **0** at 375 on B, A and today, and all 16 stages measure 343 (the page's content
+  box) rather than a mix of 375 and 343.
 - **Reduced motion gets the settled composition.** Verified in the SERVED stylesheet, not just the
   source: the board's one animation (`bv-swap-in`) sits inside
   `@media (prefers-reduced-motion: no-preference)`, so under `reduce` there is no rule to undo. All
@@ -547,11 +587,13 @@ Restating the standing judgment here, because round three's record dropped it:
   keyframe's end state IS the resting state and there is no delay to cover, so the fill bought
   nothing and is gone. **At rest the board now runs 0 animations**; a voice swap runs 17 for 180ms;
   the worst frame of a swap fell from 83ms to 50ms with the median at 17ms, on 1,394 nodes.
-- **Both canvases read.** All six passes walked top to bottom at a real 1440 viewport, and the
-  whole board read again at a real 375 viewport (the iframe probe described under the preview
-  section, since the MCP browser window will not reflow below desktop width). Every number in this
-  section was re-measured at this head after the review pass. The surface was a local dev server on
-  the worktree tip, not the preview alias, for the reason set out below.
+- **Both canvases read, at real viewports.** All six passes walked top to bottom at a real 1440
+  viewport (`innerWidth` 1440) and the whole board read again at a real 375 one (`innerWidth` 375,
+  `clientWidth` 375). Round three's first pass had to reach 375 through a same-origin iframe because
+  that browser tab would not reflow below desktop width; this pass drove a viewport that actually
+  emulates the phone, which is what exposed the overflow above, so the iframe probe is retired as a
+  method. Every number in this section was re-measured at `cfb443d`. The surface was a local dev
+  server on the worktree tip, not the preview alias, for the reason set out below.
 
 ### The preview alias, and where this head was actually verified
 
@@ -585,17 +627,19 @@ cause is now measured rather than guessed.
   recommendation / B, the room." at the top and the twelve-chapter index in the control bar.
 - **Where this head WAS verified, in full: a local dev server on the worktree tip.** `pnpm dev -p
   3031` in `../partyreel-wt/brand-voice`, board at
-  `http://localhost:3031/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, walked in Chrome at the
-  real 1440 viewport in all six passes (Desktop and Phone 375 canvases, each on B, A and today),
-  and then at a REAL 375 viewport, which needed a trick worth writing down: the MCP browser tab
-  group renders offscreen and reports `visibilityState: "hidden"`, so the window will not reflow
-  below the desktop width no matter what it is resized to. The board was therefore loaded into a
-  same-origin 375x812 iframe in that tab, which gives the inner document a true 375 viewport with
-  its own media queries. Results at 375: `clientWidth` 371 (375 less the scrollbar), document
-  horizontal overflow 0, all 16 stages 0 in both axes, and every one of the 116 boxes that cross
-  the right edge sits inside one of the two deliberate horizontal scrollers (the chapter index
-  `nav` and the strings table's `overflow-x-auto` wrapper); nothing unclipped. At rest,
-  `document.getAnimations()` inside that frame returns 0.
+  `http://localhost:3031/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, served HTML confirmed
+  to carry `bv-round-three` and the recommendation card before anything else was measured. Walked in
+  a browser at **a real 1440 viewport** (`innerWidth` 1440) in all six passes, Desktop and Phone 375
+  canvases each on B, A and today: 16 stages, 0 boxes crossing a stage edge, 0 stage scroll in
+  either axis, 0 document overflow, 0 animations at rest, 13 reveal slots all at opacity 1, and the
+  beside-the-stage grid measuring 375 and 593 as designed. Then at **a real 375 viewport**
+  (`innerWidth` and `clientWidth` both 375, a viewport that emulates the phone rather than the
+  iframe probe round three's first pass had to fall back on). That pass is what caught the 16px of
+  document scroll fixed in `cfb443d`; re-measured after it, the three phone columns read 0 document
+  overflow, 0 clipped boxes, 0 stage scroll, all 16 stages at 343, 0 animations at rest. Reduced
+  motion was checked in the SERVED stylesheet rather than the source: both the `[data-bv-swap]` rule
+  and the `bv-swap-in` keyframes resolve inside `(prefers-reduced-motion: no-preference)`, so under
+  `reduce` there is nothing to undo.
 - **So the round's light-QA rule is satisfied on the composition and not on the surface.** Will's
   rule is the board on ITS PREVIEW at 1440 and 375; this is the board at that head at 1440 and 375
   on localhost. If the alias has caught a window by the time this is read, the one-line check above
@@ -645,6 +689,14 @@ that is ask 7 above, answered once for this door line and the unfurl in chapter 
    `Stage` cannot be handed a literal height it can keep. This board restates the first two in its
    own sheet and solves the third with `FitStage` (about thirty lines in `board.tsx`); a `fit`
    height mode on `Stage` itself would retire the literal from every board at once.
+5. **A fourth one, found this pass: `Stage`'s zoom-fit is silently defeated by a grid or flex
+   cell.** `Stage` fits itself by measuring its wrapper, but a grid or flex item's default
+   `min-width` is AUTO, so a fixed-width canvas inside one sets the track's own floor: the wrapper
+   then measures the canvas width, the fit computes 1, and the stage overflows the page instead of
+   scaling. It cost this board 16px of horizontal document scroll on the phone canvas at a real 375
+   window, on three of sixteen stages, and it will cost any board that puts a `Stage` beside
+   something. Fixed here with `min-w-0` on the cells; the durable fix is `min-w-0` on `Stage`'s own
+   outer wrapper in the shell, which is one class and would immunise every board.
 
 ### Look at first
 
@@ -663,19 +715,19 @@ that is ask 7 above, answered once for this door line and the unfurl in chapter 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (2026-09-14). Rounds two and three took the voice from three
-candidate headers to a board a ruling can be read off. Round two argued the voice where a voice is
-judged, on whole pages: the home arc's fifteen sections top to bottom on their real grounds, then
-`/features/album` and `/features/curation` whole with all 24 card sets, the thirty identity strings
-as a paste, and the app's quiet and guest copy on twelve surfaces; candidate C was retired after it
-read as B with a substitution, and every held line was counted, which produced the round's sharpest
-finding, that the arc is unwritten while the feature pages are already finished. Round three took
-Will's walk before him: the recommendation, its cost and three pointers now open the board, the
-strongest candidate is the first column, twelve chapters are an index in the bar, and the voice's
-one real price is MEASURED off the live heading rather than asserted (B's h1 takes 3 rows at 1440
-and 4 at 375, against today's 2 and 3). A new chapter put `/help`, `/contact` and `/pricing` on a
-board for the first time, with two real help article heads, which is where the voice does its most
-visible work and costs the least. Three lab facts that had been making boards lie about their own
-content were fixed and reported to the shell, and the board's own cost was cut: a fill mode was
-leaving seventeen finished animations on the page at rest, and nothing runs there now. The guide
-gained an example per surface for each shape, the eight do's bible 20 asked for, and seven findings.
-No production byte changed.
+candidate headers to a board a ruling can be read off. Round two argued it where a voice is judged,
+on whole pages: the home arc's fifteen sections top to bottom on their real grounds, `/features/album`
+and `/features/curation` whole with all 24 card sets, the thirty identity strings as a paste, and the
+app's quiet and guest copy on twelve surfaces; candidate C was retired after it read as B with a
+substitution, and counting every held line produced the sharpest finding, that the arc is unwritten
+while the feature pages are finished. Round three took Will's walk before him: the recommendation,
+its cost and three pointers open the board, the strongest candidate is the first column, twelve
+chapters are an index in the bar, and the voice's one real price is MEASURED off the live heading
+rather than asserted (B's h1 takes 3 rows at 1440 and 4 at 375, against today's 2 and 3). A new
+chapter put `/help`, `/contact` and `/pricing` on a board for the first time, where the voice does
+its most visible work and costs the least. Four lab facts that had been making boards lie about
+their own content were fixed and reported to the shell, the newest found by walking at a real 375
+window (a fixed-width stage in a grid cell defeats its own zoom-fit), and the board's own cost was
+cut from seventeen finished animations sitting at rest to none. The guide gained an example per
+surface for each shape, the eight do's bible 20 asked for, and seven findings. No production byte
+changed.
