@@ -75,8 +75,9 @@ import {
  *     surfaces table named a help article nothing had ever rendered. Chapter 9.
  *  4. LESS TO RULE ON. Two departures moved into the asks they had become, the
  *     twelve app and guest rewrites are marked as sweep work with the ONE row
- *     that is a ruling called out, and the remaining departures are only the
- *     ones Will must answer.
+ *     bible 4 already decides called out (compelled, not an eighth ask: its
+ *     only choosable part, the noun, is ask 7), and the remaining departures
+ *     are only the ones Will must answer.
  *
  * STANDING JUDGMENTS from round two, kept: candidate C retired as a column
  * (its one real question, the thesis, is chapter 5); every candidate ships as a
@@ -943,13 +944,16 @@ function SurfaceCard({ s, mode }: { s: Surface; mode: Mode }) {
         <p className="text-[11px] font-medium text-foreground">{s.surface}</p>
         <p className="text-[11px] text-muted-foreground">{s.where}</p>
         {unchanged && <Held />}
-        {/* The one row on these two chapters that is a decision. Everything
-            else here is the infusion round's ordinary work, shown so the
-            register can be read, and round three marks the difference rather
-            than leaving twelve rewrites all looking like rulings. */}
-        {s.ruling && (
+        {/* The one row on these two chapters a bible rule already decides,
+            marked with the rule that owns it. Everything else here is the
+            infusion round's ordinary work, shown so the register can be read,
+            and round three marks the difference rather than leaving twelve
+            rewrites all looking like rulings. The mark is never an ask: the
+            asks are the seven in the bar, and this row's only choosable part
+            (the noun) is ask 7. */}
+        {s.compelled && (
           <span className="rounded-full bg-foreground px-1.5 py-px text-[10px] text-background">
-            {s.ruling}
+            {s.compelled}
           </span>
         )}
       </div>
@@ -1487,7 +1491,7 @@ export function BrandVoiceBoard() {
         id="bv-11"
         n={11}
         name="The guest register, with Partyreel nearly silent"
-        rationale="The demo guest page's real lines: the door in its three states, the upload prompt, the empty album, the upload confirmation. Bible 4 is the whole rule here. Five of the six are sweep work like chapter 10; the marked one is a decision, because the shipped line asks a guest for an account with us on the host's own page."
+        rationale="The demo guest page's real lines: the door in its three states, the upload prompt, the empty album, the upload confirmation. Bible 4 is the whole rule here. Five of the six are sweep work like chapter 10; the marked one is compelled, not chosen, because the shipped line asks a guest for an account with us on the host's own page, which bible 4 already refuses. The rule decides it, so it is no ask: the noun it uses is ask 7, answered once for this line and the unfurl below."
       >
         <FitStage mode={mode} ground="app-light" className="px-8 py-6">
           <div className="flex flex-col gap-3">

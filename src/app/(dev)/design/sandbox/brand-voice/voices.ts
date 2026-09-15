@@ -1413,12 +1413,16 @@ export type Surface = {
   proposed: { title: string; body?: string; action?: string };
   note: string;
   /**
-   * Set ONLY where the row is a decision rather than sweep work. Round three's
-   * finding on these two chapters: twelve rewrites are shown and eleven of them
+   * Set ONLY on the row a bible rule already decides, naming the rule. Round
+   * three's finding on these two chapters: twelve rewrites are shown and eleven
    * are the infusion round's ordinary work, which made the chapter read like
-   * twelve rulings. One row is a ruling, and it now says so on the board.
+   * twelve rulings. The twelfth is not a ruling Will owes either, and the mark
+   * now says which rule owns it instead of implying an ask: bible 4 refuses the
+   * shipped line outright, so the infusion round has to change it whatever the
+   * voice. Its one choosable part, the noun (email or sign in), is ask 7, which
+   * settles this door line and the chapter 12 unfurl together.
    */
-  ruling?: string;
+  compelled?: string;
 };
 
 /**
@@ -1553,8 +1557,8 @@ export const GUEST_SURFACES: Surface[] = [
       body: "Maya and Jay ask guests for an email. Add it once and you can add photos.",
       action: "Continue",
     },
-    note: "The shipped line asks the guest to create an account with US on the host's own page, which is exactly what bible 4 is about. The rewrite hands the ask back to the host, who is the one who turned it on.",
-    ruling: "the one shipped line bible 4 refuses",
+    note: "The shipped line asks the guest to create an account with US on the host's own page, which is exactly what bible 4 is about. The rewrite hands the ask back to the host, who is the one who turned it on. Bible 4 decides that much on its own, so this row is not an ask; the noun it uses is, and that is ask 7, answered once for this line and the unfurl.",
+    compelled: "bible 4 refuses the shipped line",
   },
   {
     surface: "The door, a private event",
