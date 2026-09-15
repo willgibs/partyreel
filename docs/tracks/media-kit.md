@@ -287,6 +287,13 @@ production byte changed.
   the two builds. The check, any time the alias looks behind again: the board's chunk under
   `/_next/static/chunks/` carries `viewBox='0 0 1000 1000'` on the head and `0 0 1200 800` on the
   stale build.
+- **How the ceiling actually behaves** (worth knowing while six tracks share one project, and the
+  reason the first rebuild push produced nothing): the cap does not lift at midnight, it refills at
+  one deployment every 14.4 minutes, and the next push on ANY branch takes the free slot. Pushes
+  made mid window are refused outright and GitHub never retries them, so a push is not a deploy: it
+  is an entry in a race. Confirm a rebuild by the SHA on the deployment, never by the push
+  succeeding. The API route is the same race from the other side (`POST /v13/deployments` with
+  `gitSource` returns `payment_required` until a slot frees).
 - Synced with `launch-prep` at `4b035c1` (it had moved one docs-only commit past the cut at `ca952b5`)
 - Gates on the synced tree, re-run at the head: typecheck ok, lint ok (0 errors, 7 warnings, all
   pre-existing and none in this lane now that round two's own unused import is gone), test ok (1726
