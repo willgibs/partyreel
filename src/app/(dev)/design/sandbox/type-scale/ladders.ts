@@ -529,7 +529,7 @@ export const HOOKS: Partial<
   prose: {
     selector:
       '[class~="font-heading"][class~="sm:text-3xl"]:not([class~="lg:text-5xl"])',
-    note: "the paper prose head: /about, /press, /help's sections, /contact",
+    note: "the prose head: /about, /press, /help's sections, /contact, and the stat numerals on /help, which already ship at this step",
   },
   page: {
     selector:

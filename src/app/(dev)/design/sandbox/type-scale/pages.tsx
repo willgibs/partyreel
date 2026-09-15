@@ -95,17 +95,22 @@ export function Step({
 export function SpecStep({
   spec,
   kind = "heading",
+  ships = false,
   className,
   children,
 }: {
   spec: Spec;
   kind?: "heading" | "card";
+  /** This half shows what production SHIPS: pin the body face and its weight,
+   *  and outrank any candidate block applied to the whole site (board.css). */
+  ships?: boolean;
   className?: string;
   children: ReactNode;
 }) {
   return (
     <div
       data-tsc-step={kind}
+      data-tsc-ships={ships ? "" : undefined}
       className={className}
       style={
         {
@@ -582,6 +587,11 @@ const HERO_BOARD_LADDER = {
 
 export function HeroBoardLockup({ ladder, mode }: PageProps) {
   const phone = isPhone(mode);
+  // The numbers in both captions, resolved, because under Today the two
+  // lockups differ ONLY in leading and a reviewer would otherwise read the
+  // stage as a no-op instead of as the fault it is.
+  const step = phone ? ladder.steps.hero!.phone : ladder.steps.hero!.desktop;
+  const shipped = phone ? 48 : 96;
   const lockup = (title: string, body: ReactNode) => (
     <div className={phone ? "px-4 py-6 text-center" : "px-28 py-8 text-center"}>
       <p className="mb-3 text-[11px] text-white/45">{title}</p>
@@ -613,11 +623,18 @@ export function HeroBoardLockup({ ladder, mode }: PageProps) {
   return (
     <div className="flex flex-col divide-y divide-white/10">
       {lockup(
-        "As the hero board draws it: the ramp resolved by hand, plus a local leading-[1.02]",
+        `As the hero board draws it: the ramp resolved by hand at ${shipped}px, a local leading of 1.02, and the face constant, -0.03em`,
         <h1
+          // ★ THE LADDER CLASS FIRST, THE LEADING AFTER. tailwind-merge drops a
+          // `leading-*` that precedes a `text-{size}` in the same cn(), because
+          // a size utility may carry a line-height of its own; written the
+          // other way round this h1 measured 96px at a leading of 1, which is
+          // not what the hero board draws. The same note is on shared.tsx
+          // ("it bit the reel twice"), and this stage is the third time.
           className={cn(
-            "mx-auto font-heading leading-[1.02] text-balance text-white",
+            "mx-auto font-heading text-balance text-white",
             HERO_BOARD_LADDER[mode],
+            "leading-[1.02]",
           )}
           style={{ maxWidth: phone ? 340 : 1000 }}
         >
@@ -625,7 +642,7 @@ export function HeroBoardLockup({ ladder, mode }: PageProps) {
         </h1>,
       )}
       {lockup(
-        `Under ${ladder.name}: the hero step, with the leading and the tracking the step names`,
+        `Under ${ladder.name}: the hero step at ${step.px}px, leading ${step.lh}, tracking ${step.ls}em, all three named by the ladder`,
         <Step step="hero" ladder={ladder} mode={mode}>
           <h1
             className="mx-auto font-heading text-balance text-white"
@@ -907,8 +924,18 @@ export function NotFoundStage({ ladder, mode }: PageProps) {
     >
       {screen(
         "As it ships",
-        "Inter at 600, 30px on a phone and 36 from sm up, tracking-tight zeroed",
-        content,
+        "Inter at 600, 30px on a phone and 36 on a desktop, with a tracking-tight the theme zeroes",
+        <SpecStep
+          spec={
+            isPhone(mode)
+              ? { px: 30, lh: 1.2, ls: 0 }
+              : { px: 36, lh: 1.111, ls: 0 }
+          }
+          ships
+          className="flex w-full justify-center"
+        >
+          {content}
+        </SpecStep>,
       )}
       {screen(
         `On the ladder, under ${ladder.name}`,

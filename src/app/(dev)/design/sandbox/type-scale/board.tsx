@@ -217,6 +217,11 @@ function ApplyBar({ active }: { active: string | null }) {
 
   const blocks: Ladder[] = [...LADDERS, LAW_ONLY];
   const label = (l: Ladder) => `type-scale: ${l.name}`;
+  // Deliberately NOT the ladder toggle's own wording: two rows of controls with
+  // the same four words is a misclick waiting to happen, and the verb is what
+  // says this one leaves the board.
+  const verb = (l: Ladder) =>
+    l.id === "law" ? "Apply the law alone" : `Apply ${l.name.split(".")[0]}`;
 
   const copy = async (l: Ladder) => {
     try {
@@ -248,7 +253,7 @@ function ApplyBar({ active }: { active: string | null }) {
                     : "border-border text-muted-foreground hover:text-foreground",
                 )}
               >
-                {on ? `${l.name}, applied` : l.name}
+                {on ? `${l.name}, applied` : verb(l)}
               </button>
               <button
                 type="button"
@@ -572,16 +577,28 @@ function displayHeight(mode: Mode): number {
   return Math.round(ink + LADDERS.length * 44 + 80);
 }
 
-/** The hero lockup stage, twice over: today's hand-rolled ramp above the step.
- *  Sized off the taller of the two heroes so no candidate is cropped. */
+/**
+ * The hero lockup stage, twice over: today's hand-rolled ramp above the step.
+ *
+ * ★ COUNT THE LINES, DO NOT ASSUME THEM. Sized off one line each, C's 120px
+ * hero overflowed the stage by 58px, because the ruled line wraps at that size
+ * and today's 96px one does not: the two lockups can disagree about how many
+ * lines they are. The estimate is the line's character count at an average
+ * glyph width of 0.45em against the lockup's own clamp, rounded up, which lands
+ * on the right count for every candidate at both canvases (checked in the
+ * browser under all four).
+ */
 function lockupHeight(ladder: Ladder, mode: Mode): number {
+  const phone = mode === "phone";
   const pair = ladder.steps.hero!;
-  const spec = mode === "phone" ? pair.phone : pair.desktop;
-  const today = mode === "phone" ? 48 : 96;
-  const lines = mode === "phone" ? 2 : 1;
-  const furniture = mode === "phone" ? 250 : 230;
+  const spec = phone ? pair.phone : pair.desktop;
+  const column = phone ? 340 : 1000;
+  const chars = "The album starts here.".length;
+  const ink = (px: number, lh: number) =>
+    Math.max(1, Math.ceil((px * 0.45 * chars) / column)) * px * lh;
+  const furniture = phone ? 250 : 230;
   return Math.round(
-    (spec.px * spec.lh + today * 1.02) * lines + 2 * furniture + 40,
+    ink(spec.px, spec.lh) + ink(phone ? 48 : 96, 1.02) + 2 * furniture + 60,
   );
 }
 
@@ -596,7 +613,7 @@ export function TypeScaleBoard() {
   // The app surfaces are short: a dashboard with three events fills a quarter
   // of a 930px canvas, and three stages of empty ground is a lot of scroll
   // between the tiers being compared. The phone canvas stays a real viewport.
-  const app = phone ? 760 : 620;
+  const app = phone ? 760 : 520;
 
   return (
     <div className="flex flex-col gap-6 py-4">

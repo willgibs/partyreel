@@ -87,3 +87,15 @@
   font-family: var(--font-display, var(--font-sans));
   font-weight: 700;
 }
+
+/* ★ AND THE "AS IT SHIPS" HALF STAYS SHIPPED. Round two applies a candidate to
+   the WHOLE site, and the board is a page on that site: a paste that reaches
+   `[data-not-found] h1` restyles the very half of stage 14 that exists to show
+   what production does today, so the comparison would quietly become a
+   comparison of one thing with itself. This pins the body face and its weight
+   at a chain long enough to outrank any paste (a candidate block's longest
+   selector is three tokens), and the SpecStep beside it pins the size. */
+[data-tsc] [data-tsc-page] [data-tsc-ships] :is(h1, h2, h3) {
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
