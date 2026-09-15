@@ -716,8 +716,8 @@ No production byte changed.
 
 ## Handoff (round 4)
 
-- Head `<this file's commit>`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot name its
-  own commit). Board at `/design/c/media-kit?key=`.
+- Head `74fa8ea`, pushed, plus the one commit after it that names this line (a manifest cannot name its
+  own commit; `git rev-parse origin/lp/media-kit` is the truth). Board at `/design/c/media-kit?key=`.
   Preview `partyreel-git-lp-media-kit-partyreel.vercel.app`.
 - ★ **Verified on a LOCAL PRODUCTION BUILD, not on a preview, and no Vercel API was called.** The
   round's brief said Vercel is capped, so every check below was run on `pnpm build` + `next start` in
