@@ -7,7 +7,14 @@ import { LAMP_SET } from "@/components/dev/lamp-set";
 import { Glow, type GlowVars } from "@/components/shared/glow";
 import { cn } from "@/lib/utils";
 
-import { AURORA_CADENCE, Labeled, Part, Proposal } from "./shared";
+import {
+  AURORA_REGISTER,
+  PAPER_FIVE,
+  PAPER_FIVE_VALUES,
+  PAPER_FLAT_VALUES,
+} from "./candidates";
+import { CHAPTERS, chapterById, type ChapterId } from "./chapters";
+import { AURORA_CADENCE, ApplyToSite, Labeled, Part, Proposal } from "./shared";
 
 /**
  * PART B: THE LAMP WITHOUT MEDIA, AND THE AURORA.
@@ -20,23 +27,31 @@ import { AURORA_CADENCE, Labeled, Part, Proposal } from "./shared";
  * needs a PLACE: an edge, a boundary, a screen, a plate, a horizon. The footer
  * seam has one, the rim of a button does not, and the same verdicts fall out.
  *
- * That opens the question this part is really about. If a place is enough, what
- * is the largest honest one? A chapter has two boundaries of its own, and the
- * three candidates below are three answers at three scales:
+ * ── WHAT ROUND TWO CHANGED HERE, AND WHY ──
  *
- *   A  THE SEAM        the footer's own lamp, unchanged in kind, at a chapter's
- *                      top edge. The tune: nothing new, one more placement.
- *   B  THE AURORA      the chapter lit from BOTH its boundaries, low and slow,
- *                      the hue set narrowed to the chapter's temperature, the
- *                      copy sitting in the clean middle between them.
- *   C  THE ROOM        no boundary at all: one field behind the whole chapter,
- *                      so the section sits INSIDE the light. The replace.
+ * Round one lit a chapter it had built itself: one heading, three centred
+ * steps, a button, air at both boundaries. Every claim it made was true of
+ * that specimen and unproven of the page. So the specimen is gone and the real
+ * chapters are mounted in its place (chapters.tsx), each one beside itself
+ * unlit, because the only honest question about a field this quiet is whether
+ * you can see it at all when you have the unlit version to compare against.
  *
- * ★ C IS THE CANDIDATE THE ENGINE WARNS ABOUT, ON PURPOSE. globals.css: "a
+ * Five candidates now, not three. The fourth is the ERROR: the same light at
+ * the chapter's middle instead of its boundaries. The placement grammar was
+ * asserted in round one and is demonstrated here, because "never the middle"
+ * is the half of the grammar a wiring round is most likely to get wrong.
+ *
+ *   A  THE SEAM        the footer's own lamp, unchanged in kind, at a
+ *                      chapter's top edge. The tune: nothing new.
+ *   B  THE AURORA      both boundaries, low and slow, the hue set narrowed to
+ *                      the chapter's temperature, the copy in the clean middle.
+ *   C  THE MIDDLE      the same register, centred. The error, on the board.
+ *   D  THE ROOM        no boundary at all: one field behind everything.
+ *
+ * ★ D IS THE CANDIDATE THE ENGINE WARNS ABOUT, ON PURPOSE. globals.css: "a
  * seam is a band, not a fill ... generalising that away is what turns spill
- * into a wash sitting on the copy". C is exactly that generalisation, at a
- * register low enough that it might survive it. It is on the board so the
- * warning can be tested rather than quoted.
+ * into a wash sitting on the copy". D is exactly that generalisation, at a
+ * register low enough that it might survive it.
  *
  * The colour is the engine's own hook and not a new mechanism: [data-glw]
  * declares --glw-c1..5 as var(--lamp-*), and "an ancestor can retune these" is
@@ -45,15 +60,15 @@ import { AURORA_CADENCE, Labeled, Part, Proposal } from "./shared";
  * never a sixth colour. That is the whole claim of the aurora as identity.
  */
 
-type Candidate = "none" | "seam" | "aurora" | "room";
+type Candidate = "seam" | "aurora" | "middle" | "room";
 type Register = "accent" | "identity";
 type Temperature = "house" | "warm" | "cool";
 
 const CANDIDATES: { id: Candidate; label: string }[] = [
-  { id: "none", label: "Bare" },
   { id: "seam", label: "A. The seam" },
   { id: "aurora", label: "B. The aurora" },
-  { id: "room", label: "C. The room" },
+  { id: "middle", label: "C. The middle" },
+  { id: "room", label: "D. The room" },
 ];
 
 const REGISTERS: { id: Register; label: string }[] = [
@@ -72,35 +87,17 @@ const GROUNDS: { id: Ground; label: string }[] = [
   { id: "paper", label: "Paper" },
 ];
 
-/**
- * THE PROPOSED PAPER FIVE, hand-tuned.
- *
- * design-system.md: the paper register is `SPILL_REGISTER.paper` (l 0.88, c
- * 0.08), one flat row for every hue, and it says so itself: "a hand-tuned paper
- * five is still an open design task". This is that task, done, so the aurora
- * has something honest to sit on when the ground is near white.
- *
- * What a flat row gets wrong on paper is per hue, and predictably: 85 amber
- * goes dirty against white long before the others, so it wants more lightness
- * and less chroma; 155 green is muddier still; 255 blue and 305 violet stay
- * clean and can carry the chroma that makes the light read as light at all.
- * Same five HUES, exactly, which is the part that is the identity.
- */
-const PAPER_FIVE = [
-  "oklch(0.88 0.085 25)",
-  "oklch(0.905 0.07 85)",
-  "oklch(0.895 0.065 155)",
-  "oklch(0.87 0.085 255)",
-  "oklch(0.87 0.09 305)",
-];
-
 /** A temperature is a re-ORDERING and narrowing of the five, never a new hue:
  *  the warm chapter drops green and blue out of the field and lets coral,
  *  amber and violet take their slots. Written from the literals in lamp-set.ts
  *  rather than as var(--lamp-n) aliases, so a slot can reference a slot this
  *  same block is also rewriting without a resolution cycle. */
-function lampVars(ground: Ground, temp: Temperature): CSSProperties {
-  const base = ground === "paper" ? PAPER_FIVE : LAMP_SET;
+function lampVars(
+  ground: Ground,
+  temp: Temperature,
+  paperRow: readonly string[] = PAPER_FIVE_VALUES,
+): CSSProperties {
+  const base = ground === "paper" ? paperRow : LAMP_SET;
   const pick: Record<Temperature, number[]> = {
     house: [0, 1, 2, 3, 4],
     warm: [0, 1, 4, 0, 1],
@@ -126,13 +123,9 @@ function lampVars(ground: Ground, temp: Temperature): CSSProperties {
  * as almost nothing on paper. Measured by eye on the board, both grounds side
  * by side. It is the same finding the paper register itself came from (sampled
  * light made a paper card "look dirty rather than lit"), one step further on.
- *
- * The cadence is the other half of the proposal and it is not the lamp's: a
- * field this large moving at a lamp's 8 to 11 seconds reads as a screensaver,
- * so the aurora's clock is a multiple of the lamp's. Part C shows all three.
  */
 const REGISTER_VARS: Record<
-  Ground | "dark",
+  "dark" | "paper",
   Record<Register, { base: string; strength: string }>
 > = {
   dark: {
@@ -143,80 +136,10 @@ const REGISTER_VARS: Record<
     accent: { base: "0.52", strength: "0.24" },
     identity: { base: "0.30", strength: "0.13" },
   },
-} as Record<
-  Ground | "dark",
-  Record<Register, { base: string; strength: string }>
->;
+};
 
 function registerVars(ground: Ground, register: Register) {
   return REGISTER_VARS[ground === "paper" ? "paper" : "dark"][register];
-}
-
-/** The media-less section the light has to make beautiful. No photograph, no
- *  screen, no plate: exactly the case bible 1 names ("a section without a
- *  picture is still beautiful, never bare"). */
-function MediaLessChapter({ small }: { small: boolean }) {
-  const steps = [
-    {
-      n: "1",
-      t: "Share one code",
-      d: "A QR on the table, a link in the chat.",
-    },
-    {
-      n: "2",
-      t: "Guests upload",
-      d: "No app, no account, straight from the camera roll.",
-    },
-    {
-      n: "3",
-      t: "You curate",
-      d: "Keep what you love. The link becomes the album.",
-    },
-  ];
-  return (
-    <div
-      className={cn(
-        "relative mx-auto flex h-full max-w-[880px] flex-col items-center justify-center text-center",
-        small ? "gap-5 px-6" : "gap-7 px-10",
-      )}
-    >
-      <p className="text-[11px] font-medium tracking-widest text-muted-foreground uppercase">
-        How it works
-      </p>
-      <h3
-        className={cn(
-          "font-heading text-balance",
-          small ? "text-[28px] leading-[1.1]" : "text-[44px] leading-[1.05]",
-        )}
-      >
-        Every photo from the night, in one place
-      </h3>
-      <div
-        className={cn(
-          "grid w-full",
-          small ? "grid-cols-1 gap-4" : "grid-cols-3 gap-8",
-        )}
-      >
-        {steps.map((s) => (
-          <div key={s.n} className="flex flex-col items-center gap-1.5">
-            <span className="flex size-6 items-center justify-center rounded-full border border-border text-[11px] tabular-nums">
-              {s.n}
-            </span>
-            <p className="text-[13px] font-medium">{s.t}</p>
-            <p className="max-w-[26ch] text-[12px] leading-relaxed text-muted-foreground">
-              {s.d}
-            </p>
-          </div>
-        ))}
-      </div>
-      <span
-        className="inline-flex h-10 items-center bg-primary px-5 text-[13px] font-medium text-primary-foreground"
-        style={{ borderRadius: "var(--radius-action)" }}
-      >
-        Create an event
-      </span>
-    </div>
-  );
 }
 
 /** One lamp, positioned. The bottom band is the same seam flipped on its own
@@ -256,15 +179,17 @@ function Lit({
   register,
   height,
   grain,
+  clock,
 }: {
-  candidate: Candidate;
+  candidate: Candidate | null;
   ground: Ground;
   register: Register;
   height: number;
   grain: boolean;
+  clock: string;
 }) {
   const r = registerVars(ground, register);
-  if (candidate === "none") return null;
+  if (candidate === null) return null;
 
   if (candidate === "seam") {
     // A: the footer's lamp verbatim. Its register is the SHIPPED one (0.62 /
@@ -280,17 +205,18 @@ function Lit({
     );
   }
 
+  // The blur scales with the band: 16px on a 210px seam is the same softness
+  // as roughly 44px on a 560px one, and the engine's --glw-blur is a literal,
+  // not a ratio.
+  const vars: GlowVars = {
+    "--glw-base": r.base,
+    "--glw-strength": r.strength,
+    "--glw-dur": clock,
+    "--glw-blur": "38px",
+  };
+  const band = Math.round(height * 0.42);
+
   if (candidate === "aurora") {
-    const band = Math.round(height * 0.42);
-    const vars: GlowVars = {
-      "--glw-base": r.base,
-      "--glw-strength": r.strength,
-      "--glw-dur": AURORA_CADENCE,
-      // The blur scales with the band: 16px on a 210px seam is the same
-      // softness as ~44px on a 560px one, and the engine's --glw-blur is a
-      // literal, not a ratio.
-      "--glw-blur": "38px",
-    };
     return (
       <>
         <Band edge="top" height={band} vars={vars} />
@@ -300,7 +226,29 @@ function Lit({
     );
   }
 
-  // C: no boundary. `throw` has no shape rules of its own, so it is the base
+  if (candidate === "middle") {
+    // C: the same light, the same register, the same clock, at the chapter's
+    // MIDDLE. Nothing here is a strawman except the placement, which is the
+    // point: the grammar is the only variable, so what goes wrong is
+    // attributable to it and to nothing else.
+    return (
+      <>
+        <div
+          aria-hidden
+          className="absolute inset-x-0"
+          style={{ top: `calc(50% - ${Math.round(band / 2)}px)`, height: band }}
+        >
+          <Glow
+            shape="seam"
+            vars={{ "--glw-h": `${band}px`, ...vars } as never}
+          />
+        </div>
+        {grain ? <div data-lgt-grain className="absolute inset-0" /> : null}
+      </>
+    );
+  }
+
+  // D: no boundary. `throw` has no shape rules of its own, so it is the base
   // engine: one radial field filling its wrapper, anchored by --glw-from-*.
   // Anchored low and centred, so the chapter sits on the light rather than
   // under it.
@@ -309,9 +257,7 @@ function Lit({
       <Glow
         shape="throw"
         vars={{
-          "--glw-base": r.base,
-          "--glw-strength": r.strength,
-          "--glw-dur": AURORA_CADENCE,
+          ...vars,
           "--glw-blur": "48px",
           "--glw-from-x": "50%",
           "--glw-from-y": "88%",
@@ -320,6 +266,55 @@ function Lit({
       />
       {grain ? <div data-lgt-grain className="absolute inset-0" /> : null}
     </div>
+  );
+}
+
+/** The chapter, on its stage, lit or not. One component for every specimen in
+ *  this part, so a comparison can never accidentally differ in two things. */
+function ChapterStage({
+  id,
+  mode,
+  ground,
+  candidate,
+  register,
+  temp,
+  grain,
+  clock = "var(--lgt-aurora-dur, 33s)",
+  paperRow,
+}: {
+  id: ChapterId;
+  mode: Mode;
+  ground: Ground;
+  candidate: Candidate | null;
+  register: Register;
+  temp: Temperature;
+  grain: boolean;
+  clock?: string;
+  paperRow?: readonly string[];
+}) {
+  const chapter = chapterById(id);
+  const height = chapter.h[mode];
+  return (
+    <Stage mode={mode} ground={ground} height={height}>
+      {/* The shipped composition's skeleton: `relative isolate` so the light
+          has something to pin to and cannot escape the chapter, the lamp
+          first, the content after it and positioned, so the light stays behind
+          the copy without a z-index anywhere. */}
+      <div
+        className="relative isolate flex h-full flex-col justify-center"
+        style={lampVars(ground, temp, paperRow)}
+      >
+        <Lit
+          candidate={candidate}
+          ground={ground}
+          register={register}
+          height={height}
+          grain={grain}
+          clock={clock}
+        />
+        <div className="relative">{chapter.render()}</div>
+      </div>
+    </Stage>
   );
 }
 
@@ -362,19 +357,55 @@ function TheModel({ mode, ground }: { mode: Mode; ground: Ground }) {
   );
 }
 
+/** The five, as swatches, so the paper proposal can be read as colour and not
+ *  only as an effect. A lamp hue is LIGHT, so the swatch is the hue over the
+ *  ground it will light rather than a filled chip on white. */
+function FiveSwatches({
+  row,
+  label,
+  ground,
+}: {
+  row: readonly string[];
+  label: string;
+  ground: Ground;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-[11px] font-medium">{label}</p>
+      <div
+        className={cn(
+          "flex gap-1.5 rounded-lg p-2",
+          ground === "paper" ? "bg-[oklch(0.97_0_0)]" : "bg-[oklch(0.11_0_0)]",
+        )}
+      >
+        {row.map((c) => (
+          <span
+            key={c}
+            className="h-9 flex-1 rounded-md"
+            style={{ background: c }}
+          />
+        ))}
+      </div>
+      <p className="text-[11px] text-muted-foreground tabular-nums">
+        {row.join("  ")}
+      </p>
+    </div>
+  );
+}
+
 export function AuroraPart({ mode }: { mode: Mode }) {
   const [ground, setGround] = useState<Ground>("cinema");
+  const [chapter, setChapter] = useState<ChapterId>("guests");
   const [candidate, setCandidate] = useState<Candidate>("aurora");
   const [register, setRegister] = useState<Register>("accent");
   const [temp, setTemp] = useState<Temperature>("house");
   const [grain, setGrain] = useState(true);
-  const small = mode === "phone";
-  const height = small ? 620 : 600;
+  const current = chapterById(chapter);
 
   return (
     <Part
       n="B"
-      title="Lamps without media: the model, then the aurora"
+      title="Lamps without media: the model, then the aurora on real chapters"
       lede={
         <>
           <p>
@@ -385,11 +416,12 @@ export function AuroraPart({ mode }: { mode: Mode }) {
           </p>
           <p>
             Then the question that opens: a chapter has boundaries of its own,
-            so how big can an honest lamp be? Three candidates on one media-less
-            section, at two registers, on the cinema room and on paper. The hue
-            set is narrowed by the section itself through the engine{"'"}s own
-            ancestor hook, so a temperature is five of the five, never a sixth
-            colour.
+            so how big can an honest lamp be? Four candidates, on the home
+            arc{"'"}s actual media-less chapters, each one printed twice, unlit
+            and lit, because the only honest question about a field this quiet
+            is whether you can see it at all with the unlit version beside it.
+            The third candidate is the error: the same light at the middle
+            instead of the boundaries.
           </p>
         </>
       }
@@ -405,12 +437,20 @@ export function AuroraPart({ mode }: { mode: Mode }) {
 
       <Labeled
         name="The model"
-        note="footer-glow.tsx as it ships: seam, 210px, 0.62 base and band, the house five, 11s."
+        note="footer-glow.tsx as it ships: seam, 210px, 0.62 base and band, the house five, the site cadence."
       >
         <TheModel mode={mode} ground={ground} />
       </Labeled>
 
       <div className="flex flex-wrap items-center gap-3 pt-2">
+        <Toggle
+          ariaLabel="Chapter"
+          options={CHAPTERS.map((c) => ({ id: c.id, label: c.label }))}
+          value={chapter}
+          onChange={setChapter}
+        />
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
         <Toggle
           ariaLabel="Candidate"
           options={CANDIDATES}
@@ -440,29 +480,37 @@ export function AuroraPart({ mode }: { mode: Mode }) {
         />
       </div>
 
+      <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
+        <span className="font-medium text-foreground">{current.label}</span>{" "}
+        ships on {current.ships === "paper" ? "paper" : "the cinema room"}.{" "}
+        {current.note}
+      </p>
+
+      <Labeled name="Unlit" note="The chapter as it ships today.">
+        <ChapterStage
+          id={chapter}
+          mode={mode}
+          ground={ground}
+          candidate={null}
+          register={register}
+          temp={temp}
+          grain={false}
+        />
+      </Labeled>
+
       <Labeled
         name={CANDIDATES.find((c) => c.id === candidate)?.label ?? ""}
         note={NOTES[candidate]}
       >
-        <Stage mode={mode} ground={ground} height={height}>
-          {/* The shipped composition's skeleton: `relative isolate` so the
-              light has something to pin to and cannot escape the chapter, the
-              lamp first, the content after it and positioned, so the light
-              stays behind the copy without a z-index anywhere. */}
-          <div
-            className="relative isolate h-full"
-            style={lampVars(ground, temp)}
-          >
-            <Lit
-              candidate={candidate}
-              ground={ground}
-              register={register}
-              height={height}
-              grain={grain}
-            />
-            <MediaLessChapter small={small} />
-          </div>
-        </Stage>
+        <ChapterStage
+          id={chapter}
+          mode={mode}
+          ground={ground}
+          candidate={candidate}
+          register={register}
+          temp={temp}
+          grain={grain}
+        />
       </Labeled>
 
       <Proposal>
@@ -477,14 +525,304 @@ export function AuroraPart({ mode }: { mode: Mode }) {
         five narrowed to a temperature by the section above it, which is the one
         way marketing carries colour of its own without growing a sixth.
       </Proposal>
+
+      <ApplyToSite candidate={AURORA_REGISTER} />
+
+      <DriftRow mode={mode} chapter={chapter} ground={ground} temp={temp} />
+
+      <PaperFiveRow mode={mode} temp={temp} />
+
+      <GrainRow mode={mode} chapter={chapter} ground={ground} temp={temp} />
     </Part>
   );
 }
 
+/* ─────────────────────────────  THE DRIFT  ──────────────────────────────── */
+
+/**
+ * A lamp's clock and a field's, on the same chapter, at the same moment.
+ *
+ * ★ THIS IS THE ONE COMPARISON THAT CANNOT BE MADE FROM A DESCRIPTION. "Three
+ * laps of the lamp" is a ratio anyone can agree to on paper and nobody can
+ * picture. Side by side, the lamp-clocked field reads as something moving
+ * behind the copy and the slow one reads as the room having a temperature,
+ * and that difference is the entire argument for --spill-cadence gaining a
+ * sibling rather than a second opinion.
+ */
+function DriftRow({
+  mode,
+  chapter,
+  ground,
+  temp,
+}: {
+  mode: Mode;
+  chapter: ChapterId;
+  ground: Ground;
+  temp: Temperature;
+}) {
+  return (
+    <div className="flex flex-col gap-3 pt-6">
+      <div className="max-w-2xl space-y-2 text-xs leading-relaxed text-muted-foreground">
+        <h3 className="text-[13px] font-semibold text-foreground">
+          The drift: a lamp{"'"}s clock and a field{"'"}s
+        </h3>
+        <p>
+          The same chapter, the same register, the same five. Only the clock
+          differs. A field the size of a chapter moving at a lamp{"'"}s eight to
+          eleven seconds reads as something moving behind the copy; three laps
+          of it reads as the room having a temperature. Watch the two together
+          rather than either alone.
+        </p>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Labeled
+          name="At the lamp's clock"
+          note="--spill-cadence, whatever the tuner currently holds."
+        >
+          <ChapterStage
+            id={chapter}
+            mode={mode}
+            ground={ground}
+            candidate="aurora"
+            register="accent"
+            temp={temp}
+            grain
+            clock="var(--spill-cadence)"
+          />
+        </Labeled>
+        <Labeled
+          name="At the aurora's clock"
+          note={`${AURORA_CADENCE}: three laps of the lamp, the proposed sibling token.`}
+        >
+          <ChapterStage
+            id={chapter}
+            mode={mode}
+            ground={ground}
+            candidate="aurora"
+            register="accent"
+            temp={temp}
+            grain
+            clock={AURORA_CADENCE}
+          />
+        </Labeled>
+      </div>
+    </div>
+  );
+}
+
+/* ───────────────────────────  THE PAPER FIVE  ───────────────────────────── */
+
+/**
+ * The hand-tuned paper five against the flat row, on a real paper chapter.
+ *
+ * ★ THE CONTROL IS NOT "NO LAMPS", IT IS THE FLAT ROW. SPILL_REGISTER.paper is
+ * l 0.88 / c 0.08 for every hue, which is what the sampled path would hand the
+ * house five, and it is the thing the proposal has to beat. Showing the tuned
+ * five against an unlit chapter would prove only that light is visible.
+ *
+ * There is a third specimen and it is the one that makes the case: the five as
+ * globals.css actually declares them, at the DARK register, which is what a
+ * media-less lamp on a paper chapter is wearing today, because nothing
+ * re-declares --lamp-* on paper.
+ */
+function PaperFiveRow({ mode, temp }: { mode: Mode; temp: Temperature }) {
+  return (
+    <div className="flex flex-col gap-3 pt-6">
+      <div className="max-w-2xl space-y-2 text-xs leading-relaxed text-muted-foreground">
+        <h3 className="text-[13px] font-semibold text-foreground">
+          The paper five
+        </h3>
+        <p>
+          globals.css declares the lamp set once, at the dark register, and
+          nothing re-declares it on paper. A house lamp on a paper chapter is
+          wearing a colour chosen for a near black room, which is the dirty
+          rather than lit failure the sampled paper register was invented to
+          fix. It fixed it for lamps with media; the house five never got the
+          same treatment.
+        </p>
+        <p>
+          Three specimens on one paper chapter: the five as they ship, the flat
+          paper row (l 0.88, c 0.08 for every hue, what the sampled path would
+          hand them), and the hand-tuned five. The five hues are identical in
+          all three. What changes is lightness and chroma per hue, because the
+          failure is per hue: 85 and 155 go dirty against white long before 255
+          and 305 do.
+        </p>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <FiveSwatches
+          row={PAPER_FLAT_VALUES}
+          label="The flat paper row (SPILL_REGISTER.paper)"
+          ground="paper"
+        />
+        <FiveSwatches
+          row={PAPER_FIVE_VALUES}
+          label="The hand-tuned five (proposed)"
+          ground="paper"
+        />
+      </div>
+
+      <Labeled
+        name="As they ship: the dark five on paper"
+        note="No paper override exists, so this is what a media-less lamp on the paper chapter is wearing today."
+      >
+        <ChapterStage
+          id="privacy"
+          mode={mode}
+          ground="paper"
+          candidate="aurora"
+          register="accent"
+          temp={temp}
+          grain
+          paperRow={LAMP_SET}
+        />
+      </Labeled>
+
+      <Labeled
+        name="The flat paper row"
+        note="l 0.88, c 0.08 for every hue. Cleaner than the dark five, and the amber and the green still sit flat."
+      >
+        <ChapterStage
+          id="privacy"
+          mode={mode}
+          ground="paper"
+          candidate="aurora"
+          register="accent"
+          temp={temp}
+          grain
+          paperRow={PAPER_FLAT_VALUES}
+        />
+      </Labeled>
+
+      <Labeled
+        name="The hand-tuned five (proposed)"
+        note="Same hues. 85 and 155 lifted and desaturated, 255 and 305 left to carry the chroma."
+      >
+        <ChapterStage
+          id="privacy"
+          mode={mode}
+          ground="paper"
+          candidate="aurora"
+          register="accent"
+          temp={temp}
+          grain
+          paperRow={PAPER_FIVE_VALUES}
+        />
+      </Labeled>
+
+      <ApplyToSite candidate={PAPER_FIVE} />
+    </div>
+  );
+}
+
+/* ──────────────────────────────  THE GRAIN  ─────────────────────────────── */
+
+/**
+ * ★ A GRAIN TILE IS SIZED IN DEVICE PIXELS, NOT CSS PIXELS. A 180px tile laid
+ * out at 180 CSS px on a 2x display is upscaled two device pixels per tile
+ * pixel, so a "1px grain" is a 2px grain and the dither stops dithering: the
+ * band it was added to hide comes back on exactly the screens most people are
+ * looking at. board.css halves the CSS size at 2dppx, which is also why the
+ * asset request names the tile's pixel size and its intended CSS size
+ * separately rather than just "256 square".
+ *
+ * The magnified pair is pixelated on purpose: at 1:1 the difference between
+ * the two is a single device pixel and invisible by construction.
+ */
+function GrainRow({
+  mode,
+  chapter,
+  ground,
+  temp,
+}: {
+  mode: Mode;
+  chapter: ChapterId;
+  ground: Ground;
+  temp: Temperature;
+}) {
+  return (
+    <div className="flex flex-col gap-3 pt-6">
+      <div className="max-w-2xl space-y-2 text-xs leading-relaxed text-muted-foreground">
+        <h3 className="text-[13px] font-semibold text-foreground">
+          The grain
+        </h3>
+        <p>
+          An aurora is a very low alpha gradient across a very large box, which
+          is the exact recipe for 8 bit banding: the engine{"'"}s turbulence
+          warp displaces the colour but adds no entropy, so the steps survive
+          it. Grain is the standard fix and the honest one here, since film
+          grain is what a dark room actually looks like.
+        </p>
+        <p>
+          The stand-in is generated inside its own data URI, and round two makes
+          it honest about resolution: a tile laid out at its pixel size on a 2x
+          screen is doubled, so the dither becomes a mottle and the band it was
+          hiding comes back. Halved on 2dppx it lands one tile pixel per device
+          pixel. Magnified below so the difference is visible at all.
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Labeled
+          name="Doubled (one tile pixel over two device pixels)"
+          note="What a tile laid out at its own pixel size does on a 2x screen. A mottle, not a dither."
+        >
+          <div
+            data-lgt-grain-detail
+            className="h-28 w-full rounded-lg"
+            style={{ "--lgt-grain-size": "24px" } as CSSProperties}
+          />
+        </Labeled>
+        <Labeled
+          name="One tile pixel per device pixel"
+          note="The same tile at the size board.css lands on a 2x screen. Fine, even, and it disappears at 1:1."
+        >
+          <div
+            data-lgt-grain-detail
+            className="h-28 w-full rounded-lg"
+            style={{ "--lgt-grain-size": "12px" } as CSSProperties}
+          />
+        </Labeled>
+      </div>
+
+      <Labeled
+        name="Without grain"
+        note="Look at the band's soft edge, three quarters of the way up the light."
+      >
+        <ChapterStage
+          id={chapter}
+          mode={mode}
+          ground={ground}
+          candidate="aurora"
+          register="accent"
+          temp={temp}
+          grain={false}
+        />
+      </Labeled>
+      <Labeled
+        name="With grain"
+        note="The same field, the same register, 5.5 percent of noise over it."
+      >
+        <ChapterStage
+          id={chapter}
+          mode={mode}
+          ground={ground}
+          candidate="aurora"
+          register="accent"
+          temp={temp}
+          grain
+        />
+      </Labeled>
+    </div>
+  );
+}
+
 const NOTES: Record<Candidate, string> = {
-  none: "The control. This is the section bible 1 calls bare, and it is not wrong, only quiet.",
   seam: "The footer's lamp moved to a chapter's top edge, register untouched. Honest, and it reads as a footer.",
   aurora:
     "Both boundaries, 42 percent of the chapter each, 38px blur, a 33s drift. The copy sits in the clean middle.",
+  middle:
+    "The error. Same light, same register, same clock, at the chapter's middle: the copy is now sitting in the light instead of in the clean band between two of them.",
   room: "One field behind everything, anchored at 50 by 88 percent. The engine's own warning, tested rather than quoted.",
 };

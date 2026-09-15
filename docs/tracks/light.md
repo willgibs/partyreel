@@ -2,6 +2,7 @@
 track: light
 status: open
 cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_2: "6203d62"
 merged_round_1: "72b20da"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
@@ -22,6 +23,25 @@ reads:
 ---
 
 # lp/light
+
+## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
+
+**Round 3 (the goal): the last mile, walked first by you.** Two rounds built the board; this one is the
+walk Will will take, taken before him. (1) **Walk it cold**, the way he will: the board on the launch-prep
+alias (round 2 is integrated there) and then on your preview, in a foreground tab, at 1440 and then
+375, every toggle, every candidate, and every "Apply to the site" block on the pages you listed (the home
+arc, `/pricing`, `/help`, `/contact`, the dashboard and an event page with `?key=`, the demo guest page).
+Note every place a stranger would stumble: an unexplained toggle, two candidates that read the same, a
+stage that needs a caption or has one too many, a slow first paint, a layout that breaks at 375, a
+control that does nothing visible. Fix each. (2) **Re-read the reviewer's findings** on your round-2
+handoff (below) and the other boards' latest Handoffs in `docs/tracks/` and proposals in `docs/specs/`:
+anything there that changes your answer changes your board. (3) **Make the decision easy**: the strongest
+candidate first; a candidate cut if it no longer earns its column (say so); every ask a one-word answer
+and no more asks than Will must answer; the departures only the ones he must rule on. (4) **Honesty and
+cost**: every number on the board is measured or labelled a stand-in; measure what runs (frame time, layer
+count) and cut what does not earn its cost; reduced motion gets the settled composition. (5) **The
+record**: "Handoff (round 3)" and "Record (round 3)" below; the Record is the paragraph the CHANGELOG
+carries for rounds 2 and 3 together, so write it as the whole story of what the board became.
 
 ## Round 2 (Will, 2026-09-14: "another iterative round on all active tracks before review")
 
@@ -331,6 +351,133 @@ all when their reel goes live.
 
 ## Handoff (round 2)
 
+- Head: the tip of `lp/light`, pushed (the board's content is `be34aba`, the sync merge of
+  `launch-prep` at `4b035c1`, the two review fixes `76ef0c0` and `46837cf`, this manifest, and the
+  second sync merge of `launch-prep` at `1cf4cea` on top);
+  preview partyreel-git-lp-light-partyreel.vercel.app. The board is
+  `/design/c/light?key=...`; five anchors now, `#lgt-a` .. `#lgt-e` (part E is the doctrine as a paste).
+- What changed after the read-only review of `471b8db` (all four should-fix items, all inside the lane):
+  - The shadow family reaches the real card. `[data-media-tile][data-static]`, the host pair
+    globals.css already uses to opt those surfaces out of the guest arrival fade, takes
+    `box-shadow: var(--shadow-lift)` and re-states the tile radius, so the dashboard's event cards
+    (and the host gallery's static tiles) carry the proposal the goal item and the walk line both
+    advertise. Part E's elevation table names the case: a media card on a ground of its own lightness.
+  - It stopped re-pointing the shipped token on the dark grounds. `.dark, .surface-ink` now re-states
+    `--shadow-float`'s invisible value rather than aliasing it to lift. Aliasing it handed a shadow to
+    all 26 of the token's consumers in dark, flat surfaces included, while the caption promised eight
+    floating layers. Walking it found a second path to the same defect: `:root` and `.dark` are the
+    same element at the same specificity, so even the light block's bridge alias beat globals.css's
+    zero on source order, which is why the zero has to be written in the block rather than inherited.
+  - The aurora's clock is a sibling token. The paste declares
+    `--aurora-cadence: calc(var(--spill-cadence) * 3)` and leaves `--spill-cadence` alone, which is
+    what part E asks Will to land ("the lamp's clock and the aurora takes a multiple of it"). The old
+    paste wrote 33s into the lamp's own token, which would have slowed every shipped lamp including
+    the footer seam the board calls its model, and fought part C's two knobs, which write that token.
+  - The two captions now say what their blocks do, and part E moved with them (the aurora block names
+    the sibling and the ratio, the CSS lede says why the dark grounds are named surface by surface).
+  - The light-QA claim below is redone: the board was walked on the preview at 1440 and at 375, and
+    the bytes that changed since are walked on the running app.
+- Synced with `launch-prep` twice: at `4b035c1` mid-round (1 commit, the candidate-block doc note) and
+  again at `1cf4cea` before this handoff (9 commits, all of them hero-river's own lane and its
+  manifest, so no overlap with this track's files or its reads). Both merged clean.
+- Gates on the synced tree, re-run after the review fixes and after the second sync: typecheck ok,
+  lint ok (0 findings in the lane; 7 pre-existing warnings elsewhere), test ok (1698), build ok
+  (248 static pages, 114 routes).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/light.md` +
+  `src/app/(dev)/design/sandbox/light/{aurora,beats,board,candidates,chapters,depth,doctrine,shared}`
+  (`board.css` too). No exceptions. No production byte changed: the board composes `<Glow>`, imports
+  five marketing sections read-only, and everything it proposes lives in its own sheet under `lgt-` or
+  in `candidates.ts` as a string.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Light QA, on the preview (partyreel-git-lp-light-partyreel.vercel.app, serving `471b8db`; the
+  deployment note is the next bullet). Seen, not only measured: screenshots at every part.
+  - 1440: a real 1440 viewport, walked top to bottom. All five parts render, 14 stages, 22 `<Glow>`
+    mounts, the five real chapters mount and their reveal grammar fires on scroll (every
+    `[data-mkt-reveal]` inside the guest ledger at opacity 1). No horizontal overflow on the document.
+  - 375: the board's own Phone 375 canvas, every part walked. All 14 stages measure exactly 375px and
+    not one of them overflows its canvas; part A pairs its four cues two by two, part C stacks its
+    three seams, and the real chapter reflows its two columns rather than compressing them.
+  - Reduced motion: the Rest state switch sets `data-lgt-rest`, and all 22 lamps' bands then compute
+    `animation-name: none`, so the whole board renders its reduced-motion state at once. The board's
+    one keyframe (`lgt-phase`) lives inside the `prefers-reduced-motion: no-preference` block.
+  - The browser VIEWPORT could not be narrowed to 375, which is a tooling limit and not a finding:
+    this Chrome window's foreground tab belongs to a parallel session, so the lane's tab renders
+    offscreen at a fixed 1440 and ignores a window resize. The board's own 375 canvas is the honest
+    instrument for it anyway: this board uses `matrixCols` rather than breakpoints inside a stage,
+    because a Tailwind prefix inside a stage reads the browser's width and not the stage's.
+- The preview is two commits behind, and it is NOT the lane's doing: the Vercel account hit its
+  100-deployments-per-day cap (`api-deployments-free-per-day`; eight tracks pushing in parallel), so
+  the push at `76ef0c0` created no build at all and an API deployment is refused until the cap resets,
+  about 24 hours from 2026-09-14 21:56. Everything that changed since `471b8db` is inside
+  `candidates.ts` and `doctrine.tsx`, so the board Will walks is the one verified above; the paste
+  text and the blocks themselves were walked on the running app instead:
+  - The four Apply captions render as written, and each block is applied and then walked on the real
+    pages with `?key=`.
+  - The shadow family: with it applied, `--shadow-float` is the invisible value on the dark root and
+    on `.surface-ink`, and on `.surface-paper` it is today's shipped bytes
+    (`0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1)`), so paper does not move.
+    The real EventCard takes the dark lift (13 cards on `/design/compositions`, computed
+    `oklch(0 0 0 / 0.45) 0 2px 4px -1px, oklch(0 0 0 / 0.55) 0 4px 8px -2px`, radius 3px). The home
+    page carries no `[data-media-tile][data-static]`, so marketing's frames are untouched by the card
+    rule.
+  - The aurora: `--spill-cadence` stays 11s, `--aurora-cadence` resolves to `calc(11s * 3)`, the
+    footer seam keeps `--glw-dur: 11s` (a lamp keeps the lamp's clock, which is the doctrine), and the
+    register does reach it (`--glw-base: 0.3`, `--glw-blur: 38px`).
+  - Clear works from the board's banner, and removes the block from the page.
+- Verified live at `471b8db`, still standing (the earlier pass, on the same blocks): the shadow family
+  resolves the dark ramp on `/pricing` and leaves `/help`'s paper cards at 0.06 / 0.10 untouched; the
+  nav dropdown's viewport takes `--tw-shadow: 0 4px 8px -2px oklch(0 0 0 / 0.5), ...` AND KEEPS ITS
+  RING (the reason the blocks write `--tw-shadow` and not `box-shadow`); the lit face lands on
+  `.bg-gallery` on `/` and on the QR hero plate on `/features/qr`, ring intact; the paper five lands on
+  `.surface-paper` (`--lamp-1: oklch(0.88 0.085 25)`) with the root five untouched. The cadence knobs
+  write `{"--spill-cadence":8}` and 11s removes the override (it is the baked default), which is the
+  store's own contract.
+- Assets requested from Will:
+  - A grain tile, so the aurora stops banding · seamless monochrome noise, 256x256, PNG-8, fine grain
+    (one tile pixel), neutral, mean 50 percent grey, used at about 5 percent over the light AND laid out
+    at 128 CSS px on a 2x screen (one tile pixel per device pixel; laid out at 256 it doubles and the
+    band returns) · replaces the inline feTurbulence stand-in in `board.css` (`[data-lgt-grain]`).
+  - A worst-case pair of overlapping photographs for part A · two images whose touching edges are both
+    dark and low contrast (a night reception, a dim dance floor), 1200px long edge, JPG · replaces the
+    `reception-hall` + `wedding-toast` pair in `depth.tsx`, so the depth cue is judged against the case
+    it exists for rather than a lucky one.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
+  - Depth in dark: the cue set for stacked media cards, a layer over content and a flat card
+  - The lit face: adopt, adapt or drop, on the three surfaces it names
+  - The section aurora: yes or no
+  - Its register: accent or identity
+  - Its placement: both boundaries, the top edge alone, or the room
+  - The cadence: 8s or 11s
+  - The paper five: hand-tuned, the flat row, or leave the dark set
+  - The publish beat's violet: 300 as shipped, the house five, or the five leaned to 305
+  - Part E as pasted: land it, or name what to change
+- Look at first: part B, the guest ledger unlit then lit, at accent on cinema. It is the whole round in
+  one pair, and it is the first time the aurora has been judged against a chapter it was not built for.
+  Then press Apply to the site on part A's shadow family and open a menu on `/pricing`: that is the
+  proposal wearing the real app. Then part E, which is the ruling with no translation left in it.
+- For the Orchestrator: the preview alias serves `471b8db` and will serve the tip on the first push
+  after the Vercel daily cap resets; nothing else is needed to refresh it. `touchpoints.ts` describes this board as "Four parts" and it is five now
+  (`#lgt-e`, the doctrine as a paste). The description is yours to rename at integration; I did not
+  touch the file. Findings against a bible rule: none, rules 10 and 11 are already under exploration
+  naming this board.
+
+## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-14). The light board's second round turned the
+doctrine from an argument into a surface Will can wear. Four candidates became pastes in one source
+(`candidates.ts`), each with an Apply to the site button handing the whole site the exact block a
+ruling would land: the shadow family (lift and float, one ramp per ground, on the primitives and on
+the dashboard's real event cards), the lit face on media frames, screens and plates, the aurora's
+register with a sibling clock, and a hand-tuned paper five. Each block does only what its caption
+says: `--shadow-float` keeps its contract zero on the dark grounds and `--spill-cadence` keeps its
+number. Part A withdrew round one's light-ground alphas and gained a lit-face matrix; part B mounted
+the home arc's five real media-less chapters, unlit beside lit, with the placement error as a fourth
+candidate, both drifts side by side and the grain honest at 1x and 2x; part C gained two cadence
+knobs; part E carries the doctrine in `design-system.md`'s own shape, so the ruling is a paste,
+beside a board-wide Rest switch. Nine asks, two assets, eight departures.
+
+## Handoff (round 3)
+
 - Head <sha>, pushed; preview partyreel-git-lp-light-partyreel.vercel.app
 - Synced with launch-prep at <sha> (or: launch-prep had not moved)
 - Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
@@ -340,6 +487,6 @@ all when their reel goes live.
 - The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
 - Look at first: ...
 
-## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (<date>). ...

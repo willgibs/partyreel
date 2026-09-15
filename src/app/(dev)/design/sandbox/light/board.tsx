@@ -10,6 +10,8 @@ import { BoardMeta, Toggle, type Mode } from "@/components/dev/board";
 import { AuroraPart } from "./aurora";
 import { CadencePart, VioletPart } from "./beats";
 import { DepthPart } from "./depth";
+import { DoctrinePart } from "./doctrine";
+import { AppliedBanner } from "./shared";
 
 /**
  * THE LIGHT BOARD (the review wave, 2026-09-14).
@@ -66,43 +68,60 @@ const CANDIDATES = [
   {
     name: "Regroup (the board's recommendation)",
     rationale:
-      "One doctrine in three jobs: separate, fill, mark. The elevation contract moves inside it and stops being per mode; the lamp needs a place rather than an object; the aurora is named as the fill register at chapter scale.",
+      "One doctrine in three jobs: separate, fill, mark. The elevation contract moves inside it and stops being per mode; the lamp needs a place rather than an object; the aurora is named as the fill register at chapter scale. Part E is this candidate, written out, ready to paste.",
   },
   {
     name: "Replace",
     rationale:
-      "The aurora becomes the primary layer: every chapter carries a temperature drawn from the five, spill becomes an aurora anchored to an object, and the laws collapse to two, place and falloff. Candidate C in part B is what that looks like.",
+      "The aurora becomes the primary layer: every chapter carries a temperature drawn from the five, spill becomes an aurora anchored to an object, and the laws collapse to two, place and falloff. Candidate D in part B is what that looks like.",
   },
 ];
 
 const ASKS = [
   "Depth in dark: the cue set for stacked media cards, a layer over content and a flat card",
-  "Lamps without media: the section aurora, yes or no, and its register on cinema and on paper",
+  "The lit face: adopt, adapt or drop, on the three surfaces it names",
+  "The section aurora: yes or no",
+  "Its register: accent or identity",
+  "Its placement: both boundaries, the top edge alone, or the room",
   "The cadence: 8s or 11s",
-  "The publish beat's violet",
-  "The lit surface ([data-lit]): adopt, adapt or drop",
+  "The paper five: hand-tuned, the flat row, or leave the dark set",
+  "The publish beat's violet: 300 as shipped, the house five, or the five leaned to 305",
+  "Part E as pasted: land it, or name what to change",
 ];
 
 const DEPARTURES = [
-  "Part A proposes a shadow family in DARK (--lgt-lift, --lgt-float, board.css). The elevation contract still reads 'Dark: NO shadows anywhere' and --shadow-float is zeroed in .dark; bible 10's rewrite anticipates this, the values are new.",
+  "Part A proposes a shadow family in DARK (--shadow-lift, --shadow-layer). The elevation contract still reads 'Dark: NO shadows anywhere' and --shadow-float is zeroed in .dark; bible 10's rewrite anticipates this, the values are new. On a LIGHT ground lift is today's shipped value to the byte, so paper does not move (round one proposed 0.10 / 0.14 there, which would have re-tuned every paper card as a side effect; that is withdrawn).",
   "Part A moves the ring lift into the contract. It has 77 uses across the app and appears in no document; naming it makes a fourth technique official.",
+  "Part A's lit-face paste reaches the real components through [data-media-tile], .bg-gallery and a :has selector for the plate, because none of the three has a hook of its own. The wiring round would add one data-lit attribute and drop all three selectors.",
   "Part B lets a section retune --lamp-* for everything inside it. The engine already documents the hook and bible 3 still holds (light, never UI), but a per-chapter temperature is a new licence and it is the aurora's whole identity claim.",
-  "Part B candidate C is the fill globals.css warns against by name ('a seam is a band, not a fill'). On the board so the warning can be tested rather than quoted.",
-  "Part B proposes a hand-tuned paper five, replacing SPILL_REGISTER.paper's single flat row. design-system.md calls that an open design task; this is a proposal for it.",
+  "Part B candidate D is the fill globals.css warns against by name ('a seam is a band, not a fill'). On the board so the warning can be tested rather than quoted.",
+  "Part B proposes a hand-tuned paper five declared on .surface-paper. design-system.md calls that an open design task; this is a proposal for it, and it is the first time --lamp-* would be re-declared per ground.",
+  "Part B ships a grain layer over the aurora, and halves its tile at 2dppx. An 8-bit gradient at that size bands, and a tile laid out at its own pixel size is doubled on a 2x screen, so the dither stops dithering. The tile is a generated stand-in.",
   "Part D changes a ratified beat: the publish flourish's oklch(0.62 0.2 300) becomes the lamp set's 305, and the beat decays to a base instead of returning to nothing.",
-  "Part B ships a grain layer over the aurora. An 8-bit gradient at that size bands; the grain is the fix and it is currently a generated stand-in.",
 ];
 
 const ASSETS = [
-  "A grain tile, so the aurora stops banding: seamless monochrome noise, 256x256 PNG-8, fine grain (roughly 1px), neutral, mean 50 percent grey, to be used at about 5 percent over the light. Replaces the inline feTurbulence stand-in in board.css ([data-lgt-grain]).",
+  "A grain tile, so the aurora stops banding: seamless monochrome noise, 256x256 PNG-8, fine grain (one tile pixel), neutral, mean 50 percent grey, used at about 5 percent over the light AND laid out at 128 CSS px on a 2x screen (one tile pixel per device pixel; laid out at 256 it doubles and the band returns). Replaces the inline feTurbulence stand-in in board.css ([data-lgt-grain]).",
   "A worst-case pair of overlapping photographs for part A: two images whose touching edges are both dark and low contrast (a night reception, a dim dance floor), 1200px long edge, JPG, so the depth cue is judged against the case it exists for rather than a lucky one. Replaces the reception-hall and wedding-toast pair in depth.tsx.",
 ];
 
 export function LightBoard() {
   const [mode, setMode] = useState<Mode>("desktop");
+  // ★ THE REST STATE IS A BOARD-WIDE SWITCH, NOT A PER-PART TOGGLE. "Every
+  // lamp's rest state designed, not absent" is a claim about the whole system,
+  // and a per-part control would let it be true in one place and quietly false
+  // in the next. board.css section 4 does the work; it is deliberately narrow
+  // (the engine's two animated layers, this board's phase marker, the publish
+  // beat) because a blanket animation:none would also freeze the marketing
+  // reveal grammar on the real chapters in part B, whose pre-animation state is
+  // opacity 0, and the board would read as broken.
+  const [rest, setRest] = useState(false);
 
   return (
-    <div className="flex flex-col gap-10 py-4">
+    <div
+      className="flex flex-col gap-10 py-4"
+      data-lgt-rest={rest ? "" : undefined}
+    >
       <div className="max-w-2xl space-y-3 text-xs leading-relaxed text-muted-foreground">
         <p>
           The doctrine is organised around where light comes from. That is why
@@ -127,6 +146,19 @@ export function LightBoard() {
           a horizon. The footer seam has one. A pill{"'"}s rim does not. Every
           case the old law killed, the new one still kills.
         </p>
+        <p>
+          <span className="font-medium text-foreground">
+            Round two made every claim wearable.
+          </span>{" "}
+          Where a candidate is CSS it carries an Apply to the site button, which
+          hands the whole site the exact block a ruling would land, so the
+          shadow family can be judged on the real dashboard and the paper five
+          on the real paper chapter. Part B{"'"}s aurora is no longer lit on a
+          section built to suit it: the home arc{"'"}s actual media-less
+          chapters are mounted, each printed twice, unlit and lit. Part E is the
+          doctrine written in design-system.md{"'"}s own shape, so the ruling is
+          a paste rather than a translation.
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -139,12 +171,28 @@ export function LightBoard() {
           value={mode}
           onChange={setMode}
         />
+        <Toggle
+          ariaLabel="Motion"
+          options={[
+            { id: "live", label: "Live" },
+            { id: "rest", label: "Rest state" },
+          ]}
+          value={rest ? "rest" : "live"}
+          onChange={(v) => setRest(v === "rest")}
+        />
+        <span className="text-[11px] text-muted-foreground">
+          Rest state is what a visitor with reduced motion sees, on every lamp
+          on this board at once.
+        </span>
       </div>
+
+      <AppliedBanner />
 
       <DepthPart mode={mode} />
       <AuroraPart mode={mode} />
       <CadencePart mode={mode} />
       <VioletPart mode={mode} />
+      <DoctrinePart />
 
       <BoardMeta
         question={QUESTION}
