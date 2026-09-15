@@ -288,8 +288,12 @@ word was 36 px, with no scrim and no darkening layer anywhere.
 
 - **Head**: the tip of `lp/hero-burst` (a manifest cannot name its own SHA). The work commits are
   `fdc0aad` (round two of the field), `3386667` (the birth size) and `c25c7b3` (the ref form the
-  step toggle needs); the sync merge with `origin/launch-prep` is `cbca83e`; `b9922eb` and the two
-  commits after it are the review pass (the copy note, the measurement, the preview walk). The board
+  step toggle needs); the sync merge with `origin/launch-prep` is `cbca83e`. After `b9922eb` comes
+  the review pass: `61165c9` (the copy substitution named on the board, the loop measured on all
+  three axes, the Verified header and the design-key gate corrected) and two commits that touch
+  ONLY this manifest. **The build the preview alias serves is `8043b8e`**, and since every commit
+  after it changes this file alone, which is never served, the board on the alias is this head's
+  board to the byte. `61165c9` is the last commit that changed a source file. The board
   is at `/design/c/home-hero?key=` (concept 3 of 4). **The round-two marker in the served HTML is
   `hhb-lab`**, the headline toggle on the stage, which round one did not have: if a surface does not
   carry it, it is not this head.
