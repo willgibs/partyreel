@@ -53,18 +53,32 @@ function skipped(el: Element): boolean {
   return el.hasAttribute("data-copy-skip");
 }
 
-/** Inline markdown for a node's children: emphasis, code and links kept. */
+/**
+ * Inline markdown for a node's children: emphasis, code and links kept.
+ *
+ * TWO ELEMENT SIBLINGS WITH NO TEXT BETWEEN THEM GET A SPACE. The separation a
+ * reader sees in a row like `<span>file.ts</span><a>gh</a>` is a flex `gap`,
+ * not whitespace, so a faithful concatenation produced "file.tsgh". A space is
+ * added only between adjacent ELEMENTS: prose keeps its own spacing exactly,
+ * because text nodes are copied through untouched.
+ */
 function inline(node: Node, opt: MarkdownOptions): string {
   let out = "";
+  let afterElement = false;
   node.childNodes.forEach((child) => {
     if (child.nodeType === 3) {
-      out += (child.textContent ?? "").replace(/\s+/g, " ");
+      const text = (child.textContent ?? "").replace(/\s+/g, " ");
+      if (text) afterElement = false;
+      out += text;
       return;
     }
     if (child.nodeType !== 1) return;
     const el = child as Element;
     if (skipped(el)) return;
     const text = inline(el, opt);
+    if (afterElement && text && out && !/\s$/.test(out) && !/^\s/.test(text))
+      out += " ";
+    if (text) afterElement = true;
     switch (el.tagName) {
       case "BR":
         out += "\n";
@@ -111,6 +125,20 @@ function absolute(href: string, opt: MarkdownOptions): string {
 
 const tidy = (text: string) => text.replace(/[ \t]+/g, " ").trim();
 
+/**
+ * ONE CELL'S TEXT: a list item, a stat tile, a pill. These hold BLOCKS (a name
+ * in one `<p>`, its file in the next, its citations in a third), and running
+ * `inline()` over the lot ran the words together ("no-em-dash-policysrc/lib/…").
+ * The blocks are read properly and then joined on one line, because a cell is
+ * one line by definition.
+ */
+function cellText(el: Element, opt: MarkdownOptions, sep = " "): string {
+  const inner: string[] = [];
+  blocks(el, opt, inner);
+  const text = inner.length ? inner.join(sep) : inline(el, opt);
+  return tidy(text.replace(/\n+/g, " "));
+}
+
 /** One list, its items prefixed and its nested lists indented two spaces. */
 function listBlock(el: Element, opt: MarkdownOptions, depth: number): string {
   const ordered = el.tagName === "OL";
@@ -125,7 +153,7 @@ function listBlock(el: Element, opt: MarkdownOptions, depth: number): string {
     Array.from(clone.children)
       .filter((c) => c.tagName === "UL" || c.tagName === "OL")
       .forEach((c) => c.remove());
-    const head = tidy(inline(clone, opt));
+    const head = cellText(clone, opt, " · ");
     const marker = ordered ? `${n++}.` : "-";
     const pad = "  ".repeat(depth);
     if (head) lines.push(`${pad}${marker} ${head}`);
@@ -161,7 +189,10 @@ function tableBlock(el: Element, opt: MarkdownOptions): string {
 function definitionBlock(el: Element, opt: MarkdownOptions): string {
   const lines: string[] = [];
   let term = "";
-  for (const child of Array.from(el.children)) {
+  // DESCENDANTS, not children: a `<dl>` laid out as a flex row wraps each pair
+  // in its own div, which is legal HTML and the shape the page header uses; a
+  // direct-children scan found no pair at all and printed nothing.
+  for (const child of Array.from(el.querySelectorAll("dt, dd"))) {
     if (skipped(child)) continue;
     if (child.tagName === "DT") term = tidy(inline(child, opt));
     else if (child.tagName === "DD") {
@@ -234,6 +265,17 @@ function blocks(el: Element, opt: MarkdownOptions, out: string[]): void {
         out.push("---");
         continue;
       default: {
+        // A ROW OF PILLS, marked by the page: one line, its cells joined, not
+        // one paragraph per chip. Without it a header's badges came out as a
+        // stack of one-word paragraphs.
+        if (child.hasAttribute("data-copy-row")) {
+          const cells = Array.from(child.children)
+            .filter((c) => !skipped(c))
+            .map((c) => cellText(c, opt))
+            .filter(Boolean);
+          if (cells.length) out.push(cells.join(" · "));
+          continue;
+        }
         // A layout element: recurse. A leaf that holds only text (a chip, a
         // meta line) becomes its own paragraph so nothing is lost.
         if (child.children.length === 0) {
@@ -294,27 +336,4 @@ export function factsToMarkdown(facts: PageFacts): string {
   if (facts.meta?.length)
     out.push(facts.meta.map(([k, v]) => `- **${k}**: ${v}`).join("\n"));
   return out.filter(Boolean).join("\n\n");
-}
-
-/**
- * The text a React node would render, for the FACTS a page passed as props
- * (a description that holds a <Ref>, a meta value that holds a link). It reads
- * the element tree, never the DOM, so Copy page has the page's data even
- * before that data is painted. `separator` joins sibling children: "" for
- * prose, " " for a row of pills.
- */
-export function reactText(node: unknown, separator = ""): string {
-  if (node === null || node === undefined || typeof node === "boolean")
-    return "";
-  if (typeof node === "string") return node;
-  if (typeof node === "number") return String(node);
-  if (Array.isArray(node))
-    return node
-      .map((child) => reactText(child, separator))
-      .filter(Boolean)
-      .join(separator);
-  const element = node as { props?: { children?: unknown } };
-  if (element.props && "children" in element.props)
-    return reactText(element.props.children, separator);
-  return "";
 }

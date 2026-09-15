@@ -193,7 +193,10 @@ function SidebarSection({
         data-open={expanded}
         inert={!expanded}
       >
-        <ul className="min-h-0 overflow-hidden pt-0.5">
+        {/* No padding on the disclosure's own child: a grid item's padding
+            survives `grid-template-rows: 0fr` and leaves a closed section
+            taller than nothing. */}
+        <ul className="min-h-0 overflow-hidden">
           {section.items.map((it) => (
             <Row
               key={it.href}

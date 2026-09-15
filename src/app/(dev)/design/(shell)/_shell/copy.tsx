@@ -5,7 +5,7 @@ import { Check, Copy, Link2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-import { labSearchString } from "@/app/(dev)/design/_data/state";
+import { labUrl } from "@/app/(dev)/design/_data/state";
 import { getCopySource, getPageFacts } from "./page-facts";
 import { elementToMarkdown, factsToMarkdown } from "./page-markdown";
 import { useLabState } from "./shell-context";
@@ -77,15 +77,23 @@ export function CopyPage() {
         const url = typeof location === "undefined" ? "" : location.href;
         if (declared) return `${declared}\n\n${url}`.trim();
         const facts = getPageFacts();
-        const origin = typeof location === "undefined" ? "" : location.origin;
+        const opt = {
+          origin: typeof location === "undefined" ? "" : location.origin,
+        };
         const head = facts
           ? factsToMarkdown({ ...facts, url })
           : `# ${document.title}\n\n${url}`;
+        // The header is skipped by the body pass (it carries `data-copy-skip`
+        // so nothing is said twice), so it is translated here on its own.
+        const intro = elementToMarkdown(
+          document.querySelector("[data-toc-root] header[data-copy-skip]"),
+          opt,
+        );
         const body = elementToMarkdown(
           document.querySelector("[data-toc-root]"),
-          { origin },
+          opt,
         );
-        return [head, body].filter(Boolean).join("\n\n");
+        return [head, intro, body].filter(Boolean).join("\n\n");
       }}
     />
   );
@@ -114,7 +122,7 @@ export function CopyLink({
       getText={() =>
         typeof location === "undefined"
           ? ""
-          : `${location.origin}${location.pathname}${labSearchString(state)}${location.hash}`
+          : labUrl(location.origin, location.pathname, state, location.hash)
       }
     />
   );

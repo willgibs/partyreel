@@ -344,11 +344,11 @@ const INDEXED_DOCS: DocId[] = [
  */
 export function buildSearchIndex(nav: Nav): SearchIndex {
   const out: SearchIndex = [];
-
-  for (const it of flatten(nav))
-    out.push(
-      entry("page", it.id ?? it.href, it.label, it.href, it.note, it.keywords),
-    );
+  // The nav lists every component and every board as an item of its own, and
+  // each of those already has a richer entry below (its file, its family, its
+  // surface). The page entries are therefore added LAST and any whose href a
+  // specific kind already claims is dropped, or "Glow" would answer twice.
+  const pages = flatten(nav);
 
   for (const r of BIBLE)
     out.push(
@@ -500,13 +500,23 @@ export function buildSearchIndex(nav: Nav): SearchIndex {
       ),
     );
 
-  // A page and a board can share an href (the nav lists every board); the
-  // richer entry wins, and `key` stays unique for React.
-  const seen = new Set<string>();
+  // The pages last, minus every href a specific kind already answers, and
+  // minus any repeat inside the page list itself.
+  const claimed = new Set(out.map((e) => e.href));
+  for (const it of pages) {
+    if (claimed.has(it.href)) continue;
+    claimed.add(it.href);
+    out.push(
+      entry("page", it.id ?? it.href, it.label, it.href, it.note, it.keywords),
+    );
+  }
+
+  // `key` must stay unique for React even when two entries of a kind share an
+  // href (every landmine points at the same anchor).
+  const keys = new Set<string>();
   return out.filter((e) => {
-    const k = `${e.kind}:${e.href}`;
-    if (seen.has(k)) return false;
-    seen.add(k);
+    if (keys.has(e.key)) return false;
+    keys.add(e.key);
     return true;
   });
 }

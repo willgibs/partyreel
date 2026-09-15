@@ -36,13 +36,13 @@ export function Toc({ variant }: { variant: "column" | "inline" }) {
   // (the shell's Toc is in the layout: it never unmounts).
   const [openFor, setOpenFor] = useState<string | null>(null);
   const open = openFor === pathname;
-  const headings = useRef<HTMLHeadingElement[]>([]);
+  const anchors = useRef<{ id: string; el: Element }[]>([]);
 
   const mark = useCallback(() => {
     const line = readingLine();
-    let current: string | null = headings.current[0]?.id ?? null;
-    for (const h of headings.current) {
-      if (h.getBoundingClientRect().top - line <= 1) current = h.id;
+    let current: string | null = anchors.current[0]?.id ?? null;
+    for (const a of anchors.current) {
+      if (a.el.getBoundingClientRect().top - line <= 1) current = a.id;
       else break;
     }
     setActive(current);
@@ -55,17 +55,27 @@ export function Toc({ variant }: { variant: "column" | "inline" }) {
       const root = document.querySelector("[data-toc-root]");
       const found = root
         ? Array.from(
-            root.querySelectorAll<HTMLHeadingElement>("h2[id], h3[id]"),
+            root.querySelectorAll<HTMLHeadingElement>("h2, h3"),
           ).filter((h) => !h.closest("[data-toc-skip]"))
         : [];
-      headings.current = found;
-      setItems(
-        found.map((h) => ({
-          id: h.id,
-          text: h.textContent?.trim() ?? h.id,
+      const seen = new Set<string>();
+      const next: Item[] = [];
+      const targets: { id: string; el: Element }[] = [];
+      for (const h of found) {
+        const box = anchorOf(h);
+        if (!box || seen.has(box.id)) continue;
+        seen.add(box.id);
+        next.push({
+          id: box.id,
+          text: h.textContent?.trim() ?? box.id,
           level: h.tagName === "H2" ? 2 : 3,
-        })),
-      );
+        });
+        // Measured on the element that CARRIES the id, because that is where
+        // the browser scrolls when the link is followed.
+        targets.push({ id: box.id, el: box });
+      }
+      anchors.current = targets;
+      setItems(next);
       mark();
     };
     const onScroll = () => {
@@ -93,7 +103,7 @@ export function Toc({ variant }: { variant: "column" | "inline" }) {
   if (items.length < 2) return null;
 
   const list = (
-    <ul className="lab-toc-list space-y-px text-[12px]">
+    <ul className="space-y-px text-[12px]">
       {items.map((it) => (
         <li key={it.id}>
           <a
@@ -143,7 +153,12 @@ export function Toc({ variant }: { variant: "column" | "inline" }) {
           data-open={open}
           inert={!open}
         >
-          <div className="min-h-0 overflow-hidden pt-2">{list}</div>
+          {/* No padding on the disclosure's own child: a grid item's
+              padding survives `grid-template-rows: 0fr`, so `pt-2` here left
+              every closed section 8px tall. */}
+          <div className="min-h-0 overflow-hidden">
+            <div className="pt-2">{list}</div>
+          </div>
         </div>
       </div>
     );
@@ -165,6 +180,22 @@ export function Toc({ variant }: { variant: "column" | "inline" }) {
       </button>
     </div>
   );
+}
+
+/**
+ * The element a heading's link points at. TWO MARKUP SHAPES exist in the lab
+ * and the shell refuses to demand one: the shell's own `Section` and every
+ * rendered markdown doc put the id on the HEADING, while the gallery's older
+ * `RefSection` puts it on the wrapper with a bare `<h2>` inside. A heading with
+ * no id of its own therefore adopts its nearest `[id]` ancestor, but only when
+ * it is that container's FIRST heading, so two `<h2>`s in one box never claim
+ * the same anchor.
+ */
+function anchorOf(h: HTMLHeadingElement): Element | null {
+  if (h.id) return h;
+  const box = h.closest("[id]");
+  if (!box) return null;
+  return box.querySelector("h1, h2, h3, h4") === h ? box : null;
 }
 
 /**
