@@ -10,6 +10,7 @@ import {
   ApplyToSite,
   Cell,
   Copy,
+  Knob,
   Labeled,
   matrixCols,
   Part,
@@ -331,7 +332,19 @@ function LitFaceMatrix({ mode, ground }: { mode: Mode; ground: Ground }) {
   const small = mode === "phone";
   const cols = matrixCols(mode, 4);
   return (
-    <Stage mode={mode} ground={ground} height={small ? 1180 : 780}>
+    // ★ MEASURED, NOT GUESSED (round three). Both canvases were short. The
+    // three faces plus the stage's own padding come to 856px at 1440 against a
+    // 780px canvas, and 1363 against 1180 at 375, so the plate's row, the one
+    // that carries the proposal, was clipped off the bottom of the stage on
+    // both. Two rounds of checks measured stage WIDTH and never height, which
+    // is how a clipped row survives a walk.
+    //
+    // ★ AND MEASURE THE CHILD, NOT THE STAGE. A stage carries `zoom`, and
+    // Chrome reports scrollHeight and clientHeight on a zoomed element in
+    // different spaces, so `scrollHeight - clientHeight` reads a constant
+    // phantom overflow that does not move when the height changes. The honest
+    // number is the child's own rect divided by the computed zoom.
+    <Stage mode={mode} ground={ground} height={small ? 1370 : 870}>
       <div
         data-lgt-cues
         className={cn("h-full", small ? "px-4 py-5" : "px-10 py-8")}
@@ -379,7 +392,7 @@ function LitFaceMatrix({ mode, ground }: { mode: Mode; ground: Ground }) {
   );
 }
 
-export function DepthPart({ mode }: { mode: Mode }) {
+export function DepthPart({ mode, rules }: { mode: Mode; rules: string[] }) {
   const [ground, setGround] = useState<Ground>("cinema");
   const small = mode === "phone";
   const cols = matrixCols(mode, 4);
@@ -389,6 +402,7 @@ export function DepthPart({ mode }: { mode: Mode }) {
     <Part
       n="A"
       title="Depth: the cue is the relationship, not the mode"
+      rules={rules}
       lede={
         <>
           <p>
@@ -406,23 +420,34 @@ export function DepthPart({ mode }: { mode: Mode }) {
             because shadows are wrong in dark; it lacked one because 6 percent
             of black over a near black room is arithmetically invisible.
           </p>
+          <p>
+            <span className="font-medium text-foreground">
+              One ruling, two boards.
+            </span>{" "}
+            The floating-surfaces board asks the same question for its own
+            family, as item 5 of its contract: the light in dark, lighter is
+            closer against a soft shadow against a lit edge. The middle subject
+            here is that question, and the three answers are the same three
+            columns. A ruling on this row answers both, and FLOAT is the
+            shadow-tuned-for-dark option written out with values.
+          </p>
         </>
       }
     >
-      <div className="flex flex-wrap items-center gap-3">
+      <Knob label="Ground">
         <Toggle
           ariaLabel="Ground"
           options={GROUNDS}
           value={ground}
           onChange={setGround}
         />
-      </div>
+      </Knob>
 
       {/* The canvas is taller than a viewport on purpose: a matrix is not a
           screen, and 375 pairs the four cues into two rows per subject, so the
           phone canvas is roughly a third taller again. Measured, not guessed:
           a stage that clips its last row hides the control column. */}
-      <Stage mode={mode} ground={ground} height={small ? 1300 : 1050}>
+      <Stage mode={mode} ground={ground} height={small ? 1320 : 1050}>
         <div
           data-lgt-cues
           className={cn("h-full", small ? "px-4 py-5" : "px-10 py-8")}
