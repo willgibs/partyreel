@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { Kbd } from "@/components/shared/kbd";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -326,9 +327,9 @@ function SurfacesScene({
           <DialogFooter className="flex-row items-center justify-end gap-2">
             {direction === "command" ? (
               <span className="mr-auto inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-[4px] bg-muted px-1 text-[10px] leading-none font-medium">
+                <Kbd>
                   <CornerDownLeft className="size-3" />
-                </span>
+                </Kbd>
                 to confirm
               </span>
             ) : null}

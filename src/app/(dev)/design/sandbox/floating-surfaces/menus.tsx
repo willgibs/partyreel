@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { Kbd } from "@/components/shared/kbd";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -604,6 +605,10 @@ export function CommandBody({
       {phone ? null : (
         <div className="flex items-center gap-3 border-t border-border px-3 py-1.5 text-[11px] text-muted-foreground">
           <span className="inline-flex items-center gap-1">
+            {/* The product's own keycap (components/shared/kbd.tsx), not a new
+                one: it already carries the treatment ui/tooltip.tsx styles for
+                through data-slot="kbd", and a second keycap in the lab would be
+                a second answer to a settled question. */}
             <Kbd>up</Kbd>
             <Kbd>down</Kbd> to move
           </span>
@@ -619,17 +624,6 @@ export function CommandBody({
         </div>
       )}
     </div>
-  );
-}
-
-/** A keycap. The body face at a small size on a muted plate: the kill-mono
- *  sweep left one label face and one body face, and a keycap is a value that
- *  must look like a value, which is what the plate is for. */
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-[4px] bg-muted px-1 text-[10px] leading-none font-medium text-foreground/70">
-      {children}
-    </span>
   );
 }
 
