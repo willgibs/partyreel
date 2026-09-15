@@ -789,11 +789,15 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
 ## Handoff (round 4)
 
 - Head: the tip of `lp/light`, pushed. The board's content is `4e7f908` + `47039c5` + `c9d40f5`, the
-  sync merges of `launch-prep` at `4ce03ff` and `6727026`, the round-four review fix at `d4c38d5`,
-  and this manifest on top. The board is `/design/c/light?key=...`; seven anchors, named by what
+  sync merges of `launch-prep` at `4ce03ff`, `6727026` and `6d79214` (the last one picking up the
+  lab cascade fix), the round-four review fix at `d4c38d5` and the re-review fix at `c6862d1`, with
+  this manifest on top. The board is `/design/c/light?key=...`; seven anchors, named by what
   they are rather than by a letter: `#lgt-kit`, `#lgt-treatments` (with `#lgt-t-seam` ..
   `#lgt-t-beam` per treatment), `#lgt-composer`, `#lgt-separate`, `#lgt-evidence`, `#lgt-infusion`,
-  `#lgt-paste`. The board is 27,690px tall at the 1440 canvas on a local production build.
+  `#lgt-paste`. The board is 28,309px tall at the 1440 canvas on a local production build, 18
+  stages, 13 at 1:1 and 5 fitted. It was 27,690 before this pass: the cascade fix hands every
+  mounted production section back its desktop layout, which changes their heights, and the
+  disclosure paragraph that asked a reviewer to ignore those layouts is gone.
 - **The round-four review's three in-lane defects, fixed at `d4c38d5`, and one they turned up.**
   - ★ **The aurora's clock was dead, and the board was rendering as if it were not.** Round four
     moved the field's cadence off a literal (`"33s"`) onto the sibling token its paste proposes,
@@ -829,12 +833,49 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
     per-candidate decision beside the candidate; only the resulting STATE is page-wide. Measured: the
     dock is 49px with nothing applied and 90px with a block standing (a second row at 1440), and
     `--board-dock-h` and `scroll-padding-top` follow both ways, so anchors keep landing.
-  - The fourth item, the lab cascade defect, is not in this lane and is still open: the shell ask
-    below.
-- Synced with `launch-prep` at `6484558` (2 commits, PROGRAM.md and the orchestrator manifest;
-  nothing in this lane or its reads). Merged clean.
-- Gates re-run on the fixed tree at `d4c38d5`: typecheck ok, lint ok (0 errors; 6 pre-existing
-  warnings elsewhere, none in the lane), test ok (1804 in 199 files), build ok (248 static pages).
+  - The fourth item, the lab cascade defect, was not in this lane and has since landed on
+    `launch-prep`. See the re-review pass below.
+
+- **The re-review's one in-lane item, fixed at `c6862d1`, and the shell fix it cleared.**
+  - ★ **The composer's refusal lied for the throw, on the one section the handoff sends Will to.**
+    The lookup read `refuses[treatment === "aurora" ? "aurora" : "seam"]`, which collapses every
+    non-aurora treatment to the seam's key. The hero is the only section declaring BOTH refusals,
+    so Section=The hero with Treatment=The throw rendered the banner "The hero refuses this
+    treatment" followed by the SEAM's reason, which is about a boundary band falling into the trust strip and
+    says nothing about a throw sitting behind the media. The data declares no throw refusal for the
+    hero at all. That is two clicks from the state "Look at first" directs Will into, it contradicts
+    the block's own lede, and it is the defect class the snapped placement six lines above it exists
+    to prevent. The lookup now reads the selected treatment's own key with `none` guarded out, and
+    the render drops the redundant `none` test. Swept all 27 section-by-treatment cells on the
+    production build: the banner appears on exactly four (hero + aurora, hero + seam, film strip +
+    aurora, footer + aurora), each carrying its own reason, and nowhere else.
+  - **The lab cascade fix landed on `launch-prep` at `969f3b9`** (the lab's utilities now emit into
+    `layer(utilities.lab)`), and this branch merged it at `6d79214`. Re-measured the way the finding
+    was measured: with the lab sheet disabled, 0 of 1066 elements across all nine mounted sections
+    change layout, where it was 115; the stage canvas is 1440 in both states, so the comparison is
+    like for like. The pricing band now lays out in three columns of 245px at the 1440 canvas
+    instead of stacking. So the board's disclosure paragraph, which asked a reviewer to disregard
+    the layout of every mounted section, is deleted, and the spec's section on the defect is past
+    tense and names the commit. **What the fix does NOT give back is the phone canvas:** a Tailwind
+    prefix inside a stage reads the real browser viewport rather than the canvas (the shell's own
+    ★ in `stage.tsx`), so at 375 a mounted production section now renders its DESKTOP layout
+    squeezed into 375px (the pricing cards sit at 92px each). That is the shell's documented
+    property rather than a regression, and it is why note (7) below is now marked unreproducible
+    from this board.
+- Synced with `launch-prep` twice: at `6484558` (2 commits, PROGRAM.md and the orchestrator
+  manifest) and, for the re-review pass, at `969f3b9` (100 commits: three tracks' round-four merges
+  plus the lab cascade fix). Both merged clean, no conflicts, nothing in this lane rewritten by
+  either.
+- Gates re-run on the merged tree at `c6862d1`: typecheck ok, lint ok (0 errors; 6 pre-existing
+  warnings elsewhere, none in the lane), test ok (1824 in 199 files), build ok (249 static pages).
+- **Verified on a LOCAL production build** (`pnpm build && next start`), walked at the 1440 and the
+  375 canvas: no preview exists for this pass, because Vercel is at its daily deployment cap and the
+  API was not called. The walk ran in a driven tab that reported `document.visibilityState` as
+  hidden, so this pass makes no motion claim from it; nothing it changed touches motion, and round
+  four's foreground-tab sweep still stands. What it does assert is geometry and DOM state, both of
+  which are visibility-independent: the 27-cell refusal sweep, the nine-section cascade measurement,
+  the 18-stage census (13 at 1:1, 5 fitted), the 28,309px height and no horizontal overflow at
+  either canvas.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/light.md`,
   `docs/specs/light.md` and `src/app/(dev)/design/sandbox/light/*`. The spec is the ONE addition to
   `owns` this round, because goal item 6 asks for it rewritten to the kit and `media-kit` is the
@@ -843,25 +884,17 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
   in its own sheet under `lgt-`, in `kit.ts` as data or in `candidates.ts` as a string.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
 - **Shell changes asked for (the Orchestrator lands them):**
-  - ★ **`src/app/(dev)/design/design.css`: emit the lab utilities into a SUB-layer.** One character,
-    and it is the most useful thing this round found for the whole wave. Today the line reads
-    `@import "tailwindcss/utilities.css" layer(utilities) source(none);`, and design.css loads AFTER
-    globals.css, so at equal specificity the lab's unprefixed utilities outrank production's
-    responsive ones: **`grid-cols-1` beats `lg:grid-cols-12` and `hidden` beats `sm:block` on every
-    production component mounted in a board.** Round four asked every track for live production
-    components, so every board is currently showing parts of them in their PHONE layout at 1440.
-    Measured on this board: 115 elements across nine mounted sections change geometry when that sheet
-    is disabled, and it reproduces on `pnpm build && pnpm start`, so it is not a dev artifact. The
-    remedy is `layer(utilities.lab)`: rules in a sub-layer lose to rules sitting in the parent layer
-    directly, which is exactly the desired order. Verified in the browser with a two-sheet
-    experiment (same layer: the base utility wins; sub-layer: the responsive one wins). Nothing else
-    changes, because where the lab and production emit the same utility the declarations are
-    identical. **Two files, not one:** `src/app/css-source-policy.test.ts` pins that exact import
-    string, so the test moves in the same commit or the gate fails. Confirmed still unlanded at
-    `launch-prep` `6484558`: `07ad3b2` touched `design.css` only to hide the sidebar pill. While it
-    is unlanded the board keeps its on-screen disclosure (board.tsx), which asks the reviewer to
-    disregard the layout of every mounted production section; that paragraph is deleted by whoever
-    lands the fix, not by this track.
+  - ✅ **`src/app/(dev)/design/design.css`: emit the lab utilities into a SUB-layer. LANDED, no
+    longer an ask.** The line was `@import "tailwindcss/utilities.css" layer(utilities) source(none);`
+    and design.css loads AFTER globals.css, so at equal specificity the lab's unprefixed utilities
+    outranked production's responsive ones (`grid-cols-1` beat `lg:grid-cols-12`, `hidden` beat
+    `sm:block`) on every production component a board mounted, and round four asked every track for
+    live production components. The Orchestrator landed `layer(utilities.lab)` on `launch-prep` at
+    `969f3b9`, moving `src/app/css-source-policy.test.ts`'s pinned string in the same commit, and
+    this branch merged it at `6d79214`. Verified here, not taken on trust: 0 of 1066 elements across
+    the nine mounted sections change layout with the lab sheet disabled, where it was 115. It is the
+    most useful thing this round found for the whole wave, and every other board in the review
+    inherits it.
   - `touchpoints.ts` describes this board as "Eight one-word calls ... depth in dark on stacked
     photographs, a layer and a flat card; the aurora on the home arc's five real media-less chapters
     behind a wipe". It is nine calls now and the board is the kit, the treatments, the composer, the
@@ -1008,8 +1041,10 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
   the QR plate and the Pro card are the kit already running in production. Then the infusion plan,
   which is the answer to "the best way to begin that infusion".
 - Findings against a bible rule: none (10 and 11 are already under exploration naming this board).
-  Cross-board notes for the Orchestrator: (1) the design.css layer fix above, which affects every
-  board that mounts a production component and is the first thing to land. (2) The floating-surfaces
+  Cross-board notes for the Orchestrator: (1) the design.css layer fix above has LANDED at
+  `969f3b9` and is verified on this board after the merge; every other board that mounts a
+  production component inherits it, and any board still carrying a note about phone layouts at 1440
+  can drop it. (2) The floating-surfaces
   contract's fifth line is this board's separate-job question for one family; one ruling closes both,
   and the ruling block says so. (3) All three palette candidates re-declare `--shadow-float` zeroed on
   the dark grounds; whichever ramp is ruled here, the palette block inherits it, and the two should
@@ -1020,9 +1055,14 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
   override that no board page wears: the lab layout mounts `CandidateStyle` but not the tuner panel,
   so only `/design/motion` and the rounding board (which mount their own `MotionTuner`) apply knob
   values inside the lab. Worth knowing before another board builds a knob whose own stage is meant
-  to follow it. (7) At the 375 canvas the pricing plan cards truncate their own copy ("Backed up
-  twice, automatically" by 14px in three places, "Event Pass" by 3px). Production, at phone width,
-  outside every lane this round; for whoever owns pricing next.
+  to follow it. (7) The pricing plan cards truncating their own copy ("Backed up twice,
+  automatically" by 14px in three places, "Event Pass" by 3px) was measured at the 375 canvas UNDER
+  the old cascade, when the lab forced every mounted component into its phone layout, which is what
+  made the stage a fair stand-in for a real 375 viewport. After the layer fix it cannot be
+  reproduced here: a Tailwind prefix inside a stage reads the real browser viewport, so the 375
+  canvas now renders the DESKTOP card row squeezed to 92px columns. Treat it as a lead rather than a
+  measurement, and re-check it at a real phone viewport. Production, outside every lane this round;
+  for whoever owns pricing next.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
@@ -1043,7 +1083,8 @@ phases says the order the identity enters the site and what goes wrong out of it
 measurements were demoted to evidence, each ending in the line it decided; and the dock took the four
 page-wide switches plus the badge naming whichever block stands on the site, and the field's cadence
 became a declared sibling of the lamp's token. `docs/specs/light.md` was rewritten to the kit. One lab defect came out of mounting
-nine live sections: the lab's own Tailwind entry outranks production's responsive utilities, so every
-board showing a production component renders part of it at its phone layout, 115 elements here, with a
-one-line remedy in the handoff.
+nine live sections, and it was the round's widest find: the lab's own Tailwind entry outranked
+production's responsive utilities, so every board showing a production component rendered part of it
+at its phone layout, 115 elements here. The one-line remedy landed on `launch-prep` as
+`layer(utilities.lab)` and this board re-measured it at zero.
 
