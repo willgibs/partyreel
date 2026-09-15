@@ -16,13 +16,25 @@
  * exactly the amount the rule takes back.
  *
  * ★ FOUR ASKS, NOT FIVE. Round two asked the route AND the bridge separately.
- * The bridge is not a separate question: the route decides it (Licensed ships
- * twelve, Mix ships two, Ours ships none), so asking it twice was asking Will to
- * answer the same thing in two words. The consequence is on the board instead,
- * as ROUTE_SHIPS, so the fold is visible rather than hidden.
+ * The bridge is not a separate question: the route decides how many frames
+ * change and when, so asking it twice was asking Will to answer the same thing
+ * in two words. The consequence is on the board instead, as ROUTE_SHIPS, so the
+ * fold is visible rather than hidden.
+ *
+ * ★ AND EVERY COUNT IN AN ASK IS INTERPOLATED, NEVER TYPED. The first cut of
+ * this file corrected the counts in the finding above and left ask 3 reading
+ * "Licensed ships twelve swaps", which is the one number the round exists to
+ * take back, sitting in the first sentence a reviewer reads. A number written
+ * into a sentence cannot be wrong out loud; a number interpolated from the batch
+ * can only be wrong if the batch is. So there are none of the former left here.
  */
 
-import { BRIDGE, BRIDGE_BY_ID, MIX_LICENSED } from "./bridge";
+import {
+  BRIDGE,
+  BRIDGE_BY_ID,
+  routeOutcome,
+  routeOutcomeForId,
+} from "./bridge";
 import { candidate, CANDIDATES } from "./candidates";
 import type { Route } from "./kit";
 
@@ -49,6 +61,25 @@ export const IDS_TOTAL = Object.keys(BRIDGE_BY_ID).length;
 export const IDS_UNDER_RULE = IDS_TOTAL - BARRED_IDS.length;
 
 /**
+ * What Mix actually swaps the week it is chosen, asked of the one route function
+ * rather than counted off the list Mix is curated in.
+ *
+ * ★ ON THE IDS IT IS ONE FRAME, ON THE BLOG IT IS TWO, AND THAT IS NOT A TYPO.
+ * Mix keeps two staged candidates licensed, and only one of the twelve manifest
+ * ids is bridged by either of them: the id `wedding-arch` is bridged by
+ * `bridge-ceremony`, a ceremony with people in it, which is not furniture and so
+ * goes to the shoot with the other ten. A post names its candidate directly, so
+ * on the blog both details survive. Reading the mix list against an id was how
+ * round three's first cut made the board and the applied CSS disagree.
+ */
+export const MIX_IDS = Object.keys(BRIDGE_BY_ID).filter(
+  (id) => routeOutcomeForId(id, "mix").kind === "licensed",
+).length;
+export const MIX_POSTS = BRIDGE.filter(
+  (p) => routeOutcome(p, "mix").kind === "licensed",
+).length;
+
+/**
  * What each route actually puts on the site the week it is chosen, which is the
  * question the fifth ask used to ask. `legal` is whether every frame it ships
  * passes ask 1 as staged today.
@@ -67,8 +98,8 @@ export const ROUTE_SHIPS: readonly RouteShipment[] = [
   {
     route: "mix",
     label: "Mix",
-    ships: `${MIX_LICENSED.length} of the ${IDS_TOTAL} ids swapped for a licensed frame, the other ${IDS_TOTAL - MIX_LICENSED.length} left as they are until the shoot`,
-    blog: "2 covers change now, 21 wait",
+    ships: `${MIX_IDS} of the ${IDS_TOTAL} ids swapped for a licensed frame, the ring detail, which is the only one of the twelve that is furniture; the other ${IDS_TOTAL - MIX_IDS} are left as they are until the shoot`,
+    blog: `${MIX_POSTS} covers change now, ${BRIDGE.length - MIX_POSTS} wait`,
     legal: true,
     cost: "One night of photography, and two frames of staging",
     ends: "The day the kit lands, the two licensed frames are deleted",
@@ -130,12 +161,10 @@ export const ASKS: readonly Ask[] = [
   },
   {
     id: "route",
-    question:
-      "The route, which also decides the bridge: Licensed ships twelve swaps, Mix ships two, Ours ships none.",
+    question: `The route, which also decides the bridge: under ask 1 Licensed fills ${IDS_UNDER_RULE} of the ${IDS_TOTAL} ids, Mix fills ${MIX_IDS} of them now and sends the rest to the shoot, Ours sends all ${IDS_TOTAL}.`,
     options: ["Mix", "Ours", "Licensed"],
     recommend: "Mix",
-    because:
-      "Licensed cannot be chosen under ask 1 as staged: two of its twelve frames carry a face with no release, and it has nothing at all for the corporate and conference half of the business. Mix is the dated version of it.",
+    because: `Licensed cannot be chosen under ask 1 as staged: ${BARRED_IDS.length} of its ${IDS_TOTAL} frames carry a face with no release, and it has nothing at all for the corporate and conference half of the business. Mix is the dated version of it.`,
     href: "#mk-bridge",
   },
   {

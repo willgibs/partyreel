@@ -32,6 +32,8 @@ import {
   BARRED_POSTS,
   IDS_TOTAL,
   IDS_UNDER_RULE,
+  MIX_IDS,
+  MIX_POSTS,
   POSTS_FILLED,
   POSTS_UNDER_RULE,
   RECOMMENDATION,
@@ -80,9 +82,10 @@ import { SOURCES } from "./sources";
  *     recommendation marked, and a link into the section that argues each. A
  *     reviewer who reads nothing else can still rule, and everything below it is
  *     there to be disagreed with rather than to be waded through.
- *  2. FIVE ASKS BECAME FOUR. The route decides the bridge (Licensed ships twelve
- *     swaps, Mix ships two, Ours ships none), so asking both was asking the same
- *     question twice. The consequence is a table now (ROUTE_SHIPS) instead.
+ *  2. FIVE ASKS BECAME FOUR. The route decides the bridge (how many frames
+ *     change, and when), so asking both was asking the same question twice. The
+ *     consequence is a table now (ROUTE_SHIPS), every count in it interpolated
+ *     from the batch rather than written into the sentence.
  *  3. ★ THE RULE TAKES BACK PART OF THE LICENSED ROUTE, AND THE BOARD SAYS THE
  *     SMALLER NUMBER. Ask 1 bars a recognisable face without a release. Four of
  *     the 22 staged frames carry one, two of them are the swap for a manifest id
@@ -474,7 +477,7 @@ const APPLY: { id: string; label: string; css: string; note: string }[] = [
     id: "mk-mix",
     label: "Mix",
     css: MIX_CSS,
-    note: "The recommendation: licensed on the two details nobody studies, the slate on the ten that carry the argument. This is the site in the weeks between the ruling and the shoot.",
+    note: `The recommendation: a licensed photograph only where the frame is furniture (${MIX_IDS} of the twelve, the ring detail), the slate on the ${IDS_TOTAL - MIX_IDS} that carry the argument. This is the site in the weeks between the ruling and the shoot.`,
   },
   {
     id: "mk-ours",
@@ -486,7 +489,7 @@ const APPLY: { id: string; label: string; css: string; note: string }[] = [
     id: "mk-licensed",
     label: "Licensed",
     css: BRIDGE_CSS,
-    note: `The staged CC0 batch swapped in by id, everywhere the twelve appear. Walk it to see why it loses: ${BARRED_IDS.join(" and ")} are filled here by frames with a face and no release, so two of these twelve cannot ship under ask 1.`,
+    note: `The staged CC0 batch swapped in by id, everywhere the twelve appear. Walk it to see why it loses: ${BARRED_IDS.join(" and ")} are filled here by frames with a face and no release, so ${BARRED_IDS.length} of these ${IDS_TOTAL} cannot ship under ask 1.`,
   },
 ];
 
@@ -1509,8 +1512,7 @@ export function MediaKitBoard() {
         candidates={[
           {
             name: "Mix, the recommendation",
-            rationale:
-              "Ours on every frame a reader stops at (the hero, the reel clips, the four posts riding one empty hall), licensed on the two details that are furniture. It is the only route that changes anything the week it is chosen AND ships nothing the rule forbids. The bridge is dated: it is deleted the day the kit lands, not left because it still looks fine.",
+            rationale: `Ours on every frame a reader stops at (the hero, the reel clips, the four posts riding one empty hall), licensed only where the photograph is furniture: ${MIX_IDS} of the twelve ids and ${MIX_POSTS} of the ${BRIDGE.length} blog covers. It is the only route that changes anything the week it is chosen AND ships nothing the rule forbids. The bridge is dated: it is deleted the day the kit lands, not left because it still looks fine.`,
           },
           {
             name: "Ours",

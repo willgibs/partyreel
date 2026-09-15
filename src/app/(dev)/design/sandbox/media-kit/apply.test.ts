@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { BRIDGE_CSS, EXPOSURE_CSS, MIX_CSS, SHOOT_CSS } from "./apply";
-import { BRIDGE_BY_ID, MIX_LICENSED } from "./bridge";
+import { BRIDGE_BY_ID, routeOutcomeForId } from "./bridge";
 import { candidate } from "./candidates";
 
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
@@ -60,9 +60,9 @@ describe("the blocks a board hands the running site", () => {
         `/design/media-kit/${candidate(BRIDGE_BY_ID[image.id]).file}`,
       );
     }
-    expect(BRIDGE_CSS.split("\n").filter((l) => l.startsWith("img")).length).toBe(
-      MARKETING_IMAGES.length,
-    );
+    expect(
+      BRIDGE_CSS.split("\n").filter((l) => l.startsWith("img")).length,
+    ).toBe(MARKETING_IMAGES.length);
   });
 
   it("the shoot block names a shot for every one of the twelve", () => {
@@ -71,14 +71,37 @@ describe("the blocks a board hands the running site", () => {
     }
   });
 
-  it("the mix is licensed on exactly the two details and a slate on the rest", () => {
+  /**
+   * ★ THE BLOCK IS THE SHEET, ID BY ID. Round three's first cut built this block
+   * by matching the mix list against a manifest id while the board's sheet
+   * matched it against a candidate key, so Mix pasted bridge-ceremony.jpg onto a
+   * page the sheet showed wearing wedding-arch.jpg. The assertion is no longer
+   * "two licensed lines": it is that every one of the twelve wears exactly what
+   * `routeOutcomeForId` says it wears, which is the function the sheet reads.
+   */
+  it("the mix block wears whatever the board's own route function says", () => {
+    const licensedIds: string[] = [];
+    for (const id of Object.keys(BRIDGE_BY_ID)) {
+      const out = routeOutcomeForId(id, "mix");
+      if (out.kind === "licensed" && out.key) {
+        licensedIds.push(id);
+        expect(MIX_CSS, id).toContain(
+          `img[src*="mkt-${id}-01"] { content: url("/design/media-kit/${candidate(out.key).file}"); }`,
+        );
+      } else {
+        expect(MIX_CSS, id).toContain(`replaces ${id}`);
+      }
+    }
     const licensedLines = MIX_CSS.split("\n").filter((l) =>
       l.includes("/design/media-kit/"),
     );
-    expect(licensedLines.length).toBe(MIX_LICENSED.length);
-    for (const id of MIX_LICENSED) {
-      expect(MIX_CSS).toContain(`/design/media-kit/${candidate(BRIDGE_BY_ID[id]).file}`);
-    }
+    expect(licensedLines.length).toBe(licensedIds.length);
+    // Mix has to change something, or the toggle is inert in the paste too.
+    expect(licensedIds.length).toBeGreaterThan(0);
+  });
+
+  it("the three route blocks are three different pastes", () => {
+    expect(new Set([BRIDGE_CSS, SHOOT_CSS, MIX_CSS]).size).toBe(3);
   });
 
   it("a slate keeps its type inside the middle of a square, so no crop loses it", () => {
@@ -111,7 +134,10 @@ describe("the blocks a board hands the running site", () => {
     for (const [name, css] of BLOCKS) {
       expect(css.includes("[data-mk"), name).toBe(false);
       expect(css.trim().length, name).toBeGreaterThan(0);
-      expect(css.split("\n").every((l) => !l.startsWith(".mk-")), name).toBe(true);
+      expect(
+        css.split("\n").every((l) => !l.startsWith(".mk-")),
+        name,
+      ).toBe(true);
     }
   });
 });

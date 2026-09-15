@@ -67,14 +67,24 @@ The three routes, argued on the board at `/design/c/media-kit`:
 
 | Route | What it ships the week it is chosen | Cost | Legal under ask 1 as staged |
 | --- | --- | --- | --- |
-| **Mix** | 2 of the 12 ids swapped for a licensed detail, the other 10 left until the shoot | One night of photography, and two frames of staging | Yes |
+| **Mix** | 1 of the 12 ids swapped for a licensed detail (the ring, the only one of the twelve that is furniture) plus 2 of the 23 blog covers, the other 11 ids left until the shoot | One night of photography, and two frames of staging | Yes |
 | Ours | Nothing until the shoot, then all 36 masters at once | One night of photography and a release at the door | Yes |
 | Licensed | 10 of the 12 ids, not 12 (`reception-hall` and `party-dj` carry a face with no release) | None, which is the whole of its case | **No** |
 
-**The recommendation is Mix**, with the bridge dated: the two licensed frames are legal to ship and are
-deleted the day the kit lands. Ten of the twelve go to the shoot because they are studied (the hero, the
-four reel clips, the four blog posts that all ride one empty banquet hall); two are detail shots nobody
-studies and can carry a licensed bridge until then.
+**The recommendation is Mix**, with the bridge dated: the licensed frames are legal to ship and are
+deleted the day the kit lands. Eleven of the twelve ids go to the shoot because they are studied (the
+hero, the four reel clips, the four blog posts that all ride one empty banquet hall); the ring detail is
+the one nobody studies, so it can carry a licensed bridge until then. On the blog, where a post names
+its own candidate rather than inheriting the id's, Mix changes two covers: the ring and the empty aisle.
+
+**★ Mix swaps ONE id and TWO covers, and the difference is not a typo.** Mix keeps two staged frames
+licensed, `wedding-rings` and `wedding-arch`, and those are CANDIDATE keys. Only one of the twelve
+manifest ids is bridged by either of them: the id `wedding-arch` is bridged by `bridge-ceremony`, a
+ceremony with people in it, because an empty aisle is right for a timeline post and wrong for the footer
+strip (section 2's own argument against empty venues). Round three's first cut read the list in both
+namespaces at once and the board's sheet and its "Apply to the site" block disagreed about that frame;
+`routeOutcomeForId` now answers for an id and `routeOutcome` for a post, both through one predicate, and
+`decision.ts` counts what they return instead of counting the list.
 
 **★ Round two's counts for the Licensed route were the counts before the rule, and the rule takes some
 back.** The board said "all twelve ids fill" and "21 of the 23 posts fill", both true of the staged
@@ -219,7 +229,7 @@ any code behind it.
 Partyreel. For an `ours` frame that is a release Will collects at the shoot, in writing, and the entry
 records that he holds it. For a `licensed` frame the platforms are explicit that they do not supply
 model releases (section 4), so a licensed frame may not carry a recognisable face on a page that makes
-a claim. The two licensed frames the Mix route keeps are detail shots for that reason, not by accident.
+a claim. The frames the Mix route keeps licensed are detail shots for that reason, not by accident.
 The same applies to a generated face: a synthetic person who resembles a real one is the same exposure
 with none of the paperwork.
 

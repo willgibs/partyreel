@@ -20,7 +20,7 @@
  * real pages; the wiring round changes files and manifest entries, not CSS.
  */
 
-import { BRIDGE_BY_ID, MIX_LICENSED } from "./bridge";
+import { BRIDGE_BY_ID, routeOutcomeForId } from "./bridge";
 import { candidate } from "./candidates";
 import { MASTERS } from "./shoot";
 
@@ -42,6 +42,12 @@ const ALL_FRAMES = [
   'video[poster*="hero-candidate-0"]',
 ].join(",\n");
 
+/** The shot a frame's id inherits, for the slate. Declared above the blocks
+ *  because every block below is built at module init and may reach for it. */
+const SHOT_BY_ID = new Map(
+  MASTERS.flatMap((m) => m.replaces.map((id) => [id, m] as const)),
+);
+
 /**
  * A. THE EXPOSURE. Outline every frame whose provenance we cannot state and drain
  * the colour out of it. Bible 1 says the media is the colour, so a site walked
@@ -61,18 +67,31 @@ function swap(id: string, key: string): string {
 }
 
 /**
+ * Every block below is the board's own route function, asked of the twelve ids
+ * and answered in CSS.
+ *
+ * ★ THE BLOCK IS BUILT BY `routeOutcomeForId`, NEVER BY A SECOND READING OF THE
+ * MIX LIST. Round three's first cut matched the mix list against an id here and
+ * against a candidate key on the sheet, so Mix put bridge-ceremony.jpg on a page
+ * the board's own sheet showed wearing wedding-arch.jpg. A route means one thing
+ * or the walk is a lie about what a ruling would ship.
+ */
+function blockFor(route: "licensed" | "mix"): string {
+  return Object.keys(BRIDGE_BY_ID)
+    .map((id) => {
+      const out = routeOutcomeForId(id, route);
+      return out.kind === "licensed" && out.key ? swap(id, out.key) : slate(id);
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
+/**
  * B. LICENSED. The twelve replaced by the staged batch, by id, everywhere they
  * appear. Round one could fill eight; the second search filled all twelve.
  */
 export const BRIDGE_CSS = `/* media-kit B: the licensed bridge, all twelve, staged CC0 */
-${Object.entries(BRIDGE_BY_ID)
-  .map(([id, key]) => swap(id, key))
-  .join("\n")}`;
-
-/** The shot a frame's id inherits, for the slate. */
-const SHOT_BY_ID = new Map(
-  MASTERS.flatMap((m) => m.replaces.map((id) => [id, m] as const)),
-);
+${blockFor("licensed")}`;
 
 /** Wrap to at most `lines` rows of `max` characters, breaking on spaces. */
 function wrap(text: string, max: number, lines: number): string[] {
@@ -152,20 +171,20 @@ function esc(s: string): string {
  * frame by frame, on the pages that carry it.
  */
 export const SHOOT_CSS = `/* media-kit C: every frame as the shot that replaces it */
-${Object.keys(BRIDGE_BY_ID)
-  .map(slate)
-  .filter(Boolean)
-  .join("\n")}`;
+${Object.keys(BRIDGE_BY_ID).map(slate).filter(Boolean).join("\n")}`;
 
 /**
- * D. MIX, which is the recommendation: licensed on the two frames nobody studies,
- * the slate on the ten that carry the argument. It is the only block of the three
- * that shows the site as it would actually look in the weeks before the shoot.
+ * D. MIX, which is the recommendation: a licensed photograph only where the
+ * frame is furniture, the slate everywhere the frame carries the argument. It is
+ * the only block of the three that shows the site as it would actually look in
+ * the weeks before the shoot.
+ *
+ * ★ ON THE TWELVE IDS THAT IS ONE FRAME, NOT TWO. Mix keeps two staged
+ * candidates licensed, but only one of the twelve ids is bridged by either: the
+ * id `wedding-arch` is bridged by a ceremony with people in it, which is not
+ * furniture, so it goes to the shoot with the rest. On the blog, where a post
+ * names its candidate directly, Mix is still two covers. decision.ts derives
+ * both numbers from this same function rather than counting the list.
  */
-export const MIX_CSS = `/* media-kit D: the mix, licensed on the two details, the shoot on the ten */
-${Object.entries(BRIDGE_BY_ID)
-  .map(([id, key]) =>
-    (MIX_LICENSED as readonly string[]).includes(id) ? swap(id, key) : slate(id),
-  )
-  .filter(Boolean)
-  .join("\n")}`;
+export const MIX_CSS = `/* media-kit D: the mix, licensed where the frame is furniture, the shoot everywhere else */
+${blockFor("mix")}`;

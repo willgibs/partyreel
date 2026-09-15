@@ -309,8 +309,45 @@ export const BRIDGE_BY_ID: Readonly<Record<string, string>> = {
   "wedding-petals": "bridge-portrait-dusk",
 };
 
-/** The two frames the Mix route keeps licensed: details nobody studies. */
+/**
+ * The frames the Mix route keeps licensed: the details nobody studies.
+ *
+ * ★ THESE ARE CANDIDATE KEYS, AND ONLY CANDIDATE KEYS. Round three's first cut
+ * read this list in two namespaces at once: `routeOutcome` matched it against a
+ * post's candidate while the applied CSS matched it against a manifest id, and
+ * both only appeared to work because "wedding-rings" and "wedding-arch" happen
+ * to name a staged frame AND a manifest entry. They do not mean the same thing.
+ * The id `wedding-arch` is bridged by `bridge-ceremony` (the empty aisle is
+ * right for the timeline post and wrong for the footer strip, which is that
+ * candidate's own caution), so the sheet said wedding-arch.jpg while the paste
+ * said bridge-ceremony.jpg on the same route and the same page. It was also one
+ * edit from silence: swap either name for a key that is not also an id and every
+ * post falls through to "ours", which makes Mix identical to Ours and is the
+ * inert toggle this round exists to kill. One namespace now, one predicate, and
+ * `routeOutcomeForId` asks the same question of an id, so the sheet, the stage
+ * and the block a walk wears cannot disagree again.
+ */
 export const MIX_LICENSED = ["wedding-rings", "wedding-arch"] as const;
+
+/** The one predicate: does Mix keep a licensed photograph for this frame? */
+export function mixKeepsLicensed(key: string | null): boolean {
+  return key !== null && (MIX_LICENSED as readonly string[]).includes(key);
+}
+
+export type RouteOutcome =
+  | { kind: "licensed"; key: string | null }
+  | { kind: "ours" };
+
+/** The route rule itself, stated once, in candidate keys. */
+function outcomeFor(
+  key: string | null,
+  route: "licensed" | "ours" | "mix",
+): RouteOutcome {
+  if (route === "ours") return { kind: "ours" };
+  if (route === "licensed") return { kind: "licensed", key };
+  // Mix: licensed only where the photograph is furniture; the rest go to the shoot.
+  return mixKeepsLicensed(key) ? { kind: "licensed", key } : { kind: "ours" };
+}
 
 /**
  * What a route does with one post: hand it a licensed frame, or hand it to the
@@ -324,14 +361,21 @@ export const MIX_LICENSED = ["wedding-rings", "wedding-arch"] as const;
 export function routeOutcome(
   post: BridgePost,
   route: "licensed" | "ours" | "mix",
-): { kind: "licensed"; key: string | null } | { kind: "ours" } {
-  if (route === "ours") return { kind: "ours" };
-  if (route === "licensed") return { kind: "licensed", key: post.candidate };
-  // Mix: licensed only where the photograph is furniture, which on the blog is
-  // the two details nobody studies; everything else goes to the shoot.
-  return (MIX_LICENSED as readonly string[]).includes(post.candidate ?? "")
-    ? { kind: "licensed", key: post.candidate }
-    : { kind: "ours" };
+): RouteOutcome {
+  return outcomeFor(post.candidate, route);
+}
+
+/**
+ * The same question asked of a MANIFEST ID, which is what "Apply to the site"
+ * pastes. The blog is 23 frontmatter lines, but the other 21 routes read the
+ * twelve ids directly, and a route has to mean one thing on both: apply.ts calls
+ * this, so the block a walk wears is the board's own sheet turned into CSS.
+ */
+export function routeOutcomeForId(
+  id: string,
+  route: "licensed" | "ours" | "mix",
+): RouteOutcome {
+  return outcomeFor(BRIDGE_BY_ID[id] ?? null, route);
 }
 
 /**

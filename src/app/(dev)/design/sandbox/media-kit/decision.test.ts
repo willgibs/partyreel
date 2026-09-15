@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { BRIDGE, BRIDGE_BY_ID, MIX_LICENSED } from "./bridge";
+import {
+  BRIDGE,
+  BRIDGE_BY_ID,
+  MIX_LICENSED,
+  routeOutcome,
+  routeOutcomeForId,
+} from "./bridge";
 import { candidate, CANDIDATES } from "./candidates";
 import {
   ASKS,
@@ -9,11 +15,14 @@ import {
   BARRED_POSTS,
   IDS_TOTAL,
   IDS_UNDER_RULE,
+  MIX_IDS,
+  MIX_POSTS,
   POSTS_EMPTY,
   POSTS_FILLED,
   POSTS_UNDER_RULE,
   ROUTE_SHIPS,
 } from "./decision";
+import { MASTERS } from "./shoot";
 
 /**
  * THE DECISION, PINNED (the media-kit track, round three).
@@ -66,13 +75,30 @@ describe("what the rule takes back", () => {
   });
 
   it("the Mix route ships nothing the rule forbids, which is its whole case", () => {
-    for (const id of MIX_LICENSED) {
-      expect(candidate(BRIDGE_BY_ID[id]).people).not.toBe("identifiable");
+    // MIX_LICENSED is candidate keys; reading it as manifest ids is the bug
+    // bridge.test.ts pins, and would check the wrong photographs here.
+    for (const key of MIX_LICENSED) {
+      expect(candidate(key).people, key).not.toBe("identifiable");
     }
     const mix = ROUTE_SHIPS.find((r) => r.route === "mix");
     const licensed = ROUTE_SHIPS.find((r) => r.route === "licensed");
     expect(mix?.legal).toBe(true);
     expect(licensed?.legal).toBe(false);
+  });
+
+  it("what Mix swaps is counted by the route function, not off the list", () => {
+    expect(MIX_IDS).toBe(
+      Object.keys(BRIDGE_BY_ID).filter(
+        (id) => routeOutcomeForId(id, "mix").kind === "licensed",
+      ).length,
+    );
+    expect(MIX_POSTS).toBe(
+      BRIDGE.filter((p) => routeOutcome(p, "mix").kind === "licensed").length,
+    );
+    // It changes something (or the route is Ours under another name) and it does
+    // not change everything (or it is Licensed under another name).
+    expect(MIX_IDS).toBeGreaterThan(0);
+    expect(MIX_IDS).toBeLessThan(IDS_TOTAL);
   });
 });
 
@@ -99,6 +125,59 @@ describe("the ruling surface", () => {
 
   it("every ask points at a section of the board that argues it", () => {
     for (const a of ASKS) expect(a.href).toMatch(/^#mk-[a-z]+$/);
+  });
+
+  /**
+   * ★ THE ONE NUMBER THE ROUND EXISTS TO CORRECT WAS STILL IN ASK 3. The first
+   * cut of round three fixed the finding at the top of decision.ts and left the
+   * ask itself reading "Licensed ships twelve swaps", the pre-rule count, two
+   * lines above its own `because` and directly above the table that contradicts
+   * it, under a caption promising every number is computed. So: every digit in
+   * the ruling surface has to be a number the batch computes. A count typed into
+   * a sentence goes stale silently; an interpolated one cannot.
+   */
+  it("every count in an ask or the route table is one the batch computes", () => {
+    const derived = new Set<number>([
+      IDS_TOTAL,
+      IDS_UNDER_RULE,
+      IDS_TOTAL - MIX_IDS,
+      MIX_IDS,
+      MIX_POSTS,
+      POSTS_FILLED,
+      POSTS_EMPTY,
+      POSTS_UNDER_RULE,
+      BRIDGE.length,
+      BRIDGE.length - MIX_POSTS,
+      BARRED.length,
+      BARRED_IDS.length,
+      BARRED_POSTS.length,
+      CANDIDATES.length,
+      MASTERS.length,
+    ]);
+    const surfaces = [
+      ...ASKS.map((a) => `${a.question} ${a.because}`),
+      ...ROUTE_SHIPS.map((r) => `${r.ships} ${r.blog} ${r.cost} ${r.ends}`),
+    ];
+    for (const text of surfaces) {
+      // "ask 1" is a cross reference to a question, not a count of anything,
+      // and a digit welded to a word is a name (CC0), not a number either.
+      for (const n of text
+        .replace(/ask \d/g, "ask")
+        .match(/(?<![A-Za-z])\d+/g) ?? []) {
+        expect(derived, text).toContain(Number(n));
+      }
+    }
+  });
+
+  it("ask 3 states the counts the rule leaves, not the ones it takes back", () => {
+    const route = ASKS.find((a) => a.id === "route");
+    expect(route?.question).toContain(
+      `${IDS_UNDER_RULE} of the ${IDS_TOTAL} ids`,
+    );
+    expect(route?.question).not.toMatch(/ships twelve|twelve swaps|ships two/);
+    expect(route?.because).toContain(
+      `${BARRED_IDS.length} of its ${IDS_TOTAL} frames`,
+    );
   });
 
   it("the route table covers every route the board can be switched to", () => {
