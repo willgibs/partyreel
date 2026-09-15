@@ -1,34 +1,44 @@
 /* THE SCAN's own sheet (round three of the home-hero board, the lp/hero-scan
-   track). Keyframe prefix: hhc- (hhs- is the source's, hh- the board's;
-   keyframe names are document-global and keyframe-uniqueness.test.ts reads
-   every sheet under the lab).
+   track; round two of the variation, 2026-09-14). Keyframe prefix: hhc- (hhs-
+   is the source's, hh- the board's; keyframe names are document-global and
+   keyframe-uniqueness.test.ts reads every sheet under the lab).
 
    HOUSE CONVENTION, and why the corridor's half of it looks inverted. FINAL
    states live OUTSIDE the media queries so a reduced-motion reader gets the
    settled composition with nothing to undo: the corridor stands fully deployed
    (read from the per-card custom properties the concept computes during
-   render), the viewfinder's brackets sit LOCKED on the code, the flash is
-   spent, and the count reads its settled number. All of that is in the
+   render), the brackets sit LOCKED on the code, the flash and the bloom are
+   spent, and the count reads its opening number. All of that is in the
    server's own HTML. What lives inside `no-preference` is each animation's
    FIRST frame plus the animation itself: the cards collapsed at the code, the
    brackets thrown wide. Those have to be in CSS rather than in an effect,
    because an effect runs after the server's paint, so the composition would
    paint settled, snap back, and then play. Same trade the source flagged, and
-   it is flagged again on this concept: a reader with JavaScript off who has NOT
-   asked for less motion sees the corridor rest at the code and the brackets
-   rest wide. Nothing that carries meaning is gated by it. The h1, the QR, the
-   caption, the count, the subhead and the CTAs are plain markup and never move.
+   it is flagged again on this concept: a reader with JavaScript off who has
+   NOT asked for less motion sees the corridor rest at the code and the
+   brackets rest wide. Nothing that carries meaning is gated by it. The h1, the
+   QR, the caption, the count, the sentence and the actions are plain markup
+   and never move.
 
-   THE BEAT this concept adds. The camera finds the code (the brackets sweep in
-   over 760 ms and snap), the screen flashes once, and THEN the album branches
-   out. Cause, then effect, in that order, with the corridor's own clock held
-   until the snap. The two clocks (this sheet's animations and the concept's
-   requestAnimationFrame) both start at mount, so they agree; `data-hh-loop`
-   on the animated elements is what keeps them agreeing across a hidden tab.
+   THE BEAT, in the order a scanner actually has it (round two put it right:
+   round one fired the capture 60 ms BEFORE the brackets landed). The camera
+   finds the code (the brackets sweep in over 720 ms and snap), the capture
+   fires at 730, and the corridor's clock starts at 780, on the capture's peak,
+   which is the concept's RELEASE_MS. Cause, then effect, in that order.
+
+   The two clocks (this sheet's animations and the concept's
+   requestAnimationFrame) both start at mount, so they agree; `data-hh-loop` on
+   the animated elements is what keeps them agreeing across a hidden tab.
    board.css pauses any animation under `[data-paused]` on that hook, and the
    concept holds its own clock on the same attribute, so a beat interrupted by
    a tab switch resumes where it was instead of finishing unseen. The hook is
-   named for loops; this is a one-shot using the same pause mechanism. */
+   named for loops; these are one-shots using the same pause mechanism.
+
+   TWO READINGS OF THE CAUSE share every rule here, which is the point: the
+   bracket set on the phone's screen and the bracket set on the room's plate
+   are one component at two scales, driven by the same four custom properties
+   (--hhc-arm, --hhc-pad, --hhc-stroke, --hhc-throw). Rule one of them out and
+   the sheet loses a block, never a mechanism. */
 
 /* The corridor (the source's geometry, kept) */
 
@@ -71,7 +81,7 @@
   backface-visibility: hidden;
 }
 
-/* The device: a guest's phone in the near field, camera open */
+/* Reading one: the device, a guest's phone in the near field, camera open */
 
 /* The held angle. A phone at the lower left, aimed up and to the right at the
    code, is turned clockwise and tipped away from the viewer, so the screen
@@ -116,12 +126,12 @@
   border-radius: calc(var(--hhc-w) * 0.098);
   /* The camera's own preview of a dark room, and it has to sit clearly ABOVE
      the body's black or the whole device reads as one slab: a phone screen in
-     a dark room is still the brightest thing in the hand. The plate is the
-     brightest thing in the preview, which is what a scanner actually sees at
-     an event. */
+     a dark room is still the brightest thing in the hand. The bright patch
+     rides --hhc-vy, so it follows whatever the camera is pointed at rather
+     than sitting in the middle by default. */
   background:
     radial-gradient(
-      58% 26% at 50% var(--hhc-vy),
+      52% 20% at 50% var(--hhc-vy),
       oklch(0.42 0 0) 0%,
       oklch(0.24 0 0) 62%,
       transparent 100%
@@ -167,6 +177,49 @@
   position: relative;
   rotate: -6deg;
 }
+
+/* The capture flash on the screen, spent at rest. */
+.hhc-flash {
+  position: absolute;
+  inset: 0;
+  background: oklch(1 0 0);
+  opacity: 0;
+}
+
+/* Reading two: no device at all, and the room is the viewfinder */
+
+/* The same four brackets, at the room's scale, closing on the REAL plate. The
+   wrapper is inline-flex so its box IS the plate's box and the brackets have
+   something true to hang off. */
+.hhc-roomlock {
+  position: relative;
+  display: inline-flex;
+}
+
+/* The capture, at the plate rather than on a screen: one white bloom, spent in
+   400 ms, behind the plate so the code is never washed out (it has to stay
+   scannable at every frame of the beat). The only light in this reading, and
+   it is flagged on the board with the ruling. */
+.hhc-bloom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: var(--hhc-bloom);
+  height: var(--hhc-bloom);
+  translate: -50% -50%;
+  border-radius: 999px;
+  background: radial-gradient(
+    closest-side,
+    oklch(1 0 0 / 0.5) 0%,
+    oklch(1 0 0 / 0.16) 46%,
+    transparent 72%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The brackets, shared by both readings */
 
 .hhc-bracket {
   position: absolute;
@@ -216,12 +269,58 @@
   --hhc-by: var(--hhc-throw);
 }
 
-/* The capture flash, spent at rest. */
-.hhc-flash {
+/* The lab's own switch, in the corner of the canvas: chrome, never
+   composition. It exists because the board's shell is shared and registered
+   and this concept has a ruling to offer (the phone, or the brackets alone);
+   it leaves with the board when that ruling lands. Sized so it never competes
+   with anything in the frame, and parked in the one corner every composition
+   here leaves empty: above the headline's box, outside the band, clear of the
+   near field on both canvases. */
+.hhc-lab {
   position: absolute;
-  inset: 0;
-  background: oklch(1 0 0);
-  opacity: 0;
+  top: 12px;
+  right: 12px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 5px 4px 11px;
+  border: 1px solid oklch(1 0 0 / 0.12);
+  border-radius: 999px;
+  background: oklch(0.15 0 0 / 0.84);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.hhc-lab-sm {
+  top: 8px;
+  right: 8px;
+  padding: 3px 4px 3px 9px;
+  font-size: 10px;
+}
+
+.hhc-lab-label {
+  margin-right: 4px;
+  color: oklch(1 0 0 / 0.4);
+}
+
+.hhc-lab-btn {
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: oklch(1 0 0 / 0.55);
+}
+
+.hhc-lab-sm .hhc-lab-btn {
+  padding: 3px 7px;
+}
+
+.hhc-lab-btn:hover {
+  color: oklch(1 0 0 / 0.82);
+}
+
+.hhc-lab-btn[aria-pressed="true"] {
+  background: oklch(1 0 0 / 0.13);
+  color: oklch(1 0 0 / 0.95);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -234,13 +333,26 @@
   /* The camera finding the code: the brackets start thrown wide and
      invisible, then sweep in and snap. --ease-emphasis is the house enter
      curve (a strong ease-out, no overshoot: a focus lock snaps, it does not
-     bounce). */
+     bounce). Both readings run the same animation, because they ARE the same
+     object: one set is 13 px arms on a screen, the other 34 px arms in a room. */
   .hhc-bracket {
-    animation: hhc-lock 760ms var(--ease-emphasis) both;
+    animation: hhc-lock 720ms var(--ease-emphasis) both;
   }
 
+  /* The capture, 10 ms after the snap. The corridor's clock starts at 780,
+     which is this animation's peak, so the album leaves ON the flash. */
   .hhc-flash {
-    animation: hhc-flash 420ms var(--ease-emphasis) 700ms both;
+    animation: hhc-flash 300ms var(--ease-emphasis) 730ms both;
+  }
+
+  .hhc-bloom {
+    animation: hhc-bloom 400ms var(--ease-emphasis) 730ms both;
+  }
+
+  .hhc-lab-btn {
+    transition:
+      color 120ms var(--ease-emphasis),
+      background-color 120ms var(--ease-emphasis);
   }
 }
 
@@ -264,6 +376,20 @@
     opacity: 0;
   }
   16% {
-    opacity: 0.5;
+    opacity: 0.42;
+  }
+}
+
+@keyframes hhc-bloom {
+  0% {
+    opacity: 0;
+    scale: 0.55;
+  }
+  14% {
+    opacity: 0.36;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.18;
   }
 }

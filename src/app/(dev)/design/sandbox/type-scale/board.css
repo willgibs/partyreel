@@ -13,17 +13,37 @@
    production truth rather than a retyped mock: pick another ladder and the same
    components re-lay themselves out.
 
-   ★ SPECIFICITY IS LOAD-BEARING, AND THE DISPLAY STEP IS THE HIGH-WATER MARK.
+   ★ SPECIFICITY IS LOAD-BEARING, AND THE PASTE IS THE HIGH-WATER MARK.
    Tailwind's size utilities sit in @layer utilities, so any unlayered rule
-   beats them outright. marketing.css is unlayered too, and its masthead rule is
-   `[data-mkt] [data-inview="true"] .mkt-name` at (0,3,0), which a two-attribute
-   selector loses to: the board measured 160px at -0.03em under every candidate
-   until this chain grew a third attribute. So every rule here runs the full
-   `[data-tsc] [data-tsc-page] [data-tsc-*]` chain rather than reaching for an
-   !important, and a shorter one will silently stop overriding the masthead. */
+   beats them outright. Two unlayered things are harder, and the second is the
+   one that bites:
 
-[data-tsc] [data-tsc-page] [data-tsc-step="heading"] :is(h1, h2, h3),
-[data-tsc] [data-tsc-page] [data-tsc-step="card"] [data-slot="card-title"] {
+     1. marketing.css, whose masthead rule is `[data-mkt] [data-inview="true"]
+        .mkt-name` at (0,3,0). The board measured 160px at -0.03em under every
+        candidate until this chain grew a third token.
+     2. ROUND TWO'S OWN CANDIDATE PASTE. "Apply to the site" renders a
+        candidate's block as a <style> AFTER every stylesheet, on every page,
+        and the board is a page on that site: the paste lands on these stages
+        too and wins every TIE on source order. Its longest hook is the page
+        step's `h1[class~="font-heading"]:is([class~="text-2xl"], ...)
+        :not([class~="lg:text-5xl"])`, which is (0,3,1): three attribute tokens
+        AND a type. A three-attribute chain ending in `:is(h1, h2, h3)` scores
+        exactly the same, so it LOSES. That tie cost stage 13 its whole
+        argument (its three app registers collapsed onto the applied ladder's
+        one page size while the captions still read 24 / 20 / 20) until the
+        rules below counted `[data-tsc]` twice to reach (0,4,1).
+
+   So every rule that spends a step's properties runs the full
+   `[data-tsc][data-tsc] [data-tsc-page] [data-tsc-*]` chain rather than
+   reaching for an !important, and "the board's sheet outranks any paste" in
+   ladders.test.ts fails the moment a hook grows a token and ties it again. A
+   shorter chain silently stops overriding. */
+
+[data-tsc][data-tsc] [data-tsc-page] [data-tsc-step="heading"] :is(h1, h2, h3),
+[data-tsc][data-tsc]
+  [data-tsc-page]
+  [data-tsc-step="card"]
+  [data-slot="card-title"] {
   font-size: var(--tsc-size);
   line-height: var(--tsc-lh);
   letter-spacing: var(--tsc-ls);
@@ -33,7 +53,8 @@
    stage is a zoomed 375 or 1440 canvas inside a real browser window, so those
    breakpoints read the WINDOW and a phone stage would otherwise wear a desktop
    gutter. Same reason the home-hero board carries a GUTTER constant. The mode
-   sets --tsc-gutter; this spends it on a Container inside a stage only. */
+   sets --tsc-gutter; this spends it on a Container inside a stage only. (No
+   paste touches padding, so this one keeps the shorter chain.) */
 [data-tsc] [data-tsc-page] [class~="max-w-7xl"] {
   padding-inline: var(--tsc-gutter);
 }
@@ -64,8 +85,8 @@
    400ms after a toggle, the display step reported a tracking that belonged to
    neither ladder, and a screenshot taken then would have shown a number the
    board never proposed. The squeeze itself is the light track's question, not
-   this one. (0,4,0), because marketing's own rule is (0,3,0).) */
-[data-tsc] [data-tsc-page] [data-tsc-step] .mkt-name {
+   this one. (0,5,0), on the same doubled chain as the rules above.) */
+[data-tsc][data-tsc] [data-tsc-page] [data-tsc-step] .mkt-name {
   transition: none;
 }
 
@@ -75,4 +96,27 @@
 [data-tsc-ghost] {
   border-bottom: 1px solid color-mix(in oklab, currentColor 20%, transparent);
   border-left: 1px solid color-mix(in oklab, currentColor 20%, transparent);
+}
+
+/* ROUND TWO: the 404 stage also changes FACE. The one h1 on the site that is
+   off the ladder is off it by face as well as by size (Inter 600, no
+   font-heading), so the "on the ladder" half of stage 14 has to set the heading
+   face and its weight as well as the step, or it would be comparing two sizes
+   of the wrong face. The same chain as the rules above, for the same reason. */
+[data-tsc][data-tsc] [data-tsc-page] [data-tsc-face] :is(h1, h2, h3) {
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: 700;
+}
+
+/* ★ AND THE "AS IT SHIPS" HALF STAYS SHIPPED. Round two applies a candidate to
+   the WHOLE site, and the board is a page on that site: a paste that reaches
+   `[data-not-found] h1` restyles the very half of stage 14 that exists to show
+   what production does today, so the comparison would quietly become a
+   comparison of one thing with itself. This pins the body face and its weight
+   on the doubled chain, out of reach of any paste (the mark to beat is the
+   page hook's (0,3,1), NOT the three tokens an earlier note claimed), and the
+   SpecStep beside it pins the size. */
+[data-tsc][data-tsc] [data-tsc-page] [data-tsc-ships] :is(h1, h2, h3) {
+  font-family: var(--font-sans);
+  font-weight: 600;
 }
