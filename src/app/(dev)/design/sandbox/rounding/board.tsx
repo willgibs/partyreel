@@ -510,7 +510,7 @@ const DEPARTURES = [
   "The float rung is being ruled on two boards. This one sets --radius-float; the floating-surfaces proposal adds --radius-float-item (the panel minus its row padding) and --radius-float-lg. They have to agree, and bible 9 says the item token is right: today a menu draws an 8px panel around 1.6px rows sitting in 4px of padding.",
   "--radius-action-lg has exactly one call site, the reel builder, on an h-11. Every marketing CTA is size lg forced to h-11 with a className in 26 files, so the loudest action on the site wears 0.9 x --radius-action at 0.33 of its height while globals.css documents the ladder as 0.4. The proposal is a cta size on the Button (h-11 at 1.1 x --radius-action) and the retirement of a token named for a height nothing uses.",
   "The derived ladder cannot be retuned with a token. @theme inline substitutes each step into its utility at build time, so --radius-xl is empty at runtime and part D renders the retune as utility overrides. The ruling lands on the multipliers in theme.css, one line a step, which is the Orchestrator's file.",
-  "The guest group still mounts no design island, so a candidate applied to the site does not reach /e/<token> in your own tab. The board no longer needs that fixed to SHOW the page (part A writes the rail into the frame directly, which is how the gap finding is now drawn on the live demo album), but a walk does, and the floating-surfaces board asks for the same one line in (guest)/layout.tsx.",
+  "The guest group mounts a design island now (it landed on launch-prep between rounds three and four), so /e/<token> wears an applied candidate in your own tab with the key on the URL. Part A no longer depends on that either way: it writes the rail into the frame directly, which is how the gap finding is drawn on the live demo album beside today.",
   "Sixty-four corners on the site are literals rather than tokens, and the walk is where that shows. rounded-[2px], -[3px] and -[4px] account for 52 of them across 24 non-lab files (the film strip, the live demo, the decomposition frames, the album grids, the reel filmstrip), so under any candidate but A a photograph keeps today's corner while the card around it moves: the home page alone holds 48 corners at 2px and 22 at 3px with the answer applied, beside cards at 10 and 12. They are the same argument as the gallery gap, one layer out, and they want var(--radius-tile). A ruling of C is a ruling to sweep them.",
 ];
 
@@ -654,6 +654,7 @@ export function RoundingBoard() {
   const railLabel = `${surface.letter}, ${action.name.split(",")[0].toLowerCase()} actions${ladder === "quarters" ? ", quarter ladder" : ""}`;
   const todayCss = blockFor(today, todayRung, "stock");
   const route = ROUTES.find((r) => r.id === routeId) ?? ROUTES[0];
+  const guestPath = ROUTES.find((r) => r.id === "guest")?.path ?? null;
   const screenUrl = screenPath(screen, ground, designKey);
   const w = FRAME_W[mode];
   const h = FRAME_H[mode];
@@ -880,7 +881,12 @@ export function RoundingBoard() {
                   ["/help", "help"],
                   ["/contact", "contact"],
                   ["/dashboard", "the dashboard"],
-                ] as const
+                  // The guest group mounts an island since round three, so the
+                  // album takes a candidate in your own tab now too.
+                  ...(guestPath
+                    ? ([[guestPath, "the guest album"]] as const)
+                    : []),
+                ] as [string, string][]
               ).map(([href, label], i, all) => (
                 <span key={href}>
                   <a
