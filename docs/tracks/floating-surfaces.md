@@ -513,7 +513,9 @@ rescue.
 
 ## Handoff (round 3)
 
-- Head: the tip of `lp/floating-surfaces`, pushed. Board: `/design/c/floating-surfaces?key=`.
+- Head: the tip of `lp/floating-surfaces`, pushed; the third pass's code and prose landed at
+  `e7b5b18`, on the merge `b624c23`, and the tip is the commit that records this line. Board:
+  `/design/c/floating-surfaces?key=`.
   **The marker that says "this is round three" is the block the board OPENS with, "Where this board
   lands"**; round two's board had no such block, and its absence is the fastest way to tell you are
   looking at the old one. A second marker, in a different place: any frame drawn smaller than its
