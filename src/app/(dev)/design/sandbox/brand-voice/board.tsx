@@ -105,7 +105,7 @@ import {
 /** The verdict, on top. A board this tall with its recommendation at the
  *  bottom is a board that gets scrolled, not ruled on. */
 const LEAD = {
-  what: "What Partyreel sounds like, argued where a voice is actually judged: whole pages. Three columns, one toggle, and every line a candidate keeps verbatim marked held.",
+  what: "What Partyreel sounds like, argued where a voice is actually judged: whole pages. Three columns, one toggle, and every line a candidate keeps verbatim marked held. Twelve chapters, and seven asks at the foot that each answer in one word.",
   recommend: "B, the room.",
   because:
     "It is the only candidate built from the one thing only this product does, a code on a table becoming an album while the party is still going, and it is the reason a line here could not be said by a shared folder or a group chat.",

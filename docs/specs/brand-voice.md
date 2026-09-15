@@ -9,7 +9,7 @@
 > (→ [`../../content/help/AUTHORING.md`](../../content/help/AUTHORING.md)).
 > GROWS BY: refine in place.
 
-> **STATUS: a PROPOSAL (the `brand-voice` track, round two, 2026-09-14).** Bible 20 says the
+> **STATUS: a PROPOSAL (the `brand-voice` track, round three, 2026-09-14).** Bible 20 says the
 > brand-voice exploration writes the do's that replace it, and bible 21 opened every line until the
 > voice exists. This is that guide, written from the ground up (bible 22) and argued on whole pages
 > at `/design/c/brand-voice`. Nothing here binds until Will rules; on his ruling the Orchestrator
@@ -87,6 +87,7 @@ album) is a thing happening, so this is the default shape and the one a headline
 | Surface | Example |
 | --- | --- |
 | Hero | One code on the table, and the album starts filling. |
+| Utility hero | Every note gets a reply. |
 | Section header | The album fills while the party is still going. |
 | Feature card | Every phone in the room, filling one album. |
 | Email subject | 12 new photos landed in Maya & Jay's Wedding |
@@ -150,7 +151,7 @@ Each surface, the shapes that belong on it, and the rule that decides between th
 | Hero | 1, 2 | The h1 is the whole product in one line, the subhead the mechanism in one sentence. The h1 never explains; the subhead never sells a second time. |
 | Section header | 1, 2, 3 | A claim the section then proves, never the category it belongs to. |
 | Feature card | 1, 2 | Read in a row of cards, so it is scannable and different from its neighbours in substance. One line, no verb in front (the title carries the name). |
-| Help article | 5, then 4 | The title is the reader's question in the reader's words. The description is the short answer, written so someone could stop reading after it. |
+| Help article | 5, then 4 | The title is the reader's question in the reader's words. The description is the short answer, written so someone could stop reading after it. **This is the one surface where the reader's words outrank the voice:** a title is also the search string and the tab title, which is why "How Partyreel works" keeps our name in the subject position the voice avoids everywhere else. |
 | App label | none | The noun or the verb the host would use for the thing. It is also the source string the help catalogue quotes. |
 | Email subject | 1, 5 | Name what happened to the reader's own thing, front-loaded for a truncating inbox. Carry "Partyreel" only where the inbox needs it to sort. |
 | Error | 5, then 4 | Say what did not happen, in the app's own noun, then the one thing to do next. Never apologise, never blame the reader, never explain the system. |
@@ -166,13 +167,17 @@ do's, so a writer has something to aim at rather than something to avoid.
 **1. Lead with what arrives.** An absence may be the second beat, never the first, and never both.
 "Scan, upload, done. No app to install." is the shape: the gain arrives, then the relief. "Nothing
 to install. Nothing to sign up for." is two absences and no product. (This replaces bible 20; see
-the findings.)
+the findings.) It reaches further than the home arc: `/pricing`'s subhead opens "No per-guest
+fees.", which is the same swap, one page over.
 
 **2. Commit to the outcome.** A reply, a review, host control, yes; a person answering, a human
 reviewing, an automatic takedown, a "business day", no. Copy promises what arrives, never who or
 what delivers it, so support and moderation tooling can change without breaking published
 (especially legal) language. Two carve-outs are deliberate and stay: guest attribution ("every
-upload has a real person behind it") and careers' "We read every application".
+upload has a real person behind it") and careers' "We read every application". The model sentence
+is already shipped, on `/contact`: **"Every note gets a reply, usually within a day."** It promises
+the arrival and says nothing about who delivers it, which is exactly what keeps it legal where "a
+person will answer" or "within one business day" would not be.
 
 **3. Use only proof the product produced.** A number in a line is a number the product made (214
 photos, 23 guests, 3 uploads to review). No "trusted by", no thousands of hosts, no testimonials,
@@ -250,14 +255,16 @@ reaches `marketing-voice.ts` and `feature-pages.ts` without anything being retyp
 
 1. **[`marketing-voice.ts`](../../src/lib/constants/marketing-voice.ts) first**: the thesis, the
    subhead, the seven home headers, the decomposition facts. Everything downstream is written
-   against the register these set, so they move before anything quotes them. (Board 4's paste.)
+   against the register these set, so they move before anything quotes them. (Chapter 4's paste.)
 2. **[`feature-pages.ts`](../../src/lib/constants/feature-pages.ts) and
    [`marketing-nav.ts`](../../src/lib/constants/marketing-nav.ts) together**, in one commit: the nav
    mirror test pins the 44 labels and 15 descriptions against the six pages' identity strings, so
-   the pair cannot move separately. (Board 8's paste.)
+   the pair cannot move separately. (Chapter 8's paste.)
 3. **The marketing sections and pages**, chapter by chapter, a page at a time. The home arc's
-   eyebrows, supporting lines and CTAs are on boards 2 to 4; the two feature pages whole are on
-   boards 6 and 7, cards included. **The card sets are the surprise in this step, and the cheapest
+   eyebrows, supporting lines and CTAs are on chapters 2 to 4; the two feature pages whole are on
+   chapters 6 and 7, cards included; `/help`, `/contact` and `/pricing` are on chapter 9, and they
+   are the cheapest three lines on the list with the largest effect, since two of them are the most
+   generic sentences on the site. **The card sets are the surprise in this step, and the cheapest
    part of it:** across the album page's nineteen cards and the curation page's five, A moves three
    strings of forty-eight and B six. Will's 2026-09-02 finish pass already wrote them in one length
    band with every number derived from the constants the product enforces, so a rewrite that ignores
@@ -307,7 +314,18 @@ alongside `noApp` and `fullQuality`, which are Will's own lines pending a ruling
 the board rewrites. If the referent was something else, the Orchestrator corrects it and the board
 adds the missing picks.
 
-**5. The quiet and guest registers did not fork with the voice.** Round one found it on four sample
+**5. The home page is about to carry two different counts.** The hero variations of the third
+round propose "312 photos from 48 guests" as a stand-in, and the decomposition band two sections
+below it ships "Built from 214 photos. Shot by 23 guests." Do 3 above allows one of those, not
+both: one source, one pair of numbers, read from the demo event wherever the composition pass puts
+them.
+
+**6. `/pricing` and the home arc say the same promise two ways.** The page's h1 is "Start free,
+upgrade when you host again." (a ratified golden line) and the arc's ruled teaser is "Start free,
+upgrade for more events." Both are Will's. A rewrite is not needed; a choice is, and the infusion
+round makes it once rather than page by page.
+
+**7. The quiet and guest registers did not fork with the voice.** Round one found it on four sample
 surfaces; round two confirmed it on eleven real ones. Of the six app surfaces the board walks, the
 five labels and three of the lines hold unchanged; of the six guest surfaces, three hold. The
 register was already mostly written in the voice. The exception worth ruling on is the guest
@@ -321,6 +339,9 @@ The board shows two voices. This guide is written as **the room** (candidate B).
 
 - Shape 2 (the two beats) becomes the default instead of shape 1, "the room" leaves the word list,
   and the paragraph's centre moves from the during back to the after.
+- A costs one row less on the loudest line. Measured on the board at today's ladder, the home hero's
+  h1 takes 3 rows in B and 2 in A at 1440, and 4 against 3 at 375; today sits with A. That is the
+  whole of B's typographic price, and it is why the board measures it rather than asserting it.
 - The registers, the eight do's, the word list, the surfaces table and the whole sweep procedure are
   unchanged.
 - A moves far less of the site: it holds most of the thirty feature-page strings unchanged, because
