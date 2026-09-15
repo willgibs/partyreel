@@ -415,7 +415,7 @@ own page. No production byte changed.
 
 ## Handoff (round 3)
 
-- Head: the tip of `lp/brand-voice` (this manifest commit); the board's code head is `767fb2f`, on
+- Head: the tip of `lp/brand-voice` (this manifest commit); the board's code head is `1d9c6c2`, on
   top of the sync merge `e769c27`. Preview `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the
   board at `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
   `docs/specs/brand-voice.md`. **The round-three board is the one whose root div carries
@@ -424,8 +424,9 @@ own page. No production byte changed.
 - Synced with `launch-prep` at `dd4aa0b` (it had moved by the palette and floating-surfaces
   round-two merges and their manifests; nothing in this lane or its `reads`). Merged clean, gate
   re-run on the merged tree.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing and none
-  in this lane), test ok (1,719 in 193 files), build ok (248 static pages, compiled clean).
+- Gates, re-run in full at this head after the review pass: typecheck ok, lint ok (0 errors; 6
+  warnings, all pre-existing and none in this lane), test ok (1,719 in 193 files), build ok (248
+  static pages, compiled clean).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/brand-voice.md`,
   `docs/tracks/brand-voice.md` and the three files under
   `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `board.css`, `voices.ts`). No
@@ -436,6 +437,25 @@ own page. No production byte changed.
 - Assets requested from Will: none. The board is type on the real grounds; its only stand-in is the
   grey plate in the three unfurl cards, which stands for a link preview's own thumbnail and now
   says so on the board.
+
+### The review pass on this handoff (three defects, what each one got)
+
+A read-only review of the round-three handoff found one blocking and two should-fix items. All three
+are answered at this head:
+
+1. **The preview alias does not serve this head (blocking).** Not fixable from inside this lane and
+   not caused by it: the cause is measured below ("The preview alias, and where this head was
+   actually verified"), the branch gate passes on all three counts, and every check the round claims
+   was re-run at this head on a local server at a real 1440 viewport and a real 375 one. A forced
+   redeploy of `lp/brand-voice`, confirmed READY at this head, is the Orchestrator's to run before
+   Will walks.
+2. **The round's "Apply to the site" item was dropped from the record.** Restated, with the two
+   pastes named as the equivalent artifact and the reason the real pages cannot be walked in a
+   candidate: see "The goal's 'Apply to the site' block, and the real pages it names" below.
+3. **The one row the board called a decision reached no ask.** Fixed in the board rather than the
+   manifest: the row is compelled by bible 4, not chosen, so the field, the badge and the chapter
+   headnote now say so and point at ask 7 for the one part of it that IS a choice. The asks stay at
+   seven. Walk item 5 and the line under the asks say it in the record too.
 
 ### The walk, taken cold, and what it changed
 
@@ -463,14 +483,51 @@ columns), and every stumble it found is fixed:
    At 375 the ledger now sits BESIDE the stage, so the line being judged and the line it replaces
    are in one view.
 5. **Twelve app and guest rewrites all read like twelve rulings.** They are the sweep's ordinary
-   work; the ONE row that is a decision (the guest account gate, the line bible 4 refuses) is
-   marked as one, and both chapter headnotes say which is which.
+   work, and the ONE row a rule already owns (the guest account gate) is marked with the rule that
+   owns it, `bible 4 refuses the shipped line`. Both chapter headnotes say which is which. The mark
+   is a compliance fix, NOT an eighth ask: bible 4 refuses the shipped line whatever the voice, so
+   the infusion round changes it either way, and the only choosable part of the rewrite (the noun,
+   email or sign in) is ask 7, which settles this door line and the chapter 12 unfurl together. The
+   review of round three read the earlier wording ("the marked one is a decision") as a ruling that
+   never reached the ask list, which was fair: the label, the headnote and the field name now all
+   say compelled.
 6. **A mark that meant nothing.** The dot in the ledger explained itself only in a `title`
    tooltip, on a board nobody hovers. It says what it is, and what `ruled` means beside it.
 7. **Less to rule on.** Two of round two's four departures had become asks (bible 20, the
    album/gallery noun) and left; the asks were reworded so every one answers in a single word.
    Candidate A was re-judged from the ground up and KEEPS its column: it is the only answer that
    costs the finished feature pages almost nothing, which is an argument rather than a shade of B.
+
+### The goal's "Apply to the site" block, and the real pages it names
+
+The round-three goal asked the walk to cover "every 'Apply to the site' block" on the home arc,
+`/pricing`, `/help`, `/contact`, the dashboard, an event page with `?key=` and the demo guest page.
+Restating the standing judgment here, because round three's record dropped it:
+
+- **This board has no "Apply to the site" block and will not grow one: copy is not CSS.** A tuner
+  board hands the site a candidate STYLESHEET, so it can push one into the live pages and walk them
+  with it applied. A voice board hands the site SENTENCES, which reach the pages only as TypeScript
+  in two constants files. The equivalent artifact is the pair of pastes, rendered per candidate and
+  copyable off the board: `sectionHeadersPaste()` in chapter 4's aside (the seven provisional home
+  headers as the `SECTION_HEADERS` edit for `src/lib/constants/marketing-voice.ts`) and
+  `featurePagesPaste()` at the foot of chapter 8 (the thirty identity strings as the `FEATURE_PAGES`
+  array for `src/lib/constants/feature-pages.ts`). Nothing in this lane calls `setCandidateCss`,
+  `clearCandidate` or `useTunerCandidate`, so the "a candidate block uses real selectors" check is
+  N/A here by construction.
+- **So the live pages were not walked in a candidate, because there is no state to walk them in.**
+  Applying a voice is the infusion round running those two pastes; until then `/pricing` and the
+  dashboard render today's lines whatever this board is set to. What this round did instead is bring
+  the pages to the board on their real grounds: the home arc is chapters 2 to 4 (fifteen sections in
+  order), the two feature pages are 6 and 7, `/help`, `/contact` and `/pricing` are chapter 9 (new
+  this round, with two real help article heads), the dashboard and the app's quiet copy are chapter
+  10, the demo guest page is chapter 11 and its `?key=` unfurl is chapter 12. Every `today` column is
+  the SHIPPED string, imported from the page's own copy module where one exists (the album cards,
+  the recently-deleted window) and transcribed verbatim from the source file otherwise, with the
+  file named on each row, so the comparison is against the real page rather than a retyped memory of
+  it.
+- **The one thing that would still be worth walking live is the arc's ORDER**, which the board
+  stages section by section rather than as one scroll. It is cheap for the infusion round to do with
+  the paste applied on a branch, and it is the one judgment a staged board cannot make for Will.
 
 ### Light QA, in numbers (six passes: Desktop and Phone 375, each on Today, A and B)
 
@@ -488,23 +545,54 @@ columns), and every stumble it found is fixed:
   keyframe's end state IS the resting state and there is no delay to cover, so the fill bought
   nothing and is gone. **At rest the board now runs 0 animations**; a voice swap runs 17 for 180ms;
   the worst frame of a swap fell from 83ms to 50ms with the median at 17ms, on 1,394 nodes.
-- **Both canvases read.** 1440 and 375, all three columns, walked top to bottom.
+- **Both canvases read.** All six passes walked top to bottom at a real 1440 viewport, and the
+  whole board read again at a real 375 viewport (the iframe probe described under the preview
+  section, since the MCP browser window will not reflow below desktop width). Every number in this
+  section was re-measured at this head after the review pass. The surface was a local dev server on
+  the worktree tip, not the preview alias, for the reason set out below.
 
-### The preview alias does not serve this head, and Will should know before he walks
+### The preview alias, and where this head was actually verified
 
-- **Vercel is at its daily deployment ceiling and none of this round's three pushes produced a
-  deployment record at all** (not a canceled one: none). Other branches are getting the occasional
-  slot as the rolling window frees one, so it is not a project-wide stop and nothing is wrong with
-  this branch: the build gate reads `preview: true` from this manifest and every commit also says
-  `[preview]`. As of handoff the alias still serves round TWO, which is checkable in one line: the
-  round-two board's root div is `bv-round-two`, round three's is `bv-round-three`.
-- **The fallback, which is what this round was verified on:** `pnpm dev` in the worktree at
-  `../partyreel-wt/brand-voice` (left in place) serves the tip exactly, board at
-  `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`.
+The read-only review of round three confirmed this from the outside: 24 polls over twelve minutes,
+every response HTTP 200 and every one of them `bv-round-two`. It is still true at this head, and the
+cause is now measured rather than guessed.
+
+- **The project is creating one deployment per fifteen minutes, whatever the branch, and a push
+  that arrives inside a closed window leaves NO record at all.** The deployment list for the
+  project, one row per window, reads 21:49, 22:04, 22:18, 22:33, 22:48, 23:02, 23:17, 23:31 EDT,
+  each one a different track. Nine tracks are pushing tonight, so the slot goes to whoever pushes
+  first after it opens, and everyone else's push is dropped silently. This branch has lost every
+  window since 21:33, which is why the alias serves round TWO (commit `0f40d41`, deployment
+  `dpl_4dUiy4m1eRRi538YY1A1ZLBh3oX2`).
+- **The branch gate is not the cause and there is nothing to fix on this branch.** The front matter
+  says `preview: true` and `status: handed-off`, and every commit message also carries `[preview]`,
+  so `scripts/vercel-ignore-build.mjs` exits 1 (build) on all three counts. A canceled build would
+  have left a record; there is no record.
+- **The check, in one line.** The round-three board's root div is `class="bv-round-three"`; round
+  two's is `bv-round-two`. The head that serves is also visible as the card reading "The
+  recommendation / B, the room." at the top and the twelve-chapter index in the control bar.
+- **Where this head WAS verified, in full: a local dev server on the worktree tip.** `pnpm dev -p
+  3031` in `../partyreel-wt/brand-voice`, board at
+  `http://localhost:3031/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, walked in Chrome at the
+  real 1440 viewport in all six passes (Desktop and Phone 375 canvases, each on B, A and today),
+  and then at a REAL 375 viewport, which needed a trick worth writing down: the MCP browser tab
+  group renders offscreen and reports `visibilityState: "hidden"`, so the window will not reflow
+  below the desktop width no matter what it is resized to. The board was therefore loaded into a
+  same-origin 375x812 iframe in that tab, which gives the inner document a true 375 viewport with
+  its own media queries. Results at 375: `clientWidth` 371 (375 less the scrollbar), document
+  horizontal overflow 0, all 16 stages 0 in both axes, and every one of the 116 boxes that cross
+  the right edge sits inside one of the two deliberate horizontal scrollers (the chapter index
+  `nav` and the strings table's `overflow-x-auto` wrapper); nothing unclipped. At rest,
+  `document.getAnimations()` inside that frame returns 0.
+- **So the round's light-QA rule is satisfied on the composition and not on the surface.** Will's
+  rule is the board on ITS PREVIEW at 1440 and 375; this is the board at that head at 1440 and 375
+  on localhost. If the alias has caught a window by the time this is read, the one-line check above
+  settles it in a second; if it has not, the Orchestrator can force a redeploy of this branch, or
+  Will can run the dev server line above.
 - **Also worth the Orchestrator's eye: the `launch-prep` alias serves ROUND ONE of this board**, not
-  round two. It was checked at the start of this round, before any of this round's pushes: the
-  integration alias builds on request and no `[preview]` push has rebuilt it since this track
-  merged, so a walk there shows a board two rounds old.
+  round two. It was checked at the start of round three, before any of its pushes: the integration
+  alias builds on request and no `[preview]` push has rebuilt it since this track merged, so a walk
+  there shows a board two rounds old.
 
 ### The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will)
 
@@ -515,6 +603,12 @@ columns), and every stumble it found is fixed:
 - "The thesis: keep in one album, or take as everyone saw it (the agent recommends keep)"
 - "One noun for the thing: album everywhere, or album on the site and gallery on a guest's screen (the agent recommends album)"
 - "The account-required unfurl line: email, or sign in (the agent recommends email)"
+
+Seven, and nothing else on the board is waiting on Will. In particular the one MARKED row in
+chapter 11 (the guest account gate, `components/guest/entry-modal.tsx`) is not an eighth ask: bible
+4 refuses the shipped line, which asks a guest to make an account with us on the host's own page, so
+the infusion round rewrites it whichever voice is chosen. Its only choosable part is the noun, and
+that is ask 7 above, answered once for this door line and the unfurl in chapter 12.
 
 ### Findings the Orchestrator must carry
 
