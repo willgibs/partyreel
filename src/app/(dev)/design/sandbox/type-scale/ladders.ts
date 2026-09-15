@@ -48,9 +48,11 @@ export type StepPair = { phone: Spec; desktop: Spec };
 
 export type LadderId = "today" | "a" | "b" | "c";
 
-/** Every block the board can paste at the real site: the four ladders, plus the
- *  tracking law on its own, which round two made adoptable without the sizes. */
-export type PasteId = LadderId | "law";
+/** Every block the board can paste at the real site: the four ladders, the
+ *  tracking law on its own (round two made it adoptable without the sizes), and
+ *  round four's PAIR, which is a marketing ladder and an app ladder chosen
+ *  separately and composed into one block. */
+export type PasteId = LadderId | "law" | "pair";
 
 export type Ladder = {
   id: PasteId;
@@ -356,26 +358,37 @@ export function ladderById(id: LadderId): Ladder {
  */
 export type Fix = "phone" | "leading" | "tracking" | "middle";
 
-export const FIXES: { id: Fix; label: string; fault: string }[] = [
+export const FIXES: {
+  id: Fix;
+  label: string;
+  fault: string;
+  /** The register the fault belongs to, so each half of the glance shows its
+   *  own faults rather than a row that can never be true of it. */
+  surfaces: Surface[];
+}[] = [
   {
     id: "phone",
     label: "The phone end",
     fault: "at 375 today has three distinct sizes doing the work of six",
+    surfaces: ["marketing"],
   },
   {
     id: "leading",
     label: "Named leading",
     fault: "line-height arrives with whichever size class the ramp lands on",
+    surfaces: ["marketing", "app"],
   },
   {
     id: "tracking",
     label: "Tracking by size",
     fault: "a 160px masthead and a 16px card title share one -0.03em",
+    surfaces: ["marketing", "app"],
   },
   {
     id: "middle",
     label: "The app's middle",
     fault: "between the page title and the card title the app has no step",
+    surfaces: ["app"],
   },
 ];
 
@@ -383,24 +396,32 @@ export const FIXES: { id: Fix; label: string; fault: string }[] = [
  *  A ladder NAMES its leading when its values are not all borrowed from here. */
 const BORROWED_LEADING = new Set([0.85, 1, 1.111, 1.2, 1.333, 1.375]);
 
-export function fixes(ladder: Ladder): Record<Fix, boolean> {
-  const marketing = STEPS.filter(
+export function fixes(ladder: Ladder, surface?: Surface): Record<Fix, boolean> {
+  // A folded step is the step it folds into, so counting it twice would make a
+  // ladder look as though it tracked two things at one value.
+  const named = STEPS.filter(
     (s) =>
-      s.surface === "marketing" &&
       ladder.steps[s.id] &&
-      ladder.aliases?.[s.id] === undefined,
+      ladder.aliases?.[s.id] === undefined &&
+      (!surface || s.surface === surface),
   );
-  const phoneSizes = marketing.map((s) => ladder.steps[s.id]!.phone.px);
-  const live = STEPS.filter((s) => ladder.steps[s.id]);
-  const leadings = live.flatMap((s) => [
+  const phoneSizes = named
+    .filter((s) => s.surface === "marketing")
+    .map((s) => ladder.steps[s.id]!.phone.px);
+  const leadings = named.flatMap((s) => [
     ladder.steps[s.id]!.phone.lh,
     ladder.steps[s.id]!.desktop.lh,
   ]);
-  const tracking = new Set(live.map((s) => ladder.steps[s.id]!.desktop.ls));
+  const tracking = new Set(named.map((s) => ladder.steps[s.id]!.desktop.ls));
   return {
-    phone: new Set(phoneSizes).size === phoneSizes.length,
+    phone:
+      phoneSizes.length > 0 && new Set(phoneSizes).size === phoneSizes.length,
     leading: leadings.some((lh) => !BORROWED_LEADING.has(lh)),
-    tracking: tracking.size >= 5,
+    // ROUND FOUR: the law is per-step, so "fixed" is every live step carrying
+    // its OWN value, not a count that only reads right for a six-step register.
+    // The app register is two or three steps; the old `>= 5` could never be
+    // true of it, and round four asks the two registers separately.
+    tracking: tracking.size > 1 && tracking.size === named.length,
     middle: Boolean(ladder.steps.subsection),
   };
 }
@@ -414,11 +435,13 @@ export function fixes(ladder: Ladder): Record<Fix, boolean> {
 export function moved(
   ladder: Ladder,
   end: "phone" | "desktop",
+  surface?: Surface,
 ): { moved: number; of: number; added: number } {
   let count = 0;
   let of = 0;
   let added = 0;
   for (const step of STEPS) {
+    if (surface && step.surface !== surface) continue;
     const mine = ladder.steps[step.id];
     const now = TODAY.steps[step.id];
     if (!mine) continue;
@@ -530,6 +553,12 @@ export const WALK: { href: string; label: string }[] = [
   { href: "/about", label: "/about, on paper" },
   { href: "/contact", label: "/contact" },
   { href: "/dashboard", label: "the dashboard" },
+  // ROUND FOUR: both of these were on the NO_ISLAND list until the Orchestrator
+  // landed the two one-line mounts round three's handoff asked for. admin and
+  // (guest) now carry AppDesignIsland, so an applied block reaches the portal
+  // and the guest album in a real tab, which is the only way the app register
+  // can be walked signed in.
+  { href: "/admin", label: "the admin portal" },
   { href: "/events/not-a-real-event", label: "a marketing 404" },
 ];
 
@@ -537,18 +566,22 @@ export const WALK: { href: string; label: string }[] = [
  *  a missing island as a broken block. Each is one line for the wiring round. */
 export const NO_ISLAND: { where: string; why: string }[] = [
   {
-    where: "/admin",
-    why: "admin/layout.tsx mounts no design island, so the admin idiom is judged on the stages instead",
-  },
-  {
-    where: "a guest page and the demo album",
-    why: "(guest)/layout.tsx mounts none either, and the guest album is the one surface a host never signs in to",
-  },
-  {
     where: "the root 404",
-    why: "app/not-found.tsx renders outside both marketing and the app; the marketing 404 above wears the paste",
+    why: "app/not-found.tsx renders outside both marketing and the app, so it mounts no island at all; the marketing 404 in the walk wears the paste instead",
   },
 ];
+
+/**
+ * ROUND FOUR, and worth carrying past this board: the two surfaces round three
+ * could not reach are reachable now. `admin/layout.tsx` and `(guest)/layout.tsx`
+ * both mount `AppDesignIsland`, which is exactly the one-line change this
+ * board's round-three handoff and the floating-surfaces and rounding boards all
+ * asked for. Every board in the wave can now be walked on the portal and on a
+ * guest album; only the root 404 is still outside every island, and that one is
+ * structural rather than a missing mount.
+ */
+export const ISLANDS_LANDED =
+  "admin and the guest routes mount a design island now, so a block reaches the portal and the album in a tab. Only the root 404 is still outside every island.";
 
 /* ──────────────────────────── The token table ─────────────────────────── */
 
@@ -581,6 +614,8 @@ export type TokenRow = {
   lh: string;
   ls: string;
   step: StepId;
+  /** Which register the row came from, so one table can show a chosen pair. */
+  surface: Surface;
 };
 
 /**
@@ -602,6 +637,7 @@ export function tokenTable(ladder: Ladder): TokenRow[] {
     if (!value) continue;
     rows.push({
       step: step.id,
+      surface: step.surface,
       token: `--text-${step.id}`,
       size: fluid(value.phone.px, value.desktop.px),
       lh: fluid(
@@ -895,3 +931,177 @@ ${stepDecls(ladder, ladder.steps.prose ? "prose" : "section", withSizes)}
 export function themeBlock(ladder: Ladder): string {
   return `@theme {\n${tokenLines(ladder, true)}\n}\n`;
 }
+
+/* ══════════════════════ ROUND FOUR: THE PAIR ══════════════════════════ */
+
+/**
+ * WILL'S RULING TO MAKE, AND THE BOARD'S CALL ON THE SHAPE.
+ *
+ * "Marketing and app will have different type scales. Your call on separating
+ * them into two distinct sets or combining them all into one. I'd like to
+ * select them separately in the lab." (Will, 2026-09-15.)
+ *
+ * The board's call is ONE SET, TWO REGISTERS, and it is argued rather than
+ * assumed, because the alternative is real. Two distinct sets would name the
+ * same nine roles twice (`--text-mkt-card` and `--text-app-card`) and then have
+ * to answer which one a Card wears, since `CardTitle` is ONE component that
+ * ships on a pricing page and on the dashboard. It would also duplicate the
+ * tracking law, which is a function of size and not of surface: a 40px heading
+ * wants the same tracking whichever side of the product it is on, which is the
+ * whole of the third ask.
+ *
+ * One set keeps the bake at one `@theme` block and a baked step at one class,
+ * and the two registers are simply which rungs each half of the ladder stands
+ * on: `display` through `prose` are marketing's, `page` through `card` are the
+ * app's. Nothing in the set is computed from anything else in it, which is
+ * exactly why the two halves can be RULED separately, and why the lab selects
+ * them separately: a pair is a real, shippable block, not a compromise between
+ * two ladders.
+ *
+ * The one seam worth naming: `card` sits in the app register and marketing's
+ * cards follow it. That is deliberate, and it is the floor law's doing (no app
+ * heading below the 14px body a Card sets on its own subtree); a marketing card
+ * title has never wanted to be louder than that.
+ */
+export const REGISTER_CALL = {
+  headline: "One token set, two registers",
+  body: "Nine names, one @theme block, and the register is which rungs each half stands on: display through prose are marketing's, page through card are the app's. Two distinct sets would name every role twice and then have to answer which set a Card wears, since CardTitle is one component that ships on /pricing and on the dashboard, and it would duplicate the tracking law, which is a function of size and not of surface. Nothing in the set is computed from anything else in it, so the two halves are ruled separately without the set splitting: that is what the two switches in the dock are.",
+} as const;
+
+/** The register a step belongs to, read off STEPS so there is one statement. */
+export const SURFACE: Record<StepId, Surface> = Object.fromEntries(
+  STEPS.map((s) => [s.id, s.surface]),
+) as Record<StepId, Surface>;
+
+/** A marketing ladder and an app ladder, chosen separately (round four). */
+export type Pair = { marketing: LadderId; app: LadderId };
+
+/** Both switches open on what the board would ship. */
+export const DEFAULT_PAIR: Pair = { marketing: RECOMMENDED, app: RECOMMENDED };
+
+export const SURFACE_LABEL: Record<Surface, string> = {
+  marketing: "Marketing",
+  app: "The app",
+};
+
+/**
+ * The pair as ONE ladder, which is what makes the call above concrete: a pair
+ * composes into a single nine-step set with a single `@theme` block and a
+ * single paste, so choosing the two halves separately costs the system nothing.
+ * When both halves are the same ladder the composition IS that ladder, id and
+ * all, so a paste of B alone is byte-identical to a paste of the pair (B, B).
+ */
+export function composePair(p: Pair): Ladder {
+  const m = ladderById(p.marketing);
+  const a = ladderById(p.app);
+  if (p.marketing === p.app) return m;
+  const steps = {} as Record<StepId, StepPair | null>;
+  const aliases: Partial<Record<StepId, StepId>> = {};
+  for (const step of STEPS) {
+    const from = step.surface === "marketing" ? m : a;
+    steps[step.id] = from.steps[step.id];
+    const alias = from.aliases?.[step.id];
+    if (alias) aliases[step.id] = alias;
+  }
+  return {
+    id: "pair",
+    name: `${m.name} + ${a.name}`,
+    rationale: `${m.name} across marketing and ${a.name} across the app, composed into one nine-step set.`,
+    law: `Marketing on ${m.name}, the app on ${a.name}. One set, two registers.`,
+    cost: `Marketing pays: ${m.cost} The app pays: ${a.cost}`,
+    steps,
+    ...(Object.keys(aliases).length ? { aliases } : {}),
+  };
+}
+
+/* ═════════════ ROUND FOUR: THE REAL PAGES, AT TRUE PIXELS ═════════════ */
+
+/**
+ * THE JUDGED SURFACE IS THE REAL PAGE NOW.
+ *
+ * Will, on this board: "This is currently un-reviewable with the iframes
+ * because, despite it maintaining the same scale at a smaller size, I can't
+ * actually judge the font sizes in usage themselves scaled down", and "I'd
+ * also like ... more UI previews themselves". The thing that was wrong was the
+ * ZOOM, not the frame: a frame at 1440 renders 1440 true pixels. So round four
+ * replaced four reconstructions (the home sections, a feature page, /about, the
+ * hero lockup) with the ROUTES themselves, each in a frame exactly the canvas
+ * wide, with the selected pair injected straight into the frame's document.
+ *
+ * Three things a reconstruction could never do, and all three matter to a type
+ * ruling:
+ *  1. The breakpoints are the CANVAS's. A `sm:`/`lg:` prefix inside a stage
+ *     reads the browser window (the shell's own warning); inside a frame at 375
+ *     it reads 375, so the phone end is the page's real phone end.
+ *  2. The CLAMP is evaluated, not resolved by hand. Every `vw` in the generated
+ *     block measures the frame, so the frame shows the token the wiring round
+ *     bakes rather than the board's arithmetic about it.
+ *  3. Everything on the page moves, including the sixteen hand-rolled headings
+ *     no hook reaches, so the reach of the ruling is visible instead of
+ *     described.
+ *
+ * ★ NO `?key=` ON A FRAME, ON PURPOSE. The key mounts the marketing motion
+ * tuner, whose panel would sit on top of the page being judged, and it mounts
+ * CandidateStyle, which would put a stale APPLIED block under the live pair.
+ * The board injects the pair itself, last in the frame's head.
+ */
+export const REAL_PAGES: {
+  id: string;
+  href: string;
+  label: string;
+  /** Why this page is on the board: the step it is here to settle. */
+  why: string;
+  /** What the pair does NOT move here, so a still heading reads as the page. */
+  reach?: string;
+  /** The guest album, whose href is the demo token the board reads from env. */
+  demo?: true;
+}[] = [
+  {
+    id: "home",
+    href: "/",
+    label: "The home arc, top to bottom",
+    why: "The display step, the hero step, and the chapter and section tiers across fifteen sections and three grounds. Scroll it inside the frame: this is the whole arc at the pixels it ships.",
+    reach:
+      "the four feature-family sections and the footer ship a hand-rolled 30 / 36 that no hook reaches",
+  },
+  {
+    id: "pricing",
+    href: "/pricing",
+    label: "/pricing",
+    why: "The title step over plan cards, where the card step and the section step meet a dense table.",
+  },
+  {
+    id: "feature",
+    href: "/features/curation",
+    label: "A feature page",
+    why: "The title step as six pages wear it, over the section tier and a card row.",
+    reach: "its four section headings are the hand-rolled 30 / 36",
+  },
+  {
+    id: "help",
+    href: "/help",
+    label: "/help",
+    why: "The same title step on a dense index, plus the stat numerals that ship at the prose step since the mono face left.",
+  },
+  {
+    id: "article",
+    href: "/help/who-can-see-your-event",
+    label: "A help article",
+    why: "The one long-form reading surface on the site: the title step over body prose, where a tight tracking shows first.",
+  },
+  {
+    id: "about",
+    href: "/about",
+    label: "/about, on paper",
+    why: "The masthead at the display step over the prose tier, on the only paper ground marketing has. C folds the prose tier away and this is where that costs something.",
+  },
+  {
+    id: "album",
+    href: "",
+    demo: true,
+    label: "The guest album",
+    why: "The surface most people who ever see Partyreel see, and the one no host signs in to. Its heading is an app heading on a guest page, so the app register is what re-lays it.",
+    reach:
+      "its header is a guest heading rather than a PageHeading, so the app register reaches its album title and not its wordmark",
+  },
+];

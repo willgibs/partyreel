@@ -6,6 +6,12 @@ import { describe, expect, it } from "vitest";
 import {
   APP_BODY_PX,
   ASK_404,
+  composePair,
+  DEFAULT_PAIR,
+  REAL_PAGES,
+  REGISTER_CALL,
+  SURFACE,
+  type Pair,
   askOrdinal,
   ASKS,
   candidateCss,
@@ -644,15 +650,64 @@ describe("how much of the site a ladder moves at one canvas", () => {
 });
 
 describe("the walk: only pages a paste can actually reach", () => {
-  // ★ Round three found two dead links in round two's walk. The candidate's
-  // <style> comes from a design island, and the island mounts in the lab
-  // layout, the two marketing layouts and the app layout only: /admin mounts
-  // none, and /nothing-here resolves to the ROOT app/not-found.tsx, outside
-  // both. Either one looked like a broken paste rather than a missing island.
-  it("lists no surface that carries no island", () => {
-    expect(WALK.some((p) => p.href.startsWith("/admin"))).toBe(false);
-    expect(WALK.some((p) => p.href.startsWith("/e/"))).toBe(false);
-    for (const page of WALK) expect(page.href.startsWith("/")).toBe(true);
+  /**
+   * ★ COMPUTED, NOT DECLARED (round four). Round three found two dead links in
+   * round two's walk: /admin mounted no design island and /nothing-here
+   * resolved to the ROOT app/not-found.tsx, so a candidate never reached
+   * either and clicking them read as a broken paste. Round four's Orchestrator
+   * landed the two one-line mounts, so /admin and the guest routes ARE
+   * walkable now, and the board's list moved with them.
+   *
+   * A hard-coded list of what is walkable is exactly what went stale last
+   * time, so this reads the real layouts instead: every walk link must resolve
+   * to a layout that actually mounts an island. Remove a mount anywhere and
+   * this fails, naming the link that went dead.
+   */
+  const ISLAND_OF: { prefix: string; layout: string; mount: string }[] = [
+    {
+      prefix: "/dashboard",
+      layout: "src/app/(app)/layout.tsx",
+      mount: "AppDesignIsland",
+    },
+    {
+      prefix: "/admin",
+      layout: "src/app/admin/layout.tsx",
+      mount: "AppDesignIsland",
+    },
+    {
+      prefix: "/e/",
+      layout: "src/app/(guest)/layout.tsx",
+      mount: "AppDesignIsland",
+    },
+    {
+      prefix: "/contact",
+      layout: "src/app/(marketing)/(paper)/layout.tsx",
+      mount: "MarketingMotionTuner",
+    },
+    // Everything else under the marketing tree is the cinema group.
+    {
+      prefix: "/",
+      layout: "src/app/(marketing)/(cinema)/layout.tsx",
+      mount: "MarketingMotionTuner",
+    },
+  ];
+
+  const layoutFor = (href: string) =>
+    [...ISLAND_OF]
+      .sort((a, b) => b.prefix.length - a.prefix.length)
+      .find((entry) => href.startsWith(entry.prefix))!;
+
+  it("walks only surfaces whose real layout mounts a design island", () => {
+    expect(WALK.length).toBeGreaterThan(5);
+    for (const page of WALK) {
+      expect(page.href.startsWith("/")).toBe(true);
+      const entry = layoutFor(page.href);
+      const layout = readFileSync(join(process.cwd(), entry.layout), "utf8");
+      expect(
+        layout.includes(`<${entry.mount} />`),
+        `${page.href} walks through ${entry.layout}, which no longer mounts ${entry.mount}`,
+      ).toBe(true);
+    }
   });
 
   it("walks a marketing 404 rather than an unrouted path", () => {
@@ -660,8 +715,216 @@ describe("the walk: only pages a paste can actually reach", () => {
     expect(notFound?.href.startsWith("/events/")).toBe(true);
   });
 
-  it("names every surface a paste cannot reach, with the reason", () => {
-    expect(NO_ISLAND.length).toBeGreaterThanOrEqual(3);
+  it("names the root 404, the one surface outside every island", () => {
+    expect(NO_ISLAND.length).toBe(1);
     for (const gap of NO_ISLAND) expect(gap.why.length).toBeGreaterThan(30);
+    const root = readFileSync(
+      join(process.cwd(), "src/app/not-found.tsx"),
+      "utf8",
+    );
+    // It is outside both trees by construction, so no island can be in it.
+    expect(root.includes("AppDesignIsland")).toBe(false);
+    expect(root.includes("MarketingMotionTuner")).toBe(false);
+  });
+});
+
+/* ═══════════ ROUND FOUR: THE PAIR, AND THE REGISTERS IT COMPOSES ═════════ */
+
+/**
+ * Will's third note asked for the two registers to be selectable separately
+ * and left the SHAPE to the board: two distinct token sets, or one set with
+ * two registers. The board's call is one set (REGISTER_CALL), and that call is
+ * only honest if a pair behaves like a ladder in every way the wiring round
+ * cares about: one nine-step set, one @theme block, one paste. These prove it
+ * for every one of the sixteen pairs rather than for the recommended one.
+ */
+describe("the pair: two registers, chosen separately, composed into one set", () => {
+  const ALL: Pair[] = LADDERS.flatMap((m) =>
+    LADDERS.map((a) => ({
+      marketing: m.id as Pair["marketing"],
+      app: a.id as Pair["app"],
+    })),
+  );
+
+  it("agrees with STEPS about which register every step is in", () => {
+    for (const step of STEPS) expect(SURFACE[step.id]).toBe(step.surface);
+    expect(Object.keys(SURFACE).length).toBe(STEPS.length);
+  });
+
+  it("takes every marketing step from one ladder and every app step from the other", () => {
+    for (const pair of ALL) {
+      const composed = composePair(pair);
+      for (const step of STEPS) {
+        const from = ladderById(
+          step.surface === "marketing" ? pair.marketing : pair.app,
+        );
+        expect(composed.steps[step.id]).toEqual(from.steps[step.id]);
+      }
+    }
+  });
+
+  it("is the ladder itself when both halves are the same one", () => {
+    for (const l of LADDERS) {
+      const composed = composePair({
+        marketing: l.id as Pair["marketing"],
+        app: l.id as Pair["app"],
+      });
+      expect(composed).toBe(l);
+      // The paste must be byte-identical too, or "B" and the pair (B, B) would
+      // be two different blocks with one name.
+      expect(candidateCss(composed)).toBe(candidateCss(l));
+    }
+  });
+
+  it("carries a folded step only from the register that folds it", () => {
+    // C folds prose into section, and prose is marketing's: a pair with C on
+    // the app side must NOT inherit the fold.
+    const cApp = composePair({ marketing: "b", app: "c" });
+    expect(cApp.aliases?.prose).toBeUndefined();
+    const cMkt = composePair({ marketing: "c", app: "b" });
+    expect(cMkt.aliases?.prose).toBe("section");
+  });
+
+  it("bakes as ONE @theme block whichever two ladders it is", () => {
+    for (const pair of ALL) {
+      const block = themeBlock(composePair(pair));
+      expect(block.match(/@theme/g)?.length).toBe(1);
+      // And every name in it is the shared set: no register prefix anywhere,
+      // which is the whole of the board's call.
+      expect(block).not.toMatch(/--text-(mkt|app|marketing)-/);
+    }
+  });
+
+  it("spends the marketing hooks on the marketing half and the app hooks on the app half", () => {
+    // B and C differ at every step, so a crossed pair is the strongest probe:
+    // the section hook must carry B's value and the page hook C's.
+    const css = candidateCss(composePair({ marketing: "b", app: "c" }));
+    const b = ladderById("b");
+    const c = ladderById("c");
+    expect(css).toContain(`${HOOKS.section!.selector} {`);
+    expect(css).toContain(
+      `--text-section--letter-spacing: ${b.steps.section!.desktop.ls}em`,
+    );
+    expect(css).toContain(
+      `--text-page--letter-spacing: ${c.steps.page!.desktop.ls}em`,
+    );
+    // And the reverse pair swaps exactly those two and nothing else.
+    const flipped = candidateCss(composePair({ marketing: "c", app: "b" }));
+    expect(flipped).toContain(
+      `--text-section--letter-spacing: ${c.steps.section!.desktop.ls}em`,
+    );
+    expect(flipped).toContain(
+      `--text-page--letter-spacing: ${b.steps.page!.desktop.ls}em`,
+    );
+  });
+
+  it("opens both switches on the ladder the board recommends", () => {
+    expect(DEFAULT_PAIR.marketing).toBe(RECOMMENDED);
+    expect(DEFAULT_PAIR.app).toBe(RECOMMENDED);
+  });
+
+  it("states the register call in a form the board and the spec can both print", () => {
+    expect(REGISTER_CALL.headline.length).toBeGreaterThan(10);
+    expect(REGISTER_CALL.body.length).toBeGreaterThan(200);
+    // The call is one set; the board must not claim the opposite anywhere.
+    expect(REGISTER_CALL.headline.toLowerCase()).toContain("one token set");
+  });
+});
+
+/**
+ * Round four judges the marketing register on the ROUTES rather than on
+ * reconstructions. A frame is only honest if it points at a real internal page
+ * and carries no key: the key would mount the motion tuner over the page being
+ * judged and put an APPLIED block under the pair being previewed.
+ */
+describe("the real pages the frames render", () => {
+  it("points every frame at an internal route with no query of its own", () => {
+    for (const page of REAL_PAGES) {
+      if (page.demo) {
+        // The guest album's href is completed from the demo token at render.
+        expect(page.href).toBe("");
+        continue;
+      }
+      expect(page.href.startsWith("/")).toBe(true);
+      expect(page.href).not.toContain("?");
+      expect(page.href).not.toContain("key=");
+    }
+  });
+
+  it("gives every frame a unique id and a reason it is on the board", () => {
+    const ids = REAL_PAGES.map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const page of REAL_PAGES) expect(page.why.length).toBeGreaterThan(40);
+  });
+
+  it("covers the surfaces the round asked for", () => {
+    const hrefs = REAL_PAGES.map((p) => p.href);
+    for (const href of ["/", "/pricing", "/help", "/about"]) {
+      expect(hrefs).toContain(href);
+    }
+    expect(hrefs.some((h) => h.startsWith("/features/"))).toBe(true);
+    expect(hrefs.some((h) => h.startsWith("/help/"))).toBe(true);
+    expect(REAL_PAGES.some((p) => p.demo)).toBe(true);
+  });
+
+  it("frames a help article that the site actually routes", () => {
+    const article = REAL_PAGES.find((p) => p.href.startsWith("/help/"))!;
+    const help = readFileSync(
+      join(process.cwd(), "src/lib/content/help.ts"),
+      "utf8",
+    );
+    expect(help).toContain(article.href);
+  });
+});
+
+/**
+ * The glance table is two tables now, one per register, and each shows only
+ * the faults that register can have. A fix row that can never be true of a
+ * two-step register is a row a reviewer has to learn to ignore.
+ */
+describe("what each register fixes, counted per register", () => {
+  it("scopes every fault to the register it belongs to", () => {
+    const phone = FIXES.find((f) => f.id === "phone")!;
+    const middle = FIXES.find((f) => f.id === "middle")!;
+    expect(phone.surfaces).toEqual(["marketing"]);
+    expect(middle.surfaces).toEqual(["app"]);
+    for (const fix of FIXES) expect(fix.surfaces.length).toBeGreaterThan(0);
+  });
+
+  it("has today fixing nothing on either register", () => {
+    const today = ladderById("today");
+    for (const surface of ["marketing", "app"] as const) {
+      for (const fix of FIXES.filter((f) => f.surfaces.includes(surface))) {
+        expect(fixes(today, surface)[fix.id]).toBe(false);
+      }
+    }
+  });
+
+  it("has every candidate naming its leading and its tracking on both registers", () => {
+    for (const ladder of CANDIDATES) {
+      for (const surface of ["marketing", "app"] as const) {
+        expect(fixes(ladder, surface).leading).toBe(true);
+        expect(fixes(ladder, surface).tracking).toBe(true);
+      }
+    }
+  });
+
+  it("gives the app's middle only to the registers that carry the step", () => {
+    for (const ladder of [...LADDERS, LAW_ONLY]) {
+      expect(fixes(ladder, "app").middle).toBe(
+        Boolean(ladder.steps.subsection),
+      );
+    }
+  });
+
+  it("counts a register's movement without the other register's steps", () => {
+    // A keeps every desktop size on both registers, so both halves read zero.
+    const a = ladderById("a");
+    expect(moved(a, "desktop", "marketing").moved).toBe(0);
+    expect(moved(a, "desktop", "app").moved).toBe(0);
+    // C drops the app title and leaves marketing's own count untouched.
+    const c = ladderById("c");
+    expect(moved(c, "desktop", "app").moved).toBeGreaterThan(0);
+    expect(moved(c, "desktop", "app").of).toBe(2);
   });
 });

@@ -10,11 +10,9 @@ import {
 } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 
+import { MetricCard } from "@/components/admin/metric-card";
 import type { Mode } from "@/components/dev/board";
 import { Caption } from "@/components/marketing/system/caption";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
-import { PageHero } from "@/components/marketing/system/page-hero";
-import { SectionShell } from "@/components/marketing/system/section-shell";
 import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import { PageHeading } from "@/components/shared/page-heading";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +23,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
-import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 import { cn } from "@/lib/utils";
 
 import { optics, type Ladder, type Spec, type StepId } from "./ladders";
@@ -34,18 +30,25 @@ import { optics, type Ladder, type Spec, type StepId } from "./ladders";
 /**
  * THE REAL PAGES THE LADDER IS JUDGED ON.
  *
- * Every stage here is composed from the production components (PageHero,
- * SectionShell, PageHeading, Card) with the production copy, and none of them
- * is modified: a <Step> wrapper hands the selected ladder's size, leading and
- * tracking to board.css, which spends them on whatever heading the component
- * renders. Change the ladder and the same components re-lay themselves out,
- * which is the only way a type proposal can be judged rather than imagined.
+ * Since round four the MARKETING surfaces are the routes themselves, in frames
+ * at the canvas's true pixels (board.tsx's PageFrame over REAL_PAGES), so what
+ * is left here is the four surfaces a frame cannot reach: the dashboard, an
+ * event page, an admin page and the 404 are all behind a sign-in or outside
+ * every design island, plus the two stages that are arguments rather than
+ * pages (the app's missing middle, and the tracking law on its own).
  *
- * Two things are hand-resolved per canvas, for the reason the home-hero board
- * carries a GUTTER constant: a stage is a zoomed 375 or 1440 canvas inside a
- * real window, so Tailwind's `sm:`/`lg:` breakpoints read the WINDOW. The page
- * gutter rides --tsc-gutter (board.css) and every column count here comes from
- * `mode`, never from a responsive utility.
+ * Each is composed from the production components (PageHeading, Card, Button,
+ * Badge, NotFoundScreen) with production copy, and none of them is modified: a
+ * <Step> wrapper hands the selected pair's size, leading and tracking to
+ * board.css, which spends them on whatever heading the component renders.
+ * Change the app ladder in the dock and the same components re-lay themselves
+ * out, which is the only way a type proposal can be judged rather than imagined.
+ *
+ * One thing is hand-resolved per canvas, for the reason the home-hero board
+ * carries a GUTTER constant: a stage is a 375 or 1440 canvas inside a real
+ * window, so Tailwind's `sm:`/`lg:` breakpoints read the WINDOW even at 1:1
+ * (that is exactly what the frames fix for the real pages). Every column count
+ * here comes from `mode`, never from a responsive utility.
  */
 
 /** The step wrapper: three custom properties, nothing else. A ladder that does
@@ -119,9 +122,6 @@ export type PageProps = { ladder: Ladder; mode: Mode };
 
 const isPhone = (mode: Mode) => mode === "phone";
 
-/** Section padding, resolved per canvas rather than left to `sm:py-24`. */
-const pad = (mode: Mode) => (isPhone(mode) ? "py-12" : "py-24");
-
 /** A neutral stand-in tile. The event page needs something for its type to sit
  *  against; a type board should not spend its attention on photographs. */
 function Tile({ className }: { className?: string }) {
@@ -136,152 +136,25 @@ function Tile({ className }: { className?: string }) {
   );
 }
 
-/* ───────────────────────────── Marketing ─────────────────────────────── */
+/* ═════════════ ROUND FOUR CUT EVERY MARKETING RECONSTRUCTION ═══════════════
 
-/* ROUND THREE cut `HomeHero` (PageHero at scale=xl in a full hero composition).
-   The hero step is judged on `HeroBoardLockup` below, which shows the SHIPPED
-   lockup beside the step, and the paste puts the step on the real home page in
-   one click; two stages of the same step is one stage too many. PageHero is
-   still on the board twice (the title step and the display step). */
+   Four stages stood here: the home's two section tiers, a feature page, /about
+   on paper, and the hero board's lockup. All four were the production
+   components re-composed by hand, and round four replaced them with the ROUTES
+   (REAL_PAGES in ladders.ts, rendered by the board's PageFrame): the real home
+   arc top to bottom, /pricing, a feature page, /help, a help article and
+   /about, each in a frame exactly the canvas wide with the selected pair
+   injected into it.
 
-/** The home arc's two section tiers: the chapter anchor and a body section. */
-export function HomeSections({ ladder, mode }: PageProps) {
-  return (
-    <>
-      <Step step="chapter" ladder={ladder} mode={mode}>
-        <SectionShell
-          reveal="none"
-          scale="lg"
-          eyebrow="The live demo"
-          heading={SECTION_HEADERS.liveDemo.line}
-          subhead="A real event, filling up while you watch."
-          className={pad(mode)}
-        />
-      </Step>
-      <Step step="section" ladder={ladder} mode={mode}>
-        <SectionShell
-          reveal="none"
-          eyebrow="Curation"
-          heading={SECTION_HEADERS.curation.line}
-          subhead="Review uploads before they appear, or clean up afterward in one pass."
-          className={pad(mode)}
-        />
-      </Step>
-    </>
-  );
-}
-
-/** A feature page: the standard page title over the card row it introduces. */
-export function FeaturePage({ ladder, mode }: PageProps) {
-  const page = FEATURE_PAGES[2];
-  return (
-    <>
-      <Step step="title" ladder={ladder} mode={mode}>
-        <PageHero
-          entrance="cut"
-          scale="lg"
-          eyebrow="Curation"
-          heading={page.h1}
-          subhead={page.heroSub}
-          className={isPhone(mode) ? "pt-14 pb-10" : "pt-24 pb-16"}
-        />
-      </Step>
-      <Step step="section" ladder={ladder} mode={mode}>
-        <SectionShell
-          reveal="none"
-          heading="Three ways to keep the album yours"
-          className={isPhone(mode) ? "py-8" : "py-16"}
-        >
-          <Step
-            step="card"
-            ladder={ladder}
-            mode={mode}
-            kind="card"
-            className={cn("mt-10 grid gap-4", isPhone(mode) && "mt-6")}
-          >
-            <div
-              className="grid gap-4"
-              style={{
-                gridTemplateColumns: `repeat(${isPhone(mode) ? 1 : 3}, minmax(0, 1fr))`,
-              }}
-            >
-              {[
-                {
-                  title: "Approve before it appears",
-                  body: "Nothing reaches the album until you say so.",
-                },
-                {
-                  title: "Clean up in one pass",
-                  body: "Hide a shot and it leaves every view at once.",
-                },
-                {
-                  title: "Guests keep their own",
-                  body: "A guest always sees what they uploaded.",
-                },
-              ].map((card) => (
-                <Card key={card.title}>
-                  <CardHeader>
-                    <CardTitle>{card.title}</CardTitle>
-                    <CardDescription>{card.body}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          </Step>
-        </SectionShell>
-      </Step>
-    </>
-  );
-}
-
-/* ROUND THREE cut `HelpMasthead` (the title step, centred, in the blur
-   register). It is the same step as the feature page above it, and /help is one
-   click away in the walk with a candidate applied, where it is the real page
-   rather than a stage of it. */
-
-/** /about on paper: the display step over the prose tier, which is the only
- *  place the two loudest and quietest marketing steps meet on one page. */
-export function AboutPaper({ ladder, mode }: PageProps) {
-  return (
-    <>
-      <Step step="display" ladder={ladder} mode={mode}>
-        <PageHero
-          scale="display"
-          eyebrow="About"
-          heading="Partyreel"
-          subhead="Built so the photos from an event actually come back to the people who were there."
-          className={isPhone(mode) ? "pt-12 pb-10" : "pt-24 pb-16"}
-        />
-      </Step>
-      <Step
-        step="prose"
-        ladder={ladder}
-        mode={mode}
-        className={cn("mx-auto w-full max-w-3xl", pad(mode))}
-        // The prose tier is bespoke on /about and /press (24/30 today), so it
-        // is composed here rather than through SectionShell, which is the
-        // honest shape: a story section is a heading and two paragraphs.
-      >
-        <div style={{ paddingInline: "var(--tsc-gutter)" }}>
-          <Eyebrow>The story</Eyebrow>
-          <h2 className="mt-3 font-heading text-balance">
-            Every event ends the same way
-          </h2>
-          <p className="mt-4 max-w-2xl text-pretty text-muted-foreground">
-            The morning after, the photos are scattered across a group chat,
-            three camera rolls and a folder nobody opens again. Compression
-            ruins the quality, half of it never gets shared, and the one person
-            who took the best shot of the night forgets to send it.
-          </p>
-          <p className="mt-3 max-w-2xl text-pretty text-muted-foreground">
-            Partyreel puts one code in the room and gives the host the whole
-            event, at full quality, in one album that stays theirs.
-          </p>
-        </div>
-      </Step>
-    </>
-  );
-}
+   A frame beats a reconstruction at three things a type ruling turns on. Its
+   breakpoints are the CANVAS's rather than the browser window's, so the phone
+   end is the page's real phone end; its `vw` measures the frame, so the clamp
+   the wiring round bakes is EVALUATED rather than resolved here by hand; and
+   everything on the page moves, so the sixteen hand-rolled headings no hook
+   reaches are visible as the reach of the ruling instead of a footnote about
+   it. The app stages below stay composed, and for one reason only: /dashboard,
+   an event page and /admin are behind a sign-in, so a frame would render the
+   login screen. ═════════════════════════════════════════════════════════════ */
 
 /* ─────────────────────────────── The app ─────────────────────────────── */
 
@@ -441,95 +314,89 @@ export function EventPage({ ladder, mode }: PageProps) {
    admin/layout.tsx, which is named on the board), so this stage was the third
    telling of the same thing. */
 
-/* ─────────────────── Round two's four new compositions ────────────────── */
-
 /**
- * THE HOME HERO AS THE HERO BOARD DRAWS IT (round two, the fourth goal).
+ * AN ADMIN PAGE (round four put it back; round three had cut it).
  *
- * The hero board's concepts do not use PageHero: they lay the lockup out
- * absolutely around the QR and resolve the ladder's `xl` step by hand, then add
- * a leading of their own (`leading-[1.02]`, four concepts, and
- * `leading-[1.03]` on a fifth). That local leading is the clearest evidence on
- * the site that the ladder owes each step a named line-height, and it also
- * means the loudest step on the site is NOT reached by changing PageHero.
- *
- * ★ The two class strings are copied here rather than imported from
- * `home-hero/shared.tsx`. That board is being reworked in the same round, and a
- * cross-board import would make this stage break when it moves; the values are
- * pinned by `ladders.test.ts` against today's ladder instead.
+ * Will asked for admin among the judged surfaces, and it earns its place again
+ * now that the two registers are ruled separately: admin is where the app's
+ * quiet register is quietest, and where the missing middle is written in its
+ * SECOND idiom (a 14px medium h2, not the dashboard's 11px uppercase one). The
+ * tiles are the production `MetricCard`, whose value is a `text-2xl` numeral
+ * that is deliberately NOT on the heading ladder: it is a data numeral on the
+ * body face with tabular figures, and it is drawn here because an app register
+ * that drops the page title to 20 puts the title BELOW the numbers on its own
+ * page, which is the one thing about C that a dashboard cannot show.
  */
-const HERO_BOARD_LADDER = {
-  desktop: "text-8xl",
-  phone: "text-5xl",
-} as const;
-
-export function HeroBoardLockup({ ladder, mode }: PageProps) {
+export function AdminPage({ ladder, mode }: PageProps) {
   const phone = isPhone(mode);
-  // The numbers in both captions, resolved, because under Today the two
-  // lockups differ ONLY in leading and a reviewer would otherwise read the
-  // stage as a no-op instead of as the fault it is.
-  const step = phone ? ladder.steps.hero!.phone : ladder.steps.hero!.desktop;
-  const shipped = phone ? 48 : 96;
-  const lockup = (title: string, body: ReactNode) => (
-    <div className={phone ? "px-4 py-6 text-center" : "px-28 py-8 text-center"}>
-      <p className="mb-3 text-[11px] text-white/45">{title}</p>
-      {body}
-      <p
-        className={cn(
-          "mx-auto mt-5 text-pretty text-white/80",
-          phone ? "max-w-xs text-[15px]" : "max-w-xl text-[15px]",
-        )}
-      >
-        Guests scan the code. Their photos and videos land in your album, with
-        no app and no account.
-      </p>
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <Button size="lg" className="h-11 px-6 text-base">
-          Start free
-        </Button>
-        <Button
-          size="lg"
-          variant="outline"
-          className="h-11 border-white/35 bg-white/5 px-5 text-base text-white"
-        >
-          See a real album
-        </Button>
-      </div>
-    </div>
-  );
-  const line = "The album starts here.";
   return (
-    <div className="flex flex-col divide-y divide-white/10">
-      {lockup(
-        `As the hero board draws it: the ramp resolved by hand at ${shipped}px, a local leading of 1.02, and the face constant, -0.03em`,
-        <h1
-          // ★ THE LADDER CLASS FIRST, THE LEADING AFTER. tailwind-merge drops a
-          // `leading-*` that precedes a `text-{size}` in the same cn(), because
-          // a size utility may carry a line-height of its own; written the
-          // other way round this h1 measured 96px at a leading of 1, which is
-          // not what the hero board draws. The same note is on shared.tsx
-          // ("it bit the reel twice"), and this stage is the third time.
-          className={cn(
-            "mx-auto font-heading text-balance text-white",
-            HERO_BOARD_LADDER[mode],
-            "leading-[1.02]",
-          )}
-          style={{ maxWidth: phone ? 340 : 1000 }}
+    <div className="space-y-6 p-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <Step step="page" ladder={ladder} mode={mode}>
+          <PageHeading>Metrics</PageHeading>
+        </Step>
+        <span className="text-xs text-muted-foreground">
+          Operations portal, last 30 days
+        </span>
+      </div>
+
+      <div className="space-y-3">
+        <AppSection ladder={ladder} mode={mode} idiom="label">
+          Platform
+        </AppSection>
+        <div
+          className="grid gap-4"
+          style={{
+            gridTemplateColumns: `repeat(${phone ? 2 : 4}, minmax(0, 1fr))`,
+          }}
         >
-          {line}
-        </h1>,
-      )}
-      {lockup(
-        `Under ${ladder.name}: the hero step at ${step.px}px, leading ${step.lh}, tracking ${step.ls}em, all three named by the ladder`,
-        <Step step="hero" ladder={ladder} mode={mode}>
-          <h1
-            className="mx-auto font-heading text-balance text-white"
-            style={{ maxWidth: phone ? 340 : 1000 }}
-          >
-            {line}
-          </h1>
-        </Step>,
-      )}
+          {[
+            {
+              label: "Hosts",
+              value: "1,284",
+              sub: "+38 this week",
+              icon: Users,
+            },
+            {
+              label: "Events",
+              value: "3,106",
+              sub: "212 live now",
+              icon: CalendarPlus,
+            },
+            {
+              label: "Media",
+              value: "412,980",
+              sub: "9.2 TB stored",
+              icon: Images,
+            },
+            { label: "Views", value: "88,412", sub: "album opens", icon: Eye },
+          ].map((m) => (
+            <MetricCard
+              key={m.label}
+              label={m.label}
+              value={m.value}
+              sub={m.sub}
+              icon={m.icon}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <AppSection ladder={ladder} mode={mode} idiom="label">
+          Needs a human
+        </AppSection>
+        <Step step="card" ladder={ladder} mode={mode} kind="card">
+          <Card>
+            <CardHeader>
+              <CardTitle>Four reports open</CardTitle>
+              <CardDescription>
+                Oldest is eleven hours. Two are the same album.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Step>
+      </div>
     </div>
   );
 }
