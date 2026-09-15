@@ -3,7 +3,17 @@ import type { Metadata } from "next";
 import type { Ground } from "@/components/dev/board";
 import { requireDesignKey } from "@/lib/design-gate/server";
 
-import { DIMS, GROUNDS, SCENES, type Dim, type Scene } from "./constants";
+import {
+  DIMS,
+  GROUNDS,
+  RAMPS,
+  SCENES,
+  SIDES,
+  type Dim,
+  type Ramp,
+  type Scene,
+  type Side,
+} from "./constants";
 import { FramePage } from "./frame-page";
 
 /**
@@ -19,7 +29,8 @@ import { FramePage } from "./frame-page";
  * A document of its own is the only fix that keeps the primitives untouched: the
  * board mounts this page in an iframe laid out at exactly 1440x930 or 375x760,
  * where `globalThis.document` IS the frame, `fixed` means the canvas, `sm:`
- * resolves at the canvas width (both sheet and dialog branch on it) and
+ * resolves at the canvas width (both sheet and dialog branch on it, and so does
+ * the guest entry shell, which is a drawer below 640 and a dialog above) and
  * prefers-reduced-motion still applies.
  *
  * Gated like every lab route, and never linked: the board builds the URL with
@@ -39,6 +50,14 @@ function one(
   return typeof v === "string" ? v : undefined;
 }
 
+function pick<T extends string>(
+  allowed: readonly string[],
+  value: string | undefined,
+  fallback: T,
+): T {
+  return allowed.includes(value ?? "") ? (value as T) : fallback;
+}
+
 export default async function FloatingSurfacesScenePage({
   searchParams,
 }: {
@@ -47,31 +66,21 @@ export default async function FloatingSurfacesScenePage({
   await requireDesignKey(searchParams);
   const params = await searchParams;
 
-  const sceneParam = one(params, "scene");
-  const scene: Scene = (SCENES as readonly string[]).includes(sceneParam ?? "")
-    ? (sceneParam as Scene)
-    : "family";
-
-  const groundParam = one(params, "ground");
-  const ground: Ground = (GROUNDS as readonly string[]).includes(
-    groundParam ?? "",
-  )
-    ? (groundParam as Ground)
-    : "cinema";
-
-  const dimParam = one(params, "dim");
-  const dim: Dim = (DIMS as readonly string[]).includes(dimParam ?? "")
-    ? (dimParam as Dim)
-    : "radius";
-
   return (
     <FramePage
-      scene={scene}
-      ground={ground}
+      scene={pick<Scene>(SCENES, one(params, "scene"), "family")}
+      ground={pick<Ground>(GROUNDS, one(params, "ground"), "cinema")}
+      ramp={pick<Ramp>(RAMPS, one(params, "ramp"), "today")}
       phone={one(params, "w") === "375"}
-      dim={dim}
+      dim={pick<Dim>(DIMS, one(params, "dim"), "radius")}
       variant={one(params, "variant") === "drawer" ? "drawer" : "sheet"}
+      side={
+        SIDES.includes((one(params, "side") ?? "") as Side)
+          ? (one(params, "side") as Side)
+          : undefined
+      }
       rung={one(params, "rung")}
+      compact={one(params, "compact") === "1"}
       radius={one(params, "radius") ?? "off"}
       entrance={one(params, "entrance") ?? "off"}
       light={one(params, "light") ?? "off"}

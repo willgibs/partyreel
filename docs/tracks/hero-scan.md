@@ -2,6 +2,7 @@
 track: hero-scan
 status: open
 cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_2: "8183147"
 merged_round_1: "aee5915"
 preview: true           # Will reviews this concept on its preview as it builds
 owns:
@@ -22,6 +23,25 @@ reads:
 ---
 
 # lp/hero-scan
+
+## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
+
+**Round 3 (the goal): the last mile, walked first by you.** Two rounds built the board; this one is the
+walk Will will take, taken before him. (1) **Walk it cold**, the way he will: the board on the launch-prep
+alias (round 2 is integrated there) and then on your preview, in a foreground tab, at 1440 and then
+375, every toggle, every candidate, and every "Apply to the site" block on the pages you listed (the home
+arc, `/pricing`, `/help`, `/contact`, the dashboard and an event page with `?key=`, the demo guest page).
+Note every place a stranger would stumble: an unexplained toggle, two candidates that read the same, a
+stage that needs a caption or has one too many, a slow first paint, a layout that breaks at 375, a
+control that does nothing visible. Fix each. (2) **Re-read the reviewer's findings** on your round-2
+handoff (below) and the other boards' latest Handoffs in `docs/tracks/` and proposals in `docs/specs/`:
+anything there that changes your answer changes your board. (3) **Make the decision easy**: the strongest
+candidate first; a candidate cut if it no longer earns its column (say so); every ask a one-word answer
+and no more asks than Will must answer; the departures only the ones he must rule on. (4) **Honesty and
+cost**: every number on the board is measured or labelled a stand-in; measure what runs (frame time, layer
+count) and cut what does not earn its cost; reduced motion gets the settled composition. (5) **The
+record**: "Handoff (round 3)" and "Record (round 3)" below; the Record is the paragraph the CHANGELOG
+carries for rounds 2 and 3 together, so write it as the whole story of what the board became.
 
 ## Round 2 (Will, 2026-09-14: "another iterative round on all active tracks before review")
 
@@ -282,6 +302,167 @@ block so neither can flash.
 
 ## Handoff (round 2)
 
+- Head: the tip of `lp/hero-scan`, which is THIS commit (a manifest cannot name its own SHA). The last
+  code commit is `ab855c9`. Pushed; preview `https://partyreel-git-lp-hero-scan-partyreel.vercel.app`,
+  the board at `/design/c/home-hero?key=` (concept 2 of 4, after the source). The round-two board is
+  the one whose stage carries a switch at the top right: look for `hhc-lab` in the served HTML, or
+  for the words "Cause / Phone / Brackets only" on the stage.
+- **After the read-only review (this commit, documentation only: no code, no rebuild of the board).**
+  Two should-fix items, both in this manifest. (1) The operational note about the pushes that produced
+  no Vercel deployment had been written into round 1's Handoff, which is an integrated section and the
+  wrong place for a round-2 warning; round 1's own text was not altered, and the note now sits in this
+  section, where the Orchestrator reads it at this merge. (2) Round-2 goal item 6 (read the burst and
+  the river, take what serves the scan) carried only a lane-compliance line and no ruling; the bullet
+  below now states what each sibling offered, what was taken from them and what was declined, with the
+  reason. `scan.tsx` and `scan.css` are byte-identical to the verified tip `ab855c9`, so every
+  verification below still stands at the code it names.
+- Synced with `launch-prep` at `4b035c1` (a docs-only commit; merged clean, nothing in this lane).
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 7 warnings are the pre-existing ones
+  on `review-switch.tsx`, `contact-form.tsx`, two feature sections, `jobs.ts` and `use-flip.ts`, none
+  in this lane), test ok (1698 in 193 files), build ok (248 static pages, the `launch-prep` count
+  unchanged). Re-run whole after the review fix above, with the same four results.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-scan.md`,
+  `src/app/(dev)/design/sandbox/home-hero/scan.css`,
+  `src/app/(dev)/design/sandbox/home-hero/scan.tsx`. **No exceptions**: the two owned files and this
+  manifest. `shared.tsx`, `board.tsx`, `source.tsx`, `burst.tsx` and `river.tsx` were read and not
+  touched; what the burst and the river gave this concept is a ruling of its own below.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- **An operational note for the Orchestrator, not a code problem (it belongs to this round's pushes;
+  it was filed against round 1's section by mistake and is moved here):** two of round two's pushes
+  (`ab855c9` and `caa8539`) produced NO Vercel deployment at all, while other branches pushed in the
+  same minutes deployed normally, so the branch alias kept serving the previous commit. CI ran and
+  passed on every push, and `scripts/vercel-ignore-build.mjs` would have built them (this manifest
+  says `preview: true` and now `status: handed-off`), so the miss is upstream of the gate: GitHub
+  created no deployment for either SHA. Recovered by asking Vercel for one directly
+  (`POST /v13/deployments` with the branch's `gitSource`, the team token from `.env.local`), which
+  built and took the alias. Worth knowing if another track's preview looks stale: check the SHA the
+  alias serves rather than the clock.
+- **A shell change to consider (not made, not needed):** a `Concept` has no slot for a control of its
+  own, and the home-hero board renders `concept.render(props)` straight into the stage, so a concept
+  that carries a RULING (here: phone or no phone) has to draw its own switch inside the canvas. It is
+  styled as lab chrome and parked in the one corner every composition leaves empty, and it leaves with
+  the board, but an optional `controls?: ReactNode` on `Concept`, rendered by the board beside its own
+  toggles, would put it where the board's other switches live. The Orchestrator's call; nothing here
+  depends on it.
+- **"Apply to the site" does not apply to this board.** The candidate is a composition, not a CSS
+  block: nothing here can be handed to `/` as a paste, and the pages to walk are the board's own
+  stages. The wiring round is what lands it in `PageHero`.
+- **The burst and the river, read for what serves the scan (goal item 6): one thing taken, two
+  mechanisms declined.** Both siblings solve this concept's problem out loud. The burst gives the type
+  a keep-out box per BLOCK of the lockup, measured off the rendered stage, and gates each card once on
+  the progress after which it is permanently clear of every block (`scanClear`), so a frame is simply
+  not drawn while it would sit under a word. The river holds a falling card's PROJECTED inner edge on
+  the lockup's wall while it crosses the band (the parting), so the clearing keeps a constant width
+  however large the frame has grown. **Taken: the burst's method, not its mechanism.** Its lesson is
+  that a quiet zone should be "the shape of the type and not a guess about it", so this round measured
+  the caption and count boxes off the rendered stage and replayed the corridor's own math against them
+  for a full cycle at 25 ms steps, at both canvases in both readings: zero intersections, worst
+  clearance 12 to 30 canvas px (the clear-lane measurement in the verification below). The scan's
+  clear lane stopped being a hope and became a number, which is what `scanClear` buys the burst.
+  **Declined: both per-card mechanisms.** A frame here is launched by one capture and its path is
+  fixed at launch; making a frame hide itself, or shove sideways, as it nears the words would read as
+  the album avoiding the headline rather than as the consequence of the scan, and it would bend the
+  corridor's physics this round was told to keep. The scan does not need either one: a frame is a
+  speck while it is near the plate and only grows once it is far out horizontally, so the column above
+  and below the code is empty by construction rather than by negotiation. **Corroborated, not
+  borrowed:** the river's ruling that its caption sits ABOVE the plate, because a line under it is the
+  one thing the stream cannot get around, is the same answer the 375 device reading reaches here,
+  where the near field owns the bottom third and the supporting pair moves above the code. The
+  invariant all three share is held either way: no scrim, no darkening layer, media at 100 percent.
+- **Verified on the preview** at the code tip (the alias was polled until its HTML carried `hhc-lab`,
+  so the build is proven by a marker rather than by the clock):
+  - **The beat, sampled live in a foreground tab from a Replay remount:** t=90 ms the brackets are
+    thrown 12.1 px wide at opacity 0.34 and the corridor is EMPTY (0 of 24 visible); t=361 they are
+    1.0 px out; t=621 landed; t=733 locked, flash still 0; t=833 the capture is at its 0.42 peak and
+    the room is STILL empty; t=904 the flash is decaying at 0.07; t=1105 all 24 frames are up. Cause,
+    then effect, in that order, with nothing in the room until the capture.
+  - **The clear lane is measured, not assumed.** The corridor's own math was replayed against the
+    measured caption and count boxes over a full 10.8 s cycle at 25 ms steps: ZERO intersections in
+    all four combinations, worst clearance 30 canvas px (desktop, either reading), 12 px (phone
+    canvas, device reading), 14 px (phone canvas, brackets reading). No scrim anywhere, media at 100
+    percent.
+  - **Reduced motion, simulated exactly** by deleting the `no-preference` block from the live sheet
+    and clearing the loop's inline writes in the same synchronous block: 20 of 24 frames stand at the
+    steady-state spacing, the brackets rest LOCKED (`animation-name: none`, `translate: none`, opacity
+    1), the flash is spent at 0, and the count reads its number. The production sheet was also read
+    over HTTP and audited: all four `.hhc-*` animation and transition declarations sit inside
+    `@media (prefers-reduced-motion: no-preference)`, and the only keyframes it declares are
+    `hhc-lock`, `hhc-flash` and `hhc-bloom`.
+  - The server's own HTML carries 24 `.hhc-card` nodes with 24 `--hhc-rest` and 24 `--hhc-rest-o`
+    declarations, the device, its 4 brackets, the flash, the caption and the count at its opening
+    value: the whole composition, deployed and locked, is in the markup.
+  - The h1 is in the HTML at computed opacity 1 (96 px Urbanist, line-height 97.92 px, so
+    `leading-[1.02]` survives beside the ladder class), carrying only `class` and `style`: no
+    `data-mkt-cut`, no `data-mkt-reveal`, no `.mkt-line`. No em-dash anywhere in the served page.
+  - Every arbitrary utility and custom property resolves in the PRODUCTION lab sheet, which is the one
+    thing localhost cannot prove: the caption at 12 px white/60, the count at 15 px white/85 with
+    `font-variant-numeric: tabular-nums`, the phone at radius 33.8 px and aspect 0.472 with its rim,
+    the screen inset 10.92 px with the viewfinder's light at 30 percent down it, the 13 px brackets,
+    the switch pinned top right at 11 px with the pressed state at white/13.
+  - Desktop 1440 and Phone 375, both readings, ruled and proposed copy: the switch flips the cause and
+    replays the beat, the code holds the axis, and the caption and count sit in the clear lane.
+  - **Performance, measured rather than guessed** (the loop's own math plus its 48 style writes, run
+    300 times against the real nodes): 0.158 ms per tick at 1440 and 0.11 to 0.13 ms at 375, about 1
+    percent of a 60 Hz frame, with a 0.5 ms style flush for all 300 ticks together. 24 promoted layers
+    at rest, which are the corridor's cards and nothing else: the device, the brackets, the flash and
+    the bloom add 9 DOM nodes and no layer. The one number worth knowing is the corridor's raster,
+    about 40 MB at 1440 and 8 MB at 375 (24 boxes at dpr 2), and it is the SOURCE's number, inherited
+    unchanged; nothing this variation adds is worth cutting, and cutting the corridor's is a decision
+    for the ruled direction, not for a variation of it.
+  - Test-tooling note, because it cost an hour: a hidden, driven or merely non-fronted tab throttles
+    rAF and CSS animations to a few frames a second, so the corridor reads as EMPTY and the brackets
+    as stuck. Every timing number above was taken in a fronted tab; everything else was taken from the
+    DOM, the computed styles or the production sheet over HTTP.
+- **Assets requested from Will**:
+  1. **Unchanged and now CONDITIONAL: the hand-and-phone cutout, ASSETS row 8** (PNG with alpha,
+     1200 px long edge, the screen area fully transparent, shot from behind the holder's shoulder in
+     low warm event light, two grips) · replaces the drawn device `.hhc-phone`. It is needed ONLY if
+     the Phone reading is ruled in; rule Brackets only and row 8 can be withdrawn, because that
+     reading needs no asset that does not exist.
+  2. Nothing else new. The corridor still wants the 24 squares already on the log (**row 2**, asked by
+     `hero-source`); the three phone-up photographs on **row 3** are still NOT needed here, because
+     the device is drawn rather than photographed.
+- **The asks, verbatim from the board's Asks row** (the Orchestrator quotes them under Waiting on Will):
+  1. "ONLY IF THE PHONE IS RULED IN: a hand-and-phone cutout to replace the drawn device (.hhc-phone),
+     already on the log as ASSETS row 8. PNG with alpha, 1200 px on the long edge, the SCREEN AREA
+     fully transparent so the viewfinder composes underneath and stays live and real; shot from just
+     behind the holder's shoulder, the phone held up and angled away to the right, in low warm event
+     light so the body is nearly a silhouette with one highlight along the edge; two variants, a
+     one-handed grip and a two-handed one. Rule Brackets only and the row can be withdrawn: that
+     reading needs no asset at all."
+  2. "Not a new ask: the corridor runs on the 12 landscape stand-ins and wants the 24 squares already
+     requested (ASSETS row 2, asked by hero-source), 512 x 512, one grade, framed tight enough to read
+     at 120 px. Nothing here needs the three phone-up photographs from row 3, because the device is
+     drawn rather than photographed."
+- **Look at first**: the switch at the top right of the stage. Flip it once. Phone or Brackets only is
+  the whole ruling this round asks for, and everything else about the concept is identical between
+  them. The recommendation is in the rationale under the stage: Brackets only until the cutout exists,
+  Phone once it does. Then hit Replay and watch the first second, in a foreground tab: the code stands
+  alone in an empty room, the brackets close on it, the capture fires, and the album comes out of the
+  plate. Then the 375 canvas in the Phone reading, which is a different composition rather than a
+  compressed one: the words at the top, the band under them, and the phone rising from the bottom with
+  its code on the same vertical axis as the code in the room.
+
+## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-14). The scan's second round turned its one open
+question into a ruling on the board: the concept now carries both readings of the cause, and a switch
+in the corner of the stage flips between a guest's phone in the near field and the brackets alone
+closing on the real plate, with everything else identical, so the answer is one word. The phone was
+rebuilt to tell the truth about what a camera sees, a 46 px code inside a 260 px device rather than a
+second white square of equal weight, and cropped by two edges so it reads as a held object; the
+brackets reading adds a capture bloom at the plate and needs no asset at all. The 375 canvas became a
+composition rather than a compression: in the device reading the words take the top of the screen and
+the bottom third is the near field, with the screen's code and the room's code on one vertical axis.
+The supporting pair was reweighted so the count is the payoff, and it lifts by two pixels on every
+launch, so the number rising is visibly the same event as a pair of frames leaving the code. The beat
+was put in causal order (lock at 720 ms, capture at 730, release at 780, on the capture's peak), and
+pointing at the code now replays the lock. The clear lane stopped being an assumption: the corridor's
+own math was replayed against the measured type boxes over a full cycle at both canvases in both
+readings, with zero intersections and 12 to 30 canvas px to spare.
+
+## Handoff (round 3)
+
 - Head <sha>, pushed; preview partyreel-git-lp-hero-scan-partyreel.vercel.app
 - Synced with launch-prep at <sha> (or: launch-prep had not moved)
 - Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
@@ -291,6 +472,6 @@ block so neither can flash.
 - The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
 - Look at first: ...
 
-## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (<date>). ...

@@ -104,6 +104,8 @@ const TODAY: Ramp = {
     "--background": "var(--gallery)",
     "--foreground": "var(--gallery-foreground)",
     "--card-foreground": "var(--gallery-foreground)",
+    "--brand": "var(--gallery-foreground)",
+    "--brand-foreground": "var(--gallery)",
     "--border": "var(--gallery-border)",
     "--muted":
       "color-mix(in oklab, var(--gallery) 85%, var(--gallery-foreground))",
@@ -196,6 +198,8 @@ const A: Ramp = {
     "--ring": "oklch(0.965 0 0)",
     "--primary": "oklch(0.965 0 0)",
     "--primary-foreground": "oklch(0.185 0 0)",
+    "--brand": "var(--primary)",
+    "--brand-foreground": "var(--primary-foreground)",
     "--shadow-float": "0 0 0 0 oklch(0 0 0 / 0)",
   },
   gallery: {
@@ -285,6 +289,8 @@ const B: Ramp = {
     "--ring": inkVeil(85),
     "--primary": "oklch(0.96 0 0)",
     "--primary-foreground": "oklch(0.125 0 0)",
+    "--brand": "var(--primary)",
+    "--brand-foreground": "var(--primary-foreground)",
     "--shadow-float": "0 0 0 0 oklch(0 0 0 / 0)",
   },
   gallery: {
@@ -369,6 +375,8 @@ const C: Ramp = {
     "--ring": "oklch(0.965 0.002 85)",
     "--primary": "oklch(0.965 0.002 85)",
     "--primary-foreground": "oklch(0.185 0.006 60)",
+    "--brand": "var(--primary)",
+    "--brand-foreground": "var(--primary-foreground)",
     "--shadow-float": "0 0 0 0 oklch(0 0 0 / 0)",
   },
   gallery: {
@@ -387,6 +395,45 @@ export const RAMP_BY_ID: Record<RampId, Ramp> = {
   b: B,
   c: C,
 };
+
+/* ── The dark card: as declared, opaque, or a veil ───────────────────────── */
+
+/**
+ * Today ships ONE translucent surface in the whole system (`--card` in `.dark`
+ * at 0.62), and round one's departure list said only candidate B kept it. That
+ * was wrong: B's card is a `color-mix` off the room, which is fully opaque, so
+ * all three candidates retire the veil and none of them said so. Round two
+ * makes it a choice instead of a side effect: every candidate renders at its
+ * declared value, forced opaque, or forced to a veil at the same lightness, and
+ * the specimen is a card lying over a photograph, which is the only place the
+ * difference is a look rather than a number.
+ */
+export type CardMode = "declared" | "opaque" | "veil";
+
+const stripAlpha = (v: string) => v.replace(/\s*\/\s*[\d.]+%?\s*\)$/, ")");
+
+/** A token value at an alpha. An oklch literal takes the slash form; a veil
+ *  built by color-mix cannot, so it is wrapped in a second mix instead. */
+export function withAlpha(value: string, alpha: number): string {
+  const lit = /^oklch\(([^/)]+)\)$/.exec(stripAlpha(value).trim());
+  if (lit) return `oklch(${lit[1].trim()} / ${alpha})`;
+  return `color-mix(in oklab, ${value} ${Math.round(alpha * 100)}%, transparent)`;
+}
+
+/** The ramp with the card question answered, which is what every renderer and
+ *  the paste both read, so the board can never show one thing and paste another. */
+export function resolveRamp(ramp: Ramp, mode: CardMode): Ramp {
+  if (mode === "declared") return ramp;
+  const fix = (m: TokenMap) => {
+    const card = m["--card"];
+    if (!card) return m;
+    return {
+      ...m,
+      "--card": mode === "veil" ? withAlpha(card, 0.62) : stripAlpha(card),
+    };
+  };
+  return { ...ramp, dark: fix(ramp.dark), ink: fix(ramp.ink) };
+}
 
 /* ── Applying a ramp to a stage ─────────────────────────────────────────── */
 
@@ -596,6 +643,74 @@ export const PANEL_ALPHAS = [
   { alpha: 70, uses: 2 },
 ];
 
+/* ── The five grounds, and the two jobs one token is doing ──────────────── */
+
+/**
+ * ROUND TWO SHARPENS THE FINDING, and the sharpening changes it.
+ *
+ * Round one said `--gallery` was doing two jobs, "a lightbox and a footer
+ * slab". Re-read at ca952b5, the lightbox is not one of them: it paints its
+ * backdrop with a literal `bg-black/90` (media-lightbox.tsx's DialogOverlay),
+ * so the deepest surface in the product does not read the canvas token at all.
+ * What `--gallery` actually does is the WELL behind media (a tile before its
+ * image decodes, an event card with no cover, the reel frame, the play badge)
+ * and, through `.surface-ink`, the footer's SLAB. Those two want opposite
+ * things: a well should vanish under a photograph, a slab has to hold type and
+ * sit on paper without punching a hole in the page. That is the count bible 16
+ * gets wrong, and it is three surfaces once the literal is admitted.
+ */
+export const GROUND_JOBS = [
+  {
+    id: "overlay",
+    name: "The lightbox backdrop",
+    token: "a literal, not a token",
+    where: "shared/media-lightbox.tsx:617, bg-black/90",
+    wants:
+      "the deepest thing in the product, edge to edge, so a photograph is the only light in the room",
+  },
+  {
+    id: "well",
+    name: "The media well",
+    token: "--gallery",
+    where:
+      "event-card.tsx:77, reel-frame.tsx:28, play-badge.tsx:30, inline-reel-player.tsx:86",
+    wants: "to disappear under a photograph and never be noticed as a colour",
+  },
+  {
+    id: "slab",
+    name: "The ink slab",
+    token: ".surface-ink, derived from --gallery",
+    where: "the footer leaf on a paper page",
+    wants:
+      "to hold type and a card, and to read as a leaf on paper rather than a hole",
+  },
+] as const;
+
+/* ── The text steps, in real copy ───────────────────────────────────────── */
+
+/** Every text step with a real line at it, because a grey is only wrong once
+ *  there are words in it. The alpha column is what ships today at that step. */
+export const TEXT_STEPS = [
+  {
+    token: "--foreground",
+    role: "Text",
+    today: "the step",
+    copy: "Ninety-one guests uploaded before the cake.",
+  },
+  {
+    token: "--muted-foreground",
+    role: "Second text",
+    today: "the step",
+    copy: "Photos and videos land in the album the moment a guest hits send.",
+  },
+  {
+    token: "--faint",
+    role: "Faint text",
+    today: "an alpha of the step above, at 37 sites",
+    copy: "Last change 4 minutes ago",
+  },
+] as const;
+
 /* ── The printable block ────────────────────────────────────────────────── */
 
 const order = (map: TokenMap) =>
@@ -603,7 +718,9 @@ const order = (map: TokenMap) =>
     .map(([k, v]) => `  ${k}: ${v};`)
     .join("\n");
 
-/** The ruling, as the paste the Orchestrator makes into globals.css. */
+/** The ruling, as the paste the Orchestrator makes into globals.css. Takes the
+ *  RESOLVED ramp, so the card question the board is showing is the card
+ *  question that lands. */
 export function tokenBlock(ramp: Ramp): string {
   return [
     "/* globals.css */",
@@ -635,3 +752,117 @@ export function tokenBlock(ramp: Ramp): string {
     "}",
   ].join("\n");
 }
+
+/**
+ * The accent half of the paste. Ink is the alias that ships, so it prints
+ * nothing: a ruling of "ink" is a ruling to change no line.
+ *
+ * The third block is the one that is easy to miss. `.surface-ink` declares
+ * `--brand: var(--gallery-foreground)` today, which NEUTRALISES any hue on the
+ * footer leaf, and that line outranks an inherited value from the page around
+ * it. So a hue that is not also written into the ink block reaches every
+ * surface in the product except the one place the mark actually sits at the
+ * bottom of every page. Writing it here keeps the walk and the paste identical.
+ */
+export function accentBlock(accent: Accent): string {
+  if (accent.id === "ink") return "";
+  return [
+    "/* globals.css, the accent */",
+    ":root,",
+    ".surface-paper {",
+    `  --brand: ${accent.light};`,
+    `  --brand-foreground: ${accent.lightForeground};`,
+    "}",
+    "",
+    ".dark {",
+    `  --brand: ${accent.dark};`,
+    `  --brand-foreground: ${accent.darkForeground};`,
+    "}",
+    "",
+    "/* the footer leaf neutralises --brand today; the accent has to reach it */",
+    ".surface-ink {",
+    `  --brand: ${accent.dark};`,
+    `  --brand-foreground: ${accent.darkForeground};`,
+    "}",
+  ].join("\n");
+}
+
+/* ── Applying a candidate to the real site ──────────────────────────────── */
+
+/**
+ * THE WALK (round two). A ramp is only truly wrong on a page someone reads, so
+ * every candidate is offered as the paste its ruling would land, handed to the
+ * whole site through the shell's setCandidateCss. Two of the five asks cannot
+ * be judged from tokens alone, because they are utility classes rather than
+ * values, so they ride along as optional rules:
+ *
+ *   the panel   45 sites write `bg-muted/<alpha>`; the ruling would delete the
+ *               alpha, so the walk needs the same thing from the outside.
+ *   --faint     37 sites write `text-muted-foreground/70`; the ruling would
+ *               point them at the new step.
+ *
+ * Both are matched on the class attribute with a leading space or start anchor,
+ * so a VARIANT of the same utility (`hover:bg-muted/40`, which is a hover fill
+ * and not a panel) is left alone. Specificity ties Tailwind's own utility and
+ * this block renders after every stylesheet, so the later rule wins with no
+ * `!important` anywhere. Lab only: the islands that render it are key-gated and
+ * the block lives in one browser.
+ */
+export const PANEL_ONE_TOKEN_CSS = `/* the walk: every panel at full strength, retiring the six alphas */
+[class^="bg-muted/"],
+[class*=" bg-muted/"] {
+  background-color: var(--muted);
+}`;
+
+export const FAINT_ON_DIMMED_CSS = `/* the walk: the 37 alpha-dimmed text sites reaching the new step */
+[class^="text-muted-foreground/"],
+[class*=" text-muted-foreground/"] {
+  color: var(--faint);
+}`;
+
+export type ApplyOptions = {
+  accent: Accent;
+  panelOneToken: boolean;
+  faintOnDimmed: boolean;
+};
+
+/** What "Apply to the site" hands the shell: the ruled paste plus whatever the
+ *  board's switches are currently claiming, in that order. */
+export function applyCss(ramp: Ramp, opts: ApplyOptions): string {
+  return [
+    tokenBlock(ramp),
+    accentBlock(opts.accent),
+    opts.panelOneToken ? PANEL_ONE_TOKEN_CSS : "",
+    opts.faintOnDimmed ? FAINT_ON_DIMMED_CSS : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+/** The label the tuner panel and the board badge both show. */
+export function applyLabel(ramp: Ramp, opts: ApplyOptions): string {
+  const parts = [`ramp ${ramp.label}`];
+  if (opts.accent.id !== "ink") parts.push(opts.accent.label.toLowerCase());
+  if (opts.panelOneToken) parts.push("panel at one token");
+  if (opts.faintOnDimmed) parts.push("faint on the dimmed sites");
+  return `palette: ${parts.join(", ")}`;
+}
+
+/** The pages a candidate is walked on, listed on the board beside the buttons
+ *  and in BoardMeta, every one of them with the lab key on the end. */
+export const WALK = [
+  { href: "/", name: "the home arc", note: "cinema into paper into ink" },
+  {
+    href: "/pricing",
+    name: "pricing",
+    note: "the panel, the cards, the table",
+  },
+  { href: "/help", name: "help", note: "the facts band and the closer panel" },
+  { href: "/contact", name: "contact", note: "the form panel at 50 percent" },
+  { href: "/dashboard", name: "the dashboard", note: "signed in, both modes" },
+  {
+    href: "/dashboard/<event>",
+    name: "an event",
+    note: "the stat band, the grid, the review queue",
+  },
+] as const;

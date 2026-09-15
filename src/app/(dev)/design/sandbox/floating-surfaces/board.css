@@ -1,385 +1,170 @@
-/* The floating-surfaces board's sheet (board.tsx), imported by the board so it leaves with
-   the board when the ruling lands. Keyframe prefix: flt- (keyframe names are
-   document-global and keyframe-uniqueness.test.ts reads every sheet under the
-   lab; never reuse a production name).
+/* The floating-surfaces board's sheet, imported by the board and by the frame
+   page so it leaves with the board when the ruling lands. Keyframe prefix: flt-.
+
+   ROUND TWO MOVED THE CANDIDATES OUT OF THIS FILE. Every rung now comes from
+   candidates.ts, which builds the same CSS in three scopes (a frame, one panel,
+   the whole site) from one table of values, and the frame page renders it as a
+   <style>. The reason is the point of round two: what a rung shows on the board
+   and what "Apply to the site" pastes onto the real pages are now the same
+   string, so a candidate cannot drift from its own proposal. The keyframes moved
+   with it (they have to travel with the paste, since board.css is not loaded on
+   a marketing page), which does take them out of keyframe-uniqueness.test.ts's
+   net: they stay under the flt- prefix, and nothing in production uses it.
+
+   What is left here is everything that is the STAGE rather than a candidate: the
+   palette board's dark ramps under the panels, the two scenes that need a stage
+   arrangement, the reduced-motion guard the board itself has to honour, and the
+   frame-page plumbing.
 
    House convention: FINAL states live OUTSIDE the media queries, so a
-   reduced-motion reader gets the settled composition with no rule to undo;
-   entrances and loops live inside `no-preference` only, and any infinite loop
-   is marked [data-flt-loop] so the stage's data-paused stops it on a hidden tab.
-
-   -- HOW THIS SHEET DRESSES PRIMITIVES IT MAY NOT EDIT ----------------------
-   src/components/ui/* is read-only on this track, so every candidate is applied
-   from the outside, two ways:
-     - frame-wide, from `data-flt-radius|entrance|light` on the frame document's
-       <html> (the parent board writes them; same-origin, no reload);
-     - per panel, from a `flt-r-* / flt-e-* / flt-l-*` class passed to the
-       primitive's own `className`, so ONE frame can hold every rung of a ladder
-       side by side. A radix panel portals to its document's body and has no
-       wrapper of ours around it, which is why the hook has to ride the panel.
-   Both set the same `--flt-*` custom properties; the per-panel class wins simply
-   by sitting closer. `flt-panel` is the shared hook every floating Content gets;
-   the nav viewport is matched by data-slot because NavigationMenu renders its
-   viewport itself.
+   reduced-motion reader gets the settled composition with no rule to undo.
 
    Every rule here is UNLAYERED on purpose: Tailwind's utilities live in
    @layer utilities, and an unlayered declaration beats a layered one whatever
    the order, so `rounded-float` / `shadow-float` / `animate-in` are overridden
-   without an !important anywhere.
+   without an !important anywhere. */
 
-   The candidates never hard-code today's value: the "nested" rung reads
-   --radius-float live, so the Orchestrator's rounding round can retune the
-   token mid-window and this board follows it. */
+/* -- THE PALETTE BOARD'S DARK RAMPS ----------------------------------------
+   A floating layer's light in dark is a question about the GROUND it floats
+   over, so the ramp is a knob on this board rather than an assumption. These
+   are the dark halves of candidates A and B from docs/specs/palette.md,
+   verbatim: the paste that board proposes, under the panels this one proposes.
 
-/* -- THE RADIUS LADDER -----------------------------------------------------
-   All three rungs obey bible 9 (anything drawn around an object takes the
-   object's radius plus its offset): a menu's items sit inside `p-1`, so the
-   container is always the item radius + 4px. They differ in which end they
-   anchor to, which is the actual question.
+   Why it matters here and not only there: today's dark popover sits LIGHTER
+   than the card it opens from (0.245 over 0.21, the palette board's finding),
+   which is exactly the surface the "lighter is closer" rung leans on. Ramp A
+   widens that gap to 0.285 over 0.235; ramp B makes every dark surface one room
+   and mixes the popover from the foreground. Whether a shadow has to return in
+   dark reads differently on each.
 
-     sharp  - items stay in the sharp surface family (--radius-md, 1.6px);
-              a floating layer is a SURFACE, so it is only its items plus their
-              padding.
-     nested - today's ratified --radius-float, with the items raised to meet it
-              (today ships 8px around 1.6px items, which is the rule-9 miss this
-              board found: the highlighted row's corner does not nest).
-     round  - items take the ACTION family at menu-row height (~0.4 x the row,
-              8px), because a menu is a cluster of things you press; the
-              container follows at +4.
+   The cinema ground's --background is painted inline by the frame (an inline
+   custom property beats any class rule), so its three values live in
+   constants.ts instead. */
 
-   --flt-r-lg is the second token this board proposes: an edge-attached sheet or
-   a centred dialog is a much larger box than a menu, and one value cannot serve
-   both (a 6px corner on a full-width bottom sheet reads square). Ruling needed:
-   one token or two. */
-/* GOTCHA, cost a round of this board: theme.css declares the theme `@theme
-   inline`, so a DERIVED token is compiled into the utilities that use it and is
-   never emitted as a custom property. `rounded-md` still paints 1.6px, but
-   `var(--radius-md)` is empty at runtime, and an empty var inside a calc()
-   invalidates the whole declaration silently (the panel drew at 0px, not at the
-   fallback). The RAW tokens from globals.css `:root` do resolve (--radius,
-   --radius-float, --radius-action, --shadow-float, --ease-emphasis,
-   --ease-drawer), so the sharp rung re-derives the md step from --radius using
-   theme.css's own expression and still follows a retune of it. */
-.flt-r-sharp,
-[data-flt-radius="sharp"] {
-  --flt-r-item: calc(var(--radius) * 0.8);
-  --flt-r: calc(var(--radius) * 0.8 + 4px);
-  --flt-r-lg: calc((var(--radius) * 0.8 + 4px) * 2);
+html[data-flt-ramp="a"].dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.955 0 0);
+  --card: oklch(0.235 0 0);
+  --card-foreground: oklch(0.955 0 0);
+  --popover: oklch(0.285 0 0);
+  --popover-foreground: oklch(0.955 0 0);
+  --primary: oklch(0.955 0 0);
+  --primary-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.325 0 0);
+  --secondary-foreground: oklch(0.955 0 0);
+  --muted: oklch(0.195 0 0);
+  --muted-foreground: oklch(0.7 0 0);
+  --accent: oklch(0.325 0 0);
+  --accent-foreground: oklch(0.955 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.85 0 0);
 }
-.flt-r-nested,
-[data-flt-radius="nested"] {
-  --flt-r-item: calc(var(--radius-float) - 4px);
-  --flt-r: var(--radius-float);
-  --flt-r-lg: calc(var(--radius-float) * 2);
+html[data-flt-ramp="a"].surface-ink {
+  --background: oklch(0.185 0 0);
+  --foreground: oklch(0.965 0 0);
+  --card: oklch(0.235 0 0);
+  --card-foreground: oklch(0.965 0 0);
+  --popover: oklch(0.285 0 0);
+  --popover-foreground: oklch(0.965 0 0);
+  --secondary: oklch(0.325 0 0);
+  --secondary-foreground: oklch(0.965 0 0);
+  --accent: oklch(0.325 0 0);
+  --accent-foreground: oklch(0.965 0 0);
+  --muted: oklch(0.235 0 0);
+  --muted-foreground: oklch(0.7 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.965 0 0);
+  --primary: oklch(0.965 0 0);
+  --primary-foreground: oklch(0.185 0 0);
 }
-.flt-r-round,
-[data-flt-radius="round"] {
-  --flt-r-item: calc(var(--radius-action) * 0.5);
-  --flt-r: calc(var(--radius-action) * 0.5 + 4px);
-  --flt-r-lg: calc(var(--radius-action) * 1.5);
+html[data-flt-ramp="b"].dark,
+html[data-flt-ramp="b"].surface-ink {
+  --background: oklch(0.125 0 0);
+  --foreground: oklch(0.96 0 0);
+  --card: color-mix(in oklab, var(--foreground) 12%, var(--background));
+  --card-foreground: oklch(0.96 0 0);
+  --popover: color-mix(in oklab, var(--foreground) 18%, var(--background));
+  --popover-foreground: oklch(0.96 0 0);
+  --primary: oklch(0.96 0 0);
+  --primary-foreground: oklch(0.125 0 0);
+  --secondary: color-mix(in oklab, var(--foreground) 22%, var(--background));
+  --secondary-foreground: oklch(0.96 0 0);
+  --muted: color-mix(in oklab, var(--foreground) 7%, var(--background));
+  --muted-foreground: color-mix(
+    in oklab,
+    var(--foreground) 68%,
+    var(--background)
+  );
+  --accent: color-mix(in oklab, var(--foreground) 22%, var(--background));
+  --accent-foreground: oklch(0.96 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: color-mix(in oklab, var(--foreground) 85%, var(--background));
 }
 
-/* The application. Guarded so the "today" rung (no class, data-flt-radius=off)
-   keeps exactly what the primitive ships, square sheet corners included. */
-:is([data-flt-radius="sharp"], [data-flt-radius="nested"], [data-flt-radius="round"])
-  :is(.flt-panel, [data-slot="navigation-menu-viewport"]),
-.flt-r-sharp,
-.flt-r-nested,
-.flt-r-round {
-  border-radius: var(--flt-r);
+/* -- TWO SCENES THAT NEED A STAGE ARRANGEMENT ------------------------------
+   The entrance question wants three primitives entering at once, so the dialog
+   is moved out of the centre and the menu and the tooltip stay visible. No rule
+   is needed for its scrim: radix renders Dialog.Overlay only in MODAL mode, and
+   every panel on this board is non-modal so a whole family can stand open at
+   once, so there is no overlay in this scene to hide. (The Overlays scene paints
+   the scrim's rectangle itself; scenes.tsx says why.)
+
+   `translate: none` rather than `transform: none`: the centring is
+   `-translate-x-1/2`, which in Tailwind v4 sets the STANDALONE translate
+   property, and transform cannot clear it. Clearing it also leaves the
+   candidate's `transform: scale()` entrance unharmed, since the two are
+   different properties. */
+html[data-flt-scene="trio"] .flt-trio-dialog {
+  top: 24px;
+  right: 32px;
+  bottom: auto;
+  left: auto;
+  width: 300px;
+  max-width: 300px;
+  translate: none;
 }
 
-/* The large boxes take the second token. */
-:is([data-flt-radius="sharp"], [data-flt-radius="nested"], [data-flt-radius="round"])
-  [data-slot="dialog-content"],
-[data-slot="dialog-content"]:is(.flt-r-sharp, .flt-r-nested, .flt-r-round) {
-  border-radius: var(--flt-r-lg);
+/* The guest scene renders the real EntryShell, which is a MODAL vaul drawer:
+   vaul dims the page behind it with its own overlay. Held open on a stage that
+   nobody is dismissing, the overlay only hides the photographs the panel is
+   supposed to be judged against, so the board lightens it rather than removing
+   it (a floating layer over a scrim is still over content). */
+html[data-flt-scene="guest"] [data-entry-overlay] {
+  background: oklch(0 0 0 / 0.04);
+  backdrop-filter: none;
 }
 
-/* Edge-attached layers round only the edges that leave the screen. Written for
-   both the sheet's `data-side` and vaul's `data-vaul-drawer-direction`. */
-:is([data-flt-radius="sharp"], [data-flt-radius="nested"], [data-flt-radius="round"])
+/* -- BIBLE 14, THE FIRST LINE THE PRIMITIVES ARE MISSING -------------------
+   tw-animate-css ships no reduced-motion guard of its own, but globals.css:855
+   has carried a global one since 2026-06-11 (every animation and transition
+   clamped to 0.01ms, `!important`), so `animate-in` does NOT run for a reader
+   who asked for less motion: round one's finding was wrong and round two
+   measured it. This is the SAME block candidates.ts offers as a paste
+   (REDUCED_MOTION_CSS), applied to the board itself, and what it adds over the
+   global clamp is a stop rather than a 0.01ms run. The substring match is not
+   laziness:
+   the utilities are variant-prefixed, so the class on the element is literally
+   `data-open:animate-in` and a plain `.animate-in` selector matches nothing. */
+@media (prefers-reduced-motion: reduce) {
+  :is([class*="animate-in"], [class*="animate-out"]) {
+    animation: none !important;
+  }
   :is(
-    [data-slot="sheet-content"][data-side="bottom"],
-    [data-vaul-drawer-direction="bottom"]
-  ),
-:is([data-slot="sheet-content"][data-side="bottom"], [data-vaul-drawer-direction="bottom"]):is(
-    .flt-r-sharp,
-    .flt-r-nested,
-    .flt-r-round
+    [data-slot="sheet-content"],
+    [data-slot="drawer-content"],
+    [data-entry-drawer],
+    [data-entry-overlay]
   ) {
-  border-radius: var(--flt-r-lg) var(--flt-r-lg) 0 0;
-}
-:is([data-flt-radius="sharp"], [data-flt-radius="nested"], [data-flt-radius="round"])
-  :is(
-    [data-slot="sheet-content"][data-side="right"],
-    [data-vaul-drawer-direction="right"]
-  ),
-:is([data-slot="sheet-content"][data-side="right"], [data-vaul-drawer-direction="right"]):is(
-    .flt-r-sharp,
-    .flt-r-nested,
-    .flt-r-round
-  ) {
-  border-radius: var(--flt-r-lg) 0 0 var(--flt-r-lg);
+    transition: none !important;
+  }
 }
 
-/* The items, so the nesting is the thing on show. */
-:is([data-flt-radius="sharp"], [data-flt-radius="nested"], [data-flt-radius="round"])
-  :is(
-    [data-slot$="-item"],
-    [data-slot="dropdown-menu-sub-trigger"],
-    [data-slot="navigation-menu-link"]
-  ),
-:is(.flt-r-sharp, .flt-r-nested, .flt-r-round)
-  :is(
-    [data-slot$="-item"],
-    [data-slot="dropdown-menu-sub-trigger"],
-    [data-slot="navigation-menu-link"]
-  ) {
-  border-radius: var(--flt-r-item);
-}
-
-/* -- THE LIGHT LADDER ------------------------------------------------------
-   The dark question, which bible 10 reopened: a floating layer IS "a layer over
-   content", the one case the rewritten rule allows a shadow for. The three
-   answers are genuinely different, not three alphas of one.
-
-     lighter  - today: --popover sits lighter than the ground, --shadow-float is
-                zeroed in dark, the ring draws the edge. No shadow in dark.
-     shadow   - a dark-TUNED family returns in dark: wider, softer, lower in the
-                frame than the light one, under the same lighter surface.
-     lit-edge - no shadow anywhere: a hairline of light on the top edge and a
-                dark hairline under the bottom, so the panel catches the room's
-                light the way a real object does.
-
-   The dark values are declared on the ground classes, so a per-panel rung picks
-   up the right pair without knowing which ground it landed on. */
-html {
-  --flt-shadow:
-    0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
-  --flt-edge-top: oklch(1 0 0 / 0.5);
-  --flt-edge-bottom: oklch(0 0 0 / 0.08);
-}
-html:is(.dark, .surface-ink) {
-  --flt-shadow:
-    0 12px 32px -12px oklch(0 0 0 / 0.75), 0 3px 10px -3px oklch(0 0 0 / 0.55);
-  --flt-edge-top: oklch(1 0 0 / 0.12);
-  --flt-edge-bottom: oklch(0 0 0 / 0.6);
-}
-
-[data-flt-light="lighter"]
-  :is(.flt-panel, [data-slot="navigation-menu-viewport"]),
-.flt-l-lighter {
-  box-shadow: var(--shadow-float);
-}
-[data-flt-light="shadow"]
-  :is(.flt-panel, [data-slot="navigation-menu-viewport"]),
-.flt-l-shadow {
-  box-shadow: var(--flt-shadow);
-}
-[data-flt-light="lit-edge"]
-  :is(.flt-panel, [data-slot="navigation-menu-viewport"]),
-.flt-l-lit-edge {
-  box-shadow:
-    inset 0 1px 0 0 var(--flt-edge-top),
-    0 1px 0 0 var(--flt-edge-bottom);
-}
-
-/* -- THE ENTRANCE LADDER ---------------------------------------------------
-   Every rung is an `animation` shorthand on the panel, which beats the
-   `animate-in` utilities because this sheet is unlayered. The travel direction
-   reads radix's `data-side`, so origin-awareness survives every rung.
-
-     one-clock    - today's law: one origin-aware zoom-fade for the whole family
-                    at one clock (175ms in, 120ms out, --ease-emphasis).
-     by-frequency - bible 12 applied to the family instead of to one control: a
-                    tooltip and a menu open fifty times a night, so they arrive
-                    in 90ms on a fade plus 2px and no zoom at all; a dialog, a
-                    sheet and a toast are occasional, so they keep a 220ms beat.
-                    Two clocks, chosen by how often the surface appears. This is
-                    the rung that argues with rule 15's "one entrance".
-     origin-true  - one clock, more physical: the panel grows out of its trigger
-                    from 0.92 with a 6px travel along the side axis.
-
-   Bible 14: the whole block is inside `no-preference`, so a reader who asked for
-   less motion gets the settled panel with no rule to undo. The primitives' own
-   `animate-in` utilities are NOT reduced-motion aware (tw-animate-css ships no
-   guard), which is why the `reduce` block below has to switch them off for the
-   board; the same hole exists in production and is written up in the manifest. */
 @media (prefers-reduced-motion: no-preference) {
-  @keyframes flt-zoom-in {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-  }
-  @keyframes flt-zoom-out {
-    to {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-  }
-  @keyframes flt-slip-in {
-    from {
-      opacity: 0;
-      transform: translate(var(--flt-dx, 0px), var(--flt-dy, 0px));
-    }
-  }
-  @keyframes flt-slip-out {
-    to {
-      opacity: 0;
-      transform: translate(var(--flt-dx, 0px), var(--flt-dy, 0px));
-    }
-  }
-  @keyframes flt-grow-in {
-    from {
-      opacity: 0;
-      transform: scale(0.92) translate(var(--flt-dx, 0px), var(--flt-dy, 0px));
-    }
-  }
-  @keyframes flt-grow-out {
-    to {
-      opacity: 0;
-      transform: scale(0.96) translate(var(--flt-dx, 0px), var(--flt-dy, 0px));
-    }
-  }
-  /* The edge family keeps a slide on every rung: a sheet that zooms is a
-     different component. Only its clock changes. */
-  @keyframes flt-edge-in {
-    from {
-      transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%));
-    }
-  }
-  @keyframes flt-edge-out {
-    to {
-      transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%));
-    }
-  }
-
-  /* The travel direction, from the side radix resolved. */
-  .flt-panel[data-side="bottom"] {
-    --flt-dy: -6px;
-  }
-  .flt-panel[data-side="top"] {
-    --flt-dy: 6px;
-  }
-  .flt-panel[data-side="left"] {
-    --flt-dx: 6px;
-  }
-  .flt-panel[data-side="right"] {
-    --flt-dx: -6px;
-  }
-
-  /* one-clock: the whole family on one zoom-fade at one beat. */
-  :is([data-flt-entrance="one-clock"] .flt-panel, .flt-e-one-clock):is(
-      [data-state="open"],
-      [data-state="delayed-open"], [data-state="instant-open"]
-    ) {
-    animation: flt-zoom-in 175ms var(--ease-emphasis) both;
-  }
-  :is(
-      [data-flt-entrance="one-clock"] .flt-panel,
-      .flt-e-one-clock
-    )[data-state="closed"] {
-    animation: flt-zoom-out 120ms var(--ease-emphasis) both;
-  }
-
-  /* by-frequency: high-frequency surfaces lose the zoom and land in 90ms. */
-  :is([data-flt-entrance="by-frequency"], .flt-e-by-frequency)
-    :is(
-      [data-slot="tooltip-content"],
-      [data-slot="dropdown-menu-content"],
-      [data-slot="dropdown-menu-sub-content"],
-      [data-slot="select-content"],
-      [data-slot="navigation-menu-viewport"]
-    ):is([data-state="open"], [data-state="delayed-open"], [data-state="instant-open"]),
-  :is(
-      [data-slot="tooltip-content"],
-      [data-slot="dropdown-menu-content"],
-      [data-slot="select-content"]
-    ).flt-e-by-frequency:is([data-state="open"], [data-state="delayed-open"], [data-state="instant-open"]) {
-    animation: flt-slip-in 90ms var(--ease-emphasis) both;
-  }
-  :is([data-flt-entrance="by-frequency"], .flt-e-by-frequency)
-    :is(
-      [data-slot="tooltip-content"],
-      [data-slot="dropdown-menu-content"],
-      [data-slot="dropdown-menu-sub-content"],
-      [data-slot="select-content"],
-      [data-slot="navigation-menu-viewport"]
-    )[data-state="closed"],
-  :is(
-      [data-slot="tooltip-content"],
-      [data-slot="dropdown-menu-content"],
-      [data-slot="select-content"]
-    ).flt-e-by-frequency[data-state="closed"] {
-    animation: flt-slip-out 70ms var(--ease-emphasis) both;
-  }
-  /* and the occasional ones keep a longer, softer beat. */
-  :is([data-flt-entrance="by-frequency"], .flt-e-by-frequency)
-    :is([data-slot="popover-content"], [data-slot="dialog-content"])[data-state="open"],
-  :is([data-slot="popover-content"], [data-slot="dialog-content"]).flt-e-by-frequency[data-state="open"] {
-    animation: flt-zoom-in 220ms var(--ease-emphasis) both;
-  }
-  :is([data-flt-entrance="by-frequency"], .flt-e-by-frequency)
-    :is([data-slot="popover-content"], [data-slot="dialog-content"])[data-state="closed"],
-  :is([data-slot="popover-content"], [data-slot="dialog-content"]).flt-e-by-frequency[data-state="closed"] {
-    animation: flt-zoom-out 150ms var(--ease-emphasis) both;
-  }
-
-  /* origin-true: everything grows out of its trigger. */
-  :is([data-flt-entrance="origin-true"] .flt-panel, .flt-e-origin-true):is(
-      [data-state="open"],
-      [data-state="delayed-open"], [data-state="instant-open"]
-    ) {
-    animation: flt-grow-in 200ms var(--ease-emphasis) both;
-  }
-  :is(
-      [data-flt-entrance="origin-true"] .flt-panel,
-      .flt-e-origin-true
-    )[data-state="closed"] {
-    animation: flt-grow-out 130ms var(--ease-emphasis) both;
-  }
-
-  /* The edge family: a slide on every rung, only the clock moves. */
-  :is([data-flt-entrance="one-clock"], [data-flt-entrance="origin-true"])
-    :is([data-slot="sheet-content"], [data-slot="drawer-content"])[data-state="open"] {
-    animation: flt-edge-in 300ms var(--ease-drawer) both;
-  }
-  :is([data-flt-entrance="one-clock"], [data-flt-entrance="origin-true"])
-    :is([data-slot="sheet-content"], [data-slot="drawer-content"])[data-state="closed"] {
-    animation: flt-edge-out 200ms var(--ease-drawer) both;
-  }
-  [data-flt-entrance="by-frequency"]
-    :is([data-slot="sheet-content"], [data-slot="drawer-content"])[data-state="open"] {
-    animation: flt-edge-in 220ms var(--ease-drawer) both;
-  }
-  [data-flt-entrance="by-frequency"]
-    :is([data-slot="sheet-content"], [data-slot="drawer-content"])[data-state="closed"] {
-    animation: flt-edge-out 160ms var(--ease-drawer) both;
-  }
-  [data-slot="sheet-content"][data-side="right"] {
-    --flt-edge-dx: 100%;
-    --flt-edge-dy: 0;
-  }
-
   [data-paused="true"] [data-flt-loop] {
     animation-play-state: paused;
-  }
-}
-
-/* Bible 14, the half the primitives are missing: tw-animate-css ships no
-   reduced-motion guard, so `animate-in` runs for a reader who asked for less
-   motion. On this board the preference wins for every floating layer, the
-   candidates and the as-shipped rung alike. */
-@media (prefers-reduced-motion: reduce) {
-  .flt-panel,
-  [data-slot="navigation-menu-viewport"],
-  [data-slot="dialog-overlay"],
-  [data-slot="sheet-overlay"],
-  [data-slot="drawer-overlay"] {
-    animation: none !important;
-    transition: none !important;
   }
 }
 
@@ -407,8 +192,8 @@ html[data-flt-frame] nextjs-portal {
   display: none;
 }
 
-/* THE NAV VIEWPORT, the ninth primitive and the one the contract was named for,
-   needs two lines to be visible outside the marketing header at all.
+/* THE NAV VIEWPORT, the primitive the contract was named for, needs two lines
+   to be visible outside the marketing header at all.
    Observed, not theorised: radix sizes the viewport from a ResizeObserver on
    its content and publishes both dimensions as vars; on a lab page the HEIGHT
    lands (`h-(--radix-navigation-menu-viewport-height)`, no variant) while the

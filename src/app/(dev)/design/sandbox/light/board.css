@@ -36,12 +36,19 @@
            sheet, toast). It detaches.
 
    Both are declared on the light ground too, so a cue judged on paper is the
-   SAME cue and not a second design. */
+   SAME cue and not a second design.
+
+   ★ ROUND TWO CORRECTION: lift on a LIGHT ground is now --shadow-float's
+   shipped alphas to the byte (0.06 / 0.10). Round one carried 0.10 / 0.14
+   here, which would have re-tuned every paper card on the site as a side
+   effect of a proposal about dark. The finding was never that the light
+   values are wrong. Paper does not move; dark gains the ramp it never had and
+   the family gains its second size. */
 [data-lgt-cues] {
   --lgt-lift:
-    0 2px 4px -1px oklch(0 0 0 / 0.1), 0 4px 8px -2px oklch(0 0 0 / 0.14);
+    0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
   --lgt-float:
-    0 4px 8px -2px oklch(0 0 0 / 0.12), 0 8px 16px -4px oklch(0 0 0 / 0.16);
+    0 4px 8px -2px oklch(0 0 0 / 0.09), 0 8px 16px -4px oklch(0 0 0 / 0.13);
 }
 
 /* The dark grounds the stage can paint. Scoped by [data-ground] (the stage
@@ -111,6 +118,39 @@
   background-size: 180px 180px;
 }
 
+/* ★ A GRAIN TILE IS SIZED IN DEVICE PIXELS, NOT CSS PIXELS (round two).
+   A 180px tile laid out at 180 CSS px on a 2x display is upscaled two device
+   pixels per tile pixel, so the "1px grain" is a 2px grain and the dither
+   stops dithering: the band it was added to hide comes back on exactly the
+   screens most people are looking at. Halving the CSS size on 2x puts one
+   tile pixel back on one device pixel. Same rule applies to the real tile:
+   a 256px asset is laid out at 128 CSS px on a 2x screen, which is why the
+   asset request names the tile's pixel size and its intended CSS size
+   separately. */
+@media (min-resolution: 2dppx) {
+  [data-lgt-grain]::after {
+    background-size: 90px 90px;
+  }
+}
+
+/* The grain, magnified, so a judgement about it is possible at all. At 1x on
+   a 2x screen it is a soft mottle; at the device-pixel size it is a fine
+   even dither. The two specimens are the same tile and differ only in scale. */
+[data-lgt-grain-detail] {
+  position: relative;
+  overflow: hidden;
+  background-color: oklch(0.32 0.03 300);
+}
+[data-lgt-grain-detail]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: var(--lgt-grain-size, 180px) var(--lgt-grain-size, 180px);
+  image-rendering: pixelated;
+}
+
 /* ─────────────── THE BOARD'S OWN MOTION
 
    One loop, and it is the cadence specimen's phase marker: a hairline that
@@ -146,4 +186,36 @@
   to {
     left: 100%;
   }
+}
+
+/* ─────────────── 4. THE REST STATE, BOARD WIDE (round two)
+
+   "Every lamp's rest state designed, not absent" is a claim, and round one
+   made it in prose. This is the claim as a switch: flip it and every lamp on
+   the board renders exactly what a visitor with prefers-reduced-motion sees,
+   which is the state declared OUTSIDE the engine's no-preference block (the
+   band resting off-layer at its own from-keyframe, the base doing all the
+   work). A media query cannot be simulated; removing the animation lands on
+   the same computed style, which is the whole point of the house convention
+   that final states live outside the query.
+
+   ★ NARROW ON PURPOSE. It reaches the engine's two animated layers, this
+   board's phase marker and the publish beat, and nothing else. A blanket
+   `animation: none` under this attribute would also freeze the marketing
+   reveal grammar on the real chapters in part B, whose PRE-animation state is
+   opacity 0: the board would go blank and read as broken.
+
+   Specificity is three classes deep so it wins wherever globals.css lands in
+   the sheet order (a component-imported sheet has no guaranteed position
+   relative to the app's own). */
+[data-lgt-rest] [data-glw] [data-glw-band],
+[data-lgt-rest] [data-glw] [data-glw-edge] {
+  animation: none;
+}
+[data-lgt-rest] [data-lgt-phase] {
+  animation: none;
+  left: 0;
+}
+[data-lgt-rest] [data-rxp-pubglow] {
+  animation: none;
 }
