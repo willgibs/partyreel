@@ -4,7 +4,14 @@
 import "./scan.css";
 
 import Link from "next/link";
-import { type CSSProperties, useEffect, useRef } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
 import { Caption } from "@/components/marketing/system/caption";
@@ -25,54 +32,76 @@ import {
 } from "./shared";
 
 /**
- * THE SCAN (concept 2 of the home-hero board, round three: variation 2 off the
- * source, on the axis THE CAUSE MADE LITERAL).
+ * THE SCAN (concept 2 of the home-hero board; round three variation 2, on the
+ * axis THE CAUSE MADE LITERAL; round two of the variation, 2026-09-14).
  *
  * The argument. The source is right and Will ruled it: the code holds the
  * centre and the album branches out of it, so a stranger thinks "if I scan
  * this, I get all of these". But that stranger still has to INFER the scan,
  * because the only actor in the frame is a QR. This variation puts the act
- * itself in the picture. A guest's phone is in the near field at the lower
- * left, cropped by the edge of the frame the way your own hands are cropped by
- * your own field of view, and on its screen is the camera: the same code,
- * standing in the room, with the four corner brackets a scanner draws around a
- * code it has found. The eye completes the circuit in well under a second,
- * because the code on the screen and the code in the room are visibly the same
- * object at two scales. Cause and effect in one composition, nothing explained.
+ * itself in the picture, and the hero becomes one sentence in time: a camera
+ * finds the code, the code releases the album, the album never stops.
  *
- * The screen shows the CAMERA and never an app, which is not a detail: the
- * whole pitch is that a guest installs nothing (bible 4), so the one piece of
- * software in the hero has to be the one every guest already has. The only
- * chrome on that screen is the notch. No title bar, no buttons, no tabs.
+ * WHAT ROUND TWO CHANGED, and why.
  *
- * THE BEAT, and why it is the concept's best idea. The source's branch-out is
- * one tween of the seeded offsets over 1.75 s, and it fires at load, beside the
- * code. Here it fires BECAUSE of the code: the brackets sweep in and snap at
- * 760 ms, the screen flashes once, and the album branches out of the plate on
- * the snap. The corridor's own clock is held until then, so before the lock
- * every frame is inside the code at scale 0 and the room is empty. The whole
- * hero is therefore one sentence in time: camera finds code, code releases
- * album, album never stops. It costs one constant (LOCK_MS) and no new
- * machinery, and the causality is now sequential as well as spatial.
+ * 1. THE CAUSE IS NOW A RULING, not a guess. Will named the phone as the first
+ *    thing he might overrule, and the cutout that would make a drawn device
+ *    real (ASSETS row 8) has not been shot. So the concept carries BOTH
+ *    readings and a switch in the corner of the stage flips between them:
+ *      - PHONE: a guest's phone in the near field, cropped by the frame's own
+ *        edges, its camera open on the code across the room;
+ *      - BRACKETS ONLY: no device at all. The scanner's four corner brackets
+ *        close on the REAL plate in the room and the capture blooms there.
+ *        The room is the viewfinder, there is nothing to mistake for an app,
+ *        and it needs no asset that does not exist.
+ *    Everything else about the concept is identical between them, so the
+ *    ruling is one word and nothing else moves with it.
  *
- * Supporting elements, both new here. One Caption line under the plate names
- * the act ("Every guest scans the same code"), which is also the feature: ONE
- * code per event, not one per guest. Under it a count reads like a live album
- * and ticks up with the launches, so the number rising is the visible
- * consequence of the scan. It settles at 312 rather than climbing forever,
- * because an album fills and then is full. Both sit in the one genuinely clear
- * lane the corridor has: a frame is a speck while it is near the plate and only
- * grows once it is far out horizontally, so the column directly under the code
- * stays empty by the physics, not by a scrim.
+ * 2. THE VIEWFINDER TELLS THE TRUTH. Round one put an 84 px code on the
+ *    phone's screen, which made two white squares of nearly equal weight and
+ *    sent the eye ping-ponging between them. A code across a room is SMALL in
+ *    your viewfinder. It is now 46 px inside a 260 px device with the brackets
+ *    tight around it, so the screen reads as a camera looking at something far
+ *    away and the room's plate is unambiguously the object. The device itself
+ *    is bigger and cropped by two edges (the left and the bottom) rather than
+ *    floating whole, because a held phone is a near-field object that runs out
+ *    of the frame, not a mockup on a slide.
+ *
+ * 3. THE PHONE CANVAS IS A COMPOSITION, not a compression. At 375 the device
+ *    reading reorders the hero: the words take the top of the screen, the
+ *    corridor and the code sit under them, and the bottom third belongs to the
+ *    phone, rising into frame almost centred and aiming straight up at the
+ *    plate. The two codes then sit on ONE vertical axis about 160 px apart,
+ *    which is the fastest read of "the same object at two scales" the concept
+ *    has. The brackets reading has no near field to make room for, so it keeps
+ *    the classic vertical rhythm. Each canvas gets the composition it wants.
+ *
+ * 4. THE SUPPORTING PAIR READS AS THE ALBUM FILLING. The act is named in a
+ *    caption and the album is counted under it; the count now carries the
+ *    weight (the consequence is the payoff, the label is only a label) and it
+ *    LIFTS by two pixels on every launch, so the number moving is visibly the
+ *    same event as a pair of frames leaving the code. It starts at its opening
+ *    value in the server's own HTML, so nothing rewinds on the first beat.
+ *
+ * 5. THE BEAT IS IN THE RIGHT ORDER. Round one fired the flash 60 ms BEFORE
+ *    the brackets landed. The sequence is now strictly causal: the brackets
+ *    sweep and snap at 720 ms, the capture fires at 730, and the corridor's own
+ *    clock starts at 780, on the flash's peak. Before that the room is
+ *    genuinely empty: every frame is inside the code at scale 0.
+ *
+ * 6. POINT AT THE CODE AND THE CAMERA RE-ACQUIRES IT. Hovering or focusing the
+ *    plate replays the lock, and only the lock: the album keeps running. In
+ *    the phone reading that is the one interaction that proves the screen and
+ *    the plate are the same object, because they answer each other.
  *
  * What is inherited from the source, deliberately and without change: the
  * corridor's physics (24 cards, two pools by index parity, one launch a side
  * every 900 ms, 9.6 s flights, position and scale on separate curves, the
  * recycling falling out of one modulo, one requestAnimationFrame loop writing
  * to 24 nodes and never to React state), the edge mask, the type above and
- * below the band, and the centred lockup. Rising tides says elevate what points
- * at the axis: the corridor already points at it, so it is kept exactly and the
- * variation is spent on the cause.
+ * below the band, and the centred lockup. Rising tides says elevate what
+ * points at the axis: the corridor already points at it, so it is kept exactly
+ * and every round of this variation is spent on the cause.
  */
 
 /* The corridor's constants (the source's numbers, kept exactly) */
@@ -92,15 +121,17 @@ const REVEAL_MS = 1750;
  *  match: 24 composited layers stay at ~292px instead of ~820px. */
 const SCALE_GAIN = 2.81;
 
-/** THE CAUSE, in time. The camera's lock lands here and the corridor's clock
- *  starts here, so the album is released BY the scan rather than beside it.
- *  Kept in step with scan.css's 760 ms bracket sweep; change both together. */
-const LOCK_MS = 760;
+/** THE CAUSE, in time. The album's clock starts on the capture, not at mount,
+ *  so the album is released BY the scan rather than beside it. Kept in step
+ *  with scan.css: the brackets sweep over 720 ms and the flash fires at 730,
+ *  so the release lands on the flash's peak. Change the three together. */
+const RELEASE_MS = 780;
 
 /* The live album's count. A stand-in number, flagged on the board: the wiring
-   round reads the demo event's real totals or the line goes. It starts below
-   its settled value and climbs one per launch, so the rise IS the scan's
-   consequence, then holds, because an album fills and then is full. */
+   round reads the demo event's real totals or the line goes. It starts at its
+   opening value IN THE SERVER'S HTML and climbs one per launch to its settled
+   value, so nothing rewinds when the loop takes over, and then holds, because
+   an album fills and then is full. */
 const PHOTOS_SETTLED = 312;
 const PHOTOS_START = 282;
 const GUESTS = 48;
@@ -110,6 +141,11 @@ function countText(launches: number) {
   return `${n} photos from ${GUESTS} guests`;
 }
 
+/** Which reading of the cause is on the stage. The board's shell is shared and
+ *  registered, so a concept with a ruling to offer carries the switch itself;
+ *  it is lab chrome, not composition, and it leaves with the board. */
+type Cause = "phone" | "brackets";
+
 /** The phone in the near field: its box, its angle, and the viewfinder inside
  *  it. x and y are the CENTRE of the device, offset from the canvas centre, so
  *  the crop against a frame edge is a number rather than a guess. */
@@ -117,22 +153,39 @@ type Device = {
   w: number;
   x: number;
   y: number;
-  /** Clockwise: a phone at the lower left aims its top up and to the right. */
+  /** Clockwise: a phone held up at the lower left aims its top up and right. */
   rz: number;
   /** Tipped away from the viewer, so the screen still faces us. */
   ry: number;
-  /** The detected code's edge on the screen, quiet zone included. */
+  /** The detected code's edge ON THE SCREEN, quiet zone included. Small on
+   *  purpose: a code across a room is small in a viewfinder. */
   qr: number;
   /** Where the code sits down the screen, 0 to 1. A code is wherever it is in
    *  the frame, so biasing it up is what lets the phone be cropped hard by the
    *  bottom edge and still show what it has found. */
   qrY: number;
-  /** The bracket's arm, its gap from the plate, its stroke, and how far
-   *  outward it starts before the lock. */
-  arm: number;
-  pad: number;
-  stroke: number;
-  throw: number;
+};
+
+/** A scanner's four corner brackets: the arm, the gap from the code, the
+ *  stroke, and how far outward they start before the lock. The viewfinder's
+ *  set and the room's set are the same object at two scales. */
+type Lock = { arm: number; pad: number; stroke: number; throw: number };
+
+/** Where the caption and the count sit, relative to the corridor's axis. On a
+ *  canvas whose near field is busy they move ABOVE the code instead of below
+ *  it; the corridor's clear lane is symmetric in y, so either side works. */
+type Lane = { at: number; anchor: "top" | "bottom"; max: number };
+
+/** The composition, per cause: the whole lockup hangs off these. */
+type Layout = {
+  /** The corridor's axis, signed, from the canvas centre. Negative is up. */
+  axis: number;
+  lane: Lane;
+  /** True when the sentence and the actions ride with the headline ABOVE the
+   *  band, which is what frees a phone canvas's bottom third for the device. */
+  stacked: boolean;
+  /** The stacked block's inset from the top of the canvas. */
+  topInset: number;
 };
 
 type Geo = {
@@ -145,13 +198,6 @@ type Geo = {
   perspective: number;
   /** Half the corridor's reserved band: where the type starts, from the axis. */
   offset: number;
-  /** The corridor's axis, signed, from the canvas centre. Negative is up. */
-  axis: number;
-  /** The caption block's top, from the axis, inside the corridor's clear lane. */
-  lane: number;
-  /** Its measure. Kept narrow on purpose: a frame is only large once it is far
-   *  out horizontally, so the lane is clear while the block stays inside it. */
-  laneMax: number;
   captionClass: string;
   countClass: string;
   /** Canvas-relative, never a vw value: the stage is zoomed. */
@@ -165,6 +211,12 @@ type Geo = {
   /** How much of each edge the band dissolves over. */
   fade: string;
   device: Device;
+  /** The brackets on the phone's screen, and the ones on the room's plate. */
+  viewLock: Lock;
+  roomLock: Lock;
+  /** The capture bloom's diameter, in plate widths. */
+  bloom: number;
+  layout: Record<Cause, Layout>;
 };
 
 const GEO: Record<Mode, Geo> = {
@@ -174,64 +226,96 @@ const GEO: Record<Mode, Geo> = {
     travel: 1.65 * CANVAS.desktop.w,
     perspective: 900,
     offset: 196,
-    axis: 0,
-    lane: 104,
-    laneMax: 300,
-    captionClass: "text-[13px]",
-    countClass: "text-[12px]",
+    captionClass: "text-[12px]",
+    countClass: "text-[15px]",
     sizes: "360px",
     rotate: 9.5,
     yDrift: 44,
     h1Max: 1100,
     fade: "12%",
     device: {
-      w: 210,
-      x: -640,
-      y: 290,
-      rz: 13,
-      ry: -12,
-      qr: 84,
-      qrY: 0.5,
-      arm: 24,
-      pad: 10,
-      stroke: 2.5,
-      throw: 28,
+      // Bigger and cropped by TWO edges since round one (the left and the
+      // bottom), because a phone in your own hands is a near-field object that
+      // runs out of the frame, not a device floating whole on a slide.
+      w: 260,
+      x: -614,
+      y: 318,
+      rz: 12,
+      ry: -14,
+      qr: 46,
+      qrY: 0.3,
+    },
+    viewLock: { arm: 13, pad: 5, stroke: 1.6, throw: 15 },
+    roomLock: { arm: 34, pad: 14, stroke: 2.5, throw: 34 },
+    bloom: 3.2,
+    layout: {
+      // The centred lockup leaves both lower quadrants empty on a 1440 canvas,
+      // so the device needs no layout of its own: it lives in the one the
+      // corridor already vacated.
+      phone: {
+        axis: 0,
+        lane: { at: 118, anchor: "top", max: 300 },
+        stacked: false,
+        topInset: 0,
+      },
+      brackets: {
+        axis: 0,
+        lane: { at: 118, anchor: "top", max: 300 },
+        stacked: false,
+        topInset: 0,
+      },
     },
   },
   phone: {
-    qr: 112,
-    card: 140,
+    qr: 108,
+    card: 150,
     travel: 1.65 * CANVAS.phone.w,
     perspective: 360,
-    offset: 130,
-    axis: -34,
-    lane: 82,
-    laneMax: 190,
+    offset: 162,
     captionClass: "text-[11px]",
-    countClass: "text-[10px]",
+    countClass: "text-[13px]",
     sizes: "170px",
     rotate: 8.5,
     yDrift: 12,
     h1Max: 343,
     fade: "16%",
     device: {
-      // The same idea at the same crop as the desktop: the phone rises out of
-      // the bottom-left corner of the frame. It was tried IN the band instead,
-      // beside the code, and it ate the whole left arm on a 375 canvas: a dark
-      // slab against photographs on the right, which is worse than a few
-      // hundred pixels between the cause and its effect. The corridor's axis
-      // rides 34 px up so the corner has room for it.
-      w: 112,
-      x: -143,
-      y: 384,
-      rz: 8,
-      ry: -10,
-      qr: 46,
-      qrY: 0.28,
-      arm: 12,
-      pad: 5,
-      stroke: 1.5,
-      throw: 14,
+      // THE PHONE CANVAS'S OWN COMPOSITION. Round one hid a 112 px device in
+      // the bottom-left corner, where it read as a toy and sat BELOW the
+      // actions. Here the device owns the bottom third, rises into frame
+      // almost centred and aims straight up: the screen's code and the room's
+      // code end up on one vertical axis about 160 px apart, which is the
+      // fastest possible read of "the same object at two scales".
+      w: 232,
+      x: 6,
+      y: 456,
+      rz: 7,
+      ry: -8,
+      qr: 40,
+      qrY: 0.14,
+    },
+    viewLock: { arm: 11, pad: 4, stroke: 1.4, throw: 13 },
+    roomLock: { arm: 24, pad: 10, stroke: 2, throw: 24 },
+    bloom: 3,
+    layout: {
+      phone: {
+        // The words move to the top of the screen so the bottom third can be
+        // the near field, and the supporting pair moves ABOVE the plate, which
+        // is the only clear lane left once the device is in the frame.
+        axis: 118,
+        lane: { at: -96, anchor: "bottom", max: 200 },
+        stacked: true,
+        topInset: 34,
+      },
+      brackets: {
+        // No near field to make room for, so the classic vertical rhythm:
+        // headline, the band with the code, the pair, the sentence, the
+        // actions.
+        axis: -6,
+        lane: { at: 100, anchor: "top", max: 200 },
+        stacked: false,
+        topInset: 0,
+      },
     },
   },
 };
@@ -337,33 +421,134 @@ function transformFor(c: Card, p: number, geo: Geo) {
  *  emerging, never switched on. */
 const opacityAt = (p: number) => (p > 1 ? 0 : smoothstep(0, 0.24, p));
 
+/** The four corner brackets a scanner draws around a code it has found. One
+ *  component for both readings: on the phone's screen they are 13 px arms
+ *  around a 46 px code, in the room they are 34 px arms around the real plate.
+ *  data-hh-loop is board.css's pause hook; these are one-shots that want it
+ *  anyway, because the concept holds its own clock on the same attribute and
+ *  the beat and the corridor have to stay in step across a tab switch. */
+function Brackets() {
+  return (
+    <>
+      {["hhc-tl", "hhc-tr", "hhc-bl", "hhc-br"].map((c) => (
+        <span key={c} data-hh-loop className={`hhc-bracket ${c}`} />
+      ))}
+    </>
+  );
+}
+
+/** The bracket set's own custom properties, so the sheet reads one shape. */
+function lockVars(lock: Lock): CSSProperties {
+  return {
+    "--hhc-arm": `${lock.arm}px`,
+    "--hhc-pad": `${lock.pad}px`,
+    "--hhc-stroke": `${lock.stroke}px`,
+    "--hhc-throw": `${lock.throw}px`,
+  } as CSSProperties;
+}
+
 /** The camera view on the phone's screen: the same code the room is holding,
- *  with the four brackets a scanner draws around a code it has found. It is
+ *  small because it is across the room, with the brackets closing on it. It is
  *  FooterQr rather than DemoQr because the plate in the room already carries
  *  the link and the accessible name; a second link to the same place would be
  *  a second tab stop for a picture of a picture. The whole device is
  *  aria-hidden for the same reason. */
-function Viewfinder({ url, d }: { url: string | null; d: Device }) {
-  const corners = ["hhc-tl", "hhc-tr", "hhc-bl", "hhc-br"];
+function Viewfinder({
+  url,
+  d,
+  lock,
+}: {
+  url: string | null;
+  d: Device;
+  lock: Lock;
+}) {
+  return (
+    <div className="hhc-lockbox flex" style={lockVars(lock)}>
+      <FooterQr value={url ?? "https://partyreel.com"} size={d.qr} />
+      <Brackets />
+    </div>
+  );
+}
+
+/** A guest's phone in the near field, camera open on the code across the room,
+ *  cropped by the frame's own edges the way your own hands are cropped by your
+ *  own field of view. Decorative in full: what it is looking at is the real
+ *  plate, a few hundred pixels away. */
+function HeldPhone({
+  url,
+  d,
+  lock,
+}: {
+  url: string | null;
+  d: Device;
+  lock: Lock;
+}) {
   return (
     <div
-      className="hhc-lockbox flex"
+      aria-hidden
+      className="hhc-device z-20"
       style={
         {
-          "--hhc-arm": `${d.arm}px`,
-          "--hhc-pad": `${d.pad}px`,
-          "--hhc-stroke": `${d.stroke}px`,
-          "--hhc-throw": `${d.throw}px`,
+          left: `calc(50% + ${d.x}px)`,
+          top: `calc(50% + ${d.y}px)`,
+          width: d.w,
+          translate: "-50% -50%",
+          "--hhc-w": `${d.w}px`,
+          "--hhc-rz": `${d.rz}deg`,
+          "--hhc-ry": `${d.ry}deg`,
         } as CSSProperties
       }
     >
-      <FooterQr value={url ?? "https://partyreel.com"} size={d.qr} />
-      {corners.map((c) => (
-        // data-hh-loop is board.css's pause hook. This is a one-shot rather
-        // than a loop, and it wants the hook anyway: the concept holds its own
-        // clock on the same data-paused, so pausing the sweep is what keeps
-        // the beat and the corridor in step across a tab switch.
-        <span key={c} data-hh-loop className={`hhc-bracket ${c}`} />
+      <div className="hhc-phone w-full" style={{ aspectRatio: "0.472" }}>
+        <div
+          className="hhc-screen"
+          style={{ "--hhc-vy": `${d.qrY * 100}%` } as CSSProperties}
+        >
+          <div className="hhc-viewpos" style={{ top: `${d.qrY * 100}%` }}>
+            <Viewfinder url={url} d={d} lock={lock} />
+          </div>
+          <div className="hhc-pill" />
+          <div data-hh-loop className="hhc-flash" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The lab's own switch, in the corner of the canvas. The board's shell is
+ *  shared and registered, so the concept that has a ruling to offer carries
+ *  the control; it is deliberately chrome rather than composition, and it
+ *  leaves with the board when the ruling lands. */
+function CauseSwitch({
+  value,
+  onChange,
+  small,
+}: {
+  value: Cause;
+  onChange: (c: Cause) => void;
+  small: boolean;
+}) {
+  const options: [Cause, string][] = [
+    ["phone", "Phone"],
+    ["brackets", "Brackets only"],
+  ];
+  return (
+    <div
+      className={`hhc-lab ${small ? "hhc-lab-sm" : ""}`}
+      role="group"
+      aria-label="The cause, on the stage"
+    >
+      <span className="hhc-lab-label">Cause</span>
+      {options.map(([id, label]) => (
+        <button
+          key={id}
+          type="button"
+          aria-pressed={value === id}
+          onClick={() => onChange(id)}
+          className="hhc-lab-btn"
+        >
+          {label}
+        </button>
       ))}
     </div>
   );
@@ -371,7 +556,9 @@ function Viewfinder({ url, d }: { url: string | null; d: Device }) {
 
 function Scan({ mode, copy, qrUrl }: ConceptProps) {
   const geo = GEO[mode];
-  const d = geo.device;
+  const [cause, setCause] = useState<Cause>("phone");
+  const layout = geo.layout[cause];
+  const axis = layout.axis;
   const text = copyFor(scan, copy);
   const reduced = usePrefersReducedMotion();
 
@@ -380,6 +567,22 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
   const countRef = useRef<HTMLSpanElement | null>(null);
   // The contract's progress[]: filled every frame, never React state.
   const progress = useRef<number[]>([]);
+
+  /** Point at the code and the camera re-acquires it: the lock replays, the
+   *  album does not. Restarting the CSS animations rather than running new
+   *  ones is what keeps this free under reduced motion, where the cascade
+   *  carries no animation to restart and this is a no-op by construction. */
+  const relock = useCallback(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const marks = root.querySelectorAll<HTMLElement>(
+      ".hhc-bracket, .hhc-flash, .hhc-bloom",
+    );
+    for (const el of marks) el.style.animation = "none";
+    // One forced reflow for the whole set, not one per node.
+    void root.offsetWidth;
+    for (const el of marks) el.style.animation = "";
+  }, []);
 
   useEffect(() => {
     if (reduced) return;
@@ -402,20 +605,33 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
       if (root.closest("[data-paused]")) return;
       since += dt;
 
-      // THE CAUSE. Nothing moves in the corridor until the camera has locked:
-      // at elapsed 0 every card is at progress 0, which is scale 0 and opacity
-      // 0, so the room is genuinely empty while the brackets are closing.
-      const elapsed = since > LOCK_MS ? since - LOCK_MS : 0;
+      // THE CAUSE. Nothing moves in the corridor until the capture: at elapsed
+      // 0 every card is at progress 0, which is scale 0 and opacity 0, so the
+      // room is genuinely empty while the brackets are closing on the code.
+      const elapsed = since > RELEASE_MS ? since - RELEASE_MS : 0;
 
       // The live album. One tick per launch, both arms, so the number rising is
-      // the same event as a frame being born. Written straight to the node:
+      // the same event as a pair of frames being born, and it LIFTS as it
+      // changes so the eye catches the link. Written straight to the node:
       // this is the only text in the hero that changes and it must not cost a
       // render. Settled, it holds.
       const launches = Math.floor(elapsed / LAUNCH_MS) * 2;
       if (launches !== shown) {
+        const first = shown < 0;
         shown = launches;
         const el = countRef.current;
-        if (el) el.textContent = countText(launches);
+        if (el) {
+          el.textContent = countText(launches);
+          if (!first && el.animate) {
+            el.animate(
+              [
+                { translate: "0 2px", opacity: 0.5 },
+                { translate: "0 0", opacity: 1 },
+              ],
+              { duration: 220, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+            );
+          }
+        }
       }
 
       // The branch-out: one tween of the seeded offsets from nothing to their
@@ -444,7 +660,68 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [geo, reduced]);
+    // `cause` is a dependency on purpose: switching the reading replays the
+    // whole beat, so the two are compared from the same first frame.
+  }, [geo, reduced, cause]);
+
+  const lane = (
+    <div
+      className={`absolute inset-x-0 z-10 text-center ${GUTTER[mode].x}`}
+      style={
+        layout.lane.anchor === "top"
+          ? { top: `calc(50% + ${axis + layout.lane.at}px)` }
+          : { bottom: `calc(50% - ${axis + layout.lane.at}px)` }
+      }
+    >
+      <Caption
+        className={`mx-auto text-white/60 ${geo.captionClass}`}
+        style={{ maxWidth: layout.lane.max }}
+      >
+        Every guest scans the same code
+      </Caption>
+      {/* The consequence, counted, and the heavier of the two: the label is a
+          label, the number is the payoff. One face in the product since the
+          kill-mono sweep, so a figure that changes takes tabular-nums and
+          nothing else: the digits hold their column while the number climbs. */}
+      <Caption
+        className={`mx-auto mt-1.5 tabular-nums text-white/85 ${geo.countClass}`}
+        style={{ maxWidth: layout.lane.max }}
+      >
+        <span ref={countRef}>{countText(0)}</span>
+      </Caption>
+    </div>
+  );
+
+  const headline = (
+    <h1
+      className={`mx-auto font-heading leading-[1.02] text-balance text-white ${LADDER.xl[mode]}`}
+      style={{ maxWidth: geo.h1Max }}
+    >
+      {text.h1}
+    </h1>
+  );
+
+  const sentence: ReactNode = (
+    <>
+      <p className="mx-auto max-w-xl text-[15px] leading-relaxed text-pretty text-white/80">
+        {text.subhead}
+      </p>
+      <div
+        className={`flex flex-wrap items-center justify-center gap-3 ${layout.stacked ? "mt-5" : "mt-7"}`}
+      >
+        <Button asChild size="lg" className="h-11 px-6 text-base">
+          <Link href={text.primary.href}>{text.primary.label}</Link>
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          className="h-11 border-white/35 bg-white/5 px-5 text-base text-white hover:border-white/50 hover:bg-white/15 hover:text-white"
+        >
+          {text.secondary}
+        </Button>
+      </div>
+    </>
+  );
 
   return (
     <div
@@ -464,7 +741,7 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
           style={
             {
               "--hhc-persp": `${geo.perspective}px`,
-              "--hhc-axis": `${geo.axis}px`,
+              "--hhc-axis": `${axis}px`,
             } as CSSProperties
           }
         >
@@ -503,116 +780,90 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
         </div>
       </div>
 
-      {/* THE CAUSE, in the near field: a guest's phone, cropped by the frame's
-          own edge the way your hands are cropped by your field of view, aimed
-          up and to the right at the code. Its screen is the CAMERA and never
-          an app, because the product needs none. Decorative in full: the code
-          it is looking at is the real one, a few hundred pixels away. */}
-      <div
-        aria-hidden
-        className="hhc-device z-20"
-        style={
-          {
-            left: `calc(50% + ${d.x}px)`,
-            top: `calc(50% + ${d.y}px)`,
-            width: d.w,
-            translate: "-50% -50%",
-            "--hhc-w": `${d.w}px`,
-            "--hhc-rz": `${d.rz}deg`,
-            "--hhc-ry": `${d.ry}deg`,
-          } as CSSProperties
-        }
-      >
-        <div className="hhc-phone w-full" style={{ aspectRatio: "0.472" }}>
-          <div
-            className="hhc-screen"
-            style={{ "--hhc-vy": `${d.qrY * 100}%` } as CSSProperties}
-          >
-            <div className="hhc-viewpos" style={{ top: `${d.qrY * 100}%` }}>
-              <Viewfinder url={qrUrl} d={d} />
-            </div>
-            <div className="hhc-pill" />
-            <div data-hh-loop className="hhc-flash" />
-          </div>
-        </div>
-      </div>
+      {/* THE CAUSE, reading one: a guest's phone in the near field, its camera
+          open on the code across the room. The screen carries no chrome but
+          the notch, because the product needs no app. */}
+      {cause === "phone" && (
+        <HeldPhone url={qrUrl} d={geo.device} lock={geo.viewLock} />
+      )}
 
-      {/* THE OBJECT, at the exact centre of the viewport and of the corridor,
-          above the frames so they are born behind it. Nothing about it moves:
-          the stillness is the point, and a QR that breathes is a QR nobody can
-          scan. Real, live and tappable; its own accessible name covers it. */}
+      {/* THE OBJECT, at the exact centre of the corridor, above the frames so
+          they are born behind it. Nothing about it moves: the stillness is the
+          point, and a QR that breathes is a QR nobody can scan. Real, live and
+          tappable; its own accessible name covers it. Pointing at it replays
+          the lock, which is the one interaction that proves the screen and the
+          plate are the same object. */}
       <div
         className="absolute left-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
-        style={{ top: `calc(50% + ${geo.axis}px)` }}
+        style={{ top: `calc(50% + ${axis}px)` }}
+        onPointerEnter={relock}
+        onFocus={relock}
       >
-        <DemoQr url={qrUrl} size={geo.qr} />
+        {cause === "brackets" ? (
+          // THE CAUSE, reading two: no device at all. The brackets close on the
+          // real plate and the capture blooms there, so the ROOM is the
+          // viewfinder. Nothing in the frame can be mistaken for an app, and
+          // nothing here waits on an asset that does not exist yet.
+          <div className="hhc-roomlock" style={lockVars(geo.roomLock)}>
+            <span
+              aria-hidden
+              data-hh-loop
+              className="hhc-bloom"
+              style={
+                { "--hhc-bloom": `${geo.qr * geo.bloom}px` } as CSSProperties
+              }
+            />
+            <DemoQr url={qrUrl} size={geo.qr} />
+            <Brackets />
+          </div>
+        ) : (
+          <DemoQr url={qrUrl} size={geo.qr} />
+        )}
       </div>
 
-      {/* THE ACT, named, and its consequence, counted. Both live in the one
-          lane the corridor leaves clear: a frame is a speck while it is near
-          the plate and only grows once it is far out horizontally, so this
-          column is empty by the physics rather than by a scrim. The count's
-          settled value is what the server renders, so reduced motion and a
-          crawler read a full album rather than a blank. */}
-      <div
-        className={`absolute inset-x-0 z-10 text-center ${GUTTER[mode].x}`}
-        style={{ top: `calc(50% + ${geo.axis + geo.lane}px)` }}
-      >
-        <Caption
-          className={`mx-auto text-white/70 ${geo.captionClass}`}
-          style={{ maxWidth: geo.laneMax }}
-        >
-          Every guest scans the same code
-        </Caption>
-        {/* The data caption. One face in the product since the kill-mono
-            sweep, so a figure that changes takes tabular-nums and nothing
-            else: the digits hold their column while the number climbs. */}
-        <Caption
-          className={`mx-auto mt-1 tabular-nums text-white/55 ${geo.countClass}`}
-          style={{ maxWidth: geo.laneMax }}
-        >
-          <span ref={countRef}>{countText(PHOTOS_SETTLED)}</span>
-        </Caption>
-      </div>
+      {/* THE ACT, named, and its consequence, counted. Both live in a lane the
+          corridor leaves clear by its physics: a frame is a speck while it is
+          near the plate and only grows once it is far out horizontally, so the
+          column directly above or below the code is empty without a scrim. */}
+      {lane}
 
-      {/* THE HEADLINE, anchored off the corridor's axis rather than laid out in
-          flow, so the code holds the exact middle whether the line runs to one
-          row or two. At paint, at full opacity, gated by nothing (bible 13). */}
-      <div
-        className={`absolute inset-x-0 z-10 text-center ${GUTTER[mode].x}`}
-        style={{ bottom: `calc(50% + ${geo.offset - geo.axis}px)` }}
-      >
-        <h1
-          className={`mx-auto font-heading leading-[1.02] text-balance text-white ${LADDER.xl[mode]}`}
-          style={{ maxWidth: geo.h1Max }}
+      {layout.stacked ? (
+        /* THE PHONE CANVAS'S COMPOSITION: the words take the top of the screen
+           in one block, which is what frees the bottom third for the near
+           field. The h1 is still at paint, at full opacity, gated by nothing
+           (bible 13). */
+        <div
+          className={`absolute inset-x-0 z-10 text-center ${GUTTER[mode].x}`}
+          style={{ top: layout.topInset }}
         >
-          {text.h1}
-        </h1>
-      </div>
-
-      {/* THE SENTENCE AND THE ACTIONS, below the corridor. No scrim anywhere on
-          this concept and no darkening layer over a frame: the band's geometry
-          is what keeps the type off the photographs. */}
-      <div
-        className={`absolute inset-x-0 z-10 text-center ${GUTTER[mode].x}`}
-        style={{ top: `calc(50% + ${geo.axis + geo.offset}px)` }}
-      >
-        <p className="mx-auto max-w-xl text-[15px] leading-relaxed text-pretty text-white/80">
-          {text.subhead}
-        </p>
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          <Button asChild size="lg" className="h-11 px-6 text-base">
-            <Link href={text.primary.href}>{text.primary.label}</Link>
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-11 border-white/35 bg-white/5 px-5 text-base text-white hover:border-white/50 hover:bg-white/15 hover:text-white"
-          >
-            {text.secondary}
-          </Button>
+          {headline}
+          <div className="mt-4">{sentence}</div>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* THE HEADLINE, anchored off the corridor's axis rather than laid
+              out in flow, so the code holds the exact middle whether the line
+              runs to one row or two. */}
+          <div
+            className={`absolute inset-x-0 z-10 text-center ${GUTTER[mode].x}`}
+            style={{ bottom: `calc(50% + ${geo.offset - axis}px)` }}
+          >
+            {headline}
+          </div>
+
+          {/* THE SENTENCE AND THE ACTIONS, below the corridor. No scrim
+              anywhere on this concept and no darkening layer over a frame: the
+              band's geometry is what keeps the type off the photographs. */}
+          <div
+            className={`absolute inset-x-0 z-10 text-center ${GUTTER[mode].x}`}
+            style={{ top: `calc(50% + ${axis + geo.offset}px)` }}
+          >
+            {sentence}
+          </div>
+        </>
+      )}
+
+      <CauseSwitch value={cause} onChange={setCause} small={mode === "phone"} />
     </div>
   );
 }
@@ -622,9 +873,9 @@ export const scan: Concept = {
   n: 2,
   name: "The scan",
   rationale:
-    "The source's corridor with the cause put in the frame. A guest's phone sits in the near field, cropped by the edge the way your own hands are, and on its screen is the camera: the same code that stands in the room, with a scanner's four brackets closing on it. The brackets snap, the screen flashes, and only then does the album branch out of the plate. Cause, then effect, in space and in time.",
+    "The source's corridor with the cause put in the frame: the brackets close on the code, the capture fires, and only then does the album branch out of the plate. Cause, then effect, in space and in time. The switch in the corner of the stage is the ruling this concept asks for. Phone puts a guest's device in the near field with its camera open on the code across the room; Brackets only drops the device and lets the room be the viewfinder, with the lock and the capture landing on the real plate. Everything else is identical between them, so the answer is one word.",
   eyebrow:
-    "The act itself, shown: a camera locked on the code, with one line under the plate naming what every guest does.",
+    "Settled: no eyebrow line. The code is the eyebrow and the caption under it names the act, because a word above the headline would be a fourth block of type in a composition that already carries a caption, a count, a sentence and two actions.",
   proposed: {
     h1: "One code. Every photo.",
     subhead:
@@ -632,15 +883,14 @@ export const scan: Concept = {
     secondary: "See the album it made",
   },
   departures: [
-    "A phone in the hero, which Will named as the first thing to overrule because a phone can read as an app. Three things hold it to the camera rather than to software: the screen carries no chrome but the notch (no title bar, no buttons, no tabs), the device is cropped by the frame's edge so it reads as a held object in the room rather than a device mockup on a slide, and what it is looking at is visibly the same code standing a few hundred pixels away. Its bezel radius is a drawn object's proportion, a literal, not a surface token: a phone corner is not a UI surface.",
-    "The hero is cinema and unlit, and this concept has one emissive object: the phone's screen. It lights itself and its own bezel and nothing else. No lamp, no Glow, no spill onto the room or onto a photograph.",
-    "Bible 13, decorative layers only: the corridor's pre-burst state and the brackets' thrown-wide state sit inside the reduced-motion block, so with JavaScript off and motion allowed the album rests at the code and the brackets rest open. Putting either in an effect instead would paint the composition settled and then snap it back. The h1, the QR, the caption, the count, the subhead and the CTAs are plain markup and never gated, and reduced motion gets the whole composition deployed and locked.",
-    "Precedent, not law, inherited from the source: the lockup is centred rather than left-aligned, because the code owns the axis. Kept, with the same caveat, and it is the second thing to overrule if the home hero should stay left.",
-    "The count under the plate is a STAND-IN number, not a measurement: 312 photos from 48 guests, climbing to its settled value with the launches. It is the strongest supporting element on the concept and it must not ship as invented data. The wiring round reads the demo event's real totals, or the line goes.",
+    "THE RULING THIS CONCEPT WANTS, and the switch on the stage exists to settle it: a phone in the hero, which Will named as the first thing he may overrule because a phone can read as an app. Three things hold it to the camera rather than to software: the screen carries no chrome but the notch, the device is cropped by two edges of the frame so it reads as a held object rather than a mockup, and the code on its screen is small and bracketed, the way a code across a room looks in a viewfinder. In this reading the screen is the one emissive object in a hero that is otherwise cinema and unlit: it lights itself and its own bezel, with no lamp, no Glow and no spill onto the room or onto a photograph. Rule Brackets only and both of those go, and the single light left is one white capture bloom on the plate, spent in 400 ms.",
+    "Precedent, not law, inherited from the source: the lockup is centred rather than left-aligned, because the code owns the axis. Kept, with the same caveat, and it is the second thing to overrule if the home hero should stay left. On the 375 canvas the phone reading also moves the sentence and the actions ABOVE the band, which is what frees the bottom third for the near field; the brackets reading keeps the classic order.",
+    "The count under the plate is a STAND-IN number, not a measurement: 282 photos from 48 guests, climbing one per launch to 312. It is the strongest supporting element on the concept and it must not ship as invented data. The wiring round reads the demo event's real totals, or the line goes.",
+    "Bible 13, decorative layers only: the corridor's pre-release state and the brackets' thrown-wide state sit inside the reduced-motion block, so with JavaScript off and motion allowed the album rests at the code and the brackets rest open. Putting either in an effect instead would paint the composition settled and then snap it back. The h1, the QR, the caption, the count, the sentence and the actions are plain markup and never gated, and reduced motion gets the whole composition deployed and locked.",
   ],
   assets: [
-    "A hand-and-phone cutout, to replace the drawn device (.hhc-phone): PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live and real. Shot from just behind the holder's shoulder, the phone held up and angled away to the right, in low warm event light so the body is nearly a silhouette with one highlight along the edge. Two variants, a one-handed grip and a two-handed one, so the composition can be tuned without a reshoot. This is the single biggest lift available to the concept: a real hand is the difference between a held phone and a product render.",
-    "The corridor runs on the 12 landscape stand-ins and wants the 24 squares already requested (ASSETS row 2, asked by hero-source): 512 x 512, one grade, framed tight enough to read at 120 px. Not a new ask, and nothing here needs the three phone-up photographs from row 3, because the device is drawn rather than photographed.",
+    "ONLY IF THE PHONE IS RULED IN: a hand-and-phone cutout to replace the drawn device (.hhc-phone), already on the log as ASSETS row 8. PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live and real; shot from just behind the holder's shoulder, the phone held up and angled away to the right, in low warm event light so the body is nearly a silhouette with one highlight along the edge; two variants, a one-handed grip and a two-handed one. Rule Brackets only and the row can be withdrawn: that reading needs no asset at all.",
+    "Not a new ask: the corridor runs on the 12 landscape stand-ins and wants the 24 squares already requested (ASSETS row 2, asked by hero-source), 512 x 512, one grade, framed tight enough to read at 120 px. Nothing here needs the three phone-up photographs from row 3, because the device is drawn rather than photographed.",
   ],
   render: (p) => <Scan {...p} />,
 };
