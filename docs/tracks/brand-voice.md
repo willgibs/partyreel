@@ -1,7 +1,7 @@
 ---
 track: brand-voice
 status: open
-cut: "c473707"          # round four cut from origin/launch-prep (2026-09-15)
+cut: "1b647d76"          # round five cut from origin/launch-prep (2026-09-15)
 merged_round_4: "fa118649"
 merged_round_3: "4530f2e"
 merged_round_2: "b574cda"
