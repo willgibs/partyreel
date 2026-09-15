@@ -36,7 +36,13 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 import type { Mode } from "@/components/dev/board";
 
-import { GROUND_JOBS, STATE_HUES, TEXT_STEPS, type Ramp } from "./ramps";
+import {
+  GROUND_JOBS,
+  RING_USES,
+  STATE_HUES,
+  TEXT_STEPS,
+  type Ramp,
+} from "./ramps";
 
 /**
  * ROUND TWO'S SPECIMENS: the surfaces round one did not put on the board, and
@@ -691,7 +697,8 @@ export function GuestAlbum({ mode }: { mode: Mode }) {
  *
  * lift  two objects of the same lightness overlapping (two photographs).
  * float a layer over content that keeps living behind it (a menu).
- * ring   the fourth technique, 77 uses in the app and in no document.
+ * ring   the fourth technique, RING_USES.faint uses in the app and in no
+ *        document. Round three re-counted it: the number was 77 and is 37.
  * flat   neither, which is most of the product.
  *
  * The cue values are the light board's, in board.css under this board's prefix;
@@ -797,7 +804,7 @@ export function DepthRow({ mode }: { mode: Mode }) {
             </p>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            ring-1 ring-foreground/5, 77 uses and in no document
+            {`ring-1 ring-foreground/5, ${RING_USES.faint} uses and in no document`}
           </p>
         </div>
         <div className="space-y-2">
@@ -822,7 +829,7 @@ export function DepthRow({ mode }: { mode: Mode }) {
 /**
  * The one translucent surface in the system, on the only specimen where the
  * question is a look: a card lying over a photograph. Today's `.dark --card` is
- * `oklch(0.21 0 0 / 0.62)`; all three candidates quietly retire it, which round
+ * `oklch(0.21 0 0 / 0.62)`; every candidate quietly retires it, which round
  * one's departure list got backwards. Here both answers are rendered at the
  * candidate's own lightness, so the ruling is a look and not a footnote.
  */

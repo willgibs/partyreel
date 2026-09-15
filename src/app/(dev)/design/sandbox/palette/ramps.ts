@@ -453,7 +453,7 @@ export function warm(ramp: Ramp): Ramp {
  * Today ships ONE translucent surface in the whole system (`--card` in `.dark`
  * at 0.62), and round one's departure list said only candidate B kept it. That
  * was wrong: B's card is a `color-mix` off the room, which is fully opaque, so
- * all three candidates retire the veil and none of them said so. Round two
+ * every candidate retires the veil and none of them said so. Round two
  * makes it a choice instead of a side effect: every candidate renders at its
  * declared value, forced opaque, or forced to a veil at the same lightness, and
  * the specimen is a card lying over a photograph, which is the only place the
@@ -675,8 +675,9 @@ export const ACCENT_BY_ID = Object.fromEntries(
   ACCENTS.map((a) => [a.id, a]),
 ) as Record<AccentId, Accent>;
 
-/** `--brand` plus its foreground, which is the whole accent change: 28 utility
- *  hits across roughly 24 surfaces read these two tokens and nothing else. */
+/** `--brand` plus its foreground, which is the whole accent change: BRAND_HITS
+ *  utilities in BRAND_FILES files read these two tokens and nothing else
+ *  (measured in round three; round two said 28 across roughly 24 surfaces). */
 export function accentStyle(
   accent: Accent,
   dark: boolean,
@@ -905,10 +906,11 @@ export function accentBlock(accent: Accent): string {
  * be judged from tokens alone, because they are utility classes rather than
  * values, so they ride along as optional rules:
  *
- *   the panel   45 sites write `bg-muted/<alpha>`; the ruling would delete the
- *               alpha, so the walk needs the same thing from the outside.
- *   --faint     37 sites write `text-muted-foreground/70`; the ruling would
- *               point them at the new step.
+ *   the panel   PANEL_USES sites write `bg-muted/<alpha>`; the ruling would
+ *               delete the alpha, so the walk needs the same thing from the
+ *               outside.
+ *   --faint     FAINT_USES sites write `text-muted-foreground/<alpha>`; the
+ *               ruling would point them at the new step.
  *
  * Both are matched on the class attribute with a leading space or start anchor,
  * so a VARIANT of the same utility (`hover:bg-muted/40`, which is a hover fill
