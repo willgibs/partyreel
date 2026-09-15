@@ -763,7 +763,13 @@ export function RoundingBoard() {
       <div className="rnd-fit flex flex-col gap-3">
         <CellLabel>
           Every part below is drawn at the rail&apos;s setting. The four
-          candidates each apply on their own from part A.
+          candidates each apply on their own from part A.{" "}
+          {/* The ladder switch is the one control on this board that can look
+              broken: at today's base the two ladders are a pixel apart and
+              nothing on the page moves. Say so, with the number. */}
+          {base < 4
+            ? `The ladder switch will look dead at a ${px(base)} base: the two are at most ${px(base * 0.6)} apart there, all of it on the two top rungs. Take a candidate with a round base to see it.`
+            : `At a ${px(base)} base the two ladders are up to ${px(base * 0.6)} apart, most of it on the rungs that carry the plan cards and the badge.`}
         </CellLabel>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
           <Labeled label="Surfaces">

@@ -243,12 +243,14 @@ export const STEP_CALL_SITES: Record<
  * the one that matters is not a button at all. Recounted rather than repeated.
  */
 export const ACTION_SITES = {
-  /** button.tsx derives four sizes from --radius-action inside its variants. */
+  /** button.tsx's own size variants: xs, sm, lg and their three icon twins. */
   derived: 6,
-  /** Hand-written `var(--radius-action)` outside button.tsx. */
+  /** Hand-written `var(--radius-action)` outside button.tsx: the reel (3),
+   *  the guest reel overlay (2), the guest entry SHEET (1, at 1.4x) and the
+   *  marketing footer's CTA (1). Only the first three are buttons at h-10. */
   raw: 7,
   lg: 1,
-  files: 7,
+  files: 6,
 } as const;
 
 /** The board's answer, in one place, so the top block, the Apply button and
