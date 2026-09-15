@@ -463,7 +463,8 @@ voice guide.
 - Head **`3a4ceb3`** plus this commit (a manifest cannot name its own SHA). The round's code is
   three commits: `274dea4` built it, `d9040aa` fixed the dead line the first read-only review found,
   and **`3a4ceb3`** answers the second review (the phone's rest-state count, said truly in the code
-  and here); `4aea15d` merged `launch-prep` and every other commit in the round is this manifest.
+  and here); `4aea15d` and `5e7d58b` merged `launch-prep`, and every other commit in the round is
+  this manifest.
   The whole gate was re-run on `3a4ceb3`; which measurements were re-taken at this head and which
   stand from `d9040aa` on identical executable code is named under Verified below.
   Pushed. The board is `/design/c/home-hero?key=` (concept 4 of 4).
@@ -509,14 +510,22 @@ voice guide.
     invoked at deterministic timestamps after `data-paused` was removed, 1200 frames per canvas.
     The per-frame COST that gives is real JS time; the per-frame BUDGET is arithmetic, not a
     measured 60 fps.
-- Synced with `launch-prep` at **`dd4aa0b`** (it had moved 84 commits: the round-two merges of
-  brand-voice, type-scale, palette, light, media-kit, floating-surfaces, rounding and hero-scan).
-  `git merge origin/launch-prep` at `4aea15d`, no conflicts. Of the files this track READS, only
-  `scan.tsx` and `scan.css` moved; `shared.tsx`, `board.tsx`, `board.css`, `source.tsx`,
-  `stage.tsx`, `bible.ts`, `marketing-media.ts` and `ASSETS.md` are untouched by the sync and by me.
-- Gates re-run on `3a4ceb3`: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing, on
-  `contact-form.tsx`, `album-fill-grid.tsx`, `review-switch.tsx`, `jobs.ts` and `use-flip.ts`), test
-  ok (1719 in 193 files), build ok (248 static pages).
+- Synced with `launch-prep` **twice**. First at `dd4aa0b` (84 commits: the round-two merges of
+  brand-voice, type-scale, palette, light, media-kit, floating-surfaces, rounding and hero-scan),
+  `git merge origin/launch-prep` at `4aea15d`. Then again at the review fix, at **`fb395fe`**
+  (69 more: the round-three merges of hero-scan, light, type-scale, media-kit and hero-burst, plus
+  the candidate block reaching the guest surface), merged at **`5e7d58b`**. No conflicts either
+  time. Of the files this track READS, only the sibling concepts moved (`scan.tsx`, `scan.css`,
+  `burst.tsx`, `burst.css`); `shared.tsx`, `board.tsx`, `board.css`, `source.tsx`, `stage.tsx`,
+  `bible.ts`, `marketing-media.ts`, `use-ambient-pause.ts` and `ASSETS.md` are untouched by either
+  sync and by me, so nothing this concept renders changed under it. The board's served markup was
+  re-checked on the merged tree: 16 `.hhv-card` nodes, all **16 `--hhv-rest` strings still character
+  for character** what the concept's own math computes, `hhv-delta` present, `hhv-lab` absent, no
+  em-dash, no `font-mono`, no `MonoCaption`, and the lab gate 404 / 404 / 200.
+- Gates re-run on `3a4ceb3` and again on the merged tree at `5e7d58b`: typecheck ok, lint ok
+  (0 errors; 6 warnings, all pre-existing, on `contact-form.tsx`, `album-fill-grid.tsx`,
+  `review-switch.tsx`, `jobs.ts` and `use-flip.ts`), test ok (**1761 in 197 files** on the merged
+  tree, 1719 in 193 before it), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-river.md`,
   `src/app/(dev)/design/sandbox/home-hero/river.css`,
   `src/app/(dev)/design/sandbox/home-hero/river.tsx`. **No exceptions**: the two owned files and this
