@@ -6,6 +6,9 @@ import { Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
+import type { EntryBadge } from "@/app/(dev)/design/gallery/entry";
+
 export type LibraryRow = {
   id: string;
   title: string;
@@ -19,6 +22,8 @@ export type LibraryRow = {
   variants: number;
   contracts: number;
   play: boolean;
+  /** `new` or `updated`, declared on the gallery entry by the round that touched it. */
+  badge?: EntryBadge;
   unspecimened?: string;
 };
 
@@ -92,8 +97,11 @@ export function LibraryIndex({ rows }: { rows: LibraryRow[] }) {
                       href={r.href}
                       className="group/row flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-2 transition-colors hover:bg-muted/50"
                     >
-                      <span className="text-[13px] font-medium group-hover/row:underline">
-                        {r.title}
+                      <span className="flex items-baseline gap-1.5">
+                        <span className="text-[13px] font-medium group-hover/row:underline">
+                          {r.title}
+                        </span>
+                        {r.badge && <Tag badge={r.badge} />}
                       </span>
                       {r.for && (
                         <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
@@ -104,10 +112,10 @@ export function LibraryIndex({ rows }: { rows: LibraryRow[] }) {
                         {r.play && <Pill tone="strong">config</Pill>}
                         {r.variants > 0 && <Pill>{r.variants} variants</Pill>}
                         {r.specimens > 0 && (
-                          <Pill>{r.specimens} specimens</Pill>
+                          <Pill>{plural(r.specimens, "specimen")}</Pill>
                         )}
                         {r.contracts > 0 && (
-                          <Pill>{r.contracts} contracts</Pill>
+                          <Pill>{plural(r.contracts, "contract")}</Pill>
                         )}
                         {r.specimens === 0 && r.unspecimened && (
                           <Pill>no specimen</Pill>
@@ -123,6 +131,10 @@ export function LibraryIndex({ rows }: { rows: LibraryRow[] }) {
       )}
     </>
   );
+}
+
+function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
 function Pill({

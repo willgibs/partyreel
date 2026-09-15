@@ -132,6 +132,7 @@ const badgeVariantNames = [
 export const COMPONENT_ENTRIES: GalleryEntry[] = [
   {
     id: "button",
+    badge: "updated",
     family: "components",
     section: "Actions",
     play: "button",

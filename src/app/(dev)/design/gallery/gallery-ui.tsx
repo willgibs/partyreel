@@ -3,59 +3,60 @@ import { ArrowUpRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-import type { VariantAxis } from "./entry";
-import { FAMILY_LABEL, FAMILY_ROUTE, type GalleryItem } from "./registry";
-import { Playground } from "./playgrounds";
-import { Stage } from "./stage";
 import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
+import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
+import type { ContractRecord } from "@/app/(dev)/design/rules/rules";
+
+import type { VariantAxis } from "./entry";
+import type { GalleryItem } from "./registry";
+import { Playground } from "./playgrounds";
+import { Specimen } from "./specimen";
+import { specimenCode } from "./specimen-code";
 
 /**
  * THE GALLERY CHROME (server): how one declared component reads on a page.
  *
- * One block renders in two places, which is the whole point of the round: the
- * family page shows every entry of its family, and /design/library/<id> shows
- * one of them with its contracts open. Nothing here derives a fact: the file,
- * the names, the specimen routes and the contracts all come off the artifact
- * through the registry.
+ * The same pieces render in two places, which is the whole point of the
+ * gallery round: a family page shows every entry of its family through
+ * `EntryBlock`, and /design/library/<id> composes the same variants,
+ * specimens and contracts into the shell's own sections. Nothing here derives
+ * a fact: the file, the names, the specimen routes, the contracts and each
+ * specimen's source all come off the artifacts through the registry.
+ *
+ * Every block's heading carries `id="c-<id>"`, which is what puts every
+ * component of a family in the table of contents (the Library x Lab round,
+ * 2026-09-15) as well as giving the family page a deep link per component.
  */
 
 export function EntryBlock({
   item,
   link,
-  detail = false,
 }: {
   item: GalleryItem;
   link: (href: string) => string;
-  /** The permalink view: contracts expanded, no "open" affordance. */
-  detail?: boolean;
 }) {
   const { entry, record, note, title, file } = item;
   const contracts = record?.contracts ?? [];
 
   return (
-    <section
-      id={`c-${entry.id}`}
-      className="scroll-mt-6 border-t border-border pt-6 first:border-t-0 first:pt-0"
-    >
+    <section className="border-t border-border pt-6 first:border-t-0 first:pt-0">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h3 className={cn("font-heading", detail ? "text-3xl" : "text-lg")}>
-          {detail ? (
-            title
-          ) : (
-            <Link href={link(item.href)} className="hover:underline">
-              {title}
-            </Link>
-          )}
-        </h3>
-        {!detail && (
-          <Link
-            href={link(item.href)}
-            className="group/open flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-          >
-            open
-            <ArrowUpRight className="size-3 transition-transform duration-150 ease-emphasis group-hover/open:translate-x-px group-hover/open:-translate-y-px" />
+        <h3
+          id={`c-${entry.id}`}
+          className="flex scroll-mt-[calc(var(--lab-topbar-h,0px)+12px)] items-baseline gap-2 font-heading text-lg"
+        >
+          <Link href={link(item.href)} className="hover:underline">
+            {title}
           </Link>
-        )}
+          {entry.badge && <Tag badge={entry.badge} />}
+        </h3>
+        <Link
+          href={link(item.href)}
+          className="group/open flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          open
+          <ArrowUpRight className="size-3 transition-transform duration-150 ease-emphasis group-hover/open:translate-x-px group-hover/open:-translate-y-px" />
+        </Link>
       </div>
 
       {(note?.for || entry.lede) && (
@@ -89,66 +90,52 @@ export function EntryBlock({
         </div>
       )}
 
-      {entry.specimens.length > 0 && (
-        <div className="mt-4 grid gap-3">
-          {entry.specimens.map((s, i) => (
-            <Stage
-              key={s.label ?? i}
-              label={s.label}
-              hint={s.hint}
-              bleed={s.bleed}
-              skin={s.skin}
-              contentClassName={s.contentClassName}
-            >
-              {s.node}
-            </Stage>
-          ))}
-        </div>
-      )}
+      <SpecimenList item={item} className="mt-4" />
 
-      {contracts.length > 0 &&
-        (detail ? (
-          <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
-            <p className="border-b border-border px-4 py-2.5 text-[13px] font-medium">
-              Contracts
-              <span className="ml-2 text-[11px] text-muted-foreground tabular-nums">
-                {contracts.length}
-              </span>
-            </p>
-            <ul className="divide-y divide-border">
-              {contracts.map((k) => (
-                <li
-                  key={`${k.file}:${k.line}`}
-                  className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-2 text-sm"
-                >
-                  <span>
-                    {k.suite.length > 0 && (
-                      <span className="text-muted-foreground">
-                        {k.suite.join(" > ")} ·{" "}
-                      </span>
-                    )}
-                    {k.title}
-                  </span>
-                  <Ref
-                    to={{ kind: "source", file: k.file, line: k.line }}
-                    quiet
-                    className="text-[11px]"
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <p className="mt-3 text-[11px]">
-            <Link
-              href={link(item.href)}
-              className="text-muted-foreground underline"
-            >
-              {contracts.length} contract{contracts.length === 1 ? "" : "s"}
-            </Link>
-          </p>
-        ))}
+      {contracts.length > 0 && (
+        <p className="mt-3 text-[11px]">
+          <Link
+            href={link(item.href)}
+            className="text-muted-foreground underline"
+          >
+            {contracts.length} contract{contracts.length === 1 ? "" : "s"}
+          </Link>
+        </p>
+      )}
     </section>
+  );
+}
+
+/**
+ * Every specimen of an entry, each in the frame, each carrying the JSX its
+ * entry module declares it with (specimens.generated.json) so Preview and Code
+ * can never disagree.
+ */
+export function SpecimenList({
+  item,
+  className,
+}: {
+  item: GalleryItem;
+  className?: string;
+}) {
+  const { entry } = item;
+  if (entry.specimens.length === 0) return null;
+  return (
+    <div className={cn("grid gap-3", className)}>
+      {entry.specimens.map((s, i) => (
+        <Specimen
+          key={s.label ?? i}
+          label={s.label}
+          hint={s.hint}
+          bleed={s.bleed}
+          skin={s.skin}
+          contentClassName={s.contentClassName}
+          code={specimenCode(entry.id, i)}
+        >
+          {s.node}
+        </Specimen>
+      ))}
+    </div>
   );
 }
 
@@ -198,72 +185,33 @@ export function VariantAxisRow({ axis }: { axis: VariantAxis }) {
 }
 
 /**
- * The gallery header a family page opens with: what the family is, how much of
- * it there is, and the counts an agent scans for.
+ * A component's contracts: the ONLY rules that bind this one file, each a link
+ * to the `it()` that holds it. A contract guards a component's function
+ * (structure, accessibility, single sources, its engine), never its look.
  */
-export function GalleryCounts({ items }: { items: GalleryItem[] }) {
-  const specimens = items.reduce((n, i) => n + i.entry.specimens.length, 0);
-  const variants = items.reduce(
-    (n, i) =>
-      n + (i.entry.variants ?? []).reduce((m, v) => m + v.options.length, 0),
-    0,
-  );
-  const contracts = items.reduce(
-    (n, i) => n + (i.record?.contracts.length ?? 0),
-    0,
-  );
-  const rows: [string, number][] = [
-    ["components", items.length],
-    ["specimens", specimens],
-    ["variants", variants],
-    ["contracts", contracts],
-  ];
+export function ContractList({ contracts }: { contracts: ContractRecord[] }) {
   return (
-    <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-      {rows.map(([label, n]) => (
-        <div
-          key={label}
-          className="rounded-xl border border-border bg-card px-4 py-3"
+    <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+      {contracts.map((k) => (
+        <li
+          key={`${k.file}:${k.line}`}
+          className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-2.5 text-sm"
         >
-          <p className="font-heading text-2xl">{n}</p>
-          <p className="text-xs text-muted-foreground">{label}</p>
-        </div>
+          <span className="min-w-0">
+            {k.suite.length > 0 && (
+              <span className="text-muted-foreground">
+                {k.suite.join(" > ")} ·{" "}
+              </span>
+            )}
+            {k.title}
+          </span>
+          <Ref
+            to={{ kind: "source", file: k.file, line: k.line }}
+            quiet
+            className="text-[11px]"
+          />
+        </li>
       ))}
-    </div>
-  );
-}
-
-/** A family page's section heading: the organizer above a run of entries. */
-export function GallerySection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="pt-12">
-      <h2 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
-        {title}
-      </h2>
-      <div className="mt-5 space-y-6">{children}</div>
-    </section>
-  );
-}
-
-export function FamilyCrumb({
-  family,
-  link,
-}: {
-  family: keyof typeof FAMILY_LABEL;
-  link: (href: string) => string;
-}) {
-  return (
-    <Link
-      href={link(FAMILY_ROUTE[family])}
-      className="text-xs font-medium tracking-widest text-muted-foreground uppercase hover:text-foreground"
-    >
-      {FAMILY_LABEL[family]}
-    </Link>
+    </ul>
   );
 }

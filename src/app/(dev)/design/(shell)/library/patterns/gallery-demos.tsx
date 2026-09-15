@@ -192,6 +192,7 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "route-error",
+    badge: "updated",
     family: "patterns",
     section: "Dead ends",
     lede: "The route error boundary, shown as a static mirror and never live: the real one reports to Sentry in a mount effect, so a specimen would file an error on every load of this page. Same chrome, no reset and no reporting.",
