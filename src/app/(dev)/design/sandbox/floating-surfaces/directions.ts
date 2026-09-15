@@ -45,6 +45,7 @@
 
 import {
   ALL,
+  ANCHORED,
   BOX,
   EDGE_ANY,
   EDGE_BOTTOM,
@@ -113,12 +114,12 @@ export const DIRECTION_META: Record<Direction, DirectionMeta> = {
     thesis:
       "The album's colour is the product, so the floating layer should let it through. One translucent pane of the room, lit along its top edge, with no boxes inside it at all.",
     changes: [
-      "Material: the popover surface at 72 percent over an 18px backdrop blur, a hairline of light along the top edge, a border mixed from the foreground rather than a ring.",
+      "Material: the popover surface at 74 percent in dark and 80 in light, over an 18px backdrop blur, with a hairline of light along the top edge and a border mixed from the foreground rather than a ring. Those two numbers were measured on the board, not chosen: at 62 percent a row label disappeared into the photograph under it.",
       "Anatomy by subtraction: no header, no separators that draw, no boxes. A section is a quiet label and a gap; the lit row is a full-bleed wash rather than a chip.",
       "Radius: the action family, because a pane of light has no corner of its own and takes the roundest family in the system.",
       "Motion: it condenses. 200ms in from a 5px blur and 0.96 scale, 120ms out, so the panel resolves out of the room instead of popping over it.",
     ],
-    cost: "Two real costs. A backdrop blur is a compositing layer per open panel, and over a flat app ground it buys nothing at all: on app-dark and app-light this direction is a slightly rounder panel. Walk it on cinema first, then on app-light, and rule on both.",
+    cost: "Three real costs. A backdrop blur is a compositing layer per open panel. Over a flat app ground it buys nothing at all, so on app-dark and app-light this direction is a slightly rounder panel, which row 6 shows. And every transparency is a contrast risk: the mix had to come up twice before a quiet label survived a busy photograph, and the tooltip had to stop being inverted or its dark text sat on a dark pane. Walk it on cinema first, then on app-light, and rule on both.",
     paste:
       "The paste carries all of it: material, radius and motion are CSS, so glass is the one direction that needs no component change to try on the real site.",
   },
@@ -249,10 +250,10 @@ ${guarded(`@keyframes flt-card-in {
   to { transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%)); }
 }
 ${travel(scope)}
-${state(scope, ALL, OPEN)} {
+${state(scope, ANCHORED, OPEN)} {
   animation: flt-card-in 160ms var(--ease-emphasis) both;
 }
-${state(scope, ALL, CLOSED)} {
+${state(scope, ANCHORED, CLOSED)} {
   animation: flt-card-out 110ms var(--ease-emphasis) both;
 }
 ${state(scope, EDGE_ANY, OPEN)} {
@@ -271,15 +272,18 @@ function glassCss(scope: Scope): string {
    purpose: a pane of light has no corner of its own. */
 ${radiusBlock("glass", scope)}
 ${root(scope)} {
-  --flt-glass: color-mix(in oklab, var(--popover) 72%, transparent);
+  --flt-glass: color-mix(in oklab, var(--popover) 80%, transparent);
   --flt-glass-edge: color-mix(in oklab, var(--foreground) 14%, transparent);
   --flt-glass-lit: inset 0 1px 0 0 oklch(1 0 0 / 0.65);
   --flt-float: ${FLOAT_LIGHT};
 }
 ${darkRoot(scope)} {
-  /* Darker mix and a fainter lit edge: at 72 percent over a 0.11 room the panel
-     reads as a hole rather than a pane, and a 0.65 hairline is a scratch. */
-  --flt-glass: color-mix(in oklab, var(--popover) 62%, transparent);
+  /* Measured on the board rather than guessed. At 62 percent over the album a
+     row label at 55 percent opacity disappears into a photograph, which is a
+     pane you cannot read: the mix is 74 and the labels come up with it. A
+     fainter lit edge for the same reason a 0.65 hairline on a dark room is a
+     scratch rather than a light. */
+  --flt-glass: color-mix(in oklab, var(--popover) 74%, transparent);
   --flt-glass-edge: color-mix(in oklab, var(--foreground) 18%, transparent);
   --flt-glass-lit: inset 0 1px 0 0 oklch(1 0 0 / 0.16);
   --flt-float: ${FLOAT_DARK};
@@ -303,6 +307,20 @@ ${inside(scope, ALL, ITEMS)} {
 ${panels(scope, `${MENUS}, ${BOX}`)} [data-slot$="-separator"] {
   background: color-mix(in oklab, var(--foreground) 12%, transparent);
 }
+/* THE TOOLTIP STOPS BEING INVERTED, and it has to. ui/tooltip.tsx ships
+   bg-foreground with primary-foreground text, so a material that repaints the
+   background and leaves the colour alone puts dark text on a dark pane: it was
+   unreadable on the board before this line, which is the honest way to find it.
+   In glass the tooltip is a chip of the same pane as everything else, arrow
+   included. */
+${panels(scope, '[data-slot="tooltip-content"]')} {
+  color: var(--popover-foreground);
+}
+${prefix(scope)}[data-slot="tooltip-content"] > span > svg,
+${prefix(scope)}[data-slot="tooltip-content"] svg[class*="rotate-45"] {
+  background: var(--flt-glass);
+  fill: var(--flt-glass);
+}
 ${guarded(`@keyframes flt-glass-in {
   from { opacity: 0; filter: blur(5px); transform: scale(0.96); }
   to { opacity: 1; filter: blur(0px); transform: scale(1); }
@@ -317,10 +335,10 @@ ${guarded(`@keyframes flt-glass-in {
   to { transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%)); }
 }
 ${travel(scope)}
-${state(scope, ALL, OPEN)} {
+${state(scope, ANCHORED, OPEN)} {
   animation: flt-glass-in 200ms var(--ease-emphasis) both;
 }
-${state(scope, ALL, CLOSED)} {
+${state(scope, ANCHORED, CLOSED)} {
   animation: flt-glass-out 120ms var(--ease-emphasis) both;
 }
 ${state(scope, EDGE_ANY, OPEN)} {
@@ -361,10 +379,10 @@ ${guarded(`@keyframes flt-cmd-in {
   to { transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%)); }
 }
 ${travel(scope)}
-${state(scope, ALL, OPEN)} {
+${state(scope, ANCHORED, OPEN)} {
   animation: flt-cmd-in 90ms var(--ease-emphasis) both;
 }
-${state(scope, ALL, CLOSED)} {
+${state(scope, ANCHORED, CLOSED)} {
   animation: flt-cmd-out 70ms var(--ease-emphasis) both;
 }
 ${state(scope, EDGE_ANY, OPEN)} {

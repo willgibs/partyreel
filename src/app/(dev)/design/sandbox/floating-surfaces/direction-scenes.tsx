@@ -93,14 +93,18 @@ function AppBar({
   phone?: boolean;
 }) {
   return (
-    <div className="absolute inset-x-0 top-0 z-40 flex h-14 items-center gap-4 border-b border-border bg-background/80 px-4 backdrop-blur">
+    <div className="absolute inset-x-0 top-0 z-40 grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-border bg-background/80 px-4 backdrop-blur">
       <p className="text-sm font-semibold tracking-tight">Partyreel</p>
+      {/* The nav sits in the CENTRE column, which is not decoration: radix
+          centres the viewport under the trigger list, so a nav pinned to the
+          left edge hangs its panel off the canvas. The real marketing header
+          centres it for the same reason, and a board that did not would be
+          judging a layout the product does not ship. */}
       {!phone ? (
         <NavigationMenu
           value={navOn ? "features" : ""}
           onValueChange={() => undefined}
           viewportProps={{ className: "flt-panel" }}
-          className="ml-2"
         >
           <NavigationMenuList>
             <NavigationMenuItem value="features">
@@ -111,8 +115,10 @@ function AppBar({
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
-      ) : null}
-      <div className="ml-auto">
+      ) : (
+        <span />
+      )}
+      <div className="justify-self-end">
         <MenuPanel
           direction={direction}
           model={ACCOUNT_MENU}
@@ -136,7 +142,11 @@ function DeskScene({ direction }: { direction: Direction }) {
     <>
       <Backdrop phone={false} chrome={false} />
       <AppBar direction={direction} navOn={navOn} accountOn={on} />
-      <div className="absolute top-40 left-8">
+      {/* Each panel gets its own room on the canvas. The header's viewport is
+          201px tall under a 56px bar, so an event menu at 160 would open
+          underneath it and the comparison would be of two panels overlapping
+          rather than of a direction. */}
+      <div className="absolute top-80 left-8">
         <MenuPanel
           direction={direction}
           model={EVENT_MENU}
@@ -146,7 +156,7 @@ function DeskScene({ direction }: { direction: Direction }) {
           width={276}
         />
       </div>
-      <div className="absolute top-40 right-8">
+      <div className="absolute top-[420px] right-10">
         <TooltipProvider>
           <Tooltip open={on}>
             <TooltipTrigger asChild>

@@ -201,10 +201,10 @@ function RowBody({
   if (direction === "glass") {
     return (
       <span className="flex w-full items-center gap-2.5">
-        <Icon className="size-4 opacity-55" />
+        <Icon className="size-4 opacity-70" />
         <span className="truncate">{row.label}</span>
         {row.meta ? (
-          <span className="ml-auto text-xs opacity-55">{row.meta}</span>
+          <span className="ml-auto text-xs opacity-70">{row.meta}</span>
         ) : null}
       </span>
     );
@@ -370,7 +370,7 @@ export function MenuPanel({
           <>
             {model.groups.map((g, i) => (
               <div key={g.label} className={cn(i > 0 && "mt-2")}>
-                <DropdownMenuLabel className="px-2.5 pb-0.5 text-[11px] opacity-55">
+                <DropdownMenuLabel className="px-2.5 pb-0.5 text-[11px] text-foreground opacity-70">
                   {g.label}
                 </DropdownMenuLabel>
                 <Rows rows={g.rows} direction={direction} subOpen={subOpen} />
@@ -748,10 +748,10 @@ export function HeaderPanelBody({ direction }: { direction: Direction }) {
             className="flex items-start gap-2.5 px-2.5 py-2 transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-accent/60"
             style={{ borderRadius: "var(--flt-r-item, var(--radius-md))" }}
           >
-            <f.icon className="mt-0.5 size-4 shrink-0 opacity-55" />
+            <f.icon className="mt-0.5 size-4 shrink-0 opacity-70" />
             <span className="min-w-0">
               <span className="block text-sm font-medium">{f.label}</span>
-              <span className="block truncate text-xs opacity-60">
+              <span className="block truncate text-xs opacity-75">
                 {f.line}
               </span>
             </span>

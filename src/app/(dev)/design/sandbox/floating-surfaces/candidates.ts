@@ -86,10 +86,24 @@ export const ITEMS = [
   '[data-slot="navigation-menu-link"]',
 ].join(", ");
 
-/** Every panel, for the light and the entrance (which do not care about size). */
+/** Every panel, for the light (which does not care how a panel arrives). */
 export const ALL = [MENUS, BOX, EDGE_BOTTOM, EDGE_TOP, EDGE_RIGHT, EDGE_LEFT].join(
   ", ",
 );
+
+/** The ANCHORED family: everything that arrives beside or over its trigger,
+ *  which is every panel except the ones attached to an edge. Every ENTRANCE
+ *  block addresses this rather than ALL, and the reason is a bug round four
+ *  measured on the board: `:is(ALL)` carries the specificity of its most
+ *  specific argument, `[data-slot="sheet-content"][data-side="bottom"]`, so an
+ *  entrance written for everything beat the edge rule written two lines under
+ *  it and the sheet ZOOMED. The block's own comment has said since round two
+ *  that a sheet that zooms is a different component. Worse, ALL contains
+ *  [data-entry-drawer], so the guest drawer was being handed this family's
+ *  clock on top of vaul's own keyframes, which is the fight the same comment
+ *  warns about. Anchored panels take the entrance; the edge family takes the
+ *  slide; the guest drawer is in neither, by name. */
+export const ANCHORED = [MENUS, BOX].join(", ");
 
 /** High-frequency: opened dozens of times in a working session. */
 export const HIGH = [
@@ -388,10 +402,10 @@ export function entranceCss(rung: EntranceRung, scope: Scope): string {
    zoom-fade for the whole family at one beat, 175ms in and 120ms out on the
    emphasis curve, exits faster than enters. The edge family keeps its slide. */
 ${base}
-${state(scope, ALL, OPEN)} {
+${state(scope, ANCHORED, OPEN)} {
   animation: flt-zoom-in 175ms var(--ease-emphasis) both;
 }
-${state(scope, ALL, CLOSED)} {
+${state(scope, ANCHORED, CLOSED)} {
   animation: flt-zoom-out 120ms var(--ease-emphasis) both;
 }
 ${state(scope, EDGE_ANY, OPEN)} {
