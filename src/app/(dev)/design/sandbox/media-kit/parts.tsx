@@ -802,10 +802,20 @@ export function RecordPart() {
           ))}
         </ul>
         <p className="mt-2 text-[11px] leading-snug">
+          {/* ★ THE ENTITY IS KEPT OUT OF THIS RUN, AND THAT IS THE DURABLE
+              FIX RATHER THAN AN EXPLICIT {" "}. Next 16's SWC drops the leading
+              whitespace of a JSXText run that BOTH spans more than one source
+              line AND holds an HTML entity, so `{n} staged` renders as
+              "22staged"; board-jsx.test.ts caught this one the moment the wave
+              widened it to the split files. A hand-placed space expression does
+              fix it and prettier deletes it again on the next format when the
+              line fits, which is how a guarded shape comes back. Rewording the
+              possessive out of the run ("the cover and crop of each post")
+              leaves nothing to reflow. */}
           The schema runs on {CANDIDATES.length} staged records. Two more suites
           keep the board honest: exposure.test.ts recomputes every number in the
-          exposure from the tree, and bridge.test.ts recomputes each
-          post&rsquo;s cover and crop from the real resolver.
+          exposure from the tree, and bridge.test.ts recomputes the cover and
+          crop of each post from the real resolver.
         </p>
       </div>
     </div>
