@@ -5,35 +5,43 @@
    writing inline transforms, so there is no keyframe to collide with production
    and no loop hook to mark (the loop reads the stage's data-paused itself).
 
-   THE REST STATE / ENTRANCE SPLIT, and why it is inverted from the usual shape.
+   THE REST STATE / ENTRANCE SPLIT, and exactly who gets which. Read the
+   cascade before you describe this rule to anyone: the second block wins
+   wherever it matches, and it matches by DEFAULT.
 
-   House convention is "final states outside the media queries, entrances inside
-   `no-preference`". That is exactly what this is, once you see which state is
-   which. The field's FINAL state is the album fully deployed around the vent,
-   and it lives outside every query on `.alb-card`, read from the per-card
-   custom properties the field computes during render: a reduced-motion reader,
-   a crawler and the server's own HTML all get the album standing still at its
-   steady-state positions, with nothing to undo.
+   Outside every query, `.alb-card` is the album fully deployed around the vent,
+   read from the per-card custom properties the field computes during render.
+   That is the state the server's HTML carries and the state a REDUCED-MOTION
+   reader keeps: the album standing still at its steady-state positions, whole,
+   with nothing to undo.
 
-   The state inside `no-preference` is the field's FIRST FRAME, every frame
-   collapsed on the origin at no size. It has to live in CSS rather than in an
-   effect, because an effect runs after the server's paint: the field would
-   paint deployed, then snap back to the origin, then bloom. Put the pre-bloom
-   frame in the same query the animation itself is allowed in and the bloom is
-   one beat. It is also what the 160 ms hold rests on: for that first beat the
-   loop writes nothing at all, so this rule is the screen.
+   Inside `prefers-reduced-motion: no-preference` is the field's FIRST FRAME,
+   every frame collapsed on the origin at no size. It has to live in CSS rather
+   than in an effect, because an effect runs after the server's paint: the field
+   would paint deployed, then snap back to the origin, then bloom. Put the
+   pre-bloom frame in the same query the animation itself is allowed in and the
+   bloom is one beat. It is also what the 160 ms hold rests on: for that first
+   beat the loop writes nothing at all, so this rule is the screen.
 
-   THE TRADE, flagged on the board under Departures: a reader with JavaScript
-   off who has NOT asked for less motion sees the album rest around the vent.
-   Nothing that carries meaning is gated by it. The eyebrow, the h1, the
-   sentence and the actions are plain markup and never move. */
+   THE TRADE, and it is the opposite of what round one's first draft said, so do
+   not re-copy that sentence. `no-preference` is the DEFAULT match, so it is not
+   only the ordinary reader who lands on the collapsed frame: a crawler and a
+   reader with JavaScript OFF land there too, and without a loop to take over
+   they stay there. With JavaScript off and no motion preference the hero is the
+   lockup alone on the cinema ground, no photographs. Nothing that carries
+   meaning is gated by it: the eyebrow, the h1, the sentence and the actions are
+   plain markup that never moves, and the field is aria-hidden decoration. The
+   opposite arrangement is worse to look at rather than better (everyone paints
+   the album settled, then the loop snaps it back to the vent on every load),
+   which is why this stands as a flagged departure on the board rather than a
+   bug fix. */
 
 .alb-field {
   position: absolute;
   inset: 0;
   /* Each card carries its own z-index so a near frame paints over a far one
      (the depth axis is the concept). This keeps that ordering contained: the
-     lockup above the field must not have to out-number forty cards. */
+     lockup above the field must not have to out-number fifty-two cards. */
   isolation: isolate;
 }
 
@@ -78,7 +86,9 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* The field's first frame: every frame on the origin, at no size. */
+  /* The field's first frame: every frame on the origin, at no size. This is
+     also the whole no-script hero, since nothing undoes it without the loop
+     (see THE TRADE above). */
   .alb-card {
     transform: translate3d(0, 0, 0) scale(0);
     opacity: 0;

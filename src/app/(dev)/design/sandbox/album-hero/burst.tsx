@@ -96,9 +96,13 @@ import { CANVAS, GUTTER, LADDER, type Mode, Photo } from "../home-hero/shared";
  * compass, which is the difference between a field and a confetti of gated
  * frames nobody ever sees.
  *
- * THE REST STATE IS COMPOSED, NOT PAUSED (restFrame): reduced motion, a
- * crawler, the server's own HTML and a cold paint all get the whole album
- * standing still around the vent, every photograph whole, none over a word.
+ * THE REST STATE IS COMPOSED, NOT PAUSED (restFrame): a reduced-motion reader
+ * gets the whole album standing still around the vent, every photograph whole,
+ * none over a word, and that solved state is what the server's HTML carries for
+ * everyone. It is NOT the no-script hero: burst.css collapses every card inside
+ * prefers-reduced-motion: no-preference, the default match, so a crawler and a
+ * reader with JavaScript off get the lockup alone until the loop runs. That
+ * trade is written out in full at the top of burst.css.
  */
 
 /* ── The field's constants ── */
@@ -851,10 +855,12 @@ function buildCards(geo: Geo, keep: KeepPart[], halfW: number, halfH: number) {
 }
 
 /**
- * THE REST STATE, COMPOSED. It is what a reduced-motion reader, a crawler, a
- * cold paint and a reader with JavaScript off all get, so it is a composition
- * in its own right and not a pause button: the whole album standing still
- * around the vent, every photograph whole, none of them over a word.
+ * THE REST STATE, COMPOSED. It is what a reduced-motion reader gets, and what
+ * every reader's HTML carries under the collapsed first frame, so it is a
+ * composition in its own right and not a pause button: the whole album standing
+ * still around the vent, every photograph whole, none of them over a word. (Who
+ * actually PAINTS it, and who gets the lockup alone instead, is the trade at
+ * the top of burst.css: no-preference is the default match.)
  *
  * It is SOLVED, never sampled. Freezing the running field is a freeze frame:
  * half the album caught mid-dissolve at the rim with a hole in the middle, and
@@ -1090,7 +1096,6 @@ export function AlbumHeroField({ mode, step }: { mode: Mode; step: Step }) {
     // field once the quiet zone changes shape.
   }, [cards, cycle, geo, halfH, halfW, reduced]);
 
-
   return (
     <div
       ref={rootRef}
@@ -1106,8 +1111,12 @@ export function AlbumHeroField({ mode, step }: { mode: Mode; step: Step }) {
       <div aria-hidden className="alb-field">
         {cards.map((c, i) => {
           // The REST state, written as custom properties the sheet reads: the
-          // album settled around the vent, which is what reduced motion, a
-          // crawler and the server's own HTML all get (see restFrame).
+          // album settled around the vent (see restFrame). It is what a
+          // REDUCED-MOTION reader gets and what the server's HTML carries, but
+          // it is NOT what a crawler paints: burst.css collapses every card
+          // inside prefers-reduced-motion: no-preference, which is the default
+          // match, so with no loop running the hero is the lockup alone. The
+          // trade is written out at the top of burst.css.
           const rest = restFrame(c, i, geo, keep, halfW, halfH);
           const w = geo.card;
           const h = geo.card * c.aspect;
@@ -1217,7 +1226,12 @@ export function AlbumHeroField({ mode, step }: { mode: Mode; step: Step }) {
           <Button asChild size="lg" className="h-11 px-6 text-base">
             <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="h-11 px-6 text-base">
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="h-11 px-6 text-base"
+          >
             <Link href="/how-it-works">See how it works</Link>
           </Button>
         </div>

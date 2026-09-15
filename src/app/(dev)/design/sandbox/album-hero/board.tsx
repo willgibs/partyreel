@@ -13,8 +13,21 @@ import {
   Stage,
   Toggle,
 } from "@/components/dev/board";
+import { ALBUM_FAQ } from "@/components/marketing/sections/features/album/album-faq";
+import { AttributionSection } from "@/components/marketing/sections/features/album/attribution-section";
 import { EverywhereSection } from "@/components/marketing/sections/features/album/everywhere-section";
 import { GettingInSection } from "@/components/marketing/sections/features/album/getting-in-section";
+import { HowMuchFits } from "@/components/marketing/sections/features/album/how-much-fits";
+import { QualitySection } from "@/components/marketing/sections/features/album/quality-section";
+import { StaysSection } from "@/components/marketing/sections/features/album/stays-section";
+import { TakeHomeSection } from "@/components/marketing/sections/features/album/take-home-section";
+import { WhoCanOpenSection } from "@/components/marketing/sections/features/album/who-can-open-section";
+import { YourCallSection } from "@/components/marketing/sections/features/album/your-call-section";
+import { FeatureFaq } from "@/components/marketing/sections/features/shared/feature-faq";
+import { GoDeeper } from "@/components/marketing/sections/features/shared/go-deeper";
+import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
+import { CtaBand } from "@/components/marketing/system/cta-band";
+import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 
 import { AlbumVisual } from "./album";
 import { AlbumHeroField, type Step } from "./burst";
@@ -35,10 +48,13 @@ import { AlbumHeroField, type Step } from "./burst";
  *
  *  1. THE HERO alone, at a real viewport, so the field is judged as a hero.
  *  2. THE ALBUM alone, wide, so the product is judged as the product.
- *  3. THE PAGE, the two together and then the first chapter that follows, so
- *     the hand-off (feeling -> product -> chapters) is judged whole. This is
- *     the one that answers Will's worry about the two animations fighting,
- *     because it is the only stage where both are on screen at once.
+ *  3. THE PAGE: the two on top of the WHOLE shipped route, every section in
+ *     its shipped order, so the hand-off (feeling -> product -> chapters) is
+ *     judged whole and the cinema-to-paper cut, the flip most likely to be
+ *     disturbed by a full-bleed hero that never stops moving, is judged under
+ *     it rather than imagined. This is also the one that answers Will's worry
+ *     about the two animations fighting, because it is the only stage where
+ *     both are on screen at once.
  *
  * EVERY PAGE-WIDE SWITCH IS IN THE DOCK (Will, 2026-09-15: "the GUI control
  * should be fixed so that variants can be toggled on different previews
@@ -139,8 +155,8 @@ export function AlbumHeroBoard() {
 
         <section className="space-y-2">
           <BoardCaption
-            title="3 · The page"
-            body="The hand-off, whole: the hero, the album, and the first chapter of the real page under them. The one stage where both animations are on screen at once, which is the thing to judge."
+            title="3 · The page, whole"
+            body="The hand-off, end to end: the hero, the album, and then every section /features/album ships, in its shipped order, down to the closing band. The one stage where both animations are on screen at once, and the only place to see what a hero that never stops moving does to the cinema-to-paper cut a chapter below it."
           />
           <MeasuredStage
             mode={mode}
@@ -150,8 +166,7 @@ export function AlbumHeroBoard() {
               <AlbumHeroField mode={mode} step={step} />
             </div>
             <AlbumVisual mode={mode} cols={cols} runId={runId} />
-            <GettingInSection />
-            <EverywhereSection />
+            <PageTail />
           </MeasuredStage>
         </section>
 
@@ -161,7 +176,7 @@ export function AlbumHeroBoard() {
             {
               name: "The hero",
               rationale:
-                "One field, born at a point and radiating around the whole compass and forward out of the screen, looping with no end, because a live album has no end. Forty frames at 1440 and thirty-six at 375, every one of them a photograph the moment it exists. The type holds a quiet zone no frame enters, so the media stays at 100 percent and nothing is dimmed.",
+                "One field, born at a point and radiating around the whole compass and forward out of the screen, looping with no end, because a live album has no end. Fifty-two frames at 1440 and forty-four at 375, nineteen to twenty-seven of them on screen at any moment, every one a photograph from the frame it is born in. The type holds a quiet zone no frame enters, so the media stays at 100 percent and nothing is dimmed.",
             },
             {
               name: "The album",
@@ -177,7 +192,7 @@ export function AlbumHeroBoard() {
           ]}
           departures={[
             "Departure, bible 10 (the hero is unlit by the standing ruling): the frames carry a drop shadow, the light spec's LIFT family (docs/specs/light.md) at four times the offsets, because LIFT separates two cards a pixel apart and these are separated by a depth axis measured in hundreds of units. It is a shadow, never a lamp: no light source is added, no photograph is darkened, and there is no scrim anywhere on the hero.",
-            "Departure, bible 13, decorative layer only: the field's pre-bloom state sits inside the reduced-motion block, so a reader with JavaScript off who has not asked for less motion sees the album resting around the vent instead of blooming out of it. The eyebrow, the h1, the sentence and the actions are plain markup, never gated, and reduced motion gets the whole album settled and still.",
+            "Departure, bible 13, decorative layer only: the field's FIRST FRAME (every card collapsed on the vent at no size) sits inside the prefers-reduced-motion: no-preference query, and no-preference is the DEFAULT match, so with JavaScript off the hero paints as the lockup alone on the cinema ground, no photographs behind it, until the loop takes over on the next frame. A reader who HAS asked for less motion gets the opposite and the better one: the album settled around the vent, whole and still, because that state is what the cards carry outside every query. Nothing that carries meaning is gated (the eyebrow, the h1, the sentence and the actions are plain markup at full opacity, and the field is aria-hidden), and the alternative is worse to look at, not better: paint the album settled for everyone and the loop has to snap it back to the vent on every load. Rule on whether the no-script frame should be the settled album anyway.",
             "Departure, the production component is changed from the outside: album.css drives GuestMasonry's column count through a variable rather than forking the component, so the candidate is composed and the diff it argues for is one declaration. Nothing under src/components/guest was edited.",
           ]}
           assets={[
@@ -189,6 +204,69 @@ export function AlbumHeroBoard() {
         />
       </div>
     </div>
+  );
+}
+
+/**
+ * THE REST OF THE ROUTE, under the new top (round one's read-back fix). The
+ * goal asked for "the two together, then the rest of the page's sections as
+ * they ship", and the first pass stopped after two chapters, which quietly hid
+ * the one hand-off most at risk from a full-bleed hero that never resolves: the
+ * CINEMA-TO-PAPER CUT. QualitySection winds the dark chapter down, PaperChapter
+ * flips the token subtree light on a hard hairline, and six desk sections run
+ * on paper before the close returns to cinema. If the field is too loud, the
+ * symptom shows up HERE (a reader arriving at the cut with the album still
+ * flying a chapter above), not in the hero alone.
+ *
+ * It mirrors src/app/(marketing)/(cinema)/features/album/page.tsx BY HAND and
+ * deliberately: a route module is not something to import from a board (it
+ * carries `metadata`, and Next owns its module graph). Only two things are left
+ * out, both of them chrome the layout owns rather than the page: the
+ * BreadcrumbJsonLd (invisible) and the overlay MarketingHeader, whose sticky
+ * position would resolve against the lab page rather than this stage and so
+ * would ride down the board instead of sitting over the hero. When that page
+ * gains or drops a section, this list follows it.
+ */
+function PageTail() {
+  return (
+    <>
+      <GettingInSection />
+      <EverywhereSection />
+      <QualitySection />
+      <PaperChapter>
+        <YourCallSection />
+        <AttributionSection />
+        <WhoCanOpenSection />
+        <TakeHomeSection />
+        <HowMuchFits />
+        <StaysSection />
+      </PaperChapter>
+      <RelatedFeatures slugs={["qr", "curation", "sharing"]} />
+      <FeatureFaq items={ALBUM_FAQ}>
+        <GoDeeper
+          links={[
+            {
+              href: "/help/how-guests-join-and-upload",
+              label: "How guests join and upload",
+            },
+            {
+              href: "/help/storage-plans-and-limits",
+              label: "Storage, plans, and limits",
+            },
+            {
+              href: "/help/who-can-see-your-event",
+              label: "Who can see your event",
+            },
+          ]}
+        />
+      </FeatureFaq>
+      <CtaBand
+        className="border-t"
+        heading="Give the next one an album."
+        subhead="Start free. Share one code and the album fills itself."
+        demoLink
+      />
+    </>
   );
 }
 
