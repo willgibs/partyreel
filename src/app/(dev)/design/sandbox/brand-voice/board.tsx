@@ -6,30 +6,40 @@ import "./board.css";
 import { useLayoutEffect, useRef, useState } from "react";
 
 import {
+  BoardDock,
   BoardMeta,
   Stage,
   Toggle,
   type Ground,
   type Mode,
 } from "@/components/dev/board";
+import { ImagePlus } from "lucide-react";
+
+import { EventCard } from "@/components/app/event-card";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { MAX_EVENTS, planById, plansForTier } from "@/lib/constants/tiers";
+import { formatBytes } from "@/lib/utils";
 
 import { Variant } from "../variant-frame";
 import {
   ALBUM_PAGE,
+  APP_USE,
   ARC,
   CURATION_PAGE,
   FEATURES,
-  GUEST_SURFACES,
+  GUEST_USE,
   HELP_HEADS,
-  QUIET_SURFACES,
+  MARKETING_USE,
   REGISTERS,
   THESIS,
   UNFURL,
+  USE_GROUPS,
   UTILITY_HEROES,
   VOICES,
   arcDiff,
@@ -38,20 +48,53 @@ import {
   held,
   pageCardDiff,
   pick,
+  sameInAll,
+  say,
   sectionHeadersPaste,
+  slot,
+  useTally,
   utilityDiff,
   voiceById,
   type ArcSection,
   type PageCard,
-  type Surface,
   type Trio,
+  type UseCase,
   type UtilityHero,
   type VoiceId,
   type WholePage,
 } from "./voices";
 
 /**
- * THE BRAND-VOICE BOARD, ROUND THREE (2026-09-14).
+ * THE BRAND-VOICE BOARD, ROUND FOUR (2026-09-15).
+ *
+ * WHAT ROUND FOUR CHANGED, which is Will’s review of round three, taken
+ * literally:
+ *  1. USAGE COMES FIRST. "There’s a handful of notes about the voices, but
+ *     not a lot of actual usage examples that I can get a feel for each voice
+ *     through... I would love to see the brand voices previewed on a few
+ *     different production UI areas across marketing and app." So the board now
+ *     opens on the voices WRITING: sixteen real surfaces, each written three
+ *     ways, on the component that ships it. A hero, a chapter, a card set, the
+ *     pricing pair, a help opening; the dashboard’s empty state, its event
+ *     card, the create wizard, a toast, an error, a notification, the account
+ *     page; a guest’s door, the upload sheet, the empty album, an email.
+ *     The twelve chapters round three built follow, as the price list.
+ *  2. EVERY COMPARISON SHOWS A DIFFERENCE. "A lot just have the exact same
+ *     versions with a note that says unchanged... it’s absolutely useless
+ *     for a brand voice comparison." In the usage chapters every voice WRITES
+ *     every line, even where a sweep would keep today’s; where all three
+ *     land on the same string anyway, the row carries the REASON the voice does
+ *     not touch it, never the word unchanged. The counter in chapter 1 states
+ *     both numbers, and counts any row that is the same in all three WITHOUT a
+ *     reason as a defect, out loud.
+ *  3. THE DOCK. Every page-wide switch (the voice, the canvas, the app’s
+ *     theme, the chapter index) rides the shell’s BoardDock, so a candidate
+ *     can be flipped from anywhere on a board this tall. Nothing on this board
+ *     is zoomed: every Stage renders at 1:1 (the shell’s round-four
+ *     default), which is what a copy board needed most of all.
+ *  4. THE APP’S UI IS OPEN, so the app surfaces render as UI rather than as
+ *     text in a card, which is what round three did and what made the quiet
+ *     register hard to judge at all.
  *
  * WHAT ROUND TWO BUILT. Round one argued three voices on seven HEADERS; round
  * two walked WHOLE surfaces in the selected voice, because a voice is judged in
@@ -107,7 +150,7 @@ import {
 /** The verdict, on top. A board this tall with its recommendation at the
  *  bottom is a board that gets scrolled, not ruled on. */
 const LEAD = {
-  what: "What Partyreel sounds like, argued where a voice is actually judged: whole pages. Three columns, one toggle, and every line a candidate keeps verbatim marked held. Twelve chapters, and seven asks at the foot that each answer in one word.",
+  what: "What Partyreel sounds like, shown in use before it is argued: sixteen real surfaces across marketing, the app and a guest's phone, each written three ways on the component that ships it. Then the twelve chapters that price a ruling, and seven asks at the foot that each answer in one word.",
   recommend: "B, the room.",
   because:
     "It is the only candidate built from the one thing only this product does, a code on a table becoming an album while the party is still going, and it is the reason a line here could not be said by a shared folder or a group chat.",
@@ -115,44 +158,48 @@ const LEAD = {
     "A, the house, is the cheap answer and a real one: it tunes the register the eight ratified lines already speak, and it barely touches the feature pages, which are finished.",
 };
 
-/** Three pointers, each an anchor. The round-three walk found that a stranger
- *  reads the first screen and then scrolls looking for the argument. */
+/** Three pointers, each an anchor. Round four repoints them at the usage
+ *  chapters: a voice is chosen by reading it, and priced afterwards. */
 const LOOK_AT = [
   {
+    href: "#bv-1",
+    label: "Chapter 1, the voices writing marketing",
+    line: "Five surfaces, three versions each, at 1:1 on the real ground. The hero is the sharpest pair on the board: A writes today's two ruled lines back, because keeping them is A's whole argument.",
+  },
+  {
     href: "#bv-2",
-    label: "Chapter 2 to 4, the arc top to bottom",
-    line: "Fifteen sections in shipped order on their real grounds. Read it once on Today and once on B; the bar counts what moved.",
+    label: "Chapter 2, the voices writing the app",
+    line: "Seven surfaces of real app UI. The wizard's date helper and the storage notification are findings rather than preferences: one of them says something the product does not do.",
   },
   {
-    href: "#bv-6",
-    label: "Chapters 6 and 7, the feature pages whole",
-    line: "Cards and all. The ledgers count what a voice costs there, and the answer is almost nothing: the arc is unwritten while these pages are finished.",
-  },
-  {
-    href: "#bv-9",
-    label: "Chapter 9, the pages the arc does not reach",
-    line: "/help, /contact and /pricing. Two of the site's most generic lines live here, and one of them is the model for the fence that keeps our support copy legal.",
+    href: "#bv-3",
+    label: "Chapter 3, a guest's phone",
+    line: "Four surfaces at 375, where bible 4 decides more than the voice does, and where the album and gallery split is visible in one screen.",
   },
 ];
 
-/** The twelve chapters, for the index in the bar. */
+/** The chapters, for the index in the dock. Round four recut them: usage
+ *  first (1 to 3), then round three's twelve minus the two the usage chapters
+ *  replaced (the quiet register and the guest register, which were text cards
+ *  and are now real UI). */
 const CHAPTERS: { id: string; label: string }[] = [
-  { id: "bv-1", label: "1 voice" },
-  { id: "bv-2", label: "2 arc I" },
-  { id: "bv-3", label: "3 arc II" },
-  { id: "bv-4", label: "4 arc III" },
-  { id: "bv-5", label: "5 thesis" },
-  { id: "bv-6", label: "6 album" },
-  { id: "bv-7", label: "7 curation" },
-  { id: "bv-8", label: "8 strings" },
-  { id: "bv-9", label: "9 help, contact, pricing" },
-  { id: "bv-10", label: "10 the app" },
-  { id: "bv-11", label: "11 guests" },
-  { id: "bv-12", label: "12 unfurl" },
+  { id: "bv-1", label: "1 in use, marketing" },
+  { id: "bv-2", label: "2 in use, the app" },
+  { id: "bv-3", label: "3 in use, a guest" },
+  { id: "bv-4", label: "4 voice" },
+  { id: "bv-5", label: "5 arc I" },
+  { id: "bv-6", label: "6 arc II" },
+  { id: "bv-7", label: "7 arc III" },
+  { id: "bv-8", label: "8 thesis" },
+  { id: "bv-9", label: "9 album" },
+  { id: "bv-10", label: "10 curation" },
+  { id: "bv-11", label: "11 strings" },
+  { id: "bv-12", label: "12 help, contact, pricing" },
+  { id: "bv-13", label: "13 unfurl" },
 ];
 
 const QUESTION =
-  "What Partyreel sounds like, argued on whole pages: the home arc top to bottom, two feature pages whole, the three pages a reader reaches when they are deciding or when something broke, the app's quiet copy and the guest surfaces, each in the selected voice beside today's.";
+  "What Partyreel sounds like, shown writing sixteen real surfaces across marketing, the host's app and a guest's phone, and then argued on whole pages: the home arc top to bottom, two feature pages whole, the three pages a reader reaches when they are deciding or when something broke.";
 
 /** Every ask answers in ONE word. The recommendation is in the line, so a
  *  ruling can be "B, whole, take, email, yes, keep, album". */
@@ -169,9 +216,10 @@ const ASKS = [
 /** Only what Will must rule on that is not already an ask. Round two's other
  *  two departures became asks 4 and 6 and left. */
 const DEPARTURES = [
-  "Candidate C was RETIRED as a column, which is the board's judgment rather than a ruling. Across fifteen sections and two whole pages C read as B with everyone substituted in seven places, so it cost a third of the board and answered nothing B did not. Its one real question, the thesis, is chapter 5 and ask 5. Say the word and it comes back as a column.",
+  "Candidate C was RETIRED as a column, which is the board's judgment rather than a ruling. Across fifteen sections and two whole pages C read as B with everyone substituted in seven places, so it cost a third of the board and answered nothing B did not. Its one real question, the thesis, is chapter 8 and ask 5. Say the word and it comes back as a column.",
   "The five copy-alternative picks have lost their list: the queue item predates the docs consolidation and no list survives in the repo. The board reads it as the five headers carrying an appetite for a DIFFERENT line (liveDemo, album, curation, privacy, reel), marked with a dot in the ledgers. Correct it and the board adds the missing picks.",
   "The home page is about to carry two different counts. The hero variations propose 312 photos from 48 guests as a stand-in, and the decomposition band two sections below ships Built from 214 photos. Shot by 23 guests. Do 3 of the guide (only proof the product produced) makes that one source and one pair of numbers, read from the demo event, wherever the composition pass lands them.",
+  "The create wizard's date helper says events never expire, and the product's rule is that an event stays until the host deletes it (there is deliberately no end date; that is the anti-abuse core). Chapter 2 shows the line in all three voices, and the fix belongs to the sweep whichever voice wins.",
 ];
 
 const VOICE_OPTIONS = VOICES.map((v) => ({ id: v.id, label: v.name }));
@@ -939,82 +987,6 @@ function CardLedger({ page, voice }: { page: WholePage; voice: VoiceId }) {
 }
 
 /* -------------------------------------------------------------------------
- * A quiet or guest surface
- * ---------------------------------------------------------------------- */
-
-function SurfaceCard({ s, mode }: { s: Surface; mode: Mode }) {
-  const unchanged =
-    s.today.title === s.proposed.title &&
-    s.today.body === s.proposed.body &&
-    s.today.action === s.proposed.action;
-  return (
-    <div className="rounded-lg border border-border bg-card px-4 py-3">
-      <div className="flex flex-wrap items-baseline gap-x-2">
-        <p className="text-[11px] font-medium text-foreground">{s.surface}</p>
-        <p className="text-[11px] text-muted-foreground">{s.where}</p>
-        {unchanged && <Held />}
-        {/* The one row on these two chapters a bible rule already decides,
-            marked with the rule that owns it. Everything else here is the
-            infusion round's ordinary work, shown so the register can be read,
-            and round three marks the difference rather than leaving twelve
-            rewrites all looking like rulings. The mark is never an ask: the
-            asks are the seven in the bar, and this row's only choosable part
-            (the noun) is ask 7. */}
-        {s.compelled && (
-          <span className="rounded-full bg-foreground px-1.5 py-px text-[10px] text-background">
-            {s.compelled}
-          </span>
-        )}
-      </div>
-      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-        {s.rule}
-      </p>
-      {/* mode, never a `sm:` prefix: a Tailwind breakpoint inside a Stage reads
-          the REAL viewport, so sm:grid-cols-2 would put two columns in a
-          375-wide box. */}
-      <div
-        className={
-          mode === "desktop"
-            ? "mt-2 grid grid-cols-2 gap-x-5 gap-y-3"
-            : "mt-2 grid gap-y-3"
-        }
-      >
-        {(["today", "proposed"] as const).map((col) => {
-          const v = s[col];
-          return (
-            <div key={col}>
-              <p className="text-[11px] text-muted-foreground">
-                {col === "today" ? "Today" : "Proposed"}
-              </p>
-              <p
-                className={
-                  col === "today"
-                    ? "text-sm text-muted-foreground"
-                    : "text-sm text-foreground"
-                }
-              >
-                {v.title}
-              </p>
-              {v.body && (
-                <p className="mt-0.5 text-xs text-muted-foreground">{v.body}</p>
-              )}
-              {v.action && (
-                <p className="mt-1.5 inline-flex rounded-md bg-foreground px-2.5 py-1 text-[11px] text-background">
-                  {v.action}
-                </p>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-        {s.note}
-      </p>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------
  * The pages the arc does not reach
  * ---------------------------------------------------------------------- */
 
@@ -1113,6 +1085,927 @@ function UtilityChapter({ voice, mode }: { voice: VoiceId; mode: Mode }) {
 }
 
 /* -------------------------------------------------------------------------
+ * THE VOICES IN USE (round four): the same real surface, written three ways
+ * ---------------------------------------------------------------------- */
+
+/**
+ * ★ THE ONE LAYOUT RULE, and why it is not the same for every surface.
+ *
+ * Nothing on this board is scaled: a Stage renders at 1:1 (the shell's
+ * round-four default), so a specimen is judged at the pixels it ships at. That
+ * leaves one honest question per surface, which is how to get three of them in
+ * front of a reader at once:
+ *
+ *  - STACK, at the full canvas, for anything whose WIDTH is part of the
+ *    judgment: a hero, a chapter, a card row, the pricing pair, the wizard.
+ *    Three canvases, one per voice, one above the other. Comparing costs a
+ *    scroll; scaling would cost the truth.
+ *  - ROW, inside one canvas, for chrome whose real width is already under
+ *    400px: an event card in the dashboard's own three-up grid, a toast at
+ *    sonner's 356, a notification row. Three of them side by side IS the
+ *    shipped layout, at the shipped width.
+ *  - PHONES for the guest surfaces, which only ever render on a phone: three
+ *    375 canvases side by side, which fit a 1440 window with room to spare.
+ *
+ * The `lg:` prefixes in this section are the BOARD's own chrome, so keying off
+ * the real browser viewport is exactly right (unlike a prefix inside a Stage).
+ */
+
+const VOICE_TAG: Record<VoiceId, string> = {
+  today: "Today",
+  house: "A, the house",
+  room: "B, the room",
+};
+
+/** Today first, then the two candidates: a comparison reads from the control. */
+const COLUMNS: VoiceId[] = ["today", "house", "room"];
+
+function VoiceTag({ id }: { id: VoiceId }) {
+  return (
+    <p className="mb-1.5 flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+      <span
+        aria-hidden
+        className={
+          id === "today"
+            ? "inline-block size-1.5 rounded-full bg-muted-foreground/50"
+            : "inline-block size-1.5 rounded-full bg-foreground"
+        }
+      />
+      {VOICE_TAG[id]}
+      {id === "room" && (
+        <span className="text-muted-foreground/70">recommended</span>
+      )}
+    </p>
+  );
+}
+
+/** Three canvases, one per voice, stacked. */
+function VoiceStack({
+  mode,
+  ground,
+  render,
+}: {
+  mode: Mode;
+  ground: Ground;
+  render: (voice: VoiceId) => React.ReactNode;
+}) {
+  return (
+    <div className="space-y-4">
+      {COLUMNS.map((id) => (
+        <div key={id}>
+          <VoiceTag id={id} />
+          <FitStage mode={mode} ground={ground} swapKey={id}>
+            {render(id)}
+          </FitStage>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** One canvas, three real-width columns: the dashboard's own grid, a row of
+ *  toasts, a stack of notification panels. */
+function VoiceRow({
+  mode,
+  ground,
+  width,
+  render,
+}: {
+  mode: Mode;
+  ground: Ground;
+  /** The specimen's REAL width in CSS pixels. Never a guess: a toast is 356,
+   *  a dashboard card is its grid cell, a notification panel is 380. */
+  width: number;
+  render: (voice: VoiceId) => React.ReactNode;
+}) {
+  const phone = mode === "phone";
+  return (
+    <FitStage mode={mode} ground={ground} className="px-6 py-8">
+      <div
+        className={
+          phone ? "flex flex-col gap-6" : "flex flex-wrap items-start gap-6"
+        }
+      >
+        {COLUMNS.map((id) => (
+          <div key={id} style={{ width: phone ? undefined : width }}>
+            <VoiceTag id={id} />
+            {render(id)}
+          </div>
+        ))}
+      </div>
+    </FitStage>
+  );
+}
+
+/** Three phones, side by side: the guest surfaces only ever render here. */
+function VoicePhones({
+  render,
+}: {
+  render: (voice: VoiceId) => React.ReactNode;
+}) {
+  return (
+    <div className="grid items-start gap-4 lg:grid-cols-3">
+      {COLUMNS.map((id) => (
+        <div key={id} className="min-w-0">
+          <VoiceTag id={id} />
+          <FitStage mode="phone" ground="app-light" swapKey={id}>
+            {render(id)}
+          </FitStage>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The line table under a surface: every slot, three columns, and the reason a
+ * row is the same in all three where it is.
+ *
+ * ★ THIS TABLE IS THE ANSWER TO THE ROUND'S SECOND NOTE. Round three's app and
+ * guest chapters printed today beside one proposal, and where the proposal
+ * kept the line the row read "unchanged", which tells a reader nothing about
+ * any voice. Here three voices write every line, so a difference is always on
+ * screen; and where all three land on the same string, the row says WHY in a
+ * sentence a reader can disagree with.
+ */
+function LineTable({ u }: { u: UseCase }) {
+  return (
+    <dl className="bv-lines mt-4 space-y-2.5 text-xs">
+      {u.lines.map((l) => {
+        const same = sameInAll(l.trio);
+        return (
+          <div key={l.slot} className="space-y-1">
+            <dt className="flex flex-wrap items-baseline gap-x-2 text-[11px] text-muted-foreground">
+              <span className="font-medium text-foreground">{l.slot}</span>
+              {l.compelled && (
+                <span className="rounded-full bg-foreground px-1.5 py-px text-[10px] text-background">
+                  {l.compelled}
+                </span>
+              )}
+              {same && <span>the same in every voice</span>}
+            </dt>
+            {same ? (
+              <dd className="space-y-1">
+                <p className="text-foreground">{l.trio.today}</p>
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  {l.same ??
+                    "No reason given, which is a defect on this board: a row the same in all three has to say why."}
+                </p>
+              </dd>
+            ) : (
+              <dd className="grid gap-x-4 gap-y-1 lg:grid-cols-3">
+                {COLUMNS.map((id) => (
+                  <div key={id} className="min-w-0">
+                    <p className="text-[10px] text-muted-foreground/70">
+                      {VOICE_TAG[id]}
+                    </p>
+                    <p
+                      className={
+                        id === "today"
+                          ? "text-muted-foreground"
+                          : "text-foreground"
+                      }
+                    >
+                      {l.trio[id]}
+                    </p>
+                  </div>
+                ))}
+              </dd>
+            )}
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
+
+/** One surface: what it is, where it lives, the rule it obeys, the specimens,
+ *  the lines, and what separates the voices here. */
+function UseFrame({
+  u,
+  children,
+}: {
+  u: UseCase;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-3 border-t border-border pt-6 first:border-t-0 first:pt-0">
+      <div className="max-w-3xl">
+        <p className="text-sm font-medium">{u.surface}</p>
+        <p className="text-[11px] text-muted-foreground">{u.where}</p>
+        <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+          <span className="text-foreground">The rule. </span>
+          {u.rule}
+        </p>
+      </div>
+      {children}
+      <LineTable u={u} />
+      <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
+        <span className="text-foreground">What separates them here. </span>
+        {u.distinction}
+      </p>
+    </section>
+  );
+}
+
+/* --- the specimens ----------------------------------------------------- */
+
+/** The pricing pair, in the shipped markup with the shipped numbers: every
+ *  figure renders from tiers.ts, so a voice can never move one. */
+function PricingPair({ voice, mode }: { voice: VoiceId; mode: Mode }) {
+  const free = planById("free");
+  const pro = plansForTier("pro")[0];
+  const u = MARKETING_USE.find((c) => c.id === "pricing-card") as UseCase;
+  const line = (name: string) => say(u, name, voice);
+  return (
+    <div
+      className={
+        mode === "desktop"
+          ? "mx-auto grid max-w-4xl grid-cols-2 gap-5 px-6 py-10"
+          : "mx-auto flex max-w-sm flex-col gap-5 px-4 py-8"
+      }
+    >
+      <div className="flex flex-col rounded-2xl border bg-card p-6 ring-1 ring-foreground/5">
+        <h3 className="font-heading text-xl">{free.name}</h3>
+        <p className="mt-2 text-sm text-pretty text-muted-foreground">
+          {line("free-tagline")}
+        </p>
+        <p className="mt-3 font-heading text-4xl tabular-nums">
+          {free.priceLabel}
+        </p>
+        <ul className="mt-6 flex-1 space-y-2.5 text-sm">
+          <li>
+            {MAX_EVENTS.free} event, every guest, the album and the reel
+          </li>
+          <li>{line("free-item")}</li>
+        </ul>
+        <p className="mt-6 text-sm text-muted-foreground">
+          {formatBytes(free.storageBytes)} of storage
+        </p>
+        <Button variant="outline" className="mt-5 w-full">
+          {line("free-cta")}
+        </Button>
+        <p className="mt-3 text-center text-xs text-muted-foreground/70">
+          {line("free-note")}
+        </p>
+      </div>
+      <div className="relative flex flex-col rounded-2xl bg-foreground p-6 text-background">
+        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border bg-card px-2.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-foreground uppercase">
+          Most popular
+        </span>
+        <h3 className="font-heading text-xl">Pro</h3>
+        <p className="mt-2 text-sm text-pretty text-background/75">
+          {line("pro-tagline")}
+        </p>
+        <p className="mt-3 font-heading text-4xl tabular-nums">
+          {pro.priceLabel}
+        </p>
+        <ul className="mt-6 flex-1 space-y-2.5 text-sm">
+          <li>Photos and video, one album an event</li>
+          <li>{line("pro-item")}</li>
+        </ul>
+        <p className="mt-6 text-sm text-background/70">
+          {formatBytes(pro.storageBytes)} of storage
+        </p>
+        <Button className="mt-5 w-full bg-background text-foreground hover:bg-background/90">
+          Get Pro at {pro.priceLabel}
+        </Button>
+        <p className="mt-3 text-center text-xs text-background/60">
+          {line("pro-note")}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** The dashboard's empty Events section, in the shipped composition (the ghost
+ *  pack behind, the lockup centred on it). */
+function DashboardEmpty({ voice, mode }: { voice: VoiceId; mode: Mode }) {
+  const u = APP_USE.find((c) => c.id === "dashboard-empty") as UseCase;
+  const ghosts = ["g01", "g02", "g03", "g04", "g05", "g06"];
+  return (
+    <div
+      className={
+        mode === "desktop"
+          ? "mx-auto max-w-5xl px-8 py-10"
+          : "mx-auto max-w-sm px-4 py-8"
+      }
+    >
+      <div className="relative">
+        <div
+          aria-hidden
+          className={
+            mode === "desktop"
+              ? "grid grid-cols-3 gap-3 opacity-25 grayscale"
+              : "grid grid-cols-2 gap-3 opacity-25 grayscale"
+          }
+        >
+          {ghosts.map((g) => (
+            // eslint-disable-next-line @next/next/no-img-element -- the shipped decorative ghost pack
+            <img
+              key={g}
+              src={`/guest-ghost/${g}.webp`}
+              alt=""
+              loading="lazy"
+              className="aspect-[16/10] w-full rounded-xl object-cover"
+            />
+          ))}
+        </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
+          <div className="space-y-1.5">
+            <h3 className="font-heading text-2xl text-balance">
+              {say(u, "heading", voice)}
+            </h3>
+            <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+              {say(u, "body", voice)}
+            </p>
+          </div>
+          <Button size="lg">{say(u, "action", voice)}</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The create-event wizard's first step, in the shipped card, with the step
+ *  rail that carries the step names. */
+function WizardCard({ voice, mode }: { voice: VoiceId; mode: Mode }) {
+  const u = APP_USE.find((c) => c.id === "wizard") as UseCase;
+  const steps = say(u, "steps", voice).split("·");
+  return (
+    <div
+      className={
+        mode === "desktop" ? "px-8 py-10" : "px-4 py-8"
+      }
+    >
+      <div className="mx-auto w-full max-w-xl rounded-xl border border-border bg-card p-6">
+        <h3 className="font-heading text-lg">{say(u, "title", voice)}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {say(u, "description", voice)}
+        </p>
+        <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-3 text-xs">
+          {steps.map((label, i) => (
+            <li key={label} className="flex items-center gap-2">
+              <span
+                className={
+                  i === 0
+                    ? "flex size-5 items-center justify-center rounded-full bg-brand text-[11px] font-medium text-brand-foreground"
+                    : "flex size-5 items-center justify-center rounded-full bg-muted text-[11px] font-medium text-muted-foreground"
+                }
+              >
+                {i + 1}
+              </span>
+              <span
+                className={
+                  i === 0
+                    ? "font-medium text-foreground"
+                    : "text-muted-foreground"
+                }
+              >
+                {label.trim()}
+              </span>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-5 space-y-4">
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium">Event name</p>
+            <Input placeholder="Maya & Sam’s Wedding" readOnly />
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium">
+              Description{" "}
+              <span className="font-normal text-muted-foreground">
+                (optional)
+              </span>
+            </p>
+            <Textarea
+              rows={2}
+              placeholder="A note your guests will see when they join."
+              readOnly
+            />
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium">
+              Event date{" "}
+              <span className="font-normal text-muted-foreground">
+                (optional)
+              </span>
+            </p>
+            <Input placeholder="2026-03-14" readOnly />
+            <p className="text-xs text-muted-foreground">
+              {say(u, "date-helper", voice)}
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 flex items-center justify-between">
+          <Button variant="ghost">Cancel</Button>
+          <Button>Continue</Button>
+        </div>
+        <div className="mt-6 space-y-3 border-t border-border pt-4">
+          <div>
+            <p className="text-sm font-medium">{say(u, "qr-title", voice)}</p>
+            <p className="text-sm text-muted-foreground">
+              {say(u, "qr-body", voice)}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm font-medium">Your event link</p>
+            <p className="text-sm text-muted-foreground">
+              {say(u, "share-body", voice)}
+            </p>
+          </div>
+          <p className="text-[11px] text-muted-foreground/70">
+            Steps two and three, their headings only: the QR picker and the
+            share step render the same copy on their own screens.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** A toast, at sonner's own width. */
+function ToastCard({
+  text,
+  tone = "default",
+}: {
+  text: string;
+  tone?: "default" | "warning";
+}) {
+  return (
+    <div
+      className={
+        tone === "warning"
+          ? "rounded-lg border border-warning/40 bg-card px-4 py-3 text-sm shadow-lg"
+          : "rounded-lg border border-border bg-card px-4 py-3 text-sm shadow-lg"
+      }
+    >
+      {text}
+    </div>
+  );
+}
+
+/** The notification bell's panel rows. */
+function NotificationPanel({ voice }: { voice: VoiceId }) {
+  const u = APP_USE.find((c) => c.id === "notification") as UseCase;
+  const rows: [string, string][] = [
+    [say(u, "pending-title", voice), say(u, "pending-body", voice)],
+    [say(u, "storage-title", voice), say(u, "storage-body", voice)],
+  ];
+  return (
+    <div className="divide-y divide-border rounded-lg border border-border bg-card">
+      {rows.map(([title, body]) => (
+        <div key={title} className="px-4 py-3">
+          <p className="text-sm font-medium">{title}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{body}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground/70">2h ago</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** The two errors: a form's fallback, and the toast a refused upload raises. */
+function ErrorPanel({ voice }: { voice: VoiceId }) {
+  const u = APP_USE.find((c) => c.id === "error") as UseCase;
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-border bg-card px-4 py-4">
+        <p className="text-sm font-medium">Sign in</p>
+        <div className="mt-2 space-y-2">
+          <Input placeholder="you@example.com" readOnly />
+          <Input placeholder="Password" readOnly />
+        </div>
+        <p className="mt-2 text-sm text-destructive">{say(u, "signin", voice)}</p>
+      </div>
+      <div className="rounded-lg border border-border bg-card px-4 py-3 shadow-lg">
+        <p className="text-sm font-medium">{say(u, "upload-title", voice)}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {say(u, "upload-body", voice)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** The account page's settings list and the one description that moves. */
+function AccountPanel({ voice }: { voice: VoiceId }) {
+  const u = APP_USE.find((c) => c.id === "account") as UseCase;
+  const labels = say(u, "labels", voice).split("·");
+  return (
+    <div className="rounded-lg border border-border bg-card px-4 py-4">
+      <ul className="space-y-1.5 text-sm">
+        {labels.map((l, i) => (
+          <li
+            key={l}
+            className={i === 1 ? "font-medium" : "text-muted-foreground"}
+          >
+            {l.trim()}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 border-t border-border pt-3">
+        <p className="text-sm font-medium">Public profile</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          {say(u, "profile-help", voice)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** A guest's door, in the entry modal's own lockup. */
+function GuestDoor({ voice, gate }: { voice: VoiceId; gate: "public" | "gated" | "private" }) {
+  const u = GUEST_USE.find((c) => c.id === "guest-door") as UseCase;
+  const body =
+    gate === "public"
+      ? say(u, "public-body", voice)
+      : gate === "gated"
+        ? say(u, "gated-body", voice)
+        : say(u, "private-body", voice);
+  const title =
+    gate === "private"
+      ? "Maya & Jay's Wedding is private"
+      : gate === "gated"
+        ? "See all the photos"
+        : say(u, "title", voice);
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card px-5 py-6 text-center">
+      <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+        {gate === "public" ? "You are invited" : gate === "gated" ? "One step" : "Private"}
+      </p>
+      <p className="font-heading text-[22px] leading-tight text-balance">
+        {title}
+      </p>
+      <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
+      <Button size="lg" className="mt-1 w-full">
+        {say(u, "action", voice)}
+      </Button>
+    </div>
+  );
+}
+
+/** The upload sheet a guest sees: the dropzone, the host's review note, the
+ *  save card, and the toast a finished upload raises. */
+function UploadSheet({ voice }: { voice: VoiceId }) {
+  const u = GUEST_USE.find((c) => c.id === "upload-sheet") as UseCase;
+  return (
+    <div className="space-y-3 px-4 py-5">
+      <div className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/40 px-6 py-10 text-center">
+        <div className="flex size-12 items-center justify-center rounded-full bg-background text-primary shadow-sm">
+          <ImagePlus className="size-6" />
+        </div>
+        <p className="text-sm font-medium">{say(u, "dropzone-title", voice)}</p>
+        <p className="text-xs text-muted-foreground">
+          {say(u, "dropzone-hint", voice)}
+        </p>
+      </div>
+      <p className="rounded-md bg-muted px-3 py-2 text-center text-xs text-muted-foreground">
+        {say(u, "moderation", voice)}
+      </p>
+      <div className="rounded-xl border border-border bg-card p-5 text-center">
+        <p className="font-heading text-lg">{say(u, "save-title", voice)}</p>
+        <p className="mx-auto mt-1 mb-4 max-w-xs text-[15px] text-muted-foreground">
+          {say(u, "save-body", voice)}
+        </p>
+        <Button className="w-full">Save this event</Button>
+      </div>
+      <ToastCard text={say(u, "confirmation", voice)} />
+    </div>
+  );
+}
+
+/** The empty album a guest lands on. */
+function GuestEmpty({ voice }: { voice: VoiceId }) {
+  const u = GUEST_USE.find((c) => c.id === "guest-empty") as UseCase;
+  const ghosts = ["g01", "g02", "g03", "g04", "g05", "g06", "g01", "g02", "g03"];
+  return (
+    <div className="relative px-3 py-5">
+      <div
+        aria-hidden
+        className="grid grid-cols-3 gap-1.5 opacity-25 grayscale"
+      >
+        {ghosts.map((g, i) => (
+          // eslint-disable-next-line @next/next/no-img-element -- the shipped decorative ghost pack
+          <img
+            key={i}
+            src={`/guest-ghost/${g}.webp`}
+            alt=""
+            loading="lazy"
+            className="aspect-square w-full rounded-[3px] object-cover"
+          />
+        ))}
+      </div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
+        <p className="font-heading text-2xl text-balance">
+          {say(u, "heading", voice)}
+        </p>
+        <Button size="lg">{say(u, "action", voice)}</Button>
+      </div>
+    </div>
+  );
+}
+
+/** The inactivity mail: the inbox row, then the mail itself. */
+function EmailCard({ voice }: { voice: VoiceId }) {
+  const u = GUEST_USE.find((c) => c.id === "email") as UseCase;
+  return (
+    <div className="space-y-3 px-4 py-5">
+      <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+        <p className="text-[11px] text-muted-foreground">Partyreel</p>
+        <p className="mt-0.5 text-sm font-medium">{say(u, "subject", voice)}</p>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+          {say(u, "first", voice)}
+        </p>
+      </div>
+      <div className="rounded-lg border border-border bg-card px-4 py-4">
+        <p className="font-heading text-lg">{say(u, "headline", voice)}</p>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {say(u, "first", voice)}
+        </p>
+        <Button className="mt-4 w-full">{say(u, "button", voice)}</Button>
+      </div>
+    </div>
+  );
+}
+
+/* --- the three usage chapters ------------------------------------------ */
+
+/** The marketing five: the surfaces a reader meets before they sign up. */
+function MarketingUseChapter({ mode }: { mode: Mode }) {
+  const byId = (id: string) => MARKETING_USE.find((u) => u.id === id) as UseCase;
+  const hero = byId("home-hero");
+  const chapter = byId("album-chapter");
+  const cards = byId("feature-cards");
+  const help = byId("help-open");
+  const cardTrio = (n: number): PageCard => ({
+    title: slot(cards, `card${n}-title`),
+    body: slot(cards, `card${n}-body`),
+  });
+  const cardSet = [cardTrio(1), cardTrio(2), cardTrio(3)];
+  return (
+    <div className="space-y-8">
+      <UseFrame u={hero}>
+        <VoiceStack
+          mode={mode}
+          ground="cinema"
+          render={(v) => (
+            <PageHero
+              data-bv-type="hero-xl"
+              className="w-full py-10"
+              scale="xl"
+              eyebrow={say(hero, "eyebrow", v)}
+              heading={say(hero, "heading", v)}
+              subhead={say(hero, "subhead", v)}
+              actions={
+                <div className="flex flex-wrap items-center gap-3">
+                  {say(hero, "cta", v)
+                    .split("·")
+                    .map((label, i) => (
+                      <Button
+                        key={label}
+                        size="lg"
+                        variant={i === 0 ? "default" : "outline"}
+                        className="h-11 px-6 text-base"
+                      >
+                        {label.trim()}
+                      </Button>
+                    ))}
+                </div>
+              }
+            />
+          )}
+        />
+      </UseFrame>
+
+      <UseFrame u={chapter}>
+        <VoiceStack
+          mode={mode}
+          ground="paper"
+          render={(v) => (
+            <SectionShell
+              data-bv-type="section-lg"
+              className={mode === "desktop" ? "py-10 sm:py-10" : "py-7 sm:py-7"}
+              reveal="none"
+              scale="lg"
+              align="left"
+              eyebrow={say(chapter, "eyebrow", v)}
+              heading={say(chapter, "heading", v)}
+              subhead={say(chapter, "subhead", v)}
+            >
+              <Cta id="album" text={say(chapter, "cta", v)} />
+            </SectionShell>
+          )}
+        />
+      </UseFrame>
+
+      <UseFrame u={cards}>
+        <VoiceStack
+          mode={mode}
+          ground="paper"
+          render={(v) => (
+            <SectionShell
+              data-bv-type="section"
+              className={mode === "desktop" ? "py-10 sm:py-10" : "py-7 sm:py-7"}
+              reveal="none"
+              eyebrow="Getting in"
+              heading="Scan, and they’re in."
+              subhead={say(cards, "subhead", v)}
+            >
+              <Cards cards={cardSet} voice={v} mode={mode} />
+            </SectionShell>
+          )}
+        />
+      </UseFrame>
+
+      <UseFrame u={byId("pricing-card")}>
+        <VoiceStack
+          mode={mode}
+          ground="paper"
+          render={(v) => <PricingPair voice={v} mode={mode} />}
+        />
+      </UseFrame>
+
+      <UseFrame u={help}>
+        <VoiceStack
+          mode={mode}
+          ground="paper"
+          render={(v) => (
+            <div data-bv-type="section-lg" className="mx-auto max-w-3xl px-6 py-10">
+              <Badge variant="secondary">Troubleshooting</Badge>
+              <h2 className="mt-4 font-heading text-balance">
+                {say(help, "title", v)}
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                {say(help, "description", v)}
+              </p>
+              <p className="mt-5 text-[15px] leading-relaxed">
+                {say(help, "first", v)}
+              </p>
+            </div>
+          )}
+        />
+      </UseFrame>
+    </div>
+  );
+}
+
+/** The host's app, on the app ground the dock selects. */
+function AppUseChapter({ mode, ground }: { mode: Mode; ground: Ground }) {
+  const byId = (id: string) => APP_USE.find((u) => u.id === id) as UseCase;
+  const card = byId("event-card");
+  const toast = byId("toast");
+  return (
+    <div className="space-y-8">
+      <UseFrame u={byId("dashboard-empty")}>
+        <VoiceStack
+          mode={mode}
+          ground={ground}
+          render={(v) => <DashboardEmpty voice={v} mode={mode} />}
+        />
+      </UseFrame>
+
+      <UseFrame u={card}>
+        {/* Three cards side by side IS the dashboard's own grid at 1440, so the
+            row layout here is the shipped layout rather than a board's. */}
+        <VoiceRow
+          mode={mode}
+          ground={ground}
+          width={352}
+          render={(v) => (
+            <EventCard
+              href="#"
+              name="Maya & Jay's Wedding"
+              coverUrl="/guest-ghost/g03.webp"
+              dateLabel="14 March 2026"
+              itemsLabel={say(card, "items", v)}
+              statusLabel={say(card, "status", v)}
+              pendingCount={3}
+            />
+          )}
+        />
+      </UseFrame>
+
+      <UseFrame u={byId("wizard")}>
+        <VoiceStack
+          mode={mode}
+          ground={ground}
+          render={(v) => <WizardCard voice={v} mode={mode} />}
+        />
+      </UseFrame>
+
+      <UseFrame u={toast}>
+        <VoiceRow
+          mode={mode}
+          ground={ground}
+          width={356}
+          render={(v) => (
+            <div className="space-y-3">
+              <ToastCard text={say(toast, "review-on", v)} />
+              <ToastCard text={say(toast, "hidden", v)} tone="warning" />
+            </div>
+          )}
+        />
+      </UseFrame>
+
+      <UseFrame u={byId("error")}>
+        <VoiceRow
+          mode={mode}
+          ground={ground}
+          width={356}
+          render={(v) => <ErrorPanel voice={v} />}
+        />
+      </UseFrame>
+
+      <UseFrame u={byId("notification")}>
+        <VoiceRow
+          mode={mode}
+          ground={ground}
+          width={380}
+          render={(v) => <NotificationPanel voice={v} />}
+        />
+      </UseFrame>
+
+      <UseFrame u={byId("account")}>
+        <VoiceRow
+          mode={mode}
+          ground={ground}
+          width={380}
+          render={(v) => <AccountPanel voice={v} />}
+        />
+      </UseFrame>
+    </div>
+  );
+}
+
+/** A guest's phone, and the one mail. Always 375: these surfaces only ever
+ *  render there, and three of them fit a 1440 window side by side. */
+function GuestUseChapter() {
+  const byId = (id: string) => GUEST_USE.find((u) => u.id === id) as UseCase;
+  return (
+    <div className="space-y-8">
+      <UseFrame u={byId("guest-door")}>
+        <VoicePhones
+          render={(v) => (
+            <div className="flex flex-col gap-3 px-4 py-5">
+              <GuestDoor voice={v} gate="public" />
+              <GuestDoor voice={v} gate="gated" />
+              <GuestDoor voice={v} gate="private" />
+            </div>
+          )}
+        />
+      </UseFrame>
+
+      <UseFrame u={byId("upload-sheet")}>
+        <VoicePhones render={(v) => <UploadSheet voice={v} />} />
+      </UseFrame>
+
+      <UseFrame u={byId("guest-empty")}>
+        <VoicePhones render={(v) => <GuestEmpty voice={v} />} />
+      </UseFrame>
+
+      <UseFrame u={byId("email")}>
+        <VoicePhones render={(v) => <EmailCard voice={v} />} />
+      </UseFrame>
+    </div>
+  );
+}
+
+/**
+ * The headnote over chapter 1: the rule these chapters obey, and the count
+ * that proves it. Will's second note was that a comparison showing the same
+ * string in both columns with "unchanged" under it teaches nothing, so the
+ * board states its own compliance as a number rather than a promise, and
+ * counts an unexplained match as a defect out loud.
+ */
+function UsageNote() {
+  const t = useTally(USE_GROUPS.map((g) => g.cases));
+  return (
+    <div className="max-w-3xl space-y-2 rounded-lg border border-border bg-card px-5 py-4 text-xs leading-relaxed text-muted-foreground">
+      <p>
+        <span className="text-foreground">
+          {t.differ} of {t.rows} lines differ across the three columns.
+        </span>{" "}
+        The other {t.same} are the same in every voice and each one says why, in
+        a sentence you can disagree with: a button the host is about to press, a
+        help title that is also the search string, an empty state that was
+        already written in the voice. A row the same in all three WITHOUT a
+        reason is a defect on this board, and there {t.unexplained === 1 ? "is" : "are"}{" "}
+        {t.unexplained} of them.
+      </p>
+      <p>
+        Two different questions live on this board and round three had them in
+        one table, which is what produced the useless rows. Here every voice
+        WRITES every line, so a difference is always on screen. What a rewrite
+        would actually MOVE, and what it would leave alone, is counted in the
+        ledgers from chapter 5 on.
+      </p>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------
  * The board
  * ---------------------------------------------------------------------- */
 
@@ -1123,6 +2016,10 @@ const CHAPTER_CLOSE = ARC.slice(10);
 export function BrandVoiceBoard() {
   const [mode, setMode] = useState<Mode>("desktop");
   const [voiceId, setVoiceId] = useState<VoiceId>("room");
+  // The app's own theme, for the chapters that render app UI. The marketing
+  // chapters keep the ground the page really ships on (cinema, paper): a
+  // ground toggle there would lie about where the line renders.
+  const [appGround, setAppGround] = useState<Ground>("app-light");
   const voice = voiceById(voiceId);
   const desktop = mode === "desktop";
   const arc = arcDiff(voiceId);
@@ -1132,7 +2029,7 @@ export function BrandVoiceBoard() {
   const thesisRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <div className="bv-round-three flex flex-col gap-8 py-4">
+    <div className="bv-round-four flex flex-col gap-8 py-4">
       {/* THE VERDICT, ON TOP. Round three's walk: a stranger reads the first
           screen and then scrolls fifteen thousand pixels looking for the
           argument. It is here instead, with the three chapters that carry it. */}
@@ -1174,30 +2071,47 @@ export function BrandVoiceBoard() {
           voice toggle at the top of it is a toggle nobody reaches. The index
           rides with it for the same reason (borrowed from the palette board's
           round two, which found the same thing on a board half this tall). */}
-      <div className="bv-controls sticky top-0 z-20 -mx-2 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-background/95 px-2 py-3 backdrop-blur">
-        <Toggle
-          ariaLabel="Viewport"
-          options={[
-            { id: "desktop" as Mode, label: "Desktop" },
-            { id: "phone" as Mode, label: "Phone 375" },
-          ]}
-          value={mode}
-          onChange={setMode}
-        />
+      {/* ★ THE DOCK, not a bar of this board's own. Will, on every board this
+          round: "for any pagewide configs, the GUI control should be fixed so
+          that variants can be toggled on different previews anywhere on the
+          page... having to scroll back to the top makes it very hard to review
+          differences." The shell's BoardDock carries the three switches that
+          change the whole page (the voice, the canvas, the app's theme), the
+          chapter index, and the shell's own reading controls, and it writes its
+          height into scroll-padding-top so a chapter anchor lands under it. */}
+      <BoardDock label="The brand-voice board's controls">
         <Toggle
           ariaLabel="Voice"
           options={VOICE_OPTIONS}
           value={voiceId}
           onChange={setVoiceId}
         />
+        <Toggle
+          ariaLabel="Canvas"
+          options={[
+            { id: "desktop" as Mode, label: "1440" },
+            { id: "phone" as Mode, label: "375" },
+          ]}
+          value={mode}
+          onChange={setMode}
+        />
+        <Toggle
+          ariaLabel="The app's theme"
+          options={[
+            { id: "app-light" as Ground, label: "App light" },
+            { id: "app-dark" as Ground, label: "App dark" },
+          ]}
+          value={appGround}
+          onChange={setAppGround}
+        />
         <p className="text-[11px] text-muted-foreground">
           {voiceId === "today"
             ? "The shipped lines, the control."
             : `${voiceId === "room" ? "Recommended. " : ""}Moves ${arc.moved} of ${arc.total} lines in the arc, ${feat.moved} of ${feat.total} on the feature pages.`}
         </p>
-        {/* One row, and it scrolls rather than wrapping: at 1440 the twelve fit
-            on a line, and on a narrow window a wrapping index turned the
-            sticky bar into four rows that ate a third of the viewport. */}
+        {/* One row, and it scrolls rather than wrapping: at 1440 the thirteen
+            fit on a line, and on a narrow window a wrapping index turned the
+            bar into four rows that ate a third of the viewport. */}
         <nav
           aria-label="Chapters"
           className="flex w-full items-center gap-x-3 overflow-x-auto whitespace-nowrap"
@@ -1212,11 +2126,41 @@ export function BrandVoiceBoard() {
             </a>
           ))}
         </nav>
-      </div>
+      </BoardDock>
 
       <Chapter
         id="bv-1"
         n={1}
+        name="The voices in use: marketing, loud"
+        rationale="Five surfaces a reader meets before they sign up, each written three ways on the component that ships it, at 1:1 on the real ground. Every voice writes every line here, even where a sweep would keep today's: a comparison exists to show a difference. What a sweep would actually MOVE is the ledgers, chapters 5 to 12."
+      >
+        <div className="space-y-6">
+          <UsageNote />
+          <MarketingUseChapter mode={mode} />
+        </div>
+      </Chapter>
+
+      <Chapter
+        id="bv-2"
+        n={2}
+        name="The voices in use: the host's app, quiet"
+        rationale="Seven surfaces of real app UI on the app's own theme. The app's design is open to a lab track this round, so these render as UI rather than as text in a card, which is what round three did and what made the quiet register hard to judge."
+      >
+        <AppUseChapter mode={mode} ground={appGround} />
+      </Chapter>
+
+      <Chapter
+        id="bv-3"
+        n={3}
+        name="The voices in use: a guest's phone, and the inbox"
+        rationale="Four surfaces at 375, always, because that is the only place they render. Bible 4 decides more here than the voice does: the event belongs to the host and Partyreel stays nearly silent, which is why two of these lines are marked as compelled rather than chosen."
+      >
+        <GuestUseChapter />
+      </Chapter>
+
+      <Chapter
+        id="bv-4"
+        n={4}
         name="The voice, in one paragraph"
         rationale="The first ask, with what each answer costs. The three registers below are shown once, because round one found that they do not fork with the voice: only the marketing register's default sentence shape moves."
       >
@@ -1257,7 +2201,7 @@ export function BrandVoiceBoard() {
           </dl>
           <div className="rounded-lg border border-border bg-card px-5 py-4">
             <p className="text-[11px] font-medium text-muted-foreground">
-              Bible 20&rsquo;s replacement, in one sentence (ask 5)
+              Bible 20&rsquo;s replacement, in one sentence (ask 4)
             </p>
             <p className="mt-2 max-w-3xl font-heading text-xl text-balance">
               Lead with what arrives; an absence may be the second beat, never
@@ -1274,8 +2218,8 @@ export function BrandVoiceBoard() {
       </Chapter>
 
       <Chapter
-        id="bv-2"
-        n={2}
+        id="bv-5"
+        n={5}
         name="The home arc, chapter one: the event"
         rationale="Seven sections in arc order on the cinema ground, on the real PageHero and SectionShell, in the selected voice. The ledger carries today beside it, line by line, with every held line marked, and the h1's rows are measured under the stage."
       >
@@ -1307,8 +2251,8 @@ export function BrandVoiceBoard() {
       </Chapter>
 
       <Chapter
-        id="bv-3"
-        n={3}
+        id="bv-6"
+        n={6}
         name="The home arc, the paper chapter: the morning after"
         rationale="The three sections of the host's desk, on paper. album opens it as a left masthead at the lg tier, which is why its line has to carry more weight than the two beneath it."
       >
@@ -1327,8 +2271,8 @@ export function BrandVoiceBoard() {
       </Chapter>
 
       <Chapter
-        id="bv-4"
-        n={4}
+        id="bv-7"
+        n={7}
         name="The home arc, the close: the payoff"
         rationale="The last five, back on cinema. The arc has to land here in the same voice it opened in, which is the thing a header-by-header comparison cannot show."
       >
@@ -1357,13 +2301,13 @@ export function BrandVoiceBoard() {
       </Chapter>
 
       <Chapter
-        id="bv-5"
-        n={5}
+        id="bv-8"
+        n={8}
         name="The thesis, both ways"
         rationale="All that survives of candidate C, on the surface it actually renders: the site's loudest line, at the hero tier, on cinema. One clause settles it, and the ruler under the pair says what the clause costs in rows."
       >
         <div className="space-y-3">
-          {/* ★ THE STAGE THIS BOARD MOST HAD TO GET RIGHT. Ask 6 asks Will to
+          {/* ★ THE STAGE THIS BOARD MOST HAD TO GET RIGHT. Ask 5 asks Will to
               choose between two lines, so a stage that clips one of them asks
               nothing. It did: a 520px box against 616px of content cut the
               word "it." off the second thesis at 1440, and at 375 the line
@@ -1398,8 +2342,8 @@ export function BrandVoiceBoard() {
       </Chapter>
 
       <Chapter
-        id="bv-6"
-        n={6}
+        id="bv-9"
+        n={9}
         name="A feature page, whole: /features/album"
         rationale="The page whole: the h1, the hero sub, every section eyebrow, header and supporting line, and every card with its title, in order, on the two grounds the page really uses. The cards are its body weight, so the ledger under the page counts what they cost."
       >
@@ -1407,8 +2351,8 @@ export function BrandVoiceBoard() {
       </Chapter>
 
       <Chapter
-        id="bv-7"
-        n={7}
+        id="bv-10"
+        n={10}
         name="A feature page, whole: /features/curation"
         rationale="The second page, and the harder one: its whole body is one paper chapter of decisions, cards included, so the voice has to stay quiet enough to read as a working document and loud enough to still be marketing."
       >
@@ -1416,8 +2360,8 @@ export function BrandVoiceBoard() {
       </Chapter>
 
       <Chapter
-        id="bv-8"
-        n={8}
+        id="bv-11"
+        n={11}
         name="The thirty strings, as a paste"
         rationale="The shared identity layer behind all six feature pages: the nav label, the mega-panel one-liner, the h1, the hero sub and the directory line. navDescription holds its 45-character band and directoryLine its length band in every column, because the panel and the six hub doors wrap against them."
       >
@@ -1473,8 +2417,8 @@ export function BrandVoiceBoard() {
       </Chapter>
 
       <Chapter
-        id="bv-9"
-        n={9}
+        id="bv-12"
+        n={12}
         name="The pages the arc does not reach: /help, /contact, /pricing"
         rationale="Round three's addition. The arc and the feature pages are where the site sells; these three are where a reader lands when they are deciding or when something broke, and they carry the site's two most generic lines. Two real help article heads close the last gap between the guide's surfaces table and this board."
       >
@@ -1482,38 +2426,8 @@ export function BrandVoiceBoard() {
       </Chapter>
 
       <Chapter
-        id="bv-10"
-        n={10}
-        name="The quiet register, on real app copy"
-        rationale="The dashboard's empty state, an error, two notifications, an email subject with its first line, and the account page's labels. Shown once, not per candidate: the quiet register does not fork with the voice, which is why three of these hold unchanged. Nothing here is a ruling; it is the register, and the sweep's own work."
-      >
-        <FitStage mode={mode} ground="app-light" className="px-8 py-6">
-          <div className="flex flex-col gap-3">
-            {QUIET_SURFACES.map((s) => (
-              <SurfaceCard key={s.surface} s={s} mode={mode} />
-            ))}
-          </div>
-        </FitStage>
-      </Chapter>
-
-      <Chapter
-        id="bv-11"
-        n={11}
-        name="The guest register, with Partyreel nearly silent"
-        rationale="The demo guest page's real lines: the door in its three states, the upload prompt, the empty album, the upload confirmation. Bible 4 is the whole rule here. Five of the six are sweep work like chapter 10; the marked one is compelled, not chosen, because the shipped line asks a guest for an account with us on the host's own page, which bible 4 already refuses. The rule decides it, so it is no ask: the noun it uses is ask 7, answered once for this line and the unfurl below."
-      >
-        <FitStage mode={mode} ground="app-light" className="px-8 py-6">
-          <div className="flex flex-col gap-3">
-            {GUEST_SURFACES.map((s) => (
-              <SurfaceCard key={s.surface} s={s} mode={mode} />
-            ))}
-          </div>
-        </FitStage>
-      </Chapter>
-
-      <Chapter
-        id="bv-12"
-        n={12}
+        id="bv-13"
+        n={13}
         name="The unfurl, both ways"
         rationale="The parked ruling, on the surface it actually renders: what a host's group chat shows. The public variant sits above as the control, because the two lines have to read as one set. The grey plate in each card is a stand-in for the link preview's own thumbnail."
       >
