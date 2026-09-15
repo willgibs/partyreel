@@ -652,8 +652,9 @@ B's rungs, so any size has a value and no step chooses its own)
 
 ## Handoff (round 3)
 
-- Head: this handoff commit, sitting on the review-fix commit over `9814802` (the sync merge),
-  `b44a6aa` and `77a1e5c`; all pushed. Board at `/design/c/type-scale?key=`.
+- Head: `aa74879`, the review-fix commit, sitting on `2b63080` (the first round-3 handoff) over
+  `9814802` (the sync merge), `b44a6aa` and `77a1e5c`; all pushed. Board at
+  `/design/c/type-scale?key=`.
 - **The read-only review's four should-fixes, all fixed in this pass** (2026-09-14, after the first
   round-3 handoff):
   1. **The stale ask number inside the artifact Will copies.** Round three cut six asks to four and
@@ -712,7 +713,11 @@ B's rungs, so any size has a value and no step chooses its own)
   measured. For the Orchestrator, and it is mandatory before Will walks anything, because this branch
   is handed off and pushes no more: force a redeploy at the tip (`POST /v13/deployments`, `gitSource
   {type: github, repoId: 1252816746, ref: lp/type-scale, sha: <tip>}`), confirm READY, and check the
-  build is round three by curling for **"The four ladders at a glance"**. **The `launch-prep` alias
+  build is round three by curling for **"The four ladders at a glance"**. The fix push (`aa74879`,
+  23:37) produced no deployment either: the 23:31:57 slot had just gone to `lp/media-kit`. An Agent
+  cannot force one, and should not: `POST /v13/deployments` is refused to this session by policy, and
+  a deploy is the Orchestrator's under the branch protocol, which is exactly why this is written down
+  rather than worked around. **The `launch-prep` alias
   is further behind still: it serves round ONE of this board** (eleven stages, no Apply bar), which
   is the same ceiling, so round two was never walkable there either.
 - Marker, so a reviewer can tell which round a build serves: round three renders
