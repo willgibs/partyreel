@@ -246,8 +246,9 @@ ${inside(scope, ALL, ITEMS)} {
 
 /* -- 2. THE LIGHT IN DARK --------------------------------------------------
    Bible 10 as rewritten allows a shadow where a layer sits over content, and a
-   floating layer is that case by definition. The three answers are genuinely
-   different, not three alphas of one.
+   floating layer is that case by definition, so the question in dark is a
+   binary: nothing casts (the popover surface sits lighter than the ground and
+   the ring draws the edge, which is what ships), or the shadow comes back.
 
    The "shadow" rung is NOT this board's invention: it is the light board's
    proposed --lgt-float family verbatim (docs/specs/light.md: one geometry, two
@@ -256,21 +257,37 @@ ${inside(scope, ALL, ITEMS)} {
    15 exists to prevent, so this board adopts that one and the two rulings
    collapse into one.
 
-   EVERY rung composes var(--tw-ring-shadow) first. Round one wrote a bare
+   THE RUNG composes var(--tw-ring-shadow) first. Round one wrote a bare
    box-shadow and silently deleted the ring the dropdown, the popover and the
    entry drawer ship (ring-1 is a box-shadow in Tailwind v4, so overriding the
    property erases it). The fallback covers the primitives with no ring. */
 
-export const LIGHT_RUNGS = ["lighter", "shadow", "lit-edge"] as const;
+/* ROUND THREE CUT TWO OF THE THREE RUNGS, and both cuts are the same lesson:
+   a ladder rung has to be a different ANSWER, not a different drawing.
+
+   "Lighter is closer" was a rung and it is what ships: its block set
+   box-shadow to the ring plus --shadow-float, which is the declaration already
+   on the panel, so the ladder carried two columns that were the same column and
+   the toggle offered "today" beside a rung that meant today. It is the baseline
+   now, labelled as what ships, and the ladder is a binary: keep it, or let the
+   shadow back in dark.
+
+   "A lit edge" (a hairline of light along the top, a dark one under the bottom)
+   was a third answer and the light board's doctrine rules it out of this job:
+   the LIT FACE there is material, not elevation, and belongs to a face that is
+   catching light (a media frame, a screen, a plate). A menu over content is the
+   FLOAT case by that doctrine's own definition. Shipping it here would have
+   asked Will to rule a second family into existence on a board whose whole
+   argument is that the family should be one. */
+
+export const LIGHT_RUNGS = ["shadow"] as const;
 export type LightRung = (typeof LIGHT_RUNGS)[number];
 
 /** The ring the primitive already ships, put back. */
 const RING = "var(--tw-ring-shadow, 0 0 #0000)";
 
 export const LIGHT_LABEL: Record<LightRung, string> = {
-  lighter: "lighter is closer",
   shadow: "a soft shadow",
-  "lit-edge": "a lit edge",
 };
 
 export function lightCss(rung: LightRung, scope: Scope): string {
@@ -278,20 +295,16 @@ export function lightCss(rung: LightRung, scope: Scope): string {
    dark ground second: what changes between them is the ALPHA, not the shape,
    because a shadow has to be darker than what it falls on and 6% of black over
    oklch(0.11) is arithmetically invisible. */`;
-  if (rung === "lighter") {
-    return `${head}
-/* Today: the popover surface sits lighter than the ground, --shadow-float is
-   zeroed in .dark and .surface-ink, the ring draws the edge. Nothing casts in
-   dark. This rung is a no-op paste on purpose: it is what ships. */
-${panels(scope, ALL)} {
-  box-shadow: ${RING}, var(--shadow-float);
-}`;
-  }
-  if (rung === "shadow") {
-    return `${head}
+  return `${head}
 ${root(scope)} {
+  /* ROUND THREE, an honesty fix. These two alphas were 0.12 and 0.16 while the
+     block above claimed the light board's family verbatim; the light board's
+     own sheet declares --lgt-float on a LIGHT ground as 0.09 and 0.13
+     (docs/specs/light.md, its round-two correction: paper does not move, dark
+     gains the ramp it never had). They are those numbers now, so the claim and
+     the paste agree and a ruling on one board cannot contradict the other. */
   --flt-float:
-    0 4px 8px -2px oklch(0 0 0 / 0.12), 0 8px 16px -4px oklch(0 0 0 / 0.16);
+    0 4px 8px -2px oklch(0 0 0 / 0.09), 0 8px 16px -4px oklch(0 0 0 / 0.13);
 }
 ${darkRoot(scope)} {
   --flt-float:
@@ -299,25 +312,6 @@ ${darkRoot(scope)} {
 }
 ${panels(scope, ALL)} {
   box-shadow: ${RING}, var(--flt-float);
-}`;
-  }
-  return `${head}
-/* A hairline of light along the top edge and a dark hairline under the bottom,
-   so the panel catches the room's light the way an object does. No cast at all,
-   on either ground; the scrim separates the modal ones. */
-${root(scope)} {
-  --flt-edge-top: oklch(1 0 0 / 0.5);
-  --flt-edge-bottom: oklch(0 0 0 / 0.08);
-}
-${darkRoot(scope)} {
-  --flt-edge-top: oklch(1 0 0 / 0.12);
-  --flt-edge-bottom: oklch(0 0 0 / 0.6);
-}
-${panels(scope, ALL)} {
-  box-shadow:
-    ${RING},
-    inset 0 1px 0 0 var(--flt-edge-top),
-    0 1px 0 0 var(--flt-edge-bottom);
 }`;
 }
 
@@ -329,13 +323,19 @@ ${panels(scope, ALL)} {
    The keyframes are carried in the block itself, under the flt- prefix, so the
    paste stands alone on a real page where board.css is not loaded. */
 
-export const ENTRANCE_RUNGS = ["one-clock", "by-frequency", "origin-true"] as const;
+/* ROUND THREE CUT THE THIRD RUNG. "Origin true" (grow from 0.92 with a 6px
+   travel) was on round two's board and it is gone: it answers a different
+   question from the one this row asks. The entrance ask is rule 15's one
+   entrance against rule 12's by-frequency, which is a question about how FAST a
+   surface moves and how many clocks the family keeps; origin true is one clock
+   with a different shape, so it sat in the ladder splitting attention without
+   changing the ruling. Two rungs, one word to rule. */
+export const ENTRANCE_RUNGS = ["one-clock", "by-frequency"] as const;
 export type EntranceRung = (typeof ENTRANCE_RUNGS)[number];
 
 export const ENTRANCE_LABEL: Record<EntranceRung, string> = {
   "one-clock": "one clock",
   "by-frequency": "by frequency",
-  "origin-true": "origin true",
 };
 
 /** The travel direction, read off the side radix resolved, plus the keyframes.
@@ -353,12 +353,6 @@ function entranceBase(scope: Scope): string {
 }
 @keyframes flt-slip-out {
   to { opacity: 0; transform: translate(var(--flt-dx, 0px), var(--flt-dy, 0px)); }
-}
-@keyframes flt-grow-in {
-  from { opacity: 0; transform: scale(0.92) translate(var(--flt-dx, 0px), var(--flt-dy, 0px)); }
-}
-@keyframes flt-grow-out {
-  to { opacity: 0; transform: scale(0.96) translate(var(--flt-dx, 0px), var(--flt-dy, 0px)); }
 }
 @keyframes flt-edge-in {
   from { transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%)); }
@@ -407,10 +401,11 @@ ${state(scope, EDGE_ANY, CLOSED)} {
   animation: flt-edge-out 200ms var(--ease-drawer) both;
 }`);
   }
-  if (rung === "by-frequency") {
-    return guarded(`/* THE ENTRANCE, rung "by frequency": rule 12 taken literally, applied to the
+  return guarded(`/* THE ENTRANCE, rung "by frequency": rule 12 taken literally, applied to the
    family instead of to one control. A tooltip or a menu is opened fifty times
-   in an evening, so it lands in 90ms on a fade plus 2px with no zoom at all; a
+   in an evening, so it lands in 90ms on a fade plus the 6px travel with no zoom
+   at all (the travel is the one --flt-dx/--flt-dy the base declares, so the
+   number here is the number that runs); a
    popover, a dialog or a toast is occasional, so it keeps a 220ms beat. Two
    clocks, chosen by how often the surface appears. This is the rung that argues
    with rule 15's "one entrance", deliberately. */
@@ -433,23 +428,6 @@ ${state(scope, EDGE_ANY, OPEN)} {
 ${state(scope, EDGE_ANY, CLOSED)} {
   animation: flt-edge-out 160ms var(--ease-drawer) both;
 }`);
-  }
-  return guarded(`/* THE ENTRANCE, rung "origin true": one clock, more physical. The panel grows
-   out of its trigger from 0.92 with a 6px travel along the side axis, so the
-   tie to the trigger is the motion rather than a transform-origin nobody sees. */
-${base}
-${state(scope, ALL, OPEN)} {
-  animation: flt-grow-in 200ms var(--ease-emphasis) both;
-}
-${state(scope, ALL, CLOSED)} {
-  animation: flt-grow-out 130ms var(--ease-emphasis) both;
-}
-${state(scope, EDGE_ANY, OPEN)} {
-  animation: flt-edge-in 300ms var(--ease-drawer) both;
-}
-${state(scope, EDGE_ANY, CLOSED)} {
-  animation: flt-edge-out 200ms var(--ease-drawer) both;
-}`);
 }
 
 /* -- 4. THE REDUCED-MOTION GUARD -------------------------------------------
@@ -459,7 +437,7 @@ ${state(scope, EDGE_ANY, CLOSED)} {
    0.01ms, `!important`, which is why it beats an unimportant utility in a higher
    layer), so the floating layer does not animate for a reader who asked for less
    motion. Measured, not assumed: with the preference forced on this board, all
-   36 floating surfaces across the 19 frames come back at 0.01ms.
+   30 floating surfaces across the 18 frames come back at 0.01ms.
 
    What the family lacks is the FIRST line that guard's own comment names, a gate
    on the components themselves, and that is what this block is: a stop rather

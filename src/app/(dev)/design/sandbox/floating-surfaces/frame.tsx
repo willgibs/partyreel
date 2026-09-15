@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { CANVAS, type Ground, type Mode } from "@/components/dev/board";
 import { withDesignKey } from "@/lib/design-gate/links";
@@ -24,11 +32,53 @@ import type { Dim, Ramp, Scene, Side } from "./constants";
  * candidate change never reloads: those are attributes the parent writes
  * straight into `contentDocument` (same origin).
  *
- * Every frame mounts at once rather than on scroll. An IntersectionObserver was
- * the obvious economy and the wrong call here: a board of six frames is six
- * documents of the same already-cached bundle, while a frame that appears when
- * you reach it makes a side-by-side comparison depend on how you scrolled to it.
+ * ROUND THREE: a frame mounts with its ROW, not on its own. Round two mounted
+ * all nineteen at once and argued that a frame appearing when you reach it makes
+ * a side-by-side comparison depend on how you scrolled to it. The argument is
+ * right about a frame and wrong about a board: measured on the walk, nineteen
+ * documents cost 1020 requests and took 5.7s to settle, which is the "slow first
+ * paint" a stranger meets before the first row says anything. So the unit is the
+ * ROW (useMountOnApproach below): every frame in a row mounts together, a
+ * viewport and a half before the row arrives, and row one mounts immediately
+ * because a reader meets it before they can scroll. A comparison is never
+ * half-loaded, because the things being compared always arrive as one.
  */
+
+/** Row-level mounting. `false` holds the box at its exact size and loads
+ *  nothing; it flips to true once and never back, so a scroll up and down never
+ *  reloads a document. */
+const MountContext = createContext(true);
+
+/** Mount everything under `ref` when the element comes within a viewport and a
+ *  half of the fold. The observed element must be a REAL box: the first version
+ *  of this wrapped the row in `display: contents`, which produces no box at all,
+ *  so the observer never fired and every row that was not marked eager stayed
+ *  empty. A row passes its own <section>. */
+export function useMountOnApproach(
+  ref: React.RefObject<HTMLElement | null>,
+  eager: boolean,
+): boolean {
+  const [on, setOn] = useState(eager);
+  useEffect(() => {
+    if (on) return;
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setOn(true);
+      },
+      // A viewport and a half of lead time: at a reading scroll the documents
+      // are painted before the row is on screen, and a reader who jumps to the
+      // bottom waits for one row rather than for nineteen.
+      { rootMargin: "1400px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [on, ref]);
+  return on;
+}
+
+export const MountProvider = MountContext.Provider;
 
 export type FrameProps = {
   scene: Scene;
@@ -150,10 +200,47 @@ export function Frame({
     );
   }, [ground, ramp, radius, entrance, light, ready]);
 
+  // Replay runs the frames you can SEE, and REMEMBERS the ones you cannot.
+  // Measured on the walk: one press with fourteen frames mounted closed and
+  // re-opened about thirty panels across fourteen documents at once and cost a
+  // 150ms hitch, all of it spent on entrances nobody was looking at. A row is
+  // always visible as a row, so the comparisons that matter (the two trios of
+  // row 5, the four rungs of a ladder) still replay together.
+  //
+  // ROUND THREE, SECOND PASS: dropping the press for an off-screen frame made
+  // the button dead at 375, where the control bar is static at the top of the
+  // document and nothing is on screen from up there, and no amount of scrolling
+  // afterwards brought the entrance back (the effect had already run). A frame
+  // that was off screen when the press landed now waits for its own arrival and
+  // replays then, so a press is never swallowed: you scroll down and every row
+  // plays as you reach it. The observer lives exactly one press.
   useEffect(() => {
     if (!replay) return;
-    frameRef.current?.contentWindow?.dispatchEvent(new Event("flt:replay"));
+    const el = frameRef.current;
+    if (!el) return;
+    const run = () => el.contentWindow?.dispatchEvent(new Event("flt:replay"));
+    const r = el.getBoundingClientRect();
+    if (r.bottom > -200 && r.top < window.innerHeight + 200) {
+      run();
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        run();
+      },
+      { rootMargin: "200px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
   }, [replay]);
+
+  const mounted = useContext(MountContext);
+  // The honest label: a frame laid out at 1440 inside a 992-wide lab column is
+  // being read at 69 percent, and a board that does not say so invites a ruling
+  // on a size nobody ships. Only where it matters (below 95 percent).
+  const shrunk = scale < 0.95;
 
   return (
     // `w-full` on the measured box, not just `flex-1`: the box inside it is
@@ -168,7 +255,7 @@ export function Frame({
         )}
         style={{ width: w * scale, height: h * scale }}
       >
-        {src ? (
+        {src && mounted ? (
           <iframe
             ref={frameRef}
             title={label}
@@ -182,6 +269,11 @@ export function Frame({
               transformOrigin: "top left",
             }}
           />
+        ) : null}
+        {shrunk ? (
+          <span className="pointer-events-none absolute right-1 bottom-1 rounded-md bg-background/75 px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">
+            {w} canvas at {Math.round(scale * 100)}%
+          </span>
         ) : null}
       </div>
     </div>
