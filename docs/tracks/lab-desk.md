@@ -10,6 +10,7 @@ owns:
   - src/app/(dev)/design/(shell)/lab/tools/
   - src/app/(dev)/design/(shell)/lab/_desk/
   - src/app/(dev)/design/_data/tracks.ts
+  - src/app/(dev)/design/_data/tracks.test.ts
   - scripts/lab-review.mjs
   - scripts/lab-review.test.mjs
 reads:

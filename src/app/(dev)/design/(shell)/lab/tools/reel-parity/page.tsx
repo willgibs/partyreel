@@ -1,6 +1,7 @@
 import { requireDesignKey } from "@/lib/design-gate/server";
 
 import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
+import { Pager } from "@/app/(dev)/design/(shell)/_shell/pager";
 import { ReelCanvasStyles } from "./parity";
 
 /**
@@ -23,6 +24,7 @@ export default async function ReelCanvasStylesPage({
         description="Every reel style on the canvas engine, side by side on shared props: play, frame-lock and scrub, export the mp4 on device."
       />
       <ReelCanvasStyles />
+      <Pager />
     </div>
   );
 }

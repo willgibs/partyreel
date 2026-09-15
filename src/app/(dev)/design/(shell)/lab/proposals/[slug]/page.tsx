@@ -11,9 +11,17 @@ import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
 import { Pager } from "@/app/(dev)/design/(shell)/_shell/pager";
 import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
-import { listSpecs, readDoc } from "@/app/(dev)/design/_data/docs";
+import { inlineText, listSpecs, readDoc } from "@/app/(dev)/design/_data/docs";
+import { readTrackStates } from "@/app/(dev)/design/_data/tracks";
 import { SANDBOX } from "@/app/(dev)/design/touchpoints";
 
+/**
+ * ONE PROPOSAL (the Library x Lab round, 2026-09-15). The document, rendered,
+ * with the two things a reader needs beside it: the board it argues for (open
+ * it to answer) and the track writing it. Its own status line is markdown in
+ * the file, so it is flattened to text for the header rather than printed with
+ * its asterisks.
+ */
 export default async function ProposalPage({
   params,
   searchParams,
@@ -33,35 +41,59 @@ export default async function ProposalPage({
   const h1 = body.split("\n").find((l) => /^# /.test(l));
   const spec = listed ?? {
     slug,
-    title: h1 ? h1.replace(/^# /, "") : slug,
+    title: h1 ? inlineText(h1.replace(/^# /, "")) : slug,
     status: "A settled spec, not an open proposal.",
   };
-  const board = SANDBOX.some((r) => r.id === slug);
+  const board = SANDBOX.find((r) => r.id === slug);
+  const tracks = readTrackStates();
+  const builders = (board?.board?.tracks ?? (board ? [board.id] : [])).filter(
+    (n) => tracks.has(n),
+  );
+
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title={spec.title}
         description={
-          spec.status ?? "A board's settled argument; not law until Will rules."
+          spec.status
+            ? inlineText(spec.status)
+            : "A board's settled argument; not law until Will rules."
         }
-        badges={<Tag badge="proposal" />}
+        badges={
+          <>
+            <Tag badge="proposal" />
+            {board && <Tag>{`board: ${board.title}`}</Tag>}
+          </>
+        }
         meta={[
           ["Source", <Ref key="s" to={{ kind: "source", file }} quiet />],
           ...(board
-            ? [
+            ? ([
                 [
                   "Board",
                   <Ref key="b" to={{ kind: "board", id: slug }} quiet>
                     open the board
                   </Ref>,
-                ] as [string, React.ReactNode],
-              ]
+                ],
+              ] as [string, React.ReactNode][])
+            : []),
+          ...(builders.length > 0
+            ? ([
+                [
+                  "Written by",
+                  <span key="t" className="inline-flex flex-wrap gap-2">
+                    {builders.map((n) => (
+                      <Ref key={n} to={{ kind: "track", name: n }} quiet />
+                    ))}
+                  </span>,
+                ],
+              ] as [string, React.ReactNode][])
             : []),
         ]}
       />
       <Callout kind="not-law" className="mt-6">
-        A proposal argues; the bible binds. The board carries the asks Will
-        answers.
+        A proposal argues; the bible binds. The asks Will answers are on the
+        board, and the desk queues them.
       </Callout>
       <div className="mt-6">
         <Markdown source={body} from={file} designKey={key} skipTitle />
