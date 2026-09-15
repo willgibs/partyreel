@@ -1,6 +1,6 @@
 ---
 track: glow-specs
-status: open
+status: handed-off
 cut: 1b647d76
 preview: false
 owns:
@@ -93,22 +93,85 @@ CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`, `docs/des
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (round 1)
 
-- Head <sha>, pushed; preview partyreel-git-lp-glow-specs-partyreel.vercel.app
-- Synced with launch-prep at <sha>
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the registration lines (exceptions and why)
-- Shared-file changes asked of the Orchestrator: none
-- Assets requested from Will: none
-- Look at first: ...
+- Head is the commit carrying this record; the code landed at `2014616f`. Pushed; the preview at
+  partyreel-git-lp-glow-specs-partyreel.vercel.app builds on this push (`status: handed-off`).
+- Synced with launch-prep at `1b647d76`: it had not moved since the cut (`git rev-list --count
+  HEAD..origin/launch-prep` = 0), so no merge was needed.
+- Gates on the tree, each on its own exit code: typecheck ok, lint ok (0 errors, the 6 pre-existing
+  warnings, none in this lane), test ok (218 files, 2140 tests), build ok (128 routes),
+  `pnpm lab:smoke --base http://localhost:3419` ok (285 checks, 0 failing).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `docs/tracks/glow-specs.md`, `sandbox/glow-doctrine/{spec.ts,board.tsx}`,
+  `sandbox/glow-moments/{spec.ts,board.tsx}`, plus the two registration files,
+  `sandbox/registry.ts` (both specs imported, added to `BOARDS` in the sandbox's own order) and
+  `(shell)/lab/boards.ts` (the two entries point at the new compositions and drop `legacy: true`).
+  **The third registration line was not needed:** `kit-discipline.test.ts`'s `LEGACY` is keyed to a
+  sandbox DIRECTORY and these two boards had none, so neither id was ever on it. Nothing else in the
+  diff; `glow-lab-shared.tsx` and `glow-lab.css` were not touched at all.
+- **The variants files stayed at the sandbox root, deliberately.** Moving them would have broken two
+  files outside this lane: `src/components/shared/glow-contract.test.ts:550-551` pins the BorderBeam
+  call sites as an exact path list, and `src/components/dev/border-beam-vendor.test.ts:102-103`
+  `readFileSync`s both paths (it throws, not fails, if either moves). Three docs cite the same paths
+  (`docs/systems/design-system.md:232`, `docs/tracks/light.md:234-235`, `design-record.md:416,429`).
+  The boards import `../glow-<board>-variants`; `glow-lab-shared.tsx` and `glow-lab.css` stay for the
+  plainer reason that BOTH boards use them.
+- Shared-file changes asked of the Orchestrator: **one, optional, in `touchpoints.ts`.** Both boards'
+  header now reads "Track: no manifest (a standing board)" and their sidebar badge reads "exploring"
+  rather than a round, because `_data/nav.ts:135` and `[board]/page.tsx` both resolve
+  `r.board?.tracks ?? [r.id]` and no manifest is named `glow-doctrine` or `glow-moments`. The patch is
+  one line inside each of the two `board: { ... }` objects (touchpoints.ts:428 and :443):
+  `tracks: ["glow-specs"],`. It is not needed for anything to work; it makes the pair point at the
+  manifest that now owns them.
+- Assets requested from Will: none (both specs declare `assets: []`, so the meta panel prints "none").
+- Look at first: `/design/lab/glow-doctrine` and `/design/lab/glow-moments`. The first screen is the
+  whole change: the question, the verdict, and ONE ask each, where there used to be fourteen sections
+  with the unruled item halfway down. Then press **Look first** in the dock (it sets the dock's note
+  and lands on the section) and check the ask pill's **See it**. The asks are deliberately about WHERE
+  each open item closes, not a re-argument: `docs/tracks/orchestrator.md` item 4 already records the
+  lit surface and the publish beat's violet as the `light` board's asks, so ruling them twice would
+  write two contracts for one shadow and two homes for one beat. `/design/lab` now queues both
+  (16 waiting on you, the two at the top of the list).
+
+### Verification walked
+
+- Both boards at 1440 and at 375, dark and light: the answer block first, the ask pill under it with
+  its options and its "See it", the index, one anchored section, the review panel, the meta panel and
+  a collapsed "How it got here". No horizontal overflow at 375 (`scrollWidth` = 375), no `font-mono`
+  anywhere on either page, the argument, the wiring and the history folds all collapsed by default.
+- The walk fires on both: the dock shows "Walk 1 of 1" with the step's note and the page lands on the
+  section. Note, for the next agent: it only does so in a FRONTED tab, since a background tab throttles
+  `scrollIntoView({behavior:"smooth"})` to nothing, which reads exactly like a broken walk. A hidden
+  browser pane also returns blank screenshots of a page the DOM says is fully painted. Both are
+  tooling, not the product (`docs/systems/testing-verification.md`).
+- The review round trip, on a SCRATCH copy of `docs/reviews/` (nothing written into the repo, `git
+  status` clean): `pnpm lab:review --dry 'review glow-doctrine r4: lit-surface=light "..."'` and
+  `'review glow-moments r4: publish-violet=here; note: "..."'` both parse; the same lines written
+  against `--root <scratch>` produced well-formed ledgers; and `lit-surface=maybe` was refused with
+  `line 1, column 38: "maybe" is not an option of glow-doctrine.lit-surface (light, here)`.
+- Reduced motion: neither new file declares a single animation or transition (a spec is data, a board
+  is a two-line composition), so the pages inherit the global guard in `globals.css:862-869` and the
+  engine's own, both unchanged. The 17 animated elements inside each board are the unchanged
+  component's lamps, which the board's own section 07 is the instrument for.
 
 ## Record (round 1; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The two glow boards joined the migration wave and
+now render through the kit's template: `sandbox/glow-doctrine/` and `sandbox/glow-moments/` each got a
+`spec.ts` carrying the question, the round and its history, the verdict, the candidates as recorded
+(the six shapes, the thirteen placements), the departures and one section, plus a `board.tsx` that
+composes `BoardPage` with that section's evidence mounting the existing variants component unchanged.
+Both rounds were settled but for one line each, so the wave moved the argument and not the furniture:
+no law, shape, placement, number or verdict changed. Each board now asks exactly one thing, and asks
+it as a question of WHERE it closes rather than as a re-argument, because the orchestrator's record
+already carries the lit surface carve-out and the publish beat's violet as the `light` board's asks;
+the answer block says so. The variants files and the boards' shared sheet stayed at the sandbox root,
+since `glow-contract.test.ts` and `border-beam-vendor.test.ts` read them by their exact paths;
+`/design/lab` now queues both open asks.
