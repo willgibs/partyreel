@@ -1,6 +1,7 @@
 import { requireDesignKey } from "@/lib/design-gate/server";
 
 import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
+import { Pager } from "@/app/(dev)/design/(shell)/_shell/pager";
 import { MotionPlayground } from "./motion-playground";
 
 /**
@@ -24,6 +25,7 @@ export default async function MotionTunerPage({
         description="The live knobs behind every animated surface, driving replayable specimens on the same CSS hooks as production. Tune, replay, copy the CSS."
       />
       <MotionPlayground />
+      <Pager />
     </div>
   );
 }
