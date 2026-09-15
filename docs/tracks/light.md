@@ -788,16 +788,53 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
 
 ## Handoff (round 4)
 
-- Head: the tip of `lp/light`, pushed (the board's content is `4e7f908` + `47039c5` + `c9d40f5`, the
-  sync merge of `launch-prep` at `4ce03ff`, and this manifest on top). The rendered board is 479,907
-  bytes on the dev server at the head. The board is `/design/c/light?key=...`; seven
-  anchors, named by what they are rather than by a letter: `#lgt-kit`, `#lgt-treatments` (with
-  `#lgt-t-seam` .. `#lgt-t-beam` per treatment), `#lgt-composer`, `#lgt-separate`, `#lgt-evidence`,
-  `#lgt-infusion`, `#lgt-paste`.
+- Head: the tip of `lp/light`, pushed. The board's content is `4e7f908` + `47039c5` + `c9d40f5`, the
+  sync merges of `launch-prep` at `4ce03ff` and `6727026`, the round-four review fix at `d4c38d5`,
+  and this manifest on top. The board is `/design/c/light?key=...`; seven anchors, named by what
+  they are rather than by a letter: `#lgt-kit`, `#lgt-treatments` (with `#lgt-t-seam` ..
+  `#lgt-t-beam` per treatment), `#lgt-composer`, `#lgt-separate`, `#lgt-evidence`, `#lgt-infusion`,
+  `#lgt-paste`. The board is 27,690px tall at the 1440 canvas on a local production build.
+- **The round-four review's three in-lane defects, fixed at `d4c38d5`, and one they turned up.**
+  - ★ **The aurora's clock was dead, and the board was rendering as if it were not.** Round four
+    moved the field's cadence off a literal (`"33s"`) onto the sibling token its paste proposes,
+    which is the right move, but nothing the board loads DECLARED `--aurora-cadence`: globals.css
+    has `--spill-cadence` and no sibling, and the only other declarations on the board sit inside
+    exported STRINGS (the register candidate's paste, the composer's paste), which are text. The
+    vars land as an inline style on the same element that carries `[data-glw]`, so they outrank the
+    engine's own `[data-glw] { --glw-dur: 8s }`; a `var()` to a property nothing declares is invalid
+    at computed-value time, which invalidates the `animation` shorthand, which resets
+    `animation-name` to `none`. Fifteen band layers sat frozen with the base still lit, including
+    the composer at its DEFAULT configuration, under a caption claiming 33s. It survived QA because
+    the aurora register candidate's apply-block declares the token and persists in localStorage, so
+    a developer who had applied it once saw motion no reviewer would. `board.css` section 6 now
+    declares the sibling at `:root` as `calc(var(--spill-cadence) * 3)`, verbatim what the paste
+    hands globals.css, and it is DELETED rather than moved when the ruling lands. Two consequences
+    worth keeping: every aurora on the board follows the cadence knobs, because the clock is a calc
+    over the lamp's token rather than a second literal; and the grain wipe stopped hand-copying the
+    register (it had been pinned to the accent numbers while the dock's Register switch moved every
+    other aurora) and calls `auroraVars` like everything else.
+  - **The defect it turned up next door: the clock captions could not read the tuner store.** The
+    first fix made the two captions live off the store, which is wrong in the other direction. A lab
+    page mounts `CandidateStyle` and NOT the tuner panel, so tapping "8s on the site" writes an
+    override that NOTHING on a board page wears: the caption would have printed 24s over a field
+    still running at 33s. `useClocks` reads the computed `--spill-cadence` off the element the
+    stages inherit from, which cannot drift from them by construction and also picks up an applied
+    candidate block, and the knob's own copy now says on screen that the two stages above it will
+    not move, because that knob is an instrument for the real pages.
+  - **The applied block is the sixth thing in the dock.** Which CSS block stands on the whole site,
+    and its Clear, was a banner under the index near the top of a 27,000px board, which is the
+    scroll-back friction Will's note (a) was written to end. It is the only dock item that is
+    sometimes absent (nothing renders while no block stands), and the label truncates with the full
+    one on hover so a long candidate name cannot push the bar around. Applying a block stays a
+    per-candidate decision beside the candidate; only the resulting STATE is page-wide. Measured: the
+    dock is 49px with nothing applied and 90px with a block standing (a second row at 1440), and
+    `--board-dock-h` and `scroll-padding-top` follow both ways, so anchors keep landing.
+  - The fourth item, the lab cascade defect, is not in this lane and is still open: the shell ask
+    below.
 - Synced with `launch-prep` at `6484558` (2 commits, PROGRAM.md and the orchestrator manifest;
   nothing in this lane or its reads). Merged clean.
-- Gates on the synced tree: typecheck ok, lint ok (0 errors; 8 pre-existing warnings elsewhere, none
-  in the lane), test ok (1804 in 199 files), build ok (248 static pages).
+- Gates re-run on the fixed tree at `d4c38d5`: typecheck ok, lint ok (0 errors; 6 pre-existing
+  warnings elsewhere, none in the lane), test ok (1804 in 199 files), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/light.md`,
   `docs/specs/light.md` and `src/app/(dev)/design/sandbox/light/*`. The spec is the ONE addition to
   `owns` this round, because goal item 6 asks for it rewritten to the kit and `media-kit` is the
@@ -819,7 +856,12 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
     directly, which is exactly the desired order. Verified in the browser with a two-sheet
     experiment (same layer: the base utility wins; sub-layer: the responsive one wins). Nothing else
     changes, because where the lab and production emit the same utility the declarations are
-    identical.
+    identical. **Two files, not one:** `src/app/css-source-policy.test.ts` pins that exact import
+    string, so the test moves in the same commit or the gate fails. Confirmed still unlanded at
+    `launch-prep` `6484558`: `07ad3b2` touched `design.css` only to hide the sidebar pill. While it
+    is unlanded the board keeps its on-screen disclosure (board.tsx), which asks the reviewer to
+    disregard the layout of every mounted production section; that paragraph is deleted by whoever
+    lands the fix, not by this track.
   - `touchpoints.ts` describes this board as "Eight one-word calls ... depth in dark on stacked
     photographs, a layer and a flat card; the aurora on the home arc's five real media-less chapters
     behind a wipe". It is nine calls now and the board is the kit, the treatments, the composer, the
@@ -885,10 +927,12 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
     Round three's three-strip cadence stage went: it proved that three numbers are three numbers, and
     the ruling it serves cannot be made on a stage by its own argument, so what survives is the pair
     of knobs that write the token and send the reviewer to the real page.
-  - **The dock carries the four page-wide switches and Replay** (canvas, ground, register, motion),
-    and nothing else. Every other control changes one specimen and sits beside it. The ground gained
-    the app's dark as a third option so the depth block, whose biggest consumer is the dashboard,
-    keeps its third ground under one control.
+  - **The dock carries the four page-wide switches, Replay, and the applied block's badge** (canvas,
+    ground, register, motion), and nothing else. Every other control changes one specimen and sits
+    beside it, which includes each candidate's own Apply to the site: choosing a block is a decision
+    about that candidate, and only the resulting STATE is page-wide. The ground gained the app's dark
+    as a third option so the depth block, whose biggest consumer is the dashboard, keeps its third
+    ground under one control.
   - **A section is allowed to be its own height now.** The composer's wrapper is a column flex box, so
     a section taller than its canvas COMPRESSED instead of overflowing: the real footer measured 1414
     in it and 1642 in a stage that let it be itself. That is worse than a clip, because a squashed
@@ -898,33 +942,51 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
     is judged is never scaled; the clock pair is judged on motion and the paper three-up on colour,
     and at true pixels a 1440 canvas inside a one-third column shows 300px of itself behind a
     scrollbar. Every other stage on the board is at true pixels.
-- **Light QA, at the head, on a local dev server in this worktree.** Vercel is capped, so no preview
-  was waited on and the Vercel API was not called.
-  - 1440: 18 stages, every one exactly 1440 css px wide, not one of them cutting a line of text
-    (tightest clearance 36px), no horizontal overflow on the document, 26 `<Glow>` mounts, all seven
-    anchors resolving and all 21 in-page links landing.
-  - 375: 18 stages, every one exactly 375 css px, nothing cut (tightest clearance 14px), no
-    horizontal overflow.
-  - Reduced motion: the dock's Rest switch computes `animation-name: none` on all 27 bands at once
-    and is reversible (back on Live they compute `glw-mask-x`, `glw-drift-x` and `glw-orbit` again, so
-    the switch is the cause and not a stuck state; the machine's own `prefers-reduced-motion` is
-    false, which is what makes that a real test). The board's one keyframe stays inside the
+- **Light QA, re-run at `d4c38d5` on a LOCAL PRODUCTION BUILD (`pnpm build && pnpm start` on port
+  3178 in this worktree), IN A FOREGROUND TAB.** Vercel is capped, so nothing was pushed to a
+  preview and the Vercel API was not called. The foreground was the point this time: round four's
+  first pass measured motion in a hidden tab, where `requestAnimationFrame` never fires, so every
+  motion claim in it came from the one environment that cannot make one. `document.visibilityState`
+  was asserted `visible` and rAF measured at 74 frames in 602ms before any motion claim below.
+  - **The clock, which is the claim that was wrong.** Scroll-sweeping the whole board at the 1440
+    canvas: 26 `<Glow>` mounts, ALL 26 seen with a running animation, 27 running layers, and the
+    census is `glw-drift-x @ 33s` x15 (the aurora), `glw-drift-x @ 11s` x2 (the lamp clock),
+    `glw-mask-x @ 11s / 8s / 6s`, `glw-mask-xy @ 6s`, `glw-orbit @ 5s` x2 and `glw-bloom @ 1s` x4
+    (one-shots). The composer at its DEFAULT configuration runs `glw-drift-x` at 33s and its
+    `currentTime` advances, which is the exact specimen that was frozen. Before the fix the same
+    sweep found zero animations on every aurora.
+  - **Rest and Live, in a tab that can tell the difference.** Sweeping the whole board with Rest on:
+    0 running layers. Sweeping it again on Live: every band back (23 loops; the 4 one-shot blooms
+    had already finished). The machine's own `prefers-reduced-motion` is false, which is what makes
+    the switch the cause rather than a stuck state, and the board's one keyframe stays inside the
     `prefers-reduced-motion: no-preference` block.
+  - **1440:** 18 stages, 13 at exactly 1440 css px and 5 fitted (the clock pair at 696, the paper
+    three-up at 459, both judged on motion and colour rather than size, and both say so on screen),
+    no horizontal overflow on the document, all seven anchors resolving and every in-page link
+    landing (0 dead).
+  - **375 (the dock's Canvas switch):** 18 stages, every one exactly 375 css px, no horizontal
+    overflow on the document, the dock wrapping and re-syncing. Stated plainly, because it qualifies
+    the claim: the canvas switch changes the STAGE's width, not the viewport, so a production
+    section at the 375 canvas still resolves its `sm:` and `lg:` utilities against the page width. A
+    375 canvas is a width check, not a breakpoint check, and no lab tab on this machine could be laid
+    out at a true 375 (every browser surface here is shared with the parallel sessions, and the
+    pane's mobile preset scales the visual viewport rather than the layout width). What the sweep
+    did find at 375 is production text truncating inside the pricing plan cards ("Backed up twice,
+    automatically" by 14px in three places, "Event Pass" by 3px); that is a production component at
+    phone width, in nobody's lane this round, and it is a cross-board note below rather than a claim
+    about this board.
+  - **The dock's height sync, which the first pass flagged for a human eyeball, is fine.** In a
+    foreground tab `--board-dock-h` is 49px and `scroll-padding-top` is 57px on a cold load, with no
+    forced paint needed. The 262px phantom was purely the hidden tab's dead `ResizeObserver`; it is
+    NOT a shell bug, and the ask is withdrawn. With a candidate applied the dock goes to 90px and the
+    token follows, so anchors land either way.
+  - **The applied badge, driven:** applying a block puts "On the site" plus the label and its Clear
+    in the dock, renders the `<style>`, and Clear removes both and empties the store's key.
   - The composer, driven: the hero's refusal renders, the placement toggle narrows to two for the seam
     and disappears for the throw, and the two exports change with the configuration. The paste's
     `--glw-base` and the stage's computed `--glw-base` are the same number at both registers (0.30 and
-    0.17), which is the drift the one-source rule exists to prevent.
-  - ★ **The foreground-tab caveat, and a phantom it nearly produced.** This Chrome window's foreground
-    belongs to a parallel session, so the lane's tab is hidden: `requestAnimationFrame` never fires
-    there and neither does `ResizeObserver`. That made the dock's own height sync look broken
-    (`--board-dock-h` latched at its first, pre-layout 262px while the dock measured 49px, so anchor
-    jumps landed 220px low). It is NOT a shell bug: one forced paint (a screenshot) runs the observer
-    and it corrects itself to 49px and `scroll-padding-top: 57px` immediately. Geometry read with
-    `getBoundingClientRect` is reliable in a hidden tab because it forces layout, which is why the
-    measurements above stand; anything driven by a frame is not. Screenshots at the kit, the dock, the
-    QR hero, the plate pair and the composer's wipe were captured and read. **Worth one human eyeball
-    on waking: the board in a genuinely foreground tab, for animation smoothness and the dock's height
-    on a cold load.**
+    0.17), which is the drift the one-source rule exists to prevent. `--glw-dur` is now checked the
+    same way, which is the var the first pass did not spot-check and the one that was broken.
   - Not walked: the four "Apply to the site" blocks on the real pages. They are byte-identical to
     round three (`candidates.ts` changed only in its comments this round), and round three walked all
     four on `/`, `/pricing`, `/help`, `/contact`, `/features/qr`, `/features/album` and
@@ -954,7 +1016,13 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
   land in one pass. (4) The infusion plan's phase 3 depends on the palette board's paper ramp, so the
   two tracks should be sequenced rather than merged in parallel. (5) `docs/specs/light.md` is now a
   written document rather than a machine-stitched concatenation of Records; if the fold script
-  regenerates it at integration it will overwrite the kit.
+  regenerates it at integration it will overwrite the kit. (6) A board's cadence knob writes an
+  override that no board page wears: the lab layout mounts `CandidateStyle` but not the tuner panel,
+  so only `/design/motion` and the rounding board (which mount their own `MotionTuner`) apply knob
+  values inside the lab. Worth knowing before another board builds a knob whose own stage is meant
+  to follow it. (7) At the 375 canvas the pricing plan cards truncate their own copy ("Backed up
+  twice, automatically" by 14px in three places, "Event Pass" by 3px). Production, at phone width,
+  outside every lane this round; for whoever owns pricing next.
 
 ## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
@@ -973,7 +1041,8 @@ why in the section's own words) and exporting both the CSS paste and the JSX mou
 configuration, which produced the kit's one new component, `<SectionLight>`. An infusion plan in six
 phases says the order the identity enters the site and what goes wrong out of it; the five
 measurements were demoted to evidence, each ending in the line it decided; and the dock took the four
-page-wide switches. `docs/specs/light.md` was rewritten to the kit. One lab defect came out of mounting
+page-wide switches plus the badge naming whichever block stands on the site, and the field's cadence
+became a declared sibling of the lamp's token. `docs/specs/light.md` was rewritten to the kit. One lab defect came out of mounting
 nine live sections: the lab's own Tailwind entry outranks production's responsive utilities, so every
 board showing a production component renders part of it at its phone layout, 115 elements here, with a
 one-line remedy in the handoff.
