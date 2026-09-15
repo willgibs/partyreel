@@ -788,7 +788,9 @@ misreporting its own overflow. The board went 17,064px to about 13,700 and reads
 
 ## Handoff (round 4)
 
-- Head `<sha>` (the tip of `lp/light`), pushed. The board is `/design/c/light?key=...`; seven
+- Head: the tip of `lp/light`, pushed (the board's content is `4e7f908` + `47039c5` + `c9d40f5`, the
+  sync merge of `launch-prep` at `4ce03ff`, and this manifest on top). The rendered board is 479,907
+  bytes on the dev server at the head. The board is `/design/c/light?key=...`; seven
   anchors, named by what they are rather than by a letter: `#lgt-kit`, `#lgt-treatments` (with
   `#lgt-t-seam` .. `#lgt-t-beam` per treatment), `#lgt-composer`, `#lgt-separate`, `#lgt-evidence`,
   `#lgt-infusion`, `#lgt-paste`.
