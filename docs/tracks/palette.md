@@ -797,14 +797,18 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
   here: `POST api.vercel.com/v13/deployments?forceNew=1` with
   `{"name":"partyreel","project":"prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB","gitSource":{"type":"github","repoId":1252816746,"ref":"lp/palette","sha":"<head>"}}`
   and no `target` field (a `target` of "preview" is rejected as invalid).
-- ★ **Correction to round two's recovery advice: do NOT poll that endpoint.** Round two recorded
-  "two attempts 45 seconds apart was enough", which was luck. Seven attempts over seven minutes here
-  freed nothing, and the `limit.reset` the refusal returns came back as EXACTLY the attempt's own
-  timestamp plus 24 hours every time (23:11:27, 23:12:13, 23:13:23 ... 23:18:02). Either a refused
-  attempt is counted against the window, in which case polling pushes recovery further away, or the
-  field is only ever "24 hours from now" and carries no information at all. Both readings say the
-  same thing: make ONE attempt when a slot is plausibly free, never a loop. A GitHub push will also
-  take the alias on its own once the window rolls.
+- ★ **Correction to round two's recovery advice, with the cadence that replaces it.** Round two
+  recorded "two attempts 45 seconds apart was enough"; that was luck, and seven attempts over seven
+  minutes here freed nothing. Two things are worth knowing instead. First, the `limit.reset` the
+  refusal returns is uninformative: it came back as EXACTLY the attempt's own timestamp plus 24 hours
+  every time (23:11:27, 23:12:13, 23:13:23 ... 23:18:02), so it is "24 hours from now" rather than a
+  clock to wait out, and a refused attempt may well be counted against the window. Second, the
+  deployment list shows what actually happens at the ceiling: the window is ROLLING and releases one
+  slot roughly every 14.4 minutes (100 a day), and the list bears that out to the minute over six
+  deployments (22:04:10, 22:18:42, 22:33:19, 22:48:02, 23:02:50, 23:17:14), each taken by whichever
+  branch asked first. A push whose deployment is refused is not queued, so it never gets a later
+  slot on its own. **So: one attempt per slot interval, aligned to the last successful deployment in
+  the list, never a tight poll.**
 - **So this round's QA was taken on a local production-equivalent dev server in the worktree**
   (`pnpm dev` on :3047, the lab key on every URL), which serves the head exactly. Every number below
   was measured there through the DOM, in a foreground-equivalent read, not eyeballed.
