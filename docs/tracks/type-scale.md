@@ -1,7 +1,8 @@
 ---
 track: type-scale
-status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+status: integrated
+cut: "4b035c1"
+merged: "c97d799"      # the branch head merged into launch-prep
 merged_round_1: "5186fb8"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
@@ -18,6 +19,10 @@ reads:
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/sandbox/variant-frame.tsx
   - src/components/marketing/sections/home/cinema-hero.tsx
+  - src/components/shared/not-found-screen.tsx
+  - src/app/(marketing)/marketing.css
+  - src/components/dev/candidate-style.tsx
+  - src/components/dev/tuner-store.ts
 ---
 
 # lp/type-scale
@@ -183,7 +188,10 @@ The board, plus the token table in the Record. Read `page-hero.tsx`, `section-sh
 
 - Bucket "App polish the gallery's declarations surfaced": `shared/not-found-screen.tsx:55` is the
   one h1 on the site without `font-heading`, so the 404 title renders in Inter while every other
-  page title is Urbanist; the wiring round should sweep it with the ladder.
+  page title is Urbanist; the wiring round should sweep it with the ladder. Round two put it ON the
+  board (stage 14) and in every paste, so it is now ask 5 rather than a silent sweep: if Will rules
+  it onto the ladder the deferred line closes with the wiring, and if he rules it off the line
+  stays as the documented exception.
 
 ## Handoff (round 1)
 
@@ -201,6 +209,26 @@ The board, plus the token table in the Record. Read `page-hero.tsx`, `section-sh
   lane), test ok (1688 in 191 files), build ok (247 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = the five files under
   `src/app/(dev)/design/sandbox/type-scale/` plus this manifest. No exceptions.
+- **The review round's one fix (this head).** A read-only review found that an applied candidate
+  outranked the board's own stages at one step. The page hook,
+  `h1[class~="font-heading"]:is([class~="text-2xl"], ...):not([class~="lg:text-5xl"])`, scores
+  (0,3,1), three attribute tokens AND a type, which is exactly what board.css's
+  `[data-tsc] [data-tsc-page] [data-tsc-step="heading"] :is(h1, h2, h3)` scored, and a candidate's
+  `<style>` is rendered after every stylesheet, so the paste won the tie on source order. Stage 13
+  lost its whole argument to that: with any candidate applied its three app registers collapsed onto
+  the applied ladder's one page size while the captions still read 24 / 20 / 20, and stages 9, 11 and
+  12 lost the same way whenever the applied block and the toggled ladder differed. The step rules now
+  run a doubled `[data-tsc][data-tsc]` chain at (0,4,1), the `ships` and `face` rules with them (that
+  note had the premise wrong: it said a candidate's longest selector is three tokens). And it is
+  computed now rather than asserted: "the board's sheet outranks any paste" in `ladders.test.ts`
+  counts both sides by Selectors Level 4 and fails the moment a hook grows a token or the doubling is
+  tidied away, which was verified by reverting the chain (it fails, naming the rule that lost).
+- Re-verified after the fix on `pnpm dev` from this worktree, measured off the DOM: under each of the
+  five applied blocks (Today, A, B, C, the law alone), every heading and card title on the board
+  renders the size its own stage declares, at 1440 and at 375; the cross case holds (B applied while
+  the board is toggled to C reads C's 20 at stage 12 and still 24 / 20 / 20 at stage 13); the 404
+  stage's "as it ships" half stays Inter 600. The paste itself is untouched: C applied to the real
+  home page still gives the hero 119.94px at -5.4px, which is C's 120 at -0.045em.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none. Lab only, as briefed: not one
   production byte changed, and `page-hero.tsx`, `section-shell.tsx`, `page-heading.tsx`,
   `globals.css` and `theme.css` were read and left alone.
@@ -361,15 +389,245 @@ by design)
 
 ## Handoff (round 2)
 
-- Head <sha>, pushed; preview partyreel-git-lp-type-scale-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: this commit, sitting on the handoff and on the review round's fix; all pushed. Preview
+  `partyreel-git-lp-type-scale-partyreel.vercel.app`, board at `/design/c/type-scale?key=`. The
+  alias follows the branch on its own and `[preview]` is in every build commit, but the push of the
+  fix produced no deployment at all (GitHub created none for it, while other branches pushed before
+  and after it deployed normally), so the alias sat on the pre-fix build for twenty minutes. This
+  commit is the rebuild; if an alias ever looks a round behind, check for a MISSING deployment
+  before doubting the branch.
+- Synced with `launch-prep` at `4b035c1` (the cut: `ca952b5` had moved by one docs commit while the
+  worktree was being made, so the branch was cut fresh from the newer tip). It has not moved since.
+- Gates on the synced tree, re-run after the review round's fix: typecheck ok, lint ok (0 errors, 7
+  pre-existing warnings, none in this lane), test ok (1719 in 193 files; `ladders.test.ts` is 62
+  cases, 21 of them round two's, three of them the new specificity guard), build ok (248 pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the five files under
+  `src/app/(dev)/design/sandbox/type-scale/` plus this manifest. No exceptions.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. Lab only, as briefed: not one
+  production byte changed. `page-hero.tsx`, `section-shell.tsx`, `page-heading.tsx`, `card.tsx`,
+  `not-found-screen.tsx`, `globals.css`, `theme.css` and `marketing.css` were read and left alone.
+- Assets requested from Will: none. A type board needs no asset, and the one ask that could have
+  wanted one (a licensed display face) is answered on the board: the pairing holds.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
+  - "The marketing ladder: today, A tuned, B rungs or C registers"
+  - "The app ladder: today, A tuned, B rungs or C registers"
+  - "The tracking law, which moves no size and can be taken on its own: adopt, or keep the flat
+    -0.03em"
+  - "The app's floor (no heading below the 14px body a card sets, so the card title stops at 16):
+    adopt, or let C's 14 stand"
+  - "The 404's h1, the one page title on the site in Inter: put it on the ladder, or leave it off"
+  - "The face pairing: keep Inter with Urbanist, or open a face round"
+- Departures, verbatim from BoardMeta (six, all on the board):
+  - "The pairing is NOT departed from. Inter with Urbanist survives the loudest step once tracking
+    runs inverse to size: what reads wrong at 160px and again at 16px is the constant -0.03em, not
+    the face. Stage 16 is the evidence, and a face round would be its own ruling."
+  - "Every candidate closes the masthead's tracking squeeze (.mkt-name opens to +0.022em) onto the
+    display step's OWN tracking, between -0.04em and -0.05em, rather than the shared -0.03em
+    constant it lands on today. The paste closes it in marketing.css's own two places and leaves the
+    squeeze itself running."
+  - "C collapses marketing's six heading steps to five and folds the 24/30 prose tier into the
+    section step, so /about's story sections and /press's sections move up a tier. That contradicts
+    design-system.md's documented three-tier h2 ladder; it is C's argument, not an oversight."
+  - "C's app register was rebuilt in round two. The page title at 20 survived a real dashboard (in
+    an app a title is a locator, not a headline); the card title at 14 did not, because a Card sets
+    text-sm on its whole subtree, so 14 is the size of the sentence under the title. C now runs
+    20 / 18 / 16, and the floor under it is proposed as a law for every ladder, which is the fourth
+    ask."
+  - "B states bible 2 as arithmetic: marketing travels four rungs between 375 and 1440 and the app
+    travels one. That turns 'marketing may be louder' from a judgement into a rule, which is a bible
+    finding if B is adopted."
+  - "Bible 5 says one heading face on one site ladder, and the 404's h1 has always been outside
+    both: Inter at 600, the only page title on the site that is not the heading face. Every paste
+    puts it on the ladder, which is a change no ruling has made yet, so it is the fifth ask rather
+    than a silent fix."
+- Bible findings for Will (not acted on): B's arithmetic would give bible 2 a number, and bible 5
+  acquires the 404 either way. Bible 5 is otherwise unaffected: one face, one ladder, every h1 on
+  it, which all four candidates keep.
+- **For the Orchestrator, three things outside this lane:**
+  1. `touchpoints.ts` still describes this board as "Eleven stages driving the production
+     components ... an event page and admin". It is sixteen now, in four acts, and it applies to the
+     site. One line at integration; the file is the Orchestrator's.
+  2. `docs/specs/type-scale.md` carries round one's tables. C's app rows changed (page 20,
+     subsection 18, card 16) and there is a new "law alone" table; every table in the Record below is
+     generated from `ladders.ts`, so replacing the spec's block with it keeps the two honest.
+  3. The wiring round needs three one-line HOOKS, because a class-name hook is right for a paste and
+     wrong for production: `data-slot="page-heading"` on `PageHeading`, `data-scale={scale}` on
+     `PageHero` and on `SectionShell`, and a named atom for the app's section tier (the only step no
+     paste can reach today: production writes it as an 11px uppercase label inside an h2 on the
+     dashboard and the event feed, 14px in admin, and once `sr-only`).
+- What a paste reaches beyond the component it names, by design: the hero step's hook is the ramp's
+  widest class, so the four heroes that hand-roll the same ramp move with it (the home's cinema
+  hero, qr-hero, reel-hero, events/[slug]); the chapter step also reaches the article titles that
+  stop at that step (blog, careers, a help guide); the prose step also reaches /help's stat
+  numerals, which already ship at it. All four are the same step by eye, which is why the hook is a
+  feature rather than a leak, and it is written in each HOOK's note.
+- Look at first: **apply B, then walk the home page and /help** (the buttons are in the bar at the
+  top of the board and the walk links carry your key). Apply **Today** first if you want the
+  control: it is the shipped ladder resolved, and it reproduces every value on the real page at 1440
+  and at 375 to within a fiftieth of a pixel, moving exactly one thing, the home hero's hand-rolled
+  `leading-[1.02]`, which is fault two in one click. Then stage 10 (the tier the app does not have,
+  in the three idioms it is written as today), stage 13 (C's app register with the version round two
+  rejected beside it) and stage 15 (the tracking law alone, at 160 and at 16).
+- Light QA (the wave's rule, measured rather than eyeballed, on `pnpm dev` from this worktree):
+  every stage at both canvases under all four ladders has no vertical crop and no horizontal
+  overflow (32 combinations, measured off the DOM); `document.getAnimations()` is empty, so the
+  board reads identically with and without reduced motion; each new stage's computed size, leading
+  and tracking matches the ladder data exactly. The paste was verified on the REAL pages at both
+  widths: Today on the home page reproduces 96/48/30 and their tracking and moves only the hero's
+  local leading; C on /about gives the masthead 200px at -0.05em over a prose tier folded onto the
+  section step at 40px; Clear removes the block. The app surfaces (the dashboard, an event page)
+  could not be walked from this worktree, because localhost is in no auth allow-list by design: they
+  are the one part of the walk that needs Will signed in, and the board's stages 9 to 14 are the
+  stand-in until then.
+- Measuring found three real bugs that an eye pass would not have: tailwind-merge had eaten the hero
+  board stage's `leading-[1.02]` (the ladder class has to come FIRST in the `cn()`, which the hero
+  board's own shared.tsx warns about; this was the third time), an applied candidate reached the 404
+  stage's "as it ships" half through `[data-not-found] h1` and made it a comparison with itself, and
+  C's 120px hero wraps where today's 96px one does not, so the lockup stage counts lines now. One
+  tooling note for the next agent: the Browser pane is shared across a wave, so a screenshot can
+  come back from ANOTHER session's tab (it did here) and a hidden tab returns black frames and
+  freezes a running transition mid-flight. Read the DOM; it is also the only way to catch the three
+  bugs above.
 
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). **The type scale, applied to the site.** Round one
+wrote the ladder down; round two made every candidate a PASTE: one generated block of real CSS against
+the real production hooks (`.mkt-name`, a ramp's widest class, `[data-slot="card-title"]`,
+`[data-not-found] h1`), handed to the whole site through the shell's candidate store, so a ruling is
+made on the real home page rather than on a canvas. Today is the control and it holds: applied, it
+reproduces every shipped value at both widths and moves one thing, the home hero's hand-rolled
+`leading-[1.02]`. The tracking law became adoptable on its own, a function of size that moves no size;
+the app's missing middle is judged against the three idioms production writes it as; the hero step
+against the hero board's own lockup; the 404's h1, the one page title in Inter, is in every paste.
+C's app register was rebuilt: the quiet 20px title survived a real dashboard, the 14px card title did
+not (a Card sets `text-sm` on its whole subtree), and the floor under it is pinned for every ladder.
+Token names moved into Tailwind v4's font-size shape, so a baked step is ONE class. Lab only.
+
+### The token table the wiring round bakes
+
+Round two's shape: Tailwind v4 reads `--text-x--line-height` and `--text-x--letter-spacing` as that
+size's defaults, so `class="text-title"` carries all three and the three four-breakpoint ramps in
+`page-hero`, `section-shell` and `page-heading` collapse to one class each. One clamp per step, the
+line through (375, phone) and (1440, desktop), so the ladder is continuous and there is no
+breakpoint left to jump at. Leading is a rem LENGTH (a unitless line-height cannot sit inside a
+clamp and a step whose leading tightens as it grows needs one); tracking stays in em, which already
+rides the fluid size. `tokenTable()` in `ladders.ts` generates every table below; nothing is retyped.
+
+**Today, resolved (the reference, not a proposal)**
+
+```
+--text-display     clamp(3.25rem, 0.873rem + 10.14vw, 10rem)   lh clamp(2.763rem, 0.743rem + 8.62vw, 8.5rem)   ls -0.03em
+--text-hero        clamp(3rem, 1.944rem + 4.51vw, 6rem)        lh clamp(3rem, 1.944rem + 4.51vw, 6rem)         ls -0.03em
+--text-title       clamp(2.25rem, 1.458rem + 3.38vw, 4.5rem)   lh clamp(2.5rem, 1.796rem + 3vw, 4.5rem)        ls -0.03em
+--text-chapter     clamp(2.25rem, 1.722rem + 2.25vw, 3.75rem)  lh clamp(2.5rem, 2.06rem + 1.88vw, 3.75rem)     ls -0.03em
+--text-section     clamp(1.875rem, 1.479rem + 1.69vw, 3rem)    lh clamp(2.25rem, 1.986rem + 1.13vw, 3rem)      ls -0.03em
+--text-prose       clamp(1.5rem, 1.368rem + 0.56vw, 1.875rem)  lh clamp(1.999rem, 1.911rem + 0.38vw, 2.25rem)  ls -0.03em
+--text-page        1.5rem                                      lh 1.999rem                                     ls -0.03em
+--text-subsection  (none)
+--text-card        1rem                                        lh 1.375rem                                     ls -0.03em
+```
+
+**A. Tuned** (every desktop number kept; the phone end unpacked, the leading named, the tracking
+inverse to size; the app deliberately untouched, which is its cost)
+
+```
+--text-display     clamp(4rem, 1.887rem + 9.01vw, 10rem)        lh clamp(3.52rem, 1.731rem + 7.63vw, 8.6rem)    ls -0.045em
+--text-hero        clamp(2.75rem, 1.606rem + 4.88vw, 6rem)      lh clamp(2.75rem, 1.732rem + 4.34vw, 5.64rem)   ls -0.04em
+--text-title       clamp(2.25rem, 1.458rem + 3.38vw, 4.5rem)    lh clamp(2.362rem, 1.641rem + 3.08vw, 4.41rem)  ls -0.035em
+--text-chapter     clamp(1.875rem, 1.215rem + 2.82vw, 3.75rem)  lh clamp(2.1rem, 1.466rem + 2.7vw, 3.9rem)      ls -0.032em
+--text-section     clamp(1.625rem, 1.141rem + 2.07vw, 3rem)     lh clamp(1.95rem, 1.496rem + 1.94vw, 3.24rem)   ls -0.03em
+--text-prose       clamp(1.313rem, 1.114rem + 0.85vw, 1.875rem) lh clamp(1.706rem, 1.515rem + 0.82vw, 2.25rem)  ls -0.024em
+--text-page        1.5rem                                       lh 1.875rem                                     ls -0.02em
+--text-subsection  (none)
+--text-card        1rem                                         lh 1.35rem                                      ls -0.012em
+```
+
+**B. Rungs** (one rung set, 12 14 16 18 20 24 28 34 42 52 64 80 100 128 160, the ratio widening as
+it climbs; every step sits on a rung at both ends and reads its leading and tracking off the rung,
+never off the step. Marketing travels four rungs between 375 and 1440, the app travels one, the card
+step travels none)
+
+```
+--text-display     clamp(4rem, 1.887rem + 9.01vw, 10rem)        lh clamp(3.92rem, 2.272rem + 7.03vw, 8.6rem)    ls -0.045em
+--text-hero        clamp(2.625rem, 1.349rem + 5.45vw, 6.25rem)  lh clamp(2.888rem, 1.924rem + 4.11vw, 5.625rem) ls -0.042em
+--text-title       clamp(2.125rem, 1.113rem + 4.32vw, 5rem)     lh clamp(2.465rem, 1.678rem + 3.36vw, 4.7rem)   ls -0.038em
+--text-chapter     clamp(1.75rem, 0.958rem + 3.38vw, 4rem)      lh clamp(2.135rem, 1.506rem + 2.68vw, 3.92rem)  ls -0.035em
+--text-section     clamp(1.5rem, 0.884rem + 2.63vw, 3.25rem)    lh clamp(1.89rem, 1.366rem + 2.24vw, 3.38rem)   ls -0.032em
+--text-prose       clamp(1.125rem, 0.773rem + 1.5vw, 2.125rem)  lh clamp(1.53rem, 1.201rem + 1.4vw, 2.465rem)   ls -0.024em
+--text-page        clamp(1.5rem, 1.412rem + 0.38vw, 1.75rem)    lh clamp(1.89rem, 1.804rem + 0.37vw, 2.135rem)  ls -0.02em
+--text-subsection  clamp(1.125rem, 1.081rem + 0.19vw, 1.25rem)  lh clamp(1.53rem, 1.488rem + 0.18vw, 1.65rem)   ls -0.014em
+--text-card        1rem                                         lh 1.4rem                                       ls -0.006em
+```
+
+**C. Registers** (two registers: marketing editorial and much louder at the top, the app an
+instrument that carries its hierarchy on weight. `--text-prose` is `--text-section` by design, and
+the app register is round two's rebuild: 20 / 18 / 16, the card step standing on the floor)
+
+```
+--text-display     clamp(5rem, 2.359rem + 11.27vw, 12.5rem)     lh clamp(4.2rem, 2.07rem + 9.09vw, 10.25rem)    ls -0.05em
+--text-hero        clamp(3.25rem, 1.754rem + 6.38vw, 7.5rem)    lh clamp(3.185rem, 1.982rem + 5.13vw, 6.6rem)   ls -0.045em
+--text-title       clamp(2.5rem, 1.62rem + 3.76vw, 5rem)        lh clamp(2.625rem, 1.877rem + 3.19vw, 4.75rem)  ls -0.04em
+--text-chapter     clamp(2rem, 1.472rem + 2.25vw, 3.5rem)       lh clamp(2.24rem, 1.747rem + 2.1vw, 3.64rem)    ls -0.034em
+--text-section     clamp(1.625rem, 1.317rem + 1.31vw, 2.5rem)   lh clamp(1.95rem, 1.668rem + 1.2vw, 2.75rem)    ls -0.03em
+--text-prose       (folded into --text-section)
+--text-page        1.25rem                                      lh 1.625rem                                     ls -0.014em
+--text-subsection  1.125rem                                     lh 1.519rem                                     ls -0.01em
+--text-card        1rem                                         lh 1.4rem                                       ls -0.006em
+```
+
+**The law alone** (today's sizes, every one of them; only the leading and the tracking move. The
+third ask, and the only block on the board that changes no size. `optics()` reads the law between
+B's rungs, so any size has a value and no step chooses its own)
+
+```
+--text-display     clamp(3.25rem, 0.873rem + 10.14vw, 10rem)    lh clamp(3.38rem, 1.542rem + 7.84vw, 8.6rem)    ls -0.045em
+--text-hero        clamp(3rem, 1.944rem + 4.51vw, 6rem)         lh clamp(3.192rem, 2.397rem + 3.39vw, 5.448rem) ls -0.0412em
+--text-title       clamp(2.25rem, 1.458rem + 3.38vw, 4.5rem)    lh clamp(2.576rem, 1.962rem + 2.62vw, 4.32rem)  ls -0.0365em
+--text-chapter     clamp(2.25rem, 1.722rem + 2.25vw, 3.75rem)   lh clamp(2.576rem, 2.163rem + 1.76vw, 3.75rem)  ls -0.034em
+--text-section     clamp(1.875rem, 1.479rem + 1.69vw, 3rem)     lh clamp(2.25rem, 1.918rem + 1.42vw, 3.192rem)  ls -0.0304em
+--text-prose       clamp(1.5rem, 1.368rem + 0.56vw, 1.875rem)   lh clamp(1.89rem, 1.763rem + 0.54vw, 2.25rem)   ls -0.0213em
+--text-page        1.5rem                                       lh 1.89rem                                      ls -0.018em
+--text-subsection  (none)
+--text-card        1rem                                         lh 1.4rem                                       ls -0.006em
+```
+
+**Shared by every candidate**
+
+```
+--text-body        1rem / 1.55 / 0em        Inter, unchanged by every candidate.
+--text-caption     0.75rem / 1.45 / 0.01em  the Caption atom; the uppercase Eyebrow keeps its 0.14em.
+```
+
+### What the wiring round inherits
+
+- **The bake is one `@theme` block**, and each consumer becomes one class: `page-hero.tsx`'s
+  `HERO_SCALE` takes `text-display` / `text-hero` / `text-title`, `section-shell.tsx`'s
+  `HEADING_SCALE` takes `text-chapter` / `text-section`, `page-heading.tsx` takes `text-page` and
+  `CardTitle` takes `text-card`. `page-hero-contract.test.ts` assertions 6, 7 and 11 (the clamp
+  idiom, the three step names, `mkt-name` first) are rewritten with them: assertion 6 pins the clamp
+  shape these tokens replace.
+- **Three hooks come with it**, because the board's paste had to aim at class names and production
+  should not: `data-slot="page-heading"` on PageHeading, `data-scale={scale}` on PageHero and
+  SectionShell, and a named atom for the app's section tier. That last one is the only step no paste
+  can reach: production writes it as an 11px uppercase label inside an h2 (`feed-section`, the event
+  feed, the empty teaser), 14px in admin (metrics, announcements) and once `sr-only`
+  (`events-section`). It becomes the `subsection` step or the `Caption` atom depending on which app
+  ladder wins: today and A have no step for it, B and C do.
+- **The hand-rolled twins move with the step, and should.** Four heroes retype the `xl` ramp
+  (cinema-hero, qr-hero, reel-hero, events/[slug]) and the article titles stop at the chapter step;
+  the wiring round replaces those class strings with the step's class rather than leaving them to
+  drift again. `cinema-hero.tsx`'s local `leading-[1.02]` is deleted by the named leading, and the
+  ladder class must precede any `leading-*` in the same `cn()` until it is (tailwind-merge drops a
+  leading that comes first).
+- **The masthead's settled tracking is a token now.** marketing.css closes `.mkt-name` to a literal
+  `-0.03em` in two places (one inside the reduced-motion query, one keyed on `data-inview`); both
+  become `var(--text-display--letter-spacing)`, and `--mkt-name-open` stays the light track's.
+- The display step's optical corrections survive a size change untouched (`-mt-[0.12em]`,
+  `py-[0.08em]` and `leadIn` are all in em), which round one proved at 160px and 200px.
+- Two size overrides disappear once the ladder is named: `PageHeading className="text-3xl"` on the
+  event name and on `/admin/albums/[eventId]`, and `className="text-lg"` in `admin/layout.tsx`.
+- `--tracking-tight: 0em` (theme.css:23) and its 90-plus legacy `tracking-tight` no-ops are the
+  tracking law's business: once tracking is a token per step, the parked pass is a deletion. The
+  404's `tracking-tight` is one of those no-ops, which is why that title ships at 0em today.
+
