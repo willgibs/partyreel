@@ -1825,7 +1825,9 @@ so a real breakpoint measures the canvas. Lab only, no production byte.
 
 ## Handoff (round 5)
 
-- Head `<sha>`, pushed. **No preview**: Vercel is over its monthly deployment storage, so the wave's
+- Head: the tip of `lp/palette`, which is the commit that stamps this line; the last code commit is
+  `d203bb38`'s parent chain through `e7835a27` (the second sync) back to `65e02eb2` (the walk's fixes).
+  Pushed. **No preview**: Vercel is over its monthly deployment storage, so the wave's
   `lp/*` pushes build nothing unless the message says `[preview]`, and no commit on this branch does.
   The board is verified on a local dev server instead (see Verified below), and the Orchestrator
   builds the `launch-prep` alias once at the wave's close.
