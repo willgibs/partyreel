@@ -126,25 +126,67 @@ the gate; the preview alias once Vercel's window frees.
 ## Handoff (round 1)
 
 - **Head: this commit**, on top of `4245d07` (the `launch-prep` merge). The round's last commit of CODE
-  is **`2b92747`**, and the code is two commits: `ce614c5` built the visual and the board, and
-  `2b92747` is the retune the browser forced (below). Pushed to `lp/river-visual`.
+  is **`74f1b73`**, and the code is three commits: `ce614c5` built the visual and the board, `2b92747`
+  is the retune the browser forced (below), and **`74f1b73` is the review fix** (the scan floor, the
+  bullet under this one). Pushed to `lp/river-visual`.
   **Marker for this round: `rvr-oneflow`**, the second class on every instance's root, which exists in
   no earlier round of anything (the seed rendered `hhv-delta`, the hero's). One line tells you which
   build an alias is serving:
-  `curl -s "<url>/design/c/river-visual?key=" | grep -c rvr-oneflow` returns 6 on this round and 0 on
-  the seed, where `grep -c hhv-delta` returns 16 instead.
+  `curl -s "<url>/design/c/river-visual?key=" | grep -o rvr-oneflow | wc -l` returns **6** on this
+  round, where `hhv-delta` returns 0. (`grep -c` counts matching LINES and the page is one line, so it
+  answers 1 for either: round one's handoff said `grep -c`, which is why this says `grep -o | wc -l`.)
+
+- **THE REVIEW FIX, `74f1b73`: the scan floor was wrong by the board's own arithmetic, and ask two
+  rested on it.** `FooterQr` draws its code over a viewBox of the module count PLUS its 8 quiet-zone
+  modules, so the px a module gets is `size / span` and not `size / count`. The demo URL is 33 modules,
+  span 41, so the typed `QR_FLOOR = 96` gave it **2.34 px a module against the 3 px floor the same
+  comment cited**, and no banked size cleared it (the 560 column drew 112, and the 400 card and the 240
+  thumbnail both clamped to 96). The floor is now **measured off the value being drawn** (one
+  `qrcode-generator` pass in `riverQrReadout`, `river.tsx`), so the demo URL clamps at **123 px** and a
+  placement that passes no demo URL, whose string is shorter, clamps at **99**. Verified on the served
+  HTML and again in the live DOM: every `<svg>` on the page is `123` over a span of `41` or `99` over
+  `33`, which is **exactly 3.0 px a module** in all six instances.
+  - **The consequence is printed now, not claimed.** Every specimen's caption reads the code's real
+    numbers off the same function: "Code 123 px, 3.0 px a module, plate 26 / 36 / 60 percent of the
+    box" at 560 / 400 / 240, and 42 / 51 / **89** percent at the phone canvas's 343 / 280 / 160. A
+    scannable demo code is 123 px whatever the box is, so the small sizes pay for it in composition
+    rather than in legibility, and that is the second ask stated in a number. Ask two and the
+    scan-floor departure are both restated on this arithmetic.
+  - **Two defects the same pass turned up and fixed.** (a) The plain plate rendered as a **bare 20 px
+    square**: its field was derived only for `origin="code"`, so `geo.qr` was 0 for the plate and only
+    the plate's padding survived. It is a fifth of the box at every size now (112 / 80 / 48 in the bank
+    row, confirmed in the DOM), which is also the honest picture of the second ask, since taking the
+    code out takes the scan floor out with it. (b) The plate's printed line was held to
+    `qr + PLATE_PAD`, which made the plate 153 px wide where the derived share said 143; the line is
+    held to the code's own width now, so the plate is exactly the field plus its padding at every size
+    and the printed share is the rendered one.
 - **The preview alias was not waited on and the Vercel API was not called**, per the round's
   instruction: the free plan's 100 deployments per trailing day were spent at 23:31 on the 14th and the
   window frees through the afternoon of the 15th, so a push is an entry in a race for a slot and not a
   deploy. `partyreel-git-lp-river-visual-partyreel.vercel.app` serves this head the moment a push from
   this branch wins one; until then the board is the local build below.
+- **How the REVIEW FIX was verified: a local PRODUCTION build at 1440 and 375, in a FOREGROUND tab.**
+  `pnpm build` then `pnpm start` on **:3172** in the worktree (round one's loop was `pnpm dev`), driven
+  through the Browser pane at `/design/c/river-visual?key=`, at **Desktop 1440 and Phone 375**, on
+  **cinema and paper**, through **all three origins**, across the bank row and all three placements,
+  with `document.visibilityState` asserted "visible" and `[data-paused]` at 0 in the same call as every
+  reading. The preview alias was again not waited on and the Vercel API was not called. Read off the
+  live DOM rather than a screenshot: every code is 123 px over a span of 41 or 99 over 33 (3.0 px a
+  module), every code plate is exactly **143** or **119** px wide, the plain plate is **112 / 80 / 48**
+  across the bank row, and the three captions print 26 / 36 / 60 percent at 1440 and 42 / 51 / 89 at
+  375. Reduced motion was resolved as below and the rest state holds: **68 of the 72 cards stand at
+  `--rvr-rest`**, the four held at 0 being the ones whose top edge is already past the dissolve's last
+  stop (which four depends on the box, so this is 68 where round one, with a smaller object, counted
+  66). The cost meter still reads **8.3 ms median frame gap, about 120 fps** with all six instances
+  mounted.
 - **How the board was verified: a local server at 1440 and 375, in a FOREGROUND tab, with the loops
   running.** `pnpm dev` on :3171 in the worktree for the build-and-look loop and `pnpm build` for the
   gate. Driven through the Browser pane at `/design/c/river-visual?key=`, at **Desktop 1440 and Phone
   375**, on **cinema and paper**, through **all three origins** (the demo code, the plain plate, no
   object), with Replay, plus the reduced-motion resolution below. Every reading was taken with
   `document.visibilityState` asserted "visible" and `[data-paused]` at 0 in the same call.
-  **Two tooling facts, because both cost this round time and either one turns a look into a fiction:**
+  **Three tooling facts, because each cost this round time and any one of them turns a look into a
+  fiction:**
   - ★ **A board's loops stop in a tab that is not FRONTED, and the screenshot comes back solid black**
     while the DOM is perfectly correct (`docs/systems/testing-verification.md`). Worse in a wave: the
     Browser pane is SHARED between the sessions running tonight, so a tab that was fronted stops being
@@ -161,6 +203,11 @@ the gate; the preview alias once Vercel's window frees.
     itself computes (`--rvr-rest-o` is written "0" for a card whose top edge is already past the
     dissolve's last stop). The rest state is therefore one INSTANT of the running stream and cannot
     drift from it.
+  - ★ **Resolving that reader by clearing a card's WHOLE `style` attribute blanks the stage**, and
+    the blank is the emulation, not the board: the `--rvr-rest` and `--rvr-rest-o` the rest state is
+    written in are inline custom properties on the same element, so wiping the attribute deletes the
+    state you were trying to see. Clear the two properties the loop writes, `transform` and `opacity`,
+    and nothing else. (Found while re-verifying the review fix.)
 - **What the browser changed, and what it cost to find.** The first build was measured at 1440 before it
   was judged, and it was wrong twice, both times in a way a screenshot flatters:
   - **Gravity.** The hero weighted the fall 60 percent quadratic, which is right under a code at the top
@@ -189,7 +236,7 @@ the gate; the preview alias once Vercel's window frees.
 - Gates on the synced tree, each on its own exit code: typecheck ok, lint ok (0 errors; **6 warnings,
   every one pre-existing and none in this lane**, on `contact-form.tsx`, `album-fill-grid.tsx`,
   `review-switch.tsx`, `jobs.ts` and `use-flip.ts`), test ok (**1804 in 199 files**), build ok
-  (**248 static pages**).
+  (**248 static pages**). **Re-run green after the review fix**, at the same four numbers.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/river-visual.md`,
   `src/app/(dev)/design/sandbox/river-visual/board.css`,
   `src/app/(dev)/design/sandbox/river-visual/board.tsx`,
@@ -224,15 +271,19 @@ the gate; the preview alias once Vercel's window frees.
     the doors row card slot (330, the hardest), or the guest album's empty state (the app surface,
     ghosted)."
   - "The code, in or out. In, it is a scannable CTA inside a section visual and every placement inherits
-    a second call to action; out, the plain plate is a white card with a faint field in it, which is
-    quieter and says less."
+    a second call to action, at a fixed price: the demo code is scannable from 123 px and no smaller,
+    whatever the box is, so its printed card is a quarter of the 560 column, a third of the 400 card and
+    three fifths of the 240 thumbnail. Out, the plain plate is a white card with a faint field in it,
+    sized by the composition rather than by a camera, which is quieter and says less."
   - "Whether an empty album may show photographs at all. The candidate ghosts the flow at production's
     own mosaic treatment for exactly that reason, and the honest alternative is that the guest's empty
     state carries no picture of other people's events."
   - "The proportion: 1.32 is the visual's default and the only number in it that is taste rather than
     derivation."
 - **Look at first:** the bank row at Desktop 1440 on cinema, with the dock's Origin flipped from the
-  demo code to no object and back. That one flip is the whole second ask, and it is the comparison the
+  demo code to no object and back. Read the thumbnail's caption while you do it: it prints **60 percent
+  of the box** for the code's card at 240, and 89 on the phone canvas, which is the second ask in one
+  line and the reason the small sizes are the ones that argue. That one flip is the whole second ask, and it is the comparison the
   dock exists to make: the code turns a section visual into a second CTA, and without it the flow is
   just the album arriving. Then the same flip on the doors row (paper), where the object eats a third
   of a 330 by 238 card slot, and on the guest empty state, where the code is certainly wrong because
