@@ -55,7 +55,7 @@ client hook, and `pnpm lab:smoke --production` on a local production build prove
 
 ---
 
-## 2026-09-15 — The Library x Lab round, Phase 1: two of five tracks integrated (`a76578de`, `0fb9498e`)
+## 2026-09-15 — The Library x Lab round, Phase 1: five tracks integrated (`a76578de`, `0fb9498e`, `e00d3b00`, `4ba890a5`, `9fcea12d`)
 
 **`lab-library`** (merged `a76578de`). The library moved onto the shell's own templates: its five
 family pages, its component permalink and its home now compose `PageHeader`, `Section`, `Pager`,
@@ -88,6 +88,61 @@ test; and `docs/design/library.md` renders the whole rule set as one greppable f
 the Orchestrator replaced the hand-written policy map in `_data/links.ts` with the derived one.
 Gate on the merged tree: 2046 tests, the build, 262 smoke checks. The weekly usage limit cut the
 other three tracks off mid-build the same hour; each was resumed with its state spelled out.
+
+**`lab-kit`** (merged `e00d3b00`). The lab kit moved from `src/components/dev/board` to
+`src/components/lab` and grew from four pieces to twenty-two: the `BoardPage` template, which renders
+a board's spec answer-first in one fixed order for every board; `Frame`, the true-viewport iframe
+that injects a candidate as an adopted stylesheet constructed in the frame's own realm and joins
+scroll-locked rows; `Compare`, whose "what differs" line is required; the specimen furniture, the
+measurements that read the computed cascade rather than a typed literal, `ApplyToSite`, the
+executable walk, and the review panel, which composes one ledger line to paste into chat and never
+writes the repo. A board became two files, a pure `spec.ts` and a `board.tsx` of evidence, with
+`registry.test.ts` pinning the density limits and refusing a spec that imports React, CSS or its own
+board; `light` and `rounding` were migrated onto it and lost their local copies of `Part`, `Knob`,
+`Paste`, `ApplyToSite`, `Cell`, `CostMeter` and `PageFrame`, a discipline test refusing the next one.
+The fourteen landmines the boards had each paid for separately were written down once in `traps.ts`
+and rendered on `/design/lab/kit`, and two more were found by red-teaming the new code: a
+cross-origin `contentWindow` is a proxy whose first property access throws, which took a whole board
+to its error boundary when a reader followed a link out of a frame, and an unwrapped six-option
+toggle at 375 took the document into a horizontal scroll (1456px, now 391). At the merge the
+Orchestrator landed its asks: the tuner panel tells the shell its side and width and `design.css`
+pads a wide page clear of it from 1024 up; the nine kit `for` lines; the kit's contracts published
+(`@contract-for-pending` flipped); `pnpm new-board`. The track confessed one force-with-lease on its
+own branch to fix a typo in its manifest commit (docs-only, seconds after the push, local and remote
+agreeing); the rule is unconditional and the record says so.
+
+**`lab-shell`** (merged `4ba890a5`). The lab shell went from Phase 0's skeleton to the grade the round
+asked for. `_data/state.ts` gave the lab one URL vocabulary (`key`, `canvas`, `ground`, `candidate`,
+`s`, `session`) split sticky from local, so the reading context rides every link and a page's own
+position never leaves it, plus the keyboard contract as a pure function; the desk's review session
+plugs into `useDigitKeys` for `1`..`9`. `_data/search.ts` and `buildSearchIndex` put every rule,
+component, board, policy, landmine, record entry, doc heading, proposal, track, ruling and glossary
+term in one index behind ⌘K. Three faults that hid the table of contents were fixed at their source:
+`Section` anchored its wrapper rather than its heading; a collapsed disclosure kept 8px because a
+grid item's padding survives `0fr`; and ★ `hidden xl:block` lost to production's `.hidden`, because
+`xl:` display utilities exist only in the lab and so compile into the losing `utilities.lab`
+sub-layer, which meant no rail above 1280 at all. Copy page writes real markdown now, the sidebar is
+a sheet below `lg`, and `PreviewCode` retired to `gallery/specimen.tsx`. One conflict at the merge
+(`design.css`: the shell's disclosure rules beside the kit's panel padding), resolved by keeping both.
+
+**`lab-desk`** (merged `9fcea12d`). The desk became Will's queue. `/design/lab` now answers three
+questions in order: what waits on you (every ask with no answer in its board's current round, derived
+by the rules track's `design/review/status.ts` and joined to the registry in `_desk/queue.ts`), what
+every board is asking (its verdict, its asks answered or open, his own notes on it, and every way
+in), and where the work is (each live track's Goal sentence and its handoff's "look at first" line,
+lifted from the manifest by `_data/tracks.ts` rather than restated). `?session=<board>.<ask>` turns
+the page into the review session: one ask at a time with the case beside it and the evidence a click
+away, `1`..`9` picking an option, the position written to the URL with `history.replaceState` so a
+reload resumes, the answers in the reader's own browser, and one message in the ledger grammar at the
+end. The UI never writes the repo: `scripts/lab-review.mjs` (`pnpm lab:review`) parses that message,
+validates every board, round, ask and option against the board's own spec with a masking scanner
+(node builtins only, held to a real spec file by its test), and appends to `docs/reviews/<board>.json`
+all-or-nothing, naming the line and column of anything it refuses. `_desk/sample-spec.ts` is one
+fixture board that doubles as a dry run. The track, proposal and tools pages became a reader's, and
+the tools index says the boundary probe is meant to fail. At the merge the Orchestrator landed its
+asks: the script alias, the prose wrapper's wrap rules for long paths and wide tables, and the round
+guard in `boardStatus` (a ledger round answers only the round the spec is in). Gate on the five-track
+tree: 2140 tests, the build, 286 smoke checks.
 
 ---
 

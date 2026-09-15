@@ -196,7 +196,9 @@
       "names": [
         "LIMITS"
       ],
-      "specimens": [],
+      "specimens": [
+        "/design/lab"
+      ],
       "indexed": false,
       "contracts": [
         {

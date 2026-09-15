@@ -328,8 +328,6 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/components/lab/board-spec.ts": {
     for: "what an exploration board IS as data: the question, the verdict, the asks, the sections, the controls, the walk",
-    unspecimened:
-      "pure types and the density limits; the specimen is any board",
   },
   "src/components/lab/board-page.tsx": {
     for: "the template every board renders through: the dock, the answer, the index, the sections, the meta, in one fixed order",

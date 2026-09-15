@@ -163,5 +163,9 @@ export async function Markdown({
     components: docComponents({ nextId: createHeadingIds(), from, designKey }),
     options: { mdxOptions: { format: "md", remarkPlugins: [remarkGfm] } },
   });
-  return <div className="prose max-w-none prose-help">{content}</div>;
+  return (
+    <div className="prose max-w-none prose-help [&_a]:break-words [&_code]:break-words [&_table]:block [&_table]:overflow-x-auto">
+      {content}
+    </div>
+  );
 }

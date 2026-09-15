@@ -20,6 +20,18 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **Fold `RefSection` into `Section`** (the `lab-shell` track, 2026-09-15): the shell's `Section` anchors
+  its heading, the gallery's older `RefSection` (`reference/reference-ui.tsx`) anchors its wrapper; the
+  TOC reads both, but one shape is better than two.
+- **The `.mono` dark ground leaves `design.css`** with the two legacy marketing boards
+  (`marketing-decomposition`, `marketing-hero-substrate`) when the migration wave retires them to the record.
+- **Delete `(shell)/lab/_desk/sample-spec.ts` and the desk's dry run** once every standing board carries a
+  spec (the `lab-desk` track, 2026-09-15); it exists only so the review session could be walked first.
+- **Index the kit as a family** (the `lab-kit` track, 2026-09-15): add `src/components/lab` to the
+  collector's `COMPONENT_DIRS` so the kit is indexed like any component family rather than only through its
+  contracts, then delete `(shell)/lab/kit/notes.ts` (the stand-in `for`-line map) and let the kit page read
+  the index; and retire the panel half of the rounding board's `usePanelAwareWidth` now that the tuner
+  panel sets `--lab-panel-w`.
 - **`pnpm design:specimens`** (the `lab-library` track, 2026-09-15): give the specimen source collector a
   script beside `design:rules` so `specimens.generated.json` regenerates by name rather than by path
   (`node "src/app/(dev)/design/gallery/collect-specimens.mjs"`); the freshness test names the command.

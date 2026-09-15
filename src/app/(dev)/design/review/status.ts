@@ -57,14 +57,19 @@ export function boardStatus(board: string): BoardStatus {
   const spec = boardSpec(board) ?? null;
   const ledger = readLedger(board);
   const round = latestRound(ledger);
-  const byAsk = answersIn(round);
+  // The ledger's latest round answers only the round the spec says the board
+  // is in: the moment a board opens a new round, last round's answers must
+  // read as history, not as this round's, or the desk shows nothing waiting
+  // (the lab-desk track's finding at its handoff, 2026-09-15).
+  const current = spec && round && round.n === spec.round.n ? round : null;
+  const byAsk = answersIn(current);
 
   const asks: AskStatus[] = (spec?.asks ?? []).map((ask) => {
     const answer = byAsk.get(ask.id);
     return answer ? { ask, state: "answered", answer } : { ask, state: "open" };
   });
   const declared = new Set((spec?.asks ?? []).map((a) => a.id));
-  const orphaned = (round?.answers ?? []).filter((a) => !declared.has(a.ask));
+  const orphaned = (current?.answers ?? []).filter((a) => !declared.has(a.ask));
 
   const answered = asks.filter((a): a is AnsweredAsk => a.state === "answered");
   const open = asks.filter((a): a is OpenAsk => a.state === "open");
