@@ -1,7 +1,7 @@
 ---
 track: hero-river
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "1cf4cea"
 merged_round_2: "047d269"
 merged_round_1: "46138e6"
 preview: true           # Will reviews this concept on its preview as it builds
