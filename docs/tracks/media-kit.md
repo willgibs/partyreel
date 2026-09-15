@@ -2,6 +2,7 @@
 track: media-kit
 status: open
 cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_2: "2307446"
 merged_round_1: "c1aa5c6"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
@@ -23,6 +24,25 @@ reads:
 ---
 
 # lp/media-kit
+
+## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
+
+**Round 3 (the goal): the last mile, walked first by you.** Two rounds built the board; this one is the
+walk Will will take, taken before him. (1) **Walk it cold**, the way he will: the board on the launch-prep
+alias (round 2 is integrated there) and then on your preview, in a foreground tab, at 1440 and then
+375, every toggle, every candidate, and every "Apply to the site" block on the pages you listed (the home
+arc, `/pricing`, `/help`, `/contact`, the dashboard and an event page with `?key=`, the demo guest page).
+Note every place a stranger would stumble: an unexplained toggle, two candidates that read the same, a
+stage that needs a caption or has one too many, a slow first paint, a layout that breaks at 375, a
+control that does nothing visible. Fix each. (2) **Re-read the reviewer's findings** on your round-2
+handoff (below) and the other boards' latest Handoffs in `docs/tracks/` and proposals in `docs/specs/`:
+anything there that changes your answer changes your board. (3) **Make the decision easy**: the strongest
+candidate first; a candidate cut if it no longer earns its column (say so); every ask a one-word answer
+and no more asks than Will must answer; the departures only the ones he must rule on. (4) **Honesty and
+cost**: every number on the board is measured or labelled a stand-in; measure what runs (frame time, layer
+count) and cut what does not earn its cost; reduced motion gets the settled composition. (5) **The
+record**: "Handoff (round 3)" and "Record (round 3)" below; the Record is the paragraph the CHANGELOG
+carries for rounds 2 and 3 together, so write it as the whole story of what the board became.
 
 ## Round 2 (Will, 2026-09-14: "another iterative round on all active tracks before review")
 
@@ -273,6 +293,121 @@ production byte changed.
 
 ## Handoff (round 2)
 
+- Head: the tip of `lp/media-kit`, pushed, and the alias is built from it (a manifest cannot name
+  its own commit; `git rev-parse origin/lp/media-kit` gives the SHA). The last commit that changes
+  what the board draws is `763423a`; the ones after it are this manifest and one unused import
+  dropped. Preview `partyreel-git-lp-media-kit-partyreel.vercel.app`, board at
+  `/design/c/media-kit?key=`
+- ★ **The alias was a day stale, and it is rebuilt.** Vercel's ceiling of 100 deployments a day
+  was at 0 remaining when `763423a` landed, so that push produced no deployment and the alias kept
+  serving `b05c7c3`, a build whose Ours slate is still the 1200x800 cut. That is the one frame the
+  walk below opens on, and the one this track found broken: a 4:5 blog card takes 20 percent off
+  each side of it, so the shot code and the start of the line were gone. The first rebuild push lost
+  its slot by seven seconds, so the rebuild was forced at the same SHA instead and went READY, and
+  the alias now serves the tip. Verified on it, not inferred: the board's chunk carries
+  `viewBox='0 0 1000 1000'` and no served chunk carries `0 0 1200 800` any more, and Ours applied
+  from the board draws the square slate on the real `/blog` at 1440, centred inside the 320x400 card
+  with the code, both rows of the subject and the replaces line all inside the crop. The same check
+  settles it any time the alias looks behind again.
+- **How the ceiling actually behaves** (worth knowing while six tracks share one project, and the
+  reason the first rebuild push produced nothing): the cap does not lift at midnight, it refills at
+  one deployment every 14.4 minutes, and the next push on ANY branch takes the free slot. Pushes
+  made mid window are refused outright and GitHub never retries them, so a push is not a deploy: it
+  is an entry in a race. Confirm a rebuild by the SHA on the deployment, never by the push
+  succeeding. The API route is the same race from the other side (`POST /v13/deployments` with
+  `gitSource` returns `payment_required` until a slot frees).
+- Synced with `launch-prep` at `4b035c1` (it had moved one docs-only commit past the cut at `ca952b5`)
+- Gates on the synced tree, re-run at the head: typecheck ok, lint ok (0 errors, 7 warnings, all
+  pre-existing and none in this lane now that round two's own unused import is gone), test ok (1726
+  in 197 files; this track's five suites hold 34, 28 of them new this round), build ok (248 pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
+  `docs/tracks/media-kit.md`, `public/design/media-kit/` (22 jpgs + provenance.json) and the eleven
+  files under `src/app/(dev)/design/sandbox/media-kit/`. No exceptions. No production byte changed:
+  `marketing-media.ts`, `public/marketing/` and every blog frontmatter are untouched.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- **Shell / touchpoint change the Orchestrator applies** (no agent edits `touchpoints.ts`): the
+  `media-kit` entry still carries round one's note and variants. Proposed:
+  `note` → `The exposure measured on the real site, all 23 posts mapped to a candidate cover at the
+  blog card's and the share card's real geometry, the kit as a call sheet of 36 frames, and four
+  blocks a walk can wear`; `variants` → `["The exposure", "Licensed", "Ours", "Mix"]` (they are the
+  four applied blocks now, which is what a reviewer actually switches between).
+- Assets requested from Will (unchanged in substance from round one, sharpened by the call sheet;
+  `ASSETS.md` row 7 already covers the first and names the hard cases):
+  - **36 event photographs, six per vertical** (weddings, birthdays, corporate, conferences,
+    festivals, trips) · 1600 px long edge, a third portrait, one dark warm grade; the call sheet is on
+    the board and in `docs/specs/media-kit.md` 5.1, one card per frame with codes `W1` to `T6`, each
+    naming the subject, the framing, the light and the crops it must survive. Four are the palette
+    board's hard cases (`W5` high key, `W3` low key, `W2` candle warm, `S4` stage cool) and three show
+    a guest holding a phone up (`K3`, `S3`, `T4`) · replaces all twelve `MARKETING_IMAGES` by id
+  - **24 squares at 512x512**, 6 to 35 KB webp · 1:1 crops of the 24 masters marked `512 square`,
+    not a second shoot · replaces `FRAMES` in `sandbox/home-hero/shared.tsx` (`ASSETS.md` row 2)
+  - **8 portrait crops at 512x640 and 12 portraits at 720x900** · 4:5 recrops of the same masters;
+    `W4`, `B5` and `S3` are shot portrait and the rest are recrops of masters whose subject is
+    vertical · `ASSETS.md` rows 9 and 12
+  - **A hand-and-phone cutout**, PNG with alpha, 1200 px long edge, screen area transparent, two
+    grips · the ONE item that is a separate setup: shoot it at the same event, against the darkest
+    wall, from just behind the holder's shoulder, in the same low warm light as `K3` · replaces the
+    drawn device in `sandbox/home-hero/scan.tsx` (`ASSETS.md` row 8)
+  - **8 vertical clips with posters**, 3 to 5 s, 1080x1920, silent · filmed at the same events, and
+    the film cut from that footage · `ASSETS.md` rows 4 and 1
+- **Proposed `ASSETS.md` changes** (the Orchestrator applies): row 7's `spec` → append
+  `the call sheet is docs/specs/media-kit.md 5.1 and the board, one card per frame with codes W1 to
+  T6; rows 9 and 12 are recrops of the same masters and row 8 is the only separate setup (shoot it at
+  the same event in K3's light)`; row 6's `spec` → replace the count with
+  `the media-kit track staged 22 CC0 candidates under public/design/media-kit/ with provenance.json,
+  filling all twelve ids; the recommendation is a dated bridge, and the exposure is 40 production
+  files and 22 routes, with six of the twelve in the footer and nav of every marketing page`;
+  rows 8, 9 and 12 `spec` → append `derived from row 7's shoot` (row 8: `shot at the same event`).
+- The asks, verbatim from `BoardMeta` (the Orchestrator quotes them under Waiting on Will):
+  1. The rule, yes or no: author, source, license clause, retrieval date and a people field required
+     on every manifest entry, and a recognisable face may not ship without a release (spec 1.2 and 1.4).
+  2. The allowed list, yes or strike one: CC0, Pexels, Pixabay, Mixkit and Coverr in, Unsplash and
+     CC BY out.
+  3. The route, one word: Licensed, Ours or Mix. The recommendation is Mix.
+  4. The bridge, ship or hold: 23 posts recovered by hand, 21 filled and 2 left empty on purpose.
+  5. The kit, shoot or park: 36 masters, six per vertical, with the squares, the portraits, the clips
+     and the film cut from the same night.
+- **Look at first**: press **Licensed** in "Apply to the site", then open `/blog` on this preview.
+  The whole library wears the CC0 bridge, all twelve ids, on the real cards. Press **Ours** and walk
+  it again: every frame becomes the slate of the shot that replaces it, which is the shoot's cost said
+  page by page. Then come back and read the two red rows at the bottom of the bridge, which are the
+  conference post and the office party, the two the corpus cannot fill at all.
+- **Light QA.** Board walked on the preview at 1440: the four applied blocks driven on the real
+  `/blog` (Licensed swaps all 15 loaded frames on the library page; Ours draws the slate on each), the
+  stage no longer clips its plates, the sheet reads at three across. 375 verified by construction and
+  by the stage's Phone 375 mode (every grid on this board is single-column at its base and only opens
+  at `sm:`), because the Chrome MCP could not actually narrow the window: it reports
+  `window.innerWidth` 1318 for a 658 px window, so a forced-width measurement re-runs no media query
+  and is pessimistic by design. Reduced motion is honoured: this board mints no keyframe and runs no
+  loop, the develop beat's settled state lives outside the media query in `marketing.css`, and the
+  only rule `board.css` adds is a transition delay inside `prefers-reduced-motion: no-preference`.
+- **Findings against a rule** (for Will, not acted on): none against the bible. Three against round
+  one's own board, all corrected in place and each pinned by a test so they cannot come back: the
+  exposure (the site, not the blog), the blog covers (chosen in frontmatter, not hashed) and the reel
+  runbook (no code edit needed).
+
+## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-14). The media-kit board's second round turned the
+survey into a ruling surface and corrected three things the first round got wrong, each now pinned by
+a test. The exposure was the site, not the blog: the twelve unverified stills are named in 40
+production files across 22 routes, and six of them sit in the footer strip and the nav panel, both in
+the group layouts, so they are on all 24 marketing pages before a reader scrolls. Nobody hashed the
+blog covers either; all 23 posts set `cover:` in frontmatter and 22 differ from the fallback hash, so a
+person chose every miscast one out of eleven wedding and festival frames, which makes the bridge 23
+frontmatter lines rather than twelve files. And re-rendering a recorded reel needs no code edit: both
+recipes are already in the parity page's clip-set picker, in order. A second, harder search by scene
+rather than by keyword closed all four of round one's holes and staged 15 more CC0 frames, 22 in all,
+which moved the argument rather than winning it: 18 of the 22 work only because nobody in them is
+recognisable, and the free corpus turns out to be an archive of record rather than of celebration, so
+it covers trips completely and conferences not at all. The board now maps every post to a candidate at
+the blog card's and the share card's real geometry (the share card centre-crops and ignores the
+ladder), writes the kit as a call sheet of 36 frames with framing, light and the crops each must
+survive, prototypes the manifest's proposed `credit` shape across 22 records, and hands the running
+site four blocks it can wear. No production byte changed.
+
+## Handoff (round 3)
+
 - Head <sha>, pushed; preview partyreel-git-lp-media-kit-partyreel.vercel.app
 - Synced with launch-prep at <sha> (or: launch-prep had not moved)
 - Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
@@ -282,6 +417,6 @@ production byte changed.
 - The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
 - Look at first: ...
 
-## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (<date>). ...

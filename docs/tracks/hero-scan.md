@@ -1,7 +1,8 @@
 ---
 track: hero-scan
-status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+status: integrated
+cut: "82771e4"
+merged: "f7e9df6"      # the branch head merged into launch-prep
 merged_round_2: "8183147"
 merged_round_1: "aee5915"
 preview: true           # Will reviews this concept on its preview as it builds
@@ -463,15 +464,277 @@ readings, with zero intersections and 12 to 30 canvas px to spare.
 
 ## Handoff (round 3)
 
-- Head <sha>, pushed; preview partyreel-git-lp-hero-scan-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/hero-scan`, which is THIS commit (a manifest cannot name its own SHA).
+  `f34af1c` is still the last CODE commit and the tree every check below ran against; everything
+  after it, this review pass included, touches only this manifest, so `scan.tsx` and `scan.css` are
+  byte-identical to the tree every verification names. Pushed; preview
+  `https://partyreel-git-lp-hero-scan-partyreel.vercel.app`, the board at
+  `/design/c/home-hero?key=` (concept 2 of 4, after the source). **Marker for the round-three board:
+  the proposed headline "Every camera in the room, one album."**, which exists nowhere in round two;
+  `overflow-clip` on the concept root and the switch's word "The room" mark it too.
+- **After the read-only review (this commit and the one before it, DOCUMENTATION ONLY: no code, no
+  change to either owned file).** One should-fix, and it was right: the review surface does not carry
+  the head, and the closing line of the old deployment-cap bullet ("nothing needs a rebuild to be
+  reviewed once the limit clears") understated what that costs. It is corrected below, and the gap is
+  no longer inferred from a diff but MEASURED on both surfaces (the identical walk run against the
+  alias and against the head, with opposite results). The deployment was attempted again twice while
+  writing this, at 23:29 and 23:36, and refused both times with `remaining 0`; the gate was re-run
+  whole on the head and is green. Nothing about the board changed, because the reviewer found the
+  diff itself clean.
+- Synced with `launch-prep` at **`dd4aa0b`** (it had moved nine commits: the round-two merges of
+  `brand-voice`, `rounding`, `palette` and `floating-surfaces` plus their reopenings). Merged clean;
+  `git diff --name-only 82771e4 origin/launch-prep` touches no path this track reads.
+- Gates on the synced tree, re-run WHOLE for this review pass: typecheck ok, lint ok (0 errors),
+  test ok (1719 in 193 files), build ok (248 static pages, the `launch-prep` count unchanged). One
+  correction to the earlier line, which said seven lint warnings: the measured count is **6**, and
+  naming them is more useful than counting them, since none is in this lane and none is new here.
+  They are `contact-form.tsx` (compilation skipped, incompatible library), `album-fill-grid.tsx`
+  (two unused imports), `review-switch.tsx` (one unused import), `jobs.ts` (`JobRunInsert` unused)
+  and `use-flip.ts` (an unused eslint-disable directive).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-scan.md`,
+  `src/app/(dev)/design/sandbox/home-hero/scan.css`,
+  `src/app/(dev)/design/sandbox/home-hero/scan.tsx`. **No exceptions**: the two owned files and this
+  manifest. `shared.tsx`, `board.tsx`, `source.tsx`, `burst.tsx`, `river.tsx` and
+  `src/components/dev/board/stage.tsx` were read and not touched; `docs/specs/brand-voice.md` and
+  `type-scale.md` were read as inputs.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- ★ **Vercel is at its daily deployment cap. It blocks the whole project, and it blocks THIS track's
+  review surface (the next bullet says how much).**
+  `POST /v13/deployments` answers `payment_required`, `"api-deployments-free-per-day"`, limit 100,
+  **remaining 0**, and the GitHub commit status on `f34af1c` reads
+  `Vercel: "Deployment rate limited - retry in 24 hours."`, so no deployment record is created at all.
+  The same limit froze several aliases in round two. **The consequence to carry: the alias
+  `partyreel-git-lp-hero-scan-partyreel.vercel.app` serves `3fbd9c0`**, which is this round's board in
+  full (the scroll fix, the default, the switch's words, the re-weighted pair, the two-line headline,
+  the 375 lane, the repeating capture, the halved bloom box and the tightened departures) and is
+  missing exactly ONE change: `f34af1c`, which keeps the chosen reading across Replay and a canvas
+  change. Everything below was verified on that alias unless a line says otherwise; the one change the
+  alias does not carry was verified on `pnpm build` + `pnpm start` in the worktree, which serves the
+  same production output at the head, and it touches six lines of React state and no CSS at all.
+- ★ **What that costs the review, stated plainly, because the line above used to understate it: the
+  board MUST be redeployed at the head before the walk below is the walk this round describes.** The
+  missing commit is not a detail to note and move past, it is the fix for this round's own cold-walk
+  finding 5, and the switch is the first thing "Look at first" sends Will to. The two surfaces were
+  walked with the SAME script, clicking "A phone" and then changing the canvas and hitting Replay:
+  - **On the alias as served (`3fbd9c0`), the defect is live.** `.hhc-device` goes 0 to 1 on the
+    click, then back to **0** on the canvas change and 0 again on Replay, with the switch's
+    `aria-pressed` falling back to "The room". A reviewer who flips to the phone and then looks at
+    375 is shown the composition he did not ask for, which reads as a switch that does nothing: the
+    exact stranger-stumble this round claims to have fixed.
+  - **On the head, it holds.** Room at load (`.hhc-device` 0, `.hhc-roomlock` 1, "The room"
+    pressed); 1/0 after the click; and still 1/0 after the canvas change, after Replay, and after
+    changing the canvas back. Four remounts, the reading intact through all of them.
+- **The recovery is one call, and it needs no work from this track.** The cap is account-wide and
+  rolling, so it refuses and re-arms 24 hours out on every attempt (`remaining 0 of 100`, reset read
+  back as 2026-09-15 23:36 on the last try). Once it clears, this rebuilds the alias at the head
+  without a push: `POST https://api.vercel.com/v13/deployments?teamId=team_ht9qAVBQVZf60dpGNJUwmaj5`
+  with `{"name":"partyreel","project":"prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB","gitSource":{"type":
+  "github","org":"willgibs","repo":"partyreel","ref":"lp/hero-scan","sha":"<the head>"}}` and the
+  team token. Confirm the alias serves the head by asking for a deployment list rather than by the
+  clock, then walk the switch first. Until that call runs, treat the alias as round three minus its
+  switch fix.
+
+### The cold walk, which is what this round was
+
+Six things a stranger would stumble on, found by walking the board the way Will will (a foreground
+tab, 1440 then 375, every toggle, both copy modes, both readings) and every one of them fixed.
+
+1. ★ **THE SWITCH BROKE THE HERO, on every click.** An `overflow: hidden` box is still a SCROLL
+   container, and the corridor makes this one 3780 px wide against a 1439 px client box. Clicking the
+   switch gave its button focus, the browser scrolled the container to "reveal" it under the stage's
+   zoom, and the whole composition jumped sideways with the headline cut off: measured `scrollLeft`
+   586 px and 657 px on two separate clicks. `overflow-clip` clips the same pixels and creates no
+   scroll container, so `scrollLeft = 900` is now a no-op and focus plus click leaves 0/0. **This is
+   a finding for the board, not only for this lane:** all four concepts carry the same
+   `relative size-full overflow-hidden bg-background` root (`source.tsx:300`, `burst.tsx:552`,
+   `river.tsx:748`), and the river has a chip of its own in the canvas, so it can be made to show the
+   same jump. One word each and they are all safe.
+2. **The board opened on the reading this concept argues against.** It defaulted to the phone while
+   the rationale recommended the brackets. The default is the recommendation now.
+3. **The switch spoke in the sheet's words.** "Brackets only" is the mechanism that draws it, not
+   what a reader is choosing between. The options are "The room" and "A phone", in that order.
+4. **The pair under the code was weighted backwards.** The caption names the act, which is this
+   variation's whole axis, and it was the faintest type in the frame at 12 px white/60; the count,
+   the only fabricated thing on the concept and the line most likely to be cut at wiring, was the
+   loud one at 15 px white/85. They are swapped, so the permanent true line leads and the
+   composition survives the count going.
+5. **The reading did not survive Replay or a canvas change.** The board keys the stage, so every
+   remount put the room back: flip to the phone, look at 375, and you are shown the composition you
+   did not ask for, which reads as a switch that does nothing. The choice is held outside the
+   component now. (The river reached the same answer for its own chip.)
+6. **The proposed headline read like its neighbour's, and then put a photograph behind itself.**
+   "One code. Every photo." sat one word from the burst's "One code. Every angle." and three of the
+   four concepts opened with "One code". Rewritten to the voice guide's two-beat hero shape
+   ("Every camera in the room, one album.", `docs/specs/brand-voice.md`) it is distinct, and the
+   short version of it ("Every camera, one album.") turned out to be a real defect: a headline that
+   fits on ONE line at the xl step is 1059 px of ink sitting 112 px above the corridor's axis, where
+   the album's large frames reach it. Three measured intersections with the h1's own INK, zero once
+   the line wraps to two. **The constraint belongs to the source's band, not to this variation**: any
+   hero inheriting it wants a two-line headline at 1440, and the source's own proposal
+   ("The album starts here.") is one line.
+7. A seventh, smaller: at 375 the caption wrapped at its 200 measure and left "code" alone on a
+   second line, and the pair then reached far enough down that its box touched the subhead's. The
+   measure is 220 (the ink is 207 at 13 px), the lane sits at 96 and the sentence at 168.
+
+### What the round added rather than fixed
+
+**The capture repeats.** Through round two the concept's sentence was spoken once, at 730 ms, after
+which the album poured forever with no visible cause. The capture now fires once per turn of the
+album (10800 ms, `CYCLE_MS`, so every recapture lands on a launch pair rather than between them), and
+it reads as the next guest scanning. It is one animation, no JavaScript, and it costs one element:
+the bloom is the only thing this concept animates forever, so its box was shrunk to the disc it
+actually draws (the gradient reaches transparent at the edge instead of at 72 percent of it, and the
+box went 460 to 331 px at 1440 and 324 to 248 at 375) for a pixel-identical bloom on half the raster.
+
+### Considered and NOT done: cutting the phone reading
+
+Round three says to cut a candidate that no longer earns its column. The phone is the weaker of the
+two by this concept's own argument, it is drawn rather than photographed, and it is the only thing on
+the board that waits on an asset. It is kept because it is the one ruling Will named himself, and
+cutting it would answer his question for him. What changed instead is that it stopped costing
+anything to keep: it is second, the board opens on the other one, and its ask is conditional on it
+being ruled in.
+
+### Verified at `f34af1c`, on the preview unless a line says otherwise
+
+- **The beat, sampled live in a FOREGROUND tab from a Replay remount** (the clock is the click, so
+  every number carries about 70 ms of React remount): t=106 the brackets are thrown 27.4 px wide at
+  opacity 0.34 and the corridor is EMPTY (0 of 24 visible); t=372 they are 2.3 px out at opacity 1,
+  still empty; t=622 0.07 px out; t=739 locked, the capture still at 0; t=806 the bloom is rising at
+  0.021; t=856 it is at its 0.342 peak and the room is STILL empty; t=1122 all 24 frames are up.
+  Cause, then effect, with nothing in the room until the capture.
+- **The recapture fires.** The bloom's animation reads duration 10800 ms, delay 730 ms, iterations
+  infinite. A 13-second watch in a foreground tab caught a peak of 0.346 at animation clock 33200 ms,
+  which is 70 ms into the FOURTH iteration: the capture repeats on the album's own cycle.
+- **Point at the code and the camera re-acquires it.** A pointer over the plate throws the brackets
+  back to opacity 0.18 at translate -30.6 px and they re-lock by 820 ms with the capture at 0.311,
+  while 20 frames keep flying: the lock replays, the album does not.
+- **The clear lane is measured against the INK, not the box, which caught what round two missed.**
+  The corridor's own math was replayed against the rendered ink of the h1, the caption, the count,
+  the sentence and both actions, over a full 10800 ms cycle at 50 ms steps, in every combination of
+  canvas, reading and copy: **zero intersections in all of them.** The tightest is 11 px (375, the
+  caption in the room reading); every other block at 375 clears by 16 to 130 px, and at 1440 by 28 px
+  (the h1 under the proposed copy) to 158 px. No scrim anywhere, every photograph at 100 percent.
+- **Reduced motion, simulated exactly** by deleting every `no-preference` block from the live sheets
+  and clearing the loop's inline writes: all four brackets rest LOCKED (`animation-name: none`,
+  `translate: none`, opacity 1), the bloom is spent at 0, 20 of the 24 frames stand at the
+  steady-state spacing (the other four are the ones still inside the code), and the h1 is at opacity
+  1 with transform none.
+- **The production sheet, which is the one thing localhost cannot prove.** Every arbitrary utility
+  this round introduced resolves in the shipped bytes: `text-[15px]`, `text-[13px]`, `text-[12px]`,
+  `text-white/85` (#ffffffd9), `text-white/55` (#ffffff8c), `overflow-clip`, `tabular-nums`. All
+  THREE `.hhc-*` rules that declare an animation sit inside
+  `@media (prefers-reduced-motion:no-preference)` in the production CSS, and the only keyframes the
+  sheet declares are `hhc-lock`, `hhc-flash` and `hhc-bloom`.
+- **The served HTML** carries 24 `.hhc-card` nodes with 24 `--hhc-rest` and 24 `--hhc-rest-o`
+  declarations, the four brackets, the bloom, the roomlock, the caption and the count at its opening
+  value, and NO `hhc-device`, which is the default being the room. No em-dash, no `font-mono`, and no
+  `data-mkt-cut` / `data-mkt-reveal` / `.mkt-line` on any h1 on the page (the two `data-mkt-cut`
+  strings in the payload are the lab shell's own header div). The gate: 404 with no key, 404 with a
+  wrong key, 200 with the key.
+- **Performance, measured rather than guessed.** With all four concepts on the board running, rAF
+  deltas over 200 frames: median 16.7 ms, p95 17.5 ms, max 17.7 ms, so not one frame was dropped. The
+  scan's own tick (its math plus its 24 style writes, run 300 times against the real nodes) is
+  **0.100 ms**, about 0.6 percent of a 60 Hz frame, with a 1.2 ms style flush for all 300 together.
+  The room reading carries exactly five CSS animations and four of them are one-shots that finish;
+  the bloom is the only permanent one and its box is now half what it was. First paint is 24 card
+  nodes but **12 image requests**, because the two arms share the 12 landscape stand-ins;
+  `sizes` is canvas-relative (360px at 1440, 170px at 375).
+- **The one commit the alias does not carry, checked against the local production build** (`pnpm
+  build` then `pnpm start`, the same output the preview would serve, at the head): the lab gate is
+  404 with no key, 404 with a wrong key, 200 with the key; the served HTML carries 24 `.hhc-card`,
+  ONE `.hhc-roomlock`, ZERO `.hhc-device` (the room is the default), `overflow-clip`, both switch
+  words and the round-three headline, with no `font-mono` and no em-dash in the payload; the root
+  computes `overflow: clip`; the caption resolves at 13 px and white/85 on the 375 canvas; and the
+  switch survives four remounts, which is the measured walk in the deployment bullet above.
+- **A test-tooling trap this pass fell into and climbed out of, worth knowing while many tracks run
+  at once: `pnpm start` on a guessed port can silently verify ANOTHER track's build.** The port was
+  already held by a sibling worktree's server, `next start` exited with `EADDRINUSE` into a log
+  nobody was reading, and the page that answered looked close enough to pass for this board. It was
+  caught only because the DOM disagreed with the source in a way the head could not produce: the
+  concept root computed `overflow: hidden` and there was no `.hhc-lab` switch at all, which is round
+  ONE of this concept. The habit that makes it safe is cheap: pick the port by testing that nothing
+  is listening on it, and before trusting a single number, assert a marker only the head can render
+  (here `.hhc-roomlock` with `overflow: clip`). A stale-surface reading and a wrong-server reading
+  look identical from the outside, and this round has now been bitten by both.
+- Test-tooling note, unchanged from round two and it cost time again: a hidden or driven tab throttles
+  rAF AND `setTimeout`, pauses the stage through `data-paused`, and returns black screenshots right
+  after a navigation. Every timing number above was taken in a fronted tab; compositions were shot
+  with the corridor frozen at its rest transforms and the animations parked at a chosen `currentTime`.
+
+### Shell changes for the Orchestrator to carry (neither blocks this board)
+
+1. **An optional `controls` (or `switches`) slot on `Concept`, rendered by `board.tsx` beside its own
+   toggles.** Two tracks have now drawn a switch inside the canvas because a concept that carries a
+   RULING has nowhere else to put one (this board's `hhc-lab`, the river's `hhv-lab`), and this round
+   spent a fix on a bug that only exists because the control lives inside the composition. One field
+   retires both chips.
+2. **`demoCount` beside `qrUrl`.** The third filing, after the source and the river: the shell hands
+   a concept the demo URL and nothing else, so the album's count is drawn here. With it, the count
+   stops being a stand-in and the departure above resolves itself.
+
+### "Apply to the site" does not apply to this board
+
+The candidate is a composition, not a CSS block: there are no selectors here that would mean anything
+on `/`, `/pricing`, `/help`, `/contact`, the dashboard or the demo guest page, and offering a paste
+would be the light or palette board's paste wearing this track's name. The pages to walk are the
+board's own two stages; the ruling lands in `PageHero` at the wiring round.
+
+- **Assets requested from Will** (unchanged from round two, and still only one of them new):
+  1. **CONDITIONAL, only if a phone is ruled in: the hand-and-phone cutout, ASSETS row 8** (PNG with
+     alpha, 1200 px long edge, the screen area fully transparent, shot from behind the holder's
+     shoulder in low warm event light, two grips) · replaces the drawn device `.hhc-phone`. Rule the
+     room and row 8 can be withdrawn: that reading needs no asset that does not exist.
+  2. Nothing else new. The corridor wants the 24 squares already on the log (**row 2**, asked by
+     `hero-source`); the three phone-up photographs on **row 3** are NOT needed here, because the
+     device is drawn rather than photographed.
+- **The asks, verbatim from BoardMeta** (the Orchestrator quotes them under Waiting on Will):
+  1. "ONLY IF A PHONE IS RULED IN: a hand-and-phone cutout to replace the drawn device, already on
+     the log as ASSETS row 8. PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully
+     transparent so the viewfinder composes underneath and stays live; shot from behind the holder's
+     shoulder, the phone held up and angled away to the right, in low warm event light so the body is
+     nearly a silhouette with one highlight along the edge; two grips, one-handed and two-handed.
+     Rule the room and the row can be withdrawn."
+  2. "Not a new ask: the corridor runs on the 12 landscape stand-ins and wants the 24 squares already
+     requested (ASSETS row 2, asked by hero-source), 512 x 512, one grade, framed tight enough to
+     read at 120 px. Nothing here needs row 3's phone-up photographs, because the device is drawn
+     rather than photographed."
+- **The rulings, from the board's Departures, each one word from Will**:
+  1. **The room, or a phone.** The switch at the top right. The recommendation is the room, until the
+     cutout is shot. Either reading is the only light in a hero that is cinema and unlit: the phone's
+     screen, or the room's capture bloom. Both brighten, neither darkens.
+  2. **Keep the count, or cut it.** 282 climbing to 312 is a stand-in and must not ship as invented
+     data.
+  3. **The centred lockup**, precedent and not law, shared with the source.
+  4. Flagged, not a ruling: bible 13, the pre-release and thrown-wide states inside the
+     reduced-motion block.
+- **Look at first** (★ first, check the surface: if the alias has not been rebuilt at the head, step
+  three below misbehaves and it is the stale build, not the board. See the deployment bullet; the
+  tell is that flipping to "A phone" and then changing the canvas puts the room back): the first
+  second, in a FOREGROUND tab, on Desktop. The code stands alone in an empty room while a scanner's
+  brackets close on it, they snap, the capture blooms, and the album comes out of the plate. Then
+  wait for it to happen AGAIN, about eleven seconds later, which is the one thing round three added:
+  the hero says its sentence once per turn of the album instead of asserting it once. Then the switch
+  at the top right, once: the room, or a phone, is the whole ruling and everything else is identical
+  between them. Then 375 in each reading, which are two different compositions rather than one
+  compressed: the classic rhythm in the room, and in the phone reading the words at the top with the
+  near field owning the bottom third and the two codes on one vertical axis.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). Two rounds turned the scan from one composition
+into a board with a single ruling on it. Round two carried both readings of the cause and a switch
+between them, rebuilt the phone to tell the truth about what a camera sees (a 46 px code inside a
+260 px device, cropped by two edges so it reads as a held object), gave the 375 canvas its own
+composition rather than a compression, and put the beat in causal order so the room is genuinely
+empty until the capture. Round three walked the board cold, the way its reviewer would, and fixed
+what that found: the switch had been scrolling the whole hero 600 px sideways on every click, because
+an `overflow: hidden` box is still a scroll container and the corridor makes this one 3780 px wide;
+the board had been opening on the reading the concept argues against; the caption that names the act
+had been the faintest type in the frame while the fabricated count was the loud one; the reading had
+not survived Replay; and the proposed headline had read like its neighbour's. The keep-out test was
+rewritten to measure the INK of every block rather than its box, which found a real fault nobody had
+seen: a headline that fits on one line at the xl step gets a photograph behind it, so this
+composition wants two lines at 1440, and that is true of the source's band and not only of this
+variation. The round's one addition is that the capture repeats once per turn of the album, so the
+cause is restated rather than asserted once, on one animation and half the raster it used to cost.

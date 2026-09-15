@@ -4,29 +4,27 @@
    lab; never reuse a production name).
 
    House convention: FINAL states live OUTSIDE the media queries, so a
-   reduced-motion reader gets the settled composition with no rule to undo;
-   entrances and loops live inside `no-preference` only, and any infinite loop
-   is marked [data-mk-loop] so the stage's data-paused stops it on a hidden tab.
+   reduced-motion reader gets the settled composition with no rule to undo, and
+   entrances live inside `no-preference` only.
 
-   THIS BOARD MINTS NO KEYFRAME ON PURPOSE. A contact sheet developing is exactly
-   the house develop beat already in marketing.css ([data-mkt] [data-mkt-develop]:
-   opacity + blur off @starting-style, delayed by --i), and the lab layout loads
-   that sheet, so the board renders the hook rather than a private copy of it. All
-   that is tuned here is the clock: the production beat is 400ms with a 60ms
-   stagger, which is right for a page arriving once and too slow for an instrument
-   a reviewer flips three times in a row. */
+   THIS BOARD MINTS NO KEYFRAME ON PURPOSE, and runs no loop. A sheet developing
+   is exactly the house develop beat already in marketing.css ([data-mkt]
+   [data-mkt-develop]: opacity + blur off @starting-style, delayed by --i), and
+   the lab layout loads that sheet, so the board renders the hook rather than a
+   private copy of it. All that is tuned here is the clock: the production beat is
+   400ms with a 60ms stagger, which is right for a page arriving once and too slow
+   for an instrument a reviewer flips three times in a row.
+
+   Round two: the sheet is 23 posts rather than twelve frames, so the stagger is
+   taken modulo the row (`--i` is the index within the row, set in board.tsx) and
+   a flip of the route still resolves inside a third of a second however tall the
+   grid is. */
 
 [data-mk-sheet] {
   --mkt-skel-reveal-dur: 260ms;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  [data-paused="true"] [data-mk-loop] {
-    animation-play-state: paused;
-  }
-
-  /* Column stagger, not frame stagger: --i is the index within the row, so a
-     twelve-frame sheet still resolves inside a third of a second. */
   [data-mk-sheet] [data-mkt-develop] {
     transition-delay: calc(var(--i, 0) * 26ms);
   }

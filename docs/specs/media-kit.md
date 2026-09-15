@@ -3,16 +3,19 @@
 > **ROLE:** the proposed sourcing law for every frame on a Partyreel surface, plus the survey behind
 > it and the plan for the kit Will produces. Written by the `media-kit` track of the review wave
 > (2026-09-14). **BELONGS HERE:** the rule, the allowed sources with the clause that allows them, the
-> manifest's contract, the re-render runbook, and the shot lists. **NOT HERE:** which assets have been
+> manifest's contract, the re-render runbook, and the call sheet. **NOT HERE:** which assets have been
 > asked for or delivered (that is [`../ASSETS.md`](../ASSETS.md)), how a marketing page is built
 > (that is [`../systems/marketing-content.md`](../systems/marketing-content.md)), or the wiring itself
 > (a wiring round's commit). **GROWS BY:** refine in place; the settled part is promoted into the
 > system layer by the Orchestrator once Will rules.
 
-> **STATUS: A PROPOSAL.** Nothing here is in force. Bible 18 ("every frame is ours") is ratified; the
-> operative detail below is this track's recommendation and waits on Will's ruling. No production byte
-> changed on this track: the twelve stand-ins are untouched and the candidate batch is staged under
-> `public/design/media-kit/`, which no marketing surface reads.
+> **STATUS: A PROPOSAL, revised at round two (2026-09-14).** Nothing here is in force. Bible 18
+> ("every frame is ours") is ratified; the operative detail below is this track's recommendation and
+> waits on Will's ruling. No production byte changed on this track: the twelve stand-ins are untouched
+> and the candidate batch is staged under `public/design/media-kit/`, which no marketing surface reads.
+> Round two corrected three things round one got wrong, each marked ★ in place: the exposure (the site,
+> not the blog), the blog covers (chosen in frontmatter, not hashed) and the reel runbook (no code edit
+> needed). The board is `/design/c/media-kit`.
 
 ---
 
@@ -23,12 +26,27 @@
 line, `license: "unsplash (per lab-pack comment; provenance unverified)"`, and nothing else: no author,
 no source URL, no retrieval date. All three of those fields exist on the type and all three are
 optional (`:33-36`). The lab pack the files were copied from, `public/design/`, was empty when this
-track opened, so the provenance trail is gone from the tree. This is not a lab problem. Eleven of the
-twelve are the blog's
-cover pool ([`src/lib/content/blog-covers.ts:22-34`](../../src/lib/content/blog-covers.ts)), which puts
-them on 23 published posts, on the OpenGraph card each post syndicates to every social platform and
-chat app that unfurls a link, and inside the RSS enclosures the feed hands to aggregators. The frames
-are being redistributed, at scale, under a license nobody can name.
+track opened, so the provenance trail is gone from the tree.
+
+**★ The blast radius is the site, not the blog.** Round one measured this as the blog's cover pool and
+understated it. The twelve ids are referenced by name in **40 production files** and reached by **22
+production routes**, and two of those files are the footer's demo strip
+([`chrome/footer-demo.tsx`](../../src/components/marketing/chrome/footer-demo.tsx): `wedding-arch`,
+`concert-confetti`, `reception-table`, `festival-lights`) and the navigation's mega panel
+([`chrome/mega-panel.tsx`](../../src/components/marketing/chrome/mega-panel.tsx): `wedding-toast`,
+`reception-table`). Both sit in the `(cinema)` and `(paper)` **group layouts**, so six of the twelve are
+in the chrome of all 24 marketing pages before a reader scrolls. `exposure.test.ts` recomputes every one
+of those numbers from the tree, so the board cannot quote a stale one. On top of that the blog puts
+eleven of them on 23 published posts, on the OpenGraph card each post syndicates to every platform that
+unfurls a link, and inside the RSS enclosures. The frames are being redistributed, at scale, under a
+license nobody can name.
+
+**★ And nobody hashed those covers.** Round one's board said the blog's cover pool hashes a slug into
+eleven frames, which is true of the resolver and false of production: **every one of the 23 posts sets
+an explicit `cover:` in its frontmatter**, so `blog-covers.ts`'s fallback never fires, and 22 of the 23
+differ from what the hash would have returned. A person chose every miscast cover, out of eleven wedding
+and festival frames, which is why `/blog/conference-photo-sharing-no-app` is illustrated with an outdoor
+music festival. That changes what the fix is: the bridge is **23 frontmatter lines**, not twelve files.
 
 **What is being asked.** Three routes, argued on the board at
 `/design/c/media-kit`:
@@ -43,6 +61,26 @@ are being redistributed, at scale, under a license nobody can name.
 the day the kit lands. Ten of the twelve go to the shoot because they are studied (the hero, the four
 reel clips, the four blog posts that all ride one empty banquet hall); two are detail shots nobody
 studies and can carry a licensed bridge until then.
+
+**★ The second search closed all four of round one's holes, and that moves the argument rather than
+winning it.** The first pass searched the corpus by the words on a manifest entry ("party balloons"
+returned hot air balloons, six for six) and staged eight of twelve. The second searched by the SCENE,
+in the one pocket of the corpus with the right aesthetic (the pre-5-June-2017 Unsplash archive that
+Commons mirrors), and found a dance floor, a table with people at it, real balloons and a portrait: 16
+more frames, 22 staged in all, all twelve ids fillable. So the corpus *can* dress the site. What it
+still cannot do is put a recognisable private celebration in frame: **18 of the 22 work only because
+nobody in them is recognisable, and the four with a face are the four that need a release nobody here
+holds.** The frames worth anything to this product are the ones with faces in them.
+
+**★ What the corpus actually is, which is the more useful result.** Scene searches for "office party
+colleagues", "conference audience" and "dinner party friends" return government photo-ops, UN panels,
+Wikimedia meetups and the Place de la Concorde. The free corpus is an archive of **record** (press,
+state, museum, open-source events), not of private celebration, and its coverage maps exactly onto what
+photographers give away: travel, landscape, food, details, concerts. Mapped onto our verticals: **trips
+is covered completely, festivals mostly, weddings only as details and the backs of heads, birthdays
+only as a cake on a table, corporate as an empty meeting room, and conferences not at all.** Two of the
+23 posts are therefore left empty on the board on purpose, and both are at the corporate end, which is
+half the business.
 
 **The finding that settles it.** Unsplash's license, which is the one the twelve claim, does not cover
 the people in them. The terms say the license "does not include the right to use ... People's images
@@ -83,15 +121,43 @@ rights at once, and it needs an operative form a test can hold. Proposed:
 There is no third category. A frame whose provenance cannot be stated in one line is not a frame we
 own; it is a liability with a nice colour palette.
 
-**1.2 The three fields become required.** `author`, `sourceUrl` and `retrieved` are optional on
-`MarketingImage["credit"]` today (`marketing-media.ts:33-36`). They become required, and `license`
-becomes a union rather than free text:
+**1.2 Six fields become required** (round two added two of them, after prototyping the record on 22
+real files). `author`, `sourceUrl` and `retrieved` are optional on `MarketingImage["credit"]` today
+(`marketing-media.ts:33-36`). They become required, `license` becomes a union rather than free text,
+and two fields join them:
 
 ```ts
+type People = "none" | "unidentifiable" | "identifiable";
+
 credit:
-  | { kind: "ours"; author: string; created: string; how: string }
-  | { kind: "licensed"; license: LicenseId; author: string; sourceUrl: string; retrieved: string }
+  | { kind: "ours"; author: string; created: string; how: string; people: People }
+  | {
+      kind: "licensed";
+      license: LicenseId;
+      /** The sentence of the license that permits this use, QUOTED, not named. */
+      clause: string;
+      author: string;
+      sourceUrl: string;
+      retrieved: string;
+      people: People;
+    }
 ```
+
+**`clause` is quoted rather than named** because a source can vanish and a platform name proves nothing
+about what was agreed. Videvo is the worked example (section 4.2): its license page 404s, the brand was
+absorbed, and the successor terms are revocable and demand attribution. An entry that recorded only
+"Videvo" would today be unprovable. An entry that quoted the clause is still a record.
+
+**`people` is the field that does the work**, because it is the one a human has to answer by looking.
+No free tier supplies a model release, so `identifiable` on a `licensed` entry means "not on a page
+that makes a claim" (1.4), and it is the reason 18 of the 22 staged candidates are backs, hands and
+silhouettes. It is also the field that cannot be derived: the filename, the search query and the
+uploader's title all lie, and only an eye settles it.
+
+The shape is not a sketch. `candidates.ts` and `public/design/media-kit/provenance.json` both carry all
+six fields for 22 files, and `provenance.test.ts` pins them against each other field by field, refuses a
+record missing one, refuses a frame created on or after 5 June 2017, and refuses an `identifiable` frame
+that carries no caution. The rule can be watched passing before it is ruled on.
 
 `how` on an `ours` entry is the one field that does not exist today and matters more than any of the
 others: for a photograph it reads "shot, <event>, <date>"; for a generated frame it names the tool and
@@ -103,7 +169,8 @@ terms under which it was generated say so, and that sentence belongs in the mani
 **1.3 The test rises with the rule.** `marketing-media.test.ts:51` asserts only that the license string
 is non-empty, which the twelve pass while being exactly the problem. Proposed: the test asserts the
 discriminated shape above, that a `licensed` entry's `license` is one of the ids in section 4, and that
-`retrieved` parses as a date. That turns "provenance unverified" from a comment into a build failure,
+`retrieved` parses as a date, that `clause` is non-empty, and that `people` is one of the three values.
+That turns "provenance unverified" from a comment into a build failure,
 which is what `marketing-media.ts:31` already promises ("unverified entries block the M4 gate") without
 any code behind it.
 
@@ -148,10 +215,23 @@ swap would silently re-skin every post. **A wiring round therefore has to keep t
 that every blog cover moves.** Keeping the ids is free and is the recommendation: a replacement frame
 inherits the id of the stand-in it replaces.
 
+**★ That pool is dormant in production.** Every one of the 23 posts sets `cover:` in frontmatter, so
+`coverFor` takes the explicit branch every time and the hash never runs. Two consequences. The pool's
+eleven ids are a safety net for a post nobody has written yet, not the thing dressing the blog today;
+and **changing a post's cover is a frontmatter edit**, which is the cheapest possible bridge and the one
+round two recommends. `bridge.test.ts` pins every post's cover and crop against the real resolver.
+
 **The crop ladder is a hidden spec on the media itself.** `blog-covers.ts:43-50` re-crops one source to
 six object-positions from `22% 45%` to `78% 45%`, which is how eleven images dress 23 posts without
 reading as eleven images. It works, and it means a frame whose whole subject sits in the middle loses
 that subject in four of the six positions. Every frame entering the pool has to be composed for it.
+
+**★ And the share card ignores the ladder entirely.** `blog/[slug]/opengraph-image.tsx` reads the cover
+off disk and draws it at 1200x630 with `objectFit: "cover"` and **no** `objectPosition`, so the card a
+stranger sees when a link unfurls is always the MIDDLE of a frame that was composed for a 4:5 card at
+the 22 or 78 percent rung. A frame can pass the card and fail the share image, which is why the board
+shows both geometries side by side and why "survives a 1200x630 centre crop" is its own line in the
+shot brief.
 
 ---
 
@@ -164,21 +244,39 @@ Replacing the media means re-rendering them, and that is not a CLI job. Budget f
 the only path is an on-device WebCodecs encode (`src/lib/reel/engine/encode.ts`), brokered for
 production by `src/lib/reel/render-service.ts`. There is no headless renderer to point at a file.
 
+**★ It is NOT a code edit, which is the round-one claim this round withdrew.** The survey read
+`FIXTURES` at the top of `reel-parity/parity.tsx`, saw eight hardcoded ids and concluded that a
+re-render needs an edit. Twenty lines further down the same file there is a `CLIP_SETS` picker, and
+both recorded recipes are already in it, in order:
+
+| Recipe | Clip set on the page | Style | Seed | Orientation |
+| --- | --- | --- | --- | --- |
+| `hero-candidate-01` | **Marketing: mixed 6** | `classic` | 73 | portrait |
+| `hero-candidate-02` | **Marketing: festival arc** | `golden` | 73 | landscape |
+
+`runbook.ts`'s `matchClipSet` checks that against the manifest rather than asserting it, and
+`runbook.test.ts` fails the suite the day either list drifts. The friction that is actually left is
+that **the pairing is true and nothing in the tree says so**, so the next person rediscovers it or
+edits code they did not need to edit.
+
 **The runbook.**
 
-1. Open `/design/reel-parity` in the lab (Chrome, on a machine with WebCodecs).
-2. Edit `FIXTURES` in `src/app/(dev)/design/reel-parity/parity.tsx` to the recipe's `clipIds`, in
-   order. **This is a code edit, not a control**, which is the one real friction in the loop: the page
-   exposes style, seed, orientation and watermark as controls but hardcodes its eight fixtures. If
-   re-rendering is ever going to happen twice, that list should come from a `MARKETING_REELS` recipe
-   rather than a literal; noted as a follow-on, not fixed here.
-3. Set the recipe's `styleId`, `seed` and `orientation` from the manifest entry. Determinism is per
-   (clips, styleId, seed, orientation), so those four reproduce the source exactly.
-4. Encode and download the mp4.
-5. Run the `finish` string recorded on the entry verbatim, by hand. For `hero-candidate-01` that is
-   `ffmpeg scale=720:1280 b:v 2200k yuv420p +faststart -an`.
-6. Grab the poster from the first graded frame, update `durationSeconds`, `shotBoundaries` (transition
-   midpoints, frame-exact at 24 fps, extracted from `planReel`) and `renderedAt`.
+1. Open `/design/reel-parity` in the lab (Chrome, with WebCodecs; the page probes on mount and
+   disables Encode if it is not there).
+2. Pick the clip set from the table above. No code edit.
+3. Set style, seed and orientation from the recipe. Seed defaults to 73, which both recipes use.
+4. Set the bitrate to **4 Mbps**. `DEFAULT_BITRATE` is 5, and both recipes recorded `sourceBitrate:
+   4_000_000`, so a default that does not match the record is a silent way to lose determinism.
+5. Encode and download the mp4. Determinism is per (clips, styleId, seed, orientation).
+6. Run the entry's `finish` string verbatim. It is recorded as prose rather than as argv, so step 6 is
+   a retype rather than a paste.
+7. Grab the poster from the first graded frame and update `durationSeconds`, `shotBoundaries`
+   (transition midpoints, exact 1/24 s multiples, read off `planReel`) and `renderedAt`.
+
+**What the wiring round adds**, in the order it bites: a clip set that reads a `MARKETING_REELS` recipe
+rather than a literal, so a recorded loop re-renders from its own record; the bitrate preselected from
+`sourceBitrate`; `finish` recorded as argv; and, until the first of those lands, a note on the entry
+naming the clip set that reproduces it.
 
 **Why this matters to sourcing.** Both recipes draw on `festival-lights`, `festival-crowd`,
 `concert-confetti`, `party-dj`, `wedding-golden`, `party-balloons`, `wedding-petals` and
@@ -320,6 +418,14 @@ files are CC BY or CC BY-SA, so a batch has to be filtered to CC0 file by file.
    irrevocable license and separately reserve the right to change the terms; Mixkit does not even
    claim it, calling its own grant "freely revocable". Only CC0 and CC BY are clean, which is the
    real reason to prefer CC0 for anything that ships.
+5. **★ The free corpus is an archive of record, not of celebration** (round two, from the second
+   search). Scene queries for "office party colleagues", "conference audience" and "dinner party
+   friends" return government photo-ops, UN panels, Wikimedia meetups and the Place de la Concorde,
+   because what is freely licensed at scale is what institutions publish and what photographers give
+   away: travel, landscape, food, details, concerts. Against our six verticals that means **trips is
+   covered completely, festivals mostly, weddings as details and the backs of heads, birthdays as a
+   cake on a table, corporate as an empty meeting room, and conferences not at all.** The gap is not
+   bad luck in a search. It is what the corpus IS.
 
 ---
 
@@ -330,8 +436,8 @@ writes for: weddings, birthdays, corporate, conferences, festivals, trips. The m
 weddings, one birthday, four festivals and nothing else, which is why
 `/blog/conference-photo-sharing-no-app` is illustrated with an outdoor music festival and
 `/blog/company-offsite-photos` with a banquet hall of blue and white streamers. Seven of 23 posts are
-miscast this way and nobody chose any of them: the cover is hashed from the slug into a pool that has
-no corporate, conference or trip frame to hash into.
+miscast this way, and a person chose every one of them (section 0): choosing carefully out of eleven
+wedding and festival frames is what produces a conference illustrated with a music festival.
 
 **Everything else is derived from those 36.**
 
@@ -341,39 +447,43 @@ no corporate, conference or trip frame to hash into.
 | 24 squares at 512 px, 6 to 35 KB webp | crops of 24 of the masters | `FRAMES` in `shared.tsx`, which every round-three hero variation cycles | row 2, requested and live |
 | 8 vertical clips, 3 to 5 s, 1080 x 1920, silent, each with its own poster | filmed at the same events | the `currentTime` ranges cut out of `hero-candidate-01` | row 4, withdrawn with the gathering; cheap to revive because it is the same shoot |
 | The film, 15 to 20 s, 12 to 18 shots, both orientations, mp4 + webm + posters | cut from the same footage | `hero-candidate-02` and its poster | row 1, parked for the queued video card |
+| 8 portrait crops at 512x640 | 4:5 recrops of eight of the same 24 | the square box on a third of the burst's field | row 9, requested |
+| 12 portraits at 720x900, 15 to 60 KB webp, legible at 110 px | `W4`, `B5` and `S3` are shot portrait; the other nine are 4:5 recrops of masters whose subject is vertical | the portrait cards in the river's `CARD_POOL`, cropped hard from landscape today | row 12, requested |
+| A hand-and-phone cutout, PNG with alpha, the screen area transparent, two grips | **a separate setup**, the only one on this list | the drawn device in `scan.tsx` | row 8, requested |
 
-Only the first row is a new ask. The rest are the same shoot, cropped and cut, which is why parking a
-hero concept should never park the photography.
+Only the first row and row 8 are new asks. Everything else is the same shoot, cropped and cut, which is
+why parking a hero concept should never park the photography. **Row 8 is the exception worth naming**:
+shoot it at the same event, against the darkest wall available, from just behind the holder's shoulder,
+in the same low warm light as `K3`, so the body is nearly a silhouette with one highlight along the
+edge. It costs ten minutes at an event that is already happening and nothing at all if it is missed.
 
-### 5.1 The shot lists
+### 5.1 The call sheet
 
-**Weddings.** A toast mid-sentence, glass up, the table sharp and laughing. Two hands on a table edge,
-rings on, one still holding a glass. The dance floor from above, hands up, edges dark. The exit under
-petals or confetti, shot portrait from low. A guest holding a phone up, filming the first dance. The
-cake table at dusk under string lights, people reaching in.
+Round one wrote the kit as six shot lists: one line per frame, enough to argue with and not enough to
+hold a camera to. Round two rewrote the same 36 frames as a call sheet, one card per frame, and the
+data lives at
+[`sandbox/media-kit/shoot.ts`](../../src/app/(dev)/design/sandbox/media-kit/shoot.ts) and renders on
+the board. Each frame carries a stable code (`W1` to `T6`, so a ruling can name one), what happens in
+the frame, where the camera is, what the light is doing, the crops it has to survive, and the manifest
+ids it inherits.
 
-**Birthdays.** Candles going out, faces lit from below. A sparkler number held up in a dark room. The
-sofa squeeze, too many people in one frame. Hands and cake, close enough to read at 120 px. Balloons
-against a ceiling, shot straight up, someone underneath. The table after: plates, confetti, one glass
-still going.
+**Each frame's crops come from a real surface**, never from taste: the 4:5 card and the 22-to-78 ladder
+are `blog-covers.ts`; the 1200x630 centre crop is the share card, which ignores the ladder; 120 px is
+the narrowest the home hero's corridor draws a frame; 512 square is `ASSETS.md` row 2; 512x640 and
+720x900 are rows 9 and 12.
 
-**Corporate.** The offsite long table, warm, phones down. A rooftop drinks circle at golden hour. The
-award handshake, caught mid-clap from the room. Karaoke, two people sharing a mic, the room out of
-focus. The van at the end of the night, doors open. A team photo going wrong, half of them laughing.
+**All twelve stand-ins are inherited**, by id: `W1` takes `wedding-golden` and `wedding-arch` (the
+couple coming back down the aisle under it), `W2` `wedding-toast`, `W3` `reception-hall`, `W4`
+`wedding-petals`, `W6` `reception-table` and `wedding-rings`, `B1` `party-balloons`, `S1`
+`festival-crowd`, `S2` `concert-confetti`, `S4` `festival-lights`, `S5` `party-dj`.
 
-**Conferences.** The hallway between sessions, lanyards, nobody posing. The stage from the back of the
-room, silhouettes and screen glow. A phone held up over the crowd, photographing a slide. The
-coffee-break huddle, cups and gesturing hands. A booth handshake, badges legible, faces soft. The badge
-wall at the end of day one, half of them gone.
+**Four of the 36 are the palette board's hard cases** (`ASSETS.md` row 7), marked rather than asked for
+separately, because a ramp is only ever wrong against media that fights it: `W5` high key (the dress
+against a white wall in window light), `W3` low key (a dance floor lit by one lamp), `W2` candle warm,
+`S4` stage cool (a rig against the last blue).
 
-**Festivals.** The crowd from inside it, hands up against stage light. Confetti over a night crowd,
-phone screens in the dark. Two friends on shoulders at sunset, one of them filming. A light rig from
-underneath at dusk, sky still blue. The field at golden hour, flags, small figures. The camp at dawn,
-one person awake.
-
-**Trips.** The car loaded, doors open, someone still deciding. A terrace table at night, the town
-below. The group on a beach at dusk, backlit, no faces needed. Someone photographing someone
-photographing. A ridge line with the group small in it. The last fire, faces lit orange.
+**Three show a guest holding a phone up**: `K3` (photographing a slide over the crowd), `S3` (on
+shoulders at sunset, filming) and `T4` (someone photographing someone photographing).
 
 ### 5.2 What a frame must survive
 
@@ -404,56 +514,56 @@ one night cannot.
 
 ---
 
-## 6. The first batch
+## 6. The batch, and the bridge
 
-**Eight of twelve, all CC0, staged under `public/design/media-kit/`** with `provenance.json` beside the
-files. Nothing under `public/design/` is scanned by `marketing-media.test.ts` and nothing on a
-marketing surface reads it, so the batch is a proposal on a board and not a shipped byte.
-`provenance.test.ts` in the board's own directory pins it anyway, both directions, the way the real
-manifest is pinned: every file exists and is under 300 KB, every file has a record, every record names
-an author and an `https://` source and an ISO retrieval date, and every field the board shows matches
-the record beside the files.
+**22 files, all CC0, staged under `public/design/media-kit/`** with `provenance.json` beside them.
+Nothing under `public/design/` is scanned by `marketing-media.test.ts` and nothing on a marketing
+surface reads it, so the batch is a proposal on a board and not a shipped byte. `provenance.test.ts`
+pins it anyway, both directions, the way the real manifest is pinned, plus the four assertions the
+proposed rule adds (section 1.2).
 
 **Where they came from, and why.** Pexels and Pixabay both refuse a non-browser client outright (403),
 so neither can be surveyed or fetched without a key. The batch was therefore cut from Wikimedia
 Commons, filtered to CC0 file by file, and within that from the pre-5-June-2017 Unsplash archive
 (section 4.2), which is the only body of freely licensed imagery in the same aesthetic family as the
 twelve. Each file was confirmed twice before download: the Commons page carries the `{{Unsplash}}`
-template, which Commons applies only to the CC0-era corpus, and the API reports CC0 for the file.
-Each was then resized to 1200 px and stripped of metadata; CC0 permits modification without
-permission, and the record of who made it belongs in `provenance.json` rather than in EXIF.
+template, which Commons applies only to the CC0-era corpus, and the API reports CC0 for the file. Each
+was then resized to 1200 px and stripped of metadata, and **looked at by eye at intake**, which is the
+only way the `subject` and `people` fields can be filled at all. `provenance.test.ts` refuses any record
+created on or after 5 June 2017, because that date is the entire basis of the batch being CC0.
 
-**What the search actually returned, which is the more useful result.** The batch is eight, not twelve,
-and the four holes are the argument:
+**Round one staged eight and called the four holes the argument.** Round two searched the same corpus by
+the SCENE rather than by the words on a manifest entry and filled all four, plus a candidate for the
+three verticals the manifest has nothing for. 16 new frames; two of round one's eight were superseded
+and dropped, because a file nothing uses should not be staged (the suite enforces that too).
 
-| Stand-in | What the CC0 corpus returned |
+| Round one could not fill | What the second search found |
 | --- | --- |
-| `party-balloons` | Hot air balloons. Six results out of six. |
-| `reception-hall` (a dance floor) | A woman in a desert, a couple embracing, an elderly couple, a person jumping, and a rope on a stage. Not one dance floor. |
-| `reception-table` | Restaurant tables and styled flat-lays. No dinner with people at it. |
-| `wedding-petals` | Nothing portrait at all, which is the same hole the manifest already has: one portrait in twelve. |
+| `party-balloons` (hot air balloons, six for six) | Polka dot balloons on a white brick wall. High key and cool, and still decor with nobody under it |
+| `reception-hall`, a dance floor (a desert, an elderly couple, a rope on a stage) | A DJ over a packed floor under a mirror ball. An identifiable performer, so it needs a release |
+| `reception-table`, a dinner with people at it (restaurant tables, styled flat-lays) | A table from above at brunch, hands reaching in, no faces. Daylight and cool, not a reception at night |
+| `wedding-petals`, anything portrait at all | Two people in silhouette against a dusk sky, shot tall. The only portrait in the batch |
 
-A search for "wedding aisle" returned an aircraft cabin. A search for "festival crowd" returned, among
-the usable frames, ten photographs of a memorial to a fatal crowd crush. **Keyword-sourcing a
-marketing library from a public index does not control what the library is about**, and the failure
-mode is not a bad photograph, it is a photograph whose subject you did not intend and did not look at.
-Every frame that ships has to be looked at by a person. That is true of a licensed batch and it is why
-the manifest's `subject` field says "verified by eye at intake, not inherited from filenames".
+**The ceiling, restated with the larger batch.** Of the 22, **18 work only because nobody in them is
+recognisable** (backs, hands, silhouettes, empty rooms) and **the four with a readable face all carry a
+caution**, because no free tier supplies a model release. The frames worth anything to this product are
+the ones with faces in them, and those are exactly the frames no free license covers. A bigger search
+did not change that. It made it measurable.
 
-**Two of the eight carry a caution on the board rather than in a footnote.** `party-dj` shows one
-identifiable performer, so under the proposed rule 1.4 it needs a release nobody here holds and could
-not ship as it stands. `wedding-toast` is honest subject drift: it is hands and beer glasses in a
-restaurant in Niigata, standing in for a champagne toast at a reception under string lights. Both are
-shown as they are. A batch that hides its own weak entries is not a survey.
+**The bridge is per post, not per frame** (section 2). The board maps all 23 published posts to a
+candidate at the blog card's 4:5 with its real ladder position and at the share card's 1200x630 centre
+crop; 21 fill and **two stay empty on purpose**:
+`/blog/conference-photo-sharing-no-app`, because every conference in the corpus is a press photograph
+of a UN panel or an empty meeting room, and `/blog/office-holiday-party-photos-checklist`, because an
+office party at night, indoors, with colleagues in it, under a license we can name, does not exist.
+Both are at the corporate end of the product, which is half the business. A third,
+`/blog/corporate-event-photo-sharing-pricing`, is filled with laptops and hands and is shown precisely
+because it reads as a stock office photograph, which is the exact thing bible 18 exists to stop.
 
-**The recommendation on the batch: yes as a bridge, no as an answer.** Ship licensed frames only where
-the photograph is furniture, delete them the day the kit lands, and never on the hero. A stock photo on
-a page that says "every frame here is from a real event" is the failure Will already caught once, on
-the press page, and the reason bible 18 exists. The eight also demonstrate the ceiling: seven of
-them are empty rooms, detail shots, silhouettes or the backs of people's heads, and the one with a
-face in it is the one carrying a caution. That is not a coincidence in the search. The frames worth
-anything to this product are the ones with faces in them, and those are exactly the frames no free
-license covers.
+**The recommendation on the batch: yes as a dated bridge, no as an answer.** Ship licensed frames only
+where the photograph is furniture, delete them the day the kit lands, and never on the hero. A stock
+photo on a page that says "every frame here is from a real event" is the failure Will already caught
+once, on the press page, and the reason bible 18 exists.
 
 ---
 
@@ -462,15 +572,21 @@ license covers.
 Whichever route is ruled, the same checklist applies. It is written here so the wiring round does not
 have to rediscover it.
 
-1. **Keep the ids.** A replacement frame takes the id of the stand-in it replaces, or every blog cover
+1. **Start with the chrome.** Four ids are in the footer strip and two in the nav panel, both in the
+   group layouts, so those six frames are on every marketing page. Cheapest six to fix, most visible
+   (section 0).
+2. **Keep the ids.** A replacement frame takes the id of the stand-in it replaces, or every blog cover
    moves under its published article (section 2).
-2. **Files in, entries in, one commit.** `public/marketing/{img,posters,reels}` and
+3. **The per-post bridge is its own, deliberate change.** 23 `cover:` lines in frontmatter, made once,
+   with the before and after looked at. It is not a side effect of swapping files.
+4. **Files in, entries in, one commit.** `public/marketing/{img,posters,reels}` and
    `MARKETING_IMAGES` change together or the orphan test fails, which is the point of it.
-3. **Widths and heights are real.** The orientation assertion reads them.
-4. **Re-render both reels** per section 3, or replace them with the delivered film.
-5. **Raise the test** to the shape in section 1.3 in the same commit, so the new entries are the first
-   ones it holds.
-6. **Check the crop ladder by eye** on three posts at 4:5 before and after, because the ladder is
-   derived from the slug and a new frame inherits whatever position that slug already hashed to.
-7. **Delete the bridge.** Any licensed frame carried under the Mix route is removed, not left because
+5. **Widths and heights are real.** The orientation assertion reads them.
+6. **Re-render both reels** per section 3 (no code edit; the clip sets are in the picker), or replace
+   them with the delivered film.
+7. **Raise the test** to the shape in section 1.3 in the same commit, so the new entries are the first
+   ones it holds. `provenance.test.ts` is the working prototype to lift from.
+8. **Check both geometries by eye** on three posts: the 4:5 card at its ladder position AND the
+   1200x630 share card, which centre-crops and will show a different part of the frame.
+9. **Delete the bridge.** Any licensed frame carried under the Mix route is removed, not left because
    it still looks fine.

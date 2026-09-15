@@ -11,6 +11,7 @@ import {
   AURORA_CADENCE,
   CadenceKnob,
   Cell,
+  Knob,
   Part,
   Photo,
   Proposal,
@@ -98,12 +99,13 @@ function CadenceStrip({
   );
 }
 
-export function CadencePart({ mode }: { mode: Mode }) {
+export function CadencePart({ mode, rules }: { mode: Mode; rules: string[] }) {
   const small = mode === "phone";
   return (
     <Part
       n="C"
       title="The cadence: 8 seconds, 11 seconds, and the one that is neither"
+      rules={rules}
       lede={
         <p>
           Three identical seams. Same geometry, same register, same house five,
@@ -265,7 +267,7 @@ function ReelFrame({
   );
 }
 
-export function VioletPart({ mode }: { mode: Mode }) {
+export function VioletPart({ mode, rules }: { mode: Mode; rules: string[] }) {
   const [ground, setGround] = useState<Ground>("app-dark");
   const [runId, setRunId] = useState(0);
   const small = mode === "phone";
@@ -274,6 +276,7 @@ export function VioletPart({ mode }: { mode: Mode }) {
     <Part
       n="D"
       title="The publish beat's violet"
+      rules={rules}
       lede={
         <>
           <p>
@@ -301,17 +304,19 @@ export function VioletPart({ mode }: { mode: Mode }) {
         </>
       }
     >
-      <div className="flex flex-wrap items-center gap-3">
-        <Toggle
-          ariaLabel="Ground"
-          options={[
-            { id: "app-dark" as Ground, label: "App dark" },
-            { id: "cinema" as Ground, label: "Cinema" },
-            { id: "app-light" as Ground, label: "App light" },
-          ]}
-          value={ground}
-          onChange={setGround}
-        />
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <Knob label="Ground">
+          <Toggle
+            ariaLabel="Ground"
+            options={[
+              { id: "app-dark" as Ground, label: "App dark" },
+              { id: "cinema" as Ground, label: "Cinema" },
+              { id: "app-light" as Ground, label: "App light" },
+            ]}
+            value={ground}
+            onChange={setGround}
+          />
+        </Knob>
         <button
           type="button"
           onClick={() => setRunId((n) => n + 1)}

@@ -1,10 +1,10 @@
-/* The burst's own sheet (round three of the home-hero board). Keyframe prefix:
-   hhb- (hhs- is the source's, hh- the board's; keyframe names are
-   document-global and keyframe-uniqueness.test.ts reads every sheet under the
-   lab). This sheet declares NONE, deliberately: the field is one
-   requestAnimationFrame loop writing inline transforms, so there is no keyframe
-   to collide with production and no [data-hh-loop] hook to mark (the loop reads
-   the stage's data-paused itself).
+/* The burst's own sheet (the home-hero board; round two of the concept,
+   2026-09-14). Keyframe prefix: hhb- (hhs- is the source's, hh- the board's;
+   keyframe names are document-global and keyframe-uniqueness.test.ts reads
+   every sheet under the lab). This sheet declares NONE, deliberately: the field
+   is one requestAnimationFrame loop writing inline transforms, so there is no
+   keyframe to collide with production and no [data-hh-loop] hook to mark (the
+   loop reads the stage's data-paused itself).
 
    THE REST STATE / ENTRANCE SPLIT, and why it is inverted from the usual shape.
 
@@ -21,6 +21,8 @@
    because an effect runs after the server's paint: the field would paint
    deployed, then snap back to the code, then burst. Put the pre-burst frame in
    the same query the animation itself is allowed in and the burst is one beat.
+   It is also what the 260 ms hold rests on: for that first beat the loop writes
+   nothing at all, so this rule is the screen.
 
    THE TRADE, flagged on the board under Departures: a reader with JavaScript
    off who has NOT asked for less motion sees the field rest around the code.
@@ -32,7 +34,8 @@
   inset: 0;
   /* Each card carries its own z-index so a near frame paints over a far one
      (the depth axis is the concept). This keeps that ordering contained: the
-     lockup above the field must not have to out-number 26 cards. */
+     lockup and the plate above the field must not have to out-number 34 cards,
+     and the plate above the field is what hides a frame at its birth. */
   isolation: isolate;
 }
 
@@ -46,13 +49,80 @@
   backface-visibility: hidden;
 }
 
-/* The one shadow in the concept, and the one departure from the unlit hero
-   (bible 10 allows it: overlapping media cards need separating). The burst
-   overlaps constantly, near frame over far, and without an edge the field reads
-   flat. Tuned to sit UNDER the frame rather than around it, so it separates
-   without haloing, and it darkens the ground, never a photograph. */
+/* THE FRAMES' SHADOW: the light spec's LIFT family, adopted rather than
+   invented (docs/specs/light.md, the shadow doctrine's part A). LIFT is the cue
+   for "two objects of the same lightness overlapping each other", which is what
+   this field is doing constantly, near frame over far; without an edge the
+   depth axis collapses into a flat scatter.
+
+   The GEOMETRY and the CINEMA ALPHAS are the spec's verbatim: two sources, blur
+   = 2x offset, spread = -offset/2, a single top light, 0.45 and 0.55 of black
+   on a dark ground (0.06 over oklch(0.11) is arithmetically invisible, which is
+   the spec's whole point). The one number that is this concept's is the OFFSET
+   SIZE, x4: LIFT separates two cards a pixel apart, and these are separated by
+   a depth axis measured in hundreds of units. Flagged on the board.
+
+   It rides the card's own transform, so it scales with the frame: a far frame
+   casts a small shadow and a near one a large one, which is what the depth axis
+   wants and what a fixed pixel shadow could not give. It darkens the ground,
+   never a photograph. */
 .hhb-card > * {
-  box-shadow: 0 22px 48px -18px rgb(0 0 0 / 0.7);
+  box-shadow:
+    0 8px 16px -4px oklch(0 0 0 / 0.45),
+    0 16px 32px -8px oklch(0 0 0 / 0.55);
+}
+
+/* THE BOARD'S CONTROL, not part of the hero: the headline step, so the one
+   trade that changes the composition is ruled with both steps in view. Quiet
+   until it is wanted, on its own plate so it is legible over a photograph, and
+   it leaves with the board. */
+.hhb-lab {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 9px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.55);
+  opacity: 0.45;
+  transition: opacity 140ms var(--ease-out, ease-out);
+}
+
+.hhb-lab:hover,
+.hhb-lab:focus-within {
+  opacity: 1;
+}
+
+.hhb-lab-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.hhb-lab-btn {
+  min-width: 26px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.6);
+  transition:
+    color 140ms var(--ease-out, ease-out),
+    background-color 140ms var(--ease-out, ease-out);
+}
+
+.hhb-lab-btn[aria-pressed="true"] {
+  background: rgb(255 255 255 / 0.16);
+  color: rgb(255 255 255 / 0.95);
+}
+
+.hhb-lab-btn:hover {
+  color: rgb(255 255 255 / 0.9);
 }
 
 @media (prefers-reduced-motion: no-preference) {
