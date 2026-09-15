@@ -1,0 +1,3 @@
+/* THE RIVER, A FEATURE VISUAL: the board's own sheet. Keyframes and classes under `rvr-` only
+   (keyframe-uniqueness.test.ts reads every sheet under the lab); the seed keeps
+   its own sheet (river.css) and its own prefix until the track decides. */

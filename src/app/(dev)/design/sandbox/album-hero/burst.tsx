@@ -23,7 +23,7 @@ import {
   type Mode,
   Photo,
   copyFor,
-} from "./shared";
+} from "../home-hero/shared";
 
 /**
  * THE BURST (concept 3 of the home-hero board; ROUND TWO of the concept,

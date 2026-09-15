@@ -299,8 +299,34 @@ The ruling on round two (Will, 2026-09-14): THE SOURCE. "Definitely my favorite 
 
 Round three, the same day: three variations off the source, each pushing one axis of the same causality, built by three tracks in parallel beside the source as the reference: the scan (`hero-scan`: the cause made literal, the act of scanning in the frame), the burst (`hero-burst`: the origin in every direction, on the depth axis), the river (`hero-river`: the origin at the top, the album pouring down into the page). The reel and the gathering left the board (last at `6b2c595`).
 
-Board: `src/app/(dev)/design/sandbox/home-hero/board.tsx` (the shell; `source.tsx` the ruled reference; one file per variation beside it), standing in `sandbox/` until the round-three ruling lands.  
+The ruling on round three (Will, 2026-09-15, after rounds two and three of the variations): "I'm loving 1 and 2. Let's continue iterating on 1 in its current emanating direction and 2 with its phone scan addition." A new variation off the source, the inflow: "images streaming into the QR rather than away. This may be more conceptually sound (guest images go into QR) but may not present as well visually, in which case we'll keep in 1's direction." The burst: "can be killed as the home hero, but the background (images emanating) would be beautiful for the /features/album hero for the live album", looped for the live feel, no code, the album product as a calmer wide visual below (the `album-hero` board). The river: "can be killed as a hero, but the river animation could be streamlined to drop down in one flow rather than two, and saved to our lab design bank to hopefully use another time as a feature visual" (the `river-visual` board). Round four runs the source (`hero-source`), the scan (`hero-scan`) and the inflow (`hero-inflow`) in parallel.
+
+Variants, round four: The source; The scan; The inflow (the burst and the river left the board at `4aeedd8`: `git show 4aeedd8:src/app/(dev)/design/sandbox/home-hero/burst.tsx`, and moved whole into the two new boards' lanes).
+
+Board: `src/app/(dev)/design/sandbox/home-hero/board.tsx` (the shell; `source.tsx` the ruled reference; one file per variation beside it), standing in `sandbox/` until the round-four ruling lands.  
 Lives: `docs/systems/marketing-content.md`, `src/components/marketing/sections/home/cinema-hero.tsx`
+
+## album-hero
+
+**The album page's hero** (marketing). Ruled open (2026-09-15). Shipped: open.  
+The burst's emanating field, killed as the home hero, as the /features/album hero: looped for the live feel of an album full of images, no code, the album product as a calmer wide visual below it so the two do not fight.  
+Variants, round one: The seed (the burst as it left the home hero).
+
+Context: Will's round-three hero ruling (2026-09-15), quoted under home-hero above. The track's brief is `docs/tracks/album-hero.md`.
+
+Board: `src/app/(dev)/design/sandbox/album-hero/board.tsx` (seeded with `burst.tsx` and `burst.css`, moved from the home hero at `4aeedd8`).  
+Lives: `src/app/(marketing)/(cinema)/features/album/page.tsx`, `src/lib/constants/feature-pages.ts`
+
+## river-visual
+
+**The river, a feature visual** (marketing). Ruled open (2026-09-15). Shipped: open.  
+The river, killed as a hero, streamlined to one flow and kept in the lab's bank as a section-scale feature visual: the album dropping out of the code, at three sizes on cinema and paper, with its placements, its props and its measured cost.  
+Variants, round one: The seed (the river as it left the home hero).
+
+Context: Will's round-three hero ruling (2026-09-15), quoted under home-hero above. The track's brief is `docs/tracks/river-visual.md`.
+
+Board: `src/app/(dev)/design/sandbox/river-visual/board.tsx` (seeded with `river.tsx` and `river.css`, moved from the home hero at `4aeedd8`).  
+Lives: `src/components/marketing/system/section-shell.tsx`, `src/lib/constants/feature-pages.ts`
 
 ## pricing-plan-cards
 

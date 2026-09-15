@@ -11,8 +11,7 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
 import { Variant } from "../variant-frame";
-import { burst } from "./burst";
-import { river } from "./river";
+import { inflow } from "./inflow";
 import { scan } from "./scan";
 import { type Concept, type CopyMode } from "./shared";
 import { source } from "./source";
@@ -22,7 +21,8 @@ import { source } from "./source";
  * the doctrine are in shared.tsx. Round two's three concepts were ruled the
  * same day: the source won ("definitely my favorite direction"), so it stays
  * on the board as the reference and three variations off it are one file
- * each, built by three tracks in parallel (hero-scan, hero-burst, hero-river)
+ * each, built by tracks in parallel (round four: hero-source, hero-scan, hero-inflow;
+ * the burst and the river left for their own boards on 2026-09-15)
  * and imported here in the order the board argues them. The reel and the
  * gathering left the board at ba82222 (`git show ba82222:<path>`).
  *
@@ -33,7 +33,7 @@ import { source } from "./source";
  * exactly as the shipped hero has it.
  */
 
-const CONCEPTS: Concept[] = [source, scan, burst, river];
+const CONCEPTS: Concept[] = [source, scan, inflow];
 
 /** The stage: the shell's, on the cinema ground with the group's body skin
  *  (this board is cinema-only, so the lab page matches the route group). */
@@ -95,13 +95,15 @@ export function HomeHeroBoard() {
           the feature.
         </p>
         <p>
-          Round three iterates on the source. It stays first as the reference;
-          three variations follow, each pushing one axis of the same causality:
-          the scan makes the cause literal (the act of scanning births the
-          album), the burst takes the origin into every direction, the river
-          runs the album down out of the code into the page. Each proposes its
-          own supporting elements and copy, names its assets, and flags any
-          departure on the board rather than in a footnote.
+          Round four continues the two Will loves (2026-09-15): the source in
+          its emanating direction and the scan with its phone. The inflow is the
+          new variation off the source, the album streaming into the code rather
+          than out of it, built to answer honestly whether the truer reading
+          presents as well. The burst and the river were killed as heroes and
+          moved to their own boards: the burst&apos;s field is the album
+          page&apos;s hero, the river a feature visual in the bank. Each
+          proposes its own supporting elements and copy, names its assets, and
+          flags any departure on the board rather than in a footnote.
         </p>
       </div>
 

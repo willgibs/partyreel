@@ -1,8 +1,8 @@
 ---
 track: rounding
-status: integrated
-cut: "ab45b03"
-merged: "a32981a"      # the branch head merged into launch-prep
+status: open
+cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_3: "a32981a"
 merged_round_2: "2603465"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
@@ -23,6 +23,68 @@ reads:
 ---
 
 # lp/rounding
+
+## Round 4 (Will's review notes, 2026-09-15)
+
+**The global notes, which bind every board this round** (Will, 2026-09-15, after a scroll through every
+board on launch-prep): (a) **Page-wide controls always on screen.** "For any pagewide configs, the GUI
+control should be fixed so that variants can be toggled on different previews anywhere on the page for
+better back-and-forth comparisons. Having to scroll back to the top makes it very hard to review
+differences." The shell now ships `BoardDock` (`src/components/dev/board/dock.tsx`, exported from
+`@/components/dev/board`; the floating board's sticky bar, generalised: it sticks from `sm` up, writes its
+height to `scroll-padding-top` so anchors land under it, and carries the shell's Fit/1:1, Sidebar and Desk
+controls). Put every switch that changes the whole page in it (the candidate, the ground, the canvas, the
+ramp, Replay, Apply to the site); a control that changes one specimen stays beside that specimen. (b)
+**Pixel-perfect previews.** "The iFrame previews throw off anything related to size, making those reviews
+particularly difficult. This needs to be fixed for pixel-perfect lab demos/previews." Every `Stage` now
+renders at 1:1 by default (the lab preference in `lab-prefs.ts`; the board page lifts its max-width and
+tucks the sidebar away so a 1440 canvas has its room; "Fit" keeps the old zoom for a glance at the whole).
+Never zoom, scale or transform a specimen whose size is being judged; anything you render inside an iframe
+renders at true pixels; if a 1440 canvas needs sideways scroll on a narrower window, that is correct. (c)
+**More real UI.** Will wants live production components and whole real pages as the preview surfaces
+("I'd love to see more UI examples for comparison, especially if they can be live production components";
+"more UI to preview the variations on"), not a screen of specimens. (d) **The app's UI is open.** "The app
+is functionally great, but UI design lags far behind the design work we've been doing for the marketing
+site... any UI that touches App in an active lab track may be worked on before the dedicated app agents get
+to it later." So where your board shows an app surface, you may redesign it (rising tides, bible 22), in
+the lab, as a candidate. (e) **Vercel is capped** (the free plan's 100 deployments per trailing day, hit at
+23:31 on the 14th; the window frees through the afternoon of the 15th): push, but verify on a local
+production build or dev server at 1440 and 375 in a foreground tab, and say so in the Handoff. (f) The
+record: "Handoff (round 4)" and "Record (round 4)" below; the Record is the paragraph the CHANGELOG carries
+for round 4, so write it as what the board became and why.
+
+**Will's note on this board, verbatim.** "I'd like more UI to preview the variations on. Barely a single
+screen with a few components doesn't really give a real feel of the marketing site or actual app rounding,
+or how the different rounding groups work together."
+
+**Round 4 (the goal).** (1) **Whole pages.** The judged surfaces are whole real pages and live production
+components on every candidate, at 1:1: the home arc top to bottom (the hero, the film strip, the chapters,
+the pricing band, the footer), /pricing, /help, the dashboard, an event page with its media grid and its
+menus, the guest album and the guest entry sheet, a dialog and a menu from the floating board, at 1440 and
+375, so the rounding groups (surfaces, the floating layer, media tiles, actions) are judged together where
+they meet. (2) **The dock** carries the candidate, the action rung, the ladder, the ground and the canvas,
+so any page section is compared by a flip beside it. (3) Keep round three's answer block, the matrix and
+the measured corner; every page walk link stays. (4) Where the tuner panel and the dock both stand, keep
+them clear of each other and of the evidence (you measured the panel last round; the dock writes
+`--board-dock-h`).
+
+### The rules of this wave (every track)
+
+- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
+  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
+  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
+  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
+  `docs/tracks/orchestrator.md`).
+- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
+  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
+  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
+  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
+- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
+  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
+  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
+  `docs/systems/testing-verification.md`) and say so in the Handoff.
+- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
+  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -518,3 +580,19 @@ Merged into `launch-prep` at `<sha>` (2026-09-14). The rounding board was rebuil
 Round three was the walk Will was about to take, taken first, and it found the board hiding its own evidence. The tuner panel is fixed at the bottom right, 320px wide, and opens open: it sat over the last two columns of the matrix, both specimen columns of the ladder, the third action rung and the third phone. The board measures the panel now and keeps every part clear of it, live, so closing it widens the board again; the live column, which sat under the panel that drove it, became one band; part B's stage takes its height from its content instead of guessing at it; and the answer comes first, as five one-word rulings with the two shapes the first one turns on at true size and one button that puts the whole paste on the site.
 Six findings, all on the board rather than in a comment. The guest gallery's gap is a literal in three files while its tiles ride the token, so any tile above 3 opens corner holes on the one grid every guest sees. The guest entry sheet, the first surface any guest meets, takes its corner from the ACTION token at 1.4x, which makes it a half circle under the pill rung. `--radius-action-lg` has one call site, and every marketing CTA is an ad-hoc h-11 in 26 files wearing 0.33 of its height against a documented 0.4. `rounded-3xl` and `rounded-4xl` have three uses between them. The guest group mounts no design island, so the page those findings live on cannot wear a candidate at all. And the sixth came from walking all seven surfaces with the answer applied rather than from reading the tree: 64 corners in 28 files are px literals, 52 of them photographs, so the home page alone keeps 70 corners at 2 and 3px while the cards around them move to 10 and 12.
 The board answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop the dead rungs and pin the gap, verified on `/pricing`, where a plan card lands at 12px against 25.2 on stock at a round base.
+
+## Handoff (round 4)
+
+- Head <sha>, pushed; preview partyreel-git-lp-rounding-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
+- Synced with launch-prep at <sha> (or: launch-prep had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
+- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
+- Look at first: ...
+
+## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...

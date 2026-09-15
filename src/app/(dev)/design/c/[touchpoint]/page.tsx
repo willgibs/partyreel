@@ -5,6 +5,7 @@ import { requireDesignKey } from "@/lib/design-gate/server";
 import { ModeShell } from "../../mode-shell";
 import { GlowDoctrineVariants } from "../../sandbox/glow-doctrine-variants";
 import { GlowMomentsVariants } from "../../sandbox/glow-moments-variants";
+import { AlbumHeroBoard } from "../../sandbox/album-hero/board";
 import { BrandVoiceBoard } from "../../sandbox/brand-voice/board";
 import { FloatingSurfacesBoard } from "../../sandbox/floating-surfaces/board";
 import { HomeHeroBoard } from "../../sandbox/home-hero/board";
@@ -13,6 +14,7 @@ import { MarketingDecompositionVariants } from "../../sandbox/marketing-decompos
 import { MarketingHeroSubstrateVariants } from "../../sandbox/marketing-hero-substrate-variants";
 import { MediaKitBoard } from "../../sandbox/media-kit/board";
 import { PaletteBoard } from "../../sandbox/palette/board";
+import { RiverVisualBoard } from "../../sandbox/river-visual/board";
 import { RoundingBoard } from "../../sandbox/rounding/board";
 import { TypeScaleBoard } from "../../sandbox/type-scale/board";
 import { getRuling, type SandboxId, SURFACE_LABEL } from "../../touchpoints";
@@ -33,6 +35,8 @@ const VARIANTS: Record<SandboxId, React.ComponentType> = {
   "brand-voice": BrandVoiceBoard,
   "media-kit": MediaKitBoard,
   rounding: RoundingBoard,
+  "album-hero": AlbumHeroBoard,
+  "river-visual": RiverVisualBoard,
 };
 
 // One open question, its explorations side by side on the locked system. The

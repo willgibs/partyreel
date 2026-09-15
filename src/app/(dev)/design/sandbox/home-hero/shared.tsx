@@ -76,7 +76,10 @@ export { CANVAS, useTabHidden, type Mode } from "@/components/dev/board";
 import type { Mode } from "@/components/dev/board";
 export type CopyMode = "ruled" | "proposed";
 /** Round three: the source stays as the reference; scan, burst and river vary it. */
-export type ConceptId = "source" | "scan" | "burst" | "river";
+// burst and river left the board (Will, 2026-09-15: killed as heroes; the burst's
+// field is the album-hero track's seed, the river the river-visual track's), but
+// their seed files still export a Concept typed on this union.
+export type ConceptId = "source" | "scan" | "inflow" | "burst" | "river";
 
 export type ConceptProps = {
   mode: Mode;

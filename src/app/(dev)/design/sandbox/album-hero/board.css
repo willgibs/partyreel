@@ -1,0 +1,3 @@
+/* THE ALBUM PAGE'S HERO: the board's own sheet. Keyframes and classes under `alb-` only
+   (keyframe-uniqueness.test.ts reads every sheet under the lab); the seed keeps
+   its own sheet (burst.css) and its own prefix until the track decides. */

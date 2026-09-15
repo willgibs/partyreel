@@ -1,8 +1,8 @@
 ---
 track: brand-voice
-status: integrated
-cut: "ab45b03"
-merged: "4530f2e"      # the branch head merged into launch-prep
+status: open
+cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_3: "4530f2e"
 merged_round_2: "b574cda"
 merged_round_1: "d988c88"
 preview: true           # Will reviews this board on its preview as it builds
@@ -25,6 +25,75 @@ reads:
 ---
 
 # lp/brand-voice
+
+## Round 4 (Will's review notes, 2026-09-15)
+
+**The global notes, which bind every board this round** (Will, 2026-09-15, after a scroll through every
+board on launch-prep): (a) **Page-wide controls always on screen.** "For any pagewide configs, the GUI
+control should be fixed so that variants can be toggled on different previews anywhere on the page for
+better back-and-forth comparisons. Having to scroll back to the top makes it very hard to review
+differences." The shell now ships `BoardDock` (`src/components/dev/board/dock.tsx`, exported from
+`@/components/dev/board`; the floating board's sticky bar, generalised: it sticks from `sm` up, writes its
+height to `scroll-padding-top` so anchors land under it, and carries the shell's Fit/1:1, Sidebar and Desk
+controls). Put every switch that changes the whole page in it (the candidate, the ground, the canvas, the
+ramp, Replay, Apply to the site); a control that changes one specimen stays beside that specimen. (b)
+**Pixel-perfect previews.** "The iFrame previews throw off anything related to size, making those reviews
+particularly difficult. This needs to be fixed for pixel-perfect lab demos/previews." Every `Stage` now
+renders at 1:1 by default (the lab preference in `lab-prefs.ts`; the board page lifts its max-width and
+tucks the sidebar away so a 1440 canvas has its room; "Fit" keeps the old zoom for a glance at the whole).
+Never zoom, scale or transform a specimen whose size is being judged; anything you render inside an iframe
+renders at true pixels; if a 1440 canvas needs sideways scroll on a narrower window, that is correct. (c)
+**More real UI.** Will wants live production components and whole real pages as the preview surfaces
+("I'd love to see more UI examples for comparison, especially if they can be live production components";
+"more UI to preview the variations on"), not a screen of specimens. (d) **The app's UI is open.** "The app
+is functionally great, but UI design lags far behind the design work we've been doing for the marketing
+site... any UI that touches App in an active lab track may be worked on before the dedicated app agents get
+to it later." So where your board shows an app surface, you may redesign it (rising tides, bible 22), in
+the lab, as a candidate. (e) **Vercel is capped** (the free plan's 100 deployments per trailing day, hit at
+23:31 on the 14th; the window frees through the afternoon of the 15th): push, but verify on a local
+production build or dev server at 1440 and 375 in a foreground tab, and say so in the Handoff. (f) The
+record: "Handoff (round 4)" and "Record (round 4)" below; the Record is the paragraph the CHANGELOG carries
+for round 4, so write it as what the board became and why.
+
+**Will's notes on this board, verbatim.** "I feel like there's a handful of notes about the voices, but not a
+lot of actual usage examples that I can get a feel for each voice through. I would love to see the brand
+voices previewed on a few different production UI areas across marketing and app to see how they'd write
+copy in different instances." "I noticed in some copy examples, like the quiet surfaces where it shows
+today's copy versus the proposed copy in the new brand voice, a lot just have the exact same versions with a
+note that says 'unchanged'. That's fine for actual copy rewrites, as we don't have to force changes
+everywhere, but it's absolutely useless for a brand voice comparison here. Any examples should actually show
+the distinction (can include similarities as well)."
+
+**Round 4 (the goal).** (1) **Usage over notes.** The board leads with the voices in use: each voice
+writing the same real surface, side by side, on live production components and whole real pages across
+marketing and the app: a hero, a chapter header and body, a feature card set, a pricing card, a help
+article's opening, the dashboard's empty state and its event card, the create-event wizard's steps, the
+upload sheet a guest sees, a toast, an error, an email subject and opening line, a notification. Every
+example is a real line that would ship, at 1:1, on the real ground. (2) **Every comparison shows the
+distinction.** No "unchanged" rows in a voice comparison: where a voice would leave a line as it is, show
+how the OTHER voice would write it and say why this one holds; a comparison exists to show the difference,
+and a similarity may be shown beside it. (3) The guide (`docs/specs/brand-voice.md`) grows the examples per
+surface to match, so a wiring round can write in the voice from the guide alone. (4) **The dock** carries
+the voice, the canvas and the ground. (5) Keep round three's recommendation, its measured cost and the
+twelve chapters; recut the chapters so the usage examples come first.
+
+### The rules of this wave (every track)
+
+- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
+  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
+  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
+  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
+  `docs/tracks/orchestrator.md`).
+- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
+  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
+  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
+  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
+- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
+  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
+  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
+  `docs/systems/testing-verification.md`) and say so in the Handoff.
+- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
+  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -732,3 +801,19 @@ window (a fixed-width stage in a grid cell defeats its own zoom-fit), and the bo
 cut from seventeen finished animations sitting at rest to none. The guide gained an example per
 surface for each shape, the eight do's bible 20 asked for, and seven findings. No production byte
 changed.
+
+## Handoff (round 4)
+
+- Head <sha>, pushed; preview partyreel-git-lp-brand-voice-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
+- Synced with launch-prep at <sha> (or: launch-prep had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
+- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
+- Look at first: ...
+
+## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...

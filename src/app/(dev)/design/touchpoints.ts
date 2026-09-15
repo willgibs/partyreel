@@ -47,6 +47,8 @@ export type RulingId =
   | "marketing-decomposition"
   | "marketing-hero-substrate"
   | "home-hero"
+  | "album-hero"
+  | "river-visual"
   | "pricing-plan-cards"
   | "pricing-calculator"
   | "contact-identity"
@@ -70,6 +72,8 @@ export type SandboxId =
   | "marketing-decomposition"
   | "marketing-hero-substrate"
   | "home-hero"
+  | "album-hero"
+  | "river-visual"
   | "glow-doctrine"
   | "glow-moments"
   | "palette"
@@ -317,17 +321,17 @@ export const RULINGS: Ruling[] = [
     title: "The home hero",
     surface: "marketing",
     ruled:
-      "open (round two ruled 2026-09-14: the source; round three varies it)",
+      "open (round two ruled 2026-09-14: the source; round three ruled 2026-09-15: the source and the scan continue, the inflow joins)",
     shipped: null,
-    why: "The source won round two (a stranger should think 'if I scan this, I get all of these'); round three varies it three ways beside the source.",
+    why: "The source won round two; round three's ruling keeps the source and the scan, kills the burst and the river as heroes (their own boards now) and adds the inflow.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/components/marketing/sections/home/cinema-hero.tsx",
     ],
     board: {
-      note: "Round three: the source as the reference, then three variations of the same causality: the scan makes the cause literal, the burst takes the origin into every direction, the river runs the album down out of the code into the page; each proposes its supporting elements and copy",
-      variants: ["The source (ruled)", "The scan", "The burst", "The river"],
-      tracks: ["hero-scan", "hero-burst", "hero-river"],
+      note: "Round four: the source in its emanating direction and the scan with its phone, both loved; the inflow, the album streaming into the code rather than out of it, built to answer honestly whether the truer reading presents as well",
+      variants: ["The source", "The scan", "The inflow"],
+      tracks: ["hero-source", "hero-scan", "hero-inflow"],
     },
   },
   {
@@ -611,6 +615,40 @@ export const RULINGS: Ruling[] = [
         "D, one family",
         "Live, the tuner",
       ],
+    },
+  },
+  {
+    id: "album-hero",
+    title: "The album page's hero",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-15: the burst's field, killed as the home hero, becomes the live album's hero)",
+    shipped: null,
+    why: "The burst's emanating field as the /features/album hero: looped for the live feel, no code, the album product as a calm wide visual below it.",
+    lives: [
+      "src/app/(marketing)/(cinema)/features/album/page.tsx",
+      "src/lib/constants/feature-pages.ts",
+    ],
+    board: {
+      note: "Seeded with the burst as it left the home hero: the field becomes the album page's hero with the page's own lockup in the quiet zone, then the real guest album as a wide, calmer visual below it, judged as the top of the real page",
+      variants: ["The seed (the burst)"],
+    },
+  },
+  {
+    id: "river-visual",
+    title: "The river, a feature visual",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-15: the river, killed as a hero, streamlined to one flow and kept in the bank)",
+    shipped: null,
+    why: "The river as a section-scale feature visual: one stream dropping out of the code, at three sizes on cinema and paper, banked with its placements, props and cost.",
+    lives: [
+      "src/components/marketing/system/section-shell.tsx",
+      "src/lib/constants/feature-pages.ts",
+    ],
+    board: {
+      note: "Seeded with the river as it left the home hero: one flow instead of two banks, sized as a card, a column and a thumbnail, shown in three real placements, with its props, its measured cost and the paste to mount it",
+      variants: ["The seed (the river)"],
     },
   },
 ];

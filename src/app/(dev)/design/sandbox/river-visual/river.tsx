@@ -21,7 +21,7 @@ import {
   type Mode,
   Photo,
   copyFor,
-} from "./shared";
+} from "../home-hero/shared";
 
 /**
  * THE RIVER (concept 4 of the home-hero board; round three's variation 4, on

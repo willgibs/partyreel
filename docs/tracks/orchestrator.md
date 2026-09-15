@@ -17,13 +17,15 @@ owns:
   - src/app/(dev)/design/boom/
   - src/app/(dev)/design/reel-parity/
   - src/app/(dev)/design/c/
+  - src/app/(dev)/design/layout.tsx
+  - src/app/(dev)/design/lab-nav.tsx
+  - src/app/(dev)/design/design.css
+  - src/app/(dev)/design/mode-shell.tsx
   - src/app/(dev)/design/touchpoints.ts
   - src/app/(dev)/design/touchpoints.test.ts
   - src/app/(dev)/design/sandbox/home-hero/board.tsx
   - src/app/(dev)/design/sandbox/home-hero/board.css
   - src/app/(dev)/design/sandbox/home-hero/shared.tsx
-  - src/app/(dev)/design/sandbox/home-hero/source.tsx
-  - src/app/(dev)/design/sandbox/home-hero/source.css
   - src/components/dev/
   - src/components/marketing/mdx/
   - src/components/marketing/mdx-components.tsx
@@ -44,6 +46,7 @@ reads:
   - src/app/(marketing)/(cinema)/layout.tsx
   - src/components/marketing/system/section-shell.tsx
 announces:
+  - "round four of the review wave (2026-09-15, overnight on Will's notes): the shell gained BoardDock (src/components/dev/board/dock.tsx: a board's page-wide switches, sticky from sm up, writing its height to scroll-padding-top and --board-dock-h) and the reading preferences (lab-prefs.ts, applied by LabChrome: every Stage renders at 1:1 by default, the board page lifts its max-width, the sidebar is tucked away on board pages; Fit keeps the old zoom); never scale a judged specimen. The home hero board is the source, the scan and the new inflow (hero-source, hero-scan, hero-inflow); the burst and the river left it for their own boards, album-hero and river-visual, their files moved whole (imports now ../home-hero/shared); ConceptId keeps burst and river for the seeds. Twelve tracks run at once; Vercel is capped until the afternoon, so every track verifies locally."
   - "the review wave (2026-09-14): seven tracks cut at once off the bible's second edition; the six boards own only sandbox/<id>/ (their RULINGS entries, the dispatcher lines and the desk are registered here up front, with placeholder variant names renamed at integration); kill-mono owns the production trees it sweeps, the lab's family pages and six older sandbox files, and src/components/marketing/system/ is RELEASED to it from this manifest (deleting mono-caption.tsx is atomic only with its 18 importers)"
   - the rounding and tweaking GUI round (Orchestrator-run, in parallel with the wave) touches src/components/dev/ (the tuner, its config, the shared board shell in dev/board/), src/app/(dev)/design/motion/, the rounding board at sandbox/rounding/, and the radius VALUES in src/app/globals.css and the derivation in src/app/theme.css; tokens are never renamed mid-window (boards read --radius-float and --radius-tile), and any landed value change is announced here first so boards sync
   - theme.css line 18 (--font-mono) was deleted pre-spawn; Tailwind's default mono stack carries every surviving font-mono until kill-mono lands, and no new mono is written anywhere (bible 7, retiring)
@@ -75,7 +78,11 @@ round-3 handoff is integrated (the merge SHAs are on the In flight rows), folded
 its asks quoted under Waiting on Will, its proposal refreshed in `docs/specs/`. Every worktree and
 `lp/*` branch is pruned. ★ Vercel's free-plan cap (100 deployments per trailing day) was hit at 23:31
 on the 14th: the launch-prep alias serves round one until the window frees (from 16:30 on the 15th),
-so the review surface is the local dev server. **Now: Will's review** (the items below), after which:
+so the review surface is the local dev server. Will's overnight notes (2026-09-15) opened **round four on
+twelve tracks at once** (the seven boards and the scan on his notes; the source released to
+`hero-source`; `hero-inflow` new; `album-hero` and `river-visual` seeded with the burst and the river,
+killed as heroes), on a shell that gained the board dock and 1:1 stages for it. **Now: Will's review of
+round four** (the items below), after which:
 the composition pass (one Orchestrator board stacking the ruled blocks on the home arc and the
 dashboard), the hero's wiring round, the floating and light wiring rounds, `voice-infusion`. The
 record the Orchestrator keeps between windows is the two lists below plus

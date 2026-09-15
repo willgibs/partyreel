@@ -1,8 +1,8 @@
 ---
 track: palette
-status: integrated
-cut: "4e52287"
-merged: "0d5bb64"      # the branch head merged into launch-prep
+status: open
+cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+merged_round_3: "0d5bb64"
 merged_round_2: "499a1ad"
 merged_round_1: "bf1a6ef"
 preview: true           # Will reviews this board on its preview as it builds
@@ -22,6 +22,92 @@ reads:
 ---
 
 # lp/palette
+
+## Round 4 (Will's review notes, 2026-09-15)
+
+**The global notes, which bind every board this round** (Will, 2026-09-15, after a scroll through every
+board on launch-prep): (a) **Page-wide controls always on screen.** "For any pagewide configs, the GUI
+control should be fixed so that variants can be toggled on different previews anywhere on the page for
+better back-and-forth comparisons. Having to scroll back to the top makes it very hard to review
+differences." The shell now ships `BoardDock` (`src/components/dev/board/dock.tsx`, exported from
+`@/components/dev/board`; the floating board's sticky bar, generalised: it sticks from `sm` up, writes its
+height to `scroll-padding-top` so anchors land under it, and carries the shell's Fit/1:1, Sidebar and Desk
+controls). Put every switch that changes the whole page in it (the candidate, the ground, the canvas, the
+ramp, Replay, Apply to the site); a control that changes one specimen stays beside that specimen. (b)
+**Pixel-perfect previews.** "The iFrame previews throw off anything related to size, making those reviews
+particularly difficult. This needs to be fixed for pixel-perfect lab demos/previews." Every `Stage` now
+renders at 1:1 by default (the lab preference in `lab-prefs.ts`; the board page lifts its max-width and
+tucks the sidebar away so a 1440 canvas has its room; "Fit" keeps the old zoom for a glance at the whole).
+Never zoom, scale or transform a specimen whose size is being judged; anything you render inside an iframe
+renders at true pixels; if a 1440 canvas needs sideways scroll on a narrower window, that is correct. (c)
+**More real UI.** Will wants live production components and whole real pages as the preview surfaces
+("I'd love to see more UI examples for comparison, especially if they can be live production components";
+"more UI to preview the variations on"), not a screen of specimens. (d) **The app's UI is open.** "The app
+is functionally great, but UI design lags far behind the design work we've been doing for the marketing
+site... any UI that touches App in an active lab track may be worked on before the dedicated app agents get
+to it later." So where your board shows an app surface, you may redesign it (rising tides, bible 22), in
+the lab, as a candidate. (e) **Vercel is capped** (the free plan's 100 deployments per trailing day, hit at
+23:31 on the 14th; the window frees through the afternoon of the 15th): push, but verify on a local
+production build or dev server at 1440 and 375 in a foreground tab, and say so in the Handoff. (f) The
+record: "Handoff (round 4)" and "Record (round 4)" below; the Record is the paragraph the CHANGELOG carries
+for round 4, so write it as what the board became and why.
+
+**Will's notes on this board, verbatim where it matters.** "Again, needs a fixed GUI for comparison anywhere
+on page." "I know I've asked before, but what's the difference between cinema and ink? Is cinema pure black
+and ink near black? Should this be reworked to avoid complexity or is it best?" "I'd love to see more UI
+examples for comparison, especially if they can be live production components using the demo palettes."
+"Might as well add a couple additional palettes to increase our selection size. Side note: we can choose
+dark and light separately, don't have to be a package deal. Dark will apply to marketing and app, light
+applies to paper in marketing and light mode in app." "Your call on keeping dark/light/cinema/ink as
+separate variants (plus the 5th using the surface color from the current /contact card, which doesn't have
+a themed section of its own yet) or reworking our palette system to simply dark/light with variants of each
+(such as dark having cinema for pure black, ink for lighter black, light having paper for pure white, XYZ
+for light grey (needs name)). I've just seen so much dark, light, cinema, ink, etc., and didn't know if we
+were incorrectly elevating a bad color system we were stuck in or if this is actually the best way to do
+it." "Main ideas are: improving the comparison UI, choosing the light and dark palettes separately, adding
+more palettes to options, adding more UI to preview with, and solidifying how we handle theming in general
+within all of this."
+
+**Round 4 (the goal).** (1) **The theming model is the first ask, answered by you.** Judge it from the
+ground up: if no palette system existed, what would the perfect one be for a product with a dark marketing
+site, a light marketing body, a footer slab, an app with two modes and a guest surface that is the host's?
+Today's facts: cinema is `oklch(0.11 0 0)` (the dark marketing ground, set by the `(cinema)` group's skin),
+the app's dark is 0.14, ink is 0.155 (the footer's leaf token set, `.surface-ink`), paper is 0.99, and the
+/contact card's `bg-muted/40` panel is the fifth ground with no name. Propose the model as a named
+structure: two modes (dark, light), each with named registers (for dark: a deep room and a lighter slab;
+for light: paper and the grey panel, which you name), or three darks kept and why; say which registers
+the marketing site, the app and the guest surface each use, and what a page or section chooses. Write it
+on the board as the first block, in plain words, with the cinema-versus-ink answer in one sentence, and make
+it the first ask. (2) **Light and dark chosen separately.** The dock carries two candidate switches, one
+for the dark side (marketing cinema and ink, the app's dark mode) and one for the light side (paper and the
+app's light mode), so any dark ramp pairs with any light ramp, and "Apply to the site" hands the site the
+pair. (3) **More palettes.** Add at least two dark candidates and two light candidates beyond today's, each
+a real different answer (a warmer black, a colder one, a lifted near-black, a warm paper, a cool paper, a
+grey that is not a tint of the text), each a paste. (4) **More real UI.** The comparison surfaces are live
+production components and whole real sections on each candidate pair: the home arc's chapters, a pricing
+card, the dashboard's event cards, the event page, the guest album, the footer slab, a dialog and a menu
+(the floating board's primitives), every state hue; the walk links stay. (5) **The dock**: every page-wide
+switch in `BoardDock`, so a candidate can be flipped beside any row. (6) Keep what round three earned: the
+paste per candidate, today beside the candidate in one canvas, the measured counts, the temperature switch
+if it still earns its place under the new model.
+
+### The rules of this wave (every track)
+
+- **The shell is shared and registered.** Never edit `src/components/dev/` (the board shell: `Stage`,
+  `Toggle`, `BoardDock`, `BoardMeta`, the tuner, the candidate block), `touchpoints.ts`, `rules/bible.ts`,
+  another track's files, or CHANGELOG, STATUS, ROADMAP, PROGRAM, CLAUDE, AGENTS, `docs/ASSETS.md`; a
+  shell change you need is asked for in the Handoff and the Orchestrator lands it (announced in
+  `docs/tracks/orchestrator.md`).
+- **Sheets.** Keyframes under your prefix only (`keyframe-uniqueness.test.ts` reads every sheet under the
+  lab); a board sheet never imports tailwindcss; `glow-contract.test.ts` pins the BorderBeam and
+  GlowFilter counts across `src`, so compose `<Glow>` only. No em-dashes anywhere a person reads. No
+  `font-mono`, no `MonoCaption` (`two-faces-policy.test.ts`).
+- **Light QA** (Will, 2026-09-14): the board at 1440 and 375, reduced motion honoured, the gate green on
+  the synced tree; Vercel is capped, so verify on a local production build or dev server in a FOREGROUND
+  tab (a hidden tab pauses the loops and lays the lab out in the sidebar cell:
+  `docs/systems/testing-verification.md`) and say so in the Handoff.
+- **Commits** on `lp/<track>` only, staged explicitly, never `--no-verify`, never force; every commit ends
+  with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 
 ## Round 3 (Will, 2026-09-14: one more iteration cycle before his review)
 
@@ -1386,3 +1472,19 @@ bar repaints the board from one resolver, so none can label an answer the page d
 counts were wrong and are measured (the panel at 35 sites, not 45; the ring at 37), and the walk is
 seven pages, the last the guest album, which no board could reach until the shell mounted its
 island. Lab only, no production byte.
+
+## Handoff (round 4)
+
+- Head <sha>, pushed; preview partyreel-git-lp-palette-partyreel.vercel.app (may not build while Vercel is capped: say how the board was verified locally)
+- Synced with launch-prep at <sha> (or: launch-prep had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Shell changes asked for (the Orchestrator lands them): none, or one bullet each
+- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
+- Look at first: ...
+
+## Record (round 4; the CHANGELOG paragraph for round 4, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (<date>). ...
