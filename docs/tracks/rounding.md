@@ -239,16 +239,65 @@ Four findings, all on the board rather than in a comment. The guest gallery's ga
 
 ## Handoff (round 3)
 
-- Head: the tip of `lp/rounding`, pushed. The last code commit is `12f1b91`
-  (the third pass, below); `6dd4d7a` was the second pass's, and both sit on the
-  sync merge `c79038b`. The manifest commits follow the code. The board is
+- Head: the tip of `lp/rounding`, pushed. The last code commit is `e0a85c9`
+  (the fourth pass, below); `12f1b91` was the third pass's and `6dd4d7a` the
+  second pass's, and all three sit on the sync merge `c79038b`. The manifest
+  commits follow the code. The board is
   `/design/c/rounding?key=`. **The round-three marker in the rendered HTML is
   the heading "What the board answers"** (and the class `rnd-answer-grid`),
   both present in the server-rendered markup; round two's marker, "The six
   tokens, at true size", is still there as part A's heading, so the answer
   block is what tells the two rounds apart.
-- **Third pass (the read-only review of this handoff found one should-fix item;
-  it is fixed here).** Round 3's goal item (1) named seven surfaces to walk
+- **Fourth pass (the read-only re-review of this handoff found one should-fix
+  item; it is fixed here).** Every number the board printed beside a card was
+  the constant 1.4, while the ladder a card is actually DRAWN at is scoped per
+  subtree: the answer block's second column is permanently on the ruled quarter
+  ladder, so candidate C drew a 10px card under a caption reading 11.2px, and
+  the same constant sat in the action row's contrast ratio, part C's header,
+  part A's row note and its lede, and candidate C's phone line.
+  `cardMultiplier(ladder)` in `candidates.ts` is the card's step in one place
+  now (Card ships as `rounded-xl`, so its corner is the xl rung: 1.4x on stock,
+  1.25x on quarters) and every one of those sites reads it. Two of them needed
+  more than arithmetic. The LIVE band sits outside every scoped ladder, so a
+  multiplier printed there would be a guess: it measures instead, one more
+  probe span at `rounded-xl` read back as used pixels, the same way the band's
+  six tokens already do (2.8px on the baked tree, 10px with the answer
+  applied). And candidate C's phone line carried "The card at 11.2", a number
+  that only holds on the stock ladder while C itself wants quarters; the prose
+  keeps the argument without the number, and part F's column header prints the
+  card computed from the ladder the phone is actually wearing. One guard
+  against the regression returning: `NestedSpecimen`'s `outerMultiplier` is
+  required rather than defaulted, because that card is drawn from an inline
+  `calc` and is the one card on the board a scoped retune cannot reach on its
+  own.
+- **How the fourth pass was verified, and it is NOT the preview.** Vercel is at
+  its daily deployment ceiling again, this round's instruction is that no
+  preview will build and that the API is not to be called, so none was
+  attempted and none is claimed: the alias still serves `0986a52` and is now
+  three code commits behind this handoff. The pass was walked on a LOCAL
+  production build instead (`pnpm build`, then `next start` on :3200 in this
+  worktree), at 1440 and at 375, and the check was mechanical rather than
+  eyeballed, because the bug was a caption that looked plausible: for every
+  caption on the page the card's own
+  `getComputedStyle().borderTopLeftRadius` was read and compared with the
+  number the caption prints. All matched, on the stock rail and the quarters
+  rail, in the answer block (2.8px under "card at 1.4x", 10px under "card at
+  1.25x"), in part A's four cells, in part C's pair, in the live band, and in
+  part F, where the dashboard composition's four `rounded-xl` event cards
+  measure 2.5 / 0 / 10 / 17.5 against headers printing the same. Zero console
+  messages on a fresh load; at 375 `documentElement.scrollWidth` equals
+  `innerWidth`, so the added text wraps rather than widening anything.
+- **A second test-tool note for the Orchestrator** (same file as the third
+  pass's, `docs/systems/testing-verification.md`, not this lane): the browser
+  pane's `resize_window` reported success on every call and the window never
+  changed size (`innerWidth` stayed 1456 whether 1440, 1424 or 375 was asked
+  for, with `outerWidth` reading 412), so a 375 walk driven that way would have
+  been a 1456 walk reported as a 375 one. The way through was to load the board
+  into a 375px same-origin `<iframe>` on the page and measure and screenshot
+  inside it; the board's own width machinery is measured in JS off real
+  rectangles, so it behaves there exactly as it does in a 375 window.
+- **Third pass (the read-only review of the round-two handoff found one
+  should-fix item; it was fixed then).** Round 3's goal item (1) named seven surfaces to walk
   with the Apply block on, and the handoff had recorded two of them, `/pricing`
   and `/help`, plus the guest page as a negative: `/`, `/contact`, `/dashboard`
   and an event page were neither walked nor declined, while "Look at first"
@@ -309,7 +358,11 @@ Four findings, all on the board rather than in a comment. The guest gallery's ga
   `animation-name`, and the sixth departure renders (it is in the
   server-rendered HTML, so `curl` finds it too). The only console errors on a
   local `next start` are the two `/_vercel/insights` scripts 404ing off the
-  platform, which is the server, not the page.
+  platform, which is the server, not the page. **Re-walked again after the
+  fourth pass's commit**, on a fresh local production build at 1440 and at
+  375: still no horizontal overflow at either width, still zero console
+  messages, and every printed card equal to its drawn corner on both ladders
+  (the mechanical check in the fourth-pass bullet above).
 - **A test-tool blind spot worth the Orchestrator's note** (for
   `docs/systems/testing-verification.md`, which is not this lane): the browser
   pane paints the FIRST screen of a page and then returns an all-black frame
