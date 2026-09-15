@@ -1475,24 +1475,37 @@ island. Lab only, no production byte.
 
 ## Handoff (round 4)
 
-- Head **`7b4b6715`** (this manifest's own commit sits on top; no board byte differs), pushed. Board at `/design/c/palette?key=`. **The round-four board is the one
+- Head **`f61313f7`** (this manifest's own commit sits on top; no board byte differs), pushed. Board at `/design/c/palette?key=`. **The round-four board is the one
   whose FIRST block is headed "The model: two modes, two grounds each, and one well that belongs to
   neither"**; round three's opened on a candidate card instead. Its dock carries two candidate
   switches (Dark: Today, Ladder, One room, Ember, Slate, Lift · Light: Today, Paper, Bright, Warm,
   Cool) where round three's bar had one ramp toggle and a temperature switch, and the paste at row 15
   prints a `.surface-mat` block that has never existed before.
-- **What changed after the read-only review** (three should-fix items, all closed; no candidate, no
-  paste, no ask and no measurement of the palette itself moved). Row 07's caption no longer claims
-  "the real reveal grammar" that the same round's stage deliberately pins, and says what the row does
-  show and why. The dock's two long switches take the shell's new `wrap` option, and its three rows
-  sit in one column. Shell ask 2 is struck because it landed on `launch-prep` while this round was
-  finishing, and every dock number below was re-measured against the landed dock. Shell ask 1, the
-  touchpoints line, is still out of lane and still asked for, now with the exact line to paste.
+- **What changed after the read-only review** (two passes, four should-fix items, all closed; no
+  candidate, no paste, no ask and no measurement of the palette itself moved). Row 07's caption no
+  longer claims "the real reveal grammar" that the same round's stage deliberately pins, and says
+  what the row does show and why. The dock's two long switches take the shell's new `wrap` option,
+  and its three rows sit in one column. Shell ask 2 is struck because it landed on `launch-prep`
+  while this round was finishing, and every dock number below was re-measured against the landed
+  dock. Shell ask 1, the touchpoints line, is still out of lane and still asked for, now with the
+  exact line to paste.
+- **The second pass caught the first pass's own blind spot, and it is worth reading before the next
+  board frames a marketing section.** marketing.css has TWO entrance shapes and only one of them is
+  an attribute: `TextsReveal` keys on a CLASS (`.mkt-lines.is-shown`) off the same in-view observer,
+  and `[data-mkt] .mkt-line` rests at opacity 0. SETTLED named only `[data-mkt-reveal]` and
+  `[data-mkt-cut]`, so row 07's FIRST chapter, TrustStrip, was an empty bordered band at the top of
+  both stages, and the audit that said "zero marked elements under full opacity" could not see it
+  because a `.mkt-line` carries no mark. SETTLED carries the class too now (`!important`, because
+  `[data-mkt] .mkt-line` outranks a bare class), the audit below counts BOTH grammars, and the
+  comment on SETTLED names the other hide-at-rest classes (`.mkt-text-swap`, `.mkt-skel-content`,
+  `.mkt-check`) so the next section added to a frame is not the same bug. The caption names both
+  grammars instead of one.
 - **Vercel is capped, so nothing here was verified on a preview** and the alias will still be serving
   round three when Will opens it. Everything below was measured on a **local PRODUCTION build** of
-  this head in this worktree (`pnpm build`, then `next start` on port **3060**; the first pass's 3046
-  server was still holding its port with an older build, which is the sort of thing that reads as a
-  fix not working, so the port moved rather than the reading being trusted), at a 1440 viewport, at
+  this head in this worktree (`pnpm build`, then `next start` on port **3060**, and the last pass's
+  re-walk on a fresh build on **3061**; a server holding its port with an older build is the sort of
+  thing that reads as a fix not working, so the port moves rather than the reading being trusted), at
+  a 1440 viewport, at
   the board's 375 canvas, and at a 500 window, which is the narrowest a macOS Chrome window goes.
   Readings are through the DOM and every box is read with `getBoundingClientRect`, which forces the
   layout rather than trusting a cached one; screenshots at 1440 and at 500 eyeball what the DOM
@@ -1508,9 +1521,9 @@ island. Lab only, no production byte.
 - Synced with `launch-prep` at **`07ad3b21`** (3 commits: PROGRAM, the orchestrator's own rows, and
   the shell's own round-four landing, which is the one that matters here; see shell ask 2). Nothing
   in this lane. The gate below is the re-run on the synced tree after the fixes.
-- Gates on the synced tree, re-run after the fixes: typecheck ok, lint ok (0 errors, 6 warnings, all
-  pre-existing and none in a file this track owns), test ok (**1822** in 199 files, 31 of them this
-  round's `registers.test.ts`, up from 15), build ok (248 static pages).
+- Gates on the synced tree, re-run at this head (the last fix pass's): typecheck ok, lint ok (0
+  errors, 6 warnings, all pre-existing and none in a file this track owns), test ok (**1822** in 199
+  files, 31 of them this round's `registers.test.ts`, up from 15), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/palette.md` plus ten
   paths under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `call-sites.tsx`, `sections.tsx`,
   `specimens.tsx`, the new `registers.ts`, `model.tsx`, `real-ui.tsx` and `registers.test.ts`, and the
@@ -1598,8 +1611,12 @@ island. Lab only, no production byte.
    while the clip audit still reported zero, because it measures boxes. The stage injects the
    settled state marketing.css already ships for a reduced-motion reader, unconditionally and inside
    the stage only. It is the honest state for a board that judges a ground rather than an entrance,
-   and it means the reduced-motion reader and everyone else are shown the same page. **Worth knowing
-   before the next board puts a marketing section in an iframe.**
+   and it means the reduced-motion reader and everyone else are shown the same page. **It takes TWO
+   rules, because the grammar has two shapes**: `[data-mkt-reveal]`/`[data-mkt-cut]` carry an
+   attribute, and `TextsReveal` (the strip at the top of row 07) carries a CLASS, `.mkt-lines
+   .is-shown` over a `.mkt-line` that rests at opacity 0. The first pass settled only the attribute
+   and left the strip an empty bordered band, which is the same defect wearing the other shape.
+   **Worth knowing before the next board puts a marketing section in an iframe.**
 4. **The footer row claimed a paper page and painted the slab across the whole canvas**, which made
    the seam, the thing the row exists for, invisible: a dark leaf on a dark page is not a leaf. And
    `justify-end` pushed a 1414px footer 513px off the top of a 900px stage, so the row showed the
@@ -1618,8 +1635,13 @@ island. Lab only, no production byte.
   stage's, ignores anything inside an `overflow-x` scroller (the dashboard's filter chips are one on
   purpose) and ignores the production footer glow's deliberate `inset: -40px` bleed, which the stage
   clips exactly as the page's own box does. Inside the five iframes at the 375 canvas: zero right and
-  zero bottom overflow, and zero of their 47 reveal-marked elements sits under full opacity, which is
-  the SETTLED rule holding and the thing row 07's caption now claims instead of the entrance.
+  zero bottom overflow, and zero of the **55** elements the entrance governs sits under full opacity,
+  at 1440 and at 375 (47 attribute-marked plus the trust strip's 8 `.mkt-line`s, four per row-07
+  stage; the count the first pass reported was 47, which is the miss that pass had). Read off the
+  CASCADE inside the frame rather than off the result, because a hidden tab will not re-resolve a
+  disabled sheet: `[data-mkt] .mkt-line` resolves to 0 there, the paper stage's group never takes
+  `is-shown`, and the line still computes to 1, so the 1 is the injected rule and nothing else. Both
+  stages paint the four claims in the screenshots at both canvases.
 - **Every switch repaints the board from one resolver**, so none can label an answer the page does
   not show. Read off custom properties at row 04 and row 06's iframe: Ember room `oklch(0.12 0.008
   60)` / card `0.205 0.01 60` / well `0.085 0.006 60` / slab `0.165 0.008 60`; Slate `0.145 0.007
