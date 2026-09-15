@@ -1825,16 +1825,21 @@ so a real breakpoint measures the canvas. Lab only, no production byte.
 
 ## Handoff (round 5)
 
-- Head `<sha>`, pushed; preview `partyreel-git-lp-palette-partyreel.vercel.app` (built by this handoff).
-- Synced with `launch-prep` at `a61fd366` (it had moved 14 commits: the home-hero, river-visual,
-  album-hero and glow-specs migrations). Three conflicts, all in the three registration lines every
-  migrating board touches, resolved by keeping BOTH sides: `registry.ts` gains `PALETTE` in the
-  touchpoints order (after the glow pair, before `LIGHT`), `boards.ts` keeps everyone's dropped
-  `legacy` flag, and `kit-discipline.test.ts`'s LEGACY list loses `palette` and keeps `river-visual`
-  gone. Nothing of another track's was overwritten; the lists are strictly the union.
+- Head `<sha>`, pushed. **No preview**: Vercel is over its monthly deployment storage, so the wave's
+  `lp/*` pushes build nothing unless the message says `[preview]`, and no commit on this branch does.
+  The board is verified on a local dev server instead (see Verified below), and the Orchestrator
+  builds the `launch-prep` alias once at the wave's close.
+- Synced with `launch-prep` TWICE, ending at `9ab89cdd` (the branch moved 14 commits, then 6 more:
+  the home-hero, river-visual, album-hero, glow-specs and floating-surfaces migrations, then the
+  Vercel ignore-build change). Four conflicts across the two merges, every one of them in the three
+  registration lines every migrating board touches, and every one resolved by keeping BOTH sides:
+  `registry.ts` gains `PALETTE` beside `FLOATING_SURFACES` in the touchpoints order (after the glow
+  pair, before `LIGHT`), `boards.ts` keeps everyone's dropped `legacy` flag, and
+  `kit-discipline.test.ts`'s LEGACY list is down to the three boards still unmigrated. Nothing of
+  another track's was overwritten; each list is strictly the union.
 - Gates on the synced tree, each on its own exit code: typecheck ok, lint ok (0 errors, 6 pre-existing
   warnings, none in this lane), test ok (2140 in 218 files), build ok (257 static pages),
-  `pnpm lab:smoke --base http://localhost:3416` ok (306 checks, 0 failing).
+  `pnpm lab:smoke --base http://localhost:3416` ok (311 checks, 0 failing).
 - Lane check, `git diff --name-only origin/launch-prep...HEAD`:
 
   ```
@@ -1904,7 +1909,8 @@ so a real breakpoint measures the canvas. Lab only, no production byte.
 
 ### Verified (round 5)
 
-Walked on the dev server at 3416, at 1440 and at 375, light and dark, on the synced tree.
+Walked on a local dev server (port 3416), at 1440 and at 375, light and dark, on the synced tree.
+There is no branch preview this round, by the wave's storage rule.
 
 - The template's order holds: the dock, the answer with the eight ask pills, the thirteen-section
   index, the sections, the review panel, the meta, the collapsed history. No prose before section 01.
