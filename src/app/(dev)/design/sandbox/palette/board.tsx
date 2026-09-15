@@ -458,9 +458,13 @@ export function PaletteBoard() {
 
         <p className="truncate text-[11px] text-muted-foreground">
           {applied ? (
-            <span className="font-medium text-foreground">
-              Applied: {applied.label}
-            </span>
+            <>
+              <span className="font-medium text-foreground">
+                Applied: {applied.label}.
+              </span>{" "}
+              This page wears it too, so the board&apos;s own chrome is that
+              candidate while each stage stays on the ramp toggle above.
+            </>
           ) : (
             "Nothing applied. The pages to walk are listed at row 13."
           )}
