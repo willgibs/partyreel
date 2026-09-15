@@ -266,6 +266,8 @@ html[data-lab-bleed] .lab-grid:has(.board-page) {
 html[data-lab-bleed] .lab-grid:has(.board-page) .lab-nav {
   display: none;
 }
-html[data-lab-bleed] .lab-grid:has(.board-page) .lab-sidebar-pill {
+html[data-lab-bleed]
+  .lab-grid:has(.board-page):not(:has([data-board-dock]))
+  .lab-sidebar-pill {
   display: inline-flex;
 }
