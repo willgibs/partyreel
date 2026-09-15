@@ -728,13 +728,19 @@ export function FloatingSurfacesBoard() {
  */
 function DirectionPanel({ direction }: { direction: Direction }) {
   const meta = DIRECTION_META[direction];
+  // What a direction BELIEVES is its candidate's rationale in the spec, read
+  // back here rather than kept twice. Today is the floor rather than a
+  // candidate, so it has no rationale and leads with its caption instead.
+  const thesis =
+    FLOATING_SURFACES.candidates.find((c) => c.id === direction)?.rationale ??
+    meta.oneLine;
   return (
     <div className="flex max-w-3xl flex-col gap-2 rounded-xl border border-border bg-card px-4 py-3">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <p className="text-sm font-semibold">
           The {meta.label.toLowerCase()} direction
         </p>
-        <p className="text-xs text-muted-foreground">{meta.thesis}</p>
+        <p className="text-xs text-muted-foreground">{thesis}</p>
       </div>
       <ul className="flex flex-col gap-1">
         {meta.changes.map((c) => (

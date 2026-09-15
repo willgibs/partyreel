@@ -74,10 +74,14 @@ export type Direction = (typeof DIRECTIONS)[number];
 export type DirectionMeta = {
   /** The name on the dock. */
   label: string;
-  /** One line: what this direction believes a floating surface is. */
-  thesis: string;
-  /** The frame caption, short enough to sit under a 328px specimen without
-   *  pushing the row of four out of line. */
+  /** The frame caption, and the line the direction panel leads with. Short
+   *  enough to sit under a 328px specimen without pushing the row of four out of
+   *  line.
+   *
+   *  ★ WHAT A DIRECTION BELIEVES IS NOT HERE. That sentence is the candidate's
+   *  `rationale` in spec.ts, which is the one list the answer block, the meta
+   *  panel and the review ledger read; this file carries what a direction
+   *  CHANGES, what it costs, and how far its paste reaches. */
   oneLine: string;
   /** What it changes, in the order a reader meets it. */
   changes: string[];
@@ -90,8 +94,6 @@ export type DirectionMeta = {
 export const DIRECTION_META: Record<Direction, DirectionMeta> = {
   today: {
     label: "Today",
-    thesis:
-      "What ships: an 8px opaque panel, a hairline ring, a zoom and fade at one clock, nothing casting in dark.",
     oneLine:
       "An anonymous list: no subject, no groups, and Delete the event one row under Download everything.",
     changes: [
@@ -103,8 +105,6 @@ export const DIRECTION_META: Record<Direction, DirectionMeta> = {
   },
   card: {
     label: "Card",
-    thesis:
-      "A floating surface is a small made object. It has a title, its groups are labelled, its rows sit on an icon rail with their state on the right, and the action that cannot be undone sits under a rule of its own.",
     oneLine:
       "A subject, labelled sections, an icon rail, state on the right, and the destructive row under its own rule.",
     changes: [
@@ -119,8 +119,6 @@ export const DIRECTION_META: Record<Direction, DirectionMeta> = {
   },
   glass: {
     label: "Glass",
-    thesis:
-      "The album's colour is the product, so the floating layer should let it through. One translucent pane of the room, lit along its top edge, with no boxes inside it at all.",
     oneLine:
       "The boxes taken out: one translucent pane of the room, lit along its top edge.",
     changes: [
@@ -129,14 +127,12 @@ export const DIRECTION_META: Record<Direction, DirectionMeta> = {
       "Radius: the action family, because a pane of light has no corner of its own and takes the roundest family in the system.",
       "Motion: it condenses. 200ms in from a 5px blur and 0.96 scale, 120ms out, so the panel resolves out of the room instead of popping over it.",
     ],
-    cost: "Three real costs. A backdrop blur is a compositing layer per open panel. Over a flat app ground it buys nothing at all, so on app-dark and app-light this direction is a slightly rounder panel, which row 6 shows. And every transparency is a contrast risk: the mix had to come up twice before a quiet label survived a busy photograph, and the tooltip had to stop being inverted or its dark text sat on a dark pane. Walk it on cinema first, then on app-light, and rule on both.",
+    cost: "Three real costs. A backdrop blur is a compositing layer per open panel. Over a flat app ground it buys nothing at all, so on app-dark and app-light this direction is a slightly rounder panel, which the glass section shows. And every transparency is a contrast risk: the mix had to come up twice before a quiet label survived a busy photograph, and the tooltip had to stop being inverted or its dark text sat on a dark pane. Walk it on cinema first, then on app-light, and rule on both.",
     paste:
       "The paste carries all of it: material, radius and motion are CSS, so glass is the one direction that needs no component change to try on the real site.",
   },
   command: {
     label: "Command",
-    thesis:
-      "A host's menu is a search problem, not a tree. One surface with a field at the top, grouped rows underneath, keyboard first, and no nested menu anywhere in the product.",
     oneLine:
       "The list replaced by a field, with the groups flattened under it and no branch anywhere.",
     changes: [

@@ -1,7 +1,5 @@
 import { defineBoard } from "@/components/lab/board-spec";
 
-import { DIRECTION_META } from "./directions";
-
 /**
  * THE FLOATING-SURFACES BOARD, AS DATA (the migration wave, 2026-09-15).
  *
@@ -14,12 +12,18 @@ import { DIRECTION_META } from "./directions";
  * switches are declared state rather than seven `useState` calls the URL never
  * saw.
  *
- * ★ THE DIRECTION THESES ARE READ, NEVER RETYPED. `DIRECTION_META` already holds
- * what each direction believes a floating surface is, and the board's own
- * direction panel renders it beside the changes and the cost; a candidate's
- * `rationale` is that same sentence, so the answer block and the panel cannot
- * drift. `directions.ts` is pure TypeScript with no React and no sheet, which is
- * what lets a server page and a node test import this file.
+ * ★ A CANDIDATE'S RATIONALE IS THE DIRECTION'S THESIS, AND THIS IS ITS ONE HOME.
+ * `DIRECTION_META` (directions.ts) carries what each direction CHANGES, what it
+ * costs and what its paste can reach; what it believes a floating surface IS
+ * lives here, and the board's own direction panel reads it back off this list.
+ * So the answer block, the meta panel and the panel above the desk cannot drift.
+ *
+ * ★ AND THIS FILE IMPORTS NOTHING BUT `defineBoard`, on purpose. A spec is read
+ * twice over: by `registry.ts` from a SERVER page, and by `scripts/lab-review.mjs`
+ * with a masking scanner that has no build step and finds the board at the first
+ * `{` after the word `defineBoard`. A second import above the call is enough to
+ * hand that scanner the wrong object, and the failure is quiet: every ask is
+ * reported as "not an ask on this board" and a ruling cannot be filed.
  */
 export const FLOATING_SURFACES = defineBoard({
   id: "floating-surfaces",
@@ -131,17 +135,20 @@ export const FLOATING_SURFACES = defineBoard({
       id: "card",
       name: "Card, the object",
       recommended: true,
-      rationale: DIRECTION_META.card.thesis,
+      rationale:
+        "A floating surface is a small made object. It has a title, its groups are labelled, its rows sit on an icon rail with their state on the right, and the action that cannot be undone sits under a rule of its own.",
     },
     {
       id: "glass",
       name: "Glass, the room",
-      rationale: DIRECTION_META.glass.thesis,
+      rationale:
+        "The album's colour is the product, so the floating layer should let it through. One translucent pane of the room, lit along its top edge, with no boxes inside it at all.",
     },
     {
       id: "command",
       name: "Command, the model",
-      rationale: DIRECTION_META.command.thesis,
+      rationale:
+        "A host's menu is a search problem, not a tree. One surface with a field at the top, grouped rows underneath, keyboard first, and no nested menu anywhere in the product.",
     },
     {
       id: "knobs",
