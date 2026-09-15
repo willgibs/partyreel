@@ -1,6 +1,6 @@
 ---
 track: light
-status: open
+status: handed-off
 cut: "ca952b5"
 merged_round_1: "72b20da"
 preview: true           # Will reviews this board on its preview as it builds
@@ -331,15 +331,73 @@ all when their reel goes live.
 
 ## Handoff (round 2)
 
-- Head <sha>, pushed; preview partyreel-git-lp-light-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `<HEAD>`, pushed; preview partyreel-git-lp-light-partyreel.vercel.app. The board is
+  `/design/c/light?key=...`; five anchors now, `#lgt-a` .. `#lgt-e` (part E is the doctrine as a paste).
+- Synced with `launch-prep` at `4b035c1` (it had moved 1 commit, the candidate-block doc note; merged clean).
+- Gates on the synced tree: typecheck ok, lint ok (0 findings in the lane; 7 pre-existing warnings
+  elsewhere), test ok (1698), build ok (248 static pages, 114 routes).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/light.md` +
+  `src/app/(dev)/design/sandbox/light/{aurora,beats,board,candidates,chapters,depth,doctrine,shared}`
+  (`board.css` too). No exceptions. No production byte changed: the board composes `<Glow>`, imports
+  five marketing sections read-only, and everything it proposes lives in its own sheet under `lgt-` or
+  in `candidates.ts` as a string.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Verified live (localhost, the lane's own dev server, DOM-verified per testing-verification.md since a
+  parallel session kept stealing the browser tab and screenshots came back black):
+  - All five parts render; 14 stages; 22 `<Glow>` mounts; the five real chapters mount and their
+    reveal grammar fires on scroll (`data-inview=true`, opacity 1).
+  - Phone: every stage at 375px, no horizontal overflow on the document.
+  - Rest state: `data-lgt-rest` kills the engine's band animation, so every lamp on the board renders
+    its reduced-motion state at once.
+  - Apply to the site, all four blocks, on real pages with `?key=`: the shadow family resolves the dark
+    ramp on `/pricing` and leaves `/help`'s paper cards at 0.06 / 0.10 untouched; the nav dropdown's
+    viewport takes `--tw-shadow: 0 4px 8px -2px oklch(0 0 0 / 0.5), ...` AND KEEPS ITS RING (the reason
+    the blocks write `--tw-shadow` and not `box-shadow`); the lit face lands on `.bg-gallery` on `/` and
+    on the QR hero plate on `/features/qr`, ring intact; the paper five lands on `.surface-paper`
+    (`--lamp-1: oklch(0.88 0.085 25)`) with the root five untouched. Clear works from the board's banner.
+  - The cadence knobs write `{"--spill-cadence":8}` and 11s removes the override (it is the baked
+    default), which is the store's own contract.
+- Assets requested from Will:
+  - A grain tile, so the aurora stops banding · seamless monochrome noise, 256x256, PNG-8, fine grain
+    (one tile pixel), neutral, mean 50 percent grey, used at about 5 percent over the light AND laid out
+    at 128 CSS px on a 2x screen (one tile pixel per device pixel; laid out at 256 it doubles and the
+    band returns) · replaces the inline feTurbulence stand-in in `board.css` (`[data-lgt-grain]`).
+  - A worst-case pair of overlapping photographs for part A · two images whose touching edges are both
+    dark and low contrast (a night reception, a dim dance floor), 1200px long edge, JPG · replaces the
+    `reception-hall` + `wedding-toast` pair in `depth.tsx`, so the depth cue is judged against the case
+    it exists for rather than a lucky one.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
+  - Depth in dark: the cue set for stacked media cards, a layer over content and a flat card
+  - The lit face: adopt, adapt or drop, on the three surfaces it names
+  - The section aurora: yes or no
+  - Its register: accent or identity
+  - Its placement: both boundaries, the top edge alone, or the room
+  - The cadence: 8s or 11s
+  - The paper five: hand-tuned, the flat row, or leave the dark set
+  - The publish beat's violet: 300 as shipped, the house five, or the five leaned to 305
+  - Part E as pasted: land it, or name what to change
+- Look at first: part B, the guest ledger unlit then lit, at accent on cinema. It is the whole round in
+  one pair, and it is the first time the aurora has been judged against a chapter it was not built for.
+  Then press Apply to the site on part A's shadow family and open a menu on `/pricing`: that is the
+  proposal wearing the real app. Then part E, which is the ruling with no translation left in it.
+- For the Orchestrator: `touchpoints.ts` describes this board as "Four parts" and it is five now
+  (`#lgt-e`, the doctrine as a paste). The description is yours to rename at integration; I did not
+  touch the file. Findings against a bible rule: none, rules 10 and 11 are already under exploration
+  naming this board.
 
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The light board's second round turned the doctrine
+from an argument into a surface Will can wear. Four candidates became pastes in one source
+(`candidates.ts`), each with an Apply to the site button that hands the whole site the exact block a
+ruling would land: the shadow family (lift and float, one alpha ramp per ground), the lit face on media
+frames, screens and plates, the aurora's register, and a hand-tuned paper five. Part A withdrew round
+one's light-ground alphas, which would have re-tuned every paper card as a side effect of a proposal
+about dark, and gained a second matrix putting the lit face on the three surfaces the doctrine names.
+Part B replaced its hand-built specimen with the home arc's five real media-less chapters, each printed
+unlit and lit, added the placement ERROR as a fourth candidate, put the drift at a lamp's clock beside
+the field's, judged the paper five against the flat row and the shipped dark set, and made the grain
+honest at 1x and 2x. Part C gained two knobs that write `--spill-cadence` for a walk. A new part E
+carries the doctrine in `design-system.md`'s own shape, block by block, so the ruling is a paste rather
+than a translation, and a board-wide Rest state switch renders every lamp's reduced-motion state at
+once. Nine asks and two assets went to Will; eight departures were flagged on the board.
