@@ -1,7 +1,7 @@
 ---
 track: glow-specs
 status: open
-cut: "<filled at boot: the launch-prep SHA you cut from>"
+cut: 1b647d76
 preview: false
 owns:
   - src/app/(dev)/design/sandbox/glow-doctrine/
