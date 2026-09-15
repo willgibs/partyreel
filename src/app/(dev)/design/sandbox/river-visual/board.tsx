@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   BoardDock,
   BoardMeta,
+  CANVAS,
   type Ground,
   type Mode,
   Stage,
@@ -161,7 +162,12 @@ function StepPlacement({
   origin: RiverOrigin;
   qrUrl: string | null;
 }) {
-  const w = mode === "desktop" ? 460 : 343;
+  // THE BANK'S COLUMN SIZE, read off the bank rather than typed. This
+  // placement IS the 560 column (343 on a phone, the same number the bank row
+  // collapses to), so the first ask names the number the section actually
+  // draws: an earlier draft drew 460 here while the ask said 560, which put a
+  // width in front of Will that nothing on the board rendered.
+  const w = bankWidth("column", mode);
   return (
     <SectionShell
       eyebrow="How it works"
@@ -204,9 +210,15 @@ function StepPlacement({
           qrUrl={qrUrl}
           line={origin === "code" ? CODE_LINE : null}
           tone="cinema"
-          className="rounded-[var(--radius-float)] justify-self-center"
+          className="justify-self-center rounded-[var(--radius-float)]"
         />
       </div>
+      <Caption className="mt-6">
+        The visual at the bank&apos;s column size ({w} here), which is what this
+        section leaves beside its copy: the list takes the rest of the
+        container. This is the placement the first ask calls the strongest, and
+        it is the one that carries the column at its full banked width.
+      </Caption>
     </SectionShell>
   );
 }
@@ -223,13 +235,7 @@ function StepPlacement({
 /** The two stills the middle slot is judged against. */
 const STILLS = ["reception-hall", "party-balloons"] as const;
 
-function CardPlacement({
-  mode,
-  origin,
-}: {
-  mode: Mode;
-  origin: RiverOrigin;
-}) {
+function CardPlacement({ mode, origin }: { mode: Mode; origin: RiverOrigin }) {
   const doors = FEATURE_PAGES.filter((p) =>
     ["album", "qr", "sharing"].includes(p.slug),
   );
@@ -281,19 +287,17 @@ function CardPlacement({
               </CardTitle>
             </CardHeader>
             <CardContent className="pb-4">
-              <p className="text-sm text-muted-foreground">
-                {d.directoryLine}
-              </p>
+              <p className="text-sm text-muted-foreground">{d.directoryLine}</p>
             </CardContent>
           </Card>
         ))}
       </div>
       <Caption className="mx-auto mt-4 max-w-5xl">
-        The middle slot is the visual at the width the real grid gives a door
-        (330), beside two stills. A card slot is the hardest of the three
+        The middle slot is the visual at the width the real grid gives a door (
+        {w} here), beside two stills. A card slot is the hardest of the three
         placements: the box is short, so the flow is read at its top third,
-        where the frames are still small, and an object at the top of it eats
-        a third of the picture. This is the slot that argues for no object.
+        where the frames are still small, and an object at the top of it eats a
+        third of the picture. This is the slot that argues for no object.
       </Caption>
     </SectionShell>
   );
@@ -302,12 +306,32 @@ function CardPlacement({
 /* ── Row 2, placement three: the guest album's empty state (an app surface) ── */
 
 /**
+ * THE GUEST COLUMN, derived from the page it ships on rather than picked:
+ * event-experience.tsx clamps the guest page at max-w-2xl (672) and keeps
+ * px-5 gutters, so its gallery is the canvas or 672, whichever is smaller,
+ * less the two gutters. Read off the shell's own canvas so it cannot drift
+ * from the stage: 632 at 1440, 335 at 375.
+ *
+ * ★ BOTH HALVES OF THE A/B RENDER ON BOTH CANVASES. They sit side by side at
+ * 1440 and stack at 375, where two of them cannot share a row. An earlier
+ * draft dropped the mosaic entirely at the phone canvas while the caption
+ * still described two columns, which left the third ask (may an empty album
+ * show photographs at all) with no evidence on the canvas most guests are on.
+ */
+const GUEST_PAGE_MAX = 672;
+const GUEST_GUTTER = 20;
+
+function guestCol(mode: Mode) {
+  return Math.min(CANVAS[mode].w, GUEST_PAGE_MAX) - GUEST_GUTTER * 2;
+}
+
+/**
  * THE APP SURFACE, which Will opened this round: "any UI that touches App in an
  * active lab track may be worked on before the dedicated app agents get to it."
  *
  * Today's empty state is a 3 by 3 ghost mosaic of nine grayscale stills at 25
  * percent with the promise floating over it (gallery-empty-state.tsx, composed
- * here unedited as the left column). The candidate keeps its two rules and
+ * here unedited as the A/B's first half). The candidate keeps its two rules and
  * changes its picture: the promise is a thing arriving, not a grid standing
  * still, so the mosaic becomes the flow, pouring out of the plate the guest
  * just scanned.
@@ -332,26 +356,43 @@ function EmptyStatePlacement({
   mode: Mode;
   origin: RiverOrigin;
 }) {
-  const col = mode === "desktop" ? 340 : 343;
+  const col = guestCol(mode);
   return (
-    <div className="flex flex-col gap-6 px-6 py-8">
+    <div
+      className={
+        // The phone canvas keeps the guest page's OWN px-5 gutter, so the
+        // column is not squeezed by a padding the real screen does not have.
+        mode === "desktop"
+          ? "flex flex-col gap-6 px-6 py-8"
+          : "flex flex-col gap-6 px-5 py-8"
+      }
+    >
       <div>
-        <p className="font-heading text-lg">The guest album, before anyone uploads</p>
+        <p className="font-heading text-lg">
+          The guest album, before anyone uploads
+        </p>
         <Caption className="mt-1">
-          Today on the left, the flow on the right. Both at the gallery&apos;s
-          own column width, on the app ground a guest actually meets. The dock
-          drives the origin here too, and the recommendation is no object: a
-          guest reaches this screen by scanning the code, so putting it back in
-          front of them is the one placement where the code is certainly wrong.
+          Today and the candidate, side by side at 1440 and stacked at 375, both
+          at {col}: the width the guest page gives its gallery on this canvas,
+          which is a 672 column with 20 px gutters, so it is the canvas or 672,
+          whichever is smaller, less the two. This is the app ground a guest
+          actually meets. The dock drives the origin here too, and the
+          recommendation is no object: a guest reaches this screen by scanning
+          the code, so putting it back in front of them is the one placement
+          where the code is certainly wrong.
         </Caption>
       </div>
-      <div className="flex flex-wrap items-start gap-8">
-        {mode === "desktop" ? (
-          <div style={{ width: col }}>
-            <Caption className="mb-3">Today</Caption>
-            <GalleryEmptyState onAddFirst={() => {}} />
-          </div>
-        ) : null}
+      <div
+        className={
+          mode === "desktop"
+            ? "flex flex-row items-start gap-8"
+            : "flex flex-col gap-10"
+        }
+      >
+        <div style={{ width: col }}>
+          <Caption className="mb-3">Today</Caption>
+          <GalleryEmptyState onAddFirst={() => {}} />
+        </div>
         <div style={{ width: col }}>
           <Caption className="mb-3">The flow</Caption>
           <div className="relative">
@@ -481,9 +522,7 @@ function BankCard({ instances }: { instances: number }) {
     <div className="grid gap-4 rounded-lg border border-border bg-card p-4 text-xs text-muted-foreground lg:grid-cols-2">
       <div className="space-y-3">
         <div>
-          <p className="text-[11px] font-medium text-foreground">
-            What it is
-          </p>
+          <p className="text-[11px] font-medium text-foreground">What it is</p>
           <p className="mt-1">
             One printed object at the top of a box and an album pouring out of
             it: {RIVER_FACTS.cards} frames, born behind the plate, fanning over
@@ -499,10 +538,14 @@ function BankCard({ instances }: { instances: number }) {
             Where it could go
           </p>
           <p className="mt-1">
-            Beside the copy of a how it works step on any feature page (the
-            column, 560); in a card&apos;s media slot on a doors row (330 in the
-            real grid); as the guest album&apos;s empty state, ghosted (the app
-            ground). It is not a hero and should never carry type inside it.
+            Every width here is the 1440 canvas, and each placement below prints
+            the one it actually drew. Beside the copy of a how it works step on
+            any feature page (560, the bank&apos;s column size, drawn at exactly
+            that below); in a card&apos;s media slot on a doors row (330, which
+            is what the real grid gives a door rather than the bank&apos;s 400);
+            as the guest album&apos;s empty state, ghosted (632, the width the
+            guest page gives its gallery). It is not a hero and should never
+            carry type inside it.
           </p>
         </div>
       </div>
@@ -623,9 +666,9 @@ export function RiverVisualBoard() {
             </h2>
             <Caption className="mt-1">
               One clock across all three, so this row is one visual at three
-              scales and not three tunings. At 1:1: the row is {mode === "desktop" ? "1264" : "343"} px
-              wide and scrolls sideways if the window is narrower, which is
-              correct.
+              scales and not three tunings. At 1:1: the row is{" "}
+              {mode === "desktop" ? "1264" : "343"} px wide and scrolls sideways
+              if the window is narrower, which is correct.
             </Caption>
           </header>
           <Stage
@@ -672,7 +715,7 @@ export function RiverVisualBoard() {
           <Stage
             mode={mode}
             ground="cinema"
-            height={mode === "desktop" ? 1040 : 1180}
+            height={mode === "desktop" ? 1200 : 1400}
             key={`step-${mode}-${origin}-${runId}`}
           >
             <StepPlacement mode={mode} origin={origin} qrUrl={qrUrl} />
@@ -688,7 +731,7 @@ export function RiverVisualBoard() {
           <Stage
             mode={mode}
             ground="app-dark"
-            height={mode === "desktop" ? 720 : 900}
+            height={mode === "desktop" ? 840 : 1060}
             key={`empty-${mode}-${origin}-${runId}`}
           >
             <EmptyStatePlacement mode={mode} origin={origin} />
