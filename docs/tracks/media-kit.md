@@ -409,9 +409,9 @@ site four blocks it can wear. No production byte changed.
 ## Handoff (round 3)
 
 - Head: the tip of `lp/media-kit`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot
-  name its own commit). The last commit that changes what the board draws is the third pass's
-  (`lab(media-kit): the block a walk wears is the sheet, post by post`); the one after it is this
-  manifest. Board at `/design/c/media-kit?key=`.
+  name its own commit). The last commit that changes what the board draws is `063a227`, the third
+  pass's; the ones after it are the `launch-prep` merge and these docs. Board at
+  `/design/c/media-kit?key=`.
 - **Third pass (a second read-only review raised two should-fix items; both are closed here, in the
   lane, and both were the same fault seen from two sides: the board and the site were not looking at
   the same thing).**
