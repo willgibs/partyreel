@@ -170,7 +170,8 @@ const FLOW: 1 | -1 = 1;
  * scales the frame, its travel, its vertical drift and its turn together, which
  * is what makes a far frame small AND slow AND close to the axis rather than
  * just small. Assigned by slot so each arm walks far, middle, near for ever, and
- * the two arms are offset by one lane so the corridor is never symmetrical.
+ * the two arms are offset by two lanes, so a launch never puts the same depth
+ * out on both sides at once and the corridor is never a mirror of itself.
  */
 const LANES = [0.66, 0.88, 1.16] as const;
 
@@ -478,7 +479,9 @@ function fitOf(c: Card, geo: Geo, canvasW: number) {
  * is the measurement the lockup is placed from, so "no photograph is ever under
  * a word" is a condition rather than a hope. Rotation is not modelled (a rotateY
  * narrows a box, and a 1.1 degree roll adds about 2 percent of its height), so
- * the answer carries an 8 percent allowance, which covers both with room.
+ * the answer carries an 8 percent allowance. Measured against the real rendered
+ * boxes at 1440, the true inflation is 2.9 percent, so the allowance covers it
+ * twice over.
  */
 function reachOf(cards: Card[], geo: Geo, xAbs: number) {
   let out = 0;
