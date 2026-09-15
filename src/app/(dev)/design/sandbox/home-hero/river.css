@@ -145,28 +145,12 @@
   display: inline-block;
 }
 
-/* LAB ONLY: the chip that puts the line on the card or above the plate. It is
-   not part of the composition, it leaves with the ruling, and it sits in the
-   one corner of both canvases the stream never reaches. */
-.hhv-lab {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 30;
-  /* Scaled down on the phone canvas: the shell's Toggle is sized for the lab
-     page's chrome, and at 375 that is 40 percent of the composition's width.
-     Transform rather than a font size, so it stays the board's own control and
-     not a second design of it. */
-  scale: var(--hhv-lab-scale, 1);
-  transform-origin: top left;
-  opacity: 0.45;
-  transition: opacity 120ms ease-out;
-}
-
-.hhv-lab:hover,
-.hhv-lab:focus-within {
-  opacity: 1;
-}
+/* ROUND THREE cut the lab chip that used to sit at the top left of the stage
+   (the caption line, printed on the card or floating above a bare plate). The
+   floating line lost plainly on a cold walk, so there is one build now; the
+   chip was also the only thing on the canvas that was not the composition, and
+   a stranger reads a control like that as product UI. The ruling survives as a
+   line in the departures, where one word still overrules it. */
 
 @media (prefers-reduced-motion: no-preference) {
   /* The pour's first frame: every frame inside the code, at no size. */

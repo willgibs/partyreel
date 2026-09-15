@@ -4,14 +4,8 @@
 import "./river.css";
 
 import Link from "next/link";
-import {
-  type CSSProperties,
-  useEffect,
-  useRef,
-  useSyncExternalStore,
-} from "react";
+import { type CSSProperties, useEffect, useRef } from "react";
 
-import { Toggle } from "@/components/dev/board";
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
 import { Caption } from "@/components/marketing/system/caption";
 import { Button } from "@/components/ui/button";
@@ -21,7 +15,7 @@ import {
   CANVAS,
   type Concept,
   type ConceptProps,
-  DemoQr,
+  type CopyMode,
   FRAMES,
   LADDER,
   type Mode,
@@ -32,7 +26,7 @@ import {
 /**
  * THE RIVER (concept 4 of the home-hero board; round three's variation 4, on
  * the axis THE ORIGIN AT THE TOP AND THE PAGE AS THE ALBUM. This is the
- * track's round two, 2026-09-14.)
+ * track's round three, 2026-09-14.)
  *
  * The argument. The source put the code at the exact centre and made the album
  * a horizontal corridor around it: the still centre of a moving album. That
@@ -41,58 +35,61 @@ import {
  * page. The river asks the next question instead: if the scan is where
  * everything starts, the code belongs where a page starts. So the code moves
  * to the TOP, into the slot an eyebrow would occupy, and the album pours DOWN
- * out of it: frames are born behind the plate, fall, grow, straighten, part
- * around the words, and dissolve through the hero's bottom and side edges into
- * the rest of the page. The page is not a page with an album in it. The page
- * IS the album the scan started, and the hero is only its first screen.
+ * out of it: frames are born behind the card, fall, grow, straighten, open
+ * around the words, close again under them, and dissolve through the hero's
+ * bottom and side edges into the rest of the page. The page is not a page with
+ * an album in it. The page IS the album the scan started, and the hero is only
+ * its first screen.
+ *
+ * WHAT ROUND THREE CHANGED, and why. Round two was walked cold at both
+ * canvases the way Will will walk it, and the desktop failed its own sentence.
+ * Three things were wrong and all three had one root: the stream's lateral law
+ * was written against the CLOCK, while everything a reader sees is written
+ * against the FALL.
+ *
+ *  1. THE POUR NOW STARTS AT THE CODE. The arm's fan used to open over the
+ *     first fifth of the FLIGHT, and because the fall is gravity-weighted a
+ *     fifth of the flight is a tenth of the distance: the album was fully
+ *     fanned 96 px below the card, so nothing ever came out from behind it and
+ *     the top of the hero read as a code alone with photographs beside it. The
+ *     fan now opens over the first third of the DISTANCE, so the first three
+ *     or four frames are still inside the card's own width and the album
+ *     visibly slides out of the object it was born in.
+ *  2. THE CLEARING TAKES THE LOCKUP'S OWN SILHOUETTE. It used to be one
+ *     rectangle 800 px wide across the whole block, which is the width of the
+ *     headline's first line applied to the count as well: every card was
+ *     pinned to the same wall for two thirds of its fall, so the lanes
+ *     collapsed into two ruled columns at the canvas edges and the concept's
+ *     own claim, the album opens around the headline and closes under it, was
+ *     never actually on screen. The clearing is now the type's measured ink,
+ *     row by row: 350 at the headline's first line, 295 at its second, 254 at
+ *     the subhead, 160 at the buttons, 110 at the count. The banks open around
+ *     the headline and visibly close again as the type narrows.
+ *  3. THE STREAM NO LONGER HAS GAPS. The cadence divided the album into eight
+ *     launches per arm against a nine-and-a-half-launch flight, so a fifth of
+ *     the cards were on the ground at any moment and the hero's top band
+ *     carried three frames. The cadence now divides the flight exactly, so
+ *     every frame is airborne and gravity does the spacing: dense at the code,
+ *     open at the bottom, which is the shape of a river and not of a queue.
+ *
+ * And one thing was cut. Round two built the caption line two ways, printed on
+ * the card and floating above a bare plate, and put a chip on the stage so
+ * both could be ruled with both in view. Walked cold, the floating line loses
+ * plainly: the plate is a naked square with no object around it, the line
+ * belongs to nothing, and the chip is the only thing on the canvas that is not
+ * the composition, which a stranger reads as product UI. So the card is the
+ * only build now and the chip is gone. It is still a one-word ruling (see the
+ * departures); it is just no longer a control Will has to discover.
  *
  * Phone-first, which is the real reason for the axis. A vertical stream is
  * what a 375 screen is shaped for: the source's corridor has to compress two
- * horizontal rows into one strip there, while a river only gets narrower. So
- * the phone is a composition of its own rather than a squeezed desktop: ONE
- * braided lane of frames that start LARGE, on a cadence of its own, dissolving
- * just above the headline. That last part is the phone's real constraint said
- * out loud: a full-measure h1 at 375 leaves no corridor beside it, so the
- * album cannot run past the words there however the parting is tuned. The
- * parting still runs (the guarantee is one expression on both canvases), but
- * on the phone the stream has dissolved before it would be flung aside, and
- * the read is the album pouring out of the code and dissolving into the words.
- *
- * WHAT ROUND TWO CHANGED, and why each one.
- *
- *  1. THE PLATE CARRIES ITS OWN LINE. Round one put the Caption ABOVE the code
- *     and flagged it, because a line floating 80 px UNDER the plate is exactly
- *     where every frame is born, so frames had to escape sideways before they
- *     had fallen a card's height and appeared BESIDE the code rather than out
- *     of it. That is true of a FLOATING line. It is not true of a PRINTED one:
- *     put the line inside the white object and the code becomes the card that
- *     actually sits on a table at an event, a QR with one line under it. The
- *     stream is born behind that card and emerges from its bottom edge, so the
- *     label is under the code and nothing has to move out of the way. Both are
- *     on the stage under one toggle (the chip at the top left) so the ruling is
- *     made with both in view.
- *  2. A HELD FIRST BEAT. The pour used to start at elapsed 0 and only looked
- *     like a beat because the frames took time to grow. Now the stream's clock
- *     is held for HOLD_MS while the code and the words stand alone, and then
- *     the album pours. Cause, then effect, in time as well as in space (the
- *     scan concept's lesson, which spends a constant rather than machinery).
- *  3. THE COUNT SETTLES. It used to climb forever, one per launch, which is a
- *     slot machine and not an album. It now starts below its figure, ticks up
- *     with the arrivals and STOPS, because an album fills and then is full.
- *     Still a stand-in, still flagged, and the rest state renders the settled
- *     figure rather than the starting one.
- *  4. FRAMES STRAIGHTEN AS THEY LAND. A card's tumble decays with its fall, so
- *     a frame leaves the code at an angle and is nearly square by the time it
- *     is large: it reads as a photograph landing in an album rather than paper
- *     in a wind tunnel. It costs one term, and the parting clears against the
- *     LIVE angle, so the guarantee below still holds.
- *  5. THE STAND-INS ARE CROPPED WITH INTENT. Eleven of the twelve manifest
- *     frames are 3:2 landscapes and every box here is a square or a 4:5
- *     portrait, so a centred crop threw away the subject of half of them. Each
- *     frame now carries its own object-position, chosen off the photograph.
- *  6. THE OVERLAP CUE IS THE LIGHT BOARD'S. Cards used to carry a one-off
- *     shadow; they now carry the light spec's LIFT, the named cue for two
- *     photographs overlapping, at its cinema alphas and its geometry.
+ * horizontal rows into one strip there, while a river only gets narrower. The
+ * phone is its own composition: ONE braided lane of large frames pouring out
+ * of the card and dissolving into the headline, because a full-measure h1 at
+ * 375 leaves no corridor beside it. The clearing still runs underneath (one
+ * expression on both canvases) but the album has dissolved 22 px above the
+ * headline's ink, so on the phone it is a guarantee nobody ever sees fire,
+ * which is the honest description of it.
  *
  * The mechanism, one expression. A card's progress is a closed form of the
  * clock, ((slot + phase) * launch * reveal + t) mod cycle / flight, where t is
@@ -102,25 +99,25 @@ import {
  *
  *   fall   0.6p^2 + 0.4p        gravity, so a frame leaves the code slowly
  *                               and is three times quicker at the bottom;
- *   scale  sMin to 1 over the   a frame is about the plate's width when it
+ *   scale  sMin to 1 over the   a frame is about the card's width when it
  *          distance fallen      emerges and its full size by the bottom edge,
  *                               so its box is never rasterized above 1:1;
  *   angle  rz decaying to a     it tumbles out of the code and lands square;
  *          third
- *   x      drift * open(p)      its own lane, fanning out of the code, PLUS
- *          + the parting        the parting: while a card's box could overlap
- *                               the lockup, its projected inner edge is held
- *                               on the corridor's wall. The clearing is
- *                               therefore a geometric guarantee rather than a
- *                               hope, and it stays a constant-width corridor
- *                               even as the frames grow, because the wall
- *                               holds the INNER EDGE while the centre moves
- *                               outward.
+ *   x      spread * open(fall)  its own lane, fanning out of the code over the
+ *          + the clearing       first third of the DISTANCE, plus the
+ *                               clearing: while a card's box could overlap the
+ *                               lockup, its projected inner edge is held on
+ *                               the type's own silhouette at the heights the
+ *                               card actually spans. The clearing is therefore
+ *                               a geometric guarantee rather than a hope, and
+ *                               it is the SHAPE OF THE WORDS, so the album
+ *                               opens where the headline is wide and closes
+ *                               where the buttons are narrow.
  *
- * That last line is what makes the river a river: the album visibly opens
- * around the headline and closes under it, and nothing is ever dimmed to make
- * room for a word. No scrim, no darkening layer, no lamp. The white card and
- * the photographs are the only light in the room.
+ * That last line is what makes the river a river. No scrim, no darkening
+ * layer, no lamp. The white card and the photographs are the only light in the
+ * room.
  */
 
 /* ── The stream's constants ── */
@@ -133,9 +130,7 @@ const REVEAL_MS = 1900;
 /**
  * THE HELD BEAT. The stream's clock does not start until here, so the first
  * thing on screen is the code and the words with nothing falling. Cause, then
- * effect. Long enough to read the plate, short enough that nobody waits: round
- * one's pour had an accidental half second of this and it was the thing every
- * reading of the board noticed first, so round two makes it a number.
+ * effect. Long enough to read the card, short enough that nobody waits.
  */
 const HOLD_MS = 620;
 /** The right arm launches half a cadence after the left, so the two arms
@@ -145,82 +140,77 @@ const ARM_PHASE = 0.5;
  *  at COUNT_TO. Never a real figure; see the departures. */
 const COUNT_FROM = 241;
 const COUNT_TO = 248;
-/** Slack between the lockup and the nearest frame edge, in canvas px. */
+/** Slack between the type's ink and the nearest frame edge, in canvas px. */
 const SAFE = 14;
-/** ★ Ink overshoot. A line box at leading 1.02 is SHORTER than the face's own
- *  ascent plus descent, so the h1's glyphs stand about 9 px above the element's
- *  layout box (measured on Urbanist at text-8xl). The clearing is grown by this
- *  at both ends, or a frame can graze the top of the headline while the layout
- *  boxes still say there is room. */
-const INK = 14;
+/**
+ * How much of the DISTANCE fallen the arm's fan opens over, and how much of it
+ * passes before the clearing may push a frame sideways at all.
+ *
+ * ★ Both were fractions of the FLIGHT in round two, and that was the round's
+ * central defect. The fall is gravity-weighted, so a fifth of the flight is a
+ * tenth of the distance: a fan that "opens over the first fifth" was fully
+ * open 96 px below the code, which is why nothing ever appeared to come out of
+ * it. Anything a reader perceives as a SHAPE belongs to the distance.
+ */
+const OPEN = 0.34;
+const BIRTH = 0.06;
 
-/** The line under, or above, the code. Present tense, one breath, about
- *  something arriving (docs/specs/brand-voice.md). */
+/** The line under the code. Present tense, one breath, about something
+ *  arriving (docs/specs/brand-voice.md). */
 const CODE_LINE = "Scan it. The album is live.";
 
-/* ── Where the line sits: the ruling, as a toggle ───────────────────────────
-   A module-level store rather than component state, for one reason: Replay
-   REMOUNTS the stage (the board keys it on runId), so component state would
-   throw the choice away every time Will replayed the pour, and the desktop and
-   the phone stage would disagree. The store outlives both. */
-
-type CaptionPlace = "above" | "under";
-const CAPTION_DEFAULT: CaptionPlace = "under";
-let captionPlace: CaptionPlace = CAPTION_DEFAULT;
-const captionListeners = new Set<() => void>();
-
-function setCaptionPlace(v: CaptionPlace) {
-  captionPlace = v;
-  for (const l of captionListeners) l();
-}
-
-function subscribeCaption(l: () => void) {
-  captionListeners.add(l);
-  return () => {
-    captionListeners.delete(l);
-  };
-}
-
-function useCaptionPlace(): CaptionPlace {
-  return useSyncExternalStore(
-    subscribeCaption,
-    () => captionPlace,
-    () => CAPTION_DEFAULT,
-  );
-}
-
 /* ── Geometry ── */
+
+/**
+ * ONE KNOT OF THE LOCKUP'S SILHOUETTE: at canvas height `y`, the album keeps
+ * its inner edge `w` from the page's axis. The profile between two knots is a
+ * smoothstep, which is MONOTONE, so the largest half-width over a card's
+ * vertical extent is always at one of its two ends or at a knot inside it.
+ * That is what makes the clearing an exact guarantee and not a sample of one.
+ */
+type Knot = { y: number; w: number };
 
 type Geo = {
   /** The QR's edge in px, quiet zone included. */
   qr: number;
   /** Where the QR's CENTRE sits on the canvas, and therefore where every frame
-   *  is born. Identical under both line placements, so the toggle moves one
-   *  line and nothing else: that is what makes the two comparable. */
+   *  is born. */
   originY: number;
-  /** The lockup's clearing: half the corridor, and the band it spans. */
-  clearHalf: number;
-  bandTop: number;
-  bandBot: number;
-  /** How far (in px of fall) the parting ramps in above the band and out below. */
+  /** The lockup's silhouette, per copy mode: the clearing the album opens
+   *  around. Measured off the rendered INK of the type at this canvas, not off
+   *  its layout boxes, because a line box at leading 1.02 is shorter than the
+   *  face's own ascent plus descent and the glyphs stand about 9 px proud of
+   *  it at text-8xl. The measuring probe is quoted in the track's manifest. */
+  lock: Record<CopyMode, Knot[]>;
+  /** How far (in px of fall) the clearing ramps in above the block and out
+   *  below it. */
   enter: number;
   release: number;
   /** The card's DOM box: its LARGEST visible size, so scale never exceeds 1. */
   card: number;
   /** The scale a frame has as it emerges from behind the code. */
   sMin: number;
-  /** How far an arm fans out on its own, before any parting. */
-  drift: number;
+  /** An arm's inner and outer lane at full fan, before any clearing. */
+  spreadIn: number;
+  spreadOut: number;
+  /** The extra px a card holds off the clearing's wall, at most. A ruled line
+   *  of photographs is the thing this prevents. */
+  ragged: number;
   /** The fall at progress 1, in px. */
   travel: number;
   /** The fall fraction at which scale reaches 1. */
   fullAt: number;
-  /** One card's life, and the gap between two launches in the same arm. */
+  /** One card's life, and the gap between two launches in the same arm.
+   *  ★ POOL * launch (the cycle) is deliberately a hair SHORTER than the
+   *  flight, so every card in the pool is always airborne and the stream has
+   *  no gaps; gravity then does the spacing for free. */
   flight: number;
   launch: number;
   /** Canvas-relative, never a vw value: the stage is zoomed. */
   sizes: string;
-  /** The type's measures, tuned so the ruled thesis breaks into good lines. */
+  /** The type's measures, tuned so both copies break into the SAME shape at a
+   *  canvas (two headline lines and a two-line subhead on the desktop), which
+   *  is what lets one measured silhouette serve both. */
   h1Max: number;
   subMax: number;
   /** The lockup's internal rhythm. */
@@ -232,134 +222,156 @@ type Geo = {
   /** Where the bottom dissolve begins and where it is complete, as a fraction
    *  of the canvas height. The desktop takes the album out through the bottom
    *  of the hero (84 to 100); the phone dissolves it just above the headline
-   *  (34 to 48), because a full-measure h1 at 375 leaves no corridor beside it
-   *  and the parting would otherwise read as cards flung out of the way. */
+   *  (32 to 46), because a full-measure h1 at 375 leaves no corridor beside it
+   *  and the clearing would otherwise read as cards flung out of the way. */
   fadeB0: string;
   fadeB1: string;
   /** The canvas y past which the bottom dissolve has taken the stream to zero.
    *  Derived from fadeB1, not typed by hand: the loop stops writing a card's
-   *  transform below it, because nothing there can be seen. On the phone that
-   *  is most of the flight, which is the performance pass's one real cut. */
+   *  transform below it, because nothing there can be seen. */
   deadY: number;
 };
+
+/**
+ * THE DESKTOP SILHOUETTE, measured off the rendered ink of both copies at the
+ * 1440 canvas (the probe is in the manifest; every number here came off the
+ * page rather than out of a designer's head):
+ *
+ *   ruled     line 1  420..535  half 348   line 2  518..633  half 270
+ *             subhead 662..704  half 272 and 169
+ *             buttons 742..786  half 145   count   804..820  half 106
+ *   proposed  the same block shape, narrower lines, once the h1 was cut to
+ *             hold two lines at the xl step and the subhead's measure to 500.
+ *
+ * Each row is held FLAT across its own band so a frame cannot cut a corner,
+ * and the interpolation between rows is the opening and the closing. Both
+ * copies land on one table because they are now the same shape; if the copy
+ * changes so that a line count changes, re-measure, because this table is the
+ * only thing in the concept that is not derived.
+ */
+const LOCK_DESKTOP_ROWS: Knot[] = [
+  { y: 418, w: 350 }, // the headline's first line, the widest thing on the page
+  { y: 540, w: 350 }, //   ink 421.8..537, half 348 ruled / 297 proposed
+  { y: 556, w: 295 }, // its second line
+  { y: 640, w: 295 }, //   ink 519.7..634.9, half 270 ruled / 291 proposed
+  { y: 656, w: 254 }, // the subhead
+  { y: 710, w: 254 }, //   ink 662.4..704.8, half 249 ruled / 244 proposed
+  { y: 740, w: 160 }, // the two buttons
+  { y: 792, w: 160 }, //   box 745.1..789.1, half 150 ruled / 156 proposed
+  { y: 802, w: 110 }, // the count
+  { y: 826, w: 110 }, //   ink 807.1..823, half 106 in both
+];
+
+/** THE PHONE'S CLEARING is one flat band, deliberately: the album has
+ *  dissolved at 46% of the canvas, 22 px above the headline's ink, so
+ *  no frame is ever visible inside the block and a measured silhouette there
+ *  would be precision nobody can see. It is kept as the guarantee, at the
+ *  widest row of either copy, so the mechanism is one expression on both
+ *  canvases and a retuned dissolve cannot open a hole in it. */
+const LOCK_PHONE_ROWS: Knot[] = [
+  { y: 370, w: 168 },
+  { y: 720, w: 168 },
+];
 
 const GEO: Record<Mode, Geo> = {
   desktop: {
     qr: 124,
-    // High enough that the code reads as an eyebrow and low enough that the
-    // floating line still has room above it: the "above" placement is what
-    // sets this floor, and both placements pin the QR's centre to it.
+    // High enough that the code reads as an eyebrow, low enough that the card
+    // and its line clear the header's line above it.
     originY: 140,
-    clearHalf: 400,
-    bandTop: 428,
-    bandBot: 836,
-    // 130 rather than round one's 170: the parting used to start seven pixels
-    // below the birth point, which emptied the band directly under the code
-    // before a frame had been read there. Shortening the ramp buys back that
-    // band and the push is still gradual, because gravity is slow up there.
-    enter: 130,
-    release: 320,
+    lock: { ruled: LOCK_DESKTOP_ROWS, proposed: LOCK_DESKTOP_ROWS },
+    // 150 px of fall. Longer and the clearing starts pushing while a frame is
+    // still inside the card, which is the round-two failure in a second
+    // costume; shorter and the opening is a fling. At 150 a frame is still
+    // within the card's own width at y 223 and clear of the headline by 343.
+    enter: 150,
+    release: 160,
     card: 340,
     sMin: 0.32,
-    drift: 330,
+    spreadIn: 116,
+    spreadOut: 330,
+    ragged: 90,
     travel: 990,
     fullAt: 0.8,
     flight: 9800,
-    launch: 1500,
+    // 9800 / 8 = 1225, so 1200 puts the cycle just inside the flight and every
+    // card is always in the air.
+    launch: 1200,
     sizes: "360px",
     h1Max: 740,
-    subMax: 560,
+    // 500 rather than round two's 560: at 560 the proposed subhead set as ONE
+    // 82-character line, which is a bad measure AND a different block shape
+    // from the ruled copy's two lines, and the silhouette above is one table.
+    subMax: 500,
     gapSub: 34,
     gapCta: 34,
     gapCount: 18,
     fadeX: "7%",
-    fadeB0: "84%",
+    fadeB0: "88%",
     fadeB1: "100%",
     deadY: CANVAS.desktop.h,
   },
   // THE PHONE IS ITS OWN COMPOSITION, not the desktop squeezed. Everything it
   // has is spent on ONE THING: the band between the code and the headline, a
-  // quarter of the screen, is where this concept has to be won at 375. So it
-  // runs on its own clock, its own size and its own fan, all worked backwards
-  // from "how many readable frames cross that band, and how big are they".
+  // quarter of the screen, is where this concept has to be won at 375.
   //
-  //   the band     the card's bottom (178) to the headline (376)
-  //   a frame      emerges at about 0.41 of its flight and leaves at 0.74,
-  //                so it is on show for 2.8 s of its 8.4
-  //   the cadence  575 ms between arrivals across the two arms, which puts
-  //                four or five frames in the band at any moment
+  //   the band     the card's bottom (178) to the headline (372)
+  //   the cadence  515 ms between arrivals across the two arms, which puts
+  //                five or six frames in the band at any moment
   //   the size     133 px wide as it clears the card, 176 px by the headline,
   //                which is the whole reason the flight is short: a frame is
   //                never a thumbnail here
-  //
-  // Round one's phone got none of this: two arms at a drift of 84 against
-  // cards of 152 sat inside each other's boxes, a 1800 ms cadence put one or
-  // two frames on screen, and a 560 px travel spent most of the clock below
-  // the fold. The numbers below are the same expression, solved for the band.
   phone: {
     qr: 96,
-    // The floor the "above" placement sets: a floating line, its gap and the
-    // plate's own padding all have to fit above this with a margin left over,
-    // and at 375 that margin is the whole difference between an eyebrow and a
-    // line jammed against the top edge.
     originY: 104,
-    clearHalf: 168,
-    bandTop: 376,
-    bandBot: 742,
-    // Short, because the parting has to happen LATE here: the album's readable
-    // life IS the band, and a long ramp empties it before a frame is read.
-    enter: 60,
-    release: 200,
+    lock: { ruled: LOCK_PHONE_ROWS, proposed: LOCK_PHONE_ROWS },
+    // Four pixels, which on this canvas means the clearing never fires at all:
+    // the dissolve is complete at y 350 and the headline's ink starts at 372,
+    // so a frame's visible box can never reach the type, with 22 px to spare.
+    // It is kept as the guarantee rather than deleted, because it re-arms by
+    // itself if the dissolve is ever retuned to end below the words.
+    enter: 4,
+    release: 160,
     card: 186,
     // High, and the phone's most consequential number: a frame is 102 px as it
     // sits inside the card, 139 as it clears its bottom edge and 186 by the
     // time it dissolves. The desktop can afford a speck at the code because it
     // has 990 px of fall to grow in; the phone has 200, so it starts big.
     sMin: 0.55,
-    // A narrow fan, so the two arms read as one braided lane rather than two
+    // A narrow braid, so the two arms read as one lane rather than two
     // columns: at 375 there is no room for two of anything.
-    drift: 78,
+    spreadIn: 26,
+    spreadOut: 88,
+    ragged: 34,
     travel: 470,
     fullAt: 0.4,
     flight: 8400,
-    launch: 1250,
+    // 8400 / 8 = 1050, so 1030 keeps every card in the air here too.
+    launch: 1030,
     sizes: "200px",
     // 336 of the 343 the site's own 16 px gutters leave: at 316 the ruled
     // thesis broke "The whole / event, in / one album." and text-balance can
-    // only even out what the measure allows. clearHalf tracks it, which the
-    // parting reads and the dissolve hides.
+    // only even out what the measure allows.
     h1Max: 336,
     subMax: 330,
     gapSub: 22,
     gapCta: 22,
     gapCount: 14,
     fadeX: "10%",
-    fadeB0: "34%",
-    fadeB1: "48%",
-    deadY: CANVAS.phone.h * 0.48,
+    fadeB0: "32%",
+    fadeB1: "46%",
+    deadY: CANVAS.phone.h * 0.46,
   },
 };
 
-/** The code object's own box, per placement. The QR's CENTRE is pinned to
- *  geo.originY in both, so the toggle moves the line and nothing else.
- *
- *  above: a floating Caption, then FooterQr's own plate (inline-flex, p-2).
- *  under: one white CARD holding the code and the line, which is the object an
- *         event actually puts on a table. */
+/** The code object's own box: one white CARD holding the code and its line,
+ *  which is the object an event actually puts on a table. The QR's CENTRE sits
+ *  at geo.originY, which is where every frame is born. */
 const PLATE_PAD = 10;
 const PLATE_GAP = 8;
-const LINE_H = 16;
-const CAPTION_GAP = 12;
-/** FooterQr's own plate padding (`p-2`), between the plate's edge and the
- *  code's first module. Hard-coded on purpose: the concept has to place the
- *  QR's CENTRE to the pixel, and reading it off the DOM is exactly what the
- *  stage's zoom makes unreliable (geometry comes from CANVAS, never a rect). */
-const QR_PAD = 8;
 
-function codeBlockTop(geo: Geo, place: CaptionPlace) {
-  return place === "under"
-    ? geo.originY - (PLATE_PAD + geo.qr / 2)
-    : geo.originY - (LINE_H + CAPTION_GAP + QR_PAD + geo.qr / 2);
+function codeBlockTop(geo: Geo) {
+  return geo.originY - (PLATE_PAD + geo.qr / 2);
 }
 
 /* ── The primitives the stream is written in ── */
@@ -376,31 +388,73 @@ function smoothstep(edge0: number, edge1: number, x: number) {
  *  which is what makes the stream read as falling rather than scrolling. */
 const fallAt = (p: number) => 0.6 * p * p + 0.4 * p;
 
-/** The arm's own fan: the delta's mouth, open by a fifth of the flight. Most
- *  of the stream's width is this, not the parting, which is what keeps the
- *  lateral motion reading as a stream spreading rather than as cards thrown
- *  aside when the words arrive. */
-const openAt = (p: number) => smoothstep(0, 0.2, p);
+/** The arm's own fan, over the first third of the DISTANCE fallen. Most of the
+ *  stream's width is this, not the clearing, which is what keeps the lateral
+ *  motion reading as a delta spreading rather than as cards thrown aside when
+ *  the words arrive. */
+const openAt = (fall: number) => smoothstep(0, OPEN, fall);
 
 /** Nothing pushes a frame sideways while it is still inside the code. Without
- *  this the parting is already ramping at progress 0 and frames appear BESIDE
- *  the code instead of sliding out from behind it, which is the whole read. */
-const birthAt = (p: number) => smoothstep(0, 0.09, p);
+ *  this the clearing is already ramping at the birth point and frames appear
+ *  BESIDE the code instead of sliding out from behind it, which is the whole
+ *  read. */
+const birthAt = (fall: number) => smoothstep(0, BIRTH, fall);
 
-/** 1 exactly while a card's box could overlap [top, bot], ramping in above it
- *  and out below. `half` is the card's own half-height, so the guarantee is
- *  about the BOX and not about the centre. */
-function bump(
-  y: number,
-  half: number,
+/** The lockup's half-width at one canvas height. Constant-extended past both
+ *  ends, so the ramps below own the entering and the leaving. */
+function profileAt(lock: Knot[], y: number) {
+  if (y <= lock[0].y) return lock[0].w;
+  const last = lock[lock.length - 1];
+  if (y >= last.y) return last.w;
+  for (let i = 1; i < lock.length; i++) {
+    const a = lock[i - 1];
+    const b = lock[i];
+    if (y <= b.y) {
+      const t = (y - a.y) / (b.y - a.y);
+      return a.w + (b.w - a.w) * (t * t * (3 - 2 * t));
+    }
+  }
+  return last.w;
+}
+
+/** The widest the lockup gets anywhere over a card's own vertical extent. The
+ *  profile is monotone between knots, so checking the two ends and any knot
+ *  between them is EXACT: this is the guarantee, not an approximation of it. */
+function wallOver(lock: Knot[], top: number, bot: number) {
+  let m = Math.max(profileAt(lock, top), profileAt(lock, bot));
+  for (const k of lock) if (k.y > top && k.y < bot && k.w > m) m = k.w;
+  return m;
+}
+
+/**
+ * 1 exactly while a card's VISIBLE box [boxTop, boxBot] overlaps the lockup's
+ * band [top, bot], ramping in `enter` px of fall above it and out `release` px
+ * below. Written against the box's two edges rather than its centre and half,
+ * because the box that matters is the CLIPPED one: everything below the bottom
+ * dissolve's last stop has already been taken to zero, so it cannot be over a
+ * word and must not be pushed as if it were.
+ *
+ * ★ That clipping is what fixes the phone. The album there dissolves 22 px
+ * ABOVE the headline's ink, so no visible part of any frame can ever
+ * reach the type, and the clearing correctly never fires: round two pushed
+ * frames off the side of a 375 canvas at 83 percent opacity because the gate
+ * was reading the card's whole box, most of which was already invisible. The
+ * guarantee is not weakened by this, it is stated properly, and it re-arms by
+ * itself the moment the dissolve is retuned to end below the type.
+ */
+function gate(
+  boxTop: number,
+  boxBot: number,
   top: number,
   bot: number,
   enter: number,
   release: number,
 ) {
-  const t = top - half;
-  const b = bot + half;
-  return smoothstep(t - enter, t, y) * (1 - smoothstep(b, b + release, y));
+  if (boxBot <= boxTop) return 0;
+  return (
+    smoothstep(top - enter, top, boxBot) *
+    (1 - smoothstep(bot, bot + release, boxTop))
+  );
 }
 
 /** ease-in-out-quart, which IS --ease-in-out-strong's cubic-bezier
@@ -457,20 +511,21 @@ type Card = {
   key: string;
   /** -1 = the left arm, 1 = the right arm. */
   dir: 1 | -1;
-  /** Position in its own arm: the launch order and the seed. */
+  /** Position in its own arm: the launch order and the seed, jittered by up to
+   *  a sixth of a cadence so the stream is not a metronome. */
   slot: number;
   /** The right arm's half-cadence offset. */
   phase: number;
   photo: number;
-  /** Where in its arm's width this card runs: 0.35 inner to 1 outer. */
+  /** Where between the arm's inner and outer lane this card runs, 0 to 1. */
   lane: number;
   /** Width factor: 1 is a square, 0.8 a 4:5 portrait. Heights are equal before
    *  the size jitter, so the stream's rhythm stays even while the shapes vary. */
   wf: number;
   /** Per-card size, 0.82 to 1 of the canvas's card. */
   sJit: number;
-  /** Extra px this card holds off the corridor's wall, so the clearing's edge
-   *  is ragged like a bank and not a ruled line. */
+  /** 0..1 of geo.ragged: the extra this card holds off the clearing's wall, so
+   *  the bank is ragged and not a ruled line. */
   wall: number;
   /** Degrees of tumble at birth; it decays as the frame falls. */
   rz: number;
@@ -501,16 +556,20 @@ function buildCards(): Card[] {
     return {
       key: `hhv-${g}`,
       dir: (right ? 1 : -1) as 1 | -1,
-      slot,
+      // ± a sixth of a cadence. The cycle is unchanged (the offsets only move
+      // inside it), so the stream still has no gaps, but the two arms stop
+      // arriving on a perfect alternation, which was the one thing about the
+      // steady state that read as machinery rather than as an album.
+      slot: slot + (hash01(g + 517) - 0.5) * 0.34,
       phase: right ? ARM_PHASE : 0,
       photo: slot + (right ? half : 0),
-      lane: 0.35 + j * 0.65,
+      lane: j,
       wf: jj < 0.45 ? 0.8 : 1,
       sJit: 0.82 + j4 * 0.18,
-      wall: hash01(g + 421) * 46,
-      // Wider than round one's 3.6 degrees, because the angle now DECAYS: it
-      // is spent at the top of the stream, where a frame is small and reads as
-      // paper leaving a slot, and it is nearly gone by the time it is large.
+      wall: hash01(g + 421),
+      // Wide, because the angle now DECAYS: it is spent at the top of the
+      // stream, where a frame is small and reads as paper leaving a slot, and
+      // it is nearly gone by the time it is large.
       rz: (jjj * 2 - 1) * 7.5,
     };
   });
@@ -526,13 +585,13 @@ const boxW = (c: Card, geo: Geo) => geo.card * c.wf * c.sJit;
 const boxH = (c: Card, geo: Geo) => geo.card * c.sJit;
 
 /**
- * The whole composition for one card at one progress. The parting is the only
+ * The whole composition for one card at one progress. The clearing is the only
  * clever part: the push is the |x| at which this card's PROJECTED inner edge
- * touches the clearing's wall, so holding it there while the bump is 1 keeps
- * the corridor a constant width however large the frame has grown, and no
- * frame can ever be under a word.
+ * touches the lockup's silhouette at the heights the card actually spans, so
+ * holding it there keeps the corridor the SHAPE OF THE WORDS however large the
+ * frame has grown, and no frame can ever be under a word.
  */
-function place(c: Card, p: number, geo: Geo) {
+function place(c: Card, p: number, geo: Geo, lock: Knot[]) {
   const fall = fallAt(p);
   const y = geo.originY + fall * geo.travel;
   const s = geo.sMin + (1 - geo.sMin) * clamp01(fall / geo.fullAt);
@@ -544,23 +603,32 @@ function place(c: Card, p: number, geo: Geo) {
   // not against the unrotated width, or a corner clips the measure. It reads
   // the LIVE angle, so the decay above cannot open a gap in the guarantee.
   const halfW = (w * Math.cos(rad) + h * Math.abs(Math.sin(rad))) / 2;
+  const halfH = h / 2;
 
-  const base = geo.drift * c.lane * openAt(p);
+  const base =
+    (geo.spreadIn + c.lane * (geo.spreadOut - geo.spreadIn)) * openAt(fall);
   // ONE clearing, the lockup's. The code needs none: a frame is born BEHIND it
-  // and is occluded until it clears the plate's own bottom edge, which is why
+  // and is occluded until it clears the card's own bottom edge, which is why
   // the line can be printed under the code without the stream having to bow
-  // around it (round one's fourth departure, now dissolved rather than argued).
+  // around it.
+  // The card's VISIBLE box: nothing below the bottom dissolve's last stop is
+  // on the page at all, so the clearing is asked about that box and not about
+  // the one the layout gives.
+  const boxTop = y - halfH;
+  const boxBot = Math.min(y + halfH, geo.deadY);
+  const need =
+    wallOver(lock, boxTop, boxBot) + halfW + SAFE + c.wall * geo.ragged;
   const band =
-    bump(
-      y,
-      h / 2,
-      geo.bandTop - INK,
-      geo.bandBot + INK,
+    gate(
+      boxTop,
+      boxBot,
+      lock[0].y,
+      lock[lock.length - 1].y,
       geo.enter,
       geo.release,
-    ) * Math.max(0, geo.clearHalf + halfW + SAFE + c.wall - base);
+    ) * Math.max(0, need - base);
 
-  const x = c.dir * (base + birthAt(p) * band);
+  const x = c.dir * (base + birthAt(fall) * band);
   const dy = y - geo.originY;
   // Rounded so the server's string and the browser's agree exactly: Math.cos
   // is not bit-identical across engines and this string is server-rendered.
@@ -568,7 +636,7 @@ function place(c: Card, p: number, geo: Geo) {
 }
 
 /** Frames fade up while they are still behind the code, so one slides out of
- *  the plate rather than switching on beside it. The far end of the stream is
+ *  the card rather than switching on beside it. The far end of the stream is
  *  dissolved by the sheet's mask, so there is no fade-out curve here. */
 const opacityAt = (p: number) => (p > 1 ? 0 : smoothstep(0, 0.12, p));
 
@@ -587,32 +655,14 @@ function grouped(n: number) {
  * behind it and slide out from under it. Nothing about it moves: a QR that
  * breathes is a QR nobody can scan.
  *
- * `under` is the printed card: one white object holding the code and its line,
- * which is what actually sits on a table at an event. The line is ink on the
- * plate, which is the SAME scanner-contrast exception the plate itself is
- * (documented in footer-qr.tsx): the token set has no "ink on a white plate in
- * a dark room" pair, and inventing one for a lab concept would be a worse
- * answer than using the exception that already exists.
- *
- * `above` is round one's: a Caption in the room's own white, over a bare plate.
+ * It is one white CARD holding the code and its line, which is what actually
+ * sits on a table at an event. The line is ink on the card, which is the SAME
+ * scanner-contrast exception the plate itself is (documented in
+ * footer-qr.tsx): the token set has no "ink on a white plate in a dark room"
+ * pair, and inventing one for a lab concept would be a worse answer than using
+ * the exception that already exists.
  */
-function CodeObject({
-  url,
-  size,
-  place: where,
-}: {
-  url: string | null;
-  size: number;
-  place: CaptionPlace;
-}) {
-  if (where === "above") {
-    return (
-      <>
-        <Caption className="mb-3 text-white/65">{CODE_LINE}</Caption>
-        <DemoQr url={url} size={size} />
-      </>
-    );
-  }
+function CodeCard({ url, size }: { url: string | null; size: number }) {
   const card = (
     <span className="hhv-plate" style={{ padding: PLATE_PAD }}>
       <FooterQr
@@ -640,9 +690,28 @@ function CodeObject({
   );
 }
 
+/** The outline button, which goes where the code goes. Round two left it
+ *  inert, and on a board an inert button reads as a control that does nothing:
+ *  a stranger presses this one FIRST, because it is the one that says show me. */
+function SecondaryCta({ url, label }: { url: string | null; label: string }) {
+  const cls =
+    "h-11 border-white/35 bg-white/5 px-5 text-base text-white hover:border-white/50 hover:bg-white/15 hover:text-white";
+  if (!url)
+    return (
+      <Button size="lg" variant="outline" className={cls}>
+        {label}
+      </Button>
+    );
+  return (
+    <Button asChild size="lg" variant="outline" className={cls}>
+      <Link href={url}>{label}</Link>
+    </Button>
+  );
+}
+
 function River({ mode, copy, qrUrl }: ConceptProps) {
   const geo = GEO[mode];
-  const where = useCaptionPlace();
+  const lock = geo.lock[copy];
   const text = copyFor(river, copy);
   const reduced = usePrefersReducedMotion();
 
@@ -654,7 +723,7 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
   const progress = useRef<number[]>([]);
   // The last opacity written per node, so the loop only touches the ones that
   // changed: at any moment most of the stream sits at a flat 1, and writing it
-  // again is a style recalculation nobody asked for (the performance pass).
+  // again is a style recalculation nobody asked for.
   const lastO = useRef<number[]>([]);
 
   useEffect(() => {
@@ -700,10 +769,10 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
         // Two ways a card is not worth a write: it is on the ground between
         // flights, or it has fallen past the point the bottom dissolve has
         // already taken to zero. The second is the performance pass's real
-        // cut: on the phone the mask is complete at 48% of the canvas, so
-        // roughly a third of the airborne cards are writing transforms nobody
-        // can see. Cheap to skip, and exact, because the dissolve's end and
-        // the fall are both numbers this file already owns.
+        // cut: on the phone the mask is complete at 46% of the canvas, so
+        // roughly a third of the airborne cards would be writing transforms
+        // nobody can see. Cheap to skip, and exact, because the dissolve's end
+        // and the fall are both numbers this file already owns.
         if (at > 1 || fallAt(at) * geo.travel + geo.originY > geo.deadY) {
           if (lastO.current[i] !== 0) {
             el.style.opacity = "0";
@@ -711,7 +780,7 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
           }
           continue;
         }
-        el.style.transform = place(CARD_POOL[i], at, geo);
+        el.style.transform = place(CARD_POOL[i], at, geo, lock);
         const o = opacityAt(at);
         if (o !== lastO.current[i]) {
           el.style.opacity = String(o);
@@ -740,7 +809,7 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [geo, reduced]);
+  }, [geo, lock, reduced]);
 
   return (
     <div
@@ -748,7 +817,7 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
       className="relative size-full overflow-hidden bg-background"
     >
       {/* THE STREAM. Full bleed and decorative: the album is the argument, but
-          it is the code at the top and the type in the corridor that carry the
+          it is the code at the top and the type in the clearing that carry the
           sentence. Dissolved at both side edges and at the bottom so it is
           never guillotined by the stage: the album LEAVES the hero rather than
           stopping at it, which is the whole page-as-the-album claim. */}
@@ -764,15 +833,20 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
           } as CSSProperties
         }
       >
-        <div className="hhv-flow">
+        {/* hhv-delta: round three's stream, the one that opens over the
+            DISTANCE fallen and takes the lockup's silhouette. */}
+        <div className="hhv-flow hhv-delta">
           {CARD_POOL.map((c, i) => {
             // The REST state, written as custom properties the sheet reads: the
             // stream standing at its steady-state spacing, which is what reduced
-            // motion, a crawler and the server's own HTML get.
-            const seed = Math.min(
-              ((c.slot + c.phase) * geo.launch) / geo.flight,
-              1,
-            );
+            // motion, a crawler and the server's own HTML get. It is the loop's
+            // own expression with the reveal finished and the clock at zero, so
+            // the rest state cannot drift from the running one; the modulo is
+            // what the loop uses and what keeps a card whose slot jitter went
+            // negative at the bottom of the fall rather than above the code.
+            const seed =
+              mod((c.slot + c.phase) * geo.launch, POOL * geo.launch) /
+              geo.flight;
             return (
               <div
                 key={c.key}
@@ -786,7 +860,7 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
                     height: boxH(c, geo),
                     marginLeft: -boxW(c, geo) / 2,
                     marginTop: -boxH(c, geo) / 2,
-                    "--hhv-rest": place(c, seed, geo),
+                    "--hhv-rest": place(c, seed, geo, lock),
                     "--hhv-rest-o": opacityAt(seed).toFixed(3),
                     "--hhv-pos": CROP[c.photo % CROP.length],
                   } as CSSProperties
@@ -805,18 +879,20 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
 
       <div
         className="absolute inset-x-0 z-10 flex flex-col items-center"
-        style={{ top: codeBlockTop(geo, where) }}
+        style={{ top: codeBlockTop(geo) }}
       >
-        <CodeObject url={qrUrl} size={geo.qr} place={where} />
+        <CodeCard url={qrUrl} size={geo.qr} />
       </div>
 
-      {/* THE LOCKUP, in the corridor the stream parts around. At paint, at full
+      {/* THE LOCKUP, in the clearing the stream opens around. At paint, at full
           opacity, gated by nothing (bible 13), and never over a photograph:
-          the frames hold their inner edges on this block's walls, so there is
-          no scrim here and there never needs to be one. */}
+          the frames hold their inner edges on this block's own silhouette, so
+          there is no scrim here and there never needs to be one. The block's
+          top is the silhouette's first knot plus the ink overshoot, so the two
+          can never drift apart. */}
       <div
         className="absolute inset-x-0 z-10 text-center"
-        style={{ top: geo.bandTop }}
+        style={{ top: lock[0].y + 11 }}
       >
         <h1
           className={`mx-auto font-heading ${LADDER.xl[mode]} leading-[1.02] text-balance text-white`}
@@ -837,13 +913,7 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
           <Button asChild size="lg" className="h-11 px-6 text-base">
             <Link href={text.primary.href}>{text.primary.label}</Link>
           </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-11 border-white/35 bg-white/5 px-5 text-base text-white hover:border-white/50 hover:bg-white/15 hover:text-white"
-          >
-            {text.secondary}
-          </Button>
+          <SecondaryCta url={qrUrl} label={text.secondary} />
         </div>
         {/* THE COUNT: the evidence for the line above it. "See a real album" is
             a claim, and a number visibly still arriving is the proof; it is the
@@ -860,27 +930,6 @@ function River({ mode, copy, qrUrl }: ConceptProps) {
           photos in the demo album so far.
         </Caption>
       </div>
-
-      {/* LAB ONLY. Where the line sits is a ruling Will makes with both built,
-          and the board's own toggles live in board.tsx, which this track does
-          not own (the shell ask is in the Handoff). This chip is not part of
-          the composition and leaves with the ruling. */}
-      <div
-        className="hhv-lab"
-        style={
-          { "--hhv-lab-scale": mode === "phone" ? 0.7 : 1 } as CSSProperties
-        }
-      >
-        <Toggle
-          ariaLabel="Lab: where the line sits"
-          options={[
-            { id: "under" as CaptionPlace, label: "Line on the card" },
-            { id: "above" as CaptionPlace, label: "Line above" },
-          ]}
-          value={where}
-          onChange={setCaptionPlace}
-        />
-      </div>
     </div>
   );
 }
@@ -890,27 +939,25 @@ export const river: Concept = {
   n: 4,
   name: "The river",
   rationale:
-    "The origin at the top and the page as the album: the code takes the slot an eyebrow would, and the album pours down out of it, born behind the plate, growing and straightening as it falls, parting around the headline and dissolving through the hero's bottom and side edges into the rest of the page. Round two holds the first beat so the code stands alone before the pour, prints the line on the plate so the code becomes the card an event puts on a table (both placements are on the stage under one toggle), settles the count instead of letting it climb, and rebuilds the phone as one braided lane of large frames rather than a squeezed desktop.",
+    "The origin at the top and the page as the album: the code takes the slot an eyebrow would, and the album pours down out of it, born behind the card, growing and straightening as it falls, opening around the headline, closing again under the buttons and dissolving through the hero's bottom and side edges into the rest of the page. Round three rebuilt the lateral law against the DISTANCE fallen rather than the clock, which is what finally puts the first frames inside the code's own width, and gave the clearing the lockup's measured silhouette instead of one rectangle, so the album is the shape of the words. The caption line is built one way only now, printed on the card, and the lab chip that carried the alternative is gone.",
   eyebrow:
-    'The code itself at the top of the page, where an eyebrow sits, carrying one line: "Scan it. The album is live." The chip at the top left of the stage puts that line ON the white card with the code, which is the object an event actually puts on a table, or floating above a bare plate. That is the ruling this board most wants.',
+    'The code itself at the top of the page, where an eyebrow sits: one white card holding the QR and one line, "Scan it. The album is live." That is the object an event puts on a table, and the album is born behind it and slides out from under it.',
   proposed: {
-    h1: "One code, and the whole event lands here.",
+    h1: "One code, and the album fills.",
     subhead:
       "Every phone in the room finds it and uploads at full size, with nothing to install.",
     secondary: "See a real album",
   },
   departures: [
-    "THE AXIS, and the one real argument with the source: the code leaves the exact centre. The source's case was the still centre of a moving album, and it is a good one; this trades it for causality read top to bottom. A code in the middle of a composition is an object the page is arranged around, and a stranger reads it as a thing to scan for more information. A code at the TOP, in the eyebrow's slot, with the album falling out of it, is a beginning: everything below it is what the scan produced, which is the sentence the hero was asked to say. The stillness survives the move, and nothing about the plate animates. The lockup is centred rather than left-aligned for the same reason, which is precedent and not law: left-aligning costs the symmetry of the two arms, not the mechanism.",
-    "THE LINE, on the chip at the top left, and the thing this board most needs ruled: on the card, or above the plate. Round one argued the line could not sit under a floating plate, because a line 80 px below the point every frame is born at makes frames escape sideways before they have fallen a card's height, so they appear BESIDE the code rather than out of it. That is true of a FLOATING line and false of a PRINTED one: put it inside the white object and the code becomes the card an event actually puts on a table, the stream is born behind that card, and the label is under the code with nothing having to move. Both are built, the card is the default because it is the better object, and one word overrules it.",
-    'THE COUNT under the CTAs is a STAND-IN figure (241, ticking to 248, then held). It earns its place as the evidence for the line above it, because "See a real album" is a claim and a number still arriving is the proof, and the voice guide allows a count only where the product actually produced the number (docs/specs/brand-voice.md). So it is wired or it goes: before this is anywhere near production it reads the demo event\'s real media count. Flagged on the board rather than in a footnote, because a number nobody can stand behind is a claim and not a placeholder.',
-    "BIBLE 13, decorative layer only: the stream's pre-pour state (every frame collapsed at the code) and the ticking count both sit inside the reduced-motion block, so with JavaScript off and motion allowed the stream rests at the code and the count shows its starting figure. Putting either in an effect instead would paint the album deployed and then snap it back. The h1, the code, the line, the subhead, the CTAs and the count's settled figure are plain markup and never gated, and a reader who asked for less motion gets the stream fully deployed and the settled number.",
-    "NOT A DEPARTURE, recorded here because the board has no other row for it. What round two took from the first wave: the light spec's LIFT, the named cue for two photographs overlapping, now carries the cards at its cinema alphas and its geometry, in place of a one-off shadow (docs/specs/light.md); the voice guide's hero shape and its rule on absences rewrote the proposed h1 and subhead, which now name one absence rather than two (docs/specs/brand-voice.md); the media kit's shot list and its \"readable at 120 px\" test are what the asks below are written against (docs/specs/media-kit.md). The type-scale board's finding that this hero invented leading-[1.02] locally is real and stands: the h1 keeps it until a ladder is ruled, then takes the ruled leading for its step. This concept has no CSS-paste candidate, so it offers no \"Apply to the site\" block: its ruling lands as a hero component in the wiring round, not as tokens.",
+    "THE AXIS, and the one real argument with the source: the code leaves the exact centre. The source's case was the still centre of a moving album, and it is a good one; this trades it for causality read top to bottom. A code in the middle of a composition is an object the page is arranged around, and a stranger reads it as a thing to scan for more information. A code at the TOP, in the eyebrow's slot, with the album falling out of it, is a beginning: everything below it is what the scan produced, which is the sentence the hero was asked to say. The stillness survives the move, and nothing about the card animates. The lockup is centred rather than left-aligned for the same reason, which is precedent and not law: left-aligning costs the symmetry of the two arms, not the mechanism.",
+    "THE LINE UNDER THE CODE is printed on the card, and that is now the only build. Round two put both on the stage under a chip, a printed line and a line floating above a bare plate; walked cold the floating one loses plainly, so the chip is gone rather than left for Will to find, because it was also the one thing on the canvas that was not the composition. Say \"above\" and it comes back in a line: the mechanism does not care, it is the object that changes, and round one's argument against a line under a FLOATING plate (every frame has to escape sideways before it has fallen a card's height) is exactly what putting the line inside the white object dissolves.",
+    'THE COUNT under the buttons is a STAND-IN figure (241, ticking to 248, then held). It earns its place as the evidence for the line above it, because "See a real album" is a claim and a number still arriving is the proof, and the voice guide allows a count only where the product actually produced the number (docs/specs/brand-voice.md). So it is wired or it goes: before this is anywhere near production it reads the demo event\'s real media count. Flagged on the board rather than in a footnote, because a number nobody can stand behind is a claim and not a placeholder. It is the only invented number on this board; every other number in the concept was measured off the page.',
+    "BIBLE 13, decorative layer only: the stream's pre-pour state (every frame collapsed at the code) and the ticking count both sit inside the reduced-motion block, so with JavaScript off and motion allowed the stream rests at the code and the count shows its starting figure. Putting either in an effect instead would paint the album deployed and then snap it back. The h1, the code, the line, the subhead, the buttons and the count's settled figure are plain markup and never gated, and a reader who asked for less motion gets the stream fully deployed and the settled number. What this board took from the first wave, recorded here because there is no other row for it: the light spec's LIFT carries the cards' overlap at its cinema alphas (docs/specs/light.md), the voice guide's hero shape and its two-beat sentence wrote the proposed copy (docs/specs/brand-voice.md), and the media kit's \"readable at 120 px\" test is what the asks are written against (docs/specs/media-kit.md). This concept has no CSS-paste candidate and so offers no \"Apply to the site\" block: its ruling lands as a hero component in the wiring round, not as tokens.",
   ],
   assets: [
-    "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, framed tight enough to read at 110 px · ASSETS row 2, already requested and unchanged: the two arms carry disjoint halves, so with 24 every frame in the stream is unique, where the 12 landscape stand-ins double four of them · replaces the 12 landscape stand-ins in FRAMES (shared.tsx) and retires the per-frame crop table in river.tsx.",
+    "24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each, framed tight enough to read at 110 px, which is the size a frame is as it leaves the code · ASSETS row 2, already requested and unchanged: the two arms carry disjoint halves, so with 24 every frame in the stream is unique, where the 12 landscape stand-ins double four of them · replaces the 12 landscape stand-ins in FRAMES (shared.tsx) and retires the per-frame crop table in river.tsx.",
     "12 event photographs as 4:5 portraits, 720 x 900, one grade, 15 to 60 KB webp each, from the same shoot as the squares · ASSETS row 12, already requested and unchanged; the portrait third of row 3 or row 7 would serve instead and may be cheaper to unpark · replaces the portrait cards (wf 0.8) in CARD_POOL, which are cropped out of landscapes today.",
-    "Nothing else is a picture. The one ask left is the shell's: the demo event's live media count, as a number the hero can render (a demoCount prop beside qrUrl, from a build-time count on the demo event or the RPC the guest page already uses) · replaces COUNT_TO, the 248 stand-in, and COUNT_FROM becomes that count minus the arrivals shown.",
-    "One idea for the wiring round rather than an ask: if this hero ships, the frames in the stream should BE the demo event's own media (ASSETS row 5, the curated folder). The count is then literally the album the stream renders, the line under the CTAs becomes true rather than plausible, and the hero stops illustrating the product and starts being it.",
+    "Nothing else is a picture. The one ask left is the shell's: the demo event's live media count, as a number the hero can render (a demoCount prop beside qrUrl, from a build-time count on the demo event or the RPC the guest page already uses) · replaces COUNT_TO, the 248 stand-in, and COUNT_FROM becomes that count minus the arrivals shown. Better still, and the recommendation: if this hero ships, the frames in the stream should BE the demo event's own media (ASSETS row 5, the curated folder), so the count is literally the album the stream renders and the hero stops illustrating the product and starts being it.",
   ],
   render: (p) => <River {...p} />,
 };
