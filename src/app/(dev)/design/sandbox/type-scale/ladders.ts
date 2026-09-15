@@ -29,6 +29,8 @@
  *    idioms at 14px and 11px that are labels wearing a heading tag.
  */
 
+import { TYPE_SCALE } from "./spec";
+
 export type StepId =
   | "display"
   | "hero"
@@ -457,110 +459,34 @@ export function moved(
 
 /* ───────────────────── The four rulings, and the board's own ──────────────── */
 
-/**
- * ROUND THREE: FOUR ASKS, EACH A ONE-WORD ANSWER, EACH WITH THE BOARD'S OWN.
- *
- * Round two asked six. Two of them stopped earning their place: the app's floor
- * asked Will to rule on a 14px card title that C no longer proposes (round two
- * rebuilt C to 20 / 18 / 16 and `ladders.test.ts` pins the floor for every
- * ladder, so there is nothing left to choose), and the face pairing asked him
- * to rule on a question the board answers with evidence rather than with a
- * choice. Both are stated as departures instead; a ruling that is already made
- * is not an ask.
- *
- * `answer` is what the board would ship; `overrule` is the one thing that would
- * change its mind, so a disagreement is also a few words.
- */
-export const ASKS: {
-  ask: string;
-  answer: string;
-  because: string;
-  overrule: string;
-}[] = [
-  {
-    ask: "The marketing ladder: B rungs, C registers, A tuned or today",
-    answer: "B",
-    because:
-      "One rung set from 12 to 160 with the ratio widening as it climbs, every step sitting on a rung at both ends and reading its leading and its tracking off the rung. Today's desktop ladder is an unevenly rounded version of it already, so this is the ladder the site is a rough draft of.",
-    overrule:
-      "C, if the front of the site should read as a poster: 200 over 120 rather than 160 over 100, and the prose tier folded away.",
-  },
-  {
-    ask: "The app ladder: B rungs, C registers, A tuned or today",
-    answer: "B",
-    because:
-      "The app gets the middle tier it has never had, so the three h2s that are labels wearing a heading tag become a heading, and the page title grows from 24 on a phone to 28 on a desktop instead of standing still at both.",
-    overrule:
-      "C, if the chrome should go quieter than today rather than louder: a 20px title, with weight and colour carrying the rank under it.",
-  },
-  {
-    ask: "The tracking law: adopt, or keep the flat -0.03em",
-    answer: "Adopt",
-    because:
-      "It is a function of size, so it moves no size and can be taken whichever ladder wins, and it is the only one of today's faults that today's numbers can fix by themselves.",
-    overrule:
-      "Keep the constant, if one value for every heading is the simplicity worth paying a loose masthead and a tight card title for.",
-  },
-  {
-    ask: "The 404's h1: put it on the ladder, or leave it off",
-    answer: "On the ladder",
-    because:
-      "It is the only page title on the site in Inter, and it is not an edge case: the marketing 404, the app 404, the admin 404 and every dead guest link.",
-    overrule:
-      "Leave it off, and the exception becomes documented rather than swept.",
-  },
-];
-
 const ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth"];
 
 /**
- * An ask's position, in words, READ OFF `ASKS` rather than typed beside it.
+ * An ask's position, in words, READ OFF THE SPEC rather than typed beside it.
  *
  * ★ Round three cut two asks and the generated paste went on calling the 404
  * "the fifth ask", so a reviewer reading the block he is about to apply hunted
  * for a question that no longer existed. A number about a list belongs to the
  * list: every place that names an ask's position calls this, so cutting or
- * reordering `ASKS` moves all of them at once.
+ * reordering `TYPE_SCALE.asks` moves all of them at once.
+ *
+ * ★ AND THE LIST IS THE SPEC'S NOW (the migration wave, 2026-09-15). The asks
+ * moved into `spec.ts` with the verdict and the candidates, because the
+ * template, the desk and the review ledger all read that one array; this file
+ * reads the same one rather than keeping a second copy for the paste's comment.
+ * The import points one way only, and `spec.ts` imports nothing but the kit's
+ * types, so nothing here drags a board into a server render.
  */
-export function askOrdinal(startsWith: string): string {
-  const i = ASKS.findIndex((a) => a.ask.startsWith(startsWith));
+export function askOrdinal(id: string): string {
+  const i = TYPE_SCALE.asks.findIndex((a) => a.id === id);
   return i >= 0 && i < ORDINALS.length ? ORDINALS[i] : "unnumbered";
 }
 
-/** The 404 ask, which three places name by position (the paste's comment, the
- *  departure and the stage that shows it). */
-export const ASK_404 = "The 404's h1";
+/** The 404 ask's id, which two places name by position (the paste's comment and
+ *  the departure in the spec). */
+export const ASK_404 = "not-found";
 
 /* ────────────────── Where a paste can be walked, and where not ───────────── */
-
-/**
- * THE PAGES A CANDIDATE CAN ACTUALLY BE WALKED ON.
- *
- * ★ Round three's cold walk found two dead links in round two's list. The
- * candidate's `<style>` is rendered by a design island, and the island mounts
- * in exactly three places: the lab layout, the two marketing layouts and the
- * app layout. `/admin` mounts none, and `/nothing-here` resolves to the ROOT
- * `app/not-found.tsx`, which sits outside both marketing and the app, so both
- * links looked like a broken paste rather than a missing island. The 404 link
- * is a MARKETING 404 now (an unknown event slug renders
- * `(marketing)/(cinema)/not-found.tsx`, inside the island's layout).
- */
-export const WALK: { href: string; label: string }[] = [
-  { href: "/", label: "the home" },
-  { href: "/pricing", label: "/pricing" },
-  { href: "/features/curation", label: "a feature page" },
-  { href: "/help", label: "/help" },
-  { href: "/about", label: "/about, on paper" },
-  { href: "/contact", label: "/contact" },
-  { href: "/dashboard", label: "the dashboard" },
-  // ROUND FOUR: both of these were on the NO_ISLAND list until the Orchestrator
-  // landed the two one-line mounts round three's handoff asked for. admin and
-  // (guest) now carry AppDesignIsland, so an applied block reaches the portal
-  // and the guest album in a real tab, which is the only way the app register
-  // can be walked signed in.
-  { href: "/admin", label: "the admin portal" },
-  { href: "/events/not-a-real-event", label: "a marketing 404" },
-];
 
 /** The surfaces no paste reaches, named on the board so a reviewer never reads
  *  a missing island as a broken block. Each is one line for the wiring round. */
@@ -947,8 +873,7 @@ export function themeBlock(ladder: Ladder): string {
  * to answer which one a Card wears, since `CardTitle` is ONE component that
  * ships on a pricing page and on the dashboard. It would also duplicate the
  * tracking law, which is a function of size and not of surface: a 40px heading
- * wants the same tracking whichever side of the product it is on, which is the
- * whole of the third ask.
+ * wants the same tracking whichever side of the product it is on.
  *
  * One set keeps the bake at one `@theme` block and a baked step at one class,
  * and the two registers are simply which rungs each half of the ladder stands
@@ -962,11 +887,14 @@ export function themeBlock(ladder: Ladder): string {
  * cards follow it. That is deliberate, and it is the floor law's doing (no app
  * heading below the 14px body a Card sets on its own subtree); a marketing card
  * title has never wanted to be louder than that.
+ *
+ * ★ THE CALL IS PROSE ON THE BOARD, AND ITS HOME IS THE SPEC (the migration
+ * wave, 2026-09-15): `TYPE_SCALE.sections` carries it as the glance section's
+ * first argument and `TYPE_SCALE.departures` carries it as a departure, which
+ * is where the template, the desk and the record all read it. It used to be a
+ * `REGISTER_CALL` constant here, rendered by a card of the board's own, and two
+ * copies of one paragraph is exactly what the spec exists to end.
  */
-export const REGISTER_CALL = {
-  headline: "One token set, two registers",
-  body: "Nine names, one @theme block, and the register is which rungs each half stands on: display through prose are marketing's, page through card are the app's. Two distinct sets would name every role twice and then have to answer which set a Card wears, since CardTitle is one component that ships on /pricing and on the dashboard, and it would duplicate the tracking law, which is a function of size and not of surface. Nothing in the set is computed from anything else in it, so the two halves are ruled separately without the set splitting: that is what the two switches in the dock are.",
-} as const;
 
 /** The register a step belongs to, read off STEPS so there is one statement. */
 export const SURFACE: Record<StepId, Surface> = Object.fromEntries(

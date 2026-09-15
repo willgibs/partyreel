@@ -65,7 +65,6 @@ const LEGACY: readonly string[] = [
   "media-kit",
   "palette",
   "river-visual",
-  "type-scale",
 ];
 
 function filesIn(dir: string, out: string[] = []): string[] {
