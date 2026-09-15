@@ -573,6 +573,17 @@ foreground Chrome tab, plus the same walk in dev.**
 - No em-dash in the served text; no `font-mono`; no `<BorderBeam`, `glw-warp` or `<GlowFilter />`
   added anywhere.
 
+**The other boards, read again as inputs.** No reviewer findings were filed against this track's
+round-two handoff, here or in `docs/tracks/orchestrator.md`, so the cold walk in this round stands in
+for them. Three neighbours did change something here. The **light** board's sheet gave the shadow
+rung its two corrected light-ground alphas and, through its own doctrine (the lit face is material,
+not elevation), ended the lit-edge rung. The **palette** board's ramps A and B are still verbatim
+under the panels, checked value by value against `docs/specs/palette.md` and live on the board (the
+popover surface reads L 10.7 on today, 17.1 on A and a `color-mix` on B). The **rounding** board's
+first ask moves `--radius`, `--radius-float` and `--radius-tile` together, and nothing here has to
+wait for it: every rung is written as a derivation of those raw tokens, so a ruling there re-prices
+all three radius rungs by itself and row 2 re-measures them off the live DOM.
+
 **What round three changed, and why (the walk found each of these).**
 
 1. **The board opens with where it lands.** Five answers, one word each, each with the row that
