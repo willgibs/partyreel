@@ -131,16 +131,48 @@ gate; the preview alias once Vercel's window frees.
 
 ## Handoff (round 1)
 
-- Head `6fca2d8` plus this manifest commit, pushed. The preview at `partyreel-git-lp-album-hero-partyreel.vercel.app` was NOT
-  waited on and the Vercel API was not called (the deployment cap). **Everything below was verified on
-  a LOCAL PRODUCTION BUILD** (`pnpm build && pnpm start -p 3011`, my own worktree's server, never the
-  root checkout's on 3000) in a FOREGROUND browser tab at 1440 and at 375.
+- Head `fe41436` plus this manifest commit, pushed (round one's first hand-off was `13d6eb9`; a
+  read-back found four defects and this is the pass that closes them, listed under "What the read-back
+  changed" below). The preview at `partyreel-git-lp-album-hero-partyreel.vercel.app` was NOT waited on
+  and the Vercel API was not called (the deployment cap). **Everything below was verified on a LOCAL
+  PRODUCTION BUILD** (`pnpm build && pnpm start -p 3011`, my own worktree's server, never the root
+  checkout's on 3000) at 1440 and at 375.
+- **Say the tab honestly.** The first hand-off walked a fronted tab. This pass could not hold one:
+  seven tracks are driving the same Chrome window tonight and each new lab tab steals the foreground,
+  so this tab read `document.visibilityState === "hidden"` throughout and an occluded window suspends
+  rAF completely (0 frames; `docs/systems/testing-verification.md`). Rather than call that a walk, the
+  loop was driven by hand: `requestAnimationFrame` was replaced with a queue a stepper drains at a
+  synthetic 16.7 ms, which is the doc's own "freeze the loop at a chosen elapsed" and what
+  `burst.tsx`'s loop was written to allow. Every number below is a DOM measurement at a stepped
+  instant, and every screenshot was cross-checked against the DOM (the capture paints the region a
+  beat late, and the arrival reveals need their `data-inview` forced because IntersectionObserver
+  never delivers in a hidden tab, both known blind-spots, neither a product fault). **What a human
+  eye still owes this board: thirty seconds of reading 1 at real speed.** Nothing measurable is left.
 - Synced with `launch-prep` at `6484558` (it had moved two doc commits since the cut; merged clean).
-- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 6 warnings are all pre-existing files
-  outside this lane), test ok (1804 in 199 files), build ok (114 routes, 248 static pages).
+- Gates, re-run on this pass's tree: typecheck ok, lint ok (0 errors; the 6 warnings are all
+  pre-existing files outside this lane), test ok (1804 in 199 files), build ok (114 routes).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/album-hero/`
   (board.tsx, board.css, burst.tsx, burst.css, album.tsx, album.css) + this file. No exceptions.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+
+### What the read-back changed (this pass)
+
+- **Reading 3 is the whole route now.** It stopped at `GettingInSection` and `EverywhereSection`,
+  which quietly left off the hand-off most at risk from a full-bleed hero that never resolves: the
+  cinema-to-paper cut. It now runs `QualitySection`, the six-section `PaperChapter`,
+  `RelatedFeatures`, the FAQ with `GoDeeper` and the `CtaBand`, in the shipped order, mirrored by
+  hand from `page.tsx` with a comment that says so and says what is left out (the BreadcrumbJsonLd,
+  invisible; the overlay `MarketingHeader`, whose sticky position would resolve against the lab page
+  and ride down the board instead of sitting over the hero).
+- **The candidate's density figure is the field's.** BoardMeta said "forty frames at 1440 and
+  thirty-six at 375" against `GEO` at 52 and 44. Will rules the headline step against that number, so
+  it now reads fifty-two and forty-four, with the steady-state count beside it.
+- **The no-script paint is described the right way round**, in all three places a person reads it (the
+  board's departure, this Handoff, the Record) and in the three code comments that carried the same
+  sentence (`burst.css`'s header, two in `burst.tsx`). See the bullet under "What was measured".
+- **The desk entry now has names to land**: the three readings and the two candidates are listed
+  under "Shell changes asked for", with a replacement `note`, because the contract says the
+  Orchestrator renames the placeholder from this Handoff and the first pass forgot to supply it.
 
 ### What the board is now
 
@@ -160,16 +192,26 @@ headline step, the album's column rule, Replay), every stage at 1:1:
    stats), inside the marketing `BrowserFrame`. Its only motion is the product's own entrance
    (globals.css's `[data-media-tile]` fade-rise, 45 ms stagger capped at 540) plus one 6 px green
    status dot, so it never competes with the hero.
-3. **The page.** Hero, album, then the real `GettingInSection` and `EverywhereSection`, so the
-   hand-off from feeling to product to chapters is judged whole. The album and page stages MEASURE
-   their own content (`MeasuredStage`), so no section is ever clipped in half.
+3. **The page, whole.** Hero, album, then every section `/features/album` ships, in its shipped
+   order, down to the closing band: the first chapter's `GettingInSection`, `EverywhereSection` and
+   `QualitySection` on cinema, the paper chapter's six desk sections, then the close (the doors, the
+   FAQ and the CtaBand) back on cinema. 13,796 px of stage at 1440 and 15,064 at
+   375, measured by the stage itself (`MeasuredStage`), so no section is ever clipped in half. The
+   cut from cinema to paper is the thing to look at: it is the hand-off a hero that never stops
+   moving is most likely to disturb, and it is a chapter and a half below the field.
 
-### What was measured (local production build, foreground tab, 1440 and 375)
+### What was measured (local production build, 1440 and 375; this pass re-measured everything)
 
-- **The quiet zone holds at every combination.** A running-field probe sampled the four
-  canvas-and-step combinations and tested every visible card's bounding box against the five ink
-  boxes of the lockup: 1450 card-instants, **zero overlaps**, worst overlap 0 px2. The probe uses the
-  card's AABB, which is larger than the rotated card, so the test is stricter than the guarantee.
+- **The quiet zone holds at every combination, re-proved on this tree.** A running-field probe
+  stepped the loop and tested every visible card's bounding box against the lockup's INK at each
+  instant: 908 card-instants at desktop lg, 671 at desktop xl, 520 at phone xl and 866 at phone lg,
+  **2965 in all, zero overlaps, worst overlap 0 px2**. Two notes for whoever runs it next. The probe
+  uses the card's AABB, which is larger than the rotated card, so the test is stricter than the
+  guarantee. And the ink is NOT the five `[data-alb-block]` element rects: `under` and `actions` are
+  `absolute inset-x-0`, so their rects span the canvas and a card out at x=540 "overlaps" a box whose
+  ink is 160 px wide in the middle. Measure the ink (a `Range` over each text block, plus the two
+  action anchors' own rects, which is what `KEEP`'s hand-measured half-extents model); an element-rect
+  probe reports dozens of overlaps that are not there.
 - **The settled composition is whole.** With the loop suppressed (the reduced-motion state), every
   card at desktop lg, phone lg and phone xl is entirely inside the canvas. It was not, before: one
   card of 52 hung 3 px past the left rim, because `extents()` models the 2D rotation only and the
@@ -182,18 +224,51 @@ headline step, the album's column rule, Replay), every stage at 1:1:
   because the browser dedupes the shared sources. 120 fps with two fields running (104 cards), 34 MB
   heap.
 - **The server's own HTML** carries the h1 at full opacity with no `data-mkt-cut`, `data-mkt-reveal`
-  or `.mkt-line` on it (bible 13), and 104 cards with their rest-state transforms, so a crawler and a
-  reader with JavaScript off get the settled album. Zero em-dashes in the rendered page.
+  or `.mkt-line` on it (bible 13), and 104 cards each with its `--alb-rest` rest-state transform
+  (52 per field, two fields at 1440). Zero em-dashes in the rendered page.
+- **What a reader with JavaScript off actually gets, which round one stated backwards.** The rest
+  state is in the markup, but `burst.css` collapses `.alb-card` to `scale(0)` at `opacity: 0` inside
+  `@media (prefers-reduced-motion: no-preference)`, and no-preference is the DEFAULT match, so it
+  overrides the rest rule for everyone who has not asked for less motion. Measured rather than
+  reasoned: with `matchMedia("(prefers-reduced-motion: no-preference)").matches === true`, a card
+  carrying no inline style computes to `matrix(0, 0, 0, 0, 0, 0)` at opacity 0. So a crawler and a
+  JavaScript-off reader get **the lockup alone on the cinema ground, no photographs**; a
+  REDUCED-MOTION reader is the one who gets the settled album, whole and still. Nothing that carries
+  meaning is gated (the type is plain markup at full opacity, the field is `aria-hidden`), and the
+  swap would be worse to look at, not better: paint the album settled for everyone and the loop has
+  to snap it back to the vent on every load. It stands as a departure, stated as what it is, and Will
+  can rule the no-script frame the other way in one line of CSS.
+- **The phone reading of the page tail is approximate, and the reason is the shell.** A Tailwind
+  breakpoint prefix inside a `Stage` reads the REAL browser viewport, not the canvas (`stage.tsx`
+  says so; the brand-voice board found it), so inside the 375 canvas on a 1600 window the shipped
+  sections resolve their `md:`/`lg:` rules as DESKTOP and only their widths are truly 375. The cut,
+  the order and the type sizes read correctly; the per-section vertical rhythm at 375 does not. It is
+  not worth a change in this lane, and it is why the phone judgement here is the hero and the cut
+  rather than the tail's spacing.
 - **The production components work in the board**: a tile opens the real lightbox and Escape closes
   it; the column switch flips the shipped `columns-2` to 4 and back.
-- **The lab's screenshot blind-spot bit twice** and neither was a product bug
+- **The lab's blind-spots bit four times across the two passes** and none was a product bug
   (`docs/systems/testing-verification.md`): a capture past about 1000 px of scroll comes back black
-  even though the DOM is correct, and a long async probe in a tab that is not fronted throttles rAF
-  so the field reads as empty. Both were closed by DOM measurement and by fronting the tab; the
-  visual checks were taken with the other stages hidden so the one being judged sat at scroll 0.
+  though the DOM is correct; a capture taken straight after a scroll paints the region a beat late
+  (the album's twelve tiles read as grey boxes while the DOM had all twelve images `complete` at
+  `naturalWidth` 900 and every tile at opacity 1); an occluded tab suspends rAF outright, so the
+  field reads as empty until the loop is stepped by hand; and an occluded tab never delivers the
+  first IntersectionObserver callback, so 49 arrival reveals sat un-shown until `data-inview` was
+  forced. Every one was settled by measuring the DOM, and an `await` on a `setTimeout` in a
+  background tab is its own trap (Chrome's intensive throttling made a 900 ms wait outlast a 45 s CDP
+  timeout; wait across tool calls, not inside one).
 
 ### Shell changes asked for (the Orchestrator lands them)
 
+- **The desk entry's placeholder variants, which the contract says you rename from this Handoff**
+  (`touchpoints.ts`, the `album-hero` entry; it still reads `variants: ["The seed (the burst)"]`, the
+  seed this board replaced). The board has three readings and two candidates; the readings are what a
+  reader sees down the page, so land them as the variants:
+  `["The hero", "The live album, wide", "The page, whole"]`. And the `note` on that entry still
+  describes the seed; the board it now points at is: "The burst's field with its centre taken out as
+  the album page's hero, looped for ever with the page's own shipped lockup in a quiet zone no frame
+  enters, the real guest album composed and calm below it, and the whole shipped route under the two
+  so the cinema-to-paper cut is judged with the hero running". Nothing in this lane touches that file.
 - **Rename `sandbox/album-hero/burst.tsx` and `burst.css` to `field.tsx` / `field.css`** when
   `lp/hero-source` closes. The file is no longer the home hero's burst and the name says the wrong
   thing, but `docs/tracks/hero-source.md` declares that exact path in its `reads`, so renaming it now
@@ -227,19 +302,24 @@ headline step, the album's column rule, Replay), every stage at 1:1:
 ### Look at first
 
 `/design/c/album-hero?key=` at 1440. Reading 1 for thirty seconds with nothing else on screen: the
-album should never stop arriving, and no word should ever sit on a photograph. Then reading 3, which
-is the only place both animations run at once and therefore the only place Will's worry about them
-fighting can be answered. Then flip **Headline lg / xl** from the dock at any scroll position, which
-is the ask that changes the composition rather than the styling.
+album should never stop arriving, and no word should ever sit on a photograph. (Those thirty seconds
+are also the one check no tool could run tonight, for the reason in the second bullet at the top of
+the Handoff.) Then reading 3, which is now the whole route: the only place both animations run at
+once, and the only place to see what a hero that never resolves does to the CINEMA-TO-PAPER CUT a
+chapter and a half below it, the hand-off most likely to be disturbed and the one missing from the
+first hand-off. Then flip **Headline lg / xl** from the dock at any scroll position, which is the ask
+that changes the composition rather than the styling.
 
 ### Findings against a rule (a finding, not a wall)
 
 - **Bible 10 (the hero is unlit)**: the frames carry the light spec's LIFT shadow at four times the
   offsets, inherited from the burst and re-flagged here. It is a shadow and never a lamp; without an
   edge the depth axis collapses into a flat scatter.
-- **Bible 13, decorative layer only**: the field's pre-bloom state lives inside the reduced-motion
-  block, so a reader with JavaScript off who has NOT asked for less motion sees the album resting
-  around the vent rather than blooming out of it. Nothing that carries meaning is gated.
+- **Bible 13, decorative layer only**: the field's first frame lives inside the
+  `prefers-reduced-motion: no-preference` block, which is the DEFAULT match, so a reader with
+  JavaScript off who has not asked for less motion gets the lockup alone on the cinema ground and no
+  photographs; the reduced-motion reader is the one who gets the album settled and whole. Nothing
+  that carries meaning is gated, and the trade is on the board as a departure for Will to rule.
 - **No rule blocked the work.** The one thing that blocked a change was another track's lane claim
   (the rename above), which is the guard doing its job.
 
@@ -254,10 +334,13 @@ hero's so the album reads full and never resolves: 52 frames at 1440 and 44 at 3
 flight, 19 to 27 on screen, and 12 image requests for all of them. Under the hero the board put the
 shipped guest album itself, composed and not drawn (GuestMasonry, MediaTile, the lightbox, the
 host's own chrome), calm by design: the product's own entrance and one status dot, so the two halves
-of the page do not fight. A third reading stacks hero, album and the page's first two chapters on a
-stage that measures its own content. The quiet zone was re-proved on the running field at all four
-canvas-and-step combinations: 1450 card-instants, no word ever under a photograph; and the settled
-composition, which is what reduced motion and a crawler get, was found hanging 3 px past the rim and
-guarded. The board asks Will for the headline step, the guest album's column rule (an app-UI
-candidate, argued from outside the shipped component), whether the album should breathe, and three
-short clips.
+of the page do not fight. A third reading stacks the hero, the album and then the whole shipped
+route beneath them, every section in its shipped order on a stage that measures its own content, so
+the cut from cinema to paper is judged with the hero still running rather than imagined. The quiet
+zone was re-proved on the running field at all four canvas-and-step combinations: 2965 card-instants
+against the lockup's ink, no word ever under a photograph; the settled composition, which is what a
+reduced-motion reader gets, was found hanging 3 px past the rim and guarded; and the no-script frame
+turned out to be the lockup alone, because the collapsed first frame sits in the no-preference query
+that matches by default. The board asks Will for the headline step, the guest album's column rule (an
+app-UI candidate, argued from outside the shipped component), whether the album should breathe,
+whether a reader with JavaScript off should get the settled album instead, and three short clips.
