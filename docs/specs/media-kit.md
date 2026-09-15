@@ -84,7 +84,11 @@ ceremony with people in it, because an empty aisle is right for a timeline post 
 strip (section 2's own argument against empty venues). Round three's first cut read the list in both
 namespaces at once and the board's sheet and its "Apply to the site" block disagreed about that frame;
 `routeOutcomeForId` now answers for an id and `routeOutcome` for a post, both through one predicate, and
-`decision.ts` counts what they return instead of counting the list.
+`decision.ts` counts what they return instead of counting the list. The block a walk wears carries BOTH
+answers, because a file name can only carry an id: `apply.ts` writes one rule per id for the 21 routes
+that read a frame directly, and one rule per slug for the blog (the card's own href, and the article
+hero through the canonical link in the head), so every cover on the real /blog is the candidate its own
+row on the sheet names and the two covers Mix changes are two covers a reviewer can count.
 
 **★ Round two's counts for the Licensed route were the counts before the rule, and the rule takes some
 back.** The board said "all twelve ids fill" and "21 of the 23 posts fill", both true of the staged
