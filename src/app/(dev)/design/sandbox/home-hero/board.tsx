@@ -6,7 +6,12 @@ import "./board.css";
 import { RotateCcw } from "lucide-react";
 import { useState } from "react";
 
-import { Stage as ShellStage, Toggle, type Mode } from "@/components/dev/board";
+import {
+  BoardDock,
+  Stage as ShellStage,
+  Toggle,
+  type Mode,
+} from "@/components/dev/board";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
@@ -84,6 +89,45 @@ export function HomeHeroBoard() {
 
   return (
     <div className="flex flex-col gap-6 py-4">
+      {/* The page-wide switches ride the dock (Will, 2026-09-15: a board's
+          controls fixed on screen, so the source and the scan can be compared
+          at 375 without scrolling back past a 930px stage for every flip). */}
+      <BoardDock
+        aside={
+          <button
+            type="button"
+            onClick={() => setRunId((n) => n + 1)}
+            className="flex h-7 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-transform active:scale-95"
+          >
+            <RotateCcw className="size-3.5" />
+            Replay
+          </button>
+        }
+      >
+        <Toggle
+          ariaLabel="Viewport"
+          options={[
+            { id: "desktop" as Mode, label: "Desktop" },
+            { id: "phone" as Mode, label: "Phone 375" },
+          ]}
+          value={mode}
+          onChange={setMode}
+        />
+        <Toggle
+          ariaLabel="Copy"
+          options={[
+            { id: "ruled" as CopyMode, label: "Ruled copy" },
+            { id: "proposed" as CopyMode, label: "Proposed copy" },
+          ]}
+          value={copy}
+          onChange={setCopy}
+        />
+        {reduced && (
+          <span className="text-[11px] text-muted-foreground">
+            Reduced motion: every composition settled, the album already there.
+          </span>
+        )}
+      </BoardDock>
       <div className="max-w-2xl space-y-3 text-xs leading-relaxed text-muted-foreground">
         <p>
           Round two asked one question, the hero is the QR becoming the album,
@@ -105,40 +149,6 @@ export function HomeHeroBoard() {
           proposes its own supporting elements and copy, names its assets, and
           flags any departure on the board rather than in a footnote.
         </p>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Toggle
-          ariaLabel="Viewport"
-          options={[
-            { id: "desktop" as Mode, label: "Desktop" },
-            { id: "phone" as Mode, label: "Phone 375" },
-          ]}
-          value={mode}
-          onChange={setMode}
-        />
-        <Toggle
-          ariaLabel="Copy"
-          options={[
-            { id: "ruled" as CopyMode, label: "Ruled copy" },
-            { id: "proposed" as CopyMode, label: "Proposed copy" },
-          ]}
-          value={copy}
-          onChange={setCopy}
-        />
-        <button
-          type="button"
-          onClick={() => setRunId((n) => n + 1)}
-          className="flex h-7 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-transform active:scale-95"
-        >
-          <RotateCcw className="size-3.5" />
-          Replay
-        </button>
-        {reduced && (
-          <span className="text-[11px] text-muted-foreground">
-            Reduced motion: every composition settled, the album already there.
-          </span>
-        )}
       </div>
 
       {CONCEPTS.map((c) => (
