@@ -1139,7 +1139,16 @@ function VoiceTag({ id }: { id: VoiceId }) {
   );
 }
 
-/** Three canvases, one per voice, stacked. */
+/**
+ * Three canvases, one per voice: stacked at 1440, side by side at 375.
+ *
+ * ★ Three 375 canvases are 1,125px plus gaps, which fits a 1440 window with
+ * room to spare, so stacking them would leave a thousand pixels of dead ground
+ * beside every specimen and put the line being judged a screen away from the
+ * line it replaces. Round three found the same thing on its ledgers and fixed
+ * it the same way. At 1440 there is no such room and the stack is the only
+ * honest layout, since scaling a specimen is what this round exists to stop.
+ */
 function VoiceStack({
   mode,
   ground,
@@ -1149,10 +1158,15 @@ function VoiceStack({
   ground: Ground;
   render: (voice: VoiceId) => React.ReactNode;
 }) {
+  const side = mode === "phone";
   return (
-    <div className="space-y-4">
+    <div
+      className={
+        side ? "grid items-start gap-4 lg:grid-cols-3" : "space-y-4"
+      }
+    >
       {COLUMNS.map((id) => (
-        <div key={id}>
+        <div key={id} className={side ? "min-w-0" : undefined}>
           <VoiceTag id={id} />
           <FitStage mode={mode} ground={ground} swapKey={id}>
             {render(id)}
@@ -1197,24 +1211,16 @@ function VoiceRow({
   );
 }
 
-/** Three phones, side by side: the guest surfaces only ever render here. */
+/** Three phones, side by side: the guest surfaces only ever render there, so
+ *  this chapter ignores the canvas switch and says so in its rationale. */
 function VoicePhones({
+  ground,
   render,
 }: {
+  ground: Ground;
   render: (voice: VoiceId) => React.ReactNode;
 }) {
-  return (
-    <div className="grid items-start gap-4 lg:grid-cols-3">
-      {COLUMNS.map((id) => (
-        <div key={id} className="min-w-0">
-          <VoiceTag id={id} />
-          <FitStage mode="phone" ground="app-light" swapKey={id}>
-            {render(id)}
-          </FitStage>
-        </div>
-      ))}
-    </div>
-  );
+  return <VoiceStack mode="phone" ground={ground} render={render} />;
 }
 
 /**
@@ -1885,6 +1891,18 @@ function AppUseChapter({ mode, ground }: { mode: Mode; ground: Ground }) {
             />
           )}
         />
+        {/* The one line on this specimen the board cannot swap: the amber
+            chip's text is written INSIDE event-card.tsx rather than passed in,
+            so all three cards say the shipped words and the row below is where
+            the candidates differ. Worth knowing before the sweep: two of these
+            three pills are props and the third is a component edit. */}
+        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+          The amber chip reads the same on all three cards on purpose: its
+          words are hardcoded in event-card.tsx while the other two pills
+          arrive as props from the dashboard. The row below is where the
+          candidates part, and the difference is a component edit rather than a
+          label change.
+        </p>
       </UseFrame>
 
       <UseFrame u={byId("wizard")}>
@@ -1941,12 +1959,13 @@ function AppUseChapter({ mode, ground }: { mode: Mode; ground: Ground }) {
 
 /** A guest's phone, and the one mail. Always 375: these surfaces only ever
  *  render there, and three of them fit a 1440 window side by side. */
-function GuestUseChapter() {
+function GuestUseChapter({ ground }: { ground: Ground }) {
   const byId = (id: string) => GUEST_USE.find((u) => u.id === id) as UseCase;
   return (
     <div className="space-y-8">
       <UseFrame u={byId("guest-door")}>
         <VoicePhones
+          ground={ground}
           render={(v) => (
             <div className="flex flex-col gap-3 px-4 py-5">
               <GuestDoor voice={v} gate="public" />
@@ -1958,15 +1977,15 @@ function GuestUseChapter() {
       </UseFrame>
 
       <UseFrame u={byId("upload-sheet")}>
-        <VoicePhones render={(v) => <UploadSheet voice={v} />} />
+        <VoicePhones ground={ground} render={(v) => <UploadSheet voice={v} />} />
       </UseFrame>
 
       <UseFrame u={byId("guest-empty")}>
-        <VoicePhones render={(v) => <GuestEmpty voice={v} />} />
+        <VoicePhones ground={ground} render={(v) => <GuestEmpty voice={v} />} />
       </UseFrame>
 
       <UseFrame u={byId("email")}>
-        <VoicePhones render={(v) => <EmailCard voice={v} />} />
+        <VoicePhones ground={ground} render={(v) => <EmailCard voice={v} />} />
       </UseFrame>
     </div>
   );
@@ -2155,7 +2174,7 @@ export function BrandVoiceBoard() {
         name="The voices in use: a guest's phone, and the inbox"
         rationale="Four surfaces at 375, always, because that is the only place they render. Bible 4 decides more here than the voice does: the event belongs to the host and Partyreel stays nearly silent, which is why two of these lines are marked as compelled rather than chosen."
       >
-        <GuestUseChapter />
+        <GuestUseChapter ground={appGround} />
       </Chapter>
 
       <Chapter

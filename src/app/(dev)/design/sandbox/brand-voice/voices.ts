@@ -1627,7 +1627,11 @@ export const MARKETING_USE: UseCase[] = [
     where: "components/marketing/sections/home/album-section.tsx",
     rule: "A claim the section then proves, never the category it belongs to. The body is one sentence that earns the header, and the chevron is the reader's next step.",
     lines: [
-      { slot: "eyebrow", trio: arcSlot("album", "eyebrow") },
+      {
+        slot: "eyebrow",
+        trio: arcSlot("album", "eyebrow"),
+        same: "An eyebrow on this page is a chapter mark, and the chapter is the album. A voice that renames it is naming a different section, which is a structure question rather than a copy one.",
+      },
       { slot: "heading", trio: arcSlot("album", "header") },
       { slot: "subhead", trio: arcSlot("album", "support") },
       {
