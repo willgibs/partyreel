@@ -36,7 +36,13 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 import type { Mode } from "@/components/dev/board";
 
-import { GROUND_JOBS, STATE_HUES, TEXT_STEPS, type Ramp } from "./ramps";
+import {
+  GROUND_JOBS,
+  RING_USES,
+  STATE_HUES,
+  TEXT_STEPS,
+  type Ramp,
+} from "./ramps";
 
 /**
  * ROUND TWO'S SPECIMENS: the surfaces round one did not put on the board, and
@@ -691,7 +697,8 @@ export function GuestAlbum({ mode }: { mode: Mode }) {
  *
  * lift  two objects of the same lightness overlapping (two photographs).
  * float a layer over content that keeps living behind it (a menu).
- * ring   the fourth technique, 77 uses in the app and in no document.
+ * ring   the fourth technique, RING_USES.faint uses in the app and in no
+ *        document. Round three re-counted it: the number was 77 and is 37.
  * flat   neither, which is most of the product.
  *
  * The cue values are the light board's, in board.css under this board's prefix;
@@ -797,7 +804,7 @@ export function DepthRow({ mode }: { mode: Mode }) {
             </p>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            ring-1 ring-foreground/5, 77 uses and in no document
+            {`ring-1 ring-foreground/5, ${RING_USES.faint} uses and in no document`}
           </p>
         </div>
         <div className="space-y-2">
@@ -822,7 +829,7 @@ export function DepthRow({ mode }: { mode: Mode }) {
 /**
  * The one translucent surface in the system, on the only specimen where the
  * question is a look: a card lying over a photograph. Today's `.dark --card` is
- * `oklch(0.21 0 0 / 0.62)`; all three candidates quietly retire it, which round
+ * `oklch(0.21 0 0 / 0.62)`; every candidate quietly retires it, which round
  * one's departure list got backwards. Here both answers are rendered at the
  * candidate's own lightness, so the ruling is a look and not a footnote.
  */
@@ -888,36 +895,55 @@ export function PhotoCards({ mode }: { mode: Mode }) {
  * Every text step with real product copy at it, on the three grounds a line of
  * type actually lands on: the page, a card, and the panel. The hole in the
  * light ramp is only a hole once you try to write the third line.
+ *
+ * `faint` is ask 6, and it is the reason the third step paints from a `var()`
+ * with a fallback rather than from a value. A ruling of "out" deletes --faint
+ * from the ramp itself (`withoutFaint` in ramps.ts), so the fallback takes
+ * over and the third line becomes what ships today: 70 percent of the second
+ * step, composited against whatever ground it happens to sit on. That is why
+ * this specimen renders all three grounds side by side. One token is one grey
+ * on all three; an alpha is three different greys, and the caption under the
+ * row says which of the two you are looking at.
  */
-export function TextSteps({ mode }: { mode: Mode }) {
+export function TextSteps({ mode, faint }: { mode: Mode; faint: boolean }) {
   const desktop = mode === "desktop";
   const stack = (where: string) => (
     <div className="space-y-2">
       <p className="text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
         {where}
       </p>
-      {TEXT_STEPS.map((s) => (
-        <div key={s.token}>
-          <p
-            className={cn(desktop ? "text-base" : "text-sm")}
-            style={
-              s.token === "--foreground"
-                ? undefined
-                : s.token === "--muted-foreground"
-                  ? { color: "var(--muted-foreground)" }
-                  : {
-                      color:
-                        "var(--faint, color-mix(in oklab, var(--muted-foreground) 70%, transparent))",
-                    }
-            }
-          >
-            {s.copy}
-          </p>
-          <p className="text-[10px] text-muted-foreground">
-            {s.token} <span>{s.today}</span>
-          </p>
-        </div>
-      ))}
+      {TEXT_STEPS.map((s) => {
+        const isFaint = s.token === "--faint";
+        return (
+          <div key={s.token}>
+            <p
+              className={cn(desktop ? "text-base" : "text-sm")}
+              style={
+                s.token === "--foreground"
+                  ? undefined
+                  : s.token === "--muted-foreground"
+                    ? { color: "var(--muted-foreground)" }
+                    : {
+                        color:
+                          "var(--faint, color-mix(in oklab, var(--muted-foreground) 70%, transparent))",
+                      }
+              }
+            >
+              {s.copy}
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              {isFaint && !faint ? "text-muted-foreground/70" : s.token}{" "}
+              <span>
+                {isFaint
+                  ? faint
+                    ? "one token, the same grey on all three grounds"
+                    : s.today
+                  : s.today}
+              </span>
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
   return (

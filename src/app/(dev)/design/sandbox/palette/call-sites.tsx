@@ -54,7 +54,11 @@ function HueColumn({
       style={accentStyle(accent, dark)}
       className="flex min-w-0 flex-col gap-2"
     >
-      <div className="flex min-h-14 items-center">{children}</div>
+      {/* min-w-0 on the specimen row as well as the column: a grid item's
+          min-width is auto, so without it a specimen that ends in a truncating
+          label (job 03's toast) pushes past its column and, in the 2-column
+          phone wall, 8px past the stage's own edge. Measured at 375. */}
+      <div className="flex min-h-14 min-w-0 items-center">{children}</div>
       <p className="truncate text-[11px] font-medium">{accent.label}</p>
     </div>
   );
@@ -175,7 +179,7 @@ export function AccentWall({ mode, dark }: { mode: Mode; dark: boolean }) {
         dark={dark}
         mode={mode}
         render={() => (
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <span className="relative flex size-12 shrink-0 flex-col items-center justify-center rounded-lg border-2 border-brand p-2">
               <span className="size-5 rounded-sm bg-foreground/80" />
               <span className="absolute top-1 right-1 rounded-full bg-brand p-0.5 text-brand-foreground">

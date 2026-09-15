@@ -18,6 +18,7 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 import type { Mode } from "@/components/dev/board";
 
+import { lOf, type Ramp } from "./ramps";
 import { StateRow } from "./specimens";
 
 /**
@@ -164,32 +165,75 @@ export function MarketingChapter({ mode }: { mode: Mode }) {
  * lot. The menu is hand-placed rather than a real DropdownMenu ON PURPOSE:
  * radix portals to document.body, which would escape the stage's zoom AND its
  * token overrides. The skin is copied verbatim from dropdown-menu.tsx.
+ *
+ * ROUND THREE: `paired` renders it as half of a PairFrame (today beside the
+ * candidate), and the menu no longer sits ON the copy. It used to hang at
+ * `-right-24` on desktop and `right-2` on the phone, which covered the panel's
+ * own explanation at 1440 and hid three lines of it at 375: the specimen is a
+ * menu OVER a card, not a menu over the one sentence that says what the panel
+ * is. On desktop it now hangs off the card's top-right corner from outside; on
+ * the phone, where a 224px menu cannot clear a 335px card at all, it sits over
+ * the action row, so the overlap is still a menu over a card and nothing it
+ * covers is an explanation. Both positions are checked by measuring which text
+ * nodes the menu's box intersects, at both canvases.
+ *
+ * When paired it also prints the three values it is arguing about, because two
+ * frames side by side turn "is this a ladder" into a reading rather than a
+ * memory.
  */
-export function SurfaceStack({ mode }: { mode: Mode }) {
+export function SurfaceStack({
+  mode,
+  paired = false,
+  ramp,
+  tone = "dark",
+}: {
+  mode: Mode;
+  paired?: boolean;
+  ramp?: Ramp;
+  /** Which block the printed steps are read from. The specimen itself is the
+   *  same on either ground: the paper ramp crushes five surfaces into 0.037
+   *  exactly as the dark one crushes five into 0.11. */
+  tone?: "light" | "dark";
+}) {
   const desktop = mode === "desktop";
+  const wide = desktop && !paired;
+  const step = (token: string) => {
+    if (!ramp) return null;
+    const block = tone === "light" ? ramp.light : ramp.dark;
+    const l = lOf(block[token] ?? "", block);
+    return l === null ? null : l.toFixed(3);
+  };
   return (
     <div
       className={cn(
-        "relative flex h-full flex-col",
-        desktop ? "justify-center px-20 py-12" : "px-5 py-8",
+        "relative flex h-full flex-col justify-center",
+        desktop ? (wide ? "px-20 py-12" : "px-10 py-10") : "px-5 py-8",
       )}
     >
-      <p className="mb-4 text-xs text-muted-foreground">
-        Ground, card, panel, input, menu. Five surfaces, one frame.
+      <p className="mt-5 mb-4 text-xs text-muted-foreground">
+        {paired ? (
+          <span className="tabular-nums">
+            Ground {step("--background")}, panel {step("--muted")}, card{" "}
+            {step("--card")}, menu {step("--popover")}, hover{" "}
+            {step("--secondary")}.
+          </span>
+        ) : (
+          "Ground, card, panel, input, menu. Five surfaces, one frame."
+        )}
       </p>
-      <div className={cn("relative", desktop && "max-w-xl")}>
+      <div className={cn("relative", wide && "max-w-xl", paired && "mr-16")}>
         <Card>
           <CardHeader>
             <CardTitle>Event settings</CardTitle>
             <CardDescription>
-              Who can upload, and what happens to it when they do.
+              Who can upload, and what happens to it.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
               <p className="font-medium">Guests need an email</p>
               <p className="text-muted-foreground">
-                The panel, today at 40 percent of a token that also does hover.
+                The panel, an alpha of a token that also does hover.
               </p>
             </div>
             <div className="flex h-9 items-center rounded-lg border border-input px-3 text-sm text-muted-foreground">
@@ -212,11 +256,18 @@ export function SurfaceStack({ mode }: { mode: Mode }) {
 
         {/* Anchored to the card's corner, the way the real overflow menu opens:
             the whole question is whether the menu, the card and the panel
-            inside it are three surfaces or one. */}
+            inside it are three surfaces or one. It overlaps the card's EDGE and
+            never its copy (see the note above). */}
         <div
           className={cn(
             "absolute w-56 rounded-float bg-popover p-1 text-popover-foreground shadow-float ring-1 ring-foreground/10",
-            desktop ? "top-10 -right-24" : "top-9 right-2",
+            // ★ Measured, not guessed: at 375 the card is 335 wide and this
+            // menu is 224, so anything anchored to the TOP corner lands on the
+            // card's title, its description and the panel's heading, which is
+            // exactly the copy that says what the specimen is. On the phone it
+            // sits over the action row instead, where the overlap is still a
+            // menu over a card but nothing it covers is an explanation.
+            desktop ? "-top-2 -right-16" : "-right-2 bottom-6",
           )}
         >
           {["Share the album", "Download everything", "Close uploads"].map(
@@ -329,7 +380,17 @@ export function PanelBand({ mode, single }: { mode: Mode; single: boolean }) {
  * PAPER values it inherits from the page around it. Every candidate completes
  * the set; today's block is left incomplete on purpose so the gap is visible.
  */
-export function InkLeaf({ mode }: { mode: Mode }) {
+export function InkLeaf({
+  mode,
+  complete,
+}: {
+  mode: Mode;
+  /** Whether the selected set gives `.surface-ink` a --card and a --popover.
+   *  ★ Round three: the captions used to say "today this is near white" under a
+   *  candidate that had just fixed it, which is a board telling the reader the
+   *  opposite of what the reader is looking at. */
+  complete: boolean;
+}) {
   const desktop = mode === "desktop";
   return (
     <div
@@ -382,12 +443,14 @@ export function InkLeaf({ mode }: { mode: Mode }) {
           <CardHeader>
             <CardTitle>A card on the ink leaf</CardTitle>
             <CardDescription>
-              Today this is near white: .surface-ink has no --card.
+              {complete
+                ? "A real step above the slab, because this set gives .surface-ink a --card."
+                : "Near white, because .surface-ink has no --card of its own."}
             </CardDescription>
           </CardHeader>
         </Card>
         <div className="w-52 rounded-float bg-popover p-1 text-popover-foreground shadow-float ring-1 ring-foreground/10">
-          {["A menu on ink", "Also near white"].map((item, i) => (
+          {["A menu on ink", complete ? "On the leaf's own set" : "Also near white"].map((item, i) => (
             <div
               key={item}
               className={cn(
