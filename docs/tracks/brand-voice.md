@@ -1,6 +1,6 @@
 ---
 track: brand-voice
-status: open
+status: handed-off
 cut: "ab45b03"
 merged_round_2: "b574cda"
 merged_round_1: "d988c88"
@@ -415,15 +415,160 @@ own page. No production byte changed.
 
 ## Handoff (round 3)
 
-- Head <sha>, pushed; preview partyreel-git-lp-brand-voice-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/brand-voice` (this manifest commit on top of the sync merge `e769c27`); the
+  board's code head is `5846b43`. Preview `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the
+  board at `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at
+  `docs/specs/brand-voice.md`. **The round-three board is the one whose root div carries
+  `class="bv-round-three"`, opens with a card reading "The recommendation / B, the room." and
+  carries a twelve-chapter index in the control bar.**
+- Synced with `launch-prep` at `dd4aa0b` (it had moved by the palette and floating-surfaces
+  round-two merges and their manifests; nothing in this lane or its `reads`). Merged clean, gate
+  re-run on the merged tree.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing and none
+  in this lane), test ok (1,719 in 193 files), build ok (248 static pages, compiled clean).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/brand-voice.md`,
+  `docs/tracks/brand-voice.md` and the three files under
+  `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `board.css`, `voices.ts`). No
+  exceptions, and no production byte changed. The two read-only production imports round two added
+  are unchanged (`voices.ts` imports the album page's shipped copy module and the
+  recently-deleted constant, so the cards' `today` column cannot drift from the page).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Assets requested from Will: none. The board is type on the real grounds; its only stand-in is the
+  grey plate in the three unfurl cards, which stands for a link preview's own thumbnail and now
+  says so on the board.
+
+### The walk, taken cold, and what it changed
+
+The round-three brief asked for Will's walk to be taken first. Six passes (two canvases by three
+columns), and every stumble it found is fixed:
+
+1. **The verdict was at the bottom of a 15,000px board.** The recommendation, the one-line case for
+   it, the case for A, and three anchored pointers now open the board; the strongest candidate is
+   the FIRST column and the default; the twelve chapters are a one-row index in the sticky bar
+   (borrowed from the palette board's round two, which found the same thing on a shorter board).
+   The index scrolls rather than wraps, because wrapped it made the bar four rows tall on a narrow
+   window.
+2. **B's cost was prose, typed once.** "Four rows at 375" was a sentence, not a measurement, and
+   only one column renders at a time, so it could not be checked by looking. A ruler now clones the
+   LIVE heading (its own class list, its own width) and counts the line boxes for all three columns
+   at the canvas on screen: the h1 takes **B 3, A 2, today 2 at 1440** and **B 4, A 3, today 3 at
+   375**. The same ruler under the thesis found something the prose had missed: the alternative
+   costs a row at 1440 and **nothing at 375**.
+3. **Three pages the walk names had never been on a board.** `/help`, `/contact` and `/pricing` are
+   chapter 9, on their real grounds, plus two real help article heads, which closes the last gap
+   between the guide's surfaces table and this board. It is the cheapest chapter on the board and
+   possibly the highest-yield: "How can we help?" and "Talk to Partyreel." are the two most generic
+   sentences on the site.
+4. **The phone canvas was a 23,000px walk with 800px of dead ground either side of every stage.**
+   At 375 the ledger now sits BESIDE the stage, so the line being judged and the line it replaces
+   are in one view.
+5. **Twelve app and guest rewrites all read like twelve rulings.** They are the sweep's ordinary
+   work; the ONE row that is a decision (the guest account gate, the line bible 4 refuses) is
+   marked as one, and both chapter headnotes say which is which.
+6. **A mark that meant nothing.** The dot in the ledger explained itself only in a `title`
+   tooltip, on a board nobody hovers. It says what it is, and what `ruled` means beside it.
+7. **Less to rule on.** Two of round two's four departures had become asks (bible 20, the
+   album/gallery noun) and left; the asks were reworded so every one answers in a single word.
+   Candidate A was re-judged from the ground up and KEEPS its column: it is the only answer that
+   costs the finished feature pages almost nothing, which is an argument rather than a shade of B.
+
+### Light QA, in numbers (six passes: Desktop and Phone 375, each on Today, A and B)
+
+- **Nothing clips, anywhere.** 16 stages; a scan of every `h1/h2/h3/p/span/td/li/button/dd/dt/div`
+  inside every stage for a box crossing the stage edge returns empty in all six passes, and
+  `scrollHeight - clientHeight` is 0 on all 16 stages in all six. No horizontal document overflow in
+  any pass.
+- **Reduced motion gets the settled composition.** Verified in the SERVED stylesheet, not just the
+  source: the board's one animation (`bv-swap-in`) sits inside
+  `@media (prefers-reduced-motion: no-preference)`, so under `reduce` there is no rule to undo. All
+  13 `[data-mkt-reveal]` slots compute to opacity 1, so no line depends on motion to be read.
+- **What runs, measured, and one thing cut.** The swap carried `animation-fill-mode: both`, which
+  left a FINISHED animation attached to every stage for the life of the page: 17 of them measured
+  sitting on the board at rest, one per stage, each a layer kept for a move that ended in 180ms. The
+  keyframe's end state IS the resting state and there is no delay to cover, so the fill bought
+  nothing and is gone. **At rest the board now runs 0 animations**; a voice swap runs 17 for 180ms;
+  the worst frame of a swap fell from 83ms to 50ms with the median at 17ms, on 1,394 nodes.
+- **Both canvases read.** 1440 and 375, all three columns, walked top to bottom.
+
+### The preview alias does not serve this head, and Will should know before he walks
+
+- **Vercel is at its daily deployment ceiling and none of this round's three pushes produced a
+  deployment record at all** (not a canceled one: none). Other branches are getting the occasional
+  slot as the rolling window frees one, so it is not a project-wide stop and nothing is wrong with
+  this branch: the build gate reads `preview: true` from this manifest and every commit also says
+  `[preview]`. As of handoff the alias still serves round TWO, which is checkable in one line: the
+  round-two board's root div is `bv-round-two`, round three's is `bv-round-three`.
+- **The fallback, which is what this round was verified on:** `pnpm dev` in the worktree at
+  `../partyreel-wt/brand-voice` (left in place) serves the tip exactly, board at
+  `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`.
+- **Also worth the Orchestrator's eye: the `launch-prep` alias serves ROUND ONE of this board**, not
+  round two. It was checked at the start of this round, before any of this round's pushes: the
+  integration alias builds on request and no `[preview]` push has rebuilt it since this track
+  merged, so a walk there shows a board two rounds old.
+
+### The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will)
+
+- "The voice: B, A, or today (the agent recommends B)"
+- "The seven provisional home headers: whole in the selected voice, or line by line from the ledgers (the agent recommends whole)"
+- "The rest of the arc, its eyebrows, supporting lines and CTAs: take the selected voice, or hold today's (the agent recommends take)"
+- "Bible 20's replacement, in one sentence: lead with what arrives, an absence may be the second beat, never the first, and never both. Yes, or send it back"
+- "The thesis: keep in one album, or take as everyone saw it (the agent recommends keep)"
+- "One noun for the thing: album everywhere, or album on the site and gallery on a guest's screen (the agent recommends album)"
+- "The account-required unfurl line: email, or sign in (the agent recommends email)"
+
+### Findings the Orchestrator must carry
+
+1. **The home page is about to carry two different counts.** The hero variations propose "312 photos
+   from 48 guests" as a stand-in and the shipped decomposition band two sections below says "Built
+   from 214 photos. Shot by 23 guests." Do 3 of the guide allows one of those, not both: one source,
+   one pair of numbers, read from the demo event. It is a departure on this board and belongs to the
+   composition pass. (The scan and the river already ask for a `demoCount` prop for exactly this.)
+2. **`/pricing` and the home arc say one promise two ways.** The page's h1 is the ratified "Start
+   free, upgrade when you host again." and the arc's ruled teaser is "Start free, upgrade for more
+   events." Both are Will's; the infusion round has to pick one.
+3. **The registration line is still stale.** `touchpoints.ts` (not this track's to edit) describes
+   the board as "Three candidate voices ... the seven provisional home headers rewritten in each
+   beside today's line; the unfurl both ways." It is the FIRST thing a walker reads and it has been
+   wrong since round two: this is two candidates on whole pages, twelve chapters. Reword at
+   integration.
+4. **The three shell findings from round two are all still open** and are true of every board that
+   stages a marketing component: the lab never compiles the heading ladder (a `PageHero` on a Stage
+   renders at its base class, 48px where the site renders 96px); a Tailwind prefix inside a Stage
+   reads the REAL viewport, so the 375 stage takes desktop gutters and desktop heading steps; and a
+   `Stage` cannot be handed a literal height it can keep. This board restates the first two in its
+   own sheet and solves the third with `FitStage` (about thirty lines in `board.tsx`); a `fit`
+   height mode on `Stage` itself would retire the literal from every board at once.
+
+### Look at first
+
+- **The first screen.** The recommendation, its cost, the three pointers. If the decision can be
+  made there and confirmed in chapters 2 and 9, the round did its job.
+- **Chapter 9, the pages the arc does not reach.** Newest, cheapest, and the place the voice does
+  the most visible work: "How can we help?" against "Start with the short answer.", and "Talk to
+  Partyreel." against "Every note gets a reply." The second is the model for the fence that keeps
+  our support copy legal (an outcome, never who delivers it), and the two article heads hold in
+  every column, which is how much the 59-article catalogue costs: nothing.
+- **The row counter under chapter 2, then chapter 5.** B's whole typographic price in one measured
+  line, and the surprise that the thesis alternative costs a row at 1440 and none at 375.
+- **Chapter 2 at Phone 375.** The ledger beside the stage is the round's other structural change,
+  and the phone is where B's extra row is paid.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). Rounds two and three took the voice from three
+candidate headers to a board a ruling can be read off. Round two argued the voice where a voice is
+judged, on whole pages: the home arc's fifteen sections top to bottom on their real grounds, then
+`/features/album` and `/features/curation` whole with all 24 card sets, the thirty identity strings
+as a paste, and the app's quiet and guest copy on twelve surfaces; candidate C was retired after it
+read as B with a substitution, and every held line was counted, which produced the round's sharpest
+finding, that the arc is unwritten while the feature pages are already finished. Round three took
+Will's walk before him: the recommendation, its cost and three pointers now open the board, the
+strongest candidate is the first column, twelve chapters are an index in the bar, and the voice's
+one real price is MEASURED off the live heading rather than asserted (B's h1 takes 3 rows at 1440
+and 4 at 375, against today's 2 and 3). A new chapter put `/help`, `/contact` and `/pricing` on a
+board for the first time, with two real help article heads, which is where the voice does its most
+visible work and costs the least. Three lab facts that had been making boards lie about their own
+content were fixed and reported to the shell, and the board's own cost was cut: a fill mode was
+leaving seventeen finished animations on the page at rest, and nothing runs there now. The guide
+gained an example per surface for each shape, the eight do's bible 20 asked for, and seven findings.
+No production byte changed.
