@@ -125,4 +125,3 @@ export function useNextFrame(on: boolean): boolean {
   }, [on]);
   return on && ticked;
 }
-

@@ -10,7 +10,12 @@ import {
   useState,
 } from "react";
 
-import { CANVAS, useLabPrefs, type Ground, type Mode } from "@/components/dev/board";
+import {
+  CANVAS,
+  useLabPrefs,
+  type Ground,
+  type Mode,
+} from "@/components/dev/board";
 import { withDesignKey } from "@/lib/design-gate/links";
 
 import type { Dim, Ramp, Scene, Side } from "./constants";
@@ -190,7 +195,8 @@ export function Frame({
     const box = boxRef.current;
     if (!box) return;
     if (trueScale) return;
-    const sync = () => setScale(Math.min(1, box.getBoundingClientRect().width / w));
+    const sync = () =>
+      setScale(Math.min(1, box.getBoundingClientRect().width / w));
     sync();
     const ro = new ResizeObserver(sync);
     ro.observe(box);
@@ -262,7 +268,11 @@ export function Frame({
     // each other down (it settled at 200px of a 1440 canvas once).
     <div
       ref={boxRef}
-      className={trueScale ? "w-full min-w-0 flex-1 overflow-x-auto" : "w-full min-w-0 flex-1"}
+      className={
+        trueScale
+          ? "w-full min-w-0 flex-1 overflow-x-auto"
+          : "w-full min-w-0 flex-1"
+      }
     >
       <div
         className="relative overflow-hidden rounded-lg border border-border bg-muted/30"
@@ -284,7 +294,7 @@ export function Frame({
           />
         ) : null}
         {detail || !trueScale ? (
-          <span className="pointer-events-none absolute right-1 bottom-1 rounded-md bg-background/75 px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">
+          <span className="pointer-events-none absolute right-1 bottom-1 rounded-md bg-background/75 px-1.5 py-0.5 text-[10px] text-muted-foreground tabular-nums">
             {trueScale
               ? `${w} canvas, 1:1`
               : `${w} canvas at ${Math.round(drawn * 100)}%`}

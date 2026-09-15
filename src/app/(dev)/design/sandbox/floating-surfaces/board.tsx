@@ -140,7 +140,10 @@ const CANDIDATES = [
     name: "Direction: card, the object (what this board recommends)",
     rationale: DIRECTION_META.card.thesis,
   },
-  { name: "Direction: glass, the room", rationale: DIRECTION_META.glass.thesis },
+  {
+    name: "Direction: glass, the room",
+    rationale: DIRECTION_META.glass.thesis,
+  },
   {
     name: "Direction: command, the model",
     rationale: DIRECTION_META.command.thesis,
@@ -216,7 +219,7 @@ function Row({
     >
       <div>
         <p className="text-sm font-semibold">
-          <span className="mr-2 inline-flex size-5 items-center justify-center rounded-md bg-foreground text-[11px] tabular-nums text-background">
+          <span className="mr-2 inline-flex size-5 items-center justify-center rounded-md bg-foreground text-[11px] text-background tabular-nums">
             {n}
           </span>
           {name}
@@ -321,6 +324,84 @@ function useReducedMotion(): boolean {
     subscribeReduce,
     () => window.matchMedia(REDUCE).matches,
     () => false,
+  );
+}
+
+/** The three knobs plus the palette ramp: the controls for rows 8 to 11, which
+ *  ride the dock on a desktop and sit with their own rows on a phone. */
+function KnobRow({
+  radius,
+  setRadius,
+  entrance,
+  setEntrance,
+  light,
+  setLight,
+  ramp,
+  setRamp,
+  contract,
+}: {
+  radius: string;
+  setRadius: (v: string) => void;
+  entrance: string;
+  setEntrance: (v: string) => void;
+  light: string;
+  setLight: (v: string) => void;
+  ramp: Ramp;
+  setRamp: (v: Ramp) => void;
+  contract: {
+    radius: RadiusRung | "off";
+    entrance: EntranceRung | "off";
+    light: LightRung | "off";
+  };
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-[11px] text-muted-foreground">
+        Today&rsquo;s primitives, rows 8 to 11:
+      </span>
+      <Toggle
+        ariaLabel="Radius"
+        options={[
+          { id: "off", label: "Radius: today" },
+          { id: "sharp", label: "sharp" },
+          { id: "nested", label: "nested" },
+          { id: "round", label: "round" },
+        ]}
+        value={radius}
+        onChange={setRadius}
+      />
+      <Toggle
+        ariaLabel="Entrance"
+        options={[
+          { id: "off", label: "Entrance: today" },
+          { id: "one-clock", label: "one clock" },
+          { id: "by-frequency", label: "by frequency" },
+        ]}
+        value={entrance}
+        onChange={setEntrance}
+      />
+      <Toggle
+        ariaLabel="Light"
+        options={[
+          { id: "off", label: "Light: today" },
+          { id: "shadow", label: "a soft shadow" },
+        ]}
+        value={light}
+        onChange={setLight}
+      />
+      <Toggle
+        ariaLabel="Ramp"
+        options={RAMPS.map((r) => ({ id: r, label: RAMP_LABEL[r] }))}
+        value={ramp}
+        onChange={setRamp}
+      />
+      <Apply
+        label={contractLabel(contract)}
+        css={contractCss(contract, "site")}
+      >
+        Apply the knobs
+      </Apply>
+    </div>
   );
 }
 
@@ -500,52 +581,23 @@ export function FloatingSurfacesBoard() {
               onChange={setMode}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] text-muted-foreground">
-              Today&rsquo;s primitives, rows 8 to 11:
-            </span>
-            <Toggle
-              ariaLabel="Radius"
-              options={[
-                { id: "off", label: "Radius: today" },
-                { id: "sharp", label: "sharp" },
-                { id: "nested", label: "nested" },
-                { id: "round", label: "round" },
-              ]}
-              value={radius}
-              onChange={setRadius}
+          {/* The knobs belong to rows 8 to 11 rather than to the whole board, and
+              below sm the dock is static anyway, so its back-and-forth value is
+              gone: at 375 this row moves down to the section it drives and the
+              dock loses 200px of the viewport. One control, rendered where it
+              is useful. */}
+          <div className="hidden w-full sm:block">
+            <KnobRow
+              radius={radius}
+              setRadius={setRadius}
+              entrance={entrance}
+              setEntrance={setEntrance}
+              light={light}
+              setLight={setLight}
+              ramp={ramp}
+              setRamp={setRamp}
+              contract={contract}
             />
-            <Toggle
-              ariaLabel="Entrance"
-              options={[
-                { id: "off", label: "Entrance: today" },
-                { id: "one-clock", label: "one clock" },
-                { id: "by-frequency", label: "by frequency" },
-              ]}
-              value={entrance}
-              onChange={setEntrance}
-            />
-            <Toggle
-              ariaLabel="Light"
-              options={[
-                { id: "off", label: "Light: today" },
-                { id: "shadow", label: "a soft shadow" },
-              ]}
-              value={light}
-              onChange={setLight}
-            />
-            <Toggle
-              ariaLabel="Ramp"
-              options={RAMPS.map((r) => ({ id: r, label: RAMP_LABEL[r] }))}
-              value={ramp}
-              onChange={setRamp}
-            />
-            <Apply
-              label={contractLabel(contract)}
-              css={contractCss(contract, "site")}
-            >
-              Apply the knobs
-            </Apply>
           </div>
           {reduced ? (
             <p className="text-[11px] text-muted-foreground">
@@ -622,7 +674,7 @@ export function FloatingSurfacesBoard() {
       >
         <div className="flex flex-wrap gap-3">
           {DIRECTIONS.map((d) => (
-            <div key={d} className="flex flex-col gap-1">
+            <div key={d} className="flex max-w-full min-w-0 flex-col gap-1">
               <span className="text-[11px] font-medium">
                 {DIRECTION_META[d].label}
                 {d === direction ? " (on the dock now)" : ""}
@@ -650,7 +702,7 @@ export function FloatingSurfacesBoard() {
         note="The only nested menu in the product is Who can upload, and it exists to hold three mutually exclusive values behind a hover and a wait. Left: card opens a second panel, which is the best version of the tree. Right: command has no submenu at all, so the same three rows are a group in the one list and two letters is how you reach them. The board's recommendation takes the right-hand idea into the left-hand anatomy: card's panel, with those three values inline under their own label, and no branch anywhere in the product."
       >
         <div className="flex flex-wrap gap-3">
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <span className="text-[11px] font-medium">
               Card: the submenu, done properly
             </span>
@@ -667,7 +719,7 @@ export function FloatingSurfacesBoard() {
               designKey={designKey}
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <span className="text-[11px] font-medium">
               Command: no submenu, two letters typed
             </span>
@@ -693,7 +745,7 @@ export function FloatingSurfacesBoard() {
         note="A direction has to answer 375 as well as 1440. Left is the host's own phone under the direction on the dock: command answers it differently on purpose, because a field with no keyboard is a bottom sheet with big rows. Right is the guest's entry drawer, the tenth floating surface and the first thing anyone sees after the QR, wearing the same direction through its own attribute. If a direction cannot reach that one, it is not a contract."
       >
         <div className="flex flex-wrap gap-4">
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <span className="text-[11px] font-medium">
               The host&rsquo;s phone, {meta.label.toLowerCase()}
             </span>
@@ -708,7 +760,7 @@ export function FloatingSurfacesBoard() {
               designKey={designKey}
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <span className="text-[11px] font-medium">
               The guest&rsquo;s entry drawer, the real EntryShell
             </span>
@@ -732,7 +784,7 @@ export function FloatingSurfacesBoard() {
         note="A direction that only answers the menu is half an answer. The dialog over its scrim, the tooltip, the real sonner toast, the field, and the edge panel entering from the side the product actually uses. These are the surfaces that make the layer a family, and a stray one reads as a bug."
       >
         <div className="flex flex-wrap gap-3">
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <span className="text-[11px] font-medium">
               The dialog, the tooltip and the toast
             </span>
@@ -747,7 +799,7 @@ export function FloatingSurfacesBoard() {
               designKey={designKey}
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <span className="text-[11px] font-medium">
               The field: a listbox in three directions, a search in the fourth
             </span>
@@ -763,7 +815,7 @@ export function FloatingSurfacesBoard() {
               designKey={designKey}
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <span className="text-[11px] font-medium">
               The edge panel: ui/sheet.tsx on its one real side, the top
             </span>
@@ -789,7 +841,7 @@ export function FloatingSurfacesBoard() {
         note="The honest cost of the prettiest direction, shown rather than argued. A backdrop blur earns its compositing layer when there is a room behind the panel: over the album, over a photograph, over the cinema ground. Over a flat app surface there is nothing to let through, so glass is a slightly rounder panel with a fainter edge and a blur the GPU still pays for. The first two frames are the same direction on two grounds; the third is card on the flat one, for the comparison. If the first is worth it and the second is not, that is an argument for a material that varies by ground, which is a question for rule 15."
       >
         <div className="flex flex-wrap gap-3">
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <span className="text-[11px] font-medium">
               Glass over the album (cinema)
             </span>
@@ -806,7 +858,7 @@ export function FloatingSurfacesBoard() {
               designKey={designKey}
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <span className="text-[11px] font-medium">
               Glass over a flat app ground (app light)
             </span>
@@ -823,7 +875,7 @@ export function FloatingSurfacesBoard() {
               designKey={designKey}
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <span className="text-[11px] font-medium">
               Card over the same flat ground
             </span>
@@ -894,10 +946,25 @@ export function FloatingSurfacesBoard() {
           Rounds one to three asked what today&rsquo;s layer should be tuned to
           and answered it in three independent knobs, each a real paste against
           the primitives&rsquo; own data-slots. That answer stands whichever way
-          the direction goes: if a direction wins it carries the radius line with
-          it, and if none does, these four rows are the ruling. The knobs sit on
-          the dock, at the end of the second line.
+          the direction goes: if a direction wins it carries the radius line
+          with it, and if none does, these four rows are the ruling. The knobs
+          sit on the dock at the end of its second line, and on a phone they sit
+          here, where the dock is static and a control beside its own rows is
+          worth more than a control at the top of the document.
         </p>
+        <div className="sm:hidden">
+          <KnobRow
+            radius={radius}
+            setRadius={setRadius}
+            entrance={entrance}
+            setEntrance={setEntrance}
+            light={light}
+            setLight={setLight}
+            ramp={ramp}
+            setRamp={setRamp}
+            contract={contract}
+          />
+        </div>
       </section>
 
       <Row
@@ -907,7 +974,10 @@ export function FloatingSurfacesBoard() {
       >
         <div className="flex flex-wrap gap-3">
           {RUNGS.radius.map((r) => (
-            <div key={r.label} className="flex flex-col gap-1">
+            <div
+              key={r.label}
+              className="flex max-w-full min-w-0 flex-col gap-1"
+            >
               <span className="text-[11px] font-medium">{r.label}</span>
               <Frame
                 label={`Corner, ${r.label}`}
@@ -974,7 +1044,7 @@ export function FloatingSurfacesBoard() {
         </div>
         <div className="flex flex-col gap-3">
           {(["one-clock", "by-frequency"] as const).map((e) => (
-            <div key={e} className="flex flex-col gap-1">
+            <div key={e} className="flex max-w-full min-w-0 flex-col gap-1">
               <span className="text-[11px] font-medium">
                 {e === "one-clock"
                   ? "One clock, rule 15: the family moves as one"
@@ -1020,7 +1090,7 @@ export function FloatingSurfacesBoard() {
           onChange={setOutlier}
         />
         <div className="flex flex-wrap gap-3">
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <p className="text-[11px] font-medium text-muted-foreground">
               As it ships
             </p>
@@ -1036,7 +1106,7 @@ export function FloatingSurfacesBoard() {
               designKey={designKey}
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <p className="text-[11px] font-medium text-muted-foreground">
               On the knobs above
             </p>
@@ -1053,7 +1123,7 @@ export function FloatingSurfacesBoard() {
               {...knobs}
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-full min-w-0 flex-col gap-1">
             <p className="text-[11px] font-medium text-muted-foreground">
               {outlier === "select"
                 ? "Dropped: the dropdown with radio items"

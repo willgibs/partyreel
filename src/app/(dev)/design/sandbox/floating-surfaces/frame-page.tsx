@@ -151,11 +151,7 @@ export function FramePage({
    *  one it was given. */
   const css = useMemo(() => {
     const rungs =
-      scene === "ladder"
-        ? RUNGS[dim].map((r) => r.id)
-        : rung
-          ? [rung]
-          : [];
+      scene === "ladder" ? RUNGS[dim].map((r) => r.id) : rung ? [rung] : [];
     return [
       directionCss(knobs.direction, "frame"),
       contractCss(

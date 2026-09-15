@@ -87,9 +87,14 @@ export const ITEMS = [
 ].join(", ");
 
 /** Every panel, for the light (which does not care how a panel arrives). */
-export const ALL = [MENUS, BOX, EDGE_BOTTOM, EDGE_TOP, EDGE_RIGHT, EDGE_LEFT].join(
-  ", ",
-);
+export const ALL = [
+  MENUS,
+  BOX,
+  EDGE_BOTTOM,
+  EDGE_TOP,
+  EDGE_RIGHT,
+  EDGE_LEFT,
+].join(", ");
 
 /** The ANCHORED family: everything that arrives beside or over its trigger,
  *  which is every panel except the ones attached to an edge. Every ENTRANCE
@@ -130,7 +135,8 @@ export const EDGE_ANY = [
   '[data-slot="drawer-content"]',
 ].join(", ");
 
-export const OPEN = '[data-state="open"], [data-state="delayed-open"], [data-state="instant-open"]';
+export const OPEN =
+  '[data-state="open"], [data-state="delayed-open"], [data-state="instant-open"]';
 export const CLOSED = '[data-state="closed"]';
 
 export type Scope = "frame" | "site" | { panel: string };
@@ -528,7 +534,11 @@ export function contractLabel(knobs: Knobs): string {
   const bits = [
     knobs.radius === "off" ? null : `radius ${knobs.radius}`,
     knobs.light === "off" ? null : `light ${LIGHT_LABEL[knobs.light]}`,
-    knobs.entrance === "off" ? null : `entrance ${ENTRANCE_LABEL[knobs.entrance]}`,
+    knobs.entrance === "off"
+      ? null
+      : `entrance ${ENTRANCE_LABEL[knobs.entrance]}`,
   ].filter(Boolean);
-  return bits.length ? `Floating layer: ${bits.join(", ")}` : "Floating layer: today";
+  return bits.length
+    ? `Floating layer: ${bits.join(", ")}`
+    : "Floating layer: today";
 }

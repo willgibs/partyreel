@@ -129,7 +129,12 @@ export const EVENT_MENU: MenuModel = {
     },
   ],
   footer: [
-    { id: "delete", label: "Delete the event", icon: Trash2, variant: "destructive" },
+    {
+      id: "delete",
+      label: "Delete the event",
+      icon: Trash2,
+      variant: "destructive",
+    },
   ],
 };
 
@@ -175,13 +180,7 @@ export const ACCOUNT_MENU: MenuModel = {
    card's is a three-column grid with a rail and a trailing value, the glass
    one is a full-bleed line with the icon at 60 percent. */
 
-function RowBody({
-  row,
-  direction,
-}: {
-  row: MenuRow;
-  direction: Direction;
-}) {
+function RowBody({ row, direction }: { row: MenuRow; direction: Direction }) {
   const Icon = row.icon;
   if (direction === "card") {
     return (
@@ -243,7 +242,10 @@ function Rows({
               <RowBody row={row} direction={direction} />
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent
-              className={cn("flt-panel min-w-56", direction === "card" && "p-1")}
+              className={cn(
+                "flt-panel min-w-56",
+                direction === "card" && "p-1",
+              )}
               sideOffset={6}
             >
               {direction === "card" ? (
@@ -423,7 +425,8 @@ function flatten(model: MenuModel): Flat[] {
       if (row.sub) {
         // The branch is deleted and its rows join the list under their own
         // name. This is the direction's whole argument, in four lines.
-        for (const child of row.sub.rows) out.push({ row: child, group: row.sub.label });
+        for (const child of row.sub.rows)
+          out.push({ row: child, group: row.sub.label });
       } else {
         out.push({ row, group: g.label });
       }
@@ -464,7 +467,9 @@ export function CommandBody({
 
   // Keep the active row in view when the arrows walk past the fold.
   useEffect(() => {
-    const el = listRef.current?.querySelector<HTMLElement>('[data-active="true"]');
+    const el = listRef.current?.querySelector<HTMLElement>(
+      '[data-active="true"]',
+    );
     el?.scrollIntoView({ block: "nearest" });
   }, [active]);
 
@@ -765,7 +770,9 @@ export function HeaderPanelBody({ direction }: { direction: Direction }) {
       <div style={{ width: 480 }}>
         <div className="flex items-baseline justify-between border-b border-border px-3 py-2">
           <p className="text-sm font-semibold tracking-tight">Features</p>
-          <p className="text-xs text-muted-foreground">Everything a host gets</p>
+          <p className="text-xs text-muted-foreground">
+            Everything a host gets
+          </p>
         </div>
         <div className="grid grid-cols-2 gap-1 p-1.5">
           {FEATURE_LINKS.map((f) => (

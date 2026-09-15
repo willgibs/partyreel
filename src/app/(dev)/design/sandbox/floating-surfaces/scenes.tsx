@@ -75,12 +75,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-import {
-  RUNGS,
-  type Dim,
-  type Scene as SceneId,
-  type Side,
-} from "./constants";
+import { RUNGS, type Dim, type Scene as SceneId, type Side } from "./constants";
 import { DirectionScene } from "./direction-scenes";
 import type { Direction } from "./directions";
 import { Backdrop, useNextFrame, useReplay } from "./stage-bits";
@@ -348,11 +343,7 @@ function EdgeScene({
       />
       {variant === "sheet" ? (
         <Sheet open={on} modal={false}>
-          <SheetContent
-            className={cls}
-            side={edge}
-            showCloseButton={false}
-          >
+          <SheetContent className={cls} side={edge} showCloseButton={false}>
             <SheetHeader>
               <SheetTitle>Filter the album</SheetTitle>
               {/* sr-only rather than absent in the compact strip: radix warns
@@ -369,7 +360,9 @@ function EdgeScene({
                   key={r}
                   data-slot="sheet-row-item"
                   className="flex items-center justify-between bg-muted/50 px-3 py-2 text-sm"
-                  style={{ borderRadius: "var(--flt-r-item, var(--radius-md))" }}
+                  style={{
+                    borderRadius: "var(--flt-r-item, var(--radius-md))",
+                  }}
                 >
                   {r}
                 </div>
@@ -392,7 +385,9 @@ function EdgeScene({
                 <div
                   key={r}
                   className="bg-muted/50 px-3 py-2 text-sm"
-                  style={{ borderRadius: "var(--flt-r-item, var(--radius-md))" }}
+                  style={{
+                    borderRadius: "var(--flt-r-item, var(--radius-md))",
+                  }}
                 >
                   {r}
                 </div>
@@ -742,7 +737,10 @@ function TrioScene({ rung }: { rung?: string }) {
         </TooltipProvider>
       </div>
       <Dialog open={on} modal={false}>
-        <DialogContent className={cn(cls, "flt-trio-dialog")} showCloseButton={false}>
+        <DialogContent
+          className={cn(cls, "flt-trio-dialog")}
+          showCloseButton={false}
+        >
           <DialogHeader>
             <DialogTitle>Delete this event</DialogTitle>
             <DialogDescription>

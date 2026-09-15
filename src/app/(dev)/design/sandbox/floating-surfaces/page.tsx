@@ -72,11 +72,7 @@ export default async function FloatingSurfacesScenePage({
       scene={pick<Scene>(SCENES, one(params, "scene"), "family")}
       ground={pick<Ground>(GROUNDS, one(params, "ground"), "cinema")}
       ramp={pick<Ramp>(RAMPS, one(params, "ramp"), "today")}
-      direction={pick<Direction>(
-        DIRECTIONS,
-        one(params, "direction"),
-        "today",
-      )}
+      direction={pick<Direction>(DIRECTIONS, one(params, "direction"), "today")}
       phone={one(params, "w") === "375"}
       dim={pick<Dim>(DIMS, one(params, "dim"), "radius")}
       variant={one(params, "variant") === "drawer" ? "drawer" : "sheet"}
