@@ -513,8 +513,11 @@ export function FloatingSurfacesBoard() {
               holding; row 8 says how.
             </span>
           ) : null}
+          {/* Distinct from the landing block's button on purpose: that one is
+              fixed to the recommendation, this one follows whatever the three
+              knobs are set to right now. */}
           <span className="text-[11px] text-muted-foreground">
-            The three knobs, as one paste:
+            The knobs as you have them, as one paste:
           </span>
           <Apply
             label={contractLabel(contract)}
