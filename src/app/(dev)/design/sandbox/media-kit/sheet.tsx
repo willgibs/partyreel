@@ -336,6 +336,16 @@ function SourceRow({
               <Caption className="text-[10px]">
                 {shown ? VERTICAL_LABEL[shown] : ""}, its own thumbnails
               </Caption>
+              {/* ★ SAY WHEN THE SHEET IS NOT THE VERTICAL THAT WAS ASKED FOR.
+                  A source with no sheet for the chosen vertical falls back to one
+                  it does have, which is more useful than a blank and is a lie
+                  unless it is labelled: a reviewer who picked conferences and is
+                  looking at weddings should be told, in the same glance. */}
+              {vertical !== "all" && shown !== vertical && (
+                <span className="rounded-full bg-destructive/15 px-1.5 py-px text-[10px] font-medium text-destructive">
+                  nothing for {VERTICAL_LABEL[vertical].toLowerCase()}
+                </span>
+              )}
               <a
                 href={sheet.searchUrl || source.url}
                 target="_blank"
@@ -475,7 +485,11 @@ export function SurfaceCheck({ vertical }: { vertical: Vertical | "all" }) {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      {/* A Toggle is an inline-flex row that never wraps, and seven source names
+          is 456 px of switch against a 375 px screen: measured, that one row was
+          the whole document's horizontal scroll at phone width. It is its own
+          scroller below sm and wraps from sm up, the same shape the dock uses. */}
+      <div className="-mx-4 flex max-w-full items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0">
         <Toggle
           ariaLabel="Source"
           options={SURFACE_SOURCES.map((s) => ({ id: s.id, label: s.name }))}

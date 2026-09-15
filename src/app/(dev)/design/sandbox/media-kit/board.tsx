@@ -715,30 +715,43 @@ export function MediaKitBoard() {
           </>
         }
       >
-        <Toggle
-          ariaLabel="Vertical"
-          options={[
-            { id: "all", label: "All" },
-            ...ALL_VERTICALS.map((v) => ({ id: v, label: VERTICAL_LABEL[v] })),
-          ]}
-          value={vertical}
-          onChange={(v) => setVertical(v as Vertical | "all")}
-        />
-        <Toggle
-          ariaLabel="Route"
-          options={ROUTE_OPTIONS}
-          value={route}
-          onChange={setRoute}
-        />
-        <Toggle
-          ariaLabel="Geometry"
-          options={[
-            { id: "card" as const, label: "Card 4:5" },
-            { id: "share" as const, label: "Share 1200x630" },
-          ]}
-          value={geometry}
-          onChange={setGeometry}
-        />
+        {/* ★ THE CONTROLS SCROLL SIDEWAYS ON A PHONE RATHER THAN WIDENING THE
+            PAGE. A Toggle is an inline-flex row that does not wrap, and six
+            verticals plus a route plus a geometry is 456 px of switch against a
+            375 px screen, which pushed the whole document into a horizontal
+            scroll (measured at 375 before this wrapper existed). The row is its
+            own scroller below sm and wraps normally from sm up, which is where
+            the dock starts sticking anyway. The negative margin lets it bleed to
+            the dock's edges so a half-cut switch reads as more to the right. */}
+        <div className="-mx-4 flex max-w-full items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0">
+          <Toggle
+            ariaLabel="Vertical"
+            options={[
+              { id: "all", label: "All" },
+              ...ALL_VERTICALS.map((v) => ({
+                id: v,
+                label: VERTICAL_LABEL[v],
+              })),
+            ]}
+            value={vertical}
+            onChange={(v) => setVertical(v as Vertical | "all")}
+          />
+          <Toggle
+            ariaLabel="Route"
+            options={ROUTE_OPTIONS}
+            value={route}
+            onChange={setRoute}
+          />
+          <Toggle
+            ariaLabel="Geometry"
+            options={[
+              { id: "card" as const, label: "Card 4:5" },
+              { id: "share" as const, label: "Share 1200x630" },
+            ]}
+            value={geometry}
+            onChange={setGeometry}
+          />
+        </div>
       </BoardDock>
 
       <Verdict />

@@ -277,7 +277,7 @@ export const SOURCES: SourceCard[] = [
     clauseIs: "bar",
     release: "none",
     releaseNote:
-      "Web Summit's own terms cover Web Summit's use of its attendees' likenesses, not ours. CC BY is a copyright licence and says nothing about the people in the frame, so under our own rule every recognisable face here is still barred.",
+      "Web Summit's own terms cover Web Summit's use of its attendees' likenesses, not ours. CC BY is a copyright licence and says nothing about the people in the frame, so under our own rule every recognisable face here is still barred. The contact sheet adds a second bar nobody had thought of: a conference floor is a wall of other companies' trademarks, and the frames below carry Meta and Huawei booths at full size.",
     covers: ["corporate"],
     catalogue: `${n(WEBSUMMIT_TOTAL)} photographs on the account, of which ${n(WEBSUMMIT_CC)} are licensed CC BY 2.0, counted on the date above. Professional conference photography: keynote rooms, crowded aisles, badge tables, side-stage crowds.`,
     verdict: `The best free catalogue that exists for the one vertical our corpus could not fill at all, and it still fails the release half of the rule. Ask 3 is the ruling that decides whether ${n(WEBSUMMIT_CC)} frames are a source or a footnote.`,

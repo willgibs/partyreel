@@ -736,7 +736,7 @@ shorter list.
 | 5 | Envato Elements | subscription | $16.50/mo annual, $33 monthly | per item | Cheaper and worse: perpetual only for the project a file was registered to. |
 | 6 | Artgrid (clips) | subscription | from $25/mo, annual only ($299/yr) | held | The only clip licence that survives cancellation, and the most expensive line. |
 | | **the release line** | | | | |
-| 7 | Web Summit's Flickr archive | free | $0 plus a credit line | none | 87,066 CC BY 2.0 conference photographs. The best free catalogue for the vertical we cannot fill, and it still fails the release half. |
+| 7 | Web Summit's Flickr archive | free | $0 plus a credit line | none | 87,066 CC BY 2.0 conference photographs. The best free catalogue for the vertical we cannot fill, and it still fails the release half, plus a bar the contact sheet found: a conference floor is a wall of other companies' trademarks (Meta and Huawei booths at full size). |
 | 8 | Flickr filtered to CC BY 2.0 | free | $0 plus a credit line | none | Not a gallery, a filter over everyone's. The deepest free corpus of real events that exists. |
 | 9 | Nappy | free | $0 | none (its own licence says so) | The best free library at the representation the rest of the corpus lacks. |
 | 10 | Mixkit (clips) | free | $0 | none | Freely revocable, liability capped at ten dollars. A lab stand-in only. |
