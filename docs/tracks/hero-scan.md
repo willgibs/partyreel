@@ -463,8 +463,9 @@ readings, with zero intersections and 12 to 30 canvas px to spare.
 
 ## Handoff (round 3)
 
-- Head `f34af1c` plus this commit (a manifest cannot name its own SHA); `f34af1c` is the tree every
-  check below ran against. Pushed; preview `https://partyreel-git-lp-hero-scan-partyreel.vercel.app`,
+- Head: `f34af1c` plus the manifest commits that follow it (a manifest cannot name its own SHA).
+  `f34af1c` is the last CODE commit and the tree every check below ran against; nothing after it
+  touches `scan.tsx` or `scan.css`. Pushed; preview `https://partyreel-git-lp-hero-scan-partyreel.vercel.app`,
   the board at `/design/c/home-hero?key=` (concept 2 of 4, after the source). **Marker for the
   round-three board: the proposed headline "Every camera in the room, one album."**, which exists
   nowhere in round two; `overflow-clip` on the concept root and the switch's word "The room" mark it
