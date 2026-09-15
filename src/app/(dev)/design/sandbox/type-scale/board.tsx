@@ -122,17 +122,22 @@ import { TYPE_SCALE } from "./spec";
 function TypeStage({
   mode,
   ground,
-  swapKey,
   children,
 }: {
   mode: Mode;
   ground: Ground;
-  /** Re-measures (and remounts) when the pair or the canvas changes. */
-  swapKey: string;
   children: ReactNode;
 }) {
   return (
-    <FitStage mode={mode} ground={ground} swapKey={swapKey}>
+    // ★ NO `swapKey`, DELIBERATELY. FitStage's swapKey remounts the block it
+    // measures, which is right for a candidate that has to re-animate and wrong
+    // here twice over: this board animates nothing, and a remount hands every
+    // measurement a NEW node. `useLineCount` observes the element it was given
+    // once, so a stage that remounts on each dock flip left the pairing count
+    // watching a detached paragraph and printing nothing. Without a key the
+    // nodes are stable and both ResizeObservers, FitStage's and the line
+    // count's, keep reporting as the ladder and the canvas change.
+    <FitStage mode={mode} ground={ground}>
       <div
         data-tsc
         style={
@@ -564,7 +569,6 @@ function Evidence({
   const framed = useMemo(() => settled(css), [css]);
 
   const props = { ladder, mode };
-  const swap = `${pair.marketing}-${pair.app}-${mode}`;
   const { w, h } = CANVAS[mode];
   const demo = env.NEXT_PUBLIC_DEMO_QR_TOKEN;
   const album = REAL_PAGES.find((p) => p.demo);
@@ -591,7 +595,7 @@ function Evidence({
     case "pair":
       return (
         <Labeled name={`The pair: ${ladder.name}`} note={ladder.rationale}>
-          <TypeStage mode={mode} ground="paper" swapKey={swap}>
+          <TypeStage mode={mode} ground="paper">
             <LadderSheet
               ladder={ladder}
               marketing={marketing}
@@ -608,7 +612,7 @@ function Evidence({
           name="The masthead at all four marketing ladders"
           note="Strongest first, on the ground the front of the site actually uses. This one does not move with the dock: it is the four claims side by side."
         >
-          <TypeStage mode={mode} ground="cinema" swapKey={mode}>
+          <TypeStage mode={mode} ground="cinema">
             <DisplayCompare mode={mode} />
           </TypeStage>
         </Labeled>
@@ -698,7 +702,7 @@ function Evidence({
             name="The dashboard"
             note="PageHeading, the app's section tier and the card row, on the surface a host opens most. Today and A carry no step between the page title and the card, so the section heading renders what production ships: an 11px uppercase label inside an h2."
           >
-            <TypeStage mode={mode} ground="app-light" swapKey={swap}>
+            <TypeStage mode={mode} ground="app-light">
               <Dashboard {...props} />
             </TypeStage>
           </Labeled>
@@ -706,7 +710,7 @@ function Evidence({
             name="The app's missing middle, judged where it lives"
             note="Production writes this tier three ways and none of them is a heading: 11px uppercase inside an h2 on the dashboard and the event feed, 14px in admin, and once sr-only so it is not drawn at all. Beside each, what the selected app ladder puts there."
           >
-            <TypeStage mode={mode} ground="app-light" swapKey={swap}>
+            <TypeStage mode={mode} ground="app-light">
               <MissingMiddle {...props} />
             </TypeStage>
           </Labeled>
@@ -714,7 +718,7 @@ function Evidence({
             name="An event page, dark"
             note="The app's other ground, and the one app title that carries a size override today (text-3xl on PageHeading). Under a named ladder the override has nothing left to do."
           >
-            <TypeStage mode={mode} ground="app-dark" swapKey={swap}>
+            <TypeStage mode={mode} ground="app-dark">
               <EventPage {...props} />
             </TypeStage>
           </Labeled>
@@ -722,7 +726,7 @@ function Evidence({
             name="An admin page"
             note="The quietest surface in the product, and where the missing middle is written in its second idiom (a 14px medium h2, not the dashboard's 11px uppercase one). The metric numerals are deliberately off the heading ladder, which is what makes this the one stage where a 20px page title can be seen sitting below the numbers on its own page."
           >
-            <TypeStage mode={mode} ground="app-light" swapKey={swap}>
+            <TypeStage mode={mode} ground="app-light">
               <AdminPage {...props} />
             </TypeStage>
           </Labeled>
@@ -735,7 +739,7 @@ function Evidence({
           name="As it ships, and on the ladder"
           note="The same screen twice: Inter at 600 on the left exactly as production renders it, and the selected pair's step beside it. board.css pins the shipped half out of reach of any applied block, or the comparison would quietly become a comparison of one thing with itself."
         >
-          <TypeStage mode={mode} ground="app-light" swapKey={swap}>
+          <TypeStage mode={mode} ground="app-light">
             <NotFoundStage {...props} />
           </TypeStage>
         </Labeled>
@@ -748,13 +752,13 @@ function Evidence({
             name="The flat constant, the law, and the pairing under them"
             note="No size moves in the top half, which is what makes this a separate ruling: adopt it whichever pair wins."
           >
-            <TypeStage mode={mode} ground="paper" swapKey={swap}>
+            <TypeStage mode={mode} ground="paper">
               <TrackingLaw {...props} measureRef={pairingRef} />
             </TypeStage>
           </Labeled>
           <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
             <span className="text-foreground">Measured, not estimated: </span>
-            at {ladder.name}&rsquo;s title step on the{" "}
+            at the {ladder.name} title step on the{" "}
             <span className="tabular-nums">
               {mode === "phone" ? 375 : 1440}
             </span>{" "}
