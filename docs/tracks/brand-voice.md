@@ -1,6 +1,6 @@
 ---
 track: brand-voice
-status: open
+status: handed-off
 cut: "ca952b5"
 merged_round_1: "d988c88"
 preview: true           # Will reviews this board on its preview as it builds
@@ -246,15 +246,81 @@ Three departures were flagged rather than buried, and no production byte changed
 
 ## Handoff (round 2)
 
-- Head <sha>, pushed; preview partyreel-git-lp-brand-voice-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `<filled on the handoff commit>`, pushed; preview
+  `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the board at
+  `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
+  The round-two board is the one whose root div carries `class="bv-round-two"` and whose control
+  bar reads "Moves 33 of 65 lines in the arc, 15 of 30 on the feature pages."
+- Synced with launch-prep at `4b035c1` (it had moved by one docs commit, `design-system.md`;
+  merged in, gate re-run green).
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; 6 warnings, all pre-existing and none
+  in this lane), test ok (1,698 in 193 files), build ok (114 routes, 248 static pages).
+- Lane check: `docs/specs/brand-voice.md`, `docs/tracks/brand-voice.md` and the three files under
+  `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `board.css`, `voices.ts`). No
+  exceptions. Nothing production imports anything on this branch; `marketing-voice.ts`,
+  `feature-pages.ts` and the tests are untouched, and no production byte changed.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Assets requested from Will: none. The board is type on the real grounds; its only stand-ins are
+  the grey plates behind the unfurl cards, which stand for a link preview's own thumbnail.
+- **No "Apply to the site" on this board, per the round-two goal: copy is not CSS.** The
+  equivalent artifact is on the board instead: each candidate is copied out as a real TypeScript
+  block, `Copy the SECTION_HEADERS paste` (board 4) and `Copy the FEATURE_PAGES paste` (board 8),
+  so a ruling reaches `marketing-voice.ts` and `feature-pages.ts` without a line being retyped.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
+  - "The voice: today, A the house, or B the room (the agent recommends B)"
+  - "The seven provisional home headers: the selected voice whole, or line by line from the ledgers"
+  - "The rest of the arc (the eyebrows, the supporting lines, the CTAs): take the selected voice, or hold today's"
+  - "The account-required unfurl line: asks for an email, or asks to sign in with an email (the agent recommends asks for an email)"
+  - "Bible 20's replacement, in one sentence: lead with what arrives, an absence may be the second beat and never the first, and never both"
+  - "The thesis: keep in one album, or take as everyone saw it (the agent recommends keeping it)"
+  - "One noun for the thing: album everywhere, or album on the site and gallery on a guest's screen (the agent recommends album everywhere)"
+- **Shell findings the Orchestrator must carry (both fixed inside this board's own sheet, both
+  true of every board that stages a marketing component):**
+  1. **The lab never compiles the heading ladder.** `design.css` scans only
+     `src/app/(dev)/design`, so a responsive rung no LAB file spells is never emitted for a lab
+     page: a `PageHero` on a `Stage` resolves to its base class and renders at 48px where the site
+     renders 96px. Every hero on every board is currently judged at the wrong size.
+  2. **The 375 stage is not 375 for type or gutters.** The documented prefix gotcha (a Tailwind
+     breakpoint inside a `Stage` reads the REAL viewport) bites harder than the shell's note
+     implies: inside the phone stage every `sm:`/`lg:` rung fires, so `Container` takes the 2rem
+     desktop gutter and every heading takes its desktop step. `board.css` restates both, keyed to
+     a `data-bv-canvas` attribute the board sets from the `mode` prop. The right home for that is
+     the shell, not fourteen board sheets.
+- **The registration line is stale.** `touchpoints.ts` (not this track's to edit) still describes
+  the board as "Three candidate voices ... the seven provisional home headers rewritten in each
+  beside today's line; the unfurl both ways." Round two is two candidates on whole pages; the
+  Orchestrator should reword it at integration.
+- Look at first:
+  - **Board 2 to 4, the arc top to bottom, on B.** This is the round's whole point: fifteen
+    sections in shipped order on their real grounds. Read it once on Today, once on B; the count
+    in the control bar says how much moved, and every line a candidate keeps is marked `held`.
+  - **The held markers are the finding, not an omission.** A moves 23 of 65 arc lines and 6 of 30
+    feature strings; B moves 33 and 15. A is cheap because the feature pages were already written
+    in its register, which is its case and its cost in one number.
+  - **Board 10, the guest register.** The shipped account gate says "Create a free account to see
+    the full gallery and add your own photos." on the host's own page. That is the one line bible
+    4 refuses, and it is a one-sentence fix.
+  - **Ask 7 is new and outlives the round.** The site says *album* in every heading, nav label and
+    directory line; the guest surface says *gallery* in five places. A guest who scans a code on
+    the site's promise lands on a different product's noun.
+  - **B's cost is now measurable rather than asserted.** With the ladder restored, B's h1 takes
+    four rows at 375 against today's three, and three at 1440 against today's two.
 
 ## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). Round two argued the voice where a voice is
+actually judged: on whole pages. The board now walks the home arc's fifteen sections top to bottom
+in shipped order on their real grounds, with every eyebrow, header, supporting line and CTA in the
+selected voice and a ledger beneath each chapter carrying today beside it; then `/features/album`
+and `/features/curation` whole, the six feature pages' thirty identity strings as a table, the
+app's quiet copy on six real surfaces and the guest surfaces on six more. Candidate C was retired
+as a column after it read as B with a substitution across fifteen sections, and its one real
+question, the ruled thesis, became its own board and its own ask. Because copy cannot be applied to
+the site as CSS, each candidate instead copies out as a real `SECTION_HEADERS` and `FEATURE_PAGES`
+block, and every line a candidate holds verbatim is marked and counted (A moves 23 of 65 arc lines,
+B moves 33). Two lab facts that had been making every heading on every board lie about its size,
+the uncompiled ladder and the real-viewport prefix inside a stage, were fixed in the board's own
+sheet and reported to the shell. The guide gained one written example per surface for each of its
+five shapes, a surfaces table, the fences restated as the eight do's bible 20 asked for, and two
+new findings: the album/gallery split, and the guest account gate that asks for an account with us
+on the host's own page. No production byte changed.
