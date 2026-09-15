@@ -9,33 +9,48 @@
    is marked [data-rnd-loop] so the stage's data-paused stops it on a hidden tab. */
 
 /* ★ THE BOARD IS WIDER THAN THE LAB COLUMN, ON PURPOSE (round two). The lab
-   page is max-w-5xl (992px of content) and a radius has to be compared across
-   five columns at 1:1, because the only honest size for a corner is its own.
+   page is max-w-5xl and a radius has to be compared across five columns at
+   1:1, because the only honest size for a corner is its own.
 
    It grows into the PAGE GUTTERS and no further. The first cut centred the
    block on the viewport (margin-left: 50% and a translate) and it slid under
    the lab's sticky sidebar on the left and 96px off-screen on the right, where
-   an ancestor's overflow clipped it silently. The lab column is centred in
-   what is left of the viewport after that sidebar, so half of that remainder,
-   less a margin, is exactly how far this block may grow on each side:
+   an ancestor's overflow clipped it silently.
 
-     gutter = max(0, (100vw - sidebar - column) / 2 - margin)
+   ★ THE WIDTH IS 100% PLUS THE GUTTERS, NEVER A LENGTH. The second cut wrote
+   the column out as a length (62rem, max-w-5xl less its px-4) and that length
+   was wrong at every width between lg and about 1256px: above lg the sidebar
+   is BESIDE the column, so the column is `min(100vw - 232px, 64rem) - 2rem`
+   and a 992px block sat inside a 760px one, dragging the whole page (sidebar
+   included) into a horizontal scroll. The base width is the containing block
+   now, which is the real column whatever the shell does with it, and only the
+   spare room is computed.
 
-   `15rem` covers the 232px sidebar with room to spare, and the max() clamp
-   means the block is simply the column again below lg, where the sidebar
-   stops sitting beside the content (the 375 pass).
-
-   ★ NO PERCENTAGES IN THE GUTTER. `100%` inside the custom property resolved
+   ★ NO PERCENTAGES INSIDE THE CUSTOM PROPERTY. `100%` in a var resolved
    against a different box in `margin-left` than it did in `width` (a 1176px
-   box pulled 488px left), so the column is written out as a length instead:
-   62rem is max-w-5xl less its px-4, which is what the lab page gives a board.
-   The two assumptions about the shell are the cost of not owning it, and are
-   why the Handoff offers the shell a real wide slot. */
+   box pulled 488px left), so the gutter is viewport units and lengths only;
+   the one percentage lives directly in `width`, where it resolves against the
+   containing block and nothing else.
+
+   gutter = half of what is left of the viewport once the sidebar and the
+   column's own max width are taken out, and zero whenever the column already
+   fills the viewport (every width below lg, and every narrow desktop). The
+   page's own px-4 is what stays as the margin at the edge. 100vw counts a
+   classic scrollbar the layout does not, which can only make the gutter
+   smaller than the room it has, never larger. */
 .rnd-wide {
-  --rnd-col: min(62rem, calc(100vw - 2rem));
-  --rnd-gutter: max(0px, calc((100vw - 15rem - var(--rnd-col)) / 2 - 0.75rem));
-  width: calc(var(--rnd-col) + 2 * var(--rnd-gutter));
+  /* The sidebar sits beside the column only at lg and up: the lab layout is
+     `lg:grid-cols-[232px_minmax(0,1fr)]`. */
+  --rnd-side: 0px;
+  --rnd-gutter: max(0px, calc((100vw - var(--rnd-side) - 64rem) / 2));
+  width: calc(100% + 2 * var(--rnd-gutter));
   margin-left: calc(-1 * var(--rnd-gutter));
+}
+
+@media (min-width: 64rem) {
+  .rnd-wide {
+    --rnd-side: 232px;
+  }
 }
 
 /* The live column's measuring probe: six boxes carrying border-radius:

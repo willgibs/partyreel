@@ -52,6 +52,9 @@ export type SurfaceCandidate = {
   values?: SurfaceValues;
   /** The ladder this candidate wants, stated rather than implied. */
   wants?: LadderId;
+  /** What the candidate does at 375, where the tile is the whole argument
+   *  (part F). One line, because a phone column has room for one. */
+  phone: string;
 };
 
 export type ActionValues = {
@@ -88,6 +91,8 @@ export const SURFACES: SurfaceCandidate[] = [
       "2 / 8 / 3. Sharp surfaces, round actions, as shipped. The base is small enough that the seven derived steps are all within 4px of each other, so the ladder does nothing.",
     values: { radius: 2, float: 8, tile: 3, gap: 3 },
     wants: "stock",
+    phone:
+      "At 375 the tile corner is below one CSS pixel of visible arc. The grid reads as a contact sheet, which is the intent, and the cards read as panels.",
   },
   {
     id: "square",
@@ -97,6 +102,8 @@ export const SURFACES: SurfaceCandidate[] = [
       "0 / 6 / 0. Bible 8 taken at its word: surfaces and photographs are square, the float rung stays round because sharp reads broken there, and the whole contrast is carried by the actions.",
     values: { radius: 0, float: 6, tile: 0, gap: 3 },
     wants: "stock",
+    phone:
+      "Square at 375 is the same object as square at 1440, which is the one honest thing about it. The menu is the only round shape left on the canvas.",
   },
   {
     id: "soft",
@@ -106,6 +113,8 @@ export const SURFACES: SurfaceCandidate[] = [
       "8 / 12 / 4. Surfaces come up to meet the actions. The contrast narrows from eight times to two and survives; the ladder starts to matter (a plan card lands at 14.4).",
     values: { radius: 8, float: 12, tile: 4, gap: 4 },
     wants: "stock",
+    phone:
+      "The tile still reads as a corner at a guest's width and still leaves the photograph its edges. The card at 11.2 is a card, not a lozenge.",
   },
   {
     id: "family",
@@ -115,6 +124,8 @@ export const SURFACES: SurfaceCandidate[] = [
       "14 / 14 / 6. Surfaces, floats and actions all read as one shape and the contrast is carried by size alone. Wants the quarter ladder: on stock, a plan card lands at 25.2 and a badge at 36.4.",
     values: { radius: 14, float: 14, tile: 6, gap: 6 },
     wants: "quarters",
+    phone:
+      "A 6px tile at 375 eats the corner of a photograph that is already small, and the 6px gap it pins takes another column of image out of the grid.",
   },
   {
     id: "live",
@@ -122,6 +133,8 @@ export const SURFACES: SurfaceCandidate[] = [
     name: "The tuner",
     rationale:
       "Reads the tokens as the tuner writes them, so a knob moves this column and every real page together.",
+    phone:
+      "Whatever the panel is set to, on the canvas a guest holds. Drag the tile knob here and watch the gap follow it.",
   },
 ];
 
@@ -150,22 +163,22 @@ export const ACTIONS: ActionRung[] = [
 ];
 
 /** The seven derived steps, in the order theme.css declares them. */
-export const STEPS = [
-  "sm",
-  "md",
-  "lg",
-  "xl",
-  "2xl",
-  "3xl",
-  "4xl",
-] as const;
+export const STEPS = ["sm", "md", "lg", "xl", "2xl", "3xl", "4xl"] as const;
 export type Step = (typeof STEPS)[number];
 
 /** Stock: the multipliers theme.css ships. Quarters: the retune, an even
  *  quarter a step, which is within half a pixel of stock at today's 2px base
  *  and only bites once the base is round. */
 export const LADDERS: Record<LadderId, Record<Step, number>> = {
-  stock: { sm: 0.6, md: 0.8, lg: 1, xl: 1.4, "2xl": 1.8, "3xl": 2.2, "4xl": 2.6 },
+  stock: {
+    sm: 0.6,
+    md: 0.8,
+    lg: 1,
+    xl: 1.4,
+    "2xl": 1.8,
+    "3xl": 2.2,
+    "4xl": 2.6,
+  },
   quarters: {
     sm: 0.5,
     md: 0.75,
@@ -184,7 +197,11 @@ export const STEP_CALL_SITES: Record<
   Step,
   { uses: number; where: string; specimen: string }
 > = {
-  sm: { uses: 7, where: "the tooltip arrow, a select item", specimen: "Tooltip" },
+  sm: {
+    uses: 7,
+    where: "the tooltip arrow, a select item",
+    specimen: "Tooltip",
+  },
   md: {
     uses: 88,
     where: "menu rows, segmented thumbs",
@@ -223,7 +240,11 @@ export function px(n: number): string {
 }
 
 /** The step's value under a candidate, for the arithmetic the board prints. */
-export function stepValue(radius: number, ladder: LadderId, step: Step): number {
+export function stepValue(
+  radius: number,
+  ladder: LadderId,
+  step: Step,
+): number {
   return radius * LADDERS[ladder][step];
 }
 

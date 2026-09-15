@@ -241,7 +241,9 @@ const ROWS: Row[] = [
     note: "The rung is the second axis, ruled in part E. Every column wears the rung on the rail.",
     cell: (c, live, a) => (
       <ActionSpecimen
-        action={c.values ? a.values.action : (live?.["--radius-action"] ?? null)}
+        action={
+          c.values ? a.values.action : (live?.["--radius-action"] ?? null)
+        }
         sm={c.values ? a.values.sm : (live?.["--radius-action-sm"] ?? null)}
       />
     ),
@@ -331,6 +333,12 @@ export function RoundingBoard() {
   const [composition, setComposition] = useState<CompositionId>("marketing");
   const [mode, setMode] = useState<Mode>("desktop");
   const [ground, setGround] = useState<Ground>("app-light");
+  // Part F is its own pair of toggles on purpose: it sits five parts below B
+  // and a reader who lands on it from the anchor should not have to scroll up
+  // to find out what it is showing.
+  const [phoneComposition, setPhoneComposition] =
+    useState<CompositionId>("guest");
+  const [phoneGround, setPhoneGround] = useState<Ground>("app-light");
 
   const overrides = useSyncExternalStore(
     subscribeTuner,
@@ -460,8 +468,8 @@ export function RoundingBoard() {
           to it rather than competing; and the light proposal is why part B has
           a dark ground, because in dark a corner is stated by the ring today
           and by a shadow family if that board is ruled. Nothing here touches
-          colour: every specimen is on the shipped ramps, so this ruling and
-          the palette ruling do not wait on each other.
+          colour: every specimen is on the shipped ramps, so this ruling and the
+          palette ruling do not wait on each other.
         </p>
       </div>
 
@@ -622,7 +630,8 @@ export function RoundingBoard() {
               grid, the guest gallery, and the floating layer over content.
               Switch candidates to flicker between them. This is a stage, so on
               desktop the corner is drawn at about 69 percent of its true size,
-              and on the phone canvas at 1:1.
+              and on the phone canvas at 1:1. Part F is the same phone canvas
+              with every candidate beside each other rather than one at a time.
             </p>
             <p>
               The guest composition carries the round&apos;s worst finding at
@@ -957,6 +966,93 @@ export function RoundingBoard() {
           h-11 with a className, so the ruling should add a cta size to the
           Button (h-11 at 1.1 x --radius-action) and retire --radius-action-lg,
           which names a height nothing uses.
+        </Proposal>
+      </Part>
+
+      <Part
+        n="F"
+        title="Every candidate on the phone"
+        lede={
+          <>
+            <p>
+              The same five columns as part A, each on its own 375 canvas at
+              1:1, because the phone is where most of these corners are actually
+              seen: the guest gallery is a phone surface first, and a 6px tile
+              is a different object beside a 180px photograph than it is beside
+              a 340px one. Part B walks one candidate at a time on a phone; this
+              is the row.
+            </p>
+            <p>
+              Five phones at true size do not fit across the lab column, and
+              shrinking one to make it fit is the error this board was rebuilt
+              to remove, so they wrap: three to a row at 1440, two on a narrower
+              window. The order is A, B, C, D, Live, so the three that decide
+              the surfaces stay together at the top.
+            </p>
+          </>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          <Toggle
+            ariaLabel="Phone composition"
+            options={COMPOSITION_OPTIONS}
+            value={phoneComposition}
+            onChange={setPhoneComposition}
+          />
+          <Toggle
+            ariaLabel="Phone ground"
+            options={[
+              { id: "app-light" as Ground, label: "Light" },
+              { id: "app-dark" as Ground, label: "Dark" },
+              { id: "cinema" as Ground, label: "Cinema" },
+            ]}
+            value={phoneGround}
+            onChange={setPhoneGround}
+          />
+        </div>
+        <div className="rnd-wide">
+          <div className="overflow-x-auto pb-1">
+            <div className="flex flex-wrap gap-4">
+              {COLUMNS.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex w-[375px] shrink-0 flex-col gap-2"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {c.letter}
+                      {c.values ? (
+                        <span className="ml-1.5 text-muted-foreground tabular-nums">
+                          {c.values.radius} / {c.values.float} / {c.values.tile}
+                        </span>
+                      ) : null}
+                    </p>
+                    <CellLabel>{c.phone}</CellLabel>
+                  </div>
+                  <Stage mode="phone" ground={phoneGround} height={700}>
+                    {/* data-inview for the same reason as part B: the
+                        marketing card is held at opacity 0 by marketing.css
+                        until an ancestor says it is in view. */}
+                    <div
+                      className="h-full overflow-y-auto"
+                      style={overrideStyle(c, action)}
+                      data-rnd-ladder={ladder}
+                      data-inview="true"
+                    >
+                      <Composition id={phoneComposition} mode="phone" />
+                    </div>
+                  </Stage>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <Proposal>
+          The phone is what settles the tile. On the guest canvas A&apos;s 3px
+          disappears into the gap and D&apos;s 6px, with the 6px gap it pins,
+          takes a visible slice out of every photograph at the width a guest
+          actually holds. That is the second argument for C: at 4px the corner
+          still reads and the image keeps its edges.
         </Proposal>
       </Part>
 
