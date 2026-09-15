@@ -893,6 +893,22 @@ dark; violet `oklch(0.58 0.2 300)` and `oklch(0.72 0.18 300)`; flare `oklch(0.58
   show; Apply lands one `<style>` with the real selectors and `/pricing` wears it (background 0.145,
   muted 0.195, faint 0.55, the mark in flare); Clear removes it and leaves nothing in
   `localStorage`.
+- **The walk itself was taken, on four of the six pages, and it proved two things the board could
+  only assert.** With A applied (flare, panel at one token, faint in): `/help` puts all six of its
+  real `bg-muted/40` panels on A's `--muted` at full strength (`oklch(0.948 0 0)`) while the five
+  cards that merely HOVER to the same utility stay on `--card` and the thirteen hover-only elements
+  stay transparent, so the rule's "a variant is not a panel" claim is now a reading rather than a
+  comment; all 59 dimmed text sites paint `--faint` (`oklch(0.62 0 0)`). `/contact` puts both its
+  panels on the same value. `/` is the one that matters most: the footer leaf comes back with
+  `--card: oklch(0.235 0 0)`, which `.surface-ink` has never had, and `--brand: oklch(0.7 0.2 330)`,
+  which is round two's departure 4 (a hue that does not reach the leaf reaches every surface in the
+  product except the mark at the bottom of every page) proven on the real page rather than on a
+  stage. `/pricing` was walked the same way earlier. `/dashboard` and the event page need the
+  signed-in host, which localhost cannot do by design, so they stay for the alias.
+- The reduced-motion claim, read off the SERVED stylesheet rather than the source: the only
+  `data-pal-*` motion rule in the whole document is the 220ms colour transition on the token wrapper,
+  and it sits inside `(prefers-reduced-motion: no-preference)`; there are zero `pal-` keyframes. A
+  reduced-motion reader gets the jump cut and the identical settled composition.
 - ★ **Two tooling notes earned this round, for whoever verifies next.** A driven tab is
   `document.hidden`, which FREEZES the transition clock at `currentTime: 0`: a colour read straight
   after a toggle is the value the element had BEFORE the toggle, and 32 transitions sit in
