@@ -1164,6 +1164,19 @@ export function resolvePair(
  *  block). */
 export type BoardGround = Ground | "mat";
 
+/** The theme class each board ground carries. The shell's Stage sets this
+ *  itself; a TrueViewport iframe is a separate document, so its own root needs
+ *  a copy. The slab and the mat both render on a PAPER page, which is their
+ *  real case, and their block rides inline on the same element. */
+export const GROUND_CLASS: Record<BoardGround, string> = {
+  cinema: "dark",
+  paper: "surface-paper",
+  mat: "surface-paper",
+  ink: "surface-paper",
+  "app-dark": "dark",
+  "app-light": "surface-paper",
+};
+
 /** The shell ground a board ground renders on. */
 export function stageGround(g: BoardGround): Ground {
   return g === "mat" ? "paper" : g;
@@ -1317,6 +1330,10 @@ export type AccentId = "ink" | "blue" | "violet" | "flare";
 export type Accent = {
   id: AccentId;
   label: string;
+  /** The dock's label. The wall wants the hue number, the dock wants the room:
+   *  three segmented controls plus the two candidate switches do not fit on one
+   *  line at 1440 with "Violet 300" in them. */
+  short: string;
   name: string;
   why: string;
   risk: string;
@@ -1330,6 +1347,7 @@ export const ACCENTS: Accent[] = [
   {
     id: "ink",
     label: "Ink",
+    short: "Ink",
     name: "Ink (today)",
     why: "The brand token aliases the primary, so the mark, the badge and every wireframe frame are the same near-black as the type. Nothing can clash because nothing is coloured.",
     risk: "A section with no photograph in it has no colour at all, which is the binary rule 1 was rewritten to kill.",
@@ -1341,6 +1359,7 @@ export const ACCENTS: Accent[] = [
   {
     id: "blue",
     label: "Blue 252",
+    short: "Blue",
     name: "Blue, hue 252",
     why: "Already in the system as --save, so promoting it adds no hue: one blue means save, download and Partyreel.",
     risk: "It is the default accent of every product on the internet, and the save affordance loses the one hue that made it recognisable.",
@@ -1352,6 +1371,7 @@ export const ACCENTS: Accent[] = [
   {
     id: "violet",
     label: "Violet 300",
+    short: "Violet",
     name: "Violet, hue 300",
     why: "Already in the system as --reel, the host's add-to-the-highlight-reel signal. The product is named for the reel, so the accent and the signature moment become one hue.",
     risk: "The reel icon stops being special once everything else is violet too, and violet at small sizes is 30 degrees from the new hue below.",
@@ -1363,6 +1383,7 @@ export const ACCENTS: Accent[] = [
   {
     id: "flare",
     label: "Flare 330",
+    short: "Flare",
     name: "Flare, hue 330 (new)",
     why: "The one warm gap left on the wheel: 45 degrees off --like, 30 off --reel, and nowhere near a state colour. It reads as a party rather than as software, and it is the only option that is ours alone.",
     risk: "A new hue to hold, and at a 6px dot it has to stay distinguishable from --reel violet, which is why it sits on the warm side of magenta.",
@@ -1386,20 +1407,28 @@ export const ACCENT_BY_ID = Object.fromEntries(
  */
 export type ReachId = "all" | "attention" | "identity";
 
-export const REACHES: { id: ReachId; label: string; note: string }[] = [
+export const REACHES: {
+  id: ReachId;
+  label: string;
+  short: string;
+  note: string;
+}[] = [
   {
     id: "all",
     label: "All three",
+    short: "All",
     note: "Identity, attention and the stand-in for a photograph all take the hue.",
   },
   {
     id: "attention",
     label: "Attention",
+    short: "Attention",
     note: "Only the things asking to be noticed: the badge, the wizard step, the toast. The mark and the frames stay ink.",
   },
   {
     id: "identity",
     label: "Identity",
+    short: "Identity",
     note: "Only the mark and the frames family. Attention stays ink, which keeps a state colour the only colour in the app.",
   },
 ];

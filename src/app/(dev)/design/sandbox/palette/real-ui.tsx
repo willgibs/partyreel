@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+
 import { MarketingFooter } from "@/components/marketing/chrome/marketing-footer";
 import { FullQuality } from "@/components/marketing/sections/home/full-quality";
 import { NoApp } from "@/components/marketing/sections/home/no-app";
@@ -56,7 +59,18 @@ import type { Pair, TokenMap } from "./registers";
  *    answers that with the same selector the ruling lands, scoped to one stage
  *    id: real CSS, real selector, one stage. Never "fix" it by stripping the
  *    class off the production component.
- * 2. A PORTAL LEAVES THE STAGE. Dialog, DropdownMenu and Popover all portal to
+ * 2. A BREAKPOINT INSIDE A STAGE READS THE WINDOW, NOT THE CANVAS. A hand-built
+ *    specimen branches on `mode` and is honest either way, but a production
+ *    section carries its own `sm:` and `lg:` prefixes, and inside a 375 stage on
+ *    a 1456 window those fire as if the phone were a desktop: the real pricing
+ *    pair laid its two cards out side by side and ran 52px past the canvas.
+ *    `TrueViewport` is the fix and it is the one Will's own note points at (an
+ *    iframe is only wrong when it is SCALED; at 1:1 its contents are true
+ *    pixels). Every real section renders inside one, sized to the canvas, with
+ *    the page's own stylesheets mirrored in, so `sm:` fires at 640 of the
+ *    CANVAS. These frames also pin fit="true": a section whose size is being
+ *    judged is never scaled.
+ * 3. A PORTAL LEAVES THE STAGE. Dialog, DropdownMenu and Popover all portal to
  *    the body, which is outside every wrapper the board paints, so a real
  *    floating surface cannot be shown inside a stage at all. Rounds two and
  *    three answered that with hand-placed replicas; round four also shows the
@@ -64,6 +78,89 @@ import type { Pair, TokenMap } from "./registers";
  *    button applies it first. That is not a workaround, it is the honest
  *    reading: a menu in production is painted by whatever the page declares.
  */
+
+/* ── A real viewport, at true pixels ────────────────────────────────────── */
+
+/**
+ * An iframe the width of the canvas, carrying the page's own stylesheets, with
+ * the children portaled into its body. Inside it a media query measures the
+ * CANVAS, which is the only way a production section can be judged at 375.
+ *
+ * The stylesheets are mirrored rather than linked: the lab's CSS arrives as
+ * <style> tags in dev and as <link> in a production build, and next/font puts a
+ * class on <html> that the faces key off, so both the nodes and that class are
+ * copied, and a MutationObserver on the parent's head keeps them copied when a
+ * route adds one later.
+ */
+export function TrueViewport({
+  width,
+  height,
+  rootClass,
+  rootStyle,
+  mkt,
+  scope,
+  children,
+}: {
+  width: number;
+  height: number;
+  /** The ground class the stage would carry; the iframe needs its own copy. */
+  rootClass: string;
+  rootStyle?: React.CSSProperties;
+  mkt?: boolean;
+  scope?: string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLIFrameElement | null>(null);
+  const [body, setBody] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const doc = ref.current?.contentDocument;
+    if (!doc) return;
+    const sync = () => {
+      doc.head.replaceChildren(
+        ...[...document.querySelectorAll('style, link[rel="stylesheet"]')].map(
+          (n) => n.cloneNode(true),
+        ),
+      );
+      doc.documentElement.className = document.documentElement.className;
+    };
+    sync();
+    doc.body.style.margin = "0";
+    doc.body.style.overflow = "hidden";
+    // Only the parent's head is observed; the writes land in the iframe's, so
+    // this cannot feed itself.
+    const obs = new MutationObserver(sync);
+    obs.observe(document.head, { childList: true });
+    setBody(doc.body);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <>
+      <iframe
+        ref={ref}
+        title="A real viewport"
+        width={width}
+        height={height}
+        className="block border-0"
+        style={{ width, height, border: 0 }}
+      />
+      {body
+        ? createPortal(
+            <div
+              id={scope}
+              className={`${rootClass} h-full w-full overflow-hidden bg-background text-foreground`}
+              style={rootStyle}
+              {...(mkt ? { "data-mkt": "" } : {})}
+            >
+              {children}
+            </div>,
+            body,
+          )
+        : null}
+    </>
+  );
+}
 
 /* ── Painting a class-rule register inside one stage ─────────────────────── */
 
@@ -101,23 +198,51 @@ export function ScopedTokens({
  * exists for. Today `.surface-ink` declares no --card and no --popover, so the
  * gap shows here without a caption having to claim it.
  */
-export function RealFooter({ pair, scope }: { pair: Pair; scope: string }) {
+export function RealFooter({
+  pair,
+  brand,
+  scope,
+}: {
+  pair: Pair;
+  /** The accent, as the two tokens the slab has to declare for the mark at the
+   *  bottom of the page to carry it. `.surface-ink` declares --brand itself, so
+   *  an accent set on an ancestor is outranked and never arrives. */
+  brand: TokenMap;
+  scope: string;
+}) {
   return (
     <>
       <ScopedTokens
         scope={scope}
         rules={[
-          { selector: ".surface-ink", block: pair.dark.slab },
-          { selector: ".surface-ink", block: pair.dark.well },
+          {
+            selector: ".surface-ink",
+            block: { ...pair.dark.well, ...pair.dark.slab, ...brand },
+          },
         ]}
       />
-      <div className="flex h-full flex-col justify-end overflow-hidden">
-        <div className="px-8 pt-6 pb-2">
-          <p className="text-sm text-muted-foreground">
-            The paper body above the seam, so the slab is judged where it lives.
+      {/* ★ THE PAGE IS PAPER AND ONLY THE FOOTER IS THE SLAB. The stage used to
+          paint the slab on the whole canvas and call it "a paper page", which
+          made the seam, the thing this row exists for, invisible: a dark leaf on
+          a dark page is not a leaf. The root wears the paper block, the footer
+          wears .surface-ink, and the join between them is the reading. */}
+      {/* Plain stacking order with both parts shrink-0: `justify-end` pushed a
+          1414px footer 513px off the top of a 900px stage, so the row showed the
+          bottom two thirds of a footer and no seam at all. The stage is sized to
+          the measured whole instead. */}
+      <div className="flex h-full flex-col overflow-hidden">
+        <div className="flex h-[240px] shrink-0 flex-col justify-end px-10 pb-10">
+          <p className="max-w-md text-2xl">
+            The album everyone was already making.
+          </p>
+          <p className="mt-2 max-w-md text-sm text-muted-foreground">
+            The last paper section before the seam, so the slab is judged
+            against the page it actually sits on rather than against itself.
           </p>
         </div>
-        <MarketingFooter />
+        <div className="shrink-0">
+          <MarketingFooter />
+        </div>
       </div>
     </>
   );
@@ -131,9 +256,12 @@ export function RealFooter({ pair, scope }: { pair: Pair; scope: string }) {
 export function RealPricing({ mode }: { mode: Mode }) {
   const desktop = mode === "desktop";
   return (
+    // A BLOCK, never a flex column: flex-shrink would quietly compress a real
+    // section when the stage is a few pixels short, and a compressed production
+    // section read as a design decision. Clipping is at least a reading.
     <div
       className={cn(
-        "flex h-full flex-col overflow-hidden",
+        "h-full overflow-hidden",
         desktop ? "px-14 py-10" : "px-5 py-8",
       )}
     >
@@ -157,7 +285,7 @@ export function RealChapters() {
     // That is the honest reading at 1440 and the known limit at 375 (the shell
     // note on Stage), and it is why the phone canvas here is a layout check
     // rather than a breakpoint one.
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="h-full overflow-hidden">
       <TrustStrip />
       <NoApp />
       <FullQuality />

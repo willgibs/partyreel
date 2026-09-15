@@ -8,6 +8,7 @@ import { useState, useSyncExternalStore } from "react";
 import {
   BoardDock,
   BoardMeta,
+  CANVAS,
   Stage,
   Toggle,
   clearCandidate,
@@ -20,7 +21,13 @@ import { env } from "@/lib/env";
 
 import { AccentWall } from "./call-sites";
 import { ModelBlock } from "./model";
-import { RealChapters, RealFloating, RealFooter, RealPricing } from "./real-ui";
+import {
+  RealChapters,
+  RealFloating,
+  RealFooter,
+  RealPricing,
+  TrueViewport,
+} from "./real-ui";
 import {
   ACCENTS,
   ACCENT_BY_ID,
@@ -31,6 +38,7 @@ import {
   DARK_LADDER,
   FAINT_ALPHAS,
   FAINT_USES,
+  GROUND_CLASS,
   LIGHTS,
   LIGHT_BY_ID,
   LIGHT_LADDER,
@@ -292,6 +300,59 @@ function Frame({
         >
           {children}
         </div>
+      </Stage>
+    </div>
+  );
+}
+
+/**
+ * A LIVE PRODUCTION SECTION, AT TRUE PIXELS.
+ *
+ * Same contract as Frame, except the children render inside an iframe the width
+ * of the canvas (real-ui.tsx), so their own `sm:` and `lg:` prefixes measure the
+ * CANVAS rather than the window. That is the difference between judging the
+ * real pricing pair at 375 and watching it lay two cards out side by side and
+ * run past the stage. `fit="true"` is pinned: a production section whose size is
+ * being judged is never scaled, whatever the dock's Fit control says.
+ */
+function LiveFrame({
+  pair,
+  ground,
+  mode,
+  height,
+  label,
+  extra,
+  scope,
+  children,
+}: {
+  pair: Pair;
+  ground: BoardGround;
+  mode: Mode;
+  height: number;
+  label: string;
+  extra?: React.CSSProperties;
+  scope?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <Stage
+        mode={mode}
+        ground={stageGround(ground)}
+        height={height}
+        fit="true"
+      >
+        <TrueViewport
+          width={CANVAS[mode].w}
+          height={height}
+          rootClass={GROUND_CLASS[ground]}
+          rootStyle={{ ...pairStyle(pair, ground), ...extra }}
+          scope={scope}
+          mkt
+        >
+          {children}
+        </TrueViewport>
       </Stage>
     </div>
   );
@@ -701,36 +762,38 @@ export function PaletteBoard() {
               onChange={setLightId}
             />
           </Knob>
+        </div>
+        <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2">
           <Knob label="Accent">
             <Toggle
               ariaLabel="The accent"
-              options={ACCENTS.map((a) => ({ id: a.id, label: a.label }))}
+              options={ACCENTS.map((a) => ({ id: a.id, label: a.short }))}
               value={accentId}
               onChange={setAccentId}
             />
           </Knob>
-        </div>
-        <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2">
           <Knob label="Reach">
             <Toggle
               ariaLabel="The accent's reach"
-              options={REACHES.map((r) => ({ id: r.id, label: r.label }))}
+              options={REACHES.map((r) => ({ id: r.id, label: r.short }))}
               value={reach}
               onChange={setReach}
             />
           </Knob>
-          <Knob label="The mat">
+          <Knob label="Mat">
             <Toggle
               ariaLabel="The mat"
               options={[
-                { id: "register", label: "A register" },
-                { id: "alphas", label: "The alphas" },
+                { id: "register", label: "Register" },
+                { id: "alphas", label: "Alphas" },
               ]}
               value={matRegister ? "register" : "alphas"}
               onChange={(v) => setMatRegister(v === "register")}
             />
           </Knob>
-          <Knob label="The missing step">
+        </div>
+        <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2">
+          <Knob label="Faint">
             <Toggle
               ariaLabel="The missing step"
               options={[
@@ -741,24 +804,24 @@ export function PaletteBoard() {
               onChange={(v) => setFaintOnDimmed(v === "on")}
             />
           </Knob>
-          <Knob label="The dark card">
+          <Knob label="Card">
             <Toggle
               ariaLabel="The dark card"
               options={[
                 { id: "declared" as CardMode, label: "Declared" },
                 { id: "opaque" as CardMode, label: "Opaque" },
-                { id: "veil" as CardMode, label: "Veil 62%" },
+                { id: "veil" as CardMode, label: "Veil" },
               ]}
               value={cardMode}
               onChange={setCardMode}
             />
           </Knob>
-          <Knob label="Viewport">
+          <Knob label="Width">
             <Toggle
               ariaLabel="Viewport"
               options={[
-                { id: "desktop" as Mode, label: "Desktop 1440" },
-                { id: "phone" as Mode, label: "Phone 375" },
+                { id: "desktop" as Mode, label: "1440" },
+                { id: "phone" as Mode, label: "375" },
               ]}
               value={mode}
               onChange={setMode}
@@ -1116,17 +1179,20 @@ export function PaletteBoard() {
         name="The footer slab, the real one"
         reading="The production MarketingFooter, imported from the file the site renders, on a paper page: the case the slab register exists for. It carries .surface-ink on its own root, and a class rule beats an inherited custom property, so the pair's slab block is written into this stage with the real selector (real-ui.tsx). The accent is written into the slab too, which is why the mark at the bottom carries it. Under it, the hand-built leaf, because it hosts a Card and a menu and those are the two things an incomplete slab actually breaks: on Today they render near white on a dark ground."
       >
-        <Frame
+        <LiveFrame
           pair={pair}
-          ground="ink"
+          ground="paper"
           mode={mode}
-          height={h(900, 1500)}
-          label={`the real footer on a paper page · ${pair.dark.label} slab · ${accent.label}`}
-          extra={accentStyle(accent, true)}
+          height={h(1700, 1660)}
+          label={`the real footer on a real paper page · ${pair.light.label} above, ${pair.dark.label} slab below · ${accent.label}`}
           scope="pal-footer-stage"
         >
-          <RealFooter pair={pair} scope="pal-footer-stage" />
-        </Frame>
+          <RealFooter
+            pair={pair}
+            brand={accentStyle(accent, true) as unknown as TokenMap}
+            scope="pal-footer-stage"
+          />
+        </LiveFrame>
         <Frame
           pair={pair}
           ground="ink"
@@ -1145,24 +1211,24 @@ export function PaletteBoard() {
         reading="Four production sections from the home arc, in one canvas, on the room and then on the paper. They are the quiet ones on purpose: a chapter with a photograph is carried by the photograph, and the question this board asks is what a section looks like when there is no media to carry it, which is the case rule 1 was rewritten for. These are live components, so what you are reading is the real type, the real rhythm and the real reveal grammar."
       >
         <div className="flex flex-col gap-4">
-          <Frame
+          <LiveFrame
             pair={pair}
             ground="cinema"
             mode={mode}
-            height={h(2050, 2450)}
+            height={h(2320, 2580)}
             label={`the room · ${pair.dark.label}`}
           >
             <RealChapters />
-          </Frame>
-          <Frame
+          </LiveFrame>
+          <LiveFrame
             pair={pair}
             ground="paper"
             mode={mode}
-            height={h(2050, 2450)}
+            height={h(2320, 2580)}
             label={`the paper · ${pair.light.label}`}
           >
             <RealChapters />
-          </Frame>
+          </LiveFrame>
         </div>
       </Row>
 
@@ -1172,7 +1238,7 @@ export function PaletteBoard() {
         reading="The production pricing pair: two cards, one featured with a beam, a price pop and a real checkout button. It is the densest card in the product and the place a card-versus-page step is most visible. First on the paper, then on the MAT, which is the model's new register and the ground a pricing band actually wants. The hand-built trio under them keeps the no-photograph case on the room."
       >
         <div className="flex flex-col gap-4">
-          <Frame
+          <LiveFrame
             pair={pair}
             ground="paper"
             mode={mode}
@@ -1180,8 +1246,8 @@ export function PaletteBoard() {
             label={`the real pricing cards, the paper · ${pair.light.label}`}
           >
             <RealPricing mode={mode} />
-          </Frame>
-          <Frame
+          </LiveFrame>
+          <LiveFrame
             pair={pair}
             ground="mat"
             mode={mode}
@@ -1189,7 +1255,7 @@ export function PaletteBoard() {
             label={`the real pricing cards, the mat · ${pair.light.label}`}
           >
             <RealPricing mode={mode} />
-          </Frame>
+          </LiveFrame>
           <Frame
             pair={pair}
             ground="cinema"
