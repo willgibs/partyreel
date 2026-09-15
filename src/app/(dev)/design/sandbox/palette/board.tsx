@@ -3,7 +3,7 @@
 // the board's own sheet; it leaves with the board when the ruling lands.
 import "./board.css";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import {
   BoardMeta,
@@ -20,11 +20,19 @@ import { AccentWall } from "./call-sites";
 import {
   ACCENTS,
   ACCENT_BY_ID,
+  BRAND_FILES,
+  BRAND_HITS,
   DARK_LADDER,
+  FAINT_ALPHAS,
+  FAINT_USES,
   LIGHT_LADDER,
   PANEL_ALPHAS,
+  PANEL_HOVER_USES,
+  PANEL_USES,
   RAMPS,
   RAMP_BY_ID,
+  RING_USES,
+  TEMPERATURE,
   WALK,
   accentBlock,
   accentStyle,
@@ -40,6 +48,7 @@ import {
   type CardMode,
   type Ramp,
   type RampId,
+  type Temperature,
 } from "./ramps";
 import { InkLeaf, MarketingChapter, PanelBand, SurfaceStack } from "./sections";
 import {
@@ -54,13 +63,46 @@ import {
 } from "./specimens";
 
 /**
- * THE PALETTE BOARD, ROUND TWO (the review wave, 2026-09-14). Bible 1 under
+ * THE PALETTE BOARD, ROUND THREE (the review wave, 2026-09-14). Bible 1 under
  * exploration.
+ *
+ * WHAT ROUND THREE CHANGED, and why. Round two made the board a ruling surface;
+ * round three walked it cold, the way Will will, and spent itself on the places
+ * a stranger stumbles and on the asks he should not have to answer:
+ *
+ *  1 CANDIDATE C IS CUT, and no value it held is lost. Its own move list said
+ *    the quiet part: "The spacing is A's exactly, so a ruling between A and C
+ *    is a ruling on temperature alone and nothing else moves". A column that
+ *    moves no step is a switch wearing a letter, so it became one (`warm()` in
+ *    ramps.ts; temperature.test.ts pins warm(A) to C's published blocks token
+ *    for token). The board gets a third of its width back, the ramp ask drops
+ *    to three, and warm B (which could never be asked before) is one click.
+ *  2 TWO ASKS WERE CONSEQUENCES, not rulings. "The dark grounds: a ladder or
+ *    one room" and "the canvas and the ink slab: split or one" are both
+ *    ANSWERED by the letter: A is a ladder with the canvas split out, B is one
+ *    room with one dark. They are now a line under the candidate saying what
+ *    the letter already decides, and the asks are down from eight to seven
+ *    while gaining an answer (warm B) that could not be asked before.
+ *  3 The flip stopped being a memory test where a STEP is the question. Row 12
+ *    learned this for the accent in round two ("four hues cannot be ruled on
+ *    from memory"); row 05 now puts today beside the candidate inside one
+ *    canvas, which is also what the 1000px of empty ground beside that card
+ *    was for.
+ *  4 The numbers are re-measured, and two were wrong: the panel ships at 35
+ *    sites, not 45, and the ring nobody wrote down is at 37, not 77. Every
+ *    count now lives in ramps.ts beside the command that produced it.
+ *  5 The walk is clickable. Six pages with the lab key on the end were printed
+ *    as prose, so ruling meant retyping URLs; they are links now and they carry
+ *    this page's own key.
+ *  6 The stale captions are gone (the ink leaf said "today this is near white"
+ *    under a candidate that had just fixed it), the rooms strip prints its
+ *    lightness instead of four black bars, and the stages that were clipping or
+ *    running half empty were resized.
  *
  * WHAT ROUND TWO CHANGED, and why. Round one proved with a ruler that the ramp
  * is wrong; Will's read was that a single round was not enough context for any
- * board to be ruled on from a walk. So this round stops being a proof and
- * becomes a ruling surface:
+ * board to be ruled on from a walk. So that round stopped being a proof and
+ * became a ruling surface:
  *
  *  1 A candidate leaves the board. Every candidate is offered as the paste its
  *    ruling would land, handed to the WHOLE site through the shell's
@@ -116,26 +158,38 @@ const ROWS = [
   { n: "13", name: "the paste" },
 ];
 
+/**
+ * SEVEN, down from eight, and every one takes one word.
+ *
+ * Two of round two's asks were not rulings at all: the dark grounds and the
+ * canvas-versus-slab question are both ANSWERED by the letter (A is a ladder
+ * with the canvas split out and sent deeper, B is one room and one dark), so
+ * asking them again invited a contradiction between the answer and the paste.
+ * They are a line under the candidate now, printed as what the letter already
+ * decides. The temperature takes one of the two freed slots, which is a trade
+ * worth naming: it used to cost a whole candidate column and could only be
+ * asked about one ramp.
+ */
 const ASKS = [
-  "The ramp: today, A, B or C.",
+  "The ramp: today, A or B.",
+  "The temperature: neutral, or warm.",
   "The accent: ink, blue, violet or flare.",
   "The accent's reach: all three jobs, attention only, or identity only.",
   "The panel: one token, or the alphas.",
-  "The dark grounds: a ladder, or one room.",
-  "The canvas and the ink slab: split, or one.",
   "The missing step: faint in, or out.",
   "The dark card: opaque, or the veil.",
 ];
 
 const DEPARTURES = [
-  "Round one's departure list said only candidate B kept the system's one translucent surface. That was wrong: B's card is a color-mix off the room, which is fully opaque, so all three candidates retire the veil and none of them said so. Row 07 renders both answers over a photograph and ask 8 makes it a ruling rather than a side effect.",
+  "Round three cut candidate C, and no value it held is lost. C was A's ladder at a temperature, and its own move list said so: the spacing was A's exactly, so a ruling between A and C was a ruling on temperature alone. A column that moves no step is a switch wearing a letter, so it is a switch now, and the one question it could never answer (does B want warming too) is one click. warm(A) still produces C's five published blocks token for token, pinned by temperature.test.ts, with one correction recorded there: C left the dark ring cold while writing the ink ring warm, at the same job on the same ground.",
+  "Round one's departure list said only candidate B kept the system's one translucent surface. That was wrong: B's card is a color-mix off the room, which is fully opaque, so every candidate retires the veil and none of them said so. Row 08 renders both answers over a photograph and the card ask makes it a ruling rather than a side effect.",
   "A finding against bible 16, sharpened and changed. Counted by the job it does, the deepest dark surface in the product is not a token at all: the lightbox paints its backdrop with a literal bg-black/90 (media-lightbox.tsx:617). What --gallery actually does is the media WELL (a tile before its image decodes, a coverless event card, the reel frame) and, through .surface-ink, the footer SLAB, and those two want opposite things. Rule 16 counts four grounds; there are at least six surfaces and one of them is a literal. Row 02.",
-  "C re-opens a decision globals.css records as closed: zero-chroma purity IS the brand point, and saturating the neutrals was consciously declined. C is that decision re-argued at 0.003 to 0.008 chroma, on the board rather than in a comment.",
+  "Warm re-opens a decision globals.css records as closed: zero-chroma purity IS the brand point, and saturating the neutrals was consciously declined. The switch is that decision re-argued at 0.002 to 0.008 chroma, on the board rather than in a comment, and now on whichever ramp is selected rather than on one of them.",
   "The accent has to be written into .surface-ink or it never reaches the footer. Today the leaf declares --brand: var(--gallery-foreground), and a class rule outranks a value inherited from the page around it, so a hue ruled for the whole site would reach every surface in the product except the mark that sits at the bottom of every page. The accent paste therefore carries a third block, and every candidate's ink map keeps a --brand line of its own so a ruling of ink alone cannot leave the leaf inheriting the PAPER ink onto a dark slab. Row 06 shows the mark on the leaf.",
   "B deletes the cinema override in marketing.css, the skin block's only surface value. The cinema-to-footer seam then belongs entirely to light, which is the light board's lane.",
-  "All three candidates complete .surface-ink (no --card, --popover, --secondary, --accent or --input ships today), so an ink leaf can finally host a card and a menu.",
+  "Both candidates complete .surface-ink (no --card, --popover, --secondary, --accent or --input ships today), so an ink leaf can finally host a card and a menu.",
   "Each candidate adds one custom property, --faint, which needs one line in theme.css's @theme inline block (--color-faint: var(--faint);) before a text-faint utility exists. The board reaches it with an arbitrary value.",
-  "Row 06 borrows the light exploration's proposed shadow family and its named ring (docs/specs/light.md) so the ramp and the depth cue are judged in one look. Those values are NOT in this board's paste: depth is that track's lane and its ruling lands there.",
+  "Row 07 borrows the light exploration's proposed shadow family and its named ring (docs/specs/light.md) so the ramp and the depth cue are judged in one look. Those values are NOT in this board's paste: depth is that track's lane and its ruling lands there.",
   "The demo guest page cannot wear a candidate today: the (guest) layout mounts no design island, so setCandidateCss never reaches /e/. One line adds it, the same AppDesignIsland the host app mounts. The shell is not this lane, so it is left as a note for the Orchestrator and the guest album is rendered on the board instead (row 04).",
 ];
 
@@ -146,6 +200,24 @@ const ASSETS = [
 ];
 
 /* ── Board furniture ────────────────────────────────────────────────────── */
+
+/** A control with a VISIBLE name. Four unlabelled segmented controls in a row
+ *  is a puzzle, and two of the four ("Today A B", "As declared Opaque Veil")
+ *  are unreadable without the file open. */
+function Knob({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <span className="text-[11px] text-muted-foreground">{label}</span>
+      {children}
+    </span>
+  );
+}
 
 function Row({
   n,
@@ -213,6 +285,62 @@ function Frame({
           style={{ ...rampStyle(ramp, ground), ...extra }}
         >
           {children}
+        </div>
+      </Stage>
+    </div>
+  );
+}
+
+/**
+ * TWO RAMPS IN ONE CANVAS (round three).
+ *
+ * Where the question IS a step, a toggle makes the reader hold a lightness in
+ * memory while the whole page repaints, which is the one thing an eye is worst
+ * at. So the frame that carries the dark-ramp argument shows today and the
+ * candidate side by side inside a single Stage.
+ *
+ * Two wrappers, not two Stages: a Stage lays out at 1440 and zoom-fits to its
+ * box, so two of them in a two-column grid would each be scaled to about a
+ * third and the type would be unreadable. Inside one canvas each half declares
+ * its own token block and paints its own `bg-background`, which is the whole
+ * trick: the ground class (`.dark`) is shared and correct for both.
+ */
+function PairFrame({
+  left,
+  right,
+  ground,
+  mode,
+  height,
+  label,
+  render,
+}: {
+  left: Ramp;
+  right: Ramp;
+  ground: Ground;
+  mode: Mode;
+  height: number;
+  label: string;
+  render: (ramp: Ramp) => React.ReactNode;
+}) {
+  const desktop = mode === "desktop";
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <Stage mode={mode} ground={ground} height={height}>
+        <div className={`flex h-full w-full ${desktop ? "" : "flex-col"}`}>
+          {[left, right].map((r, i) => (
+            <div
+              key={r.id}
+              data-pal-swap
+              className="relative min-w-0 flex-1 overflow-hidden bg-background text-foreground"
+              style={rampStyle(r, ground)}
+            >
+              {render(r)}
+              <span className="absolute top-3 left-4 text-[11px] text-muted-foreground">
+                {i === 0 ? "Today" : r.name}
+              </span>
+            </div>
+          ))}
         </div>
       </Stage>
     </div>
@@ -351,9 +479,16 @@ function Spectrum({ ramp }: { ramp: Ramp }) {
 
 /* ── The board ──────────────────────────────────────────────────────────── */
 
+const subscribeNever = () => () => {};
+const readLabKey = () => {
+  const key = new URLSearchParams(window.location.search).get("key");
+  return key ? `?key=${encodeURIComponent(key)}` : "";
+};
+
 export function PaletteBoard() {
   const [mode, setMode] = useState<Mode>("desktop");
   const [rampId, setRampId] = useState<RampId>("a");
+  const [temperature, setTemperature] = useState<Temperature>("neutral");
   const [accentId, setAccentId] = useState<AccentId>("flare");
   const [accentGround, setAccentGround] = useState<"cinema" | "paper">(
     "cinema",
@@ -363,19 +498,34 @@ export function PaletteBoard() {
   const [faintOnDimmed, setFaintOnDimmed] = useState(true);
 
   const declared = RAMP_BY_ID[rampId];
-  const ramp = resolveRamp(declared, cardMode);
+  const ramp = resolveRamp(declared, cardMode, temperature);
+  // Today, resolved the same way, so a row that pairs the two is comparing two
+  // ramps and not a ramp against an unanswered card question.
+  const todayRamp = resolveRamp(RAMP_BY_ID.today, cardMode, temperature);
   const accent = ACCENT_BY_ID[accentId];
   const desktop = mode === "desktop";
   const h = (d: number, p: number) => (desktop ? d : p);
+
+  // The lab key, read off THIS page rather than written into the file, so the
+  // walk's links carry it without the board holding a secret.
+  //
+  // useSyncExternalStore rather than an effect: the server has no query string,
+  // so the value has to arrive after hydration, and setting state inside an
+  // effect to do that is a cascading render the lint rule refuses (rightly).
+  // The subscribe is a no-op because the key cannot change without a
+  // navigation, and the snapshot is a string, so React's identity check on it
+  // is a value comparison and settles on the first read.
+  const labKey = useSyncExternalStore(subscribeNever, readLabKey, () => "");
 
   const applied = useTunerCandidate();
   const opts = {
     accent,
     panelOneToken: panelSingle,
     faintOnDimmed,
+    temperature,
   };
   const apply = (id: RampId) => {
-    const r = resolveRamp(RAMP_BY_ID[id], cardMode);
+    const r = resolveRamp(RAMP_BY_ID[id], cardMode, temperature);
     setCandidateCss(applyLabel(r, opts), applyCss(r, opts));
   };
 
@@ -386,39 +536,88 @@ export function PaletteBoard() {
       </p>
 
       {/* The control bar follows the walk: every stage below repaints from it,
-          so it has to stay reachable at row 12 as well as row 01. */}
+          so it has to stay reachable at row 12 as well as row 01.
+
+          ★ Round three labelled every group. A walk found four unlabelled
+          segmented controls in a row, two of which ("Today A B", "As declared
+          Opaque Veil 62%") mean nothing at all to someone who has not read the
+          file, and one of which changes the answer to an ask. An aria-label is
+          not a label: nobody reading this board is using a screen reader. */}
       <div className="pal-walk-bar sticky top-0 z-20 -mx-4 flex flex-col gap-2.5 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Toggle
-            ariaLabel="Ramp"
-            options={RAMPS.map((r) => ({ id: r.id, label: r.label }))}
-            value={rampId}
-            onChange={setRampId}
-          />
-          <Toggle
-            ariaLabel="Viewport"
-            options={[
-              { id: "desktop" as Mode, label: "Desktop 1440" },
-              { id: "phone" as Mode, label: "Phone 375" },
-            ]}
-            value={mode}
-            onChange={setMode}
-          />
-          <Toggle
-            ariaLabel="The dark card"
-            options={[
-              { id: "declared" as CardMode, label: "As declared" },
-              { id: "opaque" as CardMode, label: "Opaque" },
-              { id: "veil" as CardMode, label: "Veil 62%" },
-            ]}
-            value={cardMode}
-            onChange={setCardMode}
-          />
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Knob label="The ramp">
+            <Toggle
+              ariaLabel="The ramp"
+              options={RAMPS.map((r) => ({ id: r.id, label: r.label }))}
+              value={rampId}
+              onChange={setRampId}
+            />
+          </Knob>
+          <Knob label="Temperature">
+            <Toggle
+              ariaLabel="Temperature"
+              options={[
+                { id: "neutral" as Temperature, label: "Neutral" },
+                { id: "warm" as Temperature, label: "Warm" },
+              ]}
+              value={temperature}
+              onChange={setTemperature}
+            />
+          </Knob>
+          <Knob label="The dark card">
+            <Toggle
+              ariaLabel="The dark card"
+              options={[
+                { id: "declared" as CardMode, label: "As declared" },
+                { id: "opaque" as CardMode, label: "Opaque" },
+                { id: "veil" as CardMode, label: "Veil 62%" },
+              ]}
+              value={cardMode}
+              onChange={setCardMode}
+            />
+          </Knob>
+          <Knob label="The panel">
+            <Toggle
+              ariaLabel="The panel"
+              options={[
+                { id: "single", label: "One token" },
+                { id: "alphas", label: "The alphas" },
+              ]}
+              value={panelSingle ? "single" : "alphas"}
+              onChange={(v) => setPanelSingle(v === "single")}
+            />
+          </Knob>
+          <Knob label="The faint step">
+            <Toggle
+              ariaLabel="The faint step"
+              options={[
+                { id: "on", label: "In" },
+                { id: "off", label: "Out" },
+              ]}
+              value={faintOnDimmed ? "on" : "off"}
+              onChange={(v) => setFaintOnDimmed(v === "on")}
+            />
+          </Knob>
+          <Knob label="Viewport">
+            <Toggle
+              ariaLabel="Viewport"
+              options={[
+                { id: "desktop" as Mode, label: "Desktop 1440" },
+                { id: "phone" as Mode, label: "Phone 375" },
+              ]}
+              value={mode}
+              onChange={setMode}
+            />
+          </Knob>
         </div>
 
-        {/* APPLY TO THE SITE: the paste, worn by the real pages. */}
+        {/* APPLY TO THE SITE: the paste, worn by the real pages. Everything set
+            above rides along, which is why the buttons sit under the switches
+            rather than beside them. */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-medium">Apply to the site</span>
+          <span className="text-[11px] font-medium">
+            Put it on the real pages
+          </span>
           {RAMPS.map((r) => (
             <button
               key={r.id}
@@ -436,24 +635,9 @@ export function PaletteBoard() {
           >
             Clear
           </button>
-          <Toggle
-            ariaLabel="The panel"
-            options={[
-              { id: "single", label: "Panel: one token" },
-              { id: "alphas", label: "Panel: the alphas" },
-            ]}
-            value={panelSingle ? "single" : "alphas"}
-            onChange={(v) => setPanelSingle(v === "single")}
-          />
-          <Toggle
-            ariaLabel="Faint text"
-            options={[
-              { id: "on", label: "Faint: in" },
-              { id: "off", label: "Faint: out" },
-            ]}
-            value={faintOnDimmed ? "on" : "off"}
-            onChange={(v) => setFaintOnDimmed(v === "on")}
-          />
+          <span className="text-[11px] text-muted-foreground">
+            then walk the six pages at row 13.
+          </span>
         </div>
 
         <p className="truncate text-[11px] text-muted-foreground">
@@ -466,7 +650,7 @@ export function PaletteBoard() {
               candidate while each stage stays on the ramp toggle above.
             </>
           ) : (
-            "Nothing applied. The pages to walk are listed at row 13."
+            "Nothing applied yet. Everything below is a stage; the six real pages are one click away at row 13."
           )}
         </p>
       </div>
@@ -488,21 +672,90 @@ export function PaletteBoard() {
         ))}
       </nav>
 
-      <div className="rounded-lg border border-border bg-card px-4 py-3">
-        <p className="text-sm font-semibold">{declared.name}</p>
-        <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
-          {declared.thesis}
-        </p>
-        <ul className="mt-2.5 space-y-1">
-          {declared.moves.map((m) => (
-            <li key={m} className="text-xs text-muted-foreground">
-              {m}
+      {/* THE CANDIDATE, AND WHAT ITS LETTER ALREADY DECIDES. Round two asked
+          the dark grounds and the canvas-versus-slab question as two more asks;
+          they are not asks, they are what A and B each answer, and printing
+          them here removes the chance of a ruling that contradicts its own
+          paste. */}
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="rounded-lg border border-border bg-card px-4 py-3">
+          <p className="text-sm font-semibold">
+            {declared.name}
+            {temperature === "warm" ? (
+              <span className="ml-2 font-normal text-muted-foreground">
+                warm
+              </span>
+            ) : null}
+          </p>
+          <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
+            {declared.thesis}
+          </p>
+          <ul className="mt-2.5 space-y-1">
+            {declared.moves.map((m) => (
+              <li key={m} className="text-xs text-muted-foreground">
+                {m}
+              </li>
+            ))}
+            <li className="text-xs text-muted-foreground italic">
+              The trade: {declared.trade}
             </li>
-          ))}
-          <li className="text-xs text-muted-foreground italic">
-            The trade: {declared.trade}
-          </li>
-        </ul>
+          </ul>
+          {temperature === "warm" ? (
+            <div className="mt-3 border-t border-border pt-2.5">
+              <p className="text-xs font-medium">{TEMPERATURE.name}</p>
+              <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
+                {TEMPERATURE.thesis}
+              </p>
+              <ul className="mt-2 space-y-1">
+                {TEMPERATURE.moves.map((m) => (
+                  <li key={m} className="text-xs text-muted-foreground">
+                    {m}
+                  </li>
+                ))}
+                <li className="text-xs text-muted-foreground italic">
+                  The trade: {TEMPERATURE.trade}
+                </li>
+              </ul>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <div className="rounded-lg border border-border px-4 py-3">
+            <p className="text-xs font-medium">
+              What the letter already decides
+            </p>
+            <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
+              <li>
+                <span className="text-foreground">The dark grounds:</span>{" "}
+                {declared.decides.grounds}
+              </li>
+              <li>
+                <span className="text-foreground">
+                  The canvas and the ink slab:
+                </span>{" "}
+                {declared.decides.canvas}
+              </li>
+            </ul>
+            <p className="mt-2 text-[11px] text-muted-foreground italic">
+              Both were asks in round two. They are consequences, so answering
+              them separately could only contradict the letter.
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-muted px-4 py-3">
+            <p className="text-xs font-medium">
+              If this board had to rule, it would rule A
+            </p>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              A is the only set where every specimen on this page improves and
+              nothing regresses, and its one cost (a paper body at 0.977 instead
+              of near white) is visible on rows 09 and 11. B is the better IDEA
+              and the worse ramp today: one room is right, and it buys the
+              tuning by flattening cinema into the app, which rows 02 and 11
+              show as a chapter that has stopped being a room of its own.
+            </p>
+          </div>
+        </div>
       </div>
 
       <Row
@@ -512,24 +765,24 @@ export function PaletteBoard() {
       >
         <div className="space-y-2.5">
           {RAMPS.map((r) => (
-            <Spectrum key={r.id} ramp={resolveRamp(r, cardMode)} />
+            <Spectrum key={r.id} ramp={resolveRamp(r, cardMode, temperature)} />
           ))}
         </div>
         {/* The board's OWN chrome keys off the real viewport, not the stage
             toggle: these tables are not inside a Stage, so a breakpoint is
             honest here, and four 77px columns at 375 is unreadable. */}
-        <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {RAMPS.map((r) => (
             <Ladder
               key={`${r.id}-light`}
-              ramp={resolveRamp(r, cardMode)}
+              ramp={resolveRamp(r, cardMode, temperature)}
               tone="light"
             />
           ))}
           {RAMPS.map((r) => (
             <Ladder
               key={`${r.id}-dark`}
-              ramp={resolveRamp(r, cardMode)}
+              ramp={resolveRamp(r, cardMode, temperature)}
               tone="dark"
             />
           ))}
@@ -551,29 +804,42 @@ export function PaletteBoard() {
           <GroundsRow mode={mode} ramp={ramp} />
         </Frame>
         <p className="text-[11px] text-muted-foreground">
-          The four dark values of each set, side by side: B answers one room for
-          all of them, A and C answer a ladder with the canvas sent deeper than
-          any room, today answers four numbers with no reason written down.
+          The four dark values of each set, side by side: A answers a ladder
+          with the canvas sent deeper than any room, B answers one room for all
+          of them, today answers four numbers with no reason written down.
         </p>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {RAMPS.map((r) => (
-            <div key={r.id} className="space-y-1.5">
-              <p className="text-[11px] font-medium">{r.label}</p>
-              <div className="flex h-24 overflow-hidden rounded-lg border border-border">
-                {rooms(r).map((room) => (
-                  <div
-                    key={room.name}
-                    className="flex flex-1 items-end justify-center pb-1.5"
-                    style={{ background: room.value }}
-                  >
-                    <span className="text-[9px] text-white/70">
-                      {room.name}
-                    </span>
-                  </div>
-                ))}
+        {/* ★ Round three prints the value on each room. Four near-black bars
+            side by side is not a reading: the whole question here is whether
+            0.11, 0.14 and 0.155 are three decisions or one accident, and an eye
+            cannot see 0.015 of lightness on an unlabelled swatch. */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {RAMPS.map((r) => {
+            const set = resolveRamp(r, cardMode, temperature);
+            return (
+              <div key={r.id} className="space-y-1.5">
+                <p className="text-[11px] font-medium">{set.label}</p>
+                <div className="flex h-24 overflow-hidden rounded-lg border border-border">
+                  {rooms(set).map((room) => {
+                    const l = lOf(room.value, set.dark);
+                    return (
+                      <div
+                        key={room.name}
+                        className="flex flex-1 flex-col items-center justify-end gap-0.5 pb-1.5"
+                        style={{ background: room.value }}
+                      >
+                        <span className="text-[10px] text-white tabular-nums">
+                          {l !== null ? l.toFixed(3) : ""}
+                        </span>
+                        <span className="text-[9px] text-white/60">
+                          {room.name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Row>
 
@@ -587,7 +853,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-dark"
             mode={mode}
-            height={h(1090, 1260)}
+            height={h(1090, 780)}
             label={`an event, dark · ${ramp.label}`}
           >
             <AppEvent mode={mode} />
@@ -596,7 +862,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-light"
             mode={mode}
-            height={h(1090, 1260)}
+            height={h(1090, 780)}
             label={`an event, light · ${ramp.label}`}
           >
             <AppEvent mode={mode} />
@@ -605,7 +871,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-dark"
             mode={mode}
-            height={h(820, 1080)}
+            height={h(820, 960)}
             label={`the dashboard, dark · ${ramp.label}`}
           >
             <AppDashboard mode={mode} />
@@ -614,7 +880,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-light"
             mode={mode}
-            height={h(820, 1080)}
+            height={h(820, 960)}
             label={`the dashboard, light · ${ramp.label}`}
           >
             <AppDashboard mode={mode} />
@@ -632,7 +898,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-light"
             mode={mode}
-            height={h(760, 900)}
+            height={h(960, 900)}
             label={`the guest album, light · ${ramp.label}`}
           >
             <GuestAlbum mode={mode} />
@@ -641,7 +907,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="app-dark"
             mode={mode}
-            height={h(760, 900)}
+            height={h(960, 900)}
             label={`the guest album, dark · ${ramp.label}`}
           >
             <GuestAlbum mode={mode} />
@@ -651,18 +917,26 @@ export function PaletteBoard() {
 
       <Row
         n="05"
-        name="A menu over a card"
-        reading="The specimen today's dark ramp fails: ground 0.14, card 0.21 at 62 percent, panel 0.245, menu 0.23, hover 0.25. Five surfaces inside 0.11, two of them the wrong way round. Flip the ramp and the same frame has a ladder."
+        name="A menu over a card, today beside the candidate"
+        reading="The specimen today's dark ramp fails: ground 0.14, card 0.21 at 62 percent, panel 0.245, menu 0.23, hover 0.25. Five surfaces inside 0.11, two of them the wrong way round. Both sets are in one frame because a step of 0.02 is exactly the thing an eye cannot hold across a toggle press, and because the 1000px of empty ground beside one card was not evidence of anything."
       >
-        <Frame
-          ramp={ramp}
+        {/* ★ THE PAIR. Round two learned this for the accent ("four hues cannot
+            be ruled on from memory") and left every surface row on a toggle. A
+            LIGHTNESS STEP is the harder memory test of the two, so the frame
+            that carries the whole dark-ramp argument shows both answers at
+            once. One Stage, two token wrappers: the ground class is shared (it
+            is the same .dark either way) and each half paints its own
+            --background, which is the only honest way to put two grounds in one
+            canvas. */}
+        <PairFrame
+          left={todayRamp}
+          right={ramp}
           ground="app-dark"
           mode={mode}
-          height={h(560, 640)}
-          label={`the stack, dark · ${ramp.label}`}
-        >
-          <SurfaceStack mode={mode} />
-        </Frame>
+          height={h(560, 1000)}
+          label={`the stack, dark · today beside ${ramp.label}`}
+          render={(r) => <SurfaceStack mode={mode} paired ramp={r} />}
+        />
       </Row>
 
       <Row
@@ -678,7 +952,7 @@ export function PaletteBoard() {
           label={`ink on a paper page · ${ramp.label} · ${accent.label}`}
           extra={accentStyle(accent, true)}
         >
-          <InkLeaf mode={mode} />
+          <InkLeaf mode={mode} complete={rampId !== "today"} />
         </Frame>
       </Row>
 
@@ -707,6 +981,9 @@ export function PaletteBoard() {
             <DepthRow mode={mode} />
           </Frame>
         </div>
+        <p className="text-[11px] text-muted-foreground">
+          {`The ring is the elevation system nobody wrote down, measured: ring-foreground/5 at ${RING_USES.faint} sites, ring-foreground/10 at ${RING_USES.firm}, ring-white/70 at ${RING_USES.onMedia} on media. Round two said 77 for the first of those and the number is ${RING_USES.faint}.`}
+        </p>
       </Row>
 
       <Row
@@ -718,7 +995,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="app-dark"
           mode={mode}
-          height={h(460, 700)}
+          height={h(460, 540)}
           label={`over a photograph, dark · ${ramp.label} · card ${cardMode}`}
         >
           <PhotoCards mode={mode} />
@@ -728,10 +1005,14 @@ export function PaletteBoard() {
       <Row
         n="09"
         name="The panel, on its real sites"
-        reading="The set-apart block of bible 16, on the sites it ships on. It ships at six alphas of --muted (20, 30, 40, 50, 60 and 70 across 45 uses), a token that also does hover, and on paper 40 percent over 0.99 is a one percent step. The toggle in the bar swaps every one of them for the ruled ramp's --muted at full strength, on the board and on the walk."
+        reading="The set-apart block of bible 16, on the sites it ships on. It ships at six alphas of --muted, a token that also does hover, and on paper 40 percent over 0.99 is a one percent step. The toggle in the bar swaps every one of them for the ruled ramp's --muted at full strength, on the board and on the walk."
       >
+        {/* Measured, with the command that produced it in ramps.ts. Round two
+            printed 45 here and the real number is {PANEL_USES}: a count nobody
+            re-ran is a stand-in wearing a number's clothes. */}
         <p className="text-[11px] text-muted-foreground">
           {PANEL_ALPHAS.map((a) => `${a.alpha} percent x${a.uses}`).join(", ")}
+          {` = ${PANEL_USES} panels, plus ${PANEL_HOVER_USES} hover fills wearing the same utility, which the switch leaves alone.`}
         </p>
         <Frame
           ramp={ramp}
@@ -756,14 +1037,14 @@ export function PaletteBoard() {
       <Row
         n="10"
         name="The text steps, in real copy"
-        reading="Every text step with a real line at it, on the three grounds type lands on: the page, a card, the panel. The hole in the light ramp is only a hole once you try to write the third line, and --faint is the step 37 sites are already compositing to by hand."
+        reading="Every text step with a real line at it, on the three grounds type lands on: the page, a card, the panel. The hole in the light ramp is only a hole once you try to write the third line, and --faint is the step these sites are already compositing to by hand."
       >
         <div className="flex flex-col gap-4">
           <Frame
             ramp={ramp}
             ground="paper"
             mode={mode}
-            height={h(400, 900)}
+            height={h(350, 840)}
             label={`paper · ${ramp.label}`}
           >
             <TextSteps mode={mode} />
@@ -772,12 +1053,16 @@ export function PaletteBoard() {
             ramp={ramp}
             ground="cinema"
             mode={mode}
-            height={h(400, 900)}
+            height={h(350, 840)}
             label={`cinema · ${ramp.label}`}
           >
             <TextSteps mode={mode} />
           </Frame>
         </div>
+        <p className="text-[11px] text-muted-foreground">
+          {FAINT_ALPHAS.map((a) => `${a.alpha} percent x${a.uses}`).join(", ")}
+          {` = ${FAINT_USES} sites dimming the second step by hand, ${FAINT_ALPHAS[3].uses} of them at exactly the 70 percent --faint is.`}
+        </p>
       </Row>
 
       <Row
@@ -829,8 +1114,7 @@ export function PaletteBoard() {
             onChange={setAccentGround}
           />
           <p className="text-[11px] text-muted-foreground">
-            The wall shows all four. The toggle picks the one that rides the
-            walk and the paste.
+            {`The wall shows all four. The toggle picks the one that rides the walk and the paste, and a hue ruling is two token values reaching ${BRAND_HITS} utilities in ${BRAND_FILES} files.`}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card px-4 py-3">
@@ -877,19 +1161,39 @@ export function PaletteBoard() {
             {applied ? applied.label : "nothing applied"}
           </span>
         </div>
-        <p className="max-w-3xl text-[11px] text-muted-foreground">
-          Walk it on{" "}
-          {WALK.map((w, i) => (
-            <span key={w.href}>
-              {i > 0 ? ", " : ""}
-              <span className="text-foreground">{w.href}</span> ({w.note})
-            </span>
+        {/* ★ THE WALK, CLICKABLE (round three). These six were printed as
+            prose, so walking a candidate meant retyping six paths and
+            remembering to hang the lab key off each one. They are links now,
+            and the key comes from THIS page's own query string rather than
+            being written into the file, so nothing here is a secret and a
+            board opened without a key hands out URLs without one. Each opens
+            in its own tab: the candidate lives in the browser, not in the page,
+            so a new tab wears it and this board stays where it was. */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          {WALK.map((w) => (
+            <a
+              key={w.href}
+              href={`${w.href}${labKey}`}
+              target="_blank"
+              rel="noreferrer"
+              className="group flex items-baseline gap-1.5 text-[12px]"
+            >
+              <span className="font-medium underline decoration-border underline-offset-4 transition-colors group-hover:decoration-foreground">
+                {w.href}
+              </span>
+              <span className="text-[11px] text-muted-foreground">
+                {w.note}
+              </span>
+            </a>
           ))}
-          , every one with the lab key on the end. The block persists in this
-          browser until Clear, and the tuner panel on any of those pages clears
-          it too. The demo guest page is missing from the list on purpose: the
-          guest layout mounts no design island, so a candidate cannot reach it
-          yet (see the departures, and row 04 for the album on the board).
+        </div>
+        <p className="max-w-3xl text-[11px] text-muted-foreground">
+          The block persists in this browser until Clear, and the tuner panel on
+          any of those pages clears it too. The event page needs the signed-in
+          host, so its link goes to the dashboard and the event is one click on.
+          The demo guest page is missing on purpose: the guest layout mounts no
+          design island, so a candidate cannot reach it yet (see the departures,
+          and row 04 for the album on the board).
         </p>
         <pre className="max-h-96 overflow-auto rounded-lg border border-border bg-muted/40 p-4 font-sans text-[11px] leading-relaxed whitespace-pre tabular-nums">
           {[tokenBlock(ramp), accentBlock(accent)].filter(Boolean).join("\n\n")}

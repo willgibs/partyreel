@@ -1,8 +1,9 @@
 import type { Ground } from "@/components/dev/board";
 
 /**
- * THE PALETTE BOARD'S DATA: four complete token sets (today plus three
- * candidates), the accent options, and the printable block the ruling pastes.
+ * THE PALETTE BOARD'S DATA: three complete token sets (today plus two
+ * candidates), the temperature switch that used to be a third candidate, the
+ * accent options, and the printable block the ruling pastes.
  *
  * WHY the shape. A candidate is not a swatch row, it is a whole system: the
  * light block, the dark block, the ink leaf, the gallery canvas and the cinema
@@ -20,7 +21,7 @@ import type { Ground } from "@/components/dev/board";
  */
 
 export type TokenMap = Record<string, string>;
-export type RampId = "today" | "a" | "b" | "c";
+export type RampId = "today" | "a" | "b";
 
 export type Ramp = {
   id: RampId;
@@ -33,6 +34,13 @@ export type Ramp = {
   moves: string[];
   /** What it costs, said out loud. */
   trade: string;
+  /**
+   * What choosing this letter ALREADY decides, printed under the candidate so
+   * it is never asked twice. Round two carried both of these as separate asks;
+   * they are consequences of the ramp, and a separate answer could only
+   * contradict the paste the letter generates.
+   */
+  decides: { grounds: string; canvas: string };
   /** The `:root, .surface-paper` block. */
   light: TokenMap;
   /** The `.dark` block. */
@@ -60,6 +68,12 @@ const TODAY: Ramp = {
     "Three darks (cinema 0.11, the app 0.14, gallery 0.155) with no stated reason.",
   ],
   trade: "It ships, and every surface question is answered with a hairline.",
+  decides: {
+    grounds:
+      "Three darks with no reason written down: cinema 0.11, the app 0.14, ink 0.155.",
+    canvas:
+      "One token doing both jobs, and the deepest surface in the product is not a token at all.",
+  },
   light: {
     "--background": "oklch(0.99 0 0)",
     "--foreground": "oklch(0.13 0 0)",
@@ -133,11 +147,17 @@ const A: Ramp = {
   moves: [
     "The light ground drops to 0.977 so the card at 0.998 lifts off it; the panel sinks to 0.948 and the hover fill separates at 0.925.",
     "Dark gets real steps of about 0.045: room 0.145, panel 0.195, card 0.235, menu 0.285, hover 0.325, and the card goes opaque.",
-    "One new token fills the hole: --faint at 0.62 light and 0.55 dark, which is exactly what the 20 text-muted-foreground/70 sites already composite to.",
+    "One new token fills the hole: --faint at 0.62 light and 0.55 dark, which is exactly what the 19 text-muted-foreground/70 sites already composite to.",
     "Three darks stay and become three steps of one ladder (cinema 0.105, the app 0.145, ink 0.185); the media canvas leaves the ink family and goes deeper, to 0.09.",
   ],
   trade:
     "The paper body is a real paper grey rather than near white, and the cinema-to-ink seam at the footer widens from 0.045 to 0.08.",
+  decides: {
+    grounds:
+      "A ladder: cinema 0.105, the app 0.145, the ink leaf 0.185, three steps of one set.",
+    canvas:
+      "Split. The media well goes to 0.09, deeper than any room, and the slab stays a leaf at 0.185.",
+  },
   light: {
     "--background": "oklch(0.977 0 0)",
     "--foreground": "oklch(0.145 0 0)",
@@ -229,6 +249,12 @@ const B: Ramp = {
   ],
   trade:
     "Cinema loses its deeper room, so a dark chapter sits 0.015 lighter and the footer stops being a separate value, which hands the seam to light rather than to colour.",
+  decides: {
+    grounds:
+      "One room. Cinema, the app and the ink leaf are all 0.125, and the override in marketing.css is deleted.",
+    canvas:
+      "One. The canvas is the room too, so a photograph and a footer sit on the same value.",
+  },
   light: {
     "--background": "oklch(0.99 0 0)",
     "--foreground": "oklch(0.14 0 0)",
@@ -302,99 +328,124 @@ const B: Ramp = {
   cinemaBackground: "oklch(0.125 0 0)",
 };
 
-const C: Ramp = {
-  id: "c",
-  label: "C",
-  name: "C. Film stock",
-  thesis:
-    "A's ladder with a temperature: paper is a warm white and the room is a warm black, at 0.003 to 0.008 chroma, because a pure grey is what a default looks like and a party is warm. Text stays neutral, so the ink still reads crisp on it.",
-  moves: [
-    "Light surfaces carry hue 85 at 0.003 to 0.007 chroma, rising with the surface; the foreground and every text step stay at chroma 0.",
-    "Dark surfaces carry hue 60 at 0.005 to 0.008, a film black rather than a screen black, and the dark foreground is a warm white at 0.002.",
-    "The spacing is A's exactly, so a ruling between A and C is a ruling on temperature alone and nothing else moves.",
-    "The cool inversion (warm paper, cool night) was built and dropped: a cool room fights skin tones, and every photograph on this product has people in it.",
-  ],
-  trade:
-    "It re-opens a decision globals.css records as closed (zero-chroma purity IS the brand point), and a warm ground very slightly warms how a photograph reads against it.",
-  light: {
-    "--background": "oklch(0.977 0.004 85)",
-    "--foreground": "oklch(0.145 0 0)",
-    "--card": "oklch(0.998 0.003 85)",
-    "--card-foreground": "oklch(0.145 0 0)",
-    "--popover": "oklch(0.998 0.003 85)",
-    "--popover-foreground": "oklch(0.145 0 0)",
-    "--primary": "oklch(0.145 0 0)",
-    "--primary-foreground": "oklch(0.998 0.003 85)",
-    "--secondary": "oklch(0.925 0.006 85)",
-    "--secondary-foreground": "oklch(0.145 0 0)",
-    "--muted": "oklch(0.948 0.005 85)",
-    "--muted-foreground": "oklch(0.46 0 0)",
-    "--faint": "oklch(0.62 0 0)",
-    "--accent": "oklch(0.925 0.006 85)",
-    "--accent-foreground": "oklch(0.145 0 0)",
-    "--border": "oklch(0.89 0.007 85)",
-    "--input": "oklch(0.89 0.007 85)",
-    "--ring": "oklch(0.3 0 0)",
-  },
-  dark: {
-    "--background": "oklch(0.145 0.005 60)",
-    "--foreground": "oklch(0.955 0.002 85)",
-    "--card": "oklch(0.235 0.006 60)",
-    "--card-foreground": "oklch(0.955 0.002 85)",
-    "--popover": "oklch(0.285 0.007 60)",
-    "--popover-foreground": "oklch(0.955 0.002 85)",
-    "--primary": "oklch(0.955 0.002 85)",
-    "--primary-foreground": "oklch(0.145 0.005 60)",
-    "--secondary": "oklch(0.325 0.008 60)",
-    "--secondary-foreground": "oklch(0.955 0.002 85)",
-    "--muted": "oklch(0.195 0.006 60)",
-    "--muted-foreground": "oklch(0.7 0.004 70)",
-    "--faint": "oklch(0.55 0.004 70)",
-    "--accent": "oklch(0.325 0.008 60)",
-    "--accent-foreground": "oklch(0.955 0.002 85)",
-    "--border": "oklch(1 0 0 / 12%)",
-    "--input": "oklch(1 0 0 / 16%)",
-    "--ring": "oklch(0.85 0 0)",
-  },
-  ink: {
-    "--background": "oklch(0.185 0.006 60)",
-    "--foreground": "oklch(0.965 0.002 85)",
-    "--card": "oklch(0.235 0.006 60)",
-    "--card-foreground": "oklch(0.965 0.002 85)",
-    "--popover": "oklch(0.285 0.007 60)",
-    "--popover-foreground": "oklch(0.965 0.002 85)",
-    "--secondary": "oklch(0.325 0.008 60)",
-    "--secondary-foreground": "oklch(0.965 0.002 85)",
-    "--accent": "oklch(0.325 0.008 60)",
-    "--accent-foreground": "oklch(0.965 0.002 85)",
-    "--muted": "oklch(0.235 0.006 60)",
-    "--muted-foreground": "oklch(0.7 0.004 70)",
-    "--faint": "oklch(0.55 0.004 70)",
-    "--border": "oklch(1 0 0 / 10%)",
-    "--input": "oklch(1 0 0 / 14%)",
-    "--ring": "oklch(0.965 0.002 85)",
-    "--primary": "oklch(0.965 0.002 85)",
-    "--primary-foreground": "oklch(0.185 0.006 60)",
-    "--brand": "var(--primary)",
-    "--brand-foreground": "var(--primary-foreground)",
-    "--shadow-float": "0 0 0 0 oklch(0 0 0 / 0)",
-  },
-  gallery: {
-    "--gallery": "oklch(0.09 0.004 60)",
-    "--gallery-foreground": "oklch(0.965 0.002 85)",
-    "--gallery-muted": "oklch(0.62 0.004 70)",
-    "--gallery-border": "oklch(1 0 0 / 8%)",
-  },
-  cinemaBackground: "oklch(0.105 0.004 60)",
-};
 
-export const RAMPS: Ramp[] = [TODAY, A, B, C];
+export const RAMPS: Ramp[] = [TODAY, A, B];
 export const RAMP_BY_ID: Record<RampId, Ramp> = {
   today: TODAY,
   a: A,
   b: B,
-  c: C,
 };
+
+/* ── The temperature: a switch, not a candidate (round three) ───────────── */
+
+/**
+ * ROUND THREE CUT CANDIDATE C AND KEPT EVERY VALUE IT HELD.
+ *
+ * Round two shipped three candidates and then wrote, in C's own move list, the
+ * reason the third could not stay one: "The spacing is A's exactly, so a ruling
+ * between A and C is a ruling on temperature alone and nothing else moves." A
+ * column that moves no step is not a system, it is a switch wearing a letter,
+ * and it cost the board a third of its width, a quarter of the ramp ask and the
+ * one question it could never answer: whether the OTHER ramps want warming too.
+ *
+ * So the temperature became a transform over any token block. `warm(A)`
+ * reproduces round two's C exactly (temperature.test.ts pins all five of its
+ * blocks against the published values, token for token), `warm(B)` is the
+ * answer that could not be asked before, and the ask drops from four letters to
+ * three plus one word.
+ *
+ * The rule is read off C rather than invented: a SURFACE carries the
+ * temperature and ink does not. On paper that means every value at 0.8 and up
+ * takes hue 85 while the type stays at chroma 0, so black on a warm white still
+ * reads crisp. In the dark it means the rooms take hue 60 (a film black, not a
+ * screen black), the middle text steps take a trace of 70, and the near-whites
+ * take 0.002 at 85 so type on a warm black is not a blue-white. A value
+ * carrying an ALPHA is left alone: a white veil borrows the surface under it,
+ * so tinting it would tint the same thing twice. Candidate B needs almost none
+ * of this, because it derives its surfaces from the room by color-mix and a
+ * warmed room carries the whole ladder with it, which is the clearest thing
+ * this split says about B.
+ *
+ * The one value that is NOT C's: C left `.dark --ring` at chroma 0 while
+ * writing `.surface-ink --ring` warm, at the same job on the same ground. A
+ * transform cannot hold two answers, so it takes the ink one and the test
+ * records the correction.
+ */
+export type Temperature = "neutral" | "warm";
+
+/** The case for warming, rendered where C's candidate card used to be. */
+export const TEMPERATURE = {
+  name: "Warm, on whichever ramp is selected",
+  thesis:
+    "Paper as a warm white and the room as a warm black, at 0.002 to 0.008 chroma, because a pure grey is what a default looks like and a party is warm. Text stays neutral on paper, so the ink still reads crisp.",
+  moves: [
+    "Light surfaces take hue 85, rising from 0.003 at the menu to 0.007 at the hairline; every text step stays at chroma 0.",
+    "Dark rooms take hue 60 at 0.004 to 0.008, and the near-whites take 0.002 at 85 so type on a warm black is not a blue-white.",
+    "It moves no step on any ramp, which is why it is a switch and not a letter: warm or neutral is one decision about temperature and nothing else.",
+    "On B it costs one value, because B derives every surface from the room and a warmed room carries the whole ladder with it.",
+    "The cool inversion (warm paper, cool night) was built and dropped: a cool room fights skin tones, and every photograph on this product has people in it.",
+  ],
+  trade:
+    "It re-opens a decision globals.css records as closed (zero-chroma purity IS the brand point), and a warm ground very slightly warms how a photograph reads against it.",
+} as const;
+
+/** The chroma and hue a value takes at a given lightness, per polarity. The
+ *  bands are read off round two's C, not invented; temperature.test.ts pins
+ *  them to it. */
+export function warmthAt(
+  l: number,
+  dark: boolean,
+): { chroma: number; hue: number } {
+  if (dark) {
+    // The near-whites: type, the primary, the ring on a leaf.
+    if (l >= 0.9) return { chroma: 0.002, hue: 85 };
+    // The middle steps: second text, faint.
+    if (l >= 0.5) return { chroma: 0.004, hue: 70 };
+    // The rooms, warming as they lighten. The canvas is deeper than any of
+    // them and takes the least, so a photograph sits on almost-black.
+    if (l < 0.11) return { chroma: 0.004, hue: 60 };
+    if (l < 0.17) return { chroma: 0.005, hue: 60 };
+    if (l < 0.26) return { chroma: 0.006, hue: 60 };
+    if (l < 0.3) return { chroma: 0.007, hue: 60 };
+    return { chroma: 0.008, hue: 60 };
+  }
+  // On paper the ink stays neutral; only the surfaces warm.
+  if (l < 0.8) return { chroma: 0, hue: 0 };
+  if (l >= 0.99) return { chroma: 0.003, hue: 85 };
+  if (l >= 0.96) return { chroma: 0.004, hue: 85 };
+  if (l >= 0.935) return { chroma: 0.005, hue: 85 };
+  if (l >= 0.905) return { chroma: 0.006, hue: 85 };
+  return { chroma: 0.007, hue: 85 };
+}
+
+/** An opaque `oklch(L 0 0)` literal, or no match for anything else (a veil, a
+ *  color-mix, a var alias): those are left exactly as they are. */
+const PLAIN_OKLCH = /^oklch\(\s*([\d.]+)\s+0\s+0\s*\)$/;
+
+function warmValue(value: string, dark: boolean): string {
+  const hit = PLAIN_OKLCH.exec(value.trim());
+  if (!hit) return value;
+  const l = Number(hit[1]);
+  const { chroma, hue } = warmthAt(l, dark);
+  return chroma === 0 ? value : `oklch(${l} ${chroma} ${hue})`;
+}
+
+const warmMap = (m: TokenMap, dark: boolean): TokenMap =>
+  Object.fromEntries(Object.entries(m).map(([k, v]) => [k, warmValue(v, dark)]));
+
+/** One ramp at a temperature. The light block reads the paper table; every
+ *  other block (the dark room, the ink leaf, the canvas, cinema) reads the
+ *  dark one. */
+export function warm(ramp: Ramp): Ramp {
+  return {
+    ...ramp,
+    light: warmMap(ramp.light, false),
+    dark: warmMap(ramp.dark, true),
+    ink: warmMap(ramp.ink, true),
+    gallery: warmMap(ramp.gallery, true),
+    cinemaBackground: warmValue(ramp.cinemaBackground, true),
+  };
+}
 
 /* ── The dark card: as declared, opaque, or a veil ───────────────────────── */
 
@@ -420,9 +471,25 @@ export function withAlpha(value: string, alpha: number): string {
   return `color-mix(in oklab, ${value} ${Math.round(alpha * 100)}%, transparent)`;
 }
 
-/** The ramp with the card question answered, which is what every renderer and
- *  the paste both read, so the board can never show one thing and paste another. */
-export function resolveRamp(ramp: Ramp, mode: CardMode): Ramp {
+/**
+ * The ramp with BOTH switches answered, which is what every renderer and the
+ * paste read, so the board can never show one thing and paste another.
+ *
+ * The card runs first and the temperature second: forcing the veiled card
+ * opaque strips its alpha, and the value that comes out has to take the
+ * temperature like any other surface, or an opaque card would be the one cold
+ * thing in a warm room.
+ */
+export function resolveRamp(
+  ramp: Ramp,
+  mode: CardMode,
+  temperature: Temperature = "neutral",
+): Ramp {
+  const carded = applyCardMode(ramp, mode);
+  return temperature === "warm" ? warm(carded) : carded;
+}
+
+function applyCardMode(ramp: Ramp, mode: CardMode): Ramp {
   if (mode === "declared") return ramp;
   const fix = (m: TokenMap) => {
     const card = m["--card"];
@@ -633,15 +700,57 @@ export const STATE_HUES = [
 
 /* ── The panel ──────────────────────────────────────────────────────────── */
 
-/** Every alpha the set-apart panel ships at today, with its count in src. */
+/**
+ * Every alpha the set-apart panel ships at, with its count.
+ *
+ * ★ MEASURED, not remembered (round three re-counted and round two's numbers
+ * were high by ten). The count is production only, the lab excluded, and a
+ * VARIANT of the same utility is left out on purpose: `hover:bg-muted/40` is a
+ * hover fill, not a panel, and there are 8 of those. Re-run it with
+ *
+ *   grep -rEoh "(^|[^:[:alnum:]_-])bg-muted/[0-9]+" --include='*.tsx' \
+ *     --include='*.ts' src --exclude-dir='(dev)' | grep -oE 'bg-muted/[0-9]+' \
+ *     | sort | uniq -c | sort -rn
+ *
+ * and change these numbers rather than the sentence that quotes them: the board
+ * and BoardMeta both read PANEL_USES below.
+ */
 export const PANEL_ALPHAS = [
   { alpha: 20, uses: 2 },
   { alpha: 30, uses: 4 },
-  { alpha: 40, uses: 19 },
-  { alpha: 50, uses: 12 },
-  { alpha: 60, uses: 6 },
+  { alpha: 40, uses: 17 },
+  { alpha: 50, uses: 6 },
+  { alpha: 60, uses: 4 },
   { alpha: 70, uses: 2 },
 ];
+
+export const PANEL_USES = PANEL_ALPHAS.reduce((n, a) => n + a.uses, 0);
+/** Plus the hover fills that wear the same utility and are NOT the panel. */
+export const PANEL_HOVER_USES = 8;
+
+/**
+ * The same count for the missing text step: every `text-muted-foreground/N` in
+ * production, measured the same way on the same day. The 70 percent row is the
+ * one that matters, because 70 percent of the second step is what --faint is.
+ */
+export const FAINT_ALPHAS = [
+  { alpha: 40, uses: 4 },
+  { alpha: 50, uses: 7 },
+  { alpha: 60, uses: 6 },
+  { alpha: 70, uses: 19 },
+  { alpha: 75, uses: 1 },
+];
+
+export const FAINT_USES = FAINT_ALPHAS.reduce((n, a) => n + a.uses, 0);
+
+/** The accent's reach, measured the same way: `--brand` utilities in
+ *  production. A hue ruling changes two token values and nothing else. */
+export const BRAND_HITS = 34;
+export const BRAND_FILES = 16;
+
+/** The ring elevation nobody wrote down, measured: `ring-foreground/5` is the
+ *  app's quiet lift and `ring-white/70` is the one on media. */
+export const RING_USES = { faint: 37, firm: 13, onMedia: 29 };
 
 /* ── The five grounds, and the two jobs one token is doing ──────────────── */
 
@@ -824,6 +933,9 @@ export type ApplyOptions = {
   accent: Accent;
   panelOneToken: boolean;
   faintOnDimmed: boolean;
+  /** Carried for the LABEL only: the block itself is already resolved, so the
+   *  paste cannot disagree with the board about the temperature. */
+  temperature: Temperature;
 };
 
 /** What "Apply to the site" hands the shell: the ruled paste plus whatever the
@@ -842,6 +954,7 @@ export function applyCss(ramp: Ramp, opts: ApplyOptions): string {
 /** The label the tuner panel and the board badge both show. */
 export function applyLabel(ramp: Ramp, opts: ApplyOptions): string {
   const parts = [`ramp ${ramp.label}`];
+  if (opts.temperature === "warm") parts.push("warm");
   if (opts.accent.id !== "ink") parts.push(opts.accent.label.toLowerCase());
   if (opts.panelOneToken) parts.push("panel at one token");
   if (opts.faintOnDimmed) parts.push("faint on the dimmed sites");
@@ -859,10 +972,10 @@ export const WALK = [
   },
   { href: "/help", name: "help", note: "the facts band and the closer panel" },
   { href: "/contact", name: "contact", note: "the form panel at 50 percent" },
-  { href: "/dashboard", name: "the dashboard", note: "signed in, both modes" },
   {
-    href: "/dashboard/<event>",
-    name: "an event",
-    note: "the stat band, the grid, the review queue",
+    href: "/dashboard",
+    name: "the dashboard",
+    note: "signed in, both modes, then one click to an event",
   },
+  { href: "/design/rules", name: "the bible", note: "rule 1, as it stands" },
 ] as const;
