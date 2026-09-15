@@ -2,7 +2,12 @@
  * THE SHELL'S KIT (the Library x Lab round, 2026-09-15): what a library or lab
  * page composes. Server-safe pieces (Section, Sub, StatRow, Callout, Tag, Kbd,
  * WidePage) and client pieces (PageHeader, Pager, Ref, LabLink, CopyButton,
- * CopyLink, PreviewCode) from one import.
+ * CopyLink) from one import.
+ *
+ * A specimen with its source is NOT here: `gallery/specimen.tsx` is the one
+ * frame, and it uses the real Tabs primitive. Phase 0's `PreviewCode` was a
+ * look-alike of it with no consumers left, and a look-alike is the one thing
+ * the library cannot ship.
  *
  * The shell also owns the things a page plugs INTO rather than renders: the
  * URL state (`useLabState` / `useSetLabParam`, the param model in
@@ -17,7 +22,6 @@ export { useDigitKeys } from "./keys";
 export { useCopySource } from "./page-facts";
 export { PageHeader } from "./page-header";
 export { Pager } from "./pager";
-export { PreviewCode } from "./preview-code";
 export { Ref } from "./ref";
 export { Section, Sub } from "./section";
 export {
