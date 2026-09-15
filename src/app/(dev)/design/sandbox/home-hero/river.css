@@ -1,9 +1,8 @@
-/* The river's own sheet (round three of the home-hero board). Keyframe prefix:
-   hhv- (hhs- is the source's, hh- the board's; keyframe names are
-   document-global and keyframe-uniqueness.test.ts reads every sheet under the
-   lab). This sheet declares NONE, deliberately: the stream is one
-   requestAnimationFrame loop writing inline transforms, so there is nothing
-   here that can collide with production.
+/* The river's own sheet (home-hero board, round three's variation 4; this is
+   the track's round two). Keyframe prefix: hhv- (hhs- is the source's, hh- the
+   board's; keyframe names are document-global and keyframe-uniqueness.test.ts
+   reads every sheet under the lab). One keyframe lives here, hhv-tick, and it
+   is declared inside the reduced-motion block with the only rule that uses it.
 
    THE REST STATE / ENTRANCE SPLIT, inherited from the source and inverted from
    the usual shape for the same reason.
@@ -14,7 +13,8 @@
    every query on `.hhv-card`, read from the per-card custom properties the
    concept computes during render: a reduced-motion reader, a crawler and the
    server's own HTML all get the stream standing at its steady-state spacing,
-   with nothing to undo.
+   with nothing to undo. The count is written the same way in two spans: the
+   SETTLED figure is the rest state and the ticking one is the entrance.
 
    The state inside `no-preference` is the pour's FIRST FRAME, every frame
    collapsed at the code. It has to live in CSS rather than in an effect,
@@ -23,9 +23,10 @@
    the same query the animation itself is allowed in and the pour is one beat.
 
    THE TRADE, flagged on the board under Departures: a reader with JavaScript
-   off who has NOT asked for less motion sees the stream rest at the code.
-   Nothing that carries meaning is gated by it: the code, the caption, the h1,
-   the subhead, the CTAs and the count are plain markup and never move. */
+   off who has NOT asked for less motion sees the stream rest at the code and
+   the count hold its starting figure. Nothing that carries meaning is gated by
+   it: the code, the line, the h1, the subhead, the CTAs and the count's
+   settled figure are plain markup and never move. */
 
 /* The stream dissolves into the frame rather than being guillotined by the
    stage's overflow: an arm that swings wide as it passes the words fades out at
@@ -79,14 +80,75 @@
   left: 50%;
   transform: var(--hhv-rest);
   opacity: var(--hhv-rest-o);
-  /* Bible 10's allowance, and the reason it exists: frames overlap each other
-     in the stream, and two photographs stacked on a dark ground need an edge.
-     It rides inside the scaled element, so a frame near the bottom throws a
-     larger shadow than one at the code, which is the depth cue. */
   border-radius: var(--radius-tile);
-  box-shadow: 0 18px 44px -16px rgb(0 0 0 / 0.75);
+  /* LIFT, the light board's named cue for two objects of the same lightness
+     overlapping (docs/specs/light.md, part A), at its CINEMA alphas: the frames
+     in this stream overlap each other constantly, and two photographs stacked
+     on a dark ground need an edge. The geometry is that family's, doubled twice
+     because a frame here is 340 px rather than a card: blur stays twice the
+     offset and there is still one source, directly above. It rides inside the
+     scaled element, so a frame near the bottom throws a larger shadow than one
+     at the code, which is the depth cue for free. Bible 10 allows exactly this
+     case and no other. */
+  box-shadow:
+    0 8px 16px -4px oklch(0 0 0 / 0.45),
+    0 16px 32px -8px oklch(0 0 0 / 0.55);
   will-change: transform, opacity;
   backface-visibility: hidden;
+}
+
+/* The crop, per frame, chosen off the photograph (CROP in river.tsx). Every box
+   in this stream is a square or a 4:5 portrait and eleven of the twelve
+   stand-ins are 3:2, so a centred crop throws the subject away on half of them.
+   The fallback is the browser's own default, so a card without the property is
+   simply centred. */
+.hhv-card img {
+  object-position: var(--hhv-pos, 50% 50%);
+}
+
+/* THE CODE AS A PRINTED CARD: the white object an event puts on a table, a QR
+   with one line under it. The plate's white and the line's ink are the
+   scanner-contrast exception footer-qr.tsx already documents, not a palette
+   choice. LIFT again, at the same alphas, because this card sits over the
+   photographs the stream carries past it. */
+.hhv-plate {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: var(--radius-tile);
+  background: #fff;
+  box-shadow:
+    0 8px 16px -4px oklch(0 0 0 / 0.45),
+    0 16px 32px -8px oklch(0 0 0 / 0.55);
+}
+
+/* THE COUNT'S TWO STATES. The settled figure is what the markup carries at
+   rest; the ticking one is swapped in only where an animation is allowed, so
+   reduced motion, a crawler and a JavaScript-less reader all get the number the
+   album actually holds rather than the one the tick starts from. */
+.hhv-n-live {
+  display: none;
+}
+
+.hhv-n-rest {
+  display: inline-block;
+}
+
+/* LAB ONLY: the chip that puts the line on the card or above the plate. It is
+   not part of the composition, it leaves with the ruling, and it sits in the
+   one corner of both canvases the stream never reaches. */
+.hhv-lab {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 30;
+  opacity: 0.5;
+  transition: opacity 120ms ease-out;
+}
+
+.hhv-lab:hover,
+.hhv-lab:focus-within {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -94,5 +156,31 @@
   .hhv-card {
     transform: translate3d(0, 0, 0) scale(0);
     opacity: 0;
+  }
+
+  .hhv-n-live {
+    display: inline-block;
+  }
+
+  .hhv-n-rest {
+    display: none;
+  }
+
+  /* One arrival, marked. High frequency (seven of them, one per launch), so it
+     is instant and almost subliminal rather than a flourish: the number should
+     read as having just landed, never as a counter performing. */
+  .hhv-tick {
+    animation: hhv-tick 140ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes hhv-tick {
+    from {
+      opacity: 0.4;
+      transform: translateY(-3px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 }
