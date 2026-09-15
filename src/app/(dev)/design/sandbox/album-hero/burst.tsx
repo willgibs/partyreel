@@ -1,235 +1,108 @@
 "use client";
 
-// the concept's own sheet; it leaves with the board when the ruling lands.
-// It declares NO keyframes, deliberately: the field is one requestAnimationFrame
-// loop writing inline transforms, so there is nothing to collide with production
-// (src/app/keyframe-uniqueness.test.ts).
+// The album hero field's own sheet; it leaves with the board when the ruling
+// lands. It declares NO keyframes, deliberately: the field is one
+// requestAnimationFrame loop writing inline transforms, so there is nothing to
+// collide with production (src/app/keyframe-uniqueness.test.ts).
+//
+// THE FILENAME IS THE SEED'S, ON PURPOSE. This is no longer the home hero's
+// burst, it is the album page's field, and `field.tsx` would say so; but the
+// live hero-source track declares this exact path as a read in its manifest, so
+// renaming it turns that track's lane guard red. Asked for in the Handoff: the
+// Orchestrator may rename the pair to field.tsx once hero-source closes.
 import "./burst.css";
 
 import Link from "next/link";
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef } from "react";
 
-import { Caption } from "@/components/marketing/system/caption";
+import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { Button } from "@/components/ui/button";
+import { featurePage } from "@/lib/constants/feature-pages";
+import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
-import {
-  CANVAS,
-  type Concept,
-  type ConceptProps,
-  DemoQr,
-  GUTTER,
-  LADDER,
-  type Mode,
-  Photo,
-  copyFor,
-} from "../home-hero/shared";
+import { CANVAS, GUTTER, LADDER, type Mode, Photo } from "../home-hero/shared";
 
 /**
- * THE BURST (concept 3 of the home-hero board; ROUND TWO of the concept,
- * 2026-09-14).
+ * THE ALBUM PAGE'S HERO FIELD (the album-hero track, round one, 2026-09-15).
  *
- * The axis: THE ORIGIN IN EVERY DIRECTION. The source proved the causality with
- * two perspective rows running left and right. The burst keeps the same
- * sentence and takes it onto the two axes a corridor cannot use: all the way
- * around the compass, and forward, out of the screen.
+ * Will's ruling: the burst was killed as the home hero, and "the background
+ * (images emanating) would be beautiful for the /features/album hero for the
+ * live album. Use that for the hero animation looped to add the 'live' feel of
+ * an album full of images... It doesn't need the QR code for the new version."
  *
- * ── WHAT ROUND TWO CHANGED, and why ──
+ * So the field arrives here whole and loses its centre. Three rounds of the
+ * hero-burst track built it, and docs/tracks/hero-burst.md carries that history
+ * with its measurements; this header states what the file IS now and which
+ * mechanics may not be reverted.
  *
- * 1. THE CODE IS THE EMITTER, not a hole in the field. Round one gave the QR
- *    its own keep-out box, so no frame came within 110 px of the plate and
- *    every photograph faded up in open space: the one thing the concept exists
- *    to show, a frame leaving the code, was the one thing it never showed. The
- *    plate paints ABOVE the field (it always did), so a frame born behind it is
- *    hidden by it for free. The code's box is gone; the type's stays. Six of the
- *    34 desktop cards have a corridor wide enough to be born there, spread
- *    across the cycle, so a photograph slides out from under the plate every
- *    1.2 to 2.6 seconds, for ever.
+ * -- THE ARGUMENT --
  *
- * 2. THE CURVES WERE BACKWARDS. Round one ran travel on sqrt(p), fast out of
- *    the gate, and size on a smoothstep that is flat at both ends, so a frame
- *    raced to the edge while it was still small and did its growing off screen:
- *    the field read as confetti at the rim. Both now ride an ease-out in WORLD
- *    units (travel 1-(1-p)^3, size 1-(1-p)^1.4 after a birth plateau) and the
- *    perspective term supplies the acceleration. A frame's screen position is
- *    then near linear in p while its apparent size keeps opening, which is what
- *    an object moving toward you actually does, and the big moments happen ON
- *    the canvas: the median frame now peaks at 368 px of a 1440 canvas.
+ * An album that is alive is an album things are arriving into, constantly, from
+ * every direction. Every frame is born at a point at the centre of the canvas
+ * and radiates around the whole compass AND forward, out of the screen, for
+ * ever: a near frame grows until it wipes past the edge while a far one stays
+ * small and slides out, so the field reads as depth rather than as a scatter.
+ * Nothing announces itself and nothing resolves, because a live album does not
+ * resolve either. That is the whole of the "live" feeling the page opens on;
+ * the album below the hero is the product, and it is deliberately calm.
  *
- * 3. THE LANE WITH ROOM IS THE DEEP ONE. Birth depth, depth gain and travel are
- *    a function of the DIRECTION now, not of a hash: the axis a canvas has room
- *    on (horizontal at 1440, vertical at 375) carries the near-camera flights
- *    that grow and wipe past the edge, and the cramped axis carries the far
- *    field, born further back so it stays small, slow and long on screen. One
- *    description, two canvases, no second design.
+ * -- WHAT CHANGED WHEN THE CODE LEFT --
  *
- * 4. A DIRECTION THE CANVAS HAS NO ROOM FOR IS NOT LAUNCHED. Round one launched
- *    every golden-angle candidate, which is safe only for the one geometry it
- *    was tuned against. The pool is now built by walking candidates and keeping
- *    the first N whose flight is watchable at all (it reaches full opacity and
- *    lives longer than a beat). Measured: at 1440 that drops none at the lg
- *    step and three at xl, and at 375, where the lockup is nearly as wide as
- *    the canvas, it drops 35 and 43 respectively, which is more than half the
- *    compass. Those are the frames that would otherwise be DOM, composited
- *    layers and image requests for something gated until it is already off the
- *    edge. It also means the field re-solves itself when the lockup changes,
- *    which is what makes the headline toggle below honest rather than
- *    decorative.
+ * 1. THE ORIGIN IS NOTHING. The QR plate used to paint ABOVE the field, so a
+ *    frame born behind it was hidden until it slid out: the plate was the
+ *    birth's cover. With no object there the birth has to be a POINT, or every
+ *    launch pops into being at eighty-seven pixels. `s0` (the birth plateau)
+ *    drops from 0.24 of the card box to 0.035 and the fade ramp widens, so a
+ *    newborn frame is about 13 px at 1440 and 8 px at 375 and grows out of
+ *    nothing. The album emanates rather than emerges.
+ * 2. THE VENT REPLACES THE PLATE. `geo.vent` is what `geo.qr` was: the width
+ *    of the empty middle the lockup holds clear, so there is somewhere for the
+ *    album to come from and the eye has a source to read. It is smaller than
+ *    the code was (116 against 140 at 1440), which buys a tighter lockup and a
+ *    wider corridor at the same time.
+ * 3. THE COPY IS THE PAGE'S. The lockup renders /features/album's real eyebrow,
+ *    h1, subhead and actions (feature-pages.ts), because this hero is that
+ *    page's and not a home hero's proposal.
+ * 4. THE HEADLINE STEP MOVED TO THE DOCK. The one choice that changes the
+ *    composition rather than the styling (lg or xl) is a page-wide switch, so
+ *    it lives in BoardDock (Will, 2026-09-15: a page-wide control has to be
+ *    reachable from anywhere on the board) and arrives here as a prop.
  *
- * 5. THE FIRST BEAT IS THREE BEATS. A 260 ms hold (the code alone), then the
- *    slip (the frames with the corridor sliding out from behind the plate),
- *    then the eruption as the reveal tween opens the launch offsets. Measured
- *    off the running stage after a Replay: nothing until 420 ms; seven frames
- *    from 500 to 1000, growing 33 px to 97 px and clear of the plate by 750;
- *    11, 18, 25, 26 from 1090 to 1340, the widest going 141 px to 406 px;
- *    settling to 11 to 15, the widest between 300 and 445.
+ * -- WHAT DID NOT CHANGE, and must not --
  *
- * ── WHAT ROUND THREE CHANGED, and why ──
+ * THE QUIET ZONE. The type lives in a keep-out no frame ever enters: one box
+ * per BLOCK of the lockup, measured off the rendered stage to its INK, never
+ * one rectangle around all of it. Each card is given, once, the progress after
+ * which its own box is permanently clear of every block (scanClear), and it is
+ * drawn from there. "No photograph is ever under a word" is the condition the
+ * field is drawn from rather than a hope about the layout, which is what lets
+ * the media stay at 100 percent with no scrim anywhere on the hero (bible 1).
  *
- * Round three walked the board the way a stranger would, found six things, and
- * fixed each one. They are listed here because the next agent will read this
- * file before the manifest.
- *
- * 1. THE FIELD WAS GREY BOXES FOR THE FIRST MINUTE. Round two loaded only the
- *    frames of the first beats and left the other 31 lazy. This stage is
- *    fifteen thousand pixels down a lab page, so nothing intersected the
- *    viewport and nothing loaded: 9 of 34 images after 60 seconds, and a reader
- *    scrolling to it met a scatter of empty rectangles. Every frame is eager
- *    now (see the Photo below), which costs a hero nothing, because a hero's
- *    frames are all inside the first screen and a lazy image there is fetched
- *    immediately anyway.
- * 2. THE ROOT WAS A SCROLL CONTAINER. `overflow-hidden` clips and still
- *    scrolls; focusing the step toggle inside it could shove the whole
- *    composition sideways. `overflow-clip` clips the same pixels and creates no
- *    scroll container. The scan found this on its own switch and flagged all
- *    four concepts.
- * 3. THE PHONE LEANED UPWARD, 60 percent of the album above the code, because
- *    the lockup sits below it and a downward ray was gated for 240 canvas units
- *    against an upward one's 170. Two changes answer it: `crossHold` holds a
- *    ray back in proportion to the type it has to cross, so it clears later and
- *    larger instead of arriving small, and the pool is now selected to be even
- *    in VISIBLE MASS rather than in directions launched (BALANCE, and see D
- *    below for what that mass had to start counting before it worked). Measured
- *    on the live field, the phone runs 56 / 44 above and below the code against
- *    the 61 / 39 this pass started from, and carries 13.8 frames on screen to
- *    the desktop canvas's 14.2: the same composition at both canvases, close
- *    enough now to argue about rather than to concede.
- * 4. THE REST STATE WAS A FREEZE FRAME. What reduced motion, a crawler and the
- *    cold paint got was the running field stopped mid-flight, so half of it was
- *    dissolving at the rim. It is solved now rather than sampled (restFrame):
- *    every photograph whole, none behind the plate, the quiet zone holding.
- * 5. THE COPY WAS THE RIVER'S. Round two proposed "One code, and the album
- *    fills." over a subhead the river had published half an hour earlier, and
- *    the river opens "One code, and the whole event lands here." over that same
- *    sentence, so the duplicate was this concept's. Two concepts arguing one
- *    sentence makes the board harder to rule, so both lines were rewritten to
- *    what only this concept can say.
- * 6. THE ONE CONTROL ON THE STAGE SAID "h1" at 0.45 opacity. It says Headline,
- *    it is legible without hunting, and it is sized for the canvas it sits on.
- *
- * ── AND WHAT THE REVIEW OF THAT ROUND CAUGHT, in the same round ──
- *
- * Three of the six above were written down as done before they were true. The
- * fixes are in the code they name; this is the ledger, because a claim that
- * outran its code once will be read sceptically the next time.
- *
- * A. THE 4:5 SHARE HAD COLLAPSED WITH THE POOL. The shape was handed out by
- *    CANDIDATE index while item 3's balance pass was newly DROPPING candidates,
- *    so the third of the field this file claims was 4:5 shipped as 32 percent
- *    on the desktop canvas and 9 percent on the phone at the xl step, which is
- *    the canvas whose whole argument is that guests shoot vertical. It is
- *    assigned by SLOT now (PORTRAIT_EVERY), so it is a third of whatever pool
- *    the balance pass returns: 32, 32, 31, 31 percent at the four
- *    configurations. The clearance scan is run after the shape is known, so a
- *    taller box is still held off the type for exactly as long as it needs.
- *    (What that fix left behind, and how the shape is handed out now, is E.)
- * B. THE SETTLED FIELD WAS NOT WHOLE. Item 4 walked the progress back until the
- *    card's OPACITY cleared 0.92, which is not the same test as "inside the
- *    canvas": the opacity term only begins to fall once the leading edge is
- *    already past the rim. A third of the settled album was cut by more than a
- *    quarter of its own width, and on the phone at xl there is no progress at
- *    which most cards are both clear of the type and inside the canvas at all.
- *    The still is solved from both bounds now instead of sampled off the
- *    flight; see restFrame for the whole argument. Measured on the geometry at
- *    all four configurations: 0 cards cut, 0 over any word, 0 behind the plate.
- * C. THE COPY ASK NAMED HALF ITS TRADE. Item 5 moved off the river's sentence
- *    by moving off the code, which is the wrong half to give up: the standing
- *    ruling on this board is that the code as the basis of the feature is the
- *    distinct thing and a generic album is the weak one. The h1 keeps the code
- *    and says what only this concept shows, and the ask carries the whole
- *    trade rather than one reason for it. The keep-out boxes were re-measured
- *    off the rendered stage against it, which turned up a hole that predates
- *    this line: the proposed subhead is shorter than the ruled one, so on the
- *    phone the actions row sits 23 px higher under the copy toggle than the
- *    boxes covered, and a frame could fly through the buttons in that mode.
- *    Every box is the union of BOTH copy modes' real ink now, which is what the
- *    comment on KEEP always said it was.
- * D. THE BALANCE MASS COUNTED WHAT IS OFF SCREEN. The integral item 3 added to
- *    even the field weighed each direction by apparent area and never clipped
- *    it to the canvas, so a flight that is twice the canvas wide as it wipes
- *    past the rim scored twice a flight that fills it. The half of the compass
- *    gated longest is exactly the half whose frames are biggest when they
- *    finally appear, so the metric handed that half a bonus for the part of
- *    itself nobody sees, and the pass meant to end the tilt was paying for it.
- *    Clipped, the same pass gives 48 / 52 and 46 / 54 above and below at 1440,
- *    and takes the phone from 61 / 39 to 56 / 44.
- *
- * ── AND WHAT THE SECOND REVIEW CAUGHT, before Will's own walk ──
- *
- * E. THE ACCEPTANCE TEST WAS FLYING A BOX NO CARD HAS. A's fix moved the shape
- *    off the candidate index and onto the slot, and left the viability walk
- *    flying the field's MEAN shape while re-running only the clearance on the
- *    real one. So rule 4, the rule that a direction the canvas has no room for
- *    is not launched, was being decided on a box nothing flies: a ray accepted
- *    as a square-ish mean card could be handed a box a quarter taller, which
- *    clears the type later and touches the rim sooner. Measured on the geometry
- *    after that fix: 1 of 34 cards failed the test it had supposedly passed at
- *    the desktop xl step, and 6 and 7 of 32 on the phone, every one of them a
- *    4:5, the worst peaking at 0.10 opacity for two instants, which is a launch
- *    slot producing nothing visible every 9.6 s. The mean now weighs the
- *    DIRECTION only (viability and mass, which should not depend on a shape
- *    lottery), the tall box is flown as its own question, and the 4:5 goes to
- *    every third slot whose direction was accepted with one and to the next
- *    slot that was wherever one was not (see fly and the shape map). Re-measured
- *    at all four configurations: 0 cards failing, and the share holds at 32, 32,
- *    31, 31 percent. A square card needs no third walk, because its box is
- *    smaller than the mean one on both axes at every rotation.
- * F. THE COPY ASK STILL NAMED HALF ITS TRADE, and a stale fact about the river.
- *    C rewrote the line and left the ask arguing only the reasons for it, with
- *    the river described as though it had taken this concept's sentence. It is
- *    the other way round (item 5 above). The ask carries both halves now, what
- *    the new line buys and what it gives up, and the offer to put round two's
- *    phrasing back says what putting it back costs.
- *
- * ── WHAT DID NOT CHANGE ──
- *
- * The projection is still done by hand rather than with a CSS `perspective`
- * parent, because the screen position, the apparent size and the paint order
- * all have to be readable as NUMBERS (the keep-out test needs the box's real
- * screen size, the near-over-far paint order needs an integer) and because the
+ * THE PROJECTION IS DONE BY HAND rather than with a CSS `perspective` parent,
+ * because the screen position, the apparent size and the paint order all have
+ * to be readable as NUMBERS (the keep-out test needs the box's real screen
+ * size, the near-over-far paint order needs an integer) and because the
  * transform string stays a pure function of the clock, which is what lets the
  * loop be frozen at a chosen elapsed for a still (docs/systems/testing-
  * verification.md: a driven tab suspends rAF). No state, no timers, no per-card
  * bookkeeping: a card's progress is a closed form of the clock and the
- * recycling falls out of a modulo. Media at 100 percent: no scrim, no darkening
- * layer and no lamp anywhere in this concept (bible 1, and the standing ruling
- * that the hero is cinema and unlit).
+ * recycling falls out of a modulo.
  *
- * ── THE QUIET ZONE ──
+ * THE POOL IS BUILT BY ACCEPTANCE. A direction whose flight is never watchable
+ * on this canvas, against this lockup, is not launched at all (buildCards), and
+ * the field re-solves itself whenever the lockup changes shape. At 375, where
+ * the lockup is nearly as wide as the canvas, that drops more than half the
+ * compass, which is the difference between a field and a confetti of gated
+ * frames nobody ever sees.
  *
- * The type lives in a keep-out that no frame ever enters: one box per BLOCK of
- * the lockup, measured off the rendered stage, never one rectangle around all
- * of it. Each card is given, once, the progress after which its own box is
- * permanently clear of every block (scanClear), and it is drawn from there. So
- * "no photograph is ever under a word" is not a hope about the layout; it is
- * the condition the field is drawn from, in every direction and at every moment
- * of the loop. The corridor between the headline's box and the caption's is
- * what a frame leaving the plate has to fit through, and round two took it from
- * 105 px to 164 px by moving the headline 18 px further off the code, the
- * caption 12 px down, and measuring both blocks to their INK rather than to
- * their line boxes. That corridor is the whole reason a frame can be a
- * photograph rather than a speck as it appears; it is also, at 375, the only
- * lane a frame can be born in at all.
+ * THE REST STATE IS COMPOSED, NOT PAUSED (restFrame): a reduced-motion reader
+ * gets the whole album standing still around the vent, every photograph whole,
+ * none over a word, and that solved state is what the server's HTML carries for
+ * everyone. It is NOT the no-script hero: burst.css collapses every card inside
+ * prefers-reduced-motion: no-preference, the default match, so a crawler and a
+ * reader with JavaScript off get the lockup alone until the loop runs. That
+ * trade is written out in full at the top of burst.css.
  */
 
 /* ── The field's constants ── */
@@ -239,75 +112,76 @@ import {
  *  out of what is left. */
 const GOLDEN = 2.399963229728653;
 
-/** One card's full life, in ms. Shared by both canvases. */
-const FLIGHT_MS = 8400;
-/** The code alone, before anything leaves it. */
-const HOLD_MS = 260;
+/** One card's full life, in ms. Shared by both canvases. Longer than the
+ *  burst's 8400 because this hero is not an entrance that resolves: it is the
+ *  page's weather, and a frame that crosses the canvas more slowly reads as an
+ *  album arriving rather than as a launch. `cards / launch` decides how many
+ *  are in the air at once, and `cards * launch` has to stay comfortably above
+ *  this or the round-robin runs out of frames to recycle. */
+const FLIGHT_MS = 9600;
+/** The empty canvas, before the first frame is born. Shorter than the burst's
+ *  260, which was the beat the code held alone: there is no object to hold. */
+const HOLD_MS = 160;
 /** The branch-out, on ease-in-out-quart (see revealEase). */
 const REVEAL_MS = 2200;
 
 /** The two steps of the site ladder this hero can sit on (bible 5). The board
- *  shows both under a toggle ON the stage, because the trade is real: `xl` is
- *  the louder promise and `lg` leaves the burst more canvas, and the quiet zone
- *  (and therefore the field) is re-solved for whichever is showing. */
-type Step = "lg" | "xl";
+ *  shows both under a toggle IN THE DOCK, because the trade is real: `xl` is
+ *  the louder promise and `lg` leaves the field more canvas, and the quiet zone
+ *  (and therefore the field itself) is re-solved for whichever is showing. */
+export type Step = "lg" | "xl";
 
-/** Survives the stage's remount on Replay, so a ruling in progress is not reset
- *  by the board's own button. Client-only by construction: the server and the
- *  first client render both read "lg". */
-let lastStep: Step = "lg";
-
-/** One block of the lockup, in canvas coordinates from the code (y points
- *  down), plus the margin frames keep from it. Measured off the rendered stage
- *  rather than guessed: each is the union of the two copy modes' real INK
- *  extents (a Range over the text, not the block box, which is full bleed),
- *  re-measured at round three against the copy this concept now proposes.
- *  THE UNION IS THE POINT and is easy to get wrong: one pool serves both copy
- *  modes, so a block has to cover the taller of the two AND the position the
- *  shorter one puts the blocks below it in. The proposed subhead is two lines
- *  on the phone where the ruled one is three, which lifts the actions row 23
- *  px; the box covers both.
- *  THE CODE HAS NO BOX: the plate paints above the field, so a frame born
- *  behind it is hidden by it, and taking the box away is what lets the album
- *  visibly leave the object. (The settled composition is the one exception:
- *  restFrame keeps the still off the plate, because a still has no next moment
- *  to slide out into.) */
+/** One block of the lockup, in canvas coordinates from the origin (y points
+ *  down), plus the margin frames keep from it. Measured off the RENDERED stage
+ *  rather than guessed: each is the real INK extent (a Range over the text, not
+ *  the block box, which is full bleed). One box per BLOCK and never one
+ *  rectangle around the lockup: the corridor between the headline's box and the
+ *  sentence's is what a frame leaving the vent has to fit through, and at 375 it
+ *  is the only lane a frame can be born in at all.
+ *  THE VENT HAS NO BOX HERE: the running field wants frames born on the origin
+ *  at no size, which is what emanating from a point means. (The settled
+ *  composition is the one exception: restFrame holds the still off the vent,
+ *  because a still has no next moment to grow into.) */
 type KeepPart = { x: number; y: number; hw: number; hh: number; r: number };
 
 const KEEP: Record<Mode, Record<Step, KeepPart[]>> = {
   desktop: {
     lg: [
-      { x: 0, y: -189, hw: 262, hh: 81, r: 26 }, // the headline, two lines at 72
-      { x: 0, y: 105, hw: 155, hh: 8, r: 24 }, // the caption
-      { x: 0, y: 156, hw: 232, hh: 22, r: 28 }, // the sentence, two lines
-      { x: 0, y: 226, hw: 164, hh: 23, r: 28 }, // the actions, one row
+      { x: 0, y: -277, hw: 61, hh: 7, r: 22 }, // the eyebrow
+      { x: 0, y: -170, hw: 366, hh: 79, r: 26 }, // the h1, two lines at 72
+      { x: 0, y: 110, hw: 187, hh: 25, r: 26 }, // the sentence, two lines at 18
+      { x: 0, y: 192, hw: 157, hh: 22, r: 28 }, // the actions, one row
     ],
     xl: [
-      { x: 0, y: -210, hw: 349, hh: 107, r: 26 }, // the headline, two lines at 96
-      { x: 0, y: 105, hw: 155, hh: 8, r: 24 },
-      { x: 0, y: 156, hw: 232, hh: 22, r: 28 },
-      { x: 0, y: 226, hw: 164, hh: 23, r: 28 },
+      { x: 0, y: -321, hw: 61, hh: 7, r: 22 },
+      { x: 0, y: -192, hw: 488, hh: 105, r: 26 }, // the h1, two lines at 96
+      { x: 0, y: 110, hw: 187, hh: 25, r: 26 },
+      { x: 0, y: 192, hw: 157, hh: 22, r: 28 },
     ],
   },
   phone: {
     lg: [
-      { x: 0, y: -114, hw: 131, hh: 42, r: 20 }, // the headline, two lines at 36
-      { x: 0, y: 76, hw: 90, hh: 8, r: 18 }, // the caption
-      { x: 0, y: 132, hw: 162, hh: 32, r: 20 }, // the sentence, two or three lines
-      { x: 0, y: 191, hw: 142, hh: 32, r: 20 }, // the actions, one row, two heights
+      { x: 0, y: -215, hw: 61, hh: 7, r: 16 },
+      { x: 0, y: -123, hw: 133, hh: 60, r: 20 }, // the h1, three lines at 36
+      { x: 0, y: 100, hw: 123, hh: 39, r: 20 }, // the sentence, four lines at 18
+      { x: 0, y: 196, hw: 157, hh: 22, r: 20 }, // the actions, 314 of a 373 canvas
     ],
     xl: [
-      { x: 0, y: -150, hw: 152, hh: 78, r: 20 }, // the headline, two or three at 48
-      { x: 0, y: 76, hw: 90, hh: 8, r: 18 },
-      { x: 0, y: 132, hw: 162, hh: 32, r: 20 },
-      { x: 0, y: 191, hw: 142, hh: 32, r: 20 },
+      { x: 0, y: -297, hw: 61, hh: 7, r: 16 },
+      { x: 0, y: -164, hw: 127, hh: 102, r: 20 }, // the h1, four lines at 48
+      { x: 0, y: 100, hw: 123, hh: 39, r: 20 },
+      { x: 0, y: 196, hw: 157, hh: 22, r: 20 },
     ],
   },
 };
 
 type Geo = {
   /** How many cards the canvas throws. cards * launch is the round trip, so a
-   *  few are always on the ground: that slack is what the round-robin needs. */
+   *  few are always on the ground: that slack is what the round-robin needs.
+   *  This is also the one dial that makes the album read FULL rather than
+   *  sparse, which is what Will asked the hero for: with the page's own lockup
+   *  in the middle the quiet zone is large, so the field has to be dense enough
+   *  that the ring around it never thins out. */
   cards: number;
   /** ms between launches. flight / launch is how many are in the air at once. */
   launch: number;
@@ -331,8 +205,10 @@ type Geo = {
   zLo: number;
   /** Normalizes the size curve against the card's DOM box. */
   scaleNorm: number;
-  /** The birth plateau: how big a frame is while it is still in the corridor
-   *  beside the code, and the knees of the size curve after it. */
+  /** THE BIRTH: how big a frame is the instant it exists, and the knees of the
+   *  size curve after it. With no plate to hide a birth behind, this is what
+   *  makes the album emanate from a point instead of popping into being: about
+   *  13 px at 1440 and 8 px at 375. */
   s0: number;
   s0e: number;
   s1a: number;
@@ -359,10 +235,13 @@ type Geo = {
   laneSign: 1 | -1;
   /** How much of a flight a frame fades up over, in progress units. */
   fade: number;
-  /** The QR's edge in px, quiet zone included. 96 scans from a laptop screen. */
-  qr: number;
-  /** The gap from the code's edge to the headline, and to the caption. Round
-   *  two spent 30 px here to widen the corridor a frame leaves through. */
+  /** THE VENT: the diameter of the empty middle the lockup holds clear, which
+   *  is where the album comes from. It is what the code's plate used to be, and
+   *  it is smaller, because a vent only has to read as a source while a plate
+   *  had to be scannable. The still keeps frames off it too (restSpan), so the
+   *  settled composition has the same open middle the running one does. */
+  vent: number;
+  /** The gap from the vent's rim to the headline, and to the eyebrow below it. */
   gapTop: number;
   gapBottom: number;
   subMax: number;
@@ -375,8 +254,8 @@ type Geo = {
 
 const GEO: Record<Mode, Geo> = {
   desktop: {
-    cards: 34,
-    launch: 290,
+    cards: 52,
+    launch: 210,
     card: 365,
     ax: 660,
     ay: 455,
@@ -386,26 +265,26 @@ const GEO: Record<Mode, Geo> = {
     zRun: 900,
     zLo: 0.25,
     scaleNorm: 0.95,
-    s0: 0.24,
+    s0: 0.035,
     s0e: 0.05,
-    s1a: 0.1,
-    sk: 1.4,
+    s1a: 0.03,
+    sk: 1.5,
     reachA: 1.85,
     reachB: 0.8,
     crossHold: 0.3,
     warp: 0.3,
     laneSign: 1,
-    fade: 0.085,
-    qr: 140,
-    gapTop: 44,
-    gapBottom: 26,
-    subMax: 470,
+    fade: 0.07,
+    vent: 116,
+    gapTop: 40,
+    gapBottom: 24,
+    subMax: 576,
     tilt: 15,
     sizes: "440px",
   },
   phone: {
-    cards: 32,
-    launch: 300,
+    cards: 44,
+    launch: 240,
     card: 225,
     ax: 270,
     ay: 470,
@@ -415,36 +294,41 @@ const GEO: Record<Mode, Geo> = {
     zRun: 300,
     zLo: 0.3,
     scaleNorm: 0.9,
-    s0: 0.24,
+    s0: 0.035,
     s0e: 0.05,
-    s1a: 0.1,
-    sk: 1.4,
+    s1a: 0.03,
+    sk: 1.5,
     reachA: 1.6,
     reachB: 0.55,
     crossHold: 0.4,
     warp: 0.2,
     laneSign: -1,
-    fade: 0.085,
-    qr: 100,
-    gapTop: 26,
-    gapBottom: 18,
-    subMax: 330,
+    fade: 0.07,
+    vent: 84,
+    gapTop: 24,
+    gapBottom: 16,
+    subMax: 343,
     tilt: 13,
     sizes: "250px",
   },
 };
 
-/** The headline's measure and leading per step, so the ladder change is a real
- *  change of shape and not only of size. Both are cinema steps of the one site
- *  ladder; LADDER resolves the classes (bible 5). */
+/** The headline's measure and leading per step. `lg` IS THE SHIPPED HERO,
+ *  measured off /features/album rather than chosen: PageHero centres its lockup
+ *  at max-w-3xl (768) and the lg ramp lands on text-7xl at 1440 with
+ *  leading-[1.0], which puts this h1 on two lines at 732 px of ink. `xl` is the
+ *  louder step, and its measure is opened to 1040 so the line stays two rows:
+ *  at 768 the same words run to three at 96 px, which is a wall rather than a
+ *  promise. Both are cinema steps of the one site ladder (bible 5); LADDER
+ *  resolves the classes. */
 const HEAD: Record<Mode, Record<Step, { max: number; lead: string }>> = {
   desktop: {
-    lg: { max: 640, lead: "leading-[1.03]" },
-    xl: { max: 860, lead: "leading-[1.0]" },
+    lg: { max: 768, lead: "leading-[1.0]" },
+    xl: { max: 1040, lead: "leading-[0.98]" },
   },
   phone: {
-    lg: { max: 330, lead: "leading-[1.06]" },
-    xl: { max: 340, lead: "leading-[1.02]" },
+    lg: { max: 343, lead: "leading-[1.06]" },
+    xl: { max: 343, lead: "leading-[1.02]" },
   },
 };
 
@@ -872,7 +756,7 @@ function buildCards(geo: Geo, keep: KeepPart[], halfW: number, halfH: number) {
     const mag = Math.hypot(vx, vy);
 
     const ray: Ray = {
-      key: `hhb-${i}`,
+      key: `alb-${i}`,
       vx,
       vy,
       mag,
@@ -971,25 +855,20 @@ function buildCards(geo: Geo, keep: KeepPart[], halfW: number, halfH: number) {
 }
 
 /**
- * THE REST STATE, COMPOSED. It is what a reduced-motion reader, a crawler, a
- * cold paint and a reader with JavaScript off all get, so it is a composition
- * in its own right and not a pause button: the whole album standing still
- * around the code, every photograph whole, none of them over a word.
+ * THE REST STATE, COMPOSED. It is what a reduced-motion reader gets, and what
+ * every reader's HTML carries under the collapsed first frame, so it is a
+ * composition in its own right and not a pause button: the whole album standing
+ * still around the vent, every photograph whole, none of them over a word. (Who
+ * actually PAINTS it, and who gets the lockup alone instead, is the trade at
+ * the top of burst.css: no-preference is the default match.)
  *
- * Round two took it from the running field, each card at the progress its own
- * launch offset put it at, which is a FREEZE FRAME: half the album caught
- * mid-dissolve at the rim with a hole in the middle. Round three walked that
- * progress back until the card's OPACITY cleared 0.92, which sounds like the
- * same thing and is not: opacity only starts to fall once the leading edge is
- * ALREADY past the rim, so 0.92 still means a tenth of a half-canvas outside
- * it, and a third of the settled field was cut by more than a quarter of its
- * own width. Worse, on the phone at the xl step there is no progress at which
- * most cards are both clear of the type and inside the canvas at all: the
- * lockup is nearly as wide as the canvas, so by the moment a frame has grown
- * past the last word it is already leaving. Sampling the flight cannot
- * compose this still, however carefully it is sampled.
- *
- * So the still is solved instead of sampled, on the two dials the flight ties
+ * It is SOLVED, never sampled. Freezing the running field is a freeze frame:
+ * half the album caught mid-dissolve at the rim with a hole in the middle, and
+ * walking each card back until its opacity clears 0.92 does not fix it, because
+ * opacity only starts to fall once the leading edge is ALREADY past the rim. On
+ * the phone at the xl step there is no progress at which most cards are both
+ * clear of the type and inside the canvas at all: the lockup is nearly as wide
+ * as the canvas. So the still is solved on the two dials the flight ties
  * together and a still has no reason to:
  *
  *   SIZE comes from the flight's own curves at a progress of the card's own, so
@@ -1018,8 +897,10 @@ const R2A = 0.7548776662;
 const R2B = 0.569840291;
 
 /** The smallest progress the settled size is drawn from: the far end of the
- *  field's range, a frame well clear of the plate but still small. */
+ *  field's range, a frame well clear of the vent but still small. */
 const REST_LO = 0.16;
+/** The still's rim margin; see restSpan for why it is not slop. */
+const RIM_GUARD = 6;
 /** Resolution of the walk that closes the window: 128 steps over a range never
  *  wider than 1, so the largest holdable size is found to under a percent. */
 const REST_SCAN = 128;
@@ -1045,20 +926,28 @@ function restSpan(
   // guards below: an infinity is the honest answer, not a divide by zero.
   const ax = Math.abs(c.ux) < 1e-6 ? 0 : Math.abs(c.ux);
   const ay = Math.abs(c.uy) < 1e-6 ? 0 : Math.abs(c.uy);
-  // THE PLATE IS A KEEP-OUT IN THE STILL AND NOWHERE ELSE. The running field
-  // wants frames born behind the code, because being hidden by the object they
-  // came out of is what the slip is; a still has no next moment to slide out
-  // into, so a frame parked behind the plate is simply a photograph the reader
-  // never gets. Clear of the square on EITHER axis is clear of it, hence the
-  // min. (The code carries no keep-out anywhere else in this file.)
-  const plate = Math.min(
-    ax === 0 ? Infinity : (geo.qr / 2 + aw) / ax,
-    ay === 0 ? Infinity : (geo.qr / 2 + ah) / ay,
+  // THE VENT IS A KEEP-OUT IN THE STILL AND NOWHERE ELSE. The running field
+  // wants frames born AT the vent, at no size, because emanating from a point
+  // is the whole argument; a still has no next moment to grow into, so a frame
+  // parked on the origin is a speck the reader is asked to read as a
+  // photograph. Holding the still's frames off the vent gives the settled
+  // composition the same open middle the running one has, which is what makes
+  // reduced motion a composition rather than a pause. Clear of the square on
+  // EITHER axis is clear of it, hence the min.
+  const vent = Math.min(
+    ax === 0 ? Infinity : (geo.vent / 2 + aw) / ax,
+    ay === 0 ? Infinity : (geo.vent / 2 + ah) / ay,
   );
-  const lo = Math.max(clearAlong(keep, c.ux, c.uy, aw, ah), plate);
+  const lo = Math.max(clearAlong(keep, c.ux, c.uy, aw, ah), vent);
   // How far the centre may go before a corner touches the rim, per axis.
-  const ex = ax === 0 ? Infinity : (halfW - aw) / ax;
-  const ey = ay === 0 ? Infinity : (halfH - ah) / ay;
+  // RIM_GUARD is not slop: `extents` models the card's 2D rotation only, and
+  // the per-card 3D tilt goes through a perspective(760px), which can push the
+  // NEAR edge of the projected box a couple of pixels wider than the rotated
+  // half-extent says. Measured on the settled field at 1440: one card of 52
+  // hung 3 px past the left rim. Six closes it with room, and it costs the
+  // composition nothing, because the placement already backs off the far bound.
+  const ex = ax === 0 ? Infinity : (halfW - aw - RIM_GUARD) / ax;
+  const ey = ay === 0 ? Infinity : (halfH - ah - RIM_GUARD) / ay;
   return { lo, span: Math.min(ex, ey) - lo, s, proj };
 }
 
@@ -1101,12 +990,20 @@ function poolFor(mode: Mode, step: Step) {
   return built;
 }
 
-function Burst({ mode, copy, qrUrl }: ConceptProps) {
+/**
+ * THE ALBUM PAGE'S HERO. The field behind, the page's own lockup in the quiet
+ * zone, and nothing at the centre but the vent the album comes out of.
+ *
+ * `step` arrives from the board's dock rather than from a control on the stage
+ * (Will, 2026-09-15: a page-wide switch has to be reachable from anywhere on
+ * the board), and it is a real change of composition: the pool is re-solved
+ * against the lockup the step draws, so toggling it restarts the field.
+ */
+export function AlbumHeroField({ mode, step }: { mode: Mode; step: Step }) {
   const geo = GEO[mode];
-  const [step, setStep] = useState<Step>(() => lastStep);
   const cards = poolFor(mode, step);
   const head = HEAD[mode][step];
-  const text = copyFor(burst, copy);
+  const page = featurePage("album");
   const reduced = usePrefersReducedMotion();
 
   const halfW = CANVAS[mode].w / 2;
@@ -1142,20 +1039,23 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
       // The stage sets data-paused on a hidden tab. Holding the CLOCK rather
       // than the loop is what matters: rAF does not fire in a background tab
       // either way, and an un-held clock teleports the field on return. Read it
-      // off the closest ancestor so the concept owns no shell knowledge.
+      // off the closest ancestor so the field owns no shell knowledge; in
+      // production this is useAmbientPause, which also pauses off-screen.
       if (root.closest("[data-paused]")) return;
       elapsed += dt;
 
-      // BEAT ONE: the code alone. Nothing is written, so the sheet's pre-burst
-      // frame (every card inside the code, at no size) is what is on screen.
+      // BEAT ONE: the empty canvas. Nothing is written, so the sheet's first
+      // frame (every card at the origin, at no size) is what is on screen.
       const clock = elapsed - HOLD_MS;
       if (clock <= 0) return;
 
       // BEATS TWO AND THREE: one tween of the seeded launch offsets from
       // nothing to their steady spacing. At clock 0 every card shares a
-      // progress, so the album leaves the code together and the ones with the
+      // progress, so the album leaves the vent together and the ones with the
       // corridor get out first; the clock term runs the whole time, so there is
-      // no handoff between the entrance and the loop, only one expression.
+      // no handoff between the entrance and the loop, only one expression. And
+      // there is no end to it: the album keeps arriving for as long as the page
+      // is open, which is the "live" the hero is here to say.
       const reveal = revealEase(clock / REVEAL_MS);
       for (let i = 0; i < cards.length; i++) {
         const el = nodes.current[i];
@@ -1191,72 +1091,32 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
     // `cards` is in here on purpose: toggling the headline step re-solves the
-    // pool, so the loop restarts and the burst plays again from the code. That
+    // pool, so the loop restarts and the album blooms again from the vent. That
     // is the honest thing to show, because the field really is a different
     // field once the quiet zone changes shape.
   }, [cards, cycle, geo, halfH, halfW, reduced]);
-
-  const phone = mode === "phone";
-  // The caption IS the eyebrow, so it says the one thing a label would: the
-  // object is real, and it is the same object every guest scans. Shorter on the
-  // phone, where a reader is already holding the thing they would scan with and
-  // where every px of its width is a px the burst cannot use.
-  const caption = qrUrl
-    ? phone
-      ? "This code is live. Tap to open it."
-      : "This code is live. Scan it, or tap to open the album."
-    : "One code per event, scanned all night.";
-
-  const sentence = (
-    <p
-      className={`mx-auto leading-relaxed text-pretty text-white/80 ${phone ? "mt-3.5 text-[14px]" : "mt-4 text-[15px]"}`}
-      style={{ maxWidth: geo.subMax }}
-    >
-      {text.subhead}
-    </p>
-  );
-  const actions = (
-    <div
-      className={`flex flex-wrap items-center justify-center gap-3 ${phone ? "mt-4" : "mt-6"}`}
-    >
-      <Button
-        asChild
-        size="lg"
-        className={phone ? "h-10 px-5 text-sm" : "h-11 px-6 text-base"}
-      >
-        <Link href={text.primary.href}>{text.primary.label}</Link>
-      </Button>
-      <Button
-        size="lg"
-        variant="outline"
-        className={`border-white/35 bg-white/5 text-white hover:border-white/50 hover:bg-white/15 hover:text-white ${phone ? "h-10 px-4 text-sm" : "h-11 px-5 text-base"}`}
-      >
-        {text.secondary}
-      </Button>
-    </div>
-  );
 
   return (
     <div
       ref={rootRef}
       /* overflow-CLIP, not overflow-hidden: the same pixels are clipped, but no
          scroll container is created. An overflow-HIDDEN box is still scrollable
-         programmatically and by focus, and this one has 1933 px of content in a
-         1437 px box, so focusing the step toggle inside it could let the browser
-         "reveal" the button by scrolling the whole composition sideways under
-         the stage's zoom (measured here: scrollLeft took 496 px and scrollTop
-         321 px on demand; with clip both are no-ops). Found by the scan on its
-         own switch, where a click really did jump the hero, and flagged for all
-         four concepts (docs/tracks/hero-scan.md, round three, finding 1). */
+         programmatically and by focus, and this one has far more content than
+         box, so focusing an action inside it could let the browser "reveal" the
+         button by scrolling the whole composition sideways. */
       className="relative size-full overflow-clip bg-background"
     >
       {/* THE FIELD. Full bleed and decorative: the album is the argument, but
           the type in the quiet zone is what carries the sentence. */}
-      <div aria-hidden className="hhb-field">
+      <div aria-hidden className="alb-field">
         {cards.map((c, i) => {
           // The REST state, written as custom properties the sheet reads: the
-          // album settled around the code, which is what reduced motion, a
-          // crawler and the server's own HTML all get (see restFrame).
+          // album settled around the vent (see restFrame). It is what a
+          // REDUCED-MOTION reader gets and what the server's HTML carries, but
+          // it is NOT what a crawler paints: burst.css collapses every card
+          // inside prefers-reduced-motion: no-preference, which is the default
+          // match, so with no loop running the hero is the lockup alone. The
+          // trade is written out at the top of burst.css.
           const rest = restFrame(c, i, geo, keep, halfW, halfH);
           const w = geo.card;
           const h = geo.card * c.aspect;
@@ -1274,7 +1134,7 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
                   nodes.current[i] = null;
                 };
               }}
-              className="hhb-card"
+              className="alb-card"
               style={
                 {
                   width: w,
@@ -1282,23 +1142,30 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
                   marginLeft: -w / 2,
                   marginTop: -h / 2,
                   zIndex: Number(rest.z),
-                  "--hhb-rest": rest.transform,
-                  "--hhb-rest-o": rest.opacity,
+                  "--alb-rest": rest.transform,
+                  "--alb-rest-o": rest.opacity,
+                  // THE CROP, per card. Twelve stand-in photographs have to
+                  // fill fifty-two frames, so the same picture is on screen
+                  // three or four times at once and the eye pairs them
+                  // immediately. Moving each frame's object-position is an
+                  // honest answer rather than a trick (a crop is a crop, and
+                  // the guest media these stand in for is cropped to the tile
+                  // exactly this way): the same photograph shows a different
+                  // part of itself in each frame, so the field reads as an
+                  // album rather than as a deck with repeats. It costs nothing
+                  // once Will's 24 squares land, and it stays, because 24
+                  // photographs still have to fill 52 frames.
+                  "--alb-pos": `${35 + Math.round(hash01(i + 401) * 30)}% ${35 + Math.round(hash01(i + 503) * 30)}%`,
                 } as CSSProperties
               }
             >
-              {/* EAGER, every frame, which round three had to correct. Round
-                  two loaded only the frames of the first beats and left the
-                  rest lazy, reasoning that a hero should not open thirty image
-                  requests at once. On a hero it buys nothing: every card sits
-                  at the centre of the first screen at paint, so a lazy image
-                  there is fetched immediately anyway, at a lower priority. On
-                  the BOARD it cost the concept its argument, because this stage
-                  is fifteen thousand pixels down a lab page: nothing intersects
-                  the viewport, so 31 of the 34 frames had not loaded at all,
-                  and the field a reader scrolled to was a scatter of grey boxes
-                  filling in one by one (measured on the dev server: 9 of 34
-                  after 60 s). The album has to be photographs from the first
+              {/* EAGER, every frame. A hero's frames all sit inside the first
+                  screen, so a lazy image there is fetched immediately anyway,
+                  at a lower priority; and on the BOARD this stage is thousands
+                  of pixels down a lab page, where nothing intersects the
+                  viewport and a lazy field is a scatter of grey boxes filling
+                  in one by one (measured on the dev server before the fix: 9 of
+                  34 after 60 s). The album has to be photographs from the first
                   frame, here and in production. */}
               <Photo
                 index={c.photo}
@@ -1310,113 +1177,65 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
         })}
       </div>
 
-      {/* THE OBJECT, at the exact centre of the canvas, which is the origin
-          every frame is launched from, and ABOVE the field, which is what lets
-          a frame be born behind it and slide out from under it. Nothing about
-          it moves: the stillness is the point, and a QR that breathes is a QR
-          nobody can scan. Real, live and tappable; its own accessible name
-          covers it. */}
-      <div className="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
-        <DemoQr url={qrUrl} size={geo.qr} />
-      </div>
-
-      {/* THE HEADLINE, anchored off the centre rather than laid out in flow, so
-          the code holds the exact middle whether the line runs to two rows or
-          three. At paint, at full opacity, gated by nothing (bible 13). */}
+      {/* THE LOCKUP, ABOVE THE VENT: the page's eyebrow and its h1, anchored off
+          the centre rather than laid out in flow, so the vent holds the exact
+          middle whether the line runs to two rows or three. At paint, at full
+          opacity, gated by nothing (bible 13). */}
       <div
         className={`absolute inset-x-0 z-10 text-center ${GUTTER[mode].x}`}
-        style={{ bottom: `calc(50% + ${geo.qr / 2 + geo.gapTop}px)` }}
+        style={{ bottom: `calc(50% + ${geo.vent / 2 + geo.gapTop}px)` }}
       >
+        {/* The shipped lockup's own parts, at the shipped lockup's own gap
+            (PageHero stacks at gap-6), so what is being judged is this page's
+            hero and not a board's idea of one. */}
+        <Eyebrow data-alb-block="eyebrow">{page.navLabel}</Eyebrow>
         <h1
-          data-hhb-block="h1"
-          className={`mx-auto font-heading text-balance text-white ${LADDER[step][mode]} ${head.lead}`}
+          data-alb-block="h1"
+          className={`mx-auto mt-6 font-heading text-balance ${LADDER[step][mode]} ${head.lead}`}
           style={{ maxWidth: head.max }}
         >
-          {text.h1}
+          {page.h1}
         </h1>
       </div>
 
-      {/* THE CAPTION, THE SENTENCE AND THE ACTIONS, below the code and inside
-          the same quiet zone, on both canvases. Round two tried pinning the
-          sentence and the actions to the foot of the phone to open a band under
-          the code, and it cost more than it bought: a paragraph at the foot is
-          the last thing before the edge, so every downward lane was gated until
-          it was already off the canvas and the whole field collected at the top
-          (measured on the stage: 8 of 10 frames above the code). One lockup, two
-          canvases. No scrim anywhere on this concept and no darkening layer over
-          a frame: the keep-out is what holds the type off the photographs, which
-          is the argument. */}
+      {/* THE LOCKUP, BELOW THE VENT: the page's sentence and its actions, in the
+          same quiet zone, on both canvases. No scrim anywhere and no darkening
+          layer over a frame: the keep-out is what holds the type off the
+          photographs, which is the argument (bible 1). */}
       <div
-        data-hhb-block="under"
+        data-alb-block="under"
         className={`absolute inset-x-0 z-10 text-center ${GUTTER[mode].x}`}
-        style={{ top: `calc(50% + ${geo.qr / 2 + geo.gapBottom}px)` }}
+        style={{ top: `calc(50% + ${geo.vent / 2 + geo.gapBottom}px)` }}
       >
-        <Caption className={`text-white/55 ${phone ? "" : "text-[13px]"}`}>
-          {caption}
-        </Caption>
-        {sentence}
-        {actions}
-      </div>
-
-      {/* THE BOARD'S OWN CONTROL, not part of the hero. The headline trade is
-          the one choice on this concept that changes the composition rather
-          than the styling, so it is a toggle on the stage and Will rules it
-          with both in view; the field re-solves for whichever step is showing,
-          because the quiet zone changes shape and the field is drawn from it.
-          It leaves with the board. Round three named it in words rather than in
-          the sheet's ("h1" meant nothing to anyone who had not read the file)
-          and stopped hiding it at 0.45 opacity: the one control on the stage
-          has to be findable without hunting for it. */}
-      <div
-        className={`hhb-lab${phone ? "hhb-lab-sm" : ""}`}
-        data-hhb-block="lab"
-      >
-        <span className="hhb-lab-label">Headline</span>
-        {(["lg", "xl"] as Step[]).map((s) => (
-          <button
-            key={s}
-            type="button"
-            aria-pressed={step === s}
-            aria-label={`Headline on the ladder's ${s} step`}
-            onClick={() => {
-              lastStep = s;
-              setStep(s);
-            }}
-            className="hhb-lab-btn"
+        <p
+          data-alb-block="sub"
+          className="mx-auto text-lg text-balance text-muted-foreground"
+          style={{ maxWidth: geo.subMax }}
+        >
+          {page.heroSub}
+        </p>
+        {/* mt-8 is PageHero's gap-6 plus the mt-2 a control row takes, which is
+            the offset every feature hero ships. The buttons are the shipped
+            hero's, verbatim, with no cinema-only tinting: the cinema ground
+            already resolves the outline variant correctly, and a board that
+            re-tints them stops telling the truth about the page. */}
+        <div
+          data-alb-block="actions"
+          className="mt-8 flex flex-wrap items-center justify-center gap-3"
+        >
+          <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="h-11 px-6 text-base"
           >
-            {s}
-          </button>
-        ))}
+            <Link href="/how-it-works">See how it works</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
-
-export const burst: Concept = {
-  id: "burst",
-  n: 3,
-  name: "The burst",
-  rationale:
-    "Every frame on screen is born inside the code and slides out from under it. The album radiates around the whole compass and forward out of the screen, so a near frame grows until it wipes past the edge while a far one stays small and slides out, and the causality reads at a glance. The type holds a quiet zone that no frame ever enters, so nothing is dimmed and no word sits over a photograph. A radial has no orientation, so the phone is the same composition rather than a compressed strip: the canvas decides which lanes are deep, a direction it has no room for is never launched, and the field is balanced by the photograph a reader actually sees rather than by the directions thrown. Measured on the running loop, sampling the photograph actually on the canvas, the album covers 0.29 of the 1440 canvas and 0.23 of the 375 one, and the settled field 0.51 and 0.36.",
-  eyebrow:
-    "The code itself, at the centre of the burst. Its caption is the only label, so the eyebrow is the object.",
-  proposed: {
-    h1: "It all comes out of this code.",
-    subhead:
-      "Every guest shoots from a different spot, and all of it reaches you at full size. No app, no account.",
-    secondary: "Open the live album",
-  },
-  departures: [
-    "Rule on, the headline step, and it is the one choice that changes the composition: lg or xl. The toggle is on the stage, bottom right, and the field re-solves for whichever is showing. lg (text-7xl at 1440, text-4xl at 375) leaves the burst the canvas and keeps a corridor wide enough for a frame to leave the code through; xl (text-8xl, text-5xl) is the louder promise and costs the field about 80 px of quiet zone in every direction. Both are cinema steps of the one site ladder (bible 5).",
-    "Rule on, the copy: proposed or ruled. Proposed is 'It all comes out of this code.' over 'Every guest shoots from a different spot, and all of it reaches you at full size. No app, no account.' Both halves of the trade, because this is the easiest thing on the board to rule in the wrong word. WHAT IT BUYS: the code stays in the headline, which is the standing ruling here (the code as the basis of the feature is the distinct thing; a generic album is the weak one), the line says the one thing only this concept shows, that every frame on screen came out of that object, and it collides with nothing the other three propose. WHAT IT COSTS: it names the mechanism where round two's line named the outcome, so the album now arrives in the subhead instead of the headline, and 'It all' is a pronoun the picture has to answer, which makes the line the burst's rather than the site's. WHY IT MOVED: round two proposed 'One code, and the album fills.' over the subhead the river had published half an hour earlier, and the river, now integrated on launch-prep, opens 'One code, and the whole event lands here.' over that same sentence, so the duplicate was this concept's to fix. Round three's first answer, 'Your album, from every angle.', gave up the wrong half by giving up the code. Round two's phrasing can come back on one word, and it comes back into that collision: the line is the river's own opening, shortened, and both concepts would again be arguing one sentence. The ruled thesis stays the default under the board's copy toggle (bible 21).",
-    "Rule on, the lockup: centred or left. Precedent, not law. The code owns the axis here, so the type is centred on it. The first thing to overrule if the home hero should stay left.",
-    "Departure, bible 10 (the hero is unlit by the standing ruling): the frames carry a drop shadow, the light spec's LIFT family (docs/specs/light.md) at four times the offsets, because LIFT separates two cards a pixel apart and these are separated by a depth axis measured in hundreds of units. It is a shadow, never a lamp: no light source is added, no photograph is darkened, and there is no scrim anywhere on this concept.",
-    "Departure, bible 13, decorative layer only: the frames' pre-burst state sits inside the reduced-motion block, so with JavaScript off and motion allowed the field rests around the code instead of leaving it. The h1, the code, the caption, the sentence and the actions are plain markup, never gated, and reduced motion gets the whole album settled around the code.",
-  ],
-  assets: [
-    "24 event photographs as 512 x 512 squares · one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals, framed tight enough to read at 90 px (a face, two hands, a glass, a sparkler, a first dance), never a wide room shot · replaces the 12 landscape stand-ins the field cycles (FRAMES in shared.tsx). Already asked for as docs/ASSETS.md row 2; the same 24 serve this concept.",
-    "11 more of the same, as 4:5 portraits · 512 x 640, same grade, and they may be recrops of the 24 rather than new photography · one for every 4:5 slot the desktop field lays out (11 of 34; the phone lays out 10 of 32), so with row 2's 24 squares no frame is on screen twice · replaces the square box on the third of the field that lays out 4:5 at every canvas and every headline step (measured: 32, 32, 31, 31 percent of the four pools; the taller box goes to every third slot whose own direction was accepted flying one, and to the next slot that was wherever one was not, so the share is the same third on a canvas that cannot fly a 4:5 in every direction). Guests shoot vertical, so a field of nothing but squares reads as a deck of cards rather than as an album.",
-    "Nothing else · the QR is the real demo event's, live from NEXT_PUBLIC_DEMO_QR_TOKEN · no plate art, no lamp and no video in this concept.",
-  ],
-  render: (p) => <Burst {...p} />,
-};
