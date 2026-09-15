@@ -86,12 +86,16 @@ export const SHADOW_FAMILY: LightCandidate = {
     0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
   --shadow-layer:
     0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
-  /* NO BRIDGE HERE, ON PURPOSE. globals.css zeroes --shadow-float on both dark
-     grounds by contract (ui/sheet.tsx states it at its call site) and 26 files
-     read the token. Aliasing it to lift here would hand a shadow to every one
-     of them in dark, flat surfaces included, which is far wider than what this
-     proposal claims and wider than the doctrine sanctions. The surfaces that
-     do take a shadow in dark are named one by one below. */
+  /* THE ZERO IS RE-STATED, NOT INHERITED, AND IT IS LOAD-BEARING. globals.css
+     zeroes --shadow-float on both dark grounds by contract (ui/sheet.tsx names
+     it at its call site) and 26 files read the token; aliasing it to lift in
+     dark would hand a shadow to every one of them, flat surfaces included,
+     which is wider than this proposal claims and wider than the doctrine
+     sanctions. It has to be written HERE because :root and .dark are the same
+     element at the same specificity, so the alias three rules up would
+     otherwise win on source order and reach the dark root anyway. The
+     surfaces that do take a shadow in dark are named one by one below. */
+  --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
 }
 
 /* The layers that detach take the larger size. --tw-shadow, never box-shadow:
