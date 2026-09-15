@@ -7,7 +7,14 @@ import { LAMP_SET } from "@/components/dev/lamp-set";
 import { Glow } from "@/components/shared/glow";
 import { cn } from "@/lib/utils";
 
-import { AURORA_CADENCE, Cell, Part, Photo, Proposal } from "./shared";
+import {
+  AURORA_CADENCE,
+  CadenceKnob,
+  Cell,
+  Part,
+  Photo,
+  Proposal,
+} from "./shared";
 
 /**
  * PART C: THE CADENCE. PART D: THE PUBLISH BEAT'S VIOLET.
@@ -128,6 +135,26 @@ export function CadencePart({ mode }: { mode: Mode }) {
         so --spill-cadence stays one token and gains a sibling rather than a
         second opinion.
       </Proposal>
+
+      {/* ★ THE STRIPS ABOVE CANNOT SETTLE THIS RULING AND ARE NOT MEANT TO.
+          Three seams in a column show that 8 and 11 are different; they cannot
+          show what three lamps a viewport apart feel like on a page you are
+          scrolling, which is the actual question ("the whole page at 11s
+          against the whole page at 8s", footer-glow.tsx). So the ruling gets
+          the same instrument the tuner's slider has: write the token, leave the
+          lab, walk the home page. */}
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <CadenceKnob seconds={8} />
+          <CadenceKnob seconds={11} />
+          <span className="text-[11px] text-muted-foreground">
+            Writes --spill-cadence on the site, the same override the tuner
+            panel{"'"}s slider writes. Then walk the home page: the footer seam,
+            the film strip and the reel pool are a viewport apart, and that is
+            the comparison the strips above cannot make.
+          </span>
+        </div>
+      </div>
     </Part>
   );
 }

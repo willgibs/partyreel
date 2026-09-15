@@ -1,0 +1,265 @@
+/**
+ * THE LIGHT BOARD'S CANDIDATES AS PASTES (round two, 2026-09-14).
+ *
+ * Round one argued the doctrine on a stage. This file is the other half: each
+ * candidate as the EXACT CSS block the ruling would land, so the same text the
+ * board prints is the text the board hands the whole site through
+ * setCandidateCss. One source, so a value can never drift between the stage,
+ * the paste and the walk.
+ *
+ * ── THE TWO RULES THESE BLOCKS OBEY ──
+ *
+ * 1. REAL SELECTORS ONLY. `:root, .surface-paper` and `.dark, .surface-ink`
+ *    are the ground scopes globals.css itself declares in that order (an ink
+ *    leaf inside a paper chapter has to win, which is why the ink selector
+ *    comes second here too). Everything else keys off a primitive's own
+ *    shipped hook: `[data-slot="dialog-content"]`, `[data-media-tile]`,
+ *    `.bg-gallery`. Nothing here is a stage-local class.
+ *
+ * 2. ★ NEVER OVERWRITE box-shadow WHERE A RING LIVES. Half the surfaces in
+ *    this app carry `ring-1 ring-foreground/5`, and Tailwind composes the ring
+ *    and the shadow into ONE box-shadow declaration through --tw-ring-shadow
+ *    and --tw-shadow. A block that writes `box-shadow:` on a ringed element
+ *    silently deletes its ring, which on a walk reads as "the candidate
+ *    removed the hairlines". So a shadow candidate writes --tw-shadow (the
+ *    slot Tailwind already reserved for it) and the lit face, which has no
+ *    slot of its own, re-states var(--tw-ring-shadow) as its first layer.
+ *
+ * A candidate block is unlayered CSS rendered after every stylesheet, and an
+ * unlayered declaration outranks every @layer, so none of this needs
+ * !important to beat a utility.
+ */
+
+export type LightCandidate = {
+  /** The label the tuner panel shows while it is applied. */
+  label: string;
+  /** The one line that says what walking with it on should show. */
+  what: string;
+  /** Where to walk with it on. */
+  pages: string;
+  css: string;
+};
+
+/* ────────────────────────────  THE SHADOW FAMILY  ───────────────────────── */
+
+/**
+ * ★ LIFT ON A LIGHT GROUND IS TODAY'S SHIPPED VALUE, TO THE BYTE. Round one's
+ * board proposed 0.10 / 0.14 on light, which quietly re-tuned every paper card
+ * on the site for no reason anyone had asked for. The finding was never that
+ * the light values are wrong: it is that DARK has no ramp at all, because 6
+ * percent of black over oklch(0.11) is arithmetically invisible. So the
+ * proposal is purely additive. Paper does not move. Dark gains the family it
+ * always should have had, and the family gains its second size.
+ */
+export const SHADOW_FAMILY: LightCandidate = {
+  label: "Light: the shadow family (lift + float)",
+  what: "Every menu, dialog, sheet and toast in the dark app gains a shadow; paper does not move a pixel.",
+  pages: "/dashboard (a menu, the event cards), /pricing, /help, an event page",
+  css: `/* THE SHADOW FAMILY (light board, part A).
+   One geometry, two sizes, one alpha ramp per ground.
+   LIFT separates two objects of the same lightness that overlap.
+   FLOAT detaches a layer from content that keeps living behind it.
+   A flat surface takes neither, in either mode. */
+
+:root,
+.surface-paper {
+  /* Today's --shadow-float, unchanged: paper is already tuned. */
+  --shadow-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
+  /* The same geometry at double the offsets. */
+  --shadow-layer:
+    0 4px 8px -2px oklch(0 0 0 / 0.09), 0 8px 16px -4px oklch(0 0 0 / 0.13);
+  --shadow-float: var(--shadow-lift);
+}
+
+/* The ink leaf second, so it wins inside a paper chapter (globals.css orders
+   these the same way, and for the same reason). */
+.dark,
+.surface-ink {
+  --shadow-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
+  --shadow-layer:
+    0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
+  --shadow-float: var(--shadow-lift);
+}
+
+/* The layers that detach take the larger size. --tw-shadow, never box-shadow:
+   every one of these also carries ring-1, and the two share one declaration. */
+[data-slot="dialog-content"],
+[data-slot="sheet-content"],
+[data-slot="popover-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"],
+[data-slot="select-content"],
+[data-slot="tooltip-content"],
+[data-slot="navigation-menu-viewport"] {
+  --tw-shadow: var(--shadow-layer);
+}
+
+/* Sonner owns its own sheet and no ring, so the toast takes the property. */
+[data-sonner-toast] {
+  box-shadow: var(--shadow-layer);
+}`,
+};
+
+/* ──────────────────────────────  THE LIT FACE  ──────────────────────────── */
+
+/**
+ * THE LIT FACE ON THE THREE SURFACES THE DOCTRINE NAMES.
+ *
+ * ★ THE FACE'S OWN GROUND DECIDES, NOT THE PAGE'S. A media tile sits on the
+ * page, so on paper its lip moves to the bottom edge. `.bg-gallery` does not:
+ * the gallery canvas is the one surface declared identical in light and dark
+ * (globals.css, "media-first, theme-independent"), so it is a dark screen even
+ * on a paper page and it keeps the dark form on every ground. That distinction
+ * is the whole reason the cue is called material rather than elevation.
+ *
+ * The plate is reached through `:has` because it has no hook of its own: it is
+ * the card that holds a white printable face (the marketing QR plate and the
+ * /features/qr hero plate are both exactly that). The wiring round replaces
+ * all three selectors with one `data-lit` attribute.
+ */
+const LIT_DARK = `inset 0 0 0 1px color-mix(in oklab, var(--foreground) 9%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--foreground) 6%, transparent)`;
+const LIT_PAPER = `inset 0 0 0 1px color-mix(in oklab, var(--foreground) 8%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--foreground) 7%, transparent)`;
+
+export const LIT_FACE: LightCandidate = {
+  label: "Light: the lit face (media frames, screens, plates)",
+  what: "Every media tile, player and QR plate gains a hairline and a lip. Nothing else on the page changes.",
+  pages: "/ (the film strip), /features/qr, /features/album, an event page, the demo guest page",
+  css: `/* THE LIT FACE (light board, part A).
+   Not elevation: material. An inset hairline and a lip on a face that is
+   catching light. Three surfaces: a media frame, a screen, a plate.
+   var(--tw-ring-shadow) is re-stated first so the hairline ring survives. */
+
+[data-media-tile],
+.bg-gallery,
+.bg-card:has(.bg-white) {
+  box-shadow:
+    var(--tw-ring-shadow, 0 0 #0000),
+    ${LIT_DARK};
+}
+
+/* On paper the lip reads off the BOTTOM edge: lit from above still, read off
+   the far edge instead of the near one. .bg-gallery is deliberately absent:
+   it is a dark screen on every ground, so it keeps the dark form. */
+.surface-paper [data-media-tile],
+.surface-paper .bg-card:has(.bg-white) {
+  box-shadow:
+    var(--tw-ring-shadow, 0 0 #0000),
+    ${LIT_PAPER};
+}`,
+};
+
+/* ────────────────────────────────  THE AURORA  ──────────────────────────── */
+
+/**
+ * THE AURORA AS A PASTE. The board proves the placement on a stage; the paste
+ * carries the two halves a ruling actually decides, the REGISTER and the
+ * CLOCK, because the placement is markup (a chapter mounts a lamp at each of
+ * its boundaries) and markup is the wiring round's.
+ *
+ * ★ IT REACHES EXACTLY THE RIGHT LAMPS, BY ACCIDENT OF THE ENGINE. An inline
+ * style beats any sheet, so this block reaches only lamps that do NOT tune
+ * themselves inline. The footer seam passes one var (its cadence) and takes
+ * the rest from the engine, so it moves; the QR hero's bloom hard-codes its
+ * base and reach inline, so it does not. That split is the doctrine's own:
+ * FILL takes the field's register, MARK keeps its own. The clock rides
+ * --spill-cadence rather than --glw-dur for the same reason: the seam passes
+ * var(--spill-cadence) inline, so the token is the only handle that reaches it.
+ */
+export const AURORA_REGISTER: LightCandidate = {
+  label: "Light: the aurora register",
+  what: "Every ambient lamp drops to the field's register and clock. The page should read as a room with a temperature, not as things glowing.",
+  pages: "/ (the footer seam, the film strip), /pricing, /help, /contact",
+  css: `/* THE AURORA'S REGISTER (light board, part B).
+   A low base with a band near zero, and a clock several times slower than a
+   lamp's, because a field the size of a chapter moving at a lamp's clock
+   reads as a screensaver. Reaches the ambient lamps and leaves the moments
+   alone: a bloom tunes itself inline and an inline style wins. */
+
+:root {
+  --spill-cadence: 33s;
+}
+
+[data-glw] {
+  --glw-base: 0.3;
+  --glw-strength: 0.13;
+  --glw-blur: 38px;
+}
+
+/* Paper needs MORE opacity for the same presence, not less: a tint at l 0.88
+   against a near-white page has far less contrast with its ground than the
+   same tint has against oklch(0.11). */
+.surface-paper [data-glw] {
+  --glw-base: 0.52;
+  --glw-strength: 0.24;
+}`,
+};
+
+/* ───────────────────────────────  THE PAPER FIVE  ───────────────────────── */
+
+/**
+ * THE HAND-TUNED PAPER FIVE.
+ *
+ * globals.css declares --lamp-1..5 once, at the dark register (l 0.72), and
+ * NOTHING overrides them on paper: a media-less lamp on a paper chapter is
+ * lighting a near-white page with a colour picked for a near-black room, and
+ * that is the "dirty rather than lit" failure the sampled paper register was
+ * invented to fix (sampled-palette.ts, SPILL_REGISTER.paper). The sampled path
+ * fixed it for lamps WITH media; the house five never got the same treatment,
+ * and design-system.md says so itself ("a hand-tuned paper five is still an
+ * open design task"). This is that task.
+ *
+ * Why hand-tuned rather than one flat l 0.88 / c 0.08 row: the failure is per
+ * hue and it is predictable. 85 amber goes dirty against white long before the
+ * others, so it wants more lightness and less chroma; 155 green is muddier
+ * still; 255 blue and 305 violet stay clean and can carry the chroma that
+ * makes the light read as light at all. The five HUES are untouched, exactly,
+ * which is the part that is the identity.
+ */
+export const PAPER_FIVE_VALUES = [
+  "oklch(0.88 0.085 25)",
+  "oklch(0.905 0.07 85)",
+  "oklch(0.895 0.065 155)",
+  "oklch(0.87 0.085 255)",
+  "oklch(0.87 0.09 305)",
+] as const;
+
+/** The flat row the proposal replaces: SPILL_REGISTER.paper applied to the
+ *  five house hues, which is what the sampled path would produce for them. */
+export const PAPER_FLAT_VALUES = [
+  "oklch(0.88 0.08 25)",
+  "oklch(0.88 0.08 85)",
+  "oklch(0.88 0.08 155)",
+  "oklch(0.88 0.08 255)",
+  "oklch(0.88 0.08 305)",
+] as const;
+
+export const PAPER_FIVE: LightCandidate = {
+  label: "Light: the paper five",
+  what: "Every lamp on a paper chapter is re-lit for a near-white page. The clearest look is the footer seam where the paper chapter meets the ink slab.",
+  pages: "/ (the paper chapter: the album, curation, privacy), /pricing, /help, /contact",
+  css: `/* THE PAPER FIVE (light board, part B).
+   globals.css declares the lamp set once, at the dark register, and nothing
+   re-declares it on paper: a house lamp on a near-white page is wearing a
+   colour chosen for a near-black room. Same five hues, hand-tuned per hue,
+   because the failure is per hue: 85 and 155 go dirty against white long
+   before 255 and 305 do. */
+
+.surface-paper {
+  --lamp-1: ${PAPER_FIVE_VALUES[0]};
+  --lamp-2: ${PAPER_FIVE_VALUES[1]};
+  --lamp-3: ${PAPER_FIVE_VALUES[2]};
+  --lamp-4: ${PAPER_FIVE_VALUES[3]};
+  --lamp-5: ${PAPER_FIVE_VALUES[4]};
+}`,
+};
+
+export const LIGHT_CANDIDATES = [
+  SHADOW_FAMILY,
+  LIT_FACE,
+  AURORA_REGISTER,
+  PAPER_FIVE,
+] as const;

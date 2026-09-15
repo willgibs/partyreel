@@ -1,11 +1,26 @@
 "use client";
 
 import Image from "next/image";
+import { useState, useSyncExternalStore } from "react";
 
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
-import type { Mode } from "@/components/dev/board";
+import {
+  clearCandidate,
+  setCandidateCss,
+  useTunerCandidate,
+  type Mode,
+} from "@/components/dev/board";
+import { MARKETING_TUNER_CONTROLS } from "@/components/dev/motion-tuner-config";
+import {
+  getTunerServerSnapshot,
+  getTunerSnapshot,
+  setTunerValue,
+  subscribeTuner,
+} from "@/components/dev/tuner-store";
+
+import type { LightCandidate } from "./candidates";
 
 /**
  * THE LIGHT BOARD'S ATOMS (the review wave, 2026-09-14).
@@ -228,4 +243,158 @@ export const AURORA_CADENCE = "33s";
  *  width, not the stage's. */
 export function matrixCols(mode: Mode, desktop: number): number {
   return mode === "desktop" ? desktop : 2;
+}
+
+/* ───────────────────────  ROUND TWO: THE SITE CONTROLS  ─────────────────── */
+
+/**
+ * "APPLY TO THE SITE" (round two, 2026-09-14).
+ *
+ * A board proposes CSS; the shell can now hand that exact CSS to every page
+ * with a tuner island, so a candidate is judged on the real dashboard and the
+ * real pricing page rather than only on a stage. One block stands at a time,
+ * so this control is a RADIO across the board's candidates and not a checkbox
+ * on each: the store's newest block replaces the last, and showing four
+ * independent "Applied" states while only one is live would be a lie.
+ *
+ * The button reads the store rather than local state (useTunerCandidate), so
+ * clearing from the tuner panel, or applying a different board's block in
+ * another tab of the lab, is reflected here on the next render.
+ */
+export function ApplyToSite({
+  candidate,
+  className,
+}: {
+  candidate: LightCandidate;
+  className?: string;
+}) {
+  const applied = useTunerCandidate();
+  const on = applied?.label === candidate.label;
+  return (
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+      <button
+        type="button"
+        onClick={() =>
+          on ? clearCandidate() : setCandidateCss(candidate.label, candidate.css)
+        }
+        aria-pressed={on}
+        className={cn(
+          "h-8 rounded-[var(--radius-action-sm)] px-3 text-[12px] font-medium transition-[transform,background-color,color] duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none",
+          on
+            ? "bg-foreground text-background"
+            : "border border-border bg-card text-foreground hover:border-foreground/30",
+        )}
+      >
+        {on ? "Applied to the site" : "Apply to the site"}
+      </button>
+      {on ? (
+        <span className="text-[11px] text-muted-foreground">
+          Walk: {candidate.pages}. It persists until you clear it.
+        </span>
+      ) : (
+        <span className="text-[11px] text-muted-foreground">
+          {candidate.what}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** The board's own clear, so a walk can be ended without hunting for the tuner
+ *  panel. Renders nothing while no block stands. */
+export function AppliedBanner() {
+  const applied = useTunerCandidate();
+  if (!applied) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-foreground/25 bg-card px-3 py-2 text-[11px]">
+      <span className="font-medium text-foreground">
+        On the site: {applied.label}
+      </span>
+      <button
+        type="button"
+        onClick={clearCandidate}
+        className="h-7 rounded-[var(--radius-action-sm)] border border-border px-2.5 text-[11px] font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none"
+      >
+        Clear
+      </button>
+    </div>
+  );
+}
+
+/**
+ * A KNOB ON THE SITE. The cadence ruling is a token, not a block, and the
+ * tuner already owns it: this writes the same override the panel's slider
+ * writes, so "8s on the site" is one tap and then a walk.
+ *
+ * ★ THE CONTROL OBJECT IS THE KEY, NOT THE STRING. setTunerValue keys off
+ * control.cssVar and compares against control.default to decide whether to
+ * store an override or drop one, so passing a hand-made object with the wrong
+ * default would leave a phantom override that Reset never clears.
+ */
+const CADENCE = MARKETING_TUNER_CONTROLS.find(
+  (c) => c.cssVar === "--spill-cadence",
+);
+
+/** The tuner's live overrides. motion-tuner.tsx keeps its own copy of this
+ *  subscription; the store is the shared root, so a board reads it the same
+ *  way rather than reaching into the panel. */
+function useTunerOverrides() {
+  return useSyncExternalStore(
+    subscribeTuner,
+    getTunerSnapshot,
+    getTunerServerSnapshot,
+  );
+}
+
+export function CadenceKnob({ seconds }: { seconds: number }) {
+  const live = useTunerOverrides();
+  if (!CADENCE) return null;
+  const current = live[CADENCE.cssVar] ?? CADENCE.default;
+  const on = Number(current) === seconds;
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={() => setTunerValue(CADENCE, seconds)}
+      className={cn(
+        "h-8 rounded-[var(--radius-action-sm)] px-3 text-[12px] font-medium tabular-nums transition-[transform,background-color,color] duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none",
+        on
+          ? "bg-foreground text-background"
+          : "border border-border bg-card text-foreground hover:border-foreground/30",
+      )}
+    >
+      {seconds}s on the site
+    </button>
+  );
+}
+
+/** The ruling as a paste: the exact block, in the body face (there is no mono
+ *  face in the product), with the copy the Orchestrator would land. */
+export function Paste({ css, label }: { css: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-3">
+        <p className="text-[12px] font-medium">{label}</p>
+        <button
+          type="button"
+          onClick={() => {
+            void navigator.clipboard?.writeText(css).then(
+              () => {
+                setCopied(true);
+                window.setTimeout(() => setCopied(false), 1600);
+              },
+              () => setCopied(false),
+            );
+          }}
+          className="h-7 rounded-[var(--radius-action-sm)] border border-border px-2.5 text-[11px] font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none"
+        >
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <pre className="max-h-[28rem] overflow-auto rounded-lg border border-border bg-muted/40 p-4 font-sans text-[11px] leading-relaxed whitespace-pre tabular-nums">
+        {css}
+      </pre>
+    </div>
+  );
 }
