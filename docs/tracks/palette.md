@@ -986,7 +986,8 @@ body:has([data-mkt-skin="cinema"]) {
 ## Handoff (round 3)
 
 - Head: the tip of `lp/palette`, pushed. Every board byte is at **`54a2d3d`** (the fix pass after
-  the read-only review); the commit after it is this manifest. Board at `/design/c/palette?key=`.
+  the read-only review); the commits after it are this manifest's own, so no board byte differs
+  between `54a2d3d` and the tip. Board at `/design/c/palette?key=`.
   **The round-three board is the one whose candidate card is followed by a panel headed "What the
   letter already decides", and whose control bar reads "Put it on the real pages"; round two's had
   neither, and round two's ramp toggle had a fourth button, C. The FIX PASS on top of it is the one
