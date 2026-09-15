@@ -5,13 +5,21 @@ import { describe, expect, it } from "vitest";
 
 import {
   APP_BODY_PX,
+  ASK_404,
+  askOrdinal,
+  ASKS,
   candidateCss,
+  FIXES,
+  fixes,
   fluid,
   HOOKS,
   LADDERS,
   ladderById,
   LAW_ONLY,
+  moved,
+  NO_ISLAND,
   optics,
+  RECOMMENDED,
   RUNGS,
   STEPS,
   type Ladder,
@@ -19,6 +27,7 @@ import {
   type Surface,
   themeBlock,
   tokenTable,
+  WALK,
 } from "./ladders";
 
 /**
@@ -221,6 +230,10 @@ describe("the app's floor: no heading under the body it sits on", () => {
 });
 
 describe("C's app register, as round two rebuilt it", () => {
+  // Round three dropped the stage that showed the rejected 20 / 16 / 14 beside
+  // it and the ask that went with it: the floor below is the law now, so there
+  // was nothing left on that stage to rule on. This is what keeps the rebuild
+  // honest once the picture of it is gone.
   const c = ladderById("c");
   const today = ladderById("today");
 
@@ -351,7 +364,8 @@ describe("the bake", () => {
 describe("the hero board's hand-rolled ladder", () => {
   // The hero concepts resolve the xl step by hand (LADDER in
   // sandbox/home-hero/shared.tsx: text-8xl on desktop, text-5xl on a phone) and
-  // stage 4 copies those two class strings rather than importing across boards.
+  // the lockup stage copies those two class strings rather than importing
+  // across boards.
   // This is what keeps the copy honest: if today's hero step ever stops being
   // 48/96, the copied strings are wrong and this fails.
   it("is today's hero step at both ends", () => {
@@ -372,8 +386,8 @@ describe("the hero board's hand-rolled ladder", () => {
  * board.css on source order. Every stage depends on the opposite, because a
  * stage shows the ladder its TOGGLE selects, not the one that happens to be
  * applied. The failure is silent and it is the whole argument of a stage: with
- * the page step tied, stage 13's three app registers all collapsed onto the
- * applied ladder's one page size while their captions still read 24 / 20 / 20.
+ * the page step tied, the dashboard and the event page both collapsed onto the
+ * applied ladder's page size while the specimen above them still read today's.
  *
  * No reader can check this by eye. The page hook scores three attribute tokens
  * AND a type, which is exactly what a three-attribute chain ending in
@@ -495,7 +509,7 @@ describe("the board's sheet outranks any paste", () => {
     expect(specificity('[data-mkt] [data-inview="true"] .mkt-name')).toEqual([
       0, 3, 0,
     ]);
-    // The tie that cost stage 13 its argument, both halves of it.
+    // The tie an applied candidate won over the board's own stages, both halves.
     expect(specificity(HOOKS.page!.selector)).toEqual([0, 3, 1]);
     expect(
       specificity(
@@ -521,5 +535,133 @@ describe("the board's sheet outranks any paste", () => {
         outranks: cmp(specificity(rule), specificity(worst)) > 0,
       }).toEqual({ rule, beats: worst, outranks: true });
     }
+  });
+});
+
+/* ───────────────────────── Round three's laws ─────────────────────────── */
+
+describe("the board answers before it asks", () => {
+  it("recommends one of the candidates, and shows it first", () => {
+    expect(LADDERS.map((l) => l.id)).toContain(RECOMMENDED);
+    expect(RECOMMENDED).not.toBe("today");
+    expect(LADDERS[0].id).toBe(RECOMMENDED);
+    expect(LADDERS[LADDERS.length - 1].id).toBe("today");
+  });
+
+  it("asks four things, each with an answer and a way to overrule it", () => {
+    expect(ASKS).toHaveLength(4);
+    for (const ask of ASKS) {
+      expect(ask.ask.length).toBeGreaterThan(20);
+      // A one-word answer, or two where the phrase is the ruling itself.
+      expect(ask.answer.split(" ").length).toBeLessThanOrEqual(3);
+      expect(ask.because.length).toBeGreaterThan(40);
+      expect(ask.overrule.length).toBeGreaterThan(20);
+    }
+  });
+
+  // ★ Round three cut two asks and left "the fifth ask" inside the block Will
+  // copies, so this counts the position here, off ASKS, with its own word list:
+  // a cut, a reorder or a hand-typed ordinal in the paste fails it.
+  it("names the 404 ask by the position it actually holds, everywhere it is named", () => {
+    const words = ["first", "second", "third", "fourth", "fifth", "sixth"];
+    const i = ASKS.findIndex((a) => /404/.test(a.ask));
+    expect(i).toBeGreaterThanOrEqual(0);
+    const ordinal = words[i];
+    expect(askOrdinal(ASK_404)).toBe(ordinal);
+    for (const ladder of [...LADDERS, LAW_ONLY]) {
+      const css = candidateCss(ladder);
+      expect(css).toContain(`${ordinal} ask`);
+      for (const other of words.filter((w) => w !== ordinal)) {
+        expect(css).not.toContain(`${other} ask`);
+      }
+    }
+  });
+
+  it("answers both ladder asks with the ladder it recommends", () => {
+    const name = ladderById(RECOMMENDED).name;
+    const ladderAsks = ASKS.filter((a) =>
+      /^The (marketing|app) ladder/.test(a.ask),
+    );
+    expect(ladderAsks).toHaveLength(2);
+    for (const ask of ladderAsks) {
+      expect(name.startsWith(ask.answer)).toBe(true);
+    }
+  });
+});
+
+describe("what each ladder fixes, counted rather than claimed", () => {
+  it("has today fixing none of its own four faults", () => {
+    const today = fixes(ladderById("today"));
+    for (const fix of FIXES) expect(today[fix.id]).toBe(false);
+  });
+
+  it("has every candidate fixing the phone end, the leading and the tracking", () => {
+    for (const ladder of LADDERS.filter((l) => l.id !== "today")) {
+      const got = fixes(ladder);
+      expect(got.phone).toBe(true);
+      expect(got.leading).toBe(true);
+      expect(got.tracking).toBe(true);
+    }
+  });
+
+  it("gives the app's middle only to the ladders that carry the step", () => {
+    for (const ladder of LADDERS) {
+      expect(fixes(ladder).middle).toBe(Boolean(ladder.steps.subsection));
+    }
+  });
+
+  it("has the law alone fixing the optics and nothing else", () => {
+    const law = fixes(LAW_ONLY);
+    expect(law.leading).toBe(true);
+    expect(law.tracking).toBe(true);
+    expect(law.phone).toBe(false);
+    expect(law.middle).toBe(false);
+  });
+});
+
+describe("how much of the site a ladder moves at one canvas", () => {
+  // Round three's cold walk: at 1440 A keeps every size the site ships, so
+  // toggling to it moves only the leading and the tracking. The board says so
+  // rather than letting a reviewer read a working control as a broken one.
+  it("counts A as moving no desktop size, and several on a phone", () => {
+    expect(moved(ladderById("a"), "desktop").moved).toBe(0);
+    expect(moved(ladderById("a"), "phone").moved).toBeGreaterThan(3);
+  });
+
+  it("counts today as moving nothing at either end", () => {
+    for (const end of ["phone", "desktop"] as const) {
+      const count = moved(ladderById("today"), end);
+      expect(count.moved).toBe(0);
+      expect(count.added).toBe(0);
+    }
+  });
+
+  it("counts the step a ladder adds separately from the ones it moves", () => {
+    for (const id of ["b", "c"] as const) {
+      expect(moved(ladderById(id), "desktop").added).toBe(1);
+    }
+  });
+});
+
+describe("the walk: only pages a paste can actually reach", () => {
+  // ★ Round three found two dead links in round two's walk. The candidate's
+  // <style> comes from a design island, and the island mounts in the lab
+  // layout, the two marketing layouts and the app layout only: /admin mounts
+  // none, and /nothing-here resolves to the ROOT app/not-found.tsx, outside
+  // both. Either one looked like a broken paste rather than a missing island.
+  it("lists no surface that carries no island", () => {
+    expect(WALK.some((p) => p.href.startsWith("/admin"))).toBe(false);
+    expect(WALK.some((p) => p.href.startsWith("/e/"))).toBe(false);
+    for (const page of WALK) expect(page.href.startsWith("/")).toBe(true);
+  });
+
+  it("walks a marketing 404 rather than an unrouted path", () => {
+    const notFound = WALK.find((p) => p.label.includes("404"));
+    expect(notFound?.href.startsWith("/events/")).toBe(true);
+  });
+
+  it("names every surface a paste cannot reach, with the reason", () => {
+    expect(NO_ISLAND.length).toBeGreaterThanOrEqual(3);
+    for (const gap of NO_ISLAND) expect(gap.why.length).toBeGreaterThan(30);
   });
 });
