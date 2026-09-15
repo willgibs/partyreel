@@ -6,6 +6,7 @@ import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
 import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { WidePage } from "@/app/(dev)/design/(shell)/_shell/wide";
+import { readTrackStates } from "@/app/(dev)/design/_data/tracks";
 import { boardSpec } from "@/app/(dev)/design/sandbox/registry";
 import {
   getRuling,
@@ -42,6 +43,9 @@ export default async function BoardPage({
   if (!ruling || !board || !entry) notFound();
 
   const spec = boardSpec(ruling.id);
+  // A board built by a track links its manifest; a board that predates the
+  // manifests (the two legacy marketing boards, the glow pair) has none.
+  const tracks = readTrackStates();
   const i = SANDBOX.findIndex((r) => r.id === ruling.id);
   const prev = SANDBOX[i - 1];
   const next = SANDBOX[i + 1];
@@ -86,11 +90,15 @@ export default async function BoardPage({
             [
               "Track",
               <span key="tracks" className="inline-flex flex-wrap gap-x-2">
-                {(board.tracks ?? [ruling.id]).map((t) => (
-                  <Ref key={t} to={{ kind: "track", name: t }} quiet>
-                    {t}
-                  </Ref>
-                ))}
+                {(board.tracks ?? [ruling.id]).map((t) =>
+                  tracks.has(t) ? (
+                    <Ref key={t} to={{ kind: "track", name: t }} quiet>
+                      {t}
+                    </Ref>
+                  ) : (
+                    <span key={t}>no manifest (a standing board)</span>
+                  ),
+                )}
               </span>,
             ],
           ]}

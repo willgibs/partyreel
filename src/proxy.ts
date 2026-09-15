@@ -12,9 +12,31 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { isAdminHost } from "@/lib/auth/admin-host";
+import { designGateOpen } from "@/lib/design-gate/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
+  // The design lab's gate, run before any lab layout renders (the Library x
+  // Lab round, 2026-09-15). The lab's shell layout builds its nav server-side
+  // and a layout cannot read searchParams, so the page-level notFound() came
+  // too late: a keyless production request still streamed the layout's props
+  // under a 200. A refused request is rewritten to a path no route serves,
+  // which renders the root not-found with a real 404, the same page a missing
+  // URL gets; the pages still call requireDesignKey as the second line. Not
+  // the security boundary for anything else (see the header).
+  const { pathname } = request.nextUrl;
+  if (pathname === "/design" || pathname.startsWith("/design/")) {
+    const key = request.nextUrl.searchParams.get("key");
+    if (!designGateOpen(key)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/design-gate/closed";
+      url.search = "";
+      return NextResponse.rewrite(url, { status: 404 });
+    }
+    // The shell layout keys every link with it (a layout cannot read
+    // searchParams; the request header is how the key reaches it).
+    request.headers.set("x-design-key", key ?? "");
+  }
   // On the admin subdomain, send the bare root to the portal. The portal's
   // canonical path stays /admin on EVERY host (dev included) — the admin layout
   // host-guards + auth-gates it, and the apex 404s /admin — so this is just a
