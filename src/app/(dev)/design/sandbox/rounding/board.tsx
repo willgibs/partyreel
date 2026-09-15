@@ -32,6 +32,7 @@ import {
   setCandidateCss,
   useTunerCandidate,
 } from "@/components/dev/candidate-style";
+import { MotionTuner } from "@/components/dev/motion-tuner";
 import {
   ROUNDING_TUNER_CONTROLS,
   type TunerControl,
@@ -1245,6 +1246,13 @@ export function RoundingBoard() {
           }
         }}
       />
+
+      {/* The board's own tuner panel: the "Tuner" surface candidate IS this
+          panel, so the board mounts it rather than borrowing the lab's. It is
+          fixed to the corner and can cover the evidence beside it; until the
+          panel sets --lab-panel-w on <html> (asked for in the track's Handoff)
+          usePanelAwareWidth above measures it and holds the wide parts clear. */}
+      <MotionTuner controls={ROUNDING_TUNER_CONTROLS} />
     </div>
   );
 }

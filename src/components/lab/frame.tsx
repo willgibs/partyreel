@@ -77,7 +77,8 @@ const SHEET_ID = "lab-candidate";
 
 /* ── The scroll lock ───────────────────────────────────────────────────── */
 
-type Register = (id: string, win: Window | null) => void;
+/** Returns whether the window was joined; false means it is off-origin. */
+type Register = (id: string, win: Window | null) => boolean;
 
 /**
  * Frames of the same page, scrolled together, is the whole point of a row of
@@ -98,6 +99,16 @@ type Register = (id: string, win: Window | null) => void;
  * every document a frame ever held, and the second page is then scrolled by
  * three ghosts. `on` is a ref for the same reason: the registration must not
  * change when the lock toggles.
+ *
+ * ★ A CROSS-ORIGIN `contentWindow` IS NOT NULL, IT IS A PROXY, and that is the
+ * one that crashed a board. Reading `frame.contentWindow` off an off-origin
+ * frame succeeds and hands back a WindowProxy; the SecurityError is thrown
+ * later, on the first real property access, which here was `addEventListener`
+ * INSIDE this function, outside the caller's try. A reader clicking a link in a
+ * frame that left the origin took the whole board to its error boundary. So the
+ * join is guarded here, and whether it succeeded is the honest reachability
+ * signal: `register` returns false when the window could not be joined, and the
+ * frame draws its banner instead of pretending it is still wearing a candidate.
  */
 export function useFrameLock(enabled = true): Register {
   const wins = useRef<Map<string, { win: Window; handler: () => void }>>(
@@ -119,7 +130,7 @@ export function useFrameLock(enabled = true): Register {
       }
       wins.current.delete(id);
     }
-    if (!win) return;
+    if (!win) return false;
     const handler = () => {
       if (!on.current || echo.current) return;
       echo.current = true;
@@ -135,8 +146,15 @@ export function useFrameLock(enabled = true): Register {
         echo.current = false;
       });
     };
+    // The guarded join, which is also the reachability test: any property
+    // access on an off-origin WindowProxy throws, and this is the first one.
+    try {
+      win.addEventListener("scroll", handler, { passive: true });
+    } catch {
+      return false;
+    }
     wins.current.set(id, { win, handler });
-    win.addEventListener("scroll", handler, { passive: true });
+    return true;
   }, []);
 }
 
@@ -282,24 +300,39 @@ export function Frame({
     };
     const frame = requestAnimationFrame(run);
     const timer = window.setTimeout(run, settle);
+    // ★ AND IT KEEPS CHECKING, because the way a frame really goes unreachable
+    // is a reader clicking a link inside it that leaves the origin. That is a
+    // navigation this component never hears about: the load event fires on the
+    // element, but only a re-render would re-run the check, and nothing
+    // re-renders. Without this poll the frame keeps showing the last skinned
+    // page under a caption naming a candidate it is no longer wearing, which is
+    // the exact lie landmine 5 exists to prevent. Two seconds is cheap: it is
+    // one try/catch property read.
+    const watch = window.setInterval(run, 2000);
     return () => {
       alive = false;
       cancelAnimationFrame(frame);
       window.clearTimeout(timer);
+      window.clearInterval(watch);
     };
   }, [inject, loads, settle, ready]);
 
-  // Landmine 3.
+  // Landmine 3, and the cross-origin proxy with it: `contentWindow` hands back
+  // a WindowProxy rather than null for an off-origin frame, so the join is what
+  // reports reachability and a refused join draws the banner.
   useEffect(() => {
     if (!ready) return;
     let win: Window | null = null;
     try {
       win = ref.current?.contentWindow ?? null;
     } catch {
-      win = null; // A frame the reader navigated off-origin.
+      win = null;
     }
-    register?.(id, win);
-    return () => register?.(id, null);
+    const joined = register?.(id, win);
+    if (win && joined === false) setReach("blocked");
+    return () => {
+      register?.(id, null);
+    };
   }, [id, register, loads, ready]);
 
   // Landmine 4: knobs travel as an event, so the document is never reloaded.

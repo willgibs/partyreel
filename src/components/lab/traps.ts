@@ -71,6 +71,16 @@ export const TRAPS: readonly Trap[] = [
     file: "src/components/lab/frame.tsx",
   },
   {
+    id: "cross-origin-proxy",
+    tried:
+      "Treat an unreachable frame's contentWindow as null, and guard the read rather than the use.",
+    breaks:
+      "A cross-origin `contentWindow` is NOT null: it is a WindowProxy, and the read succeeds. The SecurityError comes later, on the first real property access, which was `addEventListener` inside the scroll lock and outside the caller's try. A reader clicking a link in a frame that left the origin took the whole board to its error boundary, all four frames with it.",
+    instead:
+      "Guard the USE, not the read: the join itself is the reachability test, `register` returns false when it throws, and the frame draws its blocked banner while its siblings keep their candidate. The injection is polled too, because an off-origin navigation is a change nothing re-renders for.",
+    file: "src/components/lab/frame.tsx",
+  },
+  {
     id: "listener-identity",
     tried: "Register the scroll handler with a fresh closure on every render.",
     breaks:
