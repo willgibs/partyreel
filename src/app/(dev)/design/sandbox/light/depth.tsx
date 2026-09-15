@@ -5,7 +5,17 @@ import { useState } from "react";
 import { Stage, Toggle, type Ground, type Mode } from "@/components/dev/board";
 import { cn } from "@/lib/utils";
 
-import { Cell, Copy, matrixCols, Part, Photo, Proposal } from "./shared";
+import { LIT_FACE, SHADOW_FAMILY } from "./candidates";
+import {
+  ApplyToSite,
+  Cell,
+  Copy,
+  Labeled,
+  matrixCols,
+  Part,
+  Photo,
+  Proposal,
+} from "./shared";
 
 /**
  * PART A: DEPTH. What separates one object from another, per RELATIONSHIP.
@@ -191,6 +201,184 @@ const SUBJECTS: {
   },
 ];
 
+/* ── THE LIT FACE ON THE THREE SURFACES THE DOCTRINE NAMES ────────────────
+   The matrix above asks "does a cue separate two objects". This asks a
+   different question, and it is the one that decides whether the lit face is
+   elevation at all: put it on a face that is CATCHING light and it stops
+   competing with the shadow, because it is not answering the same question.
+
+   ★ THE CLASS STRINGS ARE THE PRODUCTION ONES, COPIED. A media tile is
+   [data-media-tile] at --radius-tile (masonry.tsx); a screen is
+   `rounded-xl bg-gallery` (reel-frame.tsx's player area, the one surface
+   globals.css declares identical in light and dark); a plate is
+   `rounded-2xl border bg-card ring-1 ring-foreground/5` around a white face
+   (live-qr.tsx, qr-hero.tsx). They are rebuilt here rather than imported so
+   every specimen on this board carries its cue the same way, through one
+   data attribute on one box. The paste under this stage is what puts the cue
+   on the REAL components. */
+
+function FaceMedia({ cue, small }: { cue: Cue; small: boolean }) {
+  const p = cueProps(cue, "ring-1 ring-foreground/10", "lift");
+  return (
+    <Photo
+      id="reception-hall"
+      sizes="200px"
+      cue={p.cue}
+      className={p.ring}
+      style={{ width: small ? 132 : 188, height: small ? 88 : 125 }}
+    />
+  );
+}
+
+function FaceScreen({ cue, small }: { cue: Cue; small: boolean }) {
+  const p = cueProps(cue, "ring-1 ring-foreground/10", "lift");
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "relative overflow-hidden rounded-xl bg-gallery",
+        p.ring,
+      )}
+      style={{ width: small ? 132 : 188, height: small ? 74 : 106 }}
+      data-lgt-cue={p.cue}
+    >
+      <div className="absolute inset-0 grid place-items-center">
+        <span className="flex size-8 items-center justify-center rounded-full bg-white/90">
+          <span
+            aria-hidden
+            className="ml-0.5 border-y-[5px] border-l-[8px] border-y-transparent border-l-black/80"
+          />
+        </span>
+      </div>
+      <div className="absolute inset-x-3 bottom-2.5 h-1 rounded-full bg-white/25">
+        <div className="h-full w-1/3 rounded-full bg-gallery-foreground/90" />
+      </div>
+    </div>
+  );
+}
+
+/** The plate's white face, deterministic so it never drifts between renders. */
+const PLATE_CELLS = Array.from({ length: 81 }, (_, i) => {
+  const x = i % 9;
+  const y = Math.floor(i / 9);
+  const finder = (x < 3 && y < 3) || (x > 5 && y < 3) || (x < 3 && y > 5);
+  return finder ? (x % 2 === 1 && y % 2 === 1 ? 0 : 1) : (x * 7 + y * 13) % 3 === 0 ? 1 : 0;
+});
+
+function FacePlate({ cue, small }: { cue: Cue; small: boolean }) {
+  const p = cueProps(cue, "ring-1 ring-foreground/5", "lift");
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "flex flex-col items-center gap-2 rounded-2xl border border-border bg-card",
+        small ? "p-3" : "p-4",
+        p.ring,
+      )}
+      data-lgt-cue={p.cue}
+    >
+      <div className={cn("rounded-lg bg-white", small ? "p-2" : "p-2.5")}>
+        <div
+          className="grid gap-px"
+          style={{
+            gridTemplateColumns: "repeat(9, minmax(0, 1fr))",
+            width: small ? 72 : 92,
+          }}
+        >
+          {PLATE_CELLS.map((on, i) => (
+            <span
+              key={i}
+              className="aspect-square rounded-[1px]"
+              style={{ background: on ? "oklch(0.15 0 0)" : "transparent" }}
+            />
+          ))}
+        </div>
+      </div>
+      <span className="text-[10px] font-medium text-foreground">
+        Scan to join
+      </span>
+    </div>
+  );
+}
+
+const FACES: {
+  id: string;
+  title: string;
+  why: string;
+  render: (cue: Cue, small: boolean) => React.ReactNode;
+}[] = [
+  {
+    id: "media",
+    title: "A media frame",
+    why: "the photograph is the face",
+    render: (cue, small) => <FaceMedia cue={cue} small={small} />,
+  },
+  {
+    id: "screen",
+    title: "A screen",
+    why: "the player, lit from inside",
+    render: (cue, small) => <FaceScreen cue={cue} small={small} />,
+  },
+  {
+    id: "plate",
+    title: "A plate",
+    why: "the QR, a printed thing",
+    render: (cue, small) => <FacePlate cue={cue} small={small} />,
+  },
+];
+
+function LitFaceMatrix({ mode, ground }: { mode: Mode; ground: Ground }) {
+  const small = mode === "phone";
+  const cols = matrixCols(mode, 4);
+  return (
+    <Stage mode={mode} ground={ground} height={small ? 1180 : 780}>
+      <div
+        data-lgt-cues
+        className={cn("h-full", small ? "px-4 py-5" : "px-10 py-8")}
+      >
+        <div
+          className="grid gap-x-4 gap-y-6"
+          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+        >
+          {FACES.map((f) => (
+            <div key={f.id} className="contents">
+              <div
+                className={cn(
+                  "flex gap-2",
+                  small ? "flex-col gap-0.5" : "items-baseline",
+                )}
+                style={{ gridColumn: `span ${cols}` }}
+              >
+                <h3 className="text-[12px] font-semibold">{f.title}</h3>
+                <p className="text-[11px] text-muted-foreground">{f.why}</p>
+              </div>
+              {CUES.map((c) => (
+                <Cell
+                  key={c.id}
+                  name={c.label}
+                  className="min-h-0"
+                  proposed={
+                    c.id === "lit"
+                      ? "the face is catching light, so it is material"
+                      : undefined
+                  }
+                >
+                  <div
+                    className="flex w-full items-center justify-center"
+                    style={{ height: small ? 132 : 168 }}
+                  >
+                    {f.render(c.id, small)}
+                  </div>
+                </Cell>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </Stage>
+  );
+}
+
 export function DepthPart({ mode }: { mode: Mode }) {
   const [ground, setGround] = useState<Ground>("cinema");
   const small = mode === "phone";
@@ -285,11 +473,52 @@ export function DepthPart({ mode }: { mode: Mode }) {
         One shadow family, two sizes, one alpha ramp per ground. Lift separates
         objects of the same lightness that overlap; float detaches a layer from
         content that keeps living behind it; a flat surface takes neither, in
-        either mode. The lit face is not elevation at all: it describes the
-        material of a face that is catching light, so it belongs to media frames
-        and screens, and on paper it reads off the bottom edge rather than the
-        top.
+        either mode. On a light ground lift is what ships today, to the byte, so
+        paper does not move: the finding was only ever that dark has no ramp,
+        because 6 percent of black over a near black room is arithmetically
+        invisible.
       </Proposal>
+
+      <ApplyToSite candidate={SHADOW_FAMILY} />
+
+      <div className="max-w-2xl space-y-2 pt-6 text-xs leading-relaxed text-muted-foreground">
+        <h3 className="text-[13px] font-semibold text-foreground">
+          The lit face is not a fifth depth cue
+        </h3>
+        <p>
+          The matrix above asks whether a cue separates two objects. This asks
+          the question that decides what the lit face IS: put it on a face that
+          is catching light and it stops competing with the shadow, because it
+          is not answering the same question. A media frame, a screen and a
+          plate, each with the same four treatments, on the same two grounds.
+        </p>
+        <p>
+          Watch the screen column on paper. The gallery surface is the one
+          surface globals.css declares identical in light and dark, so it is a
+          dark screen on a near white page, and its lip stays on the top edge
+          while the tile beside it moves its lip to the bottom. The face{"'"}s
+          own ground decides, not the page{"'"}s, which is the whole reason the
+          cue is called material rather than elevation.
+        </p>
+      </div>
+
+      <Labeled
+        name="The three surfaces the doctrine names"
+        note="Same cues, same grounds. The lit face column is the proposal; the ring and the shadow are there so it can lose."
+      >
+        <LitFaceMatrix mode={mode} ground={ground} />
+      </Labeled>
+
+      <Proposal>
+        The lit face is material, not elevation. It belongs to a face that is
+        catching light: a media frame, a screen, a plate. On paper the lip reads
+        off the bottom edge rather than the top, unless the face carries its own
+        ground, in which case the face wins. It never lands on a card, a panel
+        or a control, which is the line that keeps it from becoming a fifth
+        depth technique.
+      </Proposal>
+
+      <ApplyToSite candidate={LIT_FACE} />
     </Part>
   );
 }
