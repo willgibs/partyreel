@@ -1,4 +1,155 @@
-/* THE INFLOW (variation 3 of the home hero, round four, 2026-09-15): the
-   album streaming INTO the code. Keyframes and classes under `hhi-` only
-   (keyframe-uniqueness.test.ts reads every sheet under the lab). The
-   hero-inflow track owns this sheet; the stub declares nothing. */
+/* THE INFLOW (variation 3 of the home hero, round four, 2026-09-15): the album
+   streaming INTO the code. Classes and keyframes under `hhi-` only, because
+   keyframes are document-global and the last definition wins
+   (src/app/keyframe-uniqueness.test.ts reads every sheet under the lab).
+
+   THE REST STATE / ENTRANCE SPLIT, and why the inflow's version of it costs
+   almost nothing.
+
+   The source put its FINAL state (the corridor deployed) outside every query
+   and its entrance's FIRST FRAME (every card collapsed inside the code) inside
+   `no-preference`, so the burst could not flash. It had to accept one trade:
+   a reader with JavaScript off who has not asked for less motion sees the
+   corridor collapsed at the code, which is not a composition.
+
+   The inflow inherits the shape and loses the trade. Its final state, outside
+   every query, is the corridor at its steady spacing: full, flowing inward,
+   and exactly what a reduced-motion reader, a crawler and the server's own
+   HTML get. The state inside `no-preference` is the GATHER's first frame,
+   which is the same corridor one beat further out, because the gather is a lag
+   on the clock rather than a collapse. So the JavaScript-off reader with
+   motion allowed also sees a full corridor, about 1.75 s behind the steady
+   one. Both states are the album on screen; nothing is ever collapsed, and
+   nothing that carries meaning is gated by either.
+
+   Why the pre-state has to be CSS at all: an effect runs after the server's
+   paint, so the corridor would paint at its steady spacing, jump outward by a
+   beat, and only then gather. Put the gather's first frame in the same query
+   the motion is allowed in and the whole thing is one move. */
+
+.hhi-band {
+  /* The corridor dissolves into the dark at both edges rather than being
+     guillotined by the stage: a frame is arriving FROM the room, so it has to
+     come out of something. --hhi-fade is set per canvas by the concept. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 var(--hhi-fade),
+    #000 calc(100% - var(--hhi-fade)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 var(--hhi-fade),
+    #000 calc(100% - var(--hhi-fade)),
+    transparent 100%
+  );
+}
+
+/* The one perspective parent. perspective-origin defaults to its centre, which
+   IS the code, so the corridor's vanishing point and the destination agree. */
+.hhi-corridor {
+  position: absolute;
+  inset: 0;
+  perspective: var(--hhi-persp);
+}
+
+.hhi-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: var(--hhi-rest);
+  opacity: var(--hhi-rest-o);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* THE SPLASH. The rings live in the plate's own box and sit BEHIND it
+   (z-index: -1 inside the lockup's stacking context), so the code is never
+   overdrawn and the ripple reads as the surface reacting to something that
+   landed on it.
+
+   The glow on the ring is measured, not decorative, and it is the concept's
+   one flagged departure from the standing cinema-and-unlit ruling. A 1 px
+   hairline at the opacity a ripple wants is invisible the moment it crosses a
+   photograph, and the plate is surrounded by photographs by construction: at
+   0.32 opacity over the frames beside the code it read as nothing at all
+   (measured on the board). The 18 px spread at 0.22 below carries over both
+   the photographs and the dark, which is what makes the landing legible. There
+   is NO inner glow: an inset haze whitens the plate and the frames under the
+   ring, and bible 1 does not allow that.
+
+   A departure is only a departure if Will can rule on it, so this one is also
+   the second string in the concept's `departures` array in inflow.tsx, which
+   is what BoardMeta lists under Departures. If this shadow is ever changed or
+   dropped, change that string in the same edit. */
+.hhi-splash {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hhi-ring {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(255 255 255 / 0.5);
+  border-radius: var(--radius-tile);
+  opacity: 0;
+}
+
+.hhi-count {
+  font-variant-numeric: tabular-nums;
+  /* The rest level. The element's colour is plain white so the tick can
+     brighten past it; without this the flash would have nowhere to go. */
+  opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The gather's first frame: the same corridor, one beat further out. */
+  .hhi-card {
+    transform: var(--hhi-lag);
+    opacity: var(--hhi-lag-o);
+  }
+
+  @keyframes hhi-land {
+    0% {
+      opacity: 0;
+      transform: scale(1);
+    }
+    18% {
+      opacity: 0.58;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.42);
+    }
+  }
+
+  /* The number brightens on the same beat and decays back. It sits on the one
+     lane of dark ground the funnel always leaves clear, so unlike the ring it
+     is legible every time; the two together are the whole of the evidence. */
+  @keyframes hhi-tick {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0.72;
+    }
+  }
+
+  .hhi-count[data-hhi-live] {
+    animation: hhi-tick 300ms var(--ease-emphasis) both;
+  }
+
+  /* Fired by the loop the moment a frame is fully behind the plate: the
+     attribute is removed, the layout is flushed, and it goes back on, which is
+     the one way to restart a CSS animation on demand. `both` leaves the ring
+     at opacity 0 when it is over, so a ring at rest is invisible. */
+  .hhi-ring[data-hhi-live] {
+    border-color: rgb(255 255 255 / 0.78);
+    box-shadow: 0 0 18px 0 rgb(255 255 255 / 0.22);
+    animation: hhi-land 640ms var(--ease-emphasis) both;
+  }
+}
