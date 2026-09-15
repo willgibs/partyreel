@@ -460,10 +460,11 @@ voice guide.
 
 ## Handoff (round 3)
 
-- Head **`3a4ceb3`** plus this commit (a manifest cannot name its own SHA). The round's code is
-  three commits: `274dea4` built it, `d9040aa` fixed the dead line the first read-only review found,
-  and **`3a4ceb3`** answers the second review (the phone's rest-state count, said truly in the code
-  and here); `4aea15d` and `5e7d58b` merged `launch-prep`, and every other commit in the round is
+- **Head: this commit** (a manifest cannot name its own SHA), on top of `5e7d58b`, the second
+  `launch-prep` merge. The round's last commit of SOURCE is **`3a4ceb3`**, and the code is three
+  commits in all: `274dea4` built it, `d9040aa` fixed the dead line the first read-only review
+  found, and `3a4ceb3` answers the second review (the phone's rest-state count, said truly in the
+  code and here). `4aea15d` and `5e7d58b` merged `launch-prep`; every other commit in the round is
   this manifest.
   The whole gate was re-run on `3a4ceb3`; which measurements were re-taken at this head and which
   stand from `d9040aa` on identical executable code is named under Verified below.
