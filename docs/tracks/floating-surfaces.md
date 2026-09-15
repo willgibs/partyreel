@@ -514,22 +514,30 @@ rescue.
 
 ## Handoff (round 3)
 
-- Head: the tip of `lp/floating-surfaces`, pushed. Board: `/design/c/floating-surfaces?key=`. **The marker for "is this
-  round three": the block heading "Where this board lands"**, and the row-2 caption "The finding the
-  round turned on, at 6x". Round two's board had neither.
+- Head: the tip of `lp/floating-surfaces`, pushed. Board: `/design/c/floating-surfaces?key=`.
+  **The marker that says "this is round three" is the block the board OPENS with, "Where this board
+  lands"**; round two's board had no such block, and its absence is the fastest way to tell you are
+  looking at the old one. A second marker, in a different place: any frame drawn smaller than its
+  canvas wears a "1440 canvas at 69%" badge in its bottom right corner, which round two had nowhere.
+  The row-2 caption "The finding the round turned on, at 6x" is NOT a marker, and an earlier draft of
+  this handoff was wrong to name it: that line is verbatim in round two (`board.tsx:461` on
+  `launch-prep`), so it tells the two rounds apart not at all.
 - **Synced: `launch-prep` had NOT moved.** It is still at `dd4aa0b`, the SHA this branch was cut
   from, so there is nothing to merge and the gates below ran on the tree as it will land.
-- **The preview alias is STALE and the project is at its deploy ceiling.** The alias serves
-  `943473b` (round two). Four pushes on this branch produced no deployment:
-  `POST /v13/deployments` answers `payment_required`, `api-deployments-free-per-day`,
-  `remaining 0`, with the hard reset a full day out (2026-09-15 23:13). Slots free one at a time as
-  old deployments age out and whoever is polling takes the next one (`lp/hero-scan` took one at
-  23:02, `lp/hero-burst` at 23:17), so a retry loop is running against this head and the alias may
-  be current by the time anyone reads this: **confirm the sha before reading the board there**, and
-  if it is still `943473b`, read the board the way this round verified it, on a local server:
-  `pnpm dev` (or `pnpm build && npx next start -p 3008`), then
-  `http://localhost:3008/design/c/floating-surfaces?key=`. The lab sits in no allow-list, so
-  localhost renders the tip exactly, "Apply to the site" included.
+- **The preview alias serves ROUND TWO, and no preview will build for this head. Not this track's
+  to fix, so here is how the board was verified instead.** The alias is pinned at `943473b` (round
+  two) because the project sits at Vercel's daily deployment ceiling: `POST /v13/deployments`
+  answers `payment_required`, `api-deployments-free-per-day`, `remaining 0`, so every push on this
+  branch produced no deployment. **Confirm the sha before reading the board on the alias; if it
+  still says `943473b`, that is round two, and the opening block above is missing.** The board was
+  walked for this handoff on a LOCAL PRODUCTION BUILD of this head, which renders the tip exactly
+  (the lab is in no allow-list, so nothing about it is preview-only, "Apply to the site" included):
+  `pnpm build && npx next start -p 3008`, then
+  `http://localhost:3008/design/c/floating-surfaces?key=`, driven in Chrome. **At 1440** the window
+  was sized to a 1440 viewport and the board scrolled end to end. **At 375**, since a Chrome window
+  will not go below 500px wide, the board was loaded in a 375-wide same-origin iframe on the same
+  local server: a real 375 layout viewport, so the `sm:` breakpoints resolve the way a phone
+  resolves them, and every frame and panel inside is readable off `contentDocument`.
 - Gates on the synced tree at this head: typecheck ok, lint ok (0 errors, 6 warnings, all
   pre-existing and outside the lane), test ok (1719 in 193 files), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = this file plus four files of
@@ -540,15 +548,24 @@ rescue.
 - Assets requested from Will: none. The board judges a layer over content and the real event
   photographs in `public/marketing/img/` are the right content for it; nothing here is a stand-in.
 
-**Light QA, measured on a LOCAL PRODUCTION BUILD of this head (`pnpm build` + `next start`), in a
-foreground Chrome tab, plus the same walk in dev.**
+**Light QA, measured on a LOCAL PRODUCTION BUILD of this head (`pnpm build` + `next start -p 3008`),
+in Chrome, plus the same walk in dev.**
 
-- At 1440: no horizontal scroll at any scroll position, all 18 frames mount and paint, every panel
-  in every frame lands inside its canvas (measured off each `contentDocument`).
-- At 375 (viewport emulation, since a Chrome window will not go below 500): page
-  `scrollWidth - clientWidth` is 0, every frame box is the full 343-wide column at 0.91 scale, the
-  control bar is `position: static` so it covers nothing, and the only element wider than the column
-  is the deliberately full-bleed bar itself.
+- At 1440 (window sized to a 1440 viewport): no horizontal scroll at any scroll position
+  (`scrollWidth - clientWidth` is 0 at the top, in the middle and at the foot), 6 documents at first
+  paint and all 18 frame boxes filled once the walk reaches them, every panel in every frame inside
+  its canvas (measured off each `contentDocument`), and the "canvas at N%" badge on every frame
+  drawn under 95 percent.
+- At 375 (the board in a 375-wide same-origin iframe, since a Chrome window will not go below 500):
+  page `scrollWidth - clientWidth` is 0, every frame box is the full 343-wide column at 0.91 scale,
+  the control bar computes `position: static` so it covers nothing, and the only element wider than
+  the column is the deliberately full-bleed bar itself.
+- **"Replay every entrance" was re-tested at 375 as the thing it is, a control that has to do
+  something from wherever it is pressed.** Pressed at the top of the document, with no frame on
+  screen: the board carries you to the nearest frame, and both frames of row 1 receive `flt:replay`
+  on arrival (the press is remembered, not swallowed). Pressed with row 1 on screen: the scroll
+  position does not move by a pixel and the two visible frames replay. Both measured by listening
+  for `flt:replay` on each frame's own `contentWindow`.
 - **Cost, before and after, measured rather than asserted.** Round two's board mounted all 19
   documents at first paint: 1020 requests, 6958 elements, 288 photographs, 5.7s until the last frame
   settled (dev). This head, on the production build: **first paint is 6 documents, 343 requests,
@@ -558,7 +575,8 @@ foreground Chrome tab, plus the same walk in dev.**
   (vsync) with an 18.6ms worst over 90 frames. "Replay every entrance" used to close and reopen
   about thirty panels across every mounted document at once and cost a 150ms hitch, all of it spent
   on entrances off screen; it now replays only the frames in view, and the same press measures a
-  16.7ms median with NO frame over 33ms.
+  16.7ms median with NO frame over 33ms. A frame that was off screen when the press landed replays
+  on its own arrival instead, which costs nothing at the moment of the press.
 - **Reduced motion, re-measured on THIS board rather than quoted from round two.** Every
   `prefers-reduced-motion` media rule in the board document and in all 18 frame documents forced to
   the reduce state (1356 rules, walked recursively so the `@layer base` guard is included): all
@@ -566,10 +584,30 @@ foreground Chrome tab, plus the same walk in dev.**
   and candidates.ts now print those numbers instead of round two's 36-across-19.
 - The reduced-motion NOTE beside Replay was verified as behaviour, not as code: with `matchMedia`
   forced to match, the line appears; restored, it is gone.
-- **The recommendation was walked onto the real site.** With "Apply to the site" pressed in the
-  landing block, `/?key=` computes panel radius 8, row radius 4, dialog 16, and the dropdown and the
-  tooltip run `flt-slip-in` at 90ms while the dialog runs `flt-zoom-in` at 220ms; the real header nav
-  panel opens carrying it, and the tuner panel shows the block with its clear button. Cleared after.
+- **The recommendation was walked onto every page round three listed, one at a time.** The landing
+  block's "Apply to the site" was pressed once on the local production build, and then each page
+  opened with `?key=` and a real floating surface opened on it, reading the computed values off the
+  live DOM rather than off the paste:
+  - `/` (the home arc), `/pricing`, `/help`, `/contact`: all four carry the block. `:root` computes
+    `--flt-r` `.5rem`, `--flt-r-item` `calc(.5rem - 4px)`, `--flt-r-lg` `calc(.5rem * 2)`; the REAL
+    marketing header nav panel opens at `border-radius: 8px` with its rows at `4px` (the rule-9 nest
+    this board argues for, on a real page), running `flt-slip-in` for 90ms. The rung on the board and
+    the rung on the page are the same string.
+  - `/dashboard` and an event page (`/dashboard/<id>`): **walked on the launch-prep alias, not on
+    localhost, and here is why.** The app group needs a signed-in host, and localhost is in no
+    Supabase redirect allow-list by design, so `localhost:3008/dashboard` answers `/login` and the
+    app group cannot be walked on a local build at all. The alias is signed in, so both pages were
+    opened there and this head's block (byte-identical CSS, generated from `candidates.ts` at these
+    knobs) injected into the page for the walk: the real host-app dropdown opens at
+    `border-radius: 8px` running `flt-slip-in` for 90ms on both. Injected per page, never written to
+    the alias's stored candidate, so nothing persists there for the next person.
+  - The demo guest page (`/e/<demo token>`, local build): **it carries nothing, and now that is
+    measured rather than read off the layout file.** No candidate `<style>` in the document,
+    `--flt-r` unset, no island script. This is the evidence for carry item 1 below: the `(guest)`
+    layout mounts no design island, so the surface this board makes primary is the one page a
+    sitting cannot walk.
+  - The stored candidate was cleared afterwards (the board's own "Applied to the site, clear"), so
+    the lab is handed over clean.
 - No em-dash in the served text; no `font-mono`; no `<BorderBeam`, `glw-warp` or `<GlowFilter />`
   added anywhere.
 
@@ -606,6 +644,16 @@ all three radius rungs by itself and row 2 re-measures them off the live DOM.
    and now shows the side the product actually uses, the TOP sheet, whose two bottom corners are the
    ones that stay on screen; the entrance ladder frame left with its rung; the select column stopped
    being two thirds empty; Replay runs what you can see.
+8. **A second pass, after a cold read of this handoff found one thing it had broken.** Making Replay
+   run only the frames in view had made it a DEAD control at 375, where the bar is static at the top
+   of the document: pressed from up there it replayed nothing, and scrolling down afterwards did not
+   bring the entrance back, because the effect had already run. That is the exact
+   control-that-does-nothing stumble this round set out to remove, so it is fixed in two halves. A
+   frame that was off screen when the press landed now remembers the press and replays on its own
+   arrival (an IntersectionObserver that lives exactly one press), so you scroll down and every row
+   plays as you reach it; and the button carries you to the nearest frame when none is in view, so
+   the arrival is the press rather than a scroll away. When a frame IS on screen, which is every
+   press at 1440, nothing moves.
 5. **Honesty about scale.** Any frame drawn smaller than its canvas now says so on its face ("1440
    canvas at 69%"), because the lab column is 992 wide at 1440 and nobody should rule on a size
    nobody ships.
@@ -676,6 +724,15 @@ all three radius rungs by itself and row 2 re-measures them off the live DOM.
 - The board's own screenshots can come back black or misaligned through a driven tab once it holds
   many frames, while the DOM is correct (`contentDocument` is same-origin, so the loupe's own
   measurements can be read straight out of it). `docs/systems/testing-verification.md` has the rest.
+- **An OCCLUDED Chrome window runs no rendering lifecycle, and the board reads as broken when it
+  does.** Not just a background TAB: a foreground tab in a window another app is covering reports
+  `document.visibilityState === "hidden"`, fires no `requestAnimationFrame`, delivers no
+  intersection records, and freezes a smooth scroll mid-flight. Walking the board that way left four
+  frame boxes empty in rows 3 to 5 and made "Replay every entrance" look dead, both of which
+  evaporated the moment rendering was forced. Two ways through: bring the window genuinely to the
+  front, or pump frames by taking a screenshot between steps (a capture forces a frame, and a scroll
+  of one viewport plus a capture mounts the row properly). Read the DOM, not the picture, and never
+  file a bug from a starved walk.
 - **Reduced motion has no emulation in the test browser**: force it by walking the CSSOM and flipping
   every `prefers-reduced-motion` media rule, recursing into `@layer` blocks (the global guard lives
   in `@layer base`, and a first pass that missed it produced a convincing false leak in round two).
