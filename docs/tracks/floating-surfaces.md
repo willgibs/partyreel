@@ -1,6 +1,6 @@
 ---
 track: floating-surfaces
-status: open
+status: handed-off
 cut: "dd4aa0b"
 merged_round_2: "8a448fd"
 merged_round_1: "3071cfc"
@@ -514,15 +514,202 @@ rescue.
 
 ## Handoff (round 3)
 
-- Head <sha>, pushed; preview partyreel-git-lp-floating-surfaces-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `HEADSHA`, pushed. Board: `/design/c/floating-surfaces?key=`. **The marker for "is this
+  round three": the block heading "Where this board lands"**, and the row-2 caption "The finding the
+  round turned on, at 6x". Round two's board had neither.
+- **Synced: `launch-prep` had NOT moved.** It is still at `dd4aa0b`, the SHA this branch was cut
+  from, so there is nothing to merge and the gates below ran on the tree as it will land.
+- **The preview alias is STALE and the project is at its deploy ceiling.** The alias serves
+  `943473b` (round two). Four pushes on this branch produced no deployment:
+  `POST /v13/deployments` answers `payment_required`, `api-deployments-free-per-day`,
+  `remaining 0`, with the hard reset a full day out (2026-09-15 23:13). Slots free one at a time as
+  old deployments age out and whoever is polling takes the next one (`lp/hero-scan` took one at
+  23:02, `lp/hero-burst` at 23:17), so a retry loop is running against this head and the alias may
+  be current by the time anyone reads this: **confirm the sha before reading the board there**, and
+  if it is still `943473b`, read the board the way this round verified it, on a local server:
+  `pnpm dev` (or `pnpm build && npx next start -p 3008`), then
+  `http://localhost:3008/design/c/floating-surfaces?key=`. The lab sits in no allow-list, so
+  localhost renders the tip exactly, "Apply to the site" included.
+- Gates on the synced tree at this head: typecheck ok, lint ok (0 errors, 6 warnings, all
+  pre-existing and outside the lane), test ok (1719 in 193 files), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = this file plus four files of
+  `src/app/(dev)/design/sandbox/floating-surfaces/` (`board.tsx`, `candidates.ts`, `frame.tsx`,
+  `scenes.tsx`). No exceptions; nothing under `src/components/ui/` was touched, and every candidate
+  still reaches the primitives from outside.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Assets requested from Will: none. The board judges a layer over content and the real event
+  photographs in `public/marketing/img/` are the right content for it; nothing here is a stand-in.
+
+**Light QA, measured on a LOCAL PRODUCTION BUILD of this head (`pnpm build` + `next start`), in a
+foreground Chrome tab, plus the same walk in dev.**
+
+- At 1440: no horizontal scroll at any scroll position, all 18 frames mount and paint, every panel
+  in every frame lands inside its canvas (measured off each `contentDocument`).
+- At 375 (viewport emulation, since a Chrome window will not go below 500): page
+  `scrollWidth - clientWidth` is 0, every frame box is the full 343-wide column at 0.91 scale, the
+  control bar is `position: static` so it covers nothing, and the only element wider than the column
+  is the deliberately full-bleed bar itself.
+- **Cost, before and after, measured rather than asserted.** Round two's board mounted all 19
+  documents at first paint: 1020 requests, 6958 elements, 288 photographs, 5.7s until the last frame
+  settled (dev). This head, on the production build: **first paint is 6 documents, 343 requests,
+  2549 elements, settled at 1.25s**; walked end to end it reaches 18 documents, 846 requests, 6626
+  elements, 144 photographs.
+- **Frame time.** At rest the board runs NOTHING: zero running animations, a 16.7ms median frame
+  (vsync) with an 18.6ms worst over 90 frames. "Replay every entrance" used to close and reopen
+  about thirty panels across every mounted document at once and cost a 150ms hitch, all of it spent
+  on entrances off screen; it now replays only the frames in view, and the same press measures a
+  16.7ms median with NO frame over 33ms.
+- **Reduced motion, re-measured on THIS board rather than quoted from round two.** Every
+  `prefers-reduced-motion` media rule in the board document and in all 18 frame documents forced to
+  the reduce state (1356 rules, walked recursively so the `@layer base` guard is included): all
+  **30** floating surfaces compute an animation and a transition duration of 0.01ms or less. Row 8
+  and candidates.ts now print those numbers instead of round two's 36-across-19.
+- The reduced-motion NOTE beside Replay was verified as behaviour, not as code: with `matchMedia`
+  forced to match, the line appears; restored, it is gone.
+- **The recommendation was walked onto the real site.** With "Apply to the site" pressed in the
+  landing block, `/?key=` computes panel radius 8, row radius 4, dialog 16, and the dropdown and the
+  tooltip run `flt-slip-in` at 90ms while the dialog runs `flt-zoom-in` at 220ms; the real header nav
+  panel opens carrying it, and the tuner panel shows the block with its clear button. Cleared after.
+- No em-dash in the served text; no `font-mono`; no `<BorderBeam`, `glw-warp` or `<GlowFilter />`
+  added anywhere.
+
+**What round three changed, and why (the walk found each of these).**
+
+1. **The board opens with where it lands.** Five answers, one word each, each with the row that
+   argues it and the cost of taking it, plus one button that applies the two knobs it recommends. The
+   knobs now OPEN on the recommendation rather than on an arbitrary rung.
+2. **Three rungs cut, each for the same reason: a rung has to be a different ANSWER.** The light rung
+   "lighter is closer" WAS today (its paste set the declaration the panel already carries, so the
+   ladder showed one column twice and the toggle offered "today" beside a rung meaning today); the
+   "lit edge" rung is ruled out for this job by the light board's own doctrine (the lit face is
+   material, not elevation, and belongs to a face catching light); "origin true" answers how a panel
+   moves rather than how fast, which is not what rules 12 and 15 disagree about. Each cut is written
+   where the rung used to be, in `candidates.ts`, and said on the board in the row it left.
+3. **An honesty fix in the shadow rung.** Its light-ground alphas were 0.12 and 0.16 while the block
+   claimed the light board's family verbatim; that board declares 0.09 and 0.13 on a light ground
+   (`docs/specs/light.md`, its round-two correction). They are those numbers now. The dark values
+   (0.5 / 0.62) already matched. Also: the by-frequency comment said "a fade plus 2px" where the CSS
+   travels 6px.
+4. **Cost.** Frames mount BY ROW, a viewport and a half before the row arrives; the corner strip
+   dropped the 96 photographs it was hiding its own corners behind (a corner is read at the corner)
+   and now shows the side the product actually uses, the TOP sheet, whose two bottom corners are the
+   ones that stay on screen; the entrance ladder frame left with its rung; the select column stopped
+   being two thirds empty; Replay runs what you can see.
+5. **Honesty about scale.** Any frame drawn smaller than its canvas now says so on its face ("1440
+   canvas at 69%"), because the lab column is 992 wide at 1440 and nobody should rule on a size
+   nobody ships.
+6. **375.** The control bar was 310px tall and sticky, which is 38 percent of a phone viewport
+   covering the specimen; it is static below `sm` now. BoardMeta was 3434px tall at 375 and is 2572
+   after the candidate and departure lists were cut to what has to be ruled on.
+7. **The asks are one word each** and the departures are only the four Will must rule on. The build
+   findings moved down here, where the Orchestrator reads them.
+
+**Three shell changes the Orchestrator should carry (all outside this lane):**
+
+1. **One line in `src/app/(guest)/layout.tsx`: mount `<AppDesignIsland />`.** `CandidateStyle` mounts
+   in exactly three places (the lab layout, the marketing cinema island, the host app's island), so
+   the GUEST group cannot wear a candidate at all. The surface this board makes primary, the entry
+   drawer at `/e/<token>`, is therefore the one page a sitting cannot walk. The island is already
+   key-gated, server-validated and lazy, so the cost is one import. Row 9 says so on its face.
+2. **The frame belongs in the shell.** `frame.tsx` + `page.tsx` + the `flt-cover` rules are a second
+   kind of stage and should move into `src/components/dev/board/` beside `Stage`: a VIEWPORT (an
+   iframe laid out at the canvas's true pixels, running a gated scene route in its own document),
+   because a radix panel portals to `globalThis.document.body` and leaves any zoom-fitted div, its
+   ground, its zoom and its canvas. What to absorb: the iframe box with its ResizeObserver fit and
+   `fit` cap; the `designKey === undefined` hold, so a gated scene route is never hit keyless; the
+   `flt:set` / `flt:replay` same-origin dispatch, generalised to `board:set` / `board:replay`; the
+   frame document's resident ground owner; the cover plus `nextjs-portal` hide; and round three's two
+   additions, `useMountOnApproach` (row-level mounting, with the display-contents trap it fell into
+   written down) and the "canvas at N%" badge. NOT this board's scenes, candidates or ramps.
+3. **Two small ones.** `BoardMeta`'s `grid-cols-[8rem_minmax(0,1fr)]` is not responsive: at 375 the
+   label column eats 128 of 343 and every meta line wraps to three. A `sm:` on the two-column form
+   would fix every board at once. And the touchpoint blurb for this board still says "All nine
+   primitives ... three ladders at 1:1": the family is TEN (the guest entry shell) and there are two
+   ladders now. `touchpoints.ts` is not this lane's to edit.
+
+**Findings for whoever owns the primitives (not candidates, true whatever is ruled):**
+
+- `guest/entry-shell.tsx` renders a RAW vaul drawer, outside `ui/drawer.tsx`, with a literal radius
+  `calc(var(--radius-action) * 1.4)`. It is a tenth floating surface and the one most people on this
+  product will ever see. The family is ten, not nine.
+- `ui/sheet.tsx` has exactly one product call site, the marketing mobile menu, and it enters from the
+  TOP, so the corners that stay on screen there are the BOTTOM two.
+- A bare `box-shadow` on a panel DELETES the ring it ships (`ring-1` is a box-shadow in Tailwind v4).
+  Every light rung composes `var(--tw-ring-shadow, 0 0 #0000)` back in first.
+- Radix renders `Dialog.Overlay` only in MODAL mode, so a non-modal dialog has no scrim to style.
+- A custom property set ON an element beats the same property inherited from `<html>` whatever the
+  ground rule's specificity, so a per-panel rung needs its dark values declared on the panel too,
+  qualified by the ground as an ancestor.
+- A browser defers a LAZY image inside an iframe that is off the parent's screen, so the backdrops
+  load eagerly; with row-level mounting a frame is only built when it is about to be seen, which is
+  the same economy done at the right level.
+- `ui/navigation-menu.tsx`'s viewport cannot size itself outside the marketing header (its width
+  rides `md:w-(--radix-navigation-menu-viewport-width)` and that var never lands on a lab page).
+- `ui/tooltip.tsx`'s arrow takes a literal `rounded-[2px]` instead of a token (bible 8).
+- Round one's reduced-motion "hole" does not exist: `globals.css:855` has clamped every animation and
+  transition to 0.01ms under the preference since 2026-06-11, with `!important`. What the family
+  lacks is bible 14's FIRST line, a gate of its own, which row 8 offers as a paste.
+
+**Testing notes for the next session on this board.**
+
+- **A row mounts from an IntersectionObserver, so it needs a REAL box and a REAL scroll.** The first
+  cut observed a `display: contents` wrapper, which produces no box at all: the observer never fired
+  and every row below the first stayed empty. And a `scrollTo()` from the console in a BACKGROUND tab
+  mounts nothing, because a hidden document runs no rendering lifecycle and therefore delivers no
+  intersection records. Verify this board by scrolling a FOREGROUND tab, then read the DOM.
+- The board's own screenshots can come back black or misaligned through a driven tab once it holds
+  many frames, while the DOM is correct (`contentDocument` is same-origin, so the loupe's own
+  measurements can be read straight out of it). `docs/systems/testing-verification.md` has the rest.
+- **Reduced motion has no emulation in the test browser**: force it by walking the CSSOM and flipping
+  every `prefers-reduced-motion` media rule, recursing into `@layer` blocks (the global guard lives
+  in `@layer base`, and a first pass that missed it produced a convincing false leak in round two).
+  Around 1350 rules across this board and its frames is the right order of magnitude.
+- The Chrome window will not go below 500px wide, so 375 has to be verified through viewport
+  emulation or the DOM.
+- The lab page is shared browser state: "Apply to the site" persists in `localStorage` until cleared,
+  so clear it before handing the board to anyone.
+
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
+  1. "The radius: sharp, nested or round (this board says nested)"
+  2. "The entrance: one clock or by frequency (this board says by frequency, and that rule 15 means
+     one language)"
+  3. "The light in dark: today or the shadow (this board says whatever the light board is ruled,
+     since the numbers are the same)"
+  4. "The edge family: sheet or drawer (this board says drawer, and the guest entry shell adopts it)"
+  5. "The select: keep or drop (this board says keep, on the contract)"
+- Look at first:
+  1. **The block at the top, "Where this board lands".** Five answers, one word each, each with the
+     row that argues it. If all five read right, the ruling is two words and the rest of the board is
+     evidence you never have to open.
+  2. **Row 2, the corner, measured.** Four frames, each reading its own panel off the live DOM and
+     drawing the panel's corner, the row's corner and the corner the row NEEDS at 6x. Today is the
+     only rung where the dashed line and the solid one are different lines.
+  3. **Row 1 at 375.** The guest entry drawer beside the house sheet on its real side, then the same
+     big box under each rung on a calm ground.
+  4. **The landing block's "Apply to the site", then walk `/` (hover Features, then the menu at 375),
+     `/pricing` and `/dashboard`.** The rung on the board and the rung on the real page are the same
+     string.
+  5. **Row 5, Replay, twice.** Rule 12 and rule 15 running side by side on the same three primitives,
+     with both statements quoted from the bible above them. This is the one ask that is a bible edit.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). Rounds two and three turned the floating-surfaces
+exploration into a board that can be ruled on in a few words. Round two made every rung real CSS
+against the primitives' own data-slots (`candidates.ts`, three scopes), so the board renders the same
+string "Apply to the site" hands the whole site and a candidate cannot drift from its proposal; it
+made the guest entry shell the primary specimen at 375 and found it is a TENTH floating surface, a raw
+vaul drawer outside `ui/drawer.tsx` carrying a literal radius; it measured the rule-9 miss off the live
+DOM and drew it at 6x with its arithmetic; and it posed the entrance as rule 12 against rule 15 with
+both statements quoted from the bible. Round three walked the board the way Will would and spent
+itself on the ruling: it opens with the five answers it recommends, one word each, with the row that
+argues each and one button that applies them; three rungs were cut because a rung has to be a
+different answer, not a different drawing (the "lighter is closer" light rung WAS today, the lit edge
+belongs to the light board's material face, and "origin true" answers how a panel moves rather than
+how fast); the shadow rung's light-ground alphas were corrected to the light board's own 0.09 and
+0.13, so the two boards propose one shadow to the byte. Its cost came down with it: frames mount by
+row a viewport ahead of arrival (six documents at first paint instead of nineteen, 1.25s instead of
+5.7), the corner strip dropped the 96 photographs it was hiding its own corners behind, Replay runs
+only the frames in view (a 150ms hitch became none), and every frame smaller than its canvas says so
+on its face. Reduced motion was re-measured on the board it describes: 1356 rules forced, 30 surfaces,
+none above 0.01ms.
