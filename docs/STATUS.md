@@ -46,11 +46,12 @@ under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
 | `home-hero` (round six) | four compositions of the stream (mirror, phrase, settle, ribbon) on the ruled hero, the last exploration before its wiring | integrated at `56ea9185`, 1,189 words under the budget |
 | `lab-flow` | the review as a stepped onboarding form: tiles on one specimen, show versus choose, the three exits, one card at a time, staging, the desk's rows as steps | integrated at `c18570c4`; the catalog boards' reading halved with the deletions |
 | `light` (round seven) | the twelve cards reshaped for the walk: one at a time on three specimens, before/after and what each lands as, the asks as tile steps | integrated at `7ed0d2a2`, 920 words, no declaration |
-| `palette` (round eight) | pick-one: the winner from the twelve or none, the accent and its reach as tile steps | building |
+| `palette` (round eight) | pick-one: the winner from the twelve or none, the accent and its reach as tile steps on the real product | integrated at `49ed0fbf`, 1,191 words, no declaration |
 | `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | integrated at `ec7367e7`, 486 words |
 | `floating-surfaces` (round seven) | pick-one: the winner from the seven or none, the submenu, corner, entrance and shadow questions as tiles on one menu | building |
 | `rounding` (round seven) | pick-one: the winner from the six or none, the button, ladder, dead-rung and gap questions as tiles | building |
 | `brand-voice` (round seven) | pick-one: the winner from the six voices or none, the noun, unfurl, counts and scope questions as tiles | building |
+| `media-kit` (round seven) | keep-any as a gallery (a kept card is a purchase), the crowds question as two tiles, the rule, spend and shoot questions means-only | building |
 
 **The stepped review round** (opened 2026-09-16 at `02c409b4`, on his sitting's verdict: the review
 "favors you and makes me spend tons of time per track figuring what I'm even being asked"): the review
