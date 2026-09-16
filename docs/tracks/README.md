@@ -1,43 +1,30 @@
-# Tracks: the claims, handoffs and records of every parallel branch
+# Tracks: the lane, the init and the handoff of every open branch
 
-> ROLE: the per-track ledger of the elevation program. One file per `lp/<track>` branch: what it
-> claims, what it will not touch, how it is verified, its handoff, and the record the Orchestrator
-> folds into the CHANGELOG. Read this directory to see what every open track is working on.
-> BELONGS HERE: one manifest per track (`<track>.md`), plus `orchestrator.md` for the integration
-> branch's own work. · NOT HERE: the program's rules (→ [`../PROGRAM.md`](../PROGRAM.md)), shipped
-> history (→ [`../CHANGELOG.md`](../CHANGELOG.md)), what is next (→ [`../ROADMAP.md`](../ROADMAP.md)).
-> GROWS BY: a stub per spawned track; the agent fills it; the Orchestrator flips it to `integrated`
-> at the merge and deletes it at the milestone that ships it (git history keeps it, like the
-> `decisions/t1-*` tombstones).
-
-## Why this exists
-
-On 2026-09-02 three agent tracks integrated in one evening with 11 merge conflicts, 7 of them in
-the shared docs, plus one duplicated single-source that no test could see. Agents had no way to see
-each other: the only coordination was a branch name, and the handoff report was a chat message that
-never entered the repo. This directory is that missing artifact. A manifest makes a track's lane
-visible before its first push, keeps the shared docs out of every branch, and turns the handoff into
-something a later session can read.
+> ROLE: one manifest per open `lp/<track>` branch: its lane, its brief, its questions, its handoff
+> and the record the Orchestrator folds into the CHANGELOG. Read this directory to see what every
+> open track is doing. BELONGS HERE: `<track>.md` per open or handed-off track, and
+> `orchestrator.md` for the integration branch's own work. · NOT HERE: the program's rules (→
+> [`../PROGRAM.md`](../PROGRAM.md)), what shipped (→ [`../CHANGELOG.md`](../CHANGELOG.md)), what is
+> next (→ [`../ROADMAP.md`](../ROADMAP.md)). LIFECYCLE: a manifest is cut with its track and deleted
+> in the merge commit that integrates it; git keeps it (`git show <merge sha>^:docs/tracks/<track>.md`).
 
 ## The lifecycle
 
-`open` → `handed-off` → `integrated` → deleted at the milestone that ships it.
-
-- **open**: the Orchestrator commits a stub on `launch-prep` when it spawns a track (the agent adopts
-  it), or the agent creates one at boot from the template below. Either way it is committed ALONE
-  and pushed before any other work.
-- **handed-off**: the agent has filled Handoff and Record, run the pre-handoff sync and the lane
-  check, set `status: handed-off`, and pushed. The chat report is one line.
-- **integrated**: flipped by the Orchestrator inside the merge commit, with `merged: "<sha>"` (the
-  branch head that was merged; the merge commit itself is cited in the CHANGELOG).
+`open` → `handed-off` → deleted at the merge. **open**: the Orchestrator commits the stub on
+`launch-prep` when it cuts the track (the agent adopts it), or the agent writes one at boot from the
+template; committed alone and pushed before any other work. **handed-off**: Handoff and Record
+filled, the pre-handoff sync and the lane check done, `status: handed-off`, pushed; the chat report
+is one line. A second round of the same work is a fresh manifest cut from Will's notes on the first,
+never without them.
 
 ## Claims are path prefixes
 
-`owns` lists repo-relative path PREFIXES (directories end in `/`), never globs. Everything outside a
-track's prefixes is forbidden to it. Nobody may claim `docs/CHANGELOG.md`, `docs/STATUS.md`,
-`docs/ROADMAP.md`, `docs/PROGRAM.md`, `CLAUDE.md`, `AGENTS.md`, `src/lib/db/types.ts` or this
-directory: those are the Orchestrator's. `src/lib/track-manifests.test.ts` fails `pnpm test` when
-two non-integrated tracks overlap or a manifest is malformed.
+`owns` lists repo-relative path PREFIXES (directories end in `/`), never globs; everything outside a
+track's prefixes is forbidden to it. Nobody claims `docs/CHANGELOG.md`, `docs/STATUS.md`,
+`docs/ROADMAP.md`, `docs/PROGRAM.md`, `CLAUDE.md`, `AGENTS.md`, `src/lib/db/types.ts`,
+`docs/ASSETS.md`, `docs/design/rulings.md`, `docs/reviews/` or this directory: those are the
+Orchestrator's. `src/lib/track-manifests.test.ts` fails `pnpm test` when two live tracks overlap or
+a manifest is malformed.
 
 ## The commands every agent runs
 
@@ -66,7 +53,7 @@ git diff --name-only origin/launch-prep...HEAD
 
 | file | agents | the Orchestrator |
 | --- | --- | --- |
-| `docs/tracks/<track>.md` | fill it (their own) | stub it, flip it, delete it |
+| `docs/tracks/<track>.md` | fill it (their own) | stub it, flip it, delete it at the merge |
 | `docs/CHANGELOG.md`, `STATUS.md`, `ROADMAP.md`, `PROGRAM.md`, `CLAUDE.md` | never | folds each manifest's Record and Deferred at integration |
 | `docs/systems/*.md` | in place, only for a fact inside their owned paths, listed in the manifest | reads every listed edit by eye at the merge |
 | `content/<x>/AUTHORING.md` | whoever owns `content/<x>/` | promotes shared vocabulary to `src/components/marketing/mdx/spec-shared.tsx` |
@@ -74,7 +61,7 @@ git diff --name-only origin/launch-prep...HEAD
 | `src/lib/env.ts`, migrations, Workers, Vercel / Stripe / Supabase config | propose in Handoff | applies |
 | `docs/ASSETS.md` (the asset log) | never (ask in Handoff, one bullet per asset) | folds each ask into a row at integration; Will marks a row delivered; the wiring round marks it wired |
 | `docs/design/rulings.md` (Will's rulings, verbatim and dated) | never (read it; rendered at `/design/library/rulings`) | appends a section from a review message or from chat, with what it became |
-| `docs/reviews/<board>.json` (the review ledgers) | never (a board's review panel composes a message; the UI never writes) | transcribes Will's pasted line with `pnpm lab:review`; the desk and the boards read the ledgers |
+| `docs/reviews/` (the ledgers and the grammar) | never (a board's review panel composes a message; the UI never writes; a grammar change goes in Handoff verbatim) | transcribes Will's pasted line with `pnpm lab:review`; lands a grammar change at the merge |
 
 ## The template
 
@@ -83,23 +70,30 @@ Copy everything below into `docs/tracks/<track>.md` and fill it in.
 ```md
 ---
 track: <track>
-status: open            # open -> handed-off -> integrated (deleted at the milestone that ships it)
+status: open            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "<sha>"            # the launch-prep SHA the branch was cut from
-preview: false          # intent only since 2026-09-15: the branch builds at handed-off or on [preview], never every push
+board: <board id>       # the board this track returns (none for a production sweep)
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/some/dir/
-  - src/some/file.ts
-reads:                  # shared single-sources you depend on: never duplicate, never edit
+reads:                  # single-sources you depend on: never duplicate, never edit
   - src/lib/constants/tiers.ts
 ---
 
 # lp/<track>
 
-**Goal.** One paragraph, from the init.
-**Binds.** The bible, the contracts of every component under a path you own, and the policies; everything else is precedent (`docs/design/README.md#what-binds-you`). Will's rulings this track works under, by date (`docs/design/rulings.md`), or "none".
-**Verify on.** The pages or flows the handoff is judged on, local and the branch preview; for an
-exploration round, the board at 1440 and 375 with reduced motion honoured, and every ask read cold on
-the desk's session (`/design/lab?session=<board>.<ask>`) as a stranger who has not read the board.
+**Goal.** One paragraph: what comes back (a catalog of how many ideas, on which board, on which real
+pages), and what is not in this round.
+**Binds.** The bible, the contracts of every component under a path you own, and the policies;
+everything else is precedent (`docs/design/README.md#what-binds-you`). Will's notes on the last
+round, quoted from `docs/reviews/<board>.json`, and the rulings this track works under
+(`docs/design/rulings.md`).
+**Verify on.** For a catalog: the board at 1440 and 375 with reduced motion honoured, every item's
+verdict and note reaching the desk and the composed line, the board under its reading budget
+(`pnpm lab:smoke`). For a wiring round: the pages or flows the handoff is judged on, local and live.
+
+## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
+
+- none yet
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -111,76 +105,42 @@ the desk's session (`/design/lab?session=<board>.<ask>`) as a stranger who has n
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-<track>-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
+- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
+- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset in this shape so it folds into `docs/ASSETS.md` as a row: `what · spec (size, grade, count, format) · replaces <stand-in id>`
 - Look at first: ...
 
-## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
 Merged into `launch-prep` at `<sha>` (<date>). ...
 ```
 
 ## Spawning a track from a stub
 
-When the Orchestrator has committed a stub, the manifest IS the init. The whole prompt for the new
-session:
+The manifest is the init. The whole prompt for the new session:
 
 > You are an AGENT on Partyreel's elevation program. Track `<track>`: your manifest is committed at
-> `docs/tracks/<track>.md` and is your whole init (goal, what binds, owned paths, verification). Design law
-> is the bible on `/design/library/rules` and the component contracts on `/design/library`; the whole
-> rule set, levelled, is `docs/design/README.md` (rendered at `/design/library`); everything else is
-> precedent: rising tides (bible 22), judge it from the ground up, elevate or rework, in the lab
-> first. An exploration is a catalog of polished variants to pick from, not a paper, and every ask
-> carries its context (Will, 2026-09-15; `docs/design/guidance.md#boards-the-review-surface`). Boot per
+> `docs/tracks/<track>.md` and is your whole init (goal, what binds, owned paths, verification,
+> Will's notes on the last round). Return a catalog, not a paper: each item a polished variant with a
+> live preview on a production ground and a one-line label, built so Will reacts to each item on its
+> own; you choose the presentation and the count, and where the question is not a set of things (a
+> voice, a scale) you build the comparison the question needs on real pages; asks only for what is
+> not one item; the argument collapsed; the smoke refuses a board over its reading budget. Read his
+> notes on the last round first. Anything the goal leaves open goes under the manifest's Questions
+> with your recommended answer, and you carry on with the recommendation. Design law is the bible on
+> `/design/library/rules` and the component contracts on `/design/library`; everything else is
+> precedent: rising tides (bible 22), from the ground up, in the lab first. Boot per
 > `docs/PROGRAM.md` "Agent boot", build, then hand off by filling the manifest's Handoff and Record,
 > setting `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
 
-## The queue (not yet cut; no manifest until their wave opens)
+## Previews and CI
 
-`design-gallery` and `home-hero` integrated 2026-09-12; the home hero's second round ran as three
-concept tracks in parallel against one board shell and integrated 2026-09-14 (`hero-source`,
-`hero-reel`, `hero-gathering`); Will ruled the source and round three ran the same afternoon as three
-variation tracks (`hero-scan`, `hero-burst`, `hero-river`), all integrated. The review wave cut
-2026-09-14 off the bible's second edition (`palette`, `light`, `type-scale`, `floating-surfaces`,
-`brand-voice`, `media-kit`, `kill-mono`) and every one of the seven integrated the same day; the
-rounding and tweaking GUI round ran on the Orchestrator's side. Will asked for a second and a third
-round before reviewing, so all ten tracks (the six boards, `rounding` as an agent track, the three
-hero variations) ran both the same night and integrated 2026-09-15; his overnight notes then opened round
-four on twelve tracks (the source released to `hero-source`, `hero-inflow` new, `album-hero` and
-`river-visual` seeded with the burst and the river), all integrated the same morning. Everything now waits on Will's rulings
-(Waiting on Will in [`orchestrator.md`](orchestrator.md)); then the composition pass, the wiring
-rounds and `voice-infusion` cut. The rest follow the wave plan in [`../STATUS.md`](../STATUS.md).
-
-| track | after | owns (prefixes) | reads (never claim) | rulings up front |
-| --- | --- | --- | --- | --- |
-| `marketing-followons` | the library phase | `src/app/(marketing)/` except `(cinema)/features/`, `src/components/marketing/` except `sections/features/` and `system/page-hero.tsx`, `src/app/(marketing)/marketing.css`, `src/lib/constants/contact.ts`, `src/app/not-found.tsx` | `src/lib/constants/feature-pages.ts`, `system/page-hero.tsx` | `/contact` onto cinema with no identity revisit (the `(paper)` group retires with it); the root 404 tint; whatever single-source homes the library phase leaves it to re-point |
-| `features-qr`, `features-curation`, `features-sharing`, `features-guests`, `features-privacy` (one track each, nav order, two to three at a time) | `marketing-followons` | `src/app/(marketing)/(cinema)/features/<page>/`, `src/components/marketing/sections/features/<page>/` | `src/lib/constants/feature-pages.ts` (propose the page's new strings in Handoff), `sections/features/shared/`, `system/`, `frames/`, `mock-parity.test.ts` (append under a `// <page>` comment) | the album is the model, section for section; the brief per page is in git: `git show 0f52503:docs/tracks/marketing-feature-pages.md` ("For the per-page tracks that follow"); the corrections that must hold (Require accounts defaults ON; Anonymous is anonymous; a guest deletes their own upload; a private page shows no name and no count; no big-screen mode; nothing locked at lapse; EXIF "for the common formats"); `features-privacy` also: "Public" on `access-switch.tsx`, Report on `privacy-faq.ts`, the EXIF clause on `never-rides-along.tsx` |
-| `marketing-mobile` | the five page tracks | all of `src/app/(marketing)/`, `src/components/marketing/`, `marketing.css`, alone in its wave | | none up front, many during; judged on Will's phone, reduced motion and a classic scrollbar included; gating for launch |
-| `design-lab-subdomain` | the library phase (Will, 2026-09-11) | a second Vercel project on the same repo, `src/app/(dev)/design/` and the build wiring | `src/lib/design-gate/`, `src/components/dev/`, every production component the library renders | one repo so agents keep learning from production source; the lab leaves the product's build; the gate and `/api/design-gate` stay where they are (production depends on them); architecture, not a saving (2.5 MB marginal, measured) |
-| `admin-subdomain` | `design-lab-subdomain` (Will, 2026-09-11) | `src/app/admin/`, `src/lib/admin/`, `src/components/admin/`, the host gate | `src/lib/db/`, `src/lib/supabase/` | closed to regular users, fully open to the Orchestrator and agents; `admin.partyreel.com` already exists as a project domain and the portal is already host-gated, so this is about a separately deployable surface; architecture, not a saving (1.5 MB marginal, measured) |
-
-## Previews
-
-The build gate (`scripts/vercel-ignore-build.mjs`) builds an `lp/<track>` push ONLY when the commit
-message carries `[preview]`, and an agent never adds it on its own: the Orchestrator asks for a branch
-preview when a walk needs one. A manifest's `status` and `preview:` fields build nothing (the CI
-budget round, 2026-09-15, stopped `preview: true` building every push after twelve tracks hit the
-free plan's 100 deployments a day; the storage round the same evening stopped the handoff build too,
-after fourteen handoffs in a day put the project at 40 GB of its 10 GB monthly deployment storage).
-A round's review surface is the launch-prep alias after integration, built once per round close;
-the Orchestrator prunes deployments (`scripts/prune-vercel-deployments.mjs`) after every integration.
-
-`main` always builds. `launch-prep` builds ON REQUEST since 2026-09-11: say `[preview]` in the
-commit message of the push whose alias you mean to walk. Building it on every push was most of a
-Vercel storage overage.
-
-**CI is not the gate; the four local steps are.** `ci.yml` runs on `main` and `launch-prep` pushes
-that touch code (a docs-only push is skipped, and the Orchestrator's record commits say `[skip ci]`)
-and on PRs to `main`. An `lp/*` push runs it only when the commit message carries `[ci]`: opt in for
-a production sweep, a lockfile change, or a tree you cannot build locally. Twelve agent tracks
-running the remote gate on every push spent a month of GitHub Actions minutes in two days
-(405 runs, about 1,500 minutes, 09-14 to 09-15).
+An `lp/<track>` push builds a preview only when its commit message carries `[preview]`, and only the
+Orchestrator adds it; a round's review surface is the launch-prep alias, built once at the round
+close; the Orchestrator prunes deployments (`scripts/prune-vercel-deployments.mjs`) after every
+integration. CI is not the gate, the four local steps are: `ci.yml` runs on `main` and `launch-prep`
+pushes that touch code (record commits say `[skip ci]`) and on PRs to `main`; an `lp/*` push runs it
+only on `[ci]`.

@@ -2,10 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, PencilLine, Search } from "lucide-react";
+import { ChevronDown, PencilLine, Search, X } from "lucide-react";
 
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetTitle,
@@ -15,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 import {
   activeItem,
+  AREA_HREF,
   areaOf,
   filterNav,
   type NavArea,
@@ -66,6 +68,8 @@ export function Sidebar({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           side="left"
+          // The kit's own close sits `top-3 right-3`, which lands on the filter
+          // field; the sheet draws its own in the header row instead.
           showCloseButton={false}
           className="w-[86vw] gap-0 p-0 sm:max-w-xs lg:hidden"
         >
@@ -73,14 +77,21 @@ export function Sidebar({
           <SheetDescription className="sr-only">
             The library and the lab, by section.
           </SheetDescription>
-          <Tree onNavigate={() => onOpenChange(false)} />
+          <Tree sheet onNavigate={() => onOpenChange(false)} />
         </SheetContent>
       </Sheet>
     </>
   );
 }
 
-function Tree({ onNavigate }: { onNavigate: () => void }) {
+function Tree({
+  onNavigate,
+  sheet,
+}: {
+  onNavigate: () => void;
+  /** The phone sheet, which carries its own header (see SheetHead). */
+  sheet?: boolean;
+}) {
   const nav = useNav();
   const pathname = usePathname();
   const [query, setQuery] = useState("");
@@ -107,7 +118,11 @@ function Tree({ onNavigate }: { onNavigate: () => void }) {
 
   return (
     <div className="flex h-full flex-col">
-      <div role="search" className="shrink-0 px-3 pt-3 pb-2">
+      {sheet && <SheetHead areaId={areaId} onNavigate={onNavigate} />}
+      <div
+        role="search"
+        className={cn("shrink-0 px-3 pb-2", sheet ? "pt-1" : "pt-3")}
+      >
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -250,6 +265,55 @@ function Row({
 }
 
 /**
+ * THE PHONE SHEET'S HEADER (the sweep, 2026-09-16). Two gaps a stranger hit on
+ * a phone: the sheet had no visible way out (Escape or a 52px strip of dimmed
+ * page was the whole of it), and it showed only the CURRENT area, while the
+ * control that switches areas was behind the overlay it had just opened. So the
+ * areas come along, as the two pills the top bar shows on a wide window, and
+ * the close is a real target beside them.
+ */
+function SheetHead({
+  areaId,
+  onNavigate,
+}: {
+  areaId: NavArea["id"];
+  onNavigate: () => void;
+}) {
+  const nav = useNav();
+  return (
+    <div className="flex shrink-0 items-center gap-1 border-b border-border px-2.5 py-2">
+      <nav
+        aria-label="Areas"
+        className="flex min-w-0 flex-1 items-center gap-1"
+      >
+        {nav.map((a) => (
+          <LabLink
+            key={a.id}
+            href={AREA_HREF[a.id]}
+            onClick={onNavigate}
+            aria-current={areaId === a.id ? "page" : undefined}
+            className={cn(
+              "rounded-md px-2.5 py-1.5 text-[13px] font-medium",
+              areaId === a.id
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground transition-colors duration-90 hover:text-foreground",
+            )}
+          >
+            {a.label}
+          </LabLink>
+        ))}
+      </nav>
+      <SheetClose
+        className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-90 hover:bg-muted hover:text-foreground"
+        aria-label="Close navigation"
+      >
+        <X className="size-4" />
+      </SheetClose>
+    </div>
+  );
+}
+
+/**
  * The reader's repo path, so a source reference opens in their editor from a
  * Vercel alias as well as from localhost. A disclosure, not a standing field:
  * it is set once and then never looked at again, and a text input parked at the
@@ -265,7 +329,15 @@ function EditorRoot() {
   }, [open]);
 
   return (
-    <div className="shrink-0 border-t border-border px-3 py-2 pl-12 lg:pl-3">
+    // `pl-12 lg:pl-3` used to sit here to dodge Next's dev indicator (fixed at
+    // the bottom LEFT, x 22..54, over this exact corner). It never worked, and
+    // could not: `pl-12` is used NOWHERE in production, so it compiles only
+    // into the `utilities.lab` sub-layer and loses to `px-3`, which production
+    // uses everywhere (the landmine at the head of design.css). Dead classes
+    // that read as a fix are worse than the collision, so they are gone; the
+    // badge itself moves in next.config (`devIndicators.position`), which is
+    // not this track's file, and rides in the Handoff.
+    <div className="shrink-0 border-t border-border px-3 py-2">
       {open ? (
         <label className="block">
           <span className="text-[10px] text-muted-foreground">

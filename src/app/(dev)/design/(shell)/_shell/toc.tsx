@@ -15,6 +15,11 @@ type Item = { id: string; text: string; level: 2 | 3 };
  * than two headings shows nothing, and no page has to pass anything: the scan
  * is what lets a board's client tree and a rendered doc both get one.
  *
+ * TWO PLACES: the `column` variant is the rail the shell mounts beside the page
+ * from 1280 (shell.tsx); the `inline` variant is the disclosure the PAGE HEADER
+ * closes with below that width (page-header.tsx). Neither is ever the first
+ * thing on a page.
+ *
  * ACTIVE BY POSITION, NOT BY INTERSECTION. An IntersectionObserver marks
  * nothing once you scroll past the last heading (nothing is intersecting), and
  * marks the wrong one on a page whose sections are taller than the viewport;
@@ -32,8 +37,10 @@ export function Toc({ variant }: { variant: "column" | "inline" }) {
   const [items, setItems] = useState<Item[]>([]);
   const [active, setActive] = useState<string | null>(null);
   // The disclosure remembers WHICH page it was opened on, so a route change
-  // closes it without an effect that would set state behind every navigation
-  // (the shell's Toc is in the layout: it never unmounts).
+  // closes it without an effect that would set state behind every navigation.
+  // The column variant lives in the layout and never unmounts; the inline one
+  // now rides the page header (the sweep, 2026-09-16) and does, so this is
+  // belt and braces rather than dead weight.
   const [openFor, setOpenFor] = useState<string | null>(null);
   const open = openFor === pathname;
   const anchors = useRef<{ id: string; el: Element }[]>([]);
@@ -126,7 +133,7 @@ export function Toc({ variant }: { variant: "column" | "inline" }) {
 
   if (variant === "inline") {
     return (
-      <div className="lab-toc-compact mt-4 mb-1">
+      <div className="lab-toc-compact mt-5">
         <button
           type="button"
           aria-expanded={open}

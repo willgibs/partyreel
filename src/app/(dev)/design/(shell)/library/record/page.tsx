@@ -129,12 +129,14 @@ function RecordTable({ rows, thin }: { rows: Ruling[]; thin: Set<string> }) {
       <table className="w-full min-w-[52rem] text-left text-[13px]">
         <thead>
           <tr className="border-b border-border text-[11px] tracking-wider text-muted-foreground uppercase">
+            {/* Plain words, not the field names (the sweep, 2026-09-16):
+                "Lives" read as a verb with no subject. */}
             <th className="px-3 py-2 font-medium">Ruling</th>
             <th className="px-3 py-2 font-medium">Surface</th>
-            <th className="px-3 py-2 font-medium">Ruled</th>
+            <th className="px-3 py-2 font-medium">When</th>
             <th className="px-3 py-2 font-medium">Shipped</th>
             <th className="px-3 py-2 font-medium">Why</th>
-            <th className="px-3 py-2 font-medium">Lives</th>
+            <th className="px-3 py-2 font-medium">Where it lives now</th>
           </tr>
         </thead>
         <tbody>

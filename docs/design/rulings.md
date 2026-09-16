@@ -8,6 +8,49 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-16 · a track returns a catalog to rule on item by item; the Library owns every design fact; history is the last two rounds
+
+**Became:** the revamp (four rounds: the lab, the docs diet and the track protocol, the Library as
+the complete inventory, the six paper boards rebuilt as catalogs); `docs/PROGRAM.md` "The round", "A
+round returns a catalog", "Every round gets Will's notes" and "The record's depth"; `ITEM_VERDICTS`
+(`keep | refine | kill`) and `LIBRARY_VERDICTS` (`keep | redesign | retire`) in
+`src/components/lab/board-spec.ts` and the review grammar's item scope (`item:<id>=<verdict> "note"`);
+the one-round manifest template and the spawn paragraph in `docs/tracks/README.md`; CLAUDE.md "Keeping
+the docs healthy" ("nothing under `docs/` is history") and `src/lib/record-depth-policy.test.ts`; the
+`lab-catalog`, `lab-sweep` and `docs-adr-fold` lanes.
+
+On the lab, verbatim: "The lab UI is super broken, at least on localhost." The full menu open at the
+top of every page and not collapsible; "On this page" a weird section at the top; 1:1 previews with
+left padding overflowing to the right ("use the full window first"); the page-wide configs not
+sticky; "I can't unpick a selection to return to a non-selected state." "This in no way reflects the
+full list of errors. It's just what I could spot during a quick look. If you find more while addressing
+these, please attempt to fix as well." (The layout faults were a browser holding an old copy of the
+lab's stylesheet; the unpick and the 1:1 gutter were real.)
+
+On the explorations, verbatim: the tracks "are turning into massively over-engineered pages"; what he
+wanted was "design catalogs of ideas to ship in the lab", from which he can kill, refine, or "promote
+the best to the Library"; the spill placements board "is a decent example". Brand-voice should have
+been "a couple dozen spot examples across the marketing site and app", where he can "compare 2 brand
+voices in usage side by side" with "a config to choose which 2, then select my winner"; type-scale "a
+few different scales side by side" on real UI, no variable lists. Agents that ran two and three rounds
+without his notes "made research papers out of their first round's work". "Gallery view by default,
+notes per item"; where a gallery does not fit, the agent builds the best presentation for the
+question. The Lab's tooling is built progressively: "GUIs, configs, previews, iFrames, questions,
+information callouts, galleries, accordions... think dynamic docs."
+
+On the record, verbatim: "we're over-indexing the importance of archival documentation"; the Library
+owns all design information (the preview, the variants, the unique rules, the tokens): "If it exists
+in our UI design, it exists here with nothing slipping by... The idea of a 'history' is unimportant";
+docs handle "anything active" (workflows, database, agent init, systems, sitemaps, roadmap) with
+history "highly limited to very recent work"; "revamp all of our working systems from the ground up";
+"I'd like this to be the change that lets us breeze through future marketing and app rounds."
+
+His answers to the plan's questions (paraphrase): a review is notes AND a keep / refine / kill
+verdict per item, with asks only for what is not one item; history is the current round and the one
+before; the Library covers components, marketing sections and app screens, each with a live preview,
+plus tokens; all six paper boards are rebuilt as catalogs before his next review; the palette catalog
+is walked first.
+
 ## 2026-09-15 · a question carries its context; an exploration is a catalog
 
 **Became:** the ask shape (`src/components/lab/board-spec.ts`: a real question, its context, where to

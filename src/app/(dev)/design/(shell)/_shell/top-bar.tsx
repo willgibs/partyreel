@@ -15,9 +15,10 @@ import { LabLink, useDesignKey, useNav, usePalette } from "./shell-context";
 /**
  * THE TOP BAR (the Library x Lab round, 2026-09-15): the mark, the two areas,
  * the search that opens the palette, the theme control (the lab's single one)
- * and, on a wide page, the sidebar toggle. It measures itself into
- * `--lab-topbar-h` on <html>, which the sticky sidebar, the table of contents
- * and a board's dock all sit under.
+ * and, from `lg`, the sidebar toggle (any page: a reader who wants the measure
+ * collapses the nav on a doctrine doc as readily as on a board). It measures
+ * itself into `--lab-topbar-h` on <html>, which the sticky sidebar, the table
+ * of contents and a board's dock all sit under.
  *
  * SEARCH IS THE BAR'S CENTREPIECE and the sidebar's field is a filter: two
  * different jobs, named differently on purpose. This one crosses both areas
@@ -149,11 +150,15 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
           }
           aria-pressed={sidebar === "open"}
           aria-label={
-            sidebar === "collapsed"
-              ? "Show the sidebar on wide pages"
-              : "Hide the sidebar on wide pages"
+            sidebar === "collapsed" ? "Show the sidebar" : "Hide the sidebar"
           }
-          title="The sidebar on a board page"
+          // It used to say "on a board page", which was the truth and the bug:
+          // the grid honoured the preference only on a board, so the one
+          // control on screen at every width did nothing on nine pages in ten
+          // (the sweep, 2026-09-16; design.css now collapses on any page).
+          title={
+            sidebar === "collapsed" ? "Show the sidebar" : "Hide the sidebar"
+          }
           className={cn(
             "hidden size-8 items-center justify-center rounded-md transition-colors duration-90 hover:bg-muted lg:flex",
             sidebar === "open"
