@@ -28,6 +28,7 @@ import {
 import { ReviewSession } from "./_desk/review-session";
 import { SAMPLE_BOARD } from "./_desk/sample-spec";
 import { type SessionStep, stepParam, toSteps } from "./_desk/session-step";
+import { CopySoFar } from "./_desk/copy-so-far";
 import { StartReview } from "./_desk/start-review";
 import { itemsStepId, stepId } from "./_desk/step-id";
 
@@ -208,9 +209,12 @@ export default async function DeskPage({
         blurb="Every catalog with a card still unruled and every question with no answer, in board order. The review walks them one at a time and ends in one message to paste."
         aside={
           queue.length > 0 ? (
-            <StartReview
-              steps={steps.map((step) => ({ step, href: stepHref(step) }))}
-            />
+            <span className="flex flex-wrap items-center gap-2">
+              <CopySoFar />
+              <StartReview
+                steps={steps.map((step) => ({ step, href: stepHref(step) }))}
+              />
+            </span>
           ) : undefined
         }
       >

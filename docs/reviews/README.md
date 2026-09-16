@@ -44,6 +44,10 @@ ruling draft. When a board leaves the lab (its ruling landed) its ledger is dele
 
 `review <board> r<n>: <ask>=<option> "an optional note"; item:<id>=<verdict> "an optional note"; note: "a board-wide note"`
 
+Paste as you go: the review card's spine and the desk carry "Copy so far", which composes every answer,
+verdict and note held at that moment, one line per board; a later paste of the same ask or item
+overwrites, so a sitting can land in batches.
+
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
 An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.
 

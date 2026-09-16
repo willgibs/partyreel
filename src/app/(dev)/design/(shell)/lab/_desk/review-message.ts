@@ -129,3 +129,65 @@ export function composeMessage(
     .filter(Boolean)
     .join("\n");
 }
+
+/**
+ * EVERYTHING HELD SO FAR, AS ONE MESSAGE (Will, 2026-09-16, a few questions
+ * into his first sitting: "it's really annoying that there's not an option to
+ * copy and send you only the answers I've completed so far... being able to
+ * batch this at my own pace would be much more efficient"). Reads the store's
+ * three maps by their key shapes (`<board>.r<n>.<ask>`, `<board>.r<n>.item.<id>`,
+ * `<board>`), keeps only a held choice, a held verdict or a note with words,
+ * and composes one line per board. A later paste of the same ask or item
+ * overwrites in the ledger, so a partial paste is never a commitment.
+ */
+export function composeSoFar(
+  store: {
+    answers: Record<string, { choice: string; note: string }>;
+    items: Record<string, { verdict: string; note: string }>;
+    notes: Record<string, string>;
+  },
+  roundOf: (board: string) => number | undefined,
+): { message: string; answers: number; items: number; notes: number } {
+  const answers: SessionAnswer[] = [];
+  const items: SessionItem[] = [];
+  const notes: SessionNote[] = [];
+  const ask = /^(.+)\.r(\d+)\.([^.]+)$/;
+  const item = /^(.+)\.r(\d+)\.item\.([^.]+)$/;
+  for (const [key, held] of Object.entries(store.answers)) {
+    const m = ask.exec(key);
+    if (!m || !held.choice) continue;
+    answers.push({
+      board: m[1],
+      round: Number(m[2]),
+      ask: m[3],
+      choice: held.choice,
+      note: held.note || undefined,
+    });
+  }
+  for (const [key, held] of Object.entries(store.items)) {
+    const m = item.exec(key);
+    if (!m || !held.verdict) continue;
+    items.push({
+      board: m[1],
+      round: Number(m[2]),
+      item: m[3],
+      verdict: held.verdict,
+      note: held.note || undefined,
+    });
+  }
+  for (const [board, text] of Object.entries(store.notes)) {
+    if (!text?.trim()) continue;
+    const round =
+      roundOf(board) ??
+      answers.find((a) => a.board === board)?.round ??
+      items.find((i) => i.board === board)?.round;
+    if (round === undefined) continue;
+    notes.push({ board, round, text });
+  }
+  return {
+    message: composeMessage(answers, notes, items),
+    answers: answers.length,
+    items: items.length,
+    notes: notes.length,
+  };
+}

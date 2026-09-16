@@ -12,6 +12,7 @@ import {
   registerReviewKeys,
   reviewKeysOwned,
 } from "@/app/(dev)/design/(shell)/lab/_desk/review-keys";
+import { CopySoFar } from "@/app/(dev)/design/(shell)/lab/_desk/copy-so-far";
 import {
   setAnswerNote,
   toggleAnswer,
@@ -331,6 +332,7 @@ export function ReviewCard({
           <span className="text-[11px] text-muted-foreground tabular-nums">
             {done} done
           </span>
+          <CopySoFar />
           <Step
             dir="back"
             href={hrefOf(hop(at - 1))}
