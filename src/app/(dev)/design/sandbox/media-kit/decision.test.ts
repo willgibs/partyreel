@@ -9,7 +9,6 @@ import {
 } from "./bridge";
 import { candidate, CANDIDATES } from "./candidates";
 import {
-  ASKS,
   BARRED,
   BARRED_IDS,
   BARRED_POSTS,
@@ -22,7 +21,14 @@ import {
   POSTS_UNDER_RULE,
   ROUTE_SHIPS,
 } from "./decision";
-import { CLIPS_IF_LICENSED, HARD_FRAMES, TOTAL } from "./plan";
+import {
+  CLIPS_IF_LICENSED,
+  HARD_FRAMES,
+  ISTOCK_FRAME,
+  TOTAL,
+  UNSPLASH_MONTH,
+} from "./plan";
+import { MEDIA_KIT } from "./spec";
 import { MASTERS } from "./shoot";
 import { WEBSUMMIT_CC } from "./sources";
 
@@ -105,6 +111,12 @@ describe("what the rule takes back", () => {
 });
 
 describe("the ruling surface", () => {
+  // ★ THE ASKS MOVED TO `spec.ts` AT THE MIGRATION WAVE and this suite followed
+  // them rather than being deleted with them. The template, the desk's queue and
+  // the review ledger read one list now, so the list is the thing worth pinning:
+  // an ask is what a ruling is recorded against, and its id is the join.
+  const ASKS = MEDIA_KIT.asks;
+
   it("is four asks, and round four swapped two of them for the sheet", () => {
     expect(ASKS).toHaveLength(4);
     // `sources` (rule on a list of licence names) and `route` are gone: the
@@ -114,35 +126,45 @@ describe("the ruling surface", () => {
     expect(ASKS.map((a) => a.id)).toEqual(["rule", "spend", "crowds", "kit"]);
   });
 
-  it("every answer is one word, so a ruling is four words", () => {
+  it("every answer is one token, so a ruling is four words", () => {
     for (const a of ASKS) {
       expect(a.options.length).toBeGreaterThanOrEqual(2);
       for (const o of a.options) {
-        // "Strike one" is the one two-word answer: it names the act, and the
-        // source struck comes from the list beside it.
-        expect(o.split(" ").length).toBeLessThanOrEqual(2);
+        // ★ ONE TOKEN, NOT ONE WORD, AND THE DIFFERENCE IS THE LEDGER'S. Round
+        // four allowed "Subjects only", which the review line cannot carry: the
+        // grammar is `<ask>=<option>` and a space ends the clause. The two-word
+        // answer became `all-faces`, which reads the same and parses.
+        expect(o, `${a.id}: "${o}" is not one token`).toMatch(
+          /^[a-z0-9][a-z0-9-]*$/,
+        );
       }
     }
   });
 
   it("every recommendation is one of the options offered", () => {
-    for (const a of ASKS) expect(a.options).toContain(a.recommend);
+    for (const a of ASKS) expect(a.options).toContain(a.recommended);
   });
 
   it("every ask points at a section of the board that argues it", () => {
-    for (const a of ASKS) expect(a.href).toMatch(/^#mk-[a-z]+$/);
+    const ids = new Set(MEDIA_KIT.sections.map((s) => s.id));
+    for (const a of ASKS) expect(ids.has(a.evidence), a.id).toBe(true);
   });
 
   /**
-   * ★ THE ONE NUMBER THE ROUND EXISTS TO CORRECT WAS STILL IN ASK 3. The first
+   * ★ THE ONE NUMBER THE ROUND EXISTS TO CORRECT WAS STILL IN AN ASK. The first
    * cut of round three fixed the finding at the top of decision.ts and left the
    * ask itself reading "Licensed ships twelve swaps", the pre-rule count, two
    * lines above its own `because` and directly above the table that contradicts
-   * it, under a caption promising every number is computed. So: every digit in
+   * it, under a caption promising every number is computed. So: every digit on
    * the ruling surface has to be a number the batch computes. A count typed into
    * a sentence goes stale silently; an interpolated one cannot.
+   *
+   * ★ AND THE SURFACE IS WIDER THAN THE ASKS NOW. The template's Answer prints
+   * the verdict above them, so the verdict is scanned too, which is what caught
+   * the last two typed counts on this board: the `blog` column of the Ours and
+   * Licensed rows both wrote the number of posts as a literal.
    */
-  it("every count in an ask or the route table is one the batch computes", () => {
+  it("every count on the ruling surface is one the batch computes", () => {
     const derived = new Set<number>([
       IDS_TOTAL,
       IDS_UNDER_RULE,
@@ -164,11 +186,16 @@ describe("the ruling surface", () => {
       // ruling surface is a figure the plan table also shows.
       TOTAL,
       HARD_FRAMES,
+      ISTOCK_FRAME,
+      UNSPLASH_MONTH,
       CLIPS_IF_LICENSED,
       WEBSUMMIT_CC,
     ]);
     const surfaces = [
-      ...ASKS.map((a) => `${a.question} ${a.because}`),
+      ...ASKS.map(
+        (a) => `${a.question} ${a.because ?? ""} ${a.overrule ?? ""}`,
+      ),
+      `${MEDIA_KIT.verdict.recommendation} ${MEDIA_KIT.verdict.because} ${MEDIA_KIT.verdict.overrule ?? ""}`,
       ...ROUTE_SHIPS.map((r) => `${r.ships} ${r.blog} ${r.cost} ${r.ends}`),
     ];
     for (const text of surfaces) {
@@ -195,9 +222,9 @@ describe("the ruling surface", () => {
    */
   it("the spend ask quotes the plan's totals, never a typed price", () => {
     const spend = ASKS.find((a) => a.id === "spend");
-    expect(spend?.question).toContain(`$${TOTAL}`);
-    expect(spend?.question).toContain(`${HARD_FRAMES} iStock frames`);
-    expect(spend?.recommend).toBe("Buy");
+    expect(spend?.because).toContain(`$${TOTAL}`);
+    expect(spend?.because).toContain(`${HARD_FRAMES} iStock frames`);
+    expect(spend?.recommended).toBe("buy");
     const kit = ASKS.find((a) => a.id === "kit");
     expect(kit?.because).toContain(`$${TOTAL}`);
     expect(kit?.because).toContain(`$${CLIPS_IF_LICENSED}`);
@@ -208,7 +235,7 @@ describe("the ruling surface", () => {
   it("the crowds ask names the catalogue that turns on it", () => {
     const crowds = ASKS.find((a) => a.id === "crowds");
     expect(crowds?.because).toContain(WEBSUMMIT_CC.toLocaleString("en-US"));
-    expect(crowds?.options).toEqual(["Subjects only", "All faces"]);
+    expect(crowds?.options).toEqual(["subjects", "all-faces"]);
   });
 
   it("the route table still says the counts the rule leaves", () => {
@@ -216,7 +243,7 @@ describe("the ruling surface", () => {
     expect(licensed?.ships).toContain(
       `${IDS_UNDER_RULE} of the ${IDS_TOTAL} ids`,
     );
-    expect(licensed?.blog).toContain(`${POSTS_UNDER_RULE} of 23`);
+    expect(licensed?.blog).toContain(`${POSTS_UNDER_RULE} of ${BRIDGE.length}`);
     expect(licensed?.legal).toBe(false);
     expect(BARRED_IDS.length).toBe(IDS_TOTAL - IDS_UNDER_RULE);
   });
@@ -229,5 +256,12 @@ describe("the ruling surface", () => {
     ]);
     // The recommendation leads the table, as it leads the toggle.
     expect(ROUTE_SHIPS[0].route).toBe("mix");
+    // ★ AND THE TOGGLE IS THE SPEC'S DECLARED CONTROL NOW, so the table's order
+    // and the dock's order cannot drift: they are read off one array.
+    const control = MEDIA_KIT.controls?.find((c) => c.id === "route");
+    expect(control?.options.map((o) => o.id)).toEqual(
+      ROUTE_SHIPS.map((r) => r.route),
+    );
+    expect(control?.default).toBe("mix");
   });
 });

@@ -1,7 +1,8 @@
 ---
 track: media-kit
-status: open
-cut: "32ddefc"
+status: integrated
+cut: "1b647d7"
+merged: "df8d6afb"      # the branch head merged into launch-prep
 merged_round_4: "b399c354"
 merged_round_3: "6c6ab14"
 merged_round_2: "2307446"
@@ -1078,14 +1079,159 @@ added to `public/`.
 
 ## Handoff (round 5)
 
-- Head <sha>, pushed; preview partyreel-git-lp-media-kit-partyreel.vercel.app
-- Synced with launch-prep at <sha>
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages), lab:smoke ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the three registration lines (exceptions and why)
-- Shared-file changes asked of the Orchestrator: none
-- Assets requested from Will: none
-- Look at first: ...
+- Head: the tip of `lp/media-kit`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot name
+  its own commit). The last commit that changes what the board draws is `71eba9de`; the ones after it
+  are the second `launch-prep` merge and this file. **No preview**: Vercel is over its monthly
+  deployment storage and the wave's previews are off, so this push says nothing about `[preview]` and
+  builds nothing. The board is at `/design/lab/media-kit` on a dev server, and on the `launch-prep`
+  alias when the Orchestrator builds it once at the close.
+- **Synced with `launch-prep` three times as the wave landed around it; the last is the one that
+  counts, `5959b433`.** `a489d563` brought home-hero and river-visual onto the kit, gave the two glow
+  boards specs, and taught the kit's `answer.tsx` to land an anchor once rather than twice;
+  `55e74015` brought album-hero, floating-surfaces and brand-voice, the storage round's
+  `scripts/vercel-ignore-build.mjs` (an `lp/*` push now builds nothing unless its message says
+  `[preview]`, and this handoff push deliberately does not) and the `lab-review.mjs` fix below;
+  `5959b433` brought palette and the kit's paste-clamp fix. Seven conflicts across the three merges,
+  every one the adjacent-line kind the wave predicted, every one resolved by keeping BOTH sides:
+  `registry.ts` (the import and the `BOARDS` entry, `MEDIA_KIT` after `BRAND_VOICE`, which is
+  `touchpoints.ts`'s own order), `(shell)/lab/boards.ts` (three entries in one hunk: theirs drop
+  `legacy` from floating-surfaces and brand-voice, mine from media-kit) and `kit-discipline.test.ts`,
+  whose `LEGACY` list is down to `type-scale` alone. The whole gate was re-run on each merged tree.
+- Gates on the merged tree, re-run in full after the last merge: typecheck ok, lint ok (0 errors, 6
+  warnings, all pre-existing and none in this lane), test ok (2140 in 218 files; this track's eight
+  suites hold 78), build ok (257 static pages), `pnpm lab:smoke --base http://localhost:3418` ok (322
+  checks, 0 failing). The board re-checked on that tree at 1440: eleven anchored sections, no document
+  overflow, no running animation.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
+  `docs/tracks/media-kit.md`, the twelve files under `src/app/(dev)/design/sandbox/media-kit/`, and the
+  **three registration lines the wave allows, declared here as the only exceptions**:
+  `src/app/(dev)/design/sandbox/registry.ts` (the spec imported and added to `BOARDS`),
+  `src/app/(dev)/design/(shell)/lab/boards.ts` (`legacy: true` dropped from the `media-kit` entry) and
+  `src/components/lab/kit-discipline.test.ts` (`"media-kit"` deleted from `LEGACY`). Nothing else
+  outside the lane. No production byte changed: `marketing-media.ts`, `public/marketing/` and every blog
+  frontmatter are untouched, and nothing was added to `public/`.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+
+### ★ One shared-file change, found here and already landed on `launch-prep` at `9ab89cdd`
+
+**Nothing is asked for: the fix below is in the tree this branch merged.** It is written out in full
+because the reasoning is worth keeping and because the guard that would stop it coming back is still
+owed by the lab-shell lane.
+
+`scripts/lab-review.mjs` could not read a spec whose `defineBoard` import is followed by another NAMED
+import. It finds the board object as the first `{` after the first occurrence of `defineBoard`, and the
+first occurrence is the import itself, so `import { BRIDGE } from "./bridge"` on the next line is read
+as the board: no asks are found and every ruling on that board is refused with `"rule" is not an ask on
+media-kit ()`. Measured, not inferred: `readSpec` returned 0 asks for this board and 9 for `light`,
+whose spec has exactly one import. The patch is one line, in `readSpec`:
+
+```js
+-  const open = masked.indexOf("{", masked.indexOf("defineBoard"));
++  // The CALL, not the import: `import { defineBoard }` puts its brace before
++  // the word, so the first `{` after the first occurrence is the NEXT named
++  // import's brace, and the import list is then parsed as the board.
++  const open = masked.indexOf("{", masked.indexOf("defineBoard("));
+```
+
+It is a no-op for every spec standing today (verified before the merge: the brace offset was identical
+for glow-doctrine, glow-moments, home-hero, light, media-kit, river-visual and rounding) and it fixes
+the shape above, verified on a synthetic spec. It landed on `launch-prep` at `9ab89cdd` in exactly that
+form while this round was running. This board keeps every number it interpolates behind ONE brace-free
+default import (`sandbox/media-kit/facts.ts`) anyway, because that was what made its ledger work before
+the fix and it costs nothing now; `facts.ts` records why. **Still owed, and the reason this stays in the
+record:** a test in the lab-shell lane pinning the reader to a spec with two named imports. Without one,
+the reader can regress and the only symptom is a board whose rulings are silently refused.
+
+- **A ledger note.** Three of the four asks kept their ids (`rule`, `spend`, `crowds`, `kit`) and all
+  four changed their OPTION tokens, because the ledger's grammar is `<ask>=<option>` and a space ends
+  the clause: round four's `Subjects only` could never have been recorded. They are `yes|no`,
+  `buy|hold`, `subjects|all-faces` and `shoot|park` now, lower case like the pilots'. Nothing is in
+  `docs/reviews/` for this board yet, so nothing has to be migrated.
+- **`touchpoints.ts` needs no change** (and this track never edits it). Its `note` and `variants` are
+  what the desk shows for a board WITHOUT a spec; this board has one now, so the desk reads the verdict
+  and the asks instead, and the entry can be left exactly as it is.
+- Assets requested from Will: unchanged from round four in substance, and now carried as data in
+  `spec.ts` (`assets`), in the fixed `what / spec / replaces / row` shape the `BoardMeta` panel renders
+  and the Orchestrator folds: the $56 purchase (a card, not a camera), the 36 masters (row 7), the 24
+  squares (row 2), the portrait recrops (rows 9 and 12), the hand-and-phone cutout (row 8), the 8
+  vertical clips and the film (rows 4 and 1), the deliberately overlapping pair (row 11) and the demo
+  event's curated folder (row 5).
+- **Proposed `ASSETS.md` changes**: none new. Round four's are unapplied or applied as the Orchestrator
+  judged; this round changed no asset, no count and no price.
+- The asks, verbatim from the spec (the Orchestrator quotes them under Waiting on Will; the desk already
+  queues all four):
+  1. **The sourcing rule** (`yes` / `no`, recommended **yes**). Author, source, the clause quoted, a
+     retrieval date and a people field on every entry, and no recognisable face without a release.
+  2. **The bridge, bought rather than scavenged** (`buy` / `hold`, recommended **buy**). One month of
+     Unsplash+ plus 3 iStock frames for the conference rooms, $56 in total.
+  3. **Does the release rule bind every face, or a frame's subject?** (`subjects` / `all-faces`,
+     recommended **subjects**). Answer `all-faces` and the free half of the sheet is decoration.
+  4. **The kit, shot in one night** (`shoot` / `park`, recommended **shoot**). 36 masters, six per
+     vertical, at a real event running Partyreel.
+- **Look at first**: press **Look first** in the dock and take the seven steps. They are the walk this
+  board has always wanted a reviewer to take and could never make executable: the plan, the sheet
+  filtered to corporate and conferences (watch the cards that flag they have nothing for it), the same
+  frames at the real card size, the four blocks with `/blog` open in a second tab, then the bridge at
+  Licensed and at Mix on the same posts, and the call sheet. Each step sets the state it was written in,
+  so the note and the specimen can no longer disagree.
+
+### Light QA (a lab-only round; the red-team belongs to the wiring round)
+
+- The board on `http://localhost:3418` at **1440 and 375, dark and light**, on the merged tree.
+  Measured rather than eyeballed: `documentElement.scrollWidth === clientWidth` at both widths (375 and
+  375; 1440 and 1440), so the document never scrolls sideways; the widest box on the page at 375 is a
+  Stage's 1440 canvas inside its OWN scroller, which is the round-four note's stated correct behaviour.
+  All eleven sections carry their anchor, there are no duplicate ids, and a section reached by its hash
+  clears the dock (`media-kit-record` top 294, dock bottom 150).
+- **Reduced motion is honoured by construction, and it was checked rather than assumed**:
+  `root.getAnimations({subtree: true})` returns 0 and no element on the board has a computed
+  `animation-name`. The board mints no keyframe and runs no loop; `board.css`'s only motion rule is the
+  develop transition-delay inside `prefers-reduced-motion: no-preference`, so a reduced-motion reader
+  gets the settled composition with nothing to undo.
+- **A copied link reopens the same canvas, candidate and section**, verified:
+  `?canvas=phone&route=licensed&vertical=corporate&geometry=share#media-kit-bridge` restores all four
+  controls on the board's root and lands on the bridge.
+- **The review panel's message parses.** Composed on the board
+  (`review media-kit r5: rule=yes "..."; spend=buy; crowds=all-faces; kit=shoot; note: "..."`) and run
+  through `node scripts/lab-review.mjs --root <scratch>` against a COPY of `docs/reviews/` in the
+  scratchpad: five clauses recorded, nothing written to the repo (`git diff` over `docs/reviews` is
+  empty).
+- **`/design/lab` queues the board's four asks** with their recommended words, and the desk's count went
+  from 14 waiting to 18.
+- **Two tooling blind spots, neither a board defect**, both isolated before they could be "fixed":
+  1. **The walk's scroll does not animate under automation.** `scrollIntoView({behavior: "smooth"})`
+     moves nothing in an automation-driven tab (`scrollY` stays 0 across all seven steps) while
+     `behavior: "auto"` scrolls to the pixel, in BOTH the browser pane and the Chrome extension, with
+     `prefers-reduced-motion` reporting false. The light pilot behaves identically on the same server,
+     which is what settles it: the compositor's scroll animation does not advance for a tab that is
+     never painted. The state half of every step was verified instead, and it is correct.
+  2. **The window cannot be narrowed through the Chrome extension** (it reported `innerWidth` 500 after
+     a successful-looking resize to 1440), which is round two's finding in this manifest, unchanged. The
+     375 pass was taken on the browser pane's per-tab viewport emulation, which is real.
+
+### Findings against a rule
+
+None against the bible. Three against this board's own tests and documents, all closed in the lane:
+the review ledger could not read this spec at all (above); `board-jsx.test.ts` named two files and the
+board is four since the split, and widening it immediately caught a real glued count
+(`{CANDIDATES.length} staged` with an entity later in the run, which SWC renders as "22staged"); and
+`docs/specs/media-kit.md` was still printing round three's asks as a table, which is the second copy the
+spec now replaces.
 
 ## Record (round 5; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-15). The media-kit board moved onto the lab kit's
+template and became two files: `spec.ts`, which is the question, the verdict, the four one-word calls,
+three candidates, seven departures and eight assets as pure data, and `board.tsx`, which is the
+evidence per declared section and nothing else. Round four's `details` fold, which hid five sections
+behind one summary so the answer could come first, is gone: the template answers first, indexes the
+whole board and folds each section's own argument under the evidence it belongs to, and the board is
+25,600 px rather than round three's 30,800. Four page-wide switches became declared state, so the dock
+renders them, a walk step sets them and a pasted link reopens the exact canvas, route, geometry and
+section; the two per-stage viewport toggles became one canvas; the four applied blocks became the kit's
+own Apply with the dock's badge. Applying this board's oldest rule to the spec, that a count is computed
+and never typed, found the last two places that still broke it, both in the route table's blog column.
+Two guards were repaired on the way: the review ledger could not read a spec whose `defineBoard` import
+is followed by a named import, and refused every ruling on this board until its numbers came through one
+brace-free import; and the JSX count guard named two files when the board is four, which hid a real
+glued count. No candidate, number or recommendation changed, and no production byte.

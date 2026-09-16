@@ -54,8 +54,10 @@ export function planSource(row: PlanRow): SourceCard {
   return s;
 }
 
-const UNSPLASH_MONTH = byId.get("unsplash-plus")!.firstSpend!;
-const ISTOCK_FRAME = byId.get("istock")!.firstSpend!;
+/** The subscription month itself, exported so a board can quote it without
+ *  typing "$20" into a sentence (the board's oldest rule; see decision.ts). */
+export const UNSPLASH_MONTH = byId.get("unsplash-plus")!.firstSpend!;
+export const ISTOCK_FRAME = byId.get("istock")!.firstSpend!;
 const ARTGRID_YEAR = byId.get("artgrid")!.firstSpend!;
 
 /** The number of hard frames budgeted at the per-image source. */

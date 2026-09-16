@@ -49,19 +49,15 @@ import {
   type BridgePost,
 } from "./bridge";
 import { candidate } from "./candidates";
+import {
+  BARRED_IDS,
+  IDS_TOTAL,
+  MIX_IDS,
+  MIX_POSTS,
+  POSTS_FILLED,
+} from "./decision";
 import type { Route } from "./kit";
 import { master, MASTERS } from "./shoot";
-
-/** The pages to walk with a block applied. Quoted in BoardMeta. */
-export const WALK = [
-  "/",
-  "/pricing",
-  "/help",
-  "/contact",
-  "/blog",
-  "/blog/qr-code-for-wedding-photos",
-  "/features/album",
-];
 
 /** Every marketing still, plus the two reel posters, by their real file names. */
 const ALL_FRAMES = [
@@ -276,3 +272,50 @@ ${blockFor("ours")}`;
  */
 export const MIX_CSS = `/* media-kit D: the mix, licensed where the frame is furniture, the shoot everywhere else */
 ${blockFor("mix")}`;
+
+/**
+ * THE FOUR BLOCKS, IN WALKING ORDER: what is wrong, the recommendation, then the
+ * two routes it sits between. Round two led with the exposure and ended on the
+ * recommendation, which is the order an argument is BUILT in rather than the
+ * order it is READ in.
+ *
+ * ★ THE LIST IS DATA, NOT JSX, so the board's apply section and any test read
+ * one array. It is shaped for the kit's `ApplyToSite` (label, css, what) without
+ * importing it: this module is read by a node test, and the kit's barrel is a
+ * client tree. The board adds the board prefix to the label and the walk pages
+ * from the spec, which is where the pages live now.
+ */
+export type ApplyBlockSpec = {
+  id: string;
+  label: string;
+  css: string;
+  /** One line: what this block changes, shown while it is not applied. */
+  what: string;
+};
+
+export const APPLY_BLOCKS: readonly ApplyBlockSpec[] = [
+  {
+    id: "exposure",
+    label: "The exposure",
+    css: EXPOSURE_CSS,
+    what: "Every frame with no provenance, outlined and drained. Media is the colour, so this is the site with everything we do not own taken out of it. Start here.",
+  },
+  {
+    id: "mix",
+    label: "Mix",
+    css: MIX_CSS,
+    what: `The recommendation: a licensed photograph only where the frame is furniture (${MIX_IDS} of the ${IDS_TOTAL} ids and ${MIX_POSTS} of the ${BRIDGE.length} covers, the ring detail and the empty aisle), the slate everywhere else. The site in the weeks between the ruling and the shoot.`,
+  },
+  {
+    id: "ours",
+    label: "Ours",
+    css: SHOOT_CSS,
+    what: "Every frame replaced by the slate of the shot that replaces it. This is the site saying what the shoot costs, page by page.",
+  },
+  {
+    id: "licensed",
+    label: "Licensed",
+    css: BRIDGE_CSS,
+    what: `The staged CC0 batch, by id everywhere the ${IDS_TOTAL} appear and by slug on every blog cover: ${POSTS_FILLED} of ${BRIDGE.length} filled and ${BRIDGE.length - POSTS_FILLED} left empty. Walk it to see why it loses: ${BARRED_IDS.join(" and ")} are filled by frames with a face and no release.`,
+  },
+];

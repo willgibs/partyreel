@@ -26,7 +26,17 @@
  * "Licensed ships twelve swaps", which is the one number the round exists to
  * take back, sitting in the first sentence a reviewer reads. A number written
  * into a sentence cannot be wrong out loud; a number interpolated from the batch
- * can only be wrong if the batch is. So there are none of the former left here.
+ * can only be wrong if the batch is. So there are none of the former left here,
+ * and the two that outlived round four were in this file: the `blog` column of
+ * the Ours and Licensed rows both typed the number of posts. Both read BRIDGE
+ * now, and decision.test.ts scans every string on the ruling surface for a digit
+ * the batch does not produce.
+ *
+ * ★ THE ASKS THEMSELVES LIVE IN `spec.ts` (the migration wave, 2026-09-15). They
+ * were here because there was nowhere else to put them; now the template, the
+ * desk's queue and the review ledger all read one list, and an ask carries a
+ * section id rather than an href. What stays here is what the asks are ABOUT:
+ * the counts, and the table that answers the route.
  */
 
 import {
@@ -37,10 +47,6 @@ import {
 } from "./bridge";
 import { candidate, CANDIDATES } from "./candidates";
 import type { Route } from "./kit";
-// Round four's asks are priced from the plan, so the money in an ask is the money
-// in the plan table by construction and cannot drift out of one of them.
-import { CLIPS_IF_LICENSED, HARD_FRAMES, TOTAL } from "./plan";
-import { WEBSUMMIT_CC } from "./sources";
 
 /** The frames the rule in ask 1 bars: a recognisable face and no release. */
 export const BARRED = CANDIDATES.filter((c) => c.people === "identifiable");
@@ -119,7 +125,7 @@ export const ROUTE_SHIPS: readonly RouteShipment[] = [
     route: "ours",
     label: "Ours",
     ships: "Nothing until the shoot, and then all 36 masters at once",
-    blog: "23 covers change on the same day",
+    blog: `${BRIDGE.length} covers change on the same day`,
     legal: true,
     cost: "One night of photography and a release at the door",
     ends: "It does not end, which is the point of it",
@@ -128,83 +134,9 @@ export const ROUTE_SHIPS: readonly RouteShipment[] = [
     route: "licensed",
     label: "Licensed",
     ships: `${IDS_UNDER_RULE} of the ${IDS_TOTAL} ids under the rule (${BARRED_IDS.join(" and ")} carry a face with no release)`,
-    blog: `${POSTS_UNDER_RULE} of 23 covers, not ${POSTS_FILLED}`,
+    blog: `${POSTS_UNDER_RULE} of ${BRIDGE.length} covers, not ${POSTS_FILLED}`,
     legal: false,
     cost: "None, which is the whole of its case",
     ends: "It does not, and that is the risk in it",
   },
 ];
-
-export type Ask = {
-  id: string;
-  /** The question, worded so the answer is one word. */
-  question: string;
-  /** The one-word answers, in the order they are offered. */
-  options: readonly string[];
-  /** The one this board recommends, which is always one of `options`. */
-  recommend: string;
-  /** One line: why, and what changes the moment the word is said. */
-  because: string;
-  /** The section on this board that argues it. */
-  href: string;
-};
-
-/**
- * ★ ROUND FOUR REPLACED TWO OF THE FOUR ASKS, AND THE SHEET IS THE REASON.
- *
- * Round three asked Will to rule on an allowed LIST of licences. His note for
- * round four asked for PLACES instead, and the sourcing sheet is that answer, so
- * the list ask is gone: the sheet ranks thirteen real catalogues by the one test
- * that decides them, and a ranking a reviewer can read beats a yes to eight
- * licence names.
- *
- * Round three also asked for the route. Round four answers it rather than asking
- * again. The recommendation is still Mix; what changed is where Mix's licensed
- * half comes from, a bought frame with a release behind it instead of a staged
- * CC0 frame that ask 1 bars. That is the same route with a better second half,
- * so the question it actually needs is the money.
- *
- * The two that stay are the two nobody has ruled on: the rule, and the shoot.
- */
-export const ASKS: readonly Ask[] = [
-  {
-    id: "rule",
-    question:
-      "The sourcing rule: author, source, the license clause quoted, a retrieval date and a people field required on every manifest entry, and no recognisable face ships without a release.",
-    options: ["Yes", "No"],
-    recommend: "Yes",
-    because:
-      "It is already running on 22 records with a suite that refuses one missing a field. Saying yes disqualifies four of the staged frames and drops every free library on the sheet below every paid one, so it is the answer that costs something.",
-    href: "#mk-record",
-  },
-  {
-    id: "spend",
-    question: `The bridge, bought rather than scavenged: one month of Unsplash+ plus ${HARD_FRAMES} iStock frames for the conference rooms, $${TOTAL} in total, staged the way the CC0 batch was.`,
-    options: ["Buy", "Hold"],
-    recommend: "Buy",
-    because:
-      "Every visual in that month is model and property released with a warranty behind it, which is the exact clause the twelve stand-ins never had, and a frame downloaded inside the month stays licensed forever with nothing to register. It is the cheapest line on the board and the only one that makes Mix legal this week.",
-    href: "#mk-plan",
-  },
-  {
-    id: "crowds",
-    question:
-      "Does the release rule bind every face, or only a frame's subject? A crowd shot is full of recognisable people and none of them is the picture.",
-    options: ["Subjects only", "All faces"],
-    recommend: "Subjects only",
-    because: `A risk call rather than a legal opinion, and worth ruling for what turns on it: Web Summit's ${WEBSUMMIT_CC.toLocaleString("en-US")} CC BY conference photographs and the whole Flickr corpus are crowds, and conferences are the one vertical no subscription on this sheet is deep in. Answer All faces and the free half of the sheet is decoration.`,
-    href: "#mk-sheet",
-  },
-  {
-    id: "kit",
-    question:
-      "The kit: 36 masters, six per vertical, shot in one night at a real event running Partyreel.",
-    options: ["Shoot", "Park"],
-    recommend: "Shoot",
-    because: `One night closes nine of the twelve rows in the asset log, and the sheet sharpened the case rather than softening it: licensing the photographs is $${TOTAL} and licensing the films is $${CLIPS_IF_LICENSED} a year, so the money was never in the stills.`,
-    href: "#mk-kit",
-  },
-];
-
-/** The recommendation in one sentence, for the top of the board and the record. */
-export const RECOMMENDATION = `Say yes to the rule, spend $${TOTAL} on a bridge that is actually released, rule on whether a crowd needs one, and shoot the kit at a real event we host. The route is still Mix. This round only changes where Mix's licensed half comes from.`;

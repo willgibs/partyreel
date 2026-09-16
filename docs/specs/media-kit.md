@@ -24,6 +24,8 @@
 > a company. Unsplash's free licence excludes recognisable people; Unsplash+ is model and property
 > released with a warranty behind it, perpetual for anything downloaded inside a month, and $20. The
 > whole bridge is buyable for $56.** Read section 8 first; sections 1 to 7 are what it stands on.
+> Round five moved the board onto the lab kit's template and moved the asks with it: they live in
+> `sandbox/media-kit/spec.ts` now and this document points at them rather than restating them.
 > The board is `/design/lab/media-kit`.
 
 ---
@@ -57,16 +59,14 @@ differ from what the hash would have returned. A person chose every miscast cove
 and festival frames, which is why `/blog/conference-photo-sharing-no-app` is illustrated with an outdoor
 music festival. That changes what the fix is: the bridge is **23 frontmatter lines**, not twelve files.
 
-**What is being asked. Four questions, each answered in one word** (round two asked five; the fifth,
-"ship the bridge or hold it", is decided by the third, so it is a consequence on the board now rather
-than a word of Will's):
-
-| # | Ask | Answers | Recommended |
-| --- | --- | --- | --- |
-| 1 | The sourcing rule (section 1): author, source, the clause quoted, a retrieval date and a people field required on every entry, and no recognisable face without a release | Yes / No | **Yes** |
-| 2 | The allowed list (section 4): CC0, Pexels, Pixabay, Mixkit and Coverr in; Unsplash and CC BY out | Yes / Strike one | **Yes** |
-| 3 | The route, which also decides the bridge | Mix / Ours / Licensed | **Mix** |
-| 4 | The kit (section 5): 36 masters, six per vertical, shot in one night at a real event running Partyreel | Shoot / Park | **Shoot** |
+**What is being asked lives on the board, not here** (the migration wave, 2026-09-15). The four asks,
+their one-word answers, the recommendation and the section that argues each are
+[`sandbox/media-kit/spec.ts`](../../src/app/(dev)/design/sandbox/media-kit/spec.ts), which the board's
+template, the desk's queue and the review ledger all read; a ruling is recorded against an ask's id, so
+a second copy of the questions in this document could only go stale and take the answers' meaning with
+it. This table did exactly that: it still listed round three's asks, an allowed LIST of licence names
+and the route, which round four had already replaced with the spend and the crowds. Read the asks at
+`/design/lab/media-kit`; sections 1 to 8 below are what they stand on.
 
 The three routes, argued on the board at `/design/lab/media-kit`:
 
