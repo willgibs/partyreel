@@ -1,6 +1,6 @@
 ---
 track: rounding
-status: open
+status: handed-off
 cut: "1b11ab9a"          # Round 4 of the revamp: the six paper boards rebuilt as catalogs (2026-09-16)
 board: rounding
 owns:
@@ -78,28 +78,117 @@ close browser tabs you are not using; kill your server before handing off; never
 in a commit message; stage files explicitly; the `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`
 trailer on every commit. The dev server on :3000 is Will's.
 
-**Questions.** What the goal leaves open goes here, numbered, with your recommended answer; carry on
-with the recommendation. Never guess at a product decision without writing the question down.
+**Questions.** Four, each answered with the recommendation the round then carried.
+
+1. **The goal names four families; the board ships six. Right call?** The catalog doctrine and the
+   brand-voice track's own round say three or four columns is not a catalog, and the four had a real
+   gap between them: nothing in A to D moves the PHOTOGRAPH away from the surface, and nothing
+   offers the cheapest visible change. **Recommended, and carried: six.** E, print (soft chrome,
+   square photographs) and F, half a step (a 6px card with the photograph left alone) are written
+   from the ground up; A to D keep their letters because three rounds of review have referred to
+   them that way. Kill both new ones on sight and the board is the goal's four.
+2. **Does a family name the button too, or only the surfaces?** Reading the corners apart is what
+   made round five a machine. **Recommended, and carried: a family names the surface, the floating
+   layer, the photograph and the gap it pins; the button RUNG and the derived LADDER stay asks**,
+   because both are true whichever family wins. The card's fourth fact states bible 8's claim as a
+   ratio against the shipped rung, which is where D gives itself away: the card out-rounds the button.
+3. **The board mounted the tuner panel. Keep it?** At 375 it opened OPEN over the whole board, which
+   is one of the two sweep findings. **Recommended, and carried: drop the mount.** The radius knobs
+   already ride every real marketing page and the app (`marketing-motion-tuner.tsx`,
+   `app-design-island.tsx`), which is where dragging a radius is worth anything, and the catalog's
+   Pick is the picker now. Nothing was deleted from the tuner itself.
+4. **1,200 words, or a declared budget?** The board reads 2,564 outside its folds, against 4,859.
+   About a thousand of those are the template's own (the answer, the index reprinting five ledes,
+   the meta panel, the review panel), and the four asks cost another 570 BECAUSE each carries its
+   context, which is Will's own ruling. **Recommended, and carried: `reading: { words: 2800 }` with
+   the reason in the spec**, which is the band the other three rebuilt boards landed in (light
+   2,884, brand-voice 2,542, floating-surfaces 2,318).
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none: everything this board found is either an ask on its face or a departure in its meta panel.
+
+## Findings for another lane (not mine to change)
+
+- **`design.css`'s clip comment names a rule that no longer exists.** It cites "rounding's
+  `.rnd-wide` widens by `--rnd-grow-left`" as the reason for `overflow-x: clip`; `.rnd-wide` is
+  deleted. The clip is still right, because any board could pull; the example wants rewording.
+- **`ControlKnobs` passes `wrap={c.options.length > 5}`, so a FIVE-option control never wraps.** The
+  `Toggle` wraps by default precisely because a nowrap segmented control at 375 scrolls the whole
+  document, and five medium labels is already about 350px inside a 343px dock. This board's `Page`
+  control is five short words on purpose, which is a guard rather than a fix.
+- **A trap worth writing into `traps.ts`:** an element whose only changing prop is read AFTER
+  hydration (next-themes' `resolvedTheme`: undefined, then the real mode) can keep the SERVER's
+  attributes when it is built inside a board's evidence value and handed through the template's
+  callbacks. Measured here twice: a ground box stayed `dark` in a light lab while the frame inside
+  it had already switched to the light screen, and an approach flag held in the board never reached
+  the row it gated. Both fixes are one rule, both in this board's comments: read a value in the
+  component that renders the thing it drives, and key an element on the value that changes its
+  identity.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` green for this board, its reading words
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- The asks that survive, one line each, and why each is not one item
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `316f6e1d` plus this manifest's own commit, pushed on `lp/rounding`; synced with
+  `launch-prep` at `71b7349a` (it had moved 27 commits, including the meta panel's fold, which every
+  reading number below is measured against). The work is two commits: `9811ab78` (the board) and
+  `e7fe0f6c` (the proposal doc and the spec list).
+- Gates on the synced tree: typecheck ok, lint ok (0 errors), test ok (2,143 in 227 files), build ok
+  (256 pages). `pnpm lab:smoke --base http://localhost:3109` green for this board: 0 route failures,
+  **2,564 reading words against a declared 2,800** (4,859 before). `pnpm lab:review --dry 'review
+  rounding r6: item:c=keep; item:e=refine; item:d=kill; actions=today; ladder=quarters;
+  dead-rungs=drop; gap=pinned'` accepts all seven.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is `docs/specs/rounding.md` plus the
+  six files under `src/app/(dev)/design/sandbox/rounding/`, **plus one exception**:
+  `src/app/(dev)/design/_data/docs.test.ts`, which pins the spec-doc list by name and is wrong the
+  moment a seventh file exists. Two lines, corrected rather than handed back.
+- The items, one line each (the builder's verdict; a kept family lands as the rounding block in the
+  Library's foundations, because a family is a token set rather than a component):
+  - `a` **A, today** (2 / 8 / 3) - kill. The one to come back to; a ruling of A changes no line.
+  - `b` **B, square** (0 / 6 / 0) - refine. The honest version of the claim A only asserts:
+    deliberate on a dark chapter, unfinished on paper.
+  - `c` **C, soft** (8 / 12 / 4) - ship, and the board's pick. A corner you can see, with the button
+    still twice as round as the surface.
+  - `d` **D, one family** (14 / 14 / 6) - kill. At 14 the card out-rounds the button, which is bible
+    8 upside down, and a 6px corner eats a photograph at 375.
+  - `e` **E, print** (10 / 14 / 0) - refine. NEW. The only family that moves the photograph away
+    from the surface, and it closes the album's gap by deletion.
+  - `f` **F, half a step** (6 / 10 / 3) - refine. NEW. The cheapest change that is visible at all,
+    and the only one besides A that costs no sweep of the 52 literal corners.
+- The asks that survive, and why each is not one item:
+  - `actions` (today / a full pill / quiet) - the button rung is true whichever family wins, and it
+    owns a surface that is not a button: the guest entry sheet, at 1.4x its token.
+  - `ladder` (today's steps / even quarters) - the seven derived steps sit ABOVE the card's corner,
+    so they are the same question under every family and only bite once the base is round.
+  - `dead-rungs` (keep seven / drop the top two) - a subtraction from the ladder rather than a
+    value: three uses in the product between them, one of which is the Badge faking a pill.
+  - `gap` (pin it / leave the 3px) - a bug, not a preference. Three files write the album's gap as a
+    literal while their photographs ride the token, and a yes is also a yes to scheduling that sweep
+    in another lane.
+- Assets requested from Will: **a worst-case tile set for the gallery gap** · four photographs with
+  near-white, bright edges (a tablecloth, an overexposed sky, a white dress), 1200px long edge, JPG
+  · replaces the wedding-golden / party-dj / festival-lights set every grid on the board borrows,
+  which are all mid-key and hide a corner hole.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. Lab only; no production byte
+  changed.
+- Look at first: **the catalog at 375.** Six cards, each one piece of the app at a phone's own width
+  with a real 375 viewport under it wearing the same block. Then press A on `a` and B on `e` and
+  read the home page twice, scroll-locked. Then set the winner to `d` and open the calls: the
+  album's gap opens a hole at every junction, which is the round's worst finding, drawn rather than
+  argued.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-16). The rounding board was rebuilt as a catalog: a
+FAMILY became a whole answer (the surface, the floating layer, the photograph and the gap it pins)
+rather than one coordinate of a three-axis machine, and six were named, four the standing A to D and
+two written from the ground up where the four had a gap. Each card is one piece of the app at a
+phone's own width at 1:1 over a real 375 viewport wearing the same paste; Pick is page wide and the
+real pages below wear it, while A and B put any two on one real page, scroll-locked. Four asks
+survived, each true whichever family wins. Seven parts became five, the argument went under the
+evidence, and the board came from 4,859 words outside its folds to 2,564 against a declared 2,800.
+Both sweep findings were fixed by subtraction: the tuner panel is no longer mounted, and the board
+no longer measures the page to pull its rows past a column the shell now clips.
