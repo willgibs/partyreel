@@ -82,16 +82,45 @@ never `[preview]` or `[ci]`; stage files explicitly; the `Co-Authored-By: Claude
 <noreply@anthropic.com>` trailer on every commit. Three other agents run beside you (`lab-flow`,
 `palette`, `home-hero`); merge `origin/launch-prep` before your handoff if it moved, never rebase.
 
-**Questions.** What the goal leaves open goes here, numbered, with your recommended answer; carry on
-with the recommendation.
+**Questions.** Answered with the recommendation and carried on with; each is one line of what changed
+and why, for Will or the Orchestrator to overrule.
+
+1. **The order ask was renamed `infusion` to `second`.** The ledger holds `infusion=phase-1` from round
+   five, which answered "which phase first"; round six reused the id for a different question ("what
+   lands second") and round seven would have been the third meaning of one key. Recommended and done:
+   a new id, so Will's answer stands untouched and this is a new line in the ledger. The round guard in
+   `queue.ts` already re-opens every ask on a new round, so nothing depended on the collision.
+2. **`Ground` and `Register` left the dock entirely** (unlike Landing, Cadence, Hues and Beat, which
+   stay declared as their step's option states). Each job's specimen now fixes its own ground, so a
+   Ground switch could only break the "same object, crop, ground and canvas" rule the round is for; and
+   Accent is ruled, so Register is not a question. Recommended: leave them out. The one thing lost is
+   the round-five note that Identity stays reachable, which is in the rulings and in `composer.tsx`.
+3. **`Catalog` does not print `candidate.lands`, so the browse-mode card does not show it.** The field
+   is declared and the walk's card step prints it. The alternative was a duplicate of the sentence in
+   `facts`, which would drift, or rendering it inside the card's preview, where it would be prose hidden
+   from the reading budget. Recommended: leave browse mode without it; if `Catalog`'s tiles mode grows a
+   `lands` row, this board gets it for free.
+4. **The throw is judged at chapter scale although it lands on a plate.** The fill job's specimen is one
+   chapter, so the card shows the SHAPE of the light (anchored low, cast upward, no band) and its usage
+   shows the real call site, the QR plate. Recommended: keep. The same split carries the halo's own
+   argument, which is now a usage ("a white primary: no headroom for it") rather than the specimen.
+5. **The reading declaration is the OLD template's number and is meant to be replaced.** Measured 2,439
+   against round six's 2,889 with the same template; about 1,070 of what is left is the review panel,
+   the index, the "Rule on" rows and the unfolded meta panel, all of which the stepped review removes or
+   folds. Recommended: declare the measured number now, re-measure at the merge, and drop the
+   declaration entirely if the page lands under 1,200.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/specs/light.md`, three paragraphs under "What is open", refined in place: the twelve are ruled
+  ONE AT A TIME in Will's order and each card is one specimen drawn twice with its `lands` and its
+  usages; the four calls are four steps with their own context and specimen; where the aurora lands is
+  no longer "a switch rather than a question" but a fifth question staged behind keeping the aurora.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Design system: the lab's meta panel prints all twelve card summaries and every departure unfolded,
+  which is about 490 of this board's 2,439 measured words and is the template's voice, not the board's.
 
 ## Handoff (replaces the chat report)
 

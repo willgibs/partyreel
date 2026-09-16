@@ -160,7 +160,16 @@ function ChapterSpecimen({
 
 /* ── Specimen 2: two overlapping event tiles in a panel (the separate job) ── */
 
-const TILE_W = { desktop: 236, phone: 190 } as const;
+const TILE_W = { desktop: 236, phone: 170 } as const;
+
+/**
+ * ★ THE SPECIMEN HAS TO FIT A 375 COLUMN. A lab card at 375 is about 330 pixels
+ * wide, so the ground's padding plus the panel's plus the object is a budget,
+ * not a taste: the first build put a 380-pixel specimen in a 330-pixel card and
+ * the phone canvas scrolled sideways on a card that had no reason to.
+ */
+const PAD = { desktop: "p-6", phone: "p-3" } as const;
+const PANEL_PAD = { desktop: "p-5", phone: "p-3" } as const;
 
 /** The dashboard's own card, the production component, with a real cover. */
 function Tile({
@@ -227,7 +236,7 @@ function TilesSpecimen({
   return (
     <GroundBox
       ground="app-dark"
-      className="overflow-hidden rounded-lg p-6"
+      className={cn("overflow-hidden rounded-lg", PAD[mode])}
       style={{ width: "fit-content" }}
     >
       {/* ★ THE PANEL IS PADDED SO IT CAN BE SEEN. A step is a surface against
@@ -236,7 +245,7 @@ function TilesSpecimen({
           step card read as two identical pictures, which is the exact failure
           this round exists to fix. */}
       <div
-        className="rounded-xl p-5"
+        className={cn("rounded-xl", PANEL_PAD[mode])}
         style={{
           // The step, and nothing else: the panel is the shipped card token,
           // or the ground it sits on, which is the same surface with the step
@@ -278,7 +287,7 @@ function TilesSpecimen({
 
 /* ── Specimen 3: one reel frame (the mark job) ───────────────────────────── */
 
-const REEL_W = { desktop: 360, phone: 300 } as const;
+const REEL_W = { desktop: 360, phone: 250 } as const;
 
 /** The violet temperature: the five narrowed to violet and its neighbour, taken
  *  from the lamp set's own literals, so a beat reads violet without a single
@@ -319,7 +328,10 @@ function ReelSpecimen({
     // box that ends on screen", drawn by accident. Ten is the host's inset.
     <GroundBox
       ground="app-dark"
-      className="overflow-hidden rounded-lg p-10"
+      className={cn(
+        "overflow-hidden rounded-lg",
+        mode === "desktop" ? "p-10" : "p-8",
+      )}
       style={{ width: "fit-content" }}
     >
       <div className="relative isolate" style={{ width: w }}>
