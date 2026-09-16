@@ -77,6 +77,19 @@ invisible to `/design/library/policies` because they sat mid-sentence, and the i
 to 38; the craft stack's home is `docs/design/guidance.md`; the arrival choreography's heading lost its
 phase name and `touchpoints.ts` followed; the rulings file's two dangling anchors were fixed.
 
+**Round 4, the six paper boards rebuilt as catalogs** (cut `385cfa99`, on Will's answer that all six
+are rebuilt before any review). **`brand-voice`** (merged `5868325e`): six voices as catalog cards,
+each writing the same two screens at a phone's own 343px column, and a spot list of twenty-four real
+places across the marketing site, the host's app and a guest's phone, every one drawn twice in a real
+1440 or 375 document on the component that ships it; three columns became six (Plain, Everyone and
+Aside written from the ground up); eighty-five lines were written six times; thirteen sections became
+five, seven asks became three (the noun, the unfurl, the counts), and the reading went from 13,024
+words to 2,642 against a declared 2,700; `docs/specs/brand-voice.md` shrank from 522 lines of tuning
+ledgers to a 185-line standing proposal; `CardGround` stopped writing `data-mkt-skin`, which had been
+flipping the lab page's own body through marketing.css. Two questions for Will ride with it: one voice
+everywhere at three volumes, or a marketing voice and a product voice; and whether bible 20 (name what
+we are, never what we are not) means the naming or the shape, which decides the Aside card.
+
 Machine notes: four agents at once is the ceiling on 36 GB, one process each, a dev server killed by
 port; Vercel's daily cap kept the alias on the Library x Lab round's Phase 1 until 2026-09-17 00:13
 UTC, so every review ran on a local `pnpm dev`. Gates on the tree at the catalog's merge: typecheck,

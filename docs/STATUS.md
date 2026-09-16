@@ -40,9 +40,9 @@ answer that all six are rebuilt before any review; three run at a time under the
 | `lab-catalog` | the review's item scope (`item:<id>=keep\|refine\|kill "note"`), `Catalog`, `ItemVerdictRow`, `CompareTwo`, `SpotCompare`, the reading budget in `pnpm lab:smoke`, `pnpm new-board` scaffolding a catalog, `/design/lab/kit` as the toolbox, the palette rebuilt on the kit as the proof | integrated at `57b93286`; the palette verified on the desk |
 | `lab-sweep` | every lab page walked at 1440 and 375 and fixed in the shell; plain-English labels | integrated at `88dafe50` (the dev indicator moved and the lab functions' file trace cut from 2,248 to 718 files behind it) |
 | `docs-systems-strip` | the four heavy system docs stripped to the system and its invariants, every ★ audited | integrated at `0a48db70` |
-| `brand-voice`, `type-scale`, `floating-surfaces` | Round 4 catalogs (the voice on two dozen real spots; the ladders side by side and two at once on real UI; the directions as cards with the desk under two) | building |
-| `light` | Round 4 catalog (the twelve treatments on the real sections) | building |
-| `rounding`, `media-kit` | Round 4 catalogs (the four families at true size; the sources' contact sheets) | cut, waiting for a slot |
+| `brand-voice` | Round 4 catalog: six voices as cards, twenty-four real spots drawn twice under any two | integrated at `5868325e` |
+| `type-scale`, `floating-surfaces`, `light`, `rounding` | Round 4 catalogs (the ladders side by side and two at once on real UI; the directions as cards with the desk under two; the twelve treatments on the real sections; the four families at true size) | building |
+| `media-kit` | Round 4 catalog (the sources' contact sheets) | cut, waiting for a slot |
 
 Round 1 is closed on the tree (both lanes integrated, the verification list walked on the dev server);
 Will's first review with per-item verdicts is the palette catalog plus the six rebuilt boards, on the
@@ -97,6 +97,7 @@ prune crons and the shared `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 The desk derives the asks and the items (`/design/lab?key=`); the assets are in [`ASSETS.md`](ASSETS.md).
-Next from him: a walk of the palette catalog once `lab-catalog` integrates (keep / refine / kill and a note
-per palette, one line to paste), then the questions that shape the six catalog briefs, asked in chat. The
-launch-gated tasks are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).
+Next from him, once Round 4 lands: the sitting on the desk (the palette and the six rebuilt boards, keep
+/ refine / kill and a note per item, one line to paste), and two questions the brand-voice board carries
+(one voice everywhere at three volumes, or two voices; whether bible 20 means the naming or the shape).
+The launch-gated tasks are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).

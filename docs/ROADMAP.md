@@ -26,6 +26,7 @@ The lab and the kit:
 - A measured-width wrap for the dock's knobs (a four-option switch with full labels overflows a 375 dock).
 - `lab-review`'s scanner assumes a literal `defineBoard({`: keep every spec a literal or teach the scanner the wrapper.
 - Lift `height="measured"` on `Frame` and `useAnchorAfterSettle` out of `sandbox/brand-voice/frames.tsx` into the kit.
+- `SpotCompare` writes its own "What differs" line per spot with no way to shorten or suppress it (about 250 words of a two-dozen-spot board's budget); take an optional `differs` per spot.
 - Fold the gallery's `RefSection` into the shell's `Section` (one anchor shape).
 - Delete `_desk/sample-spec.ts` and the desk's dry run once every standing board carries a spec.
 - Index the kit as a component family in the collector and delete `kit/notes.ts`; retire the panel half of the rounding board's `usePanelAwareWidth`.

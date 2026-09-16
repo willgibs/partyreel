@@ -61,11 +61,11 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 
 | track | board | waits on |
 | --- | --- | --- |
-| `brand-voice` | `/design/lab/brand-voice` (the voice on two dozen real spots, two at once) | its handoff |
 | `type-scale` | `/design/lab/type-scale` (the ladders side by side, two on real UI) | its handoff |
 | `floating-surfaces` | `/design/lab/floating-surfaces` (the directions as cards, the desk under two) | its handoff |
 | `light` | `/design/lab/light` (the twelve treatments on the real sections) | its handoff |
-| `rounding`, `media-kit` | cut at `385cfa99`, spawned as slots free | a slot |
+| `rounding` | `/design/lab/rounding` (the four families at true size, two on one real page) | its handoff |
+| `media-kit` | cut at `385cfa99`, spawned when a slot frees | a slot |
 
 ## Waiting on Will
 
@@ -88,5 +88,7 @@ him: a walk of the palette catalog once `lab-catalog` integrates, then the six c
   ruling's home is docs/design/rulings.md and the board's answer block; /design/record 307s to the rulings).
 - `0a48db70` docs-systems-strip integrated (the four heavy docs stripped, 118 dated passages to 25, the ★
   audit; the arrival heading renamed with its `lives` anchor; the rulings' two dangling anchors fixed).
+- `5868325e` brand-voice integrated (Round 4's first catalog: six voices, twenty-four spots, 2,642 words
+  against a declared 2,700; two questions for Will).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
