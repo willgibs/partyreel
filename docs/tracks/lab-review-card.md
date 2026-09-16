@@ -1,6 +1,6 @@
 ---
 track: lab-review-card
-status: open
+status: handed-off
 cut: "be1638f2"          # the clarity round, 2026-09-15, cut from launch-prep
 preview: false          # no branch preview: the round reviews on a local pnpm dev after integration
 owns:
@@ -97,16 +97,114 @@ a catalog; 2026-09-15 · the lab is an internal app (the UI never writes the rep
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. The card is lab-only and its facts live in the kit page, the component's own `for` line and
+  its contract, which the generated `docs/design/library.md` already carries.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The design lab: the table of contents' reading line should add `--review-card-h`, so a heading is
+  not marked "reached" a card early while a review is open (`_shell/toc.tsx`, `readingLine()`, one
+  term).
 
 ## Handoff (replaces the chat report)
 
-- not yet
+- **Head `5a52fbb2`** on `lp/lab-review-card`, cut from `d5f0c3c9` and merged (never rebased) with
+  `origin/launch-prep` at `5da989bd` (the rounding, brand-voice and glow-specs integrations, and the
+  Answer block's own context line). No preview and no CI: `preview: false`, and no commit carries
+  `[preview]` or `[ci]`.
+- **The gates on the synced tree**, each on its own exit code: `pnpm typecheck` clean; `pnpm lint`
+  0 errors (6 warnings, all pre-existing and none in this lane); `pnpm test` 219 files, 2168 tests;
+  `pnpm build` 257 static pages. `pnpm lab:smoke --base http://localhost:3061` 325 checks, 0 failing
+  (it crawls `/design/lab?session=end`). `pnpm format` on the changed files.
+- **The lane** (`git diff --name-only origin/launch-prep...HEAD`):
 
-## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+  ```
+  docs/design/library.md                                     <- generated (exception)
+  docs/tracks/lab-review-card.md
+  src/app/(dev)/design/(shell)/lab/[board]/page.tsx
+  src/app/(dev)/design/(shell)/lab/_desk/review-session.tsx
+  src/app/(dev)/design/(shell)/lab/_desk/session-step.ts
+  src/app/(dev)/design/(shell)/lab/_desk/start-review.tsx
+  src/app/(dev)/design/(shell)/lab/kit/kit-demos.tsx
+  src/app/(dev)/design/(shell)/lab/kit/notes.ts
+  src/app/(dev)/design/(shell)/lab/kit/page.tsx
+  src/app/(dev)/design/(shell)/lab/page.tsx
+  src/app/(dev)/design/rules/component-notes.ts
+  src/app/(dev)/design/rules/rules.generated.json            <- generated (exception)
+  src/components/lab/board-page-context.tsx
+  src/components/lab/board-page.tsx
+  src/components/lab/index.ts
+  src/components/lab/review-card.test.tsx
+  src/components/lab/review-card.tsx
+  src/components/lab/walk.tsx
+  ```
 
-- not yet
+  Two paths sit outside the claimed prefixes and both are written by `pnpm design:rules`, which the
+  rules-registry test demands be committed alongside a new contract. Nothing else is outside.
+- **Two departures from the brief's letter, both named here rather than taken quietly.**
+  (1) The contract is `review-card.test.tsx`, not the `.test.ts` the manifest named: the claims are
+  RENDER claims ("every option's label and meaning are on the screen"), the `unit` vitest project is
+  node with no DOM, and a static read of the source would prove nothing about what a reviewer sees.
+  The `component` project (jsdom + RTL) is where the rest of the repo pins behaviour, and the file is
+  still under the claimed path. (2) The track claims `(shell)/lab/kit/` rather than `kit/kit-demos.tsx`
+  alone, so the specimen is WIRED into the kit page and its notes instead of exported into nothing.
+  No live track claims that directory (`lab-kit` is integrated) and the manifest guard is green.
+- **The card at 1440.** A full-bleed band pinned directly under the dock, no seam between them: the
+  spine reads "Ask 16 of 54 - Light, shadow and lamp" on the left and "0 answered - Back - Next -
+  Collapse" on the right; under it the question at 14px, the ask's context in one muted paragraph,
+  the "Where to look" line ending in a "Take me there" that re-runs the scroll, then the options as
+  numbered cards laid out three across (each its label, "the board says" on the recommended one, and
+  what choosing it means), then the note field with "This question is not clear to me" beside it and
+  "1 to 3 picks, Enter goes on." The card's bottom border doubles as the progress hairline. It stands
+  283px tall on the widest ask (three options, a four-line context) over a 49px dock and a 48px bar,
+  and the evidence it asks about starts on the next pixel: landing on `light.depth` put
+  `#light-separate` at 387.75px from the viewport top, which is `scroll-padding-top` (105) plus the
+  card (283) to the quarter-pixel. Collapse folds it to one line carrying the question and the picked
+  option's label with a check.
+- **The card at 375.** Static, like the dock: `position` computes to `relative`, `--review-card-h`
+  writes `0px` (so nothing subtracts a card nobody has to scroll past), the band is the full 375 and
+  the three options stack at 343 each. Nothing inside the card exceeds the viewport. The page's only
+  horizontal overflow at 375 is the light board's own 1440 canvas at 1:1, which is the board's choice
+  and its dock's 375 switch, not the card's.
+- **Verified live** on `pnpm dev` at :3061, on the light board:
+  landing on `light.depth` wrote `ground=app-dark` into the URL and the dock and scrolled the
+  Separate section to the line under the card; `2` from the keyboard picked "The lift only" and the
+  spine went to "1 answered"; on `light.register` picking "Identity: the page reads as a lit room"
+  wrote `register=identity` and flipped the board root's `data-register`, which is the dock's own
+  Register knob (the pick IS the preview); "This question is not clear to me" stored `choice: "?"`,
+  put the cursor in the note and carried the typed sentence; the last light ask's Next is a LINK to
+  `/design/lab/type-scale?session=type-scale.marketing`, the next board's first open ask;
+  `/design/lab?session=end` composed `review light r5: register=identity; depth=? "..."` from the
+  card's own answers and `pnpm lab:review --dry` accepted both clauses; with the media query
+  reporting `reduce` the shared scroll helper lands in the same tick instead of animating.
+  `light.register` is answered in the ledger, so reaching it meant moving `docs/reviews/light.json`
+  aside for the length of that one check and putting it back: it is byte-identical (`diff -q` clean,
+  `git status` on `docs/reviews/` empty) and nothing in this branch touches it.
+- **No board's evidence was covered, and no ask's state failed to apply.** The card clears itself
+  the way the dock does: it writes `--review-card-h` while it is stuck and `0px` while it is not, and
+  `scrollToSection` (walk.tsx, now shared with the Walk) adds that to `scroll-padding-top`. An ask
+  whose `state` names a control the board does not declare is ignored by `useBoardState`, which is
+  its existing contract; nothing on the light board hit it.
+- **Two findings for other lanes, neither blocking.**
+  (1) `_shell/toc.tsx`'s `readingLine()` is `--lab-topbar-h + --board-dock-h + 24` and does not know
+  about the card, so while a review is open the table of contents marks a heading "reached" one card
+  too early. The fix is one term: `+ px("--review-card-h")`. The shell lane owns that file.
+  (2) The desk's own step view is now reached only by the dry run (`?session=sample`), the summary
+  (`?session=end`) and a board with no page; every real ask opens on its board. It is kept
+  deliberately as that fallback, but a later round could retire it if no board is ever page-less.
+
+## Record (the CHANGELOG paragraph, past tense, at most 12 lines)
+
+The answering moved onto the boards. `?session=<board>.<ask>` on `/design/lab/<board>` now pins a
+REVIEW CARD under the board's dock: the question in plain words, the ask's context, the "Where to
+look" line, the options as numbered cards carrying their label and what choosing each one means,
+the note, "this question is not clear to me", and Back and Next counted across the whole open queue.
+Landing on a step applies the ask's declared state through the board's own `setState` and scrolls its
+evidence section under the chrome; picking an option on an ask that names a `control` sets that
+control, so the pick is the preview. Next inside a board is a state change, the last ask of a board
+links to the next board's first open ask, and the last of the queue lands on the desk's summary,
+which composes the same message it always did. The step's shape and the queue's derivation moved out
+of the desk page into `_desk/session-step.ts`, read by both routes; the walk's scroll became
+`scrollToSection`, which clears the card's height as well as the dock's; the desk's queue rows and
+"Start the review" open an ask on its board. The card joined the kit with a contract, a `for` line
+and a live specimen on `/design/lab/kit`.
