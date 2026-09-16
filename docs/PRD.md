@@ -1,197 +1,81 @@
 # Partyreel — Product Requirements
 
-_Written for the v1 build (last full pass 2026-05-29); the product has since shipped WELL past this
-document — the reel, profiles+social, exports, and the marketing identity are all live. The vision,
-monetization/anti-abuse reasoning, and retention model below still hold; for what exists today trust
-[SYSTEMS.md](SYSTEMS.md) over any "v1"/"Phase N" scoping here. A full refresh is roadmapped
-([ROADMAP.md](ROADMAP.md) "Billing follow-ons")._
+_The vision, the monetization and anti-abuse reasoning and the retention model, which still hold. For
+what exists today trust [SYSTEMS.md](SYSTEMS.md); the product has shipped well past any "v1" scoping._
 
 ## Vision
 
-Capture **every** photo and video from an event — not just the handful that
-trickle into a group chat the next day. The host runs the event; the **guests**
-are the camera crew. Friction is the enemy: guests contribute with **no app and
-no account**, just a tap on a QR code and a display name.
-
-The product is also its own growth engine: every QR code and every shared album
-is an ad. A guest who loved how easy it was becomes the next host. **North-star
-success metric: a host creates a _second_ event.**
+Capture **every** photo and video from an event, not just the handful that trickle into a group chat
+the next day. The host runs the event; the **guests** are the camera crew. Friction is the enemy:
+guests contribute with **no app and no account**, just a tap on a QR code and a display name. The
+product is its own growth engine: every QR code and every shared album is an ad, and a guest who loved
+how easy it was becomes the next host. **North-star metric: a host creates a second event.**
 
 ## Personas
 
-- **Host** — throws the event (wedding, birthday, conference, trip). Wants all
-  the media in one place, light curation control, and an easy way to share the
-  result. Has an account (email / OAuth). Pays, if anyone does.
-- **Guest** — attends the event. Wants to contribute photos in seconds from a
-  phone without installing or signing up. Has **no account**; identified only by
-  a display name (and optional email if the host requires it).
-
-_Planned (v2+ — see ROADMAP "Multi-account events"): an event can link multiple
-accounts — **co-hosts** who share management (a **paid-only** feature: the owner must be
-Pro or hold an Event Pass; co-hosts need no plan of their own), and **invite-only
-guests** by email. The single-owner `host_id` stays the billing/storage anchor; an
-additive `event_members` table adds the rest._
+- **Host**: throws the event (wedding, birthday, conference, trip); wants all the media in one place,
+  light curation control and an easy way to share the result; has an account; pays, if anyone does.
+- **Guest**: attends; wants to contribute in seconds from a phone without installing or signing up;
+  has no account, only a display name (and an email when the host requires one).
+- Planned: co-hosts sharing management (a paid-only feature; the single-owner `host_id` stays the
+  billing and storage anchor) and invite-only guests by email.
 
 ## The core loop
 
-1. **Create** — host makes an event; the system issues a single `qr_token` (→
-   `/e/[qr_token]`) and renders a QR code (one link per event, ADR-0010).
-2. **Join + upload** — a guest scans the QR and uploads photos/videos straight from
-   their phone (browser → storage, direct; no app/account, an account only when the host turns off anonymous uploads).
-3. **Curate** — uploads land live in the host's gallery. Depending on the
-   event's moderation mode they're visible immediately (`live`) or wait in a
-   queue (`hold_for_approval`). The host can hide/remove, lock uploads, and
-   toggle public visibility.
-4. **Share** — the host shares the one event link; with uploads closed it reads as a
-   view-only album (approved media only). The link carries a "start for free" CTA → growth loop, and
-   unfurls with a branded, per-event preview card (but stays `noindex`, the `qr_token` is a private
-   capability). After a guest's first upload, a soft, one-time prompt invites them to create a free
-   account to save the event (with an optional newsletter opt-in), feeding the guest → future-host loop.
-5. **Reel** — a highlight reel stitched from the best clips. **SHIPPED** (host curation + the canvas
-   engine + on-device `.mp4` export + guest surfacing/download — [SYSTEMS.md](SYSTEMS.md) "Highlight
-   reel").
+1. **Create**: the host makes an event; one `qr_token` (`/e/[qr_token]`) becomes the QR code.
+2. **Join and upload**: a guest scans and uploads straight from the phone (browser to storage,
+   direct; an account only when the host turns off anonymous uploads).
+3. **Curate**: uploads land live in the host's gallery, visible at once (`live`) or waiting in a queue
+   (`hold_for_approval`); the host can hide, remove, lock uploads and toggle public visibility.
+4. **Share**: the same link, with uploads closed, reads as a view-only album; it carries a "start for
+   free" CTA and unfurls with a per-event preview card (`noindex`; the token is a private capability);
+   after a guest's first upload a one-time prompt invites a free account to save the event.
+5. **Reel**: a highlight reel stitched from the best clips (host curation, the canvas engine,
+   on-device export, guest surfacing).
 
-## Where this maps in the build
+## Monetization and anti-abuse (the why behind the schema)
 
-The build that shipped this loop is **complete — all five steps are live**. What exists today is
-mapped in [SYSTEMS.md](SYSTEMS.md) (→ the `systems/` deep docs); the
-dated build history is in [CHANGELOG.md](CHANGELOG.md); [STATUS.md](STATUS.md) is the live "you are here"
-and [ROADMAP.md](ROADMAP.md) is what might be next.
+Pricing is **storage-based**, shaped so Partyreel cannot be abused as unlimited cloud storage. The
+canonical numbers live in `src/lib/constants/tiers.ts`, mirrored for enforcement in the
+`tier_limits()` SQL function; the tier table and the Stripe setup are in [`PRICING.md`](PRICING.md).
 
-## Monetization & anti-abuse (the WHY behind the schema)
+- **Total storage caps, not item counts**: a tier is total stored bytes against a cap; the pricing page
+  shows the GB with a friendly translation.
+- **Events persist until the host deletes them; there is no event end date.** An "ended" event that
+  kept its media would let a user fill, end, create, repeat; only deletion (or the lifecycle below)
+  frees space, and deletion destroys the media.
+- **A monthly ingress meter, unmarketed**, against fill, delete, re-upload bandwidth burn; generous,
+  never refunded on delete, surfaced only as a soft "you've hit this month's upload limit".
+- **No watermarks**; a clean growth badge on shared albums is a later design.
+- **Tiers**: Free (one event, modest storage, tier-gated event settings; the first-event experience
+  must still shine), Pro (a subscription with a storage selector and unlimited events; prices driven
+  by Stripe Price IDs), Event Pass (one-time, per event, high storage, a fixed term with a cheap
+  renewal). Upgrade triggers: a second event, or outgrowing the first one's storage. Universal
+  per-file limits live in `src/lib/media/limits.ts`.
 
-Pricing is **storage-based** and shaped so Partyreel can't be abused as unlimited
-cloud storage (model decided 2026-05-29 — the per-event item-cap model is replaced in
-Phase 4). Canonical numbers live in
-[`src/lib/constants/tiers.ts`](../src/lib/constants/tiers.ts), mirrored for
-enforcement in the `tier_limits()` SQL fn — but `tiers.ts` still encodes the OLD
-item-cap model until the Phase 4 rework lands. Full tier table, the shaped target
-`tiers.ts`, and the Stripe setup guide live in [`PRICING.md`](PRICING.md). The model:
+## Data retention and lifecycle
 
-- **Total storage caps, not item counts.** A tier is defined by total stored bytes
-  (`profiles.storage_used_bytes` vs a cap), not photo/video counts — simpler to reason
-  about and market, and it scales naturally with file size. The pricing page shows the
-  GB plus a friendly translation ("≈ X photos or X one-minute videos").
-- **Events persist until the host deletes them — there is NO event end date.** If an
-  event could be "ended" while keeping its media, a user could fill → end →
-  create-new → repeat for unlimited storage. Only deletion (or the lifecycle below)
-  frees space; deletion destroys the media.
-- **Monthly ingress meter, unmarketed.** A monthly _bytes-uploaded_ meter guards
-  against fill → delete → re-upload bandwidth/egress burn — storage caps alone don't
-  stop that (you never exceed the cap but keep burning transfer). Generous, never
-  refunds on delete, surfaced only as a soft "you've hit this month's upload limit —
-  upgrade or wait for next cycle."
-- **No watermarks** (dropped 2026-05-29 — they'd hurt the first-event experience, and
-  we have enough growth levers). A clean "growth badge" on shared albums is a later
-  design (Phase 6).
+One lifecycle across every tier; media is never hard-deleted at once. Triggers: **over capacity** (a
+lapsed grant: a downgrade, a failed payment, an expired Event Pass) opens a ~30-day in-app grace, then
+the largest files go first until under cap, with a ~10% overflow buffer before uploads block; **the
+host deletes an event** (the slot frees at once); **free-tier inactivity** after 6 months (activity is
+signing in, any host use or a recent upload; a warning email ~14 days before). The recoverable tail is
+the same for every trigger: ~60 days recoverable behind the scenes with an emailed download link and a
+deletion date, then hard-deleted (`events.deleted_at`, `events.purge_at`, the purge cron).
 
-**Tiers (structure decided; GB + prices set in Phase 4):**
+## Safety and moderation
 
-- **Free** — 1 event, modest storage, plus **tier-gated event settings** (the
-  host-settings UI locks toggles by tier; e.g. **`allow_anonymous_uploads` is ON for all, but turning it
-  OFF (require an account to upload) is gated** — locked on Free, unlocked on Pro/Event Pass). The first-event
-  experience must still shine; it sells the upgrade.
-- **Pro** — subscription with a **storage selector** (**3 storage tiers** to start, at
-  rising prices; the top is the premium anchor), unlimited events sharing that storage.
-  Replaces the old Pro + Max. Prices are driven by **Stripe Price IDs** so they're easy
-  to change without a deploy.
-- **Event Pass** — one-time, **per-event**, high storage, fixed term (~1 yr) with a
-  cheap renewal near the end; lets a free user pay once for a big event without
-  subscribing.
+A per-event moderation mode (`live` or `hold_for_approval`) gates visibility, not safety; uploads
+happen only while `accepting_uploads` is true. Anyone viewing a public album can report it or an item
+anonymously; reports land in the operator queue at `/admin` and never auto-hide (an anonymous report
+is trivially spammable; a human decides). No NSFW filtering; proactive hash-matching is a later stage.
+Host access options (a passphrase; require-upload-to-view) are a fast-follow, since they touch the
+capability-token RPCs.
 
-**Primary upgrade triggers:** creating a **2nd event** (Free = 1) or **outgrowing
-event #1's storage** — both map straight to the north-star. Universal per-file limits
-(all tiers): video ≤ **5 min** and ≤ **2 GB**, photo ≤ **50 MB**.
+## Platform principles
 
-## Data retention & lifecycle
-
-**One standardized lifecycle across all tiers** (Free, Pro, Event Pass) — media is
-**never hard-deleted immediately.** Only the _trigger_ and any pre-removal grace
-differ; the recoverable tail is identical everywhere.
-
-**Triggers (the per-case catches):**
-
-- **Over capacity** — usage exceeds your storage grant because a paid grant lapsed: a
-  downgrade, a failed payment, or an **Event Pass expiring** without renewal. A
-  **~30-day in-app grace** opens — everything stays visible and downloadable and you
-  pick what to remove to get back under cap; if you don't, we auto-reduce by deleting
-  the **largest files first** until under cap (those files then enter the tail below). We
-  allow a small **~10% overflow buffer** over the cap before blocking new uploads —
-  crossing the _base_ cap is what opens this grace (a little extra room is endearing and
-  bounds our risk). Pure-free accounts can't reach this by topping up — they're simply
-  blocked at upload once full.
-- **Host deletes an event** — frees the slot immediately (anti-abuse); the event flows
-  straight into the tail.
-- **Free-tier inactivity** — after **6 months** of no host activity, the event is
-  removed from the account (then flows into the recoverable tail below). **"Activity" =
-  signing in OR any host use** (the host's `last_active_at` is bumped on every gated-app
-  request) **OR** recent event touches/uploads — concretely the freshness clock is
-  `max(profiles.last_active_at, event.created_at/updated_at, newest media.created_at)`, so
-  a still-collecting or recently-edited event never trips it. We email a **warning ~14
-  days before** removal ("open or sign in to keep it"); using the event in that window
-  resets the clock. Free accounts only — Pro/Event-Pass events don't expire this way.
-  Fair vs. e.g. Supabase pausing free projects after ~1 week; surfaced in the legal terms
-  from launch so it's never a surprise.
-
-**The recoverable tail (identical for every trigger):** once media leaves the account
-view it's **kept recoverable behind the scenes for ~60 days** — the host gets an email
-with a download link and a clear deletion date ("…your event was removed because X;
-download the album here until {date}…") — then it's **hard-deleted** (DB rows and R2
-objects).
-
-_Future idea (out of scope): AI triages "I lost my media" support emails, matches
-sender → account/event, and auto-sends that time-boxed download link._ Schema hooks:
-`events.deleted_at` (left-the-account) and `events.purge_at` (≈ +60 days, hard-delete),
-plus the purge cron (Phase 3); the over-capacity grace is an account-level state tied
-to billing (Phase 4).
-
-## Safety & moderation
-
-- **Per-event moderation mode (host toggle) — `live` vs `hold_for_approval`.** These
-  are the two values of `moderation_mode`: `live` = review OFF (uploads appear
-  immediately) and `hold_for_approval` = review ON (uploads wait as `pending` for the
-  host before they're public). It's the host's per-event choice and gates _visibility_,
-  not _safety_. (Uploads happen only while `accepting_uploads` is true — a separate
-  switch.)
-- **Reports & operator review — report/takedown at launch; proactive filtering is
-  v2+.** Anyone viewing a public album can **report** the album (or a specific item)
-  through a discreet, anonymous link. Reports land in an **internal operator review
-  queue** (`/admin`, gated by `profiles.is_admin`) where an operator dismisses them or
-  takes the item down; actioning soft-removes the media and the purge cron reclaims it.
-  Reports **never auto-hide** content — anonymous reports are trivially spammable, so
-  auto-hide would be a griefing DoS on a legit host; a human decides. **No upload-time
-  scanning in v1.** Proactive hash-matching is on the **v2+ docket**, built as the
-  extensible root of a filter system (Cloudflare's free CSAM tool is CDN-cache-only and
-  does **not** cover our private R2 objects, so the tool + approach are chosen later).
-- **No NSFW filtering.** Skipped on purpose — costly (especially video) for little
-  early benefit, and lawful adult content is fine on Cloudflare/R2 anyway. Hosts manage
-  their event instead with the **review flow** above and **protected events** below.
-- **Host access options (deferred to a fast-follow).** Per-event settings that gate
-  guest access: (a) a **passphrase** to upload and/or view — _fun_, not a wifi-password
-  hunt (accept emoji or short phrases); (b) **require-upload-to-view** (optionally an item
-  minimum) to incentivize participation. Each needs an event-settings field,
-  RPC/guest-flow changes, and settings UI. **Deferred out of Phase 3** — they touch the
-  security-critical capability-token RPCs, so they ship as a focused fast-follow.
-
-## Platform constraints / principles
-
-- **One domain, one app.** Marketing, host app, and guest links share a domain so
-  shared links stay clean (ADR-0002).
-- **RLS is the security boundary.** Guests have no JWT; they act through
-  capability-token security-definer RPCs (ADR-0004).
-- **Media is never exposed at a raw storage URL** — always short-lived presigned
-  links (ADR-0003).
-- **The server is the source of truth for entitlements** — never the client; the
-  Stripe webhook sets tier.
-- **Media-first, understated UI.** Neutral chrome; color punctuates (logo,
-  primary CTA, active state). Guest galleries render on an always-dark surface so
-  photos/videos are the hero.
-
-## v1 non-goals — historical; most have since shipped
-
-Original v1 exclusions, kept for the record: highlight-reel processing (**since SHIPPED** — the
-canvas engine), per-guest accounts + social features (**since SHIPPED** — profiles/follows/guest
-lists, ADR-0019), native mobile apps (**still a non-goal** — guests use the mobile web; that's the
-whole point), comments/reactions (**still unbuilt**). Free-event inactivity removal and the safety
-report/review flow were promoted into the build long ago. Proactive upload scanning stays a
-later-stage non-goal (ADR-0020's reactive posture).
+One domain, one app (shared links stay clean). RLS is the security boundary; guests act through
+capability-token security-definer RPCs. Media is never exposed at a raw storage URL. The server is the
+source of truth for entitlements; the Stripe webhook sets tier. Media-first, understated UI: neutral
+chrome, colour punctuates; guest galleries render on an always-dark surface so the media is the hero.
+Native mobile apps are a non-goal: guests use the mobile web, which is the whole point.
