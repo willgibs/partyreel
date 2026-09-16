@@ -42,14 +42,24 @@ import {
 import { RIVER_VISUAL } from "./spec";
 
 /**
- * THE RIVER, A FEATURE VISUAL (round two, 2026-09-15: onto the kit's template).
+ * THE RIVER, A FEATURE VISUAL (round two, 2026-09-15: onto the kit's template;
+ * the evidence relabelled the same night, the clarity round).
  *
  * What the board ARGUES lives in `spec.ts` now, and only there: the question,
  * the verdict, the four one-word calls, the candidates, the departures and the
  * two assets. What is left here is what a board should be and nothing else, the
  * evidence for each declared section as a function of the declared state.
  *
- * Round one built the bank: one flow out of one printed object, three sizes on
+ * ★ AND THE EVIDENCE CARRIES THE OPTIONS' OWN WORDS (Will, 2026-09-15: a
+ * question carries its context). Every caption, comparison label and section
+ * title a reviewer judges an ask on now opens with the word the ask offers, so
+ * "Keep the code in it" on the pill is "Keep the code in it" under the
+ * specimen. Nothing rendered moved: the three placement sections are the three
+ * options of the placement ask and are titled that way, the size row's captions
+ * open with the code ask's two, the guest comparison labels both halves with
+ * the one answer they both are, and the numbers are the same numbers.
+ *
+ * Round one built the bank entry: one flow out of one printed object, three sizes on
  * one clock, three placements on the production shells they would ship inside.
  * Round two moves the presentation onto the template, and nothing about the
  * river itself changed. Three things the BOARD could not do before, it can now:
@@ -113,15 +123,22 @@ function BankSpecimen({
   // What the code actually gets in this box, read off the same function the
   // geometry uses. Printed rather than claimed: the scan floor is an absolute
   // number of px, so the smaller the box the more of it the code takes, and
-  // that is what the second ask turns on.
+  // that is what the code ask turns on.
   const code = origin === "code" ? riverQrReadout(w, qrUrl) : null;
   return (
     <Cell
       name={`${RIVER_SIZES[id].label}, ${w} by ${h}`}
+      // ★ THE CAPTION OPENS WITH THE OPTION'S OWN WORDS (the clarity round,
+      // 2026-09-14 ruling, 2026-09-15): the code ask offers "Keep the code in
+      // it" and "Take the code out", so a reviewer reading a caption away from
+      // the ask sees the answer this specimen IS, then what it cost. The
+      // numbers are unchanged.
       note={
         code
-          ? `Code ${code.edge} px, ${code.perModule.toFixed(1)} px a module, plate ${Math.round(code.plateShare * 100)} percent of the box`
-          : undefined
+          ? `Keep the code in it: ${code.edge} px of code, ${code.perModule.toFixed(1)} px a module, its card ${Math.round(code.plateShare * 100)} percent of the box`
+          : origin === "plate"
+            ? "Take the code out: the plain card is a fifth of the box at every size"
+            : "Take the code out: nothing at the top, and the flow enters from above the frame"
       }
       className="shrink-0"
     >
@@ -132,7 +149,7 @@ function BankSpecimen({
         // The line is printed where the plate has room for it. At 240 the
         // scannable code is 123 px and its plate 143, three fifths of the
         // width, and a caption under that wraps to three lines: the thumbnail
-        // is exactly the size at which the second ask answers itself.
+        // is exactly the size at which the code ask answers itself.
         line={origin === "code" && w >= 400 ? CODE_LINE : null}
         tone={ground === "paper" ? "paper" : "cinema"}
         still={still}
@@ -175,8 +192,10 @@ function BankPart({
         </div>
       </FitStage>
       <CellLabel>
-        One clock across all three, so this row is one visual at three scales
-        and not three tunings. At 1:1 the row is{" "}
+        One clock across all three, so this row is one visual at three sizes and
+        not three tunings. Every box is 1.32 times as tall as it is wide: that
+        is the Keep it as it is answer, and Make it taller and Make it squarer
+        change that one number and nothing else. At their true size the row is{" "}
         {mode === "desktop" ? "1264" : "343"} px wide and scrolls sideways if
         the window is narrower, which is correct.
       </CellLabel>
@@ -253,9 +272,9 @@ function StepPlacement({ mode, origin, still, qrUrl }: Shared) {
         />
       </div>
       <Caption className="mt-6">
-        The visual at the bank&apos;s column size ({w} here), which is what this
-        section leaves beside its copy: the list takes the rest of the
-        container.
+        Beside a how it works step: the visual at the size the row of three
+        banked as its column ({w} here), with the step list taking the rest of
+        the container.
       </Caption>
     </SectionShell>
   );
@@ -331,10 +350,11 @@ function CardPlacement({ mode, origin, still }: Shared) {
         ))}
       </div>
       <Caption className="mx-auto mt-4 max-w-5xl">
-        The middle slot is the visual at the width the real grid gives a door (
-        {w} here), beside two stills. The box is short, so the flow is read at
-        its top third, where the frames are still small, and an object at the
-        top of it eats a third of the picture.
+        In a feature card&apos;s picture slot: the middle card carries the
+        visual at the width the real three card row gives it ({w} here), beside
+        two photographs. The box is short, so the flow is read at its top third,
+        where the frames are still small, and an object at the top of it eats a
+        third of the picture.
       </Caption>
     </SectionShell>
   );
@@ -398,8 +418,19 @@ function EmptyStatePlacement({ mode, origin, still }: Shared) {
         // stage would show two 160px columns where a phone has room for one.
         // The rule is in board.css and the kit patch is in the Handoff.
         className={mode === "phone" ? "rvr-onecol" : undefined}
-        labels={["Today", "The flow"]}
-        differs={`The picture an empty album shows: today's 3 by 3 ghost mosaic against the flow pouring out of the plate the guest just scanned, both at ${col} px, the width the guest page gives its gallery on this canvas. The dock drives the origin here too, and the recommendation is no object: a guest reached this screen by scanning the code, so putting it back in front of them is the one placement where the code is certainly wrong.`}
+        // ★ BOTH HALVES ARE THE SAME ANSWER, AND THE LABELS SAY SO (the clarity
+        // round). The ask is whether an empty album may show faint photographs
+        // at all: today's grid and the candidate flow are both the "Yes, faded
+        // and grey" option, so labelling them "Today" and "The flow" left a
+        // reviewer to work out which option either one was. The other answer,
+        // "No, words alone", is this screen with the picture taken out, which
+        // the board does not draw; the differs line says so rather than
+        // pretending one of these halves is it.
+        labels={[
+          "Yes, faded and grey: today's grid",
+          "Yes, faded and grey: the flow",
+        ]}
+        differs={`The picture an empty album shows: today's 3 by 3 faded grid against the flow pouring out of the card the guest just scanned, both at ${col} px, the width the guest page gives its gallery on this canvas. Both are the faded answer; the words alone answer is this screen with the picture gone. The dock drives what it pours out of here too, and the recommendation is nothing at the top: a guest reached this screen by scanning the code, so putting it back in front of them is the one slot where the code is certainly wrong.`}
         a={
           <div style={{ width: col }}>
             <GalleryEmptyState onAddFirst={() => {}} />
@@ -499,7 +530,8 @@ function CostPart({
         phases={[
           {
             id: "rest",
-            label: "At rest (what a reduced-motion reader gets)",
+            label:
+              "The still version (what a reader who asked for less motion gets)",
             enter: () => {
               setCount(1);
               setMotion("rest");
@@ -507,7 +539,7 @@ function CostPart({
           },
           {
             id: "one",
-            label: "One instance running (what a page mounts)",
+            label: "One of them running (what a page uses)",
             enter: () => {
               setCount(1);
               setMotion("live");
@@ -515,7 +547,7 @@ function CostPart({
           },
           {
             id: "six",
-            label: `${COST_COUNT} instances running (the stress case)`,
+            label: `${COST_COUNT} of them running at once (the stress case)`,
             enter: () => {
               setCount(COST_COUNT);
               setMotion("live");
@@ -549,7 +581,7 @@ const PROPS: { name: string; type: string; note: string }[] = [
   {
     name: "origin",
     type: '"code" | "plate" | "none"',
-    note: "What the album pours out of: the real demo code on its printed card, the same card with no code, or nothing (the flow enters from above the frame). The plain plate is a fifth of the width at any size; the code is that or its scan floor, whichever is larger, so under about 615 px (495 with no demo URL) the code is the larger object.",
+    note: "What the album pours out of: the real demo code on its printed card, the same card with no code on it, or nothing at all (the flow enters from above the frame). The plain card is a fifth of the width at any size; the code is that or its scan floor, whichever is larger, so under about 615 px (495 with no demo URL) the code is the larger object.",
   },
   {
     name: "qrUrl",
@@ -574,7 +606,7 @@ const PROPS: { name: string; type: string; note: string }[] = [
   {
     name: "still",
     type: "boolean",
-    note: "Renders the rest state: the flow standing at its steady spacing, which is what a reduced-motion reader, a crawler and the server's own HTML already get. The board's Motion knob drives it; production passes nothing, because the reader's own preference does.",
+    note: "Renders the still version: the flow standing at its steady spacing, which is what a reader who asked for less motion, a crawler and the server's own HTML already get. The board's Motion knob drives it; production passes nothing, because the reader's own preference does.",
   },
 ];
 

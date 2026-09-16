@@ -1,7 +1,9 @@
 ---
 track: river-visual
-status: open
-cut: "be1638f2"          # round 3, the clarity round, cut from launch-prep
+status: integrated
+cut: "d5f0c3c9"          # round 3, the clarity round, cut from the launch-prep tip
+merged: "65621c9f"      # the branch head merged into launch-prep
+synced_round_3: "99544a2b"   # merged before handoff (42 commits: six boards integrated)
 cut_round_2: "1b647d76"
 merged_round_2: "bf564121"
 cut_round_1: "c473707"
@@ -701,3 +703,119 @@ board hidden while the meter runs; and four hand-typed stage heights are gone fo
 themselves. The board's own rolling meter, its header, its index and its meta panel are deleted, the
 kit's owning all four. Two kit findings are handed back with their patch: `Compare` splits on a
 Tailwind prefix inside a stage, and `Specimen` cannot hold a row of specimens at different true widths.
+
+## Handoff (round 3)
+
+- **Head: this commit**, on top of **`8ee72925`**, the round's last commit of code. The round is
+  three commits: `9f577e68` rewrote the four asks and relabelled the evidence, `3195f095` merged
+  `origin/launch-prep` (42 commits past the cut: `glow-specs`, `brand-voice`, `rounding`, the review
+  card, `home-hero`, `media-kit` and `palette`), and `8ee72925` stopped an ask from pinning the
+  reviewer's canvas. Pushed to `lp/river-visual`; **no preview and no CI** were asked for, so neither
+  ran. Cut from `d5f0c3c9`, synced to `99544a2b`.
+  **Marker for this round: the string `Keep the code in it`**, which is the code ask's first option
+  and exists nowhere on `launch-prep`. Measured on the dev server:
+  `curl -s "<url>/design/lab/river-visual?key=" | grep -o "Keep the code in it" | wc -l` returns
+  **6** here and **0** before it (the ask's pill, the section's restatement, the three size captions
+  and the walk); with the review card open (`&session=river-visual.code`) it is **8**.
+
+- **The four asks, as they now read.** Each is a real question with its own context, a look line, and
+  options labelled in words with what picking one does. **The ids never moved** (`placement`, `code`,
+  `guest-photos`, `proportion`, and every option id), so the ledger still joins, and
+  `review river-visual r2: <ask>=<option>` is unchanged.
+  - **placement** · "Which of the three real slots should carry the visual first?" ·
+    `column` **Beside a how it works step** | `card` **In a feature card's picture slot** |
+    `guest` **On the empty guest album**.
+  - **code** · "Should the scannable code stay inside the visual?" ·
+    `in` **Keep the code in it** | `out` **Take the code out**.
+  - **guest-photos** · "May an empty album show faint photographs of other events?" ·
+    `ghost` **Yes, faded and grey** | `none` **No, words alone**.
+  - **proportion** · "Should the box stay a third taller than it is wide?" ·
+    `keep` **Keep it as it is** | `taller` **Make it taller** | `squarer` **Make it squarer**.
+
+- **The evidence carries those words.** The three placement sections are TITLED with the three
+  options of the first ask, so "Open Beside a how it works step" on the desk lands on a section of
+  that name; the size row's captions open with the code ask's two ("Keep the code in it: 123 px of
+  code, 3.0 px a module, its card 26 percent of the box" / "Take the code out: the plain card is a
+  fifth of the box at every size"), and the caption under the row names all three proportion options;
+  the guest comparison labels BOTH halves "Yes, faded and grey: today's grid" and "Yes, faded and
+  grey: the flow", because both halves are that one option, and its `differs` line says where the
+  other answer would be. The dock's `Origin` knob is labelled **Pours out of** (the id stays `origin`:
+  it is the URL param every shared link and ask state carries).
+
+- **Two asks whose other options are argued, not drawn, and why.** Both are named in the ask's own
+  `look` line rather than left for a reviewer to discover.
+  - **guest-photos** draws only the faded answer, on both sides. "No, words alone" is that screen
+    with the picture taken out, which is an absence and not a specimen; drawing it would have meant
+    building a new empty state, which this round does not do. The look line says so in words.
+  - **proportion** draws 1.32 only, at all three sizes. Taller and squarer are one number, and a row
+    of three proportions is new evidence. If Will wants to SEE them, the cheapest next round is a
+    fourth control (`proportion: keep | taller | squarer`) that the ask mirrors, so a pick is the
+    preview; that is a kit-shaped ask, not a rewrite, and it is a one line change here.
+
+- **What did NOT change**, deliberately: no candidate, no number, no recommendation, no specimen, no
+  new evidence, no kit edit, no other board. `round.n` stays **2** (the ledger's round guard reads
+  it); `round.changed` now says the asks were rewritten in plain words.
+
+- **The one line outside the lane**, the exception the round names: `river-visual` deleted from
+  `PLAIN` in `src/app/(dev)/design/sandbox/registry.test.ts`, so the clarity ratchet now checks this
+  board's shape. **The merge of `origin/launch-prep` conflicted there** (an adjacent deletion:
+  launch-prep dropped the six integrated boards, this branch dropped `river-visual`); every side's
+  deletions were kept, leaving `album-hero`, `floating-surfaces`, `type-scale`.
+
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`), everything inside `owns` except
+  the named exception and this manifest:
+  ```
+  docs/tracks/river-visual.md
+  src/app/(dev)/design/sandbox/registry.test.ts      <- the PLAIN line, the round's named exception
+  src/app/(dev)/design/sandbox/river-visual/board.tsx
+  src/app/(dev)/design/sandbox/river-visual/spec.ts
+  ```
+
+- **The gates, each on its own exit code, on the synced tree:** `pnpm typecheck` ✓ · `pnpm lint` ✓
+  (0 errors, 6 pre-existing warnings) · `pnpm test` ✓ **219 files, 2179 tests** · `pnpm build` ✓
+  **257 static pages**. `pnpm format` ran on the three changed files. One process at a time: the dev
+  server was stopped before the build and killed by port at the end.
+
+- **How it was verified.** A dev server on **:3521** in this worktree. The desk's session read cold
+  for all four asks (`/design/lab?session=river-visual.<ask>`), then the review card walked on the
+  board itself (`?session=river-visual.guest-photos`): the card pins under the dock with the
+  question, the context, the look and both labelled options, **Take me there** applied the ask's
+  declared state (the dock flipped to "Nothing at the top") and scrolled section 04 "On the empty
+  guest album" under the chrome, where both comparison halves carry the option's words. The board at
+  1440 and at 375 (the dock wraps, "Pours out of" taking its own row with all three options on one
+  line), origin flipped to "A plain card" so every caption reads "Take the code out", and reduced
+  motion honoured by the Motion knob's Rest, which is the same state the visual renders for a reader
+  who asked for less motion. `pnpm lab:smoke --base http://localhost:3521` on the synced tree: **321 checks, 0 failing**.
+
+- **The one fix the walk forced.** Landing on an ask at 375 applied `canvas: desktop` and put a phone
+  reader in front of a 1440 stage: the review card is right to apply an ask's state, the state was
+  wrong. Each ask now declares only the axis it turns on (what it pours out of, whether it is
+  running); the canvas stays the reviewer's own choice. The walk steps still set it, because a walk
+  is an explicit route through the board.
+
+- **For the kit, unchanged from round 2 and still open** (no patch of mine, `src/components/lab/` is
+  not my lane): `Specimen` now takes `cols: "auto"` and `Compare` takes `cols: 1 | 2`, which are
+  exactly the two findings round 2 handed back, but this board still carries its own flex row and its
+  `rvr-onecol` rule. Swapping them is a layout change, so it belongs to the next round that touches
+  the evidence rather than to a plain-words round.
+
+- **Proposed migrations or config changes:** none. No production byte moved; the board is lab only.
+
+- **Assets requested from Will:** unchanged from round 2 (the 24 squares and the 12 portraits, rows 2
+  and 12 of the asset log). Nothing new.
+
+## Record (round 3; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-16). The river board's four asks were rewritten in
+plain words after Will's first review through the desk stopped at questions that were labels with
+token options. Each ask is now a real question carrying its own context, a line saying where to look,
+and options labelled in words with one sentence on what picking each one does, so a stranger can
+answer it where he meets it: on the desk's session, on the board's answer block, or on the review
+card pinned under the dock. The evidence carries the same words. The three placement sections are
+titled with the three options of the placement ask, the size row's captions open with the code ask's
+two, and the guest comparison labels both halves with the one option they both are while its differs
+line says where the other answer would be. The board's question, verdict and every section lede went
+the same way, the dock's "Origin" knob became "Pours out of", and the board came off the clarity
+ratchet's PLAIN list. No ask id, option id, candidate, number or recommendation changed, and no new
+evidence was built: the two asks whose other options are argued rather than drawn say so in their own
+look lines.
