@@ -265,9 +265,7 @@ describe("the board registry", () => {
  * asks are rewritten; a new board is written in plain words from the start.
  */
 const PLAIN: readonly string[] = [
-  "album-hero",
   "river-visual",
-  "type-scale",
 ];
 
 describe("the asks, in plain words", () => {

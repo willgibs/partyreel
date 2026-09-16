@@ -58,6 +58,19 @@ export type PasteId = LadderId | "law" | "pair";
 
 export type Ladder = {
   id: PasteId;
+  /**
+   * ★ THE NAME IS THE OPTION'S NAME, AND IT HAS A WIDTH BUDGET (the clarity
+   * round, 2026-09-15). It is what the reviewer reads on every piece of
+   * evidence an ask is judged on (the chooser's rows, the pair's headings, the
+   * loudness column, the 404's right half) AND what the dock's two switches
+   * wear, so the option a question offers and the control that previews it say
+   * one thing. The dock's four buttons sit in a segmented control the kit does
+   * not wrap below six options, and the dock is 327px wide at 375: measured, a
+   * four-option row spends about 106px on padding, so the four names together
+   * have roughly 33 characters before the page starts scrolling sideways.
+   * That is why the gloss ("one set of sizes from 12 to 160") lives in the
+   * ask's option label and its `means` line rather than here.
+   */
   name: string;
   /** One line on the board: what it is and why it might win. */
   rationale: string;
@@ -178,7 +191,7 @@ const TODAY: Ladder = {
  */
 const A: Ladder = {
   id: "a",
-  name: "A. Tuned",
+  name: "A, tuned",
   rationale:
     "Today's desktop numbers, kept. The phone end unpacked so six steps separate, a named line-height per step, and tracking that runs inverse to size.",
   law: "Keep the sizes the site already has; fix the phone end, the leading and the tracking.",
@@ -253,7 +266,7 @@ const rungPair = (p: number, d: number): StepPair => pair(rung(p), rung(d));
 
 const B: Ladder = {
   id: "b",
-  name: "B. Rungs",
+  name: "B, rungs",
   rationale:
     "One rung set from 12 to 160 with the ratio widening as it climbs. Every step sits on a rung at both ends, and leading and tracking are read off the rung, never chosen.",
   law: "Marketing travels four rungs between 375 and 1440, the app travels one, the card step travels none.",
@@ -292,7 +305,7 @@ const B: Ladder = {
  */
 const C: Ladder = {
   id: "c",
-  name: "C. Registers",
+  name: "C, registers",
   rationale:
     "Two registers rather than one ladder. Marketing becomes editorial and much louder at the top; the app becomes an instrument and goes quieter, with weight carrying the hierarchy.",
   law: "Marketing and the app share the face and the tracking law and nothing else.",
@@ -632,7 +645,7 @@ const lawful = (spec: Spec): Spec => ({ px: spec.px, ...optics(spec.px) });
  */
 export const LAW_ONLY: Ladder = {
   id: "law",
-  name: "The law alone",
+  name: "The spacing law alone",
   rationale:
     "Today's sizes, every one of them, with leading and tracking running inverse to size instead of a flat -0.03em. The smallest thing the board can ship.",
   law: "Leading and tracking are read off the size, so no step chooses its own optics.",

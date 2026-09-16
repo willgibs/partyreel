@@ -1,7 +1,8 @@
 ---
 track: type-scale
-status: open
+status: integrated
 cut: "be1638f2"          # round 6, the clarity round, cut from launch-prep
+merged: "48a72f38"      # the branch head merged into launch-prep
 cut_round_5: "c473707"
 merged_round_5: "ae5f1efc"
 merged_round_4: "9b8af70d"
@@ -1530,3 +1531,110 @@ law stage's estimated line count is measured with `useLineCount` and printed (1 
 list the template, the desk and the review ledger read, and a new test pins the spec's candidates,
 recommendation and control defaults to the ladder data. No ladder, number, candidate or
 recommendation changed; lab only, and not one production byte moved.
+
+## Handoff (round 6, the clarity round)
+
+- **Head: this commit**, over `3eb725da`, the merge `f96b7d3f` and `8b7e3eb2`; all pushed. Board at
+  `/design/lab/type-scale`, the review card at `/design/lab/type-scale?session=type-scale.marketing`,
+  the desk's session at `/design/lab?session=type-scale.marketing`. **No preview and no `[ci]`**: the
+  round's review surface is a local `pnpm dev` on `launch-prep` after integration, so nothing here
+  carries a marker. Everything below was verified on this worktree's dev server at
+  `http://localhost:3021`, which is stopped.
+- **Synced with `launch-prep` once**, `f96b7d3f`, a merge of 26 commits (`f438190d`: glow-specs,
+  brand-voice, rounding, home-hero and the review card). **One conflict, the expected one**: the
+  clarity ratchet's `PLAIN` list, where `launch-prep` deleted `"rounding"` and this branch deleted
+  `"type-scale"`. Resolved by keeping BOTH deletions; the list is now `album-hero`,
+  `floating-surfaces`, `media-kit`, `palette`, `river-visual`. Nothing else conflicted.
+- **Gates on the synced tree, each on its own exit code:** typecheck 0, lint 0 (0 errors, 6
+  pre-existing warnings, none in this lane), test 0 (**2171 in 219 files**), build 0 (**257 static
+  pages**). `pnpm lab:smoke --base http://localhost:3021` **325 checks, 0 failing**. `pnpm format`
+  clean on every changed file, and no dynamic className was touched by it (checked in the diff).
+- **Lane check**, `git diff --name-only origin/launch-prep...HEAD`:
+  `src/app/(dev)/design/sandbox/type-scale/{spec.ts,board.tsx,ladders.ts,ladders.test.ts,pages.tsx}`
+  (owned) and this manifest, plus **the one declared exception the brief names**:
+  `sandbox/registry.test.ts`, where the board's line leaves `PLAIN` (one deletion, nothing else in
+  the file touched). `docs/specs/type-scale.md` did not need to change: the spec doc has carried no
+  copy of the asks since the migration wave, so there was nothing there to go stale.
+- **Shared-file changes asked of the Orchestrator: none.** `src/components/lab/` was read and left
+  alone; the kit finding below is a report, not a patch.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes: none.** Lab only: not one
+  production byte changed, and no size, candidate, number, recommendation or piece of evidence moved.
+- **Assets requested from Will: none**, as in round five. Nothing here needs a specimen that does not
+  already exist.
+- **The ledger still joins.** No ask id and no option id changed.
+  `pnpm lab:review --dry 'review type-scale r5: marketing=b; app=c "..."; tracking=adopt;
+  not-found=on-ladder'` records all four; `marketing=rungs` is refused by name
+  (`"rungs" is not an option of type-scale.marketing (b, c, a, today)`); `tracking=?` records as
+  "not clear to me". `round.n` is still 5, as the brief requires.
+
+### The four asks, as they now read
+
+1. **Which heading sizes should the marketing pages use?** · *B, rungs: one size set, 12 to 160* ·
+   *C, registers: the public pages as a poster* · *A, tuned: today's sizes, kept* ·
+   *Today, exactly as it ships*. Context names the public half of the site and glosses line spacing
+   and letter spacing; `look` points at section 01's Marketing table; `control: "marketing"`.
+2. **Which heading sizes should the signed-in app use?** · the same four names, each with an
+   app-side `means` (B buys the missing middle size, C is the quieter instrument, A leaves the app
+   untouched, Today keeps 24 and 16). Context names what is behind sign-in and the missing middle;
+   `look` points at section 01's second table and at section 06; `control: "app"`.
+3. **Should a heading's letter spacing change with its size?** · *Adopt it: spacing follows size* ·
+   *Keep one value for every heading*. Context opens by saying what letter spacing IS and that the
+   call moves no sizes; `look` points at section 08 and says neither row moves with the two
+   candidate switches.
+4. **Should the page-not-found heading use the site's heading font?** ·
+   *Put it on the site's heading set* · *Leave it in Inter, as it ships*. Context names all four
+   404s the one screen serves; `look` points at section 07 and says the left half is pinned.
+
+**Nothing had to be left unclear.** Every question is answerable from its own text plus the evidence
+it names, with no new evidence built and no ask split or cut.
+
+### Where the options' words now appear
+
+The chooser's rows and both captions ("the A, tuned row carries every size the site already ships
+here"), the pair's heading (`The chosen pair: B, rungs + C, registers`), the loudness column (`C,
+registers at 200px, -0.05em`), the four app stages (`The dashboard, wearing B, rungs`), both halves
+of the 404 (`Leave it in Inter, as it ships` / `Put it on the site's heading set, under B, rungs`),
+all four rows of the spacing law, and the two dock switches. `ladders.test.ts` pins the join: every
+ladder's name is inside its option's label AND is the dock switch's label for that id, so a later
+round cannot reword an option back into a letter and pass.
+
+### One kit finding (the reason the dock wears the name and the ask wears the gloss)
+
+`ControlKnobs` (`src/components/lab/board-state.tsx`) hands `Toggle` `wrap={c.options.length > 5}`,
+so a four-option switch never wraps, and `toggle.tsx`'s own landmine says a segmented control wider
+than the dock turns the whole DOCUMENT into a sideways scroll at 375. Measured in the browser: the
+dock's row is 327px at 375, a four-button row spends about 106px on padding, and the four glossed
+labels come to 372px. So the switches wear the candidate's NAME (305px, verified: `docW === innerWidth`
+at 375) and the asks wear the name plus its gloss, which is exactly what the light board's Register
+switch does. If the kit ever wraps a control by measured width rather than by option count, these two
+switches can carry the asks' full labels with a one-line change here. Reported, not patched:
+`src/components/lab/` is not this track's lane.
+
+### Verified
+
+Gate green on the synced tree (above). Board walked cold at **1440** and at **375** on
+`http://localhost:3021`: at 375 `document.documentElement.scrollWidth === window.innerWidth` (391 in
+the pane, no sideways scroll), the two switches measure 305px each and wrap onto their own rows, the
+chooser keeps its own `overflow-x-auto` scroller as the kit intends, and all four rows of the spacing
+law fit one line with the whole option label. The review card was walked on the board itself
+(`?session=type-scale.marketing`, "Ask 21 of 54"): it pins under the dock and prints the question,
+the context, "Where to look" with its "Take me there" link, and each option numbered with its label
+and its `means`, which is the round's bar met away from the argument. **Reduced motion:** this round
+changed no CSS, no motion and no engine, only strings, so the board's motion behaviour is round
+five's to the byte.
+
+## Record (round 6; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-16). The type-scale board's four questions were
+rewritten so that someone who has not read the board can answer them where they meet them: each ask
+now carries a real question, what the thing is and where it lives on the site, which section and
+which switch to look at, and options named in words with what choosing each one would do. The four
+candidates carry those names on the evidence (the chooser's rows and captions, the pair's heading,
+the loudness column, the app stages, both halves of the 404, all four rows of the spacing law) and on
+the two dock switches, so the option a question offers is the option the dock previews. The board's
+question, verdict, section titles, ledes, walk and notes dropped the nicknames: a ladder is a set of
+heading sizes, leading is line spacing, tracking is letter spacing, a register is one half of the
+site. A new test pins each ladder's name inside its option's label and on its switch, so an option
+cannot be reworded back into a letter; the board came off the sandbox registry's clarity ratchet. No
+ask or option id moved, so the review ledger still joins, and no size, candidate, number,
+recommendation or piece of evidence changed. Lab only; not one production byte moved.

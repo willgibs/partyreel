@@ -1,7 +1,8 @@
 ---
 track: album-hero
-status: open
+status: integrated
 cut: "be1638f2"          # round 3, the clarity round, cut from launch-prep
+merged: "5ec2c679"      # the branch head merged into launch-prep
 cut_round_2: "1b647d76"
 merged_round_2: "f7a78883"
 merged_round_1: "bd5f63b5"
@@ -692,3 +693,119 @@ the asks, is the fifth ask, and the width call's arithmetic moved from the ask i
 where the density limit could hold it. The board's own shell code went to the kit (the measuring stage,
 the captions, the Replay, the toggles), and the field gained one export so a caption reads its pool size
 off the geometry instead of repeating it in prose. No candidate, number or recommendation changed.
+
+
+## Handoff (round 3, the clarity round)
+
+- Head `ee240bd8` plus this manifest commit, pushed. **No preview and no `[ci]`**: the round's review
+  surface is a local `pnpm dev` on `launch-prep` after integration. Everything below was verified on
+  **my own dev server on port 3468**, never the root checkout's, plus a local production build.
+- Synced with `origin/launch-prep` at `99544a2b` (it had moved 26 commits: glow-specs, brand-voice,
+  rounding, the review card and home-hero all integrated). ONE conflict, and it is exactly the
+  adjacent-deletion collision the round expected: `registry.test.ts`'s `PLAIN` list, where my side
+  deletes `"album-hero"` and theirs deletes `"brand-voice"` (and four more). Resolved by keeping EVERY
+  side's deletions, so `PLAIN` is now `floating-surfaces, media-kit, palette, river-visual, type-scale`.
+  Merge commit `ee240bd8`.
+- Gates, each on its own exit code, on the merged tree: typecheck **0**, lint **0** (0 errors; the 6
+  warnings are pre-existing files outside this lane), test **0** (2170 in 219 files), build **0**
+  (257 static pages), `pnpm lab:smoke --base http://localhost:3468` **0** (325 checks, 0 failing).
+  `pnpm format` ran on the three changed files (no rewrites).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+
+  ```
+  src/app/(dev)/design/sandbox/album-hero/board.tsx
+  src/app/(dev)/design/sandbox/album-hero/spec.ts
+  src/app/(dev)/design/sandbox/registry.test.ts      <- the one exception the brief names
+  ```
+
+  (plus this manifest commit). The single exception is the `PLAIN` deletion the round's rule 5 allows
+  for THIS board id; nothing else in that file was touched, and no other board's line was.
+- Shared-file changes asked of the Orchestrator: **none**. `src/components/lab/`, `touchpoints.ts`,
+  `bible.ts`, `docs/design/`, `docs/reviews/` and every other board were not touched.
+- Assets requested from Will: **the same three as round two, unchanged and unmoved** (they live in
+  `spec.ts`'s `assets`): the 24 squares (row 2), the 11 4:5 portraits (row 9), the 2 short clips
+  (still NEW, not on ASSETS). This round asked for no new asset: it changed words, not evidence.
+- Look at first: `/design/lab/album-hero?session=album-hero.headline`. The review card pins under the
+  dock with the question, its context, the look line and both options in words; picking one sets the
+  dock's Headline switch, because the ask and the control now share their ids.
+
+### The five asks, as they now read
+
+One line each: the question, then the two option labels in the reviewer's own words. The ask ids and
+the option ids are UNCHANGED, because the ledger joins on them.
+
+- **headline** · "How big should the headline over the field be?" · `lg` **Today's headline** ·
+  `xl` **One step louder**
+- **width** · "How wide should the live album be on a laptop?" · `ship` **As it ships** ·
+  `both` **Wider: four columns**
+- **life** · "What should show that the album is filling live?" · `pulse` **The green dot, as it
+  ships** · `arrival` **A photograph landing at the top**
+- **no-script** · "What should the hero show when the animation cannot run?" · `lockup` **Words alone,
+  as it is today** · `settled` **The album, spread out and still**
+- **copy** · "Whose words should the hero say?" · `page` **The live page's own words** ·
+  `voice` **Hold for the brand voice line**
+
+Every one carries a `context` (what the thing is and where it lives on the site), a `look` (which
+section, which dock switch, what to compare) and a `means` line per option (what choosing it would do).
+The five nicknames the round named are gone from everything a reviewer reads: `lg | xl` became the two
+headline sizes, `both | ship` the album's width, `pulse | arrival` the live signal, `lockup | settled`
+what a reader with no JavaScript sees, `page | voice` whose copy the hero renders. The vent is "the
+point in the middle", the lockup is "the page's own words", the quiet zone is "a space no photograph
+ever enters", and the cinema-to-paper cut is "the switch from the dark chapters to the light ones".
+
+### The two asks that mirror a switch, and the id that moved
+
+`headline` mirrors the dock's `step` and `width` mirrors its `columns`, so a pick on the review card IS
+the preview. That needs the two id sets to be EQUAL (`registry.test.ts` checks it), and `columns`'
+second position was `wide` against the ask's `both`. **The CONTROL's id moved to the ask's**, never the
+other way round, because the ask's ids are the ledger's: `columns=wide` in a pasted URL is now
+`columns=both`, and `board.tsx` reads the option rather than the old string. Verified live: landing on
+`?session=album-hero.width` with `canvas=phone&columns=ship` in the URL forced the canvas back to 1440
+(the ask's declared `state`) and left the Album switch on "As it ships"; clicking "One step louder" on
+the headline card set the dock and wrote `&step=xl`. `pnpm lab:review --dry 'review album-hero r2:
+width=wide'` now refuses with `"wide" is not an option of album-hero.width (ship, both)`, which is the
+proof that renaming the control created no second vocabulary.
+
+### Both dock labels are short on purpose
+
+A two-option `Toggle` renders `wrap={false}` (`ControlKnobs` only wraps past five), so a long pair of
+labels would be one unwrappable row. Each of these measures about 210 px against the roughly 343 px a
+375 viewport gives, and the knob ROW wraps between knobs, so the dock stays inside the canvas. A future
+round that lengthens a mirrored option's label should re-measure rather than assume.
+
+### The one ask I could not make fully plain without new evidence
+
+**`life`, the album's live signal.** The question, its context and both option labels are plain, and the
+evidence carries the shipped option's name ("Its only live signal is the green dot, as it ships, beside
+the words Live now"). But the board can only SHOW one of the two options: the pulsing dot exists and the
+arriving tile does not, and building it is new evidence, which this round's rule 4 forbids. So the
+`look` line says so in as many words ("The landing photograph is a proposal and is not built on this
+board, so judge whether the dot says enough on its own") rather than pointing at a specimen that is not
+there. If Will answers `?` on this one, the fix is a round that builds the arrival, not more words.
+
+Two asks are judged on evidence that is honest but one-sided for the same reason, and both say so:
+`no-script` cannot paint a no-JavaScript page inside a live board, so its `look` gives the reviewer the
+one thing that DOES reproduce the alternative ("Turn Reduce Motion on in your system settings and
+reload the Hero section"); `copy` shows the live page's line and names the voice board rather than
+printing a sentence this board did not write.
+
+### A note for the wiring round
+
+Nothing here changed a candidate, a number, a recommendation or a pixel of the field: the diff is
+strings, three captions and one control id. Round two's measurements, departures and assets all stand
+exactly as recorded above.
+
+## Record (round 3; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-16). The album page's hero board's five asks were
+rewritten in plain words, after Will's first review through the desk stopped at asks that were labels
+with token options. Each is a real question now, carrying what the thing is and where it lives on the
+site, where to look and what each option would do, with the ids untouched so the ledger still joins on
+them: the headline's size step, the album's width on a laptop, its one live signal, what a reader with
+no JavaScript sees, and whose words the hero says. The evidence learned the same vocabulary, reading
+each option's label off the spec so a caption and the ask a reviewer answers cannot drift apart, and the
+board's question, verdict and three section ledes dropped the nicknames (the vent, the lockup, the quiet
+zone, the cinema-to-paper cut) for what they are. The dock's Headline and Album switches now wear the
+asks' own labels and ids, so picking an option on the review card previews it; the album switch's second
+position moved from `wide` to `both` to match the ask, because a control's ids bend to an ask's and
+never the reverse. No candidate, number or recommendation changed, and no new evidence was built.
