@@ -712,11 +712,13 @@ export function TrackingLaw({
   );
   return (
     <div className="flex flex-col gap-5 px-5 py-5">
-      {/* ★ THE ROWS WEAR THE ASK'S OPTION LABELS (the clarity round,
-          2026-09-15): "Keep one value for every heading" and "Adopt it:
+      {/* ★ THE ROWS WEAR THE ASK'S OPTION LABELS, WORD FOR WORD (the clarity
+          round, 2026-09-15): "Keep one value for every heading" and "Adopt it:
           spacing follows size" are what the question offers, so they are what
-          the evidence is called. The short forms are the same words, because a
-          16px card row cannot carry the whole label beside a number. */}
+          the evidence is called. Measured at both canvases before shortening
+          anything: the label plus its number fits the card column at 375, so
+          nothing here is abbreviated and the reviewer never has to map a
+          shorter caption back to an option. */}
       {row("Keep one value for every heading", -0.03, 0.85)}
       {row("Adopt it: spacing follows size", law.ls, law.lh)}
       <div
@@ -725,8 +727,8 @@ export function TrackingLaw({
           phone && "flex-col",
         )}
       >
-        {card("Keep one value", -0.03, 1.375)}
-        {card("Adopt: spacing follows size", cardLaw.ls, cardLaw.lh)}
+        {card("Keep one value for every heading", -0.03, 1.375)}
+        {card("Adopt it: spacing follows size", cardLaw.ls, cardLaw.lh)}
       </div>
       <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
         One value cannot serve both ends. At {big}px it leaves the word loose,
