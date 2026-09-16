@@ -1761,12 +1761,22 @@ export function applyCss(pair: Pair, opts: ApplyOptions): string {
     .join("\n\n");
 }
 
-/** The label the tuner panel and the board badge both show. */
-export function applyLabel(pair: Pair, opts: ApplyOptions): string {
-  const parts = [
-    `${pair.dark.label.toLowerCase()} dark`,
-    `${pair.light.label.toLowerCase()} light`,
-  ];
+/** The label the tuner panel and the board badge both show. `name` is the
+ *  palette's own (the catalog round, 2026-09-15): a reviewer picked ONE thing
+ *  and the badge should say the thing he picked, not the two halves it is
+ *  assembled from. Without it the label falls back to the two set names, which
+ *  is what a board with two candidate switches needed. */
+export function applyLabel(
+  pair: Pair,
+  opts: ApplyOptions,
+  name?: string,
+): string {
+  const parts = name
+    ? [name.toLowerCase()]
+    : [
+        `${pair.dark.label.toLowerCase()} dark`,
+        `${pair.light.label.toLowerCase()} light`,
+      ];
   if (opts.accent.id !== "ink") {
     parts.push(
       opts.reach === "all"

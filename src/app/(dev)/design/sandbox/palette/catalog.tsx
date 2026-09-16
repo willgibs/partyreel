@@ -25,7 +25,10 @@ import { Input } from "@/components/ui/input";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
+import { optionId, optionMeans } from "@/components/lab/board-spec";
+
 import { PALETTES, resolvePalette, type PaletteDef } from "./palettes";
+import { PALETTE } from "./spec";
 import {
   GROUND_CLASS,
   pairStyle,
@@ -60,6 +63,20 @@ import {
  * failure a catalog exists to avoid. The only motion in here is the production
  * components' own press feedback and the menu's own entrance.
  */
+
+/**
+ * A CARD'S ONE LINE, read off the ask it belongs to. The twelve `means` lines in
+ * `spec.ts` are what a reviewer sees on the desk and on the review card, so the
+ * card on the board has to say the same words or the catalog and the question
+ * are two different catalogs. Joined on the option id, which is the ledger's own
+ * join.
+ */
+const LINES = new Map(
+  (PALETTE.asks.find((a) => a.id === "palette")?.options ?? []).map((o) => [
+    optionId(o),
+    optionMeans(o) ?? "",
+  ]),
+);
 
 /* ── The scoped panel ───────────────────────────────────────────────────── */
 
@@ -100,7 +117,11 @@ export function ScopedTokens({
 }) {
   return (
     <div
-      className={cn(GROUND_CLASS[ground], "bg-background text-foreground", className)}
+      className={cn(
+        GROUND_CLASS[ground],
+        "bg-background text-foreground",
+        className,
+      )}
       data-ground={ground}
       style={{ ...pairStyle(pair, ground), ...style }}
     >
@@ -219,7 +240,7 @@ function SwatchStrip({
             neither mode and is spread under both, so it is painted from its own
             token rather than resolved through pairStyle. */}
         <span
-          className="basis-0 grow"
+          className="grow basis-0"
           style={{ background: pair.dark.well["--gallery"] }}
         />
         <GroundBlock pair={pair} ground="cinema" grow={2} bars />
@@ -434,7 +455,7 @@ function CatalogCard({
             ) : null}
           </p>
           <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
-            {def.line}
+            {LINES.get(def.id)}
           </p>
         </div>
         <Button

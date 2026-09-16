@@ -272,7 +272,6 @@ const PLAIN: readonly string[] = [
   "glow-moments",
   "home-hero",
   "media-kit",
-  "palette",
   "river-visual",
   "rounding",
   "type-scale",
