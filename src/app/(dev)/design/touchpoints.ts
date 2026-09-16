@@ -306,16 +306,21 @@ export const RULINGS: Ruling[] = [
     title: "The home hero",
     surface: "marketing",
     ruled:
-      "open (round five ruled 2026-09-16: the source, the lockup centred, the live count cut, the headline as ruled; round six returned the stream as a catalog of four compositions, the winner still to be picked)",
+      "open (round five ruled 2026-09-16: the source, the lockup centred, the live count cut, the headline as ruled; round six answered none, the symmetric approach asked for by name; round seven returned the band, the orbit and the two stacks, the winner still to be picked)",
     shipped: null,
-    why: "Round five ruled the source outright and retired the scan and the inflow; round six is one catalog of the stream (mirror, phrase, settle, ribbon) before the wiring.",
+    why: "Round five ruled the source; round six's scatterings were answered none; round seven is one catalog: the reference's band, the ring round the code, two unsplit stacks.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/components/marketing/sections/home/cinema-hero.tsx",
     ],
     board: {
-      note: "Round six: four compositions of the album leaving the code, each the real hero at true size on the ruled lockup with its own Replay and four facts; the pick worn by the real home page below. The board recommends the settle.",
-      variants: ["The mirror", "The phrase", "The settle", "The ribbon"],
+      note: "Round seven: four symmetric compositions of the album leaving the code on one engine, each the real hero at true size with its own Replay; the band splits the type as before, the orbit and the two stacks keep it as one block. The board recommends the band.",
+      variants: [
+        "The band",
+        "The orbit",
+        "Stacked, code above",
+        "Stacked, code below",
+      ],
       tracks: ["home-hero"],
     },
   },

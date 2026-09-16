@@ -4,46 +4,70 @@ import { FRAMES } from "./shared";
 import { STREAM_IDS, type StreamId } from "./stream-ids";
 
 /**
- * THE FOUR STREAMS (round six, 2026-09-16): one engine, four compositions.
+ * THE FOUR COMPOSITIONS (round seven, 2026-09-16): one engine, four lockups.
  *
- * Will ruled the direction and then ruled the stream: "The album coming out of
- * the code definitely looks best. However, I think we can improve this visual a
- * lot. The random stream feels worse than a more polished one." This file is
- * that note answered.
+ * Will answered round six in chat and it is the ledger's `stream=none`: "I think
+ * I liked the more symmetrical approach more than the variants we're using to
+ * scatter the photos as they stream out, similar to our original reference
+ * example." Two references came with it and one more ask. Melius: the album as
+ * one symmetric band through the middle, a speck at the centre and growing
+ * outward, the outer frames turned so the band curls toward the reader like the
+ * inside of a cylinder. Cosmos: the photographs in a ring around a centred
+ * lockup, each tilted a little, "where in our version we could place the QR
+ * code above the H1 and center the image rotation around the QR code rather
+ * than the H1 content." And "a variant where [we] don't split the H1 and other
+ * hero content with the QR, but rather have it above/below."
  *
- * ★ NOTHING IN THE COMPOSITION IS RANDOM ANY MORE, and that is the whole round.
- * Round five gave every card four seeded values off an integer hash: its
- * vertical offset inside a band, a six percent size jitter, a roll and a turn
- * wobble. Four dice per frame, sixteen frames on screen, so the picture never
- * resolved into a shape and the eye read confetti. Every one of those values is
- * now a STEP IN A DECLARED CYCLE: a station table for the vertical, a lane
- * table for depth, an aspect table for shape, a roll table for the turn. The
- * hash is gone from the file. A reader can watch one frame and know where the
- * next will be, which is what "composed" means and what "polished" was asking
- * for.
+ * So round six's four scatterings (mirror, phrase, settle, ribbon; git holds
+ * them at bf1ee166) left, and the four here are ONE stream shape drawn twice:
  *
- * ★ AND THE FOUR ARE FOUR READINGS OF THE SAME SENTENCE, not four tunings:
+ *   band         the Melius band, split as today: headline above, copy below
+ *   orbit        the Cosmos ring around the code, the block hung under the code
+ *   stack-above  the band with the code above the whole block
+ *   stack-below  the band with the code below the whole block
  *
- *   mirror  order      one pair a beat, the two arms exact mirrors about the code
- *   phrase  rhythm     three frames then a rest, the arms answering each other
- *   settle  arrangement the album travels out and LANDS in five held places
- *   ribbon  line       one fanned file a side, each frame a step behind the last
+ * ★ A COMPOSITION IS A STREAM PLUS A LOCKUP. Round six's engine placed every
+ * frame off two arms and solved the type's clear lane above and below one axis
+ * at the canvas centre. What round seven generalised is exactly three things:
+ * a turn that can grow with the distance (the band's curl), a POLAR placement
+ * for a stream whose stations are an angle and a radius from the code (the
+ * orbit), and a LOCKUP with its own axis, so the code can sit above or below
+ * the block rather than between the headline and the rest. `placeAt` is still
+ * the one description everything reads: the loop, the rest state, the DOM box,
+ * the clear lane, the facts and the tests.
  *
- * ★ THE ENGINE IS STILL A CLOSED FORM OF THE CLOCK. A card's progress is
+ * ★ NOTHING IS DEALT, still. Every value a card carries is a step in a short
+ * declared cycle (a station table, a roll table, an aspect table), which is
+ * what let round six answer "the random stream feels worse than a more
+ * polished one", and it holds here: `streams.test.ts` refuses a hash.
+ *
+ * ★ THE ENGINE IS A CLOSED FORM OF THE CLOCK. A card's progress is
  * `((its launch time * reveal + elapsed) mod cycle) / flight`, so recycling
  * falls out of the modulo, a still is the loop frozen at a chosen elapsed, and
- * there is no per-card bookkeeping, no timer and no React state. What round six
- * generalised is the launch time: round five's was `slot * beat`, which cannot
- * say "three, then a rest", so a stream now declares `at(slot)` and its own
- * `cycle`. Everything else, the measured clear lane included, reads through
- * `placeAt` and did not have to know.
+ * there is no per-card bookkeeping, no timer and no React state.
  *
  * ★ PURE, AND THAT IS LOAD-BEARING. No React and no stylesheet here, so the
- * solvers below can run at module load for both canvases and the numbers on the
+ * solvers below run at module load for both canvases and the numbers on the
  * board's cards are read off the same tables the hero renders from.
  */
 
 /* ── The frame the four compositions share ───────────────────────────────── */
+
+/**
+ * WHERE THE CODE SITS AND WHERE THE TYPE GOES. `split` is round six's lockup:
+ * the code at the exact centre, the headline above the stream, the caption,
+ * the sentence and the actions below it. The three others keep the headline,
+ * the sentence and the actions together as ONE block, which is Will's ask, and
+ * put the code above it (`stack-above`, `orbit`) or below it (`stack-below`).
+ */
+export type Lockup = "split" | "stack-above" | "stack-below" | "orbit";
+
+export const LOCKUPS: readonly Lockup[] = [
+  "split",
+  "stack-above",
+  "stack-below",
+  "orbit",
+];
 
 export type Geo = {
   /** The QR's edge in px, quiet zone included; 112 still scans from a phone. */
@@ -64,20 +88,17 @@ export type Geo = {
   h1Max: number;
   /**
    * ★ THE COLUMN THE STREAM'S REACH IS MEASURED AT, and it is the headline's
-   * INK rather than its box. Round five measured at `h1Max / 2` and paid 112 px
-   * for it: the ruled thesis sets two lines of 696 and 541 inside a 920 box, so
-   * the measurement asked the stream to stay clear of a column no letter ever
-   * reaches, and the headline was pushed that much closer to the site header for
-   * nothing. Measured on the rendered lines (1440: 696 and 541; 375: 213, 170
-   * and 225), plus headroom. Re-measure it if the ruled line changes: copy is
-   * open (bible 21), and this is the one number a rewrite can invalidate.
+   * INK rather than its box. Measured on the rendered lines (1440: 696 and 541;
+   * 375: 213, 170 and 225), plus headroom. Re-measure it if the ruled line
+   * changes: copy is open (bible 21), and this is the one number a rewrite can
+   * invalidate.
    */
   h1Ink: number;
   /** The h1's leading, written AFTER the ladder class (a size utility carries
    *  a line-height of its own, and tailwind-merge drops the earlier one). */
   h1Lead: string;
-  /** The caption's measure. It is the TOP of the lower block, so it is the line
-   *  the block's anchor is solved against. */
+  /** The caption's measure: the line of the lower block nearest the stream in
+   *  the split lockup, and the line nearest the code in the stacks. */
   capMax: number;
   /** The sentence's measure. */
   lowMax: number;
@@ -86,13 +107,29 @@ export type Geo = {
   /**
    * THE CEILING IS THE SITE HEADER. The cinema header is a 4rem overlay sitting
    * transparently on the hero, so the headline's cap has to start below 64 px of
-   * canvas. At 1440 the headline is two lines of the xl step (196 px of line
-   * box, of which a measured 9 px is leading above the cap), so the block's top
-   * clears about 70 px only while its offset stays under this. A stream whose
-   * measured reach pushes past it has not been composed yet: retune the stream,
-   * never this number.
+   * canvas. In the split lockup at 1440 the headline is two lines of the xl step
+   * (196 px of line box), so the block's top clears about 70 px only while its
+   * offset stays under this. A stream whose measured reach pushes past it has
+   * not been composed yet: retune the stream, never this number.
    */
   headMax: number;
+  /**
+   * THE UNSPLIT BLOCK'S BOX, for the three lockups that keep the headline, the
+   * sentence and the actions together: its width is the widest line's ink (the
+   * headline at 1440, the sentence at 375) and its height is measured on the
+   * rendered block (caption, headline, sentence, actions and their gaps). The
+   * orbit's stations are drawn outside it and `streams.test.ts` holds every
+   * frame of every unsplit stream out of it at every phase.
+   */
+  blockW: number;
+  blockH: number;
+  /** The axis (the code's centre) as a fraction of the canvas height, per
+   *  lockup. The split stays at the middle; a stack raises or lowers the code
+   *  so the block fits under or over the band; the orbit's pivot sits high
+   *  enough for the block to hang beneath it. */
+  axis: Record<Lockup, number>;
+  /** The gap between the code's foot and the block hung under it (orbit). */
+  gap: number;
 };
 
 export const GEO: Record<Mode, Geo> = {
@@ -111,6 +148,10 @@ export const GEO: Record<Mode, Geo> = {
     lowMax: 576,
     margin: 26,
     headMax: 210,
+    blockW: 720,
+    blockH: 354,
+    axis: { split: 0.5, "stack-above": 0.36, "stack-below": 0.66, orbit: 0.36 },
+    gap: 28,
   },
   phone: {
     qr: 112,
@@ -127,6 +168,10 @@ export const GEO: Record<Mode, Geo> = {
     lowMax: 343,
     margin: 28,
     headMax: 196,
+    blockW: 343,
+    blockH: 330,
+    axis: { split: 0.5, "stack-above": 0.32, "stack-below": 0.76, orbit: 0.3 },
+    gap: 20,
   },
 };
 
@@ -158,6 +203,8 @@ const easeOutCubic = (t: number) => {
 };
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
+
+const rad = (deg: number) => (deg * Math.PI) / 180;
 
 /** ease-in-out-quart, which IS --ease-in-out-strong's cubic-bezier
  *  (0.77, 0, 0.175, 1), written out so the reveal needs no bezier solver and
@@ -192,16 +239,25 @@ export type Card = {
   /** The travel multiplier: depth for a flying stream, the station's own for a
    *  stream that lands. */
   reach: number;
-  /** The vertical station, in units of the stream's `rise`. */
+  /** The vertical station, in units of the stream's `rise`; a polar stream
+   *  stores its station's angle in degrees here, so the board and the tests
+   *  read one field. */
   station: number;
   /** rotateZ in degrees, unless the stream rolls by phase. */
   roll: number;
-  /** rotateY in degrees: the inner edge, the one pointing at the code, recedes. */
+  /** rotateY in degrees, unless the stream turns by phase. */
   turn: number;
+  /** A polar stream only: the station's angle from the horizontal, in radians,
+   *  positive downward, for the right arm (the left arm is its mirror). */
+  angle: number;
+  /** A polar stream only: how far back along the arc the approach starts, in
+   *  radians. A station below the block is reached by sweeping AROUND it. */
+  sweep: number;
 };
 
 export type Stream = {
   id: StreamId;
+  lockup: Lockup;
   /** One card's flight, birth to gone. */
   flight: number;
   /** Launch slots per arm. */
@@ -214,14 +270,25 @@ export type Stream = {
   travel: Record<Mode, number>;
   /** The transform scale a frame reaches at scaleAt 1. */
   gain: number;
-  /** The unit card box, as a multiple of `Geo.card`. A stream whose frames come
-   *  to rest wants smaller ones than a stream whose frames only pass. */
+  /** The unit card box, as a multiple of `Geo.card`. */
   cardScale: number;
   /** The vertical unit: one station step, in canvas px at full scale. */
   rise: Record<Mode, number>;
-  /** The funnel: the vertical is multiplied by `base + gain * |x| / halfW`, so
-   *  the arms can converge on a point at the code and open out. [1, 0] is off. */
+  /** The funnel: the vertical is multiplied by `base + gain * |x| / halfW`.
+   *  [1, 0] is off. */
   spread: readonly [base: number, gain: number];
+  /** The perspective the corridor is drawn under, when the geometry's own is
+   *  wrong for the shape: a curl reads only under a short one. */
+  perspective?: Record<Mode, number>;
+  /** How the band dissolves at the canvas edge: a horizontal fade for a band,
+   *  a radial one for a ring. */
+  mask: "band" | "radial";
+  /** Extra clearance between the type and the stream's measured reach, on top
+   *  of `Geo.margin`: a band wants air over it that a scatter did not. */
+  breath?: Record<Mode, number>;
+  /** ★ A POLAR STREAM places a card by angle and radius from the code rather
+   *  than along an arm: `x = dir * cos(angle) * r`, `y = sin(angle) * r`. */
+  polar?: boolean;
   /** The launch time of slot `s` inside the cycle. */
   at: (s: number, mode: Mode) => number;
   /** Everything about one card that the clock does not change. */
@@ -233,331 +300,225 @@ export type Stream = {
   travelAt: (p: number) => number;
   /**
    * ★ SCALE AND OPACITY ARE FUNCTIONS OF THE DISTANCE CROSSED, not only of the
-   * phase, and `out` is that distance: 0 at the code, 1 at the canvas edge. It
-   * is the fix for the one thing an evenly spaced stream gets wrong on its own.
-   * A far frame crosses the canvas slowly and a near one quickly, so a scale
-   * curve read off the PHASE gives the far frame more time to grow and it
-   * arrives at the edge nearly as large as the near one: the depth inverts and
-   * the volume collapses. Read off the distance instead, every lane shares one
-   * growth curve, and the depth is carried by the box, which is where it
-   * belongs. A stream that lands rather than passes reads the phase (its fade
-   * happens while it is standing still), so both are offered.
+   * phase, and `out` is that distance: 0 at the code, 1 at the canvas edge. A
+   * far frame crosses the canvas slowly and a near one quickly, so a scale
+   * curve read off the PHASE gives the far frame more time to grow and the
+   * depth inverts; read off the distance, every lane shares one growth curve.
+   * A stream that lands rather than passes reads the phase (its fade happens
+   * while it is standing still), so both are offered.
    */
   scaleAt: (p: number, out: number) => number;
   opacityAt: (p: number, out: number) => number;
   /** The vertical, as a multiple of `rise`; the default is the card's station. */
   riseAt?: (p: number, c: Card) => number;
-  /**
-   * By default the vertical is multiplied by the frame's own scale, so every
-   * frame converges exactly on the code: the source is a point, not a smear. A
-   * stream whose vertical is an ARC rather than a scatter sets this, because the
-   * scale term crushes the arc into a flat line (the ribbon's whole shape lives
-   * in the first third of its flight, where the scale is still small). Such a
-   * stream owes the convergence itself: its `riseAt` must return 0 at phase 0.
-   */
+  /** A stream whose vertical is an arc rather than a scatter sets this: the
+   *  scale term that converges every frame on the code would crush the arc. */
   riseFlat?: boolean;
   /** rotateZ at a phase; the default is the card's own roll. */
   rollAt?: (p: number, c: Card) => number;
+  /** rotateY at a phase and a distance; the default is the card's own turn.
+   *  The band's curl lives here: a few degrees at the code, hard at the edge. */
+  turnAt?: (p: number, out: number, c: Card) => number;
+  /** A polar stream only: the angle a held card drifts through, in radians. */
+  driftAt?: (p: number, c: Card) => number;
 };
 
-/** The turn every stream shares: the two arms lean towards each other and a
- *  near lane leans harder, which is what a wide lens does to a room. */
+/** The turn every arm-stream shares: the two arms lean towards each other and
+ *  a near lane leans harder, which is what a wide lens does to a room. */
 const turnOf = (depth: number, right: boolean, mode: Mode) =>
   (right ? -1 : 1) * GEO[mode].rotate * (0.62 + 0.55 * depth);
 
-/* ── 1. MIRROR: one pair a beat, the arms exact mirrors ──────────────────── */
-
-/** Five stations, walked in order for ever. The two arms take the SAME station
- *  on the same beat, so the picture is symmetric about the code at every
- *  instant and the code is visibly the axis of the composition rather than a
- *  thing the photographs happen to pass. */
-const MIRROR_STATIONS = [0.95, -0.45, 0.55, -1, 0.15] as const;
-const MIRROR_LANES = [0, 2, 1] as const;
-const MIRROR_ROLL = [-0.9, 0, 0.9] as const;
-const MIRROR_BEAT = { desktop: 760, phone: 900 } as const;
-const MIRROR_FLIGHT = 9600;
-
-const mirror: Stream = {
-  id: "mirror",
-  flight: MIRROR_FLIGHT,
-  pool: poolOf(MIRROR_FLIGHT, MIRROR_BEAT),
-  cycle: cycleOf(MIRROR_FLIGHT, MIRROR_BEAT),
-  // Zero: the pair leaves together, which is the whole treatment.
-  armLag: { desktop: 0, phone: 0 },
-  // Just past the canvas on the far lane, so nearly the whole flight is on
-  // screen: a flight whose last two thirds happen past the edge is a pool three
-  // times the size it needs to be.
-  travel: { desktop: 1.02 * CANVAS.desktop.w, phone: 1.3 * CANVAS.phone.w },
-  gain: 0.92,
-  cardScale: 1,
-  // The phone's vertical is a third of the desktop's, and it is not a squeeze:
-  // the headline's ink is two thirds of a 375 canvas, so every frame at the edge
-  // stands over its columns and the band has to stay inside what the type leaves.
-  rise: { desktop: 108, phone: 30 },
-  // The funnel, and it is what buys the vertical: the two arms converge on a
-  // point at the code and have opened to nearly twice the station by the canvas
-  // edge, so the stations can be tall without a frame ever standing over the
-  // headline's own columns.
-  spread: [0.26, 1.5],
-  at: (s, mode) => s * MIRROR_BEAT[mode],
-  shape: (s, right, mode) => {
-    const lane = MIRROR_LANES[s % MIRROR_LANES.length];
-    const depth = LANES[lane];
-    return {
-      lane,
-      depth,
-      reach: depth,
-      station: MIRROR_STATIONS[s % MIRROR_STATIONS.length],
-      roll: MIRROR_ROLL[s % MIRROR_ROLL.length] * (right ? -1 : 1),
-      turn: turnOf(depth, right, mode),
-    };
-  },
-  // ★ EVEN SPACING IS THE POLISH, and it is the one curve change round six made
-  // to a flight round five was happy with. An accelerating travel front-loads
-  // the flight: five frames sit in a tight overlapping clump a hundred pixels
-  // from the plate and then shoot away, so the picture is clutter at the code
-  // and a hole in the mid-field. Nearly even travel with the SCALE still opening
-  // gives a procession instead, a hundred pixels wide at the code and three
-  // hundred at the edge, and the eye reads a spacing rather than a scatter.
-  travelAt: (p) => 0.28 * smoothstep(0, 1, p) + 0.72 * p,
-  // The scale is what still opens, and it opens with the DISTANCE: one growth
-  // curve for every lane, from a tenth behind the plate to full at the edge.
-  // ★ AND IT IS BACK-LOADED, which is the other half of keeping the type's lane
-  // clear. A frame is small across the whole middle of the canvas and only
-  // opens in the outer third, so nothing large ever stands over the headline's
-  // own columns; the measured clear lane then lands where it did in round five
-  // while the spacing is the new, even one.
-  scaleAt: (_p, out) => 0.2 + 0.8 * smoothstep(0.32, 1, out),
-  // Solid before its edge clears the plate, which at this geometry is about a
-  // tenth of the way out. Emerging from behind the object, never switched on
-  // beside it.
-  opacityAt: (_p, out) => smoothstep(0.02, 0.15, out),
-};
-
-/* ── 2. PHRASE: three frames, then a rest ────────────────────────────────── */
+/* ── 1. BAND: one file each way, growing and curling with the distance ───── */
 
 /**
- * The phrase: three launches close together, then the rest of the bar empty.
+ * THE MELIUS SHAPE, the reference Will named. One file a side on ONE axis: no
+ * station, no roll, one depth, so the only variables are the two that read as
+ * space, size and turn, and both are functions of the distance crossed.
  *
- * ★ THE FLIGHT IS SHORT ON PURPOSE, and it is the number that makes this
- * treatment legible at all. A phrase is only a phrase if the stream empties
- * between two of them: at round five's 9.6 second flight there are six bars in
- * the air at once, the groups overlap into a solid band, and the cadence is
- * information nobody can see. At six seconds there are three, so the picture is
- * three clumps of three at three distances with clear dark between them, which
- * is the rhythm drawn rather than asserted.
+ * ★ THE SPACING IS THE FRAME'S OWN WIDTH, and that is what the exponential
+ * travel buys. An even travel with a scale that opens outward puts big frames
+ * on top of each other at the edge and tiny ones far apart at the code; a
+ * travel whose velocity grows about as fast as the frame does keeps the gap
+ * between neighbours a fixed fraction of their width the whole way out, which
+ * is what a file of photographs looks like when nobody has bumped it.
+ *
+ * ★ THE CURL IS THE TURN GROWING WITH THE DISTANCE. Round six turned every
+ * frame a fixed few degrees toward the code. Here the outer edge of a frame
+ * comes forward harder the further out it stands, under a shorter perspective
+ * than the scatters used, so the band reads as the inside of a cylinder with
+ * the code on its far wall rather than as a row of flat cards.
+ *
+ * The same stream wears three lockups (the band, and the two stacks); one
+ * table, so a tuning here moves all three together, which is what makes them a
+ * fair comparison of where the code sits rather than of three streams.
  */
-const PHRASE_IN = [0, 170, 340] as const;
-const PHRASE_BAR = { desktop: 2000, phone: 2500 } as const;
-const PHRASE_FLIGHT = 6000;
-/** Within a phrase the lane steps far, middle, near, so a phrase OPENS towards
- *  the reader rather than arriving as three frames at one depth. */
-const PHRASE_LANES = [0, 1, 2] as const;
-const PHRASE_FAN = [-0.8, 0.1, 0.95] as const;
-const PHRASE_ROLL = [-1, 0.2, 1] as const;
+const BAND_BEAT = { desktop: 1250, phone: 1350 } as const;
+const BAND_FLIGHT = 9600;
+/** e^κ is the ratio of the velocity at the edge to the velocity at the code. */
+const BAND_KAPPA = 2.3;
+const BAND_TURN = { code: 6, edge: 44 } as const;
 
-const phraseBars = (mode: Mode) =>
-  Math.ceil(PHRASE_FLIGHT / PHRASE_BAR[mode]) + 1;
+function bandStream(id: StreamId, lockup: Lockup): Stream {
+  return {
+    id,
+    lockup,
+    flight: BAND_FLIGHT,
+    pool: poolOf(BAND_FLIGHT, BAND_BEAT),
+    cycle: cycleOf(BAND_FLIGHT, BAND_BEAT),
+    // Zero: the pair leaves together, which is the symmetry.
+    armLag: { desktop: 0, phone: 0 },
+    travel: { desktop: 1.04 * CANVAS.desktop.w, phone: 1.3 * CANVAS.phone.w },
+    gain: 0.92,
+    cardScale: 0.85,
+    rise: { desktop: 0, phone: 0 },
+    spread: [1, 0],
+    perspective: { desktop: 700, phone: 360 },
+    mask: "band",
+    breath: { desktop: 56, phone: 12 },
+    at: (s, mode) => s * BAND_BEAT[mode],
+    shape: (_s, right, mode) => ({
+      lane: 1,
+      depth: 1,
+      reach: 1,
+      station: 0,
+      roll: 0,
+      turn: turnOf(1, right, mode),
+      angle: 0,
+      sweep: 0,
+    }),
+    travelAt: (p) =>
+      (Math.exp(BAND_KAPPA * clamp01(p)) - 1) / (Math.exp(BAND_KAPPA) - 1),
+    // Growing from the code outward from the first pixel, unlike the scatters'
+    // back-loaded curve: the whole band is the growth, so it starts at once.
+    scaleAt: (_p, out) => 0.18 + 0.82 * Math.pow(clamp01(out), 1.2),
+    // Solid once its edge clears the plate. Emerging from behind the object,
+    // never switched on beside it.
+    opacityAt: (_p, out) => smoothstep(0.02, 0.14, out),
+    turnAt: (_p, out, c) =>
+      -c.dir *
+      (BAND_TURN.code +
+        (BAND_TURN.edge - BAND_TURN.code) * smoothstep(0.2, 1, out)),
+  };
+}
 
-const phrase: Stream = {
-  id: "phrase",
-  flight: PHRASE_FLIGHT,
-  pool: {
-    desktop: phraseBars("desktop") * PHRASE_IN.length,
-    phone: phraseBars("phone") * PHRASE_IN.length,
-  },
-  cycle: {
-    desktop: phraseBars("desktop") * PHRASE_BAR.desktop,
-    phone: phraseBars("phone") * PHRASE_BAR.phone,
-  },
-  // Half a bar: the arms answer each other rather than speaking together.
-  armLag: { desktop: PHRASE_BAR.desktop / 2, phone: PHRASE_BAR.phone / 2 },
-  travel: { desktop: 1.02 * CANVAS.desktop.w, phone: 1.3 * CANVAS.phone.w },
-  gain: 0.92,
-  cardScale: 1,
-  rise: { desktop: 112, phone: 32 },
-  spread: [0.26, 1.5],
-  at: (s, mode) =>
-    Math.floor(s / PHRASE_IN.length) * PHRASE_BAR[mode] +
-    PHRASE_IN[s % PHRASE_IN.length],
-  shape: (s, right, mode) => {
-    const k = s % PHRASE_IN.length;
-    const bar = Math.floor(s / PHRASE_IN.length);
-    const lane = PHRASE_LANES[k];
-    const depth = LANES[lane];
-    // Every other phrase fans the other way, so two bars are one longer shape.
-    const flip = bar % 2 === 0 ? 1 : -1;
-    return {
-      lane,
-      depth,
-      reach: depth,
-      station: PHRASE_FAN[k] * flip,
-      roll: PHRASE_ROLL[k] * (right ? -1 : 1),
-      turn: turnOf(depth, right, mode),
-    };
-  },
-  // Even, like the mirrored pair and for the same reason; a phrase whose three
-  // frames tear apart in the first half second is three frames, not a phrase.
-  travelAt: (p) => 0.28 * smoothstep(0, 1, p) + 0.72 * p,
-  scaleAt: (_p, out) => 0.2 + 0.8 * smoothstep(0.32, 1, out),
-  opacityAt: (_p, out) => smoothstep(0.02, 0.15, out),
-};
-
-/* ── 3. SETTLE: the album travels out and lands ──────────────────────────── */
+/* ── 2. ORBIT: a ring around the code, the block hung beneath it ─────────── */
 
 /**
- * THE ARRANGEMENT. Four places a side at 1440 and three at 375, each a travel
- * multiplier, a vertical
- * station and a depth, walked in order. A frame accelerates out of the code,
- * decelerates into its place, HOLDS there long enough to be read, and is gone as
- * the next one arrives.
+ * THE COSMOS SHAPE, with Will's two changes: the code is what sits above the
+ * headline, and the ring is centred on the code rather than on the type.
  *
- * ★ THE PLACES ARE A CONE, NOT A SCATTER, and they have to be: the type is
- * placed outside the stream's measured reach, so a big frame held high over the
- * headline's own columns pushes the headline into the site header. The two near
- * places, which are the big ones, live past the headline's measure; what stands
- * over the middle is on the far lane and close to the axis.
+ * ★ A STATION IS AN ANGLE AND A RADIUS FROM THE CODE, eight a side, mirrored,
+ * walked in order, so the births march around the code and the ring visibly
+ * turns without any card ever leaving its arc.
+ * A card is born behind the plate, flies out along its ray, lands, holds long
+ * enough to read while drifting a couple of degrees down its arc, and fades.
+ * The settle's approach, growth and fade curves are reused as they were.
  *
- * ★ AND A PLACE IS NEVER DOUBLE-BOOKED. A frame owns its place from the end of
- * its approach to the end of its fade, and the place comes round again after
- * `places * beat`. `streams.test.ts` fails the module if a beat is ever tuned
- * under that, because two photographs in one place is the one fault this
- * treatment cannot survive.
+ * ★ A STATION BELOW THE HEADLINE IS REACHED BY SWEEPING AROUND THE BLOCK. A
+ * straight ray from the code to a bottom corner crosses the headline, so those
+ * stations start their approach back up the arc (`sweep`) and come round the
+ * block's side; `streams.test.ts` holds every lit frame outside the block's
+ * box at every phase, which is the condition the table was tuned against.
+ *
+ * At 375 the block is nearly the whole canvas wide, so the ring is three
+ * stations a side above and beside the code, never a squeezed desktop.
  */
-const SETTLE_PLACES = {
+const ORBIT_STATIONS = {
   desktop: [
-    { reach: 0.58, station: -0.34, lane: 0 },
-    { reach: 0.95, station: 0.32, lane: 1 },
-    { reach: 1.4, station: -0.76, lane: 0 },
-    { reach: 1.58, station: 0.54, lane: 2 },
+    { angle: -55, r: 250, lane: 1, sweep: 20 },
+    { angle: -32, r: 400, lane: 2, sweep: 25 },
+    { angle: -10, r: 540, lane: 0, sweep: 10 },
+    { angle: 8, r: 620, lane: 1, sweep: 30 },
+    { angle: -72, r: 380, lane: 0, sweep: 15 },
+    { angle: 30, r: 690, lane: 2, sweep: 70 },
+    { angle: -20, r: 700, lane: 1, sweep: 12 },
+    { angle: 40, r: 700, lane: 0, sweep: 80 },
   ],
-  // Three a side at 375 rather than four: a held place needs room for a frame a
-  // third of the canvas wide, and a narrow canvas is its own composition rather
-  // than a squeezed one.
   phone: [
-    { reach: 0.66, station: -0.35, lane: 0 },
-    { reach: 1.15, station: 0.62, lane: 1 },
-    { reach: 1.55, station: -0.8, lane: 0 },
+    { angle: -72, r: 170, lane: 0, sweep: 15 },
+    { angle: -38, r: 220, lane: 1, sweep: 20 },
+    { angle: 4, r: 172, lane: 0, sweep: 10 },
   ],
 } as const;
-const SETTLE_BEAT = { desktop: 1040, phone: 1400 } as const;
-const SETTLE_FLIGHT = 9600;
+const ORBIT_BEAT = { desktop: 1000, phone: 2700 } as const;
+/** Long, because the hold is the treatment: a card stands for seven seconds
+ *  and the ring is mostly standing at any instant, like the reference. The
+ *  pool this costs at 1440 is 17 a side, which is exactly the 34 of ASSETS
+ *  row 2; the phone's beat is long so three stations a side are never double
+ *  booked. */
+const ORBIT_FLIGHT = 16000;
 /** The approach ends here and the hold begins; the fade takes it out. */
-const SETTLE_ARRIVE = 0.4;
-const SETTLE_GO = [0.68, 0.78] as const;
-const SETTLE_ROLL = [-0.7, 0.45, -0.25, 0.8, 0] as const;
+const ORBIT_ARRIVE = 0.24;
+const ORBIT_GO = [0.65, 0.72] as const;
+/** The fade-in, placed where the growth is: see opacityAt. */
+const ORBIT_SHOW = [0.16, 0.22] as const;
+/** The tilt, a short table, mirrored on the left arm. */
+const ORBIT_ROLL = [-11, 7, -5, 12, -8, 4] as const;
+/** How far a held card drifts down its arc, in degrees. */
+const ORBIT_DRIFT = 2.5;
 
-const settle: Stream = {
-  id: "settle",
-  flight: SETTLE_FLIGHT,
-  pool: poolOf(SETTLE_FLIGHT, SETTLE_BEAT),
-  cycle: cycleOf(SETTLE_FLIGHT, SETTLE_BEAT),
-  armLag: { desktop: SETTLE_BEAT.desktop / 2, phone: SETTLE_BEAT.phone / 2 },
-  travel: { desktop: 420, phone: 118 },
+const orbit: Stream = {
+  id: "orbit",
+  lockup: "orbit",
+  flight: ORBIT_FLIGHT,
+  pool: poolOf(ORBIT_FLIGHT, ORBIT_BEAT),
+  cycle: cycleOf(ORBIT_FLIGHT, ORBIT_BEAT),
+  armLag: { desktop: ORBIT_BEAT.desktop / 2, phone: ORBIT_BEAT.phone / 2 },
+  // The radius unit: a station's `reach` is its radius over this.
+  travel: { desktop: 800, phone: 240 },
   gain: 1,
-  // Smaller than the streams whose frames only pass: a held frame is on screen
-  // for three seconds at its full size, so it is the one the composition has to
-  // make room for rather than the one it can afford to make huge.
-  cardScale: 0.85,
-  rise: { desktop: 150, phone: 62 },
-  // Off: the places ARE the composition, so a funnel on top of them would bend
-  // the arrangement the eye is being asked to read.
+  // Smaller than the band's: the reference's cards are many and modest, and a
+  // ring of big frames reads as a wall with a hole in it.
+  cardScale: 0.62,
+  rise: { desktop: 0, phone: 0 },
   spread: [1, 0],
-  at: (s, mode) => s * SETTLE_BEAT[mode],
+  mask: "radial",
+  polar: true,
+  at: (s, mode) => s * ORBIT_BEAT[mode],
   shape: (s, right, mode) => {
-    const places = SETTLE_PLACES[mode];
-    const place = places[s % places.length];
-    const depth = LANES[place.lane];
+    const stations = ORBIT_STATIONS[mode];
+    const st = stations[s % stations.length];
+    const depth = LANES[st.lane];
     return {
-      lane: place.lane,
+      lane: st.lane,
       depth,
-      reach: place.reach,
-      station: place.station,
-      roll: SETTLE_ROLL[s % SETTLE_ROLL.length] * (right ? -1 : 1),
-      turn: turnOf(depth, right, mode),
+      reach: st.r / orbit.travel[mode],
+      station: st.angle,
+      roll: ORBIT_ROLL[s % ORBIT_ROLL.length] * (right ? -1 : 1),
+      // Flat, like the reference: the tilt is the only turn a ring card has.
+      turn: 0,
+      angle: rad(st.angle),
+      sweep: rad(st.sweep),
     };
   },
   // Ease-in-out over the approach, then a flat hold: the frame leaves slowly,
   // crosses quickly and comes to a real stop with no velocity left in it.
-  travelAt: (p) => smoothstep(0, 1, clamp01(p / SETTLE_ARRIVE)),
-  // ★ THE GROWTH IS ALL IN THE LAST THIRD OF THE APPROACH, and that is not a
-  // taste: a frame is small the whole way across, so nothing big ever passes
-  // over the headline's columns, and the size arrives with the frame. What it
-  // looks like is a photograph being PLACED rather than one sliding past.
+  travelAt: (p) => smoothstep(0, 1, clamp01(p / ORBIT_ARRIVE)),
+  // The growth is all in the last third of the approach: a frame is small the
+  // whole way round, so nothing big ever passes near the type, and the size
+  // arrives with the frame. A photograph being placed, not one sliding past.
   scaleAt: (p: number) => {
-    const t = clamp01(p / SETTLE_ARRIVE);
+    const t = clamp01(p / ORBIT_ARRIVE);
     return (
       0.08 * smoothstep(0, 0.3, t) + 0.92 * easeOutCubic(smoothstep(0.6, 1, t))
     );
   },
-  // Up behind the plate, held, then out. Nothing shrinks at the code and
-  // nothing is switched off beside it.
+  // ★ THE FADE-IN RIDES THE GROWTH, not the birth. The settle faded a card in
+  // at the code, where the plate hid it; a ring card sweeps out beside the
+  // plate, and a speck crossing the canvas at eight percent of its size read
+  // as debris. So a card is invisible until it is most of the way out and
+  // growing, and it arrives at its station as a photograph being placed.
   opacityAt: (p) =>
-    smoothstep(0, 0.13, p) * (1 - smoothstep(SETTLE_GO[0], SETTLE_GO[1], p)),
-};
-
-/* ── 4. RIBBON: one fanned file a side ───────────────────────────────────── */
-
-/**
- * No vertical station at all: one file a side, riding one arc, each frame a
- * fixed step and a fixed fraction of a degree behind the one ahead of it. The
- * roll is a function of the PHASE rather than of the card, which is what makes
- * it a fanned deck: at any instant the file shows a smooth rotation gradient
- * from the code to the edge, and a frame inherits the angle of the one it
- * replaces. Every frame is on one depth, so the file never breaks rank.
- */
-const RIBBON_BEAT = { desktop: 620, phone: 760 } as const;
-const RIBBON_FLIGHT = 7600;
-const RIBBON_FAN = 15;
-
-const ribbon: Stream = {
-  id: "ribbon",
-  flight: RIBBON_FLIGHT,
-  pool: poolOf(RIBBON_FLIGHT, RIBBON_BEAT),
-  cycle: cycleOf(RIBBON_FLIGHT, RIBBON_BEAT),
-  armLag: { desktop: RIBBON_BEAT.desktop / 2, phone: RIBBON_BEAT.phone / 2 },
-  travel: { desktop: 1.05 * CANVAS.desktop.w, phone: 1.3 * CANVAS.phone.w },
-  gain: 0.92,
-  cardScale: 1,
-  rise: { desktop: 100, phone: 48 },
-  spread: [1, 0],
-  at: (s, mode) => s * RIBBON_BEAT[mode],
-  shape: (s, right, mode) => {
-    // One depth for the whole file. The lane index is still reported so the
-    // board can say so, and the aspects keep cycling: a file of one shape is a
-    // filmstrip, and an album is not.
-    const depth = 1;
-    return {
-      lane: 1,
-      depth,
-      reach: depth,
-      station: 1,
-      roll: 0,
-      turn: turnOf(depth, right, mode) * 0.7,
-    };
-  },
-  // Nearly even spacing: the file is read as one object, and an accelerating
-  // file tears itself into three clumps.
-  travelAt: (p) => 0.34 * smoothstep(0, 1, p) + 0.66 * p,
-  scaleAt: (_p, out) => 0.2 + 0.8 * smoothstep(0.32, 1, out),
-  opacityAt: (_p, out) => smoothstep(0.02, 0.15, out),
-  // ★ THE ARC IS OVER BY THE CANVAS EDGE, and that number is the whole reason
-  // the shape reads. A file crosses 1440 in the first third of its flight, so an
-  // arc spread over the whole flight is a flat line with the interesting part
-  // happening off screen. This one completes in 0.34, which is exactly where the
-  // outermost frame leaves. Zero at phase 0, so the file still converges on the
-  // code: see `riseFlat`.
-  riseFlat: true,
-  riseAt: (p, c) => -c.station * smoothstep(0, 0.34, p),
-  // The fan: the angle is a function of how far along the file a frame is.
-  rollAt: (p, c) => c.dir * RIBBON_FAN * (smoothstep(0, 1, p) - 0.42),
+    smoothstep(ORBIT_SHOW[0], ORBIT_SHOW[1], p) *
+    (1 - smoothstep(ORBIT_GO[0], ORBIT_GO[1], p)),
+  driftAt: (p) => rad(ORBIT_DRIFT) * smoothstep(ORBIT_ARRIVE, 1, p),
 };
 
 export const STREAMS: Record<StreamId, Stream> = {
-  mirror,
-  phrase,
-  settle,
-  ribbon,
+  band: bandStream("band", "split"),
+  orbit,
+  "stack-above": bandStream("stack-above", "stack-above"),
+  "stack-below": bandStream("stack-below", "stack-below"),
 };
 
 /** Re-exported so a client module keeps one import; the list itself lives in
@@ -584,8 +545,26 @@ function cycleOf(flight: number, beat: Record<Mode, number>) {
 /* ── The solvers, run once per stream per canvas at module load ──────────── */
 
 /** Screen-space position and half-extents at a phase, in canvas units from the
- *  centre. The one description everything else here measures. */
+ *  code. The one description everything else here measures. */
 export function placeAt(c: Card, p: number, st: Stream, mode: Mode) {
+  if (st.polar) {
+    const a = st.travelAt(p);
+    const r = a * st.travel[mode] * c.reach;
+    const out = r / GEO[mode].halfW;
+    const s = st.scaleAt(p, out) * st.gain;
+    // Back up the arc by the sweep at birth, on the station at arrival, then
+    // the drift: one angle, three terms, no branch.
+    const angle =
+      c.angle - c.sweep * (1 - a) + (st.driftAt ? st.driftAt(p, c) : 0);
+    return {
+      s,
+      x: c.dir * Math.cos(angle) * r,
+      out,
+      y: Math.sin(angle) * r,
+      hw: (c.w / 2) * s,
+      hh: (c.h / 2) * s,
+    };
+  }
   const x = c.dir * st.travelAt(p) * st.travel[mode] * c.reach;
   const out = Math.abs(x) / GEO[mode].halfW;
   const s = st.scaleAt(p, out) * st.gain;
@@ -613,9 +592,10 @@ export function frameAt(
 ) {
   const q = placeAt(c, p, st, mode);
   const roll = st.rollAt ? st.rollAt(p, c) : c.roll;
+  const turn = st.turnAt ? st.turnAt(p, q.out, c) : c.turn;
   const scale = (q.s / fit).toFixed(4);
   return {
-    transform: `translate3d(${q.x.toFixed(2)}px, ${q.y.toFixed(2)}px, 0) rotateY(${c.turn.toFixed(2)}deg) rotateZ(${roll.toFixed(2)}deg) scale(${scale})`,
+    transform: `translate3d(${q.x.toFixed(2)}px, ${q.y.toFixed(2)}px, 0) rotateY(${turn.toFixed(2)}deg) rotateZ(${roll.toFixed(2)}deg) scale(${scale})`,
     opacity: st.opacityAt(p, q.out),
     // Near over far, as an integer so the browser is not handed a new stacking
     // order sixty times a second. Apparent size IS the depth, so one number
@@ -636,8 +616,13 @@ export type Built = {
   /** Per card, in order: the DOM box, the scale divisor, and the progress past
    *  which the loop stops writing to it. */
   box: { w: number; h: number; fit: number; exit: number }[];
-  /** The headline's baseline and the lower block's top, as canvas units from
-   *  the axis. Measured off the stream rather than chosen. */
+  /**
+   * The type's anchors, as canvas units from the axis, measured off the stream
+   * rather than chosen. `split`: the headline's baseline above (`head`) and the
+   * lower block's top below (`low`). `stack-above` and `orbit`: the block's top
+   * below the code (`low`). `stack-below`: the block's foot above the code
+   * (`head`). The unused one is the plate's own clearance.
+   */
   lock: { head: number; low: number };
   /** What the board reports: the frames on screen and the photograph they own. */
   facts: {
@@ -678,8 +663,7 @@ function fitOf(c: Card, st: Stream, mode: Mode, canvasW: number) {
   // true peak falls between two samples, so the DOM box is given one percent of
   // headroom: the error at this resolution is measured at under three tenths of
   // a percent, and the whole point of `fit` is that the on-screen size is never
-  // LARGER than the box. One percent of slack is a frame drawn at 0.99, which is
-  // invisible; a tenth of a percent of overshoot is a frame being upscaled.
+  // LARGER than the box.
   return { fit: fit * 1.01, exit };
 }
 
@@ -689,10 +673,9 @@ function fitOf(c: Card, st: Stream, mode: Mode, canvasW: number) {
  * frame whose horizontal span covers that column. This is the measurement the
  * lockup is placed from, so "no photograph is ever under a word" is a condition
  * the composition is drawn from rather than a hope about it, and it re-solves
- * itself when a station table changes. Rotation is not modelled (a rotateY
- * narrows a box and a one degree roll adds about two percent of its height), so
- * the answer carries an eight percent allowance; the true inflation measured on
- * the rendered boxes at 1440 is 2.9 percent.
+ * itself when a table changes. Rotation is not modelled (a rotateY narrows a
+ * box and a one degree roll adds about two percent of its height), so the
+ * answer carries an eight percent allowance.
  */
 function reachOf(cards: Card[], st: Stream, mode: Mode, xAbs: number) {
   let out = 0;
@@ -743,17 +726,35 @@ export function build(st: Stream, mode: Mode): Built {
   // The plate is the other thing the type has to clear, and near the centre it
   // is the taller of the two: the stream there is entirely behind it.
   const plate = geo.qr / 2 + geo.margin;
-  const head = Math.max(
-    Math.round(reachOf(cards, st, mode, geo.h1Ink / 2) + geo.margin),
-    plate,
-  );
-  // The lower block is anchored on its TOP line, the caption, because that is
-  // the one nearest the stream; everything under it is further from the axis
-  // than the stream ever reaches at its own width.
-  const low = Math.max(
-    Math.round(reachOf(cards, st, mode, geo.capMax / 2) + geo.margin),
-    plate,
-  );
+  const breath = st.breath?.[mode] ?? 0;
+  const clear = (halfCol: number) =>
+    Math.max(
+      Math.round(reachOf(cards, st, mode, halfCol) + geo.margin + breath),
+      plate,
+    );
+
+  // ★ EACH LOCKUP IS SOLVED AT THE LINE NEAREST THE STREAM, at that line's own
+  // measure. The split: the headline's ink above, the caption below. A stack
+  // with the code above: the block's top line is the caption but the headline
+  // is one gap under it and far wider, so the headline's ink is the column.
+  // A stack with the code below: the caption is the foot line, at its measure.
+  // The orbit: the block hangs one gap under the plate, and its stations are
+  // drawn outside the block's box rather than measured against it.
+  let lock: Built["lock"];
+  switch (st.lockup) {
+    case "split":
+      lock = { head: clear(geo.h1Ink / 2), low: clear(geo.capMax / 2) };
+      break;
+    case "stack-above":
+      lock = { head: plate, low: clear(geo.h1Ink / 2) };
+      break;
+    case "stack-below":
+      lock = { head: clear(geo.capMax / 2), low: plate };
+      break;
+    case "orbit":
+      lock = { head: plate, low: geo.qr / 2 + geo.gap };
+      break;
+  }
 
   return {
     cards,
@@ -761,17 +762,39 @@ export function build(st: Stream, mode: Mode): Built {
     cycle,
     flight: st.flight,
     box,
-    lock: { head, low },
+    lock,
     facts: countAt(cards, box, st, mode),
   };
 }
 
 /**
+ * THE UNSPLIT BLOCK'S BOX in canvas units from the code, for the three lockups
+ * that keep the type together: what `streams.test.ts` holds every frame out of,
+ * and what the orbit's stations were drawn against. `null` for the split.
+ */
+export function blockBox(st: Stream, built: Built, mode: Mode) {
+  const geo = GEO[mode];
+  const halfW = geo.blockW / 2;
+  switch (st.lockup) {
+    case "split":
+      return null;
+    case "stack-below":
+      return {
+        halfW,
+        top: -built.lock.head - geo.blockH,
+        bottom: -built.lock.head,
+      };
+    default:
+      return { halfW, top: built.lock.low, bottom: built.lock.low + geo.blockH };
+  }
+}
+
+/**
  * What the board's cards report, measured rather than asserted: how many frames
  * are on screen at once, the smallest and largest DOM box, and the layers the
- * compositor is handed. Sampled across one whole cycle, because a phrased
- * cadence has a busiest instant and a quietest one and an average would hide
- * both; the count reported is the busiest, which is the one that costs.
+ * compositor is handed. Sampled across one whole cycle, because a cadence has a
+ * busiest instant and a quietest one and an average would hide both; the count
+ * reported is the busiest, which is the one that costs.
  */
 function countAt(
   cards: Card[],
@@ -802,15 +825,18 @@ function countAt(
   };
 }
 
-/** Both canvases of all four streams, solved once for the module. Float
- *  arithmetic with no trig, so the server and the browser agree exactly and
- *  the rest state hydrates without a warning. */
-export const BUILT: Record<StreamId, Record<Mode, Built>> = {
-  mirror: { desktop: build(mirror, "desktop"), phone: build(mirror, "phone") },
-  phrase: { desktop: build(phrase, "desktop"), phone: build(phrase, "phone") },
-  settle: { desktop: build(settle, "desktop"), phone: build(settle, "phone") },
-  ribbon: { desktop: build(ribbon, "desktop"), phone: build(ribbon, "phone") },
-};
+/** Both canvases of all four streams, solved once for the module. Plain
+ *  arithmetic on both sides, so the server and the browser agree and the rest
+ *  state hydrates without a warning. */
+export const BUILT: Record<StreamId, Record<Mode, Built>> = Object.fromEntries(
+  STREAM_IDS.map((id) => [
+    id,
+    {
+      desktop: build(STREAMS[id], "desktop"),
+      phone: build(STREAMS[id], "phone"),
+    },
+  ]),
+) as Record<StreamId, Record<Mode, Built>>;
 
 /** The phase a card stands at when nothing is running: the stream deployed at
  *  its steady spacing, which is what reduced motion, a crawler, a cold paint

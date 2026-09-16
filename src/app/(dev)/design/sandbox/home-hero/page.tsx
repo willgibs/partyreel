@@ -48,6 +48,6 @@ export default async function HomeHeroScenePage({
   // a TypeError that takes the whole route down. The note is in stream-ids.ts.
   const raw = params.stream;
   const asked = typeof raw === "string" ? raw : undefined;
-  const stream: StreamId = isStreamId(asked) ? asked : "mirror";
+  const stream: StreamId = isStreamId(asked) ? asked : "band";
   return <HomeScene stream={stream} phone={params.w === "375"} />;
 }

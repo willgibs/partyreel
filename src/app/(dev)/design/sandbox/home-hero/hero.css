@@ -1,5 +1,5 @@
-/* THE HERO'S OWN SHEET (round six, 2026-09-16; round four's source.css, renamed
-   with the concept it outlived). Classes under hhs- only. This sheet declares
+/* THE HERO'S OWN SHEET (round seven, 2026-09-16; round four's source.css,
+   renamed with the concept it outlived). Classes under hhs- only. This sheet declares
    NO keyframe, deliberately: the stream is one requestAnimationFrame loop
    writing inline transforms, so there is nothing here that could collide with a
    production keyframe (src/app/keyframe-uniqueness.test.ts reads every sheet
@@ -34,7 +34,7 @@
    bytes. Nothing in the composition that carries meaning was ever gated: the h1,
    the code, the caption, the sentence and the two actions are plain markup. */
 
-.hhs-band {
+.hhs-band[data-hhs-mask="band"] {
   /* The stream dissolves into the frame rather than being guillotined by the
      stage's overflow: the outermost frame is always half gone, which is the
      argument (it never stops). --hhs-fade is set per canvas by the hero. */
@@ -50,6 +50,23 @@
     transparent 0%,
     #000 var(--hhs-fade),
     #000 calc(100% - var(--hhs-fade)),
+    transparent 100%
+  );
+}
+
+/* A ring dissolves toward every edge rather than two: the box is one canvas
+   tall and centred on the code, so the fade is centred on the code too, and
+   the far stations stand in the soft part of it, which is the reference's
+   look (the outer cards fainter than the inner ones). */
+.hhs-band[data-hhs-mask="radial"] {
+  -webkit-mask-image: radial-gradient(
+    ellipse 72% 80% at 50% 50%,
+    #000 42%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 72% 80% at 50% 50%,
+    #000 42%,
     transparent 100%
   );
 }

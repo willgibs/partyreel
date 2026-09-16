@@ -26,31 +26,43 @@ import {
 } from "./streams";
 
 /**
- * THE HOME HERO, AS IT SHIPS (round six, 2026-09-16).
+ * THE HOME HERO, AS IT SHIPS (round seven, 2026-09-16).
  *
  * Every ruling this composition carries is Will's, taken on round five
  * (`docs/reviews/home-hero.json`): the SOURCE direction, the album coming out
  * of the code; the lockup CENTRED rather than left like every other marketing
  * page; the site's one ruled line as the headline; and no live count anywhere
- * in the frame. What is still open is the stream itself, which is what the four
- * treatments in `streams.ts` answer and what this file renders one of.
+ * in the frame. Round six's four scatterings were answered `none` with the
+ * symmetric approach asked for by name, so what is open is which of the four
+ * compositions in `streams.ts` ships, and this file renders one of them.
  *
  * The argument the composition is built on, unchanged since round two. Every
  * other hero we have drawn puts photographs behind words and then dims the
  * photographs so the words survive. This one refuses that trade by changing the
- * shape of the composition: the album is a horizontal band through the middle of
- * the frame, the type lives above it and below it, and at the band's exact
- * centre the real demo QR stands still at scanning size. The frames are born
- * behind it and leave. The code is the eyebrow, the object and the argument at
- * once, and there is no darkening layer anywhere over a photograph (bible 1).
+ * shape of the composition: the album is a stream out of the code, the type is
+ * placed where the stream is measured never to reach, and the real demo QR
+ * stands still at scanning size where the frames are born. The code is the
+ * eyebrow, the object and the argument at once, and there is no darkening layer
+ * anywhere over a photograph (bible 1).
+ *
+ * ★ THE LOCKUP IS THE STREAM'S, and there are four. `split` is round six's: the
+ * code at the centre, the headline above the band, the caption, the sentence
+ * and the actions below it. The three others keep the type together as ONE
+ * block (Will: "don't split the H1 and other hero content with the QR"): a
+ * stack hangs the block under the code or stands it over the code, and the
+ * orbit hangs it under the code at the centre of the ring. `Geo.axis` says how
+ * far down the canvas the code sits for each; the band box, the code and the
+ * type all take their vertical from that one number.
  *
  * ★ THE TYPE'S CLEAR LANE IS MEASURED, NOT CHOSEN. `build` in streams.ts walks
  * every card over its whole flight and answers "how far from the axis does this
- * stream reach at the headline's own measure", and the headline and the lower
- * block are placed outside that answer plus a margin. So "no photograph is ever
- * under a word" is the condition the composition is drawn from, and swapping the
- * stream re-solves it rather than breaking it. The other ceiling is the site
- * header (a 4rem transparent overlay), which is `Geo.headMax`.
+ * stream reach at the nearest line's own measure", and the block is placed
+ * outside that answer plus a margin. So "no photograph is ever under a word" is
+ * the condition the composition is drawn from, and swapping the stream
+ * re-solves it rather than breaking it. The orbit's stations are drawn outside
+ * the block's box instead, and `streams.test.ts` holds them there. The other
+ * ceiling is the site header (a 4rem transparent overlay), which is
+ * `Geo.headMax` for the split and the block-fits test for the rest.
  *
  * ★ NOTHING ABOUT THE CODE MOVES. The stillness is the point, and a QR that
  * breathes is a QR nobody can scan. It is the real demo event's, live from
@@ -99,6 +111,8 @@ export function CinemaHeroDraft({
   const geo = GEO[mode];
   const st = STREAMS[stream];
   const { cards, box, lock, cycle, flight } = BUILT[stream][mode];
+  const axis = geo.axis[st.lockup];
+  const persp = st.perspective?.[mode] ?? geo.perspective;
   const reduced = usePrefersReducedMotion();
 
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -164,6 +178,7 @@ export function CinemaHeroDraft({
     <div
       ref={rootRef}
       data-hhs-stream={stream}
+      data-hhs-lockup={st.lockup}
       /* overflow-CLIP, not overflow-hidden: an `overflow: hidden` box is still a
          SCROLL container, and this one's content is several canvases wide, so a
          focus or an anchor inside it can shove the whole composition sideways.
@@ -171,15 +186,24 @@ export function CinemaHeroDraft({
       className="relative size-full overflow-clip bg-background"
     >
       {/* THE STREAM. Full bleed and decorative: the album is the argument, but
-          it is the type above and below that carries the sentence. */}
+          it is the type that carries the sentence. The band box is one canvas
+          tall and centred on the axis, so a lockup that lifts or lowers the
+          code moves the stream, the perspective's vanishing point and the
+          mask's centre with it in one number. */}
       <div
         aria-hidden
-        className="hhs-band absolute inset-0"
-        style={{ "--hhs-fade": geo.fade } as CSSProperties}
+        className="hhs-band absolute inset-x-0 h-full"
+        data-hhs-mask={st.mask}
+        style={
+          {
+            top: `${((axis - 0.5) * 100).toFixed(2)}%`,
+            "--hhs-fade": geo.fade,
+          } as CSSProperties
+        }
       >
         <div
           className="hhs-corridor"
-          style={{ "--hhs-persp": `${geo.perspective}px` } as CSSProperties}
+          style={{ "--hhs-persp": `${persp}px` } as CSSProperties}
         >
           {cards.map((c, i) => {
             const rest = frameAt(c, restPhase(c, st), st, mode, box[i].fit);
@@ -218,70 +242,138 @@ export function CinemaHeroDraft({
         </div>
       </div>
 
-      {/* THE OBJECT, at the exact centre of the viewport and of the stream,
-          above the frames so they are born behind it. */}
-      <div className="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+      {/* THE OBJECT, on the axis and at the exact centre of the stream, above
+          the frames so they are born behind it. */}
+      <div
+        className="absolute left-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
+        style={{ top: `${(axis * 100).toFixed(2)}%` }}
+      >
         <DemoQr url={qrUrl} size={geo.qr} />
       </div>
 
-      {/* THE HEADLINE, anchored off the centre rather than laid out in flow, so
-          the code holds the exact middle whether the line runs to one row or
-          two, and so an extra line grows UPWARD, away from the stream. At paint,
-          at full opacity, gated by nothing (bible 13). */}
-      <div
-        className={`absolute inset-x-0 z-20 text-center ${GUTTER[mode].x}`}
-        style={{ bottom: `calc(50% + ${lock.head}px)` }}
-      >
-        <h1
-          className={`mx-auto font-heading text-balance text-white ${LADDER.xl[mode]} ${geo.h1Lead}`}
-          style={{ maxWidth: geo.h1Max }}
-        >
-          {RULED.h1}
-        </h1>
-      </div>
-
-      {/* THE PROVENANCE, THE SENTENCE AND THE ACTIONS, below the stream, in one
-          block anchored at the measured clear line. No scrim anywhere and no
-          darkening layer over a frame: the geometry is what keeps the type off
-          the photographs, which is the argument. */}
-      <div
-        className={`absolute inset-x-0 z-20 text-center ${GUTTER[mode].x}`}
-        style={{ top: `calc(50% + ${lock.low}px)` }}
-      >
-        {/* The one thing the picture cannot say for itself: where the frames
-            came from. It sits in the column the stream leaves clear by its own
-            physics, because a frame is a speck while it is near the plate. */}
-        <Caption
-          className="mx-auto text-white/60"
-          style={{ maxWidth: geo.capMax }}
-        >
-          Every photo here came from a guest who scanned it
-        </Caption>
-        <p
-          className={`mx-auto text-[15px] leading-relaxed text-pretty text-white/80 ${mode === "phone" ? "mt-4" : "mt-5"}`}
-          style={{ maxWidth: geo.lowMax }}
-        >
-          {RULED.subhead}
-        </p>
-        <div
-          className={`flex flex-wrap items-center justify-center gap-3 ${mode === "phone" ? "mt-5" : "mt-7"}`}
-        >
-          <Button asChild size="lg" className="h-11 px-6 text-base">
-            <Link href={RULED.primary.href}>{RULED.primary.label}</Link>
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-11 border-white/35 bg-white/5 px-5 text-base text-white hover:border-white/50 hover:bg-white/15 hover:text-white"
+      {st.lockup === "split" ? (
+        <>
+          {/* THE HEADLINE, anchored off the axis rather than laid out in flow,
+              so the code holds the exact middle whether the line runs to one
+              row or two, and so an extra line grows UPWARD, away from the
+              stream. At paint, at full opacity, gated by nothing (bible 13). */}
+          <div
+            className={`absolute inset-x-0 z-20 text-center ${GUTTER[mode].x}`}
+            style={{
+              bottom: `calc(${((1 - axis) * 100).toFixed(2)}% + ${lock.head}px)`,
+            }}
           >
-            {RULED.secondary}
-          </Button>
+            <Headline mode={mode} />
+          </div>
+          {/* THE PROVENANCE, THE SENTENCE AND THE ACTIONS, below the stream, in
+              one block anchored at the measured clear line. No scrim anywhere
+              and no darkening layer over a frame: the geometry is what keeps the
+              type off the photographs, which is the argument. */}
+          <div
+            className={`absolute inset-x-0 z-20 text-center ${GUTTER[mode].x}`}
+            style={{
+              top: `calc(${(axis * 100).toFixed(2)}% + ${lock.low}px)`,
+            }}
+          >
+            <Provenance mode={mode} />
+            <Sentence mode={mode} className={mode === "phone" ? "mt-4" : "mt-5"} />
+          </div>
+        </>
+      ) : st.lockup === "stack-below" ? (
+        /* THE BLOCK OVER THE CODE: headline, sentence, actions, and the caption
+           as the foot line, one gap over the plate, so "came from a guest who
+           scanned it" reads straight into the thing to scan. */
+        <div
+          className={`absolute inset-x-0 z-20 text-center ${GUTTER[mode].x}`}
+          style={{
+            bottom: `calc(${((1 - axis) * 100).toFixed(2)}% + ${lock.head}px)`,
+          }}
+        >
+          <Headline mode={mode} />
+          <Sentence mode={mode} className={mode === "phone" ? "mt-4" : "mt-5"} />
+          <Provenance mode={mode} className={mode === "phone" ? "mt-5" : "mt-7"} />
         </div>
-      </div>
+      ) : (
+        /* THE BLOCK UNDER THE CODE (a stack with the code above, and the orbit):
+           the caption first, one gap under the plate, then the headline, the
+           sentence and the actions, together and never split. */
+        <div
+          className={`absolute inset-x-0 z-20 text-center ${GUTTER[mode].x}`}
+          style={{
+            top: `calc(${(axis * 100).toFixed(2)}% + ${lock.low}px)`,
+          }}
+        >
+          <Provenance mode={mode} />
+          <Headline mode={mode} className={mode === "phone" ? "mt-3" : "mt-4"} />
+          <Sentence mode={mode} className={mode === "phone" ? "mt-4" : "mt-5"} />
+        </div>
+      )}
 
       {/* The one reader the reduced-motion split cannot reach: motion allowed,
           scripting off. See NOSCRIPT_RULE. */}
       <noscript dangerouslySetInnerHTML={{ __html: NOSCRIPT_RULE }} />
+    </div>
+  );
+}
+
+/** The site's one ruled line, at the ladder's xl step resolved per canvas, at
+ *  paint, at full opacity, gated by nothing (bible 13). */
+function Headline({ mode, className = "" }: { mode: Mode; className?: string }) {
+  const geo = GEO[mode];
+  return (
+    <h1
+      className={`mx-auto font-heading text-balance text-white ${LADDER.xl[mode]} ${geo.h1Lead} ${className}`}
+      style={{ maxWidth: geo.h1Max }}
+    >
+      {RULED.h1}
+    </h1>
+  );
+}
+
+/** The one thing the picture cannot say for itself: where the frames came
+ *  from. It is the line that touches the code in every lockup. */
+function Provenance({
+  mode,
+  className = "",
+}: {
+  mode: Mode;
+  className?: string;
+}) {
+  return (
+    <Caption
+      className={`mx-auto text-white/60 ${className}`}
+      style={{ maxWidth: GEO[mode].capMax }}
+    >
+      Every photo here came from a guest who scanned it
+    </Caption>
+  );
+}
+
+/** The ruled sentence and the two actions. */
+function Sentence({ mode, className = "" }: { mode: Mode; className?: string }) {
+  const geo = GEO[mode];
+  return (
+    <div className={className}>
+      <p
+        className="mx-auto text-[15px] leading-relaxed text-pretty text-white/80"
+        style={{ maxWidth: geo.lowMax }}
+      >
+        {RULED.subhead}
+      </p>
+      <div
+        className={`flex flex-wrap items-center justify-center gap-3 ${mode === "phone" ? "mt-5" : "mt-7"}`}
+      >
+        <Button asChild size="lg" className="h-11 px-6 text-base">
+          <Link href={RULED.primary.href}>{RULED.primary.label}</Link>
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          className="h-11 border-white/35 bg-white/5 px-5 text-base text-white hover:border-white/50 hover:bg-white/15 hover:text-white"
+        >
+          {RULED.secondary}
+        </Button>
+      </div>
     </div>
   );
 }
