@@ -1,6 +1,6 @@
 ---
 track: type-scale
-status: open
+status: handed-off
 cut: "a978d791"        # the stepped review round (2026-09-16): the type-scale board reshaped for it
 board: type-scale
 owns:
@@ -103,18 +103,36 @@ moved, never rebase.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The lab: the step's option tiles scale their evidence (`FitStage fit="zoom"` in `step.tsx`), so a board judging SIZE has to undo it; offer a tile that draws at 1:1 and retire `sandbox/type-scale/true-scale.tsx` into it.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` green for this board, its reading words
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The steps, one line each: `<ask>: decides <lands>; tiles | means-only; after <...>`
-- The cards, one line each: `<id>: lands as <...>`
-- Assets requested from Will: none, or one per line
-- Look at first: ...
+- Work head `c533f2dd` (this manifest commit rides on top of it), pushed; synced with `launch-prep` at `c334de13`, merged and never rebased, after `lab-flow` landed.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 9 warnings are all pre-existing and none in this lane), test ok (2,160 in 228 files), build ok (258 pages); `pnpm lab:smoke --base http://localhost:3124` green, every type-scale route including the three `?session=` steps, **486 reading words against the 1,200 budget** (1,155 at round six), no declaration needed. Only `glow-doctrine` and `glow-moments` still fail the budget, as they did before this branch.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the owned board directory, `docs/specs/type-scale.md` and this file, plus two declared exceptions: **`src/app/(dev)/design/touchpoints.ts`** (this board's own summary line only, round six's wording was a lie the moment the walk landed) and **`docs/design/library.md`** (the generated artifact, regenerated with `pnpm design:rules`; `rules-registry.test.ts` was already red on `launch-prep` before this branch, because the hero's touchpoint edit at `a978d791` did not regenerate it, and `lab-flow` fixed that half at `2b645a2c`).
+- The steps, one line each:
+  - `ladder`: decides one `@theme` block of nine size names in `src/app/theme.css`; the five cards as tiles at true size plus "None of these"; stage `pages`; strip Canvas, Page, Against.
+  - `tracking`: decides the nine letter-spacing and line-height tokens in the same block; two tiles, today's 160 / 60 / 16 under the flat value and under the law; strip Canvas.
+  - `not-found`: decides one rule on `[data-not-found] h1` or a written exception; two tiles, the production dead end with its title on the set and off it; after `ladder`; strip Canvas.
+- The cards, one line each:
+  - `b`: lands as nine size tokens off one rung set; the three breakpoint ramps become one class each.
+  - `c`: lands as two registers in one block, marketing five steps louder, the app quieter than today.
+  - `a`: lands as today's desktop sizes baked as tokens, the phone end written out, no new app step.
+  - `law`: lands as leading and letter-spacing tokens only; not one font-size in `theme.css` moves.
+  - `today`: lands as nothing; the shipped ramps and the flat heading tracking stay.
+- Assets requested from Will: none.
+- Look at first: **the tracking step.** Both answers are drawn on the same three sizes at true pixels, side by side, which is the one thing round six could not do. Then press through the five cards on the winner step and watch `/about` re-type itself in place; drag `Against` to read two ladders on the one page. Two things to expect rather than report: at a 375 WINDOW the two tiles are half a phone wide, so the 160px word crops to one letter until Canvas is flipped to 375 (then the specimen is 52px and fits); and the home page is the one route the fade cannot be honest about at once, because its hero line rotates on its own, so the two copies land on different words. The board's own answer is unchanged: B, rungs, with the dead-link title on the set.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-16). Round seven reshaped the type-scale catalog into a
+three-step walk with no new ladder and no size moved: `catalog.mode: "pick-one"` with the `ladder` ask
+as its winner (the five cards plus "None of these", mirroring the pick control), `pages` as its stage,
+`lands` on every card and every ask, and `tracking` and `not-found` as tile steps whose two controls are
+declared and off every strip, `not-found` staged behind the pick. Round six's open question was settled
+without the sideways row and without the wipe: the stage loads ONE route from the strip, the ladder
+arrives as CSS in that page's own document so a press re-types it in place, and `against` lays a second
+copy of the route under the first on a fade inside one canvas width; the compare section, the five-frame
+column and `catalog.compare` went with it. `true-scale.tsx` divides out the zoom the step's tiles impose,
+so a specimen is 1:1 on the glass wherever it is drawn, and the board asks the tiles for the room type
+needs. The reading fell from 1,155 words to 486 against a 1,200 budget.
