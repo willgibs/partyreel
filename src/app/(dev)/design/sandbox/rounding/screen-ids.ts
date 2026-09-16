@@ -32,9 +32,9 @@ export const SCREEN_NOTE: Record<ScreenId, string> = {
   event:
     "An event, as a host works it: the command strip, the filter pills, the real MasonryColumns at the tile radius and the gallery gap, and the row menu, open.",
   gallery:
-    "The finding, on the real grid: the same nine photographs twice, once with the gap on the token and once with the literal 3px the guest gallery ships. Above a tile of 3 the second grid opens corner holes.",
+    "The finding, on the real grid: the same nine photographs twice, once labelled The gap follows the tile and once A fixed 3px gap, as it ships. Above a corner of 3 the second grid opens holes where four corners meet.",
   entry:
-    "The first surface a guest ever sees, drawn by the production EntryShell: a vaul drawer below 640 and a Radix dialog above. Its top corners are 1.4 times the ACTION token, which is the finding part F is built on.",
+    "The first surface a guest ever sees, drawn by the production EntryShell: a vaul drawer below 640 and a Radix dialog above. Its top corners are 1.4 times a BUTTON's corner, which is the finding part F is built on.",
   floating:
     "A real dialog and a real menu, open, over a real album. Both portal to this document's body, so they are on the canvas rather than over the lab.",
 };

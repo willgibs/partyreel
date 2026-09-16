@@ -1,12 +1,6 @@
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 
-import {
-  anchorFor,
-  type BoardSpec,
-  optionId,
-  optionLabel,
-  optionMeans,
-} from "@/components/lab/board-spec";
+import { optionId, optionLabel } from "@/components/lab/board-spec";
 
 import { Callout } from "@/app/(dev)/design/(shell)/_shell/callout";
 import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
@@ -21,9 +15,10 @@ import { windowNotesFor } from "@/app/(dev)/design/review/ledger";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 import { SANDBOX, SURFACE_LABEL } from "@/app/(dev)/design/touchpoints";
 
-import { type AskState, type BoardRow, deskRows } from "./_desk/queue";
-import { ReviewSession, type SessionStep } from "./_desk/review-session";
+import { type BoardRow, deskRows } from "./_desk/queue";
+import { ReviewSession } from "./_desk/review-session";
 import { SAMPLE_BOARD } from "./_desk/sample-spec";
+import { type SessionStep, toSteps } from "./_desk/session-step";
 import { StartReview } from "./_desk/start-review";
 import { holdId, stepId } from "./_desk/step-id";
 
@@ -35,57 +30,22 @@ import { holdId, stepId } from "./_desk/step-id";
  * manifests in docs/tracks/, the answers in docs/reviews/); the desk never
  * writes, and neither does the review session it opens.
  *
- * `?session=<board>.<ask>` turns the page into that session (review-session.tsx),
- * so an interrupted review resumes from its own URL; `?session=sample` is the
- * dry run on the fixture board, which is the only way to see the session until
- * the standing boards carry specs.
+ * THE ANSWERING MOVED ONTO THE BOARDS (the clarity round, 2026-09-15). Every
+ * way into an ask from here now opens it ON ITS BOARD, where the review card
+ * pins the question over the evidence that argues it: the desk keeps the queue,
+ * the progress and the summary, and the board keeps the answering. The step
+ * view below is still here for the dry run (`?session=sample`, a fixture board
+ * with no page of its own) and as the fallback for a board that has no page;
+ * `?session=end` is the summary that composes the message.
  */
 
 const DESK_HREF = "/design/lab";
 
-type Params = Promise<Record<string, string | string[] | undefined>>;
+/** Where an ask is answered: on its board, with the card open on it. */
+const askHref = (board: string, ask: string) =>
+  `/design/lab/${board}?session=${stepId(board, ask)}`;
 
-/** The steps a session walks, built from the asks with their evidence resolved. */
-function toSteps(
-  asks: AskState[],
-  specOf: (board: string) => BoardSpec | undefined,
-  key: string | null,
-): SessionStep[] {
-  return asks.map((a) => {
-    const spec = specOf(a.board);
-    const section = spec?.sections.find((s) => s.id === a.ask.evidence);
-    const board = `/design/lab/${a.board}`;
-    return {
-      board: a.board,
-      boardTitle: a.boardTitle,
-      round: a.round,
-      askId: a.ask.id,
-      question: a.ask.question,
-      context: a.ask.context,
-      look: a.ask.look,
-      options: a.ask.options.map((o) => ({
-        id: optionId(o),
-        label: optionLabel(o),
-        means: optionMeans(o),
-      })),
-      recommended: a.ask.recommended,
-      because: a.ask.because,
-      overrule: a.ask.overrule,
-      // A dry run has no board page, so it has no evidence to open.
-      evidence:
-        spec && section && a.board !== SAMPLE_BOARD.id
-          ? {
-              title: section.title,
-              href: withDesignKey(
-                `${board}#${anchorFor(a.board, section.id)}`,
-                key,
-              ),
-            }
-          : null,
-      boardHref: a.board === SAMPLE_BOARD.id ? DESK_HREF : board,
-    };
-  });
-}
+type Params = Promise<Record<string, string | string[] | undefined>>;
 
 const holdKey = (s: SessionStep) => holdId(s.board, s.round, s.askId);
 
@@ -192,7 +152,12 @@ export default async function DeskPage({
         blurb="Every ask with no answer in its board's current round, in board order. The review walks them one at a time and ends in one message to paste."
         aside={
           queue.length > 0 ? (
-            <StartReview total={steps.length} stepKeys={steps.map(holdKey)} />
+            <StartReview
+              steps={steps.map((s) => ({
+                key: holdKey(s),
+                href: askHref(s.board, s.askId),
+              }))}
+            />
           ) : undefined
         }
       >
@@ -207,7 +172,7 @@ export default async function DeskPage({
                 style={{ "--i": i } as React.CSSProperties}
               >
                 <LabLink
-                  href={`${DESK_HREF}?session=${stepId(a.board, a.ask.id)}`}
+                  href={askHref(a.board, a.ask.id)}
                   className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3 transition-colors duration-150 hover:bg-muted/40"
                 >
                   <span className="text-xs text-muted-foreground">
@@ -430,7 +395,7 @@ function BoardCard({
                 href={
                   a.answer?.choice
                     ? `/design/lab/${row.id}`
-                    : `${DESK_HREF}?session=${stepId(row.id, a.ask.id)}`
+                    : askHref(row.id, a.ask.id)
                 }
                 title={
                   a.answer && a.answer.choice === null
