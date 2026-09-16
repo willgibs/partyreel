@@ -13,7 +13,7 @@ per event (the old `/a/[share_token]` album + `get_public_album` are gone).
 `get_event_by_qr_token` resolves `qr_token` OR `custom_slug` (token wins) and returns the canonical
 `qr_token`, which the page threads to every downstream qr-keyed RPC.
 
-## Flow (top to bottom, contiguous) — the V1 redesign (Phase 4)
+## Flow (top to bottom, contiguous)
 
 The ratified **left-editorial** layout ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)
 is the shell): `font-heading` event name → byline ("Hosted by" name+avatar · date) → the **stats line**
@@ -33,7 +33,7 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
   pre-measure rows — dims ride OUTSIDE the gallery ETag hash, write-once per id). A 45ms entrance stagger
   applies to the SEED render only (`--tile-i`; doorbell/poll arrivals get 0). Videos wear a small CORNER
   play badge (the shared centered `PlayBadge` stays on other surfaces; `MediaTile` gained `playBadge="none"`).
-  Guest-only — host/personal grids keep `MediaGrid`'s square grid until Phase 5.
+  Guest-only; host/personal grids keep `MediaGrid`'s square grid.
 - **Upload lives IN the gallery**: the queue machine is [`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts)
   (one-at-a-time, JIT silent join, demo sim, retry — moved verbatim, the pins encode it). `GuestUpload` is a
   thin engine (hidden input + `{openPicker, retry}` handle + `onQueueChange`); in-flight items render as
@@ -45,14 +45,14 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
 - **Empty state** ([`gallery-empty-state.tsx`](../../src/components/guest/gallery-empty-state.tsx)): the
   photographic promise — a faint grayscale ghost mosaic (the optimized `public/guest-ghost` WebPs) with a
   centered `font-heading` CTA. At 0 items the header drops its Add (the CTA owns it).
-- **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), Phase 4
-  chrome): full-bleed media, a floating top-right close, a bottom ACTION PILL (Like / Save / Share /
+- **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx)):
+  full-bleed media, a floating top-right close, a bottom ACTION PILL (Like / Save / Share /
   Delete) over an ATTRIBUTION PILL ("[name] [Host] / Anonymous(i) · i+1 of N" — the counter always
   renders). ~30% side tap zones NAVIGATE via thirds logic in `onBackdropClick` (left→prev, right→next,
   edge→no-op, center→close); whisper scrims are pointer-events-none so they never kill the swipe. The
   **gesture machinery is verbatim** (the 17 physics pins). ★ The Share button is guest-only and shares
   the event JOIN url (`shareUrl` prop) — NEVER a presigned media URL; absent on host/personal surfaces.
-- Each tile (desktop hover-reveal) + the lightbox carry a **like** button (Phase 5); a signed-out tap
+- Each tile (desktop hover-reveal) + the lightbox carry a **like** button; a signed-out tap
   opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). Like
   COUNTS are host-only → [host-app.md](host-app.md), [database-security.md](database-security.md).
 - **PWA (manifest only, no SW)**: [`manifest.ts`](../../src/app/manifest.ts) + the ink-aperture icon set
@@ -66,8 +66,8 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
   (name shown — it's link-shared, not the secret) with the entry modal's password step over it, until a
   signed unlock cookie is present; then the full experience. ★ **The page passes a REDACTED `shellEvent`
   at access `none`** (`host_display_name` + `description` + `event_date` blanked) so they never reach the
-  RSC flight payload — a locked page leaks the event NAME + COUNT only, zero media URLs (Phase 4
-  hardening; the date joined in 4.5 when the welcome byline started rendering it).
+  RSC flight payload: a locked page leaks the event NAME + COUNT only, zero media URLs. The date is
+  blanked too, because the welcome byline renders it.
 - **`open`** → the full experience, UNLESS account-required (`allow_anonymous_uploads=false`): a signed-out
   viewer then gets a teaser (see "Gallery access" below). ★ **The OG description keys on the SAME column** —
   anonymous-allowed keeps the "No app, no account" line, account-required says the event asks guests for an
@@ -75,7 +75,7 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
 - **`accepting_uploads=false`** = the **view-only STATE** of the one page: the upload panel is removed
   entirely (a quiet "uploads closed" line), leaving the action row + gallery.
 
-## Gallery access: `none` / `teaser` / `full` (the gated VIEW, P1)
+## Gallery access: `none` / `teaser` / `full` (the gated VIEW)
 
 Viewing is no longer all-or-nothing. A pure `resolveGalleryAccess(event, {isOwner, isAuthed, isUnlocked})`
 ([`gallery-access.ts`](../../src/lib/events/gallery-access.ts)) maps a viewer to one level, enforced
@@ -186,7 +186,7 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   which is what keeps the `events_password_requires_hash` CHECK satisfiable), and `clear_event_password`
   reverts to `open` only FROM `password`, never turning a `private` event public.
 - **The page calls `getUser()` for every non-private, non-demo event** (to resolve the access level + the
-  identity gates — the gate must know whether the viewer is signed in; P1 relaxed this from the old
+  identity gates, because the gate must know whether the viewer is signed in; it is not an
   upload-path-only call). With NO session it's a cheap LOCAL null (no network), so an anonymous event crowd
   behind one venue-NAT IP doesn't each pay an auth round-trip; the owner check (`isEventOwner`, an explicit
   `host_id = uid` match — NOT reliant on the open-event RLS read) runs ONLY when signed in. The header island
@@ -213,7 +213,7 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   or signed in.
 - **`allow_anonymous_uploads = false` ⇒ an account is required to SEE the full gallery AND to upload** (P1
   gated the VIEW too: a signed-out viewer gets the teaser, see "Gallery access"; renamed + inverted from
-  `require_email`; default is ON and FREE on every tier since 2026-06-21, see [host-app.md](host-app.md);
+  `require_email`; the default is ON and FREE on every tier, see [host-app.md](host-app.md);
   turning it off is the opt-in, behind a consequence-confirm, not a paid feature). The account step lives in the entry
   modal (P2) as `<EnterEventPrompt>` — an email-primary "See all the photos" (the shared
   [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx); one tap = create account OR log in) with a
@@ -232,7 +232,7 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   in-page sign-in handlers; module-level guards dedupe, and the RPC's `IS NULL` makes a reload's re-run a
   silent 0-op (no sessionStorage flag). P4's Uploads tab will key on the `guests.user_id` this populates.
 
-## Live gallery: the hybrid doorbell (Phase 3)
+## Live gallery: the hybrid doorbell
 
 - **Architecture:** [`live-gallery.tsx`](../../src/components/guest/live-gallery.tsx) owns all gallery
   state; [`event-experience.tsx`](../../src/components/guest/event-experience.tsx) is the SHELL around it
@@ -286,7 +286,7 @@ page through `event-experience.tsx`; the ~12 s poll is paused, the silent join s
 the queue skips the real upload — `simulateUpload` returns a synthetic `approved` outcome so the optimistic
 tile appears but is **never persisted**. The marketing side of the demo → [marketing-content.md](marketing-content.md).
 
-## The guest reel (R3)
+## The guest reel
 
 Guests see the host's highlight reel on `/e/` **only after the host shares it** (`highlight_reels.guest_visible`,
 the host-side publish seam → [host-app.md](host-app.md)). Server resolution is
