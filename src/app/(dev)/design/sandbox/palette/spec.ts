@@ -399,7 +399,7 @@ export const PALETTE = defineBoard({
       ],
       recommended: "all",
       because:
-        "An event with no cover photograph has all three jobs in one frame, and a narrower reach leaves the stand-in near-black beside a coloured badge.",
+        "Half the brand call sites are drawings of photographs that do not exist yet, and a marketing section with no photograph has all three jobs in one frame. A narrower reach leaves the stand-in near-black beside a coloured badge.",
       evidence: "accent",
       state: { accent: "own" },
       control: "reach",

@@ -43,8 +43,9 @@ import {
  *                   photograph nobody has taken (marketing/frames/*).
  *
  * The stand-in is a MARKETING surface and everything else here is the app,
- * which is the one dishonesty a single screen cannot avoid; it is drawn as the
- * cover a new event has before anyone uploads, and labelled so.
+ * which is the one dishonesty a single screen cannot avoid. It is not papered
+ * over: the frame is captioned as a marketing frame, so nobody reads it as
+ * something the dashboard draws.
  *
  * ★ AND BOTH SIDES ARE HERE, because an accent is declared once and worn in
  * both modes. The room carries the screen; a strip under it carries the same
@@ -219,7 +220,7 @@ export function AccentDash({
               <GalleryFrame />
             </Job>
             <figcaption className="truncate text-xs text-muted-foreground">
-              No photograph yet
+              A marketing frame: no photograph yet
             </figcaption>
           </figure>
         </div>
