@@ -62,19 +62,26 @@ export type Voice = {
   cost: string;
 };
 
+/**
+ * ★ EACH NAME IS THE VOICE ASK'S OPTION LABEL, WORD FOR WORD (the clarity
+ * round, 2026-09-15). `spec.ts` asks the question, the dock's Voice switch
+ * offers the same three labels, and `VOICE_TAG` in frames.tsx heads every
+ * column with them. A reviewer meeting the ask away from the board has to find
+ * these exact words on the evidence, so all four move together or none do.
+ */
 export const VOICES: Voice[] = [
   {
     id: "room",
-    name: "B. The room",
+    name: "B, rebuilt around the album filling",
     rationale:
       "A rebuild from the product's one idea: the code becoming the album. Verb in front, present tense, the room as the setting, real counts as evidence. A sentence is about the moment, not the object.",
     paragraph:
       "Partyreel talks the way a good host talks while the party is still going: present tense, plain nouns, one breath per sentence. Every line is about something arriving. A code goes on a table, phones find it, an album fills with the event as everyone saw it, and the voice stays inside that moment instead of describing it from afterwards. It is warm because it is specific, not because it is friendly: it says photo, video, phone, code, album, guest, link, and it leaves memories, magic and journeys to someone else. It calls the host you and the guests everyone. It leads with what the reader gets, so the things Partyreel spares them (an app, an account, a group chat the morning after) land in the second half of a sentence and never the first. And it changes volume, not vocabulary: loud here, quiet in the product, nearly silent on a guest's screen.",
-    cost: "Its sentences run longer, and the hero pays for it: the row counter under the arc measures the h1 at both canvases. It also rewrites half again as much of the site as A.",
+    cost: "Its sentences run longer, and the home page's biggest headline pays for it: the row counter under the page measures it at both widths. It also rewrites half again as much of the site as A.",
   },
   {
     id: "house",
-    name: "A. The house",
+    name: "A, a tuning of the lines we have",
     rationale:
       "A tuning. The voice already exists in the eight ratified lines; write it down, then bring back the lines that drifted. A sentence is about what the host ends up holding.",
     paragraph:
@@ -83,9 +90,9 @@ export const VOICES: Voice[] = [
   },
   {
     id: "today",
-    name: "Today",
+    name: "Today, the lines the site ships now",
     rationale:
-      "The shipped strings, verbatim. The voice is unwritten, so the arc drifts between an absence, a state and an instruction.",
+      "The strings the site ships, verbatim. No voice is written down, so the home page drifts between an absence, a state and an instruction.",
     paragraph:
       "Unwritten. The only copy rule in the repo is the em-dash ban, so the voice is whatever the eight ratified golden lines happen to have in common: warm, plain, second person, two beats on a comma. Nothing says what a line should be ABOUT, which is why three of the seven provisional home headers are built out of an absence, one is a tautology, and the eyebrows above them name a category instead of a claim.",
     cost: "Nothing to adopt, and nothing to hold the next hundred lines to.",
@@ -1417,24 +1424,30 @@ export const UNFURL = {
   options: [
     {
       id: "email",
-      label: "Asks for an email",
+      label: "This event asks guests for an email",
       line: "Add your photos and videos. This event asks guests for an email.",
       note: "The host's word for it, and the guest register's rule: the reader's word, not the system's. Reads lighter in a group chat, which is the friction the product sells against.",
     },
     {
       id: "signin",
-      label: "Asks to sign in",
+      label: "Asks guests to sign in with an email",
       line: "Add your photos and videos. This event asks guests to sign in with an email.",
       note: "The app's word for it. Sets the true expectation of the door the guest meets, at the cost of sounding like the account step the page then spends a section promising is not there.",
     },
   ],
 } as const;
 
-/** The ruled thesis, and the one question candidate C leaves behind. */
+/**
+ * The site's one-line promise as ratified, and the one question the retired
+ * candidate C leaves behind. The two labels are the promise ask's option
+ * labels, so the row counter under the pair names what a reviewer was offered.
+ */
 export const THESIS = {
   ruled: "The whole event, in one album.",
+  ruledLabel: "Keep: The whole event, in one album",
   alternative: "The whole event, as everyone saw it.",
-  note: "An album is a container anyone can offer; the same event from every camera in the room is only ours. Will's cadence is kept, so the ruling is one clause. This is all that survives of candidate C, which did not earn a column of its own across fifteen sections.",
+  alternativeLabel: "Take: The whole event, as everyone saw it",
+  note: "An album is a container anyone can offer; the same event from every camera in the room is only ours. Will's cadence is kept, so the ruling is one clause. This is all that survives of the retired third candidate, C, which did not earn a column of its own across fifteen sections.",
 };
 
 /* ---------------------------------------------------------------------------
@@ -1442,9 +1455,9 @@ export const THESIS = {
  * ------------------------------------------------------------------------ */
 
 const NOTE_BY_ID: Record<VoiceId, string> = {
-  today: "today's shipped lines",
-  house: "candidate A, the house",
-  room: "candidate B, the room",
+  today: "the lines the site ships today",
+  house: "candidate A, a tuning of the lines we have",
+  room: "candidate B, rebuilt around the album filling",
 };
 
 /** The seven provisional home headers as the SECTION_HEADERS edit, ready to
@@ -1619,7 +1632,7 @@ export const MARKETING_USE: UseCase[] = [
       { slot: "cta", trio: arcSlot("cinema-hero", "cta") },
     ],
     distinction:
-      "The sharpest pair on the board. A writes today's two ruled lines back, because keeping them IS A's argument: the thesis and the subhead were ratified on 2026-08-25 and A says the voice already lives in them. B writes a different sentence about the same product, and the eyebrow underneath shows the two philosophies in five words each: today names three absences, A names a sequence, B names a state. Read the h1 rows under the stage for what B costs.",
+      "The sharpest pair on the board. A writes today's two approved lines back, because keeping them IS A's argument: the promise and the sentence under it were approved on 2026-08-25 and A says the voice already lives in them. B writes a different sentence about the same product, and the small label underneath shows the two philosophies in five words each: today names three absences, A names a sequence, B names a state. Read the headline rows under the frame for what B costs.",
   },
   {
     id: "album-chapter",
@@ -1646,7 +1659,8 @@ export const MARKETING_USE: UseCase[] = [
   {
     id: "feature-cards",
     surface: "A feature card set",
-    where: "components/marketing/sections/features/album/album-copy.ts, GETTING_IN",
+    where:
+      "components/marketing/sections/features/album/album-copy.ts, GETTING_IN",
     rule: "A card is read in a row of cards, so it is scannable and different from its neighbours in substance. One line, no verb in front: the title carries the name.",
     lines: [
       {
@@ -1720,7 +1734,8 @@ export const MARKETING_USE: UseCase[] = [
   {
     id: "pricing-card",
     surface: "The pricing pair",
-    where: "components/marketing/sections/pricing/plan-cards.tsx, numbers from tiers.ts",
+    where:
+      "components/marketing/sections/pricing/plan-cards.tsx, numbers from tiers.ts",
     rule: "A plan is a fact and a price. The tagline says who the plan is for, the list says what arrives, and the footnote answers the one thing a reader is afraid of.",
     lines: [
       {
@@ -1787,7 +1802,8 @@ export const MARKETING_USE: UseCase[] = [
   {
     id: "help-open",
     surface: "A help article's opening",
-    where: "content/help/an-upload-wont-finish.mdx, its front matter and first paragraph",
+    where:
+      "content/help/an-upload-wont-finish.mdx, its front matter and first paragraph",
     rule: "The title is the reader's question in the reader's words. The description is the short answer, written so someone could stop reading after it.",
     lines: [
       {
@@ -1875,7 +1891,8 @@ export const APP_USE: UseCase[] = [
   {
     id: "event-card",
     surface: "The event card's pills",
-    where: "components/app/event-card.tsx, labels from dashboard/events-section.tsx",
+    where:
+      "components/app/event-card.tsx, labels from dashboard/events-section.tsx",
     rule: "A pill is a fact about the host's own event in the fewest words that stay true. Never a sentence, never a promise.",
     lines: [
       {
@@ -1977,7 +1994,8 @@ export const APP_USE: UseCase[] = [
   {
     id: "toast",
     surface: "A toast",
-    where: "components/app/event-feed/event-feed.tsx and app/host-media-grid.tsx",
+    where:
+      "components/app/event-feed/event-feed.tsx and app/host-media-grid.tsx",
     rule: "A toast says what just happened, in the app's own noun, and it is gone in four seconds. Never a thank-you, never a sentence about us.",
     lines: [
       {
@@ -2003,7 +2021,8 @@ export const APP_USE: UseCase[] = [
   {
     id: "error",
     surface: "An error",
-    where: "components/guest/enter-event-prompt.tsx and components/guest/guest-upload.tsx",
+    where:
+      "components/guest/enter-event-prompt.tsx and components/guest/guest-upload.tsx",
     rule: "Say what did not happen, in the app's own noun, then the one thing to do next. Never apologise, never blame the reader, never explain the system.",
     lines: [
       {
@@ -2177,7 +2196,8 @@ export const GUEST_USE: UseCase[] = [
   {
     id: "upload-sheet",
     surface: "The upload sheet a guest sees",
-    where: "components/guest/file-dropzone.tsx, guest-upload.tsx, save-account-prompt.tsx",
+    where:
+      "components/guest/file-dropzone.tsx, guest-upload.tsx, save-account-prompt.tsx",
     rule: "The verb on the control, and the one way to use it. No sentence, no promise, and the host's name wherever the host is the one deciding.",
     lines: [
       {
@@ -2201,10 +2221,8 @@ export const GUEST_USE: UseCase[] = [
       {
         slot: "moderation",
         trio: {
-          today:
-            "The host reviews uploads before they appear in the gallery.",
-          house:
-            "Maya and Jay review photos before they appear in the album.",
+          today: "The host reviews uploads before they appear in the gallery.",
+          house: "Maya and Jay review photos before they appear in the album.",
           room: "Maya and Jay see everything first. Approved photos appear in the album.",
         },
       },

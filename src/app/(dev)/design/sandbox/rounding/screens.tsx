@@ -328,7 +328,7 @@ function GalleryScreen() {
             ))}
           </div>
           <p className="mt-2 text-[11px] text-gallery-muted tabular-nums">
-            On the token: the gap follows the tile.
+            The gap follows the tile.
           </p>
         </div>
         <div>
@@ -350,7 +350,7 @@ function GalleryScreen() {
             ))}
           </div>
           <p className="mt-2 text-[11px] text-gallery-muted tabular-nums">
-            As the guest gallery ships: a literal 3px gap.
+            A fixed 3px gap, as it ships.
           </p>
         </div>
       </div>
@@ -533,9 +533,9 @@ export function ScreenPage({
 
   return (
     <>
-      <style>{
-        ".lab-grid{display:block}.lab-nav,.lab-sidebar-pill{display:none}"
-      }</style>
+      <style>
+        {".lab-grid{display:block}.lab-nav,.lab-sidebar-pill{display:none}"}
+      </style>
       <div
         className={cn(
           groundClass,

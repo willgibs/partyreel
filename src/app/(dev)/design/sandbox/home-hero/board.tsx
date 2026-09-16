@@ -114,9 +114,13 @@ export function HomeHeroBoard() {
           case "today":
             return (
               <div ref={todayRef}>
+                {/* The note carries the lockup ask's OTHER option by name: the
+                    board builds no "left" candidate, so the shipped hero is
+                    the only place a reviewer can see what Left, like every
+                    other page actually looks like. */}
                 <Labeled
                   name="The shipped hero"
-                  note="cinema-hero.tsx, from production code, in the canvas the candidates are judged in."
+                  note="cinema-hero.tsx, from production code, in the canvas the candidates are judged in. Its type runs Left, like every other page, which is the lockup ask's other option."
                 >
                   <Stage
                     key={`today-${mode}-${runId}`}
@@ -193,6 +197,13 @@ function Concepts({
 /**
  * The four lockups at the size they ship.
  *
+ * ★ EACH ONE IS LABELLED WITH THE HEADLINE ASK'S OWN OPTION (the clarity round,
+ * 2026-09-15). That ask offers "The site's one line" and "The picture's own
+ * line", and those exact words are now the labels here AND on the dock's
+ * Headline switch, so a reviewer who met the ask on the desk finds the words he
+ * was offered on the thing he is judging. "The site thesis" and "Proposed by"
+ * were the board's own names for them and nobody else's.
+ *
  * ★ THE HEADLINE IS A `<p>` HERE, NOT AN `<h1>`, and this is the only place on
  * the board where that is true. The candidates above render real h1s inside
  * real compositions, which is what the h1 rules are about; four more h1s in a
@@ -208,16 +219,16 @@ function Words({ mode }: { mode: Mode }) {
   const lockups = [
     {
       id: "ruled",
-      name: "The site thesis",
-      note: "marketing-voice.ts, ruled 2026-08-25. What every concept renders unless the Copy knob is on its proposal.",
+      name: "The site's one line",
+      note: "The site thesis, ruled 2026-08-25 in marketing-voice.ts. What all three pictures render unless the dock's Headline switch is on the picture's own line.",
       copy: copyFor({ id: "source" }, "ruled"),
     },
-    // No note on a proposal: the card above already carries the concept's
-    // case, and a second gloss here would be the same sentence twice.
+    // The note names WHICH picture proposed it; the card above already carries
+    // that picture's case, so nothing here repeats the argument.
     ...ORDER.map((id) => ({
       id,
-      name: `Proposed by ${HOME_HERO.candidates.find((c) => c.id === id)?.name ?? id}`,
-      note: undefined,
+      name: "The picture's own line",
+      note: `Proposed by ${HOME_HERO.candidates.find((c) => c.id === id)?.name ?? id}.`,
       copy: copyFor({ id }, "proposed"),
     })),
   ];

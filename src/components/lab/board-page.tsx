@@ -10,6 +10,7 @@ import type { BoardSpec, BoardState } from "./board-spec";
 import { ControlKnobs, useBoardState } from "./board-state";
 import { BoardDock } from "./dock";
 import { Notes } from "./notes";
+import { ReviewCard } from "./review-card";
 import { ReviewQuestions } from "./review";
 import { Walk } from "./walk";
 
@@ -61,7 +62,11 @@ export function BoardPage({
   /** The board's own dock cluster: an Apply, a Replay, a reload. */
   dock?: (state: BoardState, api: BoardApi) => React.ReactNode;
   /** One section's evidence. Called per section, in declaration order. */
-  evidence: (sectionId: string, state: BoardState, api: BoardApi) => React.ReactNode;
+  evidence: (
+    sectionId: string,
+    state: BoardState,
+    api: BoardApi,
+  ) => React.ReactNode;
   review?: boolean;
   className?: string;
 }) {
@@ -80,6 +85,7 @@ export function BoardPage({
         sections: spec.sections.map((s) => ({ id: s.id, label: s.title })),
         prev: outer?.prev,
         next: outer?.next,
+        review: outer?.review,
       }}
     >
       <div
@@ -98,12 +104,22 @@ export function BoardPage({
             </>
           }
         >
-          <ControlKnobs
-            controls={controls}
-            state={state}
+          <ControlKnobs controls={controls} state={state} setState={setState} />
+        </BoardDock>
+
+        {/* The ask being answered, pinned under the dock, when the route
+            carried a session naming one on this board. It is a sibling of the
+            dock rather than a child of a wrapper around the two: a sticky
+            element only sticks while its PARENT is on screen, so a box around
+            the pair would unstick both a hundred pixels down the board. */}
+        {outer?.review ? (
+          <ReviewCard
+            boardId={spec.id}
+            steps={outer.review.steps}
+            param={outer.review.param}
             setState={setState}
           />
-        </BoardDock>
+        ) : null}
 
         <Answer spec={spec} />
 

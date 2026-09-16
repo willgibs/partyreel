@@ -20,7 +20,14 @@ import {
   setReviewStore,
   useReviewStore,
 } from "./review-store";
-import { holdId, stepId } from "./step-id";
+import {
+  SESSION_END,
+  type SessionOption,
+  type SessionStep,
+  stepParam,
+  UNCLEAR,
+} from "./session-step";
+import { holdId } from "./step-id";
 
 /**
  * THE REVIEW SESSION (the Library x Lab round, 2026-09-15). Will's desk asks
@@ -51,38 +58,21 @@ import { holdId, stepId } from "./step-id";
  * a question that still fails is recorded as failing rather than skipped.
  */
 
-export type SessionOption = { id: string; label: string; means?: string };
-
-export type SessionStep = {
-  board: string;
-  boardTitle: string;
-  round: number;
-  askId: string;
-  question: string;
-  /** What the thing is and where it lives, for a reader who has not read the board. */
-  context?: string;
-  /** Where to look and what to compare. */
-  look?: string;
-  options: readonly SessionOption[];
-  recommended: string;
-  because?: string;
-  overrule?: string;
-  /** The section that argues it, and the route to it. */
-  evidence: { title: string; href: string } | null;
-  boardHref: string;
-};
-
-/** The reviewer's own answer: "this question is not clear to me". */
-export const UNCLEAR = "?";
+/* The step's shape, its `?` answer and the queue's derivation live in
+   session-step.ts: the board's review card renders the same step, and two
+   copies would drift the day an ask grew a field. Re-exported so the desk's
+   own importers keep one import. */
+export { UNCLEAR };
+export type { SessionOption, SessionStep };
 
 const holdKey = (s: SessionStep) => holdId(s.board, s.round, s.askId);
-const stepParam = (s: SessionStep) => stepId(s.board, s.askId);
 /**
  * The summary's own URL value. The dry run namespaces it, so finishing a dry
  * run and reloading returns to the dry run rather than to the real queue's
  * summary (they share one param).
  */
-const endValue = (sample: boolean) => (sample ? "sample.end" : "end");
+const endValue = (sample: boolean) =>
+  sample ? `sample.${SESSION_END}` : SESSION_END;
 
 /**
  * Where a session opens: the step the URL names, else the first ask with no
