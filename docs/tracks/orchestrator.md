@@ -62,7 +62,7 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 | track | board | waits on |
 | --- | --- | --- |
 | `lab-catalog` | `/design/lab/palette` (the proof), `/design/lab/kit` (the toolbox), the desk's item scope | its handoff; then Will's walk of the palette catalog |
-| `lab-sweep` | every lab page (the shell) | its handoff |
+| `docs-adr-fold` | none (the 25 ADRs folded into the system docs) | its handoff |
 
 ## Waiting on Will
 
@@ -73,6 +73,9 @@ him: a walk of the palette catalog once `lab-catalog` integrates, then the six c
 ## Landed this window
 
 - `5cdebfe0` the foundation (the guard, the toggle rule, the bleed, the shared types); `28d1aa95` the
-  two manifests and the catalog grid; the protocol rewrite (this commit).
+  two manifests and the catalog grid; `0c0269ee` to `e8ce341e` the protocol and the record diet;
+  `88dafe50` lab-sweep integrated (the shell walked and fixed; its manifest deleted at the merge;
+  design.css generation 4); `52241e4f` the dev indicator bottom-right; `ce21ac31` the lab functions'
+  file trace cut to 718 files (docs.ts's dynamic root marked turbopackIgnore).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
