@@ -267,7 +267,6 @@ describe("the board registry", () => {
 const PLAIN: readonly string[] = [
   "floating-surfaces",
   "river-visual",
-  "type-scale",
 ];
 
 describe("the asks, in plain words", () => {
