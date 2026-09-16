@@ -371,7 +371,7 @@ export const MEDIA_KIT = defineBoard({
         "In a crowd, does every face need signed permission, or only the subject?",
       context:
         "A conference floor has one subject and dozens of faces behind them, and no free library holds permission for any of them. It decides whether the free half of this catalog is a source or a footnote.",
-      look: "Set the kind of event to conferences and read the two Flickr cards.",
+      look: "The two catalogues side by side at conferences: a released room beside a real one nobody in signed for.",
       options: [
         {
           id: "subjects",
@@ -388,8 +388,15 @@ export const MEDIA_KIT = defineBoard({
       ],
       recommended: "subjects",
       because: `A risk call rather than a legal opinion, worth ruling for what turns on it: ${F.webSummit} conference photographs, for the events nothing paid is deep in.`,
-      evidence: "catalog",
-      state: { vertical: "corporate" },
+      // The decision is made by LOOKING rather than by counting: the compare
+      // opens on the free crowd archive beside the released catalogue, at the
+      // real card size, which is the whole distance the ruling covers.
+      evidence: "compare",
+      state: {
+        vertical: "corporate",
+        "compare-a": "websummit-flickr",
+        "compare-b": "unsplash-plus",
+      },
     },
     {
       id: "shoot",
@@ -431,7 +438,7 @@ export const MEDIA_KIT = defineBoard({
 
   /**
    * ★ THE CATALOG'S OWN FLOOR, DECLARED RATHER THAN GAMED. Round five weighed
-   * 15,004 words; this is 2,701, and every one of the remaining words is a
+   * 15,004 words; this is 2,686, and every one of the remaining words is a
    * label rather than a paragraph. Thirteen cards cost their name, their line,
    * four facts and the reviewer's row before the board speaks (about 950), the
    * meta panel prints all thirteen ideas again (the kit's, not this board's),
