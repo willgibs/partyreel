@@ -47,14 +47,19 @@ describe("the catalog's cards", () => {
     );
   });
 
-  it("carries a line, a verdict and four facts on every card", () => {
+  it("carries a line, a verdict, three facts and what it buys", () => {
     for (const c of MEDIA_KIT.candidates) {
       expect(c.one, `${c.id} has no line`).toBeTruthy();
       expect(c.verdict, `${c.id} has no verdict`).toBeTruthy();
       expect(
         c.facts?.map(([label]) => label),
         `${c.id}'s facts`,
-      ).toEqual(["Price", "Licence", "Faces", "Catalogue"]);
+      ).toEqual(["Price", "Licence", "Faces"]);
+      // ★ A KEPT CARD HERE IS A PURCHASE (the stepped review, 2026-09-16), so
+      // `lands` is what the money buys and it carries a number: the month, the
+      // pack, the credit, the frames. A card without one is a card a reviewer
+      // cannot rule on, because keeping it is a spend.
+      expect(c.lands, `${c.id} does not say what keeping it buys`).toBeTruthy();
     }
   });
 
@@ -97,23 +102,47 @@ describe("the catalog's cards", () => {
     expect(MEDIA_KIT.candidates.filter((c) => c.recommended)).toHaveLength(1);
   });
 
-  it("offers every card on the pick and on both compare controls", () => {
+  it("offers every card on the pick control", () => {
     const ids = MEDIA_KIT.candidates.map((c) => c.id).sort();
-    const control = (id: string) =>
-      MEDIA_KIT.controls!.find((c) => c.id === id)!;
     expect(
-      control("source")
+      MEDIA_KIT.controls!.find((c) => c.id === "source")!
         .options.map((o) => o.id)
         .filter((id) => id !== "none")
         .sort(),
     ).toEqual(ids);
-    for (const side of ["compare-a", "compare-b"]) {
-      expect(
-        control(side)
-          .options.map((o) => o.id)
-          .sort(),
-        `${side} does not offer every card`,
-      ).toEqual(ids);
+  });
+
+  /**
+   * ★ KEEP-ANY, AS A GALLERY, AND NO WINNER (the stepped review, 2026-09-16).
+   * A kept card here is a PURCHASE and the board's own answer keeps two of
+   * them, so a pick-one shape would force a reviewer to throw one away to keep
+   * the other. The registry test already refuses a pick-one catalog with no
+   * winner ask; this refuses the reverse for the reason that is this board's.
+   */
+  it("is decided card by card, with no winner to pick", () => {
+    expect(MEDIA_KIT.catalog?.mode).toBe("keep-any");
+    expect(MEDIA_KIT.catalog?.walk).toBe("gallery");
+    expect(MEDIA_KIT.catalog?.winner).toBeUndefined();
+    expect(
+      MEDIA_KIT.candidates.filter((c) => c.verdict === "ship").length,
+      "a keep-any catalog whose board ships only one card wants pick-one",
+    ).toBeGreaterThan(1);
+  });
+
+  /**
+   * ★ EVERY STEP HAS ITS OWN SPECIMEN, WHICH IS THE ROUND'S WHOLE SHAPE (Will:
+   * "all context is made available for 1+ questions around the same content,
+   * then onto the next context"). Two asks pointing at one section is two
+   * questions sharing a screen, which is what round six did with all four.
+   */
+  it("gives every question a section of its own, and says what it decides", () => {
+    const seen = new Set<string>();
+    for (const ask of MEDIA_KIT.asks) {
+      expect(ask.lands, `${ask.id} does not say what it decides`).toBeTruthy();
+      expect(seen.has(ask.evidence), `${ask.id} shares ${ask.evidence}`).toBe(
+        false,
+      );
+      seen.add(ask.evidence);
     }
   });
 });

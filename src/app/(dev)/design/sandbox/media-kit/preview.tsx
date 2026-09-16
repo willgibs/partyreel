@@ -43,10 +43,17 @@
 
 import { useState } from "react";
 
-import { type Mode } from "@/components/lab";
+import { BeforeAfter, type Mode } from "@/components/lab";
 import { Caption } from "@/components/marketing/system/caption";
+import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
+import {
+  CANDIDATE_CLAUSE,
+  CANDIDATE_LICENSE,
+  CANDIDATE_RETRIEVED,
+  CANDIDATES,
+} from "./candidates";
 import { type Frame } from "./catalogue";
 import {
   drawableVerticals,
@@ -55,6 +62,7 @@ import {
   type Vertical,
   VERTICAL_LABEL,
 } from "./sources";
+import { VERTICAL_OF_ID } from "./vertical-map";
 
 /** The real card, at the two canvases: 1440 gives 320, 375 gives 343. */
 export const PLATE = {
@@ -257,13 +265,24 @@ export function ContactStrip({
  * them out one at a time is what proved a seventh was not refusing at all.
  * `plan.test.ts` refuses a source with neither a sheet nor a reason.
  */
-function NoSheet({ source, mode }: { source: SourceCard; mode: Mode }) {
+function NoSheet({
+  source,
+  mode,
+  bare,
+}: {
+  source: SourceCard;
+  mode: Mode;
+  /** Inside a pair the kind and the size are the pair's caption, said once. */
+  bare?: boolean;
+}) {
   const { w, h } = PLATE[mode];
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <Caption className="text-[10px] tabular-nums">
-        Nothing · {w} x {h}
-      </Caption>
+      {!bare && (
+        <Caption className="text-[10px] tabular-nums">
+          Nothing · {w} x {h}
+        </Caption>
+      )}
       <div
         style={{ width: w, height: h }}
         className="mk-hole grid max-w-full place-items-center p-5"
@@ -323,4 +342,228 @@ export function firstFrame(sourceId: string, vertical: Vertical): Frame | null {
   const shown = shownVertical(sourceId, vertical);
   if (!shown) return null;
   return sheetFor(sourceId, shown)?.frames[0] ?? null;
+}
+
+/* ── The frame that is on the site today ───────────────────────────────── */
+
+/**
+ * THE STAND-IN THE SITE IS WEARING RIGHT NOW, in the same card.
+ *
+ * ★ A CARD WALKED IN A GALLERY IS STILL JUDGED AS A DIFFERENCE (the stepped
+ * review, 2026-09-16). Round six drew each place's contact sheet alone, which
+ * asks the reviewer to remember what the blog looks like today while he reads
+ * thirteen of them. The production still is right there in `MARKETING_IMAGES`,
+ * so the card opens with it: one 320 by 400 plate from `public/marketing/img`,
+ * then the same plate from the source, nothing else different.
+ *
+ * ★ AND FOR TWO KINDS OF EVENT THERE IS NOTHING TO DRAW, WHICH IS THE POINT.
+ * The twelve stills are six weddings, three birthdays and three festivals: the
+ * site has no conference frame and no trip frame at all. That absence is the
+ * reason the conference rooms are the only line of the bridge paid for one
+ * frame at a time, so it is drawn as the same card-shaped hole a refusing
+ * catalogue gets rather than quietly skipped.
+ */
+const STAND_IN = new Map(MARKETING_IMAGES.map((m) => [m.id, m] as const));
+
+/** The first production still of a kind of event, or null when there is none. */
+export function standInFor(vertical: Vertical): Frame | null {
+  const id = MARKETING_IMAGES.map((m) => m.id).find(
+    (i) => VERTICAL_OF_ID[i] === vertical,
+  );
+  const image = id ? STAND_IN.get(id) : undefined;
+  return image ? { thumb: image.src, page: image.src } : null;
+}
+
+function StandInPlate({ vertical, mode }: { vertical: Vertical; mode: Mode }) {
+  const frame = standInFor(vertical);
+  const { w, h } = PLATE[mode];
+  if (!frame) {
+    return (
+      <div
+        style={{ width: w, height: h }}
+        className="mk-hole grid max-w-full place-items-center p-5"
+      >
+        <span className="bg-background/85 p-3 text-center">
+          <Caption className="text-[11px] leading-snug">
+            <span className="text-foreground">Nothing on the site.</span> No{" "}
+            {VERTICAL_LABEL[vertical].toLowerCase()} frame ships today.
+          </Caption>
+        </span>
+      </div>
+    );
+  }
+  return (
+    <CoverPlate
+      frame={frame}
+      vertical={vertical}
+      source="The site"
+      index={0}
+      mode={mode}
+    />
+  );
+}
+
+/**
+ * ONE PLACE, AGAINST THE PAGE AS IT STANDS: today's frame, then the source's.
+ *
+ * ★ ONE SCROLLING ROW, NEVER TWO STACKED ONES. `BeforeAfter` wraps by design,
+ * which is right for two specimens that fit side by side; here each half is a
+ * literal 320 by 400 card and the pair is 1,300 pixels wide inside a 430-pixel
+ * column, so wrapping put the before a full card above the after and made each
+ * of thirteen cards nine hundred pixels tall. The board's own rule settles it
+ * (round six: "never scaled, never zoomed", so a card that will not fit its
+ * column scrolls): `flex-nowrap` and the scroller the contact sheets already
+ * use, with the two captions still under the judged area.
+ *
+ * ★ THE KIND OF EVENT IS RESOLVED ONCE AND BOTH HALVES WEAR IT. A source with
+ * nothing for conferences falls back to a kind it does have, and the stand-in
+ * follows it: otherwise the pair would differ in two ways at once and the card
+ * would be comparing a wedding with a festival.
+ */
+export function SourceSwap({
+  source,
+  vertical,
+  mode,
+  count = 3,
+}: {
+  source: SourceCard;
+  vertical: Vertical;
+  mode: Mode;
+  count?: number;
+}) {
+  const shown = shownVertical(source.id, vertical);
+  const sheet = shown ? sheetFor(source.id, shown) : null;
+  const kind = shown ?? vertical;
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <Caption className="text-[10px] tabular-nums">
+          {VERTICAL_LABEL[kind]} · {PLATE[mode].w} x {PLATE[mode].h}
+        </Caption>
+        {/* ★ SAY WHEN THE SHEET IS NOT THE KIND OF EVENT THAT WAS ASKED FOR. A
+            source with nothing for the chosen one falls back to a kind it does
+            have, which is more useful than a blank and is a lie unless it is
+            labelled in the same glance. */}
+        {shown !== null && shown !== vertical && (
+          <span className="rounded-full bg-destructive/15 px-1.5 py-px text-[10px] font-medium text-destructive">
+            nothing for {VERTICAL_LABEL[vertical].toLowerCase()}
+          </span>
+        )}
+      </div>
+      <div data-lab-bleed className="-mx-1 overflow-x-auto px-1 pb-1">
+        <BeforeAfter
+          className="w-fit flex-nowrap"
+          labels={["As today", `With ${source.name}`]}
+          before={<StandInPlate vertical={kind} mode={mode} />}
+          after={
+            sheet && shown ? (
+              <span className="flex w-fit gap-4">
+                {sheet.frames.slice(0, count).map((f, i) => (
+                  <CoverPlate
+                    key={f.thumb}
+                    frame={f}
+                    vertical={shown}
+                    source={source.name}
+                    index={i}
+                    mode={mode}
+                  />
+                ))}
+              </span>
+            ) : (
+              <NoSheet source={source} mode={mode} bare />
+            )
+          }
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ── What an entry would have to say ───────────────────────────────────── */
+
+/**
+ * THE PROVENANCE RULE, DRAWN RATHER THAN DESCRIBED.
+ *
+ * The rule question is a policy call with nothing to look at, so what the step
+ * puts under it is the thing the rule is ABOUT: one still that ships today,
+ * with the single unverified line it carries beside the six facts the rule
+ * would require. Both records are real. The left is the entry in
+ * `marketing-media.ts`; the right is the staged CC0 candidate of the same
+ * subject, whose six fields `provenance.test.ts` already pins field for field
+ * against the JSON beside the file.
+ */
+const RULED_ID = "wedding-golden";
+
+/** The release field in words: a token nobody outside this board can read. */
+const PEOPLE_IN_WORDS: Record<string, string> = {
+  none: "Nobody in frame",
+  unidentifiable: "In frame, not identifiable",
+  identifiable: "Identifiable, so not without a release",
+};
+
+export function EntryFacts({ mode }: { mode: Mode }) {
+  const today = STAND_IN.get(RULED_ID);
+  const staged = CANDIDATES.find((c) => c.key === RULED_ID);
+  if (!today || !staged) return null;
+  const six: readonly (readonly [string, string])[] = [
+    ["Photographer", staged.author],
+    ["Where it came from", "Wikimedia Commons, the file page"],
+    ["Licence", CANDIDATE_LICENSE],
+    ["The clause, quoted", CANDIDATE_CLAUSE],
+    ["Fetched", CANDIDATE_RETRIEVED],
+    ["The people", PEOPLE_IN_WORDS[staged.people]],
+  ];
+  return (
+    <BeforeAfter
+      // ★ TOPS, NOT BOTTOMS. The kit aligns the two halves at the baseline,
+      // which is right when the captions are the only thing under them; here
+      // the right half carries six rows of facts under its card, so aligning
+      // the bottoms would drop the left card half a card lower than the one it
+      // is being compared with.
+      className="items-start"
+      labels={["The line it carries today", "The six the rule would want"]}
+      before={
+        <span className="flex flex-col gap-2">
+          <CoverPlate
+            frame={{ thumb: today.src, page: today.src }}
+            vertical="weddings"
+            source="The site"
+            index={0}
+            mode={mode}
+          />
+          <span
+            style={{ maxWidth: PLATE[mode].w }}
+            className="block text-[11px] leading-snug text-destructive"
+          >
+            {today.credit.license}
+          </span>
+        </span>
+      }
+      after={
+        <span className="flex flex-col gap-2">
+          <CoverPlate
+            frame={{
+              thumb: `/design/media-kit/${staged.file}`,
+              page: staged.sourceUrl,
+            }}
+            vertical="weddings"
+            source="The staged batch"
+            index={0}
+            mode={mode}
+          />
+          <dl
+            style={{ maxWidth: PLATE[mode].w }}
+            className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5 text-[11px] leading-snug"
+          >
+            {six.map(([label, value]) => (
+              <div key={label} className="contents">
+                <dt className="text-muted-foreground">{label}</dt>
+                <dd className="text-pretty">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </span>
+      }
+    />
+  );
 }
