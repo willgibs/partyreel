@@ -27,6 +27,9 @@ The lab and the kit:
 - `lab-review`'s scanner assumes a literal `defineBoard({`: keep every spec a literal or teach the scanner the wrapper.
 - Lift `height="measured"` on `Frame` and `useAnchorAfterSettle` out of `sandbox/brand-voice/frames.tsx` into the kit.
 - `SpotCompare` writes its own "What differs" line per spot with no way to shorten or suppress it (about 250 words of a two-dozen-spot board's budget); take an optional `differs` per spot.
+- `CompareTwo`'s grid squeezes a fixed-width child, so a pair of `Frame`s laid out through it overlaps (712px columns under 1440px frames): document that a frame belongs in a `FrameRow`, or give `Compare` a `max-content` column mode.
+- `Frame`'s `onApproach` cannot fire for a frame clipped out of a horizontal scroll row (the IntersectionObserver reports it as not intersecting): a row of frames takes the approach on the ROW, and the kit could carry that rather than each board.
+- The production `EventCard`'s event name is a hand-rolled `font-heading text-xl` no type hook reaches, so the type-scale wiring sweep is four headings, not three.
 - Fold the gallery's `RefSection` into the shell's `Section` (one anchor shape).
 - Delete `_desk/sample-spec.ts` and the desk's dry run once every standing board carries a spec.
 - Index the kit as a component family in the collector and delete `kit/notes.ts`; retire the panel half of the rounding board's `usePanelAwareWidth`.

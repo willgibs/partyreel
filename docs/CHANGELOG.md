@@ -88,7 +88,16 @@ words to 2,642 against a declared 2,700; `docs/specs/brand-voice.md` shrank from
 ledgers to a 185-line standing proposal; `CardGround` stopped writing `data-mkt-skin`, which had been
 flipping the lab page's own body through marketing.css. Two questions for Will ride with it: one voice
 everywhere at three volumes, or a marketing voice and a product voice; and whether bible 20 (name what
-we are, never what we are not) means the naming or the shape, which decides the Aside card.
+we are, never what we are not) means the naming or the shape, which decides the Aside card. **`type-scale`** (merged `257df8fe`): five ladders as cards, each drawn as a type
+specimen at the pixels it declares for the canvas in the real heading face, clipped rather than
+scaled, a missing app step drawn as a hole and a hairline where the app's register starts; any two on
+the same real page (the home, the pricing page and the dashboard, the last a lab screen route so the
+app is judged at a real viewport by production components) scroll-locked; the pick worn by five real
+routes including a dead link; eight sections became three, four asks became two (tracking, the
+dead-link heading), the two register switches became one pick per card, and the reading went from
+4,220 words to 1,155 under the budget; `docs/specs/type-scale.md` from 220 lines to 64. Its question
+for Will: the compared pair scrolls sideways at 1440 (both halves stand on screen at 375); the kit's
+wipe is a one-line switch if he prefers it.
 
 Machine notes: four agents at once is the ceiling on 36 GB, one process each, a dev server killed by
 port; Vercel's daily cap kept the alias on the Library x Lab round's Phase 1 until 2026-09-17 00:13
