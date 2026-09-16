@@ -307,7 +307,12 @@ export function PaletteBoard() {
   // The switches that change ONE section each, so they stay beside it rather
   // than in the dock (the dock's rule: a page-wide switch is declared in the
   // spec, a per-specimen one sits with its specimen).
-  const [screenId, setScreenId] = useState<ScreenId>("home");
+  // ★ THE DASHBOARD OPENS IT, not the home page. This section is the stage the
+  // PICK sits over, so the first thing a press re-skins should be the surface
+  // Will's own note is about ("a very media-forward dashboard", "a colourful
+  // mix of photos"); it is also one composition rather than two whole marketing
+  // documents, so a tile press repaints instead of reloading.
+  const [screenId, setScreenId] = useState<ScreenId>("dashboard");
   const [split, setSplit] = useState(true);
   const [tone, setTone] = useState<"dark" | "light">("dark");
   const [reloadKey, setReloadKey] = useState(0);

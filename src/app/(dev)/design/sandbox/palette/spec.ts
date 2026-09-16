@@ -308,7 +308,7 @@ export const PALETTE = defineBoard({
       id: "palette",
       question: "Which palette should the whole site wear?",
       context:
-        "Twelve finished palettes. Each is one complete set: the dark room every marketing chapter and the whole app sit on, the light page under the body, and every surface between them. Press a card to wear it; the real pages under the cards re-skin as you press. None of these means none is right, and the note says what to try instead.",
+        "Twelve finished palettes, and each one is a complete set: the dark room every marketing chapter and the whole app sit on, the light page under the body, and every surface between the two. The real product under the tiles wears whatever you press.",
       options: [
         { id: "today", label: "Today" },
         { id: "ladder", label: "Ladder" },

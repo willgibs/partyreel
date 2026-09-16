@@ -76,12 +76,39 @@ never `[preview]` or `[ci]`; stage files explicitly; the `Co-Authored-By: Claude
 <noreply@anthropic.com>` trailer on every commit. Three other agents run beside you (`lab-flow`,
 `light`, `home-hero`); merge `origin/launch-prep` before your handoff if it moved, never rebase.
 
-**Questions.** What the goal leaves open goes here, numbered, with your recommended answer; carry on
-with the recommendation.
+**Questions.**
+
+1. **What is the stage under the pick?** The goal says "the section that shows the real pages wearing the
+   pick" and `lab-flow`'s own sketch says "the real dashboard". **Taken: both, on one toggle.** `stage:
+   "pages"`, and that section folded the whole `app` section into itself: one Screen control carrying the
+   four marketing routes as real documents, the demo album's own PUBLIC route as a real document, and the
+   two signed-in screens (the dashboard, an event) as compositions, all wearing the pick. It opens on the
+   dashboard, which is the surface Will's note is about and the one a tile press repaints rather than
+   reloads. That deleted a section, its two ledes and six stage labels, and it deleted `GuestAlbum`: the
+   album is the one app surface a frame CAN load, so a rebuilt guest page beside the real one was two
+   answers to one question.
+2. **Does `card` really want three tiles when two of them are identical pixels?** For every cool palette
+   "solid as declared" and "solid, ruled" resolve to the same `--card` (the palette's own value is already
+   opaque); on Today it is "declared" and "see-through" that match. **Taken: three tiles, with the resolved
+   `--card` printed on the specimen.** The goal asks for three, the third option is a real ruling rather
+   than a look, and the printed value is what makes two identical tiles read as an answer rather than a
+   bug.
+3. **`lands` on the winner names which file?** The goal says `src/app/theme.css`; the token VALUES live in
+   `globals.css` and `marketing.css`, and theme.css only maps them into Tailwind's namespace
+   (`css-source-policy.test.ts` pins that split). **Taken: the accurate pair**, "the grey ramp and every
+   surface token in globals.css and marketing.css". A `lands` line naming the wrong file is a lie to the
+   reviewer at the exact moment he is deciding.
+4. **The reading budget could not be measured on the stepped surface yet.** Declared 1,950, from 3,078
+   measured on the old card minus the 1,138 words `lab-flow` deletes (the answer block's ask pills 593, the
+   index 187, the review panel 243, the sections' Rule-on rows 115), all four counted live on :3123.
+   **To re-measure and correct at the merge** before the handoff; if the meta panel folding closed in
+   browse mode takes the twelve rationales with it, it lands nearer 1,600.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: the round touched no system doc. `docs/specs/palette.md` (owned) gained its round-eight section and
+  had the accent's "three jobs" corrected (they are identity, attention and the media stand-in; round
+  seven wrote the attention job's three call sites there instead, which is what the reach ask turns on).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
