@@ -99,7 +99,7 @@ with the recommendation. Never guess at a product decision without writing the q
 
 ## Handoff (replaces the chat report)
 
-- Head `c74224ff` plus this commit, pushed; synced with `origin/launch-prep` at `71b7349a` (it moved
+- Head `d38ad11f` (this commit carries the manifest; the gates ran on `c74224ff`), pushed; synced with `origin/launch-prep` at `71b7349a` (it moved
   four times during the round: type-scale, floating-surfaces and light integrated, then the meta
   panel's rationale fold).
 - Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 pre-existing warnings), test ok
