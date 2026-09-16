@@ -33,7 +33,7 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "glow-moments": { Component: GlowMomentsBoard },
   palette: { Component: PaletteBoard },
   light: { Component: LightBoard },
-  "type-scale": { Component: TypeScaleBoard, legacy: true },
+  "type-scale": { Component: TypeScaleBoard },
   "floating-surfaces": { Component: FloatingSurfacesBoard },
   "brand-voice": { Component: BrandVoiceBoard },
   "media-kit": { Component: MediaKitBoard },

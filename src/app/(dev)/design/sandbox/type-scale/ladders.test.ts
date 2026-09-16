@@ -9,11 +9,9 @@ import {
   composePair,
   DEFAULT_PAIR,
   REAL_PAGES,
-  REGISTER_CALL,
   SURFACE,
   type Pair,
   askOrdinal,
-  ASKS,
   candidateCss,
   FIXES,
   fixes,
@@ -33,8 +31,9 @@ import {
   type Surface,
   themeBlock,
   tokenTable,
-  WALK,
 } from "./ladders";
+
+import { TYPE_SCALE } from "./spec";
 
 /**
  * The type-scale board's ladder laws, proven without a DOM.
@@ -555,22 +554,22 @@ describe("the board answers before it asks", () => {
   });
 
   it("asks four things, each with an answer and a way to overrule it", () => {
-    expect(ASKS).toHaveLength(4);
-    for (const ask of ASKS) {
-      expect(ask.ask.length).toBeGreaterThan(20);
-      // A one-word answer, or two where the phrase is the ruling itself.
-      expect(ask.answer.split(" ").length).toBeLessThanOrEqual(3);
-      expect(ask.because.length).toBeGreaterThan(40);
-      expect(ask.overrule.length).toBeGreaterThan(20);
+    expect(TYPE_SCALE.asks).toHaveLength(4);
+    for (const ask of TYPE_SCALE.asks) {
+      expect(ask.question.length).toBeGreaterThan(8);
+      expect(ask.options).toContain(ask.recommended);
+      expect(ask.because?.length ?? 0).toBeGreaterThan(40);
+      expect(ask.overrule?.length ?? 0).toBeGreaterThan(20);
     }
   });
 
   // ★ Round three cut two asks and left "the fifth ask" inside the block Will
-  // copies, so this counts the position here, off ASKS, with its own word list:
-  // a cut, a reorder or a hand-typed ordinal in the paste fails it.
+  // copies, so this counts the position here, off the SPEC's ask list, with its
+  // own word list: a cut, a reorder or a hand-typed ordinal in the paste fails
+  // it. The list moved into spec.ts at the migration wave; the count did not.
   it("names the 404 ask by the position it actually holds, everywhere it is named", () => {
     const words = ["first", "second", "third", "fourth", "fifth", "sixth"];
-    const i = ASKS.findIndex((a) => /404/.test(a.ask));
+    const i = TYPE_SCALE.asks.findIndex((a) => a.id === ASK_404);
     expect(i).toBeGreaterThanOrEqual(0);
     const ordinal = words[i];
     expect(askOrdinal(ASK_404)).toBe(ordinal);
@@ -583,14 +582,36 @@ describe("the board answers before it asks", () => {
     }
   });
 
-  it("answers both ladder asks with the ladder it recommends", () => {
-    const name = ladderById(RECOMMENDED).name;
-    const ladderAsks = ASKS.filter((a) =>
-      /^The (marketing|app) ladder/.test(a.ask),
-    );
-    expect(ladderAsks).toHaveLength(2);
-    for (const ask of ladderAsks) {
-      expect(name.startsWith(ask.answer)).toBe(true);
+  // ★ THE SPEC AND THE LADDER DATA ARE TWO FILES AND ONE TRUTH. spec.ts is
+  // literal by construction (the registry hands it to a server page and to a
+  // node test, so it may not import this file's maths), which means a ladder
+  // could be renamed, dropped or re-recommended here and go on being argued
+  // there. This is the join: the candidate list, the recommendation and the two
+  // ladder asks' options all have to be the ladders that actually exist.
+  it("argues exactly the ladders that exist, and recommends the one the data does", () => {
+    const ids = [...LADDERS.map((l) => l.id), LAW_ONLY.id];
+    expect(TYPE_SCALE.candidates.map((c) => c.id)).toEqual(ids);
+    for (const c of TYPE_SCALE.candidates) {
+      const ladder = [...LADDERS, LAW_ONLY].find((l) => l.id === c.id)!;
+      expect(c.name).toBe(ladder.name);
+    }
+    expect(
+      TYPE_SCALE.candidates.filter((c) => c.recommended).map((c) => c.id),
+    ).toEqual([RECOMMENDED]);
+    for (const id of ["marketing", "app"]) {
+      const ask = TYPE_SCALE.asks.find((a) => a.id === id)!;
+      expect([...ask.options]).toEqual(LADDERS.map((l) => l.id));
+      expect(ask.recommended).toBe(RECOMMENDED);
+    }
+  });
+
+  it("opens the two dock switches on the ladder it recommends", () => {
+    for (const id of ["marketing", "app"]) {
+      const control = (TYPE_SCALE.controls ?? []).find((c) => c.id === id)!;
+      expect(control.options.map((o) => o.id)).toEqual(
+        LADDERS.map((l) => l.id),
+      );
+      expect(control.default).toBe(RECOMMENDED);
     }
   });
 });
@@ -697,22 +718,27 @@ describe("the walk: only pages a paste can actually reach", () => {
       .sort((a, b) => b.prefix.length - a.prefix.length)
       .find((entry) => href.startsWith(entry.prefix))!;
 
+  // The walk list is `TYPE_SCALE.links.pages` since the migration wave: the kit's
+  // WalkPages renders it and the desk reads the same array, so there is one list
+  // rather than a board constant and a spec entry that can drift apart.
+  const walk = TYPE_SCALE.links.pages ?? [];
+
   it("walks only surfaces whose real layout mounts a design island", () => {
-    expect(WALK.length).toBeGreaterThan(5);
-    for (const page of WALK) {
-      expect(page.href.startsWith("/")).toBe(true);
-      const entry = layoutFor(page.href);
+    expect(walk.length).toBeGreaterThan(5);
+    for (const page of walk) {
+      expect(page.path.startsWith("/")).toBe(true);
+      const entry = layoutFor(page.path);
       const layout = readFileSync(join(process.cwd(), entry.layout), "utf8");
       expect(
         layout.includes(`<${entry.mount} />`),
-        `${page.href} walks through ${entry.layout}, which no longer mounts ${entry.mount}`,
+        `${page.path} walks through ${entry.layout}, which no longer mounts ${entry.mount}`,
       ).toBe(true);
     }
   });
 
   it("walks a marketing 404 rather than an unrouted path", () => {
-    const notFound = WALK.find((p) => p.label.includes("404"));
-    expect(notFound?.href.startsWith("/events/")).toBe(true);
+    const notFound = walk.find((p) => p.label.includes("404"));
+    expect(notFound?.path.startsWith("/events/")).toBe(true);
   });
 
   it("names the root 404, the one surface outside every island", () => {
@@ -823,11 +849,20 @@ describe("the pair: two registers, chosen separately, composed into one set", ()
     expect(DEFAULT_PAIR.app).toBe(RECOMMENDED);
   });
 
-  it("states the register call in a form the board and the spec can both print", () => {
-    expect(REGISTER_CALL.headline.length).toBeGreaterThan(10);
-    expect(REGISTER_CALL.body.length).toBeGreaterThan(200);
-    // The call is one set; the board must not claim the opposite anywhere.
-    expect(REGISTER_CALL.headline.toLowerCase()).toContain("one token set");
+  // The register call is prose, and its home is the spec since the migration
+  // wave (the glance section's argument, and a departure). It used to be a
+  // constant here rendered by a card of the board's own, which is two copies of
+  // one paragraph. This keeps the claim itself pinned wherever it now lives.
+  it("states the register call where the template, the desk and the record read it", () => {
+    const glance = TYPE_SCALE.sections.find((s) => s.id === "glance")!;
+    const call = (glance.argument ?? [])[0] ?? "";
+    expect(call.length).toBeGreaterThan(200);
+    expect(call).toContain("@theme block");
+    // The call is ONE set; the board must not claim the opposite anywhere.
+    expect(call.toLowerCase()).not.toContain("two token sets");
+    const departure = TYPE_SCALE.departures.find((d) => d.id === "registers")!;
+    expect(departure.text.toLowerCase()).toContain("one token set");
+    expect(departure.evidence).toBe("glance");
   });
 });
 
@@ -930,14 +965,19 @@ describe("what each register fixes, counted per register", () => {
 });
 
 /**
- * ROUND FOUR, AFTER THE REVIEW. BoardMeta advertises the four ladders plus the
- * law alone, and the dock's two switches reach only LADDERS, so the law block
- * is the one candidate that needs an apply control of its own. The first cut of
- * this round replaced round three's five apply buttons with a single "apply the
+ * ROUND FOUR, AFTER THE REVIEW. The board advertises the four ladders plus the
+ * law alone, and the two dock switches reach only LADDERS, so the law block is
+ * the one candidate that needs an apply control of its own. The first cut of
+ * round four replaced round three's five apply buttons with a single "apply the
  * pair" and left the candidate advertised with nothing on the page that reaches
  * it: the same "a control that does nothing" fault round three was sent to
- * remove, from the other direction. The board's source is where that fact
- * lives, so it is read here rather than described.
+ * remove, from the other direction.
+ *
+ * ★ ROUND FIVE MOVED THE CONTROL AND THE CHECK FOLLOWED IT. The board is on the
+ * kit's template, so applying is the kit's `ApplyToSite` beside the candidate
+ * (apply.tsx's own rule) rather than a cluster the board drew in its dock, and
+ * the dock carries the badge that says which block stands. What must stay true
+ * is the fact, not the shape: every advertised candidate is reachable.
  */
 describe("every candidate the board advertises has a control", () => {
   const BOARD = readFileSync(
@@ -946,20 +986,27 @@ describe("every candidate the board advertises has a control", () => {
   );
 
   it("has exactly one candidate that no ladder switch reaches", () => {
-    // The switches are built from LADDERS; BoardMeta lists LADDERS plus this.
+    const switchable = new Set(
+      (TYPE_SCALE.controls ?? [])
+        .filter((c) => c.id === "marketing" || c.id === "app")
+        .flatMap((c) => c.options.map((o) => o.id)),
+    );
+    const unreachable = TYPE_SCALE.candidates
+      .map((c) => c.id)
+      .filter((id) => !switchable.has(id));
+    expect(unreachable).toEqual([LAW_ONLY.id]);
     expect(LADDERS.map((l) => l.id)).not.toContain(LAW_ONLY.id);
-    expect(LAW_ONLY.id).toBe("law");
   });
 
-  it("generates the law block and hands it to the dock's apply cluster", () => {
+  it("generates the law block and hands it to an apply of its own", () => {
     expect(BOARD).toContain("candidateCss(LAW_ONLY)");
-    expect(BOARD).toContain("function ApplyPair");
-    const cluster = BOARD.slice(
-      BOARD.indexOf("function ApplyPair"),
-      BOARD.indexOf("function Reach"),
-    );
-    expect(cluster).toContain("LAW_CSS");
-    expect(cluster).toContain("setCandidateCss(");
+    // The law's apply sits under the tracking evidence, which is the ask it
+    // serves; the pair's sits under the token table. Both are the kit's.
+    const applies = BOARD.split("<ApplyToSite").length - 1;
+    expect(applies).toBe(2);
+    const law = BOARD.slice(BOARD.indexOf('case "law":'));
+    expect(law).toContain("<ApplyToSite");
+    expect(law).toContain("css: LAW_CSS");
   });
 
   it("keeps the law block moving no size at all, which is why it is separate", () => {

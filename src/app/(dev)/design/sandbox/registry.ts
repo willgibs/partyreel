@@ -11,6 +11,7 @@ import { MEDIA_KIT } from "./media-kit/spec";
 import { PALETTE } from "./palette/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
 import { ROUNDING } from "./rounding/spec";
+import { TYPE_SCALE } from "./type-scale/spec";
 
 /**
  * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
@@ -35,6 +36,7 @@ export const BOARDS: readonly BoardSpec[] = [
   PALETTE,
   FLOATING_SURFACES,
   LIGHT,
+  TYPE_SCALE,
   BRAND_VOICE,
   MEDIA_KIT,
   ROUNDING,

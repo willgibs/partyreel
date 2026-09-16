@@ -58,7 +58,6 @@ const OWNED = [
  * migration wave deletes; nothing is ever added.
  */
 const LEGACY: readonly string[] = [
-  "type-scale",
 ];
 
 function filesIn(dir: string, out: string[] = []): string[] {

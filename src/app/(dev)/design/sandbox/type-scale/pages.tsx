@@ -11,7 +11,7 @@ import {
 import type { CSSProperties, ReactNode } from "react";
 
 import { MetricCard } from "@/components/admin/metric-card";
-import type { Mode } from "@/components/dev/board";
+import type { Mode } from "@/components/lab";
 import { Caption } from "@/components/marketing/system/caption";
 import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import { PageHeading } from "@/components/shared/page-heading";
@@ -659,7 +659,18 @@ export function NotFoundStage({ ladder, mode }: PageProps) {
  * under two tracking rules) and says so on the board; the pairing rows below
  * take the selected ladder's title step.
  */
-export function TrackingLaw({ ladder, mode }: PageProps) {
+export function TrackingLaw({
+  ladder,
+  mode,
+  measureRef,
+}: PageProps & {
+  /** The board measures this line's WRAP with useLineCount and prints the
+   *  count: how many lines a step takes at this canvas is the claim, and round
+   *  four estimated it from a character width. It lands on the second pairing
+   *  line, the one set at the step's own tracking, which is the line the ruling
+   *  would actually ship. */
+  measureRef?: React.RefObject<HTMLElement | null>;
+}) {
   const phone = isPhone(mode);
   const big = phone ? 52 : 160;
   const law = optics(big);
@@ -744,6 +755,12 @@ export function TrackingLaw({ ladder, mode }: PageProps) {
             em
           </p>
           <p
+            ref={(el) => {
+              // A callback rather than the object itself: useLineCount hands
+              // back a RefObject<HTMLElement>, which a <p>'s own Ref type does
+              // not accept, and a cast would hide a real mismatch one day.
+              if (measureRef) measureRef.current = el;
+            }}
             className="font-heading"
             style={{
               fontSize: title.px,
