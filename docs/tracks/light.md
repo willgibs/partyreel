@@ -1,6 +1,6 @@
 ---
 track: light
-status: open
+status: handed-off
 cut: "02c409b4"        # the stepped review round (2026-09-16): the light board reshaped for it
 board: light
 owns:
@@ -103,11 +103,11 @@ and why, for Will or the Orchestrator to overrule.
    chapter, so the card shows the SHAPE of the light (anchored low, cast upward, no band) and its usage
    shows the real call site, the QR plate. Recommended: keep. The same split carries the halo's own
    argument, which is now a usage ("a white primary: no headroom for it") rather than the specimen.
-5. **The reading declaration is the OLD template's number and is meant to be replaced.** Measured 2,439
-   against round six's 2,889 with the same template; about 1,070 of what is left is the review panel,
-   the index, the "Rule on" rows and the unfolded meta panel, all of which the stepped review removes or
-   folds. Recommended: declare the measured number now, re-measure at the merge, and drop the
-   declaration entirely if the page lands under 1,200.
+5. **The reading declaration was deleted rather than re-tuned.** On the old template the reshaped board
+   still weighed 2,439 (round six: 2,889 against a declared 2,950), so the commit before the merge
+   declared the measured number and said it was temporary. On the stepped review it weighs 920 against
+   the standing 1,200, so there is no `reading` block at all. Recommended and done: a later round that
+   adds words back earns the budget again rather than declaring past it.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -118,16 +118,22 @@ and why, for Will or the Orchestrator to overrule.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- Design system: the lab's meta panel prints all twelve card summaries and every departure unfolded,
-  which is about 490 of this board's 2,439 measured words and is the template's voice, not the board's.
 - Design system: `sandbox/media-kit/shoot.ts` (about line 582) names `sandbox/light/depth.tsx` as what
   its overlap pair replaces; that file went at round six and the asset row now names the board's cards.
+- Design system: a one-at-a-time catalog step has no config strip, so a reviewer at 375 cannot switch a
+  board's Canvas from the walk (`?canvas=phone` on the URL does it). `CatalogSpec.strip`, mirroring
+  `Ask.strip`, is the kit's fix.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha>
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` green for this board, its reading words
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file
+- Head is this commit on `lp/light`; the last code commit is `6b9796b8`. Pushed; synced with
+  launch-prep at `c334de13` (merged twice: the stepped review at `6907ce68`, then the hero's round)
+- Gates on the synced tree: typecheck ok, lint ok, test ok (2162), build ok (258 pages); `pnpm lab:smoke`
+  green for this board at **920 words against the 1,200 budget, with no declaration at all** (round six
+  declared 2,950 and weighed 2,889); `pnpm lab:review --dry` accepts a full line of twelve verdicts and
+  five answers
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `sandbox/light/` + `docs/specs/light.md`
+  + this file. No exceptions.
 - The steps, in walk order after the cards:
   - `landing`: decides the placement grammar SectionLight ships with; four tiles on one real chapter; after `item:aurora=keep`
   - `cadence`: decides the one token every lamp and the field's clock multiply from; two tiles on one real chapter, plus the knob that writes the clock on the site
@@ -151,8 +157,23 @@ and why, for Will or the Orchestrator to overrule.
   - `beam`: lands as nothing moving, one wrapper, one subject per view; usages 1
 - Assets requested from Will: none new. The two standing ones are unchanged and already logged: the grain
   tile (ASSETS row 15) and the worst-case overlap pair (row 16).
-- Look at first: ...
+- Look at first: the landing step (`?session=light.landing`, once the aurora card is kept). Four tiles,
+  each the same real chapter with the field in a different place, is the question Will could not read as
+  four bare words last round, and it is the clearest thing the round produced. Then card 6 and card 7 of
+  the walk, lift and float on one pair of overlapping tiles: the same two pictures at two shadow sizes is
+  the other non-answer, settled by looking.
+- Two things for the flow's next pass, both in Deferred above: a staged step reached by its own URL
+  before its prerequisite is held numbers itself past the end ("step 43 of 42"), and a one-at-a-time
+  catalog step has no config strip, so the Canvas cannot be switched from the walk.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-16). Round seven reshaped the light catalog into a stepped
+review with no new treatment: the twelve run in Will's order (the light placements, the shadow-specific
+ones, the marks), walked one at a time, each drawn twice on the one specimen its job is judged on (the
+lamps on the closer chapter, the depth cues on one pair of overlapping event tiles in a panel, the marks
+on one reel frame), with what keeping it lands as platform-wide and up to two real surfaces already
+wearing it. The four calls became four tile steps with their own context and their own stage, the order
+stayed words, and where the aurora lands became a fifth question staged behind keeping the aurora. Ground
+and Register left the dock, `sections.tsx` went with the two-up compare, and the board dropped from 2,889
+words against a declared 2,950 to 920 against the standing 1,200 with no declaration.
