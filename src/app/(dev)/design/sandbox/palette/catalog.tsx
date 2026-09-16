@@ -306,11 +306,13 @@ function DemoPanel({
     >
       <Card size="sm" className="gap-2">
         <CardHeader>
-          <CardTitle className="truncate text-[13px]!">
-            Sarah&apos;s birthday
-          </CardTitle>
+          {/* Short on purpose. The panel is 155px wide at the review width and
+              CardHeader's action column leaves the description the title's own
+              width, so anything longer than two words wraps and pushes every
+              one of the twelve cards down a line for no colour information. */}
+          <CardTitle className="text-[13px]!">Sarah&apos;s 30th</CardTitle>
           <CardDescription className="text-[11px] leading-snug">
-            91 photos and 12 videos, from 34 guests.
+            91 uploads
           </CardDescription>
           <CardAction>
             <DropdownMenu>
@@ -365,7 +367,10 @@ function DemoPanel({
           </div>
         </CardContent>
 
-        <CardFooter className="justify-between gap-1.5">
+        {/* The footer is its own surface (bg-muted/50 over the card), so the
+            badge sits on the panel register and the button on the accent: two
+            of the five steps meeting in eighteen pixels. */}
+        <CardFooter className="justify-between gap-1.5 py-2">
           <Badge
             className="border-transparent"
             style={{
@@ -375,23 +380,19 @@ function DemoPanel({
           >
             Live
           </Badge>
-          <Button size="xs" variant="outline">
-            Share
-          </Button>
+          <Button size="xs">Share</Button>
         </CardFooter>
       </Card>
 
-      <div className="flex items-center gap-1.5">
-        <Input
-          readOnly
-          value="partyreel.com/e/9fq2"
-          aria-label="The event link"
-          className="h-7 text-[11px] md:text-[11px]"
-        />
-        <Button size="sm" className="shrink-0">
-          Copy
-        </Button>
-      </div>
+      {/* The one form control: --input and --ring are the two tokens nothing
+          else on the card reads. Full width, because a button beside it at this
+          width leaves the value clipped and a clipped URL reads as a bug. */}
+      <Input
+        readOnly
+        value="partyreel.com/e/9fq2"
+        aria-label="The event link"
+        className="h-7 text-[11px] md:text-[11px]"
+      />
 
       <p
         className="text-[10px] leading-none"
@@ -434,7 +435,11 @@ function CatalogCard({
   const pair = resolvePair(raw, cardMode, faint);
   return (
     <div
-      data-palette={def.id}
+      // ★ NOT `data-palette`: BoardPage writes `data-<controlId>` on the board
+      // ROOT for every declared control, and this board's control is called
+      // `palette`. A card wearing the same attribute makes any sheet selecting
+      // on [data-palette="ember"] hit thirteen elements, twelve of them cards.
+      data-pal-card={def.id}
       data-picked={picked ? "true" : undefined}
       className={cn(
         "flex min-w-0 flex-col gap-3 rounded-xl border p-3",
@@ -456,6 +461,9 @@ function CatalogCard({
           </p>
           <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
             {LINES.get(def.id)}
+          </p>
+          <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground/70">
+            {def.why}
           </p>
         </div>
         <Button
@@ -492,17 +500,24 @@ function CatalogCard({
           name={def.name}
         />
       </div>
-
-      <p className="text-[11px] leading-snug text-muted-foreground">
-        {def.why}
-      </p>
     </div>
   );
 }
 
-/** The twelve, in one grid. Three across on a desktop board, two on a tablet,
- *  one on a phone: the catalog is the board's own content rather than a Stage,
- *  so a real breakpoint is honest here (inside a Stage it would not be). */
+/**
+ * The twelve, in one grid: four across at the review width, three on a narrower
+ * window, two on a tablet, one on a phone. The catalog is the board's own
+ * content rather than a Stage, so a real breakpoint is honest here (inside a
+ * Stage it would not be).
+ *
+ * ★ THE COLUMNS ARE IN `board.css`, NOT IN TAILWIND CLASSES, and this is the
+ * lab-sheet landmine biting in a new place. The lab compiles its utilities into
+ * `layer(utilities.lab)`, a SUB-layer of `utilities`, so any rule production
+ * already emits outranks a lab-only one on the same element whatever the
+ * breakpoint. `lg:grid-cols-3` is in production's sheet and `xl:grid-cols-4` is
+ * lab-only, so the pair silently laid three columns at 1440 with both variants
+ * matching. The board's own sheet is unlayered and settles it.
+ */
 export function Catalog({
   picked,
   cardMode,
@@ -515,7 +530,7 @@ export function Catalog({
   onPick: (id: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div data-pal-catalog className="grid gap-3">
       {PALETTES.map((p) => (
         <CatalogCard
           key={p.id}

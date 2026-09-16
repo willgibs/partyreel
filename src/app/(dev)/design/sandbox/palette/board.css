@@ -69,3 +69,34 @@
 [data-pal-cue="float"] {
   box-shadow: var(--pal-float);
 }
+
+/* ─────────────── THE CATALOG GRID (round six, the clarity round)
+
+   ★ NOT Tailwind responsive classes. The lab's utilities compile into
+   `layer(utilities.lab)`, a SUB-layer of `utilities` (design.css says why), so
+   a rule production's sheet already emits beats a lab-only one on the same
+   element at every breakpoint: `lg:grid-cols-3` (production) silently won over
+   `xl:grid-cols-4` (lab-only) and the catalog laid three columns at 1440 with
+   both variants matching. This sheet is unlayered, so it settles it.
+
+   Four across at the review width, so twelve palettes are three rows; three on
+   a narrower window, where a fourth column would squeeze the demo panels below
+   the width a real Card reads at. */
+[data-pal-catalog] {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 640px) {
+  [data-pal-catalog] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  [data-pal-catalog] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1400px) {
+  [data-pal-catalog] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
