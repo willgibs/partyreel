@@ -21,6 +21,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
 The lab and the kit:
+- The lab: the step's option tiles scale their evidence (`FitStage fit="zoom"` in `step.tsx`), so a board judging SIZE has to undo it; offer a tile that draws at 1:1 and retire `sandbox/type-scale/true-scale.tsx` into it (type-scale round seven).
 - Every catalog board's `reading.why` and declared budget over-state the template's cost since the stepped review deleted the index, the "Rule on:" rows and the review panel (the boards read 1,141 to 1,662 on that tree); each board's own round rewrites its declaration.
 - The review card at 375 as a bottom sheet that keeps the question and the picked option in view while the evidence scrolls.
 - Evidence the asks still owe: a left-aligned lockup and a hero with no count on `home-hero`; the arriving tile, the settled no-script frame and the voice line on `album-hero`; a proportion control and the no-photographs guest screen on `river-visual`.

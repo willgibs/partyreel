@@ -40,9 +40,7 @@ under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
 
 | track | returns | state |
 | --- | --- | --- |
-| `lab-catalog` | the review's item scope (`item:<id>=keep\|refine\|kill "note"`), `Catalog`, `ItemVerdictRow`, `CompareTwo`, `SpotCompare`, the reading budget in `pnpm lab:smoke`, `pnpm new-board` scaffolding a catalog, `/design/lab/kit` as the toolbox, the palette rebuilt on the kit as the proof | integrated at `57b93286`; the palette verified on the desk |
-| `lab-sweep` | every lab page walked at 1440 and 375 and fixed in the shell; plain-English labels | integrated at `88dafe50` (the dev indicator moved and the lab functions' file trace cut from 2,248 to 718 files behind it) |
-| `docs-systems-strip` | the four heavy system docs stripped to the system and its invariants, every ★ audited | integrated at `0a48db70` |
+| the Round 1 and 2 lanes | `lab-catalog` `57b93286` (the item scope, the catalog kit, the toolbox, the reading budget, the palette as proof), `lab-sweep` `88dafe50` (every lab page walked and fixed; the lab functions' file trace cut to 718 files), `docs-systems-strip` `0a48db70` (the four heavy docs stripped, every ★ audited) | integrated |
 | the six Round 4 catalogs | brand-voice `5868325e` (six voices, twenty-four spots), type-scale `257df8fe` (five ladders, 1,155 words), floating-surfaces `767e6182` (seven directions, 2,317 against 2,400), light `2326a924` (twelve treatments, 2,889 against 2,950), rounding `128aca34` (six families, 2,564 against 2,800), media-kit `8587d3ed` (thirteen sources, 2,686 against 2,750) | integrated, each under its declared budget |
 | `palette` (round seven) | nine cool palettes and three controls, one optional accent per palette behind a switch, every card on a colourful mix of photographs | integrated at `5a538c0a`, 2,924 words against a declared 2,950; ready for the sitting |
 | `home-hero` (round six) | four compositions of the stream (mirror, phrase, settle, ribbon) on the ruled hero, the last exploration before its wiring | integrated at `56ea9185`, 1,189 words under the budget |
