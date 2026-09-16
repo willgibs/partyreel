@@ -313,17 +313,24 @@ export function BoardMeta({
       "Ideas",
       spec.candidates.length
         ? spec.candidates.map((c) => (
-            <p key={c.id}>
-              <span
-                className={
-                  c.recommended ? "font-medium text-foreground" : undefined
-                }
-              >
-                {c.name}
-                {c.recommended ? " (the board's answer)" : ""}:{" "}
-              </span>
-              {c.rationale}
-            </p>
+            // The rationale folds under the name (the light board measured
+            // about 990 words of template reprints in 2,889, 2026-09-16); the
+            // card already folds it the same way, and a closed fold is not
+            // reading. The summary carries the one line where the item has one.
+            <details key={c.id} className="lab-disclosure">
+              <summary className="cursor-pointer">
+                <span
+                  className={
+                    c.recommended ? "font-medium text-foreground" : undefined
+                  }
+                >
+                  {c.name}
+                  {c.recommended ? " (the board's answer)" : ""}
+                </span>
+                {c.one ? `: ${c.one}` : ""}
+              </summary>
+              <p className="mt-1">{c.rationale}</p>
+            </details>
           ))
         : [<p key="none">not yet on the board</p>],
     ],
