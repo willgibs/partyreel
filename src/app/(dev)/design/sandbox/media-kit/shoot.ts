@@ -562,7 +562,7 @@ export const DERIVED: readonly Derived[] = [
     what: "A hand-and-phone cutout",
     spec: "PNG with alpha, 1200 px long edge, the screen area fully transparent, two grips (one hand and two)",
     from: "A SEPARATE SETUP, and the only one on this list. Shoot it at the same event against the darkest wall available, from just behind the holder's shoulder, in the same low warm light as K3, S3 and T4 so the body is nearly a silhouette with one highlight along the edge",
-    replaces: "the drawn device (.hhc-phone) in sandbox/home-hero/scan.tsx",
+    replaces: "nothing now: the scan hero that drew the device retired with the home hero's round-five ruling (the source won), so the row is withdrawn until a board asks for a phone in hand again",
     askedBy: "hero-scan",
   },
   {
