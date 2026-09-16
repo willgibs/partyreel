@@ -182,7 +182,7 @@ export const SAMPLE_BOARD = defineBoard({
   catalog: {
     section: "walk",
     control: "shape",
-    compare: ["compareA", "compareB"],
+    compare: ["compare-a", "compare-b"],
   },
 
   controls: [
@@ -199,13 +199,13 @@ export const SAMPLE_BOARD = defineBoard({
       clearable: true,
     },
     {
-      id: "compareA",
+      id: "compare-a",
       label: "A",
       options: ITEMS.map((i) => ({ id: i.id, label: i.name })),
       default: ITEMS[0].id,
     },
     {
-      id: "compareB",
+      id: "compare-b",
       label: "B",
       options: ITEMS.map((i) => ({ id: i.id, label: i.name })),
       default: ITEMS[1].id,

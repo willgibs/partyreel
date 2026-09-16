@@ -1,6 +1,6 @@
-import { defineBoard } from "@/components/lab/board-spec";
+import { type Candidate, defineBoard } from "@/components/lab/board-spec";
 
-import { PALETTE_OPTIONS, PALETTES } from "./palettes";
+import { PALETTE_OPTIONS } from "./palettes";
 
 /**
  * THE PALETTE BOARD, AS DATA (round six, the clarity round, 2026-09-15).
@@ -29,6 +29,191 @@ import { PALETTE_OPTIONS, PALETTES } from "./palettes";
  * React, the board or its sheet would drag a client tree into a server render.
  * `palettes.ts` is plain TypeScript for exactly the same reason.
  */
+
+/**
+ * THE TWELVE, WRITTEN OUT (the revamp, 2026-09-16).
+ *
+ * ★ NEVER A `.map`, AND THIS FILE LEARNED IT TWICE. The review scanner reads a
+ * spec as TEXT rather than importing it (so a board's asks can be read with no
+ * build step), and round six already had to write the twelve OPTIONS out for
+ * that reason. Now the candidates are ruled on card by card, so they are read
+ * the same way: `pnpm lab:review` resolves `candidates: ITEMS` one hop to this
+ * const, and a `.map` over `palettes.ts` reads as no items at all, so every
+ * ruling on a card would be refused.
+ *
+ * The structure of a palette still lives in `palettes.ts` and the values in
+ * `registers.ts`; what lives HERE is the words and the three facts a reviewer
+ * compares across twelve cards. `registers.test.ts` pins every line of it to
+ * the resolved palette, id for id, so the duplication cannot drift: the `one`
+ * line IS the ask's `means`, and the facts ARE the lightnesses the swatch strip
+ * paints.
+ *
+ * The verdict is the BOARD's own call, drawn as the card's pill, and it is not
+ * the reviewer's: Will answers each card keep, refine or kill in the row under
+ * it. One ship, five refine, six kill, which is a board with an opinion.
+ */
+const ITEMS: readonly Candidate<
+  "catalog" | "compare" | "calls" | "pages" | "app" | "paste"
+>[] = [
+  {
+    id: "today",
+    name: "Today",
+    one: "The site exactly as it ships: three darks with no ladder, a near-white page where a card is its hairline, no accent.",
+    verdict: "kill",
+    facts: [
+      ["Room", "0.140"],
+      ["Page", "0.990"],
+      ["Accent", "Ink"],
+    ],
+    rationale:
+      "The one to come back to. Every other card is judged against this, and a ruling of Today is a ruling to change no line.",
+  },
+  {
+    id: "ember",
+    name: "Ember",
+    one: "A warm dark room, a true grey page, the flare accent.",
+    verdict: "ship",
+    facts: [
+      ["Room", "0.120"],
+      ["Page", "0.977"],
+      ["Accent", "Flare"],
+    ],
+    recommended: true,
+    rationale:
+      "Warm the room and leave the page alone: the cast does real work against skin on a dark ground and is a tax on paper. The only pair the old one-switch shape could not have produced.",
+  },
+  {
+    id: "ladder",
+    name: "Ladder",
+    one: "A neutral dark in three real steps, a true grey page, the flare accent. Ember with the warmth taken out.",
+    verdict: "refine",
+    facts: [
+      ["Room", "0.145"],
+      ["Page", "0.977"],
+      ["Accent", "Flare"],
+    ],
+    rationale:
+      "Ember's exact rhythm at chroma zero, for keeping the zero-chroma decision globals.css records as closed. Everything else on the board reads the same.",
+  },
+  {
+    id: "slate",
+    name: "Slate",
+    one: "A cold dark room, a daylight page, and the blue already in the system as the accent.",
+    verdict: "refine",
+    facts: [
+      ["Room", "0.145"],
+      ["Page", "0.990"],
+      ["Accent", "Blue"],
+    ],
+    rationale:
+      "A cool ground makes a warm photograph read warmer, which is the one thing a media product's ground can do for its media. No new hue: the accent is the save blue.",
+  },
+  {
+    id: "gallery",
+    name: "Gallery",
+    one: "A neutral dark in three steps, a daylight page on a dead grey mat, and no accent colour at all.",
+    verdict: "kill",
+    facts: [
+      ["Room", "0.145"],
+      ["Page", "0.990"],
+      ["Accent", "Ink"],
+    ],
+    rationale:
+      "The purist reading kept whole: nothing in the chrome is coloured, so the photographs are the only colour anywhere. It leaves a section with no photograph in it with no colour either.",
+  },
+  {
+    id: "studio",
+    name: "Studio",
+    one: "One dark room with every surface derived from it, a page where the card IS the paper, no accent.",
+    verdict: "kill",
+    facts: [
+      ["Room", "0.125"],
+      ["Page", "0.990"],
+      ["Accent", "Ink"],
+    ],
+    rationale:
+      "One number tunes the whole dark side and the ladder can never drift. It leans entirely on depth: without a ring and a shadow the card disappears.",
+  },
+  {
+    id: "loft",
+    name: "Loft",
+    one: "A dark that is never black, a page where the card is the paper, and the reel's violet as the accent.",
+    verdict: "kill",
+    facts: [
+      ["Room", "0.195"],
+      ["Page", "0.990"],
+      ["Accent", "Violet"],
+    ],
+    rationale:
+      "At 0.195 the dark already reads as a leaf on a page, so there is one dark ground instead of two. A dark chapter loses most of its drama and an OLED phone loses the true-black economy.",
+  },
+  {
+    id: "press",
+    name: "Press",
+    one: "Warm on both sides: a warm dark room and warm uncoated paper, with the flare accent.",
+    verdict: "refine",
+    facts: [
+      ["Room", "0.120"],
+      ["Page", "0.985"],
+      ["Accent", "Flare"],
+    ],
+    rationale:
+      "One temperature through the whole product, so nothing flips at the seam where a dark chapter meets the body. The page very slightly yellows a white dress, which is the case the cast is weakest against.",
+  },
+  {
+    id: "reel",
+    name: "Reel",
+    one: "A cold dark room, a true grey page, and the product's own violet as the accent.",
+    verdict: "kill",
+    facts: [
+      ["Room", "0.145"],
+      ["Page", "0.977"],
+      ["Accent", "Violet"],
+    ],
+    rationale:
+      "The product is named for the reel, so the accent and the signature moment become one hue. The reel icon stops being special once everything else is violet too.",
+  },
+  {
+    id: "signal",
+    name: "Signal",
+    one: "One derived dark room, a true grey page, and the save blue promoted: no new hue anywhere.",
+    verdict: "refine",
+    facts: [
+      ["Room", "0.125"],
+      ["Page", "0.977"],
+      ["Accent", "Blue"],
+    ],
+    rationale:
+      "The answer with no new hue to hold anywhere in it: every colour on the card already ships. It is also the default accent of every product on the internet.",
+  },
+  {
+    id: "daylight",
+    name: "Daylight",
+    one: "A warm dark room against a daylight page, with the flare accent. The cast flips at the seam.",
+    verdict: "kill",
+    facts: [
+      ["Room", "0.120"],
+      ["Page", "0.990"],
+      ["Accent", "Flare"],
+    ],
+    rationale:
+      "Deliberately cross-cast: the room is warm and the page is cool, the way a print is warm and the wall it hangs on is not. The temperature flips at the seam, which is either the point or a fault.",
+  },
+  {
+    id: "dusk",
+    name: "Dusk",
+    one: "A warm dark room and today's near-white page kept exactly as it is, with the flare accent.",
+    verdict: "refine",
+    facts: [
+      ["Room", "0.120"],
+      ["Page", "0.990"],
+      ["Accent", "Flare"],
+    ],
+    rationale:
+      "The smallest change that still moves anything: the dark side is fixed and the light side is not touched. The page keeps its five surfaces inside 0.037, so a card stays its hairline.",
+  },
+];
+
 export const PALETTE = defineBoard({
   id: "palette",
   title: "The palette",
@@ -92,7 +277,7 @@ export const PALETTE = defineBoard({
       question: "Which palette should the site wear?",
       context:
         "A palette here is a whole answer rather than a swatch: the dark room a marketing chapter sits in, the lighter slab the footer makes on a light page, the page itself, the set-apart panel on it, the bed a photograph lies on, all the text greys, and one accent colour. Twelve of them, each named for what it is.",
-      look: "The catalog: twelve cards, each with its grounds as a strip, the accent and the six state colours under them, and the same piece of the product in dark beside light. Nothing to switch.",
+      look: "The catalog: twelve cards, each with its grounds as a strip and the same piece of the product in dark beside light. Press Pick on one; rule each card keep, refine or kill in its own row.",
       options: [
         {
           id: "today",
@@ -272,14 +457,22 @@ export const PALETTE = defineBoard({
    * ★ THE CANDIDATES ARE THE TWELVE, which is the round's whole point. Rounds
    * one to five had to make the REGISTERS the candidates, because the sets were
    * options of two separate asks and no single object on the board was ever a
-   * complete answer. Now one is.
+   * complete answer. Now one is, and each one is ruled where it stands.
    */
-  candidates: PALETTES.map((p) => ({
-    id: p.id,
-    name: p.name,
-    rationale: p.why,
-    ...(p.recommended ? { recommended: true } : null),
-  })),
+  candidates: ITEMS,
+
+  /**
+   * ★ AND THE CATALOG IS THE EVIDENCE (the revamp, 2026-09-16). Declaring this
+   * is what turns the grid into the review surface: Pick drives the whole page
+   * from a card, A and B drive the wipe below it, and each card carries keep,
+   * refine or kill with a note. The `palette` ask survives it because ruling
+   * twelve cards and naming the ONE the site wears are two different answers.
+   */
+  catalog: {
+    section: "catalog",
+    control: "palette",
+    compare: ["compare-a", "compare-b"],
+  },
 
   departures: [
     {
@@ -332,7 +525,7 @@ export const PALETTE = defineBoard({
     {
       id: "catalog",
       title: "The catalog",
-      lede: "Twelve finished palettes. Each card carries every ground it declares, the text on them, the accent and the six state colours in both modes, and one piece of the product built from the real components, dark beside light.",
+      lede: "Twelve finished palettes, each ruled where it stands: every ground it declares, the accent and the six state colours in both modes, and one piece of the product built from the real components, dark beside light.",
       argument: [
         "THE MODEL UNDER ALL TWELVE. A page picks a mode, dark or light. A section inside it picks one of that mode's two grounds and never a third: on dark that is the room a chapter sits in or the slab the footer makes, on light it is the page or the set-apart panel. Media picks nothing, because a photograph lies on the same bed in both modes, which is why the well belongs to neither. Four registers and a bed, against today's five values nobody named plus a literal black in the lightbox nobody wrote down.",
         "WHY CINEMA AND INK ARE NOT TWO DARKS, which is the question round three asked and no round answered. The room is the deepest thing on its own page; the slab is the only dark thing on a page of paper. So the slab has to sit LIGHTER than the room rather than deeper, and neither of them is pure black today. Every card's strip shows it as a fact: the well, the room, the slab, then the panel and the page, left to right, deepest to brightest.",
@@ -342,8 +535,8 @@ export const PALETTE = defineBoard({
     },
     {
       id: "compare",
-      title: "Today, and the one you picked",
-      lede: "The surface ladder in one frame (the page, a card, a panel inside it, an input and a menu over the lot) with today underneath and the picked palette on top, and the seam on a slider.",
+      title: "Any two, side by side",
+      lede: "The surface ladder in one frame (the page, a card, a panel inside it, an input and a menu over the lot) under the two cards you pressed A and B on, and the seam on a slider.",
       argument: [
         "Two canvases side by side is a memory test when the step being judged is 0.02, and an eye cannot hold that across a toggle press. One canvas with the join on a slider can be dragged onto the exact surface in question instead. The lightnesses are printed underneath, read off the same strings the canvas paints, so a number here cannot drift from a colour there.",
       ],
@@ -401,6 +594,21 @@ export const PALETTE = defineBoard({
       options: [{ id: "none", label: "Nothing picked" }, ...PALETTE_OPTIONS],
       default: "none",
       clearable: true,
+    },
+    // A and B: the two the wipe joins, set from the catalog's cards. They open
+    // on Today against the board's own pick, which is the comparison a reader
+    // wants before he has picked anything.
+    {
+      id: "compare-a",
+      label: "A",
+      options: PALETTE_OPTIONS,
+      default: "today",
+    },
+    {
+      id: "compare-b",
+      label: "B",
+      options: PALETTE_OPTIONS,
+      default: "ember",
     },
     {
       id: "reach",

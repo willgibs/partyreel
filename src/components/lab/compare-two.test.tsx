@@ -29,10 +29,10 @@ const SPEC: BoardSpec = defineBoard({
   departures: [],
   assets: [],
   sections: [{ id: "catalog", title: "The catalog", lede: "The two." }],
-  catalog: { section: "catalog", compare: ["compareA", "compareB"] },
+  catalog: { section: "catalog", compare: ["compare-a", "compare-b"] },
   controls: [
     {
-      id: "compareA",
+      id: "compare-a",
       label: "A",
       options: [
         { id: "one", label: "The first" },
@@ -41,7 +41,7 @@ const SPEC: BoardSpec = defineBoard({
       default: "one",
     },
     {
-      id: "compareB",
+      id: "compare-b",
       label: "B",
       options: [
         { id: "one", label: "The first" },
@@ -67,7 +67,7 @@ describe("any two, side by side", () => {
     render(
       <CompareTwo
         spec={SPEC}
-        state={{ compareA: "two", compareB: "one" }}
+        state={{ "compare-a": "two", "compare-b": "one" }}
         render={(c) => <p>drawn: {c.name}</p>}
       />,
     );
@@ -93,7 +93,7 @@ describe("any two, side by side", () => {
     render(
       <CompareTwo
         spec={SPEC}
-        state={{ compareA: "one", compareB: "one" }}
+        state={{ "compare-a": "one", "compare-b": "one" }}
         render={(c) => <p>drawn: {c.name}</p>}
       />,
     );
@@ -150,7 +150,7 @@ describe("the same places, under two cards", () => {
     render(
       <SpotCompare
         spec={SPEC}
-        state={{ compareA: "two", compareB: "two" }}
+        state={{ "compare-a": "two", "compare-b": "two" }}
         spots={[SPOTS[0]]}
         render={(spot, c) => <p>{`${spot.id}/${c.id}`}</p>}
       />,

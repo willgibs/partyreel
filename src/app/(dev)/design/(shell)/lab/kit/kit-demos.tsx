@@ -351,7 +351,7 @@ const DEMO_SPEC: BoardSpec = defineBoard({
   catalog: {
     section: "catalog",
     control: "pick",
-    compare: ["compareA", "compareB"],
+    compare: ["compare-a", "compare-b"],
   },
   controls: [
     {
@@ -367,7 +367,7 @@ const DEMO_SPEC: BoardSpec = defineBoard({
       clearable: true,
     },
     {
-      id: "compareA",
+      id: "compare-a",
       label: "A",
       options: [
         { id: "square", label: "Square" },
@@ -377,7 +377,7 @@ const DEMO_SPEC: BoardSpec = defineBoard({
       default: "today",
     },
     {
-      id: "compareB",
+      id: "compare-b",
       label: "B",
       options: [
         { id: "square", label: "Square" },
@@ -429,8 +429,8 @@ function Corner({ id, label }: { id: string; label: string }) {
 function useDemoState() {
   const [state, set] = useState<Record<string, string>>({
     pick: "none",
-    compareA: "today",
-    compareB: "soft",
+    "compare-a": "today",
+    "compare-b": "soft",
   });
   return {
     state,

@@ -72,9 +72,13 @@ describe("the board registry", () => {
         expect(i, `${b.id}/spec.ts imports a stylesheet`).not.toMatch(/\.css$/);
         expect(i, `${b.id}/spec.ts imports its board`).not.toMatch(/board$/);
       }
-      expect(src, `${b.id}/spec.ts has JSX`).not.toMatch(
-        /<[A-Z][A-Za-z]*[\s/>]/,
-      );
+      // A named type argument (`Candidate<SectionId>`) reads to this
+      // heuristic exactly like an opening tag, so a spec writes its section
+      // union inline (`Candidate<"catalog" | "pages">`), which opens with `<"`.
+      expect(
+        src,
+        `${b.id}/spec.ts has JSX (or a named type argument: write the union inline)`,
+      ).not.toMatch(/<[A-Z][A-Za-z]*[\s/>]/);
     }
   });
 
@@ -245,6 +249,14 @@ describe("the board registry", () => {
           RESERVED_PARAMS as readonly string[],
           `${b.id}: control "${c.id}" claims a reserved URL param`,
         ).not.toContain(c.id);
+        // ★ A CONTROL ID BECOMES `data-<id>` ON THE BOARD ROOT (board-page.tsx),
+        // and React refuses a camelCase custom attribute with a console error on
+        // every render: `compareA` shipped one until it was caught live. Lower
+        // case and hyphens, which is also what a URL param should look like.
+        expect(
+          c.id,
+          `${b.id}: control "${c.id}" is not a lower-case data attribute name`,
+        ).toMatch(/^[a-z][a-z0-9-]*$/);
       }
     }
   });

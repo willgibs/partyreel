@@ -67,6 +67,16 @@ const pascal = id
 const CONST = id.replace(/-/g, "_").toUpperCase();
 const today = new Date().toISOString().slice(0, 10);
 
+const catalog = shape !== "plain";
+
+// ★ THE UNION IS WRITTEN INLINE, NOT BEHIND A NAMED TYPE. registry.test.ts
+// keeps JSX out of a spec with the heuristic /<[A-Z][A-Za-z]*[\s/>]/, and
+// `Candidate<SectionId>` reads to it exactly like an opening tag. A union of
+// string literals opens with `<"`, which it cannot mistake for one.
+const SECTION_IDS = catalog
+  ? `"catalog" | ${shape === "spots" ? '"spots"' : '"compare"'} | "pages"`
+  : "";
+
 /* ── The catalog's own blocks ─────────────────────────────────────────────── */
 
 const ITEMS_BLOCK = `/**
@@ -80,7 +90,7 @@ const ITEMS_BLOCK = `/**
  * Each card is a finished idea somebody could prefer for a reason they could
  * say out loud, not a knob setting. Two that differ only in a number are one.
  */
-const ITEMS: readonly Candidate<SectionId>[] = [
+const ITEMS: readonly Candidate<${SECTION_IDS}>[] = [
   {
     id: "TODO-a",
     name: "TODO: its name, one or two words",
@@ -134,8 +144,8 @@ const CATALOG_CONTROLS = `  controls: [
       default: "none",
       clearable: true,
     },
-    { id: "compareA", label: "A", options: CARDS, default: ITEMS[0].id },
-    { id: "compareB", label: "B", options: CARDS, default: ITEMS[1].id },
+    { id: "compare-a", label: "A", options: CARDS, default: ITEMS[0].id },
+    { id: "compare-b", label: "B", options: CARDS, default: ITEMS[1].id },
   ],
 `;
 
@@ -247,18 +257,12 @@ const PLAIN_ASK = `  asks: [
   ],
 `;
 
-const catalog = shape !== "plain";
-
 const specImports = catalog
   ? `import { type Candidate, defineBoard } from "@/components/lab/board-spec";`
   : `import { defineBoard } from "@/components/lab/board-spec";`;
 
-const sectionIdType = catalog
-  ? `\n/** The sections this board declares; the items are typed against them. */\ntype SectionId = "catalog" | ${shape === "spots" ? '"spots"' : '"compare"'} | "pages";\n`
-  : "";
-
 const spec = `${specImports}
-${sectionIdType}${catalog ? `\n${ITEMS_BLOCK}` : ""}
+${catalog ? `\n${ITEMS_BLOCK}` : ""}
 /**
  * ${title.toUpperCase()}, AS DATA.
  *
@@ -292,7 +296,7 @@ ${
   catalog: {
     section: "catalog",
     control: "pick",
-    compare: ["compareA", "compareB"],
+    compare: ["compare-a", "compare-b"],
   },
 `
     : `  candidates: [

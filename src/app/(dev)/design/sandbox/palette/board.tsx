@@ -10,8 +10,9 @@ import {
   ApplyToSite,
   BoardPage,
   CANVAS,
+  Catalog,
   CellLabel,
-  Compare,
+  CompareTwo,
   Knob,
   Labeled,
   Paste,
@@ -27,9 +28,9 @@ import {
 } from "@/components/dev/candidate-style";
 
 import { AccentWall } from "./call-sites";
-import { Catalog } from "./catalog";
+import { PalettePreview } from "./catalog";
 import { SITE_PAGES, SiteFrames, type PageId } from "./live";
-import { PALETTES, resolvePalette } from "./palettes";
+import { resolvePalette } from "./palettes";
 import { RealFloating } from "./real-ui";
 import {
   accentBlock,
@@ -110,8 +111,11 @@ function read(state: BoardState) {
 
   const picked = resolvePalette(paletteId);
   const pair = resolvePair(picked.pair, cardMode, faint);
-  const today = resolvePalette("today");
-  const todayPair = resolvePair(today.pair, cardMode, faint);
+  // The two the wipe joins, from the catalog's own A and B controls. The kit
+  // resolves them again for the Compare itself; these are here so the labels
+  // and the printed lightnesses above the canvas name the same two.
+  const a = resolvePalette(state["compare-a"] ?? "today");
+  const b = resolvePalette(state["compare-b"] ?? "ember");
 
   const opts = {
     accent: picked.accent,
@@ -128,8 +132,10 @@ function read(state: BoardState) {
     cardMode,
     faint,
     pair,
-    todayPair,
-    isToday: picked.def.id === "today",
+    a: a.def,
+    b: b.def,
+    aPair: resolvePair(a.pair, cardMode, faint),
+    bPair: resolvePair(b.pair, cardMode, faint),
     // The card that reads "Picked": none while nothing is picked, even though
     // the pages below wear Today (Will, 2026-09-16: a pick must be clearable).
     pickedId: state.palette && state.palette !== "none" ? state.palette : null,
@@ -200,72 +206,58 @@ function steps(
 }
 
 /**
- * TODAY AND THE PICKED PALETTE IN ONE CANVAS, WITH THE SEAM ON A SLIDER.
+ * ANY TWO PALETTES IN ONE CANVAS, WITH THE SEAM ON A SLIDER.
+ *
+ * ★ THE KIT RESOLVES A AND B; THIS RESOLVES THE PIXELS. `CompareTwo` reads the
+ * two declared compare controls (set from the catalog's own cards) and refuses
+ * to draw a thing against itself; what is left here is the one thing the kit
+ * cannot know, which is what a palette LOOKS like: a 1:1 stage on the right
+ * ground wearing that candidate's resolved tokens.
  *
  * ★ THE ROW IS THE SCROLLER, NOT EACH HALF. `Compare` stacks B over A
  * absolutely, so the two layers have to share one scroll box: two 1:1 Stages
  * each with their own `overflow-x-auto` would drift apart the moment a 1440
  * canvas was scrolled sideways in a narrower column, and the wipe would then be
  * joining two different parts of the page.
- *
- * ★ AND TODAY AGAINST TODAY IS NOT A COMPARISON. Today is one of the twelve, so
- * picking it makes B the same block as A: the canvas renders ONCE instead, with
- * a line saying what brings the wipe back.
  */
-function PairWipe({
-  todayPair,
-  pair,
-  name,
+function PaletteStack({
+  id,
   ground,
   mode,
   height,
   tone,
-  isToday,
-  differs,
+  cardMode,
+  faint,
 }: {
-  todayPair: Pair;
-  pair: Pair;
-  name: string;
+  id: string;
   ground: BoardGround;
   mode: Mode;
   height: number;
   tone: "light" | "dark";
-  isToday: boolean;
-  differs: string;
+  cardMode: CardMode;
+  faint: boolean;
 }) {
-  const { w } = CANVAS[mode];
-  const half = (p: Pair) => (
+  const { pair: raw } = resolvePalette(id);
+  const pair = resolvePair(raw, cardMode, faint);
+  return (
     <Stage mode={mode} ground={stageGround(ground)} height={height} fit="true">
       <div
         data-pal-swap
         className="h-full w-full overflow-hidden bg-background text-foreground"
-        style={pairStyle(p, ground)}
+        style={pairStyle(pair, ground)}
       >
         <SurfaceStack mode={mode} tone={tone} />
       </div>
     </Stage>
   );
+}
+
+/** The wipe's own scroll box, so both halves scroll as one canvas. */
+function Canvas({ mode, children }: { mode: Mode; children: React.ReactNode }) {
   return (
     <div data-lab-bleed className="overflow-x-auto pb-2">
-      <div style={{ width: w }} className="shrink-0">
-        {isToday ? (
-          <>
-            {half(todayPair)}
-            <CellLabel>
-              Nothing is picked (or Today is), so both halves of the wipe would
-              be the same block. Pick a palette in the catalog above, or in the
-              dock, and the seam comes back.
-            </CellLabel>
-          </>
-        ) : (
-          <Compare
-            mode="wipe"
-            differs={differs}
-            labels={["Today", name]}
-            a={half(todayPair)}
-            b={half(pair)}
-          />
-        )}
+      <div style={{ width: CANVAS[mode].w }} className="shrink-0">
+        {children}
       </div>
     </div>
   );
@@ -313,7 +305,7 @@ export function PaletteBoard() {
       }}
       evidence={(id, state, api) => {
         const s = read(state);
-        const { mode, desktop, pair, todayPair, accent, reach, cardMode } = s;
+        const { mode, desktop, pair, accent, reach, cardMode } = s;
         const h = (d: number, p: number) => (desktop ? d : p);
         const page = SITE_PAGES.find((p) => p.id === pageId) ?? SITE_PAGES[0];
 
@@ -322,60 +314,85 @@ export function PaletteBoard() {
           case "catalog":
             return (
               <>
+                {/* The kit's grid and card. The only thing this board brings is
+                    the PREVIEW, because only this board has palettes; 320 is
+                    the narrowest a card can be with two real product fragments
+                    in it side by side. */}
                 <Catalog
-                  picked={s.pickedId}
-                  cardMode={cardMode}
-                  faint={s.faint}
-                  onPick={(pid) =>
-                    api.setState({
-                      palette: state.palette === pid ? "none" : pid,
-                    })
-                  }
+                  spec={PALETTE}
+                  state={state}
+                  setState={api.setState}
+                  minWidth={320}
+                  render={(candidate) => (
+                    <PalettePreview
+                      id={candidate.id}
+                      cardMode={cardMode}
+                      faint={s.faint}
+                    />
+                  )}
                 />
                 <CellLabel className="max-w-2xl">
-                  {inWords(PALETTES.length)} palettes, and picking a card is
-                  picking it everywhere: every section below, the pages and the
-                  paste all read the dock. Open a menu on any card to see a real
-                  floating surface painted by that palette.
+                  {inWords(PALETTE.candidates.length)} palettes. Pick drives the
+                  whole page, so every section below, the real pages and the
+                  paste wear the card you press; A and B set the wipe under
+                  this. Rule each one keep, refine or kill in its own row, and
+                  open a menu on any card to see a real floating surface painted
+                  by that palette.
                 </CellLabel>
               </>
             );
 
-          /* ── Today, and the one you picked ──────────────────────────── */
+          /* ── Any two, side by side ──────────────────────────────────── */
           case "compare":
             return (
               <>
                 <Labeled
-                  name={`the room · today against ${s.def.name}`}
-                  note={`Today: ${steps(todayPair, "app-dark", "dark")}. ${s.def.name}: ${steps(pair, "app-dark", "dark")}.`}
+                  name={`the room · ${s.a.name} against ${s.b.name}`}
+                  note={`${s.a.name}: ${steps(s.aPair, "app-dark", "dark")}. ${s.b.name}: ${steps(s.bPair, "app-dark", "dark")}.`}
                 >
-                  <PairWipe
-                    todayPair={todayPair}
-                    pair={pair}
-                    name={s.def.name}
-                    ground="app-dark"
-                    mode={mode}
-                    height={h(560, 700)}
-                    tone="dark"
-                    isToday={s.isToday}
-                    differs="The dark ladder: the page, the panel, the card and the menu over it."
-                  />
+                  <Canvas mode={mode}>
+                    <CompareTwo
+                      spec={PALETTE}
+                      state={state}
+                      mode="wipe"
+                      differs="The dark ladder: the page, the panel, the card and the menu over it."
+                      render={(candidate) => (
+                        <PaletteStack
+                          id={candidate.id}
+                          ground="app-dark"
+                          mode={mode}
+                          height={h(560, 700)}
+                          tone="dark"
+                          cardMode={cardMode}
+                          faint={s.faint}
+                        />
+                      )}
+                    />
+                  </Canvas>
                 </Labeled>
                 <Labeled
-                  name={`the paper · today against ${s.def.name}`}
-                  note={`Today: ${steps(todayPair, "paper", "light")}. ${s.def.name}: ${steps(pair, "paper", "light")}.`}
+                  name={`the paper · ${s.a.name} against ${s.b.name}`}
+                  note={`${s.a.name}: ${steps(s.aPair, "paper", "light")}. ${s.b.name}: ${steps(s.bPair, "paper", "light")}.`}
                 >
-                  <PairWipe
-                    todayPair={todayPair}
-                    pair={pair}
-                    name={s.def.name}
-                    ground="paper"
-                    mode={mode}
-                    height={h(560, 700)}
-                    tone="light"
-                    isToday={s.isToday}
-                    differs="The light ladder: five surfaces inside 0.037 today, against a page a card can lift from."
-                  />
+                  <Canvas mode={mode}>
+                    <CompareTwo
+                      spec={PALETTE}
+                      state={state}
+                      mode="wipe"
+                      differs="The light ladder: five surfaces inside 0.037 on Today, against a page a card can lift from."
+                      render={(candidate) => (
+                        <PaletteStack
+                          id={candidate.id}
+                          ground="paper"
+                          mode={mode}
+                          height={h(560, 700)}
+                          tone="light"
+                          cardMode={cardMode}
+                          faint={s.faint}
+                        />
+                      )}
+                    />
+                  </Canvas>
                 </Labeled>
               </>
             );

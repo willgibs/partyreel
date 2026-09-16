@@ -57,7 +57,7 @@ const SPEC: BoardSpec = defineBoard({
   catalog: {
     section: "catalog",
     control: "pick",
-    compare: ["compareA", "compareB"],
+    compare: ["compare-a", "compare-b"],
   },
   controls: [
     {
@@ -72,7 +72,7 @@ const SPEC: BoardSpec = defineBoard({
       clearable: true,
     },
     {
-      id: "compareA",
+      id: "compare-a",
       label: "A",
       options: [
         { id: "one", label: "The first" },
@@ -81,7 +81,7 @@ const SPEC: BoardSpec = defineBoard({
       default: "one",
     },
     {
-      id: "compareB",
+      id: "compare-b",
       label: "B",
       options: [
         { id: "one", label: "The first" },
@@ -173,8 +173,8 @@ describe("the catalog", () => {
         name: "Put The second on side B of the comparison",
       }),
     );
-    expect(setState).toHaveBeenNthCalledWith(1, { compareA: "one" });
-    expect(setState).toHaveBeenNthCalledWith(2, { compareB: "two" });
+    expect(setState).toHaveBeenNthCalledWith(1, { "compare-a": "one" });
+    expect(setState).toHaveBeenNthCalledWith(2, { "compare-b": "two" });
   });
 
   it("rules a card where it stands, under the board's own round", async () => {
