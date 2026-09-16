@@ -69,10 +69,10 @@ round of the window.
 
 | track | board | waits on |
 | --- | --- | --- |
-| `home-hero` | `/design/lab/home-hero` (round six: the stream catalog before the wiring) | its handoff |
 | `lab-flow` | the kit: the review as a stepped onboarding form (the plan's Part 1) | its handoff; every board then verifies its walk on it |
 | `light` | `/design/lab/light` (round seven: reshaped into steps, one card at a time) | `lab-flow` for the walk |
 | `palette` | `/design/lab/palette` (round eight: pick-one, the winner from the twelve) | `lab-flow` for the walk |
+| `type-scale` | `/design/lab/type-scale` (round seven: pick-one, the winner from the five) | `lab-flow` for the walk |
 
 ## Waiting on Will
 
@@ -111,5 +111,9 @@ palette and light first), pasted in batches with Copy so far.
   Round 4 is closed on the tree: every standing paper board is a catalog under its declared budget.
 - `5a538c0a` palette round seven integrated during the sitting (nine cool palettes, three controls, the
   accent as a config; 2,924 words against a declared 2,950).
+- `02c409b4` the stepped review's spec fields; `551ecab5` the round's three lanes cut (lab-flow, light,
+  palette); `56ea9185` home-hero integrated (round six: four compositions of the stream, mirror, phrase,
+  settle and ribbon, on one engine; 1,189 words under the budget with no declaration; the board
+  recommends the settle; its pick-one switch is three spec lines once the flow lands).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

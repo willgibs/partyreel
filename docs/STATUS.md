@@ -43,22 +43,23 @@ under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
 | `lab-catalog` | the review's item scope (`item:<id>=keep\|refine\|kill "note"`), `Catalog`, `ItemVerdictRow`, `CompareTwo`, `SpotCompare`, the reading budget in `pnpm lab:smoke`, `pnpm new-board` scaffolding a catalog, `/design/lab/kit` as the toolbox, the palette rebuilt on the kit as the proof | integrated at `57b93286`; the palette verified on the desk |
 | `lab-sweep` | every lab page walked at 1440 and 375 and fixed in the shell; plain-English labels | integrated at `88dafe50` (the dev indicator moved and the lab functions' file trace cut from 2,248 to 718 files behind it) |
 | `docs-systems-strip` | the four heavy system docs stripped to the system and its invariants, every ★ audited | integrated at `0a48db70` |
-| `brand-voice` | Round 4 catalog: six voices as cards, twenty-four real spots drawn twice under any two | integrated at `5868325e` |
-| `type-scale` | Round 4 catalog: five ladders as type specimens at true pixels, two on the same real page | integrated at `257df8fe`, 1,155 words under the budget |
-| `floating-surfaces` | Round 4 catalog: seven directions as cards on the app's dark over the album, the desk under two | integrated at `767e6182`, 2,317 words against a declared 2,400 |
-| `light` | Round 4 catalog: the twelve treatments as cards on the real surfaces at true size, the aurora's landing as a two-way compare | integrated at `2326a924`, 2,889 words against a declared 2,950 |
-| `rounding` | Round 4 catalog: six families as cards at true size, two on one real page | integrated at `128aca34`, 2,564 words against a declared 2,800 |
-| `media-kit` | Round 4 catalog: thirteen sources as cards with their contact sheets at the real card size | integrated at `8587d3ed`, 2,686 words against a declared 2,750 |
+| the six Round 4 catalogs | brand-voice `5868325e` (six voices, twenty-four spots), type-scale `257df8fe` (five ladders, 1,155 words), floating-surfaces `767e6182` (seven directions, 2,317 against 2,400), light `2326a924` (twelve treatments, 2,889 against 2,950), rounding `128aca34` (six families, 2,564 against 2,800), media-kit `8587d3ed` (thirteen sources, 2,686 against 2,750) | integrated, each under its declared budget |
 | `palette` (round seven) | nine cool palettes and three controls, one optional accent per palette behind a switch, every card on a colourful mix of photographs | integrated at `5a538c0a`, 2,924 words against a declared 2,950; ready for the sitting |
-| `home-hero` (round six) | three or four polished stream treatments on the ruled hero, the last exploration before its wiring | building |
+| `home-hero` (round six) | four compositions of the stream (mirror, phrase, settle, ribbon) on the ruled hero, the last exploration before its wiring | integrated at `56ea9185`, 1,189 words under the budget |
+| `lab-flow` | the review as a stepped onboarding form: tiles on one specimen, show versus choose, the three exits, one card at a time, staging, the desk's rows as steps | building |
+| `light` (round seven) | the twelve cards reshaped for the walk: one at a time on three specimens, before/after and what each lands as, the asks as tile steps | building |
+| `palette` (round eight) | pick-one: the winner from the twelve or none, the accent and its reach as tile steps | building |
+| `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | building |
 
-Round 1 is closed on the tree (both lanes integrated, the verification list walked on the dev server);
-Will's first review with per-item verdicts is the palette catalog plus the six rebuilt boards, on the
-desk, once Round 4 lands. The reading budget (1,200 words outside every closed fold,
-specimen and paste, or a spec's declared budget with its reason) is met by the six rebuilt boards and
-by type-scale outright; the six boards not yet rebuilt (the palette at 3,817, the two glow boards, the
-home hero, the album hero, the river) still fail it on purpose, and `pnpm lab:smoke` reports the routes
-and the budget apart.
+**The stepped review round** (opened 2026-09-16 at `02c409b4`, on his sitting's verdict: the review
+"favors you and makes me spend tons of time per track figuring what I'm even being asked"): the review
+becomes an onboarding form (`lab-flow`: one context and its questions alone on the screen, the options as
+preview tiles on one specimen, "None of these" as an exit, staged follow-ups, the desk's rows as open
+steps), every board is reshaped into steps four at a time with no new exploration (light and palette
+first; then type-scale, floating-surfaces, rounding, brand-voice, media-kit; the hero after its catalog),
+and his sitting resumes on the first two that land: the last lab-infrastructure round of the window. The
+reading budget is met by every rebuilt board; the two glow boards, the album hero and the river still fail
+it on purpose, and `pnpm lab:smoke` reports the routes and the budget apart.
 
 ## The previous round: the clarity round (2026-09-15 to 16, `be1638f2` to `1165e503`)
 

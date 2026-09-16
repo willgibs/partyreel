@@ -306,17 +306,17 @@ export const RULINGS: Ruling[] = [
     title: "The home hero",
     surface: "marketing",
     ruled:
-      "open (round two ruled 2026-09-14: the source; round three ruled 2026-09-15: the source and the scan continue, the inflow joins)",
+      "open (round five ruled 2026-09-16: the source, the lockup centred, the live count cut, the headline as ruled; round six returned the stream as a catalog of four compositions, the winner still to be picked)",
     shipped: null,
-    why: "The source won round two; round three's ruling keeps the source and the scan, kills the burst and the river as heroes (their own boards now) and adds the inflow.",
+    why: "Round five ruled the source outright and retired the scan and the inflow; round six is one catalog of the stream (mirror, phrase, settle, ribbon) before the wiring.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/components/marketing/sections/home/cinema-hero.tsx",
     ],
     board: {
-      note: "Round four: the source in its emanating direction and the scan with its phone, both loved; the inflow, the album streaming into the code rather than out of it, built to answer honestly whether the truer reading presents as well",
-      variants: ["The source", "The scan", "The inflow"],
-      tracks: ["hero-source", "hero-scan", "hero-inflow"],
+      note: "Round six: four compositions of the album leaving the code, each the real hero at true size on the ruled lockup with its own Replay and four facts; the pick worn by the real home page below. The board recommends the settle.",
+      variants: ["The mirror", "The phrase", "The settle", "The ribbon"],
+      tracks: ["home-hero"],
     },
   },
   {
