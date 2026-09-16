@@ -101,13 +101,13 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | `lab-review-card` | `/design/lab/<board>?session=` (the review card, the clarity round) | none: a local `pnpm dev` after integration | handoff |
 | `palette` | `/design/lab/palette` (the clarity round, round 6: the first catalog) | none: a local `pnpm dev` after integration | handoff |
 | `album-hero` | `/design/lab/album-hero` (the clarity round, round 3: the asks in plain words) | none: a local `pnpm dev` after integration | handoff |
-| `brand-voice` | `/design/lab/brand-voice` (the clarity round, round 6) | none | handoff |
+| `brand-voice` | `/design/lab/brand-voice` (the clarity round, round 6) | none: a local `pnpm dev` (integrated, merged `80200756`) | Will's seven asks, in plain words, through the desk |
 | `floating-surfaces` | `/design/lab/floating-surfaces` (the clarity round, round 6) | none | handoff |
-| `glow-specs` | `/design/lab/glow-doctrine` and `/design/lab/glow-moments` (the clarity round, round 2) | none | handoff |
+| `glow-specs` | `/design/lab/glow-doctrine` and `/design/lab/glow-moments` (the clarity round, round 2) | none: a local `pnpm dev` (integrated, merged `1244fbd8`) | Will's two procedural asks, through the desk |
 | `home-hero` | `/design/lab/home-hero` (the clarity round, round 6) | none | handoff |
 | `media-kit` | `/design/lab/media-kit` (the clarity round, round 6) | none | handoff |
 | `river-visual` | `/design/lab/river-visual` (the clarity round, round 3) | none | handoff |
-| `rounding` | `/design/lab/rounding` (the clarity round, round 6) | none | handoff |
+| `rounding` | `/design/lab/rounding` (the clarity round, round 6) | none: a local `pnpm dev` (integrated, merged `edb4c732`) | Will's five asks, in plain words, through the desk |
 | `type-scale` | `/design/lab/type-scale` (the clarity round, round 6) | none | handoff |
 | `light` | `/design/lab/light` (the clarity round: rewritten by the Orchestrator at `be1638f2`, the exemplar) | the launch-prep alias after the cap resets | Will's six open asks, in plain words, through the desk |
 | `album-hero` | `/design/lab/album-hero` (the migration wave, round 2) | the launch-prep alias (integrated, merged `a61fd366`) | Will's ruling, through the desk's review session |
