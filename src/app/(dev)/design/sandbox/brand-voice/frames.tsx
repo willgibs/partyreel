@@ -66,10 +66,25 @@ import type { VoiceId } from "./voices";
 /** Today first, then the two candidates: a comparison reads from the control. */
 export const COLUMNS: VoiceId[] = ["today", "house", "room"];
 
+/**
+ * ★ A COLUMN IS HEADED WITH ITS OPTION'S OWN LABEL (the clarity round,
+ * 2026-09-15). These three strings are `spec.ts`'s voice ask, word for word,
+ * and they are also the dock's three switch labels. A reviewer who reads the
+ * ask on the desk or on the review card and then opens the board has to find
+ * the same words over the evidence, or the ask cannot be answered from the
+ * evidence. Change one of them and you change all three places at once.
+ */
 export const VOICE_TAG: Record<VoiceId, string> = {
+  today: "Today, the lines the site ships now",
+  house: "A, a tuning of the lines we have",
+  room: "B, rebuilt around the album filling",
+};
+
+/** The same three, short enough for a measured caption or a table head. */
+export const VOICE_SHORT: Record<VoiceId, string> = {
   today: "Today",
-  house: "A, the house",
-  room: "B, the room",
+  house: "A",
+  room: "B",
 };
 
 /** The Stage's ground map (stage.tsx), applied inside the frame's document. */
@@ -344,9 +359,9 @@ export function VoiceFrames({
 }
 
 const DEFAULT_CAPTION: Record<VoiceId, string> = {
-  today: "The shipped strings, verbatim. The control.",
-  house: "A tuning of the register the ratified lines already speak.",
-  room: "Recommended. Rebuilt from the code becoming the album.",
+  today: "The strings the site ships today, verbatim. The control.",
+  house: "The register the eight approved lines already speak, written down.",
+  room: "Recommended. Rebuilt from a code on a table filling an album.",
 };
 
 /**
@@ -381,10 +396,10 @@ export function VoiceCanvas({
           id={id}
           mode={mode}
           ground={ground}
-          title="Today, A and B"
+          title="All three voices, in one document"
           caption={
             caption ??
-            "Three voices in one document, each at the width the component ships at."
+            "Each voice at the width the component ships at, headed with its own name from the ask."
           }
           className="px-6 py-8"
         >

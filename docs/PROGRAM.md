@@ -300,7 +300,14 @@ meanwhile, and swap by id when the asset lands.
 no production byte, verifies that its board renders on its preview at 1440 and 375 with reduced
 motion honoured and the four-step gate green, and hands off. The deep red-team lands with the wiring
 round. Iterate rather than perfect: a round that is thorough per pass spends the cycles the
-iteration needs.
+iteration needs. **An exploration is a catalog, not a paper** (Will, 2026-09-15, after the first
+review through the desk): a few (or many) polished variants, each a preview with the demo UI to
+configure and compare it, to pick the best direction from and refine to production polish; "simply
+designing a few variations will always beat a mountain of research text". Its asks are questions a
+stranger can answer where they are met: what the thing is, where to look, each option in words with
+what choosing it does, and the specimen labelled with the option's name; the review card on the board
+is the reviewer's first screen, so the argument stays collapsed under the evidence
+(`docs/design/guidance.md#boards-the-review-surface`).
 
 ### Nothing is protected
 
