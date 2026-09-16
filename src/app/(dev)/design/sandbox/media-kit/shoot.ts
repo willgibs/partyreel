@@ -18,12 +18,25 @@
  * asked for separately.
  */
 
-import type { Vertical } from "./bridge";
+/**
+ * ★ THE SHOOT'S SIX GROUPS ARE NOT THE SHEET'S FIVE KINDS OF EVENT, and round
+ * six had to say so out loud. `sources.ts` folds conferences into corporate,
+ * because that is how a stock catalogue is searched; a call sheet cannot,
+ * because an office party and a keynote floor are two different nights with two
+ * different set-ups. The call sheet keeps its own six.
+ */
+export type ShootGroup =
+  | "weddings"
+  | "birthdays"
+  | "corporate"
+  | "conferences"
+  | "festivals"
+  | "trips";
 
 export type Master = {
   /** Sheet number, stable, so a ruling can name a frame ("W3, not W4"). */
   code: string;
-  vertical: Vertical;
+  vertical: ShootGroup;
   /** What happens in the frame. The thing being photographed, not the mood. */
   subject: string;
   /** Where the camera is and how close. */

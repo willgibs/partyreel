@@ -21,6 +21,13 @@ import { MARKETING_REELS } from "@/lib/constants/marketing-media";
  * ★ The engine encodes IN A BROWSER (WebCodecs, `reel/engine/encode.ts`); the
  * Lambda path was torn down 2026-07-08. There is no headless renderer to point at
  * a file, so a re-render is a person at a machine with Chrome. Budget for it.
+ *
+ * ★ IT OUTLIVED THE BOARD SECTION THAT RENDERED IT (round six, the catalog,
+ * 2026-09-16). The runbook section left the board with ten others; this module
+ * and its suite stay, because docs/specs/media-kit.md section 6 claims both
+ * recipes are already in the parity page's own clip-set picker, and the claim
+ * has to keep being true. Nothing renders it now: `matchClipSet` reads the
+ * page's real picker and `runbook.test.ts` fails the day either list drifts.
  */
 
 /** The clip sets the parity page offers today, transcribed from its own literal. */

@@ -3,7 +3,6 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { BRIDGE, BRIDGE_BY_ID } from "./bridge";
 import {
   CANDIDATE_BASIS,
   CANDIDATE_CLAUSE,
@@ -26,9 +25,16 @@ import {
  * emptiness. Everything below is that assertion, running against 24 records, so
  * the rule is something Will can see working before he rules on it.
  *
- * The board reads candidates.ts and a human reads provenance.json beside the
- * files. That is two copies of one fact, which is exactly how a provenance record
- * goes quietly wrong, so the duplication is an invariant instead.
+ * A human reads provenance.json beside the files and this module holds the same
+ * records. That is two copies of one fact, which is exactly how a provenance
+ * record goes quietly wrong, so the duplication is an invariant instead.
+ *
+ * ★ IT OUTLIVED THE BOARD SECTION THAT RENDERED IT (round six, 2026-09-16).
+ * The catalog dropped the staged batch, because a batch of exact picks is the
+ * one thing Will's round-four note asked this track to stop returning. The
+ * SUITE stays, and so do the 22 files under public/design/media-kit/, because
+ * ask 1 claims the rule is already a passing suite rather than a proposal, and
+ * the claim has to keep being true while the ask is open.
  *
  * When the ruling lands this directory leaves with the board. A frame carried
  * forward moves into public/marketing/ under MARKETING_IMAGES, where
@@ -141,16 +147,6 @@ describe("the staged candidate batch", () => {
     for (const c of CANDIDATES) {
       if (c.people !== "identifiable") continue;
       expect(c.caution, `${c.key} has a face and no caution`).toBeTruthy();
-    }
-  });
-
-  it("every staged frame is used by the bridge, on a post or on an id", () => {
-    const used = new Set<string>([
-      ...Object.values(BRIDGE_BY_ID),
-      ...BRIDGE.map((p) => p.candidate).filter((k): k is string => k !== null),
-    ]);
-    for (const c of CANDIDATES) {
-      expect(used.has(c.key), `${c.key} is staged and used nowhere`).toBe(true);
     }
   });
 });

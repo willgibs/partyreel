@@ -24,11 +24,10 @@ import { describe, expect, it } from "vitest";
 // chooses the line wrapping here, and a future reflow could move a currently
 // safe run onto two lines and glue two words together with nothing failing.
 describe("the board's JSX cannot glue a count to its noun", () => {
-  // Every file on this board that renders a derived count. The migration wave
-  // split board.tsx into the composition plus parts.tsx and plates.tsx, and a
-  // guard that still named two files would have covered less of the board than
-  // it did before the split.
-  const FILES = ["board.tsx", "parts.tsx", "plates.tsx", "sheet.tsx"];
+  // Every file on this board that renders a derived count. Round six cut the
+  // board to a composition plus its preview, so the list follows: a guard that
+  // still named four dead files would have covered nothing at all.
+  const FILES = ["board.tsx", "preview.tsx"];
 
   it("has no multi-line text run that starts with a space and holds an entity", () => {
     for (const file of FILES) {

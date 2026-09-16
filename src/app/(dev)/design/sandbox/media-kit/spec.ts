@@ -1,51 +1,288 @@
-import { defineBoard } from "@/components/lab/board-spec";
+import { type Candidate, defineBoard } from "@/components/lab/board-spec";
 
 import F from "./facts";
 
 /**
- * THE MEDIA-KIT BOARD, AS DATA (the Library x Lab migration wave, 2026-09-15).
+ * THE MEDIA-KIT BOARD, AS DATA (round six, the catalog, 2026-09-16).
  *
- * Nothing here is new argument. Every ask, candidate, departure and asset is
- * round four's, moved out of `board.tsx`, out of `decision.ts`'s ASKS and out of
- * `BoardMeta`'s prop strings so the template, the desk, the record and the
- * review ledger read ONE list. What changed is where a reviewer meets them: the
- * verdict and the four one-word calls are the first screen instead of a block
- * two thirds of the way down, and round four's `details` fold is gone, because
- * the template folds each section's argument under the evidence it belongs to
- * rather than folding seven sections behind one summary.
+ * ★ THE ROUND IS A SUBTRACTION AND WILL'S TWO NOTES ARE THE WHOLE BRIEF. Round
+ * four's note asked for "discovery/sourcing... a few different potential
+ * sources as opposed to a few exact image picks", and round five's said every
+ * board "feels like a small research paper" where "designing a few variations
+ * will always beat a mountain of research text". Round five answered the first
+ * and not the second: it found thirteen real places and then wrote 15,004 words
+ * about them, the heaviest board in the lab. So the places are now CARDS, each
+ * with its own photographs at the size a blog card actually is, and everything
+ * that was an argument about them is folded, quoted in four facts, or gone to
+ * docs/specs/media-kit.md.
+ *
+ * ★ WHAT LEFT, AND WHY NONE OF IT IS LOST. Eleven sections became three. The
+ * blog bridge (23 posts against 22 staged frames), the exposure table, the gap
+ * survey, the free-licence clause-by-clause, the four applied routes, the six
+ * facts suite and the reel runbook all left the board; every finding they
+ * rendered is a folded `argument` paragraph, a card fact, or a section of the
+ * spec doc. The bridge and the staged batch went furthest, because they were
+ * exact picks, which is the one thing round four's note asked this track to
+ * stop doing. `provenance.test.ts` still runs on the staged batch, so the rule
+ * in ask 1 is still a suite that passes rather than a proposal.
  *
  * ★ EVERY COUNT AND EVERY PRICE IS INTERPOLATED, NEVER TYPED, which is this
- * board's oldest landmine (decision.ts): round three shipped a ruling surface
- * whose first sentence carried the one number the round existed to take back,
- * because the number was a word in a string. A number written into a sentence
- * cannot be wrong out loud; one interpolated from the batch can only be wrong if
- * the batch is.
+ * board's oldest landmine: round three shipped a ruling surface whose first
+ * sentence carried the one number the round existed to take back, because the
+ * number was a word in a string. `facts.ts` says it in full.
  *
- * ★ AND EVERY ONE OF THEM ARRIVES THROUGH ONE BRACE-FREE IMPORT (`facts.ts`),
- * which is a constraint of the review ledger rather than a taste: lab-review.mjs
- * scans this file with no build step and takes the board object to be the first
- * `{` after the first `defineBoard`, so a named import under that line is read
- * as the board and every ruling on this board is refused. facts.ts says it in
- * full; do not add a second named import here without reading it.
- *
- * Pure otherwise (registry.test.ts enforces it): no React, no CSS, no import of
- * `board.tsx`, no JSX. The board route is a SERVER page and reads the question
- * for its header, so a spec that reached for any of those would drag a client
- * tree into a server render.
+ * Pure data on purpose (registry.test.ts enforces it): the board route is a
+ * SERVER page and reads the question for its header, so a spec that imported
+ * React, the board or its preview would drag a client tree into a server
+ * render.
  */
+
+/**
+ * THE THIRTEEN, WRITTEN OUT (round six, 2026-09-16).
+ *
+ * ★ NEVER A `.map` OVER `sources.ts`, AND THE PALETTE BOARD LEARNED IT TWICE.
+ * `pnpm lab:review` resolves `candidates: ITEMS` exactly one hop to a const in
+ * THIS file; a `.map` over another module reads as no items at all, and every
+ * ruling on every card would then be refused. So the STRUCTURE of a source
+ * lives in `sources.ts` (the price, the clause verbatim, the release position,
+ * the catalogue, whether it is barred) and the WORDS a reviewer compares across
+ * thirteen cards live here. `catalog.test.ts` pins the two lists id for id, and
+ * pins every quoted fragment in a Licence fact to be a real substring of that
+ * source's verbatim clause, so a card cannot quietly misquote a licence.
+ *
+ * ★ THE ORDER IS THE LINE. Above it the board would use the place; below it the
+ * board would not, and `verdict` says which. That line is NOT the same line as
+ * `barred` in sources.ts: barred is the RULE's line (can this place put a
+ * recognisable face on a page), and two of the places below that line are above
+ * this one, because a single answer to ask 3 moves them. Two ship, five refine,
+ * six kill, which is a board with an opinion.
+ */
+const ITEMS: readonly Candidate<"catalog" | "compare" | "pages">[] = [
+  {
+    id: "unsplash-plus",
+    name: "Unsplash+",
+    one: "The paid tier of the site that started this: everyone in it signed permission, $20 a month.",
+    verdict: "ship",
+    recommended: true,
+    facts: [
+      ["Price", "$20 a month, and what you pull stays yours for ever"],
+      ["Licence", 'Unsplash+: "perpetual, nonexclusive, worldwide"'],
+      ["Faces", "Released, warranted to $10,000 a photo"],
+      ["Catalogue", "Curated, small, 20 released frames per kind of event"],
+    ],
+    rationale:
+      "One month buys every frame the kit needs, released, with nothing to register.",
+  },
+  {
+    id: "istock",
+    name: "iStock",
+    one: "Twelve dollars a photograph, and the only paid catalogue here you can look at first.",
+    verdict: "ship",
+    facts: [
+      ["Price", "$12 a photo on the single-credit pack"],
+      ["Licence", 'iStock Standard: "worldwide, in perpetuity"'],
+      ["Faces", "Getty warrants the release, editorial files excluded"],
+      ["Catalogue", "Millions; these are its own watermarked comps"],
+    ],
+    rationale:
+      "For the two or three rooms a subscription cannot fill; wrong for buying thirty six.",
+  },
+  {
+    id: "stocksy",
+    name: "Stocksy",
+    one: "A photographers' co-operative: the best pictures here, $35 a frame.",
+    verdict: "refine",
+    facts: [
+      ["Price", "$35 a frame, $85 large"],
+      ["Licence", 'Stocksy Standard: "all images ... are model-released"'],
+      ["Faces", "Released across the collection, by policy"],
+      ["Catalogue", "Small, curated, thin on offices. Refuses a plain client"],
+    ],
+    rationale:
+      "For the one or two frames that carry a page; the thirty six would be $1,260.",
+  },
+  {
+    id: "adobe-stock",
+    name: "Adobe Stock",
+    one: "Ten dollars a photograph out of a credit pack, from much the deepest catalogue here.",
+    verdict: "refine",
+    facts: [
+      ["Price", "$49.99 for five credits, expiring after a year"],
+      [
+        "Licence",
+        'Adobe Standard: "perpetual, worldwide ... up to 500,000 times"',
+      ],
+      ["Faces", "A signed release required of the contributor, held by Adobe"],
+      ["Catalogue", "Hundreds of millions, and unseen: a 403"],
+    ],
+    rationale:
+      "Right for a handful of hard frames; thirty six would be $360 and a night costs less.",
+  },
+  {
+    id: "artgrid",
+    name: "Artgrid",
+    one: "The only moving-picture licence here that survives cancellation, and the costliest line.",
+    verdict: "refine",
+    facts: [
+      ["Price", "$299 a year, with no single month"],
+      [
+        "Licence",
+        'Artgrid: "licensed to use forever, even if your subscription expires"',
+      ],
+      ["Faces", "Commissioned shoots, releases behind the production"],
+      ["Catalogue", "Whole shoots, not clips. Serves an empty shell"],
+    ],
+    rationale:
+      "The line the shoot deletes: a film of strangers cannot carry a claim that you were there.",
+  },
+  {
+    id: "websummit-flickr",
+    name: "Web Summit",
+    one: "Eighty seven thousand conference photographs, free, and nobody in them signed anything.",
+    verdict: "refine",
+    facts: [
+      ["Price", "Free, for a credit line under every frame"],
+      ["Licence", 'CC BY 2.0: "You must give appropriate credit"'],
+      ["Faces", "A copyright licence says nothing about the people"],
+      ["Catalogue", "87,066 of 120,692, counted on the day"],
+    ],
+    rationale:
+      "The deepest free corpus for the events nothing else fills, and a wall of other brands.",
+  },
+  {
+    id: "flickr-cc",
+    name: "Flickr CC",
+    one: "Not a gallery, a filter over everyone's: the deepest free record of real events there is.",
+    verdict: "refine",
+    facts: [
+      ["Price", "Free, same credit line"],
+      ["Licence", 'CC BY 2.0: "Adapt ... for any purpose, even commercially"'],
+      ["Faces", "The photographer signed; nobody else did"],
+      ["Catalogue", "All of Flickr under one licence filter"],
+    ],
+    rationale:
+      "The only free place that fills the four kinds Web Summit cannot. It lives or dies on question 3.",
+  },
+  {
+    id: "envato-elements",
+    name: "Envato",
+    one: "Unlimited downloads for $16.50 a month, and every file dies with the subscription.",
+    verdict: "kill",
+    facts: [
+      ["Price", "$198 a year, $33 monthly"],
+      [
+        "Licence",
+        'Envato: "cannot use downloaded items in new projects after your subscription ends"',
+      ],
+      ["Faces", "Per item, the contributor's affair, warranted nowhere"],
+      ["Catalogue", "Very large; these are its own previews"],
+    ],
+    rationale:
+      "A lease priced as a purchase, and worse at the only thing being bought.",
+  },
+  {
+    id: "nappy",
+    name: "Nappy",
+    one: "A real library of Black and Brown people celebrating, which the free corpus has not got.",
+    verdict: "kill",
+    facts: [
+      ["Price", "Free, a donation invited"],
+      [
+        "Licence",
+        'CC0 1.0: "you may still need the permission ... from third parties"',
+      ],
+      ["Faces", "Says the quiet part itself: no release travels with the file"],
+      ["Catalogue", "Small, warm, readable per kind of event"],
+    ],
+    rationale:
+      "The best free library at what the corpus is worst at, and still no released face.",
+  },
+  {
+    id: "mixkit",
+    name: "Mixkit",
+    one: "Free clips under a grant the library can withdraw from under a published page.",
+    verdict: "kill",
+    facts: [
+      ["Price", "Free per item"],
+      [
+        "Licence",
+        'Mixkit Free: "can be used in your commercial ... projects, for free"',
+      ],
+      ["Faces", "No releases, revocable, liability capped at $10"],
+      ["Catalogue", "Real, with a look-alike personal-use licence beside it"],
+    ],
+    rationale:
+      "Fine as a lab stand-in, never as a shipped hero. Revocable is the answer.",
+  },
+  {
+    id: "coverr",
+    name: "Coverr",
+    one: "An irrevocable licence over what turned out to be two catalogues in one grid.",
+    verdict: "kill",
+    facts: [
+      ["Price", "Free"],
+      ["Licence", 'Coverr: "irrevocable, non-exclusive, worldwide"'],
+      ["Faces", "Obtains releases and passes none on; none for brands"],
+      ["Catalogue", "70 clips for party, 23 AI, beside 34 iStock results"],
+    ],
+    rationale:
+      "A source audited per item is not a source. The catalogue moved, not the licence.",
+  },
+  {
+    id: "death-to-stock",
+    name: "Death to Stock",
+    one: "The nicest pictures here, rented: cancel the membership and they come off the site.",
+    verdict: "kill",
+    facts: [
+      ["Price", "$199 a year, or $179 a visual outright"],
+      [
+        "Licence",
+        'Membership: "renting the rights ... if you cancel, that rental period ends"',
+      ],
+      ["Faces", "Commissioned creators, nothing warranted to us"],
+      ["Catalogue", "15,000 visuals, all behind the membership"],
+    ],
+    rationale:
+      "A subscription that can never be cancelled is a standing charge on our own site.",
+  },
+  {
+    id: "creative-market",
+    name: "Creative Market",
+    one: "Forty dollars for a wedding photographer's album, and the cheap tier forbids an advert.",
+    verdict: "kill",
+    facts: [
+      ["Price", "$40 to $100 for 45 to 70 frames, once"],
+      ["Licence", 'Personal: "paid advertisements are not permitted"'],
+      ["Faces", "The shop's affair, and rarely stated at all"],
+      ["Catalogue", "Real wedding bundles, and unseen: a 403"],
+    ],
+    rationale:
+      "The cheap wedding album from Will's note, at a real price; it buys rings and cake.",
+  },
+];
+
+/** The board's own line, counted rather than typed (the oldest rule here). */
+const KEPT = ITEMS.filter((i) => i.verdict !== "kill").length;
+const KILLED = ITEMS.length - KEPT;
+
 export const MEDIA_KIT = defineBoard({
   id: "media-kit",
   title: "The media kit",
-  question:
-    "Where do the photographs on our pages come from: which catalogues can sell or give us a wedding, a party, a conference and a festival, at what price, and who signed permission to be in them?",
+
+  question: `Which of ${F.sources} real places should our photographs come from, and what runs until we shoot our own?`,
 
   round: {
-    n: 5,
-    date: "2026-09-15",
-    changed:
-      "The four questions rewritten in plain words: each says what the thing is, where it lives on the site and where to look, and every option is labelled in words with what picking it does. The evidence carries the same words. No candidate, number or recommendation changed.",
+    n: 6,
+    date: "2026-09-16",
+    changed: `Rebuilt as a catalog: ${F.sources} places, each a card carrying its own frames at the real card size on the real ground, four facts and the board's call. Eleven sections became three and ${F.frames} frames became the argument.`,
   },
   history: [
+    {
+      n: 5,
+      date: "2026-09-15",
+      changed:
+        "The four questions rewritten in plain words: each says what the thing is, where it lives and where to look. No candidate, number or recommendation changed.",
+    },
     {
       n: 4,
       date: "2026-09-15",
@@ -60,22 +297,22 @@ export const MEDIA_KIT = defineBoard({
     {
       n: 2,
       date: "2026-09-14",
-      changed: `The exposure measured on the real site (${F.productionFiles} files, ${F.routes} routes), all ${F.posts} posts mapped at the real geometry, the kit written as a call sheet, and four blocks the site can wear.`,
+      changed: `The exposure measured on the real site (${F.productionFiles} files, ${F.routes} routes), all the posts mapped at the real geometry, and four blocks the site can wear.`,
     },
     {
       n: 1,
       date: "2026-09-14",
       changed:
-        "The survey. Unsplash's licence excludes recognisable people, so the twelve stand-ins were never covered by the licence they claim.",
+        "The survey. Unsplash's free licence excludes recognisable people, so the twelve stand-ins were never covered by the licence they claim.",
     },
   ],
 
-  context: `All ${F.ids} photographs on the marketing pages are listed in one file, and every one carries the same line, "unsplash (per lab-pack comment; provenance unverified)", with no photographer, no link and no date. The folder they were copied from is empty, so the trail is gone. Reading the licence settles it faster than hunting the trail would: Unsplash's free terms exclude recognisable people, and all ${F.ids} are full of them. Not a filing problem, a sourcing one. Three rounds then argued about ${F.ids} positions on a page; Will's round-four note said the thing actually blocking him was not knowing where to go.`,
+  context: `All ${F.ids} photographs on the marketing pages carry the same line, "unsplash (per lab-pack comment; provenance unverified)", with no photographer, no link and no date, and the folder they were copied from is empty. Unsplash's free terms exclude recognisable people and all ${F.ids} are full of them: a sourcing problem, not a filing one. Rounds one to three then argued about ${F.ids} positions on a page; round four's note said the thing actually blocking Will was not knowing where to go.`,
 
   verdict: {
-    recommendation: `Require the six facts on every entry, spend $${F.total} on licensed photographs to run on meanwhile, decide whether a crowd needs everyone's permission, and shoot our own ${F.masters} at a real event we host.`,
-    because: `What this track refused was a price tier, not a company. Unsplash's free licence excludes recognisable people; Unsplash+ is a different agreement on the same site, where everyone photographed has signed permission and anything downloaded inside the month stays licensed for ever, for $${F.unsplashMonth}. So the stopgap costs $${F.total} rather than being unbuyable at any price.`,
-    overrule: `Answer "every recognisable face" to question 3 and the free half of the sheet is decoration, including the ${F.webSummit} conference photographs nothing paid can match.`,
+    recommendation: `Buy the bridge and shoot the kit: $${F.total} of released photographs to run on now, and ${F.masters} of our own from one night we host.`,
+    because: `What this track refused was a price tier, not a company. Unsplash's free licence excludes recognisable people; Unsplash+ is a different agreement on the same site, released and warranted, perpetual for anything pulled inside a month, $${F.unsplashMonth}.`,
+    overrule: `Answer "every recognisable face" to question 3 and every free place here is decoration, including ${F.webSummit} conference photographs nothing paid can match.`,
   },
 
   asks: [
@@ -83,309 +320,204 @@ export const MEDIA_KIT = defineBoard({
       id: "rule",
       question:
         "Should every photograph on the site have to say where it came from?",
-      context: `Every marketing photograph is listed in one file with a line saying where it came from, and all ${F.ids} carry the same unverified line: no photographer, no link, no date. The rule would require six facts on every entry (who shot it, the link, the licence clause quoted, the date it was fetched, and whether the people in it signed permission) and would bar a recognisable face that has none.`,
-      look: `The section "The six facts on every entry": the left card is one photograph with all six filled in, the right card is what the test already refuses. Both run on the ${F.candidates} staged frames.`,
+      context: `The ${F.ids} stills on the site carry one unverified line each. The rule would require six facts on every entry (photographer, link, the clause quoted, the date fetched, whether the people signed) and bar a face that has none.`,
+      look: "The Faces line on every card. It is this rule, applied.",
       options: [
         {
           id: "yes",
           label: "Yes, require the six facts",
           means:
-            "Every entry has to name its photographer, link, clause, date and people, and a recognisable face with no signed permission cannot ship.",
+            "An entry has to name its photographer, link, clause, date and people, and a face with no signed permission cannot ship.",
         },
         {
           id: "no",
           label: "No, leave the entries as they are",
-          means:
-            "The twelve keep their one unverified line, and the next batch is judged case by case rather than against a written rule.",
+          means: `The ${F.ids} keep their one unverified line and the next batch is judged case by case.`,
         },
       ],
       recommended: "yes",
-      because: `It already runs on ${F.candidates} staged records, with a test suite that refuses one missing a field, so there is nothing left to design. Saying yes costs something real: it bars four of the staged frames, and two of those are the dance floor and the DJ.`,
-      evidence: "record",
+      because:
+        "It already runs as a passing suite, so there is nothing left to design, and it costs something real: it is what ranks this catalog.",
+      evidence: "catalog",
     },
     {
       id: "spend",
-      question: `Should we spend $${F.total} on licensed photographs to run on until we shoot our own?`,
-      context: `A stopgap set of photographs to replace the ${F.ids} unverified ones until the shoot happens. It is one month of Unsplash+ at $${F.unsplashMonth}, where everyone photographed has signed permission, plus ${F.hardFrames} single frames at $${F.istockFrame} each from iStock for the conference rooms nothing else covers. Anything downloaded inside that month stays licensed for ever.`,
-      look: `The section "What to buy, and what it comes to": the table is what the money buys, row by row, with the total at the bottom; the numbered list under it is what $${F.total} does not buy, which is the case for waiting.`,
+      question: `Should we spend $${F.total} on licensed photographs until we shoot our own?`,
+      context: `One month of Unsplash+ at $${F.unsplashMonth}, where everyone photographed has signed permission, plus ${F.hardFrames} iStock frames at $${F.istockFrame} for the conference rooms nothing else covers. What is pulled inside the month stays licensed for ever.`,
+      look: "The first two cards: their Price lines are the whole bill, their frames are what it buys.",
       options: [
         {
           id: "buy",
           label: `Buy the $${F.total} set now`,
-          means: `One month of Unsplash+ and ${F.hardFrames} iStock frames, downloaded inside the month and licensed for ever, on the site until the shoot replaces them.`,
+          means:
+            "Downloaded inside the month, licensed for ever, on the site until the shoot replaces it.",
         },
         {
           id: "hold",
           label: "Wait for the shoot, spend nothing",
-          means: `Nothing is bought, and the ${F.ids} unverified stills stay on all ${F.marketingPages} marketing pages until the night happens.`,
+          means: `Nothing is bought and the ${F.ids} unverified stills stay on all ${F.marketingPages} marketing pages until the night happens.`,
         },
       ],
       recommended: "buy",
-      because: `Everyone photographed in that month has signed permission, which is the exact thing the ${F.ids} stand-ins never had, and a frame pulled inside the month stays licensed for ever. It costs less than a dinner and is thrown away the day the shoot happens.`,
+      because:
+        "Less than a dinner, thrown away the day the shoot happens, and the only line here that can be closed tonight.",
       overrule:
-        "A bought frame is still a room we were not in, and the claim this product makes is that the photographs came from the party you were at.",
-      evidence: "plan",
+        "A bought frame is still a room we were not in, and the claim is that the photographs are from your party.",
+      evidence: "catalog",
     },
     {
       id: "crowds",
       question:
-        "In a crowd shot, does every face need signed permission, or only the subject?",
+        "In a crowd, does every face need signed permission, or only the subject?",
       context:
-        "A model release is the signed permission a photographed person gives for commercial use. The rule in question 1 bars a recognisable face without one. A crowd shot, a conference room or a dance floor, has one subject and dozens of faces behind them, and no free library holds permission for any of them. This decides whether those catalogues can supply a frame at all.",
-      look: `The section "Where to get them, ranked", with Kind of event set to Corporate and conferences: below the red line sit the free catalogues this ruling moves or leaves, including Web Summit's ${F.webSummit}.`,
+        "A conference floor has one subject and dozens of faces behind them, and no free library holds permission for any of them. It decides whether the free half of this catalog is a source or a footnote.",
+      look: "Set the kind of event to conferences and read the two Flickr cards.",
       options: [
         {
           id: "subjects",
           label: "Only the frame's subject",
           means:
-            "A face in the background of a crowd needs no signed permission, which makes the free conference and festival archives usable sources.",
+            "A face in the background needs no signed permission, which makes the free conference and festival archives real sources.",
         },
         {
           id: "all-faces",
           label: "Every recognisable face",
           means:
-            "A crowd shot needs permission from everyone in it, which no free library can give, so the free half of the sheet is decoration.",
+            "A crowd needs permission from everyone in it, which no free library can give, so the free half is decoration.",
         },
       ],
       recommended: "subjects",
-      because: `A risk call rather than a legal opinion, and worth ruling for what turns on it: Web Summit's ${F.webSummit} conference photographs and the whole Flickr corpus are crowds, and conferences are the one kind of event no subscription on this sheet is deep in.`,
-      evidence: "sheet",
+      because: `A risk call rather than a legal opinion, worth ruling for what turns on it: ${F.webSummit} conference photographs, for the events nothing paid is deep in.`,
+      evidence: "catalog",
       state: { vertical: "corporate" },
     },
     {
-      id: "kit",
+      id: "shoot",
       question: `Should we shoot the ${F.masters} photographs ourselves at a real event?`,
-      context: `The kit is ${F.masters} photographs, six each for weddings, birthdays, corporate, conferences, festivals and trips, shot in one night at an event we host and run on Partyreel, with permission signed at the door. The board writes every frame out: what happens in it, where the camera is, what the light is doing, and the crops it has to survive.`,
-      look: `The section "The shoot, frame by frame": the ${F.masters} frame cards grouped by kind of event, then the nine rows of the asset log the same night closes, then what every frame has to survive.`,
+      context: `Six frames each for weddings, birthdays, corporate, conferences, festivals and trips, shot in one night at an event we host and run on Partyreel, with permission signed at the door. The call sheet is docs/specs/media-kit.md.`,
+      look: "The real pages below, wearing a bought catalogue. The shoot replaces what you are looking at.",
       options: [
         {
           id: "shoot",
           label: `Shoot the ${F.masters} in one night`,
           means:
-            "One event, permission signed at the door, and nine of the twelve rows in the asset log close from the same night's footage.",
+            "One event, permission signed at the door, and nine of the twelve rows in the asset log close from the same night.",
         },
         {
           id: "park",
           label: "Park the shoot for now",
           means:
-            "No shoot is booked, and the site runs on the bought photographs, or on the twelve stand-ins, until one is.",
+            "No shoot is booked, and the site runs on bought photographs, or on the stand-ins, until one is.",
         },
       ],
       recommended: "shoot",
-      because: `One night at a real event running Partyreel closes nine of the twelve rows in the asset log, and the sheet sharpened the case: licensing the photographs is $${F.total} and licensing the films is $${F.clipsYear} a year, so the money was never in the stills.`,
-      evidence: "callsheet",
+      because: `One night closes nine of the twelve rows in the asset log, and the money was never in the stills: $${F.total} of photographs against $${F.clipsYear} a year of film.`,
+      evidence: "pages",
     },
   ],
 
-  candidates: [
-    {
-      id: "buy-then-shoot",
-      name: `Buy the bridge, then shoot the kit ($${F.total} now)`,
-      recommended: true,
-      rationale: `A month of Unsplash+ plus ${F.hardFrames} iStock frames buys a bridge that is genuinely released, which the staged batch never was, and it can be downloaded tonight. Then the shoot replaces all of it. Round three's Mix with a legal second half: the ${F.allowed} sources above the line all hold or warrant a release.`,
-    },
-    {
-      id: "shoot-only",
-      name: "Shoot only, and leave the twelve until it happens",
-      rationale: `The rule taken literally. One night at an event we host, with releases at the door, closes nine of the twelve rows in the asset log and is the only sourcing that makes the product's own claim true. The cost is that the ${F.ids} unlicensed stills stay on ${F.marketingPages} marketing pages until the night happens.`,
-    },
-    {
-      id: "free-only",
-      name: "Free only, which the sheet now prices honestly",
-      rationale: `Everything below the line: ${F.barredSources} real catalogues, including the ${F.webSummit} CC BY conference photographs that are the deepest free corpus for the one kind of event we cannot fill. It costs nothing and it cannot ship a face, so the crowds ask is what turns it from decoration into the answer.`,
-    },
-  ],
+  /**
+   * ★ THE CANDIDATES ARE THE THIRTEEN PLACES, which is the round's whole point.
+   * Rounds one to five made the candidates three ROUTES (Mix, Ours, Licensed),
+   * which asked Will to rule on a strategy rather than to look at photographs.
+   */
+  candidates: ITEMS,
+
+  catalog: {
+    section: "catalog",
+    control: "source",
+    compare: ["compare-a", "compare-b"],
+  },
+
+  /**
+   * ★ THE CATALOG'S OWN FLOOR, DECLARED RATHER THAN GAMED. Round five weighed
+   * 15,004 words; this is 2,701, and every one of the remaining words is a
+   * label rather than a paragraph. Thirteen cards cost their name, their line,
+   * four facts and the reviewer's row before the board speaks (about 950), the
+   * meta panel prints all thirteen ideas again (the kit's, not this board's),
+   * the dock carries thirty nine pills because a pick and two compares over
+   * thirteen places is thirty nine, and four questions carry the context Will
+   * ruled they must. The argument is folded and the frames are the evidence.
+   * The cheap way under 1,200 would be to drop the facts, which is the one
+   * thing a reviewer compares thirteen places on.
+   */
+  reading: {
+    words: 2750,
+    why: "Thirteen places is thirteen names, lines, fact strips and verdict rows, printed again in the meta panel and three times in the dock. The argument is folded; what is left is labels and four quoted licences.",
+  },
 
   departures: [
     {
-      id: "tier-not-company",
-      from: "precedent",
-      text: `Round one killed Unsplash on the sentence excluding recognisable people, and three rounds treated that as a refusal of the company. Unsplash+ is a different agreement on the same site: released, warranted, perpetual for anything pulled inside a month, $${F.unsplashMonth}. Three rounds of "no stock we can name" had a $${F.total} answer the whole time.`,
-      evidence: "plan",
-    },
-    {
       id: "bible-18",
       from: 18,
-      text: `Bible 18 says no stock on a marketing surface, and it is already broken in production on a larger scale than round one reported: the ${F.ids} are in ${F.productionFiles} production files and ${F.routes} routes, and six of them sit in the chrome of all ${F.marketingPages} marketing pages before a reader scrolls. That is the only reason a Licensed route exists at all.`,
-      evidence: "exposure",
+      text: `Bible 18 says no stock on a marketing surface and it is already broken at a scale round one under-reported: the ${F.ids} stills are in ${F.productionFiles} files and ${F.routes} routes, six in the chrome of all ${F.marketingPages} marketing pages before a scroll. That is the only reason a bought bridge is here.`,
+      evidence: "pages",
     },
     {
       id: "rank-by-release",
       from: "precedent",
-      text: `Round three ranked sources by price. The free half is not cheap, it is unusable: every kind of event this product sells into is a room full of recognisable faces, so a library with no release cannot supply the frames at any price. ${F.barredSources} of the ${F.sources} places sit below a line for that one reason, including the two best free catalogues on it.`,
-      evidence: "sheet",
+      text: `Round three ranked sources by price. Free is not cheap here, it is unusable: every kind of event this product sells into is a room of recognisable faces, so a library with nobody's signature cannot supply the frames at any price.`,
+      evidence: "catalog",
     },
     {
-      id: "licence-is-not-a-source",
+      id: "tier-not-company",
       from: "precedent",
-      text: "Round three's survey ran licences and sources together, and its first row was CC0 1.0, a legal instrument rather than a place with photographs in it. That is why it could not answer the question Will actually had. The two lists are separate now, and the sheet ranks places.",
-      evidence: "licences",
-    },
-    {
-      id: "licensed-withdrawn",
-      from: "precedent",
-      text: `Licensed no longer survives its own column, and the board says so rather than leaving it an equal third. Under the rule it fills ${F.idsUnderRule} of the ${F.ids} ids and ${F.postsUnderRule} of the ${F.posts} posts, the two it cannot fill are the dance floor and the DJ, and it has nothing for the corporate half of the business. It stays to be walked, because walking it is what kills it.`,
-      evidence: "bridge",
-    },
-    {
-      id: "coverr-audited",
-      from: "ruling",
-      text: "Coverr was marked allowed in round one on its licence text and was measured this round instead: a search for party returns 70 Coverr-hosted clips, 23 of them user AI generations, on the same page as 34 iStock results under no Coverr licence at all. The licence was never the problem; the catalogue behind it moved.",
-      evidence: "sheet",
-    },
-    {
-      id: "one-night",
-      from: "precedent",
-      text: "The perfect version of this system is neither licensed nor generated: one real event, hosted and shot with releases signed at the door, which is the only sourcing that makes the product's claim literally true. It is also the cheapest, and one of its rows is the demo event's own seed, so the event that produces the kit can BE the event the live QR already points at.",
-      evidence: "callsheet",
+      text: `Round one killed Unsplash on the sentence excluding recognisable people and three rounds read that as a refusal of the company. Unsplash+ is a different agreement on the same site, $${F.unsplashMonth}. Three rounds of "no stock we can name" had a $${F.total} answer the whole time.`,
+      evidence: "catalog",
     },
   ],
 
   assets: [
     {
-      what: "A purchase rather than a shoot, and the only line Will can close tonight",
-      spec: `One month of Unsplash+ ($${F.unsplashMonth}) and ${F.hardFrames} iStock Essentials frames for the conference rooms ($${F.istockSpend}), $${F.total} in total. A card, not a camera. It is what makes the bridge legal while the shoot is booked.`,
-      replaces: "nothing; everything below is the shoot.",
+      what: "A purchase rather than a shoot, the one line Will can close tonight",
+      spec: `One month of Unsplash+ ($${F.unsplashMonth}) and ${F.hardFrames} iStock frames for the conference rooms ($${F.hardFrames * F.istockFrame}). A card, not a camera.`,
+      replaces: "nothing; it is the bridge the shoot then replaces.",
     },
     {
       what: `${F.masters} event photographs, six per kind of event`,
-      spec: "Weddings, birthdays, corporate, conferences, festivals, trips. 1600 px long edge, a third portrait, one dark warm grade; the call sheet is on this board, codes W1 to T6. Four are the palette board's hard cases and three show a guest holding a phone up.",
+      spec: "1600 px long edge, a third portrait, one dark warm grade; the call sheet is docs/specs/media-kit.md, W1 to T6. Four are the palette board's hard cases.",
       replaces: `all ${F.ids} stand-ins by id.`,
       row: 7,
     },
     {
-      what: "24 squares at 512 x 512",
-      spec: "6 to 35 KB webp, cropped from the 24 masters marked 512 square rather than shot a second time.",
-      replaces: "FRAMES in sandbox/home-hero/shared.tsx.",
-      row: 2,
-    },
-    {
-      what: "10 portrait crops at 512 x 640 and 12 portraits at 720 x 900",
-      spec: "Recrops of the same masters, for the burst's tall third and the river's stream. Ten rather than the log's eight: hero-burst raised the count in its round two. Rows 9 and 12.",
-      replaces: "the portrait stand-ins in the burst and the river.",
-      row: 9,
-    },
-    {
-      what: "A hand-and-phone cutout",
-      spec: "PNG with alpha, 1200 px long edge, the screen area transparent, two grips. The one item that is a separate setup: shoot it at the same event, against the darkest wall, in the same low warm light as K3.",
-      replaces: "the drawn device in sandbox/home-hero/scan.tsx.",
-      row: 8,
-    },
-    {
       what: "8 vertical clips with posters",
-      spec: `3 to 5 s, 1080 x 1920, silent, each with its own poster, filmed at the same events, and the film cut from that footage (rows 4 and 1). The only clip licence on the sheet that survives cancellation is $${F.clipsYear} a year, more than every photograph in the plan put together.`,
+      spec: `3 to 5 s, 1080 x 1920, silent, each with a poster, filmed at the same events. Licensed instead they are $${F.clipsYear} a year.`,
       replaces: "the currentTime ranges cut out of hero-candidate-01.",
       row: 4,
-    },
-    {
-      what: "Two frames shot knowing they will be laid over each other",
-      spec: "Both dark and low contrast at the touching edge, for the light board's depth cue. W3 and C1 on the call sheet already are that pair; they need no second setup, only the intent.",
-      replaces: "the reception-hall and wedding-toast pair on the light board.",
-      row: 11,
-    },
-    {
-      what: "The demo event's curated folder",
-      spec: "If the shoot is run AS a Partyreel event, the guests' own uploads are the seed and the live QR on every hero board points at a real album instead of fixtures.",
-      replaces: "the seeded fixtures behind the demo event.",
-      row: 5,
     },
   ],
 
   sections: [
     {
-      id: "plan",
-      title: "What to buy, and what it comes to",
-      lede: "One subscription month covers all five kinds of event. The only money paid per photograph is for the conference rooms, and the films are shot rather than licensed, because licensing them costs more than every photograph here put together.",
+      id: "catalog",
+      title: "The places, ranked",
+      lede: `${KEPT} places the board would use and ${KILLED} it would not, each with its own photographs at the size and on the ground a blog card really has.`,
       argument: [
-        `Every figure is read off the source's own card rather than typed into a sentence: a row names a source and a quantity, the money comes from that source's firstSpend, and plan.test.ts refuses a row whose source does not exist, a spend that does not match the card, and a total that is not the sum of the rows.`,
-        `The asymmetry is the argument. Licensing the photographs is $${F.total} and licensing the films is $${F.clipsYear} a year, so the clips line costs more than every photograph here put together, and it is the one line a shoot deletes outright: a film of strangers cannot carry a product whose claim is that the frames came from the party you were at.`,
+        "WHAT RANKS THEM, AND WHY IT IS NOT PRICE. Round three's sheet ranked by money and that inverts this list. Every kind of event this product sells into is a room full of recognisable people, so a free library that holds nobody's signed permission is not the cheap option, it is the one that cannot supply the frames we came for. The Faces line is the ranking, and the two places it moves furthest are the two best free catalogues on the board.",
+        "WHAT THE MONEY BUYS, ROW BY ROW. One month of Unsplash+ covers all five kinds of event at $20; the conference rooms are the only frames paid for one at a time, three iStock Essentials at $12; every other row is included. The asymmetry is the argument: licensing the photographs is $56 and licensing the films is $299 a year, so the clips line costs more than every photograph here put together, and it is the one line a shoot deletes outright.",
+        "WHY THE FRAMES ARE HOTLINKED AND NOTHING IS COPIED. Every tile is the source's OWN thumbnail, fetched from the source's own CDN by a plain img rather than through next/image, because next/image would leave a cached copy of another company's watermarked comp on our infrastructure, which is the one thing a sourcing board must never do. A frame that stops answering degrades to a labelled slate: the sheet cannot drift from the catalogue it claims to show without going blank.",
+        "AND SIX PLACES DRAW NOTHING, FOR FOUR DIFFERENT REASONS. Adobe Stock, Stocksy and Creative Market answer a plain client with a 403; Artgrid answers 200 with an empty application shell and fetches its clips client side; Death to Stock answers 200 at the door and 404 on every browse path under it; Coverr reads completely, and what the reading found is its verdict rather than a sheet. Each card carries its own reason, because an earlier draft printed one categorical sentence under all of them that was false for four.",
       ],
     },
     {
-      id: "sheet",
-      title: "Where to get them, ranked",
-      lede: `${F.sources} real places to get photographs, ranked by whether the people in them have signed permission, each with its price, its licence clause quoted word for word, and a grid of its own thumbnails.`,
+      id: "compare",
+      title: "Two catalogues, side by side",
+      lede: "Press A on one card and B on another: the same frames from each, at the two sizes the site cuts.",
       argument: [
-        "Ranked by release rather than by price, and that inverts the list round three built. Every kind of event this product sells into is a room full of recognisable people, so a free library with no release is not the cheap option, it is the one that cannot supply the frames. Every paid source with a release outranks every free one, and the sheet says so with a line across it.",
-        `The contact sheets are hotlinked, never copied: ${F.sheetPulls} pulls from the sources' own public search pages, ${F.frames} frames in all, each recorded as the source's own thumbnail URL, so a watermarked comp stays a watermarked comp and nothing paid is ever in our tree. A source that draws no sheet prints its own measured reason rather than sharing an excuse.`,
+        "A grid of thumbnails flatters everything, because a small square asks nothing of a photograph. These are the two sizes the site actually cuts: the blog card at 320 by 400 on the dark page, where a frame that cannot take a tall crop stops flattering, and the share card at 1200 by 630, which centre-crops and ignores the crop ladder entirely and is the surface a stranger sees first.",
+        "The comps are 360 to 640 pixels wide and they are shown at 320, so read composition, colour and what survives the crop, never sharpness. iStock serves its search thumbnails unwatermarked at 612, so a plate here can read as a finished card when it is a preview of one we do not own.",
       ],
     },
     {
-      id: "surface",
-      title: "At the real size, on the real page",
-      lede: "A grid of thumbnails flatters everything, because a small square asks nothing of a photograph. The real sizes on the real background: the blog card at 320 by 400 on a dark page, and the link preview at 1200 by 630.",
+      id: "pages",
+      title: "The real pages, wearing the pick",
+      lede: "The real routes at true pixels, as built on the left and wearing the picked place on the right.",
       argument: [
-        "The stage is 1:1, so a frame that cannot survive a 4:5 crop fails here where it fails on the site. The card is cut at the three rungs of the crop ladder a slug actually produces; the share card centre-crops and ignores the ladder entirely, which is the surface a stranger sees first.",
-      ],
-    },
-    {
-      id: "licences",
-      title: "What each licence actually says",
-      lede: "The licences themselves, quoted clause by clause from the licence page on the date it was read. A licence is what you agree to and a catalogue is where you go; running the two together is what made round three's survey unanswerable.",
-      argument: [
-        "The refusals stay, because knowing why a licence fails is worth more than a shorter list, and one of them moved this round: CC BY was struck cheaply when nothing good was under it, and the best free catalogue on the sheet turned out to be under it.",
-      ],
-    },
-    {
-      id: "apply",
-      title: "Try it on the real site",
-      lede: "Four swaps the running site can wear, one at a time, so the call is made in front of the real pages rather than on a stage. Chrome and Safari only: replacing an image through a stylesheet is their behaviour, not every browser's.",
-      argument: [
-        "A palette board hands the site a token block; this board's candidates are photographs, so what it hands the site is the swap itself. The selectors are the production file names, which next/image keeps inside its optimizer query, so one substring rule catches a frame on the blog card, the footer strip, the nav panel and a feature mock at once.",
-        `The blog is swapped per POST as well as per id, because the sheet is per post: a file name can only carry an id, and fourteen of the ${F.postsFilled} filled posts take a different photograph from the one their cover's id is bridged with. Both namespaces ride every block, and apply.test.ts pins each post's rule to the route it belongs to.`,
+        "The swap is a stylesheet rather than an edit, and the selectors are the production file names: next/image keeps the file name inside its optimizer query, so one substring rule catches a frame on the blog card, the footer strip, the nav panel and a feature mock at once. Replacing the content of an image through CSS is Chrome and Safari behaviour; Firefox simply shows today's frame, which is a harmless failure worth knowing before a walk.",
+        "Nothing here ships. A wiring round changes files and manifest entries, not CSS: the twelve manifest entries, 23 frontmatter lines on the blog, and the two recorded reel recipes, which are already in the parity page's own picker (runbook.test.ts keeps that true).",
       ],
       wiring: [
-        "Nothing here ships. A wiring round changes files and manifest entries, not CSS: 23 frontmatter lines on the blog, the twelve manifest entries, and the two recorded reel recipes.",
-      ],
-    },
-    {
-      id: "exposure",
-      title: "Where the twelve actually are",
-      lede: `How many production files use each photograph, counted from the code by a test so a number here cannot go stale, plus the header and footer that put six of them on all ${F.marketingPages} marketing pages before a reader scrolls.`,
-      argument: [
-        `Round one measured the blast radius as the blog. It is the site: ${F.productionFiles} production files across ${F.routes} routes, with four ids in the footer strip and two in the nav panel, both of which live in the group layouts. Reach, rather than count, belongs to reception-table: it is the only id in both, so it is on every marketing page twice.`,
-      ],
-    },
-    {
-      id: "gap",
-      title: "What the free libraries do not have",
-      lede: "Six frames per kind of event is the kit. Three of the six kinds this product sells to have nothing at all, which is what a person picking blog covers out of eleven frames has to work with.",
-      argument: [
-        "Scene searches for an office party, a conference audience and a dinner party return government photo-ops, UN panels and Wikimedia meetups. The free corpus is an archive of RECORD, not of celebration, and its coverage maps onto what photographers give away: trips completely, festivals mostly, weddings as details and the backs of heads, conferences not at all.",
-      ],
-    },
-    {
-      id: "bridge",
-      title: "Every blog post, with what would replace its photo",
-      lede: `All ${F.posts} posts, today's cover beside the one that would replace it, at the real size of the card it lands on, both rows cut the same way the real page cuts them.`,
-      argument: [
-        `Nobody hashed the covers. All ${F.posts} posts set cover: in frontmatter and 22 of them differ from what the fallback hash would give, so a person chose every miscast one out of eleven wedding and festival frames, which is why the conference post is a music festival. That changes what the fix is: ${F.posts} frontmatter lines, not ${F.ids} files.`,
-        `The second, harder search closed all four of round one's holes and staged ${F.candidates} frames in all, which moved the argument rather than winning it: 18 of the ${F.candidates} work only because nobody in them is recognisable, and the four with a face are the four that need a release nobody here holds. The frames worth anything to this product are the ones with faces in them.`,
-        `The route is not two questions. It decides how many frames change and when, so the consequence is the table rather than a second word from Will: Mix swaps ${F.mixIds} id and ${F.mixPosts} covers now, Ours changes all ${F.posts} on one day, and Licensed fills ${F.postsUnderRule} of ${F.posts} under the rule rather than the ${F.postsFilled} it fills on paper.`,
-      ],
-    },
-    {
-      id: "callsheet",
-      title: "The shoot, frame by frame",
-      lede: `${F.masters} photographs, six per kind of event, each naming what happens in the frame, where the camera is, what the light is doing and the crops it has to survive, so it can be shot from rather than argued with.`,
-      argument: [
-        "The asset log holds twelve rows. Three are not photography; the other nine are crops, recrops, cuts or setups of the same night, so the kit is not the most expensive ask on the list, it is the one that closes the list. Row 5 is the one that changes the shape of the answer: it is the media the live demo event is seeded from.",
-      ],
-    },
-    {
-      id: "record",
-      title: "The six facts on every entry",
-      lede: `What question 1 would add to a photograph's entry, running on ${F.candidates} staged frames with a test that refuses one missing a field. The rule is not a proposal here; it is a suite you can watch pass.`,
-      argument: [
-        "people is the field that does the work. No free tier supplies a model release, so an entry reading identifiable cannot sit on a page that makes a claim, and the suite refuses one without a caution on it.",
-      ],
-    },
-    {
-      id: "runbook",
-      title: "Re-making the two recorded reels",
-      lede: "Swapping the photographs breaks both recorded loops, and the engine renders in the host's own browser, so re-making them is a person at a machine with Chrome. It is not, however, a code edit.",
-      argument: [
-        "Round one said re-rendering a recorded reel needs an edit to the parity page's hardcoded fixtures. It does not: both recipes are already in that page's clip-set picker, in order, and runbook.test.ts keeps it true.",
+        "The swap never moves a crop: `content` replaces the image and leaves `object-position` alone, and the blog derives that position from the slug, so a frontmatter edit will not move it either. A candidate lands at the post's own rung of the crop ladder on the walk and after the wiring.",
       ],
     },
   ],
@@ -401,90 +533,76 @@ export const MEDIA_KIT = defineBoard({
       default: "desktop",
     },
     {
+      id: "source",
+      label: "Pick",
+      // Nothing picked is a state of its own (Will, 2026-09-16): the pages
+      // below show the site as built until a card is picked, and pressing the
+      // picked card returns here.
+      options: [
+        { id: "none", label: "Nothing picked" },
+        ...ITEMS.map((i) => ({ id: i.id, label: i.name })),
+      ],
+      default: "none",
+      clearable: true,
+    },
+    // A and B open on the two the crowds question is actually between: the
+    // cheapest released catalogue and the deepest free one.
+    {
+      id: "compare-a",
+      label: "A",
+      options: ITEMS.map((i) => ({ id: i.id, label: i.name })),
+      default: "unsplash-plus",
+    },
+    {
+      id: "compare-b",
+      label: "B",
+      options: ITEMS.map((i) => ({ id: i.id, label: i.name })),
+      default: "websummit-flickr",
+    },
+    {
       id: "vertical",
-      // The id stays `vertical` (the URL, the walk steps and every note join on
-      // it); only the word a reviewer reads changed, to the one the board's
-      // ledes now use (the clarity round, 2026-09-15).
       label: "Kind of event",
       options: [
-        { id: "all", label: "All" },
         { id: "weddings", label: F.vertical.weddings },
         { id: "birthdays", label: F.vertical.birthdays },
         { id: "corporate", label: F.vertical.corporate },
         { id: "festivals", label: F.vertical.festivals },
         { id: "trips", label: F.vertical.trips },
       ],
-      default: "all",
-    },
-    {
-      id: "route",
-      label: "Route",
-      options: [
-        { id: "mix", label: "Mix" },
-        { id: "ours", label: "Ours" },
-        { id: "licensed", label: "Licensed" },
-      ],
-      default: "mix",
-    },
-    {
-      id: "geometry",
-      label: "Geometry",
-      options: [
-        { id: "card", label: "Card 4:5" },
-        { id: "share", label: "Share 1200x630" },
-      ],
-      default: "card",
+      default: "weddings",
     },
   ],
 
   lookFirst: [
     {
-      section: "plan",
-      note: "What to buy, which is the only part of the board you have to agree with. One month covers five kinds of event, and the conference rooms are the only money paid per photograph.",
+      section: "catalog",
+      note: "Read the thirteen. The line says what each place is, the four facts are what they are compared on, and the frames are what the place holds.",
     },
     {
-      section: "sheet",
+      section: "catalog",
       state: { vertical: "corporate" },
-      note: "The places, filtered to corporate and conferences, the one kind of event nothing free can fill. Watch the cards that flag nothing for it: that flag is the gap the money exists to close.",
+      note: "The same thirteen, filtered to conferences, the kind of event nothing paid is deep in. A card with nothing for it says so in the same glance.",
     },
     {
-      section: "surface",
-      note: "The same frames at the real card size on the real background, at true pixels. A grid of thumbnails flatters everything; this is where a frame that cannot take a tall crop stops flattering.",
+      section: "compare",
+      state: { "compare-a": "unsplash-plus", "compare-b": "websummit-flickr" },
+      note: "The $20 released catalogue against the free one with 87,066 conference photographs in it. Question 3 is the distance between them.",
     },
     {
-      section: "apply",
-      note: "Press The exposure, then open the blog in a new tab. That is the site with every photograph we cannot name taken out of it, which is the argument in one glance.",
-    },
-    {
-      section: "bridge",
-      state: { route: "licensed", geometry: "card" },
-      note: `The staged batch on all ${F.posts} posts. Read the two red rows at the bottom: the conference post and the office party are the two the free corpus cannot fill at all.`,
-    },
-    {
-      section: "bridge",
-      state: { route: "mix" },
-      note: `The recommendation, on the same posts. ${F.mixIds} id and ${F.mixPosts} covers change the week it is chosen; everything else is marked as owed rather than quietly left as it is.`,
-    },
-    {
-      section: "callsheet",
-      note: "What the shoot actually is, frame by frame, and the nine rows of the asset log one night closes. The last question is under this one.",
+      section: "pages",
+      state: { source: "unsplash-plus" },
+      note: "The real blog, as built beside the same page wearing Unsplash+. Then press Apply and walk the running site with it on.",
     },
   ],
 
   notes: [
     {
-      section: "sheet",
-      state: { vertical: "corporate" },
-      text: "A card with no thumbnails for the chosen kind of event falls back to one it does have and says so in the same glance. The flag is the finding, not a rendering failure: corporate is what every catalogue has least of, paid or free.",
+      section: "catalog",
+      text: "None of these frames is licensed to us. Every tile is a preview served from the source's own search page, and some sources serve theirs without a watermark, so a card can look finished when it is not.",
     },
     {
-      section: "bridge",
-      state: { route: "licensed" },
-      text: `Licensed fills ${F.postsFilled} of the ${F.posts} posts on the board, and ${F.postsUnderRule} once question 1's rule applies, because ${F.barredIds} carry a readable face with no signed permission.`,
-    },
-    {
-      section: "surface",
-      text: "None of these frames is licensed to us. iStock serves its search thumbnails without a watermark at 612 px, so a frame here can read as a finished card when it is only a preview.",
+      section: "pages",
+      text: "Six of the thirteen draw no frames at all, so picking one of those leaves the right-hand page as built. The absence is the fact: a catalogue that refuses to be read is a catalogue nobody can check a verdict against.",
     },
   ],
 
@@ -492,36 +610,17 @@ export const MEDIA_KIT = defineBoard({
     bible: [1, 18],
     spec: "docs/specs/media-kit.md",
     pages: [
-      {
-        label: "Home",
-        path: "/",
-        note: "the footer strip carries a frame on every page",
-      },
+      { label: "The blog", path: "/blog", note: "eleven cards, one grid" },
+      { label: "Home", path: "/", note: "the footer strip, on every page" },
       {
         label: "Pricing",
         path: "/pricing",
         note: "the chrome, before a scroll",
       },
-      { label: "Help", path: "/help", note: "the nav panel's two frames" },
-      {
-        label: "Contact",
-        path: "/contact",
-        note: "the footer again, on a short page",
-      },
-      {
-        label: "The blog",
-        path: "/blog",
-        note: "the library, where the bridge is per post",
-      },
-      {
-        label: "A post",
-        path: "/blog/qr-code-for-wedding-photos",
-        note: "the article hero, swapped through the canonical link",
-      },
       {
         label: "The album feature",
         path: "/features/album",
-        note: "a feature mock reading the ids",
+        note: "a mock reading the ids",
       },
     ],
   },
