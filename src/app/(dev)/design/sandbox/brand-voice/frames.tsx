@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CANVAS, Frame, type Ground, type Mode } from "@/components/lab";
 import { cn } from "@/lib/utils";
@@ -314,6 +314,121 @@ export function CardGround({
       >
         {children}
       </div>
+    </div>
+  );
+}
+
+/**
+ * TRUE SIZE INSIDE A STEP'S ZOOMED TILE (round seven, the stepped review,
+ * 2026-09-16).
+ *
+ * ★ COPY IS A SPECIMEN WHOSE SIZE IS PART OF THE JUDGEMENT, and the step
+ * surface zooms its tiles. `OptionTiles` (step.tsx) draws every option inside a
+ * `FitStage fit="zoom"`, which is exactly right for a corner radius or a
+ * palette and fatal for words: a 1440 canvas inside a 260px tile is CSS
+ * `zoom: 0.18`, and a 15px sentence lands at under three pixels. So this box
+ * reads the zoom its ancestors impose and divides it straight back out. `zoom`
+ * multiplies down the tree, so an inner `zoom: 1 / z` returns the subtree to
+ * 1:1 on the glass; because `zoom` is a LAYOUT property (unlike a transform)
+ * the parent still measures this box correctly, which keeps `FitStage`'s height
+ * honest. The specimen inside is then handed exactly the pixels a reader can
+ * see, which is why every one of them is `maxWidth: "100%"`: it takes the
+ * tile's own column at true type, and its full width on the stage below.
+ *
+ * ★ THE SAME MECHANISM IS THE TYPE-SCALE BOARD'S `TrueScale`, and the two are
+ * deliberately not one import: a board that will be deleted at its own ruling
+ * cannot be another board's dependency. The one home is the kit
+ * (`src/components/lab`), which neither track owns; this round's Handoff asks
+ * for the promotion, and until it lands two boards carry the same forty lines
+ * on purpose rather than one of them carrying the other.
+ *
+ * Outside a zoomed ancestor (the board page, a step's stage) the measurement is
+ * 1 and this renders nothing but a div.
+ */
+export function TrueSize({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  // The probe is never itself compensated, so what it measures is always the
+  // ancestors' zoom and never its own.
+  const probe = useRef<HTMLDivElement | null>(null);
+  const [zoom, setZoom] = useState(1);
+  // The settle compares reads frame by frame, which is faster than a render,
+  // so the last measurement lives in a ref beside the state.
+  const zoomRef = useRef(1);
+
+  useEffect(() => {
+    const el = probe.current;
+    if (!el) return;
+    const read = () => {
+      // `currentCSSZoom` is the effective zoom of every ancestor, which is
+      // exactly this number; the ratio is the fallback, since `offsetWidth` is
+      // in the element's own layout pixels and the rect is in the glass's.
+      const own = (el as Element & { currentCSSZoom?: number }).currentCSSZoom;
+      const measured =
+        typeof own === "number" && own > 0
+          ? own
+          : el.offsetWidth > 0
+            ? el.getBoundingClientRect().width / el.offsetWidth
+            : 1;
+      // A hair of tolerance: a device-pixel rounding upstream must not start a
+      // measure-render loop between this box and the stage measuring it.
+      if (Math.abs(measured - zoomRef.current) > 0.002) {
+        zoomRef.current = measured;
+        setZoom(measured);
+      }
+    };
+    // ★ THE ZOOM IS NOT THERE ON THE FIRST TICK, AND NOTHING TELLS YOU WHEN IT
+    // ARRIVES. `Stage` resolves its scale in its own layout effect, one pass
+    // AFTER this box mounts, so a single read on mount always measures 1 and
+    // leaves the specimen at a fifth of its size for ever. And a
+    // ResizeObserver does not save you: an ancestor's zoom never changes this
+    // element's own layout box, and the device-pixel box, which does change,
+    // was measured on 2026-09-16 not to deliver a notification for it in
+    // Chrome. (The type-scale board's `TrueScale` trusts that observer and is
+    // silently uncompensated in its own step tiles; a finding for its track,
+    // not a fix from this one.)
+    //
+    // So the first reads ride a short frame schedule and stop as soon as the
+    // number holds still, which is three frames in practice and thirty at the
+    // outside: a settle, not a poll.
+    let frames = 0;
+    let steady = 0;
+    let last = -1;
+    let raf = 0;
+    const settle = () => {
+      read();
+      steady = zoomRef.current === last ? steady + 1 : 0;
+      last = zoomRef.current;
+      if (++frames < 30 && steady < 3) raf = requestAnimationFrame(settle);
+    };
+    settle();
+    // The later changes: the pane is resized, or the tile column reflows. The
+    // stage box is the thing whose size really moves when either happens, and
+    // `data-stage-fit` is the kit's own marker for it (stage.tsx).
+    const ro = new ResizeObserver(read);
+    const stage = el.closest("[data-stage-fit]");
+    if (stage) ro.observe(stage);
+    ro.observe(el);
+    window.addEventListener("resize", read);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener("resize", read);
+    };
+  }, []);
+
+  return (
+    // ★ IT MARKS ITSELF A SPECIMEN, which is what keeps the reading budget
+    // honest (`pnpm lab:smoke`): everything in here is copy to LOOK at under a
+    // question, not the board's own voice. `CardGround` cannot carry the marker
+    // for it, because a card inside `Catalog` is already inside one and the
+    // frame's ground is inside an iframe, which the smoke skips whole.
+    <div ref={probe} data-lab-specimen="" className={cn("min-w-0", className)}>
+      <div style={zoom === 1 ? undefined : { zoom: 1 / zoom }}>{children}</div>
     </div>
   );
 }

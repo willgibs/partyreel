@@ -1,6 +1,7 @@
 /**
  * THE SIX VOICES, AND THE TWO DOZEN PLACES THEY WRITE (round six, the catalog
- * rebuild, 2026-09-16).
+ * rebuild; unchanged in substance by round seven, the stepped review,
+ * 2026-09-16: no line of copy moved, only the asking).
  *
  * ★ WILL'S BRIEF IS THE WHOLE SHAPE. He asked for "a couple dozen spot examples
  * across the marketing site and app" where he can "compare 2 brand voices in
@@ -83,11 +84,15 @@ export type Voice = {
   verdict: "ship" | "refine" | "kill";
   /** The board's own pick, marked with a dot. */
   recommended?: boolean;
-  /** The sentence shape, for the card's facts strip. */
-  shape: string;
-  /** What a sentence in this voice is ABOUT. */
-  about: string;
-  /** The cost, in a clause short enough for the card's facts strip. */
+  /**
+   * The cost, in a clause short enough for the card's facts strip.
+   *
+   * ★ THE SHAPE AND THE SUBJECT LEFT WITH ROUND SEVEN. A card used to carry
+   * "Shape: verb first, one breath" and "A line is about: the moment it is
+   * happening" as two of four facts; the tile now DRAWS three lines in the
+   * voice, which says both of those better than a label can. The sentence
+   * shapes live in docs/specs/brand-voice.md, which is their one home.
+   */
   risk: string;
   /** Why it might win; folded under the card. */
   rationale: string;
@@ -97,10 +102,8 @@ export const VOICES: readonly Voice[] = [
   {
     id: "today",
     name: "Today",
-    one: "The lines the site ships, word for word. Nothing is written down, so nothing holds the next hundred lines.",
+    one: "The lines the site ships, word for word.",
     verdict: "kill",
-    shape: "Unwritten",
-    about: "Whatever the line was about",
     risk: "Nothing holds the next hundred lines",
     rationale:
       "The one to come back to. Every other card is judged against it, and a ruling of Today changes no line.",
@@ -108,10 +111,8 @@ export const VOICES: readonly Voice[] = [
   {
     id: "keepsake",
     name: "Keepsake",
-    one: "Warm and plain, about what the host ends up holding. The register the eight approved lines already speak.",
+    one: "Warm and plain, about what the host ends up holding.",
     verdict: "refine",
-    shape: "A noun phrase, then a turn on a comma",
-    about: "The thing you keep",
     risk: "Changes least, so lifts least",
     rationale:
       "The cheap answer and a real one. The voice already lives in the ratified lines; this writes it down and brings back the ones that drifted, so a ruling costs a sweep rather than a rewrite.",
@@ -119,11 +120,9 @@ export const VOICES: readonly Voice[] = [
   {
     id: "live",
     name: "Live",
-    one: "Present tense, verb in front: the album filling while the party is still going.",
+    one: "Present tense, verb in front, while the party is on.",
     verdict: "ship",
     recommended: true,
-    shape: "Verb first, one breath",
-    about: "The moment it is happening",
     risk: "Runs long; a row on the h1 at 375",
     rationale:
       "The only voice a shared folder could not say back, because it stays inside the moment the album fills. It is also the only one that makes the live demo, the album and the reel sound like one product.",
@@ -131,10 +130,8 @@ export const VOICES: readonly Voice[] = [
   {
     id: "plain",
     name: "Plain",
-    one: "Short declaratives. Nothing in a line that is not a fact, and no scene at all.",
+    one: "Short declaratives. Nothing that is not a fact.",
     verdict: "refine",
-    shape: "Subject, verb, object. Full stop.",
-    about: "The mechanism",
     risk: "Never sells; reads as documentation",
     rationale:
       "The register a reader trusts fastest, and the only one that never has to be turned down for the app: the quiet volume IS the voice. If the product is obvious enough, plain is the strongest thing here.",
@@ -142,10 +139,8 @@ export const VOICES: readonly Voice[] = [
   {
     id: "everyone",
     name: "Everyone",
-    one: "The room's point of view: what the people there do, not what the host walks away with.",
+    one: "The room's point of view, not the host's.",
     verdict: "refine",
-    shape: "Everyone is the subject",
-    about: "The people who were there",
     risk: "Rarely says you, and the host is the buyer",
     rationale:
       "The product's real asset is forty phones, not one, and this is the only voice that says so. It is also the closest thing here to a reason to pass the link on.",
@@ -153,19 +148,13 @@ export const VOICES: readonly Voice[] = [
   {
     id: "aside",
     name: "Aside",
-    one: "Confident and dry: a claim, then the thing it spares you, said as an aside.",
+    one: "A claim, then the chore it spares you.",
     verdict: "refine",
-    shape: "A claim, then a wink",
-    about: "What you will not have to do",
     risk: "Wit ages badly and does not travel",
     rationale:
       "The only one anybody would quote. It names no competitor, but every line is shaped by a chore the reader recognises, which is the edge of bible 20 on purpose.",
   },
 ];
-
-export function voiceById(id: VoiceId): Voice {
-  return VOICES.find((v) => v.id === id) ?? VOICES[0];
-}
 
 /** The card name, short enough for a column head or a caption. */
 export const VOICE_NAME: Record<VoiceId, string> = {
@@ -176,31 +165,6 @@ export const VOICE_NAME: Record<VoiceId, string> = {
   everyone: "Everyone",
   aside: "Aside",
 };
-
-/* ---------------------------------------------------------------------------
- * THE THREE VOLUMES
- * ------------------------------------------------------------------------ */
-
-/**
- * One voice at three volumes. Round one found it on four surfaces and round
- * four wrote all sixteen: the volumes do NOT fork with the voice, so a ruling
- * on a card is a ruling on the vocabulary and the sentence shape, never on how
- * loud the app is allowed to be.
- */
-export const VOLUMES = [
-  {
-    name: "Marketing, loud",
-    rule: "The full voice. It asserts, it addresses the host as you, and it is the only volume that sells.",
-  },
-  {
-    name: "The app, quiet",
-    rule: "The same words with the shaping taken out. One clause, and the verb is the one on the button just pressed.",
-  },
-  {
-    name: "A guest's phone, nearly silent",
-    rule: "The host's event leads and ours stays out of the way (bible 4). We are named only where a guest needs to know whose software this is.",
-  },
-] as const;
 
 /* ---------------------------------------------------------------------------
  * THE SPOTS
@@ -1488,10 +1452,6 @@ export const SPOTS: readonly SpotDef[] = [
 /* ---------------------------------------------------------------------------
  * READING THE SPOTS
  * ------------------------------------------------------------------------ */
-
-export function spotById(id: string): SpotDef | undefined {
-  return SPOTS.find((spot) => spot.id === id);
-}
 
 /** One spot's slot, in one voice. Returns "" rather than throwing: a board
  *  renders a missing line as nothing, never as a blank screen. */

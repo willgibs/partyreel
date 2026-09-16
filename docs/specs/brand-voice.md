@@ -11,13 +11,15 @@
 > candidate writes where, and any history of how the board got here (git holds that).
 > GROWS BY: refine in place. Never a ledger, never a diary.
 
-> **STATUS: a PROPOSAL (the `brand-voice` track, round six, 2026-09-16).** Bible 20 says this
+> **STATUS: a PROPOSAL (the `brand-voice` track, round seven, 2026-09-16).** Bible 20 says this
 > exploration writes the do's that replace it, and bible 21 opened every line on the site until a
 > voice exists. **Six voices are on the board** at `/design/lab/brand-voice`, each writing the same
-> twenty-four real places across the marketing site, the host's app and a guest's phone. This
-> document is written as the board's OWN recommendation (**Live**) and nothing in it binds until
-> Will rules a card. On his ruling the Orchestrator promotes it to `docs/systems/brand-voice.md` and
-> the `voice-infusion` round carries it site-wide. **The questions live on the board, not here**
+> twenty-four real places across the marketing site, the host's app and a guest's phone. The board
+> is a five-step walk decided by ONE pick, and the last of the five asks how far the winner reaches,
+> which nothing had asked out loud before. This document is written as the board's OWN
+> recommendation (**Live**) and nothing in it binds until Will rules a card. On his ruling the
+> Orchestrator promotes it to `docs/systems/brand-voice.md` and the `voice-infusion` round carries
+> it site-wide. **The questions live on the board, not here**
 > (its `spec.ts` holds each one with its options and the recommendation, and
 > `docs/reviews/brand-voice.json` records the answer); a list of them in this doc would be a second
 > home that goes stale the moment one is reworded.
@@ -138,8 +140,13 @@ feature's name, where it is a label rather than a claim.
 
 ## What is still open
 
-Three calls a voice does not decide. Each is an ask on the board, with its options and this guide's
+Four calls a pick does not settle. Each is an ask on the board, with its options and this guide's
 recommendation; the board is where they are answered.
+
+- **How far the winner reaches.** This guide is written as ONE voice at three volumes, which is what
+  rounds one and four measured on twenty surfaces: the app's quiet lines are the same words with the
+  shaping taken out. The other answer is a marketing voice and a product voice, which costs two
+  guides, two sweeps and a seam at the sign-in page. Recommended: **one voice, three volumes**.
 
 - **One noun for the thing.** The site, the app and the reel say *album*; the shipped guest pages
   say *gallery* in five places. A guest who scans a code on the site's promise and lands on a
