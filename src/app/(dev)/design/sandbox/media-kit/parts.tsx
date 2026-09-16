@@ -450,7 +450,7 @@ export function BridgePart({
         {route === "licensed"
           ? `${POSTS_FILLED} of ${BRIDGE.length} filled, but ${POSTS_UNDER_RULE} of ${BRIDGE.length} under the rule: ${BARRED_POSTS.length} of them carry a face with no release. Fast, free, and still somebody else's party.`
           : route === "ours"
-            ? `All ${BRIDGE.length} from the kit. Six verticals, ${MASTERS.length} masters, and the squares, portraits, clips and film cut from the same night.`
+            ? `All ${BRIDGE.length} from the kit. Six kinds of event, ${MASTERS.length} masters, and the squares, portraits, clips and film cut from the same night.`
             : "Licensed on the details nobody studies, the shoot on everything a reader stops at. The bridge is dated: it ends when the kit lands."}
       </Caption>
 
@@ -561,7 +561,8 @@ export function BridgePart({
         <ul className="mt-3 space-y-1.5 border-t border-destructive/30 pt-3">
           <li className="text-[11px] leading-snug">
             <span className="font-medium">
-              And {BARRED_POSTS.length} more are filled by a frame ask 1 bars.
+              And {BARRED_POSTS.length} more are filled by a frame the rule in
+              question 1 bars.
             </span>{" "}
             <span className="text-muted-foreground">
               {BARRED_POSTS.map((p) => `/blog/${p.slug}`).join(", ")}. Each one
@@ -585,13 +586,27 @@ export function BridgePart({
 export function CallSheetPart() {
   return (
     <div className="flex flex-col gap-3">
+      {/* ★ THE EVIDENCE CARRIES THE TWO ANSWERS (the clarity round,
+          2026-09-15). This sheet IS what "Shoot" means, so it says so, and each
+          group's caption says what "Park" keeps instead: the frames that kind
+          of event already has on the site. Labels only; no frame changed. */}
+      <div>
+        <h3 className="text-xs font-semibold">
+          Shoot the {MASTERS.length} in one night
+        </h3>
+        <Caption className="mt-0.5 block text-[11px]">
+          What the shoot is, frame by frame. Every card below is one photograph
+          to take.
+        </Caption>
+      </div>
       {VERTICALS.map((v) => (
         <div key={v.id}>
           <div className="mb-2 flex items-baseline gap-2 border-b border-border pb-1.5">
             <h3 className="text-xs font-semibold">{v.label}</h3>
             <Caption className="text-[11px] tabular-nums">
-              {MASTERS.filter((m) => m.vertical === v.id).length} frames,{" "}
-              {countByVertical(v.id)} in the manifest today
+              {MASTERS.filter((m) => m.vertical === v.id).length} frames to
+              shoot. Park the shoot and this one keeps the{" "}
+              {countByVertical(v.id)} it has on the site today
             </Caption>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -661,7 +676,7 @@ export function CallSheetPart() {
       <div className="mt-2 flex flex-col gap-3">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h3 className="text-sm font-semibold">
-            One night, {DERIVED.length} rows of the asset log
+            Shoot, and {DERIVED.length} rows of the asset log close with it
           </h3>
           <Caption className="text-[11px]">
             The log holds {DERIVED.length + NOT_DERIVED.length} rows. Three are
@@ -741,9 +756,19 @@ export function RecordPart() {
   return (
     <div className="grid gap-3 lg:grid-cols-2">
       <div className="rounded-lg border border-border bg-card p-4">
+        {/* ★ BOTH CARDS ARE WHAT "YES" LOOKS LIKE, so both say so, and the
+            line above the fields is what "No" keeps (the clarity round,
+            2026-09-15). Labels only: no field, count or claim moved. */}
         <Caption className="font-medium text-foreground">
-          One record, as the test reads it
+          Yes, require the six facts: one photograph, filled in
         </Caption>
+        <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+          <span className="font-medium text-foreground">
+            No, leave the entries as they are:
+          </span>{" "}
+          an entry on the site today says only &ldquo;unsplash (per lab-pack
+          comment; provenance unverified)&rdquo;, and nothing else.
+        </p>
         <dl className="mt-2 space-y-1">
           {(
             [
@@ -778,7 +803,7 @@ export function RecordPart() {
       </div>
       <div className="rounded-lg border border-border bg-card p-4">
         <Caption className="font-medium text-foreground">
-          What the suite asserts today
+          Yes, require the six facts: what the test already refuses
         </Caption>
         <ul className="mt-2 space-y-1">
           {[

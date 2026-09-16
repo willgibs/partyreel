@@ -1,6 +1,20 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  optionId,
+  optionLabel,
+  optionMeans,
+} from "@/components/lab/board-spec";
+
+import {
+  PALETTES,
+  PALETTE_OPTIONS,
+  RECOMMENDED_PALETTE,
+  resolvePalette,
+} from "./palettes";
+import { PALETTE } from "./spec";
+
+import {
   ACCENT_BY_ID,
   DARKS,
   DARK_BY_ID,
@@ -8,6 +22,7 @@ import {
   LIGHTS,
   LIGHT_BY_ID,
   MAT_USES,
+  RECOMMENDATION,
   REGISTERS,
   accentBlock,
   jobTakesAccent,
@@ -511,5 +526,75 @@ describe("the walk's two emulated rulings", () => {
   it("keeps the measured counts in one place", () => {
     expect(MAT_USES).toBe(35);
     expect(FAINT_USES).toBe(37);
+  });
+});
+
+/* ── The catalog (round six, the clarity round) ─────────────────────────── */
+
+describe("the catalog", () => {
+  const ask = PALETTE.asks.find((a) => a.id === "palette")!;
+
+  it("is a catalog: between eight and sixteen finished palettes", () => {
+    // Will's size, not an arbitrary one: "a dozen polished variants". Fewer
+    // than eight is not a catalog and more than sixteen is a wall.
+    expect(PALETTES.length).toBeGreaterThanOrEqual(8);
+    expect(PALETTES.length).toBeLessThanOrEqual(16);
+    expect(new Set(PALETTES.map((p) => p.id)).size).toBe(PALETTES.length);
+  });
+
+  it("builds every palette out of sets and an accent that exist", () => {
+    for (const p of PALETTES) {
+      expect(DARK_BY_ID[p.dark], `${p.id}: dark`).toBeTruthy();
+      expect(LIGHT_BY_ID[p.light], `${p.id}: light`).toBeTruthy();
+      expect(ACCENT_BY_ID[p.accent], `${p.id}: accent`).toBeTruthy();
+      expect(resolvePalette(p.id).def.id).toBe(p.id);
+    }
+  });
+
+  it("lands on exactly one, and it is the one registers.ts recommends", () => {
+    const picked = PALETTES.filter((p) => p.recommended);
+    expect(picked.map((p) => p.id)).toEqual(["ember"]);
+    expect(RECOMMENDED_PALETTE.dark).toBe(RECOMMENDATION.dark);
+    expect(RECOMMENDED_PALETTE.light).toBe(RECOMMENDATION.light);
+    expect(ask.recommended).toBe(RECOMMENDED_PALETTE.id);
+  });
+
+  /**
+   * ★ THE ONE PIN THAT EARNS ITS KEEP. The ask's twelve options are written out
+   * as literals in spec.ts because the desk's review scanner reads a spec as
+   * TEXT (a computed `options` read as an ask with no answers at all, which is
+   * how this split came about). So the words live in the spec and the structure
+   * lives in palettes.ts, and this is what stops the two drifting: same ids, in
+   * the same order, with the same labels.
+   */
+  it("says the same twelve in the spec, the dock and palettes.ts", () => {
+    expect(ask.options.map(optionId)).toEqual(PALETTES.map((p) => p.id));
+    expect(ask.options.map(optionLabel)).toEqual(PALETTES.map((p) => p.name));
+    expect(PALETTE_OPTIONS.map((o) => o.id)).toEqual(PALETTES.map((p) => p.id));
+    for (const o of ask.options) {
+      expect(optionMeans(o), `${optionId(o)} has no line`).toBeTruthy();
+    }
+  });
+
+  it("keeps Today as the one that changes no line", () => {
+    const today = resolvePalette("today");
+    expect(today.def.dark).toBe("today");
+    expect(today.def.light).toBe("today");
+    expect(today.def.accent).toBe("ink");
+    // The mat is a property of a palette now rather than a switch, and Today is
+    // the only one that answers "no register": the set-apart ground ships as
+    // alphas of a token that also does hover.
+    expect(today.def.mat).toBe(false);
+    expect(PALETTES.filter((p) => !p.mat).map((p) => p.id)).toEqual(["today"]);
+  });
+
+  it("spans the sets rather than re-listing one", () => {
+    // A catalog of twelve that used three sets would be four rows of the same
+    // argument. Every dark and every light the board carries is worn by at
+    // least one palette, and no palette repeats another's whole recipe.
+    expect(new Set(PALETTES.map((p) => p.dark)).size).toBe(DARKS.length);
+    expect(new Set(PALETTES.map((p) => p.light)).size).toBe(LIGHTS.length);
+    const recipes = PALETTES.map((p) => `${p.dark}/${p.light}/${p.accent}`);
+    expect(new Set(recipes).size).toBe(PALETTES.length);
   });
 });

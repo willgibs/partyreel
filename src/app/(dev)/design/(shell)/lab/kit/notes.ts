@@ -104,6 +104,11 @@ export const KIT_PIECES: readonly KitPiece[] = [
     note: "the asks as pills and a note a piece, composing one ledger line to paste into chat; the lab never writes the repo",
   },
   {
+    name: "ReviewCard",
+    file: "src/components/lab/review-card.tsx",
+    note: "the ask being answered, pinned under the dock on its own board: the question in plain words, the options with what each one means, and the evidence it is about scrolled in underneath",
+  },
+  {
     name: "Notes",
     file: "src/components/lab/notes.tsx",
     note: "the builder's note on a section, carrying the state it was written in, with one press to go there",

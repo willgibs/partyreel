@@ -14,6 +14,7 @@ import {
   CopyDemo,
   LoupeDemo,
   PasteDemo,
+  ReviewCardDemo,
   SelectTableDemo,
   SpecimenDemo,
   StageDemo,
@@ -158,6 +159,13 @@ export default async function KitPage({
         </Sub>
         <Sub id="s-copy" title="CopyButton">
           <CopyDemo />
+        </Sub>
+        <Sub
+          id="s-review-card"
+          title="ReviewCard"
+          blurb="On a fixture board of its own, unpinned. On a real board it sticks under the dock and the evidence it asks about is underneath it."
+        >
+          <ReviewCardDemo />
         </Sub>
       </Section>
 

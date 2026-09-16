@@ -12,30 +12,37 @@ import { useReviewStore } from "./review-store";
  * reader's own browser. This reads them after mount and says so, which is the
  * difference between "start the review" and "you are four in, carry on".
  *
- * `?session=resume` is not a step id on purpose: the session resolves an
- * unknown value to the first unanswered ask, so one link does both jobs.
+ * ★ AND IT RESOLVES THE STEP ITSELF (the clarity round, 2026-09-15), where it
+ * used to hand the session a `?session=resume` and let it work the step out.
+ * Now that an ask is answered on its own BOARD, "carry on" has to name a page
+ * as well as a step, and only this component can: the step is the first one
+ * with nothing held, which is a fact about the reader's own browser. The
+ * server renders the href of step one and this corrects it on mount, so the
+ * button is never dead and never a round trip to the wrong board.
  */
-export function StartReview({
-  total,
-  /** The held key of every step (`<board>.r<n>.<ask>`), so progress counts today's queue. */
-  stepKeys,
-  href = "/design/lab?session=resume",
-}: {
-  total: number;
-  stepKeys: string[];
-  href?: string;
-}) {
+export type ReviewEntry = {
+  /** The held key (`<board>.r<n>.<ask>`), so progress counts today's queue. */
+  key: string;
+  /** Where that step is answered: its board, with the card open on it. */
+  href: string;
+};
+
+export function StartReview({ steps }: { steps: ReviewEntry[] }) {
   const { answers } = useReviewStore();
-  const answered = stepKeys.filter((k) => answers[k]?.choice).length;
-  const resuming = answered > 0 && answered < total;
+  const answered = steps.filter((s) => answers[s.key]?.choice).length;
+  const resuming = answered > 0 && answered < steps.length;
+  const next = steps.find((s) => !answers[s.key]?.choice) ?? steps[0];
+  if (!next) return null;
 
   return (
     <LabLink
-      href={href}
+      href={next.href}
       data-dir-press
       className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-opacity duration-150 hover:opacity-90"
     >
-      {resuming ? `Carry on, ${answered} of ${total} answered` : "Start the review"}
+      {resuming
+        ? `Carry on, ${answered} of ${steps.length} answered`
+        : "Start the review"}
       <ArrowRight className="size-3.5" />
     </LabLink>
   );

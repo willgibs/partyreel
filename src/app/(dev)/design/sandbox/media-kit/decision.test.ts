@@ -1,4 +1,14 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
+
+import {
+  type Ask,
+  optionId,
+  optionLabel,
+  optionMeans,
+} from "@/components/lab/board-spec";
 
 import {
   BRIDGE,
@@ -28,9 +38,27 @@ import {
   TOTAL,
   UNSPLASH_MONTH,
 } from "./plan";
+import { MARKETING_PAGES } from "./exposure";
 import { MEDIA_KIT } from "./spec";
 import { MASTERS } from "./shoot";
 import { WEBSUMMIT_CC } from "./sources";
+
+/**
+ * Every string a reviewer reads on ONE ask card, joined (the clarity round,
+ * 2026-09-15). An ask used to be a label plus a `because`; it is now a question,
+ * the context a stranger needs, where to look, and an option labelled in words
+ * with what picking it does. A guard that still read `question + because` would
+ * cover less of the card than it did before the rewrite.
+ */
+const askText = (a: Ask): string =>
+  [
+    a.question,
+    a.context ?? "",
+    a.look ?? "",
+    a.because ?? "",
+    a.overrule ?? "",
+    ...a.options.map((o) => `${optionLabel(o)} ${optionMeans(o) ?? ""}`),
+  ].join(" ");
 
 /**
  * THE DECISION, PINNED (the media-kit track, round three).
@@ -129,7 +157,7 @@ describe("the ruling surface", () => {
   it("every answer is one token, so a ruling is four words", () => {
     for (const a of ASKS) {
       expect(a.options.length).toBeGreaterThanOrEqual(2);
-      for (const o of a.options) {
+      for (const o of a.options.map(optionId)) {
         // ★ ONE TOKEN, NOT ONE WORD, AND THE DIFFERENCE IS THE LEDGER'S. Round
         // four allowed "Subjects only", which the review line cannot carry: the
         // grammar is `<ask>=<option>` and a space ends the clause. The two-word
@@ -142,7 +170,8 @@ describe("the ruling surface", () => {
   });
 
   it("every recommendation is one of the options offered", () => {
-    for (const a of ASKS) expect(a.options).toContain(a.recommended);
+    for (const a of ASKS)
+      expect(a.options.map(optionId)).toContain(a.recommended);
   });
 
   it("every ask points at a section of the board that argues it", () => {
@@ -190,22 +219,22 @@ describe("the ruling surface", () => {
       UNSPLASH_MONTH,
       CLIPS_IF_LICENSED,
       WEBSUMMIT_CC,
+      MARKETING_PAGES,
     ]);
     const surfaces = [
-      ...ASKS.map(
-        (a) => `${a.question} ${a.because ?? ""} ${a.overrule ?? ""}`,
-      ),
+      ...ASKS.map(askText),
       `${MEDIA_KIT.verdict.recommendation} ${MEDIA_KIT.verdict.because} ${MEDIA_KIT.verdict.overrule ?? ""}`,
       ...ROUTE_SHIPS.map((r) => `${r.ships} ${r.blog} ${r.cost} ${r.ends}`),
     ];
     for (const text of surfaces) {
-      // "ask 1" is a cross reference to a question, not a count of anything, and
-      // a digit welded to a word is a name (CC0), not a number either. Thousands
-      // separators are stripped first so 87,066 reads as one number rather than
-      // as an 87 and an 066, which is how a big count would otherwise slip the
-      // guard entirely.
+      // "question 1" is a cross reference to a question, not a count of
+      // anything, and a digit welded to a word is a name (CC0), not a number
+      // either. Thousands separators are stripped first so 87,066 reads as one
+      // number rather than as an 87 and an 066, which is how a big count would
+      // otherwise slip the guard entirely. ("ask \d" is round four's spelling of
+      // the same cross reference, kept so an old string cannot slip through.)
       for (const n of text
-        .replace(/ask \d/g, "ask")
+        .replace(/(ask|question) \d/gi, "$1")
         .replace(/(\d),(?=\d{3}\b)/g, "$1")
         .match(/(?<![A-Za-z])\d+/g) ?? []) {
         expect(derived, text).toContain(Number(n));
@@ -221,21 +250,57 @@ describe("the ruling surface", () => {
    * own totals, and the route table still says the pre-rule counts it always did.
    */
   it("the spend ask quotes the plan's totals, never a typed price", () => {
-    const spend = ASKS.find((a) => a.id === "spend");
-    expect(spend?.because).toContain(`$${TOTAL}`);
-    expect(spend?.because).toContain(`${HARD_FRAMES} iStock frames`);
-    expect(spend?.recommended).toBe("buy");
-    const kit = ASKS.find((a) => a.id === "kit");
-    expect(kit?.because).toContain(`$${TOTAL}`);
-    expect(kit?.because).toContain(`$${CLIPS_IF_LICENSED}`);
+    const spend = ASKS.find((a) => a.id === "spend")!;
+    // The whole card, because the clarity round moved the breakdown out of
+    // `because` and into the `context` a stranger reads first.
+    expect(askText(spend)).toContain(`$${TOTAL}`);
+    expect(askText(spend)).toContain(`$${UNSPLASH_MONTH}`);
+    expect(askText(spend)).toContain(`$${ISTOCK_FRAME}`);
+    expect(spend.recommended).toBe("buy");
+    const kit = ASKS.find((a) => a.id === "kit")!;
+    expect(askText(kit)).toContain(`$${TOTAL}`);
+    expect(askText(kit)).toContain(`$${CLIPS_IF_LICENSED}`);
     // The comparison only works one way round, and it is the round's point.
     expect(CLIPS_IF_LICENSED).toBeGreaterThan(TOTAL);
   });
 
   it("the crowds ask names the catalogue that turns on it", () => {
-    const crowds = ASKS.find((a) => a.id === "crowds");
-    expect(crowds?.because).toContain(WEBSUMMIT_CC.toLocaleString("en-US"));
-    expect(crowds?.options).toEqual(["subjects", "all-faces"]);
+    const crowds = ASKS.find((a) => a.id === "crowds")!;
+    expect(crowds.because).toContain(WEBSUMMIT_CC.toLocaleString("en-US"));
+    expect(crowds.options.map(optionId)).toEqual(["subjects", "all-faces"]);
+  });
+
+  /**
+   * ★ A RENDERED STRING NEVER NAMES A QUESTION BY ITS NUMBER ALONE (Will,
+   * 2026-09-15: "when you use very technical terms or nicknames from spots in
+   * these reports, it makes me have to go deep into the track to gain the
+   * relevant context"). "Ask 3" was on four of this board's surfaces, and a
+   * reviewer meeting one of them on the desk cannot resolve it. The clarity
+   * round replaced each with the words the question actually offers; this
+   * refuses the shorthand coming back. Comments keep it freely: they are the
+   * next agent's, not the reviewer's.
+   */
+  it("names no question by its number alone, in any rendered string", () => {
+    const FILES = [
+      "board.tsx",
+      "parts.tsx",
+      "plates.tsx",
+      "sheet.tsx",
+      "spec.ts",
+      "sources.ts",
+      "plan.ts",
+      "shoot.ts",
+      "kit.ts",
+    ];
+    for (const file of FILES) {
+      const src = readFileSync(join(import.meta.dirname, file), "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/\/\/.*$/gm, "");
+      expect(
+        src.match(/\bask \d/gi) ?? [],
+        `${file} names a question as "ask N"; say what it asks instead`,
+      ).toEqual([]);
+    }
   });
 
   it("the route table still says the counts the rule leaves", () => {

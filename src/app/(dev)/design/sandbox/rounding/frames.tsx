@@ -2,12 +2,7 @@
 
 import { DEMO_QR_TOKEN } from "@/lib/demo";
 
-import {
-  Frame,
-  FrameRow,
-  labScenePath,
-  useDesignKey,
-} from "@/components/lab";
+import { Frame, FrameRow, labScenePath, useDesignKey } from "@/components/lab";
 
 /**
  * THE ROUNDING BOARD'S PAGES (round four, 2026-09-15; on the kit's Frame since
@@ -108,7 +103,6 @@ export const ROUTES: Route[] = [
 
 export const ROUTE_OPTIONS = ROUTES.map((r) => ({ id: r.id, label: r.label }));
 
-
 /* ── The rows ─────────────────────────────────────────── */
 
 /** Part A's row: the SITE's own routes, which take no key, so no design island
@@ -142,8 +136,8 @@ export function PageFrames({
           w={w}
           h={h}
           css={todayCss}
-          title="Today"
-          caption="2 / 8 / 3, stock ladder. The site as built, for the eye to come back to."
+          title="A, today"
+          caption="2 / 8 / 3, with the steps as they are today. The site as built, for the eye to come back to."
           reloadKey={reloadKey}
         />
       ) : null}
@@ -219,8 +213,8 @@ export function ScreenFrames({
           w={w}
           h={h}
           css={todayCss}
-          title="Today"
-          caption="2 / 8 / 3, stock ladder. The app as built, for the eye to come back to."
+          title="A, today"
+          caption="2 / 8 / 3, with the steps as they are today. The app as built, for the eye to come back to."
           reloadKey={reloadKey}
         />
       ) : null}

@@ -170,7 +170,7 @@ export const SOURCES: SourceCard[] = [
       "All visuals are model and property released, backed by a warranty of up to US $10,000 per licensed photo. This is the exact thing the free Unsplash licence carves out, and it is why this source sits first: the paid tier's whole product is the removal of the clause that disqualified the twelve stand-ins.",
     covers: ["weddings", "birthdays", "corporate", "festivals", "trips"],
     catalogue:
-      "A curated premium library, much smaller than the free one. Unsplash publishes no count, but the search filtered to the plus licence is readable without an account: 20 released frames came back on every one of the five verticals below, and the 60 on this card were drawn from them.",
+      "A curated premium library, much smaller than the free one. Unsplash publishes no count, but the search filtered to the plus licence is readable without an account: 20 released frames came back on every one of the five kinds of event below, and the 60 on this card were drawn from them.",
     verdict:
       "One month buys every frame the kit needs, released, and a frame downloaded while the subscription is live stays licensed forever with no project to register. The cheapest legal answer on this sheet.",
     barred: false,
@@ -193,7 +193,7 @@ export const SOURCES: SourceCard[] = [
       "Adobe requires the contributor to file a signed model release for any asset offered commercially that shows a recognisable person, and a property release for private property. The release lives with Adobe rather than with us, which is the point: buying the licence is buying the release.",
     covers: ["weddings", "birthdays", "corporate", "festivals", "trips"],
     catalogue:
-      "Hundreds of millions of files, every vertical deep. Not countable from here: the site refuses any client that is not a browser, so this sheet cannot draw its frames either.",
+      "Hundreds of millions of files, every kind of event deep. Not countable from here: the site refuses any client that is not a browser, so this sheet cannot draw its frames either.",
     noSheet:
       "Answers a plain client with a 403, measured on the date above. There is nothing to draw and nothing to route around short of driving a browser, which is worth knowing before building any workflow on it.",
     verdict:
@@ -218,7 +218,7 @@ export const SOURCES: SourceCard[] = [
       "Getty warrants the releases behind its commercially licensed content and indemnifies the buyer up to the licence fee on a Standard licence. Editorial-only files are excluded and are labelled, so the one thing to check per file is that it is not an editorial frame.",
     covers: ["weddings", "birthdays", "corporate", "festivals", "trips"],
     catalogue:
-      "Millions, and the only paid per-image catalogue on this sheet that let itself be read: the contact sheets are its own watermarked comps, pulled per vertical on the date above.",
+      "Millions, and the only paid per-image catalogue on this sheet that let itself be read: the contact sheets are its own watermarked comps, pulled per kind of event on the date above.",
     verdict:
       "The per-frame option that can be looked at before it is bought. Right for the two or three frames a subscription cannot fill, wrong as the way to buy 36.",
     barred: false,
@@ -266,7 +266,7 @@ export const SOURCES: SourceCard[] = [
       "Releases are the contributor's responsibility and are marked per item rather than warranted across the library, so every frame has to be checked one at a time.",
     covers: ["weddings", "birthdays", "corporate", "festivals", "trips"],
     catalogue:
-      "Unlimited downloads across a very large library, and it let itself be read: the contact sheets are its own watermarked previews per vertical.",
+      "Unlimited downloads across a very large library, and it let itself be read: the contact sheets are its own watermarked previews per kind of event.",
     verdict:
       "Cheaper per month than Unsplash+ and worse where it counts. The licence is perpetual only for the project a file was registered to, so a site that keeps changing needs the subscription alive forever. A lease, priced as a purchase.",
     barred: false,
@@ -313,7 +313,7 @@ export const SOURCES: SourceCard[] = [
       "Web Summit's own terms cover Web Summit's use of its attendees' likenesses, not ours. CC BY is a copyright licence and says nothing about the people in the frame, so under our own rule every recognisable face here is still barred. The contact sheet adds a second bar nobody had thought of: a conference floor is a wall of other companies' trademarks, and the frames below carry Meta and Huawei booths at full size.",
     covers: ["corporate"],
     catalogue: `${n(WEBSUMMIT_TOTAL)} photographs on the account, of which ${n(WEBSUMMIT_CC)} are licensed CC BY 2.0, counted on the date above. Professional conference photography: keynote rooms, crowded aisles, badge tables, side-stage crowds.`,
-    verdict: `The best free catalogue that exists for the one vertical our corpus could not fill at all, and it still fails the release half of the rule. Ask 3 is the ruling that decides whether ${n(WEBSUMMIT_CC)} frames are a source or a footnote.`,
+    verdict: `The best free catalogue that exists for the one kind of event our corpus could not fill at all, and nobody in it signed anything. Answer "Only the frame's subject" to question 3 and these ${n(WEBSUMMIT_CC)} frames are a source; answer "Every recognisable face" and they are a footnote.`,
     barred: true,
   },
   {
@@ -333,9 +333,9 @@ export const SOURCES: SourceCard[] = [
       "The same shape as the Web Summit archive and without the curation: a photographer licensed the copyright and nobody in the frame signed anything. Under our own rule a recognisable face here is barred.",
     covers: ["weddings", "birthdays", "festivals", "trips"],
     catalogue:
-      "The whole of Flickr under one licence filter, which is the deepest free corpus of real events that exists, by a distance. The sheets are what it returned for the four verticals Web Summit does not cover.",
+      "The whole of Flickr under one licence filter, which is the deepest free corpus of real events that exists, by a distance. The sheets are what it returned for the four kinds of event Web Summit does not cover.",
     verdict:
-      "Not a gallery, a filter over everyone's galleries. It is where you go if ask 3 says a credit line is acceptable, and it is the only free place that can fill all four remaining verticals with real events rather than staged ones.",
+      "Not a gallery, a filter over everyone's galleries. It is where you go if question 3 answers \"Only the frame's subject\" and a credit line is acceptable, and it is the only free place that can fill the four remaining kinds of event with real ones rather than staged ones.",
     barred: true,
   },
   {
@@ -355,7 +355,7 @@ export const SOURCES: SourceCard[] = [
       "Nappy says the quiet part in its own licence, which is more than most free libraries do. Its Studio arm does handle releases, but that is a commissioned shoot and not this library.",
     covers: ["birthdays", "weddings", "corporate", "trips"],
     catalogue:
-      "A real library of Black and Brown people at celebrations, which is the representation the rest of the free corpus does not have. Readable from here, per vertical.",
+      "A real library of Black and Brown people at celebrations, which is the representation the rest of the free corpus does not have. Readable from here, per kind of event.",
     verdict:
       "The best free library on this sheet at the thing the free corpus is worst at, and it still cannot hand us a released face. Keep it for a frame with nobody recognisable in it.",
     barred: true,
@@ -514,7 +514,7 @@ export const LICENCES: LicenceNote[] = [
     verdict: "refused",
     clause:
       "Attribution: You must give appropriate credit, provide a link to the license, and indicate if changes were made.",
-    note: "Refused for the manifest rather than on principle. Round four found the strongest free catalogue on the sheet sitting under it (87,066 conference photographs), so the refusal is now a real cost rather than a cheap one, and ask 3 puts it back in front of Will.",
+    note: "Refused for the manifest rather than on principle. Round four found the strongest free catalogue on the sheet sitting under it (87,066 conference photographs), so the refusal is now a real cost rather than a cheap one, and question 3, on whether a crowd needs everyone\u2019s permission, puts it back in front of Will.",
   },
   {
     name: "Vecteezy (Free)",
