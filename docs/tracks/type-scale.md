@@ -1,6 +1,6 @@
 ---
 track: type-scale
-status: open
+status: handed-off
 cut: "1b11ab9a"          # Round 4 of the revamp: the six paper boards rebuilt as catalogs (2026-09-16)
 board: type-scale
 owns:
@@ -76,28 +76,90 @@ close browser tabs you are not using; kill your server before handing off; never
 in a commit message; stage files explicitly; the `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`
 trailer on every commit. The dev server on :3000 is Will's.
 
-**Questions.** What the goal leaves open goes here, numbered, with your recommended answer; carry on
-with the recommendation. Never guess at a product decision without writing the question down.
+**Questions.** Each carries its context, the recommendation the round was built on, and what it would
+cost to answer the other way.
+
+1. **Round five let the two registers be picked separately (a Marketing switch and an App switch, so a
+   ruling could be "marketing B, app C"). The catalog gives one pick per card, so each card is now a
+   whole-site answer.** Recommended, and built: ONE pick. Two switches is the machine the revamp is
+   cutting, and a reviewer who wants marketing from one card and the app from another says so in the
+   note under the card; the wiring round still lands it as one `@theme` block, because the nine names
+   are one set and each half simply stands on its own rungs. The cost of the other answer is a second
+   page-wide switch and a pick that is no longer the whole ruling. `composePair()` and its tests were
+   deleted with the second switch; git holds them, and they are five lines to write again.
+2. **The `law` card is on the catalog AND letter spacing is still an ask.** Recommended, and built:
+   both. Ruling `item:law=keep` says "ship today's sizes under the law now"; answering `tracking=adopt`
+   says "whichever card wins carries the law", which is the larger, cheaper ruling. They are different
+   questions and the ledger keeps them apart.
+3. **Two 1440 frames do not fit a 1440 window, so the compared pair scrolls sideways.** Recommended,
+   and built: side by side at 1:1, with the walk opening that section at 375 where both halves stand on
+   screen at once. The alternative is the kit's `wipe` (one frame's width, a seam dragged across the
+   same headline), which fits a 1440 window but shows half of each page. Say the word and it is a
+   one-line change (`Compare mode="wipe"`).
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Design-system overhaul: `CompareTwo`'s grid squeezes a fixed-width child, so a pair of `Frame`s laid
+  out through it overlaps (measured: 712px columns under 1440px frames); the kit either documents that
+  a frame belongs in a `FrameRow` or gives `Compare` a `max-content` column mode.
+- Design-system overhaul: `Frame`'s `onApproach` cannot fire for a frame clipped out of a horizontal
+  scroll row (an IntersectionObserver reports it as not intersecting whatever the root margin says), so
+  a row of frames has to take the approach on the ROW; the kit could carry that rather than each board.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` green for this board, its reading words
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- The asks that survive, one line each, and why each is not one item
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head: this handoff commit, on `61c3a572`, pushed; synced with `launch-prep` at `86ccf239` (it had moved 11 commits: docs, plus
+  `rules.generated.json` and `touchpoints.ts`, none of which this board renders).
+- Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 pre-existing warnings, none in this
+  lane), test ok (2137), build ok (257 static pages). `pnpm lab:smoke --base http://localhost:3106`:
+  every type-scale route 200 (the board, its proposal, its track page, its three review sessions) and
+  the reading **1,155 words against the 1,200 budget**, down from 4,220. No `reading:` override
+  declared. The board's own scene route answers 200 too, and the smoke does not crawl it: its `SCENES`
+  list is hardcoded and lives outside this lane.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/type-scale.md`,
+  `docs/tracks/type-scale.md` and eight files under `src/app/(dev)/design/sandbox/type-scale/`
+  (`board.css`, `board.tsx`, `catalog.tsx`, `ladders.ts`, `ladders.test.ts`, `spec.ts`, `screens.tsx`,
+  `screen/page.tsx`; `pages.tsx` deleted). No exceptions.
+- The items, one line each (the builder's verdict; a kept one is not a component, it is the token set a
+  wiring round bakes into `theme.css` as one `@theme` block, so the Library entry it lands as is a
+  foundations entry, "the type scale", beside the palette's):
+  - `b` (B, rungs): **ship**, and the board's own pick. One rung set 12 to 160, marketing travelling
+    four rungs between the widths and the app one; the app gains its missing middle.
+  - `c` (C, registers): **refine**. The only card that changes how the front of the site feels (200
+    over 120); its app half drops the page title below today's, which is the half to rule on.
+  - `a` (A, tuned): **refine**. Today's desktop sizes kept exactly, the phone end unpacked; the app is
+    untouched, which is its cost.
+  - `law` (the spacing law alone): **refine**. Moves no size at all, so it can be taken now.
+  - `today`: **kill**. The control, and a ruling of it is a ruling to change no line.
+- The asks that survive, and why neither is one item:
+  - `tracking`: letter spacing as a function of size rides with WHICHEVER card wins, so it is a
+    property of the ruling rather than one of the things being ruled on.
+  - `not-found`: the dead-link heading is one screen that every card's paste changes the same way, so
+    it is a yes or no about that screen, not a choice between cards.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. Lab only; no production byte
+  changed (the board reads `NEXT_PUBLIC_DEMO_QR_TOKEN`, which already existed).
+- Look at first: section 01 at 1440, then flip Canvas to 375 and read the same five. The stair of cap
+  heights is the whole comparison and it is at true pixels; the hairline before "Dashboard" is where
+  the app's register starts, and the struck-through "none" in A, the law and Today is the app's missing
+  middle drawn rather than argued. Then section 02 at 375, where both halves of a pair stand on screen
+  at once: Today against B on the real home page, scrolled together.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-16). **The type scale, as a catalog of five ladders.**
+The board stopped describing sizes and started showing them: each ladder is a card drawn as a type
+specimen at the pixels it declares for the canvas, in the real heading face at the rung's own leading
+and tracking, clipped rather than scaled, with a missing app step drawn as a hole and a hairline where
+the second register starts. Eight sections became three (the five side by side, any two on the same
+real page at once and scrolled together, the pick worn by five real routes), four asks became two, and
+the glance tables, the token table, the step descriptions and the two register switches went with them;
+no size, leading or tracking moved. The dashboard became a lab screen route rather than a composed
+stage, so the app is judged at a real viewport by the same block a ruling would land, and that found a
+fourth heading outside every register (the event name inside the production `EventCard`). The board
+weighs 1,155 words outside its folds against 4,220 before, and `docs/specs/type-scale.md` is 64 lines
+against 220. Lab only; no production byte changed.
