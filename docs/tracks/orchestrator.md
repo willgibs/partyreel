@@ -61,7 +61,6 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 
 | track | board | waits on |
 | --- | --- | --- |
-| `floating-surfaces` | `/design/lab/floating-surfaces` (the directions as cards, the desk under two) | its handoff |
 | `light` | `/design/lab/light` (the twelve treatments on the real sections) | its handoff |
 | `rounding` | `/design/lab/rounding` (the four families at true size, two on one real page) | its handoff |
 | `media-kit` | `/design/lab/media-kit` (the sources' contact sheets at the real card size) | its handoff |
@@ -91,5 +90,7 @@ him: a walk of the palette catalog once `lab-catalog` integrates, then the six c
   against a declared 2,700; two questions for Will).
 - `257df8fe` type-scale integrated (five ladders as type specimens; 1,155 words under the budget; the
   dashboard as a lab screen route).
+- `767e6182` floating-surfaces integrated (seven directions as cards; 2,317 words against a declared 2,400;
+  asset row 14; the dropdown-menu submenu bug named for the wiring round).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

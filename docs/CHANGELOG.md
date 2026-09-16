@@ -97,7 +97,15 @@ routes including a dead link; eight sections became three, four asks became two 
 dead-link heading), the two register switches became one pick per card, and the reading went from
 4,220 words to 1,155 under the budget; `docs/specs/type-scale.md` from 220 lines to 64. Its question
 for Will: the compared pair scrolls sideways at 1440 (both halves stand on screen at 375); the kit's
-wipe is a one-line switch if he prefers it.
+wipe is a one-line switch if he prefers it. **`floating-surfaces`** (merged `767e6182`): seven directions as cards
+(Today, Card, Glass, Command, and Compact, Paper and Lift written from the ground up, each answering a
+cost one of the first four pays), each the event menu at 328 wide on the app's own dark over the
+album's photographs with the Ground switch moving all seven at once; the host's desk under two
+directions; the pick worn by the real pages; four asks survive (the submenu, the radius, the entrance,
+the light); the reading went from 5,040 words to 2,317 against a declared 2,400 (about 1,300 of it is
+the template's own chrome, now a ROADMAP line). Two frame bugs fixed in the lane (a frame seeding its
+ground from the parent's first render) and one product bug found for the wiring round: nested
+submenus paint nothing because `SubContent` has no portal. One asset asked of Will (row 14).
 
 Machine notes: four agents at once is the ceiling on 36 GB, one process each, a dev server killed by
 port; Vercel's daily cap kept the alias on the Library x Lab round's Phase 1 until 2026-09-17 00:13
