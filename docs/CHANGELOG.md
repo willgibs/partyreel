@@ -11,6 +11,191 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-16 — The Library x Lab round, Phase 3 opens as the clarity round: every ask in plain words, the review card, the palette catalog (`be1638f2` to `b9a32cba`)
+
+Will's first review through the desk (the light board, round 5, on the launch-prep alias) answered
+three asks (`kit=land`, `infusion=phase-1`, `register=accent`: "Identity feels way too weak") and
+stopped at two he could not parse, because an ask was a label ("The aurora's placement") over bare
+tokens (`no | seam | both | room`) with the evidence a tab away and labelled in other words ("hard to
+visibly tell what Family and Lift are from the previews"). His directive, verbatim in
+`docs/design/rulings.md` (2026-09-15 · a question carries its context; an exploration is a catalog):
+"the more clearly you can ask me questions, the more easily it is for me to respond", and for every
+future exploration "a few of our best concepts created for review, pick the best direction and refine
+for production polish... a catalog of previews to select from". The Orchestrator opened the round at
+`be1638f2`: the `Ask` shape gained `context`, `look`, `state`, `control` and options as `{id, label,
+means}` (read only through `optionId` / `optionLabel` / `optionMeans`; a bare string is the transitional
+form and `sandbox/registry.test.ts` holds `PLAIN`, the list of boards still on it, which only shrinks);
+`?` became an answer in the review grammar ("not clear to me", the note required, stored as a null
+choice, reported as `unclear` by the status reader and flagged on the desk); the desk's session and
+the board's answer block print the context, the look and the labelled options; the light board was
+rewritten as the exemplar with its depth columns carrying the options' names; the ledger took his five
+light entries and the window his three notes. Eleven tracks then ran at once from `d5f0c3c9`: nine
+rewrote their board's asks in plain words with the evidence labelled by the options' names, `palette`
+rebuilt as the first catalog, `lab-review-card` moved the answering onto the board. The wave crashed
+the machine once (eleven agents' dev servers, builds and browser tabs on 36 GB of RAM took the app
+to 80 GB); nothing was lost, every agent was resumed from its worktree with its state spelled out,
+and the rest ran four at a time with one process each. At the close `PLAIN` is empty, the table of
+contents' reading line counts the card's height, and the alias still serves Phase 1 until Vercel's
+daily cap frees at 2026-09-17 00:13 UTC (the cap counts every path; the GitHub integration itself
+was refused with "Deployment rate limited", so the record that it had "created no deployments" was
+corrected). Gates on the closing tree: typecheck, lint, 2183 tests, the build, 327 smoke checks.
+
+**`lab-review-card`** (merged `0829c12d`). The answering moved onto the boards. `?session=<board>.<ask>` on `/design/lab/<board>` now pins a
+REVIEW CARD under the board's dock: the question in plain words, the ask's context, the "Where to
+look" line, the options as numbered cards carrying their label and what choosing each one means,
+the note, "this question is not clear to me", and Back and Next counted across the whole open queue.
+Landing on a step applies the ask's declared state through the board's own `setState` and scrolls its
+evidence section under the chrome; picking an option on an ask that names a `control` sets that
+control, so the pick is the preview. Next inside a board is a state change, the last ask of a board
+links to the next board's first open ask, and the last of the queue lands on the desk's summary,
+which composes the same message it always did. The step's shape and the queue's derivation moved out
+of the desk page into `_desk/session-step.ts`, read by both routes; the walk's scroll became
+`scrollToSection`, which clears the card's height as well as the dock's; the desk's queue rows and
+"Start the review" open an ask on its board. The card joined the kit with a contract, a `for` line
+and a live specimen on `/design/lab/kit`.
+
+**`palette`** (merged `99544a2b`). Merged into `launch-prep` at `99544a2b` (2026-09-16). The palette board became a catalog, which is
+what Will's review asked for after round five ("a dozen polished variants with preview palettes with
+some demo UI to config & compare would've been far more helpful than this massive mountain we've
+created"). Five rounds had built a machine rather than a choice: six dark sets, five light ones, four
+accents and five switches, hundreds of reachable states and an answer in none of them. Round six
+chose. Twelve of those states are now finished palettes with names, each one whole (a dark room, a
+dark slab, a page, a set-apart panel, a media well, every text grey and one accent), each a card
+carrying its grounds as a strip, the text steps on the two grounds type lands on, the accent and the
+six state colours in both modes, and the same piece of the product built from the production Card,
+Button, Input, Badge and DropdownMenu at true pixels, dark beside light. Picking a card is picking the
+palette everywhere below it: seven switches became one. Thirteen sections became six and eight asks
+became four, because only three decisions survive a pick and none of them is a colour. The rulers, the
+set tables and the register diagram left as canvases and came back as collapsed paragraphs, which is
+what a settled argument is worth. No value moved: `registers.ts` is untouched apart from letting the
+apply label carry the palette's own name, and every pin it carries still passes. Lab only, no
+production byte.
+
+**`glow-specs`** (merged `1244fbd8`). Merged into `launch-prep` at `1244fbd8` (2026-09-15). Both glow boards joined the clarity round: each had
+exactly one ask and each asked it as a label with two bare tokens ("The lit surface carve-out",
+`light | here`), which is the shape Will could not answer on the light board. Both are now real
+questions that carry their own context, so a stranger can answer them on the desk or on the review
+card without opening the board: what a lit card is and what the publish flourish is, where to look
+(items 05 and 07 inside each board's one evidence section, and the specimens by their on-screen names),
+and each answer labelled in words with what picking it would do. The board question, the verdict and
+the section lede followed into the same plain words, and both boards left the registry's clarity
+ratchet (`PLAIN`), which now checks their shape. The ask and option ids were untouched, so the review
+ledger still joins; no candidate, number, placement, verdict or recommendation moved, and neither
+evidence component was touched. Both asks are procedural (which board closes the item), so there was
+no specimen to relabel with an option's name.
+
+**`brand-voice`** (merged `80200756`). Merged into `launch-prep` at `80200756` (2026-09-15). Will answered three asks on the light board and
+stopped at two that were labels over tokens, so this round rewrote all seven of the brand voice
+board's asks as questions a stranger can answer where they meet them: each now carries what the
+thing is and where it lives on the site, where to look, and options named in words with one sentence
+on what choosing each would do. The nicknames the board had grown were glossed or deleted, in the
+asks and in the evidence alike: "the house" and "the room" became "A, a tuning of the lines we have"
+and "B, rebuilt around the album filling", "the thesis" became the site's one-line promise, "the
+unfurl" became the link preview a group chat draws, "the arc" became the home page, and the ledger's
+eyebrow and CTA became a small label and a button. The evidence was made to carry the options' own
+names, so the three voices are now one string reaching the dock, every column head, every frame
+title and the voice card at once, and the link preview, the promise pair, the rule-20 card and the
+guest section each name what a reviewer was offered. The voice switch's option ids moved onto the
+ask's so a pick previews itself, with a boundary map keeping 2,300 lines of copy from being rewritten
+by a rename. No ask id, option id, candidate, number or recommendation changed, no new evidence was
+built, and no production byte changed.
+
+**`rounding`** (merged `edb4c732`). Merged into `launch-prep` at `edb4c732` (2026-09-16). Will's first review through the desk answered three asks on the light board and stopped at two that were a label over four tokens, so the clarity wave rewrote every board's asks in plain words; this was the rounding board's turn. Its five asks had been labels ("The surface family", "The action rung", "The derived ladder") over option ids nobody could read away from the board, and the worst of it was that the ids did not even match what the board showed: the asks offered a, b, c and d while the dock, the board state and candidates.ts offered today, square, soft and family, so a ruling of "c" pointed at nothing a reviewer could flip to.
+Each ask is now a question a stranger can answer where they meet it, on the desk or on the card: what the thing is and where it lives on the site, where to look and what to compare, and every option named in words with one line on what choosing it does. "Which corner should cards, menus and photographs have?" offers A, today: 2 / 8 / 3 through D, one family: 14 / 14 / 6; "How round should buttons be?" offers Today, 0.4 of the height, A full pill and Quiet, 0.2 of the height; the seven derived steps became "Which sizes should the seven corner steps climb in?", the dead rungs "Should the two largest corner steps be deleted?", and the gallery gap "Should the gap between photographs follow their corner?".
+The same words then went onto the evidence, which is the half that makes an ask answerable: the four candidates are called a, b, c and d everywhere now, so the matrix headings, the nested heads, the two ladder columns, the button rungs, the four phone titles, the frame captions and the gap screen's two grids all carry the option's own name. candidates.ts lost ANSWER.lines, a hand-written second copy of the five asks from before the template rendered them from the spec.
+No candidate, number or recommendation moved and no new evidence was built. Nothing had answered this board yet, so no recorded ruling was orphaned by the rename, and lab-review now refuses a stale token by name. The board came off the clarity ratchet's PLAIN list, which only shrinks. The board still answers C, soft, today's buttons, even quarters, drop the top two steps and pin the gap.
+
+**`home-hero`** (merged `f438190d`). Merged into `launch-prep` at `f438190d` (2026-09-16). The home hero board's four asks were rewritten as
+questions a stranger can answer where he meets them, which on this board meant admitting that all
+four had been labels over tokens ("The direction: source | scan | inflow") that only the board could
+decode. Each now carries what the thing is and where it lives on the site, where to look and what to
+compare, and every option labelled in words with one sentence on what choosing it does; the two
+nicknames a reader would have had to dig for, the source and the corridor, are glossed inside the
+ask that uses them. The ids did not move, so the ledger still joins, and no concept, number,
+recommendation or specimen changed. The harder half was the evidence: a card titled "1. The source"
+gave a reviewer nowhere to find the words he had been offered, so each concept card, the dock's
+concept switch and the four headline lockups now wear their option's own label, and the shipped hero
+at the foot of the board says in its own caption that its type runs left, because the board builds
+no left candidate and that caption is the only place the lockup ask's second option can be seen. Two
+options still have no specimen at all (a left-aligned lockup, a hero with the count removed) and the
+handoff names them as evidence a later round owes rather than words this one could fix.
+
+**`media-kit`** (merged `7617d6b4`). Merged into `launch-prep` at `7617d6b4` (2026-09-16). Will's first review through the desk answered three
+asks and stopped at two that were labels with token options, so the media-kit board's four questions
+were rewritten as questions a stranger can answer where he meets them. "The sourcing rule" is "Should
+every photograph on the site have to say where it came from?"; "the bridge" is "Should we spend $56 on
+licensed photographs to run on until we shoot our own?"; "the release rule" is "In a crowd shot, does
+every face need signed permission, or only the subject?"; "the kit, shot in one night" is "Should we
+shoot the 36 photographs ourselves at a real event?". Each carries what the thing is, where to look and
+an option labelled in words with what picking it does, and every id is unchanged, so the ledger joins on
+them exactly as before. The evidence repeats those words: the plan table is headed "Buy the $56 set
+now" and the list under it "Wait for the shoot, spend nothing", both record cards say "Yes, require the
+six facts" with the line above the fields saying what "No" keeps, and the call sheet says "Shoot the 36
+in one night" while each group says what "Park" keeps instead. The nicknames left with them. "Ask 3"
+was on five rendered strings and a reviewer cannot turn a number into a question, so each says what it
+asks and a new guard refuses the shorthand; a model release is glossed once as signed permission and the
+sheet's badges read that way; and "a vertical", which this board also used for a portrait clip three
+rows down, is "a kind of event" everywhere the segment is meant. The board's question, verdict and all
+eleven section titles and ledes went the same way. Nothing was re-argued: no candidate, number, price or
+recommendation moved, every count is still computed from the batch, and the guard that pins that now
+reads the whole ask card rather than the question and the because.
+
+**`album-hero`** (merged `63240eac`). Merged into `launch-prep` at `63240eac` (2026-09-16). The album page's hero board's five asks were
+rewritten in plain words, after Will's first review through the desk stopped at asks that were labels
+with token options. Each is a real question now, carrying what the thing is and where it lives on the
+site, where to look and what each option would do, with the ids untouched so the ledger still joins on
+them: the headline's size step, the album's width on a laptop, its one live signal, what a reader with
+no JavaScript sees, and whose words the hero says. The evidence learned the same vocabulary, reading
+each option's label off the spec so a caption and the ask a reviewer answers cannot drift apart, and the
+board's question, verdict and three section ledes dropped the nicknames (the vent, the lockup, the quiet
+zone, the cinema-to-paper cut) for what they are. The dock's Headline and Album switches now wear the
+asks' own labels and ids, so picking an option on the review card previews it; the album switch's second
+position moved from `wide` to `both` to match the ask, because a control's ids bend to an ask's and
+never the reverse. No candidate, number or recommendation changed, and no new evidence was built.
+
+**`type-scale`** (merged `bfab66c1`). Merged into `launch-prep` at `bfab66c1` (2026-09-16). The type-scale board's four questions were
+rewritten so that someone who has not read the board can answer them where they meet them: each ask
+now carries a real question, what the thing is and where it lives on the site, which section and
+which switch to look at, and options named in words with what choosing each one would do. The four
+candidates carry those names on the evidence (the chooser's rows and captions, the pair's heading,
+the loudness column, the app stages, both halves of the 404, all four rows of the spacing law) and on
+the two dock switches, so the option a question offers is the option the dock previews. The board's
+question, verdict, section titles, ledes, walk and notes dropped the nicknames: a ladder is a set of
+heading sizes, leading is line spacing, tracking is letter spacing, a register is one half of the
+site. A new test pins each ladder's name inside its option's label and on its switch, so an option
+cannot be reworded back into a letter; the board came off the sandbox registry's clarity ratchet. No
+ask or option id moved, so the review ledger still joins, and no size, candidate, number,
+recommendation or piece of evidence changed. Lab only; not one production byte moved.
+
+**`river-visual`** (merged `bea5ace8`). Merged into `launch-prep` at `bea5ace8` (2026-09-16). The river board's four asks were rewritten in
+plain words after Will's first review through the desk stopped at questions that were labels with
+token options. Each ask is now a real question carrying its own context, a line saying where to look,
+and options labelled in words with one sentence on what picking each one does, so a stranger can
+answer it where he meets it: on the desk's session, on the board's answer block, or on the review
+card pinned under the dock. The evidence carries the same words. The three placement sections are
+titled with the three options of the placement ask, the size row's captions open with the code ask's
+two, and the guest comparison labels both halves with the one option they both are while its differs
+line says where the other answer would be. The board's question, verdict and every section lede went
+the same way, the dock's "Origin" knob became "Pours out of", and the board came off the clarity
+ratchet's PLAIN list. No ask id, option id, candidate, number or recommendation changed, and no new
+evidence was built: the two asks whose other options are argued rather than drawn say so in their own
+look lines.
+
+**`floating-surfaces`** (merged `b9a32cba`). Merged into `launch-prep` at `b9a32cba` (2026-09-16). The floating-surfaces board's five asks were
+rewritten in plain words, after Will's first review through the desk stopped at questions that were
+labels with token options. Each ask now carries a real question, what the thing is and where it lives
+on the site, where to look and what to compare, and every option labelled in words with one sentence
+on what choosing it does; every ask id and option id is unchanged, so the ledger still joins on them.
+The evidence carries the same words: the four answers, the nested menu's two frames, the entrance's
+two and the corner and light ladders are all titled from the asks themselves through `askOptionLabel`,
+which reads `spec.ts` rather than a second table, and the dock's Direction switch mirrors the direction
+ask to the id and the label, so picking an option on the review card previews it. The applied badge
+stopped saying "radius nested, entrance by frequency": `contractLabel` left `candidates.ts` for
+`contractName` in `constants.ts`, and the two token tables it read went with it. The board's question,
+verdict, section titles and ledes went the same way, a nickname only with its gloss, and the outliers
+lede stopped promising an ask round four had removed. No direction, number, recommendation or specimen
+changed, and `floating-surfaces` came off the clarity ratchet's `PLAIN` list.
+
 ## 2026-09-15 — The Library x Lab round, Phase 0: two areas on one shell (the Orchestrator)
 
 Will stopped his review of round four before it began: no cross-page navigation, every board a

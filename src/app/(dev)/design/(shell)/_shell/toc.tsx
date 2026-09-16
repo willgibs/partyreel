@@ -209,5 +209,10 @@ function readingLine(): number {
     const value = parseFloat(style.getPropertyValue(name));
     return Number.isFinite(value) ? value : 0;
   };
-  return px("--lab-topbar-h") + px("--board-dock-h") + 24;
+  // The review card pins under the dock while a review is open and writes its
+  // height the same way (review-card.tsx); without this term a heading reads
+  // as "reached" a card early (the lab-review-card track's handoff, 2026-09-16).
+  return (
+    px("--lab-topbar-h") + px("--board-dock-h") + px("--review-card-h") + 24
+  );
 }

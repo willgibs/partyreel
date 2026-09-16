@@ -27,6 +27,20 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 - **The review card at 375 as a sheet** (the `lab-review-card` track, 2026-09-15): the card is static on
   a phone; a bottom sheet that keeps the question and the picked option in view while the evidence
   scrolls is the phone-native version.
+- **Evidence the clarity round's asks still owe** (2026-09-16; each ask says so in its own look line): a
+  left-aligned lockup and a hero with no count on `home-hero`; the arriving tile, the settled no-script
+  frame and the voice line on `album-hero`; a proportion control on `river-visual` (one line: the ask
+  mirrors it) and the no-photographs guest screen; the two procedural asks on `brand-voice` (a ledger,
+  not a specimen).
+- **A measured-width wrap for the dock's knobs** (the `type-scale` track, 2026-09-16): `ControlKnobs`
+  wraps only above five options, so a four-option switch with the asks' full labels overflows a 375 dock
+  (372px in 327); the switches wear the candidates' names meanwhile.
+- **The palette catalog on one 1440 screen** if Will wants one screen (the `palette` track, 2026-09-16):
+  four across runs three rows, about two screens; the cheap lever is dropping the card's second copy
+  line, five across would shrink the demo panel under 130px where the Card stops reading as one.
+- **`lab-review`'s scanner assumes `defineBoard({` literally** (the `media-kit` track, 2026-09-16): a spec
+  that wraps its object in a call would be read as having no asks; the round-trip test on every standing
+  spec is what catches it, so keep every spec a literal or teach the scanner the wrapper.
 - **The kit's next two pieces, both written and working in `sandbox/brand-voice/frames.tsx`** (the
   `brand-voice` migration, 2026-09-15): `height="measured"` on `Frame` (a callback ref observing the
   portalled scene with the frame's own ResizeObserver, the `fonts` chain guarded on an about:blank
