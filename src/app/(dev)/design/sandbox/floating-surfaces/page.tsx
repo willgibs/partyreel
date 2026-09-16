@@ -3,15 +3,7 @@ import type { Metadata } from "next";
 import type { Ground } from "@/components/lab";
 import { requireDesignKey } from "@/lib/design-gate/server";
 
-import {
-  DIMS,
-  GROUNDS,
-  SCENES,
-  SUBS,
-  type Dim,
-  type Scene,
-  type Sub,
-} from "./constants";
+import { GROUNDS, SCENES, SUBS, type Scene, type Sub } from "./constants";
 import { DIRECTIONS, type Direction } from "./directions";
 import { SceneShell } from "./scene-shell";
 
@@ -78,7 +70,6 @@ export default async function FloatingSurfacesScenePage({
       direction={pick<Direction>(DIRECTIONS, one(params, "direction"), "today")}
       sub={pick<Sub>(SUBS, one(params, "sub"), "keep")}
       phone={one(params, "w") === "375"}
-      dim={pick<Dim>(DIMS, one(params, "dim"), "radius")}
       rung={one(params, "rung")}
       pinned={one(params, "pin") === "1"}
     />

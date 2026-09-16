@@ -21,6 +21,8 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
 The lab and the kit:
+- The lab: `TrueScale` belongs in `src/components/lab` (a specimen at 1:1 inside a step's zoomed tile); the two board copies (type-scale, rounding) delete with the move, and floating-surfaces' enlarged loupe retires into it.
+- The lab: a board whose option tile IS the specimen needs a declared way to say so (`--lab-tile-min`, `--lab-tile-h` and the phone column count) instead of a `:has()` rule in its own sheet (rounding round seven).
 - The lab: a one-at-a-time catalog step has no config strip, so a reviewer at 375 cannot switch Canvas from the walk (`?canvas=phone` does it); `CatalogSpec.strip`, mirroring `Ask.strip`, is the fix (light round seven).
 - The lab: a staged step reached by its own URL before its prerequisite is held numbers itself past the end ("step 43 of 42"); the walk should redirect to the first open step instead (light round seven).
 - The lab: the step's option tiles scale their evidence (`FitStage fit="zoom"` in `step.tsx`), so a board judging SIZE has to undo it; offer a tile that draws at 1:1 and retire `sandbox/type-scale/true-scale.tsx` into it (type-scale round seven).

@@ -32,8 +32,8 @@ and nothing else moved, and it closes the album's gap by deletion.
 | `--radius-action`, `-lg`, `-sm` | 16 / 19.2 / 12.8 | unchanged |
 | the seven derived steps | 0.6, 0.8, 1, 1.4, 1.8, 2.2, 2.6 | 0.5, 0.75, 1, 1.25, 1.5, 1.75, and the top two deleted |
 
-The paste is generated on the board's last section from whatever the dock is claiming, so it is never
-typed here: pick a family, open "The ruling, as a paste", copy the block. It lands on `:root` alone
+The paste is generated from whatever the dock is claiming, so it is never typed here: pick a family
+and copy the block under "One real page, wearing the pick". It lands on `:root` alone
 (`globals.css` says never to alias the radius tokens to `.surface-paper`), and the ladder rides along
 as utility overrides because `@theme inline` bakes each step into its utility at build time.
 

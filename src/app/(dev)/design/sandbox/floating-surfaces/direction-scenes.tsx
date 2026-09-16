@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { EventCard } from "@/components/app/event-card";
 import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { FilterChips } from "@/components/app/dashboard/filter-chips";
-import { UserMenu } from "@/components/app/user-menu";
 import { AppShell } from "@/components/shared/app-shell";
 import { Kbd } from "@/components/shared/kbd";
 import { PageHeading } from "@/components/shared/page-heading";
@@ -232,33 +231,6 @@ function DeskScene({ direction }: { direction: Direction }) {
         </FeedSection>
       </div>
     </AppShell>
-  );
-}
-
-/**
- * THE ACCOUNT MENU AS IT SHIPS, and the one place on this board that renders no
- * candidate at all: `app/user-menu.tsx`, the real component, with the real
- * theme submenu inside it. It is here because the submenu call is about a bug
- * rather than about a taste, and a bug is only worth ruling on once somebody
- * has seen it: open the avatar, hover Theme, and nothing paints.
- */
-function RealAccountScene() {
-  return (
-    <div className="absolute inset-0 flex flex-col bg-background">
-      <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
-        <p className="text-sm font-semibold tracking-tight">Partyreel</p>
-        <UserMenu
-          email="will@partyreel.com"
-          displayName="Will Gibson"
-          avatarUrl={null}
-        />
-      </div>
-      <p className="px-4 py-3 text-xs text-muted-foreground">
-        Open the avatar, then hover Theme. The submenu opens, reports itself
-        visible and paints nothing, because SubContent has no portal and Content
-        clips what overflows it. Every host and every guest has this menu.
-      </p>
-    </div>
   );
 }
 
@@ -497,7 +469,7 @@ export function DirectionScene({
   sub,
   phone,
 }: {
-  scene: "desk" | "pocket" | "menu" | "sub" | "real" | "surfaces";
+  scene: "desk" | "pocket" | "menu" | "sub" | "surfaces";
   direction: Direction;
   sub: Sub;
   phone: boolean;
@@ -506,6 +478,5 @@ export function DirectionScene({
   if (scene === "pocket") return <PocketScene direction={direction} />;
   if (scene === "menu") return <MenuScene direction={direction} />;
   if (scene === "sub") return <SubScene direction={direction} sub={sub} />;
-  if (scene === "real") return <RealAccountScene />;
   return <SurfacesScene direction={direction} phone={phone} />;
 }
