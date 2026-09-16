@@ -1,7 +1,7 @@
 ---
 track: palette
 status: open
-cut: "be1638f2"          # round 6, the clarity round: the catalog, cut from launch-prep
+cut: "d5f0c3c9"          # round 6, the clarity round: the catalog, cut from launch-prep
 cut_round_5: "1b647d76"
 merged_round_5: "66797acd"
 merged_round_4: "5cd20bdc"
