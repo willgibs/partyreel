@@ -1,7 +1,8 @@
 ---
 track: palette
-status: open
+status: handed-off
 cut: "d5f0c3c9"          # round 6, the clarity round: the catalog, cut from launch-prep
+synced_round_6: "1244fbd8"  # merged before handoff (glow-specs)
 cut_round_5: "1b647d76"
 merged_round_5: "66797acd"
 merged_round_4: "5cd20bdc"
@@ -2016,3 +2017,129 @@ mark are now shown on the real footer instead of argued about. Today-beside-the-
 wipe with the seam on a slider, so a 0.02 step is judged across four pixels; the two set cards became
 two tables where the row is the dock control. `TrueViewport`, its entrance-settling sheet and
 `ScopedTokens` went with them. No set, number or recommendation changed. Lab only, no production byte.
+
+## Handoff (round 6)
+
+- Head: `62ce6072` on `lp/palette`, pushed. No preview: `preview: false`, and no `[preview]` or
+  `[ci]` on any commit. The board is `/design/lab/palette`.
+- Synced with `origin/launch-prep` at `1244fbd8` (glow-specs integrated). The merge was clean:
+  the adjacent deletions in `sandbox/registry.test.ts` (their two lines off `PLAIN`, my one)
+  resolved on their own and both sides' deletions are in. PLAIN now reads album-hero,
+  floating-surfaces, home-hero, media-kit, river-visual, type-scale.
+- Gates on the synced tree, each on its own exit code: typecheck 0, lint 0 (0 errors, 6 warnings, all
+  pre-existing and none in this lane), test 0 (2161 in 218 files), build 0 (257 static pages).
+  `pnpm lab:smoke --base http://localhost:3311` 320 checks, 0 failing. `pnpm format` on the
+  changed files.
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: `docs/specs/palette.md`,
+  `docs/tracks/palette.md`, the eight files under `src/app/(dev)/design/sandbox/palette/`
+  (`board.css`, `board.tsx`, `catalog.tsx` new, `palettes.ts` new, `registers.ts`,
+  `registers.test.ts`, `sections.tsx`, `spec.ts`, plus `ladders.tsx` and `model.tsx`
+  deleted), and the one exception the brief names, `sandbox/registry.test.ts` (one line:
+  `palette` off `PLAIN`). Net 1493 insertions, 1682 deletions: the round is a subtraction.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. Lab only, no production byte:
+  `globals.css`, `theme.css` and `marketing.css` were read and not touched.
+
+**The twelve, as they read on the card.** Each is one dark set, one light set, an accent and the mat
+call, curated out of the hundreds the old switches allowed. The line is the ask's `means`; the second
+line on the card is the reason to prefer it.
+
+1. **Today**: the site exactly as it ships. Three darks with no ladder, a near-white page where a card
+   is its hairline, no accent. The one to come back to.
+2. **Ember** (the board's pick): a warm dark room, a true grey page, the flare accent.
+3. **Ladder**: a neutral dark in three real steps, a true grey page, the flare accent. Ember at chroma
+   zero, for keeping the decision `globals.css` records as closed.
+4. **Slate**: a cold dark room, a daylight page, and the blue already in the system as the accent.
+5. **Gallery**: a neutral dark in three steps, a daylight page on a dead grey mat, and no accent at
+   all. The purist reading kept whole.
+6. **Studio**: one dark room with every surface derived from it, a page where the card IS the paper,
+   no accent. One number tunes the dark side; it leans entirely on depth.
+7. **Loft**: a dark that is never black, the card is the paper, the reel's violet promoted. One dark
+   register instead of two.
+8. **Press**: warm on both sides, a warm dark room and warm uncoated paper, with flare. Nothing flips
+   at the seam, and the page very slightly yellows a white dress.
+9. **Reel**: a cold dark room, a true grey page, and the product's own violet as the accent.
+10. **Signal**: one derived dark room, a true grey page, the save blue promoted. No new hue anywhere.
+11. **Daylight**: a warm dark room against a daylight page, with flare. Cross-cast on purpose.
+12. **Dusk**: a warm dark room and today's near-white page kept exactly as it is, with flare. The
+    smallest change that still moves anything.
+
+**The recommendation: Ember**, marked with a dot on its card and carried by the verdict. Warm the room
+and leave the page alone: the cast does real work against skin on a dark ground and is a tax on paper,
+paid by every white dress and every document. It is the pair the old one-switch shape could not have
+produced, and it agrees with `RECOMMENDATION` in `registers.ts` by a test rather than by memory.
+
+**The asks, as they now read** (four, down from eight; every one a question with its own context, where
+to look, labelled options and a dock control):
+
+1. `palette` "Which palette should the site wear?" Twelve labelled options, one line each,
+   `control: "palette"`, recommended **ember**. Evidence: the catalog.
+2. `reach` "How far should the accent colour reach?" All three jobs | Only what asks to be noticed |
+   Only the mark and the frames. Recommended **all**. Evidence: the calls.
+3. `card` "In dark mode, should a card be solid or see-through?" Solid, as the palette declares it |
+   Solid, and written down as a rule | Keep it see-through. Recommended **declared**. Evidence: the calls.
+4. `faint` "Should there be a third, fainter text colour?" Yes, add it | No, keep fading by hand.
+   Recommended **in**. Evidence: the calls.
+
+   The four retired ids (`model`, `dark`, `light`, `accent`, `mat`) carried no recorded answer,
+   and `reach`, `card` and `faint` keep their ids and their meaning, so nothing in the ledger orphans.
+
+**Verified.** The board on a local `pnpm dev` (port 3311) at 1440 and at 375, dark: the catalog four
+across at 1440 and one across at 375 with no horizontal scroll at either, every card at true pixels on
+the production Card, Button, Input, Badge and DropdownMenu, zero animated elements anywhere in the
+catalog so a reduced-motion reader gets the identical composition. Picking a card sets the dock, the
+URL (`?palette=slate`) and the board root's `data-palette` in one press, and the sections below
+re-render on it. All six sections render (catalog 1770px, compare 1453, calls 3366, pages 1292, app
+6198, paste 783; 18,127px total, against round five's thirteen sections).
+`pnpm lab:review --dry 'review palette r6: palette=ember'` accepted, the four-ask form accepted, and
+an invalid option refused with all twelve listed.
+
+**Two landmines found and written down where they bit** (both in the code, both new):
+
+- `data-palette` is the BOARD ROOT's own attribute. `BoardPage` writes `data-<controlId>` for every
+  declared control, and this board's control is called `palette`, so a card using the same attribute
+  made any sheet selecting on `[data-palette="ember"]` hit thirteen elements. The cards are
+  `data-pal-card` now. Any board whose control id collides with an attribute it writes has this.
+- **The lab's utilities sub-layer loses to production's at every breakpoint.** `design.css` documents
+  that `layer(utilities.lab)` is outranked by `utilities`, and this is that rule biting a RESPONSIVE
+  pair: `lg:grid-cols-3` exists in production's sheet and `xl:grid-cols-4` was lab-only, so at 1440,
+  where both variants match, the grid silently laid three columns. A lab-only responsive utility cannot
+  override a production one on the same element; the catalog's columns are in the board's own unlayered
+  sheet instead.
+
+**Assets requested from Will** (unchanged from round five, and now more pointed, because every one of
+the twelve cards lays the same two stand-ins on the well):
+
+- **Four hard cases inside the media kit's shot list** (a line on that track's 36-shot list, not a
+  second delivery) · one high key (a white dress against a white wall), one low key (a dance floor lit
+  by one lamp), one candle-warm, one stage-cool; 1600px long edge, landscape, one grade
+  · replaces `wedding-golden` and `party-balloons`, the two the catalog uses, which are both mid-key
+  and warm, so the high-key end of Press and the candle-lit end of Slate are going untested.
+- **A portrait pair for the guest masonry** · two of the same 36 at 1600px long edge, PORTRAIT, the
+  same grade · replaces the hand-set tile ratios in `specimens.tsx`; every stand-in but one is
+  landscape, so the column flow the guest album ships is being faked.
+
+**One reading to flag.** The brief asked for a catalog readable on one 1440 screen. Four across makes
+twelve palettes three rows, and the catalog section measures 1770px: about two screens, not one. Going
+to five or six across would have taken the demo panel under 130px, where the production Card stops
+reading as a card, and the brief's own tie-break is "polish beats coverage". The swatch strip is the
+instrument for the glance and the demo panel is the proof; both are on every card. If one screen matters
+more than the demo panels, the cheap change is dropping the second line of card copy.
+
+## Record (round 6; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-16). The palette board became a catalog, which is
+what Will's review asked for after round five ("a dozen polished variants with preview palettes with
+some demo UI to config & compare would've been far more helpful than this massive mountain we've
+created"). Five rounds had built a machine rather than a choice: six dark sets, five light ones, four
+accents and five switches, hundreds of reachable states and an answer in none of them. Round six
+chose. Twelve of those states are now finished palettes with names, each one whole (a dark room, a
+dark slab, a page, a set-apart panel, a media well, every text grey and one accent), each a card
+carrying its grounds as a strip, the text steps on the two grounds type lands on, the accent and the
+six state colours in both modes, and the same piece of the product built from the production Card,
+Button, Input, Badge and DropdownMenu at true pixels, dark beside light. Picking a card is picking the
+palette everywhere below it: seven switches became one. Thirteen sections became six and eight asks
+became four, because only three decisions survive a pick and none of them is a colour. The rulers, the
+set tables and the register diagram left as canvases and came back as collapsed paragraphs, which is
+what a settled argument is worth. No value moved: `registers.ts` is untouched apart from letting the
+apply label carry the palette's own name, and every pin it carries still passes. Lab only, no
+production byte.
