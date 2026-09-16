@@ -1,3 +1,5 @@
+// @policy: engineering · The record is two rounds deep
+// @refuses: a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

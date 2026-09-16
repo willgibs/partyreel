@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 15 policies · 142 contracts on 24 components · 12 standing boards.**
+**22 laws · 16 policies · 142 contracts on 24 components · 12 standing boards.**
 
 ## What binds you
 
@@ -218,6 +218,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | --- | --- | --- |
 | A count can never glue itself to its noun | a multi-line JSX text run that opens with a space and holds an HTML entity, which Next 16's SWC renders as "24marketing". | `src/app/(dev)/design/sandbox/media-kit/board-jsx.test.ts:1` |
 | Keyframe names are unique | a second @keyframes of the same name in any stylesheet, which shadows the first for the rest of the session. | `src/app/keyframe-uniqueness.test.ts:1` |
+| The record is two rounds deep | a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |
 | Every track claims its lane | a malformed track manifest, or two live tracks claiming the same path prefix. | `src/lib/track-manifests.test.ts:1` |
 
