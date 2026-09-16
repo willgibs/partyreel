@@ -8,6 +8,15 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-16 · the home hero is the source, centred, without the count; the stream wants polish
+
+**Became:** `docs/reviews/home-hero.json` round 5 (`direction=source`, `headline=ruled`,
+`lockup=centred`, `count=cut`); the hero's wiring round; the lit surface and the publish beat's colour
+close on the light board (`docs/reviews/glow-doctrine.json`, `glow-moments.json`: both `light`).
+
+Verbatim, on the direction: "The album coming out of the code definitely looks best. However, I think
+we can improve this visual a lot. The random stream feels worse than a more polished one."
+
 ## 2026-09-16 · a track returns a catalog to rule on item by item; the Library owns every design fact; history is the last two rounds
 
 **Became:** the revamp (four rounds: the lab, the docs diet and the track protocol, the Library as
