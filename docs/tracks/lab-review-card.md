@@ -108,7 +108,8 @@ a catalog; 2026-09-15 · the lab is an internal app (the UI never writes the rep
 
 ## Handoff (replaces the chat report)
 
-- **Head `5a52fbb2`** on `lp/lab-review-card`, cut from `d5f0c3c9` and merged (never rebased) with
+- **Head `44f0a410`** on `lp/lab-review-card` (this docs-only commit; the four gates below ran on
+  the code tree at `5a52fbb2`), cut from `d5f0c3c9` and merged (never rebased) with
   `origin/launch-prep` at `5da989bd` (the rounding, brand-voice and glow-specs integrations, and the
   Answer block's own context line). No preview and no CI: `preview: false`, and no commit carries
   `[preview]` or `[ci]`.
