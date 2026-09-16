@@ -92,7 +92,7 @@ export const PLAN: PlanRow[] = [
     buy: `Budget ${HARD_FRAMES} frames at iStock Essentials for the conference rooms, on top of the month.`,
     spend: ISTOCK_FRAME * HARD_FRAMES,
     spendNote: `${HARD_FRAMES} frames at $${ISTOCK_FRAME}. This is the vertical round three could not fill at all from the free corpus, and a curated premium library is thin on it too, so it is the one line worth paying per frame for.`,
-    fallback: `Web Summit's Flickr archive, free, ${WEBSUMMIT_CC.toLocaleString("en-US")} photographs under CC BY 2.0, if ask 3 rules that a crowd is not a subject and a credit line is acceptable. The catalogue is far better than anything the money buys; the licence is worse.`,
+    fallback: `Web Summit's Flickr archive, free, ${WEBSUMMIT_CC.toLocaleString("en-US")} photographs under CC BY 2.0, if question 3 answers "Only the frame's subject" and a credit line is acceptable. The catalogue is far better than anything the money buys; the licence is worse.`,
   },
   {
     key: "festivals",

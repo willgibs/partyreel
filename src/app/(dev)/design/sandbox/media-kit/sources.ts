@@ -313,7 +313,7 @@ export const SOURCES: SourceCard[] = [
       "Web Summit's own terms cover Web Summit's use of its attendees' likenesses, not ours. CC BY is a copyright licence and says nothing about the people in the frame, so under our own rule every recognisable face here is still barred. The contact sheet adds a second bar nobody had thought of: a conference floor is a wall of other companies' trademarks, and the frames below carry Meta and Huawei booths at full size.",
     covers: ["corporate"],
     catalogue: `${n(WEBSUMMIT_TOTAL)} photographs on the account, of which ${n(WEBSUMMIT_CC)} are licensed CC BY 2.0, counted on the date above. Professional conference photography: keynote rooms, crowded aisles, badge tables, side-stage crowds.`,
-    verdict: `The best free catalogue that exists for the one vertical our corpus could not fill at all, and it still fails the release half of the rule. Ask 3 is the ruling that decides whether ${n(WEBSUMMIT_CC)} frames are a source or a footnote.`,
+    verdict: `The best free catalogue that exists for the one kind of event our corpus could not fill at all, and nobody in it signed anything. Answer "Only the frame's subject" to question 3 and these ${n(WEBSUMMIT_CC)} frames are a source; answer "Every recognisable face" and they are a footnote.`,
     barred: true,
   },
   {
@@ -335,7 +335,7 @@ export const SOURCES: SourceCard[] = [
     catalogue:
       "The whole of Flickr under one licence filter, which is the deepest free corpus of real events that exists, by a distance. The sheets are what it returned for the four verticals Web Summit does not cover.",
     verdict:
-      "Not a gallery, a filter over everyone's galleries. It is where you go if ask 3 says a credit line is acceptable, and it is the only free place that can fill all four remaining verticals with real events rather than staged ones.",
+      "Not a gallery, a filter over everyone's galleries. It is where you go if question 3 answers \"Only the frame's subject\" and a credit line is acceptable, and it is the only free place that can fill the four remaining kinds of event with real ones rather than staged ones.",
     barred: true,
   },
   {
@@ -514,7 +514,7 @@ export const LICENCES: LicenceNote[] = [
     verdict: "refused",
     clause:
       "Attribution: You must give appropriate credit, provide a link to the license, and indicate if changes were made.",
-    note: "Refused for the manifest rather than on principle. Round four found the strongest free catalogue on the sheet sitting under it (87,066 conference photographs), so the refusal is now a real cost rather than a cheap one, and ask 3 puts it back in front of Will.",
+    note: "Refused for the manifest rather than on principle. Round four found the strongest free catalogue on the sheet sitting under it (87,066 conference photographs), so the refusal is now a real cost rather than a cheap one, and question 3, on whether a crowd needs everyone\u2019s permission, puts it back in front of Will.",
   },
   {
     name: "Vecteezy (Free)",
