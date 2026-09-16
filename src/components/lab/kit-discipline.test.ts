@@ -59,7 +59,6 @@ const OWNED = [
  */
 const LEGACY: readonly string[] = [
   "media-kit",
-  "palette",
 ];
 
 function filesIn(dir: string, out: string[] = []): string[] {

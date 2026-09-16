@@ -1302,24 +1302,29 @@ only the root 404 is outside every island. Round four adds two.
 
 ## Handoff (round 5)
 
-- **Head: `cbc054af`** (the last sync merge), over `e2274b71` (this section), `2af59444` and
-  `cfddcfc7` (the first two sync merges), `a095c8d7`, `44fd7c21` and `d3db6278`; all pushed. Board at `/design/lab/type-scale`.
+- **Head: this commit**, the last sync merge, over `126e7b35` and `e2274b71` (this section),
+  `cbc054af`, `2af59444` and `cfddcfc7` (the earlier sync merges), `a095c8d7`, `44fd7c21` and
+  `d3db6278`; all pushed. Board at `/design/lab/type-scale`.
   **No preview**: Vercel is over its monthly deployment storage for the wave, so no commit here
   carries the marker and this push builds nothing. Everything below was verified on this worktree's
   dev server at `http://localhost:3414`, and the gate was closed with a real `pnpm build`.
-- **Synced with `launch-prep` three times** as the wave landed under it, every one a merge and every
-  one gated whole: `a61fd366` (19 commits, the album-hero round-two merge and the
+- **Synced with `launch-prep` four times** as the rest of the wave landed under it, every one a
+  merge and every one gated whole: `a61fd366` (19 commits, the album-hero round-two merge and the
   glow/home-hero/river-visual migrations), `9ab89cdd` (6 more, the new build gate and the
-  floating-surfaces migration) and `d414ca7d` (8 more, the brand-voice migration and the storage
-  round's docs). Four conflicts across the three, every one an adjacent registration line of the
-  wave and every one resolved by keeping both sides: `registry.ts` twice (TYPE_SCALE joins after
-  LIGHT and before BRAND_VOICE, which is the order touchpoints.ts holds them in; nothing else in the
-  list moved), `kit-discipline.test.ts` (both sides deleted a different id from LEGACY) and
-  `boards.ts` (both sides dropped a different `legacy` flag).
+  floating-surfaces migration), `d414ca7d` (8 more, the brand-voice migration and the storage
+  round's docs) and `5959b433` (11 more, the palette migration and the kit's paste clamp fix).
+  Five conflicts across the four, every one an adjacent registration line of the wave and every one
+  resolved by keeping both sides: `registry.ts` twice (TYPE_SCALE joins after LIGHT and before
+  BRAND_VOICE, which is the order touchpoints.ts holds them in; nothing else in the list moved),
+  `kit-discipline.test.ts` twice (each time both sides deleted a different id from LEGACY, which is
+  now down to `media-kit` alone) and `boards.ts` (both sides dropped a different `legacy` flag).
+  If the branch is integrated after the wave moves again, expect exactly this shape and nothing else.
 - **Gates on the synced tree, each on its own exit code:** typecheck 0, lint 0 (0 errors, 6
   pre-existing warnings, none in this lane), test 0 (**2141 in 218 files**), build 0.
-  `pnpm lab:smoke --base http://localhost:3414` **314 checks, 0 failing**. `pnpm format` clean on
-  every changed file; no dynamic className was touched by it.
+  `pnpm lab:smoke --base http://localhost:3414` **322 checks, 0 failing**. `pnpm format` clean on
+  every changed file; no dynamic className was touched by it. The board was walked again after each
+  merge: eight sections, eight fitted stages, two pastes, and the measured pairing count still
+  reporting.
 - **Lane check**, `git diff --name-only origin/launch-prep...HEAD`:
   `docs/specs/type-scale.md`, `src/app/(dev)/design/sandbox/type-scale/{spec.ts,board.tsx,ladders.ts,ladders.test.ts,pages.tsx}`
   (owned), this manifest, plus **the three declared registration lines and nothing else**:

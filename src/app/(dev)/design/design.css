@@ -279,3 +279,15 @@ html:has(.lab-shell) {
     }
   }
 }
+
+/* The kit's Paste, collapsed: the <pre> carries --lab-paste-lines and the
+   attribute (src/components/lab/paste.tsx), and this is the rule it says lives
+   here; without it every migrated board's collapsed paste was the whole block
+   and "Read all N lines" toggled nothing (the palette migration measured a
+   2054px box for a 113-line paste). The arithmetic is the <pre>'s own, 11px
+   type at leading-relaxed plus its p-4, so the box is exactly the requested
+   number of lines. */
+pre[data-lab-paste] {
+  max-height: calc(var(--lab-paste-lines, 6) * 1.625em + 2rem);
+  overflow: hidden;
+}
