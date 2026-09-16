@@ -68,8 +68,36 @@ no second line, the superseded ones were left to git; `docs/adr/` went whole wit
 tombstones, the reel spec (its product shape opens host-app's reel section) and the perf baseline;
 one stale claim fell out (the guest email capture had been server-mediated since June while the doc
 still called it an anon RPC). The 247 citations in `src/`, `workers/` and `scripts/` name the system
-docs now (`aea90fd3`); the migrations keep theirs as immutable history. The `docs-systems-strip` lane
-runs next on the four heavy docs.
+docs now (`aea90fd3`); the migrations keep theirs as immutable history. **`docs-systems-strip`** (merged `0a48db70`) stripped
+the four heavy system docs to the system and its invariants: 118 dated passages fell to 25, every
+survivor `(Will, <date>)` on a ruling that is still the rule; every ★ was audited against Will's rule
+(forty-two kept byte-identical but for their provenance, eleven demoted to plain lines, three promoted
+from mid-sentence prose, one duplicate pair folded); seven landmines in `marketing-content.md` had been
+invisible to `/design/library/policies` because they sat mid-sentence, and the inventory went from 31
+to 38; the craft stack's home is `docs/design/guidance.md`; the arrival choreography's heading lost its
+phase name and `touchpoints.ts` followed; the rulings file's two dangling anchors were fixed.
+
+**Round 4, the six paper boards rebuilt as catalogs** (cut `385cfa99`, on Will's answer that all six
+are rebuilt before any review). **`brand-voice`** (merged `5868325e`): six voices as catalog cards,
+each writing the same two screens at a phone's own 343px column, and a spot list of twenty-four real
+places across the marketing site, the host's app and a guest's phone, every one drawn twice in a real
+1440 or 375 document on the component that ships it; three columns became six (Plain, Everyone and
+Aside written from the ground up); eighty-five lines were written six times; thirteen sections became
+five, seven asks became three (the noun, the unfurl, the counts), and the reading went from 13,024
+words to 2,642 against a declared 2,700; `docs/specs/brand-voice.md` shrank from 522 lines of tuning
+ledgers to a 185-line standing proposal; `CardGround` stopped writing `data-mkt-skin`, which had been
+flipping the lab page's own body through marketing.css. Two questions for Will ride with it: one voice
+everywhere at three volumes, or a marketing voice and a product voice; and whether bible 20 (name what
+we are, never what we are not) means the naming or the shape, which decides the Aside card. **`type-scale`** (merged `257df8fe`): five ladders as cards, each drawn as a type
+specimen at the pixels it declares for the canvas in the real heading face, clipped rather than
+scaled, a missing app step drawn as a hole and a hairline where the app's register starts; any two on
+the same real page (the home, the pricing page and the dashboard, the last a lab screen route so the
+app is judged at a real viewport by production components) scroll-locked; the pick worn by five real
+routes including a dead link; eight sections became three, four asks became two (tracking, the
+dead-link heading), the two register switches became one pick per card, and the reading went from
+4,220 words to 1,155 under the budget; `docs/specs/type-scale.md` from 220 lines to 64. Its question
+for Will: the compared pair scrolls sideways at 1440 (both halves stand on screen at 375); the kit's
+wipe is a one-line switch if he prefers it.
 
 Machine notes: four agents at once is the ceiling on 36 GB, one process each, a dev server killed by
 port; Vercel's daily cap kept the alias on the Library x Lab round's Phase 1 until 2026-09-17 00:13

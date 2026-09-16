@@ -1,122 +1,127 @@
-/* The type-scale board's sheet (board.tsx), imported by the board so it leaves with
-   the board when the ruling lands. Keyframe prefix: tsc- (keyframe names are
-   document-global and keyframe-uniqueness.test.ts reads every sheet under the
-   lab; never reuse a production name). This board declares NONE: a type board
-   has no motion of its own, and the production entrances it renders are settled
-   below, so the board reads identically with and without reduced motion.
+/* The type-scale board's sheet (board.tsx), imported by the board so it leaves
+   with the board when the ruling lands. Keyframe prefix: tsc- (keyframe names
+   are document-global and keyframe-uniqueness.test.ts reads every sheet under
+   the lab). This board declares NONE: a type board has no motion of its own,
+   so it reads identically with and without reduced motion.
 
-   ── HOW A CANDIDATE REACHES A PRODUCTION COMPONENT ──
-   The board renders the real PageHero, SectionShell, PageHeading and CardTitle
-   and changes not one byte of them. A <Step> wrapper sets three custom
-   properties from the selected ladder, and the two rules below spend them on
-   whatever heading the wrapped component renders. That is what makes the stages
-   production truth rather than a retyped mock: pick another ladder and the same
-   components re-lay themselves out.
+   ★ THE SPECIFICITY WAR IS OVER, AND THAT IS WHAT THE REBUILD BOUGHT. Round
+   five composed production components inside stages and had to out-rank both
+   marketing.css and its own applied paste, which meant a four-token chain on
+   every rule and a test guarding the score. The cards here are type specimens
+   whose size, leading and tracking are INLINE styles, which no stylesheet can
+   beat, and every page is a real frame wearing the block a ruling would land.
+   Nothing below fights anything: it is layout. */
 
-   ★ SPECIFICITY IS LOAD-BEARING, AND THE PASTE IS THE HIGH-WATER MARK.
-   Tailwind's size utilities sit in @layer utilities, so any unlayered rule
-   beats them outright. Two unlayered things are harder, and the second is the
-   one that bites:
-
-     1. marketing.css, whose masthead rule is `[data-mkt] [data-inview="true"]
-        .mkt-name` at (0,3,0). The board measured 160px at -0.03em under every
-        candidate until this chain grew a third token.
-     2. ROUND TWO'S OWN CANDIDATE PASTE. "Apply to the site" renders a
-        candidate's block as a <style> AFTER every stylesheet, on every page,
-        and the board is a page on that site: the paste lands on these stages
-        too and wins every TIE on source order. Its longest hook is the page
-        step's `h1[class~="font-heading"]:is([class~="text-2xl"], ...)
-        :not([class~="lg:text-5xl"])`, which is (0,3,1): three attribute tokens
-        AND a type. A three-attribute chain ending in `:is(h1, h2, h3)` scores
-        exactly the same, so it LOSES. That tie cost stage 13 its whole
-        argument (its three app registers collapsed onto the applied ladder's
-        one page size while the captions still read 24 / 20 / 20) until the
-        rules below counted `[data-tsc]` twice to reach (0,4,1).
-
-   So every rule that spends a step's properties runs the full
-   `[data-tsc][data-tsc] [data-tsc-page] [data-tsc-*]` chain rather than
-   reaching for an !important, and "the board's sheet outranks any paste" in
-   ladders.test.ts fails the moment a hook grows a token and ties it again. A
-   shorter chain silently stops overriding. */
-
-[data-tsc][data-tsc] [data-tsc-page] [data-tsc-step="heading"] :is(h1, h2, h3),
-[data-tsc][data-tsc]
-  [data-tsc-page]
-  [data-tsc-step="card"]
-  [data-slot="card-title"] {
-  font-size: var(--tsc-size);
-  line-height: var(--tsc-lh);
-  letter-spacing: var(--tsc-ls);
+/* ONE ROW, SCROLLED SIDEWAYS. Five ladders side by side IS the comparison
+   (Will, 2026-09-16: "a few different scales side by side"), and a card may
+   not narrow past the point where its top rung stops reading, so the row
+   scrolls rather than wraps. (0,2,0) so it outranks the kit's `.lab-catalog`
+   grid whichever order the two sheets land in. */
+[data-lab-catalog="type-scale"].lab-catalog {
+  display: flex;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scroll-snap-type: x proximity;
+}
+[data-lab-catalog="type-scale"].lab-catalog > * {
+  flex: 0 0 var(--lab-catalog-min, 360px);
+  scroll-snap-align: start;
 }
 
-/* THE PAGE GUTTER, HAND-RESOLVED. Container is `px-4 sm:px-6 lg:px-8`, and a
-   stage is a zoomed 375 or 1440 canvas inside a real browser window, so those
-   breakpoints read the WINDOW and a phone stage would otherwise wear a desktop
-   gutter. Same reason the home-hero board carries a GUTTER constant. The mode
-   sets --tsc-gutter; this spends it on a Container inside a stage only. (No
-   paste touches padding, so this one keeps the shorter chain.) */
-[data-tsc] [data-tsc-page] [class~="max-w-7xl"] {
-  padding-inline: var(--tsc-gutter);
+/* THE LADDER, AS A SPECIMEN. The px number sits in a fixed gutter so five
+   cards line their rungs up, and the word is clipped rather than wrapped: a
+   masthead that wrapped to three lines in a card column would be a different
+   shape from the one it makes on a page. */
+.tsc-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-/* THE ENTRANCES, SETTLED. Every stage sets data-inview="true" at its root,
-   which is what marketing.css's final-state rules key off, so the staggered
-   rise and the masthead's tracking squeeze land settled instead of waiting on
-   an observer inside a zoomed stage. Two registers need one line each: the film
-   cut animates on mount from `both`, and `.mkt-line` (the /help blur register)
-   rests at opacity 0 until its island flips a class on an ancestor. A type
-   board must not depend on either firing, and motion is not the question here. */
-[data-tsc] [data-tsc-page] [data-mkt-cut] {
-  animation: none;
-  opacity: 1;
-  transform: none;
+.tsc-rung {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  column-gap: 0.5rem;
+  align-items: start;
 }
 
-[data-tsc] [data-tsc-page] .mkt-line {
-  opacity: 1;
-  transform: none;
-  filter: none;
-  transition: none;
+/* Where the app's register starts: the ladder does not descend across this
+   line, and a hairline is the cheapest way to say two halves of one site. */
+.tsc-rung[data-opens] {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in oklab, currentColor 15%, transparent);
 }
 
-/* ★ AND THE MASTHEAD'S SQUEEZE HOLDS STILL. `.mkt-name` transitions
-   letter-spacing over 760ms, which is right on a page that loads once and
-   wrong on a board where the ladder changes under the same element: measured
-   400ms after a toggle, the display step reported a tracking that belonged to
-   neither ladder, and a screenshot taken then would have shown a number the
-   board never proposed. The squeeze itself is the light track's question, not
-   this one. (0,5,0), on the same doubled chain as the rules above.) */
-[data-tsc][data-tsc] [data-tsc-page] [data-tsc-step] .mkt-name {
-  transition: none;
+.tsc-rung-px {
+  padding-top: 0.3rem;
+  font-size: 11px;
+  line-height: 1;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, currentColor 55%, transparent);
 }
 
-/* The specimen's ghost: today's size drawn under the candidate's word as a
-   hairline block the height of today's cap, so the delta reads as a shape
-   before it reads as two numbers. */
-[data-tsc-ghost] {
-  border-bottom: 1px solid color-mix(in oklab, currentColor 20%, transparent);
-  border-left: 1px solid color-mix(in oklab, currentColor 20%, transparent);
+.tsc-rung-word {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-/* ROUND TWO: the 404 stage also changes FACE. The one h1 on the site that is
-   off the ladder is off it by face as well as by size (Inter 600, no
-   font-heading), so the "on the ladder" half of stage 14 has to set the heading
-   face and its weight as well as the step, or it would be comparing two sizes
-   of the wrong face. The same chain as the rules above, for the same reason. */
-[data-tsc][data-tsc] [data-tsc-page] [data-tsc-face] :is(h1, h2, h3) {
-  font-family: var(--font-display, var(--font-sans));
-  font-weight: 700;
+.tsc-rung-hole .tsc-rung-px {
+  text-decoration: line-through;
 }
 
-/* ★ AND THE "AS IT SHIPS" HALF STAYS SHIPPED. Round two applies a candidate to
-   the WHOLE site, and the board is a page on that site: a paste that reaches
-   `[data-not-found] h1` restyles the very half of stage 14 that exists to show
-   what production does today, so the comparison would quietly become a
-   comparison of one thing with itself. This pins the body face and its weight
-   on the doubled chain, out of reach of any paste (the mark to beat is the
-   page hook's (0,3,1), NOT the three tokens an earlier note claimed), and the
-   SpecStep beside it pins the size. */
-[data-tsc][data-tsc] [data-tsc-page] [data-tsc-ships] :is(h1, h2, h3) {
-  font-family: var(--font-sans);
-  font-weight: 600;
+/* The hole a ladder with no app middle leaves, drawn rather than described. */
+.tsc-rung-gap {
+  display: block;
+  height: 1.5rem;
+  margin-top: 0.4rem;
+  border-top: 1px dashed color-mix(in oklab, currentColor 30%, transparent);
+}
+
+/* Letter spacing, on its own: the same two words under one flat value and
+   under the law, at the two ends of the ladder. */
+.tsc-law {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tsc-law-row {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tsc-law-label {
+  font-size: 11px;
+  line-height: 1.4;
+  color: color-mix(in oklab, currentColor 55%, transparent);
+}
+
+.tsc-law-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 720px) {
+  .tsc-law-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.tsc-law-half {
+  min-width: 0;
+}
+
+.tsc-law-name {
+  margin-top: 0.25rem;
+  font-size: 11px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, currentColor 55%, transparent);
 }

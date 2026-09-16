@@ -92,10 +92,10 @@ the service-role admin client (the deny-all tables); shared `TriageStatusControl
   per-job kill switch, and Run now where the app can actually start the job. Model + invariants below.
 - **Security** — MFA status.
 
-## Backend jobs (P8 — zero silent failures)
+## Backend jobs (zero silent failures)
 
-Every backend job reports through ONE heartbeat table whatever it runs on, because nothing persisted a
-run before this and a job that stopped firing was indistinguishable from a healthy one. The catalog
+Every backend job reports through ONE heartbeat table whatever it runs on, because a job that persists
+no run is indistinguishable from a healthy one when it stops firing. The catalog
 ([`jobs/catalog.ts`](../../src/app/admin/jobs/catalog.ts)) is the single source for what jobs exist,
 their cadence, their flag key and whether the app can start them; the store is
 [`queries/jobs.ts`](../../src/lib/db/queries/jobs.ts); `job_runs` and the four `ops_flags` rows are

@@ -52,7 +52,7 @@ metrics read are typed by it, and a Postgres enum value cannot be dropped.
 
 ## Web analytics (marketing site)
 
-**Vercel Web Analytics + Speed Insights, MARKETING-SCOPED** (the exec round, 2026-08-28): the one
+**Vercel Web Analytics + Speed Insights, MARKETING-SCOPED:** the one
 client island [`marketing/system/web-analytics.tsx`](../../src/components/marketing/system/web-analytics.tsx)
 mounts in `(marketing)/layout.tsx`, and that placement IS the scoping — app/guest/admin surfaces stay
 untracked until that becomes its own deliberate decision (the root `not-found.tsx` sits outside the
@@ -72,7 +72,7 @@ group, so it is untracked too). Both product toggles were already ON project-sid
   `footer-qr.tsx` stays server-rendered and why the shared `CheckoutButton` passes rest props through
   but carries NO analytics import — attributes only fire where the island exists, which keeps
   app-surface checkouts silent by construction.
-- **Hobby-plan reality (2026-08-28): custom events are Pro-only.** The taxonomy ships wired-but-dormant;
+- **Hobby-plan reality: custom events are Pro-only.** The taxonomy ships wired-but-dormant;
   what collects today is pageviews/referrers/UTM/paths + Speed Insights vitals. Quotas: WA 50k
   events/mo, 1-month data window, hard-pauses at cap (NO overage billing on Hobby); SI is free for one
   project, 10k data points/mo, 7-day window. The vendor decision at the Hobby → Pro cutover is a
@@ -95,7 +95,7 @@ group, so it is untracked too). Both product toggles were already ON project-sid
 ## Saved events (the accounts-from-guest growth loop)
 
 A signed-in visitor can SAVE any event to their dashboard — the FREE account-creation growth payoff. It
-AUGMENTS the anonymous capability flow; the upload pipeline is untouched. (Phase 4: saved events now live in
+AUGMENTS the anonymous capability flow; the upload pipeline is untouched. (Saved events live in
 the unified **"Events"** tab, interleaved with hosted events by recency + icon-differentiated; the recency
 key is `saved_at`, threaded through `SavedEventCardData` → [host-app.md](host-app.md).)
 

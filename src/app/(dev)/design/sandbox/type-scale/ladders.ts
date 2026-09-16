@@ -1,32 +1,39 @@
 /**
- * THE TYPE-SCALE BOARD'S LADDERS (the review wave, 2026-09-14).
+ * THE TYPE-SCALE BOARD'S LADDERS: five finished sets of heading sizes, as data.
  *
- * Four ladders in one shape: today's, resolved from the shipped classes, and
- * three candidates. Pure data plus two helpers, so the board renders it, the
- * token table prints it and ladders.test.ts can prove its laws without a DOM.
+ * Pure TypeScript with no React and no DOM, so the board renders it, the paste
+ * generates from it and `ladders.test.ts` proves its laws in node.
  *
  * ── WHY EVERY LADDER CARRIES BOTH ENDS ──
  * A step is not a number, it is a pair: what it is at 375 and what it is at
- * 1440. Today's ladder only looks like a list of sizes because Tailwind's
+ * 1440. Today's ladder only LOOKS like a list of sizes because Tailwind's
  * breakpoints hide the phone end inside the class string; written out, the
- * phone end is where it fails. The board resolves each end by hand (the stage
- * is a zoomed canvas, so `sm:`/`lg:` read the browser, not the canvas, exactly
- * as the home-hero board's LADDER had to), and `fluid()` turns the same pair
- * into the clamp the wiring round bakes, which removes the breakpoints for good.
+ * phone end is where it fails. Each end is resolved by hand here, and
+ * `fluid()` turns the pair into the clamp a wiring round would bake, which
+ * removes the breakpoints for good.
  *
- * ── WHAT THE BOARD FOUND, AND WHY THE CANDIDATES DIFFER ──
- * 1. The phone end collapses: today, `title` and `chapter` are both 36px and
+ * ── THE FOUR FAULTS EVERY CANDIDATE IS ANSWERING ──
+ * 1. The phone end collapses: today `title` and `chapter` are both 36px and
  *    `display` (52) sits 4px above `hero` (48). Six steps read as three.
  * 2. Line-height is accidental: it arrives with whichever Tailwind size class
  *    the ramp lands on, so it steps 1.0 / 1.11 / 1.2 / 1.33 wherever the ramp
- *    happens to cross text-5xl, text-4xl, text-3xl. The one place that needed a
- *    real value invented `leading-[1.02]` locally (cinema-hero.tsx:257).
+ *    crosses text-5xl, text-4xl, text-3xl. The one place that needed a real
+ *    value invented `leading-[1.02]` locally (cinema-hero.tsx).
  * 3. Tracking is a constant: `font-heading` sets -0.03em from 160px down to
  *    16px, against the design system's own written law that letter-spacing and
- *    line-height run inverse to size (design-system.md, "Icon + small-type
- *    rules"). Every candidate implements the law the system already states.
- * 4. The app has no middle: PageHeading 24, CardTitle 16, and then two h2
- *    idioms at 14px and 11px that are labels wearing a heading tag.
+ *    line-height run inverse to size.
+ * 4. The app has no middle: PageHeading 24, CardTitle 16, and between them two
+ *    h2 idioms at 14px and 11px that are labels wearing a heading tag.
+ *
+ * ── ONE SET, TWO REGISTERS (the board's call, and it is argued) ──
+ * `display` through `prose` are marketing's rungs, `page` through `card` are
+ * the app's, and they are one nine-name set rather than two. Two sets would
+ * name every role twice and then have to answer which set a Card wears, since
+ * CardTitle is ONE component shipping on /pricing and on the dashboard, and
+ * they would duplicate the tracking law, which is a function of size and not
+ * of surface. Each card here is therefore a whole-site answer: a reviewer who
+ * wants marketing from one card and the app from another says so in his note,
+ * and the wiring round composes the two halves into the same nine names.
  */
 
 import { TYPE_SCALE } from "./spec";
@@ -48,42 +55,25 @@ export type Surface = "marketing" | "app";
 export type Spec = { px: number; lh: number; ls: number };
 export type StepPair = { phone: Spec; desktop: Spec };
 
-export type LadderId = "today" | "a" | "b" | "c";
-
-/** Every block the board can paste at the real site: the four ladders, the
- *  tracking law on its own (round two made it adoptable without the sizes), and
- *  round four's PAIR, which is a marketing ladder and an app ladder chosen
- *  separately and composed into one block. */
-export type PasteId = LadderId | "law" | "pair";
+/** The five cards, by id. The catalog rules on these words. */
+export type LadderId = "b" | "c" | "a" | "law" | "today";
 
 export type Ladder = {
-  id: PasteId;
-  /**
-   * ★ THE NAME IS THE OPTION'S NAME, AND IT HAS A WIDTH BUDGET (the clarity
-   * round, 2026-09-15). It is what the reviewer reads on every piece of
-   * evidence an ask is judged on (the chooser's rows, the pair's headings, the
-   * loudness column, the 404's right half) AND what the dock's two switches
-   * wear, so the option a question offers and the control that previews it say
-   * one thing. The dock's four buttons sit in a segmented control the kit does
-   * not wrap below six options, and the dock is 327px wide at 375: measured, a
-   * four-option row spends about 106px on padding, so the four names together
-   * have roughly 33 characters before the page starts scrolling sideways.
-   * That is why the gloss ("one set of sizes from 12 to 160") lives in the
-   * ask's option label and its `means` line rather than here.
-   */
+  id: LadderId;
+  /** The name on the card and in every switch. */
   name: string;
-  /** One line on the board: what it is and why it might win. */
+  /** One line on the card: what it is and why it might win. */
   rationale: string;
-  /** This ladder's law in one sentence, printed with the specimen. */
+  /** This ladder's law in one sentence. */
   law: string;
-  /** The honest cost of choosing it, printed beside the law. */
+  /** The honest cost of choosing it. */
   cost: string;
   steps: Record<StepId, StepPair | null>;
   /** A step this ladder deliberately folds into another one. */
   aliases?: Partial<Record<StepId, StepId>>;
 };
 
-/** Where each step actually lives in production, so a stage can name itself. */
+/** Where each step actually lives in production. */
 export const STEPS: {
   id: StepId;
   surface: Surface;
@@ -193,7 +183,7 @@ const A: Ladder = {
   id: "a",
   name: "A, tuned",
   rationale:
-    "Today's desktop numbers, kept. The phone end unpacked so six steps separate, a named line-height per step, and tracking that runs inverse to size.",
+    "Today's desktop numbers, kept. The phone end unpacked so six steps separate, a named line-height per step, and tracking inverse to size.",
   law: "Keep the sizes the site already has; fix the phone end, the leading and the tracking.",
   cost: "The app keeps its hole: page 24, card 16, nothing in between, so the 14px h2s stay labels in a heading tag.",
   steps: {
@@ -268,7 +258,7 @@ const B: Ladder = {
   id: "b",
   name: "B, rungs",
   rationale:
-    "One rung set from 12 to 160 with the ratio widening as it climbs. Every step sits on a rung at both ends, and leading and tracking are read off the rung, never chosen.",
+    "One rung set from 12 to 160, the ratio widening as it climbs. Every step sits on a rung at both ends, and the optics are read off the rung.",
   law: "Marketing travels four rungs between 375 and 1440, the app travels one, the card step travels none.",
   cost: "The phone middle goes quieter than today (a body section h2 at 24 rather than 30) to buy the top of the ladder its room.",
   steps: {
@@ -297,21 +287,25 @@ const B: Ladder = {
  * prose tier is folded into the section step: six marketing steps was two more
  * than the site can tell apart.
  *
- * The app gets an instrument register: 20 / 18 / 16 (round one proposed
- * 20 / 16 / 14 and round two rebuilt the bottom of it, below), low contrast,
- * hierarchy carried by weight and colour rather than size, because in the app
- * the photographs are the loud thing and the chrome should get out of their
- * way. The page title comes DOWN from 24, which is the swing to rule on.
+ * The app gets an instrument register: 20 / 18 / 16, low contrast, hierarchy
+ * carried by weight and colour rather than size, because in the app the
+ * photographs are the loud thing and the chrome should get out of their way.
+ * The page title comes DOWN from 24, which is the swing to rule on.
+ *
+ * ★ THE APP'S FLOOR IS WHY THE CARD STEP STOPS AT 16. A Card sets `text-sm` on
+ * its whole subtree and CardDescription is `text-sm`, so a 14px CardTitle is
+ * exactly the size of the sentence beneath it and the event name a host scans
+ * for is separated from its metadata by weight and colour alone. C keeps its
+ * quiet title and gains a floor (`APP_BODY_PX`), which the test pins for every
+ * ladder here.
  */
 const C: Ladder = {
   id: "c",
   name: "C, registers",
   rationale:
-    "Two registers rather than one ladder. Marketing becomes editorial and much louder at the top; the app becomes an instrument and goes quieter, with weight carrying the hierarchy.",
+    "Two registers rather than one ladder. Marketing turns editorial and much louder at the top; the app turns instrument and goes quieter, weight carrying the rank.",
   law: "Marketing and the app share the face and the tracking law and nothing else.",
   cost: "Two ladders to maintain, a 200px masthead that only holds one or two words, and an app page title that drops below today's.",
-  // The app register is round two's: 20 / 18 / 16, with the card step held at
-  // the floor. See the steps below for what was reconsidered and why.
   aliases: { prose: "section" },
   steps: {
     display: pair(s(80, 0.84, -0.05), s(200, 0.82, -0.05)),
@@ -320,302 +314,20 @@ const C: Ladder = {
     chapter: pair(s(32, 1.12, -0.03), s(56, 1.04, -0.034)),
     section: pair(s(26, 1.2, -0.026), s(40, 1.1, -0.03)),
     prose: pair(s(26, 1.2, -0.026), s(40, 1.1, -0.03)),
-    /**
-     * ★ ROUND TWO'S RECONSIDERATION (the brief asked for it from the ground
-     * up). Round one proposed 20 / 16 / 14. The page title at 20 SURVIVED:
-     * judged on the real dashboard, an app title is a locator rather than a
-     * headline, and 20 reads composed next to a 14px body. The card title at
-     * 14 did NOT. A Card sets `text-sm` on its whole subtree and
-     * CardDescription is `text-sm`, so a 14px CardTitle is exactly the size of
-     * the sentence beneath it: on the dashboard, where the event name is the
-     * one thing a host scans for, the title is then separated from its
-     * metadata by weight and colour alone. The site already ships that
-     * register deliberately (`Card size="sm"` steps the title down to 14), and
-     * a compact variant is not a default.
-     *
-     * So C keeps its quiet title and gains a FLOOR, which is the law round two
-     * adds and `ladders.test.ts` now pins for every ladder: no heading in the
-     * app is smaller than the body text it sits above (14px inside a card), so
-     * the card step stops at 16 and the section step takes 18. C is still the
-     * loudest claim on the board (a page title below today's 24); it is no
-     * longer the one that reads cheap.
-     */
     page: pair(s(20, 1.3, -0.014), s(20, 1.3, -0.014)),
     subsection: pair(s(18, 1.35, -0.01), s(18, 1.35, -0.01)),
     card: pair(s(16, 1.4, -0.006), s(16, 1.4, -0.006)),
   },
 };
 
-/**
- * ROUND THREE: THE STRONGEST FIRST. The wave's first two rounds listed the
- * ladders in the order they were written (today, then A, B, C), which made the
- * board a menu. A board that has walked its own candidates should say which one
- * it would ship, so the order is now the board's own ranking and today's is
- * last, as the control rather than as the default.
- */
-export const LADDERS: Ladder[] = [B, C, A, TODAY];
-
-/** What the board would ship, and what BOTH ladder asks default to. */
-export const RECOMMENDED: LadderId = "b";
-
-export function ladderById(id: LadderId): Ladder {
-  const found = LADDERS.find((l) => l.id === id);
-  if (!found) throw new Error(`Unknown ladder: ${id}`);
-  return found;
-}
-
-/* ─────────────────────── What each ladder actually fixes ──────────────────── */
-
-/**
- * Today's four faults, as the four columns of the glance table. Each is
- * COMPUTED from the ladder data rather than declared beside it, so a candidate
- * cannot claim a fix it does not make and a tick on the board is a measurement.
- */
-export type Fix = "phone" | "leading" | "tracking" | "middle";
-
-export const FIXES: {
-  id: Fix;
-  label: string;
-  fault: string;
-  /** The register the fault belongs to, so each half of the glance shows its
-   *  own faults rather than a row that can never be true of it. */
-  surfaces: Surface[];
-}[] = [
-  {
-    id: "phone",
-    label: "The phone end",
-    fault: "at 375 today has three distinct sizes doing the work of six",
-    surfaces: ["marketing"],
-  },
-  {
-    id: "leading",
-    label: "Named leading",
-    fault: "line-height arrives with whichever size class the ramp lands on",
-    surfaces: ["marketing", "app"],
-  },
-  {
-    id: "tracking",
-    label: "Tracking by size",
-    fault: "a 160px masthead and a 16px card title share one -0.03em",
-    surfaces: ["marketing", "app"],
-  },
-  {
-    id: "middle",
-    label: "The app's middle",
-    fault: "between the page title and the card title the app has no step",
-    surfaces: ["app"],
-  },
-];
-
-/** Tailwind's own line-heights for the size classes today's ramps land on.
- *  A ladder NAMES its leading when its values are not all borrowed from here. */
-const BORROWED_LEADING = new Set([0.85, 1, 1.111, 1.2, 1.333, 1.375]);
-
-export function fixes(ladder: Ladder, surface?: Surface): Record<Fix, boolean> {
-  // A folded step is the step it folds into, so counting it twice would make a
-  // ladder look as though it tracked two things at one value.
-  const named = STEPS.filter(
-    (s) =>
-      ladder.steps[s.id] &&
-      ladder.aliases?.[s.id] === undefined &&
-      (!surface || s.surface === surface),
-  );
-  const phoneSizes = named
-    .filter((s) => s.surface === "marketing")
-    .map((s) => ladder.steps[s.id]!.phone.px);
-  const leadings = named.flatMap((s) => [
-    ladder.steps[s.id]!.phone.lh,
-    ladder.steps[s.id]!.desktop.lh,
-  ]);
-  const tracking = new Set(named.map((s) => ladder.steps[s.id]!.desktop.ls));
-  return {
-    phone:
-      phoneSizes.length > 0 && new Set(phoneSizes).size === phoneSizes.length,
-    leading: leadings.some((lh) => !BORROWED_LEADING.has(lh)),
-    // ROUND FOUR: the law is per-step, so "fixed" is every live step carrying
-    // its OWN value, not a count that only reads right for a six-step register.
-    // The app register is two or three steps; the old `>= 5` could never be
-    // true of it, and round four asks the two registers separately.
-    tracking: tracking.size > 1 && tracking.size === named.length,
-    middle: Boolean(ladder.steps.subsection),
-  };
-}
-
-/**
- * How much of the site a ladder actually moves at one canvas, counted rather
- * than claimed. A. Tuned keeps every desktop size today ships, so at 1440 it
- * moves NOTHING but the leading and the tracking, and a reviewer toggling to it
- * on a desktop would otherwise read a working control as a broken one.
- */
-export function moved(
-  ladder: Ladder,
-  end: "phone" | "desktop",
-  surface?: Surface,
-): { moved: number; of: number; added: number } {
-  let count = 0;
-  let of = 0;
-  let added = 0;
-  for (const step of STEPS) {
-    if (surface && step.surface !== surface) continue;
-    const mine = ladder.steps[step.id];
-    const now = TODAY.steps[step.id];
-    if (!mine) continue;
-    if (!now) {
-      added += 1;
-      continue;
-    }
-    of += 1;
-    if (mine[end].px !== now[end].px) count += 1;
-  }
-  return { moved: count, of, added };
-}
-
-/* ───────────────────── The four rulings, and the board's own ──────────────── */
-
-const ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth"];
-
-/**
- * An ask's position, in words, READ OFF THE SPEC rather than typed beside it.
- *
- * ★ Round three cut two asks and the generated paste went on calling the 404
- * "the fifth ask", so a reviewer reading the block he is about to apply hunted
- * for a question that no longer existed. A number about a list belongs to the
- * list: every place that names an ask's position calls this, so cutting or
- * reordering `TYPE_SCALE.asks` moves all of them at once.
- *
- * ★ AND THE LIST IS THE SPEC'S NOW (the migration wave, 2026-09-15). The asks
- * moved into `spec.ts` with the verdict and the candidates, because the
- * template, the desk and the review ledger all read that one array; this file
- * reads the same one rather than keeping a second copy for the paste's comment.
- * The import points one way only, and `spec.ts` imports nothing but the kit's
- * types, so nothing here drags a board into a server render.
- */
-export function askOrdinal(id: string): string {
-  const i = TYPE_SCALE.asks.findIndex((a) => a.id === id);
-  return i >= 0 && i < ORDINALS.length ? ORDINALS[i] : "unnumbered";
-}
-
-/** The 404 ask's id, which two places name by position (the paste's comment and
- *  the departure in the spec). */
-export const ASK_404 = "not-found";
-
-/* ────────────────── Where a paste can be walked, and where not ───────────── */
-
-/** The surfaces no paste reaches, named on the board so a reviewer never reads
- *  a missing island as a broken block. Each is one line for the wiring round. */
-export const NO_ISLAND: { where: string; why: string }[] = [
-  {
-    where: "the root 404",
-    why: "app/not-found.tsx renders outside both marketing and the app, so it mounts no island at all; the marketing 404 in the walk wears the paste instead",
-  },
-];
-
-/**
- * ROUND FOUR, and worth carrying past this board: the two surfaces round three
- * could not reach are reachable now. `admin/layout.tsx` and `(guest)/layout.tsx`
- * both mount `AppDesignIsland`, which is exactly the one-line change this
- * board's round-three handoff and the floating-surfaces and rounding boards all
- * asked for. Every board in the wave can now be walked on the portal and on a
- * guest album; only the root 404 is still outside every island, and that one is
- * structural rather than a missing mount.
- */
-export const ISLANDS_LANDED =
-  "admin and the guest routes mount a design island now, so a block reaches the portal and the album in a tab. Only the root 404 is still outside every island.";
-
-/* ──────────────────────────── The token table ─────────────────────────── */
-
-const rem = (px: number) => `${Number((px / 16).toFixed(3))}rem`;
-const round = (n: number, places: number) => Number(n.toFixed(places));
-
-/**
- * The pair as the clamp the wiring round bakes. The line passes through
- * (375, phone) and (1440, desktop), so the ladder is continuous from a small
- * phone to a wide desktop and there is no breakpoint to jump at. The fixed
- * ends are rem so a reader who raises their base size raises the whole ladder;
- * only the middle term is viewport-driven.
- *
- * ★ The BOARD never uses these strings: a stage is a zoomed canvas, so a vw
- * inside one measures the browser window, not the canvas. The board resolves
- * each end by hand from the same data. The clamp is what production gets.
- */
-export function fluid(phone: number, desktop: number): string {
-  if (phone === desktop) return rem(phone);
-  const slope = (desktop - phone) / (1440 - 375);
-  const vw = round(slope * 100, 2);
-  const intercept = round(phone - slope * 375, 2);
-  const sign = intercept < 0 ? "-" : "+";
-  return `clamp(${rem(phone)}, ${rem(Math.abs(intercept))} ${sign} ${vw}vw, ${rem(desktop)})`;
-}
-
-export type TokenRow = {
-  token: string;
-  size: string;
-  lh: string;
-  ls: string;
-  step: StepId;
-  /** Which register the row came from, so one table can show a chosen pair. */
-  surface: Surface;
-};
-
-/**
- * Every step of a ladder as the three custom properties it becomes.
- *
- * SIZE is fluid. LEADING is emitted as an absolute rem length rather than a
- * unitless number, because a unitless line-height cannot be put inside a
- * clamp() and a step whose leading tightens as it grows needs one; it is the
- * ratio multiplied through, so `line-height: var(--text-hero-lh)` is exactly
- * what the board renders. TRACKING stays in em and takes the desktop end: the
- * em unit already rides the fluid size, so the second fluid term would move a
- * 375px masthead by under a third of a pixel and cost a clamp with two
- * negative ends.
- */
-export function tokenTable(ladder: Ladder): TokenRow[] {
-  const rows: TokenRow[] = [];
-  for (const step of STEPS) {
-    const value = ladder.steps[step.id];
-    if (!value) continue;
-    rows.push({
-      step: step.id,
-      surface: step.surface,
-      token: `--text-${step.id}`,
-      size: fluid(value.phone.px, value.desktop.px),
-      lh: fluid(
-        round(value.phone.px * value.phone.lh, 2),
-        round(value.desktop.px * value.desktop.lh, 2),
-      ),
-      ls: `${value.desktop.ls}em`,
-    });
-  }
-  return rows;
-}
-
-/** The two rows every ladder shares, so the wiring round gets the whole set. */
-export const FIXED_TOKENS: { token: string; size: string; note: string }[] = [
-  {
-    token: "--text-body",
-    size: "1rem / 1.55 / 0em",
-    note: "Inter, unchanged by every candidate.",
-  },
-  {
-    token: "--text-caption",
-    size: "0.75rem / 1.45 / 0.01em",
-    note: "the Caption atom; the uppercase Eyebrow keeps its 0.14em.",
-  },
-];
-
 /* ───────────────── The tracking law, as a function of size ───────────────── */
 
 /**
- * ROUND TWO: the law on its own (the third ask). "Letter-spacing and
- * line-height run inverse to size" is the design system's own written rule and
- * `font-heading`'s flat -0.03em is what does not implement it. Round one showed
- * the law inside three candidates, where adopting it meant adopting a ladder
- * too. It does not: the law is a FUNCTION of size, so it can be applied to the
- * sizes the site already ships.
- *
- * B's rung table IS that function, sampled at fifteen points; `optics()` reads
- * between the samples so any size has a law value, and `LAW_ONLY` below is
- * today's ladder with nothing changed but its leading and its tracking.
+ * "Letter-spacing and line-height run inverse to size" is the design system's
+ * own written rule and `font-heading`'s flat -0.03em is what does not implement
+ * it. The law is a FUNCTION of size, so it can be applied to the sizes the site
+ * already ships: B's rung table IS that function sampled at fifteen points, and
+ * `optics()` reads between the samples so any size has a law value.
  */
 export function optics(px: number): { lh: number; ls: number } {
   const exact = OPTICS[px];
@@ -639,17 +351,17 @@ export function optics(px: number): { lh: number; ls: number } {
 const lawful = (spec: Spec): Spec => ({ px: spec.px, ...optics(spec.px) });
 
 /**
- * Today's sizes under the law. Not a fifth ladder and never in `LADDERS`: it is
- * the paste for "adopt the law, rule on the sizes later", and it is the only
- * block on this board that moves no size at all.
+ * Today's sizes under the law: the smallest thing this board can ship, and the
+ * only card that moves no size at all. Its paste sets no font-size anywhere,
+ * which is what makes the tracking ask answerable on its own.
  */
 export const LAW_ONLY: Ladder = {
   id: "law",
   name: "The spacing law alone",
   rationale:
-    "Today's sizes, every one of them, with leading and tracking running inverse to size instead of a flat -0.03em. The smallest thing the board can ship.",
+    "Today's sizes, every one of them, with leading and tracking running inverse to size instead of a flat -0.03em.",
   law: "Leading and tracking are read off the size, so no step chooses its own optics.",
-  cost: "None of today's three faults are fixed except the tracking one: the phone end still collapses and the app still has no middle.",
+  cost: "Only the tracking fault is fixed: the phone end still collapses and the app still has no middle.",
   steps: Object.fromEntries(
     STEPS.map((step) => {
       const value = TODAY.steps[step.id];
@@ -663,38 +375,65 @@ export const LAW_ONLY: Ladder = {
   ) as Record<StepId, StepPair | null>,
 };
 
-/* ──────────────────── The app's floor (round two's law) ──────────────────── */
+/**
+ * THE CATALOG'S ORDER IS THE BOARD'S OWN RANKING, strongest first, with today
+ * last as the control rather than as the default. `spec.ts` writes the same
+ * five out as cards and `ladders.test.ts` pins the two lists equal id for id.
+ */
+export const LADDERS: Ladder[] = [B, C, A, LAW_ONLY, TODAY];
+
+/** What the board would ship. */
+export const RECOMMENDED: LadderId = "b";
+
+export function ladderById(id: LadderId): Ladder {
+  const found = LADDERS.find((l) => l.id === id);
+  if (!found) throw new Error(`Unknown ladder: ${id}`);
+  return found;
+}
 
 /**
- * A Card sets `text-sm` on its whole subtree and CardDescription is `text-sm`,
- * so 14px is the body size a card title sits on top of. Round two's
- * reconsideration of C turned that into a law the test pins for every ladder:
- * an app heading is never smaller than the body under it, because below that
- * line the hierarchy is carried by weight and colour alone and a host scanning
- * a dashboard for an event name has nothing to aim at.
+ * A Card sets `text-sm` on its whole subtree, so 14px is the body size a card
+ * title sits on top of and no app heading may go below it: under that line the
+ * hierarchy is carried by weight and colour alone.
  */
 export const APP_BODY_PX = 14;
 
-/* ─────────────── The paste: a candidate on the real site ──────────────── */
+/* ──────────────────────────── The generated block ─────────────────────── */
+
+const rem = (px: number) => `${Number((px / 16).toFixed(3))}rem`;
+const round = (n: number, places: number) => Number(n.toFixed(places));
+const px3 = (n: number) => Number(n.toFixed(2));
 
 /**
- * WHERE EACH STEP LANDS IN PRODUCTION, as a selector.
- *
- * Round two's job was to make each candidate a real paste rather than a stage,
- * so every step names the hook it has TODAY. Three kinds appear:
+ * The pair as the clamp a wiring round bakes. The line passes through
+ * (375, phone) and (1440, desktop), so the ladder is continuous from a small
+ * phone to a wide desktop and there is no breakpoint to jump at. The fixed
+ * ends are rem so a reader who raises their base size raises the whole ladder;
+ * only the middle term is viewport-driven.
+ */
+export function fluid(phone: number, desktop: number): string {
+  if (phone === desktop) return rem(phone);
+  const slope = (desktop - phone) / (1440 - 375);
+  const vw = round(slope * 100, 2);
+  const intercept = round(phone - slope * 375, 2);
+  const sign = intercept < 0 ? "-" : "+";
+  return `clamp(${rem(phone)}, ${rem(Math.abs(intercept))} ${sign} ${vw}vw, ${rem(desktop)})`;
+}
+
+/**
+ * WHERE EACH STEP LANDS IN PRODUCTION, as a selector. Three kinds appear:
  *  - a real hook: `.mkt-name` and `[data-slot="card-title"]` are named things;
  *  - the ramp's top class: a step whose only signature is its Tailwind ramp is
  *    matched by that ramp's widest class (`[class~="lg:text-7xl"]`). That is a
- *    FEATURE here, not a hack: the four heroes that hand-roll the same ramp
- *    (the home's cinema hero, qr-hero, reel-hero, events/[slug]) carry the same
- *    class and move with the step, which is exactly what the ruling would do;
- *  - no hook at all: the app's section heading is a label inside an h2 and has
- *    no class worth matching, so the paste leaves it alone and says so.
+ *    FEATURE here: the four heroes that hand-roll the same ramp carry the same
+ *    class and move with the step, which is what the ruling would do;
+ *  - no hook at all: the app's section heading is a label inside an h2 with no
+ *    class worth matching, so the paste leaves it alone and says so.
  *
  * Tailwind's utilities live in `@layer utilities`, so any unlayered rule beats
  * them whatever its specificity; the two selectors that have to beat
  * marketing.css (unlayered, (0,3,0) on `.mkt-name`) match its shape and win on
- * order, since the candidate style element is rendered after every stylesheet.
+ * order, since the candidate sheet is adopted after every stylesheet.
  */
 export const HOOKS: Partial<
   Record<StepId, { selector: string; note: string }>
@@ -718,7 +457,7 @@ export const HOOKS: Partial<
   prose: {
     selector:
       '[class~="font-heading"][class~="sm:text-3xl"]:not([class~="lg:text-5xl"])',
-    note: "the prose head: /about, /press, /help's sections, /contact, and the stat numerals on /help, which already ship at this step",
+    note: "the prose head: /about, /press, /help's sections, /contact, and the stat numerals on /help",
   },
   page: {
     selector:
@@ -730,8 +469,6 @@ export const HOOKS: Partial<
     note: "CardTitle, app and marketing",
   },
 };
-
-const px3 = (n: number) => Number(n.toFixed(2));
 
 /** The three custom-property names for a step, in Tailwind v4's own font-size
  *  shape, so the paste and the `@theme` bake use one set of names and a baked
@@ -777,13 +514,12 @@ function stepDecls(ladder: Ladder, step: StepId, withSizes: boolean): string {
 /**
  * THE BLOCK A RULING WOULD LAND, as the site can wear it today.
  *
- * `setCandidateCss` renders it as a style element after every stylesheet on
- * every page with a key-gated island, so this is the candidate on the real
- * home, the real /help and the real dashboard rather than on a stage. It is
- * generated from the same data the stages render, so the two can never drift.
+ * Every frame on the board wears exactly this, and "Apply to the site" hands
+ * the same string to every page with a design island, so a frame and a real
+ * signed-in tab can never show two different things.
  *
- * The `law` block sets no font-size anywhere: that is what makes the third ask
- * answerable on its own.
+ * The `law` block sets no font-size anywhere: that is what makes the tracking
+ * ask answerable on its own.
  */
 export function candidateCss(ladder: Ladder): string {
   const withSizes = ladder.id !== "law";
@@ -791,8 +527,8 @@ export function candidateCss(ladder: Ladder): string {
   out.push(`/* The type scale: ${ladder.name}.
    ${ladder.law}
    Generated by the type-scale board from ladders.ts, which is the same data its
-   stages render. Token names are Tailwind v4's font-size shape, so the bake is
-   one @theme block and a baked step becomes one utility class.
+   cards draw. Token names are Tailwind v4's font-size shape, so the bake is one
+   @theme block and a baked step becomes one utility class.
    ${withSizes ? "Sizes, leading and tracking." : "Leading and tracking only: not one size moves."} */`);
   out.push(`:root {\n${tokenLines(ladder, withSizes)}\n}`);
 
@@ -828,17 +564,11 @@ ${withSizes ? `  font-size: var(${n.size});\n` : ""}  line-height: var(${n.lh});
     );
   }
 
-  if (!ladder.steps.subsection) {
-    out.push(`/* The app's section heading has NO step in this ladder, and no hook either:
+  out.push(`/* The app's section heading has no hook today, whichever ladder wins:
    production writes it as an 11px uppercase label inside an h2 (the dashboard,
-   the event feed) or a 14px one (admin metrics, announcements). The paste
-   leaves it exactly as it ships; the board's stage 10 is where it is judged. */`);
-  } else {
-    out.push(`/* Subsection: the app's section heading. It has no hook today (an 11px
-   uppercase label inside an h2 on the dashboard, 14px in admin), so this step
-   cannot reach the real page from a paste. It needs the one-line hook the
-   board's handoff asks for; stage 10 shows what it does. */`);
-  }
+   the event feed) or a 14px one (admin metrics, announcements), and there is no
+   class worth aiming at. A ladder with a subsection step needs the one-line
+   hook the handoff asks for before this paste can reach it. */`);
 
   const page = ladder.steps.page;
   const prose = ladder.steps.prose ?? ladder.steps.section;
@@ -861,7 +591,7 @@ ${stepDecls(ladder, ladder.steps.prose ? "prose" : "section", withSizes)}
 }
 
 /**
- * The same ladder as the `@theme` block the wiring round bakes into theme.css.
+ * The same ladder as the `@theme` block a wiring round bakes into theme.css.
  * Tailwind v4 reads `--text-x--line-height` and `--text-x--letter-spacing` as
  * that size's defaults, so `class="text-title"` sets all three and the three
  * four-breakpoint ramps in page-hero, section-shell and page-heading collapse
@@ -871,183 +601,123 @@ export function themeBlock(ladder: Ladder): string {
   return `@theme {\n${tokenLines(ladder, true)}\n}\n`;
 }
 
-/* ══════════════════════ ROUND FOUR: THE PAIR ══════════════════════════ */
+/* ────────────────────────── The asks, by position ─────────────────────── */
+
+const ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth"];
 
 /**
- * WILL'S RULING TO MAKE, AND THE BOARD'S CALL ON THE SHAPE.
- *
- * "Marketing and app will have different type scales. Your call on separating
- * them into two distinct sets or combining them all into one. I'd like to
- * select them separately in the lab." (Will, 2026-09-15.)
- *
- * The board's call is ONE SET, TWO REGISTERS, and it is argued rather than
- * assumed, because the alternative is real. Two distinct sets would name the
- * same nine roles twice (`--text-mkt-card` and `--text-app-card`) and then have
- * to answer which one a Card wears, since `CardTitle` is ONE component that
- * ships on a pricing page and on the dashboard. It would also duplicate the
- * tracking law, which is a function of size and not of surface: a 40px heading
- * wants the same tracking whichever side of the product it is on.
- *
- * One set keeps the bake at one `@theme` block and a baked step at one class,
- * and the two registers are simply which rungs each half of the ladder stands
- * on: `display` through `prose` are marketing's, `page` through `card` are the
- * app's. Nothing in the set is computed from anything else in it, which is
- * exactly why the two halves can be RULED separately, and why the lab selects
- * them separately: a pair is a real, shippable block, not a compromise between
- * two ladders.
- *
- * The one seam worth naming: `card` sits in the app register and marketing's
- * cards follow it. That is deliberate, and it is the floor law's doing (no app
- * heading below the 14px body a Card sets on its own subtree); a marketing card
- * title has never wanted to be louder than that.
- *
- * ★ THE CALL IS PROSE ON THE BOARD, AND ITS HOME IS THE SPEC (the migration
- * wave, 2026-09-15): `TYPE_SCALE.sections` carries it as the glance section's
- * first argument and `TYPE_SCALE.departures` carries it as a departure, which
- * is where the template, the desk and the record all read it. It used to be a
- * `REGISTER_CALL` constant here, rendered by a card of the board's own, and two
- * copies of one paragraph is exactly what the spec exists to end.
+ * An ask's position, in words, READ OFF THE SPEC rather than typed beside it.
+ * A hand-typed ordinal goes stale the moment an ask is cut, and a reviewer
+ * reading the block he is about to apply then hunts for a question that no
+ * longer exists. The import points one way only (this file reads the spec; the
+ * spec imports nothing but the kit's types), so the spec stays pure data.
  */
-
-/** The register a step belongs to, read off STEPS so there is one statement. */
-export const SURFACE: Record<StepId, Surface> = Object.fromEntries(
-  STEPS.map((s) => [s.id, s.surface]),
-) as Record<StepId, Surface>;
-
-/** A marketing ladder and an app ladder, chosen separately (round four). */
-export type Pair = { marketing: LadderId; app: LadderId };
-
-/** Both switches open on what the board would ship. */
-export const DEFAULT_PAIR: Pair = { marketing: RECOMMENDED, app: RECOMMENDED };
-
-export const SURFACE_LABEL: Record<Surface, string> = {
-  marketing: "Marketing",
-  app: "The app",
-};
-
-/**
- * The pair as ONE ladder, which is what makes the call above concrete: a pair
- * composes into a single nine-step set with a single `@theme` block and a
- * single paste, so choosing the two halves separately costs the system nothing.
- * When both halves are the same ladder the composition IS that ladder, id and
- * all, so a paste of B alone is byte-identical to a paste of the pair (B, B).
- */
-export function composePair(p: Pair): Ladder {
-  const m = ladderById(p.marketing);
-  const a = ladderById(p.app);
-  if (p.marketing === p.app) return m;
-  const steps = {} as Record<StepId, StepPair | null>;
-  const aliases: Partial<Record<StepId, StepId>> = {};
-  for (const step of STEPS) {
-    const from = step.surface === "marketing" ? m : a;
-    steps[step.id] = from.steps[step.id];
-    const alias = from.aliases?.[step.id];
-    if (alias) aliases[step.id] = alias;
-  }
-  return {
-    id: "pair",
-    name: `${m.name} + ${a.name}`,
-    rationale: `${m.name} across marketing and ${a.name} across the app, composed into one nine-step set.`,
-    law: `Marketing on ${m.name}, the app on ${a.name}. One set, two registers.`,
-    cost: `Marketing pays: ${m.cost} The app pays: ${a.cost}`,
-    steps,
-    ...(Object.keys(aliases).length ? { aliases } : {}),
-  };
+export function askOrdinal(id: string): string {
+  const i = TYPE_SCALE.asks.findIndex((a) => a.id === id);
+  return i >= 0 && i < ORDINALS.length ? ORDINALS[i] : "unnumbered";
 }
 
-/* ═════════════ ROUND FOUR: THE REAL PAGES, AT TRUE PIXELS ═════════════ */
+/** The 404 ask's id, which the paste's own comment names by position. */
+export const ASK_404 = "not-found";
+
+/* ═════════════ The real pages a frame loads, at true pixels ═══════════ */
 
 /**
- * THE JUDGED SURFACE IS THE REAL PAGE NOW.
+ * THE JUDGED SURFACE IS THE REAL PAGE.
  *
- * Will, on this board: "This is currently un-reviewable with the iframes
- * because, despite it maintaining the same scale at a smaller size, I can't
- * actually judge the font sizes in usage themselves scaled down", and "I'd
- * also like ... more UI previews themselves". The thing that was wrong was the
- * ZOOM, not the frame: a frame at 1440 renders 1440 true pixels. So round four
- * replaced four reconstructions (the home sections, a feature page, /about, the
- * hero lockup) with the ROUTES themselves, each in a frame exactly the canvas
- * wide, with the selected pair injected straight into the frame's document.
+ * Will, on this board: "I can't actually judge the font sizes in usage
+ * themselves scaled down", and "I'd also like more UI previews themselves".
+ * The thing that was wrong was the ZOOM, not the frame: a frame at 1440
+ * renders 1440 true pixels. So every surface below is a ROUTE in a frame
+ * exactly the canvas wide, with the ladder injected into its own document.
  *
  * Three things a reconstruction could never do, and all three matter to a type
  * ruling:
  *  1. The breakpoints are the CANVAS's. A `sm:`/`lg:` prefix inside a stage
- *     reads the browser window (the shell's own warning); inside a frame at 375
- *     it reads 375, so the phone end is the page's real phone end.
- *  2. The CLAMP is evaluated, not resolved by hand. Every `vw` in the generated
- *     block measures the frame, so the frame shows the token the wiring round
- *     bakes rather than the board's arithmetic about it.
- *  3. Everything on the page moves, including the sixteen hand-rolled headings
- *     no hook reaches, so the reach of the ruling is visible instead of
- *     described.
+ *     reads the browser window; inside a frame at 375 it reads 375, so the
+ *     phone end is the page's real phone end.
+ *  2. The CLAMP is evaluated, not resolved by hand. Every `vw` in the
+ *     generated block measures the frame, so the frame shows the token a
+ *     wiring round bakes rather than the board's arithmetic about it.
+ *  3. Everything on the page moves, including the headings no hook reaches, so
+ *     the reach of the ruling is visible instead of described.
  *
- * ★ NO `?key=` ON A FRAME, ON PURPOSE. The key mounts the marketing motion
- * tuner, whose panel would sit on top of the page being judged, and it mounts
- * CandidateStyle, which would put a stale APPLIED block under the live pair.
- * The board injects the pair itself, last in the frame's head.
+ * ★ NO `?key=` ON A SITE FRAME, ON PURPOSE. The key mounts the marketing
+ * motion tuner, whose panel would sit on top of the page being judged, and it
+ * mounts CandidateStyle, which would put a stale APPLIED block under the live
+ * ladder. The board injects the ladder itself, last in the frame's document.
+ * The lab's own SCENE route is the exception: it is gated, so it takes the key
+ * the board was opened with.
  */
-export const REAL_PAGES: {
+export type RealPage = {
   id: string;
+  /** A site route, or the lab scene's screen id when `scene` is set. */
   href: string;
   label: string;
   /** Why this page is on the board: the step it is here to settle. */
   why: string;
-  /** What the pair does NOT move here, so a still heading reads as the page. */
+  /** What the ladder does NOT move here, so a still heading reads as the page. */
   reach?: string;
   /** The guest album, whose href is the demo token the board reads from env. */
   demo?: true;
-}[] = [
+  /** The lab's own screen route: an app surface a frame cannot sign in to. */
+  scene?: true;
+};
+
+/** The three surfaces the A-against-B comparison runs on. */
+export const COMPARED: RealPage[] = [
   {
     id: "home",
     href: "/",
-    label: "The home arc, top to bottom",
-    why: "The display step, the hero step, and the chapter and section tiers across fifteen sections and three grounds. Scroll it inside the frame: this is the whole arc at the pixels it ships.",
-    reach:
-      "the four feature-family sections and the footer ship a hand-rolled 30 / 36 that no hook reaches",
+    label: "The home arc",
+    why: "Four steps, fifteen sections, three grounds, one scroll.",
   },
   {
     id: "pricing",
     href: "/pricing",
     label: "/pricing",
-    why: "The title step over plan cards, where the card step and the section step meet a dense table.",
+    why: "The title step over plan cards and a dense table.",
   },
   {
-    id: "feature",
-    href: "/features/curation",
-    label: "A feature page",
-    why: "The title step as six pages wear it, over the section tier and a card row.",
-    reach: "its four section headings are the hand-rolled 30 / 36",
+    id: "dashboard",
+    href: "dashboard",
+    scene: true,
+    label: "The dashboard",
+    why: "The app register, in a document of its own.",
   },
+];
+
+/** The pages the picked ladder is worn by, below the comparison. */
+export const WORN: RealPage[] = [
   {
-    id: "help",
-    href: "/help",
-    label: "/help",
-    why: "The same title step on a dense index, plus the stat numerals that ship at the prose step since the mono face left.",
-  },
-  {
-    id: "article",
-    href: "/help/who-can-see-your-event",
-    label: "A help article",
-    why: "The one long-form reading surface on the site: the title step over body prose, where a tight tracking shows first.",
+    id: "home-worn",
+    href: "/",
+    label: "The home arc",
+    why: "The whole arc, as it ships.",
   },
   {
     id: "about",
     href: "/about",
     label: "/about, on paper",
-    why: "The masthead at the display step over the prose tier, on the only paper ground marketing has. C folds the prose tier away and this is where that costs something.",
+    why: "The masthead over the prose tier C folds away.",
+  },
+  {
+    id: "help",
+    href: "/help",
+    label: "/help",
+    why: "The title step, dense index.",
   },
   {
     id: "album",
     href: "",
     demo: true,
     label: "The guest album",
-    why: "The surface most people who ever see Partyreel see, and the one no host signs in to. Its heading is an app heading on a guest page, so the app register is what re-lays it.",
-    // ★ MEASURED IN THE FRAME, round four, and it is a finding rather than a
-    // caption: the guest entry title is a THIRD hand-rolled heading, written
-    // inline as `font-heading text-[28px]`, so no register reaches it and it
-    // keeps font-heading's flat -0.03em under every pair. It is the surface
-    // most people who ever see Partyreel see, and the ruling stops short of it.
-    reach:
-      "nothing here moves under any pair, and that is the point: the entry title is written inline as font-heading text-[28px], a third hand-rolled heading outside both registers, so the wiring round has to sweep it the way it sweeps the sixteen marketing ones",
+    why: "The surface most people ever see.",
+  },
+  {
+    id: "not-found",
+    href: "/events/not-a-real-event",
+    label: "A dead link",
+    why: "The one page title set in Inter.",
   },
 ];

@@ -1,448 +1,406 @@
-import { defineBoard } from "@/components/lab/board-spec";
+import { type Candidate, defineBoard } from "@/components/lab/board-spec";
 
 /**
- * THE BRAND-VOICE BOARD, AS DATA (the Library x Lab migration wave, 2026-09-15;
- * the seven asks rewritten in plain words the same night, the clarity round).
+ * THE BRAND-VOICE BOARD, AS DATA (round six, the catalog rebuild, 2026-09-16).
  *
- * Nothing here is new argument. Every ask, candidate, departure and section
- * lede is round four's, moved out of `board.tsx` and out of its hand-drawn lead
- * card so that the template, the desk, the record and the review ledger read
- * ONE list. What changed is where a reviewer meets them: the verdict and the
- * seven calls are the first screen instead of a card the board drew itself.
+ * ★ THE ROUND IS A SUBTRACTION AND A WIDENING AT ONCE. Will's brief was "a
+ * couple dozen spot examples across the marketing site and app" where he can
+ * "compare 2 brand voices in usage side by side", with "a config to choose
+ * which 2, then select my winner". So thirteen sections became five, seven asks
+ * became three, and the 13,000 words of argument left: what stayed is six
+ * voices as cards and twenty-four real places drawn twice.
  *
- * ★ AND THE ASKS NOW CARRY THEIR OWN CONTEXT. Will's first review through the
- * desk (2026-09-15) stopped at questions that were labels over tokens: "when
- * you use very technical terms or nicknames from spots in these reports, it
- * makes me have to go deep into the track to gain the relevant context and even
- * begin understanding the question being asked". So every ask below is a real
- * question a stranger can answer where they meet it: what the thing is and
- * where it lives on the site (`context`), which section and which switch to
- * look at (`look`), and every option named in words with what choosing it does.
- * The nicknames this board had grown are glossed or gone: "the house" and "the
- * room" are now named by what each voice DOES, "bible 20" says which rule and
- * what it governs, "the thesis" is the site's one-line promise, "the unfurl" is
- * the preview card a group chat draws, and "the arc" is the home page.
- *
- * ★ THE IDS NEVER CHANGED, BECAUSE THE LEDGER JOINS ON THEM. Every ask id and
- * every option id below is the one round four shipped (`voice: b | a | today`),
- * so an answer recorded against the old wording still resolves. What DID move
- * is the voice CONTROL's option ids, from `today | house | room` to the ask's
- * `today | a | b`, which is what lets the review card preview a pick: the
- * template can only set a control from an option when the two id sets match.
- * `voices.ts` keeps its own internal `VoiceId` keys and `board.tsx` maps the
- * two at the one boundary, because "room" is also a word inside dozens of the
- * lines this board is arguing about and a blind rename would have rewritten
- * them.
+ * ★ THE SIX ARE WRITTEN OUT HERE AND NOWHERE ELSE, and that is not laziness
+ * about DRY, it is the desk. `pnpm lab:review` reads a spec as TEXT rather than
+ * importing it (so a board's items and asks can be read with no build step), so
+ * `candidates: VOICES.map(...)` would read as a board with NO items and every
+ * ruling on a card would be refused. The structure of a voice lives in
+ * `voices.ts`; the words a reviewer compares across six cards live here, and
+ * `voices.test.ts` pins the two lists equal id for id, line for line, so the
+ * duplication cannot drift.
  *
  * Pure data on purpose (registry.test.ts enforces it): the board route is a
  * SERVER page and reads the question for its header, so a spec that imported
- * React or `voices.ts` (which imports two production copy modules) would drag a
- * client tree into a server render.
+ * React or `voices.ts` (which is plain data but sits beside a client board)
+ * would risk dragging a client tree into a server render.
  */
+const ITEMS: readonly Candidate<
+  "catalog" | "spots" | "calls" | "pages" | "paste"
+>[] = [
+  {
+    id: "today",
+    name: "Today",
+    one: "The lines the site ships, word for word. Nothing is written down, so nothing holds the next hundred.",
+    verdict: "kill",
+    facts: [
+      ["Shape", "Unwritten"],
+      ["A line is about", "Whatever the line was about"],
+      ["Rewrites", "0 of 85 lines"],
+      ["Risk", "Nothing holds the next hundred lines"],
+    ],
+    rationale:
+      "The one to come back to. Every other card is judged against it, and a ruling of Today changes no line.",
+  },
+  {
+    id: "keepsake",
+    name: "Keepsake",
+    one: "Warm and plain, about what the host ends up holding. The register the approved lines already speak.",
+    verdict: "refine",
+    facts: [
+      ["Shape", "A noun phrase, then a turn on a comma"],
+      ["A line is about", "The thing you keep"],
+      ["Rewrites", "31 of 85 lines"],
+      ["Risk", "Changes least, so lifts least"],
+    ],
+    rationale:
+      "The cheap answer and a real one. The voice already lives in the ratified lines; this writes it down and brings back the ones that drifted, so a ruling costs a sweep rather than a rewrite.",
+  },
+  {
+    id: "live",
+    name: "Live",
+    one: "Present tense, verb in front: the album filling while the party is still going.",
+    verdict: "ship",
+    recommended: true,
+    facts: [
+      ["Shape", "Verb first, one breath"],
+      ["A line is about", "The moment it is happening"],
+      ["Rewrites", "58 of 85 lines"],
+      ["Risk", "Runs long; a row on the h1 at 375"],
+    ],
+    rationale:
+      "The only voice a shared folder could not say back, because it stays inside the moment the album fills. It is also the only one that makes the live demo, the album and the reel sound like one product.",
+  },
+  {
+    id: "plain",
+    name: "Plain",
+    one: "Short declaratives. Nothing in a line that is not a fact, and no scene at all.",
+    verdict: "refine",
+    facts: [
+      ["Shape", "Subject, verb, object. Full stop."],
+      ["A line is about", "The mechanism"],
+      ["Rewrites", "52 of 85 lines"],
+      ["Risk", "Never sells; reads as documentation"],
+    ],
+    rationale:
+      "The register a reader trusts fastest, and the only one that never has to be turned down for the app: the quiet volume IS the voice. If the product is obvious enough, plain is the strongest thing here.",
+  },
+  {
+    id: "everyone",
+    name: "Everyone",
+    one: "The room's point of view: what the people there do, not what the host walks away with.",
+    verdict: "refine",
+    facts: [
+      ["Shape", "Everyone is the subject"],
+      ["A line is about", "The people who were there"],
+      ["Rewrites", "51 of 85 lines"],
+      ["Risk", "Rarely says you, and the host is the buyer"],
+    ],
+    rationale:
+      "The product's real asset is forty phones, not one, and this is the only voice that says so. It is also the closest thing here to a reason to pass the link on.",
+  },
+  {
+    id: "aside",
+    name: "Aside",
+    one: "Confident and dry: a claim, then the thing it spares you, said as an aside.",
+    verdict: "refine",
+    facts: [
+      ["Shape", "A claim, then a wink"],
+      ["A line is about", "What you will not have to do"],
+      ["Rewrites", "50 of 85 lines"],
+      ["Risk", "Wit ages badly and does not travel"],
+    ],
+    rationale:
+      "The only one anybody would quote. It names no competitor, but every line is shaped by a chore the reader recognises, which is the edge of bible 20 on purpose.",
+  },
+];
+
 export const BRAND_VOICE = defineBoard({
   id: "brand-voice",
   title: "The brand voice",
+
   question:
-    "What does Partyreel sound like? Three voices write the same sixteen real surfaces across marketing, the host's app and a guest's phone, then whole pages price the change.",
+    "Which of six voices should Partyreel write in, read on two dozen real places?",
 
   round: {
-    n: 5,
-    date: "2026-09-15",
+    n: 6,
+    date: "2026-09-16",
     changed:
-      "The seven asks rewritten in plain words: each says what the thing is, where it lives on the site and where to look, and every option is named in words instead of a letter or a token. No candidate, number or recommendation changed, and no new evidence was built.",
+      "Rebuilt as a catalog and a spot list: six voices as cards, and twenty-four real places drawn twice under whichever two you press A and B on. Thirteen sections became five and the argument went under the evidence.",
   },
   history: [
     {
       n: 5,
       date: "2026-09-15",
       changed:
-        "The board moved onto the kit's template, and every specimen moved into a true viewport: a surface is judged inside a real 1440 or 375 document rather than a div.",
+        "Every specimen moved into a true viewport, and the seven asks were rewritten in plain words.",
     },
     {
       n: 4,
       date: "2026-09-15",
       changed:
-        "Turned around on Will's two notes: the board opens on the voices WRITING sixteen real surfaces on the components that ship them, and every voice writes every line, so no comparison prints the word unchanged.",
+        "The board opened on the voices WRITING sixteen real surfaces, on the components that ship them.",
     },
     {
       n: 3,
       date: "2026-09-14",
       changed:
-        "The walk Will would take, taken first: the verdict on top, the cost measured rather than asserted, and the three pages the home page never reaches.",
+        "The verdict on top, the cost measured rather than asserted, and the three pages the home page never reaches.",
     },
     {
       n: 2,
       date: "2026-09-14",
       changed:
-        "Whole pages instead of headers: the home page top to bottom, two feature pages with their cards, the thirty identity strings as a paste. Candidate C retired.",
+        "Whole pages instead of headers, and candidate C retired as a column.",
     },
     {
       n: 1,
       date: "2026-09-14",
       changed:
-        "The voice written down for the first time: a guide, three registers, and three candidates on the seven provisional home page headers.",
+        "The voice written down for the first time: a guide, three volumes, three candidates on seven headers.",
     },
   ],
   context:
-    "No voice was written down anywhere: the only copy rule in the repo was the ban on em-dashes. The design bible's rule 20 (say who we are, never who we are not) was don'ts with no do's, and rule 21 opened every line on the site until a voice existed. So the guide is written from the ground up and argued here, and two copy rulings parked long ago ride the board: the line a group chat shows when an event needs an email, and the headers carrying an appetite for a different line. No production byte changes on this track.",
+    "No voice was written down anywhere: the only copy rule in the repo was the ban on em-dashes. Bible 20 (say who we are, never who we are not) was don'ts with no do's, and bible 21 opened every line on the site until a voice existed. Five rounds argued three candidates in prose; this one writes six of them into the product and lets the product do the arguing. No production byte changes on this track.",
 
   verdict: {
     recommendation:
-      "Take B, the voice rebuilt around the album filling: a code on a table, phones finding it, the event arriving while the party is still on.",
+      "Live: present tense, verb in front, the album filling while the party is still going.",
     because:
-      "It is the only candidate whose sentences could not be said by a shared folder or a group chat, because it stays inside the moment the album fills instead of describing it the morning after. A is the cheap answer and a real one: it tunes the register the eight approved lines already speak, and it barely moves the feature pages, which are finished.",
+      "It is the only one of the six whose sentences a shared folder could not say back, because it stays inside the moment the album fills rather than describing it the morning after. Keepsake is the cheap answer and a real one.",
     overrule:
-      "B costs a row on the biggest headline: three rows at 1440 and four at 375, against today's two and three. If that row is too expensive, A carries none of it and none of the lift.",
+      "Live costs a row on the biggest headline at 375. If that row is too expensive, Keepsake carries none of it and none of the lift.",
   },
 
   asks: [
     {
-      id: "voice",
-      question: "Which of the three voices should Partyreel write in?",
-      context:
-        "A voice is the set of habits every line follows: what a sentence is about, how long it runs, which words are in and which are out. Nothing is written down today, so three are on the board and each writes the same real surfaces, from the home page's biggest headline down to a toast in the app.",
-      look: "The first section, In use: marketing. Five surfaces a reader meets before signing up, each written three times in a real browser window, one document per voice, headed with the names below.",
-      options: [
-        {
-          id: "b",
-          label: "B, rebuilt around the album filling",
-          means:
-            "The voice is rebuilt from the one thing only this product does: a code on a table filling an album while the party is on.",
-        },
-        {
-          id: "a",
-          label: "A, a tuning of the lines we have",
-          means:
-            "The register the eight approved lines already speak, written down, with the lines that drifted brought back to it.",
-        },
-        {
-          id: "today",
-          label: "Today, the lines the site ships now",
-          means:
-            "Nothing is rewritten. The site keeps the strings it has, and nothing written down holds the next hundred lines to anything.",
-        },
-      ],
-      recommended: "b",
-      because:
-        "Read the five loudest surfaces in all three columns before anything else. B is the only one that says what only this product does; A is the register the approved lines already speak, written down at last.",
-      overrule:
-        "If B reads as writing rather than as talking on the home page's biggest headline, A is the answer and the rest of the guide is unchanged.",
-      evidence: "marketing",
-      control: "voice",
-    },
-    {
-      id: "headers",
-      question:
-        "Should all seven home page headers come from one voice, or be picked line by line?",
-      context:
-        "The home page runs as a column of big section headings (Scan, upload, done. No app to install.). All seven are still provisional, so this round settles them. Picking each from whichever column reads best is allowed; the cost is that the page stops sounding like one person talking.",
-      look: "The home page, part 1: seven sections in shipped order inside a real document, with the ledger beside them carrying today's line above each candidate line, header by header.",
-      options: [
-        {
-          id: "whole",
-          label: "All seven from the voice you chose",
-          means:
-            "The seven headers land as one set in the voice picked above, so the page reads in one register from top to bottom.",
-        },
-        {
-          id: "line-by-line",
-          label: "Pick each header from any column",
-          means:
-            "Name the line you want for each of the seven in your note; every option is in the ledger beside the sections.",
-        },
-      ],
-      recommended: "whole",
-      because:
-        "The home page is the one stretch of the site that has to read as one voice, and seven headers chosen from different columns is how that stops. Line by line stays available in the ledger under every chapter.",
-      evidence: "arc-event",
-    },
-    {
-      id: "arc",
-      question:
-        "Should the rest of the home page's copy move to the chosen voice too?",
-      context:
-        "The seven headers are a third of the home page's 65 lines. The rest is the small label above each heading, the sentence under it and the button text. This asks whether those move with the headers or keep the words they ship today.",
-      look: "The home page, part 3, and the ledgers beside all three home page sections: every slot with today's line above the candidate's, and the lines a voice deliberately keeps marked held.",
-      options: [
-        {
-          id: "take",
-          label: "Move the whole page to the voice",
-          means:
-            "Every small label, supporting sentence and button on the home page is rewritten in the voice you picked.",
-        },
-        {
-          id: "hold",
-          label: "Move the seven headers only",
-          means:
-            "The headers change and everything around them keeps the words it ships today, in whatever register they were written in.",
-        },
-      ],
-      recommended: "take",
-      because:
-        "Ruling the headers and holding the rest leaves the loudest sentence on the page in one voice and the sentence directly under it in another, which is how a page stops sounding like one person.",
-      evidence: "arc-close",
-    },
-    {
-      id: "bible-20",
-      question:
-        "Should this one sentence replace the design bible's rule 20 on copy?",
-      context:
-        "Rule 20 says copy should say who we are, never who we are not. It decides whether a line may sell by naming something the reader is spared (no app, no account), and as written it bans that outright, which also bans an approved line. The board proposes: lead with what arrives; an absence may be the second beat, never the first, and never both.",
-      look: "The voice section, the card headed The sentence proposed in place of rule 20: the sentence at heading size, then the approved line it keeps and the header it kills.",
-      options: [
-        {
-          id: "yes",
-          label: "Yes, adopt that sentence",
-          means:
-            "Rule 20 is rewritten this way, so a line may name an absence as its second beat and never as its first.",
-        },
-        {
-          id: "send-back",
-          label: "Send it back for another try",
-          means:
-            "Rule 20 stays as it is and the board writes a new replacement; say in your note what is wrong with this one.",
-        },
-      ],
-      recommended: "yes",
-      because:
-        "It keeps the approved line (Scan, upload, done. No app to install.) and it kills the header built from two absences and no product (Nothing to install. Nothing to sign up for.).",
-      evidence: "voice",
-    },
-    {
-      id: "thesis",
-      question: "Should the site's one-line promise stay as it is?",
-      context:
-        "The promise is the sentence at the very top of the home page, above everything else: The whole event, in one album. It was ratified in 2026 and the site has said it ever since. The retired third candidate leaves one alternative clause behind, which moves the claim from where the photos end up to whose eyes they came from.",
-      look: "The one-line promise section: both lines at the home page's biggest heading size inside a real document, each headed with its name below, and the row counter underneath saying what each costs in rows.",
-      options: [
-        {
-          id: "keep",
-          label: "Keep: The whole event, in one album",
-          means:
-            "The promise stays the ratified line, which the site has said long enough for a reader to recognise it.",
-        },
-        {
-          id: "take",
-          label: "Take: The whole event, as everyone saw it",
-          means:
-            "The promise changes to the alternative clause, which costs a row at 1440 and nothing at 375.",
-        },
-      ],
-      recommended: "keep",
-      because:
-        "In one album is the line the site has said long enough to be recognised, and B already carries the perspective argument in the headline's second line.",
-      evidence: "thesis",
-    },
-    {
       id: "noun",
-      question: "Should a guest's screen say album, the word the site uses?",
+      question:
+        "On a guest's phone, is the thing they are looking at an album or a gallery?",
       context:
-        "The marketing site says album in every heading, nav label and directory line. The pages a guest lands on after scanning a code say gallery, in five places. So a guest who scans on the strength of the site's promise arrives at a different product's noun.",
-      look: "The guest section, and the card headed One noun, or two at the top of it: the door in its three gates, the upload sheet and the empty album at 375, with the word in each heading and button.",
+        "The site, the app and the reel say album. The shipped guest pages say gallery, and no voice decides which is right.",
+      look: "Section three: the same two guest lines under each word.",
       options: [
         {
           id: "album",
-          label: "Album everywhere, guests included",
-          means:
-            "The five guest-facing places that say gallery change to album, so the whole product has one noun for the thing.",
+          label: "Album",
+          means: "One noun everywhere. The guest pages are swept to match.",
         },
         {
-          id: "split",
-          label: "Album on the site, gallery for guests",
+          id: "gallery",
+          label: "Gallery",
           means:
-            "The split stays as it ships: the site sells an album and a guest's own screen shows a gallery.",
+            "The guest keeps its own word, and the site keeps album. Two nouns, on purpose.",
         },
       ],
       recommended: "album",
       because:
-        "A guest who scans a code on the strength of the site's promise should land on the same noun the promise used. Closing the split costs five strings and nothing else.",
-      evidence: "guest",
+        "A guest who becomes a host meets the word twice, and two words for one object teach a vocabulary badly.",
+      evidence: "calls",
+      control: "noun",
     },
     {
       id: "unfurl",
       question:
-        "When an event needs an email, what should the link preview say?",
+        "What should a group chat show when a host pastes the event link?",
       context:
-        "When a host pastes their event link into a group chat, the chat draws a preview card: a title and one line under it. For an event whose host requires a verified email, that line has to warn the guest. Two wordings are on the board, and one word settles it.",
-      look: "The link preview section: the two cards as a group chat draws them, headed with the names below, with an open event's card above as the control so the pair reads as one set.",
+        "A chat draws a preview card from the page. Where an event needs an email first, this line is the only warning anyone gets.",
+      look: "Section three, top: the preview card, each line in turn.",
       options: [
         {
           id: "email",
-          label: "This event asks guests for an email",
-          means:
-            "The smaller promise, in the host's own words: it names what the guest hands over, not the machinery behind it.",
+          label: "Say the email up front",
+          means: "Fewer taps, and nobody hits a wall halfway through a party.",
         },
         {
-          id: "sign-in",
-          label: "Asks guests to sign in with an email",
+          id: "join",
+          label: "Just invite them in",
+          means: "More taps, and a share of them bounce at the email step.",
+        },
+        {
+          id: "one-step",
+          label: "Warn without saying what",
           means:
-            "The true shape of the door the guest meets, at the cost of naming our sign-in on a link the host pastes themselves.",
+            "Hints that something is asked. It is also the shape a phishing warning takes.",
         },
       ],
       recommended: "email",
       because:
-        "It is what the host is actually asking for, and it is the smaller promise. Sign in names our machinery on a card the host pastes into their own group chat.",
-      evidence: "unfurl",
+        "A tap that bounces at a gate is worse than one that never happened: the guest is in the room when it fails.",
+      evidence: "calls",
+      control: "unfurl",
+    },
+    {
+      id: "counts",
+      question: "Which pair of numbers does the home page quote?",
+      context:
+        "The hero proposes 312 photos from 48 guests; a band below ships 214 photos, 23 guests. Both claim the demo event.",
+      look: "Section three, bottom: the same line under each pair.",
+      options: [
+        {
+          id: "demo",
+          label: "The demo event's real numbers",
+          means: "214 and 23, read from the demo, and the hero drops its pair.",
+        },
+        {
+          id: "hero",
+          label: "The bigger pair",
+          means:
+            "312 and 48 everywhere, which no live event on the site backs.",
+        },
+      ],
+      recommended: "demo",
+      because:
+        "A number a reader can go and count beats a bigger one, and the demo is one click away.",
+      evidence: "calls",
+      control: "counts",
     },
   ],
 
-  candidates: [
-    {
-      id: "room",
-      name: "B, rebuilt around the album filling",
-      recommended: true,
-      rationale:
-        "A rebuild from the product's one idea, the code becoming the album. Verb in front, present tense, the party as the setting, real counts as evidence. A sentence is about the moment, not the object. It rewrites half again as much of the site as A.",
-    },
-    {
-      id: "house",
-      name: "A, a tuning of the lines we have",
-      rationale:
-        "A tuning. The voice already exists in the eight approved lines; write it down, then bring back the lines that drifted. A sentence is about what the host ends up holding. It changes the least, so it lifts the least.",
-    },
-    {
-      id: "today",
-      name: "Today, the lines the site ships now",
-      rationale:
-        "The control, not a candidate: the shipped strings verbatim. No voice is written down, so the home page drifts between an absence, a state and an instruction, and nothing holds the next hundred lines.",
-    },
-  ],
+  /**
+   * ★ THE CANDIDATES ARE THE VOICES, and the spot list is how they are judged.
+   * A catalog card is a glance; the ruling is made two dozen places down.
+   */
+  candidates: ITEMS,
+
+  catalog: {
+    section: "catalog",
+    control: "voice",
+    compare: ["compare-a", "compare-b"],
+  },
 
   departures: [
     {
-      id: "candidate-c",
-      from: "precedent",
-      text: "A third candidate, C, was RETIRED as a column in round two, which is the board's judgment rather than a ruling. Across fifteen sections and two whole pages it read as B with everyone substituted in seven places, so it cost a third of the board and answered nothing B did not. Its one real question, the site's one-line promise, is its own section and ask. Say the word and it comes back.",
-      evidence: "thesis",
-    },
-    {
-      id: "copy-picks",
-      from: "ruling",
-      text: "Five copy alternatives were parked for Will long ago and their list is lost: the queue item predates the docs consolidation and no list survives in the repo. The board reads it as the five home page headers that carry an appetite for a DIFFERENT line (the live demo, the album, curation, privacy, the reel), marked with a dot in the ledgers. Correct it and the board adds the missing ones.",
-      evidence: "arc-event",
-    },
-    {
-      id: "two-counts",
-      from: "precedent",
-      text: "The home page is about to carry two different counts: the hero variations propose 312 photos from 48 guests as a stand-in, and the band two sections below ships Built from 214 photos. Shot by 23 guests. The guide's third do makes that one source and one pair of numbers, read from the demo event.",
-      evidence: "arc-event",
+      id: "aside-tests-20",
+      from: 20,
+      text: "Bible 20 says name what we are, never what we are not. Aside is on the board to test that edge: it names no competitor, but every line is shaped by a chore the reader recognises. If the rule means the shape and not the naming, Aside is a kill on sight.",
+      evidence: "spots",
     },
     {
       id: "never-expire",
       from: "precedent",
-      text: "The create wizard's date helper says events never expire, and the product's rule is that an event stays until the host deletes it: there is deliberately no end date, which is the anti-abuse core. The line is on the board in all three voices, and the fix belongs to the sweep whichever voice wins.",
-      evidence: "app",
+      text: "The create wizard's date helper says events never expire. The rule is that an event stays until the host deletes it: there is deliberately no end date, which is the anti-abuse core. The fix belongs to the sweep whichever voice wins.",
+      evidence: "spots",
+    },
+    {
+      id: "guest-account-line",
+      from: 4,
+      text: "Bible 4 says a guest surface belongs to the host's event. The shipped door asks a guest to make an account with US on someone else's page: the one line here that is wrong in every voice, so it is marked compelled rather than offered.",
+      evidence: "spots",
     },
   ],
 
   assets: [],
 
+  /**
+   * ★ THE BUDGET IS DECLARED, AND THE NUMBER IS THE WORK RATHER THAN AN EXCUSE.
+   * Round five weighed 13,024 words; this one weighs about 2,600, and roughly
+   * 900 of those are the template's own (the answer, the three asks, the meta
+   * panel's six ideas and three rules-broken, the review panel's instructions),
+   * which no board can fold. The rest is arithmetic: Will asked for two dozen
+   * places, and each one costs its name, the kit's own "under A and under B"
+   * line and two frame captions, about forty words a place before the board
+   * says anything of its own. Every word that CAN be folded is folded.
+   */
+  reading: {
+    words: 2700,
+    why: "Will asked for two dozen real places: each one costs its name, the kit's compare line and its captions before the board speaks. The argument is folded; this is names and labels.",
+  },
+
   sections: [
     {
-      id: "marketing",
-      title: "In use: marketing, loud",
-      lede: "Five surfaces a reader meets before they sign up, each written three ways inside a real browser window on the ground it ships on: the home hero, the album chapter, a card set, the pricing pair and a help opening.",
+      id: "catalog",
+      title: "The six voices",
+      lede: "Each card writes the same two screens, loud over quiet, at a phone's own column and type.",
       argument: [
-        "Will, on round three: there is a handful of notes about the voices, but not a lot of actual usage examples to get a feel for each voice through. So the board opens on the voices WRITING rather than on notes about them, on the components that ship the line rather than in a card.",
-        "Every voice writes every line here, even where a sweep would keep today's, because a comparison exists to show a difference and a row printing the same string twice under the word unchanged teaches nothing. Where all three still land on the same string, the row carries the REASON. What a sweep would actually MOVE is the ledgers, from the home page on.",
+        "WHY A CARD SHOWS TWO SCREENS AND NOT ONE HEADLINE. What separates these six is not a headline, it is whether the headline and an empty state sound like the same person. A card that shows only the loud volume is a card that cannot be wrong about the quiet one, and the quiet one is nine tenths of the words a host ever reads.",
+        "HOW SIX WERE CHOSEN. Each is a coherent answer somebody could prefer for a reason they could say out loud: keep every line; tune the register the approved lines already speak; rebuild around the one thing only this product does; say nothing that is not a fact; speak for the room rather than the host; lead with the chore it spares you. Two that differ only in temperature would be one card.",
+        "THE CARDS ARE NOT FRAMES, and every other board's are. Fifty documents mounted to answer which of six is a board that cannot open, so a card paints its ground itself and pins its column to the 343px a 375 viewport gives. Nothing is scaled; the desktop rungs simply do not fire, because nothing on a card asks for one.",
+        "WHAT A VOICE DOES NOT DECIDE. The three volumes (loud in marketing, quiet in the app, nearly silent on a guest's phone) do not fork with the voice; round one found that on four surfaces and round four confirmed it on sixteen. Only the loud volume's default sentence shape moves, so a ruling here is a ruling on vocabulary and shape, never on how loud the app may be.",
       ],
     },
     {
-      id: "app",
-      title: "In use: the host's app, quiet",
-      lede: "Seven surfaces of real app UI on the app's own theme: the dashboard's empty state, the shipped event card in the dashboard's grid, the create wizard, two toasts, the two errors, a notification and the account page.",
+      id: "spots",
+      title: "The same places, two voices at a time",
+      lede: "Twenty-four real places, each drawn twice in a real document: the component that ships it, with the board's strings in it.",
       argument: [
-        "The app's UI is open to a lab track this round (Will, 2026-09-15), so these render as UI rather than as text in a card, which is what round three did and what made the quiet register hard to judge at all.",
-        "Some app copy is a prop and some is a component edit, and the difference sets the size of the sweep: the event card's two pills arrive from the dashboard, its amber review chip is hardcoded in the card itself.",
+        "EVERY SPOT IS THE COMPONENT THAT SHIPS IT. PageHero and SectionShell for the chapters, the pricing markup with its figures read from tiers.ts, the create wizard's card, a toast at sonner's own 356px, the guest sheet's dropzone at 375. The strings are the board's; the components, the density and the breakpoint are the product's.",
+        "AND NOTHING IS SCALED. A frame is a document at exactly 1440 or exactly 375, so a breakpoint resolves against the canvas rather than the browser. Whether a headline takes three rows or four at 375 is the sharpest fact on this board about a voice, and a scaled box cannot tell you.",
+        "THE COUNTS IN THE COPY (214 photos, 23 guests, forty phones) are the demo event's or the board's own, which is what the third ask is about: one source and one pair of numbers, or the page quotes two.",
+        "WHERE A VOICE DOES NOT BITE IS ALSO A RULING. Twenty-five of the eighty-five lines are the same in every voice, and each one says WHY: a verb on a button the host is about to press, an error that names a fact, a billing sentence that is a promise about money. A row printing the same string six times under the word unchanged teaches nothing, so no row does.",
       ],
     },
     {
-      id: "guest",
-      title: "In use: a guest's phone, and the inbox",
-      lede: "Four surfaces at 375, always, because that is the only width they render at: the door in its three gates, the upload sheet, the empty album and the inactivity mail. The album-or-gallery ask is judged here.",
-      argument: [
-        "The bible's fourth rule decides more here than the voice does: a guest surface belongs to the host's event and Partyreel stays nearly silent. That is why the door's account-required line is marked compelled rather than chosen: the shipped line asks a guest to make an account with US on the host's own page, so the sweep rewrites it whichever voice wins. Its only choosable part is the noun, which is its own ask.",
-      ],
+      id: "calls",
+      title: "The three calls a voice does not decide",
+      lede: "A noun, a link preview and a pair of numbers: none of them settled by picking a card.",
     },
     {
-      id: "voice",
-      title: "The voice, in one paragraph",
-      lede: "The selected voice written out, with what it costs, the three volumes shown once, and the sentence proposed in place of the design bible's rule 20 on copy.",
-      argument: [
-        "The three volumes (loud in marketing, quiet in the app, nearly silent on a guest's screen) do NOT fork with the voice: round one found it on four surfaces, round two confirmed it on eleven, round four wrote all sixteen and counted. Only the marketing volume's default sentence shape moves, so a ruling on the voice is a ruling on one row of the guide's table.",
-      ],
-    },
-    {
-      id: "arc-event",
-      title: "The home page, part 1: the event",
-      lede: "Seven sections in shipped order on the dark marketing ground, in the selected voice, with today beside them line by line and every held line marked. The headline's rows are measured under the frame rather than asserted.",
+      id: "pages",
+      title: "The home page, wearing the pick",
+      lede: "The page top to bottom in the picked voice. It has to land in the voice it opened in.",
       wiring: [
-        "The ledger is the surface a line-by-line ruling is written on: every slot, today above the candidate, with held marked where a voice keeps the shipped string.",
+        "The four frames are the page's real ground order: cinema, paper, cinema, ink. marketing.css flips the whole document on `data-mkt-skin`, so a single frame showing two grounds at once would be a lie about both.",
       ],
     },
     {
-      id: "arc-paper",
-      title: "The home page, part 2: the morning after",
-      lede: "The three sections of the host's desk, on the light marketing ground. The album chapter opens it as a left masthead on a wide screen, which is why its line carries more weight than the two beneath it.",
-    },
-    {
-      id: "arc-close",
-      title: "The home page, part 3: the payoff",
-      lede: "The last five sections, back on the dark ground, and the paste a ruling lands as. The page has to land in the voice it opened in, which is the thing a header-by-header comparison cannot show.",
+      id: "paste",
+      title: "The ruling, as a paste",
+      lede: "The picked voice as the block that lands in marketing-voice.ts, generated from the data above.",
       wiring: [
-        "The paste is the artifact a ruling lands: real TypeScript for marketing-voice.ts, generated from the same data the frame above renders, never typed by hand.",
+        "The three volumes (loud in marketing, quiet in the app, nearly silent on a guest's phone) are the guide rather than evidence, so they live in docs/specs/brand-voice.md and not on the board.",
+        "The paste covers the thesis, the subhead and the six section headers. The rest of a sweep is component edits rather than constants: the feature cards, the wizard's helper, the guest door and the mail templates each carry their own strings, and the spot list names the file for every one.",
       ],
-    },
-    {
-      id: "thesis",
-      title: "The site's one-line promise, both ways",
-      lede: "All that survives of the retired third candidate, on the surface it actually renders: the site's loudest line at the home page's biggest heading size. One clause settles it, and the ruler says what that clause costs in rows.",
-    },
-    {
-      id: "album-page",
-      title: "A feature page, whole: album",
-      lede: "The headline, the sentence under it, every small label, header and supporting line, and all nineteen cards with their titles, in order, on the two grounds the page really uses. The cards are its body weight, so the ledger counts them.",
-    },
-    {
-      id: "curation-page",
-      title: "A feature page, whole: curation",
-      lede: "The second page, and the harder one: its whole body is one light-ground chapter of decisions, cards included, so the voice has to stay quiet enough to read as a working document and loud enough to still be marketing.",
-    },
-    {
-      id: "strings",
-      title: "The thirty feature-page strings, as a paste",
-      lede: "The identity layer behind all six feature pages: the nav label, the panel one-liner, the headline, the sentence under it and the directory line, with the lengths the nav panel and the six hub doors wrap against.",
-    },
-    {
-      id: "utility",
-      title: "Help, contact and pricing",
-      lede: "The three pages a reader reaches when they are deciding or when something broke. They carry the site's two most generic sentences, and two real help article openings close the last gap in the guide's table of surfaces.",
-    },
-    {
-      id: "unfurl",
-      title: "The link preview in a group chat",
-      lede: "The parked ruling on the surface it renders: what a host's group chat draws when they paste the event link. An open event's card sits above as the control, because the two lines have to read as one set.",
     },
   ],
 
   controls: [
     /**
-     * ★ THE VOICE CONTROL'S OPTION IDS ARE THE VOICE ASK'S (the clarity round).
-     * `registry.test.ts` refuses a `control` whose id set differs from its ask's
-     * because the pick IS the preview: the review card sets the control to the
-     * option the reviewer chose. So the dock reads `today | a | b` and its
-     * labels are the ask's own, word for word, which is also what every column
-     * on the evidence is headed with.
+     * ★ THE PICK IS CLEARABLE AND OPENS ON NOTHING (Will, 2026-09-16: "I can't
+     * unpick a selection to return to a non-selected state"). Nothing picked
+     * means the page walk and the paste show the site as it ships.
      */
     {
       id: "voice",
-      label: "Voice",
+      label: "The winner",
       options: [
-        { id: "today", label: "Today, the lines the site ships now" },
-        { id: "a", label: "A, a tuning of the lines we have" },
-        { id: "b", label: "B, rebuilt around the album filling" },
+        { id: "none", label: "Nothing picked" },
+        { id: "today", label: "Today" },
+        { id: "keepsake", label: "Keepsake" },
+        { id: "live", label: "Live" },
+        { id: "plain", label: "Plain" },
+        { id: "everyone", label: "Everyone" },
+        { id: "aside", label: "Aside" },
       ],
-      default: "b",
+      default: "none",
+      clearable: true,
+    },
+    // A and B: the two the spot list draws. They open on the control against
+    // the board's own pick, which is the comparison a reader wants first.
+    {
+      id: "compare-a",
+      label: "A",
+      options: [
+        { id: "today", label: "Today" },
+        { id: "keepsake", label: "Keepsake" },
+        { id: "live", label: "Live" },
+        { id: "plain", label: "Plain" },
+        { id: "everyone", label: "Everyone" },
+        { id: "aside", label: "Aside" },
+      ],
+      default: "today",
+    },
+    {
+      id: "compare-b",
+      label: "B",
+      options: [
+        { id: "today", label: "Today" },
+        { id: "keepsake", label: "Keepsake" },
+        { id: "live", label: "Live" },
+        { id: "plain", label: "Plain" },
+        { id: "everyone", label: "Everyone" },
+        { id: "aside", label: "Aside" },
+      ],
+      default: "live",
     },
     {
       id: "canvas",
@@ -454,62 +412,79 @@ export const BRAND_VOICE = defineBoard({
       default: "desktop",
     },
     {
-      id: "app",
-      label: "The app's theme",
+      id: "area",
+      label: "Where",
       options: [
-        { id: "app-light", label: "App light" },
-        { id: "app-dark", label: "App dark" },
+        { id: "all", label: "Everywhere" },
+        { id: "marketing", label: "The site" },
+        { id: "app", label: "The app" },
+        { id: "guest", label: "A guest's phone" },
       ],
-      default: "app-light",
+      default: "all",
+    },
+    {
+      id: "noun",
+      label: "The noun",
+      options: [
+        { id: "album", label: "Album" },
+        { id: "gallery", label: "Gallery" },
+      ],
+      default: "album",
+    },
+    {
+      id: "unfurl",
+      label: "The link preview",
+      options: [
+        { id: "email", label: "Say the email up front" },
+        { id: "join", label: "Just invite them in" },
+        { id: "one-step", label: "Warn without saying what" },
+      ],
+      default: "email",
+    },
+    {
+      id: "counts",
+      label: "The numbers",
+      options: [
+        { id: "demo", label: "The demo event's real numbers" },
+        { id: "hero", label: "The bigger pair" },
+      ],
+      default: "demo",
     },
   ],
 
   lookFirst: [
     {
-      section: "marketing",
-      note: "The home hero, three ways, at 1:1 on the dark ground. A writes today's two approved lines back, because keeping them IS A's argument, so only the small label and the second button move.",
+      section: "catalog",
+      note: "Read the six cards. The loud screen and the quiet one under it are the whole voice; nothing has to be switched to compare them.",
     },
     {
-      section: "marketing",
-      state: { canvas: "phone" },
-      note: "The same five surfaces in three real 375 windows, abreast. B's extra row on the headline is visible here rather than asserted, because these are documents and not scaled boxes.",
+      section: "spots",
+      note: "Today against Live, from the top. The first three places are the loudest on the site and the gap is widest there.",
     },
     {
-      section: "app",
-      state: { canvas: "desktop", app: "app-dark" },
-      note: "The create wizard and the notification, on the app's dark theme. Two of the three corrections are on screen: one line says something the product does not do.",
+      section: "spots",
+      state: { canvas: "phone", "compare-a": "keepsake", "compare-b": "aside" },
+      note: "The same places at 375, in the two candidates furthest apart in temperature. The headline rows are read here, not asserted.",
     },
     {
-      section: "guest",
-      note: "The door in three gates, three voices, nine cards. The bible's fourth rule decides more than the voice does, and the album against gallery split is visible in one screen.",
+      section: "spots",
+      state: { area: "app", "compare-a": "plain", "compare-b": "aside" },
+      note: "The quiet volume, where a voice earns or loses its keep. An error and a storage warning are where wit stops being free.",
     },
     {
-      section: "arc-event",
-      note: "Now the price. Fifteen sections in shipped order with today beside every line: A moves 23 of the home page's 65 lines, B moves 33.",
-    },
-    {
-      section: "album-page",
-      note: "Where a voice does the LEAST. The feature pages are finished, so A moves 3 of 48 card strings and B moves 6. That gap is the sharpest thing on the board about what adopting a voice means.",
-    },
-  ],
-
-  notes: [
-    {
-      section: "marketing",
-      text: "The pricing card is the shipped markup with the shipped numbers: the price, the storage and the event cap all render from tiers.ts, so no voice can move one. Two of its five feature lines are shown rather than all five.",
-    },
-    {
-      section: "app",
-      text: "All three event cards say the same words on the amber chip on purpose: that string is hardcoded in event-card.tsx while the other two pills arrive as props. The row below is where the candidates part, and the difference is a component edit.",
-    },
-    {
-      section: "utility",
-      text: "Both help article openings hold in every column, which is the finding rather than an omission: the 59 articles were written to the shape the guide prescribes, so a voice ruling costs the help catalogue nothing.",
+      section: "pages",
+      state: { voice: "live" },
+      note: "The board's own pick, worn by the whole page. A page has to land in the voice it opened in.",
     },
   ],
 
   links: {
-    bible: [2, 4, 6, 19, 20, 21],
+    bible: [2, 4, 20, 21, 22],
     spec: "docs/specs/brand-voice.md",
+    pages: [
+      { label: "Home", path: "/", note: "the arc every spot comes from" },
+      { label: "Pricing", path: "/pricing", note: "the cards, unchanged" },
+      { label: "Help", path: "/help", note: "the one place a voice yields" },
+    ],
   },
 });
