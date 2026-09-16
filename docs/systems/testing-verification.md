@@ -1,7 +1,7 @@
 # Testing & verification — live-testing tool gotchas
 
 > ROLE: the home for the ways the test TOOLING (not the product) lies during a LIVE check. Read when a live (Chrome-MCP) result disagrees with what you expect.
-> BELONGS HERE: live-testing tool blind-spots (Chrome MCP, the Vercel preview chrome) + the "hand the human the look" pattern. · NOT HERE: the local-FIRST-then-live POLICY (→ [`../../CLAUDE.md`](../../CLAUDE.md) "Local dev vs live testing"), unit-test infra / Vitest mocks (→ [design-system.md](design-system.md)), perf-measurement caveats (→ [`../perf/v1-baseline.md`](../perf/v1-baseline.md)).
+> BELONGS HERE: live-testing tool blind-spots (Chrome MCP, the Vercel preview chrome) + the "hand the human the look" pattern. · NOT HERE: the local-FIRST-then-live POLICY (→ [`../../CLAUDE.md`](../../CLAUDE.md) "Local dev vs live testing"), unit-test infra / Vitest mocks (→ [design-system.md](design-system.md)).
 > GROWS BY: integrate-in-place — add a note when a new tool blind-spot burns a loop; refine in place, don't append dated blocks.
 
 The **policy** (test locally first, then deploy for the allow-list-gated flows + a final adversarial pass)
@@ -145,8 +145,8 @@ multi-line variable becomes one iteration (one curl of a three-line "URL" return
   partyreel-export` is ground truth for whether the Worker was invoked and what it returned (a bad HMAC is
   a clean "Forbidden", never a 503).
 - **Isolated-world DOM + timing artifacts.** Because the MCP executes in an isolated world, buffered or
-  just-painted state can be missing and timing/race effects can read as failures. The perf-baseline doc hit
-  the same isolated-world caveat measuring LCP ([`../perf/v1-baseline.md`](../perf/v1-baseline.md)).
+  just-painted state can be missing and timing/race effects can read as failures. Perf measurement hits the
+  same caveat: an LCP read from the isolated world is not the LCP the page actually painted.
   - **Clicks aimed during an ENTER animation miss (real Chrome too).** `find`/ref clicks and any
     coordinates read while a menu/panel is still animating in aim at the MID-FLIGHT rect (a
     cross-slide had a nav link 250px right of its settled spot; the click "dismissed the menu, no

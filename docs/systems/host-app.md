@@ -31,7 +31,7 @@ syncs the URL with `history.replaceState` so switching stays instant, no server 
 
 ## Events & the create flow
 
-`events` (host_id, opaque `qr_token` = the single DB-generated link (ADR-0010), `moderation_mode`,
+`events` (host_id, opaque `qr_token` = the single DB-generated link, `moderation_mode`,
 `visibility` + `event_password_hash`, `accepting_uploads`, `allow_anonymous_uploads`, `max_upload_bytes` (host
 per-upload cap for GUEST uploads, 25 MiB–10 GB or null; the host's own uploads are exempt), `qr_style`,
 `custom_slug`, `deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
@@ -60,8 +60,8 @@ guards `MAX_EVENTS`. **Events have no end date** — deletion is the only lifecy
   events default to it ON (the `enforce_event_pro_gates` trigger is DROPPED + the column default flipped to
   `false`). Turning it OFF (allowing anonymous uploads) first opens a **consequence-confirm Dialog** (the
   delete-confirm pattern; the open is deferred a tick so radix's dismissable-layer doesn't catch the switch's
-  own click and auto-close it); turning it back ON is instant. ENFORCEMENT is unchanged (gated-gallery P3,
-  [ADR-0017](../adr/0017-gated-gallery-view-access.md)): `resolveGalleryAccess` teaser-gates an unverified
+  own click and auto-close it); turning it back ON is instant. ENFORCEMENT is unchanged (gated-gallery P3 →
+  [guest-flow.md](guest-flow.md)): `resolveGalleryAccess` teaser-gates an unverified
   guest + `create_guest` checks the email. A live "what your guests will experience" line under the access
   controls + the dashboard event-detail access line both render the SAME `guestExperienceSummary()`
   ([`guest-experience-summary.ts`](../../src/lib/events/guest-experience-summary.ts)) - one source, no drift.
@@ -80,7 +80,7 @@ without a migration; unknown/legacy → `classic`). Chain: `StyledQr` (renderer)
 **Invariant:** every preset keeps DARK data modules on a WHITE background for scannability; brand color only
 tints the corner finder patterns. Prove a new preset by SCANNING it (the host UI is auth-gated → verify on partyreel.com).
 
-## Custom event link (slug) — ADR-0012
+## Custom event link (slug)
 
 Pro / Event-Pass hosts can set an optional human-friendly **alias** `/e/<slug>` for the one event link;
 the permanent `/e/<qr_token>` + the QR never change and the slug is NOT a second capability.
@@ -95,6 +95,15 @@ the "Share with guests" card AND reused in the wizard's Share step. It has **deb
 classifier is `evaluateSlugInput` in [`slug.ts`](../../src/lib/slug.ts)), a change/remove warning dialog
 (both break the live link), and a name-derived suggestion chip. Downgrade keeps the slug resolving +
 removable but not changeable.
+
+**Slugs are MUTABLE and there are deliberately NO redirects.** Changing or removing one frees the old
+string for another event immediately, and the old link simply 404s: an alias that outlived its event would
+be a worse promise than a dead one. Soft-deleting an event frees its slug too (the partial unique index
+ignores deleted rows). A 32-hex slug is REFUSED so nothing can shadow the token namespace, and the
+reserved-word list is a brand and clarity guard rather than a routing one. The URL shape is `/e/<slug>`
+rather than a top-level `/<slug>` vanity path: it reuses the one route with its `noindex` and its OG, so
+there is zero collision risk with present or future top-level pages. A top-level vanity URL stays possible
+later, which is why the reserved list is written to be forward-compatible.
 
 ## First-time host welcome
 
@@ -235,7 +244,7 @@ the reports queue live in [admin-observability.md](admin-observability.md).)
 moderation rides in via a HOVER-REVEALED top-right action row (`HostTileOverlay`), colored per action on
 direct hover (the emil "monochrome at rest → color on hover/state" rule; the palette is the
 [design-system](design-system.md) action colors). **Desktop:** a FIXED left→right order
-`like, download, hide/show` — and the row is **CLOSED at three** (ADR-0024, Will 2026-08-04). hide/show is
+`like, download, hide/show` — and the row is **CLOSED at three** (Will 2026-08-04). hide/show is
 ONE slot (EyeOff approved / persistent amber Eye hidden) so toggling swaps the glyph in place.
 ★ **Add-to-reel and DELETE are deliberately NOT tile chips** (they were, until R3.1): a five-chip hover fan on
 a dense masonry grid is a misclick trap, and those two were the consequential ones. Neither lost a home —
@@ -290,6 +299,36 @@ invariants live in [uploads-and-r2.md](uploads-and-r2.md).
 
 ## Reel curation (R1 SHIPPED) + the live composer (SHIPPED) + the .mp4 export (SHIPPED)
 
+**THE PRODUCT SHAPE (settled, and it governs every reel decision).** The reel is core-loop step 5 and the
+product's North Star: the host curates their event's best moments and gets an auto-magical, shareable
+highlight video. The ratified positioning is the **"wow in between"**: not a pro video editor (a serious
+editor exports to CapCut), not a toy, an *everyone* tool including low-savvy hosts and old devices, whose
+value is the wow rather than pro control. Four rules follow, and they are the reason the surface looks
+sparse:
+- **Customization is curated randomness, never a timeline.** Style, orientation, cover and length are the
+  whole knob set; there are no sliders, no track, no per-clip editing. A style is a KIT (a motion
+  vocabulary, a transition set, a pacing rhythm, a grade) that the reel's own seed samples
+  deterministically, so the same style at a different seed is a genuinely different take and a re-view is
+  stable. Determinism is also what keeps the player and the encoder identical by construction.
+- **NO MUSIC, ruled.** Music is too personal per event to guess and timing visuals to a track is a trap.
+  The export is a clean silent motion-montage, which is exactly what Reels and TikTok want: people add
+  trending audio on the platform when they post. Beat-sync belongs to the same ruling.
+- **Generation is FREE on every tier, and the free export is FULL quality.** A janky free reel would read
+  as a mediocre product and cost upgrades, so the free levers are the watermark and the shorter length,
+  never the quality. The watermark pulls double duty: an upgrade nudge and free marketing on every shared
+  reel. Paid hosts carry zero Partyreel branding on their event surface, and there is deliberately **NO
+  end-card** on any reel, free or paid; do not revisit it as a growth extra.
+- **Video in the reel is self-bounding.** Only paid tiers can upload video at all, so "video in the reel"
+  is Pro-only with no special-casing anywhere. When it lands, a style applies motion to STILLS and
+  transitions plus grade to CLIPS (a clip plays, it is never Ken-Burns'd); stills come from the small
+  previews and clips from the ORIGINALS at export, so no new asset is created. Trim's home is the reserved
+  `media.clip_*` columns.
+
+The **style catalog is product data with ONE source**, the pure
+[`engine/style-registry.ts`](../../src/lib/reel/engine/style-registry.ts): 14 entries in two families, 8
+media-first **moods** whose `styleId` IS their themeId, and 6 stylized **treatments** that resolve to a
+native theme. A new style is a catalog entry plus its draw path, never a doc edit.
+
 **Reel CURATION (R1) SHIPPED** (2026-06-21): the host marks approved media as "in the reel" and views the
 curated set in the **Reel section** of the stacked feed (the event page is a pill-filtered feed — `Review ·
 Gallery · Reel` — not tabs; see "The event page"). The reel layer MIRRORS likes: a
@@ -298,7 +337,7 @@ insert ONLY via the access-checked SECURITY DEFINER `add_to_reel` RPC; un-reel i
 browser), a HOST-ONLY `ReelProvider` ([`reel-provider.tsx`](../../src/components/reel/reel-provider.tsx);
 optimistic, insertion-ordered Set, client-direct, NO signed-out branch — wraps the whole feed so an add in
 the Gallery reflects instantly in the Reel section), and a `ReelButton` (a `Clapperboard` in the `--reel`
-VIOLET, distinct from Like) in the **lightbox** curate group. ★ **The three curation doors** (ADR-0024, R3.1):
+VIOLET, distinct from Like) in the **lightbox** curate group. ★ **The three curation doors** (R3.1):
 the **Studio's Moments picker** (the primary one), the **lightbox**, and **Gallery bulk-Select**. The tile-row
 chip is GONE (see "the gallery-action model"), and selection is MODE-based on purpose — the room carries the
 meaning, not an icon on every card. Likes are an INPUT SIGNAL to quick-add, **never** membership (the
@@ -321,7 +360,7 @@ queue + the moderation-disable auto-approve confirm shipped 2026-06-21 as the Re
 while the **Gallery keeps the natural-ratio masonry "wow"** (incl. its album select) — uniformity standardizes
 Review's selection hit-targets. It's a `layout: "masonry" | "uniform"` prop on the SHARED grids
 (`MasonryColumns` + `SelectableMediaGrid`, default masonry; Gallery passes nothing).
-★ **Reorder is STUDIO-ONLY** (ADR-0024): the feed's `Reorder`/`Done` header mode and its sortable-grid swap are
+★ **Reorder is STUDIO-ONLY**: the feed's `Reorder`/`Done` header mode and its sortable-grid swap are
 RETIRED (`reel-reorder-provider`/`reel-reorder-button`/`reel-sortable-grid` deleted), because reordering beside
 a reel that keeps PLAYING (the Studio's filmstrip dock) beats a mode that hides the reel to show a grid. Drag is
 powered by our own dependency-free
@@ -336,7 +375,7 @@ in-reel items show dimmed) and persists via the **`reorder_reel(p_event_id, p_me
 is optimistic (★ rebuild a NEW `Set` from the reordered array — mutating the old Set keeps the old order) + reverts
 on the `stale`/error path. (The Review uniform grid keeps its `[data-exiting]` beat + `[data-check-pop]` — tile-local.)
 
-**★ THE FEED / STUDIO SPLIT (R3.1, ADR-0024 — the composition rule).** Will's alias review ruled the feed's
+**★ THE FEED / STUDIO SPLIT (R3.1, the composition rule).** Will's alias review ruled the feed's
 Reel section over-controlled for a visual surface, so the two host reel surfaces now have disjoint jobs and
 that split is load-bearing:
 - **The FEED section is VISUAL ONLY.** Post-Create it is [`reel-marquee.tsx`](../../src/components/reel/reel-marquee.tsx)
@@ -361,12 +400,12 @@ that split is load-bearing:
   sheet and sits OUTSIDE the sortable container (inside it would be a phantom drop slot).
 
 **THE BUILDER + CREATE-BIRTH (pre-Create, a feed moment).** [`reel-builder.tsx`](../../src/components/reel/reel-builder.tsx):
-the reel is BORN by an explicit Create act (ADR-0023 ruling 4) in two beats, FILL then CREATE — never one
+the reel is BORN by an explicit Create act in two beats, FILL then CREATE — never one
 button (that would fire the ratified reveal off an empty reel). **Quick-add** is the honest fill:
 [`pickQuickAdd`](../../src/lib/reel/quick-add.ts) is pure + DETERMINISTIC (mulberry32 off the reel's own
 seed, no Math.random) blending rank-normalized likes + recency decay + per-uploader round-robin coverage +
 a photo/video mix; its LABEL switches on whether likes actually shaped the pick. ★ **Offered at ONE
-approved item** (`6bc779d`): `QUICK_ADD_MIN` (4) no longer gates the button (post-ADR-0024 it was the only
+approved item** (`6bc779d`): `QUICK_ADD_MIN` (4) no longer gates the button (once the tile chip went it was the only
 in-card fill path, and gating it stranded small events) — a small pool comes back whole and the copy stops
 promising a guest-wide mix ("Everything added so far, in one first cut"). **Create** runs the ratified
 composite reveal IMMEDIATELY and persists CONCURRENTLY (`persistConfig`'s upsert IS the lazy create); on a
@@ -436,10 +475,10 @@ else (key, size, and config identity stay server-bound). Ops: the **`reel_render
 render_error/render_started_at/rendered_at/render_cost_usd, all service-role-write). ★ **Cleanup landmine fixed:**
 event-purge deletes R2 by ENUMERATED media keys + the orphan sweep IGNORES non-media keys, so the reel mp4 (no media
 row) would leak forever on deletion — `sweepExpiredEvents` also deletes `reelOutputKey` per purged event.
-**DEFERRED:** guest-facing reel surfacing + download (its own next slice), Pro video preview+trim + real video in the
-engine, the reveal moment. (The Remotion/AWS-Lambda render path was torn down 2026-07-08 — canvas + on-device
-client-encode is the only path.) See [`../specs/reel-v1.md`](../specs/reel-v1.md).
+**DEFERRED:** Pro video preview+trim + real video in the engine, the reveal-moment polish. (Guest surfacing +
+download SHIPPED at milestone-2 → [guest-flow.md](guest-flow.md). The Remotion/AWS-Lambda render path was torn
+down 2026-07-08 — canvas + on-device client-encode is the only path.)
 
 ## See also
 
-[ADR-0010](../adr/0010-one-link-per-event.md) · [ADR-0012](../adr/0012-custom-event-slug.md) · [ADR-0007](../adr/0007-event-visibility-password-protection.md) · [uploads-and-r2.md](uploads-and-r2.md) · [guest-flow.md](guest-flow.md) · [billing-caps.md](billing-caps.md).
+[uploads-and-r2.md](uploads-and-r2.md) · [guest-flow.md](guest-flow.md) · [billing-caps.md](billing-caps.md).
