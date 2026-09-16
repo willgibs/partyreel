@@ -1,6 +1,6 @@
 ---
 track: lab-flow
-status: open
+status: handed-off
 cut: "02c409b4"        # the stepped review round (2026-09-16): the review as an onboarding form
 preview: false          # no branch preview; the round reviews on a local pnpm dev after integration
 owns:
@@ -176,27 +176,120 @@ Claude Opus 5 <noreply@anthropic.com>` trailer on every commit. Three other agen
 their own worktrees (`home-hero`, `light`, `palette`): merge `origin/launch-prep` before your handoff if
 it moved, never rebase.
 
-**Questions.** What the goal leaves open goes here, numbered, with your recommended answer; carry on
-with the recommendation.
+**Questions.** Answered with the recommendation and carried on with; nothing here stopped the build.
+
+1. **`stepBlocked(step, steps, store)` or `(step, store)`?** The goal's signature carries `steps`, but
+   with the ledger side resolved onto the step itself (`afterRuled`) the queue is never consulted, and an
+   unused parameter fails lint. **Shipped `(step, store)`**, with `walkable(steps, store)` beside it for
+   the callers that want the filtered list.
+2. **What walks the one-at-a-time card on a real board before light lands?** The dry run has no board page,
+   so its card walk degrades to "the catalog is on the board itself"; the card-by-card rendering is
+   `Catalog`'s (`only`), pinned by `catalog.test.tsx`, and it draws for the first time when light's round
+   seven merges. **Shipped as tested rather than as a second fixture with a board page of its own**: a
+   fixture board that could draw evidence would be a third copy of a board, which is machinery the goal
+   does not ask for. Walk it on light the day it lands; the risk is the before/after's layout, never the wiring.
+3. **The dry-run fixture declares three shapes at once** (keep-any, a winner ask AND a one-at-a-time walk),
+   which no real board should. **Kept and commented**: the fixture exists so every shape can be walked
+   before a board commits to one, which is what a dry run is for. `registry.test.ts` never sees it.
+4. **A tile's preview is capped at 200px** (`--lab-tile-h`), because an unreshaped board's evidence section
+   is a four-thousand-pixel marketing page and five of those zoom-fitted still stack to five screens, which
+   defeats "all visible at once". **A board whose section is already tile-sized sets the variable and
+   nothing is cropped.** Reshaping boards should aim at a section that fits the default.
+5. **An option with no `state` and no control mirror chooses on the FIRST press**, where a drawable one
+   shows first. A first press that did nothing visible reads as a dead button, and off a board page every
+   tile is a text tile, which is what keeps the dry run answerable.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: every fact this round lands is in the code it describes, and `docs/design/library.md` is generated.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **The lab** — every board's `reading.why` now over-states the template's cost: the index, the "Rule on:"
+  rows, the review panel and the open meta panel are gone, and the six declared budgets can be cut hard
+  (measured on this tree: palette 2,924 to 1,456, light 2,889 to 1,560, floating-surfaces 2,317 to 1,141,
+  media-kit 2,686 to 1,298, brand-voice to 1,662, rounding 2,564 to 1,257). Each board's own round rewrites
+  its declaration; none is mine to touch.
+- **The lab** — `/design/lab/tools/boom` answers 500 by design (the error-boundary specimen) and
+  `pnpm lab:smoke` counts it as a route check rather than skipping it. One line in the smoke's allow-list.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: `pnpm design:rules` run, typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The pieces, one line each: `<piece>: what it renders; its contract test`
-- What a board agent must declare to get each step kind (the spec fields, one line each)
-- The README sentence for `docs/reviews/README.md`, verbatim, for the Orchestrator to land at the merge
-- Look at first: ...
+- Head is this manifest's own commit, the tip of `lp/lab-flow`; the last code commit is `03ca399f`. Pushed; synced with `launch-prep` at `627ca513` (merged twice, never rebased: the hero's
+  round six with the type-scale cut, then the library artifact's regeneration).
+- Gates on the synced tree: `pnpm design:rules` run and committed, typecheck ok, lint ok (0 errors; the 8
+  warnings are pre-existing files outside this lane), test ok (2,160), build ok (258 pages);
+  `pnpm lab:smoke --base http://localhost:3121` ok (257 checks, 0 route failures; the 2 budget failures are
+  the two glow boards, which fail on purpose).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is 35 files, every one under an owned path.
+  No exceptions.
+- The pieces, one line each:
+  - `Step` (`src/components/lab/step.tsx`): the whole surface. The spine (board, step N of M, the hairline,
+    Copy so far, Open the whole board), the question with its context and what it decides, the body, the
+    config strip, the stage, the note with "This question is not clear to me", Back and Next; the keys as
+    before. `step.test.tsx`.
+  - `OptionTiles` + `Tile` (same file): every option drawn on ONE specimen in its own state. A press SHOWS
+    (the URL only), a second press or a press on the chosen one RECORDS, a third clears and puts the
+    mirrored control back to its declared default. An option with nothing to draw is a text tile and
+    chooses on the first press. ★ A tile is a `role="button"` div whose preview is `inert`, not a
+    `<button>`: a board's section contains real buttons and nesting them is invalid HTML and a hydration
+    error (found live, fixed in `8b740ba9`).
+  - `GalleryStep` (same file): a pick-one catalog's winner, asked on the cards themselves through
+    `CatalogTiles`, with `none` as the third exit and the verdict rows quiet until a hover.
+  - `ItemsBody` (same file): a catalog step. A gallery renders the board's catalog section as it always
+    did; `walk: "one-at-a-time"` walks card k of N with the card in the URL, and `<board>.items` stays ONE
+    step with its id unchanged.
+  - `BeforeAfter` (`src/components/lab/before-after.tsx`): the same specimen twice, touching, captioned
+    under the judged area. Lifted from the light board's `Delta`. `catalog.test.tsx`.
+  - `Catalog`'s tiles mode (`src/components/lab/catalog.tsx`): `CatalogTiles` puts the grid in the step's
+    mode from the step, through a context, so no board's `board.tsx` knows it is being reviewed; `before`
+    and `usages` are the render props the one-at-a-time card draws. `catalog.test.tsx`.
+  - `stepBlocked` / `walkable` (`_desk/session-step.ts`): staging, with the ledger side resolved on the
+    server (`afterRuled`) and the session's side read from the store. `_desk/staging.test.ts`.
+  - `composeSoFar` (`_desk/review-message.ts`): omits what the ledger already holds with the same choice
+    and note, re-includes a changed one, and sends a cleared choice's surviving note as
+    `note: "on <ask>: ..."`. `_desk/copy-so-far.test.ts`.
+  - `HeldBadge` (`_desk/held-badge.tsx`): "held, not sent" on a desk row the reviewer answered in this
+    browser but has not pasted. Desk furniture, not a kit piece.
+  - `boardStatus`'s `staged` / `moot` (`design/review/status.ts`): the ledger's half of `after`; a
+    pick-one catalog queues no cards; `complete` ignores moot. `design/review/ledger.test.ts`.
+- What a board agent must declare to get each step kind:
+  - **Tiles that are looked at** (rather than read): `Ask.evidence` naming a section, plus either
+    `Ask.control` (the option ids ARE the control's) or `AskOption.state` on every option. Keep that
+    section tile-sized, or set `--lab-tile-h` on the board; `Ask.look` becomes optional once every option
+    is drawn.
+  - **A config strip**: `Ask.strip: ["<control-id>", ...]`, declared controls only.
+  - **What it decides**: `Ask.lands` (160 chars), printed under the context.
+  - **A pick-one catalog**: `catalog.mode: "pick-one"`, `catalog.winner: "<ask-id>"`, and that ask mirrors
+    the pick control and offers `none`; `catalog.stage` names the real surface drawn under the tiles. Its
+    cards then queue no verdicts of their own. `pnpm new-board` scaffolds exactly this.
+  - **One card at a time**: `catalog.mode: "keep-any"` (or nothing) plus `catalog.walk: "one-at-a-time"`,
+    and pass `before` (and optionally `usages`) to `Catalog`; `Candidate.lands` prints as "Lands as".
+  - **A staged question**: `Ask.after: { ask, option? }` or `{ item, verdict? }`, pointing at an EARLIER
+    ask of the same board or one of its own cards (`registry.test.ts` refuses anything else).
+- The README sentence for `docs/reviews/README.md`, verbatim, for the Orchestrator to land at the merge:
+
+  > "Copy so far" sends only what this sitting ADDED: an answer or verdict the ledger already holds with
+  > the same choice and the same note is omitted, a changed one rides again, and a choice cleared with its
+  > note still in the field arrives as `note: "on <ask>: ..."`. A pick-one catalog is decided by one ask
+  > whose options are its card ids plus `none`, so "None of these: new directions" lands as
+  > `<board> r<n>: <ask>=none "what to try instead"` and the grammar never grew a fourth word.
+
+- Look at first: the palette's accent step on a local `pnpm dev`
+  (`/design/lab/palette?session=palette.accent`): press an option once and the stage moves with nothing
+  recorded, press it again and the tile takes the ring and "Copy so far" counts it, press a third time and
+  the board goes back to its default. Then the dry run (`/design/lab?session=sample`): answer the winner
+  "The asks as data" and watch the walk go from "step 4 of 4" to "step 5 of 5" as the staged question
+  arrives.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-16). The review became the stepped onboarding form Will
+described: one context and its question alone on the screen, the options drawn as preview tiles on one
+specimen with showing separated from choosing, a pick-one catalog decided by its winner ask with "None of
+these" as the third exit, a keep-any catalog walkable one card at a time with its before and after, and a
+question that waits on another staged until it is decided and moot when it went the other way. The desk
+lists the walk's own steps, badges what is held but not sent and dims what is staged; "Copy so far" stopped
+re-sending what the ledger already holds. The Answer's ask pills, the board index, the sections' "Rule on:"
+rows, the review panel and `waitingOnWill` are gone, and the six catalog boards lost about half their words
+with them.
