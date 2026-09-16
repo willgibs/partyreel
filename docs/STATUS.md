@@ -49,6 +49,8 @@ under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
 | `light` | Round 4 catalog: the twelve treatments as cards on the real surfaces at true size, the aurora's landing as a two-way compare | integrated at `2326a924`, 2,889 words against a declared 2,950 |
 | `rounding` | Round 4 catalog: six families as cards at true size, two on one real page | integrated at `128aca34`, 2,564 words against a declared 2,800 |
 | `media-kit` | Round 4 catalog: thirteen sources as cards with their contact sheets at the real card size | integrated at `8587d3ed`, 2,686 words against a declared 2,750 |
+| `palette` (round seven) | cool greys, Slate less blue, one optional accent per palette behind a switch | building; Will skips the palette board until it lands |
+| `home-hero` (round six) | three or four polished stream treatments on the ruled hero, the last exploration before its wiring | building |
 
 Round 1 is closed on the tree (both lanes integrated, the verification list walked on the dev server);
 Will's first review with per-item verdicts is the palette catalog plus the six rebuilt boards, on the

@@ -49,7 +49,10 @@ The Orchestrator's rolling manifest: what `launch-prep` itself is changing this 
 open track is doing, and what waits on Will. Agents sync `origin/launch-prep` mid-round only when a
 line under `announces` touches one of their `reads`; otherwise once, before handoff, if it moved.
 
-**This window: the revamp (opened 2026-09-16).** Will found the lab broken on localhost and the
+**This window: the revamp (opened 2026-09-16).** Will's first per-item sitting is under way on his
+dev server; his batches transcribe as they arrive (`docs/reviews/`), and the wind-down rules from here:
+a board ends in promotion into the Library, never in another exploration unless he asks for one by name
+(he asked for two: the palette's cool greys and the hero's stream). Will found the lab broken on localhost and the
 explorations turning into papers; the plan he approved runs four rounds: the lab (Round 1, in flight),
 the docs diet and the track protocol (Round 2, the Orchestrator's, the protocol part landed), the
 Library as the complete inventory and a review surface (Round 3), the six paper boards rebuilt as
@@ -61,6 +64,8 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 
 | track | board | waits on |
 | --- | --- | --- |
+| `palette` | `/design/lab/palette` (round seven: cool greys, one optional accent per palette) | its handoff; Will skips the palette until it lands |
+| `home-hero` | `/design/lab/home-hero` (round six: the stream catalog before the wiring) | its handoff |
 
 ## Waiting on Will
 
