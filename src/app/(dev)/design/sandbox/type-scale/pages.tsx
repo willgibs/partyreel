@@ -606,9 +606,14 @@ export function NotFoundStage({ ladder, mode }: PageProps) {
         isPhone(mode) ? "flex-col" : "flex-row items-start",
       )}
     >
+      {/* ★ EACH HALF IS LABELLED WITH THE OPTION IT STANDS FOR (the clarity
+          round, 2026-09-15). "As it ships" and "On the ladder" were the board's
+          own words for two things the ask calls "Leave it in Inter, as it
+          ships" and "Put it on the site's heading set", and a reviewer meeting
+          the question on the desk had to make that join himself. */}
       {screen(
-        "As it ships",
-        "Inter at 600, 30px on a phone and 36 on a desktop, with a tracking-tight the theme zeroes",
+        "Leave it in Inter, as it ships",
+        "Inter at 600, 30px on a phone and 36 on a desktop, with the letter spacing the theme zeroes",
         <SpecStep
           spec={
             isPhone(mode)
@@ -622,8 +627,8 @@ export function NotFoundStage({ ladder, mode }: PageProps) {
         </SpecStep>,
       )}
       {screen(
-        `On the ladder, under ${ladder.name}`,
-        `the heading face at 700, the app 404 at the page step and the marketing 404 at the ${marketingStep} step`,
+        `Put it on the site's heading set, under ${ladder.name}`,
+        `the heading face at 700, the app 404 at the page size and the marketing 404 at the ${marketingStep} size`,
         <Step
           step={marketingStep}
           ladder={ladder}
@@ -707,26 +712,31 @@ export function TrackingLaw({
   );
   return (
     <div className="flex flex-col gap-5 px-5 py-5">
-      {row("The flat constant", -0.03, 0.85)}
-      {row("The law", law.ls, law.lh)}
+      {/* ★ THE ROWS WEAR THE ASK'S OPTION LABELS (the clarity round,
+          2026-09-15): "Keep one value for every heading" and "Adopt it:
+          spacing follows size" are what the question offers, so they are what
+          the evidence is called. The short forms are the same words, because a
+          16px card row cannot carry the whole label beside a number. */}
+      {row("Keep one value for every heading", -0.03, 0.85)}
+      {row("Adopt it: spacing follows size", law.ls, law.lh)}
       <div
         className={cn(
           "flex gap-4 border-t border-foreground/10 pt-4",
           phone && "flex-col",
         )}
       >
-        {card("The flat constant", -0.03, 1.375)}
-        {card("The law", cardLaw.ls, cardLaw.lh)}
+        {card("Keep one value", -0.03, 1.375)}
+        {card("Adopt: spacing follows size", cardLaw.ls, cardLaw.lh)}
       </div>
       <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
-        One value cannot serve both ends. At {big}px the constant leaves the
-        word loose, because a geometric sans at a poster size wants more
-        negative tracking than a UI label does; at 16px the same value pulls a
-        card title tight enough to cost legibility at the size that is read
-        most. The law is a function of size, so it is adoptable on its own:
-        today&rsquo;s sizes, nothing moved but the leading and the tracking.
-        Neither row above moves with the ladder toggle, which is what makes this
-        a separate ruling.
+        One value cannot serve both ends. At {big}px it leaves the word loose,
+        because a geometric sans at a poster size wants to be pulled in harder
+        than a small label does; at 16px the same value pulls a card title tight
+        enough to cost legibility at the size that is read most. Making the
+        spacing follow the size moves no size, so it can be adopted on its own:
+        today&rsquo;s sizes, with nothing changed but the line spacing and the
+        letter spacing. Neither row above moves with the two candidate switches,
+        which is what makes this a separate ruling.
       </p>
 
       <div className="flex flex-col gap-4 border-t border-foreground/10 pt-5">
@@ -735,8 +745,8 @@ export function TrackingLaw({
         </p>
         <div>
           <p className="text-[11px] text-muted-foreground tabular-nums">
-            Urbanist at the title step, tracked the way it ships: -0.03em at
-            every size
+            Urbanist at the page-title size, spaced the way it ships: the same
+            value at every size
           </p>
           <p
             className="font-heading"
@@ -751,8 +761,8 @@ export function TrackingLaw({
         </div>
         <div>
           <p className="text-[11px] text-muted-foreground tabular-nums">
-            The same face and size at this step&rsquo;s own tracking, {title.ls}
-            em
+            The same face and size at this size&rsquo;s own letter spacing,{" "}
+            {title.ls}em
           </p>
           <p
             ref={(el) => {
@@ -773,10 +783,11 @@ export function TrackingLaw({
         </div>
         <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
           Inter underneath, unchanged. The board&rsquo;s verdict: the pairing
-          holds, so there is no face ask. A geometric sans at a poster size
-          wants more negative tracking than a UI label does, and the constant is
-          the whole of what makes Urbanist read loose at {big}px and cramped at
-          16. Fix the tracking and no case for a new face is left standing.
+          holds, so there is no question about the faces here. A geometric sans
+          at a poster size wants to be pulled in harder than a small label does,
+          and the one flat value is the whole of what makes Urbanist read loose
+          at {big}px and cramped at 16. Fix the spacing and no case for a new
+          face is left standing.
         </p>
       </div>
     </div>

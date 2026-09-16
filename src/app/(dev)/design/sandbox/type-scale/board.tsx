@@ -191,7 +191,7 @@ function Glance({
   const faults = FIXES.filter((f) => f.surfaces.includes(surface));
   const canvas = mode === "phone" ? 375 : 1440;
 
-  // ★ The cold walk's worst stumble, said out loud: at 1440 A. Tuned keeps
+  // ★ The cold walk's worst stumble, said out loud: at 1440 "A, tuned" keeps
   // every size today ships, so its row IS today's row and switching between
   // them reads as a dead control. Computed, never asserted, so it appears at
   // whichever canvas and register it happens to be true at.
@@ -200,14 +200,16 @@ function Glance({
     const count = moved(l, end, surface);
     return count.moved === 0 && count.added === 0;
   })
-    .map((l) => l.name.split(".")[0])
+    // The candidate's whole name, which is the option's name: a reviewer
+    // reading "the A row" has to map a letter back to a question first.
+    .map((l) => l.name)
     .join(" and ");
 
   return (
     <SelectTable<LadderId>
-      caption={`${SURFACE_LABEL[surface]} at ${canvas}. The last ${faults.length} columns are today's faults on this register, marked only where the ladder's own numbers fix them.${flat ? ` At ${canvas} the ${flat} row carries every size the site already ships here, so choosing it moves only the leading and the tracking; its argument is at the other canvas.` : ""}`}
+      caption={`${SURFACE_LABEL[surface]} at ${canvas}. The last ${faults.length} columns are today's faults on this half of the site, marked only where a candidate's own numbers fix them.${flat ? ` At ${canvas} the ${flat} row carries every size the site already ships here, so choosing it moves only the line spacing and the letter spacing; its argument is at the other width.` : ""}`}
       columns={[
-        "The ladder",
+        "The candidate",
         ...steps.map((s) => s.label),
         ...faults.map((f) => f.label),
       ]}
@@ -594,7 +596,10 @@ function Evidence({
 
     case "pair":
       return (
-        <Labeled name={`The pair: ${ladder.name}`} note={ladder.rationale}>
+        <Labeled
+          name={`The chosen pair: ${ladder.name}`}
+          note={ladder.rationale}
+        >
           <TypeStage mode={mode} ground="paper">
             <LadderSheet
               ladder={ladder}
@@ -609,8 +614,8 @@ function Evidence({
     case "loudness":
       return (
         <Labeled
-          name="The masthead at all four marketing ladders"
-          note="Strongest first, on the ground the front of the site actually uses. This one does not move with the dock: it is the four claims side by side."
+          name="The one huge word, at all four marketing candidates"
+          note="Loudest first, on the ground the front of the site actually uses. This one does not move with the dock: it is the four claims side by side, each row named for the candidate that makes it."
         >
           <TypeStage mode={mode} ground="cinema">
             <DisplayCompare mode={mode} />
@@ -692,39 +697,39 @@ function Evidence({
               css={framed}
               reloadKey={reloadKey}
               onApproach
-              title={`${album.label}, the one app-register surface that is a real page`}
+              title={`${album.label}, the one app surface that is a real page, wearing ${app.name}`}
               caption={
                 album.reach ? `${album.why} Reach: ${album.reach}.` : album.why
               }
             />
           )}
           <Labeled
-            name="The dashboard"
-            note="PageHeading, the app's section tier and the card row, on the surface a host opens most. Today and A carry no step between the page title and the card, so the section heading renders what production ships: an 11px uppercase label inside an h2."
+            name={`The dashboard, wearing ${app.name}`}
+            note="The page title, the row heading and the card row, on the surface a host opens most. Today and A, tuned carry no size between the page title and the card title, so the row heading renders what production ships: an 11px uppercase label inside a heading tag."
           >
             <TypeStage mode={mode} ground="app-light">
               <Dashboard {...props} />
             </TypeStage>
           </Labeled>
           <Labeled
-            name="The app's missing middle, judged where it lives"
-            note="Production writes this tier three ways and none of them is a heading: 11px uppercase inside an h2 on the dashboard and the event feed, 14px in admin, and once sr-only so it is not drawn at all. Beside each, what the selected app ladder puts there."
+            name="The app's missing middle size, judged where it lives"
+            note={`Production writes this rank three ways and none of them is a heading: 11px uppercase inside a heading tag on the dashboard and the event feed, 14px in admin, and once hidden from sight entirely. Beside each, what ${app.name} puts there.`}
           >
             <TypeStage mode={mode} ground="app-light">
               <MissingMiddle {...props} />
             </TypeStage>
           </Labeled>
           <Labeled
-            name="An event page, dark"
-            note="The app's other ground, and the one app title that carries a size override today (text-3xl on PageHeading). Under a named ladder the override has nothing left to do."
+            name={`An event page, dark, wearing ${app.name}`}
+            note="The app's other ground, and the one app title that carries a size override today. Under a named set of sizes the override has nothing left to do."
           >
             <TypeStage mode={mode} ground="app-dark">
               <EventPage {...props} />
             </TypeStage>
           </Labeled>
           <Labeled
-            name="An admin page"
-            note="The quietest surface in the product, and where the missing middle is written in its second idiom (a 14px medium h2, not the dashboard's 11px uppercase one). The metric numerals are deliberately off the heading ladder, which is what makes this the one stage where a 20px page title can be seen sitting below the numbers on its own page."
+            name={`An admin page, wearing ${app.name}`}
+            note="The quietest surface in the product, and where the missing middle size is written the second way (a 14px medium heading, not the dashboard's 11px uppercase one). The big metric numbers are deliberately off the heading set, which is what makes this the one stage where a 20px page title can be seen sitting below them."
           >
             <TypeStage mode={mode} ground="app-light">
               <AdminPage {...props} />
@@ -736,8 +741,8 @@ function Evidence({
     case "not-found":
       return (
         <Labeled
-          name="As it ships, and on the ladder"
-          note="The same screen twice: Inter at 600 on the left exactly as production renders it, and the selected pair's step beside it. board.css pins the shipped half out of reach of any applied block, or the comparison would quietly become a comparison of one thing with itself."
+          name="The two options, side by side"
+          note="The same screen twice: on the left, Inter exactly as production renders it; on the right, the same screen on the chosen set of sizes. The left half is pinned out of reach of any applied block, or the comparison would quietly become a comparison of one thing with itself."
         >
           <TypeStage mode={mode} ground="app-light">
             <NotFoundStage {...props} />
@@ -749,8 +754,8 @@ function Evidence({
       return (
         <div className="flex flex-col gap-4">
           <Labeled
-            name="The flat constant, the law, and the pairing under them"
-            note="No size moves in the top half, which is what makes this a separate ruling: adopt it whichever pair wins."
+            name="The two options, and the face pairing under them"
+            note="No size moves in the top half, which is what makes this a separate ruling: it can be adopted whichever pair of candidates wins."
           >
             <TypeStage mode={mode} ground="paper">
               <TrackingLaw {...props} measureRef={pairingRef} />

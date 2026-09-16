@@ -275,7 +275,6 @@ const PLAIN: readonly string[] = [
   "palette",
   "river-visual",
   "rounding",
-  "type-scale",
 ];
 
 describe("the asks, in plain words", () => {

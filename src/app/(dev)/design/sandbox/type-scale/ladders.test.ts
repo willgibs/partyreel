@@ -4,6 +4,12 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  optionId,
+  optionLabel,
+  optionMeans,
+} from "@/components/lab/board-spec";
+
+import {
   APP_BODY_PX,
   ASK_404,
   composePair,
@@ -557,9 +563,46 @@ describe("the board answers before it asks", () => {
     expect(TYPE_SCALE.asks).toHaveLength(4);
     for (const ask of TYPE_SCALE.asks) {
       expect(ask.question.length).toBeGreaterThan(8);
-      expect(ask.options).toContain(ask.recommended);
+      expect(ask.options.map(optionId)).toContain(ask.recommended);
       expect(ask.because?.length ?? 0).toBeGreaterThan(40);
       expect(ask.overrule?.length ?? 0).toBeGreaterThan(20);
+    }
+  });
+
+  /**
+   * ★ A QUESTION CARRIES ITS OWN CONTEXT (Will, 2026-09-15; the clarity round).
+   * `sandbox/registry.test.ts` runs the same shape check over every board off
+   * its PLAIN list. This one is the board's own, and it adds the two things
+   * that are specific here: the candidate an option stands for is NAMED on the
+   * evidence, and the switch that previews it wears that same name. A future
+   * round that reworded an option back into a letter would pass the registry's
+   * ratchet and fail this.
+   */
+  it("names every option, on the question and on the switch that previews it", () => {
+    for (const ask of TYPE_SCALE.asks) {
+      expect(ask.question.trim().endsWith("?")).toBe(true);
+      expect((ask.context ?? "").length).toBeGreaterThan(80);
+      expect((ask.look ?? "").length).toBeGreaterThan(40);
+      for (const o of ask.options) {
+        expect(
+          optionLabel(o),
+          `${ask.id}/${optionId(o)} is unlabelled`,
+        ).not.toBe(optionId(o));
+        expect(optionLabel(o).length).toBeGreaterThan(4);
+        expect((optionMeans(o) ?? "").length).toBeGreaterThan(40);
+      }
+    }
+    // The two ladder asks name the ladders themselves, so the chooser's rows,
+    // the pair's headings and the loudness column say what the question said.
+    for (const id of ["marketing", "app"]) {
+      const ask = TYPE_SCALE.asks.find((a) => a.id === id)!;
+      const control = (TYPE_SCALE.controls ?? []).find((c) => c.id === id)!;
+      expect(ask.control).toBe(id);
+      for (const l of LADDERS) {
+        const option = ask.options.find((o) => optionId(o) === l.id)!;
+        expect(optionLabel(option)).toContain(l.name);
+        expect(control.options.find((o) => o.id === l.id)!.label).toBe(l.name);
+      }
     }
   });
 
@@ -600,7 +643,7 @@ describe("the board answers before it asks", () => {
     ).toEqual([RECOMMENDED]);
     for (const id of ["marketing", "app"]) {
       const ask = TYPE_SCALE.asks.find((a) => a.id === id)!;
-      expect([...ask.options]).toEqual(LADDERS.map((l) => l.id));
+      expect(ask.options.map(optionId)).toEqual(LADDERS.map((l) => l.id));
       expect(ask.recommended).toBe(RECOMMENDED);
     }
   });
