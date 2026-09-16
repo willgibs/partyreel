@@ -232,6 +232,11 @@ and a hidden tab sets a lab board's `data-paused`, so the loops and the clips pa
 of it is a product bug. The way through: make the loop a pure function of elapsed time so it can be
 frozen at a chosen elapsed and the still shot, verify the DOM (the nodes, their rest-state
 declarations, the h1), and hand the human the foreground look for the motion itself.
+- ★ **The Browser pane delivers no IntersectionObserver callbacks** (measured 2026-09-16: an observer on a
+  plainly intersecting element never fired), so every lab frame that mounts on approach
+  (`useMountOnApproach`, `Frame`'s `onApproach`) stays unmounted under that tool and a board with such
+  frames reads as empty there. Judge those boards in Chrome or on a real screen; the smoke's route
+  half is unaffected (it reads server HTML).
 
 ## Long-lived-session tests (the presign-roll soak)
 

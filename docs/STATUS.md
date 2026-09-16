@@ -33,7 +33,8 @@ system docs are stripped and every ★ audited (`0a48db70`). Round 2 is closed o
 (components, marketing sections and app screens with live previews, tokens; a review surface with
 keep / redesign / retire on every entry). **Round 4, the six paper boards rebuilt as catalogs**
 (brand-voice, type-scale, floating-surfaces, light, rounding, media-kit): cut at `385cfa99` on Will's
-answer that all six are rebuilt before any review; three run at a time under the machine ceiling.
+answer that all six are rebuilt before any review, and closed on the tree the same day, every board
+under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
 
 | track | returns | state |
 | --- | --- | --- |
@@ -45,7 +46,7 @@ answer that all six are rebuilt before any review; three run at a time under the
 | `floating-surfaces` | Round 4 catalog: seven directions as cards on the app's dark over the album, the desk under two | integrated at `767e6182`, 2,317 words against a declared 2,400 |
 | `light` | Round 4 catalog: the twelve treatments as cards on the real surfaces at true size, the aurora's landing as a two-way compare | integrated at `2326a924`, 2,889 words against a declared 2,950 |
 | `rounding` | Round 4 catalog: six families as cards at true size, two on one real page | integrated at `128aca34`, 2,564 words against a declared 2,800 |
-| `media-kit` | Round 4 catalog (the sources' contact sheets at the real card size) | building, the last |
+| `media-kit` | Round 4 catalog: thirteen sources as cards with their contact sheets at the real card size | integrated at `8587d3ed`, 2,686 words against a declared 2,750 |
 
 Round 1 is closed on the tree (both lanes integrated, the verification list walked on the dev server);
 Will's first review with per-item verdicts is the palette catalog plus the six rebuilt boards, on the
@@ -100,7 +101,7 @@ prune crons and the shared `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 The desk derives the asks and the items (`/design/lab?key=`); the assets are in [`ASSETS.md`](ASSETS.md).
-Next from him, once Round 4 lands: the sitting on the desk (the palette and the six rebuilt boards, keep
+Next from him: the sitting on the desk (the palette and the six rebuilt boards, keep
 / refine / kill and a note per item, one line to paste), and three questions the boards carry
 (brand-voice: one voice everywhere at three volumes, or two voices; whether bible 20 means the naming or
 the shape; type-scale: the compared pair side by side scrolling sideways at 1440, or the kit's wipe; floating-surfaces:

@@ -53,7 +53,7 @@ line under `announces` touches one of their `reads`; otherwise once, before hand
 explorations turning into papers; the plan he approved runs four rounds: the lab (Round 1, in flight),
 the docs diet and the track protocol (Round 2, the Orchestrator's, the protocol part landed), the
 Library as the complete inventory and a review surface (Round 3), the six paper boards rebuilt as
-catalogs (Round 4, cut once he has walked the palette catalog). The alias still serves Phase 1 of the
+catalogs (Round 4, closed on the tree the same day). The alias still serves Phase 1 of the
 Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every review meanwhile is a local
 `pnpm dev` after a hard reload.
 
@@ -61,7 +61,6 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 
 | track | board | waits on |
 | --- | --- | --- |
-| `media-kit` | `/design/lab/media-kit` (the sources' contact sheets at the real card size) | its handoff |
 
 ## Waiting on Will
 
@@ -95,5 +94,7 @@ him: a walk of the palette catalog once `lab-catalog` integrates, then the six c
 - `128aca34` rounding integrated (six families as cards; 2,564 words against a declared 2,800; the
   proposal doc written); the kit takes its three findings (the dock wraps four options, the clip
   comment, the post-hydration trap).
+- `8587d3ed` media-kit integrated (thirteen sources as cards; 2,686 words against a declared 2,750).
+  Round 4 is closed on the tree: every standing paper board is a catalog under its declared budget.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

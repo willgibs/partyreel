@@ -575,8 +575,16 @@ export const RULINGS: Ruling[] = [
       "docs/ASSETS.md",
     ],
     board: {
-      note: "Where the frames actually come from: thirteen real catalogues ranked by whether they hold a release, each with its clause, its price and a contact sheet of its own thumbnails, and a plan that totals $56",
-      variants: ["The sheet", "The plan", "Mix", "Ours"],
+      note: "Thirteen real catalogues as cards, ranked by whether they hold a release, each with its clause, its price and a contact sheet at the real card size, ship above the line and kill below; four questions about the thirteen (the rule, the spend, the crowds, the shoot)",
+      variants: [
+        "Unsplash+",
+        "iStock",
+        "Stocksy",
+        "Adobe Stock",
+        "Artgrid",
+        "Web Summit",
+        "Flickr CC",
+      ],
     },
   },
   {

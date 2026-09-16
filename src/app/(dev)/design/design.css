@@ -171,8 +171,8 @@ html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
 }
 /* THE BLEED REACHES THE WINDOW EDGE AND STOPS THERE (the sweep, 2026-09-16).
    The rule above takes back a 1rem gutter, which is the wide page's own; a
-   board that ALSO pulls its rows left (rounding's `.rnd-wide` widens by
-   --rnd-grow-left) stacks its pull on top and the whole DOCUMENT scrolled
+   board that ALSO pulls its rows left (a board's own sheet once widened its
+   rows past the column) stacks its pull on top and the whole DOCUMENT scrolled
    sideways by the difference, which is the one kind of sideways scroll a board
    must never cause. The shell holds that promise here rather than asking every
    board to know about it. `clip`, never `hidden`: a clip container is not a

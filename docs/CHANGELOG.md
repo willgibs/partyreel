@@ -125,7 +125,17 @@ the dead rungs and the album's gap: four); the tuner panel's mount left the boar
 real page already); the reading went from 4,859 words to 2,564 against a declared 2,800;
 `docs/specs/rounding.md` written as the standing proposal, so its route answers. Three findings landed
 in the kit at the merge: a four-option control wraps in the dock, `design.css`'s clip comment names
-no deleted rule, and a trap for a post-hydration value built into a board's evidence.
+no deleted rule, and a trap for a post-hydration value built into a board's evidence. **`media-kit`** (merged
+`8587d3ed`): thirteen sources as cards, each its contact sheet at the real blog-card size on paper
+(320x400 at 1440, 343x429 at 375, measured against the real page), one line, four facts (the price,
+the quoted clause, the release fact, the count), ship above the line and kill below, with Web Summit
+and Flickr sitting above it although the rule bars them today because one answer to the crowds ask
+moves both; two sources' frames side by side at the real card size, opening on Web Summit beside
+Unsplash+; the pick worn by the real pages; the four asks kept (the rule, the spend, the crowds, the
+shoot); the reading went from 15,004 words to 2,686 against a declared 2,750; the 22 staged CC0 files
+stay pinned by `provenance.test.ts` until the rule is ruled. The bridge ($56) and the 36 masters are
+asked of Will again (rows 13 and 7). With it, all six paper boards are catalogs: the revamp's Round 4
+is closed on the tree, and Will's first review with per-item verdicts is the palette plus the six.
 
 Machine notes: four agents at once is the ceiling on 36 GB, one process each, a dev server killed by
 port; Vercel's daily cap kept the alias on the Library x Lab round's Phase 1 until 2026-09-17 00:13

@@ -95,7 +95,7 @@ describe("the manifests on disk", () => {
         )
         .map((f) => f.replace(/\.md$/, "")),
     );
-    expect(stated.size).toBeGreaterThan(0);
+    // A directory with only the Orchestrator's manifest states no goal at all.
     for (const t of tracks) {
       expect(Boolean(t.goal), `${t.track}`).toBe(stated.has(t.track));
     }
