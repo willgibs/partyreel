@@ -301,7 +301,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   contact figure/ground: a white card on the gray band, because here the band is the separator.
 - **`/contact`** (rebuilt, the contact round 2026-08-28) — forms → deny-all
   `contact_submissions` / `job_applications` via a Server Action + the service-role admin client;
-  best-effort Resend notify via `sendOnce` (ADR-0005; [`careers.ts`](../../src/lib/constants/careers.ts)).
+  best-effort Resend notify via `sendOnce` (see Gotchas; [`careers.ts`](../../src/lib/constants/careers.ts)).
   Contact's first field is a REQUIRED **topic Select** (single source
   [`constants/contact.ts`](../../src/lib/constants/contact.ts) — labels/icons/fastest-path hints; the zod
   enum + the `contact_submissions.topic` CHECK + the `[label]` email-subject tag + the `/admin/support`
@@ -319,7 +319,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   category fails typecheck until mapped), applied via `form.reset` so "Send another" keeps the
   article context. The route stays static (window.location read on mount, allowlisted — never
   `useSearchParams`).
-- **`/help`** + **`/blog`** — an in-repo **MDX content pipeline** (ADR-0006): `content/*.mdx` + `gray-matter`
+- **`/help`** + **`/blog`** — an in-repo **MDX content pipeline**: `content/*.mdx` + `gray-matter`
   + `next-mdx-remote/rsc` + **build-time zod frontmatter validation**. The generic core is
   [`content/collection.ts`](../../src/lib/content/collection.ts) (`loadCollection` + `slugify` +
   `extractHeadings` + `readingTime` + `escapeXml`); [`help.ts`](../../src/lib/content/help.ts) +
@@ -594,6 +594,27 @@ so the guest-attribution line ("every upload has a real person behind it") and c
 
 ## Gotchas (why it's like this — don't revert)
 
+- **A public form's ROW is authoritative; its email is best effort.** The Server Action inserts into the
+  deny-all table (`contact_submissions` / `job_applications`) on the service-role admin client FIRST, then
+  attempts the Resend notify inside a try/catch (`sendOnce`, `dedupeKey` = the row id so a double submit
+  notifies once, `replyTo` = the submitter). A missing key, an unconfigured inbox or a failed send is
+  logged and swallowed: it never changes what the visitor sees, and the submission is already queryable.
+  There is no anon RPC and no anon grant behind any of it, so a public form adds no anon-executable
+  surface. The hidden `website` honeypot returns SUCCESS without storing, so a bot learns nothing. Display
+  and routing are deliberately separate: the address shown is the `SUPPORT_EMAIL` constant, the
+  destination is the optional `CONTACT_NOTIFY_EMAIL` env, so moving the mail is an env swap rather than a
+  code change. Resend **Inbound** stays unused on purpose (webhook-only ingestion, no mailbox); the
+  destination is a real receiving inbox.
+- **The MDX pipeline is in-repo by choice, and stays JS-free.** `content/**/*.mdx` is versioned with the
+  code, so publishing an article is a deploy: the accepted price of running no CMS for a curated,
+  engineering-authored library. `@next/mdx` (file as route) was rejected because it cannot list or filter a
+  collection by frontmatter, which the index, the search, the sitemap and related-articles all need;
+  `gray-matter` lists cheaply with no compile, `compileMDX` renders one body. `blockJS` stays ON, which
+  strips raw `{expressions}` while preserving JSX components: that is why every live number rides a spec
+  component reading the `tiers.ts` / `limits.ts` single sources instead of an expression. Articles are
+  first-party and build-compiled; untrusted input must never be fed to MDX. Heading ids come from the ONE
+  in-repo `slugify` that `extractHeadings` also uses (no `rehype-slug`), so an anchor and the on-this-page
+  ToC cannot drift apart.
 - **The `next/og` images load NO font** — the built-in font dodges the Next-16 satori font gotcha. Don't add a custom font loader.
 - **The event page emits OG tags but `robots: { index: false }`.** `/e/[token]` sets `generateMetadata`
   (event name/description + the per-event OG) so links unfurl in chat, but the opaque `qr_token` must NEVER
@@ -634,4 +655,4 @@ become real links; unset → no demo anywhere (decorative QR, no CTA). The guest
 
 ## See also
 
-[ADR-0005](../adr/0005-marketing-form-submissions.md) · [ADR-0006](../adr/0006-mdx-content-pipeline.md) · [host-app.md](host-app.md) (the in-app QR designer / how-it-works single-source) · [notifications-analytics-growth.md](notifications-analytics-growth.md) (guest email capture / OG-driven growth).
+[host-app.md](host-app.md) (the in-app QR designer / how-it-works single-source) · [notifications-analytics-growth.md](notifications-analytics-growth.md) (guest email capture / OG-driven growth).
