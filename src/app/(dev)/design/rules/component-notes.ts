@@ -346,6 +346,12 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/lab/review-card.tsx": {
     for: "the step being answered, pinned under the board's dock: an ask in plain words with what each option means, or a catalog counted as its cards are ruled, over the evidence it is about",
   },
+  "src/components/lab/catalog.tsx": {
+    for: "an exploration as a grid of finished ideas: each card its own line, its live preview, its facts and the reviewer's verdict; every control on it drives a page-wide declared control",
+  },
+  "src/components/lab/compare-two.tsx": {
+    for: "any two catalog cards side by side from the board's declared A and B, and the same real places drawn under both (the spot shape)",
+  },
   "src/components/lab/item-verdict.tsx": {
     for: "the reviewer's row on one item: keep, refine or kill a catalog card (or keep, redesign, retire a Library entry) with a note, on the store every review surface shares",
   },

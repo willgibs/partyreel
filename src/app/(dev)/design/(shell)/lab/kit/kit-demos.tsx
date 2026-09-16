@@ -3,21 +3,33 @@
 import { useState } from "react";
 
 import {
+  type BoardSpec,
+  BoardDock,
+  Catalog,
   Cell,
   Compare,
+  CompareTwo,
   CopyButton,
+  CostMeter,
+  defineBoard,
+  DockRow,
+  ItemVerdictRow,
   Knob,
   Labeled,
   Loupe,
+  Notes,
   Paste,
   ReviewCard,
   SelectTable,
+  type Spot,
+  SpotCompare,
   Specimen,
   Stage,
   Toggle,
+  Walk,
 } from "@/components/lab";
 
-import type { SessionStep } from "../_desk/session-step";
+import type { AskStep } from "../_desk/session-step";
 
 /**
  * THE KIT'S SPECIMENS: each piece rendered, so the kit page is the same kind of
@@ -46,7 +58,7 @@ import type { SessionStep } from "../_desk/session-step";
  * page has no dock and no evidence to keep clear, so the className drops the
  * bleed and the sticky and the specimen sits in the flow like every other one.
  */
-const DEMO_STEPS: SessionStep[] = [
+const DEMO_STEPS: AskStep[] = [
   {
     kind: "ask",
     board: "kit-demo",
@@ -279,5 +291,293 @@ export function CopyDemo() {
         than lying.
       </span>
     </div>
+  );
+}
+
+/* ── The catalog, and everything hung off it ─────────────────────────────── */
+
+/**
+ * ONE FIXTURE SPEC FOR THE CATALOG, THE TWO-UP, THE SPOTS, THE WALK AND THE
+ * NOTES, so the toolbox demonstrates the pieces WORKING TOGETHER rather than
+ * five unrelated islands. Its id is `kit-demo`, which is in no registry, so a
+ * verdict pressed here lands in the reader's store under a scope nothing ever
+ * composes a message from.
+ */
+const DEMO_SPEC: BoardSpec = defineBoard({
+  id: "kit-demo",
+  title: "A fixture board",
+  question: "Which corner should a card have?",
+  round: { n: 0, date: "2026-09-16", changed: "the fixture" },
+  verdict: {
+    recommendation: "The soft corner.",
+    because: "It is the one you can see at arm's length.",
+  },
+  asks: [],
+  candidates: [
+    {
+      id: "square",
+      name: "Square",
+      one: "No corner at all: the edge is the shape.",
+      verdict: "kill",
+      facts: [["Radius", "0px"]],
+      rationale:
+        "Cheapest to draw and the hardest to soften later, because every nested surface inherits the decision.",
+    },
+    {
+      id: "today",
+      name: "Today",
+      one: "The corner the site ships, two pixels of it.",
+      verdict: "refine",
+      facts: [["Radius", "2px"]],
+      rationale: "It is what ships, so it is what a candidate has to beat.",
+    },
+    {
+      id: "soft",
+      name: "Soft",
+      one: "A corner you can see from a metre away.",
+      verdict: "ship",
+      recommended: true,
+      facts: [["Radius", "8px"]],
+      rationale:
+        "The step a reviewer can name without a loupe, which is the whole test for a corner.",
+    },
+  ],
+  departures: [],
+  assets: [],
+  sections: [
+    { id: "catalog", title: "The catalog", lede: "Three corners." },
+    { id: "spots", title: "The places", lede: "Where a corner lands." },
+  ],
+  catalog: {
+    section: "catalog",
+    control: "pick",
+    compare: ["compareA", "compareB"],
+  },
+  controls: [
+    {
+      id: "pick",
+      label: "Pick",
+      options: [
+        { id: "none", label: "Nothing picked" },
+        { id: "square", label: "Square" },
+        { id: "today", label: "Today" },
+        { id: "soft", label: "Soft" },
+      ],
+      default: "none",
+      clearable: true,
+    },
+    {
+      id: "compareA",
+      label: "A",
+      options: [
+        { id: "square", label: "Square" },
+        { id: "today", label: "Today" },
+        { id: "soft", label: "Soft" },
+      ],
+      default: "today",
+    },
+    {
+      id: "compareB",
+      label: "B",
+      options: [
+        { id: "square", label: "Square" },
+        { id: "today", label: "Today" },
+        { id: "soft", label: "Soft" },
+      ],
+      default: "soft",
+    },
+  ],
+  notes: [
+    {
+      section: "catalog",
+      state: { pick: "soft" },
+      text: "A note carries the state it was written in, and one press puts the board there. This one is only true with Soft picked.",
+    },
+  ],
+  lookFirst: [
+    {
+      section: "catalog",
+      state: { pick: "soft" },
+      note: "Start on the board's own pick, so the first thing you see is what it is arguing for.",
+    },
+    {
+      section: "spots",
+      state: { pick: "square" },
+      note: "Then the one it is arguing against, in the places the corner actually lands.",
+    },
+  ],
+  links: { bible: [] },
+});
+
+const RADIUS: Record<string, number> = { square: 0, today: 2, soft: 8 };
+
+/** The judged thing: one card, at one corner. Real pixels, never a picture. */
+function Corner({ id, label }: { id: string; label: string }) {
+  return (
+    <div className="flex items-center justify-center p-5">
+      <div
+        className="flex size-24 items-center justify-center border border-border bg-card text-[11px] text-muted-foreground"
+        style={{ borderRadius: RADIUS[id] ?? 0 }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
+
+/** The demos that share one board state, so a Pick here moves the pair below. */
+function useDemoState() {
+  const [state, set] = useState<Record<string, string>>({
+    pick: "none",
+    compareA: "today",
+    compareB: "soft",
+  });
+  return {
+    state,
+    setState: (patch: Record<string, string>) =>
+      set((s) => ({ ...s, ...patch })),
+  };
+}
+
+export function CatalogDemo() {
+  const { state, setState } = useDemoState();
+  return (
+    <div className="flex flex-col gap-4">
+      <Catalog
+        spec={DEMO_SPEC}
+        state={state}
+        setState={setState}
+        ground="app-light"
+        render={(candidate) => (
+          <Corner id={candidate.id} label={candidate.name} />
+        )}
+      />
+      <p className="text-[11px] text-muted-foreground">
+        Press Pick and the card drives the board; press it again and the pick
+        clears. A and B set the pair below. The verdict row is the
+        reviewer&rsquo;s, and it writes to the same store the desk composes his
+        message from.
+      </p>
+      <CompareTwo
+        spec={DEMO_SPEC}
+        state={state}
+        render={(candidate) => (
+          <div className="rounded-lg border border-border">
+            <Corner id={candidate.id} label={candidate.name} />
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
+const DEMO_SPOTS: readonly Spot[] = [
+  {
+    id: "card",
+    name: "A card on the dashboard",
+    note: "The commonest surface in the product, and the one a corner is judged on first.",
+  },
+  { id: "tile", name: "A photograph in the album" },
+];
+
+export function SpotCompareDemo() {
+  const { state } = useDemoState();
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-[11px] text-muted-foreground">
+        CompareTwo is under the Catalog above. This is the other shape: the same
+        two real places, drawn under A and under B.
+      </p>
+      <SpotCompare
+        spec={DEMO_SPEC}
+        state={state}
+        spots={DEMO_SPOTS}
+        render={(spot, candidate) => (
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-[11px] text-muted-foreground">{spot.name}</p>
+            <Corner id={candidate.id} label={candidate.name} />
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
+export function ItemVerdictDemo() {
+  return (
+    <div className="flex flex-col gap-2">
+      <ItemVerdictRow scope="kit-demo" round={0} id="soft" name="Soft" />
+      <p className="text-[11px] text-muted-foreground">
+        Press the same word twice and it clears; the note survives, because the
+        words are the expensive half.
+      </p>
+    </div>
+  );
+}
+
+export function DockDemo() {
+  const [canvas, setCanvas] = useState("desktop");
+  return (
+    // The dock is sticky; a short wrapper bounds where it can stick, so the
+    // demo cannot ride down the whole toolbox.
+    <div className="relative h-28 overflow-hidden rounded-xl border border-border">
+      <BoardDock label="A fixture board's controls">
+        <DockRow>
+          <Knob label="Canvas">
+            <Toggle
+              ariaLabel="Canvas"
+              options={[
+                { id: "desktop", label: "1440" },
+                { id: "phone", label: "375" },
+              ]}
+              value={canvas}
+              onChange={setCanvas}
+            />
+          </Knob>
+        </DockRow>
+      </BoardDock>
+      <p className="px-3 py-2 text-[11px] text-muted-foreground">
+        The board&rsquo;s own switches at the left, the shell&rsquo;s reading
+        controls at the right end. On a board the template fills it from the
+        declared controls.
+      </p>
+    </div>
+  );
+}
+
+export function WalkDemo() {
+  const { state, setState } = useDemoState();
+  return (
+    <div className="flex flex-col gap-2">
+      <Walk spec={DEMO_SPEC} setState={setState} />
+      <p className="text-[11px] text-muted-foreground">
+        Each step scrolls to its section AND sets the state it was written for.
+        The pick is now {state.pick}.
+      </p>
+    </div>
+  );
+}
+
+export function NotesDemo() {
+  const { state, setState } = useDemoState();
+  return (
+    <Notes
+      spec={DEMO_SPEC}
+      section="catalog"
+      state={state}
+      setState={setState}
+    />
+  );
+}
+
+export function CostDemo() {
+  return (
+    <CostMeter
+      phases={[
+        { id: "rest", label: "Rest", solo: "none" },
+        { id: "running", label: "Running", solo: "target" },
+      ]}
+      statics="A fixture: nothing on this page animates, so both phases read the same and that IS the reading."
+    />
   );
 }

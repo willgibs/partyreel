@@ -52,6 +52,10 @@ const OWNED = [
   "BoardIndex",
   "RuleIndex",
   "ItemVerdictRow",
+  "VerdictPill",
+  "CompareTwo",
+  "SpotCompare",
+  "GroundBox",
 ];
 
 /**
