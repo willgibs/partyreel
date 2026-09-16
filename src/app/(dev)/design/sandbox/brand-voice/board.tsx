@@ -23,6 +23,7 @@ import {
   ChapterFrame,
   COLUMNS,
   useAnchorAfterSettle,
+  VOICE_SHORT,
   VOICE_TAG,
   VoiceCanvas,
   VoiceFrames,
@@ -250,20 +251,20 @@ function rowsOf(el: HTMLElement, text: string): number {
   return rows;
 }
 
-/** "B. The room" reads as "B" in a measured caption; Today stays a word. */
-const shortLabel = (name: string) => (name === "Today" ? "today" : name[0]);
-
 /** The home hero's h1 in all three columns, measured side by side so the cost
- *  can be read without toggling and holding two numbers in your head. */
+ *  can be read without toggling and holding two numbers in your head. A column
+ *  name is the voice ask's option, shortened only where a measured caption has
+ *  no room for it (VOICE_SHORT is the same three, one letter each). */
 const HERO_ROW_LINES = VOICES.map((v) => ({
-  label: shortLabel(v.name),
+  label: VOICE_SHORT[v.id],
   text: pick(ARC[0].header, v.id),
 }));
 
-/** The thesis pair, the two lines the thesis ask chooses between. */
+/** The promise pair, carrying the two names the promise ask offers, cut to the
+ *  clause that tells them apart so the counter still reads as a measurement. */
 const THESIS_ROW_LINES = [
-  { label: "in one album", text: THESIS.ruled },
-  { label: "as everyone saw it", text: THESIS.alternative },
+  { label: "Keep, in one album", text: THESIS.ruled },
+  { label: "Take, as everyone saw it", text: THESIS.alternative },
 ];
 
 /**
@@ -425,7 +426,7 @@ function ArcBlock({
   );
 }
 
-/** One chapter of the arc, in arc order, in ONE document on its real ground. */
+/** One chapter of the home page, in page order, in ONE document on its real ground. */
 function ArcChapter({
   id,
   sections,
@@ -465,11 +466,14 @@ function ArcChapter({
   );
 }
 
+/** The five slots a section's copy fills, named the way the asks name them:
+ *  "eyebrow" and "CTA" are craft words, and a stranger answering the ask about
+ *  the rest of the home page reads this column before anything else. */
 const SLOT_LABEL: Record<string, string> = {
-  eyebrow: "Eyebrow",
+  eyebrow: "Small label",
   header: "Header",
-  support: "Support",
-  cta: "CTA",
+  support: "Support line",
+  cta: "Button",
   items: "Claims",
 };
 
@@ -502,6 +506,28 @@ function Ledger({
 
   return (
     <dl className="bv-arc-ledger mt-4 space-y-3 text-xs">
+      {/* Two unheaded lines per slot is unreadable to anyone who has not been
+          told which is which, and this ledger is the surface the header ask's
+          second option ("Pick each header from any column") is answered on. */}
+      <div className="text-[11px] leading-relaxed text-muted-foreground">
+        {voice === "today" ? (
+          <>
+            One line per slot:{" "}
+            <span className="text-foreground">{VOICE_TAG.today}</span>. Pick a
+            candidate in the dock to see what it would say instead.
+          </>
+        ) : (
+          <>
+            Two lines per slot: the grey one is{" "}
+            <span className="text-foreground">{VOICE_TAG.today}</span>, and
+            under it <span className="text-foreground">{VOICE_TAG[voice]}</span>
+            . Held means that voice keeps today&rsquo;s line on purpose, which
+            is what{" "}
+            <span className="text-foreground">Move the seven headers only</span>{" "}
+            would leave standing everywhere.
+          </>
+        )}
+      </div>
       {hasPick && (
         <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
           <span className="inline-block size-1.5 rounded-full bg-foreground/60" />
@@ -772,7 +798,7 @@ function UtilityChapter({ voice, mode }: { voice: VoiceId; mode: Mode }) {
         mode={mode}
         ground="cinema"
         title={VOICE_TAG[voice]}
-        caption="/help and /contact, and two real help article heads."
+        caption="/help and /contact, and the openings of two real help articles."
         className="space-y-12 py-12"
       >
         <div key={voice} data-bv-swap className="space-y-12">
@@ -792,7 +818,7 @@ function UtilityChapter({ voice, mode }: { voice: VoiceId; mode: Mode }) {
         mode={mode}
         ground="paper"
         title={VOICE_TAG[voice]}
-        caption="/pricing, on the paper ground the page ships on."
+        caption="/pricing, on the light marketing ground the page ships on."
         className="space-y-12 py-12"
       >
         <div key={voice} data-bv-swap className="space-y-12">
@@ -1625,6 +1651,31 @@ function GuestUseChapter({ ground }: { ground: Ground }) {
   const byId = (id: string) => GUEST_USE.find((u) => u.id === id) as UseCase;
   return (
     <div className="space-y-8">
+      {/* The noun ask is answered off these four surfaces and nowhere else, so
+          its two options are named here, over the evidence, in the words the
+          ask offers them in. Nothing new is shown: the word is already in the
+          headings and buttons below, in every column. */}
+      <div className="max-w-3xl space-y-2 rounded-lg border border-border bg-card px-5 py-4 text-xs leading-relaxed text-muted-foreground">
+        <p className="text-[11px] font-medium text-foreground">
+          One noun, or two
+        </p>
+        <p>
+          <span className="text-foreground">
+            Album everywhere, guests included:
+          </span>{" "}
+          the five places below that say gallery say album instead, so a guest
+          who scanned on the strength of the site&rsquo;s promise lands on the
+          same word the promise used.
+        </p>
+        <p>
+          <span className="text-foreground">
+            Album on the site, gallery for guests:
+          </span>{" "}
+          the split stays as it ships. The word is in the door&rsquo;s heading,
+          the empty album&rsquo;s heading and the button under it, in all three
+          columns below.
+        </p>
+      </div>
       <UseFrame u={byId("guest-door")}>
         <VoiceFrames
           id="use-door"
@@ -1755,11 +1806,32 @@ function MovedCount({ voice }: { voice: VoiceId }) {
   return (
     <span className="text-[11px] text-muted-foreground tabular-nums">
       {voice === "today"
-        ? "The shipped lines, the control."
-        : `Moves ${arc.moved} of ${arc.total} arc lines, ${feat.moved} of ${feat.total} feature strings.`}
+        ? "The lines the site ships today. The control."
+        : `Moves ${arc.moved} of ${arc.total} home page lines, ${feat.moved} of ${feat.total} feature strings.`}
     </span>
   );
 }
+
+/**
+ * ★ THE DOCK SPEAKS THE ASK'S IDS, `voices.ts` SPEAKS ITS OWN (the clarity
+ * round, 2026-09-15). The voice ask has always been answered `b | a | today`
+ * and the ledger joins on those ids, so the dock's Voice control was renamed to
+ * match them: the template can only preview a pick when the control's option
+ * ids and the ask's are the same set (registry.test.ts refuses anything else).
+ *
+ * The data keys under it did NOT move. `voices.ts` is 2,300 lines of copy whose
+ * keys are `today | house | room`, and "room" is also an ordinary word inside
+ * dozens of the lines the board is arguing about ("every phone in the room"),
+ * so a rename of the keys is a rename with no safe mechanical form. One map at
+ * the one boundary costs three lines and cannot touch a sentence.
+ */
+const VOICE_BY_OPTION: Record<string, VoiceId> = {
+  today: "today",
+  a: "house",
+  b: "room",
+};
+const asVoice = (option: string | undefined): VoiceId =>
+  VOICE_BY_OPTION[option ?? ""] ?? "room";
 
 export function BrandVoiceBoard() {
   // ★ THE RULER'S TWO HEADINGS ARE HELD AS STATE, NOT AS REFS. They live inside
@@ -1773,9 +1845,9 @@ export function BrandVoiceBoard() {
   return (
     <BoardPage
       spec={BRAND_VOICE}
-      dock={(state) => <MovedCount voice={state.voice as VoiceId} />}
+      dock={(state) => <MovedCount voice={asVoice(state.voice)} />}
       evidence={(id, state) => {
-        const voiceId = state.voice as VoiceId;
+        const voiceId = asVoice(state.voice);
         const voice = voiceById(voiceId);
         const mode = state.canvas as Mode;
         const ground = state.app as Ground;
@@ -1834,17 +1906,32 @@ export function BrandVoiceBoard() {
                 </dl>
                 <div className="rounded-lg border border-border bg-card px-5 py-4">
                   <p className="text-[11px] font-medium text-muted-foreground">
-                    Bible 20&rsquo;s replacement, in one sentence
+                    The sentence proposed in place of rule 20
+                  </p>
+                  <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+                    Rule 20 of the design bible says copy should say who we are,
+                    never who we are not. It decides whether a line may sell by
+                    naming something the reader is spared.
                   </p>
                   <p className="mt-2 max-w-3xl font-heading text-xl text-balance">
                     Lead with what arrives; an absence may be the second beat,
                     never the first, and never both.
                   </p>
                   <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-                    It keeps the ruled line (Scan, upload, done. No app to
+                    It keeps the approved line (Scan, upload, done. No app to
                     install.) and kills the doubled-absence one (Nothing to
                     install. Nothing to sign up for.), which is the rule the
-                    whole arc below is written against.
+                    whole home page below is written against.
+                  </p>
+                  <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+                    <span className="text-foreground">
+                      Yes, adopt that sentence
+                    </span>{" "}
+                    rewrites rule 20 this way.{" "}
+                    <span className="text-foreground">
+                      Send it back for another try
+                    </span>{" "}
+                    leaves rule 20 as it stands and the board writes another.
                   </p>
                 </div>
               </div>
@@ -1861,7 +1948,7 @@ export function BrandVoiceBoard() {
                     voice={voiceId}
                     mode={mode}
                     ground="cinema"
-                    caption="The first seven sections of the home arc, in shipped order, on cinema."
+                    caption="The home page's first seven sections, in shipped order, on the dark marketing ground."
                     bodyRef={setArcHeroNode}
                   />
                 }
@@ -1891,7 +1978,7 @@ export function BrandVoiceBoard() {
                     voice={voiceId}
                     mode={mode}
                     ground="paper"
-                    caption="The host's desk: three sections on paper, the album chapter as a left masthead."
+                    caption="The host's desk: three sections on the light marketing ground, the album chapter as a left masthead."
                   />
                 }
                 ledger={<Ledger sections={CHAPTER_PAPER} voice={voiceId} />}
@@ -1909,7 +1996,7 @@ export function BrandVoiceBoard() {
                     voice={voiceId}
                     mode={mode}
                     ground="cinema"
-                    caption="The last five sections, back on cinema, where the arc has to land."
+                    caption="The last five sections, back on the dark ground, where the page has to land."
                   />
                 }
                 ledger={
@@ -1933,8 +2020,8 @@ export function BrandVoiceBoard() {
                   id="thesis"
                   mode={mode}
                   ground="cinema"
-                  title="The ruled line, and the alternative"
-                  caption="Both at the hero tier, in one document, so the pair is read at the size it ships at."
+                  title="The promise, both ways"
+                  caption={`Both at the home page's biggest heading size, in one document: ${THESIS.ruledLabel} above, ${THESIS.alternativeLabel} below.`}
                   className="space-y-10 py-12"
                   bodyRef={setThesisNode}
                 >
@@ -1956,7 +2043,7 @@ export function BrandVoiceBoard() {
                   selector="[data-bv-type='hero-xl'] h1"
                   lines={THESIS_ROW_LINES}
                   mode={mode}
-                  lead="The thesis, in rows:"
+                  lead="The promise, in rows:"
                 />
                 <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
                   {THESIS.note}
@@ -2045,13 +2132,13 @@ export function BrandVoiceBoard() {
                 mode={mode}
                 ground="app-light"
                 title="A host's group chat"
-                caption="The grey plate in each card is a stand-in for the link preview's own thumbnail."
+                caption="What a group chat draws from the link. The grey plate stands in for the preview's own thumbnail."
                 className="px-8 py-8"
               >
                 <div className="flex flex-col gap-5">
                   <div className="max-w-md">
                     <p className="text-[11px] font-medium text-muted-foreground">
-                      A public event, for reference
+                      An open event, the control: no email is asked for
                     </p>
                     <div className="mt-1.5 overflow-hidden rounded-[var(--radius)] border border-border bg-card">
                       <div className="h-10 bg-muted" />
