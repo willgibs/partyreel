@@ -1,14 +1,15 @@
 ---
 track: palette
-status: integrated
-cut: "1b647d76"
-merged: "66797acd"      # the branch head merged into launch-prep
+status: open
+cut: "be1638f2"          # round 6, the clarity round: the catalog, cut from launch-prep
+cut_round_5: "1b647d76"
+merged_round_5: "66797acd"
 merged_round_4: "5cd20bdc"
 cut_round_4: "c473707"
 merged_round_3: "0d5bb64"
 merged_round_2: "499a1ad"
 merged_round_1: "bf1a6ef"
-preview: false           # Will reviews this board on its preview as it builds
+preview: false          # no branch preview: the round reviews on a local pnpm dev after integration
 owns:
   - src/app/(dev)/design/sandbox/palette/
   - docs/specs/palette.md
@@ -32,6 +33,69 @@ reads:
 ---
 
 # lp/palette
+
+## Round 6 (the clarity round, 2026-09-15): the palette as a catalog
+
+**Goal.** Rebuild this board in the shape Will asked for, as the program's first catalog. His words,
+after the first review through the desk (2026-09-15): "for the new palette exploration, it almost
+feels like I'm reading a PhD on color theory. We're simply exploring new color palettes - having a
+dozen polished variants with preview palettes with some demo UI to config & compare would've been far
+more helpful than this massive mountain we've created. Then I end up with six configs that aren't
+clearly explained. I have to toggle around the page to see what they impact. Building future
+explorations almost as a catalog of previews to select from would be much faster, and likely more
+lightweight and streamlined on your side to simply design beautiful components and organisms." The
+ruling is `docs/design/rulings.md` (2026-09-15 · a question carries its context; an exploration is a
+catalog); the guidance is `docs/design/guidance.md#boards-the-review-surface`.
+
+So: about a dozen COMPLETE palettes, each a whole answer (the dark room, the dark slab, the paper,
+the mat, the media well, the text steps, the accent with its reach, the state hues; both modes), each
+named in plain words for what it is ("Ember: a warm dark room, a true grey page, the flare accent"),
+each a card in ONE catalog section: its swatch strip (the grounds, then the text steps on them, then
+the accent and the states) and a demo UI panel at true pixels built from the production primitives
+(a Card with a DropdownMenu open over it, an Input and a Button set, a Badge, a masonry tile on the
+well) in dark beside light, so the twelve are compared on one screen without touching a switch.
+Picking a card selects it: ONE dock control, `palette`, one option per palette, replaces the seven
+switches; the real production pages under the selected palette (the Frame rows: home, pricing, help,
+contact, the dashboard compositions, the guest album) stay as they are today, on the selected one.
+The eleven sets already on the board (six darks, five lights) and the four accents are the raw
+material; a palette is one dark set plus one light set plus an accent and its reach plus the mat,
+faint and card calls, chosen to be coherent. Fewer than eight is not a catalog, more than sixteen is
+a wall. Polish each: nothing in the catalog may read as a swatch table.
+
+**The asks.** "Which palette?" first (the twelve labelled options, `means` one line each, `control:
+"palette"`, the board's recommendation marked); then only the follow-ups that survive as separate
+decisions once a palette is picked (the accent's reach; the card over a photograph; the missing text
+step), each a real question with `context`, `look`, labelled options and `control`. The eight
+current asks' ids may be retired (no answer is recorded on any of them) or kept where an ask survives
+with the same meaning. The ladders, the model argument and the registers become collapsed
+`argument` paragraphs of the catalog section or leave the board; the verdict names the recommended
+palette and why in two plain sentences; the board's `question` and every section `lede` in plain
+words (`docs/tracks/light.md`'s round 6 brief and `sandbox/light/spec.ts` are the exemplar of the
+shape; the `Ask` type in `src/components/lab/board-spec.ts` is the contract). Bump `round.n` to 6:
+this is a new round of the argument. `docs/specs/palette.md` follows the board (the catalog, the
+recommendation, the paste of the recommended palette). Remove `palette` from `PLAIN` in
+`src/app/(dev)/design/sandbox/registry.test.ts` (otherwise read-only for you).
+
+**The kit.** `Specimen` and `Cell` for the catalog grid (one `Cell` per palette, its name as the
+label, the recommended one marked through `proposed`), `Compare` where two palettes are judged
+against each other, `Frame` for the real pages as today, `ApplyToSite` for the selected palette's
+paste, `ScopedTokens` (yours) to put a palette's tokens on a panel. No kit edits: a kit need goes in
+Handoff.
+
+**Verify on.** The gate (`pnpm typecheck && pnpm lint && pnpm test && pnpm build`, each green); the
+board at 1440 and 375 on a local `pnpm dev` (`/design/lab/palette`), reduced motion honoured; the
+catalog readable on one 1440 screen with no switch touched; the desk's session on this board
+(`/design/lab?session=palette.palette`) read cold, as a stranger; `pnpm lab:review --dry 'review
+palette r6: palette=<id>'` accepted. No `[preview]` and no `[ci]` on your pushes.
+
+**Handoff.** The usual (head SHA, gates, lane check) plus the twelve palettes as they read (name and
+one line each), the recommended one and why, and every ask as it now reads.
+
+**Binds.** The bible, the contracts of every component under a path you own, and the policies;
+everything else is precedent (`docs/design/README.md#what-binds-you`). Will's rulings this track works
+under: 2026-09-15 · a question carries its context; an exploration is a catalog; 2026-09-15 · the
+review surface (dark and light chosen separately still holds: a palette names both halves).
+
 
 ## Round 5 (the Library x Lab migration wave, 2026-09-15)
 

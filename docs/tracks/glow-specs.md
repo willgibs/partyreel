@@ -1,9 +1,10 @@
 ---
 track: glow-specs
-status: integrated
-cut: 1b647d76
-merged: "462b7095"      # the branch head merged into launch-prep
-preview: false
+status: open
+cut: "be1638f2"          # round 2, the clarity round, cut from launch-prep
+cut_round_1: 1b647d76
+merged_round_1: "462b7095"
+preview: false          # no branch preview: the round reviews on a local pnpm dev after integration
 owns:
   - src/app/(dev)/design/sandbox/glow-doctrine/
   - src/app/(dev)/design/sandbox/glow-moments/
@@ -30,6 +31,76 @@ reads:
 ---
 
 # lp/glow-specs
+
+## Round 2 (the clarity round, 2026-09-15): every ask in plain words
+
+**Goal.** Every ask on this board rewritten so that someone who has not read the board can answer it
+where they meet it (the desk's session, and the review card that pins under the dock): a real
+question, its context, where to look, options labelled in words with what each means; the evidence
+labelled with the options' names; the board's question, verdict and section ledes in the same plain
+words. No candidate, number or recommendation changes and no new evidence is built. Will's first review
+through the desk (2026-09-15) answered three asks on the light board and stopped at two that were labels
+with token options ("The aurora's placement: no | seam | both | room"): "it was tough to understand what
+I was being asked for most of those questions... when you use very technical terms or nicknames from
+spots in these reports, it makes me have to go deep into the track to gain the relevant context and even
+begin understanding the question being asked. Having the link helps a bit, but framing the context more
+with the question would help a ton... the more clearly you can ask me questions, the more easily it is
+for me to respond." His ruling is `docs/design/rulings.md` (2026-09-15 · a question carries its context; an
+exploration is a catalog) and the guidance is `docs/design/guidance.md#boards-the-review-surface`.
+
+**The exemplar.** `src/app/(dev)/design/sandbox/light/spec.ts` (read it whole, first) and the relabelled
+columns in `sandbox/light/depth.tsx` (`cueLabel`). The shape is `Ask` in `src/components/lab/board-spec.ts`:
+`question` (a real question, ends with `?`, 160 max), `context` (what the thing is and where it lives on
+the site, for a stranger; a nickname glossed the first time or dropped; 400 max), `look` (which section,
+which dock switch, which labelled specimens to compare; 240 max), `options` as `{ id, label, means }`
+(the id UNCHANGED, one token; the label in words, 48 max, never the token itself; `means` one sentence on
+what choosing it does, 160 max), `recommended` (an id), `because` in plain words (300 max), `overrule`
+(160 max), `evidence`, `state` (the dock state that shows this ask's evidence; the review card applies it
+on landing), `control` (a dock control whose option ids equal this ask's, so picking an option previews it;
+use it wherever an ask mirrors a switch).
+
+**The rules.**
+
+1. Ask ids and option ids never change: the ledger joins on them. An ask may be split into two clearer
+   asks, or added where the verdict decides something nobody was asked; new asks get new ids. An ask that
+   decides nothing is removed.
+2. The evidence carries the options' names. Every `Cell`, `Labeled`, `Compare` label, frame caption or
+   column an ask is judged on is labelled with the option's `label` (the way `depth.tsx` does it), and a
+   dock control an ask mirrors uses the same labels as the ask's options. Where a control's option ids
+   differ from the ask's (`today` against `a`), rename the CONTROL's ids to the ask's, never the ask's, or
+   leave `control` off; the ask's ids are the ledger's.
+3. The board's `question`, `verdict` and every section `title` and `lede` in the same plain words,
+   within `LIMITS`; a technical term stays only with its gloss. Arguments stay collapsed. Anything that
+   decides nothing is cut, not rewritten. Do not bump `round.n` (the ledger's round guard reads it); edit
+   `round.changed` to say the asks were rewritten in plain words.
+4. Nothing else changes: no new specimens, no candidate or number or recommendation changed, no kit
+   edits (`src/components/lab/` is not yours; a kit need goes in Handoff), no other board touched.
+5. Remove this board's line from `PLAIN` in `src/app/(dev)/design/sandbox/registry.test.ts` (that file
+   is otherwise read-only for you); the ratchet then checks the shape.
+
+**These boards.** One ask each, and both are the same procedural question: the light board asks this
+same thing (the lit surface; the publish beat's colour), so should it be ruled there or here?
+`light | here` become "On the light board, where the same question sits beside the evidence it
+needs (recommended)" and "Here, on this board"; `context` says in one sentence what the item is and
+that the light board's ask covers it (`light.lit-face`, `light.publish`). The two records stay as
+they are.
+
+**Verify on.** The gate (`pnpm typecheck && pnpm lint && pnpm test && pnpm build`, each green); the board
+at 1440 and 375 on a local `pnpm dev` (`/design/lab/glow-doctrine` and `/design/lab/glow-moments`), reduced motion honoured, every evidence
+section showing the options' words; the desk's session on this board (`/design/lab?session=glow-doctrine.lit-surface`)
+read cold, as a stranger; `pnpm lab:review --dry 'review glow-doctrine r4: <ask>=<option id>'` accepting one
+clause per ask. No `[preview]` and no `[ci]` on your pushes: the round's review surface is a local
+`pnpm dev` on launch-prep after integration.
+
+**Handoff.** The usual (head SHA, gates, lane check) plus every ask as it now reads (the question and
+the option labels, one line each), and any question you could not make plain without new evidence,
+with why.
+
+**Binds.** The bible, the contracts of every component under a path you own, and the policies;
+everything else is precedent (`docs/design/README.md#what-binds-you`). Will's rulings this track works
+under: 2026-09-15 · a question carries its context; an exploration is a catalog; 2026-09-15 · the review
+surface.
+
 
 ## Round 1 (the Library x Lab migration wave, 2026-09-15)
 
