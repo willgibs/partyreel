@@ -12,9 +12,11 @@
    net: they stay under the flt- prefix, and nothing in production uses it.
 
    What is left here is everything that is the STAGE rather than a candidate: the
-   palette board's dark ramps under the panels, the two scenes that need a stage
-   arrangement, the reduced-motion guard the board itself has to honour, and the
-   frame-page plumbing.
+   catalog card's chrome, the two scenes that need a stage arrangement, the
+   reduced-motion guard the board itself has to honour, and the frame-page
+   plumbing. Round six took the palette board's two dark ramps out: ruling the
+   greys on two boards is how two boards drift apart, and the shadow call reads
+   the same on all three.
 
    House convention: FINAL states live OUTSIDE the media queries, so a
    reduced-motion reader gets the settled composition with no rule to undo.
@@ -24,84 +26,32 @@
    the order, so `rounded-float` / `shadow-float` / `animate-in` are overridden
    without an !important anywhere. */
 
-/* -- THE PALETTE BOARD'S DARK RAMPS ----------------------------------------
-   A floating layer's light in dark is a question about the GROUND it floats
-   over, so the ramp is a knob on this board rather than an assumption. These
-   are the dark halves of candidates A and B from docs/specs/palette.md,
-   verbatim: the paste that board proposes, under the panels this one proposes.
+/* -- THE CATALOG'S CARDS --------------------------------------------------
+   A card's preview is a Frame, and a Frame draws a figcaption above its
+   viewport: a title line and a 44px caption slot. On a catalog card that would
+   be a SECOND header between the card's own name and the menu being judged, so
+   the card is the label and the frame's is hidden. The iframe keeps its `title`
+   attribute, which is the one a screen reader reads.
 
-   Why it matters here and not only there: today's dark popover sits LIGHTER
-   than the card it opens from (0.245 over 0.21, the palette board's finding),
-   which is exactly the surface the "lighter is closer" rung leans on. Ramp A
-   widens that gap to 0.285 over 0.235; ramp B makes every dark surface one room
-   and mixes the popover from the foreground. Whether a shadow has to return in
-   dark reads differently on each.
+   Scoped to this board's grid by the attribute the kit's Catalog writes, so
+   nothing else on the page loses a caption. */
 
-   The cinema ground's --background is painted inline by the frame (an inline
-   custom property beats any class rule), so its three values live in
-   constants.ts instead. */
-
-html[data-flt-ramp="a"].dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.955 0 0);
-  --card: oklch(0.235 0 0);
-  --card-foreground: oklch(0.955 0 0);
-  --popover: oklch(0.285 0 0);
-  --popover-foreground: oklch(0.955 0 0);
-  --primary: oklch(0.955 0 0);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.325 0 0);
-  --secondary-foreground: oklch(0.955 0 0);
-  --muted: oklch(0.195 0 0);
-  --muted-foreground: oklch(0.7 0 0);
-  --accent: oklch(0.325 0 0);
-  --accent-foreground: oklch(0.955 0 0);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.85 0 0);
+[data-lab-catalog="floating-surfaces"] figcaption {
+  display: none;
 }
-html[data-flt-ramp="a"].surface-ink {
-  --background: oklch(0.185 0 0);
-  --foreground: oklch(0.965 0 0);
-  --card: oklch(0.235 0 0);
-  --card-foreground: oklch(0.965 0 0);
-  --popover: oklch(0.285 0 0);
-  --popover-foreground: oklch(0.965 0 0);
-  --secondary: oklch(0.325 0 0);
-  --secondary-foreground: oklch(0.965 0 0);
-  --accent: oklch(0.325 0 0);
-  --accent-foreground: oklch(0.965 0 0);
-  --muted: oklch(0.235 0 0);
-  --muted-foreground: oklch(0.7 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.965 0 0);
-  --primary: oklch(0.965 0 0);
-  --primary-foreground: oklch(0.185 0 0);
-}
-html[data-flt-ramp="b"].dark,
-html[data-flt-ramp="b"].surface-ink {
-  --background: oklch(0.125 0 0);
-  --foreground: oklch(0.96 0 0);
-  --card: color-mix(in oklab, var(--foreground) 12%, var(--background));
-  --card-foreground: oklch(0.96 0 0);
-  --popover: color-mix(in oklab, var(--foreground) 18%, var(--background));
-  --popover-foreground: oklch(0.96 0 0);
-  --primary: oklch(0.96 0 0);
-  --primary-foreground: oklch(0.125 0 0);
-  --secondary: color-mix(in oklab, var(--foreground) 22%, var(--background));
-  --secondary-foreground: oklch(0.96 0 0);
-  --muted: color-mix(in oklab, var(--foreground) 7%, var(--background));
-  --muted-foreground: color-mix(
-    in oklab,
-    var(--foreground) 68%,
-    var(--background)
-  );
-  --accent: color-mix(in oklab, var(--foreground) 22%, var(--background));
-  --accent-foreground: oklch(0.96 0 0);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: color-mix(in oklab, var(--foreground) 85%, var(--background));
+
+/* The preview is a FIXED 328 wide, because that is the width being judged, and
+   the grid's columns stretch to fill the room. Centring the frame is the one
+   honest way to spend the difference: a specimen whose size is the argument may
+   never be scaled to fit its card (Will, round four). */
+[data-lab-catalog="floating-surfaces"] [data-lab-specimen] {
+  display: flex;
+  /* `safe` falls back to start when the frame is wider than the card, which it
+     is at 375: a centred overflow puts the left edge of the thing being judged
+     out of reach. The scroll is the only honest way to spend a card narrower
+     than its specimen, because scaling one is the thing round four forbade. */
+  justify-content: safe center;
+  overflow-x: auto;
 }
 
 /* -- TWO SCENES THAT NEED A STAGE ARRANGEMENT ------------------------------

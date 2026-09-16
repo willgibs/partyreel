@@ -17,26 +17,34 @@ import { FLOATING_SURFACES } from "./spec";
  * split stays even though scenes.tsx would otherwise be the natural home).
  */
 
+/**
+ * THE SCENES. Round six cut six: `field`, `family`, `overlay`, `edge`, `select`
+ * and `radio` were the outlier rows and rounds one to three's primitives
+ * ladder, and the catalog answers both better. The edge panel did not lose its
+ * evidence, it gained better evidence: `ui/sheet.tsx`'s one product call site is
+ * the marketing mobile menu, and the real-pages section loads / at 375, so the
+ * sheet is judged as the route rather than as a specimen of one.
+ */
 export const SCENES = [
-  // Round four's scenes: the three directions, standing up as working UI.
-  "desk", // the host's desk at 1440: the header panel, the event menu, the account menu
-  "pocket", // the same host on a phone, plus the guest surface under the direction
-  "menu", // one menu, one direction, for the four-up comparison at 1:1
-  "sub", // the nested branch: a submenu in two directions, deleted in the third
-  "surfaces", // the dialog, the tooltip and the toast under the direction
-  "field", // the select under the direction (a searchable list in command)
-  // Rounds one to three: today's primitives and the three knobs.
-  "family",
-  "overlay",
-  "edge",
-  "guest",
-  "ladder",
-  "nest",
-  "trio",
-  "select",
-  "radio",
+  "desk", // the real dashboard at 1440, the account menu and an event overflow open
+  "pocket", // the same host on a phone
+  "menu", // one menu, one direction, at 328: the catalog card's preview
+  "sub", // the nested branch, kept and deleted
+  "real", // app/user-menu.tsx as it ships, theme submenu and all: the bug
+  "surfaces", // the dialog over its scrim, the tooltip and the real toast
+  "guest", // the guest's own entry drawer, the tenth surface
+  "ladder", // the shadow in dark, two columns
+  "nest", // the corner at six times magnification
+  "trio", // the entrance: one rule per frame, on the same three surfaces
 ] as const;
 export type Scene = (typeof SCENES)[number];
+
+/** The nested branch, kept or deleted. It is MARKUP rather than a stylesheet,
+ *  so it rides the frame's src and reloads that one frame: a page-wide switch
+ *  that changes a single frame can afford a reload where the ground, which
+ *  changes sixteen of them, cannot. */
+export const SUBS = ["keep", "delete"] as const;
+export type Sub = (typeof SUBS)[number];
 
 export const DIMS = ["radius", "light", "entrance"] as const;
 export type Dim = (typeof DIMS)[number];
@@ -49,39 +57,12 @@ export const GROUNDS = [
   "app-light",
 ] as const;
 
-/** Which edge an edge-attached panel enters from. A knob because the ONE
- *  product call site of ui/sheet.tsx is the marketing mobile menu, and it enters
- *  from the TOP: the two corners that stay on screen there are the bottom two,
- *  not the top two, and a candidate that only covered bottom and right reached
- *  nothing real. */
-export const SIDES = ["top", "right", "bottom", "left"] as const;
-export type Side = (typeof SIDES)[number];
-
-/** The palette board's dark ramps (docs/specs/palette.md), as a knob. A floating
- *  layer's light in dark is entirely a question of the ground it floats over: on
- *  today's dark the popover sits LIGHTER than the card it opens from (0.245 over
- *  0.21, the palette board's finding), and the answer to "does a shadow return
- *  in dark" changes with that. The ramp blocks live in board.css. */
-export const RAMPS = ["today", "a", "b"] as const;
-export type Ramp = (typeof RAMPS)[number];
-
-/** The dark greys under a floating panel, in the dock's own words. The light
- *  section's caption names the set it is standing on rather than the token
- *  (the clarity round: a reviewer should never have to know that "b" is a ramp). */
-export const RAMP_LABEL: Record<Ramp, string> = {
-  today: "today's dark",
-  a: "the palette board's ramp A, one ladder",
-  b: "the palette board's ramp B, one room",
-};
-
-/** The cinema ground paints its --background inline (the frame's own style, so
- *  it beats any class rule), so the ramp has to hand it the matching value.
- *  These are the three cinema grounds from the palette spec's marketing block. */
-export const RAMP_CINEMA_BG: Record<Ramp, string> = {
-  today: "oklch(0.11 0 0)",
-  a: "oklch(0.105 0 0)",
-  b: "oklch(0.125 0 0)",
-};
+/** The cinema room's own background, painted inline by the frame because a
+ *  class rule cannot beat an inline custom property. The palette board owns the
+ *  value; this board stopped carrying its three candidate ramps as a switch in
+ *  round six, because ruling the greys twice on two boards is how two boards
+ *  drift apart. */
+export const CINEMA_BG = "oklch(0.11 0 0)";
 
 /** The ground sets a frame paints, shared by the frame page (first paint, from
  *  the URL) and the parent board (every change after, by attribute). */
@@ -134,12 +115,11 @@ export const RUNGS: Record<Dim, { id: string; label: string }[]> = {
     })),
   ],
   light: [
-    // The light ask has THREE options over TWO columns: "ruled here" and "the
-    // light board's call" are the same pixels and differ only in who rules the
-    // line, so the column carries the words they share and the section's caption
-    // says so. The first column is the `today` option's label to the letter.
     { id: "", label: askOptionLabel("light", "today") },
-    ...LIGHT_RUNGS.map((r) => ({ id: `flt-l-${r}`, label: "A soft shadow" })),
+    ...LIGHT_RUNGS.map((r) => ({
+      id: `flt-l-${r}`,
+      label: askOptionLabel("light", r),
+    })),
   ],
   entrance: [
     { id: "", label: AS_SHIPS },
@@ -172,46 +152,46 @@ export function contractName(knobs: Knobs): string {
     : "Floating layer: as it ships";
 }
 
-/** A rung class is its own address: the six-character prefix says which
- *  dimension, the rest says which value, so the frame turns a list of rung ids
- *  into CSS (candidates.ts rungCss) and the board turns one into a paste
- *  without a second table to keep in step. */
-export const RUNG_PREFIX_LENGTH = 6;
-
-/** The pages to walk with a candidate applied, quoted on the board and in the
- *  manifest's Handoff. Each carries a different member of the family.
+/**
+ * THE REAL ROUTES THE PICK IS WORN ON, and the three of them that a frame can
+ * load. A candidate rides the <style> that CandidateStyle renders, and
+ * `AppDesignIsland` mounts on the (guest) layout and on /admin as well as the
+ * app's own since launch-prep fb395fe, so /e/<token> wears one too.
  *
- *  EVERY page on this list wears a candidate now, the guest album included.
- *  A candidate rides the <style> that CandidateStyle renders, and round two
- *  found it mounted in only three places (the lab layout, the marketing cinema
- *  island, the host app's island), which left /e/<token> unable to wear one at
- *  all. launch-prep closed that at fb395fe: AppDesignIsland mounts on the
- *  (guest) layout and on /admin too, so the surface this board makes primary
- *  is walkable with a rung on. There was a `carries` column here saying which
- *  pages could not; it is gone with the gap it described. */
-export const WALK: { href: string; what: string }[] = [
+ * `framed: false` means the route is behind the (app) auth gate: a frame
+ * pointed at /dashboard lands on /login, so it is a link to open in a tab
+ * rather than a frame that would quietly show the wrong page.
+ */
+export const WALK: {
+  href: string;
+  what: string;
+  framed: boolean;
+  phone?: boolean;
+}[] = [
   {
     href: "/",
-    what: "the header nav panel (hover Features), then the mobile menu sheet at 375, which is ui/sheet.tsx's only product call site",
+    what: "the header's nav panel: hover Features at 1440, or open the menu at 375, which is ui/sheet.tsx's one product call site",
+    framed: true,
   },
   {
     href: "/pricing",
-    what: "the plan tooltips, the highest-frequency surface on the site",
-  },
-  {
-    href: "/help",
-    what: "the header nav panel over a paper ground, where the light rungs change sides",
-  },
-  {
-    href: "/contact",
-    what: "the select, its one product call site, and one of the three surfaces almost nothing uses",
-  },
-  {
-    href: "/dashboard",
-    what: "the account dropdown, the event menus and a confirm dialog (signed in)",
+    what: "the plan tooltips, the highest-frequency floating surface on the site",
+    framed: true,
   },
   {
     href: "/e/[the demo token]",
-    what: "the guest entry drawer at 375, the surface most people on this product will ever meet. It wears a candidate now (the guest layout mounts the island since launch-prep fb395fe), and every radius rung reaches it through [data-entry-drawer]",
+    what: "the guest's entry drawer at 375, the surface most people on this product will ever meet",
+    framed: true,
+    phone: true,
+  },
+  {
+    href: "/help",
+    what: "the same nav panel over a paper ground, where a shadow changes sides",
+    framed: false,
+  },
+  {
+    href: "/dashboard",
+    what: "the account menu, an event's menus and a confirm dialog, signed in",
+    framed: false,
   },
 ];

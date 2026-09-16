@@ -1,15 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import {
-  Bell,
-  ChevronDown,
-  Images,
-  MoreHorizontal,
-  Share2,
-  SlidersHorizontal,
-} from "lucide-react";
+import { Bell } from "lucide-react";
 
 import { EntryShell } from "@/components/guest/entry-shell";
 import { Button } from "@/components/ui/button";
@@ -22,51 +14,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Toaster } from "@/components/ui/sonner";
 import {
   Tooltip,
   TooltipContent,
@@ -75,10 +29,15 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-import { RUNGS, type Dim, type Scene as SceneId, type Side } from "./constants";
+import {
+  RUNGS,
+  type Dim,
+  type Scene as SceneId,
+  type Sub,
+} from "./constants";
 import { DirectionScene } from "./direction-scenes";
 import type { Direction } from "./directions";
-import { Backdrop, useNextFrame, useSceneReplay } from "./stage-bits";
+import { Backdrop, useSceneReplay } from "./stage-bits";
 
 /**
  * THE SCENES (floating-surfaces, round two). Everything here renders INSIDE a
@@ -104,288 +63,14 @@ import { Backdrop, useNextFrame, useSceneReplay } from "./stage-bits";
  * them a frame later, which is how the entrance is watched.
  */
 
+/** The rows the measuring scenes hold: short enough that the corner, not the
+ *  copy, is what a reader is looking at. The scenes that judge a LAYER use the
+ *  real menu models in menus.tsx instead. */
 const MENU_ROWS = [
-  { label: "Share the link", icon: Share2 },
-  { label: "Download all", icon: Images },
-  { label: "Slideshow settings", icon: SlidersHorizontal },
+  { label: "Share the link" },
+  { label: "Download all" },
+  { label: "Slideshow settings" },
 ];
-
-const UPLOAD_CHOICES = [
-  { value: "anyone", label: "Anyone with the link" },
-  { value: "verified", label: "Guests who verify an email" },
-  { value: "nobody", label: "Nobody, uploads are closed" },
-];
-
-/** The anchored family, all of it open at once: this is the canvas rule 15 is
- *  actually about, because a stray one only reads wrong beside its siblings. */
-function FamilyScene({ phone, rung }: { phone: boolean; rung?: string }) {
-  const on = useSceneReplay();
-  const navOn = useNextFrame(on);
-  const cls = cn("flt-panel", rung);
-  return (
-    <>
-      <Backdrop phone={phone} />
-      {/* The nav viewport, the one the contract was named for: the single menu
-          outside it in 2026-08-28. Desktop only, because the marketing header
-          collapses to a sheet below md, and held open through the Root's
-          controlled `value`. NavigationMenu renders its own viewport, so the
-          panel hook goes through `viewportProps`. */}
-      {!phone ? (
-        <div className="absolute inset-x-0 top-0 z-30 flex justify-center pt-2">
-          <NavigationMenu
-            value={navOn ? "features" : ""}
-            onValueChange={() => undefined}
-            viewportProps={{ className: cls }}
-          >
-            <NavigationMenuList>
-              <NavigationMenuItem value="features">
-                <NavigationMenuTrigger>Features</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  {/* An inline width, not an arbitrary utility: the viewport
-                      sizes itself from a ResizeObserver on this content, and a
-                      class that fails to compile leaves the panel at 0x0 with
-                      nothing to see. */}
-                  <div
-                    className="grid grid-cols-2 gap-1 p-2"
-                    style={{ width: 420 }}
-                  >
-                    {[
-                      "One QR code",
-                      "No app, no account",
-                      "The host reviews",
-                      "The reel",
-                    ].map((l) => (
-                      <NavigationMenuLink key={l}>{l}</NavigationMenuLink>
-                    ))}
-                  </div>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-        </div>
-      ) : null}
-      <div
-        className={cn(
-          "absolute inset-x-0 flex px-4",
-          phone ? "top-14 flex-col gap-40" : "top-52 justify-between",
-        )}
-      >
-        <DropdownMenu open={on} modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="sm">
-              <MoreHorizontal />
-              Event
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className={cn(cls, "w-52")} align="start">
-            <DropdownMenuLabel>This event</DropdownMenuLabel>
-            {MENU_ROWS.map((r) => (
-              <DropdownMenuItem key={r.label}>
-                <r.icon />
-                {r.label}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">
-              Delete the event
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <TooltipProvider>
-          <Tooltip open={on}>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon-sm">
-                <Bell />
-                <span className="sr-only">Alerts</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className={cls} side={phone ? "bottom" : "top"}>
-              Guests can still upload
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <Popover open={on} modal={false}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">
-              Who can see this
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className={cn(cls, "w-60")}
-            align={phone ? "start" : "end"}
-            side="bottom"
-          >
-            <p className="text-sm font-medium">Anyone with the link</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Guests upload without an account. You approve what appears in the
-              album.
-            </p>
-          </PopoverContent>
-        </Popover>
-      </div>
-    </>
-  );
-}
-
-/** The covering family: a dialog over the scrim, with a toast in the corner.
- *  The toast is the real sonner surface, rendered through its own class hook so
- *  the same candidate reaches it. */
-function OverlayScene({ phone, rung }: { phone: boolean; rung?: string }) {
-  const on = useSceneReplay();
-  const cls = cn("flt-panel", rung);
-  return (
-    <>
-      <Backdrop phone={phone} />
-      {/* THE SCRIM IS A STAND-IN, and it has to be. Radix renders Dialog.Overlay
-          only in MODAL mode, and a modal dialog traps focus, which in a board of
-          nineteen iframes means the first frame to mount pulls the lab page to
-          itself. So the scene paints the overlay's own rectangle
-          (`bg-black/10` plus the backdrop blur, dialog.tsx:42) and keeps the
-          dialog non-modal. It is the scrim's look, never its behaviour: the
-          light question is about what the panel does over a dimmed page, and
-          without this the dialog would be judged over bare photographs. */}
-      {on ? (
-        <div
-          data-flt-scrim
-          className="fixed inset-0 isolate z-50 bg-black/10 supports-backdrop-filter:backdrop-blur-xs"
-        />
-      ) : null}
-      <Dialog open={on} modal={false}>
-        <DialogContent className={cls} showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle>Delete this event</DialogTitle>
-            <DialogDescription>
-              Every photo and video goes with it, for you and for your guests.
-              This cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-row justify-end gap-2">
-            <Button variant="ghost" size="sm">
-              Keep it
-            </Button>
-            <Button variant="destructive" size="sm">
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Toast on={on} rung={rung} />
-    </>
-  );
-}
-
-/** Sonner is themed by CSS variables rather than by class (ui/sonner.tsx sets
- *  --border-radius from --radius-float), so the candidate reaches it the same
- *  way every other panel does: through the `cn-toast` class the house Toaster
- *  already sets, which the generated block names directly. */
-function Toast({ on, rung }: { on: boolean; rung?: string }) {
-  useEffect(() => {
-    if (!on) return;
-    // The NEUTRAL toast on purpose. A state toast (success, warning, error)
-    // paints its own background through an !important rule in globals.css, so
-    // it would answer the light question with a colour instead of with the
-    // popover surface. The state variants are a carve-out for the ruling to
-    // note, not the surface the contract is about.
-    const id = toast("Link copied", {
-      description: "Anyone with it can upload to the album.",
-      duration: Number.POSITIVE_INFINITY,
-    });
-    return () => {
-      toast.dismiss(id);
-    };
-  }, [on]);
-  return (
-    <Toaster
-      position="bottom-right"
-      toastOptions={{ classNames: { toast: cn("cn-toast flt-panel", rung) } }}
-    />
-  );
-}
-
-/** The edge family. The side is the real one for the width: a guest on a phone
- *  gets the bottom sheet, a host at 1440 gets the right one.
- *
- *  ★ THE CORNER IS READ AT THE CORNER, NOT HERE. Round three had a `compact`
- *  strip on this scene for that, and round four replaced it with the nest scene
- *  and its loupe; the migration deletes the prop rather than leaving a branch no
- *  call site reaches. A full-height edge panel keeps the photographs, because
- *  that is the condition bible 10 is written for. */
-function EdgeScene({
-  phone,
-  variant,
-  side,
-  rung,
-}: {
-  phone: boolean;
-  variant: "sheet" | "drawer";
-  side?: Side;
-  rung?: string;
-}) {
-  const on = useSceneReplay();
-  const cls = cn("flt-panel", rung);
-  // The default is the real side for the width; `side` names the product's own
-  // call site where it differs (the marketing mobile menu enters from the top).
-  const edge: Side = side ?? (phone ? "bottom" : "right");
-  const rows = ["Everything", "In the reel", "Hidden", "Liked"];
-  return (
-    <>
-      <Backdrop phone={phone} variant="photos" />
-      {variant === "sheet" ? (
-        <Sheet open={on} modal={false}>
-          <SheetContent className={cls} side={edge} showCloseButton={false}>
-            <SheetHeader>
-              <SheetTitle>Filter the album</SheetTitle>
-              <SheetDescription>
-                Narrow the gallery down to what you are looking for.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="flex flex-col gap-2 px-4 pb-6">
-              {rows.map((r) => (
-                <div
-                  key={r}
-                  data-slot="sheet-row-item"
-                  className="flex items-center justify-between bg-muted/50 px-3 py-2 text-sm"
-                  style={{
-                    borderRadius: "var(--flt-r-item, var(--radius-md))",
-                  }}
-                >
-                  {r}
-                </div>
-              ))}
-            </div>
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <Drawer open={on} modal={false}>
-          <DrawerContent className={cls}>
-            <DrawerHeader>
-              <DrawerTitle>Filter the album</DrawerTitle>
-              <DrawerDescription>
-                The vaul drawer, which no product surface calls through
-                ui/drawer.tsx.
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="flex flex-col gap-2 px-4 pb-8">
-              {rows.map((r) => (
-                <div
-                  key={r}
-                  className="bg-muted/50 px-3 py-2 text-sm"
-                  style={{
-                    borderRadius: "var(--flt-r-item, var(--radius-md))",
-                  }}
-                >
-                  {r}
-                </div>
-              ))}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      )}
-    </>
-  );
-}
 
 /** THE GUEST'S SURFACE, the real one. EntryShell is the tenth floating layer
  *  and the first thing a guest sees after the QR: a raw vaul drawer below 640
@@ -748,95 +433,33 @@ function TrioScene({ rung }: { rung?: string }) {
   );
 }
 
-/** The select outlier, alone because radix's select is the one panel that keeps
- *  a modal grip on the document: two of them cannot stand open side by side, so
- *  the comparison is two frames rather than two panels. */
-function SelectScene({ rung }: { rung?: string }) {
-  const on = useSceneReplay();
-  return (
-    <div className="absolute inset-0 flex items-start justify-center bg-background p-6">
-      <Select open={on}>
-        <SelectTrigger className="w-52" size="sm">
-          <SelectValue placeholder="Who can upload" />
-        </SelectTrigger>
-        <SelectContent className={cn("flt-panel", rung)} position="popper">
-          {UPLOAD_CHOICES.map((c) => (
-            <SelectItem key={c.value} value={c.value}>
-              {c.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
-
-/** What replaces the select if it is dropped: the dropdown menu it already
- *  duplicates, with radio items. Same rows, same surface, one primitive fewer,
- *  and it is already on the contract. The trigger is a real Button rather than
- *  a SelectTrigger, which is the honest cost of the drop: the field loses the
- *  input chrome and has to look like a control on its own. */
-function RadioScene({ rung }: { rung?: string }) {
-  const on = useSceneReplay();
-  const [value, setValue] = useState("anyone");
-  return (
-    <div className="absolute inset-0 flex items-start justify-center bg-background p-6">
-      <DropdownMenu open={on} modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-52 justify-between font-normal"
-          >
-            {UPLOAD_CHOICES.find((c) => c.value === value)?.label}
-            <ChevronDown className="opacity-60" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          className={cn("flt-panel w-52", rung)}
-          align="start"
-          sideOffset={4}
-        >
-          <DropdownMenuRadioGroup value={value} onValueChange={setValue}>
-            {UPLOAD_CHOICES.map((c) => (
-              <DropdownMenuRadioItem key={c.value} value={c.value}>
-                {c.label}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
-}
 
 const DIRECTION_SCENES = [
   "desk",
   "pocket",
   "menu",
   "sub",
+  "real",
   "surfaces",
-  "field",
 ] as const;
 
 export function Scene({
   scene,
   direction,
+  sub,
   phone,
   dim,
-  variant,
-  side,
   rung,
 }: {
   scene: SceneId;
-  /** Round four: which floating layer this frame is rendering. The direction
-   *  changes ANATOMY as well as material, so it is React state rather than a
-   *  class, and the frame receives it by event so a switch never reloads. */
+  /** Which floating layer this frame is rendering. The direction changes
+   *  ANATOMY as well as material, so it is React state rather than a class, and
+   *  the frame receives it by event so a switch never reloads. */
   direction: Direction;
+  /** The nested branch, kept or deleted: anatomy too, so it travels the same way. */
+  sub: Sub;
   phone: boolean;
   dim: Dim;
-  variant: "sheet" | "drawer";
-  side?: Side;
   rung?: string;
 }) {
   if ((DIRECTION_SCENES as readonly string[]).includes(scene)) {
@@ -844,20 +467,13 @@ export function Scene({
       <DirectionScene
         scene={scene as (typeof DIRECTION_SCENES)[number]}
         direction={direction}
+        sub={sub}
         phone={phone}
       />
     );
   }
-  if (scene === "family") return <FamilyScene phone={phone} rung={rung} />;
-  if (scene === "overlay") return <OverlayScene phone={phone} rung={rung} />;
-  if (scene === "edge")
-    return (
-      <EdgeScene phone={phone} variant={variant} side={side} rung={rung} />
-    );
   if (scene === "guest") return <GuestScene phone={phone} rung={rung} />;
   if (scene === "ladder") return <LadderScene phone={phone} dim={dim} />;
   if (scene === "nest") return <NestScene rung={rung} />;
-  if (scene === "trio") return <TrioScene rung={rung} />;
-  if (scene === "radio") return <RadioScene rung={rung} />;
-  return <SelectScene rung={rung} />;
+  return <TrioScene rung={rung} />;
 }

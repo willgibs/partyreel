@@ -6,13 +6,11 @@ import { requireDesignKey } from "@/lib/design-gate/server";
 import {
   DIMS,
   GROUNDS,
-  RAMPS,
   SCENES,
-  SIDES,
+  SUBS,
   type Dim,
-  type Ramp,
   type Scene,
-  type Side,
+  type Sub,
 } from "./constants";
 import { DIRECTIONS, type Direction } from "./directions";
 import { SceneShell } from "./scene-shell";
@@ -75,19 +73,14 @@ export default async function FloatingSurfacesScenePage({
 
   return (
     <SceneShell
-      scene={pick<Scene>(SCENES, one(params, "scene"), "family")}
-      ground={pick<Ground>(GROUNDS, one(params, "ground"), "cinema")}
-      ramp={pick<Ramp>(RAMPS, one(params, "ramp"), "today")}
+      scene={pick<Scene>(SCENES, one(params, "scene"), "menu")}
+      ground={pick<Ground>(GROUNDS, one(params, "ground"), "app-dark")}
       direction={pick<Direction>(DIRECTIONS, one(params, "direction"), "today")}
+      sub={pick<Sub>(SUBS, one(params, "sub"), "keep")}
       phone={one(params, "w") === "375"}
       dim={pick<Dim>(DIMS, one(params, "dim"), "radius")}
-      variant={one(params, "variant") === "drawer" ? "drawer" : "sheet"}
-      side={
-        SIDES.includes((one(params, "side") ?? "") as Side)
-          ? (one(params, "side") as Side)
-          : undefined
-      }
       rung={one(params, "rung")}
+      pinned={one(params, "pin") === "1"}
     />
   );
 }
