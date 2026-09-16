@@ -51,8 +51,10 @@ under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
 Round 1 is closed on the tree (both lanes integrated, the verification list walked on the dev server);
 Will's first review with per-item verdicts is the palette catalog plus the six rebuilt boards, on the
 desk, once Round 4 lands. The reading budget (1,200 words outside every closed fold,
-specimen and paste) fails all twelve standing boards on purpose: `pnpm lab:smoke` reports the routes and
-the budget apart, and the rebuilds must meet it.
+specimen and paste, or a spec's declared budget with its reason) is met by the six rebuilt boards and
+by type-scale outright; the six boards not yet rebuilt (the palette at 3,817, the two glow boards, the
+home hero, the album hero, the river) still fail it on purpose, and `pnpm lab:smoke` reports the routes
+and the budget apart.
 
 ## The previous round: the clarity round (2026-09-15 to 16, `be1638f2` to `1165e503`)
 
