@@ -34,6 +34,46 @@ export function useDesignKey(): string | null | undefined {
 }
 
 /**
+ * PUTTING A SECTION UNDER THE CHROME, the one way the lab does it (extracted
+ * from the walk in the clarity round, 2026-09-15, when the review card became
+ * the second thing that has to do it).
+ *
+ * ★ IT IS A SCROLL, NOT A HASH CHANGE. Writing the hash also pushes a history
+ * entry, so a six-step walk leaves six entries between the reader and the page
+ * he came from. The dock's own Sections menu uses hrefs because those ARE
+ * navigations; a walk step and a review step are not.
+ *
+ * ★ AND IT CLEARS EVERY STICKY LAYER, NOT JUST THE DOCK. `scrollIntoView`
+ * honours `scroll-padding-top`, which the dock writes for itself, so it landed
+ * a section perfectly under the dock and perfectly BEHIND the review card,
+ * which sticks under it. The arithmetic is the same one `scrollIntoView` does
+ * (`block: "start"` is the element's top minus the scroller's scroll-padding),
+ * plus `--review-card-h`, which the card writes while it is stuck and zeroes
+ * when it is not (at 375 it is static, like the dock).
+ *
+ * ★ THE SMOOTH SCROLL IS OPT-OUT. A step can travel ten thousand pixels, and a
+ * smooth scroll over that distance is exactly the kind of large motion
+ * reduced-motion exists to refuse; it is also slower than the reader, who
+ * presses Next again mid-flight. A media query, not a preference of ours.
+ */
+export function scrollToSection(boardId: string, sectionId: string): void {
+  const el = document.getElementById(anchorFor(boardId, sectionId));
+  if (!el) return;
+  const style = getComputedStyle(document.documentElement);
+  const px = (value: string) => {
+    const n = parseFloat(value);
+    return Number.isFinite(n) ? n : 0;
+  };
+  const clear =
+    px(style.scrollPaddingTop) + px(style.getPropertyValue("--review-card-h"));
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({
+    top: Math.max(0, window.scrollY + el.getBoundingClientRect().top - clear),
+    behavior: still ? "auto" : "smooth",
+  });
+}
+
+/**
  * THE GUIDED WALK: the board's `lookFirst`, executable.
  *
  * A board is tens of thousands of pixels, and the author knows the six places a
@@ -48,12 +88,9 @@ export function useDesignKey(): string | null | undefined {
  * one. A step that lands on the right section in the wrong state shows the
  * reviewer something the note does not describe, which is worse than no walk.
  *
- * ★ AND THE SCROLL IS `scrollIntoView`, NOT A HASH CHANGE. Writing the hash also
- * pushes a history entry, so a six-step walk leaves six entries between the
- * reader and the page he came from. The dock's own Sections menu uses hrefs
- * because those ARE navigations; a walk is not. It honours reduced motion: a
- * step can travel ten thousand pixels, which is the large motion the preference
- * exists to refuse.
+ * ★ AND THE SCROLL IS `scrollToSection` ABOVE, NOT A HASH CHANGE: no history
+ * entry per step, every sticky layer cleared, reduced motion honoured. The
+ * review card lands its own steps through the same helper.
  */
 export function Walk({
   spec,
@@ -73,17 +110,7 @@ export function Walk({
       if (!step) return;
       setAt(i);
       if (step.state) setState(step.state as Record<string, string>);
-      const el = document.getElementById(anchorFor(spec.id, step.section));
-      // ★ THE SMOOTH SCROLL IS OPT-OUT. A walk step can travel ten thousand
-      // pixels, and a smooth scroll over that distance is exactly the kind of
-      // large motion reduced-motion exists to refuse; it is also slower than
-      // the reader, who presses Next again mid-flight. A media query, not a
-      // preference of ours.
-      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      el?.scrollIntoView({
-        behavior: still ? "auto" : "smooth",
-        block: "start",
-      });
+      scrollToSection(spec.id, step.section);
     },
     [steps, setState, spec.id],
   );
@@ -158,7 +185,12 @@ export function WalkPages({
   const key = useDesignKey();
   if (pages.length === 0) return null;
   return (
-    <p className={cn("text-[11px] leading-relaxed text-muted-foreground", className)}>
+    <p
+      className={cn(
+        "text-[11px] leading-relaxed text-muted-foreground",
+        className,
+      )}
+    >
       Walk it:{" "}
       {pages.map((p, i) => (
         <span key={p.path}>

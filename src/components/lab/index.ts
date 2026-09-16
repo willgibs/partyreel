@@ -48,14 +48,11 @@ export { type BoardApi, BoardPage } from "./board-page";
 export {
   type BoardPageContextValue,
   BoardPageProvider,
+  type BoardReview,
   type BoardSectionLink,
   useBoardPage,
 } from "./board-page-context";
-export {
-  ControlKnobs,
-  RESERVED_PARAMS,
-  useBoardState,
-} from "./board-state";
+export { ControlKnobs, RESERVED_PARAMS, useBoardState } from "./board-state";
 
 /* The dock */
 export {
@@ -110,7 +107,8 @@ export { Notes } from "./notes";
 
 /* The review */
 export { composeReviewMessage, ReviewQuestions } from "./review";
-export { useDesignKey, Walk, WalkPages } from "./walk";
+export { ReviewCard } from "./review-card";
+export { scrollToSection, useDesignKey, Walk, WalkPages } from "./walk";
 
 /* The traps, documented once */
 export { TRAPS, type Trap } from "./traps";
