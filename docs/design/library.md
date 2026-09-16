@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 15 policies · 112 contracts on 21 components · 12 standing boards.**
+**22 laws · 15 policies · 124 contracts on 22 components · 12 standing boards.**
 
 ## What binds you
 
@@ -333,8 +333,9 @@ Contracted but outside the library's directories:
 - `src/components/lab/dock.tsx` (5 guards)
 - `src/components/lab/frame.tsx` (3 guards)
 - `src/components/lab/index.ts` (3 guards)
+- `src/components/lab/item-verdict.tsx` (7 guards)
 - `src/components/lab/lab-chrome.tsx` (6 guards)
-- `src/components/lab/review-card.tsx` (14 guards)
+- `src/components/lab/review-card.tsx` (19 guards)
 - `src/components/lab/specimen.tsx` (5 guards)
 - `src/components/marketing/chrome/marketing-footer.tsx` (5 guards)
 - `src/components/marketing/legal/legal-document.tsx` (3 guards)

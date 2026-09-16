@@ -16,7 +16,7 @@ import {
 } from "@/app/(dev)/design/touchpoints";
 import { BoardFrame } from "./board-frame";
 import { BOARD_COMPONENTS } from "../boards";
-import { deskRows } from "../_desk/queue";
+import { boardWork, deskRows } from "../_desk/queue";
 import { toSteps } from "../_desk/session-step";
 
 /**
@@ -73,15 +73,17 @@ export default async function BoardPage({
   const review = param?.startsWith(`${ruling.id}.`)
     ? {
         steps: toSteps(
-          deskRows(
-            SANDBOX.map((r) => ({
-              id: r.id,
-              title: r.title,
-              surfaceLabel: SURFACE_LABEL[r.surface],
-              note: r.board?.note ?? r.why,
-              tracks: r.board?.tracks ?? [r.id],
-            })),
-          ).flatMap((r) => r.open),
+          boardWork(
+            deskRows(
+              SANDBOX.map((r) => ({
+                id: r.id,
+                title: r.title,
+                surfaceLabel: SURFACE_LABEL[r.surface],
+                note: r.board?.note ?? r.why,
+                tracks: r.board?.tracks ?? [r.id],
+              })),
+            ),
+          ),
           boardSpec,
           key,
         ),

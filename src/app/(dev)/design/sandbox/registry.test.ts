@@ -22,6 +22,8 @@ import {
 } from "@/components/lab/board-spec";
 import { RESERVED_PARAMS } from "@/components/lab/board-state";
 
+import { ITEMS_STEP } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
+
 import { BOARDS, boardSpec } from "./registry";
 
 /**
@@ -168,6 +170,12 @@ describe("the board registry", () => {
       expect(new Set(askIds).size, `${b.id} has a duplicate ask id`).toBe(
         askIds.length,
       );
+      // A catalog's step is `<board>.items`, so an ask spelled that way would
+      // resolve to the wrong step and lose a reader's place silently.
+      expect(
+        askIds,
+        `${b.id}: "${ITEMS_STEP}" is the catalog's own step id, so no ask may use it`,
+      ).not.toContain(ITEMS_STEP);
       for (const n of b.notes ?? []) {
         expect(
           ids.has(n.section),

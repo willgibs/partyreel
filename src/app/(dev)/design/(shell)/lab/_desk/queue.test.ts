@@ -5,17 +5,25 @@ import { describe, expect, it, vi } from "vitest";
 // is stubbed out here.
 vi.mock("server-only", () => ({}));
 
+import type { BoardSpec } from "@/components/lab/board-spec";
+
 import type { BoardStatus } from "@/app/(dev)/design/review/status";
 
-import { askStates, deskRows, openQueue } from "./queue";
+import { askStates, boardWork, deskRows, itemStates, openQueue } from "./queue";
 import { SAMPLE_BOARD } from "./sample-spec";
-import { holdId, stepId } from "./step-id";
+import { holdId, itemHoldId, itemsStepId, stepId } from "./step-id";
 
 /**
  * THE DESK'S ROWS, against the fixture spec (the Library x Lab round,
  * 2026-09-15). The board registry is empty until the kit lands the pilots, so
  * the join is proven against the spec TYPE here with an injected status: the
  * day a real spec lands, this is what says the desk already worked.
+ *
+ * The catalog half arrived with the revamp (2026-09-16), and the case that
+ * matters is the last one: a board that does NOT declare a catalog queues no
+ * items at all. Every board carries candidates (they are the things it
+ * considered), and queuing fourteen boards' worth of those for a verdict would
+ * bury the work somebody actually has to do.
  */
 
 const BOARD = {
@@ -29,9 +37,15 @@ const BOARD = {
 const AT = "2026-09-15T10:00:00Z";
 
 /** A status reading, shaped as the rules track's module returns one. */
-function status(n: number | null, answers: [string, string][]): BoardStatus {
+function status(
+  n: number | null,
+  answers: [string, string][],
+  items: [string, string][] = [],
+  spec: BoardSpec = SAMPLE_BOARD,
+): BoardStatus {
   const held = new Map(answers);
-  const asks = SAMPLE_BOARD.asks.map((ask) => {
+  const ruled = new Map(items);
+  const asks = (spec.asks ?? []).map((ask) => {
     const choice = held.get(ask.id);
     return choice
       ? ({
@@ -41,9 +55,19 @@ function status(n: number | null, answers: [string, string][]): BoardStatus {
         } as const)
       : ({ ask, state: "open" } as const);
   });
+  const cards = (spec.catalog ? spec.candidates : []).map((item) => {
+    const verdict = ruled.get(item.id);
+    return verdict
+      ? ({
+          item,
+          state: "ruled",
+          ruling: { item: item.id, verdict, by: "Will", at: AT },
+        } as const)
+      : ({ item, state: "open" } as const);
+  });
   return {
-    board: SAMPLE_BOARD.id,
-    spec: SAMPLE_BOARD,
+    board: spec.id,
+    spec,
     round:
       n === null
         ? null
@@ -57,14 +81,26 @@ function status(n: number | null, answers: [string, string][]): BoardStatus {
               at: AT,
             })),
             notes: [],
+            items: items.map(([item, verdict]) => ({
+              item,
+              verdict,
+              by: "Will",
+              at: AT,
+            })),
           },
     asks: [...asks],
     answered: asks.filter((a) => a.state === "answered"),
     open: asks.filter((a) => a.state === "open"),
     unclear: [],
     orphaned: [],
+    items: [...cards],
+    ruled: cards.filter((c) => c.state === "ruled"),
+    openItems: cards.filter((c) => c.state === "open"),
+    orphanedItems: [],
     notes: [],
-    complete: asks.every((a) => a.state === "answered"),
+    complete:
+      asks.every((a) => a.state === "answered") &&
+      cards.every((c) => c.state === "ruled"),
   };
 }
 
@@ -77,9 +113,16 @@ const noSpec: BoardStatus = {
   open: [],
   unclear: [],
   orphaned: [],
+  items: [],
+  ruled: [],
+  openItems: [],
+  orphanedItems: [],
   notes: [],
   complete: false,
 };
+
+/** The same fixture with its catalog withdrawn: candidates, but no opt-in. */
+const NO_CATALOG: BoardSpec = { ...SAMPLE_BOARD, catalog: undefined };
 
 describe("the desk's rows", () => {
   it("opens every ask when no review has started", () => {
@@ -119,6 +162,7 @@ describe("the desk's rows", () => {
     );
     expect(rows.map((r) => r.legacy)).toEqual([false, true]);
     expect(rows[1].asks).toHaveLength(0);
+    expect(rows[1].items).toHaveLength(0);
     expect(openQueue(rows)).toHaveLength(SAMPLE_BOARD.asks.length);
   });
 
@@ -136,6 +180,65 @@ describe("the desk's rows", () => {
     expect(stepId(s.board, s.ask.id)).toBe(`${SAMPLE_BOARD.id}.${s.ask.id}`);
     expect(holdId(s.board, s.round, s.ask.id)).toBe(
       `${SAMPLE_BOARD.id}.r${SAMPLE_BOARD.round.n}.${s.ask.id}`,
+    );
+  });
+});
+
+describe("the catalog's cards", () => {
+  it("opens every card when no review has started", () => {
+    const states = itemStates(BOARD, status(null, []));
+    expect(states.map((s) => s.item.id)).toEqual(
+      SAMPLE_BOARD.candidates.map((c) => c.id),
+    );
+    expect(states.every((s) => s.ruling === null)).toBe(true);
+  });
+
+  it("closes a card ruled in the board's current round", () => {
+    const states = itemStates(
+      BOARD,
+      status(SAMPLE_BOARD.round.n, [], [["as-prose", "kill"]]),
+    );
+    expect(states.find((s) => s.item.id === "as-prose")?.ruling?.verdict).toBe(
+      "kill",
+    );
+    expect(states.filter((s) => s.ruling === null)).toHaveLength(
+      SAMPLE_BOARD.candidates.length - 1,
+    );
+  });
+
+  it("does not carry an earlier round's verdict forward", () => {
+    const states = itemStates(
+      BOARD,
+      status(SAMPLE_BOARD.round.n - 1, [], [["as-prose", "kill"]]),
+    );
+    expect(states.every((s) => s.ruling === null)).toBe(true);
+  });
+
+  it("queues nothing for a board whose candidates are not a catalog", () => {
+    const rows = deskRows([BOARD], () => status(null, [], [], NO_CATALOG));
+    expect(NO_CATALOG.candidates.length).toBeGreaterThan(0);
+    expect(rows[0].items).toEqual([]);
+    expect(rows[0].openItems).toEqual([]);
+  });
+
+  it("hands the session the catalog before the asks", () => {
+    // A catalog board's asks are what is left open ONCE a card is picked, so
+    // asking them first asks them in the wrong order.
+    const work = boardWork(deskRows([BOARD], () => status(null, [])));
+    expect(work).toHaveLength(1);
+    expect(work[0].items.map((i) => i.item.id)).toEqual(
+      SAMPLE_BOARD.candidates.map((c) => c.id),
+    );
+    expect(work[0].asks.map((a) => a.ask.id)).toEqual(
+      SAMPLE_BOARD.asks.map((a) => a.id),
+    );
+  });
+
+  it("spells an items step and a held verdict one way", () => {
+    const s = itemStates(BOARD, status(null, []))[0];
+    expect(itemsStepId(s.board)).toBe(`${SAMPLE_BOARD.id}.items`);
+    expect(itemHoldId(s.board, s.round, s.item.id)).toBe(
+      `${SAMPLE_BOARD.id}.r${SAMPLE_BOARD.round.n}.item.${s.item.id}`,
     );
   });
 });

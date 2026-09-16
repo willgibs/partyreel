@@ -48,6 +48,7 @@ import type { SessionStep } from "../_desk/session-step";
  */
 const DEMO_STEPS: SessionStep[] = [
   {
+    kind: "ask",
     board: "kit-demo",
     boardTitle: "A fixture board",
     round: 0,
@@ -79,6 +80,7 @@ const DEMO_STEPS: SessionStep[] = [
     boardHref: "/design/lab/kit",
   },
   {
+    kind: "ask",
     board: "kit-demo",
     boardTitle: "A fixture board",
     round: 0,

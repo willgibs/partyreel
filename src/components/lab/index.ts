@@ -114,6 +114,7 @@ export { Notes } from "./notes";
 /* The review */
 export { composeReviewMessage, ReviewQuestions } from "./review";
 export { ReviewCard } from "./review-card";
+export { ItemVerdictRow } from "./item-verdict";
 export { scrollToSection, useDesignKey, Walk, WalkPages } from "./walk";
 
 /* The traps, documented once */

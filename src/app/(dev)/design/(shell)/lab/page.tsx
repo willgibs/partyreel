@@ -11,16 +11,25 @@ import { StatRow } from "@/app/(dev)/design/(shell)/_shell/stat-row";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { listSpecs } from "@/app/(dev)/design/_data/docs";
 import { readTrackStates, trackAlias } from "@/app/(dev)/design/_data/tracks";
-import { windowNotesFor } from "@/app/(dev)/design/review/ledger";
+import {
+  libraryRulings,
+  windowNotesFor,
+} from "@/app/(dev)/design/review/ledger";
+import { COMPONENTS, componentTitle } from "@/app/(dev)/design/rules/rules";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 import { SANDBOX, SURFACE_LABEL } from "@/app/(dev)/design/touchpoints";
 
-import { type BoardRow, deskRows } from "./_desk/queue";
+import {
+  type AskState,
+  type BoardRow,
+  boardWork,
+  deskRows,
+} from "./_desk/queue";
 import { ReviewSession } from "./_desk/review-session";
 import { SAMPLE_BOARD } from "./_desk/sample-spec";
-import { type SessionStep, toSteps } from "./_desk/session-step";
+import { type SessionStep, stepParam, toSteps } from "./_desk/session-step";
 import { StartReview } from "./_desk/start-review";
-import { holdId, stepId } from "./_desk/step-id";
+import { itemsStepId, stepId } from "./_desk/step-id";
 
 /**
  * THE DESK (the review wave, 2026-09-14; Will's queue since the Library x Lab
@@ -45,9 +54,32 @@ const DESK_HREF = "/design/lab";
 const askHref = (board: string, ask: string) =>
   `/design/lab/${board}?session=${stepId(board, ask)}`;
 
+/** Where a catalog is ruled on: the same board, with its items step open. */
+const itemsHref = (board: string) =>
+  `/design/lab/${board}?session=${itemsStepId(board)}`;
+
+/** Where any step is answered, whichever kind it is. */
+const stepHref = (s: SessionStep) =>
+  `/design/lab/${s.board}?session=${stepParam(s)}`;
+
 type Params = Promise<Record<string, string | string[] | undefined>>;
 
-const holdKey = (s: SessionStep) => holdId(s.board, s.round, s.askId);
+/**
+ * One line of "Waiting on you": an unanswered ask, or a board's catalog as a
+ * single row. The catalog comes FIRST for its board, the order the session
+ * walks it in, because a board's asks are what is left open once its cards have
+ * been ruled on.
+ */
+type QueueEntry =
+  | { kind: "ask"; ask: AskState }
+  | { kind: "items"; row: BoardRow };
+
+function deskQueue(rows: BoardRow[]): QueueEntry[] {
+  return rows.flatMap((row): QueueEntry[] => [
+    ...(row.openItems.length > 0 ? [{ kind: "items" as const, row }] : []),
+    ...row.open.map((ask) => ({ kind: "ask" as const, ask })),
+  ]);
+}
 
 export default async function DeskPage({
   searchParams,
@@ -74,23 +106,35 @@ export default async function DeskPage({
     })),
   );
 
-  const queue = rows.flatMap((r) => r.open);
+  const queue = deskQueue(rows);
   const specOf = (board: string) => BOARDS.find((b) => b.id === board);
-  const steps = toSteps(queue, specOf, key);
+  const steps = toSteps(boardWork(rows), specOf, key);
 
   // The dry run: one fixture board, walked the same way, so the session can be
-  // judged before a standing board carries a spec.
+  // judged before a standing board carries a spec. It carries a catalog too,
+  // so the items step is walkable without a standing board declaring one.
   const sample = param?.startsWith(SAMPLE_BOARD.id) === true;
   if (param) {
     const walk = sample
       ? toSteps(
-          SAMPLE_BOARD.asks.map((ask) => ({
-            board: SAMPLE_BOARD.id,
-            boardTitle: SAMPLE_BOARD.title,
-            round: SAMPLE_BOARD.round.n,
-            ask,
-            answer: null,
-          })),
+          [
+            {
+              items: SAMPLE_BOARD.candidates.map((item) => ({
+                board: SAMPLE_BOARD.id,
+                boardTitle: SAMPLE_BOARD.title,
+                round: SAMPLE_BOARD.round.n,
+                item,
+                ruling: null,
+              })),
+              asks: SAMPLE_BOARD.asks.map((ask) => ({
+                board: SAMPLE_BOARD.id,
+                boardTitle: SAMPLE_BOARD.title,
+                round: SAMPLE_BOARD.round.n,
+                ask,
+                answer: null,
+              })),
+            },
+          ],
           (id) => (id === SAMPLE_BOARD.id ? SAMPLE_BOARD : undefined),
           key,
         )
@@ -102,11 +146,7 @@ export default async function DeskPage({
             steps={walk}
             // A bare `?session=sample` always opens at the first ask: a dry
             // run is walked, not resumed.
-            param={
-              param === SAMPLE_BOARD.id
-                ? `${SAMPLE_BOARD.id}.${SAMPLE_BOARD.asks[0].id}`
-                : param
-            }
+            param={param === SAMPLE_BOARD.id ? stepParam(walk[0]) : param}
             sample={sample}
             title="The message"
             blurb="One line per board, in the ledger grammar. Paste it into chat and the answers land in docs/reviews."
@@ -122,6 +162,11 @@ export default async function DeskPage({
     (n, r) => n + r.asks.filter((a) => a.answer?.choice).length,
     0,
   );
+  // The catalogs: every card on every board that declares one, and the ones
+  // with no verdict yet. A board with no catalog contributes nothing.
+  const itemsNow = rows.reduce((n, r) => n + r.items.length, 0);
+  const openItemsNow = rows.reduce((n, r) => n + r.openItems.length, 0);
+  const redesigns = libraryRulings().filter((r) => r.verdict !== "keep");
   // Asks Will marked "not clear to me": still waiting, and the board owes a
   // clearer question before he is asked again.
   const unclearNow = rows.reduce(
@@ -139,6 +184,7 @@ export default async function DeskPage({
       <StatRow
         stats={[
           ["waiting on you", queue.length],
+          ["items to rule", `${openItemsNow} of ${itemsNow}`],
           ["answered this round", answeredNow],
           ["asked for a clearer question", unclearNow],
           ["standing boards", rows.length],
@@ -149,14 +195,11 @@ export default async function DeskPage({
       <Section
         id="waiting"
         title="Waiting on you"
-        blurb="Every ask with no answer in its board's current round, in board order. The review walks them one at a time and ends in one message to paste."
+        blurb="Every catalog with a card still unruled and every ask with no answer, in board order. The review walks them one at a time and ends in one message to paste."
         aside={
           queue.length > 0 ? (
             <StartReview
-              steps={steps.map((s) => ({
-                key: holdKey(s),
-                href: askHref(s.board, s.askId),
-              }))}
+              steps={steps.map((step) => ({ step, href: stepHref(step) }))}
             />
           ) : undefined
         }
@@ -166,42 +209,67 @@ export default async function DeskPage({
             data-dir-stagger
             className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card"
           >
-            {queue.map((a, i) => (
-              <li
-                key={`${a.board}.${a.ask.id}`}
-                style={{ "--i": i } as React.CSSProperties}
-              >
-                <LabLink
-                  href={askHref(a.board, a.ask.id)}
-                  className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3 transition-colors duration-150 hover:bg-muted/40"
+            {queue.map((entry, i) =>
+              entry.kind === "items" ? (
+                <li
+                  key={`${entry.row.id}.items`}
+                  style={{ "--i": i } as React.CSSProperties}
                 >
-                  <span className="text-xs text-muted-foreground">
-                    {a.boardTitle}
-                  </span>
-                  <span className="min-w-0 flex-1 text-sm font-medium">
-                    {a.ask.question}
-                  </span>
-                  {a.answer && a.answer.choice === null ? (
-                    <Tag badge="updated">you asked for a clearer question</Tag>
-                  ) : (
+                  <LabLink
+                    href={itemsHref(entry.row.id)}
+                    className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3 transition-colors duration-150 hover:bg-muted/40"
+                  >
+                    <span className="text-xs text-muted-foreground">
+                      {entry.row.title}
+                    </span>
+                    <span className="min-w-0 flex-1 text-sm font-medium">
+                      {`The ${entry.row.items.length} in the catalog: keep, refine or kill each one`}
+                    </span>
                     <Tag>
-                      {optionLabel(
-                        a.ask.options.find(
-                          (o) => optionId(o) === a.ask.recommended,
-                        ) ?? a.ask.recommended,
-                      )}
+                      {`${entry.row.items.length - entry.row.openItems.length} of ${entry.row.items.length} ruled`}
                     </Tag>
-                  )}
-                </LabLink>
-              </li>
-            ))}
+                  </LabLink>
+                </li>
+              ) : (
+                <li
+                  key={`${entry.ask.board}.${entry.ask.ask.id}`}
+                  style={{ "--i": i } as React.CSSProperties}
+                >
+                  <LabLink
+                    href={askHref(entry.ask.board, entry.ask.ask.id)}
+                    className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3 transition-colors duration-150 hover:bg-muted/40"
+                  >
+                    <span className="text-xs text-muted-foreground">
+                      {entry.ask.boardTitle}
+                    </span>
+                    <span className="min-w-0 flex-1 text-sm font-medium">
+                      {entry.ask.ask.question}
+                    </span>
+                    {entry.ask.answer && entry.ask.answer.choice === null ? (
+                      <Tag badge="updated">
+                        you asked for a clearer question
+                      </Tag>
+                    ) : (
+                      <Tag>
+                        {optionLabel(
+                          entry.ask.ask.options.find(
+                            (option) =>
+                              optionId(option) === entry.ask.ask.recommended,
+                          ) ?? entry.ask.ask.recommended,
+                        )}
+                      </Tag>
+                    )}
+                  </LabLink>
+                </li>
+              ),
+            )}
           </ol>
         ) : (
           <div className="rounded-xl border border-border bg-card px-4 py-4">
             <p className="text-sm">
               {withSpec.length === 0
                 ? "No board carries a spec yet, so nothing is queued here."
-                : "Every ask on every board has an answer this round."}
+                : "Every ask is answered and every catalog is ruled on this round."}
             </p>
             <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-muted-foreground">
               {withSpec.length === 0
@@ -220,6 +288,51 @@ export default async function DeskPage({
           </div>
         )}
       </Section>
+
+      {/* The redesign queue. A Library entry ruled `redesign` or `retire` is
+          a track waiting to be cut, and it is the only thing on this page that
+          comes from outside a board. `keep` is not listed: an entry Will kept
+          needs nobody's attention, and printing ninety of them would bury the
+          three that do. */}
+      {redesigns.length > 0 && (
+        <Section
+          id="redesigns"
+          title="Redesigns you asked for"
+          blurb="From docs/reviews/_library.json: the Library entries you ruled redesign or retire while scrolling the components. This is the queue the Orchestrator cuts tracks from."
+          aside={<Tag>{redesigns.length}</Tag>}
+        >
+          <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+            {redesigns.map((r) => {
+              const entry = COMPONENTS.find((c) => c.id === r.entry);
+              return (
+                <li
+                  key={r.entry}
+                  className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3"
+                >
+                  {entry ? (
+                    <LabLink
+                      href={`/design/library/${r.entry}`}
+                      className="text-sm font-medium hover:underline"
+                    >
+                      {componentTitle(entry)}
+                    </LabLink>
+                  ) : (
+                    <span className="text-sm font-medium">{r.entry}</span>
+                  )}
+                  <Tag tone={r.verdict === "retire" ? "quiet" : "strong"}>
+                    {r.verdict}
+                  </Tag>
+                  {r.note && (
+                    <span className="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">
+                      {r.note}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </Section>
+      )}
 
       <Section
         id="boards"
@@ -468,6 +581,9 @@ function BoardCard({
         {row.spec && (
           <span className="text-muted-foreground">
             {answered} of {row.asks.length} answered
+            {row.items.length > 0
+              ? `, ${row.items.length - row.openItems.length} of ${row.items.length} ruled`
+              : ""}
           </span>
         )}
       </p>

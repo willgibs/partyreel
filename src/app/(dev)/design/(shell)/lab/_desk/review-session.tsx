@@ -5,6 +5,8 @@ import { ArrowLeft, ArrowRight, Check, ExternalLink } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+import { ItemVerdictRow } from "@/components/lab/item-verdict";
+
 import { CopyButton } from "@/app/(dev)/design/(shell)/_shell/copy";
 import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
@@ -12,6 +14,7 @@ import { registerReviewKeys, reviewKeysOwned } from "./review-keys";
 import {
   composeMessage,
   type SessionAnswer,
+  type SessionItem,
   type SessionNote,
 } from "./review-message";
 import {
@@ -23,13 +26,16 @@ import {
   useReviewStore,
 } from "./review-store";
 import {
+  type AskStep,
   SESSION_END,
   type SessionOption,
   type SessionStep,
+  stepDone,
+  stepHeld,
   stepParam,
   UNCLEAR,
 } from "./session-step";
-import { holdId } from "./step-id";
+import { holdId, itemHoldId } from "./step-id";
 
 /**
  * THE REVIEW SESSION (the Library x Lab round, 2026-09-15). Will's desk asks
@@ -51,6 +57,12 @@ import { holdId } from "./step-id";
  * The handler is registered with review-keys.ts so the shell can own the
  * keyboard later without this file changing.
  *
+ * A STEP IS AN ASK OR A CATALOG (the revamp, 2026-09-16). A board that
+ * declares its candidates ARE a catalog contributes ONE step carrying every
+ * card, ruled `keep | refine | kill` on a row of its own; away from the board
+ * the rows are all there is to show, so the step lists them, and on the board
+ * the same rows are under the cards themselves.
+ *
  * A STEP CARRIES THE ASK'S OWN CONTEXT (the clarity round, 2026-09-15). Will's
  * first session stopped at "The aurora's placement: no | seam | both | room":
  * a label and four tokens, with the board's argument for its own pick under
@@ -67,7 +79,8 @@ import { holdId } from "./step-id";
 export { UNCLEAR };
 export type { SessionOption, SessionStep };
 
-const holdKey = (s: SessionStep) => holdId(s.board, s.round, s.askId);
+/** An ASK's held key. A catalog's cards hold one key each (`itemHoldId`). */
+const askKey = (s: AskStep) => holdId(s.board, s.round, s.askId);
 /**
  * The summary's own URL value. The dry run namespaces it, so finishing a dry
  * run and reloading returns to the dry run rather than to the real queue's
@@ -91,7 +104,7 @@ function startAt(
   if (param === end) return steps.length;
   const at = steps.findIndex((s) => stepParam(s) === param);
   if (at >= 0) return at;
-  const first = steps.findIndex((s) => !store.answers[holdKey(s)]?.choice);
+  const first = steps.findIndex((s) => !stepDone(s, store));
   return first < 0 ? steps.length : first;
 }
 
@@ -141,12 +154,12 @@ export function ReviewSession({
   // A second click on the picked option clears it: the store's one toggle
   // rule, shared with the review card and the board's panel.
   const pick = (choice: string) => {
-    if (!step) return;
+    if (step?.kind !== "ask") return;
     toggleAnswer(step.board, step.round, step.askId, choice);
   };
 
   const setNote = (note: string) => {
-    if (!step) return;
+    if (step?.kind !== "ask") return;
     setAnswerNote(step.board, step.round, step.askId, note);
   };
 
@@ -156,7 +169,14 @@ export function ReviewSession({
   const onKey = (key: string): boolean => {
     if (atEnd || !step) return false;
     const n = Number(key);
-    if (Number.isInteger(n) && n >= 1 && n <= step.options.length) {
+    // A digit belongs to an ask's options; a catalog's verdicts live on its
+    // rows, where three words times twelve cards have no sensible numbering.
+    if (
+      step.kind === "ask" &&
+      Number.isInteger(n) &&
+      n >= 1 &&
+      n <= step.options.length
+    ) {
       pick(step.options[n - 1].id);
       return true;
     }
@@ -199,13 +219,26 @@ export function ReviewSession({
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  const { answers, notes } = useMemo(() => {
-    const seen = new Set<string>();
+  const { answers, items, notes } = useMemo(() => {
     const answers: SessionAnswer[] = [];
+    const items: SessionItem[] = [];
     for (const s of steps) {
-      const held = store.answers[holdKey(s)];
+      if (s.kind === "items") {
+        for (const item of s.items) {
+          const held = store.items[itemHoldId(s.board, s.round, item.id)];
+          if (!held?.verdict) continue;
+          items.push({
+            board: s.board,
+            round: s.round,
+            item: item.id,
+            verdict: held.verdict,
+            note: held.note || undefined,
+          });
+        }
+        continue;
+      }
+      const held = store.answers[askKey(s)];
       if (!held?.choice) continue;
-      seen.add(s.board);
       answers.push({
         board: s.board,
         round: s.round,
@@ -220,14 +253,14 @@ export function ReviewSession({
       const text = store.notes[s.board];
       if (text?.trim()) notes.push({ board: s.board, round: s.round, text });
     }
-    return { answers, notes, seen };
+    return { answers, items, notes };
   }, [steps, store]);
 
   const message = useMemo(
-    () => composeMessage(answers, notes),
-    [answers, notes],
+    () => composeMessage(answers, notes, items),
+    [answers, notes, items],
   );
-  const answered = answers.length;
+  const answered = answers.length + items.length;
 
   if (steps.length === 0) return null;
 
@@ -242,9 +275,7 @@ export function ReviewSession({
           The desk
         </LabLink>
         <p className="text-xs text-muted-foreground tabular-nums">
-          {atEnd
-            ? `${answered} of ${steps.length} answered`
-            : `Ask ${at + 1} of ${steps.length}`}
+          {atEnd ? `${answered} answered` : `Step ${at + 1} of ${steps.length}`}
           {sample && <span className="ml-2">· dry run</span>}
         </p>
       </div>
@@ -273,7 +304,7 @@ export function ReviewSession({
 
       {!atEnd && step && (
         <article
-          key={holdKey(step)}
+          key={stepParam(step)}
           data-dir-enter
           className="mt-8"
           style={{ "--dir-duration": "180ms" } as React.CSSProperties}
@@ -287,23 +318,22 @@ export function ReviewSession({
             </LabLink>
             <Tag>{`round ${step.round}`}</Tag>
           </div>
-          <h2 className="mt-1.5 font-heading text-2xl tracking-tight text-balance">
-            {step.question}
-          </h2>
-          {step.context && (
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed">
-              {step.context}
-            </p>
-          )}
-          {(step.look || step.evidence) && (
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              <span className="font-medium text-foreground/80">
-                Where to look:{" "}
-              </span>
-              {step.look}
+          {step.kind === "items" ? (
+            <>
+              <h2 className="mt-1.5 font-heading text-2xl tracking-tight text-balance">
+                Rule on the {step.items.length} in {step.sectionTitle}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed">
+                A catalog is ruled card by card: keep it, refine it, or kill it,
+                with a note where the word is not enough. A second press on the
+                same word clears it and the note stays; an unruled card is left
+                out of the message.
+              </p>
               {step.evidence && (
-                <>
-                  {step.look ? " " : ""}
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground/80">
+                    Where to look:{" "}
+                  </span>
                   <a
                     href={step.evidence.href}
                     target="_blank"
@@ -313,112 +343,178 @@ export function ReviewSession({
                     Open {step.evidence.title}
                     <ExternalLink className="size-3 opacity-60" aria-hidden />
                   </a>
-                </>
+                  , where each card carries this same row under its preview.
+                </p>
               )}
-            </p>
-          )}
-
-          <ul className="mt-5 space-y-1.5">
-            {step.options.map((option, i) => {
-              const chosen = store.answers[holdKey(step)]?.choice === option.id;
-              return (
-                <li key={option.id}>
-                  <button
-                    type="button"
-                    data-dir-press
-                    onClick={() => pick(option.id)}
-                    aria-pressed={chosen}
-                    className={cn(
-                      "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors duration-150",
-                      chosen
-                        ? "border-foreground/40 bg-card"
-                        : "border-border hover:bg-muted/40",
-                    )}
+              <ul className="mt-5 space-y-2">
+                {step.items.map((item) => (
+                  <li
+                    key={item.id}
+                    className="rounded-xl border border-border bg-card px-3 py-2.5"
                   >
-                    <span
-                      className={cn(
-                        "mt-px inline-flex size-5 shrink-0 items-center justify-center rounded-md border text-[11px] tabular-nums transition-colors duration-150",
-                        chosen
-                          ? "border-transparent bg-foreground text-background"
-                          : "border-border text-muted-foreground",
+                    <p className="flex flex-wrap items-baseline gap-x-2 text-sm font-medium">
+                      {item.name}
+                      {item.verdict && (
+                        <Tag className="shrink-0">{`the board says ${item.verdict}`}</Tag>
                       )}
-                      aria-hidden
-                    >
-                      {chosen ? <Check className="size-3" /> : i + 1}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium break-words">
-                        {option.label}
-                      </span>
-                      {option.means && (
-                        <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
-                          {option.means}
-                        </span>
-                      )}
-                    </span>
-                    {option.id === step.recommended && (
-                      <Tag className="shrink-0">the board says</Tag>
+                    </p>
+                    {item.one && (
+                      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                        {item.one}
+                      </p>
                     )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+                    <ItemVerdictRow
+                      className="mt-2"
+                      scope={step.board}
+                      round={step.round}
+                      id={item.id}
+                      name={item.name}
+                      vocabulary={step.vocabulary}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <>
+              <h2 className="mt-1.5 font-heading text-2xl tracking-tight text-balance">
+                {step.question}
+              </h2>
+              {step.context && (
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed">
+                  {step.context}
+                </p>
+              )}
+              {(step.look || step.evidence) && (
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground/80">
+                    Where to look:{" "}
+                  </span>
+                  {step.look}
+                  {step.evidence && (
+                    <>
+                      {step.look ? " " : ""}
+                      <a
+                        href={step.evidence.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 underline underline-offset-2"
+                      >
+                        Open {step.evidence.title}
+                        <ExternalLink
+                          className="size-3 opacity-60"
+                          aria-hidden
+                        />
+                      </a>
+                    </>
+                  )}
+                </p>
+              )}
 
-          {step.because && (
-            <p className="mt-3 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-              <span className="font-medium text-foreground/70">
-                Why the board says so:{" "}
-              </span>
-              {step.because}
-            </p>
+              <ul className="mt-5 space-y-1.5">
+                {step.options.map((option, i) => {
+                  const chosen =
+                    store.answers[askKey(step)]?.choice === option.id;
+                  return (
+                    <li key={option.id}>
+                      <button
+                        type="button"
+                        data-dir-press
+                        onClick={() => pick(option.id)}
+                        aria-pressed={chosen}
+                        className={cn(
+                          "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors duration-150",
+                          chosen
+                            ? "border-foreground/40 bg-card"
+                            : "border-border hover:bg-muted/40",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "mt-px inline-flex size-5 shrink-0 items-center justify-center rounded-md border text-[11px] tabular-nums transition-colors duration-150",
+                            chosen
+                              ? "border-transparent bg-foreground text-background"
+                              : "border-border text-muted-foreground",
+                          )}
+                          aria-hidden
+                        >
+                          {chosen ? <Check className="size-3" /> : i + 1}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium break-words">
+                            {option.label}
+                          </span>
+                          {option.means && (
+                            <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
+                              {option.means}
+                            </span>
+                          )}
+                        </span>
+                        {option.id === step.recommended && (
+                          <Tag className="shrink-0">the board says</Tag>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {step.because && (
+                <p className="mt-3 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground/70">
+                    Why the board says so:{" "}
+                  </span>
+                  {step.because}
+                </p>
+              )}
+              {step.overrule && (
+                <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground/70">
+                    What would change it:{" "}
+                  </span>
+                  {step.overrule}
+                </p>
+              )}
+
+              <label className="mt-4 block">
+                <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                  Your note
+                </span>
+                <textarea
+                  rows={2}
+                  value={store.answers[askKey(step)]?.note ?? ""}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Optional. It rides the answer into the ledger."
+                  className="mt-1 w-full resize-y rounded-xl border border-border bg-card px-3 py-2 text-sm transition-colors duration-150 outline-none placeholder:text-muted-foreground/70 focus:border-foreground/40"
+                />
+              </label>
+
+              {/* "?" is recorded, not skipped: the ledger then says which question
+                failed and why, and the board owes a clearer one. */}
+              <button
+                type="button"
+                data-dir-press
+                aria-pressed={store.answers[askKey(step)]?.choice === UNCLEAR}
+                onClick={(e) => {
+                  pick(UNCLEAR);
+                  const field = (
+                    e.currentTarget.parentElement as HTMLElement
+                  )?.querySelector("textarea");
+                  field?.focus();
+                }}
+                className={cn(
+                  "mt-2 rounded-lg border border-dashed px-3 py-1.5 text-xs font-medium transition-colors duration-150",
+                  store.answers[askKey(step)]?.choice === UNCLEAR
+                    ? "border-foreground/40 bg-card text-foreground"
+                    : "border-border text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {store.answers[askKey(step)]?.choice === UNCLEAR
+                  ? "Marked as not clear: say what was unclear in the note"
+                  : "This question is not clear to me"}
+              </button>
+            </>
           )}
-          {step.overrule && (
-            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-              <span className="font-medium text-foreground/70">
-                What would change it:{" "}
-              </span>
-              {step.overrule}
-            </p>
-          )}
-
-          <label className="mt-4 block">
-            <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-              Your note
-            </span>
-            <textarea
-              rows={2}
-              value={store.answers[holdKey(step)]?.note ?? ""}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Optional. It rides the answer into the ledger."
-              className="mt-1 w-full resize-y rounded-xl border border-border bg-card px-3 py-2 text-sm transition-colors duration-150 outline-none placeholder:text-muted-foreground/70 focus:border-foreground/40"
-            />
-          </label>
-
-          {/* "?" is recorded, not skipped: the ledger then says which question
-              failed and why, and the board owes a clearer one. */}
-          <button
-            type="button"
-            data-dir-press
-            aria-pressed={store.answers[holdKey(step)]?.choice === UNCLEAR}
-            onClick={(e) => {
-              pick(UNCLEAR);
-              const field = (
-                e.currentTarget.parentElement as HTMLElement
-              )?.querySelector("textarea");
-              field?.focus();
-            }}
-            className={cn(
-              "mt-2 rounded-lg border border-dashed px-3 py-1.5 text-xs font-medium transition-colors duration-150",
-              store.answers[holdKey(step)]?.choice === UNCLEAR
-                ? "border-foreground/40 bg-card text-foreground"
-                : "border-border text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {store.answers[holdKey(step)]?.choice === UNCLEAR
-              ? "Marked as not clear: say what was unclear in the note"
-              : "This question is not clear to me"}
-          </button>
 
           <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
             <button
@@ -437,13 +533,14 @@ export function ReviewSession({
               onClick={() => goTo(at + 1)}
               className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-opacity duration-150 hover:opacity-90"
             >
-              {store.answers[holdKey(step)]?.choice ? "Next" : "Skip"}
+              {stepDone(step, store) ? "Next" : "Skip"}
               <ArrowRight className="size-3.5" />
             </button>
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            Keys: 1 to {step.options.length} picks, Enter goes on, the arrows
-            step.
+            {step.kind === "items"
+              ? `Keys: Enter goes on, the arrows step. ${stepHeld(step, store).held} of ${stepHeld(step, store).of} ruled.`
+              : `Keys: 1 to ${step.options.length} picks, Enter goes on, the arrows step.`}
           </p>
         </article>
       )}
@@ -457,7 +554,7 @@ export function ReviewSession({
 
           {answered === 0 ? (
             <p className="mt-6 rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-              Nothing answered yet. Walk back through the asks and pick a word
+              Nothing answered yet. Walk back through the steps and pick a word
               on the ones you have a view on; skipping is a fine answer too.
             </p>
           ) : (
@@ -480,12 +577,18 @@ export function ReviewSession({
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 The Orchestrator runs it through{" "}
                 <code className="font-sans">pnpm lab:review</code>, which checks
-                every ask and option against the board&rsquo;s own spec and
-                appends to docs/reviews. Nothing in this page writes the repo.
+                every ask, option and catalog item against the board&rsquo;s own
+                spec and appends to docs/reviews. Nothing in this page writes
+                the repo.
               </p>
 
               <ul className="mt-6 space-y-3">
-                {[...new Set(answers.map((a) => a.board))].map((board) => {
+                {[
+                  ...new Set([
+                    ...answers.map((a) => a.board),
+                    ...items.map((i) => i.board),
+                  ]),
+                ].map((board) => {
                   const mine = steps.filter((s) => s.board === board);
                   return (
                     <li
@@ -497,8 +600,35 @@ export function ReviewSession({
                       </p>
                       <ul className="mt-1.5 space-y-1">
                         {mine.map((s) => {
-                          const held = store.answers[holdKey(s)];
                           const i = steps.indexOf(s);
+                          // A catalog is one line here, not twelve: the
+                          // summary is a check that nothing was missed, and
+                          // twelve rows per board would bury the boards.
+                          if (s.kind === "items") {
+                            const { held, of } = stepHeld(s, store);
+                            return (
+                              <li key={stepParam(s)} className="text-xs">
+                                <button
+                                  type="button"
+                                  onClick={() => goTo(i)}
+                                  className="text-left hover:underline"
+                                >
+                                  <span className="text-muted-foreground">
+                                    {`The ${of} in ${s.sectionTitle}`}
+                                  </span>{" "}
+                                  <span
+                                    className={cn(
+                                      "font-medium",
+                                      held < of && "text-muted-foreground/70",
+                                    )}
+                                  >
+                                    {`${held} of ${of} ruled`}
+                                  </span>
+                                </button>
+                              </li>
+                            );
+                          }
+                          const held = store.answers[askKey(s)];
                           return (
                             <li key={s.askId} className="text-xs">
                               <button

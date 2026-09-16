@@ -344,7 +344,10 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the shell's reading preferences written onto <html>, and the guard that catches a browser holding an old copy of the lab's stylesheet before it renders as five layout bugs",
   },
   "src/components/lab/review-card.tsx": {
-    for: "the ask being answered, pinned under the board's dock: the question in plain words, the options with what each one means, and the evidence it is about scrolled in underneath",
+    for: "the step being answered, pinned under the board's dock: an ask in plain words with what each option means, or a catalog counted as its cards are ruled, over the evidence it is about",
+  },
+  "src/components/lab/item-verdict.tsx": {
+    for: "the reviewer's row on one item: keep, refine or kill a catalog card (or keep, redesign, retire a Library entry) with a note, on the store every review surface shares",
   },
   "src/components/lab/frame.tsx": {
     for: "the only 1:1 surface the lab has: a same-origin iframe wearing a candidate as an adopted stylesheet, in scroll-locked rows",

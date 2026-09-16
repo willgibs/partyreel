@@ -51,14 +51,14 @@ const OWNED = [
   "Cell",
   "BoardIndex",
   "RuleIndex",
+  "ItemVerdictRow",
 ];
 
 /**
  * The boards still on the legacy path, by id. Every one of them is a line the
  * migration wave deletes; nothing is ever added.
  */
-const LEGACY: readonly string[] = [
-];
+const LEGACY: readonly string[] = [];
 
 function filesIn(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {

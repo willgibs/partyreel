@@ -106,7 +106,12 @@ export const KIT_PIECES: readonly KitPiece[] = [
   {
     name: "ReviewCard",
     file: "src/components/lab/review-card.tsx",
-    note: "the ask being answered, pinned under the dock on its own board: the question in plain words, the options with what each one means, and the evidence it is about scrolled in underneath",
+    note: "the step being answered, pinned under the dock on its own board: an ask in plain words, or a catalog counted as its cards are ruled, over the evidence it is about",
+  },
+  {
+    name: "ItemVerdictRow",
+    file: "src/components/lab/item-verdict.tsx",
+    note: "the reviewer's row on one item: keep, refine or kill with a note; the same row on a catalog card, in the board panel and in the desk's session",
   },
   {
     name: "Notes",

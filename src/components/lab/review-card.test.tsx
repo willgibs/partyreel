@@ -9,8 +9,15 @@ import {
   setReviewStore,
 } from "@/app/(dev)/design/(shell)/lab/_desk/review-store";
 import { composeMessage } from "@/app/(dev)/design/(shell)/lab/_desk/review-message";
-import type { SessionStep } from "@/app/(dev)/design/(shell)/lab/_desk/session-step";
-import { holdId } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
+import type {
+  AskStep,
+  ItemsStep,
+  SessionStep,
+} from "@/app/(dev)/design/(shell)/lab/_desk/session-step";
+import {
+  holdId,
+  itemHoldId,
+} from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
 import { ReviewCard } from "./review-card";
 
@@ -48,7 +55,8 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const DEPTH: SessionStep = {
+const DEPTH: AskStep = {
+  kind: "ask",
   board: "light",
   boardTitle: "Light, shadow and lamp",
   round: 5,
@@ -68,7 +76,8 @@ const DEPTH: SessionStep = {
   boardHref: "/design/lab/light",
 };
 
-const REGISTER: SessionStep = {
+const REGISTER: AskStep = {
+  kind: "ask",
   board: "light",
   boardTitle: "Light, shadow and lamp",
   round: 5,
@@ -85,7 +94,8 @@ const REGISTER: SessionStep = {
   boardHref: "/design/lab/light",
 };
 
-const ELSEWHERE: SessionStep = {
+const ELSEWHERE: AskStep = {
+  kind: "ask",
   board: "type-scale",
   boardTitle: "The type scale",
   round: 2,
@@ -100,21 +110,58 @@ const ELSEWHERE: SessionStep = {
   boardHref: "/design/lab/type-scale",
 };
 
-const QUEUE = [DEPTH, REGISTER, ELSEWHERE];
+/**
+ * A CATALOG STEP (the revamp, 2026-09-16). The card renders no verdict controls
+ * for it on purpose: the rows live on the cards in the grid underneath, and a
+ * sticky card carrying three buttons per card would cover the grid it is
+ * asking about. What IS pinned here is that the card counts them and fills Next
+ * only when every one has a verdict.
+ */
+const PALETTES: ItemsStep = {
+  kind: "items",
+  board: "light",
+  boardTitle: "Light, shadow and lamp",
+  round: 5,
+  sectionTitle: "The catalog",
+  items: [
+    { id: "ember", name: "Ember", one: "A warm dark room." },
+    { id: "ladder", name: "Ladder", one: "Ember with the warmth taken out." },
+  ],
+  vocabulary: ["keep", "refine", "kill"],
+  evidence: null,
+  section: "catalog",
+  boardHref: "/design/lab/light",
+};
+
+const QUEUE: SessionStep[] = [DEPTH, REGISTER, ELSEWHERE];
+const WITH_CATALOG: SessionStep[] = [PALETTES, DEPTH, REGISTER, ELSEWHERE];
 
 function card(
   param: string,
   setState: (patch: Record<string, string>) => void = vi.fn(),
   boardId = "light",
+  steps: SessionStep[] = QUEUE,
 ) {
   return render(
     <ReviewCard
       boardId={boardId}
-      steps={QUEUE}
+      steps={steps}
       param={param}
       setState={setState}
     />,
   );
+}
+
+/** A verdict held as if it had been pressed on the card in the grid below. */
+function rule(item: string, verdict: string) {
+  const store = getReviewStore();
+  setReviewStore({
+    ...store,
+    items: {
+      ...store.items,
+      [itemHoldId("light", 5, item)]: { verdict, note: "" },
+    },
+  });
 }
 
 beforeEach(() => {
@@ -142,9 +189,9 @@ describe("the review card", () => {
     expect(said[0].closest("button")).toHaveTextContent("The shadow family");
   });
 
-  it("counts the ask across the whole queue, not this board's share", () => {
+  it("counts the step across the whole queue, not this board's share", () => {
     card("light.register");
-    expect(screen.getByText(`Ask 2 of ${QUEUE.length}`)).toBeInTheDocument();
+    expect(screen.getByText(`Step 2 of ${QUEUE.length}`)).toBeInTheDocument();
   });
 
   it("holds a pick where the desk's summary reads it", async () => {
@@ -232,6 +279,17 @@ describe("the review card", () => {
     );
   });
 
+  it("clears a pick on a second press, and keeps the note", async () => {
+    card("light.depth");
+    await userEvent.click(screen.getByText("The lift only"));
+    await userEvent.type(screen.getByRole("textbox"), "on the dark ground");
+    await userEvent.click(screen.getByText("The lift only"));
+    expect(getReviewStore().answers[holdId("light", 5, "depth")]).toEqual({
+      choice: "",
+      note: "on the dark ground",
+    });
+  });
+
   it("renders nothing for a session on another board", () => {
     const { container } = card("type-scale.ladder");
     expect(container).toBeEmptyDOMElement();
@@ -240,5 +298,45 @@ describe("the review card", () => {
   it("renders nothing when no session names an ask", () => {
     const { container } = card("");
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe("the review card on a catalog", () => {
+  it("names the section and how many cards are in it", () => {
+    card("light.items", vi.fn(), "light", WITH_CATALOG);
+    expect(screen.getByRole("heading")).toHaveTextContent(
+      "Rule on the 2 in The catalog",
+    );
+  });
+
+  it("counts the verdicts as they land, and they are not on the card", () => {
+    card("light.items", vi.fn(), "light", WITH_CATALOG);
+    expect(screen.getByText("0 of 2 ruled")).toBeInTheDocument();
+    // The controls belong on the cards in the grid, never on the sticky card.
+    expect(screen.queryByRole("button", { name: /keep: Ember/ })).toBeNull();
+  });
+
+  it("fills Next only once every card has a verdict", () => {
+    rule("ember", "keep");
+    const one = card("light.items", vi.fn(), "light", WITH_CATALOG);
+    expect(screen.getByText("1 of 2 ruled")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Next$/ })).not.toHaveClass(
+      "bg-card",
+    );
+    one.unmount();
+
+    rule("ladder", "kill");
+    card("light.items", vi.fn(), "light", WITH_CATALOG);
+    expect(screen.getByText("2 of 2 ruled")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Next$/ })).toHaveClass(
+      "bg-card",
+    );
+  });
+
+  it("steps on to the board's first ask without navigating", async () => {
+    card("light.items", vi.fn(), "light", WITH_CATALOG);
+    await userEvent.click(screen.getByRole("button", { name: /^Next$/ }));
+    expect(push).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading")).toHaveTextContent(DEPTH.question);
   });
 });

@@ -333,7 +333,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 75
+          "line": 76
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -341,7 +341,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 93
+          "line": 94
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -349,7 +349,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 105
+          "line": 106
         },
         {
           "title": "is never also on the legacy list",
@@ -357,7 +357,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 113
+          "line": 114
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -365,7 +365,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 118
+          "line": 119
         }
       ]
     },
@@ -392,7 +392,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 75
+          "line": 76
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -400,7 +400,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 93
+          "line": 94
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -408,7 +408,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 105
+          "line": 106
         },
         {
           "title": "is never also on the legacy list",
@@ -416,7 +416,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 113
+          "line": 114
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -424,7 +424,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 118
+          "line": 119
         }
       ]
     },
@@ -511,6 +511,7 @@
         "Ground",
         "ITEM_VERDICTS",
         "ItemVerdict",
+        "ItemVerdictRow",
         "Knob",
         "LIBRARY_VERDICTS",
         "LIMITS",
@@ -570,6 +571,73 @@
           ],
           "file": "src/components/lab/boundary.test.ts",
           "line": 88
+        }
+      ]
+    },
+    {
+      "id": "item-verdict",
+      "file": "src/components/lab/item-verdict.tsx",
+      "names": [
+        "ItemVerdictRow"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "offers exactly the vocabulary it is handed",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 34
+        },
+        {
+          "title": "takes the Library's own ladder as a prop, so one row serves both",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 44
+        },
+        {
+          "title": "holds a verdict under the ledger's own key",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 61
+        },
+        {
+          "title": "carries the note with the verdict",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 69
+        },
+        {
+          "title": "clears on a second press and keeps the note",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 81
+        },
+        {
+          "title": "presses exactly one word at a time",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 94
+        },
+        {
+          "title": "writes into the same store the Library line is composed from",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 106
         }
       ]
     },
@@ -649,7 +717,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 127
+          "line": 174
         },
         {
           "title": "marks the option the board recommends, and only that one",
@@ -657,15 +725,15 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 138
+          "line": 185
         },
         {
-          "title": "counts the ask across the whole queue, not this board's share",
+          "title": "counts the step across the whole queue, not this board's share",
           "suite": [
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 145
+          "line": 192
         },
         {
           "title": "holds a pick where the desk's summary reads it",
@@ -673,7 +741,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 150
+          "line": 197
         },
         {
           "title": "carries the note with the answer",
@@ -681,7 +749,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 166
+          "line": 213
         },
         {
           "title": "sets the board's control when the ask names one, so a pick is a preview",
@@ -689,7 +757,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 179
+          "line": 226
         },
         {
           "title": "leaves the board alone when the ask names no control",
@@ -697,7 +765,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 189
+          "line": 236
         },
         {
           "title": "applies the ask's declared state on landing",
@@ -705,7 +773,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 197
+          "line": 244
         },
         {
           "title": "records 'not clear to me' as an answer and puts the cursor in the note",
@@ -713,7 +781,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 203
+          "line": 250
         },
         {
           "title": "steps inside a board without navigating",
@@ -721,7 +789,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 212
+          "line": 259
         },
         {
           "title": "links the last ask of a board to the next board's first open ask",
@@ -729,7 +797,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 219
+          "line": 266
         },
         {
           "title": "links the last ask of the queue to the desk's summary",
@@ -737,7 +805,15 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 227
+          "line": 274
+        },
+        {
+          "title": "clears a pick on a second press, and keeps the note",
+          "suite": [
+            "the review card"
+          ],
+          "file": "src/components/lab/review-card.test.tsx",
+          "line": 282
         },
         {
           "title": "renders nothing for a session on another board",
@@ -745,7 +821,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 235
+          "line": 293
         },
         {
           "title": "renders nothing when no session names an ask",
@@ -753,7 +829,39 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 240
+          "line": 298
+        },
+        {
+          "title": "names the section and how many cards are in it",
+          "suite": [
+            "the review card on a catalog"
+          ],
+          "file": "src/components/lab/review-card.test.tsx",
+          "line": 305
+        },
+        {
+          "title": "counts the verdicts as they land, and they are not on the card",
+          "suite": [
+            "the review card on a catalog"
+          ],
+          "file": "src/components/lab/review-card.test.tsx",
+          "line": 312
+        },
+        {
+          "title": "fills Next only once every card has a verdict",
+          "suite": [
+            "the review card on a catalog"
+          ],
+          "file": "src/components/lab/review-card.test.tsx",
+          "line": 319
+        },
+        {
+          "title": "steps on to the board's first ask without navigating",
+          "suite": [
+            "the review card on a catalog"
+          ],
+          "file": "src/components/lab/review-card.test.tsx",
+          "line": 336
         }
       ]
     },
@@ -777,7 +885,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 75
+          "line": 76
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -785,7 +893,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 93
+          "line": 94
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -793,7 +901,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 105
+          "line": 106
         },
         {
           "title": "is never also on the legacy list",
@@ -801,7 +909,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 113
+          "line": 114
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -809,7 +917,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 118
+          "line": 119
         }
       ]
     },
