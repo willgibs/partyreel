@@ -786,7 +786,7 @@ succeeded and it reads as a positive completion; `toast.error` (red) is reserved
 went wrong. So delete that worked = green, delete that failed = red. There is no separate
 destructive-confirmation variant; the green-on-success convention carries it.
 
-## The arrival choreography (Phase 4.5, ratified "Calm + 700ms")
+## The arrival choreography ("Calm + 700ms")
 
 The guest arrival is the sanctioned RARE/FIRST-TIME moment (the craft standard's exception to the
 under-300ms rule): the entry sheet ENTERS on vaul's native 500ms iOS drawer curve after a 700ms

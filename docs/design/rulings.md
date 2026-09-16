@@ -234,7 +234,7 @@ reason expired, and says which it did and why in the commit.
 
 ## 2026-09-01 · chapters open strong
 
-**Became:** bible 17 (`chapters-open-strong`); `docs/systems/design-system.md#chapters`.
+**Became:** bible 17 (`chapters-open-strong`); `docs/systems/design-system.md#chapters-the-attention-arc`.
 
 The ruling as recorded in the system doc: a chapter is a pacing principle, not a component; the
 first section of a chapter opens with a bespoke device (a heading a tier up, a film-cut entrance,
@@ -259,7 +259,7 @@ tuned, then wired; every new page ends at the screenshot gate beside the home pa
 ## 2026-06-20 · action colours are universal
 
 **Became:** the per-action colour system in `globals.css` (like, save, hide, approve, delete, reel);
-`docs/systems/design-system.md#the-identity`.
+`docs/systems/design-system.md#the-identity-achromatic-media-is-the-color`.
 
 Paraphrase, correcting a "guest viewer unchanged" translation artifact: one colour per action
 everywhere it appears, guest and host alike; the only guest/host difference is the action set, never

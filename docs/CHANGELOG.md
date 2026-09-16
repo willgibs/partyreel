@@ -68,8 +68,14 @@ no second line, the superseded ones were left to git; `docs/adr/` went whole wit
 tombstones, the reel spec (its product shape opens host-app's reel section) and the perf baseline;
 one stale claim fell out (the guest email capture had been server-mediated since June while the doc
 still called it an anon RPC). The 247 citations in `src/`, `workers/` and `scripts/` name the system
-docs now (`aea90fd3`); the migrations keep theirs as immutable history. The `docs-systems-strip` lane
-runs next on the four heavy docs.
+docs now (`aea90fd3`); the migrations keep theirs as immutable history. **`docs-systems-strip`** (merged `0a48db70`) stripped
+the four heavy system docs to the system and its invariants: 118 dated passages fell to 25, every
+survivor `(Will, <date>)` on a ruling that is still the rule; every ★ was audited against Will's rule
+(forty-two kept byte-identical but for their provenance, eleven demoted to plain lines, three promoted
+from mid-sentence prose, one duplicate pair folded); seven landmines in `marketing-content.md` had been
+invisible to `/design/library/policies` because they sat mid-sentence, and the inventory went from 31
+to 38; the craft stack's home is `docs/design/guidance.md`; the arrival choreography's heading lost its
+phase name and `touchpoints.ts` followed; the rulings file's two dangling anchors were fixed.
 
 Machine notes: four agents at once is the ceiling on 36 GB, one process each, a dev server killed by
 port; Vercel's daily cap kept the alias on the Library x Lab round's Phase 1 until 2026-09-17 00:13

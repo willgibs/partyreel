@@ -28,8 +28,8 @@ pick, edge-to-edge canvases and the catalog's shared types landed at `5cdebfe0`;
 is the loop, CLAUDE.md is 150 lines, the one-round manifest template, a manifest deleted at its merge),
 the record is two rounds deep and a test holds it, the 26 integrated manifests are gone, the 25 ADRs
 are folded into the system docs and every citation names the doc (`d4ec4cff`, `aea90fd3`); the
-Library's record pages and `docs/decisions/design-record.md` are gone (git keeps them); the systems-doc
-strip runs as the `docs-systems-strip` lane. **Round 3, the Library as the complete inventory**
+Library's record pages and `docs/decisions/design-record.md` are gone (git keeps them); the four heavy
+system docs are stripped and every ★ audited (`0a48db70`). Round 2 is closed on the tree. **Round 3, the Library as the complete inventory**
 (components, marketing sections and app screens with live previews, tokens; a review surface with
 keep / redesign / retire on every entry). **Round 4, the six paper boards rebuilt as catalogs**
 (brand-voice, type-scale, floating-surfaces, light, rounding, media-kit): cut at `385cfa99` on Will's
@@ -39,9 +39,10 @@ answer that all six are rebuilt before any review; three run at a time under the
 | --- | --- | --- |
 | `lab-catalog` | the review's item scope (`item:<id>=keep\|refine\|kill "note"`), `Catalog`, `ItemVerdictRow`, `CompareTwo`, `SpotCompare`, the reading budget in `pnpm lab:smoke`, `pnpm new-board` scaffolding a catalog, `/design/lab/kit` as the toolbox, the palette rebuilt on the kit as the proof | integrated at `57b93286`; the palette verified on the desk |
 | `lab-sweep` | every lab page walked at 1440 and 375 and fixed in the shell; plain-English labels | integrated at `88dafe50` (the dev indicator moved and the lab functions' file trace cut from 2,248 to 718 files behind it) |
-| `docs-systems-strip` | the four heavy system docs stripped to the system and its invariants, every ★ audited | building |
+| `docs-systems-strip` | the four heavy system docs stripped to the system and its invariants, every ★ audited | integrated at `0a48db70` |
 | `brand-voice`, `type-scale`, `floating-surfaces` | Round 4 catalogs (the voice on two dozen real spots; the ladders side by side and two at once on real UI; the directions as cards with the desk under two) | building |
-| `light`, `rounding`, `media-kit` | Round 4 catalogs (the twelve treatments on the real sections; the four families at true size; the sources' contact sheets) | cut, waiting for a slot |
+| `light` | Round 4 catalog (the twelve treatments on the real sections) | building |
+| `rounding`, `media-kit` | Round 4 catalogs (the four families at true size; the sources' contact sheets) | cut, waiting for a slot |
 
 Round 1 is closed on the tree (both lanes integrated, the verification list walked on the dev server);
 Will's first review with per-item verdicts is the palette catalog plus the six rebuilt boards, on the
