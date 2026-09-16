@@ -6,7 +6,7 @@ merged: "22c0dc81"      # the branch head merged into launch-prep
 preview: true
 owns:
   - src/components/lab/
-  - src/components/dev/board/
+  - src/components/lab/
   - src/app/(dev)/design/sandbox/registry.ts
   - src/app/(dev)/design/sandbox/registry.test.ts
   - src/app/(dev)/design/sandbox/light/

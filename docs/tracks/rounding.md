@@ -11,7 +11,7 @@ owns:
 reads:
   - src/components/dev/motion-tuner-config.ts
   - src/components/dev/tuner-store.ts
-  - src/components/dev/board/stage.tsx
+  - src/components/lab/stage.tsx
   - src/app/globals.css
   - src/app/theme.css
   - src/components/ui/button.tsx

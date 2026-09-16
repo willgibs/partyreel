@@ -15,8 +15,8 @@ reads:
   - src/app/(dev)/design/sandbox/home-hero/scan.tsx
   - src/app/(dev)/design/sandbox/album-hero/field.tsx
   - src/app/(dev)/design/sandbox/river-visual/river.tsx
-  - src/components/dev/board/stage.tsx
-  - src/components/dev/board/dock.tsx
+  - src/components/lab/stage.tsx
+  - src/components/lab/dock.tsx
   - docs/ASSETS.md
   - docs/tracks/hero-scan.md
   - src/app/(dev)/design/rules/bible.ts

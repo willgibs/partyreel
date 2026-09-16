@@ -55,6 +55,171 @@ client hook, and `pnpm lab:smoke --production` on a local production build prove
 
 ---
 
+## 2026-09-15 — The Library x Lab round, Phase 2: the migration wave (nine tracks, `1c0306dd` to `abe45329`)
+
+Every standing board moved onto the kit's template in one wave: eight boards reopened on their own
+manifests and the two glow boards on a new one, nine agents at once from `1b647d76`, each allowed
+to edit the three registration lines for its own board id (the spec into `sandbox/registry.ts`,
+`legacy` off its entry in `boards.ts`, its id off the discipline test's list); the Orchestrator
+resolved the adjacent-line merges at each integration. Before the wave the two legacy marketing
+boards (`marketing-decomposition`, `marketing-hero-substrate`) retired to the record unruled, their
+files deleted, and the last `.mono` override left `design.css` with them; `touchpoints.test.ts`
+pins twelve standing boards. At the close the shim (`src/components/dev/board/`), `variant-frame.tsx`,
+`phone-shell.tsx` and `marketing-lab-shared.tsx` were deleted, the discipline test's exemption list
+is empty (a local `Row|Part|Knob|PageFrame|ApplyToSite|CostMeter|...` in any board fails the gate),
+and every board's asks reach the desk's review session. Three findings the boards handed back were
+landed in the kit as they arrived: anchors landed a bar's height too low because `<html>` carried a
+scroll-padding and the targets a scroll-margin of the same size (`3fce6c56`); `Compare` split on a
+Tailwind prefix inside a stage and `Specimen` could not hold a row at different true widths
+(`b85df96e`); the collapsed paste had no rule (`5959b433`); and `lab:review` found a board at the
+first brace after the word `defineBoard`, the import, so a spec with a second import refused every
+ruling (`9ab89cdd`). The evening also brought the storage round: Will found deployment storage at
+40 GB of the 10 GB month after fourteen handoffs built previews in one day; since `9ab89cdd` an
+agent branch builds only on `[preview]`, 103 deployments were deleted, and the launch-prep alias is
+built once per round close. A machine restart mid-wave stopped all nine agents; each was resumed by
+message with its branch, worktree and unpushed state spelled out, and no work was lost.
+
+**`glow-specs`** (merged `1c0306dd`). The two glow boards joined the migration wave and
+now render through the kit's template: `sandbox/glow-doctrine/` and `sandbox/glow-moments/` each got a
+`spec.ts` carrying the question, the round and its history, the verdict, the candidates as recorded
+(the six shapes, the thirteen placements), the departures and one section, plus a `board.tsx` that
+composes `BoardPage` with that section's evidence mounting the existing variants component unchanged.
+Both rounds were settled but for one line each, so the wave moved the argument and not the furniture:
+no law, shape, placement, number or verdict changed. Each board now asks exactly one thing, and asks
+it as a question of WHERE it closes rather than as a re-argument, because the orchestrator's record
+already carries the lit surface carve-out and the publish beat's violet as the `light` board's asks;
+the answer block says so. The variants files and the boards' shared sheet stayed at the sandbox root,
+since `glow-contract.test.ts` and `border-beam-vendor.test.ts` read them by their exact paths;
+`/design/lab` now queues both open asks.
+
+**`home-hero`** (merged `feb67ecb`). The home hero board moved onto the kit's
+template, and the move is mostly a subtraction: its argument had been scattered across three places
+(a prose block at the top of `board.tsx`, a hand-rolled `ConceptMeta` table at the foot of each
+stage, and a metadata block each concept file declared beside its engine), and it is now one
+`spec.ts` that the template, the desk, the record and the review ledger all read. `sandbox/home-hero`
+is two files at its root; the three engines are untouched apart from their exported object, which
+shrank to `{ id, render }`, and `copyFor` reads each copy proposal back out of the spec, so the words
+on the card, in the hero and in the new Words section cannot drift. A reviewer now meets the verdict
+and four one-word calls first instead of two paragraphs of history, and `?candidate=scan` opens one
+concept, so a note about a hero is a link. Two things changed rather than moved, both deliberate and
+both in the handoff: the shipped hero is the last section again, mounted from production code on
+approach, because round one's whole case was the scroll from the candidates to the thing they
+replace, and it was lost when round two rebuilt the board; and `bodySkin` left the stages, because
+flipping the page through `body:has()` made the lab's own chrome cinema-dark whatever theme the
+reviewer had chosen. The measurement that is the board's argument was re-taken on the migrated page
+and is unchanged: three darkening layers over media on the shipped hero, zero on all three
+candidates, whose only absolutely-positioned paints are the scan's two emissive layers, and every h1
+at `opacity: 1` with no transform at paint. No concept, number or recommendation changed.
+
+**`river-visual`** (merged `a489d563`). The river's board moved onto the kit's template
+and became two files: a `spec.ts` that is the whole argument as pure data, and a `board.tsx` that is
+the evidence per section as a function of the declared state. No candidate, number or recommendation
+changed, so the verdict and the four one-word calls a reviewer now meets on the first screen are
+round one's, moved out of prop strings into the one list the desk, the record and the review ledger
+also read. Three things the board could not do before, it can: the reduced-motion state is a Motion
+knob driving the visual's own `still` prop, which stops the loop and clears the two inline properties
+it wrote, so a state that took an hour to reproduce by hand is now one shareable link; the cost is
+measured in three declared phases, the rest floor, one instance and six, with every other flow on the
+board hidden while the meter runs; and four hand-typed stage heights are gone for stages that measure
+themselves. The board's own rolling meter, its header, its index and its meta panel are deleted, the
+kit's owning all four. Two kit findings are handed back with their patch: `Compare` splits on a
+Tailwind prefix inside a stage, and `Specimen` cannot hold a row of specimens at different true widths.
+
+**`album-hero`** (merged `a61fd366`). The album page's hero board moved onto the kit's
+template, and the argument it had been carrying in prop strings became data. `spec.ts` now holds the
+question, the verdict, the five one-word calls, the two candidates, the departures and the three assets;
+`board.tsx` holds only the evidence for each declared section as a function of the declared state. A
+reviewer's first screen is the answer and the words he can reply with rather than seventeen thousand
+pixels of field, and the three readings became anchored sections with an executable six-step walk that
+sets the dock and lands on its evidence. Two things round one had said in two places were reconciled
+rather than re-argued: the no-script question, buried in a departure while the Record counted it among
+the asks, is the fifth ask, and the width call's arithmetic moved from the ask into the album section,
+where the density limit could hold it. The board's own shell code went to the kit (the measuring stage,
+the captions, the Replay, the toggles), and the field gained one export so a caption reads its pool size
+off the geometry instead of repeating it in prose. No candidate, number or recommendation changed.
+
+**`floating-surfaces`** (merged `d7959f13`). The floating-surfaces board moved onto the lab
+kit's template, and the move was a homecoming: its own sticky bar had been the model the shell's dock
+was generalised from, and its iframe-at-true-pixels had become the kit's `Frame`. Round four's
+argument is now DATA in `spec.ts` (the question, the verdict, the five one-word calls, the five
+candidates, the six departures, twelve sections with their ledes and their arguments folded under the
+evidence), and `board.tsx` is the evidence per section and nothing else; no direction, number or
+recommendation changed. The seven `useState` switches became six declared controls that ride the URL,
+so a review note is a link, the guided walk sets the state it was written in, and the board's root
+carries each control as a data attribute its own sheet can select. `frame.tsx` and `frame-page.tsx`
+retired: the candidate CSS is built in the parent and written into each frame's own realm as an
+adopted stylesheet, so a section and its Apply button are one string, and only the anatomy, the
+ground, the ramp and the replay still travel inside, as one `lab:set` instead of two private events.
+The lazy `Row` became the template's sections, `Apply` became `ApplyToSite`, the dead compact strip
+went, and the canvas toggle went with it (it moved one frame; the desk is the 1440 read and the phone
+section the 375 one). Building it turned up a quiet bug in the review pipeline: `lab:review` finds a
+board at the first brace after the word `defineBoard`, so a spec with a second import hands the
+scanner the wrong object and refuses every ruling as "not an ask on this board".
+
+**`brand-voice`** (merged `55e74015`). The brand-voice board moved onto the kit's
+template and became two files: a `spec.ts` carrying the question, the verdict, the seven one-word
+calls, the candidates, the departures and the thirteen sections as data, and a `board.tsx` that is
+nothing but the evidence for each declared section as a function of the declared state. The
+hand-drawn lead card, chapter wrapper, chapter index, toggle cluster, copy button, meta panel and
+the board's own FitStage all retired to the kit, and the desk, the walk and the review panel now
+read the same list the board renders. The substantive change underneath it was that every specimen
+moved off the Stage into a real document: a breakpoint prefix inside a div reads the browser rather
+than the canvas, so the 375 stage had been rendering the hero at 96px in a 2rem desktop gutter, and
+round four had been restoring four heading tiers by hand in the board's own sheet. Fifty-two frames
+now each carry their canvas as a true viewport, the hand-restored ladder is deleted, and the phone
+canvas measures what the site renders. Three defects came out of walking it: a font-set read that
+took the board to its error boundary on a fast scroll, a reserved height that shrank the board under
+the reader, and a hash anchor that could not survive the settle. No candidate, number or
+recommendation changed, and no production byte changed.
+
+**`palette`** (merged `6fd30692`). The palette board moved onto the lab kit, and the
+migration was mostly a promotion. Its question, model, eight one-word calls, five registers, six
+departures and two asset asks left `board.tsx` for a `spec.ts` that the board, the desk's "Waiting on
+you", the review panel's message and `pnpm lab:review`'s validator now all read, so the asks have one
+home and `docs/specs/palette.md` gave up its copy of them. Three pieces of evidence got better rather
+than moved. The live sections became live PAGES: the four production sections the board used to
+portal into an iframe of its own making retired to the kit's `Frame` loading the real routes, today
+on the left and the pair on the right, scrolled together and wearing the exact block the Apply button
+hands the site, which is how the footer slab's missing `--card` and the accent that never reaches the
+mark are now shown on the real footer instead of argued about. Today-beside-the-candidate became a
+wipe with the seam on a slider, so a 0.02 step is judged across four pixels; the two set cards became
+two tables where the row is the dock control. `TrueViewport`, its entrance-settling sheet and
+`ScopedTokens` went with them. No set, number or recommendation changed. Lab only, no production byte.
+
+**`media-kit`** (merged `3fe6f41b`). The media-kit board moved onto the lab kit's
+template and became two files: `spec.ts`, which is the question, the verdict, the four one-word calls,
+three candidates, seven departures and eight assets as pure data, and `board.tsx`, which is the
+evidence per declared section and nothing else. Round four's `details` fold, which hid five sections
+behind one summary so the answer could come first, is gone: the template answers first, indexes the
+whole board and folds each section's own argument under the evidence it belongs to, and the board is
+25,600 px rather than round three's 30,800. Four page-wide switches became declared state, so the dock
+renders them, a walk step sets them and a pasted link reopens the exact canvas, route, geometry and
+section; the two per-stage viewport toggles became one canvas; the four applied blocks became the kit's
+own Apply with the dock's badge. Applying this board's oldest rule to the spec, that a count is computed
+and never typed, found the last two places that still broke it, both in the route table's blog column.
+Two guards were repaired on the way: the review ledger could not read a spec whose `defineBoard` import
+is followed by a named import, and refused every ruling on this board until its numbers came through one
+brace-free import; and the JSX count guard named two files when the board is four, which hid a real
+glued count. No candidate, number or recommendation changed, and no production byte.
+
+**`type-scale`** (merged `abe45329`). The type-scale board moved onto the lab kit's
+template and is two files now: a `spec.ts` that is pure data (the question, the verdict, the four
+one-word calls, the five candidates, the departures, three declared controls, eight sections and an
+executable walk) and a `board.tsx` that is the evidence per section as a function of that state.
+Four board-local mechanisms retired into the kit: the hand-built answer block became the template's
+Answer, the two glance tables became `SelectTable` turned on their side so a ladder is a row that is
+also the control, the four acts became declared sections the dock's menu and the walk drive, and the
+page frames became the kit's `Frame`, whose settle is CSS spending the candidate's own display
+token rather than a MutationObserver rewriting `data-inview` per frame. `FitStage` retired every
+hand-computed stage height, which also restored each step's "where it lives" line at 375, and the
+law stage's estimated line count is measured with `useLineCount` and printed (1 line at 1440, 2 at
+375). The asks, the walk list and the register call left `ladders.ts` for the spec, which is the one
+list the template, the desk and the review ledger read, and a new test pins the spec's candidates,
+recommendation and control defaults to the ladder data. No ladder, number, candidate or
+recommendation changed; lab only, and not one production byte moved.
+
+---
+
 ## 2026-09-15 — The Library x Lab round, Phase 1: five tracks integrated (`a76578de`, `0fb9498e`, `e00d3b00`, `4ba890a5`, `9fcea12d`)
 
 **`lab-library`** (merged `a76578de`). The library moved onto the shell's own templates: its five

@@ -15,7 +15,7 @@ reads:
   - src/app/(dev)/design/sandbox/home-hero/board.css
   - src/app/(dev)/design/sandbox/home-hero/source.tsx
   - src/app/(dev)/design/sandbox/home-hero/source.css
-  - src/components/dev/board/stage.tsx
+  - src/components/lab/stage.tsx
   - src/app/(dev)/design/rules/bible.ts
   - src/lib/constants/marketing-media.ts
   - src/lib/shared/use-ambient-pause.ts

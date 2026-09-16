@@ -21,9 +21,9 @@ reads:
   - src/app/(dev)/design/_data/glossary.ts
   - src/app/(dev)/design/_data/tracks.ts
   - src/app/(dev)/design/touchpoints.ts
-  - src/components/dev/board/lab-prefs.ts
-  - src/components/dev/board/board-page-context.tsx
-  - src/components/dev/board/dock.tsx
+  - src/components/lab/lab-prefs.ts
+  - src/components/lab/board-page-context.tsx
+  - src/components/lab/dock.tsx
   - src/components/ui/sheet.tsx
   - src/components/ui/dialog.tsx
   - .agents/skills/emil-design-eng/SKILL.md

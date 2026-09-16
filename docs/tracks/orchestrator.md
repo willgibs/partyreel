@@ -84,8 +84,7 @@ twelve tracks at once** (the seven boards and the scan on his notes; the source 
 `hero-source`; `hero-inflow` new; `album-hero` and `river-visual` seeded with the burst and the river,
 killed as heroes), on a shell that gained the board dock and 1:1 stages for it; every round-4
 handoff is integrated (the merge SHAs on the In flight rows), each after a read-only review, a fix and a
-re-review, the last passes cut short by a usage limit at 06:20 and finished after it. **Now: Will's review
-of round four** (the items below), after which:
+re-review, the last passes cut short by a usage limit at 06:20 and finished after it. **Now: Will's review of round four on the new surface** (`/design/lab?key=`, the desk: every open ask of every board in one review session that ends in a line to paste; the items below are the same asks, kept until the ledgers carry his answers), after which:
 the composition pass (one Orchestrator board stacking the ruled blocks on the home arc and the
 dashboard), the hero's wiring round, the floating and light wiring rounds, `voice-infusion`. The
 record the Orchestrator keeps between windows is the two lists below plus
@@ -101,7 +100,7 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | `album-hero` | `/design/lab/album-hero` (the migration wave, round 2) | the launch-prep alias (integrated, merged `a61fd366`) | Will's ruling, through the desk's review session |
 | `river-visual` | `/design/lab/river-visual` (the migration wave, round 2) | the launch-prep alias (integrated, merged `a489d563`) | Will's ruling, through the desk's review session |
 | `home-hero` | `/design/lab/home-hero` (the migration wave, round 5) | the launch-prep alias (integrated, merged `feb67ecb`) | Will's ruling, through the desk's review session |
-| `type-scale` | `/design/lab/type-scale` (the migration wave, round 5) | its own alias at handoff | the Orchestrator (integration) |
+| `type-scale` | `/design/lab/type-scale` (the migration wave, round 5) | the launch-prep alias (integrated, merged `abe45329`) | Will's ruling, through the desk's review session |
 | `floating-surfaces` | `/design/lab/floating-surfaces` (the migration wave, round 5) | the launch-prep alias (integrated, merged `d7959f13`) | Will's ruling, through the desk's review session |
 | `palette` | `/design/lab/palette` (the migration wave, round 5) | the launch-prep alias (integrated, merged `6fd30692`) | Will's ruling, through the desk's review session |
 | `brand-voice` | `/design/lab/brand-voice` (the migration wave, round 5) | the launch-prep alias (integrated, merged `55e74015`) | Will's ruling, through the desk's review session |

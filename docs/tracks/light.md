@@ -18,7 +18,6 @@ reads:
   - src/components/dev/lamp-set.ts
   - src/app/(dev)/design/sandbox/glow-lab-shared.tsx
   - src/app/(dev)/design/sandbox/glow-lab.css
-  - src/app/(dev)/design/sandbox/variant-frame.tsx
   - src/app/(dev)/design/rules/bible.ts
   - docs/systems/design-system.md
   - src/components/marketing/chrome/footer-glow.tsx

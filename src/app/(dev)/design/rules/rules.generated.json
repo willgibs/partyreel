@@ -283,7 +283,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 83
+          "line": 75
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -291,7 +291,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 101
+          "line": 93
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -299,7 +299,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 113
+          "line": 105
         },
         {
           "title": "is never also on the legacy list",
@@ -307,7 +307,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 121
+          "line": 113
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -315,7 +315,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 126
+          "line": 118
         }
       ]
     },
@@ -342,7 +342,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 83
+          "line": 75
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -350,7 +350,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 101
+          "line": 93
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -358,7 +358,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 113
+          "line": 105
         },
         {
           "title": "is never also on the legacy list",
@@ -366,7 +366,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 121
+          "line": 113
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -374,7 +374,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 126
+          "line": 118
         }
       ]
     },
@@ -535,7 +535,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 83
+          "line": 75
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -543,7 +543,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 101
+          "line": 93
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -551,7 +551,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 113
+          "line": 105
         },
         {
           "title": "is never also on the legacy list",
@@ -559,7 +559,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 121
+          "line": 113
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -567,7 +567,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 126
+          "line": 118
         }
       ]
     },
