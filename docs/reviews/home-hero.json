@@ -1,0 +1,38 @@
+{
+  "board": "home-hero",
+  "rounds": [
+    {
+      "n": 5,
+      "opened": "2026-09-16",
+      "answers": [
+        {
+          "ask": "direction",
+          "choice": "source",
+          "note": "The album coming out of the code definitely looks best. However, I think we can improve this visual a lot. The random stream feels worse than a more polished one.",
+          "by": "Will",
+          "at": "2026-09-16T17:58:37Z"
+        },
+        {
+          "ask": "headline",
+          "choice": "ruled",
+          "by": "Will",
+          "at": "2026-09-16T17:58:37Z"
+        },
+        {
+          "ask": "lockup",
+          "choice": "centred",
+          "by": "Will",
+          "at": "2026-09-16T17:58:37Z"
+        },
+        {
+          "ask": "count",
+          "choice": "cut",
+          "by": "Will",
+          "at": "2026-09-16T17:58:37Z"
+        }
+      ],
+      "notes": [],
+      "items": []
+    }
+  ]
+}

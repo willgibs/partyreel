@@ -47,7 +47,7 @@ at boot from `origin/launch-prep` ([`docs/PROGRAM.md`](docs/PROGRAM.md) "Agent b
 4. **Build** from the Library (`/design/library`: what binds you; the kit at `src/components/lab` for a board;
    `src/components/ui` and `src/components/shared` for the product). The bible (22 rules, Will's), a component's
    contracts and the policies bind; everything else is precedent you may break, judged from the ground up (bible
-   22), in the lab first. An exploration is a catalog of polished variants, not a paper; every ask carries its
+   22), in the lab first. An exploration is a catalog to select from, and a favourite lands in the Library as a working version rather than another exploration; every ask carries its
    context; ask for the exact asset in your Handoff. Propose a creative delight (`/emil-design-eng`). Leave WHY-comments.
 5. **Test**: Vitest for pure logic; a rolled-back Supabase-MCP RPC check for new SQL; the four-step gate; `get_advisors` after any DDL.
 6. **Verify antagonistically**: force the error cases, the cross-tenant and abuse paths, malformed input; local
