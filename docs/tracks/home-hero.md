@@ -96,7 +96,7 @@ runs beside you in its own directory.
 
 ## Handoff (replaces the chat report)
 
-- Head `a7d9afcd` (this manifest); the work is `bf1ee166`. Synced: `origin/launch-prep`
+- The work is `bf1ee166`; this manifest is the commit on top of it and the branch tip. Synced: `origin/launch-prep`
   had moved to `551ecab5` (the palette's seventh round, the stepped review's spec fields, the
   track docs); merged, no conflicts, and the gates below are on the merged tree.
 - Gates: typecheck ok, lint ok (0 errors, 8 pre-existing warnings), test ok (2145), build ok (258
