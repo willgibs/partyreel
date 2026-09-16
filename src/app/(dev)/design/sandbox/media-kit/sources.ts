@@ -195,7 +195,7 @@ export const SOURCES: SourceCard[] = [
     catalogue:
       "Hundreds of millions of files, every kind of event deep. Not countable from here: the site refuses any client that is not a browser, so this sheet cannot draw its frames either.",
     noSheet:
-      "Answers a plain client with a 403, measured on the date above. There is nothing to draw and nothing to route around short of driving a browser, which is worth knowing before building any workflow on it.",
+      "Answers a plain client with a 403. Nothing to draw, and nothing to route around short of driving a browser.",
     verdict:
       "The right shape for a handful of hard frames rather than for a kit. At ten dollars a photo, 36 masters is $360, and one night of shooting produces nine rows of the asset log for less.",
     barred: false,
@@ -242,7 +242,7 @@ export const SOURCES: SourceCard[] = [
     catalogue:
       "A deliberately small curated library, strong on real celebration and travel and thin on corporate rooms. Not readable from here.",
     noSheet:
-      "Answers a plain client with a 403 as well, so the smallest and most carefully curated library on this sheet is the one it can show least of. Its verdict rests on the source's own description, which is the thinnest evidence on the board and is marked as such here rather than hidden in a blank.",
+      "A 403 as well, so the most carefully curated library here is the one it can show least of. Its verdict rests on its own description.",
     verdict:
       "The source for the one or two frames that carry a page. At $35 a frame the 36-frame kit is $1,260, several times what shooting it costs.",
     barred: false,
@@ -291,7 +291,7 @@ export const SOURCES: SourceCard[] = [
     catalogue:
       "Cinematic footage organised as whole shoots rather than as single clips, which suits a film cut from one night. Not readable from here.",
     noSheet:
-      "Answers 200 and then serves an empty application shell: the clips are fetched client side, so the markup a plain client receives holds no thumbnails at all. A 200 is not a readable catalogue, and this card is the difference.",
+      "200, then an empty application shell: the clips are fetched client side, so the markup holds no thumbnails. A 200 is not a readable catalogue.",
     verdict:
       "The only clip source on this sheet whose licence survives cancellation intact, and the most expensive line in the plan. It is the line the shoot deletes: a film cut from our own event is the one asset no licence can stand in for, because the product's claim is that the frames came from a real party.",
     barred: false,
@@ -401,7 +401,7 @@ export const SOURCES: SourceCard[] = [
     catalogue:
       "Measured this round rather than trusted, and the measurement moved it down the sheet. A search for party returns 70 Coverr-hosted clips, 23 of them user AI generations, alongside 34 iStock results served into the same grid under no Coverr licence at all. A search for wedding returns 58, 24 of them AI, with the same 34 iStock results.",
     noSheet:
-      "Readable, and the reading is the verdict. Its party page returned 70 Coverr clips and 34 iStock results into a single grid, so a sheet drawn from it would put two catalogues under one name and license neither. The counts on the left were taken off that page, not off a licence.",
+      "Readable, and the reading is the verdict: a sheet drawn from it would put two catalogues under one name and license neither.",
     verdict:
       "An irrevocable licence over a catalogue you have to audit per item, shown on a page mixed with a catalogue it does not cover. A source that needs auditing is not a source.",
     barred: true,
@@ -426,7 +426,7 @@ export const SOURCES: SourceCard[] = [
     catalogue:
       "More than 15,000 visuals, about 500 added a month, real photographers rather than generations. The taste is the closest here to the product's own.",
     noSheet:
-      "The front page answers 200 to a plain client and every browse path under it answers 404: the 15,000 visuals are behind the membership, which is the same wall the rental clause on the left describes. The taste is visible on the marketing page, the catalogue is not.",
+      "200 at the door and 404 on every browse path under it: the 15,000 visuals are behind the same wall the rental clause describes.",
     verdict:
       "The nicest pictures and the worst deal. A subscription that can never be cancelled is not a price, it is a standing charge on our own marketing site.",
     barred: true,
@@ -451,7 +451,7 @@ export const SOURCES: SourceCard[] = [
     catalogue:
       "Real wedding bundles from individual photographers, which is what the note asked to see. The catalogue refuses a non-browser client, so this sheet cannot draw its frames.",
     noSheet:
-      "Answers a plain client with a 403, so the cheap wedding album from Will's note is the one source here taken entirely on its own description. The price is real and the frames are unseen, which is exactly the shape of risk the rest of this board exists to remove.",
+      "A 403 as well, so the cheap wedding album is taken entirely on its own description: a real price and unseen frames.",
     verdict:
       "This is the cheap wedding album from the note and the price is real. The cheap tier forbids a business social account and a paid advert, so the usable licence is the Commercial one, and what the money buys is rings and cake rather than a room full of people.",
     barred: true,

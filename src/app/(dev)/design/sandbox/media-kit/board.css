@@ -15,17 +15,35 @@
    400ms with a 60ms stagger, which is right for a page arriving once and too slow
    for an instrument a reviewer flips three times in a row.
 
-   Round two: the sheet is 23 posts rather than twelve frames, so the stagger is
-   taken modulo the row (`--i` is the index within the row, set in board.tsx) and
-   a flip of the route still resolves inside a third of a second however tall the
-   grid is. */
+   Round six: the frames are four real 320x400 cards in a row rather than 24
+   thumbnails in a grid, so the stagger is taken modulo the row (`--i` is the
+   index within the strip, set in preview.tsx) and a flip of the kind of event
+   resolves inside a third of a second however many strips are on screen. */
 
-[data-mk-sheet] {
+[data-board="media-kit"] {
   --mkt-skel-reveal-dur: 260ms;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  [data-mk-sheet] [data-mkt-develop] {
+  [data-board="media-kit"] [data-mkt-develop] {
     transition-delay: calc(var(--i, 0) * 26ms);
   }
+}
+
+/* THE CARD-SHAPED HOLE (preview.tsx's NoSheet). Six of the thirteen places
+   refuse a plain client, and their card keeps the plate's footprint so the size
+   of the card they cannot fill is visible. A plain white box at 320x400 reads
+   as a rendering failure, so it is hatched, and the hatch has to be legible on
+   PAPER, where --border is within a couple of percent of the ground. A class
+   rather than an arbitrary value: color-mix inside a Tailwind arbitrary
+   background-image is three nested comma lists and one character from silently
+   not compiling. */
+.mk-hole {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 9px,
+    color-mix(in oklch, var(--foreground) 16%, transparent) 9px,
+    color-mix(in oklch, var(--foreground) 16%, transparent) 10px
+  );
 }
