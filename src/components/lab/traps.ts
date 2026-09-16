@@ -35,6 +35,16 @@ export const TRAPS: readonly Trap[] = [
     file: "src/components/lab/lab-chrome.tsx",
   },
   {
+    id: "post-hydration-value-in-evidence",
+    tried:
+      "Build an element inside a board's evidence value from a value that is only known after hydration (next-themes' resolvedTheme, an approach flag) and hand it through the template's callbacks.",
+    breaks:
+      "The element keeps the SERVER's attributes: resolvedTheme is undefined on the server and the real mode after hydration, and an element built once in a callback never re-renders on the change. The rounding board measured it twice (2026-09-16): a ground box stayed dark in a light lab while the frame inside it had switched, and an approach flag held in the board never reached the row it gated.",
+    instead:
+      "Read the value in the component that renders the thing it drives, and key an element on the value that changes its identity, so the change is a re-render rather than a stale attribute.",
+    file: "src/components/lab/board-page.tsx",
+  },
+  {
     id: "breakpoints-in-a-stage",
     tried: "Use a Tailwind breakpoint prefix inside a 375 stage.",
     breaks:

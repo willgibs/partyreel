@@ -131,7 +131,7 @@ export function ControlKnobs({
             options={c.options.map((o) => ({ id: o.id, label: o.label }))}
             value={state[c.id] ?? c.default}
             onChange={(v) => setState({ [c.id]: v })}
-            wrap={c.options.length > 5}
+            wrap={c.options.length > 3} // four or more options overflow a 343px dock at 375 (rounding, 2026-09-16)
           />
         </Knob>
       ))}

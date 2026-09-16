@@ -61,7 +61,6 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 
 | track | board | waits on |
 | --- | --- | --- |
-| `rounding` | `/design/lab/rounding` (the four families at true size, two on one real page) | its handoff |
 | `media-kit` | `/design/lab/media-kit` (the sources' contact sheets at the real card size) | its handoff |
 
 ## Waiting on Will
@@ -93,5 +92,8 @@ him: a walk of the palette catalog once `lab-catalog` integrates, then the six c
   asset row 14; the dropdown-menu submenu bug named for the wiring round).
 - `2326a924` light integrated (twelve treatments as cards on the real surfaces; 2,889 words against a
   declared 2,950; asset rows 15 and 16; the template's meta panel named for a fold).
+- `128aca34` rounding integrated (six families as cards; 2,564 words against a declared 2,800; the
+  proposal doc written); the kit takes its three findings (the dock wraps four options, the clip
+  comment, the post-hydration trap).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

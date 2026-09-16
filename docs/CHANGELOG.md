@@ -115,7 +115,17 @@ and with, the lit face is the `face` card's verdict, and the aurora's landing is
 switch with one real chapter under two options. Nine asks became four (the infusion order, the
 cadence, the paper hues, the publish beat's colour); the reading went from 10,164 words to 2,889
 against a declared 2,950, about 990 of it the template's own reprints (a kit line). Two assets asked
-(rows 15 and 16).
+(rows 15 and 16). **`rounding`** (merged `128aca34`): six families as cards (A to D keep their
+letters; E, print, and F, half a step, written from the ground up), each the card, the menu, the
+photograph and the button at true size plus a 375 frame, with the fourth fact stating bible 8's claim
+as a ratio against the shipped rung (which is where D gives itself away); two families on the same
+real page scroll-locked; the pick worn by the real pages; a family names the surface, the floating
+layer, the photograph and the gap it pins, and the button rung and the derived ladder stay asks (with
+the dead rungs and the album's gap: four); the tuner panel's mount left the board (its knobs ride every
+real page already); the reading went from 4,859 words to 2,564 against a declared 2,800;
+`docs/specs/rounding.md` written as the standing proposal, so its route answers. Three findings landed
+in the kit at the merge: a four-option control wraps in the dock, `design.css`'s clip comment names
+no deleted rule, and a trap for a post-hydration value built into a board's evidence.
 
 Machine notes: four agents at once is the ceiling on 36 GB, one process each, a dev server killed by
 port; Vercel's daily cap kept the alias on the Library x Lab round's Phase 1 until 2026-09-17 00:13
