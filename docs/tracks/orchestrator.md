@@ -84,7 +84,7 @@ twelve tracks at once** (the seven boards and the scan on his notes; the source 
 `hero-source`; `hero-inflow` new; `album-hero` and `river-visual` seeded with the burst and the river,
 killed as heroes), on a shell that gained the board dock and 1:1 stages for it; every round-4
 handoff is integrated (the merge SHAs on the In flight rows), each after a read-only review, a fix and a
-re-review, the last passes cut short by a usage limit at 06:20 and finished after it. **Now: Will's review of round four on the new surface** (`/design/lab?key=`, the desk: every open ask of every board in one review session that ends in a line to paste; the items below are the same asks, kept until the ledgers carry his answers), after which:
+re-review, the last passes cut short by a usage limit at 06:20 and finished after it. **The alias serves Phase 1 (`a0ef9867`) until the wave's build lands after 2026-09-17 00:13 UTC (Vercel's daily API-deployment cap); the desk and every migrated board review on a local `pnpm dev` meanwhile.** **Now: Will's review of round four on the new surface** (`/design/lab?key=`, the desk: every open ask of every board in one review session that ends in a line to paste; the items below are the same asks, kept until the ledgers carry his answers), after which:
 the composition pass (one Orchestrator board stacking the ruled blocks on the home arc and the
 dashboard), the hero's wiring round, the floating and light wiring rounds, `voice-infusion`. The
 record the Orchestrator keeps between windows is the two lists below plus
