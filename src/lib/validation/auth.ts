@@ -1,6 +1,6 @@
 /**
  * Account auth validation — email + password sign-in / account creation / password
- * set + change (ADR-0011). Passwords are an ADDITIONAL credential on the same
+ * set + change (auth-accounts.md). Passwords are an ADDITIONAL credential on the same
  * auth.users row as the passwordless paths (OTP / magic-link / Google).
  *
  * Plain module (no 'use server') so the client forms AND the server action that

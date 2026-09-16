@@ -1,5 +1,5 @@
 /**
- * Backup-prune confirm endpoint (ADR-0013, Pillar B) — the DB half of the deletion-aware prune.
+ * Backup-prune confirm endpoint (durability-backups.md, Pillar B) — the DB half of the deletion-aware prune.
  *
  * The media-backup Worker (workers/backup, the weekly `prune` branch) cannot reach the database, so it
  * POSTs the mediaIds of age-eligible backup objects here (batched <=1000). This route is the

@@ -9,7 +9,7 @@ import { z } from "zod";
 // file against the caller's zod schema (so a malformed file FAILS THE BUILD), and
 // returns slug + typed frontmatter + body. Importing `node:fs` makes every consumer
 // server/build-only by construction — the client surfaces receive plain metadata via
-// props. See ADR-0006. help.ts + blog.ts are thin wrappers that add a schema + sort.
+// props. See marketing-content.md. help.ts + blog.ts are thin wrappers that add a schema + sort.
 
 export type CollectionEntry<T> = {
   slug: string;

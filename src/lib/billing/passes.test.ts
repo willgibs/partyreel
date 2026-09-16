@@ -1,5 +1,5 @@
 /**
- * The Event Pass ledger math (ADR-0025): stacking slots, renewal chaining, and the
+ * The Event Pass ledger math (billing-caps.md): stacking slots, renewal chaining, and the
  * prorated Pro credit are all pure window derivations — these fixtures pin every
  * boundary the webhook and sweeps rely on.
  */

@@ -91,7 +91,7 @@ export type EventPassCheckoutRef = {
 
 /**
  * Recognize a ONE-TIME Event Pass checkout and pull out everything the ledger insert
- * needs (ADR-0025). The WINDOW itself ([start, expiry)) is not computed here — it
+ * needs (billing-caps.md). The WINDOW itself ([start, expiry)) is not computed here — it
  * depends on the host's other live passes, which the route reads once it knows whose
  * ledger to read; the math is `passWindowForPurchase` in lib/billing/passes.ts.
  * Returns null for any other event or a non-Event-Pass session.
@@ -131,7 +131,7 @@ export type ProCreditRef = {
 
 /**
  * Recognize a Pro subscription checkout that carries a prorated Event Pass credit
- * (ADR-0025: the checkout route stamps `pass_credit_cents` when the buyer holds
+ * (billing-caps.md: the checkout route stamps `pass_credit_cents` when the buyer holds
  * live passes). The metadata is our own server-side write inside a
  * signature-verified event, so the number is trusted; malformed or non-positive
  * values return null and the session falls through to plain customer binding.

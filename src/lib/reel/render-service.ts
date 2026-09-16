@@ -200,7 +200,7 @@ export async function resolveReelRenderContext(
   const orientation: Orientation =
     row?.orientation === "landscape" ? "landscape" : "portrait";
   const seed = row?.seed ?? defaultReelSeed(eventId);
-  // The MINT-time tier clamp (ADR-0021): re-derive the length cap here, never trust the stored
+  // The MINT-time tier clamp (billing-caps.md): re-derive the length cap here, never trust the stored
   // config (upsert_reel_config clamps too, but a downgrade after save would leave a stale 60).
   // Auto (null) fills UP TO the tier cap, so lengthSeconds is always a number from here on — it
   // feeds the hash (a tier change re-renders) and buildReelProps' capToLength.

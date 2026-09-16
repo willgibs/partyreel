@@ -21,7 +21,6 @@ link doubles as the shareable album. Every QR is an ad for the next host.
 | See what might be next (provisional)       | [`docs/ROADMAP.md`](docs/ROADMAP.md)       |
 | See what shipped, when                     | [`docs/CHANGELOG.md`](docs/CHANGELOG.md)   |
 | Understand the product / pricing           | [`docs/PRD.md`](docs/PRD.md) · [`docs/PRICING.md`](docs/PRICING.md) |
-| Understand a key technical decision        | [`docs/adr/`](docs/adr/)                   |
 
 ## Local development
 

@@ -1,7 +1,7 @@
 /**
  * Keep guest capability tokens out of telemetry (QA #22).
  *
- * THE LEAK. A guest's album link is `/e/<qr_token>`, and that token IS the authorization (ADR-0004):
+ * THE LEAK. A guest's album link is `/e/<qr_token>`, and that token IS the authorization (database-security.md):
  * anyone holding it can read the album and upload to it. It rides the URL PATH, not the query, and
  * the existing `beforeSend` scrubber only strips query strings and only ever sees ERROR events. So
  * every other channel carried the token out intact: navigation and fetch BREADCRUMBS, performance

@@ -1,5 +1,5 @@
 /**
- * The GUEST reel read (R3, ADR-0022): what a guest viewer may know about an event's reel.
+ * The GUEST reel read (R3, guest-flow.md): what a guest viewer may know about an event's reel.
  *
  * TWO ARMS behind one gate, mirroring the gallery's own split (gallery-access.server.ts):
  *

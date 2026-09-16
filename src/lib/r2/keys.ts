@@ -58,7 +58,7 @@ export function reelOutputKey(eventId: string): string {
 }
 
 /**
- * The SEGREGATED evidence-preservation prefix (ADR-0020). The /admin preserve action copies a
+ * The SEGREGATED evidence-preservation prefix (trust-safety-forensics.md). The /admin preserve action copies a
  * reported upload's ORIGINAL object + a JSON forensics snapshot here, server-side; these keys are
  * NEVER presigned to a host/guest surface (admin export only).
  *

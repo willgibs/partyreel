@@ -2,7 +2,7 @@
 /* The design lab is NOT in the production scan (the library round, 2026-09-02): a utility
    used only by a lab specimen used to be emitted into the stylesheet every production page
    loads (measured 2026-09-01: 26 lab-only selectors on the home; the library round took 498
-   selectors and 38,919 bytes off that sheet, see docs/perf/v1-baseline.md section 5).
+   selectors and 38,919 bytes off that sheet, see `git show 44090827:docs/perf/v1-baseline.md` section 5).
    The lab compiles its own utilities from src/app/(dev)/design/design.css instead; a
    production component the lab renders is already in this scan by being production.
    Pinned by src/app/css-source-policy.test.ts. */

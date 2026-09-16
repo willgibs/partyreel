@@ -360,8 +360,7 @@ export function landminesOf(
 
 /**
  * The proposals under docs/specs: the exploration boards' settled documents.
- * README-like files are not proposals, and reel-v1.md is a shipped feature
- * spec that predates the program (the reel's record, not a board).
+ * README-like files are not proposals.
  */
 export function listSpecs(): {
   slug: string;
@@ -372,7 +371,7 @@ export function listSpecs(): {
   let files: string[] = [];
   try {
     files = readdirSync(dir).filter(
-      (f) => f.endsWith(".md") && !/^readme/i.test(f) && f !== "reel-v1.md",
+      (f) => f.endsWith(".md") && !/^readme/i.test(f),
     );
   } catch {
     return [];

@@ -1,5 +1,5 @@
 /**
- * The forensic-capture seam (ADR-0020 A3-lite): ONE deny-all `upload_forensics` row per completed
+ * The forensic-capture seam (trust-safety-forensics.md A3-lite): ONE deny-all `upload_forensics` row per completed
  * upload, written by the shared complete pipeline right after `create_media*` succeeds. Every
  * pre-capture day was an unrecoverable gap, so the write is best-effort-but-LOUD: a failure never
  * blocks the upload (the guest experience wins), but it is never silent either — Sentry gets a

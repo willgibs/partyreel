@@ -1,11 +1,11 @@
 /**
- * Pure request-header → forensic-facts shaping (ADR-0020 A3-lite). Extracted from the capture seam
+ * Pure request-header → forensic-facts shaping (trust-safety-forensics.md A3-lite). Extracted from the capture seam
  * so the shaping is unit-testable without a live Request. No I/O; runs anywhere Headers exists
  * (Node 22 / edge / Vitest).
  *
  * SCOPE GUARD: this is the ENTIRE per-upload capture set the ruling allows — IP, timestamp
  * (DB-side default), UA, UA client hints, Vercel coarse geo. The pre-strip EXIF capture is
- * counsel-gated (ADR-0020 decision 1); do not widen this without that sign-off.
+ * counsel-gated (trust-safety-forensics.md decision 1); do not widen this without that sign-off.
  */
 
 export type ForensicRequestFacts = {

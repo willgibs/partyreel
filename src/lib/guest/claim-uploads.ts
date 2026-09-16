@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 // the visitor authenticates we hand those tokens to claim_anonymous_uploads, which stamps user_id =
 // auth.uid() onto the still-unclaimed matches only (never an owned row -> theft-proof + idempotent). The
 // RPC is authenticated + browser-callable by design: identity is auth.uid() and the tokens are held
-// capabilities, so there is no client-spoofable value for server-mediation to protect (cf. ADR-0016). The
+// capabilities, so there is no client-spoofable value for server-mediation to protect (cf. database-security.md). The
 // prefix + the pure token enumeration live in ./session-tokens (dependency-free + unit-tested).
 
 // Module-scope guards (single module instance across every call site — keep imports STATIC):

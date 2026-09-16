@@ -3,7 +3,7 @@
  * `get_my_likes` is a SECURITY DEFINER RPC (it reads the name/date/token of events the user may NOT own,
  * exactly like get_my_uploads); it's auth.uid()-based + authenticated-only, and RE-APPLIES the like
  * access predicate so a liked media that has since gone private / removed / had its event deleted drops
- * out (never leaking its key). We presign the R2 keys server-side here (ADR-0003) — raw keys never reach
+ * out (never leaking its key). We presign the R2 keys server-side here (uploads-and-r2.md) — raw keys never reach
  * the browser. Reuses toMyUploadsItems: the row shape (originalKey + event context) is identical.
  */
 import "server-only";

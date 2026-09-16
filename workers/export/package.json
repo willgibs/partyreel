@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Streaming zip-export Worker for \"Download all\" (ADR-0003). Verifies a signed manifest token and streams a store-only zip of the named R2 objects. Deployed separately from the Next app via wrangler.",
+  "description": "Streaming zip-export Worker for \"Download all\" (uploads-and-r2.md). Verifies a signed manifest token and streams a store-only zip of the named R2 objects. Deployed separately from the Next app via wrangler.",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

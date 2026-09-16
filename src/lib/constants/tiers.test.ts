@@ -119,25 +119,25 @@ describe("tier limit literals (marketed-number pins)", () => {
   });
   it("pro: unlimited events + derived ingress + profile-governed cap", () => {
     expect(MAX_EVENTS.pro).toBeNull();
-    expect(MONTHLY_INGRESS_BYTES.pro).toBeNull(); // null = derived, not unmetered (ADR-0021)
+    expect(MONTHLY_INGRESS_BYTES.pro).toBeNull(); // null = derived, not unmetered (billing-caps.md)
     expect(DEFAULT_STORAGE_CAP_BYTES.pro).toBeNull();
   });
   it("event_pass: 1 event, derived ingress, 75 GB cap", () => {
     expect(MAX_EVENTS.event_pass).toBe(1);
-    expect(MONTHLY_INGRESS_BYTES.event_pass).toBeNull(); // null = derived (ADR-0021)
+    expect(MONTHLY_INGRESS_BYTES.event_pass).toBeNull(); // null = derived (billing-caps.md)
     expect(DEFAULT_STORAGE_CAP_BYTES.event_pass).toBe(75 * GIGABYTE);
   });
-  it("reel length caps: Free 30s, Pro + Event Pass 60s (ADR-0021)", () => {
+  it("reel length caps: Free 30s, Pro + Event Pass 60s (billing-caps.md)", () => {
     expect(MAX_REEL_SECONDS.free).toBe(30);
     expect(MAX_REEL_SECONDS.pro).toBe(60);
     expect(MAX_REEL_SECONDS.event_pass).toBe(60);
   });
-  it("paid ingress multiplier is 3x the effective storage cap (ADR-0021)", () => {
+  it("paid ingress multiplier is 3x the effective storage cap (billing-caps.md)", () => {
     expect(INGRESS_CAP_MULTIPLIER).toBe(3);
   });
 });
 
-describe("monthlyIngressCap (ADR-0021 ingress derivation)", () => {
+describe("monthlyIngressCap (billing-caps.md ingress derivation)", () => {
   it("free: the static 20 GB, regardless of any cap on the profile", () => {
     expect(monthlyIngressCap("free", null)).toBe(20 * GIGABYTE);
     expect(monthlyIngressCap("free", 100 * GIGABYTE)).toBe(20 * GIGABYTE);
@@ -155,7 +155,7 @@ describe("monthlyIngressCap (ADR-0021 ingress derivation)", () => {
   });
 });
 
-describe("clampReelSeconds (ADR-0021 length clamp)", () => {
+describe("clampReelSeconds (billing-caps.md length clamp)", () => {
   it("Auto (null/0/negative) fills up to the tier cap", () => {
     expect(clampReelSeconds("free", null)).toBe(30);
     expect(clampReelSeconds("free", 0)).toBe(30);

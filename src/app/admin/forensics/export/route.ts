@@ -1,5 +1,5 @@
 /**
- * The server-mediated evidence export (ADR-0020): an admin-only, AUDIT-LOGGED download of
+ * The server-mediated evidence export (trust-safety-forensics.md): an admin-only, AUDIT-LOGGED download of
  * preserved evidence. Two shapes:
  *   ?media=<uuid>&what=evidence — redirects to a short-lived presigned attachment GET of the
  *     preserved ORIGINAL copy (the same signed-disposition mechanism as per-item Save; the app is

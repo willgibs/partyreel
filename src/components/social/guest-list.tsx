@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { ProfileCardItem } from "@/lib/social/cards";
 
 /**
- * The named "Guests" list (ADR-0019: renders ONLY when the host turned on
+ * The named "Guests" list (profiles-social.md: renders ONLY when the host turned on
  * show_guest_list; the server query already enforced that + excluded anonymous
  * uploads). One presentational component for BOTH surfaces (the host event page
  * section and the guest album), so the two can never drift. Server-renderable:

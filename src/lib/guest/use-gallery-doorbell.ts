@@ -7,7 +7,7 @@
  * whether the socket is live so the caller can slow its fallback poll.
  *
  * - Public channel by design: possession of the qr_token IS the gallery
- *   capability (ADR-0004), and the ping carries no data — the refetch is
+ *   capability (database-security.md), and the ping carries no data — the refetch is
  *   access-gated server-side. No Realtime Authorization involved.
  * - Pings funnel through a leading-edge coalescer (refresh-coalescer.ts):
  *   immediate refetch on the first ping, bursts (approve-all, photo dumps)

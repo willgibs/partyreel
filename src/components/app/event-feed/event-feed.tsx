@@ -66,7 +66,7 @@ export function EventFeed({
   pendingItems: GridMedia[];
   gallerySection: React.ReactNode;
   reelSection: React.ReactNode;
-  /** The ADR-0019 named guest list (or its turn-it-on teaser when the host key is off). */
+  /** The profiles-social.md named guest list (or its turn-it-on teaser when the host key is off). */
   guestsSection: React.ReactNode;
   galleryCount: number;
   reelCount: number;
@@ -197,7 +197,7 @@ export function EventFeed({
       </section>
     ) : k === "reel" ? (
       <section aria-label="Reel" className="space-y-2.5">
-        {/* Label + count ONLY. Reorder used to live in this header; ADR-0024 moved it to the Studio's
+        {/* Label + count ONLY. Reorder used to live in this header; host-app.md moved it to the Studio's
             filmstrip dock (reordering beside a live player is the dock's whole point, and the feed's
             reel section is a visual surface now). `reelCount` stays: the filter pill reads it. The
             header is layout-safe with or without an action (min-h-7 sits on the ROW). */}

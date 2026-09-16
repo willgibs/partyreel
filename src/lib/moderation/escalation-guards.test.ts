@@ -60,7 +60,7 @@ describe("media escalation guard (QA #7)", () => {
   });
 
   it("never names the legal hold in an error a host could read", () => {
-    // ADR-0020 discretion: the host may BE the investigated uploader.
+    // trust-safety-forensics.md discretion: the host may BE the investigated uploader.
     const raises = body.match(/raise exception '[^']*'/g) ?? [];
     expect(raises.length).toBeGreaterThan(0);
     for (const r of raises) {

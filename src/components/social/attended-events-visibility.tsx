@@ -13,7 +13,7 @@ import type { AttendedEventSetting } from "@/lib/db/queries/social";
 import { formatEventDate } from "@/lib/utils";
 
 /**
- * The guest-side profile key (ADR-0019 point 2): per attended event, "show this
+ * The guest-side profile key (profiles-social.md point 2): per attended event, "show this
  * on my public profile". ON by default (hidden only when a hide row exists).
  * Hiding here NEVER removes you from the event's own guest list — that list is
  * the HOST's key — and the card copy says so once, above the rows. Optimistic

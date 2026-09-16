@@ -20,7 +20,7 @@ import { formatBytes } from "@/lib/utils";
  * the ticket stub read (the divider grammar: dashed = sub-division of one
  * thing), separating the identity half from the what-you-get half.
  *
- * Both ADR-0025 promises render here because both are TRUE in the product now:
+ * Both billing-caps.md promises render here because both are TRUE in the product now:
  * passes stack, and unused pass time converts to prorated credit on Pro.
  */
 

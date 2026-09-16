@@ -28,7 +28,7 @@ import { seeded } from "@/lib/reel/engine/seed";
 /**
  * How many moments a quick-add reaches for, and the count a small-pool pick tops up to (see `count`
  * below). MIN no longer gates the builder's button — a smaller pool comes back whole, and since
- * ADR-0024 removed the per-tile reel chip the button must exist at ANY size — it only marks where
+ * host-app.md removed the per-tile reel chip the button must exist at ANY size — it only marks where
  * the builder's copy stops promising a guest-wide "mix".
  */
 export const QUICK_ADD_MAX = 12;

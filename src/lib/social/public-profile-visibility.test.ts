@@ -3,7 +3,7 @@
  * as TEXT like the notification-prefs parity guard.
  *
  * The ATTENDED arm must stay gated to OPEN events: the album-side guest list
- * renders only to viewers who can OPEN the album, and ADR-0019 preserves
+ * renders only to viewers who can OPEN the album, and profiles-social.md preserves
  * "locked pages leak name + count only" to capability holders. Without the
  * visibility gate, flipping show_guest_list on a password/private event would
  * publish the event's name/date + every uploader's attendance to fully

@@ -82,7 +82,7 @@ function PersonRow({
   );
 }
 
-// Account settings (ADR-0011 + the ADR-0019 profile surface). Renders under the
+// Account settings (auth-accounts.md + the profiles-social.md profile surface). Renders under the
 // (app) gate, so getUser() already ran; getProfile re-checks defensively. Next
 // 16: searchParams is a Promise. ?reset=1 arrives from the forgot-password flow
 // (after a fresh OTP verify) and forces the Security form into "set" mode.

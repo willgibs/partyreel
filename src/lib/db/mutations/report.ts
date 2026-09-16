@@ -1,6 +1,6 @@
 /**
  * Public report submission — a wrapper over the `create_report` capability-token
- * RPC (ADR-0004). Anonymous: the opaque qr_token IS the auth, validated inside
+ * RPC (database-security.md). Anonymous: the opaque qr_token IS the auth, validated inside
  * the SECURITY DEFINER RPC, so there's no `getUser()` here (mirrors createGuest).
  * Called from the `/api/reports` route handler, which maps the result to HTTP.
  *

@@ -20,7 +20,7 @@ import {
   readingTime,
 } from "./collection";
 
-// ── Blog collection — the second consumer of the content pipeline (ADR-0006) ─────
+// ── Blog collection — the second consumer of the content pipeline (marketing-content.md) ─────
 // Mirrors help.ts: a zod frontmatter contract (build-fails on a bad post) + thin,
 // cache()'d accessors over `loadCollection`. Posts sort newest-first by `date`, and
 // `draft: true` posts are excluded everywhere (listing / sitemap / RSS) so WIP drafts

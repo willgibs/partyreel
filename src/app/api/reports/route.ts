@@ -11,7 +11,7 @@ import { clientIp } from "@/lib/security/unlock-rate-limit";
 import { reportSchema } from "@/lib/validation/report";
 
 // POST a public report against an event (or a specific item). Anonymous: the
-// qr_token in the body is the capability (ADR-0004); create_report validates
+// qr_token in the body is the capability (database-security.md); create_report validates
 // it inside the RPC. INSERT-ONLY — reporting never hides content (anti-griefing),
 // an operator reviews via /admin.
 export async function POST(request: Request) {

@@ -16,7 +16,7 @@ import { describe, expect, it } from "vitest";
 //      user-invisible either way; keeping the scan total keeps it simple).
 //
 //   2. The claims scan: the T2.5 hard "must not claim" fence (docs/decisions/
-//      t2p5-marketing-ia.md) bans fabricated social proof (Stripe is in TEST mode:
+//      git show 44090827:docs/decisions/t2p5-marketing-ia.md) bans fabricated social proof (Stripe is in TEST mode:
 //      no "trusted by", no user/host counts, no testimonials), CSAM/NCMEC/
 //      law-enforcement language (counsel + ESP registration pending), and marketing
 //      the ingress backstop numbers (an anti-abuse bound, deliberately unmarketed -

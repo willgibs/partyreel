@@ -128,7 +128,7 @@ describe("media SELECT column-scoping (finding: hold columns host-readable)", ()
   // that is exactly how the star-select broke the live host gallery on 2026-07-08. Pin it so a
   // future "add the new column to the list" reflex has to grant it in SQL first.
   // ...and the same for the QA Q3 provenance columns (removed_by_admin records an OPERATOR
-  // takedown, which carries the ADR-0020 discretion posture; status_before_removed is machinery).
+  // takedown, which carries the trust-safety-forensics.md discretion posture; status_before_removed is machinery).
   it("keeps MEDIA_HOST_COLUMNS free of the ungranted-by-design columns", () => {
     const cols = tsSelectColumns();
     for (const c of [

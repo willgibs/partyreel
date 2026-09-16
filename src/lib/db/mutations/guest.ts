@@ -1,5 +1,5 @@
 /**
- * Guest upload flow — wrappers over the capability-token RPCs (ADR-0004). All
+ * Guest upload flow — wrappers over the capability-token RPCs (database-security.md). All
  * anonymous: the opaque session_token IS the auth, validated inside each RPC, so
  * there's no `getUser()` here. Called from the `/api/guests` + `/api/r2/*` route
  * handlers; each returns a discriminated result the route maps to an HTTP status.

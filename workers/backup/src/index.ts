@@ -1,5 +1,5 @@
 /**
- * Partyreel media-backup Worker (ADR-0013, Pillar B).
+ * Partyreel media-backup Worker (durability-backups.md, Pillar B).
  *
  * Real-time, append-only, immutable second copy of all EVENT media. Runs entirely on Cloudflare
  * (zero egress, off Vercel, scales O(uploads)). Two entry points, one Worker:
@@ -17,7 +17,7 @@
  * key already exists in BACKUP we skip it (this is also why Queue redelivery + reconciliation are safe).
  *
  * Avatars (avatars/...) are intentionally NOT backed up here: they overwrite-in-place, which conflicts
- * with the lock, and they're derivable. (See ADR-0013 / "Queued next initiatives": avatars move to
+ * with the lock, and they're derivable. (See durability-backups.md / "Queued next initiatives": avatars move to
  * Supabase Storage.) The event-notification subscription is filtered to `--prefix events/`, and the
  * reconciliation sweep lists only `events/`, so avatars never reach this Worker.
  */
@@ -65,7 +65,7 @@ const MEDIA_PREFIX = "events/";
 
 // Reconciliation: cap objects examined per run so a daily sweep stays bounded. If we hit this, the
 // next run continues (objects already copied are skipped cheaply). Revisit a KV/D1 copy-state index
-// instead of HEAD-per-object once counts grow large (ADR-0013 scale note).
+// instead of HEAD-per-object once counts grow large (durability-backups.md scale note).
 const RECONCILE_MAX_PER_RUN = 5000;
 
 // The prune runs on a SEPARATE weekly cron (Mondays 06:00 UTC, after the app's 04:00 purge + the
@@ -259,7 +259,7 @@ async function confirmGone(
 }
 
 /**
- * Deletion-aware prune (ADR-0013, Pillar B) — the INVERSE of reconcile(): reclaim a backup object once
+ * Deletion-aware prune (durability-backups.md, Pillar B) — the INVERSE of reconcile(): reclaim a backup object once
  * its source is gone. The ONLY job that deletes from the last-resort backup, so it is defense-in-depth:
  *   1. dry-run by default (PRUNE_MODE !== "live" deletes nothing — shouldDelete);
  *   2. an AGE gate (36-day margin past the 35-day Bucket Lock — isPrunableAge);

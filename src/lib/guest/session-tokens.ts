@@ -1,4 +1,4 @@
-// The per-event guest session_token capability (ADR-0004) lives in localStorage under SESSION_PREFIX +
+// The per-event guest session_token capability (database-security.md) lives in localStorage under SESSION_PREFIX +
 // {qr_token}. This module holds the ONE prefix literal + the pure enumeration of stored tokens, kept
 // dependency-free (no supabase/env/react/sonner import) so it stays unit-testable in the Node test env and
 // can be shared by both the storage hook (use-stored-session) and the claim helper (claim-uploads).

@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
  *     is the SOLE writer of tier / storage_cap_bytes" (billing-caps.md);
  *   - building an R2 key list before the legal-hold filter would destroy held
  *     evidence, because every delete is R2-FIRST and the SQL guard saves only
- *     the row (ADR-0020);
+ *     the row (trust-safety-forensics.md);
  *   - deleting the auth user before the media would FK-cascade the key rows away
  *     and orphan the objects forever;
  *   - stamping the request before the Stripe cancellation would delete an

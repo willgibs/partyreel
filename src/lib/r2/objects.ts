@@ -1,5 +1,5 @@
 /**
- * Server-side R2 object operations for evidence preservation (ADR-0020). No presigning here —
+ * Server-side R2 object operations for evidence preservation (trust-safety-forensics.md). No presigning here —
  * these run entirely server-side with the R2 credentials; no URL (and no key) ever reaches a
  * browser from this module.
  */

@@ -8,7 +8,7 @@
  * universal validateUpload -> strategy.resolveEvent (ALL per-strategy gates)
  * -> server-built key -> single-PUT or multipart presign.
  * The spine (complete): parse -> zod -> classify -> multipart sum/abort guard
- * + assemble -> R2-HEAD authoritative size (ADR-0014) -> strategy.createRecord
+ * + assemble -> R2-HEAD authoritative size (database-security.md) -> strategy.createRecord
  * -> per-strategy error-status mapping.
  *
  * INVARIANTS THIS FILE OWNS (must survive any edit — docs/systems/
@@ -89,13 +89,14 @@ export type PresignStrategy<Schema extends z.ZodType<PresignCommon>> = {
   resolveEvent(
     parsed: z.output<Schema>,
     kind: MediaKind,
-  ): Promise<{ ok: true; eventId: string } | { ok: false; refusal: PipelineRefusal }>;
+  ): Promise<
+    { ok: true; eventId: string } | { ok: false; refusal: PipelineRefusal }
+  >;
 };
 
-export async function runPresignPipeline<Schema extends z.ZodType<PresignCommon>>(
-  request: Request,
-  strategy: PresignStrategy<Schema>,
-): Promise<NextResponse> {
+export async function runPresignPipeline<
+  Schema extends z.ZodType<PresignCommon>,
+>(request: Request, strategy: PresignStrategy<Schema>): Promise<NextResponse> {
   let body: unknown;
   try {
     body = await request.json();
@@ -168,7 +169,13 @@ export async function runPresignPipeline<Schema extends z.ZodType<PresignCommon>
         })
       : null;
   const previewField = preview
-    ? { preview: { key: previewKey, url: preview.url, headers: preview.headers } }
+    ? {
+        preview: {
+          key: previewKey,
+          url: preview.url,
+          headers: preview.headers,
+        },
+      }
     : {};
 
   if (uploadStrategyFor(size_bytes) === "single") {
@@ -235,13 +242,16 @@ type CompleteCommon = {
   preview_key?: string;
   upload_id: string | null;
   parts: { partNumber: number; eTag: string }[];
-  /** Capture-only device UUID (ADR-0020) — forwarded to the forensic record, nothing else. */
+  /** Capture-only device UUID (trust-safety-forensics.md) — forwarded to the forensic record, nothing else. */
   device_uuid?: string;
 };
 
 /** The shape both create-record mutations resolve to (guest + host results both fit). */
 type CreateRecordOutcome =
-  | { ok: true; data: { media_id: string; status: string } | { idempotent: true } }
+  | {
+      ok: true;
+      data: { media_id: string; status: string } | { idempotent: true };
+    }
   | { ok: false; code: string; message: string };
 
 export type CompleteStrategy<Schema extends z.ZodType<CompleteCommon>> = {
@@ -258,15 +268,14 @@ export type CompleteStrategy<Schema extends z.ZodType<CompleteCommon>> = {
   captureLabel: string;
   /**
    * The uploader identity the route ALREADY holds (guest capability token / getUser()-verified
-   * host id), handed to the forensic-capture seam (ADR-0020). No new auth is derived here.
+   * host id), handed to the forensic-capture seam (trust-safety-forensics.md). No new auth is derived here.
    */
   forensicIdentity(parsed: z.output<Schema>): ForensicIdentity;
 };
 
-export async function runCompletePipeline<Schema extends z.ZodType<CompleteCommon>>(
-  request: Request,
-  strategy: CompleteStrategy<Schema>,
-): Promise<NextResponse> {
+export async function runCompletePipeline<
+  Schema extends z.ZodType<CompleteCommon>,
+>(request: Request, strategy: CompleteStrategy<Schema>): Promise<NextResponse> {
   let body: unknown;
   try {
     body = await request.json();
@@ -371,9 +380,14 @@ export async function runCompletePipeline<Schema extends z.ZodType<CompleteCommo
       // binding already caps each part at the R2 edge; this is the
       // defense-in-depth backstop that stops an assembled megafile orphan
       // (which the backup Worker would replicate to the WORM bucket).
-      const uploadedBytes = await sumMultipartParts({ key, uploadId: upload_id });
+      const uploadedBytes = await sumMultipartParts({
+        key,
+        uploadId: upload_id,
+      });
       if (uploadedBytes > MAX_UPLOAD_BYTES) {
-        await abortMultipartUpload({ key, uploadId: upload_id }).catch(() => {});
+        await abortMultipartUpload({ key, uploadId: upload_id }).catch(
+          () => {},
+        );
         captureWarning("upload", "oversize_multipart_aborted", {
           key,
           upload_id,
@@ -398,7 +412,7 @@ export async function runCompletePipeline<Schema extends z.ZodType<CompleteCommo
 
   // AUTHORITATIVE size: read the real stored bytes from R2 — never trust the
   // client's size_bytes (a spoofed-low size would evade the storage cap, whose
-  // meter is SUM(media.file_size_bytes)). ADR-0014.
+  // meter is SUM(media.file_size_bytes)). database-security.md.
   let realSize: number;
   try {
     realSize = await headObjectSize({ key });
@@ -430,7 +444,7 @@ export async function runCompletePipeline<Schema extends z.ZodType<CompleteCommo
     });
   }
 
-  // Forensic capture (ADR-0020), at the ONE seam where the row + the request context coexist.
+  // Forensic capture (trust-safety-forensics.md), at the ONE seam where the row + the request context coexist.
   // AFTER createRecord so a rejected upload records nothing; AWAITED (serverless would kill a
   // floating promise at response time); best-effort-but-loud inside (a capture failure never
   // fails the upload — captureUploadForensics Sentry-warns and the /admin coverage signal shows

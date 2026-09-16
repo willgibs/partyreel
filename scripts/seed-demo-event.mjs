@@ -14,7 +14,7 @@
  *   - a ~640px WebP preview is generated per item (photo downscale / video poster frame at ~0.1s),
  *     sized by the SAME pure math the browser uses (src/lib/media/preview-size.ts), and PUT to the
  *     reserved `preview` variant, so tiles serve the small file like every real upload;
- *   - file_size_bytes comes from an R2 HEAD after the PUT (ADR-0014), never from the local file;
+ *   - file_size_bytes comes from an R2 HEAD after the PUT (database-security.md), never from the local file;
  *   - the row itself is written by create_media_as_host, the service-role-only RPC the host complete
  *     route calls. NEVER insert into `media` directly: the RPC is what keeps the storage ledger,
  *     profiles.storage_used_bytes and the cap checks honest (uploads-and-r2.md invariant).
@@ -509,7 +509,7 @@ async function wipeExistingMedia(eventId) {
 
   const held = existing.filter((r) => r.legal_hold_at);
   if (held.length > 0) {
-    // purge_media_rows refuses held rows (ADR-0020) and we must not orphan their objects either.
+    // purge_media_rows refuses held rows (trust-safety-forensics.md) and we must not orphan their objects either.
     console.log(
       `  ${held.length} row(s) under legal hold will be kept (they are never hard-deleted)`,
     );
@@ -705,7 +705,7 @@ async function seedFile(file, { hostId, eventId }) {
   }
   await rm(workDir, { recursive: true, force: true });
 
-  // AUTHORITATIVE size from R2, never the local file (ADR-0014) - the same HEAD the complete route
+  // AUTHORITATIVE size from R2, never the local file (database-security.md) - the same HEAD the complete route
   // does, so a partial PUT can never be metered as a full file.
   const head = await s3.send(
     new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),

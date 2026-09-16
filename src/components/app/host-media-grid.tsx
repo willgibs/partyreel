@@ -39,7 +39,7 @@ import { cn } from "@/lib/utils";
 // actions use NATIVE `title` tooltips — styled radix tooltips are LIGHTBOX-ONLY (Will,
 // 2026-06-20 redo: tiles already reveal on hover, so a styled tooltip there is
 // near-redundant + ~50 radix Tooltips on the grid was a hydration risk).
-//   The row is THREE chips and closed at three (ADR-0024): like, download, hide/show.
+//   The row is THREE chips and closed at three (host-app.md): like, download, hide/show.
 //   Desktop reveals all three on hover; mobile shows like + download (hide moves to the
 //   lightbox). A HIDDEN item is the exception — its amber Show marker PERSISTS (off-hover +
 //   mobile, like the liked heart), 1-tap to show, atop the 30% dim. Add-to-reel and DELETE
@@ -145,7 +145,7 @@ function HostTileOverlay({
         className="absolute right-1.5 bottom-1.5 z-10"
       />
 
-      {/* THREE chips, and the row is CLOSED at three (ADR-0024, Will 2026-08-04): like, download,
+      {/* THREE chips, and the row is CLOSED at three (host-app.md, Will 2026-08-04): like, download,
           hide/show. Per-chip margin (NOT gap) so a collapsed hover-reveal chip leaves no residual gap
           and the persistent chips (liked / hidden marker) pack neatly to the right edge at rest.
           hide/show is ONE slot (EyeOff approved / persistent amber Eye hidden) so toggling the state

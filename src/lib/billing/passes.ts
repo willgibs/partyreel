@@ -1,5 +1,5 @@
 /**
- * PURE Event Pass ledger math (no DB, no Stripe SDK, no env) — ADR-0025.
+ * PURE Event Pass ledger math (no DB, no Stripe SDK, no env) — billing-caps.md.
  *
  * The ledger (public.event_passes) stores one row per PURCHASE with its own
  * [start_at, expires_at) window and the price actually paid. Everything the product
@@ -10,7 +10,7 @@
  *   • STACKING (Will, 2026-08-27): concurrent passes are rows whose windows overlap
  *     "now". Active-now count IS the entitlement: count x 75 GB storage, count event
  *     slots (profiles.event_slots -> the SQL enforce_event_limit override).
- *   • RENEWAL EXTENDS, NEVER RESETS (ADR-0023 ruling 1, preserved): a renewal is a
+ *   • RENEWAL EXTENDS, NEVER RESETS (billing-caps.md ruling 1, preserved): a renewal is a
  *     NEW row whose window starts where the soonest-expiring active pass ends, so it
  *     never grants a second concurrent slot and an untouched renewal year credits
  *     at 100%.
@@ -55,7 +55,9 @@ export function activeNowPasses(passes: PassRow[], now: Date): PassRow[] {
   return livePasses(passes).filter((p) => {
     const start = ms(p.start_at);
     const end = ms(p.expires_at);
-    return Number.isFinite(start) && Number.isFinite(end) && start <= t && t < end;
+    return (
+      Number.isFinite(start) && Number.isFinite(end) && start <= t && t < end
+    );
   });
 }
 
@@ -104,7 +106,7 @@ export function passWindowForPurchase(
 }
 
 /**
- * The prorated Pro credit, in cents, across every live pass (ADR-0025). A window
+ * The prorated Pro credit, in cents, across every live pass (billing-caps.md). A window
  * that has not opened yet credits its full price; a window at its last instant
  * credits zero; floor() per pass so the sum never over-credits by rounding.
  */

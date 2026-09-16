@@ -33,7 +33,7 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         },
       };
     }
-    // QA #18 (ADR-0023 ruling 2): the write path re-checks the event's LOCK per request, so a
+    // QA #18 (host-app.md ruling 2): the write path re-checks the event's LOCK per request, so a
     // session token minted while the event was open dies the moment the host locks it (the
     // leaked-link remediation). The lock outranks every other upload state — a viewer who can't
     // see the album learns nothing else about it. `private` refuses everyone (owner uploads ride

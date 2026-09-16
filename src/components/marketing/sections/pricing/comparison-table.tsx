@@ -27,7 +27,7 @@ import { formatBytes } from "@/lib/utils";
  * The full plan matrix (Resend-informed): row labels carry a hover/focus
  * tooltip where a term needs one; booleans are the A16 marks (green check =
  * included, muted minus = not); everything numeric derives from tiers.ts /
- * limits.ts. Ingress caps stay OFF this table by design (ADR-0021: unmarketed,
+ * limits.ts. Ingress caps stay OFF this table by design (billing-caps.md: unmarketed,
  * and the content-policy test hard-fails the build if the numbers appear).
  *
  * Layout: the plan header row is STICKY from lg up (the Biograph sticky-summary

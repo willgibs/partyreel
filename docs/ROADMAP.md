@@ -81,7 +81,7 @@ The app:
 ## Major overhauls (each its own planning round; drop related deferred tasks here)
 
 - **QA hardening — the remaining fix queue** (the ~590-agent adversarial round of 2026-07-28/29;
-  Q1-Q4 + the write spine shipped as milestone-1.5 — [ADR-0023](adr/0023-qa-round-product-rulings.md) +
+  Q1-Q4 + the write spine shipped as milestone-1.5 — [`systems/host-app.md`](systems/host-app.md) +
   [`CHANGELOG.md`](CHANGELOG.md); this list IS the remaining queue). Roughly in the intended order:
   - **Abuse + jobs + observability:** #13 a `presign` abuse kind (pure TS, `action_attempts` is
     kind-generic; needs `Retry-After`/429 vocabulary the pipeline lacks today) · #14 the contact + careers
@@ -164,14 +164,14 @@ The app:
   SHIPPED in the library round (2026-09: 23 posts, question-shaped `faq` blocks + FAQPage on hubs
   and comparisons, incumbents named and rivals category-level per Will's 2026-08-28 ruling; category
   pages stay brand-nameless); still open: `.md` mirrors of key pages (the llms spec's optional convention) · the
-  `/u/[slug]` sitemap/robots decision (ADR-0019 says indexable; needs a slug feed) · WebSite
+  `/u/[slug]` sitemap/robots decision (profiles-social.md says indexable; needs a slug feed) · WebSite
   SearchAction (needs a real `?q=` route) · AI-referral analytics (UA-tagged hits on /llms.txt).
 - **Billing follow-ons** — pricing **grandfathering** when the first price change happens (the policy is
   ruled + recorded in [`PRICING.md`](PRICING.md) "Grandfathering"; the build is `planForPriceId` mapping
   MULTIPLE historical Price IDs per plan, newest = the public offer) · a full [`PRD.md`](PRD.md) refresh
   to the shipped product (this consolidation pass fixed only the misleading era claims) · **per-pass dashboard management**
   (choose WHICH stacked pass a renewal extends, per-pass expiry rows in the storage meter; v1 renews the
-  soonest-expiring, ADR-0025) · the `authenticated` role holds a latent table-level **TRUNCATE grant on
+  soonest-expiring, billing-caps.md) · the `authenticated` role holds a latent table-level **TRUNCATE grant on
   `profiles`** (unreachable via PostgREST, found 2026-08-27; sweep table grants and revoke in the next
   security pass).
 - **Share studio (QR + share-content configurator)** — (Will, 2026-06-11, from the V1 design lab's QR-card
@@ -187,7 +187,7 @@ The app:
 - **Highlight reel — SHIPPED end-to-end through milestone-2** (curation + the canvas engine + the
   14-style catalog + Studio + guest surfacing/download; current truth
   [`systems/host-app.md`](systems/host-app.md) + [`systems/guest-flow.md`](systems/guest-flow.md);
-  settled scope [`specs/reel-v1.md`](specs/reel-v1.md), ADR-0022/0024). **Deferred follow-ons:**
+  settled scope in [`systems/host-app.md`](systems/host-app.md), the reel section, guest-flow.md/0024). **Deferred follow-ons:**
   Pro motion video (real video playing in the live player + trim; R2 CORS work) · multiple named
   reels · the reveal-moment polish · dropping the legacy `highlight_reels.theme` column (the R8
   destructive batch) · concise per-knob motion-tuner descriptions · the short-feed scroll-spy
@@ -195,7 +195,7 @@ The app:
   `reel_eligible` stay dead scaffold for it).
 - **User profiles + social discovery — P1-P3 LIVE since milestone-2** (`/u/[slug]` profiles, the
   follow/block graph, the Guests feed section + guest list, the dashboard Following chip; the
-  consent/privacy one-way-door is RULED in [ADR-0019](adr/0019-social-privacy-host-controlled-guest-list.md),
+  consent/privacy one-way-door is RULED in [`systems/profiles-social.md`](systems/profiles-social.md),
   do not re-litigate; current truth [`systems/profiles-social.md`](systems/profiles-social.md)).
   **Still ahead:** P4 (v2) the social feed (DEPENDS on the Notification overhaul above) + discovery ·
   the notification-prefs UI (R5 owns sends; storage + defaults shipped) · guest-list
@@ -232,29 +232,29 @@ Sentry alert rule, one DB-backup test-restore → the test-data reset, the demo 
   candidates: Cloudflare WA (free, shallow) / self-host Umami / GA4 (free, consent banner + ad-block
   losses; the move if Google Ads enter). The swap is one file (`src/lib/analytics/web.ts`); see
   [`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
-- Counsel sign-off gate (ADR-0020 D2) `[human]` — before launch counsel signs: (1) the privacy-policy +
+- Counsel sign-off gate (trust-safety-forensics.md D2) `[human]` — before launch counsel signs: (1) the privacy-policy +
   ToS forensic-capture disclosure language (IP/UA/geo/device UUID per upload), (2) the CSAM incident
   runbook ([`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)) + NCMEC registration,
   (3) the retention schedule (media-lifetime rows, 1-year preservation), (4) the pre-strip EXIF capture
-  go/no-go. The 8-item checklist is in the T1 options-doc (git history: `decisions/t1-forensic-csam-policy.md`).
+  go/no-go. The 8-item checklist is in the T1 options-doc (`git show 44090827:docs/decisions/t1-forensic-csam-policy.md`).
 - NCMEC CyberTipline ESP registration `[human]` — register before launch (prep note in
   [`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)); if denied, we still report actively.
 - Enable the Cloudflare CSAM Scanning Tool at the DNS move `[human]` — free; scans only proxied traffic
-  (cannot see presigned R2 media — state that plainly), per ADR-0020 C2.
+  (cannot see presigned R2 media — state that plainly), per trust-safety-forensics.md C2.
 - Stripe test → live cutover `[eng+human]` — re-create the 4 products and 8 prices in live (three Pro
   products carrying six recurring prices, monthly and annual each; the Event Pass product carrying the two
   one-time prices), named WITHOUT the em-dash the test products carry today (those names render in
   Checkout and the portal), + swap the 10 env values (code unchanged); the runbook is
   [`PRICING.md`](PRICING.md) "Stripe setup" (corrected 2026-09-02 by the `legal-billing-truth` track).
 - Verify the Stripe Billing Portal permits switching between the six Pro prices (monthly and annual) `[human]` — now
-  LOAD-BEARING, not cosmetic: per ADR-0023 1b a Pro host changing storage size is routed to the
+  LOAD-BEARING, not cosmetic: per host-app.md 1b a Pro host changing storage size is routed to the
   portal (checkout refuses the second subscription it used to create silently). If the portal's
   product config does not allow the swap, a paying host has no self-serve way to resize. The default
   portal configuration (`bpc_1TcTxWPtjqmVkBwkcAldFEZA`) enables `subscription_update` with
   `default_allowed_updates: ["price"]` and `proration_behavior: always_invoice`, but the API returns no
   `products` list, so the actual switch set is unverified from the API side (2026-09-02): a dashboard look,
   or a portal session opened as a Pro host.
-- Revisit the paid-ingress `INGRESS_CAP_MULTIPLIER` (currently 3× the storage cap, ADR-0021) before
+- Revisit the paid-ingress `INGRESS_CAP_MULTIPLIER` (currently 3× the storage cap, billing-caps.md) before
   Pro launch `[eng]` — confirm the multiplier holds at real scale.
 - Legal go-live `[human]` — the documents are written (v1.0, 2026-09-01, incl. the forensic-capture
   paragraph and the Sentry replay line); after counsel signs the gate above: (1) fill `LEGAL_PARTY` in
@@ -269,8 +269,13 @@ Sentry alert rule, one DB-backup test-restore → the test-data reset, the demo 
 - Swap the demo event to curated media `[eng+content]` — repoint `NEXT_PUBLIC_DEMO_QR_TOKEN` to a dedicated
   event with catchy approved media.
 - Committed automated RPC integration suite `[eng]` — replace the per-change rolled-back MCP checks. BLOCKED
-  on a direct pg connection; the exact gaps + the two unblock paths + the intended test list are in
-  [`decisions/rpc-suite-blocked.md`](decisions/rpc-suite-blocked.md) (2026-07-03).
+  on a direct pg connection: it needs `SUPABASE_DB_URL` (the SESSION string on port 5432, never the 6543
+  transaction pooler) in the three secret places, a `postgres` devDependency, and a third vitest project
+  with a distinct include that skips cleanly when the var is unset, so `pnpm test` stays green for agents
+  without it; every test runs BEGIN, exercises the RPC under `set local role`, asserts, ROLLBACKs, then
+  re-asserts row counts. The fully isolated alternative is the Supabase CLI plus the Docker local stack,
+  pre-wired in `supabase/config.toml` (db 54322): pick it only if production-DB test traffic ever becomes
+  uncomfortable. Full detail: `git show 44090827:docs/decisions/rpc-suite-blocked.md`.
 - Confirm the Sentry email-alert rule fires `[human]`.
 - Pre-launch test-data hard reset ("Recovery Phase 6") `[eng]` — the deletion-aware prune has shipped (in
   dry-run), so the "reset ≥35 d before launch so test objects age out of the Bucket Lock" timing

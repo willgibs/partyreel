@@ -1,5 +1,5 @@
 /**
- * The durable first-party device UUID (ADR-0020 A3-lite). A random UUID minted once per browser
+ * The durable first-party device UUID (trust-safety-forensics.md A3-lite). A random UUID minted once per browser
  * and persisted in localStorage, sent with every upload COMPLETE request so `upload_forensics`
  * can correlate abuse across events even when session tokens rotate.
  *

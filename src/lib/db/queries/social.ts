@@ -1,5 +1,5 @@
 /**
- * Social reads (ADR-0019 data layer): the public profile, owner-private
+ * Social reads (profiles-social.md data layer): the public profile, owner-private
  * follow/block lists + counts, notification prefs, the guest-side hidden-event
  * set, and the host-keyed event guest list.
  *
@@ -9,7 +9,7 @@
  *     there is NO path to anyone else's graph.
  *   - Blocks are private to the blocker; the blocked side can never read them.
  *   - The event guest list renders ONLY when the HOST enabled show_guest_list
- *     (the ADR-0019 host key); anonymous uploads never appear (user_id IS NULL).
+ *     (the profiles-social.md host key); anonymous uploads never appear (user_id IS NULL).
  */
 import "server-only";
 
@@ -56,7 +56,7 @@ export function isSocialSchemaMissing(error: unknown): boolean {
   return missing;
 }
 
-/** The public-by-existence card fields (ADR-0019 point 3). */
+/** The public-by-existence card fields (profiles-social.md point 3). */
 export type SocialProfileCard = {
   id: string;
   displayName: string | null;
@@ -71,7 +71,7 @@ export type BlockEntry = SocialProfileCard & { blockedAt: string };
 /**
  * Hydrate profile cards for an id list via the ADMIN client. WHY admin:
  * profiles RLS is deliberately own-row (`profiles_select_own`), and these card
- * fields (name/slug/avatar marker) are public by existence per ADR-0019, so
+ * fields (name/slug/avatar marker) are public by existence per profiles-social.md, so
  * reading them server-side for ids the caller ALREADY holds (their own
  * RLS-scoped follow/block rows, or a show_guest_list-gated uploader set) leaks
  * nothing new. Never pass ids that did not come from such a scoped read.
@@ -252,7 +252,7 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
   return resolveNotificationPrefs(data as NotificationPrefsRow | null);
 }
 
-/** Event ids I hid from my own public profile (ADR-0019 point 2). */
+/** Event ids I hid from my own public profile (profiles-social.md point 2). */
 export async function getMyHiddenEventIds(): Promise<string[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
@@ -511,7 +511,7 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
   }
 }
 
-// ── The event guest list (the ADR-0019 host key) ─────────────────────────────
+// ── The event guest list (the profiles-social.md host key) ─────────────────────────────
 
 export type GuestListEntry = SocialProfileCard;
 
@@ -533,7 +533,7 @@ export type GuestListEntry = SocialProfileCard;
  * caller's row access. Callers MUST have already passed their surface's access
  * gate; never call this with an unvalidated event id.
  * No block filtering: the guest list is an event surface keyed by the host,
- * not a social graph surface (blocks shape follows only, ADR-0019).
+ * not a social graph surface (blocks shape follows only, profiles-social.md).
  */
 export async function getEventGuestList(
   eventId: string,
@@ -554,7 +554,7 @@ export async function getEventGuestList(
 
   // Explicit id-list joins (no embeds): signed-in guest rows -> approved media
   // presence -> profile cards. media stays admin-read with explicit columns
-  // (never select("*") on media: the hold columns are host-invisible, ADR-0020).
+  // (never select("*") on media: the hold columns are host-invisible, trust-safety-forensics.md).
   const { data: guests, error: guestsError } = await admin
     .from("guests")
     .select("id, user_id")

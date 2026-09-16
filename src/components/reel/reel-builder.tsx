@@ -3,7 +3,7 @@
 /**
  * THE BUILDER: the Reel section before a reel exists.
  *
- * Create-birth (ADR-0023 ruling 4): the reel is BORN when the host taps Create,
+ * Create-birth (host-app.md ruling 4): the reel is BORN when the host taps Create,
  * and that tap is the reveal's natural trigger. So this surface has exactly one
  * job — get the host to a set of moments they are happy with, then hand the beat
  * over. Two beats, never one: FILL (quick-add, or pick your own), then CREATE.
@@ -85,7 +85,7 @@ export function ReelBuilder({
     return pickQuickAdd(candidates, { seed: defaultReelSeed(eventId) });
   }, [approved, eventId]);
 
-  // Offered at ONE approved item, not QUICK_ADD_MIN: since ADR-0024 took the reel chip off the
+  // Offered at ONE approved item, not QUICK_ADD_MIN: since host-app.md took the reel chip off the
   // gallery tiles, this button and gallery-Select are the only pre-Create fill paths, and gating it
   // at 4 left a small event with NO in-card path at all (Will hit exactly this on a 2-photo event,
   // 2026-08-06 — the bar's Create was a silent no-op and nothing in the card could fill).
@@ -277,7 +277,7 @@ export function ReelBuilder({
                 </button>
               ) : null}
               {/* The "pick them myself" route. This USED to say "tap the clapperboard on any
-                  photo", which stopped being true when ADR-0024 took the reel chip off the
+                  photo", which stopped being true when host-app.md took the reel chip off the
                   gallery tiles. Select mode is the honest pre-Create answer (the Studio's
                   Moments picker is the post-Create one, and the Studio does not exist yet
                   here, so it cannot be the instruction). */}
