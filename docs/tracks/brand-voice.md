@@ -1,6 +1,6 @@
 ---
 track: brand-voice
-status: open
+status: handed-off
 cut: "d5f0c3c9"          # round 6, the clarity round, cut from launch-prep
 cut_round_5: "1b647d76"
 merged_round_5: "d10287fa"
@@ -1383,3 +1383,149 @@ canvas measures what the site renders. Three defects came out of walking it: a f
 took the board to its error boundary on a fast scroll, a reserved height that shrank the board under
 the reader, and a hash anchor that could not survive the settle. No candidate, number or
 recommendation changed, and no production byte changed.
+
+## Handoff (round 6, the clarity round)
+
+- Head: `<this manifest commit>`, on top of `e537071e` (the sync merge) and `7335f34d` (the code).
+  The board is at `/design/lab/brand-voice`, the desk session at
+  `/design/lab?session=brand-voice.voice`, the guide at `docs/specs/brand-voice.md`. **The
+  round-six board is the one whose Voice switch reads "Today, the lines the site ships now / A, a
+  tuning of the lines we have / B, rebuilt around the album filling" instead of "Today / A, the
+  house / B, the room".**
+- No `[preview]` and no `[ci]` on any commit, per the round: the review surface is a local
+  `pnpm dev` on launch-prep after integration.
+- Synced with `launch-prep` at **`1244fbd8`** (the glow-specs round-two merge; it had moved by five
+  commits, none in this lane). Merged clean, and the expected adjacent-deletion conflict in
+  `registry.test.ts` did NOT materialise: git took both sides, so `PLAIN` now correctly holds
+  neither `brand-voice` (this track's deletion) nor `glow-doctrine` / `glow-moments` (theirs). The
+  whole gate was re-run on the merged tree.
+- Gates on the synced tree, each on its own exit code: typecheck ok (0), lint ok (0; 0 errors and 6
+  warnings, all pre-existing and none in this lane), test ok (0; 2,153 in 218 files), build ok (0;
+  257 static pages). `pnpm format` run on the changed files; the diff was eyeballed for a mangled
+  dynamic className and there is none (the three template literals in the diff are sentences, not
+  class strings).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/brand-voice.md` and
+  the four files under `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `frames.tsx`,
+  `spec.ts`, `voices.ts`), plus the ONE exception the brief names: the deletion of this board's
+  line from `PLAIN` in `src/app/(dev)/design/sandbox/registry.test.ts`. No other exception, and no
+  production byte changed. `board.css` was not touched.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. Assets requested from Will:
+  none (this round wrote words, it built no evidence).
+
+### The seven asks as they now read (the question, then each option's label)
+
+1. **Which of the three voices should Partyreel write in?** B, rebuilt around the album filling ·
+   A, a tuning of the lines we have · Today, the lines the site ships now. (Mirrors the dock's
+   Voice switch, so picking an option previews it.)
+2. **Should all seven home page headers come from one voice, or be picked line by line?** All seven
+   from the voice you chose · Pick each header from any column.
+3. **Should the rest of the home page's copy move to the chosen voice too?** Move the whole page to
+   the voice · Move the seven headers only.
+4. **Should this one sentence replace the design bible's rule 20 on copy?** Yes, adopt that
+   sentence · Send it back for another try.
+5. **Should the site's one-line promise stay as it is?** Keep: The whole event, in one album ·
+   Take: The whole event, as everyone saw it.
+6. **Should a guest's screen say album, the word the site uses?** Album everywhere, guests included
+   · Album on the site, gallery for guests.
+7. **When an event needs an email, what should the link preview say?** This event asks guests for
+   an email · Asks guests to sign in with an email.
+
+Every one carries a `context` (what the thing is and where it lives on the site) and a `look`
+(which section, which switch, which labelled specimens). **No ask id and no option id moved**: the
+ledger still joins on `voice: b|a|today`, `headers: whole|line-by-line`, `arc: take|hold`,
+`bible-20: yes|send-back`, `thesis: keep|take`, `noun: album|split`, `unfurl: email|sign-in`, and
+`pnpm lab:review --dry` was run over BOTH answer sets (all fourteen ids) and accepted one clause
+per ask in each.
+
+### Where the options' names now sit on the evidence
+
+- **The three voices** are one string each, in four places at once and by construction: `spec.ts`'s
+  ask, the dock's Voice switch, `VOICE_TAG` in `frames.tsx` (every column head, every frame title)
+  and `VOICES[].name` in `voices.ts` (the voice card and the strings table). They render as exact
+  text nodes 61 to 83 times each on the served board.
+- **The link preview's two cards** carry the unfurl ask's labels word for word, with the open
+  event above them relabelled "An open event, the control: no email is asked for" (it used to read
+  "A public event, for reference", which named no option and no control).
+- **The promise pair**'s frame caption names both options in order, and the row counter under it
+  reads "Keep, in one album" and "Take, as everyone saw it".
+- **The rule-20 card** says which rule it is and what it governs, then states what each of the two
+  answers does.
+- **The guest section** opens on a card headed "One noun, or two" that names both options and says
+  where the word appears. Nothing new is shown: the word was already in those headings and buttons.
+- **The ledger** now says which of its two unheaded lines is which, in the voices' own names, and
+  says that "held" is what "Move the seven headers only" would leave standing. Its slot column lost
+  its craft words: eyebrow became "Small label", CTA became "Button", support became "Support line".
+
+### What I could not make plain without new evidence: nothing, and one thing I would not
+
+Every ask reads without a nickname. The one judgment worth the Orchestrator's eye is **ask 2 and ask
+3, whose options are procedures rather than specimens**, so they cannot be "a labelled column" the
+way the voice or the promise can: what a reviewer compares is the ledger, not two variants. Rather
+than invent a specimen for them (which the round forbids and which would have been a worse board), I
+labelled the ledger itself: it now names its two lines and names what holding would leave standing.
+If that reads thin to Will, the honest fix is evidence, not wording, and it belongs to a later round.
+
+### Findings the Orchestrator should carry
+
+1. **The `control` field costs a rename, and the rename has a trap.** `registry.test.ts` refuses a
+   `control` whose option ids differ from its ask's, which is right (the pick IS the preview). Here
+   the ask was `b|a|today` and the control was `today|house|room`, and the rule says rename the
+   CONTROL. But `voices.ts` is 2,300 lines of copy keyed `today|house|room` and "room" is also an
+   ordinary word inside dozens of the lines the board argues about ("every phone in the room"), so
+   a mechanical rename would have rewritten the evidence. The control's ids moved in `spec.ts` and
+   `board.tsx` maps to the data keys at the one boundary (`asVoice`, with the reason in a comment).
+   Any board whose data keys are also English words will hit this; the boundary map is the pattern.
+2. **A longer option label makes the dock taller at 375**, three lines per pill on a three-up
+   segmented control. It reads, and it is the round's whole point (a reviewer can now tell the
+   options apart from the dock alone), but if the dock's height at 375 becomes a complaint the fix
+   belongs to `BoardDock`, not to the labels.
+3. **The prior round's stale registration line is still stale.** `touchpoints.ts` (not this
+   track's to edit) has described this board as three candidate voices on the seven headers since
+   round two. It is now two candidates plus a control across thirteen sections, and it is the first
+   thing a walker reads. Reword at integration.
+
+### How it was verified
+
+The machine ran out of memory mid-round with eleven agents up, so this is stated precisely: the
+merged tree was gated on its own exit codes (above), and the board was walked twice, before and
+after the merge, on a local `pnpm dev` in this worktree at port 3061.
+
+- **Before the merge, at real viewports.** The desk's session read cold as a stranger on the voice
+  ask and on the noun ask: the question, the context, the where-to-look, the labelled options with
+  what each means, the recommendation and the overrule, all without opening the board. The board at
+  a real 1440: the dock carries all three voice labels on one row, the answer block restates every
+  ask. At a real 375: the three labels wrap to a readable three-up control, `?voice=a` selected A
+  through the new ids AND the dock's counter read A's own number (23 of 65), which is the end-to-end
+  proof that the renamed control ids reach the right data. Document overflow was 0 at both widths,
+  and 0 animations ran at rest. The unfurl evidence was read out of its frame's own document and
+  carries both option labels verbatim.
+- **After the merge.** The four gates, `pnpm lab:smoke --base http://localhost:3061` (324 checks, 0
+  failing), both review dry-runs, and the served board re-checked for every label, including the two
+  late edits (the dock's counter and the ledger's slot column). The ledger was measured in the DOM:
+  the legend renders both voices by name, the five slot labels are the plain ones and none is
+  clipped.
+- **One reading was discarded as a tooling artifact, not chased.** A late DOM probe reported 307px
+  of document overflow and one running animation; the same probe reported `innerWidth: 0`, which
+  means the pane was hidden, so frames had no width and a `bv-swap-in` sat in `running` forever
+  because a hidden tab never ticks it. The real measurements are the real-viewport ones above.
+  Reduced motion is unchanged and was re-confirmed in the source: the board's only animation lives
+  inside `@media (prefers-reduced-motion: no-preference)` in `board.css`, a file this round did not
+  touch, so under `reduce` there is nothing to undo.
+
+## Record (round 6; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-15). Will answered three asks on the light board and
+stopped at two that were labels over tokens, so this round rewrote all seven of the brand voice
+board's asks as questions a stranger can answer where they meet them: each now carries what the
+thing is and where it lives on the site, where to look, and options named in words with one sentence
+on what choosing each would do. The nicknames the board had grown were glossed or deleted, in the
+asks and in the evidence alike: "the house" and "the room" became "A, a tuning of the lines we have"
+and "B, rebuilt around the album filling", "the thesis" became the site's one-line promise, "the
+unfurl" became the link preview a group chat draws, "the arc" became the home page, and the ledger's
+eyebrow and CTA became a small label and a button. The evidence was made to carry the options' own
+names, so the three voices are now one string reaching the dock, every column head, every frame
+title and the voice card at once, and the link preview, the promise pair, the rule-20 card and the
+guest section each name what a reviewer was offered. The voice switch's option ids moved onto the
+ask's so a pick previews itself, with a boundary map keeping 2,300 lines of copy from being rewritten
+by a rename. No ask id, option id, candidate, number or recommendation changed, no new evidence was
+built, and no production byte changed.
