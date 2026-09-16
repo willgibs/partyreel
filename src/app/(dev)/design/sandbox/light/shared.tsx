@@ -3,6 +3,12 @@
 import Image from "next/image";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 
+import {
+  GroundBox,
+  useMountOnApproach,
+  type Ground,
+  type Mode,
+} from "@/components/lab";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
@@ -139,6 +145,59 @@ export function useCentredCrop(
     box.scrollLeft = Math.max(0, (width - box.clientWidth) / 2);
     done.current = true;
   }, [ref, ready, width]);
+}
+
+/**
+ * A WINDOW ONTO A REAL SECTION, AT 1:1, and the one every specimen on this
+ * board uses (round seven, 2026-09-16: the cards of one job share a crop, so
+ * there is one crop).
+ *
+ * ★ A CROP IS NOT A SCALE. The section is laid out at the canvas width and this
+ * box shows as much of it as there is room for, with the rest one sideways
+ * scroll away. Every pixel inside it is the pixel the page ships, which is why
+ * a stage that zoom-fits was ruled out on a board judging light.
+ *
+ * ★ AND IT MOUNTS ON APPROACH. A board carrying a dozen real marketing sections
+ * stutters for ten seconds before it can be read; the observer runs ahead of
+ * the reader, which is one flick.
+ *
+ * ★ data-inview="true" IS LOAD-BEARING, NOT DECORATION. marketing.css keys the
+ * chapter entrance grammar off `[data-inview="true"] [data-mkt-reveal]`, and a
+ * section's own Reveal cannot reach the observer ratio it wants inside a window
+ * onto it: the copy would sit at opacity 0 for ever and the specimen would read
+ * as an empty box. Declaring the settled state on the crop is the type-scale
+ * board's own remedy, and it is the right one here too, because this board
+ * judges LIGHT and not an entrance.
+ */
+export function SectionCrop({
+  ground,
+  mode,
+  height,
+  style,
+  children,
+}: {
+  ground: Ground;
+  mode: Mode;
+  height: number;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  const [box, near] = useMountOnApproach();
+  const width = mode === "desktop" ? 1440 : 375;
+  useCentredCrop(box, near, width);
+  return (
+    <div ref={box} className="overflow-x-auto" style={{ height }}>
+      <GroundBox
+        ground={ground}
+        className="relative overflow-hidden rounded-lg"
+        style={{ width, height, ...style }}
+      >
+        <div data-inview="true" className="h-full w-full">
+          {near ? children : null}
+        </div>
+      </GroundBox>
+    </div>
+  );
 }
 
 /* ─────────────────────────  THE SITE'S OWN CLOCK  ───────────────────────── */

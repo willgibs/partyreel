@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { optionId } from "@/components/lab/board-spec";
+import { optionId, optionLabel } from "@/components/lab/board-spec";
 
 import {
   PALETTES,
@@ -790,13 +790,80 @@ describe("the catalog", () => {
   });
 
   it("declares the catalog the review reads", () => {
-    // Declaring this is the opt-in that puts the twelve on the desk as items to
-    // rule; the section, the pick and the two compare controls are held by
-    // registry.test.ts.
+    // Declaring this is the opt-in that turns the grid into the review surface;
+    // `pick-one` is round eight's: twelve variants of one thing are decided by
+    // ONE pick, so the cards are the winner ask's tiles and the real product
+    // sits under them wearing whatever is pressed. The section, the pick, the
+    // two compare controls and the winner's "none" are held by
+    // registry.test.ts; what is held here is that the shape did not drift back.
     expect(PALETTE.catalog).toEqual({
       section: "catalog",
       control: "palette",
       compare: ["compare-a", "compare-b"],
+      mode: "pick-one",
+      winner: "palette",
+      stage: "pages",
+    });
+  });
+
+  /**
+   * ★ THE WINNER ASK IS A FOURTH COPY OF THE TWELVE, and it has to be: the
+   * review scanner reads a spec as TEXT, so an `options` built by spreading
+   * `PALETTE_OPTIONS` reads as an ask with no answers at all and every ruling
+   * on a palette would be refused. So the names are written out one more time
+   * and pinned here, in order, against the same source as the dock's.
+   */
+  it("offers the same twelve in the winner ask, plus the new-directions exit", () => {
+    const ask = PALETTE.asks.find((a) => a.id === PALETTE.catalog!.winner)!;
+    expect(ask.options.map(optionId)).toEqual([
+      ...PALETTES.map((p) => p.id),
+      "none",
+    ]);
+    expect(ask.options.map(optionLabel)).toEqual([
+      ...PALETTES.map((p) => p.name),
+      "None of these",
+    ]);
+    expect(ask.recommended).toBe(RECOMMENDED_PALETTE.id);
+  });
+
+  /**
+   * A STEP HAS TO SAY WHAT IT DECIDES, or a reviewer is picking a look with no
+   * idea what it costs. Every ask and every card carries `lands` from round
+   * eight, and a pick-one catalog needs the cards' lines most: they are not
+   * ruled one by one, so the card IS where "what this would change" is read.
+   */
+  it("says what every ask and every card lands as", () => {
+    for (const a of PALETTE.asks)
+      expect(a.lands, `ask ${a.id} lands as nothing`).toBeTruthy();
+    for (const c of PALETTE.candidates)
+      expect(c.lands, `card ${c.id} lands as nothing`).toBeTruthy();
+  });
+
+  /**
+   * ★ THE FOUR SWITCHES LEFT THE DOCK (round eight). `accent`, `reach`, `card`
+   * and `faint` each serve exactly ONE question, so they are that question's
+   * option states and its `control` mirror rather than pills a reviewer has to
+   * find and guess at. They stay DECLARED because an option's state must name a
+   * declared control (registry.test.ts refuses an undeclared key); what proves
+   * they left is that no step puts them on its config strip. The accent is the
+   * one exception, on the pick, so a palette can be judged with and without the
+   * hue it declares.
+   */
+  it("keeps every one-question switch off the steps' config strips", () => {
+    const stripped = new Set(PALETTE.asks.flatMap((a) => a.strip ?? []));
+    expect([...stripped].sort()).toEqual(["accent", "canvas"]);
+    for (const id of ["reach", "card", "faint"] as const) {
+      const ask = PALETTE.asks.find((a) => a.control === id)!;
+      expect(ask, `${id} mirrors no ask`).toBeTruthy();
+      expect(
+        ask.options.every((o) => typeof o === "object" && o.state?.[id]),
+        `${id}: an option of ${ask.id} carries no state`,
+      ).toBe(true);
+    }
+    // And the reach is meaningless until an accent is on, so it waits.
+    expect(PALETTE.asks.find((a) => a.id === "reach")!.after).toEqual({
+      ask: "accent",
+      option: "own",
     });
   });
 
