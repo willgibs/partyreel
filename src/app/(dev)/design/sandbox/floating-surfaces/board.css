@@ -40,6 +40,37 @@
   display: none;
 }
 
+/* -- THE STEP'S OPTION TILES ----------------------------------------------
+   A tile is a WINDOW onto the option's own specimen, drawn inside the kit's
+   1440 canvas and zoom-fitted to the tile's width (step.tsx), so the thing
+   being judged is scaled by tileWidth / 1440 and nothing a board does to its
+   frame changes that: only a WIDER tile draws a 276px menu bigger. The grid is
+   an auto-fill, so it makes as many columns as fit whatever the option count
+   is: at 1440 the kit's 240px minimum draws five columns and leaves a two
+   option ask holding two of them, a sixth of the room each. 440 is three
+   columns at 1440, the widest tile that still stands the corner's three
+   options side by side; the phone's fixed two columns are untouched.
+
+   Nothing here caps --lab-tile-h: every section a step draws is ONE small
+   specimen, so a tile's window is shorter than the kit's 200px default and
+   nothing is cropped. */
+[data-board="floating-surfaces"] {
+  --lab-tile-min: 440px;
+}
+
+/* THE STAGE'S ROW TURNS AROUND ON A PHONE. The pick is worn on four canvases in
+   one sideways row, the 1440 dashboard first because that is the argument at
+   1440. At 375 that same order opens on the left third of a desktop dashboard,
+   with every panel it is showing off screen to the right, so the row reverses
+   and the three phone canvases come first. `row-reverse` rather than an `order`
+   per frame: the row is the kit's own flex box and the board should not have to
+   know how many children it put in it. */
+@media (max-width: 639px) {
+  .flt-worn > div {
+    flex-direction: row-reverse;
+  }
+}
+
 /* The preview is a FIXED 328 wide, because that is the width being judged, and
    the grid's columns stretch to fill the room. Centring the frame is the one
    honest way to spend the difference: a specimen whose size is the argument may

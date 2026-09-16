@@ -10,7 +10,6 @@ import {
   CINEMA_BG,
   GROUND_CLASSES,
   GROUND_SET,
-  type Dim,
   type Scene as SceneId,
   type Sub,
 } from "./constants";
@@ -89,7 +88,6 @@ export function SceneShell({
   direction,
   sub,
   phone,
-  dim,
   rung,
   pinned = false,
 }: {
@@ -98,7 +96,6 @@ export function SceneShell({
   direction: Direction;
   sub: Sub;
   phone: boolean;
-  dim: Dim;
   rung?: string;
   /** This frame's ground is the EVIDENCE, so it never takes the page's. */
   pinned?: boolean;
@@ -166,7 +163,6 @@ export function SceneShell({
         direction={pushed.direction}
         sub={sub}
         phone={phone}
-        dim={dim}
         rung={rung}
       />
     </div>

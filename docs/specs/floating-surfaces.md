@@ -7,10 +7,11 @@
 > `history`; what shipped lives in the CHANGELOG.
 
 **The asks live in the board, not here.** They are `asks` in
-`src/app/(dev)/design/sandbox/floating-surfaces/spec.ts`, which is the one list the answer block, each
-section header, the Rule-on panel, the desk's queue and `pnpm lab:review`'s validation all read. A copy
-here would be a second source that goes stale the first time an option is reworded, and the review
-ledger joins on the ask id rather than on the question text.
+`src/app/(dev)/design/sandbox/floating-surfaces/spec.ts`, which is the one list the review's steps, the
+desk's queue and `pnpm lab:review`'s validation all read. A copy here would be a second source that
+goes stale the first time an option is reworded, and the review ledger joins on the ask id rather than
+on the question text. The board is decided by ONE pick (`catalog.mode: "pick-one"`): the seven cards
+are the `direction` ask's own options, with "None of these" as the new-directions exit.
 
 ## What is proposed
 
@@ -32,6 +33,12 @@ Card, Compact or Command is an edit to `src/components/ui/dropdown-menu.tsx` in 
 **The family is TEN surfaces, not nine.** `guest/entry-shell.tsx` renders a raw vaul drawer that never
 goes through `ui/drawer.tsx`, with a literal radius, and it is the floating surface most people on this
 product will ever see. Every layer reaches it through `[data-entry-drawer]`.
+
+**Where the winner lands** (the wind-down: a kept idea becomes a working version in the Library). Card
+is the `dropdown-menu` entry rebuilt, with a title, labelled groups, an icon rail and a footer rail;
+Glass is a material variant on that entry and Compact a density variant; Paper and Lift are token
+blocks; Command and Today land nothing of their own, Command's one idea being the nested-menu ask
+below. Each card carries its own line as `lands` in the spec, which is what the review shows.
 
 ## What is still open
 
