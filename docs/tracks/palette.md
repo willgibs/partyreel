@@ -114,6 +114,15 @@ never `[preview]` or `[ci]`; stage files explicitly; the `Co-Authored-By: Claude
 
 - none yet
 
+## Not mine, but blocking every lane (found merging `origin/launch-prep` at `e54ad6a9`)
+
+`pnpm test` is RED on `launch-prep` itself: `rules-registry.test.ts` fails because `a978d791` rewrote the
+home hero's line in `src/app/(dev)/design/touchpoints.ts` without regenerating `docs/design/library.md`,
+which still says "Round four: the source in its emanating direction". One `pnpm design:rules` fixes it. Not
+touched here on purpose: `docs/design/library.md` is `lp/lab-flow`'s owned path this round and it
+regenerates the artifact as part of its own work, so a second regeneration would only be a conflict. Every
+gate below is otherwise green, and every palette test passes.
+
 ## Handoff (replaces the chat report)
 
 - Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
