@@ -69,10 +69,10 @@ round of the window.
 
 | track | board | waits on |
 | --- | --- | --- |
-| `light` | `/design/lab/light` (round seven: reshaped into steps, one card at a time) | `lab-flow` for the walk |
 | `palette` | `/design/lab/palette` (round eight: pick-one, the winner from the twelve) | `lab-flow` for the walk |
 | `floating-surfaces` | `/design/lab/floating-surfaces` (round seven: pick-one, the winner from the seven) | its handoff |
 | `rounding` | `/design/lab/rounding` (round seven: pick-one, the winner from the six) | its handoff |
+| `brand-voice` | `/design/lab/brand-voice` (round seven: pick-one, the winner from the six voices) | its handoff |
 
 ## Waiting on Will
 
@@ -125,5 +125,10 @@ palette and light first), pasted in batches with Copy so far.
   integrated (round seven: a three-step walk, the winner from five or none, one real page under the pressed
   card with a second copy on a fade; 486 words; a kit finding: tiles draw inside a zoomed FitStage, so a
   1:1 tile is owed by the kit and `true-scale.tsx` retires into it).
+- `7ed0d2a2` light integrated (round seven: the twelve walked one at a time in Will's order on three
+  specimens, each drawn as today and with it, with what it lands as and its usages; the four calls as
+  tile steps; the aurora's landing staged behind keeping the aurora; 920 words, the declaration deleted;
+  the order ask renamed `second` so round five's `infusion=phase-1` stands). The agent force-pushed its
+  own branch once after amending a pushed manifest commit: no damage, a rule broken, noted.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
