@@ -533,12 +533,15 @@ function Plate({ light }: { light: "throw" | "bloom" | null }) {
 
 /** The player's canvas: the one surface declared identical in light and dark,
  *  so the lit face keeps its dark form on every ground. */
-function Canvas({ lit }: { lit: boolean }) {
+function Canvas({ lit, ring }: { lit?: boolean; ring?: boolean }) {
   return (
     <GroundBox ground="app-dark" className="overflow-hidden rounded-lg p-4">
       <div
         aria-hidden
-        className="relative overflow-hidden rounded-xl bg-gallery"
+        className={cn(
+          "relative overflow-hidden rounded-xl bg-gallery",
+          ring && "ring-1 ring-foreground/10",
+        )}
         style={{ width: 230, height: 130 }}
         data-lgt-cue={lit ? "lit" : undefined}
       >
@@ -730,7 +733,7 @@ function usageNodes(
       return [
         {
           label: "A media frame, at the heavier register",
-          node: <Canvas lit={false} />,
+          node: <Canvas ring />,
         },
       ];
     case "lift":
