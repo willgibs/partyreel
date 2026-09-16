@@ -267,8 +267,6 @@ describe("the board registry", () => {
 const PLAIN: readonly string[] = [
   "album-hero",
   "floating-surfaces",
-  "glow-doctrine",
-  "glow-moments",
   "home-hero",
   "media-kit",
   "palette",
