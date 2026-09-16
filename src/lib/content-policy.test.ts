@@ -15,7 +15,7 @@ import { describe, expect, it } from "vitest";
 //      the AST guard there are no comments to exempt (MDX comments are rare and
 //      user-invisible either way; keeping the scan total keeps it simple).
 //
-//   2. The claims scan: the T2.5 hard "must not claim" fence (docs/decisions/
+//   2. The claims scan: the T2.5 hard "must not claim" fence (in git:
 //      git show 44090827:docs/decisions/t2p5-marketing-ia.md) bans fabricated social proof (Stripe is in TEST mode:
 //      no "trusted by", no user/host counts, no testimonials), CSAM/NCMEC/
 //      law-enforcement language (counsel + ESP registration pending), and marketing

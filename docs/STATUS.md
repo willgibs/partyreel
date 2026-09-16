@@ -26,8 +26,9 @@ short planning pass: **Round 1, the lab** (in flight): the stale-stylesheet guar
 pick, edge-to-edge canvases and the catalog's shared types landed at `5cdebfe0`; two lanes cut at `28d1aa95`.
 **Round 2, the docs diet and the track protocol** (the Orchestrator's): the protocol part landed (PROGRAM.md
 is the loop, CLAUDE.md is 150 lines, the one-round manifest template, a manifest deleted at its merge),
-the record is two rounds deep and a test holds it, the 26 integrated manifests are gone; the ADR fold
-runs as the `docs-adr-fold` lane; the record pages and the systems-doc strip wait for the lab lanes. **Round 3, the Library as the complete inventory**
+the record is two rounds deep and a test holds it, the 26 integrated manifests are gone, the 25 ADRs
+are folded into the system docs and every citation names the doc (`d4ec4cff`, `aea90fd3`); the
+systems-doc strip runs as the `docs-systems-strip` lane; the record pages wait for the catalog lane. **Round 3, the Library as the complete inventory**
 (components, marketing sections and app screens with live previews, tokens; a review surface with
 keep / redesign / retire on every entry). **Round 4, the six paper boards rebuilt as catalogs**
 (brand-voice, type-scale, floating-surfaces, light, rounding, media-kit), cut once Will has walked the
