@@ -1,6 +1,10 @@
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 
-import { optionId, optionLabel } from "@/components/lab/board-spec";
+import {
+  type BoardSpec,
+  optionId,
+  optionLabel,
+} from "@/components/lab/board-spec";
 
 import { Callout } from "@/app/(dev)/design/(shell)/_shell/callout";
 import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
@@ -20,17 +24,18 @@ import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 import { SANDBOX, SURFACE_LABEL } from "@/app/(dev)/design/touchpoints";
 
 import {
-  type AskState,
   type BoardRow,
   boardWork,
   deskRows,
+  transcribedFrom,
 } from "./_desk/queue";
+import { HeldBadge } from "./_desk/held-badge";
 import { ReviewSession } from "./_desk/review-session";
 import { SAMPLE_BOARD } from "./_desk/sample-spec";
 import { type SessionStep, stepParam, toSteps } from "./_desk/session-step";
 import { CopySoFar } from "./_desk/copy-so-far";
 import { StartReview } from "./_desk/start-review";
-import { itemsStepId, stepId } from "./_desk/step-id";
+import { stepId } from "./_desk/step-id";
 
 /**
  * THE DESK (the review wave, 2026-09-14; Will's queue since the Library x Lab
@@ -55,13 +60,25 @@ const DESK_HREF = "/design/lab";
 const askHref = (board: string, ask: string) =>
   `/design/lab/${board}?session=${stepId(board, ask)}`;
 
-/** Where a catalog is ruled on: the same board, with its items step open. */
-const itemsHref = (board: string) =>
-  `/design/lab/${board}?session=${itemsStepId(board)}`;
-
 /** Where any step is answered, whichever kind it is. */
 const stepHref = (s: SessionStep) =>
   `/design/lab/${s.board}?session=${stepParam(s)}`;
+
+/** What a staged row is waiting for, in the words of the question it waits on. */
+function afterLabel(
+  step: SessionStep,
+  specOf: (board: string) => BoardSpec | undefined,
+): string {
+  const after = step.after;
+  if (!after) return "";
+  const spec = specOf(step.board);
+  if ("ask" in after) {
+    const q = spec?.asks.find((a) => a.id === after.ask)?.question;
+    return q ? `after "${q}"` : `after ${after.ask}`;
+  }
+  const name = spec?.candidates.find((c) => c.id === after.item)?.name;
+  return `after ${name ?? after.item}`;
+}
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
 
@@ -81,17 +98,13 @@ type Params = Promise<Record<string, string | string[] | undefined>>;
 const ROW =
   "flex flex-col gap-1 px-4 py-3 transition-colors duration-150 hover:bg-muted/40 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3 sm:gap-y-1";
 
-type QueueEntry =
-  | { kind: "ask"; ask: AskState }
-  | { kind: "items"; row: BoardRow };
-
-function deskQueue(rows: BoardRow[]): QueueEntry[] {
-  return rows.flatMap((row): QueueEntry[] => [
-    ...(row.openItems.length > 0 ? [{ kind: "items" as const, row }] : []),
-    ...row.open.map((ask) => ({ kind: "ask" as const, ask })),
-  ]);
-}
-
+/**
+ * ★ THE DESK'S ROWS ARE THE WALK'S STEPS (the stepped review, 2026-09-16). The
+ * queue used to be built here from the rows and the steps built again in
+ * `toSteps`, and the two disagreed the day a catalog stopped queueing its
+ * cards. One derivation now: every row IS a step, so "waiting on you" and
+ * "step 7 of 23" count the same list.
+ */
 export default async function DeskPage({
   searchParams,
 }: {
@@ -117,9 +130,11 @@ export default async function DeskPage({
     })),
   );
 
-  const queue = deskQueue(rows);
   const specOf = (board: string) => BOARDS.find((b) => b.id === board);
   const steps = toSteps(boardWork(rows), specOf, key);
+  const transcribed = transcribedFrom(rows);
+  // A staged step is listed (dim) but not counted: it is not a question yet.
+  const waiting = steps.filter((s) => !s.after || s.afterRuled).length;
 
   // The dry run: one fixture board, walked the same way, so the session can be
   // judged before a standing board carries a spec. It carries a catalog too,
@@ -143,6 +158,10 @@ export default async function DeskPage({
                 round: SAMPLE_BOARD.round.n,
                 ask,
                 answer: null,
+                // Nothing is ruled on a dry run, so a staged ask is staged
+                // until the walk itself answers what it waits on.
+                staged: Boolean(ask.after),
+                moot: false,
               })),
             },
           ],
@@ -194,7 +213,7 @@ export default async function DeskPage({
       />
       <StatRow
         stats={[
-          ["waiting on you", queue.length],
+          ["waiting on you", waiting],
           ["items to rule", `${openItemsNow} of ${itemsNow}`],
           ["answered this round", answeredNow],
           ["asked for a clearer question", unclearNow],
@@ -208,9 +227,9 @@ export default async function DeskPage({
         title="Waiting on you"
         blurb="Every catalog with a card still unruled and every question with no answer, in board order. The review walks them one at a time and ends in one message to paste."
         aside={
-          queue.length > 0 ? (
+          steps.length > 0 ? (
             <span className="flex flex-wrap items-center gap-2">
-              <CopySoFar />
+              <CopySoFar transcribed={transcribed} />
               <StartReview
                 steps={steps.map((step) => ({ step, href: stepHref(step) }))}
               />
@@ -218,62 +237,46 @@ export default async function DeskPage({
           ) : undefined
         }
       >
-        {queue.length > 0 ? (
+        {steps.length > 0 ? (
           <ol
             data-dir-stagger
             className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card"
           >
-            {queue.map((entry, i) =>
-              entry.kind === "items" ? (
+            {steps.map((step, i) => {
+              // A staged step is dim and says what it waits on: it is on the
+              // list so the reviewer can see the round has more in it, and out
+              // of the way so it is not a question he thinks he owes an answer.
+              const staged = Boolean(step.after) && !step.afterRuled;
+              return (
                 <li
-                  key={`${entry.row.id}.items`}
+                  key={stepParam(step)}
                   style={{ "--i": i } as React.CSSProperties}
+                  className={staged ? "opacity-55" : undefined}
                 >
-                  <LabLink href={itemsHref(entry.row.id)} className={ROW}>
+                  <LabLink href={stepHref(step)} className={ROW}>
                     <span className="text-xs text-muted-foreground">
-                      {entry.row.title}
+                      {step.boardTitle}
                     </span>
                     <span className="min-w-0 text-sm font-medium sm:flex-1">
-                      {`The ${entry.row.items.length} in the catalog: keep, refine or kill each one`}
+                      {step.kind === "items"
+                        ? `The ${step.items.length} in the catalog: keep, refine or kill each one`
+                        : step.question}
                     </span>
-                    <Tag>
-                      {`${entry.row.items.length - entry.row.openItems.length} of ${entry.row.items.length} ruled`}
-                    </Tag>
-                  </LabLink>
-                </li>
-              ) : (
-                <li
-                  key={`${entry.ask.board}.${entry.ask.ask.id}`}
-                  style={{ "--i": i } as React.CSSProperties}
-                >
-                  <LabLink
-                    href={askHref(entry.ask.board, entry.ask.ask.id)}
-                    className={ROW}
-                  >
-                    <span className="text-xs text-muted-foreground">
-                      {entry.ask.boardTitle}
-                    </span>
-                    <span className="min-w-0 text-sm font-medium sm:flex-1">
-                      {entry.ask.ask.question}
-                    </span>
-                    {entry.ask.answer && entry.ask.answer.choice === null ? (
-                      <Tag badge="updated">
-                        you asked for a clearer question
-                      </Tag>
+                    <HeldBadge step={step} />
+                    {staged ? (
+                      <Tag>{afterLabel(step, specOf)}</Tag>
+                    ) : step.kind === "items" ? (
+                      <Tag>{`${step.items.length} cards`}</Tag>
                     ) : (
                       <Tag>
-                        {optionLabel(
-                          entry.ask.ask.options.find(
-                            (option) =>
-                              optionId(option) === entry.ask.ask.recommended,
-                          ) ?? entry.ask.ask.recommended,
-                        )}
+                        {step.options.find((o) => o.id === step.recommended)
+                          ?.label ?? step.recommended}
                       </Tag>
                     )}
                   </LabLink>
                 </li>
-              ),
-            )}
+              );
+            })}
           </ol>
         ) : (
           <div className="rounded-xl border border-border bg-card px-4 py-4">
@@ -513,7 +516,9 @@ function BoardCard({
 
       {row.spec && row.asks.length > 0 && (
         <ul className="mt-2 flex flex-wrap gap-1.5">
-          {row.asks.map((a) => (
+          {row.asks
+            .filter((a) => !a.moot)
+            .map((a) => (
             <li key={a.ask.id}>
               <LabLink
                 href={
@@ -548,8 +553,8 @@ function BoardCard({
                   </span>
                 )}
               </LabLink>
-            </li>
-          ))}
+              </li>
+            ))}
         </ul>
       )}
 

@@ -2,6 +2,165 @@
   "version": 3,
   "components": [
     {
+      "id": "copy-so-far",
+      "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx",
+      "names": [
+        "CopySoFar"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "composes only the held answers, verdicts and notes, one line per board",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 28
+        },
+        {
+          "title": "is empty when nothing is held",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 53
+        },
+        {
+          "title": "drops a note on a board whose round it cannot know",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 59
+        },
+        {
+          "title": "omits an answer the ledger already holds with the same choice and note",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 67
+        },
+        {
+          "title": "re-includes it the moment the choice changes",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 85
+        },
+        {
+          "title": "re-includes it when only the note changed",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 99
+        },
+        {
+          "title": "omits a verdict the ledger already holds, and sends a changed one",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 115
+        },
+        {
+          "title": "sends a cleared choice's surviving note as a note on that ask",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 139
+        }
+      ]
+    },
+    {
+      "id": "session-step",
+      "file": "src/app/(dev)/design/(shell)/lab/_desk/session-step.ts",
+      "names": [
+        "SESSION_END",
+        "UNCLEAR"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is blocked while the question it waits on is undecided",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 71
+        },
+        {
+          "title": "opens once that question is answered THIS WAY in the session",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 77
+        },
+        {
+          "title": "is moot once that question went the other way",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 82
+        },
+        {
+          "title": "stays staged on 'not clear to me', which is not a decision",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 87
+        },
+        {
+          "title": "opens on a ruling from an earlier sitting, with nothing held here",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 98
+        },
+        {
+          "title": "is moot on a ruling from an earlier sitting that went the other way",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 106
+        },
+        {
+          "title": "lets this sitting's answer overrule the ledger's",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 113
+        },
+        {
+          "title": "keeps a staged step out of the walk and the rest of it in",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 120
+        },
+        {
+          "title": "is staged until the card is ruled, and moot on the other verdict",
+          "suite": [
+            "a step waiting on a catalog card"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 137
+        }
+      ]
+    },
+    {
       "id": "registry",
       "file": "src/app/(dev)/design/sandbox/registry.ts",
       "names": [
@@ -144,6 +303,107 @@
           ],
           "file": "src/components/lab/boundary.test.ts",
           "line": 88
+        }
+      ]
+    },
+    {
+      "id": "before-after",
+      "file": "src/components/lab/before-after.tsx",
+      "names": [
+        "BeforeAfter"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws one card per declared candidate, with its own line and verdict",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "folds the rationale away, because a catalog is read by looking",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 133
+        },
+        {
+          "title": "marks the preview a specimen, so the reading budget counts what is read",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "picks into the board's declared control, never into the card",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 149
+        },
+        {
+          "title": "unpicks the picked card back to a clearable control's default",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "puts a card on either side of the comparison below",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 165
+        },
+        {
+          "title": "rules a card where it stands, under the board's own round",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "links a card to the Library only once its entry really exists",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 191
+        },
+        {
+          "title": "drops its page-wide pill rows in the step's tiles mode",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 204
+        },
+        {
+          "title": "draws one card alone, as a before and after, when the walk asks for it",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 224
+        },
+        {
+          "title": "draws nothing at all for a board that declares no catalog",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 246
         }
       ]
     },
@@ -423,6 +683,7 @@
       "file": "src/components/lab/catalog.tsx",
       "names": [
         "Catalog",
+        "CatalogTiles",
         "VerdictPill"
       ],
       "specimens": [
@@ -436,7 +697,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 116
+          "line": 117
         },
         {
           "title": "folds the rationale away, because a catalog is read by looking",
@@ -444,7 +705,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 132
+          "line": 133
         },
         {
           "title": "marks the preview a specimen, so the reading budget counts what is read",
@@ -452,7 +713,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 139
+          "line": 140
         },
         {
           "title": "picks into the board's declared control, never into the card",
@@ -460,7 +721,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 148
+          "line": 149
         },
         {
           "title": "unpicks the picked card back to a clearable control's default",
@@ -468,7 +729,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 156
+          "line": 157
         },
         {
           "title": "puts a card on either side of the comparison below",
@@ -476,7 +737,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 164
+          "line": 165
         },
         {
           "title": "rules a card where it stands, under the board's own round",
@@ -484,7 +745,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 180
+          "line": 181
         },
         {
           "title": "links a card to the Library only once its entry really exists",
@@ -492,7 +753,23 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 190
+          "line": 191
+        },
+        {
+          "title": "drops its page-wide pill rows in the step's tiles mode",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 204
+        },
+        {
+          "title": "draws one card alone, as a before and after, when the walk asks for it",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 224
         },
         {
           "title": "draws nothing at all for a board that declares no catalog",
@@ -500,7 +777,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 197
+          "line": 246
         }
       ]
     },
@@ -686,10 +963,12 @@
         "ApplyBlock",
         "ApplyToSite",
         "Ask",
+        "AskAfter",
+        "AskOption",
         "Asset",
+        "BeforeAfter",
         "BoardApi",
         "BoardDock",
-        "BoardIndex",
         "BoardLinks",
         "BoardMeta",
         "BoardPage",
@@ -702,10 +981,13 @@
         "BoardState",
         "BuilderVerdict",
         "CANVAS",
+        "CARD_PARAM",
         "Candidate",
         "Catalog",
         "CatalogRenderArgs",
         "CatalogSpec",
+        "CatalogTiles",
+        "CatalogTilesMode",
         "Cell",
         "CellLabel",
         "Compare",
@@ -746,8 +1028,6 @@
         "Paste",
         "RESERVED_PARAMS",
         "ReplayButton",
-        "ReviewCard",
-        "ReviewQuestions",
         "Round",
         "Section",
         "SectionIdOf",
@@ -756,6 +1036,8 @@
         "Spot",
         "SpotCompare",
         "Stage",
+        "Step",
+        "StepBoard",
         "TRAPS",
         "Toggle",
         "Trap",
@@ -923,171 +1205,6 @@
       ]
     },
     {
-      "id": "review-card",
-      "file": "src/components/lab/review-card.tsx",
-      "names": [
-        "ReviewCard"
-      ],
-      "specimens": [
-        "/design/lab/kit"
-      ],
-      "indexed": false,
-      "contracts": [
-        {
-          "title": "asks the question in the words a stranger can answer it in",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 174
-        },
-        {
-          "title": "marks the option the board recommends, and only that one",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 185
-        },
-        {
-          "title": "counts the step across the whole queue, not this board's share",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 192
-        },
-        {
-          "title": "holds a pick where the desk's summary reads it",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 197
-        },
-        {
-          "title": "carries the note with the answer",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 213
-        },
-        {
-          "title": "sets the board's control when the ask names one, so a pick is a preview",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 226
-        },
-        {
-          "title": "leaves the board alone when the ask names no control",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 236
-        },
-        {
-          "title": "applies the ask's declared state on landing",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 244
-        },
-        {
-          "title": "records 'not clear to me' as an answer and puts the cursor in the note",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 250
-        },
-        {
-          "title": "steps inside a board without navigating",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 259
-        },
-        {
-          "title": "links the last ask of a board to the next board's first open ask",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 266
-        },
-        {
-          "title": "links the last ask of the queue to the desk's summary",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 274
-        },
-        {
-          "title": "clears a pick on a second press, and keeps the note",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 282
-        },
-        {
-          "title": "renders nothing for a session on another board",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 293
-        },
-        {
-          "title": "renders nothing when no session names an ask",
-          "suite": [
-            "the review card"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 298
-        },
-        {
-          "title": "names the section and how many cards are in it",
-          "suite": [
-            "the review card on a catalog"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 305
-        },
-        {
-          "title": "counts the verdicts as they land, and they are not on the card",
-          "suite": [
-            "the review card on a catalog"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 312
-        },
-        {
-          "title": "fills Next only once every card has a verdict",
-          "suite": [
-            "the review card on a catalog"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 319
-        },
-        {
-          "title": "steps on to the board's first ask without navigating",
-          "suite": [
-            "the review card on a catalog"
-          ],
-          "file": "src/components/lab/review-card.test.tsx",
-          "line": 336
-        }
-      ]
-    },
-    {
       "id": "specimen",
       "file": "src/components/lab/specimen.tsx",
       "names": [
@@ -1140,6 +1257,164 @@
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
           "line": 122
+        }
+      ]
+    },
+    {
+      "id": "step",
+      "file": "src/components/lab/step.tsx",
+      "names": [
+        "CARD_PARAM",
+        "Step"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "shows an option without recording it",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 235
+        },
+        {
+          "title": "records the option on a second press of the one being shown",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 247
+        },
+        {
+          "title": "clears the answer on a third press and resets the stage",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 265
+        },
+        {
+          "title": "draws every option on the board's own section, in that option's state",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 280
+        },
+        {
+          "title": "falls back to text tiles when nothing declares how to draw an option",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 289
+        },
+        {
+          "title": "asks the question in the words a stranger can answer it in",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 300
+        },
+        {
+          "title": "marks the option the board recommends, and only that one",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 311
+        },
+        {
+          "title": "carries the note with the answer",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 318
+        },
+        {
+          "title": "applies the ask's declared state on landing",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 328
+        },
+        {
+          "title": "holds Next until a question marked unclear says what was unclear",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 334
+        },
+        {
+          "title": "renders nothing for a session on another board",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 346
+        },
+        {
+          "title": "skips a staged step, and reaches it once its question is answered",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 353
+        },
+        {
+          "title": "drops a staged step as moot when its question went the other way",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 376
+        },
+        {
+          "title": "counts the walk without the staged steps",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 390
+        },
+        {
+          "title": "asks a pick-one catalog's winner on the cards themselves",
+          "suite": [
+            "a step on a catalog"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 398
+        },
+        {
+          "title": "walks a keep-any catalog one card at a time",
+          "suite": [
+            "a step on a catalog"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 412
+        },
+        {
+          "title": "keeps a catalog as ONE step whichever way it is walked",
+          "suite": [
+            "a step on a catalog"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 419
+        },
+        {
+          "title": "fills Next only once every card has a verdict",
+          "suite": [
+            "a step on a catalog"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 424
         }
       ]
     },

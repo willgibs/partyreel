@@ -1,5 +1,6 @@
 "use client";
 
+import { createContext, useContext } from "react";
 import { Check } from "lucide-react";
 
 import { withDesignKey } from "@/lib/design-gate/links";
@@ -14,6 +15,7 @@ import {
   type Candidate,
   ITEM_VERDICTS,
 } from "./board-spec";
+import { BeforeAfter } from "./before-after";
 import { ItemVerdictRow } from "./item-verdict";
 import { type Ground, GroundBox } from "./stage";
 import { useDesignKey } from "./walk";
@@ -43,10 +45,55 @@ import { useDesignKey } from "./walk";
  * can't unpick a selection to return to a non-selected state"), which is the
  * same one toggle rule the verdicts and the asks follow.
  *
+ * ★ AND THE SAME GRID IS THE STEP'S TILES (the stepped review, 2026-09-16).
+ * When a review walks a catalog, the cards ARE the options, so the step renders
+ * the board's own catalog section rather than a second rendering of the same
+ * ideas as pills: `CatalogTiles` puts the grid in tiles mode from the step,
+ * through a context, so no board's `board.tsx` has to know it is being reviewed.
+ * In tiles mode the verdict row is optional feedback rather than the question,
+ * so it waits for a hover or a focus.
+ *
  * The grid is `.lab-catalog` in design.css, an auto-fill of `--lab-catalog-min`
  * (280px) so the column count follows the room rather than a breakpoint; a
  * board whose cards need more room passes `minWidth`.
  */
+
+/**
+ * HOW THE STEP IS SHOWING THE GRID. Null everywhere else, which is the browse
+ * mode every board has had: the pick pill, the A and B pills and the verdict
+ * row, all of them always there.
+ */
+export type CatalogTilesMode = {
+  /** The card wearing the ring: the option chosen, not merely shown. */
+  chosen?: string;
+  /** The card currently on the stage below, which a press only SHOWS. */
+  shown?: string;
+  /** A press on a tile: show it, or (on the shown one) choose it. */
+  onPress?: (id: string) => void;
+  /** pick-one: the verdict row is optional feedback, so it waits for a hover. */
+  quietVerdicts?: boolean;
+  /**
+   * ONE CARD AT A TIME: the grid draws only this candidate, large, with its
+   * before/after, what keeping it lands as and the places it would be used. A
+   * keep-any catalog whose cards each need looking AT rather than looking
+   * ACROSS asks for this with `walk: "one-at-a-time"` (the stepped review,
+   * 2026-09-16), and the step walks card k of N.
+   */
+  only?: string;
+};
+
+const TilesCtx = createContext<CatalogTilesMode | null>(null);
+
+/** Puts every `Catalog` under it in the step's tiles mode. */
+export function CatalogTiles({
+  value,
+  children,
+}: {
+  value: CatalogTilesMode;
+  children: React.ReactNode;
+}) {
+  return <TilesCtx.Provider value={value}>{children}</TilesCtx.Provider>;
+}
 
 const VERDICT_STYLE: Record<BuilderVerdict, string> = {
   // Lifted from the glow boards' own pill (sandbox/glow-lab-shared.tsx), which
@@ -92,6 +139,8 @@ export function Catalog({
   state,
   setState,
   render,
+  before,
+  usages,
   ground,
   minWidth,
   className,
@@ -101,32 +150,68 @@ export function Catalog({
   setState: (patch: Record<string, string>) => void;
   /** The live preview for one card. Real components, never a picture of one. */
   render: (candidate: Candidate, args: CatalogRenderArgs) => React.ReactNode;
+  /**
+   * The SAME specimen without this card's idea, for a card walked one at a
+   * time: the step pairs it with `render` in a `BeforeAfter`. A board that
+   * cannot draw a meaningful "without" leaves it out and the card shows once.
+   */
+  before?: (candidate: Candidate, args: CatalogRenderArgs) => React.ReactNode;
+  /** Up to two real places this card would land, for the one-at-a-time walk. */
+  usages?: (candidate: Candidate, args: CatalogRenderArgs) => React.ReactNode;
   /** Paints the preview on a production ground; leave out to draw your own. */
   ground?: Ground;
   /** The narrowest a card may be before the grid drops a column (default 280). */
   minWidth?: number;
   className?: string;
 }) {
+  const tiles = useContext(TilesCtx);
   const catalog = spec.catalog;
   if (!catalog) return null;
   const pick = spec.controls?.find((c) => c.id === catalog.control);
   const [a, b] = catalog.compare ?? [];
 
+  const shown = tiles?.only
+    ? spec.candidates.filter((c) => c.id === tiles.only)
+    : spec.candidates;
+
   return (
     <div
       data-lab-catalog={spec.id}
-      className={cn("lab-catalog", className)}
+      className={cn(tiles?.only ? "min-w-0" : "lab-catalog", className)}
       style={
         minWidth
           ? ({ "--lab-catalog-min": `${minWidth}px` } as React.CSSProperties)
           : undefined
       }
     >
-      {spec.candidates.map((candidate) => {
+      {shown.map((candidate) => {
         const picked = pick ? state[pick.id] === candidate.id : false;
+        const solo = tiles?.only === candidate.id;
+        // In tiles mode the RING is the recorded choice and the press is the
+        // step's show-then-choose, so the card must not also wear the pick
+        // control's highlight: the board state changes on a mere show, and a
+        // card that looked chosen because it was merely shown is the whole
+        // thing "show versus choose" exists to separate.
+        const ringed = tiles ? tiles.chosen === candidate.id : picked;
         return (
           <article
             key={candidate.id}
+            {...(tiles?.onPress
+              ? {
+                  role: "button",
+                  tabIndex: 0,
+                  "aria-pressed": ringed,
+                  onClick: () => tiles.onPress?.(candidate.id),
+                  onKeyDown: (e: React.KeyboardEvent) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      tiles.onPress?.(candidate.id);
+                    }
+                  },
+                }
+              : {})}
+            data-lab-tile={tiles ? "" : undefined}
+            data-shown={tiles?.shown === candidate.id ? "true" : undefined}
             // ★ NOT `data-<controlId>`: BoardPage writes that on the board ROOT
             // for every declared control, so a card wearing the same attribute
             // would make any sheet selecting on it hit every card at once.
@@ -134,9 +219,13 @@ export function Catalog({
             data-picked={picked ? "true" : undefined}
             className={cn(
               "flex min-w-0 flex-col gap-3 rounded-xl border p-3 transition-colors duration-150 motion-reduce:transition-none",
-              picked
+              ringed
                 ? "border-foreground/40 bg-muted/40"
                 : "border-border bg-background",
+              tiles?.onPress &&
+                "cursor-pointer text-left outline-none focus-visible:border-foreground/40",
+              tiles && ringed && "ring-1 ring-foreground/40",
+              tiles?.shown === candidate.id && !ringed && "border-foreground/25",
             )}
           >
             <header className="flex min-w-0 items-start justify-between gap-2">
@@ -164,17 +253,33 @@ export function Catalog({
                 at. A board that paints its own ground (the palette's scoped
                 tokens) leaves `ground` out and still lands inside the marker. */}
             <div data-lab-specimen="" className="min-w-0">
-              {ground ? (
-                <GroundBox
-                  ground={ground}
-                  className="overflow-hidden rounded-lg ring-1 ring-foreground/10"
-                >
-                  {render(candidate, { picked, state })}
-                </GroundBox>
+              {solo && before ? (
+                // ★ A CARD WALKED ALONE IS JUDGED AS A DIFFERENCE. With the
+                // other eleven off the screen there is nothing to compare it
+                // to, so the "without" has to be drawn beside it or the
+                // reviewer is asked to remember a surface he last saw a step
+                // ago (the light board's round-five finding).
+                <BeforeAfter
+                  before={paint(before(candidate, { picked, state }), ground)}
+                  after={paint(render(candidate, { picked, state }), ground)}
+                />
               ) : (
-                render(candidate, { picked, state })
+                paint(render(candidate, { picked, state }), ground)
               )}
             </div>
+
+            {solo && candidate.lands && (
+              <p className="text-[11px] leading-snug">
+                <span className="text-muted-foreground">Lands as: </span>
+                {candidate.lands}
+              </p>
+            )}
+
+            {solo && usages && (
+              <div data-lab-specimen="" className="min-w-0">
+                {usages(candidate, { picked, state })}
+              </div>
+            )}
 
             {candidate.facts && candidate.facts.length > 0 && (
               <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px]">
@@ -201,6 +306,11 @@ export function Catalog({
               </details>
             )}
 
+            {/* The page-wide pills are the BROWSE mode's controls; in a step
+                the press on the tile is the pick, and a second row of the same
+                gesture is exactly the "every ask printed three times" this
+                round is deleting. */}
+            {!tiles && (
             <div className="flex flex-wrap items-center gap-1.5">
               {pick && (
                 <button
@@ -244,18 +354,44 @@ export function Catalog({
               )}
               <LibraryLink id={candidate.library} />
             </div>
+            )}
 
-            <ItemVerdictRow
-              scope={spec.id}
-              round={spec.round.n}
-              id={candidate.id}
-              name={candidate.name}
-              vocabulary={ITEM_VERDICTS}
-            />
+            <div
+              // pick-one: a verdict is optional feedback on a card that did not
+              // win, so it stays out of the eye until the reader reaches for it.
+              className={cn(
+                tiles?.quietVerdicts &&
+                  "opacity-0 transition-opacity duration-150 group-hover/card:opacity-100 hover:opacity-100 focus-within:opacity-100 motion-reduce:transition-none",
+              )}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              role="presentation"
+            >
+              <ItemVerdictRow
+                scope={spec.id}
+                round={spec.round.n}
+                id={candidate.id}
+                name={candidate.name}
+                vocabulary={ITEM_VERDICTS}
+              />
+            </div>
           </article>
         );
       })}
     </div>
+  );
+}
+
+/** The preview on its production ground, or bare when the board paints its own. */
+function paint(node: React.ReactNode, ground?: Ground) {
+  if (!ground) return node;
+  return (
+    <GroundBox
+      ground={ground}
+      className="overflow-hidden rounded-lg ring-1 ring-foreground/10"
+    >
+      {node}
+    </GroundBox>
   );
 }
 

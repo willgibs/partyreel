@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ExternalLink } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-import { ItemVerdictRow } from "@/components/lab/item-verdict";
+import { Step } from "@/components/lab/step";
 
 import { CopyButton } from "@/app/(dev)/design/(shell)/_shell/copy";
 import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
-import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
-import { registerReviewKeys, reviewKeysOwned } from "./review-keys";
 import {
   composeMessage,
   type SessionAnswer,
@@ -20,9 +18,7 @@ import {
 import {
   EMPTY_REVIEW,
   type ReviewStore,
-  setAnswerNote,
   setReviewStore,
-  toggleAnswer,
   useReviewStore,
 } from "./review-store";
 import {
@@ -151,74 +147,6 @@ export function ReviewSession({
     window.scrollTo({ top: 0 });
   };
 
-  // A second click on the picked option clears it: the store's one toggle
-  // rule, shared with the review card and the board's panel.
-  const pick = (choice: string) => {
-    if (step?.kind !== "ask") return;
-    toggleAnswer(step.board, step.round, step.askId, choice);
-  };
-
-  const setNote = (note: string) => {
-    if (step?.kind !== "ask") return;
-    setAnswerNote(step.board, step.round, step.askId, note);
-  };
-
-  // The handler the shell may route keys to; until it does, the window
-  // listener below calls it. A field has the keys while it is focused, except
-  // Escape, which always leaves.
-  const onKey = (key: string): boolean => {
-    if (atEnd || !step) return false;
-    const n = Number(key);
-    // A digit belongs to an ask's options; a catalog's verdicts live on its
-    // rows, where three words times twelve cards have no sensible numbering.
-    if (
-      step.kind === "ask" &&
-      Number.isInteger(n) &&
-      n >= 1 &&
-      n <= step.options.length
-    ) {
-      pick(step.options[n - 1].id);
-      return true;
-    }
-    if (key === "Enter" || key === "ArrowRight") {
-      goTo(at + 1);
-      return true;
-    }
-    if (key === "ArrowLeft") {
-      goTo(at - 1);
-      return true;
-    }
-    return false;
-  };
-
-  // The handler changes every render (it closes over the step and the store),
-  // so a ref carries the current one and both listeners register exactly once.
-  const latest = useRef(onKey);
-  useEffect(() => {
-    latest.current = onKey;
-  });
-
-  useEffect(() => registerReviewKeys((key) => latest.current(key)), []);
-
-  useEffect(() => {
-    if (reviewKeysOwned()) return;
-    const handler = (event: KeyboardEvent) => {
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      const el = event.target as HTMLElement | null;
-      const typing =
-        el?.tagName === "INPUT" ||
-        el?.tagName === "TEXTAREA" ||
-        el?.isContentEditable === true;
-      if (typing) {
-        if (event.key === "Escape") el?.blur();
-        return;
-      }
-      if (latest.current(event.key)) event.preventDefault();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, []);
-
   const { answers, items, notes } = useMemo(() => {
     const answers: SessionAnswer[] = [];
     const items: SessionItem[] = [];
@@ -302,247 +230,20 @@ export function ReviewSession({
         </p>
       )}
 
-      {!atEnd && step && (
-        <article
-          key={stepParam(step)}
-          data-dir-enter
-          className="mt-8"
-          style={{ "--dir-duration": "180ms" } as React.CSSProperties}
-        >
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <LabLink
-              href={step.boardHref}
-              className="text-xs font-medium text-muted-foreground hover:text-foreground"
-            >
-              {step.boardTitle}
-            </LabLink>
-            <Tag>{`round ${step.round}`}</Tag>
-          </div>
-          {step.kind === "items" ? (
-            <>
-              <h2 className="mt-1.5 font-heading text-2xl tracking-tight text-balance">
-                Rule on the {step.items.length} in {step.sectionTitle}
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed">
-                A catalog is ruled card by card: keep it, refine it, or kill it,
-                with a note where the word is not enough. A second press on the
-                same word clears it and the note stays; an unruled card is left
-                out of the message.
-              </p>
-              {step.evidence && (
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                  <span className="font-medium text-foreground/80">
-                    Where to look:{" "}
-                  </span>
-                  <a
-                    href={step.evidence.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 underline underline-offset-2"
-                  >
-                    Open {step.evidence.title}
-                    <ExternalLink className="size-3 opacity-60" aria-hidden />
-                  </a>
-                  , where each card carries this same row under its preview.
-                </p>
-              )}
-              <ul className="mt-5 space-y-2">
-                {step.items.map((item) => (
-                  <li
-                    key={item.id}
-                    className="rounded-xl border border-border bg-card px-3 py-2.5"
-                  >
-                    <p className="flex flex-wrap items-baseline gap-x-2 text-sm font-medium">
-                      {item.name}
-                      {item.verdict && (
-                        <Tag className="shrink-0">{`the board says ${item.verdict}`}</Tag>
-                      )}
-                    </p>
-                    {item.one && (
-                      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                        {item.one}
-                      </p>
-                    )}
-                    <ItemVerdictRow
-                      className="mt-2"
-                      scope={step.board}
-                      round={step.round}
-                      id={item.id}
-                      name={item.name}
-                      vocabulary={step.vocabulary}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <>
-              <h2 className="mt-1.5 font-heading text-2xl tracking-tight text-balance">
-                {step.question}
-              </h2>
-              {step.context && (
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed">
-                  {step.context}
-                </p>
-              )}
-              {(step.look || step.evidence) && (
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                  <span className="font-medium text-foreground/80">
-                    Where to look:{" "}
-                  </span>
-                  {step.look}
-                  {step.evidence && (
-                    <>
-                      {step.look ? " " : ""}
-                      <a
-                        href={step.evidence.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 underline underline-offset-2"
-                      >
-                        Open {step.evidence.title}
-                        <ExternalLink
-                          className="size-3 opacity-60"
-                          aria-hidden
-                        />
-                      </a>
-                    </>
-                  )}
-                </p>
-              )}
-
-              <ul className="mt-5 space-y-1.5">
-                {step.options.map((option, i) => {
-                  const chosen =
-                    store.answers[askKey(step)]?.choice === option.id;
-                  return (
-                    <li key={option.id}>
-                      <button
-                        type="button"
-                        data-dir-press
-                        onClick={() => pick(option.id)}
-                        aria-pressed={chosen}
-                        className={cn(
-                          "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors duration-150",
-                          chosen
-                            ? "border-foreground/40 bg-card"
-                            : "border-border hover:bg-muted/40",
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "mt-px inline-flex size-5 shrink-0 items-center justify-center rounded-md border text-[11px] tabular-nums transition-colors duration-150",
-                            chosen
-                              ? "border-transparent bg-foreground text-background"
-                              : "border-border text-muted-foreground",
-                          )}
-                          aria-hidden
-                        >
-                          {chosen ? <Check className="size-3" /> : i + 1}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-sm font-medium break-words">
-                            {option.label}
-                          </span>
-                          {option.means && (
-                            <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
-                              {option.means}
-                            </span>
-                          )}
-                        </span>
-                        {option.id === step.recommended && (
-                          <Tag className="shrink-0">the board says</Tag>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {step.because && (
-                <p className="mt-3 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-                  <span className="font-medium text-foreground/70">
-                    Why the board says so:{" "}
-                  </span>
-                  {step.because}
-                </p>
-              )}
-              {step.overrule && (
-                <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-                  <span className="font-medium text-foreground/70">
-                    What would change it:{" "}
-                  </span>
-                  {step.overrule}
-                </p>
-              )}
-
-              <label className="mt-4 block">
-                <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-                  Your note
-                </span>
-                <textarea
-                  rows={2}
-                  value={store.answers[askKey(step)]?.note ?? ""}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Optional. It rides the answer into the ledger."
-                  className="mt-1 w-full resize-y rounded-xl border border-border bg-card px-3 py-2 text-sm transition-colors duration-150 outline-none placeholder:text-muted-foreground/70 focus:border-foreground/40"
-                />
-              </label>
-
-              {/* "?" is recorded, not skipped: the ledger then says which question
-                failed and why, and the board owes a clearer one. */}
-              <button
-                type="button"
-                data-dir-press
-                aria-pressed={store.answers[askKey(step)]?.choice === UNCLEAR}
-                onClick={(e) => {
-                  pick(UNCLEAR);
-                  const field = (
-                    e.currentTarget.parentElement as HTMLElement
-                  )?.querySelector("textarea");
-                  field?.focus();
-                }}
-                className={cn(
-                  "mt-2 rounded-lg border border-dashed px-3 py-1.5 text-xs font-medium transition-colors duration-150",
-                  store.answers[askKey(step)]?.choice === UNCLEAR
-                    ? "border-foreground/40 bg-card text-foreground"
-                    : "border-border text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {store.answers[askKey(step)]?.choice === UNCLEAR
-                  ? "Marked as not clear: say what was unclear in the note"
-                  : "This question is not clear to me"}
-              </button>
-            </>
-          )}
-
-          <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
-            <button
-              type="button"
-              data-dir-press
-              onClick={() => goTo(at - 1)}
-              disabled={at === 0}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition-colors duration-150 hover:bg-muted/40 disabled:opacity-40"
-            >
-              <ArrowLeft className="size-3.5" />
-              Back
-            </button>
-            <button
-              type="button"
-              data-dir-press
-              onClick={() => goTo(at + 1)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-opacity duration-150 hover:opacity-90"
-            >
-              {stepDone(step, store) ? "Next" : "Skip"}
-              <ArrowRight className="size-3.5" />
-            </button>
-          </div>
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            {step.kind === "items"
-              ? `Keys: Enter goes on, the arrows step. ${stepHeld(step, store).held} of ${stepHeld(step, store).of} ruled.`
-              : `Keys: 1 to ${step.options.length} picks, Enter goes on, the arrows step.`}
-          </p>
-        </article>
+      {/* ★ ONE STEP SURFACE, TWO PLACES IT IS MOUNTED (the stepped review,
+          2026-09-16). The dry run and a board's own page walk the SAME `Step`:
+          away from a board there is no `evidence` function, so its tiles are
+          the options in words and its stage is nothing, which is exactly the
+          graceful degradation a fixture board needs. The desk keeps what only
+          it can own: the summary, and the message. */}
+      {!atEnd && (
+        <div className="mt-8">
+          <Step
+            steps={steps}
+            param={param}
+            onEnd={() => goTo(steps.length)}
+          />
+        </div>
       )}
 
       {atEnd && (

@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from "react";
 
+import type { Transcribed } from "@/app/(dev)/design/(shell)/lab/_desk/review-message";
 import type { SessionStep } from "@/app/(dev)/design/(shell)/lab/_desk/session-step";
 
 /**
@@ -25,6 +26,8 @@ export type BoardReview = {
   steps: readonly SessionStep[];
   /** The `session` value the route read, `<board>.<ask>`. */
   param: string | null;
+  /** What the ledger already holds, so "Copy so far" omits what was sent. */
+  transcribed?: Transcribed;
 };
 
 export type BoardPageContextValue = {
