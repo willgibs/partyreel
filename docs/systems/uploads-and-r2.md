@@ -13,7 +13,7 @@ grid + lightbox, presigned server-side. Two upload identities share one pipeline
 caption — display name, a **Host** badge, or **Anonymous** + an info popover — with the uploader's **email shown
 on the HOST gallery only**.
 
-**Tile previews (client-generated, 2026-06-22).** Galleries served full-res ORIGINALS on every tile (slow cold
+**Tile previews (client-generated).** Galleries served full-res ORIGINALS on every tile (slow cold
 loads, high bandwidth). Now the BROWSER generates a small ~640px **WebP** preview at upload — photos via
 `createImageBitmap`-resize, videos via a canvas frame-grab (~0.1s in) of the local file — and uploads it as the
 reserved `preview` R2 variant (a 2nd presigned PUT); `media.preview_key` is recorded at `create_media`.
@@ -27,7 +27,7 @@ the pure sizing math: [`upload/preview.ts`](../../src/lib/upload/preview.ts) +
 [`media/preview-size.ts`](../../src/lib/media/preview-size.ts). (A server-side BACKFILL of previews for existing
 media is a deferred follow-on.)
 
-**Metadata strip (client-side, 2026-07-02).** Phone originals carry GPS + device EXIF, and originals are served
+**Metadata strip (client-side).** Phone originals carry GPS + device EXIF, and originals are served
 byte-for-byte (lightbox, per-item Save, zip export) — a location leak. `uploadFile()` step 0 now strips
 identifying metadata BEFORE any size is read (the presigned PUT binds Content-Length to the declared size, so
 the stripped bytes must be what measure → validate → preview → presign → PUT all see), covering guest AND host
@@ -53,7 +53,7 @@ Pre-strip objects are swept by the one-off [`scripts/backfill-strip-exif.mjs`](.
 (dry-run by default; `--live` PUTs stripped bytes under the same key and decrements `media.file_size_bytes` +
 `profiles.storage_used_bytes` + the upload-month `storage_ledger` row to keep the cap meters honest).
 
-**Download all (zip export, 2026-06-22).** Per-item Save streams ONE original (`presignDownload` attachment
+**Download all (the zip export).** Per-item Save streams ONE original (`presignDownload` attachment
 URL); **"Download all"** zips a whole album. Heavy/streaming work runs OFF Vercel on a separate **streaming
 export Worker** ([`workers/export/`](../../workers/export), `partyreel-export`, deployed via `wrangler`).
 The flow: the browser hits a Next **mint route** (host [`/api/export/host`](../../src/app/api/export/host),
@@ -84,7 +84,7 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
 - Routes: guest [`/api/r2/presign-upload`](../../src/app/api/r2) + `/complete-upload`; host
   [`/api/host/r2/`](../../src/app/api/host/r2) `presign-upload` + `complete-upload` — all four are THIN
   strategy adapters over the ONE pipeline engine
-  [`upload/server-pipeline.ts`](../../src/lib/upload/server-pipeline.ts) (Phase 3): the engine owns the
+  [`upload/server-pipeline.ts`](../../src/lib/upload/server-pipeline.ts): the engine owns the
   shared spine (parse → zod → server-side classify/ext → `validateUpload` → key build →
   single/multipart presign; complete: multipart sum/abort guard → assemble → R2-HEAD → create RPC →
   forensic capture: one deny-all `upload_forensics` row per success, best-effort-but-loud —
@@ -138,7 +138,7 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   of gallery presigns the same treatment. (Found live 2026-07-21; note R2 403s also omit CORS headers,
   so an EXPIRED presign probed via CORS fetch masquerades as a CORS failure.)
 - **Never expose raw R2 keys/URLs to the browser** — presign server-side via the shared `toGridItems`;
-  the render routes are `force-dynamic`. **Gallery read presigns are STABLE (Phase 3):**
+  the render routes are `force-dynamic`. **Gallery read presigns are STABLE:**
   `presignDownload({ stable: true })` pins the SigV4 signing date to the current 30-min bucket
   ([`r2/presign-bucket.ts`](../../src/lib/r2/presign-bucket.ts)), so two presigns of the same key in a
   bucket are byte-identical — the browser image cache works across refetches and the gallery ETag rolls

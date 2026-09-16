@@ -38,7 +38,7 @@ one `profiles` row per signup.
 - Supabase's **OAuth Server** (project-as-IdP beta toggle) stays **OFF** — Partyreel is a client of Google
   OAuth, not an IdP.
 - **`profiles` is host-writable only on `email`, `announcements_seen_at`, `welcomed_at`** (the `grant
-  update(...)` allowlist); `display_name` (Phase 1: client UPDATE revoked, see the display-name gotcha below),
+  update(...)` allowlist); `display_name` (client UPDATE revoked, see the display-name gotcha below),
   `tier` / `storage_*` / `is_admin` / `stripe_*` / `avatar_updated_at` / `password_set_at` are service-role /
   webhook only. → [database-security.md](database-security.md).
 - The password hash never leaves the DB: `has_password` / `verify_current_password` are authenticated-only
@@ -116,7 +116,7 @@ one `profiles` row per signup.
   ([`getHostAvatarUrl`](../../src/lib/db/queries/guest-events-admin.ts)) keyed on `events.host_id` — no
   anon-RPC change. Bytes ride Supabase infra durability (separate from the R2 media WORM backup), not pg_dump;
   derivable, so that's by design.
-- **Display name is REQUIRED, public, and service-role-write-only (Phase 1).** `handle_new_user`
+- **Display name is REQUIRED, public, and service-role-write-only.** `handle_new_user`
   leaves `display_name` NULL for ALL signups (incl. OAuth — it no longer copies `full_name`/`name`), so null
   genuinely means "not set"; the host onboarding step + the guest upload name step then collect it, PREFILLING
   the input from `user_metadata.full_name` for OAuth (so even a Google name passes through the one filter). The

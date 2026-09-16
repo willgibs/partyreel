@@ -84,17 +84,17 @@ freshness, kept HONEST (only the paths whose rendered data the action changed), 
   `/dashboard/[eventId]` + `/dashboard` (cards render name/date/visibility; the Uploads/Trash tabs
   live on `/dashboard`).
 - **Password + slug actions** → `/dashboard/[eventId]` ONLY (the dashboard card badge derives from
-  the visibility ENUM, never the hash; cards never render the slug). Trimmed in Phase 3.
+  the visibility ENUM, never the hash; cards never render the slug).
 - **Moderation/media actions** (`[eventId]/actions.ts`) → `/dashboard/[eventId]` (+ `/dashboard`
   where the Uploads tab is affected). **Admin actions** → their own `/admin/*` paths.
 - The guest gallery is NOT in this system: it's client-fetched via the conditional poll + doorbell
   (→ [guest-flow.md](guest-flow.md)); `router.refresh()` appears only in guest in-page auth flows.
 
-**`cacheComponents` / `"use cache"` is consciously DEFERRED** (Phase 3 decision): enabling it
+**`cacheComponents` / `"use cache"` is consciously DEFERRED:** enabling it
 inverts the dynamic-by-default contract app-wide (every dynamic read must move behind `"use cache"`
-or explicit Suspense), a forced refactor that would fight the Phase 4-6 surface decompositions.
+or explicit Suspense), a forced refactor that would fight the surface decompositions still in flight.
 Revisit post-launch when the surfaces are final. Streaming today = plain `<Suspense>`/`loading.tsx`
-(the guest gallery + the dashboard skeletons, Phase 3).
+(the guest gallery + the dashboard skeletons).
 
 **★ Host-page hydration is fragile + fails SILENTLY in prod (dev masks it).** The `(app)` pages have a
 "rendered-but-never-client-hydrated, zero console errors" failure mode (first seen in the S1 dashboard

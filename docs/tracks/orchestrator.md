@@ -61,7 +61,11 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 
 | track | board | waits on |
 | --- | --- | --- |
-| `docs-systems-strip` | none (the four heavy system docs stripped to the system and its invariants; every ★ audited) | its handoff |
+| `brand-voice` | `/design/lab/brand-voice` (the voice on two dozen real spots, two at once) | its handoff |
+| `type-scale` | `/design/lab/type-scale` (the ladders side by side, two on real UI) | its handoff |
+| `floating-surfaces` | `/design/lab/floating-surfaces` (the directions as cards, the desk under two) | its handoff |
+| `light` | `/design/lab/light` (the twelve treatments on the real sections) | its handoff |
+| `rounding`, `media-kit` | cut at `385cfa99`, spawned as slots free | a slot |
 
 ## Waiting on Will
 
@@ -82,5 +86,7 @@ him: a walk of the palette catalog once `lab-catalog` integrates, then the six c
   the proof; the review grammar's item and library lines landed in docs/reviews/README.md); the Library's
   record pages and docs/decisions/design-record.md deleted (`kind: "record"` is gone from links.ts; a
   ruling's home is docs/design/rulings.md and the board's answer block; /design/record 307s to the rulings).
+- `0a48db70` docs-systems-strip integrated (the four heavy docs stripped, 118 dated passages to 25, the ★
+  audit; the arrival heading renamed with its `lives` anchor; the rulings' two dangling anchors fixed).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
