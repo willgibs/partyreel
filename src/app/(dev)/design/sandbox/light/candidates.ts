@@ -353,3 +353,43 @@ export const LIGHT_CANDIDATES = [
   AURORA_REGISTER,
   PAPER_FIVE,
 ] as const;
+
+/* ─────────────────────────  THE PUBLISH BEAT (round six)  ───────────────── */
+
+/**
+ * THE PUBLISH FLOURISH, LEANED TO 305.
+ *
+ * ★ IT IS A RATIFIED VALUE BEING MOVED, WHICH IS WHY IT IS ASKED RATHER THAN
+ * TAKEN. `@keyframes rxp-pubglow` flashes oklch(0.62 0.2 300), the --reel
+ * action hue, and returns to `transparent`: the beat leaves the object exactly
+ * as it found it. The proposal moves the hue five degrees onto the lamp set's
+ * own violet and lands the beat on a resting inset rather than on nothing, so
+ * the frame stays faintly lit afterwards, which is what every other mark in the
+ * kit does.
+ *
+ * ★ A KEYFRAME CANNOT BE OVERRIDDEN BY A TOKEN, so this re-declares the whole
+ * animation. An unlayered candidate block is rendered after every author sheet
+ * and a later @keyframes of the same name replaces the earlier one outright,
+ * which is exactly the behaviour a paste wants here.
+ */
+export const PUBLISH_LEAN: LightCandidate = {
+  label: "Light: the publish beat, leaned to 305",
+  what: "The publish flourish flashes the lamp set's violet instead of the reel's action hue, and decays to a soft resting inset rather than to nothing.",
+  pages: "The reel's publish moment, on an event you own",
+  css: `/* THE PUBLISH BEAT (light board, the mark job).
+   Five degrees, and a base. The hue joins the lamp set instead of borrowing
+   the action colour, and the beat decays to a resting inset so the object
+   stays lit after the moment, which is what a bloom is for. */
+
+@keyframes rxp-pubglow {
+  0% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+  35% {
+    box-shadow: inset 0 0 46px 2px oklch(0.62 0.2 305 / 0.55);
+  }
+  100% {
+    box-shadow: inset 0 0 22px 1px oklch(0.62 0.2 305 / 0.14);
+  }
+}`,
+};

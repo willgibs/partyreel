@@ -1,45 +1,298 @@
-import { defineBoard } from "@/components/lab/board-spec";
+import { type Candidate, defineBoard } from "@/components/lab/board-spec";
 
 /**
- * THE LIGHT BOARD, AS DATA (the kit round, 2026-09-15; the asks rewritten in
- * plain words the same night, the clarity round).
+ * THE LIGHT BOARD, AS DATA (round six, the revamp, 2026-09-16).
  *
- * Nothing here is new argument: every ask, candidate, departure and asset is the
- * round-four board's, moved out of `board.tsx` and out of `BoardMeta`'s prop
- * strings so that the template, the desk, the record and the review ledger read
- * ONE list. What changed is where a reviewer meets them: the verdict and the
- * nine calls are now the first screen instead of the last.
+ * ★ THE ROUND IS A SUBTRACTION, AND WILL'S TWO NON-ANSWERS ARE THE BRIEF.
+ * Round five asked nine questions and he answered three: the kit lands, phase 1
+ * first, the aurora sits at the Accent register ("identity feels way too
+ * weak"). Two he refused, and both for the same reason, which is that a board
+ * asked him to rule on something he could not SEE:
  *
- * ★ THIS IS THE EXEMPLAR OF AN ASK IN PLAIN WORDS. Will's first review answered
- * three of these and stopped at two ("The aurora's placement: no | seam | both
- * | room": "am I being asked what aurora placement within the footer? Or what
- * aurora replacement looks better in general?"). So every ask is a question a
- * stranger can answer: what the thing is (`context`), where to look (`look`),
- * each option in words with what choosing it does, and the dock state that
- * shows it. The ids never changed: the ledger joins on them.
+ *   the aurora   "am I being asked what aurora placement within the footer? Or
+ *                what aurora replacement looks better in general?"
+ *   the depth    "hard to visibly tell what Family and Lift are from the
+ *                previews."
+ *
+ * So neither is a question any more. The depth cues ARE two of the twelve cards
+ * (lift and float), so "the family" is two keeps, "the lift only" is a keep and
+ * a kill, and "no shadow in dark" is two kills: a ruling nobody has to decode.
+ * The aurora is a card too, with a page-wide Landing switch and a two-way
+ * compare under it, so where it lands is something to look at rather than a
+ * token to pick. The lit-face ask went the same way: adopt, adapt and drop are
+ * keep, refine and kill on the `face` card.
+ *
+ * ★ AND THE ARGUMENT COLLAPSED. Round five's board weighed 10,164 words outside
+ * its folds, the second heaviest in the lab. The doctrine grid, the composer's
+ * essay, the six infusion phases and the five measurements are gone as PROSE
+ * and present as evidence: twelve cards, one compare, four calls, the real
+ * pages and the paste. Nothing was withdrawn; it is underneath, folded, which
+ * is where an argument belongs once there is an answer above it.
  *
  * Pure data on purpose (registry.test.ts enforces it): the board route is a
  * SERVER page and reads the question for its header, so a spec that imported
  * React or the board's sheet would drag a client tree into a server render.
  */
+
+/**
+ * THE TWELVE, WRITTEN OUT (the revamp, 2026-09-16).
+ *
+ * ★ NEVER A `.map` OVER `kit.ts`, and the palette board learned this twice.
+ * `pnpm lab:review` reads a spec as TEXT rather than importing it (so an ask
+ * can be validated with no build step) and resolves `candidates: ITEMS` exactly
+ * one hop to this const; a `.map` reads as no items at all, so every ruling on
+ * a card would be refused.
+ *
+ * What lives in `kit.ts` is the treatment's structure, its place and its mount.
+ * What lives HERE is the words on the card and the four facts a reviewer
+ * compares across twelve of them: where it lands, what it costs a frame, the
+ * register it runs at, and what it leaves on screen when it is not running.
+ * The `verdict` is the BOARD's own call, drawn as the card's pill; Will answers
+ * each card keep, refine or kill in the row under it.
+ */
+const ITEMS: readonly Candidate<
+  "catalog" | "compare" | "open" | "pages" | "paste"
+>[] = [
+  /* ── SEPARATE ─────────────────────────────────────────────────────────── */
+  {
+    id: "step",
+    name: "The step",
+    one: "A surface one token lighter than the one under it. The cheapest separation, and it costs no paint.",
+    verdict: "ship",
+    facts: [
+      ["Lands", "Every card, panel and well"],
+      ["Frame", "Nothing: no paint"],
+      ["Register", "Achromatic, one token"],
+      ["At rest", "Its only state"],
+    ],
+    rationale:
+      "The floor the other three sit on. Nothing else is reached for until the step is not enough.",
+  },
+  {
+    id: "ring",
+    name: "The ring",
+    one: "A hairline that states an edge without implying height. 77 uses, and written down nowhere until now.",
+    verdict: "ship",
+    facts: [
+      ["Lands", "Cards, panels, frames, inputs"],
+      ["Frame", "Nothing: no paint"],
+      ["Register", "5 percent, 10 on media"],
+      ["At rest", "Its only state"],
+    ],
+    rationale:
+      "The fourth depth technique, in no document. Naming it is the whole change.",
+  },
+  {
+    id: "lift",
+    name: "Lift",
+    one: "A soft shadow under two things of the same lightness that overlap. Dark has never had one.",
+    verdict: "ship",
+    recommended: true,
+    facts: [
+      ["Lands", "Stacked media, the host's tiles"],
+      ["Frame", "Nothing: a static shadow"],
+      ["Register", "0.45 / 0.55 dark, paper unmoved"],
+      ["At rest", "Its only state"],
+    ],
+    rationale:
+      "Six percent of black over a near-black room is invisible, which is why dark reads as shadowless. Raise the alpha and the family works.",
+    departures: [
+      {
+        id: "dark-shadow",
+        from: 10,
+        text: "A shadow in DARK. The elevation contract reads 'Dark: NO shadows anywhere' and --shadow-float is zeroed there. On a light ground lift is the shipped value to the byte, so paper does not move.",
+        evidence: "catalog",
+      },
+    ],
+  },
+  {
+    id: "float",
+    name: "Float",
+    one: "The same shadow at double the offsets, under a menu or a dialog that a page keeps living behind.",
+    verdict: "ship",
+    facts: [
+      ["Lands", "Menus, dialogs, sheets, toasts"],
+      ["Frame", "Nothing: a static shadow"],
+      ["Register", "0.50 / 0.62 dark, paper unmoved"],
+      ["At rest", "Its only state"],
+    ],
+    rationale:
+      "A layer has to detach from content still living behind it, in both modes. A flat surface takes neither.",
+  },
+  {
+    id: "face",
+    name: "The lit face",
+    one: "A thin bright edge on a surface catching light: a media frame, a screen, the QR plate.",
+    verdict: "refine",
+    facts: [
+      ["Lands", "Gallery canvas, plates, screens"],
+      ["Frame", "Nothing: two inset lines"],
+      ["Register", "9 percent inset, 6 percent lip"],
+      ["At rest", "Its only state"],
+    ],
+    rationale:
+      "Material rather than elevation, fenced to three surfaces so it never becomes a fifth way of separating things.",
+    departures: [
+      {
+        id: "ring-lift",
+        from: "precedent",
+        text: "The ring and the lit face both have production uses and no document. Writing them down makes four techniques official where two were.",
+        evidence: "catalog",
+      },
+    ],
+  },
+
+  /* ── FILL ─────────────────────────────────────────────────────────────── */
+  {
+    id: "seam",
+    name: "The seam",
+    one: "The footer's own light: a band at full strength where two grounds meet, falling away from the edge.",
+    verdict: "ship",
+    facts: [
+      ["Lands", "The footer, the strip, a screen"],
+      ["Frame", "One filtered band, always"],
+      ["Register", "210px, 0.62 base and band"],
+      ["At rest", "The base stays lit"],
+    ],
+    rationale:
+      "The one lamp everyone likes, and illegal under the law that opens the doctrine today.",
+  },
+  {
+    id: "throw",
+    name: "The throw",
+    one: "A cast thrown from a point on the object, so a plate on open dark sits on its own light.",
+    verdict: "refine",
+    facts: [
+      ["Lands", "A plate or card on open dark"],
+      ["Frame", "One filtered field, always"],
+      ["Register", "0.50 base, 0.50 band"],
+      ["At rest", "The base stays lit"],
+    ],
+    rationale:
+      "A rim has no vector, which is the one shape the doctrine refuses. An origin anchor makes the same light legal.",
+  },
+  {
+    id: "aurora",
+    name: "The aurora",
+    one: "The footer's light grown to the size of a chapter: a field at a section's own two edges.",
+    verdict: "refine",
+    facts: [
+      ["Lands", "One media-less chapter a page"],
+      ["Frame", "Two filtered bands, always"],
+      ["Register", "Accent: 0.30 dark, 0.52 paper"],
+      ["At rest", "The base stays lit"],
+    ],
+    rationale:
+      "The fill job at chapter scale, and the one thing none of the three explorations had a name for.",
+    departures: [
+      {
+        id: "per-section-temperature",
+        from: 3,
+        text: "The aurora lets a section retune --lamp-* for everything inside it. Bible 3 holds (light, never UI), but a per-section temperature is a new licence and it is the aurora's whole identity claim.",
+        evidence: "compare",
+      },
+    ],
+    assets: [
+      {
+        what: "A grain tile, so the aurora stops banding",
+        spec: "Seamless monochrome noise, 256x256 PNG-8, one-pixel grain, neutral, mean 50 percent grey, used at 5 percent and laid out at 128 CSS px on a 2x screen.",
+        replaces:
+          "the inline feTurbulence stand-in in board.css ([data-lgt-grain]).",
+      },
+    ],
+  },
+
+  /* ── MARK ─────────────────────────────────────────────────────────────── */
+  {
+    id: "sweep",
+    name: "The sweep",
+    one: "A comet and a phase-locked edge ring, so an object reads as arriving from outside the frame.",
+    verdict: "refine",
+    facts: [
+      ["Lands", "An upload landing, an arrival"],
+      ["Frame", "Two layers for 6s, then none"],
+      ["Register", "0.60 band over a 0.35 base"],
+      ["At rest", "Nothing: the beat ends"],
+    ],
+    rationale:
+      "Half the engine's recipe never shipped: we took the comet and left the edge ring behind.",
+  },
+  {
+    id: "bloom",
+    name: "The bloom",
+    one: "A one-shot that decays to a base and never to nothing, so the object stays lit after the beat.",
+    verdict: "refine",
+    facts: [
+      ["Lands", "The publish beat, the QR plate"],
+      ["Frame", "One layer, 700ms, then none"],
+      ["Register", "0.85 peak, decaying to 0.25"],
+      ["At rest", "The object stays lit"],
+    ],
+    rationale:
+      "A beat that decays to nothing leaves the object exactly as it was. A base is what makes a moment worth having.",
+    departures: [
+      {
+        id: "publish-violet",
+        from: "ruling",
+        text: "The publish flourish's hue 300 becomes the lamp set's 305 and decays to a base rather than to nothing. A ratified value moved five degrees, so it is asked rather than taken.",
+        evidence: "open",
+      },
+    ],
+  },
+  {
+    id: "halo",
+    name: "The halo",
+    one: "An object lit from behind: colour creeps in at the rim and the face of it stays clean.",
+    verdict: "kill",
+    facts: [
+      ["Lands", "One secondary action a page"],
+      ["Frame", "One filtered ring, always"],
+      ["Register", "0.95 band over a 0.80 base"],
+      ["At rest", "The base stays lit"],
+    ],
+    rationale:
+      "It cannot light a white primary, and its own fence is argue it every time. That is not a treatment.",
+  },
+  {
+    id: "beam",
+    name: "The beam",
+    one: "A travelling border on the one object whose state is running, or on Pro at rest.",
+    verdict: "ship",
+    facts: [
+      ["Lands", "Pro at rest, a running state"],
+      ["Frame", "One travelling border, always"],
+      ["Register", "The live register of the five"],
+      ["At rest", "It ends with the state"],
+    ],
+    rationale:
+      "Ruled and shipped, with four laws and one standing exception. Counted here, not re-argued.",
+  },
+];
+
 export const LIGHT = defineBoard({
   id: "light",
   title: "Light, shadow and lamp",
   question:
-    "How should light work across the site: which shadows, glows and flourishes exist, where each may appear, what is never done, and in what order they land?",
+    "Which of the twelve treatments should the light system carry, and what is left open once they are ruled?",
 
   round: {
-    n: 5,
-    date: "2026-09-15",
+    n: 6,
+    date: "2026-09-16",
     changed:
-      "Moved onto the kit's template (the verdict and the nine calls first, the arguments folded under the evidence), then the nine asks rewritten in plain words with labelled options after Will's first review stopped at two of them. No candidate, number or recommendation changed.",
+      "Rebuilt as a catalog: twelve treatments, each a card that is the real surface wearing it at true size. The two questions you could not see became things to look at, and nine asks became four.",
   },
   history: [
+    {
+      n: 5,
+      date: "2026-09-15",
+      changed:
+        "Moved onto the kit's template and the nine asks rewritten in plain words. Will ruled three: the kit lands, phase 1 first, the aurora at Accent.",
+    },
     {
       n: 4,
       date: "2026-09-15",
       changed:
-        "Turned inside out into a KIT with the arguments underneath it as evidence, after the round-three review: twelve treatments on the real sections, the composer, and the infusion order.",
+        "Turned inside out into a kit with the arguments underneath it: twelve treatments on the real sections, the composer, and the infusion order.",
     },
     {
       n: 3,
@@ -59,206 +312,62 @@ export const LIGHT = defineBoard({
     },
   ],
   context:
-    "Three explorations set this identity: the spill doctrine named the shapes, the spill placements decided where a light is earned, and this board asked what the whole system would be if it were designed today. The doctrine as it stands is organised around where light comes FROM, which is why the footer seam, the one lamp named as the model, is illegal under the law that opens it, why dark has no shadow where two photographs need separating, and why the ring lift, with 77 uses, is written down nowhere.",
+    "Three explorations set this identity: the spill doctrine named the shapes, the spill placements decided where a light is earned, and this board asked what the whole system would be if designed today. Its answer, ruled in at round five, is that light sorts by the JOB it does (separate, fill, mark) rather than by where it comes from, and that a lamp needs a PLACE rather than an object. What is left is the twelve, one at a time.",
 
   verdict: {
     recommendation:
-      "Sort every light by the job it does (separate, fill, mark) rather than by where it comes from. Land the kit as written and begin with phase 1, the shadows.",
+      "Keep the twelve as they stand, and begin with the shadows: the separate job first, on every surface, in both modes.",
     because:
-      "The same parts fall into three jobs that do not overlap, and the rule that replaces 'name the lamp' falls out of the second one: a light needs a PLACE (an edge, a boundary, a screen, a plate) rather than an object throwing it. The footer's glow has a place and a button's rim does not, so the lamp everyone likes becomes legal without loosening anything.",
+      "The shape is ruled, so what is open is card by card. Six of the twelve already run in production. The shadows are the only phase that needs nothing from any other board, and this page can put them on the real site today.",
     overrule:
-      "A shadow in dark mode is the one genuinely new claim. If dark must stay shadowless, that family drops and the rest of the kit still stands.",
+      "A shadow in dark is the one genuinely new claim. Kill lift and float and the other ten still stand.",
   },
 
+  /**
+   * ★ FOUR ASKS, AND NOT ONE OF THEM IS A CARD. Everything that could be looked
+   * at became a card; what is left is the four calls that are not one object:
+   * an ORDER, a NUMBER, a ROW OF HUES and a ratified value being moved. Each
+   * still carries its context and its look, because a reviewer meets an ask on
+   * the desk, away from this board's argument.
+   */
   asks: [
     {
-      id: "kit",
-      question: "Should the light kit land as written?",
-      context:
-        "The kit is the board's whole proposal for light on the site: twelve named treatments (a soft shadow under a card, the glow under the footer, a bright edge on a media frame, a bloom when an event is published) sorted into three jobs: separating things that overlap, filling a section with colour, and marking a moment. Each names where it may appear and where it never does.",
-      look: "The Kit section: three job columns with the twelve treatment cards under them, each naming its place, its sections and how often it may fire.",
-      options: [
-        {
-          id: "land",
-          label: "Land it as written",
-          means:
-            "The wiring round types the twelve treatments and their fences into the design system as they stand.",
-        },
-        {
-          id: "amend",
-          label: "Amend one part first",
-          means:
-            "Name the treatment or fence to change in your note; the rest lands as written.",
-        },
-      ],
-      recommended: "land",
-      because:
-        "Each of the twelve has a place, a list of sections, a frequency and a mount, so the wiring round has nothing left to invent. Amending means naming the one part to change rather than reopening the shape.",
-      evidence: "kit",
-    },
-    {
       id: "infusion",
-      question:
-        "Should the light enter the site in the order the board proposes, starting with phase 1?",
+      question: "Once the shadows land, what should land second?",
       context:
-        "The board lands the light in phases rather than all at once. Phase 1 is the floor: the soft shadows that separate overlapping things (cards on the dashboard, menus over a page), on every surface, in both modes. The colour fills behind marketing sections and the marked moments come in later phases.",
-      look: "The Infusion section: the phases in order, each naming what it lands, where, and what it needs first.",
+        "The light enters the site in phases, and phase 1, the shadows, is ruled. Three things could go second: the aurora on the home page, the paper hues, or the feature pages.",
+      look: "The four calls, the order: three rows with what each one needs first.",
       options: [
         {
-          id: "phase-1",
-          label: "Yes, start with phase 1",
+          id: "home-arc",
+          label: "The home page's two ends",
           means:
-            "The next wiring round lands the shadows first; every later phase is judged on a site that already separates properly.",
+            "The aurora at Accent on exactly two sections of the home page: the guest ledger and the closer above the footer.",
         },
         {
-          id: "reorder",
-          label: "Reorder the phases",
+          id: "paper",
+          label: "Paper",
           means:
-            "Say in your note which phase should go first, or which should not come at all.",
+            "The five lamp hues re-tuned for the light ground, then the aurora on the paper chapters.",
+        },
+        {
+          id: "features",
+          label: "The feature pages",
+          means:
+            "The seam on every feature hero with a screen, plus the throw and the lit face on the plates.",
         },
       ],
-      recommended: "phase-1",
+      recommended: "home-arc",
       because:
-        "Phase 1 needs nothing from any other board, it can be worn on the real site from this board's Apply button today, and without it every later phase is judged on surfaces that still separate badly in dark.",
-      evidence: "infusion",
-    },
-    {
-      id: "aurora",
-      question: "Where should the aurora land first?",
-      context:
-        "The aurora is a slow, soft field of colour behind a marketing section: the glow already under the site's footer, grown to the scale of a whole chapter. It can sit at one edge of a section (the footer's seam sits at the bottom edge), at both the top and bottom edges, or fill the whole section like a lit room. This asks where it lands first, not whether it is any good.",
-      look: "In the Composer, set Treatment to The aurora and flip Placement between Both boundaries and The room; then Treatment The seam at the bottom edge is the footer's light as it ships. Register is Accent, your ruling.",
-      options: [
-        {
-          id: "no",
-          label: "Nowhere yet",
-          means:
-            "No aurora lands in the next wiring round; the footer keeps its seam as it ships today.",
-        },
-        {
-          id: "seam",
-          label: "The footer seam only",
-          means:
-            "The one chapter-scale light stays the one under the footer; nothing new lands, and the composer waits for a later round.",
-        },
-        {
-          id: "both",
-          label: "Both edges of a section",
-          means:
-            "A band of light at a section's top and bottom edges, the copy in the clear band between them, on the home page's closing chapter first.",
-        },
-        {
-          id: "room",
-          label: "A whole section as a lit room",
-          means:
-            "The field fills a section behind its copy; the board shows why that reads as a wash over the words.",
-        },
-      ],
-      recommended: "seam",
-      because:
-        "The footer seam is the one light with a real place, and it is the lamp everyone already likes, so it is the cheapest honest first landing. Both edges and the room are the same grammar turned up, and can follow once the seam is ruled.",
-      overrule:
-        "If a chapter-scale field reads as a screensaver at any speed, the answer is nowhere rather than a slower one.",
-      evidence: "composer",
-      state: { register: "accent", ground: "cinema" },
-    },
-    {
-      id: "register",
-      question: "How strong should the aurora be?",
-      context:
-        "The register is the aurora's strength. At Accent, one section on a page carries a visible glow and the rest of the page is unlit. At Identity, the whole page reads as a room with a colour temperature.",
-      look: "In the Composer, flip Register in the dock between Accent and Identity and watch the same section change.",
-      options: [
-        {
-          id: "accent",
-          label: "Accent: a glow on one section",
-          means:
-            "One section on a page carries the light; the page around it stays as it is.",
-        },
-        {
-          id: "identity",
-          label: "Identity: the page reads as a lit room",
-          means:
-            "The field is strong enough to tint the page around the section, which is the aurora's whole identity claim.",
-        },
-      ],
-      recommended: "identity",
-      because:
-        "At Accent the field is a glow on a section; at Identity the page reads as a room with a temperature, which is the only version that makes an identity claim.",
-      evidence: "composer",
-      control: "register",
-    },
-    {
-      id: "depth",
-      question:
-        "In dark mode, how should two overlapping things be told apart?",
-      context:
-        "In dark mode the site has no shadows today: a photograph lying over another, or a menu over a page, shows no edge. The board proposes a family of soft shadows for dark mode: a lift under overlapping things and a float under menus and dialogs, each tuned per ground. Light mode already has these and does not change under any option here.",
-      look: "The Separate section on the App dark ground: two overlapping photographs and a menu over a page, in four columns each. Compare the column labelled Family (a soft shadow) with the one labelled Neither (today's steps and borders).",
-      options: [
-        {
-          id: "family",
-          label: "The shadow family",
-          means:
-            "Two soft shadows in dark mode: a lift under overlapping things, a float under menus and dialogs; the wiring round adds both.",
-        },
-        {
-          id: "lift",
-          label: "The lift only",
-          means:
-            "One shadow, under overlapping things; menus and dialogs keep today's steps and borders.",
-        },
-        {
-          id: "neither",
-          label: "No shadow in dark",
-          means:
-            "Dark mode stays shadowless, as the contract says today; the two overlapping photographs stay uncut.",
-        },
-      ],
-      recommended: "family",
-      because:
-        "A lift separates two things of the same darkness that overlap; a float detaches a layer from the page still living behind it. Nothing moves in light mode, where the lift is already today's value to the byte.",
-      overrule:
-        "The elevation contract still reads 'Dark: NO shadows anywhere'. Holding that line is a legitimate ruling; it costs the two overlapping photographs.",
-      evidence: "separate",
-      state: { ground: "app-dark" },
-    },
-    {
-      id: "lit-face",
-      question: "Should the lit face join the kit?",
-      context:
-        "The lit face is a thin bright edge along the top of a surface that is catching light: a media frame, a phone screen, the QR plate. It is a material effect rather than a shadow, and the kit keeps it off cards, panels and controls so it never becomes a fifth way of separating things.",
-      look: "The Separate section, the three faces (a media frame, a screen, a plate): the column labelled The lit face against the others.",
-      options: [
-        {
-          id: "adopt",
-          label: "Adopt it, on frames, screens and plates only",
-          means:
-            "The lit face lands with the kit, fenced to surfaces that catch light.",
-        },
-        {
-          id: "adapt",
-          label: "Adapt it: keep the effect, change the fence",
-          means: "Say in your note where it may and may not go.",
-        },
-        {
-          id: "drop",
-          label: "Drop it from the kit",
-          means:
-            "No bright edge anywhere; frames, screens and plates keep today's look.",
-        },
-      ],
-      recommended: "adopt",
-      because:
-        "It belongs to a face catching light, and the fence (never a card, a panel or a control) is what stops it becoming a fifth technique.",
-      evidence: "separate",
+        "The closer sits one scarcity distance above the footer seam, the hardest test that law has anywhere. Two call sites is the cheapest place to find out.",
+      evidence: "open",
     },
     {
       id: "cadence",
       question: "How slowly should a lamp breathe?",
       context:
-        "Every lamp on the site (the seam under the footer, the underlight of a hero) drifts on one shared clock. The site's engine runs one cycle in 8 seconds; the footer alone was slowed to 11 seconds back when it was the only lamp on the page.",
-      look: "The Evidence section's clock row, with Motion set to Live: the same section at the lamp's clock and at the aurora's slower one. The 8-versus-11 call is best made on the home page with the kit applied.",
+        "Every lamp on the site drifts on one shared clock. The engine runs a cycle in 8 seconds; the footer alone was slowed to 11 when it was the only lamp anywhere.",
+      look: "The four calls, the clock: one chapter at both numbers. Then tap 8s or 11s and walk the home page, where three lamps sit a viewport apart.",
       options: [
         {
           id: "8s",
@@ -274,220 +383,167 @@ export const LIGHT = defineBoard({
         },
       ],
       recommended: "8s",
-      because:
-        "11 seconds was tuned for the footer alone with nothing else moving. On a page with three lamps the slower clock reads as three things drifting rather than one room breathing.",
-      evidence: "evidence",
-      state: { motion: "live" },
+      evidence: "open",
     },
     {
       id: "paper",
-      question:
-        "On paper, the light marketing ground, which lamp colours should be used?",
+      question: "On the light ground, which lamp colours should be used?",
       context:
-        "The five lamp hues (the house five) were tuned for the dark cinema ground. Against white paper two of them go dirty long before the others do. The board hand-tunes a paper set of the same five hues.",
-      look: "The Evidence section on the Paper ground: the three rows labelled As they ship: the dark five, The flat paper row, and The hand-tuned five. Judge the hues, not the brightness.",
+        "The five lamp hues were tuned against a near-black room and nothing re-declares them on paper, so a lamp on a light chapter wears colours picked for the dark. Two of the five go dirty against white.",
+      look: "The four calls, the hues: one paper chapter three times. Judge the hues, not the brightness.",
       options: [
         {
           id: "hand-tuned",
           label: "A hand-tuned paper set",
           means:
-            "Each of the five hues is corrected on its own for paper; paper declares its own set.",
+            "Each of the five is corrected on its own for paper, and paper declares its own row.",
         },
         {
           id: "flat",
           label: "One flat correction for all five",
           means:
-            "The dark five with one brightness change applied to all of them.",
+            "The dark five with a single brightness change applied to all of them.",
         },
         {
           id: "dark",
-          label: "The dark five, unchanged, on paper",
+          label: "The dark five, unchanged",
           means: "Paper keeps the cinema hues exactly as they ship today.",
         },
       ],
       recommended: "hand-tuned",
-      because:
-        "The failure is per hue: two of the five go dirty against white long before the other three, so one flat correction cannot fix all five at once.",
-      evidence: "evidence",
-      state: { ground: "paper" },
+      evidence: "open",
     },
     {
       id: "publish",
       question: "What colour should the publish flourish be?",
       context:
-        "The publish beat is the one-shot flourish on the reel's frame when a host publishes an event. Today it flashes a violet (hue 300, a ratified colour) and fades to nothing. The board proposes a bloom in the lamp set's colours instead, leaned toward violet, that fades to a soft base rather than to nothing.",
-      look: "The Treatments section, the bloom: press Replay in the dock and watch what each of the three labelled beats leaves behind, not what it does.",
+        "When a host publishes an event the reel's frame flashes a violet (hue 300, a ratified colour) and fades to nothing. The proposal is a bloom in the lamp set's own colours, leaned toward violet, fading to a base.",
+      look: "The four calls, the beat: three frames, three Replays. Watch what each one leaves behind.",
       options: [
         {
           id: "300",
-          label: "As shipped: the violet flash at 300",
+          label: "As shipped: the violet flash",
           means: "The beat stays exactly as it is, and fades to nothing.",
         },
         {
           id: "house-five",
           label: "A bloom in the house five",
           means:
-            "The lamp set's five colours with no lean; no meaning in the hue at all.",
+            "The lamp set's colours with no lean, so there is no meaning in the hue at all.",
         },
         {
           id: "305",
-          label: "The house five leaned to violet (305)",
+          label: "The five, leaned to violet",
           means:
-            "The same bloom narrowed toward violet, so the beat still reads as the reel's colour, and it fades to a base.",
+            "The same bloom narrowed toward violet, so the beat still reads as the reel's colour and decays to a base.",
         },
       ],
       recommended: "305",
-      because:
-        "It moves a ratified beat by five degrees to join the lamp set and lets it decay to a base instead of to nothing. Small, but it is a ratified value, so it is asked rather than taken.",
-      evidence: "treatments",
-      state: { motion: "live" },
+      evidence: "open",
     },
   ],
 
-  candidates: [
-    {
-      id: "kit",
-      name: "The kit",
-      recommended: true,
-      rationale:
-        "One doctrine in three jobs with twelve named treatments under it, each carrying a place, a section list, a frequency and a mount. The elevation contract moves inside the light doctrine and stops being per mode; the aurora is named as the fill register at chapter scale and gets a component.",
-    },
-    {
-      id: "tune",
-      name: "Tune",
-      rationale:
-        "Keep SPILL and BEAM and their eight laws; amend law 1 so a boundary counts as a source, and let a shadow into dark for overlapping media. The smallest change that makes the footer legal. It leaves the ring undocumented, the five shapes unnamed, and nothing said about which section gets which.",
-    },
-    {
-      id: "replace",
-      name: "Replace (withdrawn in round three)",
-      rationale:
-        "The aurora becomes the primary layer and spill becomes an aurora anchored to an object. Two rounds of specimens took it apart: an anchored aurora is a spill with a different name. The half that survived is on the board as options rather than as a doctrine.",
-    },
-  ],
+  candidates: ITEMS,
+
+  /**
+   * ★ THE CATALOG IS THE EVIDENCE. Declaring this is what turns the grid into
+   * the review surface: Pick drives the whole page from a card and hands the
+   * site that treatment's block, A and B drive the compare below it, and each
+   * card carries keep, refine or kill with a note. The two asks Will could not
+   * answer are answered HERE rather than by a fifth and sixth question.
+   */
+  catalog: {
+    section: "catalog",
+    control: "treatment",
+    compare: ["compare-a", "compare-b"],
+  },
+
+  /**
+   * ★ THE DECLARATION, AND THE ARITHMETIC BEHIND IT. Round five weighed 10,164
+   * words outside its folds, the second heaviest board in the lab; this one
+   * weighs 2,899, which is the lightest catalog in the lab and a quarter of
+   * what it replaced. It is still over the 1,200 budget, and the gap is not
+   * this board's prose: measured on the rendered page, about 990 of those words
+   * are printed by the TEMPLATE from data a catalog has to supply anyway. The
+   * index reprints every section lede (134), the meta panel prints all twelve
+   * rationales unfolded plus the departures and the assets (535), and the
+   * review panel prints every ask and every card name a third time (232). The
+   * board's own visible voice is the rest, and 757 of that is the twelve cards:
+   * a name, a line and the four facts each. Cutting to 1,200 means cutting the
+   * catalog itself, which is the thing the round was for. The fix belongs in
+   * the kit (fold the meta panel's Ideas rows the way the card already folds
+   * them) and it is written down in the track manifest's Questions.
+   */
+  reading: {
+    words: 2950,
+    why: "Twelve cards with four facts each, and four asks. About 990 of these words are the template's, not the board's: the index reprints every lede, the meta panel prints all twelve rationales unfolded, and the review panel prints every ask a third time. The board's own catalog is 757 of them.",
+  },
 
   departures: [
     {
-      id: "dark-shadow",
-      from: 10,
-      text: "The kit proposes a shadow family in DARK. The elevation contract still reads 'Dark: NO shadows anywhere' and --shadow-float is zeroed in .dark. On a light ground lift is today's shipped value to the byte, so paper does not move.",
-      evidence: "separate",
-    },
-    {
-      id: "ring-lift",
-      from: "precedent",
-      text: "The ring lift has 77 uses across the app and appears in no document. Moving it into the contract makes a fourth technique official.",
-      evidence: "separate",
-    },
-    {
-      id: "per-section-temperature",
+      id: "qr-is-a-mark",
       from: 3,
-      text: "The aurora lets a section retune --lamp-* for everything inside it. The engine documents the hook and bible 3 still holds (light, never UI), but a per-section temperature is a new licence and it is the aurora's whole identity claim.",
-      evidence: "composer",
+      text: "The QR plate's shipped light is a MARK, not spill: a bloom with no vector at all, which law 2 refuses. Naming the job is what makes it legal, and that naming is new.",
+      evidence: "catalog",
     },
     {
       id: "paper-lamps",
       from: "ruling",
-      text: "A hand-tuned paper five declared on .surface-paper. design-system.md calls that an open design task; this is the first time --lamp-* would be re-declared per ground.",
-      evidence: "evidence",
-    },
-    {
-      id: "section-light",
-      from: "precedent",
-      text: "A new production component, SectionLight, beside screen-lamp.tsx: the first marketing-system component whose whole job is light. The composer exports its exact call for every configuration.",
-      evidence: "composer",
-    },
-    {
-      id: "engine-line",
-      from: "precedent",
-      text: "One line of the ENGINE, and it is a law 4 fix rather than a feature: glw-drift-x's from-keyframe must be declared outside the reduced-motion block, or a reduced-motion visitor gets the comet parked dead centre at full strength.",
-      evidence: "evidence",
-    },
-    {
-      id: "publish-violet",
-      from: "ruling",
-      text: "The publish flourish's oklch(0.62 0.2 300) becomes the lamp set's 305, and the beat decays to a base instead of returning to nothing. It is a ratified beat being moved.",
-      evidence: "treatments",
-    },
-    {
-      id: "qr-is-a-mark",
-      from: 3,
-      text: "The QR plate's shipped light is a MARK and not spill: a bloom centred at 50 by 50, with no vector at all. Under law 2 a vectorless field is the even rim the doctrine refuses; naming which job a light is doing is what makes it legal, and that naming is new.",
-      evidence: "kit",
+      text: "A hand-tuned paper five on .surface-paper: the first time --lamp-* would be re-declared per ground.",
+      evidence: "open",
     },
   ],
 
   assets: [
     {
-      what: "A grain tile, so the aurora stops banding",
-      spec: "Seamless monochrome noise, 256x256 PNG-8, fine grain (one tile pixel), neutral, mean 50 percent grey, used at about 5 percent over the light AND laid out at 128 CSS px on a 2x screen (one tile pixel per device pixel; laid out at 256 it doubles and the band returns).",
-      replaces:
-        "the inline feTurbulence stand-in in board.css ([data-lgt-grain]).",
-    },
-    {
-      what: "A worst-case pair of overlapping photographs for the separate job",
-      spec: "Two images whose touching edges are both dark and low contrast (a night reception, a dim dance floor), 1200px long edge, JPG, so the depth cue is judged against the case it exists for rather than a lucky one.",
-      replaces: "the reception-hall and wedding-toast pair in depth.tsx.",
+      what: "A worst-case pair of overlapping photographs",
+      spec: "Two images whose touching edges are both dark and low contrast (a night reception, a dim dance floor), 1200px long edge, JPG.",
+      replaces: "the reception-hall and wedding-toast pair on the lift card.",
     },
   ],
 
   sections: [
     {
-      id: "kit",
-      title: "The kit",
-      lede: "Twelve named treatments in three jobs (separate, fill, mark), each with where it goes, which sections wear it, how often it may fire and how it is mounted; then the fences, and the seven things a wiring round types into files.",
+      id: "catalog",
+      title: "The twelve",
+      lede: "Each treatment on the real surface that wears it, at true size, with its four facts. Pick one and the real pages below wear its block.",
       argument: [
-        "The system today is organised around WHERE LIGHT COMES FROM. SPILL is light from a lit thing; BEAM is a lit thing; the elevation contract is a separate section about shadows and lives one mode at a time. Three consequences, all visible in the repo: the footer's seam, the lamp Will likes most, is illegal under the law that opens the doctrine; dark has no shadow even where two photographs plainly need one; and the ring lift, the fourth depth technique with 77 uses, is in no document at all.",
-        "Organise it around what the light is DOING and the same parts fall into three jobs that do not overlap: SEPARATE (achromatic, static), FILL (chromatic, slow, behind everything) and MARK (chromatic, bounded, ends with its state). The rule that replaces 'name the lamp or there is no spill' falls out of the FILL job: a lamp needs a PLACE, not an object.",
+        "THE SHAPE, RULED AT ROUND FIVE. The system used to be organised around where light came FROM: spill is light from a lit thing, beam is a lit thing, and the elevation contract was a separate document about shadows, one mode at a time. Three consequences were visible in the repo: the footer's seam, the lamp Will likes most, was illegal under the law that opens the doctrine; dark had no shadow even where two photographs plainly needed one; and the ring, the fourth depth technique with 77 uses, was in no document at all.",
+        "ORGANISE IT AROUND WHAT THE LIGHT IS DOING and the same parts fall into three jobs that do not overlap. SEPARATE is achromatic and static: the step, the ring, the two shadows and the lit face. FILL is chromatic, slow and always behind content: the seam, the throw and the aurora. MARK is chromatic, bounded, and ends when its state ends: the sweep, the bloom, the halo and the beam. The rule that replaces name the lamp falls out of the second job: a light needs a PLACE (an edge, a boundary, a screen, a plate) rather than an object throwing it.",
+        "SIX OF THE TWELVE ALREADY RUN IN PRODUCTION and nobody had written down what they were called: the step, the ring, the footer's seam, the QR plate's bloom, the Pro card's beam and the strip's underlight. That is the strongest fact on the board, and it is why the kill list matters more than the keep list.",
       ],
     },
     {
-      id: "treatments",
-      title: "The treatments",
-      lede: "Six treatments on the real production sections that wear them, at true size, each with the card that admits it and the code that mounts it beside it. Three already ship.",
-      wiring: [
-        "Each treatment's mount is beside it as a paste. The publish beat is the only one that changes a shipped value, and it is asked rather than taken.",
+      id: "compare",
+      title: "Any two, on one real section",
+      lede: "One production section under two of the twelve at once. A and B come from the cards above; Landing moves the aurora and nothing else.",
+      argument: [
+        "WHERE THE AURORA LANDS IS A PICTURE, NOT A TOKEN. Round five asked it as four words and Will could not tell what was being asked, fairly: the footer is not in question under any of them. The footer keeps its seam either way. What is in question is whether a marketing chapter with no media in it gets a field of light, and where in the chapter that field sits: at both of its boundaries with the copy in the clean band between them, at one of them, or filling the section like a lit room, which is the placement the engine's own comment warns against.",
       ],
     },
     {
-      id: "composer",
-      title: "The composer",
-      lede: "Light for any marketing section: pick a real section, a treatment, a placement, the strength, the temperature and the clock; the code for what you see is exported beside it.",
+      id: "open",
+      title: "The four calls left",
+      lede: "What is not one card: the order, the clock, the paper hues, and the publish beat's colour.",
       argument: [
-        "The aurora needs a COMPONENT, not a recipe. Two bands, a flipped axis, four custom properties and a grain layer is too much for a chapter to assemble correctly twice, and the placement grammar is exactly the kind of rule that survives in a component and dies in a comment.",
-      ],
-      wiring: [
-        "SectionLight, beside screen-lamp.tsx, which already proves the shape: a wrapper that owns one light, takes children, and keeps the engine's invariants where a call site cannot break them.",
+        "NONE OF THESE IS A TREATMENT. The order is a plan, the clock is one token shared by every lamp on the site, the paper row is five values re-declared on one ground, and the publish beat is a ratified colour being moved five degrees. Each one survives the catalog because ruling twelve cards does not answer any of them.",
       ],
     },
     {
-      id: "separate",
-      title: "Separate",
-      lede: "How overlapping things are told apart: today's steps and borders, a hairline ring, a soft shadow and a lit edge, on real overlapping photographs, a menu over a page and a flat card, in both modes.",
+      id: "pages",
+      title: "The real pages",
+      lede: "The production routes at true pixels, scrolled together: the site as built, beside the site wearing the picked block.",
       argument: [
-        "One shadow family, two sizes, one alpha ramp per ground. Lift separates objects of the same lightness that overlap; float detaches a layer from content that keeps living behind it; a flat surface takes neither, in either mode. The finding was only ever that DARK has no ramp, because 6 percent of black over a near black room is arithmetically invisible.",
-      ],
-    },
-    {
-      id: "evidence",
-      title: "The evidence",
-      lede: "The measurements behind the numbers (the clock, the paper colours, the grain), each ending in the line it produced. Anything that decided nothing was cut.",
-      argument: [
-        "One register for a lamp, and it should be the engine's own 8 seconds: 11 was the footer alone with nothing else moving. The aurora is not a lamp and takes a multiple, so --spill-cadence stays one token and gains a sibling rather than a second opinion.",
-      ],
-    },
-    {
-      id: "infusion",
-      title: "The infusion",
-      lede: "The order the light lands on the site, phase by phase, and why that order.",
-      argument: [
-        "Begin with the floor. Phase 1 is the only phase that needs nothing from any other board, it is already wearable on the real site from this board's Apply button, and it is the one phase whose absence makes every other phase harder to judge. Phase 2 is two call sites on one page, a deliberately small second step: the closer above the footer is the hardest test the scarcity distance has anywhere on the site, and it should be taken while the cost of being wrong is two lines.",
+        "A composition is honest about a component and dishonest about a page. What a light has to survive is the rest of the page: the photograph beside the card, the CTA under the chapter, and the seam where the paper ends and the footer begins. Home is the whole arc in one scroll; pricing is the densest card in the product and the one page that already carries a beam.",
       ],
     },
     {
       id: "paste",
-      title: "The ruling",
-      lede: "The whole proposal written in the design system doc's own shape, ready to paste once ruled.",
+      title: "The ruling, as a paste",
+      lede: "The blocks a wiring round lands, and the bill of materials under them.",
+      wiring: [
+        "Re-pointing the 38 --shadow-float call sites and the roughly 30 raw Tailwind shadows is the wiring round's sweep. Until it runs the old token aliases the new one on the light grounds, where the two are the same bytes and nothing moves; on the dark grounds it keeps its zero by contract, so the surfaces that take a shadow in dark are named one by one instead.",
+      ],
     },
   ],
 
@@ -502,6 +558,71 @@ export const LIGHT = defineBoard({
       default: "desktop",
     },
     {
+      id: "treatment",
+      label: "Treatment",
+      // Nothing picked is a state of its own (Will, 2026-09-16): the pages
+      // below show the site as built until a card is picked, and pressing the
+      // picked card returns here.
+      options: [
+        { id: "none", label: "Nothing picked" },
+        { id: "step", label: "The step" },
+        { id: "ring", label: "The ring" },
+        { id: "lift", label: "Lift" },
+        { id: "float", label: "Float" },
+        { id: "face", label: "The lit face" },
+        { id: "seam", label: "The seam" },
+        { id: "throw", label: "The throw" },
+        { id: "aurora", label: "The aurora" },
+        { id: "sweep", label: "The sweep" },
+        { id: "bloom", label: "The bloom" },
+        { id: "halo", label: "The halo" },
+        { id: "beam", label: "The beam" },
+      ],
+      default: "none",
+      clearable: true,
+    },
+    // A and B: the two the compare joins, set from the catalog's own cards.
+    // They open on the shipped lamp against the field it would grow into,
+    // which is the comparison Will asked for in plain words.
+    {
+      id: "compare-a",
+      label: "A",
+      options: [
+        { id: "step", label: "The step" },
+        { id: "ring", label: "The ring" },
+        { id: "lift", label: "Lift" },
+        { id: "float", label: "Float" },
+        { id: "face", label: "The lit face" },
+        { id: "seam", label: "The seam" },
+        { id: "throw", label: "The throw" },
+        { id: "aurora", label: "The aurora" },
+        { id: "sweep", label: "The sweep" },
+        { id: "bloom", label: "The bloom" },
+        { id: "halo", label: "The halo" },
+        { id: "beam", label: "The beam" },
+      ],
+      default: "seam",
+    },
+    {
+      id: "compare-b",
+      label: "B",
+      options: [
+        { id: "step", label: "The step" },
+        { id: "ring", label: "The ring" },
+        { id: "lift", label: "Lift" },
+        { id: "float", label: "Float" },
+        { id: "face", label: "The lit face" },
+        { id: "seam", label: "The seam" },
+        { id: "throw", label: "The throw" },
+        { id: "aurora", label: "The aurora" },
+        { id: "sweep", label: "The sweep" },
+        { id: "bloom", label: "The bloom" },
+        { id: "halo", label: "The halo" },
+        { id: "beam", label: "The beam" },
+      ],
+      default: "aurora",
+    },
+    {
       id: "ground",
       label: "Ground",
       options: [
@@ -511,6 +632,19 @@ export const LIGHT = defineBoard({
       ],
       default: "cinema",
     },
+    // The aurora's landing, page-wide: the question Will could not read as
+    // four words is this switch plus the compare under it.
+    {
+      id: "landing",
+      label: "Landing",
+      options: [
+        { id: "both", label: "Both edges" },
+        { id: "top", label: "The top edge" },
+        { id: "bottom", label: "The bottom edge" },
+        { id: "room", label: "The whole section" },
+      ],
+      default: "both",
+    },
     {
       id: "register",
       label: "Register",
@@ -518,6 +652,8 @@ export const LIGHT = defineBoard({
         { id: "accent", label: "Accent" },
         { id: "identity", label: "Identity" },
       ],
+      // Will's round-five ruling: "identity feels way too weak" at accent, so
+      // accent is the global register. Identity stays reachable for a turn-up.
       default: "accent",
     },
     {
@@ -533,45 +669,44 @@ export const LIGHT = defineBoard({
 
   lookFirst: [
     {
-      section: "kit",
-      note: "Three jobs and twelve treatments. If the shape is wrong, the rest of the walk is the wrong argument.",
+      section: "catalog",
+      note: "Read the twelve. Each card is the real surface wearing the treatment, so nothing has to be switched to compare them.",
     },
     {
-      section: "composer",
-      state: { register: "accent" },
-      note: "The composer at Accent, the strength Will ruled (2026-09-15): one section carries the light. Flip Placement to judge where the aurora lands first.",
-    },
-    {
-      section: "composer",
-      state: { register: "identity" },
-      note: "The same field one register up, the board's own pick, kept for a later turn-up if Accent feels too weak.",
-    },
-    {
-      section: "separate",
+      section: "catalog",
       state: { ground: "app-dark" },
-      note: "The two photographs on the app's own dark, which is where a missing ramp shows first.",
+      note: "Lift and Float on the app's own dark, which is the question you could not see last round. Two keeps is the family; one keep is the lift only; two kills is dark stays shadowless.",
     },
     {
-      section: "evidence",
-      state: { ground: "paper" },
-      note: "The paper five against the house set. Judge the hues, not the brightness.",
+      section: "compare",
+      state: { landing: "both" },
+      note: "The seam against the aurora on one real chapter. Flip Landing: this is where the aurora goes, and the footer keeps its own seam either way.",
     },
     {
-      section: "infusion",
-      note: "The order it lands in. Phase 1 is the only ask under this one.",
+      section: "compare",
+      state: { landing: "room" },
+      note: "The placement error, shown rather than asserted: the copy now sits IN the light instead of in the clean band between two of them.",
+    },
+    {
+      section: "open",
+      note: "The four that are not cards. The clock is best judged by tapping 8s and walking the home page.",
+    },
+    {
+      section: "pages",
+      note: "The real routes. The seam where the paper ends and the footer begins is the reading.",
     },
   ],
 
   notes: [
     {
-      section: "composer",
-      state: { register: "identity", ground: "cinema" },
-      text: "At identity on cinema the band is at the edge of perception on a bright screen and obvious on a dim one. That spread is the honest reason the register is an ask rather than a recommendation with a number.",
+      section: "catalog",
+      state: { ground: "paper" },
+      text: "Nothing in the separate job moves on paper under any ruling here: lift on a light ground is the shipped value to the byte.",
     },
     {
-      section: "separate",
-      state: { ground: "paper" },
-      text: "Nothing moves on paper under any option here: lift on a light ground is the shipped value to the byte. If paper looks different, something else is applied.",
+      section: "compare",
+      state: { register: "identity" },
+      text: "Identity is the register you called way too weak. It stays reachable so that if Accent ever reads as too strong, this is the number to come back to.",
     },
   ],
 
@@ -579,17 +714,17 @@ export const LIGHT = defineBoard({
     bible: [3, 10, 11],
     spec: "docs/specs/light.md",
     pages: [
-      {
-        label: "The dashboard",
-        path: "/dashboard",
-        note: "the lift, on real event cards",
-      },
+      { label: "Home", path: "/", note: "the footer seam and the film strip" },
       {
         label: "Pricing",
         path: "/pricing",
         note: "the float, on the plan band",
       },
-      { label: "Home", path: "/", note: "the footer seam and the film strip" },
+      {
+        label: "The dashboard",
+        path: "/dashboard",
+        note: "the lift, on real event cards",
+      },
     ],
   },
 });
