@@ -29,8 +29,6 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 - **Fold `RefSection` into `Section`** (the `lab-shell` track, 2026-09-15): the shell's `Section` anchors
   its heading, the gallery's older `RefSection` (`reference/reference-ui.tsx`) anchors its wrapper; the
   TOC reads both, but one shape is better than two.
-- **The `.mono` dark ground leaves `design.css`** with the two legacy marketing boards
-  (`marketing-decomposition`, `marketing-hero-substrate`) when the migration wave retires them to the record.
 - **Delete `(shell)/lab/_desk/sample-spec.ts` and the desk's dry run** once every standing board carries a
   spec (the `lab-desk` track, 2026-09-15); it exists only so the review session could be walked first.
 - **Index the kit as a family** (the `lab-kit` track, 2026-09-15): add `src/components/lab` to the
