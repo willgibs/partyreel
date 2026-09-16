@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 import { FlaskConical, Menu, PanelLeft, Search } from "lucide-react";
 
-import { setLabPref, useLabPrefs } from "@/components/dev/board/lab-prefs";
+import { setLabPref, useLabPrefs } from "@/components/lab/lab-prefs";
 import { cn } from "@/lib/utils";
 
 import { AREA_HREF, areaOf } from "@/app/(dev)/design/_data/catalog";

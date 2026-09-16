@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 
-import { LabChrome } from "@/components/dev/board/lab-chrome";
+import { LabChrome } from "@/components/lab/lab-chrome";
 
 import { buildNav, buildSearchIndex } from "@/app/(dev)/design/_data/nav";
 import { Shell } from "./_shell/shell";

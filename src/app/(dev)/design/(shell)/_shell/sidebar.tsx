@@ -10,7 +10,7 @@ import {
   SheetDescription,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { setLabPref, useLabPrefs } from "@/components/dev/board/lab-prefs";
+import { setLabPref, useLabPrefs } from "@/components/lab/lab-prefs";
 import { cn } from "@/lib/utils";
 
 import {

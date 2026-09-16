@@ -2,7 +2,7 @@
 
 import { ExternalLink } from "lucide-react";
 
-import { useLabPrefs } from "@/components/dev/board/lab-prefs";
+import { useLabPrefs } from "@/components/lab/lab-prefs";
 import { cn } from "@/lib/utils";
 
 import {
