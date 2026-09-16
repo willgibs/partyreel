@@ -1,12 +1,13 @@
 import type { Ground } from "@/components/lab";
+import { optionId, optionLabel } from "@/components/lab/board-spec";
 
 import {
-  ENTRANCE_LABEL,
   ENTRANCE_RUNGS,
-  LIGHT_LABEL,
   LIGHT_RUNGS,
   RADIUS_RUNGS,
+  type Knobs,
 } from "./candidates";
+import { FLOATING_SURFACES } from "./spec";
 
 /**
  * The board's shared vocabulary, in a module with NO "use client" on purpose:
@@ -64,10 +65,13 @@ export type Side = (typeof SIDES)[number];
 export const RAMPS = ["today", "a", "b"] as const;
 export type Ramp = (typeof RAMPS)[number];
 
+/** The dark greys under a floating panel, in the dock's own words. The light
+ *  section's caption names the set it is standing on rather than the token
+ *  (the clarity round: a reviewer should never have to know that "b" is a ramp). */
 export const RAMP_LABEL: Record<Ramp, string> = {
-  today: "Ramp: today",
-  a: "A one ladder",
-  b: "B one room",
+  today: "today's dark",
+  a: "the palette board's ramp A, one ladder",
+  b: "the palette board's ramp B, one room",
 };
 
 /** The cinema ground paints its --background inline (the frame's own style, so
@@ -100,23 +104,73 @@ export const GROUND_CLASSES = ["dark", "surface-paper", "surface-ink"];
  *  matches on the panel itself, which is what lets one frame hold a whole ladder:
  *  a radix panel portals away from any wrapper we could put around it. The ""
  *  id is today, as it ships, with nothing overridden. */
+/**
+ * THE WORDS THE ASK OFFERS, read back off the question (the clarity round,
+ * 2026-09-15: the evidence carries the options' names, so "Squarer, like a
+ * surface" on the review card is "Squarer, like a surface" on the frame).
+ *
+ * A lookup rather than a second table because a second table drifts: the ask
+ * ids here ARE the dimension names (`radius`, `entrance`) and the option ids
+ * ARE the rung ids, so relabelling an option in spec.ts relabels every specimen
+ * it is judged on. The fallback is the token, which is what a mismatch should
+ * look like: visibly wrong rather than quietly stale.
+ */
+export function askOptionLabel(askId: string, option: string): string {
+  const ask = FLOATING_SURFACES.asks.find((a) => a.id === askId);
+  const found = ask?.options.find((o) => optionId(o) === option);
+  return found ? optionLabel(found) : option;
+}
+
+/** The floor every ladder starts from. Not an option on any ask: the corner and
+ *  the entrance asks offer no "leave it", so this column is the comparison. */
+const AS_SHIPS = "As it ships today";
+
 export const RUNGS: Record<Dim, { id: string; label: string }[]> = {
   radius: [
-    { id: "", label: "today" },
-    ...RADIUS_RUNGS.map((r) => ({ id: `flt-r-${r}`, label: r })),
+    { id: "", label: AS_SHIPS },
+    ...RADIUS_RUNGS.map((r) => ({
+      id: `flt-r-${r}`,
+      label: askOptionLabel("radius", r),
+    })),
   ],
   light: [
-    { id: "", label: "today" },
-    ...LIGHT_RUNGS.map((r) => ({ id: `flt-l-${r}`, label: LIGHT_LABEL[r] })),
+    // The light ask has THREE options over TWO columns: "ruled here" and "the
+    // light board's call" are the same pixels and differ only in who rules the
+    // line, so the column carries the words they share and the section's caption
+    // says so. The first column is the `today` option's label to the letter.
+    { id: "", label: askOptionLabel("light", "today") },
+    ...LIGHT_RUNGS.map((r) => ({ id: `flt-l-${r}`, label: "A soft shadow" })),
   ],
   entrance: [
-    { id: "", label: "today" },
+    { id: "", label: AS_SHIPS },
     ...ENTRANCE_RUNGS.map((r) => ({
       id: `flt-e-${r}`,
-      label: ENTRANCE_LABEL[r],
+      label: askOptionLabel("entrance", r),
     })),
   ],
 };
+
+/**
+ * THE NAME AN APPLIED BLOCK WEARS, in the asks' words. It lived in candidates.ts
+ * as `contractLabel` and read the raw tokens ("radius nested, entrance by
+ * frequency"), which is exactly the badge a reviewer cannot parse; candidates.ts
+ * has no imports by design, so the composition moved here, where the asks are
+ * already in scope.
+ */
+export function contractName(knobs: Knobs): string {
+  const bits = [
+    knobs.radius === "off"
+      ? null
+      : `corner ${askOptionLabel("radius", knobs.radius).toLowerCase()}`,
+    knobs.light === "off" ? null : "a soft shadow in dark",
+    knobs.entrance === "off"
+      ? null
+      : `appearing ${askOptionLabel("entrance", knobs.entrance).toLowerCase()}`,
+  ].filter(Boolean);
+  return bits.length
+    ? `Floating layer: ${bits.join(", ")}`
+    : "Floating layer: as it ships";
+}
 
 /** A rung class is its own address: the six-character prefix says which
  *  dimension, the rest says which value, so the frame turns a list of rung ids
@@ -150,7 +204,7 @@ export const WALK: { href: string; what: string }[] = [
   },
   {
     href: "/contact",
-    what: "the select, its one product call site, and the outlier row 7 asks about",
+    what: "the select, its one product call site, and one of the three surfaces almost nothing uses",
   },
   {
     href: "/dashboard",

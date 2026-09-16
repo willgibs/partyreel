@@ -330,10 +330,6 @@ export type LightRung = (typeof LIGHT_RUNGS)[number];
 /** The ring the primitive already ships, put back. */
 export const RING = "var(--tw-ring-shadow, 0 0 #0000)";
 
-export const LIGHT_LABEL: Record<LightRung, string> = {
-  shadow: "a soft shadow",
-};
-
 export function lightCss(rung: LightRung, scope: Scope): string {
   const head = `/* THE LIGHT ON A FLOATING LAYER, rung "${rung}". Light ground first,
    dark ground second: what changes between them is the ALPHA, not the shape,
@@ -376,11 +372,6 @@ ${panels(scope, ALL)} {
    changing the ruling. Two rungs, one word to rule. */
 export const ENTRANCE_RUNGS = ["one-clock", "by-frequency"] as const;
 export type EntranceRung = (typeof ENTRANCE_RUNGS)[number];
-
-export const ENTRANCE_LABEL: Record<EntranceRung, string> = {
-  "one-clock": "one clock",
-  "by-frequency": "by frequency",
-};
 
 /** The travel direction, read off the side radix resolved, plus the keyframes.
  *  Shared by every rung, emitted once per block. */
@@ -544,25 +535,13 @@ export type Knobs = {
 
 /** The three knobs, composed. "off" means the rung is left as it ships, so a
  *  contract with one knob set pastes only that knob: the ruling can land one
- *  line of the five at a time. */
+ *  line of the five at a time. The block's NAME is `contractName` in
+ *  constants.ts: it reads the asks' own words, and this module imports nothing
+ *  on purpose. */
 export function contractCss(knobs: Knobs, scope: Scope): string {
   const parts: string[] = [];
   if (knobs.radius !== "off") parts.push(radiusCss(knobs.radius, scope));
   if (knobs.light !== "off") parts.push(lightCss(knobs.light, scope));
   if (knobs.entrance !== "off") parts.push(entranceCss(knobs.entrance, scope));
   return parts.join("\n\n");
-}
-
-/** The label the tuner panel shows while a block is applied. */
-export function contractLabel(knobs: Knobs): string {
-  const bits = [
-    knobs.radius === "off" ? null : `radius ${knobs.radius}`,
-    knobs.light === "off" ? null : `light ${LIGHT_LABEL[knobs.light]}`,
-    knobs.entrance === "off"
-      ? null
-      : `entrance ${ENTRANCE_LABEL[knobs.entrance]}`,
-  ].filter(Boolean);
-  return bits.length
-    ? `Floating layer: ${bits.join(", ")}`
-    : "Floating layer: today";
 }
