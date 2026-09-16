@@ -133,7 +133,7 @@ trailer on every commit. The dev server on :3000 is Will's.
 
 ## Handoff (replaces the chat report)
 
-- Head `6b174623`, pushed. Synced: `origin/launch-prep` had moved 21 commits (Round 4's three
+- Head `19e0691d` (the manifest) on top of `6b174623` (the board), pushed. Synced: `origin/launch-prep` had moved 21 commits (Round 4's three
   catalogs), merged in at `1b566aa0` before the gate.
 - Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 pre-existing warnings, none in this
   lane), test ok (2,139), build ok (257 static pages). `pnpm lab:smoke --base http://localhost:3108`:
