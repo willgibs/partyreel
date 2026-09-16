@@ -1,19 +1,16 @@
 "use client";
 
-import {
-  Bell,
-  ChevronDown,
-  CornerDownLeft,
-  Globe,
-  Lock,
-  MailCheck,
-  MoreHorizontal,
-  Search,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+import { Bell, CornerDownLeft, MoreHorizontal } from "lucide-react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
+import { EventCard } from "@/components/app/event-card";
+import { FeedSection } from "@/components/app/dashboard/feed-section";
+import { FilterChips } from "@/components/app/dashboard/filter-chips";
+import { UserMenu } from "@/components/app/user-menu";
+import { AppShell } from "@/components/shared/app-shell";
 import { Kbd } from "@/components/shared/kbd";
+import { PageHeading } from "@/components/shared/page-heading";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,24 +22,10 @@ import {
 } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Toaster } from "@/components/ui/sonner";
 import {
   Tooltip,
@@ -52,15 +35,16 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+import type { Sub } from "./constants";
 import type { Direction } from "./directions";
 import {
   ACCOUNT_MENU,
   CommandBody,
   EVENT_MENU,
-  HeaderPanelBody,
+  EVENT_MENU_INLINE,
   MenuPanel,
 } from "./menus";
-import { Backdrop, useNextFrame, useSceneReplay } from "./stage-bits";
+import { Backdrop, useSceneReplay } from "./stage-bits";
 
 /**
  * THE DIRECTION SCENES (round four, 2026-09-15).
@@ -79,100 +63,202 @@ import { Backdrop, useNextFrame, useSceneReplay } from "./stage-bits";
  * frame renders and "Apply to the site" pastes (directions.ts).
  */
 
-/** The host's own chrome, so a menu is judged on a page rather than on a card.
- *  Not the production header (that is a marketing component with its own nav);
- *  this is the dashboard bar the app actually draws, at the sizes it draws it. */
+/**
+ * THE HOST'S BAR ON A PHONE. The desk uses the production `AppShell` now, so
+ * this is what is left of round four's hand-drawn chrome: the bar the app draws
+ * at 375, where the account menu has to open without a nav beside it.
+ *
+ * ★ THE HEADER'S NAV PANEL LEFT THIS FILE IN ROUND SIX. It used to be drawn
+ * here from `HeaderPanelBody`, and the real pages section loads / at 1440
+ * instead: hovering Features there opens the PRODUCTION nav viewport wearing
+ * the pick, which is the same surface with none of the drawing.
+ */
 function AppBar({
   direction,
-  navOn,
   accountOn,
-  phone = false,
 }: {
   direction: Direction;
-  navOn: boolean;
   accountOn: boolean;
-  phone?: boolean;
 }) {
   return (
-    <div className="absolute inset-x-0 top-0 z-40 grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-border bg-background/80 px-4 backdrop-blur">
+    <div className="absolute inset-x-0 top-0 z-40 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur">
       <p className="text-sm font-semibold tracking-tight">Partyreel</p>
-      {/* The nav sits in the CENTRE column, which is not decoration: radix
-          centres the viewport under the trigger list, so a nav pinned to the
-          left edge hangs its panel off the canvas. The real marketing header
-          centres it for the same reason, and a board that did not would be
-          judging a layout the product does not ship. */}
-      {!phone ? (
-        <NavigationMenu
-          value={navOn ? "features" : ""}
-          onValueChange={() => undefined}
-          viewportProps={{ className: "flt-panel" }}
-        >
-          <NavigationMenuList>
-            <NavigationMenuItem value="features">
-              <NavigationMenuTrigger>Features</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <HeaderPanelBody direction={direction} />
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-      ) : (
-        <span />
-      )}
-      <div className="justify-self-end">
-        <MenuPanel
-          direction={direction}
-          model={ACCOUNT_MENU}
-          open={accountOn}
-          triggerLabel="Will"
-          align="end"
-          width={272}
-        />
-      </div>
+      <MenuPanel
+        direction={direction}
+        model={ACCOUNT_MENU}
+        open={accountOn}
+        triggerLabel="Will"
+        align="end"
+        width={272}
+      />
     </div>
   );
 }
 
-/** THE HOST'S DESK at 1440: the three menus a host meets in a session, open at
- *  once on the ground they open over. This is the canvas rule 15 is about, and
- *  it is where a direction either reads as one language or does not. */
+/**
+ * THE HOST'S DESK at 1440: the real dashboard, with the menus a host meets in
+ * one session open on it at once.
+ *
+ * ★ IT IS THE PRODUCTION DASHBOARD NOW, NOT A DRAWING OF ONE (round six, on
+ * Will's round-four note: "live production components and whole real pages as
+ * the comparison surfaces, not a screen of specimens"). The shell is
+ * `shared/app-shell.tsx`, the chips are `dashboard/filter-chips.tsx`, the cards
+ * are `app/event-card.tsx` and the section headings are
+ * `dashboard/feed-section.tsx`, all with the real props at the real density.
+ * What the board still draws is the floating layer itself, because that is the
+ * thing being designed: the account menu, the event overflow and the tooltip
+ * are `MenuPanel` under the direction.
+ *
+ * ★ AND THE ROUTE CANNOT BE LOADED: /dashboard is behind the (app) auth gate,
+ * so a frame pointed at it lands on /login. This is the palette board's answer
+ * to the same wall, one step further: the components, the density and the
+ * breakpoint are real; the events, the counts and the covers are the board's.
+ */
+const DESK_EVENTS = [
+  {
+    name: "Ana and Theo",
+    cover: "/marketing/img/mkt-wedding-golden-01.jpg",
+    date: "14 June",
+    items: "218 items",
+    status: "Open",
+    pending: 0,
+  },
+  {
+    name: "Sarah's birthday",
+    cover: "/marketing/img/mkt-party-balloons-01.jpg",
+    date: "2 May",
+    items: "96 items",
+    status: "Open",
+    pending: 8,
+  },
+  {
+    name: "The summer festival",
+    cover: "/marketing/img/mkt-festival-lights-01.jpg",
+    date: "9 August",
+    items: "1,204 items",
+    status: "Closed",
+    pending: 0,
+  },
+];
+
 function DeskScene({ direction }: { direction: Direction }) {
   const on = useSceneReplay();
-  const navOn = useNextFrame(on);
   return (
-    <>
-      <Backdrop phone={false} chrome={false} />
-      <AppBar direction={direction} navOn={navOn} accountOn={on} />
-      {/* Each panel gets its own room on the canvas. The header's viewport is
-          201px tall under a 56px bar, so an event menu at 160 would open
-          underneath it and the comparison would be of two panels overlapping
-          rather than of a direction. */}
-      <div className="absolute top-80 left-8">
-        <MenuPanel
-          direction={direction}
-          model={EVENT_MENU}
-          open={on}
-          triggerLabel="Event"
-          triggerIcon={MoreHorizontal}
-          width={276}
+    <AppShell
+      headerActions={
+        <>
+          <TooltipProvider>
+            <Tooltip open={on}>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon-sm">
+                  <Bell />
+                  <span className="sr-only">Alerts</span>
+                </Button>
+              </TooltipTrigger>
+              {/* LEFT, not bottom: the account menu hangs from the avatar
+                  beside this bell and is 272 wide, so a tooltip under the bell
+                  opens underneath it and the desk shows two panels where it
+                  claims three. */}
+              <TooltipContent className="flt-panel" side="left">
+                Guests can still upload
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <MenuPanel
+            direction={direction}
+            model={ACCOUNT_MENU}
+            open={on}
+            triggerLabel="Will"
+            align="end"
+            width={272}
+          />
+        </>
+      }
+    >
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between gap-4">
+          <PageHeading>Your events</PageHeading>
+          <Button size="sm">New event</Button>
+        </div>
+        {/* The storage row, copied from dashboard/storage-meter.tsx's trigger:
+            the real component is a Popover, and a second panel open on this
+            canvas would sit under the account menu being judged. */}
+        <div className="flex w-full items-center gap-3 rounded-lg px-1.5 py-1">
+          <span className="shrink-0 text-xs font-medium text-muted-foreground">
+            Storage
+          </span>
+          <span className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+            <span
+              className="block h-full rounded-full bg-foreground/70"
+              style={{ width: "38%" }}
+            />
+          </span>
+          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+            3.8 GB / 10 GB
+          </span>
+        </div>
+        <FilterChips active="all" onChange={() => undefined} trashCount={2} />
+        <FeedSection heading="Hosting">
+          <ul className="grid grid-cols-3 gap-4">
+            {DESK_EVENTS.map((e, i) => (
+              <li key={e.name}>
+                <EventCard
+                  href={null}
+                  name={e.name}
+                  coverUrl={e.cover}
+                  dateLabel={e.date}
+                  itemsLabel={e.items}
+                  statusLabel={e.status}
+                  pendingCount={e.pending}
+                  // The overflow lands in the card's own top-right slot, which
+                  // is where a hosted card's actions already live.
+                  action={
+                    i === 0 ? (
+                      <MenuPanel
+                        direction={direction}
+                        model={EVENT_MENU}
+                        open={on}
+                        triggerLabel="Event"
+                        triggerIcon={MoreHorizontal}
+                        align="end"
+                        width={276}
+                      />
+                    ) : undefined
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        </FeedSection>
+      </div>
+    </AppShell>
+  );
+}
+
+/**
+ * THE ACCOUNT MENU AS IT SHIPS, and the one place on this board that renders no
+ * candidate at all: `app/user-menu.tsx`, the real component, with the real
+ * theme submenu inside it. It is here because the submenu call is about a bug
+ * rather than about a taste, and a bug is only worth ruling on once somebody
+ * has seen it: open the avatar, hover Theme, and nothing paints.
+ */
+function RealAccountScene() {
+  return (
+    <div className="absolute inset-0 flex flex-col bg-background">
+      <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
+        <p className="text-sm font-semibold tracking-tight">Partyreel</p>
+        <UserMenu
+          email="will@partyreel.com"
+          displayName="Will Gibson"
+          avatarUrl={null}
         />
       </div>
-      <div className="absolute top-[420px] right-10">
-        <TooltipProvider>
-          <Tooltip open={on}>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon-sm">
-                <Bell />
-                <span className="sr-only">Alerts</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="flt-panel" side="left">
-              Guests can still upload
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    </>
+      <p className="px-4 py-3 text-xs text-muted-foreground">
+        Open the avatar, then hover Theme. The submenu opens, reports itself
+        visible and paints nothing, because SubContent has no portal and Content
+        clips what overflows it. Every host and every guest has this menu.
+      </p>
+    </div>
   );
 }
 
@@ -185,7 +271,7 @@ function PocketScene({ direction }: { direction: Direction }) {
   return (
     <>
       <Backdrop phone chrome={false} />
-      <AppBar direction={direction} navOn={false} accountOn={false} phone />
+      <AppBar direction={direction} accountOn={false} />
       {direction === "command" ? (
         <>
           <div className="absolute top-20 left-4">
@@ -219,13 +305,22 @@ function PocketScene({ direction }: { direction: Direction }) {
   );
 }
 
-/** ONE MENU, ONE DIRECTION, on a calm ground: the frame the board stands four of
- *  side by side at 1:1 so the four answers can be read as four answers. */
+/**
+ * ONE MENU, ONE LAYER, AT 328: the catalog card's preview.
+ *
+ * ★ THE PHOTOGRAPHS ARE THE POINT, not decoration (round six). Round four gave
+ * this scene the calm ground, because four frames in a row were being compared
+ * at the corner. As a catalog card it is being compared at the MATERIAL, and
+ * bible 10 turns on the words "a layer over content": a menu in this product
+ * opens over an album, so a card with nothing behind its panel would flatter
+ * every opaque layer and tell Glass nothing at all. The corner has its own calm
+ * scene at six times magnification in the calls section.
+ */
 function MenuScene({ direction }: { direction: Direction }) {
   const on = useSceneReplay();
   return (
     <>
-      <Backdrop phone chrome={false} variant="calm" />
+      <Backdrop phone chrome={false} />
       <div className="absolute top-3 left-3">
         <MenuPanel
           direction={direction}
@@ -240,12 +335,22 @@ function MenuScene({ direction }: { direction: Direction }) {
   );
 }
 
-/** THE NESTED BRANCH, which is the surface Will named. Card and glass open a
- *  second panel; command has no submenu at all, so the same rows are a group in
- *  the one list and the field is how you reach them. The scene seeds the field
- *  with two letters rather than describing what typing would do. */
-function SubScene({ direction }: { direction: Direction }) {
+/**
+ * THE NESTED BRANCH, KEPT AND DELETED, in whatever direction is picked.
+ *
+ * ★ THE BRANCH IS THE ANSWER, NOT THE DIRECTION (round six). Round four made
+ * this scene a comparison between card and command, which asked two questions
+ * in one frame: a reviewer who liked the flat list could not tell whether he
+ * was ruling on the anatomy or on the tree. Now the direction comes off the
+ * dock and the SWITCH is the ask: `keep` holds the second panel open, `delete`
+ * puts its three rows inline under their own name in the one panel.
+ *
+ * The command direction has no branch to keep, by construction, so it shows its
+ * field with two letters typed either way: that IS its answer to this ask.
+ */
+function SubScene({ direction, sub }: { direction: Direction; sub: Sub }) {
   const on = useSceneReplay();
+  const flat = sub === "delete";
   return (
     <>
       <Backdrop phone={false} chrome={false} variant="calm" />
@@ -273,12 +378,12 @@ function SubScene({ direction }: { direction: Direction }) {
         <div className="absolute top-3 left-3">
           <MenuPanel
             direction={direction}
-            model={EVENT_MENU}
+            model={flat ? EVENT_MENU_INLINE : EVENT_MENU}
             open={on}
             triggerLabel="Event"
             triggerIcon={MoreHorizontal}
-            width={276}
-            subOpen="who"
+            width={flat ? 300 : 276}
+            subOpen={flat ? undefined : "who"}
           />
         </div>
       )}
@@ -386,94 +491,21 @@ function DirectionToast({ on }: { on: boolean }) {
   );
 }
 
-const UPLOAD_CHOICES = [
-  { value: "anyone", label: "Anyone with the link", icon: Globe },
-  { value: "verified", label: "Guests who verify an email", icon: MailCheck },
-  { value: "nobody", label: "Nobody, uploads are closed", icon: Lock },
-];
-
-/** THE FIELD. A select is a floating surface too, and the directions disagree
- *  about it more than about anything else: card and glass restyle the listbox,
- *  command replaces it with a searchable list, which is the same argument the
- *  submenu row makes, one level down. */
-function FieldScene({ direction }: { direction: Direction }) {
-  const on = useSceneReplay();
-  const [value, setValue] = useState("anyone");
-  return (
-    <div className="absolute inset-0 flex flex-col gap-3 bg-background p-6">
-      <p className="text-xs text-muted-foreground">Who can upload</p>
-      {direction === "command" ? (
-        <Popover open={on} modal={false}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-60 justify-between font-normal"
-            >
-              <span className="inline-flex items-center gap-2">
-                <Search className="size-3.5 opacity-50" />
-                {UPLOAD_CHOICES.find((c) => c.value === value)?.label}
-              </span>
-              <ChevronDown className="opacity-60" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="flt-panel overflow-hidden p-0"
-            style={{ width: 300 }}
-            align="start"
-            sideOffset={6}
-            avoidCollisions={false}
-          >
-            <CommandBody
-              model={{
-                title: "Who can upload",
-                placeholder: "Who can upload",
-                groups: [
-                  {
-                    label: "Who can upload",
-                    rows: UPLOAD_CHOICES.map((c) => ({
-                      id: c.value,
-                      label: c.label,
-                      icon: c.icon,
-                    })),
-                  },
-                ],
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-      ) : (
-        <Select open={on} value={value} onValueChange={setValue}>
-          <SelectTrigger className="w-60" size="sm">
-            <SelectValue placeholder="Who can upload" />
-          </SelectTrigger>
-          <SelectContent className="flt-panel" position="popper">
-            {UPLOAD_CHOICES.map((c) => (
-              <SelectItem key={c.value} value={c.value}>
-                {c.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
-    </div>
-  );
-}
-
 export function DirectionScene({
   scene,
   direction,
+  sub,
   phone,
 }: {
-  scene: "desk" | "pocket" | "menu" | "sub" | "surfaces" | "field";
+  scene: "desk" | "pocket" | "menu" | "sub" | "real" | "surfaces";
   direction: Direction;
+  sub: Sub;
   phone: boolean;
 }) {
   if (scene === "desk") return <DeskScene direction={direction} />;
   if (scene === "pocket") return <PocketScene direction={direction} />;
   if (scene === "menu") return <MenuScene direction={direction} />;
-  if (scene === "sub") return <SubScene direction={direction} />;
-  if (scene === "surfaces")
-    return <SurfacesScene direction={direction} phone={phone} />;
-  return <FieldScene direction={direction} />;
+  if (scene === "sub") return <SubScene direction={direction} sub={sub} />;
+  if (scene === "real") return <RealAccountScene />;
+  return <SurfacesScene direction={direction} phone={phone} />;
 }

@@ -140,6 +140,27 @@ export const EVENT_MENU: MenuModel = {
   ],
 };
 
+/**
+ * THE SAME MENU WITH THE BRANCH DELETED: every nested row's children become a
+ * group of their own under the branch's name, and no menu in the product opens
+ * a second menu. It is derived rather than typed out, so the two halves of the
+ * submenu ask cannot drift into being two different menus, which would make the
+ * comparison a comparison of copy.
+ */
+export function inlineBranches(model: MenuModel): MenuModel {
+  const groups: MenuModel["groups"] = [];
+  for (const g of model.groups) {
+    const kept = g.rows.filter((r) => !r.sub);
+    if (kept.length) groups.push({ label: g.label, rows: kept });
+    for (const row of g.rows) {
+      if (row.sub) groups.push({ label: row.sub.label, rows: row.sub.rows });
+    }
+  }
+  return { ...model, groups };
+}
+
+export const EVENT_MENU_INLINE: MenuModel = inlineBranches(EVENT_MENU);
+
 export const ACCOUNT_MENU: MenuModel = {
   title: "Will Gibson",
   meta: "will@partyreel.com",
@@ -210,6 +231,27 @@ function RowBody({ row, direction }: { row: MenuRow; direction: Direction }) {
       </span>
     );
   }
+  if (direction === "compact") {
+    // Card's three columns at compact's size: the trailing value is the reason
+    // most of these rows are opened at all, so the density takes the padding
+    // and the gaps rather than the column.
+    return (
+      <span className="grid w-full grid-cols-[16px_minmax(0,1fr)_auto] items-center gap-1.5">
+        <Icon className="size-3.5 opacity-70" />
+        <span className="truncate">{row.label}</span>
+        {row.meta ? (
+          <span className="text-[11px] text-muted-foreground tabular-nums">
+            {row.meta}
+          </span>
+        ) : (
+          <span />
+        )}
+      </span>
+    );
+  }
+  // Today's row, worn by paper and lift as well: those two are claims about
+  // MATERIAL, and a material direction that also rearranged the rows would not
+  // be answerable as a material question.
   return (
     <>
       <Icon />
@@ -286,9 +328,28 @@ function Rows({
   );
 }
 
+/**
+ * COMPACT'S GROUP HEADING: the name rides the rule. A label row costs 22px of
+ * height per group, which on a five-row menu is a third of the panel; a rule
+ * the menu was drawing anyway costs nothing and still says what comes next.
+ * With no label it is simply the separator, which is what the footer takes.
+ */
+function GroupRule({ label }: { label?: string }) {
+  return (
+    <div
+      aria-hidden
+      className="my-1 flex items-center gap-2 px-1.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase"
+    >
+      {label ? <span className="shrink-0">{label}</span> : null}
+      <span className="h-px min-w-0 flex-1 bg-border" />
+    </div>
+  );
+}
+
 /* -- THE PANEL -------------------------------------------------------------
-   One component, four anatomies. `today` is the anatomy that ships: a single
-   label, a flat list, a separator and the destructive row inline. */
+   One component, five anatomies. `today` is the anatomy that ships, and paper
+   and lift wear it: a single label, a flat list, a separator and the
+   destructive row inline. */
 
 export function MenuPanel({
   direction,
@@ -401,10 +462,31 @@ export function MenuPanel({
               </div>
             ) : null}
           </>
+        ) : direction === "compact" ? (
+          <>
+            {/* COMPACT: no title row and no label row. A group's name rides the
+                hairline that separates it, so naming a group costs a rule the
+                menu was going to draw anyway instead of a whole row of height.
+                The first group is unnamed on purpose: a menu's first group
+                needs no heading, it needs to start. */}
+            {model.groups.map((g, i) => (
+              <div key={g.label}>
+                {i > 0 ? <GroupRule label={g.label} /> : null}
+                <Rows rows={g.rows} direction={direction} subOpen={subOpen} />
+              </div>
+            ))}
+            {model.footer?.length ? (
+              <>
+                <GroupRule />
+                <Rows rows={model.footer} direction={direction} />
+              </>
+            ) : null}
+          </>
         ) : (
           <>
-            {/* TODAY, as it ships: one label, a flat list, a separator, and the
-                destructive row in the same column as everything else. */}
+            {/* TODAY, as it ships, and what paper and lift wear too: one label,
+                a flat list, a separator, and the destructive row in the same
+                column as everything else. */}
             <DropdownMenuLabel>{model.title}</DropdownMenuLabel>
             <Rows rows={flat} direction={direction} subOpen={subOpen} />
             {model.footer?.length ? (
@@ -680,140 +762,5 @@ function CommandPanel({
         <CommandBody model={model} phone={phone} />
       </PopoverContent>
     </Popover>
-  );
-}
-
-/* -- THE HEADER'S MEGA-MENU ------------------------------------------------
-   The marketing nav panel, the one surface rule 15 was named for, in each
-   direction. It is also where the command direction shows its own limit, which
-   is why it is on the board: a search field over four marketing links is
-   over-built, and the board says so instead of hiding it. */
-
-export const FEATURE_LINKS: {
-  id: string;
-  label: string;
-  line: string;
-  icon: LucideIcon;
-}[] = [
-  {
-    id: "qr",
-    label: "One QR code",
-    line: "One link carries the whole event.",
-    icon: QrCode,
-  },
-  {
-    id: "noapp",
-    label: "No app, no account",
-    line: "Guests upload from the camera roll.",
-    icon: Users,
-  },
-  {
-    id: "review",
-    label: "The host reviews",
-    line: "You decide what reaches the album.",
-    icon: Eye,
-  },
-  {
-    id: "reel",
-    label: "The reel",
-    line: "A film of the night, made for you.",
-    icon: Play,
-  },
-];
-
-export function HeaderPanelBody({ direction }: { direction: Direction }) {
-  if (direction === "command") {
-    return (
-      <div style={{ width: 340 }}>
-        <CommandBody
-          model={{
-            title: "Partyreel",
-            placeholder: "Search the site",
-            groups: [
-              {
-                label: "Features",
-                rows: FEATURE_LINKS.map((f) => ({
-                  id: f.id,
-                  label: f.label,
-                  icon: f.icon,
-                })),
-              },
-              {
-                label: "Pricing",
-                rows: [
-                  { id: "free", label: "What is free", icon: Globe },
-                  { id: "pro", label: "What Pro adds", icon: Users },
-                ],
-              },
-            ],
-          }}
-        />
-      </div>
-    );
-  }
-  if (direction === "glass") {
-    return (
-      <div className="grid grid-cols-2 gap-0.5 p-1.5" style={{ width: 460 }}>
-        {FEATURE_LINKS.map((f) => (
-          <a
-            key={f.id}
-            href="#"
-            onClick={(e) => e.preventDefault()}
-            className="flex items-start gap-2.5 px-2.5 py-2 transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-accent/60"
-            style={{ borderRadius: "var(--flt-r-item, var(--radius-md))" }}
-          >
-            <f.icon className="mt-0.5 size-4 shrink-0 opacity-70" />
-            <span className="min-w-0">
-              <span className="block text-sm font-medium">{f.label}</span>
-              <span className="block truncate text-xs opacity-75">
-                {f.line}
-              </span>
-            </span>
-          </a>
-        ))}
-      </div>
-    );
-  }
-  if (direction === "card") {
-    return (
-      <div style={{ width: 480 }}>
-        <div className="flex items-baseline justify-between border-b border-border px-3 py-2">
-          <p className="text-sm font-semibold tracking-tight">Features</p>
-          <p className="text-xs text-muted-foreground">
-            Everything a host gets
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-1 p-1.5">
-          {FEATURE_LINKS.map((f) => (
-            <a
-              key={f.id}
-              href="#"
-              onClick={(e) => e.preventDefault()}
-              className="grid grid-cols-[20px_minmax(0,1fr)] items-start gap-x-2 gap-y-0.5 px-2 py-2 transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-accent"
-              style={{ borderRadius: "var(--flt-r-item, var(--radius-md))" }}
-            >
-              <f.icon className="mt-0.5 size-4 opacity-70" />
-              <span className="text-sm font-medium">{f.label}</span>
-              <span />
-              <span className="text-xs text-muted-foreground">{f.line}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="grid grid-cols-2 gap-1 p-2" style={{ width: 420 }}>
-      {FEATURE_LINKS.map((f) => (
-        <a
-          key={f.id}
-          href="#"
-          onClick={(e) => e.preventDefault()}
-          className="rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent"
-        >
-          {f.label}
-        </a>
-      ))}
-    </div>
   );
 }

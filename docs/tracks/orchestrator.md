@@ -61,11 +61,8 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 
 | track | board | waits on |
 | --- | --- | --- |
-| `type-scale` | `/design/lab/type-scale` (the ladders side by side, two on real UI) | its handoff |
-| `floating-surfaces` | `/design/lab/floating-surfaces` (the directions as cards, the desk under two) | its handoff |
-| `light` | `/design/lab/light` (the twelve treatments on the real sections) | its handoff |
 | `rounding` | `/design/lab/rounding` (the four families at true size, two on one real page) | its handoff |
-| `media-kit` | cut at `385cfa99`, spawned when a slot frees | a slot |
+| `media-kit` | `/design/lab/media-kit` (the sources' contact sheets at the real card size) | its handoff |
 
 ## Waiting on Will
 
@@ -90,5 +87,11 @@ him: a walk of the palette catalog once `lab-catalog` integrates, then the six c
   audit; the arrival heading renamed with its `lives` anchor; the rulings' two dangling anchors fixed).
 - `5868325e` brand-voice integrated (Round 4's first catalog: six voices, twenty-four spots, 2,642 words
   against a declared 2,700; two questions for Will).
+- `257df8fe` type-scale integrated (five ladders as type specimens; 1,155 words under the budget; the
+  dashboard as a lab screen route).
+- `767e6182` floating-surfaces integrated (seven directions as cards; 2,317 words against a declared 2,400;
+  asset row 14; the dropdown-menu submenu bug named for the wiring round).
+- `2326a924` light integrated (twelve treatments as cards on the real surfaces; 2,889 words against a
+  declared 2,950; asset rows 15 and 16; the template's meta panel named for a fold).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

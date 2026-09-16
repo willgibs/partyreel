@@ -7,13 +7,12 @@ import { useEffect, useState } from "react";
 import type { Ground } from "@/components/lab";
 
 import {
+  CINEMA_BG,
   GROUND_CLASSES,
   GROUND_SET,
-  RAMP_CINEMA_BG,
   type Dim,
-  type Ramp,
   type Scene as SceneId,
-  type Side,
+  type Sub,
 } from "./constants";
 import type { Direction } from "./directions";
 import { Scene } from "./scenes";
@@ -49,36 +48,69 @@ import { Scene } from "./scenes";
 
 type Pushed = {
   ground: Ground;
-  ramp: Ramp;
   direction: Direction;
 };
+
+/**
+ * ★ THE FIRST PAINT READS THE BOARD'S OWN URL, NOT ONLY THIS FRAME'S SRC
+ * (measured on the board, 2026-09-16). The parent seeds a frame's src ONCE, at
+ * that frame's first render, and the board's declared state arrives from the
+ * URL one render LATER, because `useBoardState` reads it through
+ * `useSyncExternalStore`, which hands back the server snapshot first. The
+ * parent's correcting `lab:set` is then dispatched at the iframe's load event,
+ * which is before THIS document has hydrated and registered its listener, so it
+ * lands nowhere: a board opened at ?ground=cinema painted every card on the
+ * app's dark under a dock claiming the room, for ever.
+ *
+ * The frames are same-origin by construction, so the honest fix is to read the
+ * board's own URL here, once, while seeding. Only the GROUND is read, and that
+ * is what makes it safe to do during render: the ground is applied to <html> by
+ * an effect and is not in the rendered tree, so the server's HTML and the
+ * client's first render still agree. `direction` is per-frame on this board (a
+ * catalog card is its own layer, not the page's pick), the branch rides the src
+ * because it changes the markup, and a frame whose ground is the EVIDENCE
+ * rather than the page's carries `pin=1` and is left alone.
+ */
+function pageGround(fallback: Ground, pinned: boolean): Ground {
+  if (pinned || typeof window === "undefined") return fallback;
+  try {
+    const g = new URLSearchParams(window.parent?.location?.search ?? "").get(
+      "ground",
+    );
+    return g && g in GROUND_SET ? (g as Ground) : fallback;
+  } catch {
+    return fallback; // A frame opened on its own: its own src is the truth.
+  }
+}
 
 export function SceneShell({
   scene,
   ground,
-  ramp,
   direction,
+  sub,
   phone,
   dim,
-  variant,
-  side,
   rung,
+  pinned = false,
 }: {
   scene: SceneId;
   ground: Ground;
-  ramp: Ramp;
   direction: Direction;
+  sub: Sub;
   phone: boolean;
   dim: Dim;
-  variant: "sheet" | "drawer";
-  side?: Side;
   rung?: string;
+  /** This frame's ground is the EVIDENCE, so it never takes the page's. */
+  pinned?: boolean;
 }) {
   // Seeded from the URL so the FIRST paint is already on the right ground: the
   // parent's push arrives an effect later, and a frame that flashed cinema
   // before turning paper is a frame that lies for one frame on a board about
   // what a panel looks like over a ground.
-  const [pushed, setPushed] = useState<Pushed>({ ground, ramp, direction });
+  const [pushed, setPushed] = useState<Pushed>(() => ({
+    ground: pageGround(ground, pinned),
+    direction,
+  }));
 
   useEffect(() => {
     const onSet = (e: Event) => {
@@ -90,7 +122,6 @@ export function SceneShell({
       // anywhere else on the page.
       setPushed((k) =>
         (detail.ground ?? k.ground) === k.ground &&
-        (detail.ramp ?? k.ramp) === k.ramp &&
         (detail.direction ?? k.direction) === k.direction
           ? k
           : { ...k, ...detail },
@@ -117,13 +148,10 @@ export function SceneShell({
       if (g.mkt) root.setAttribute("data-mkt", "");
       else root.removeAttribute("data-mkt");
       root.style.removeProperty("--background");
-      // The cinema room is painted inline, so the ramp has to hand it the
-      // matching value: a class rule cannot beat an inline custom property.
-      if (g.cinema) {
-        root.style.setProperty("--background", RAMP_CINEMA_BG[pushed.ramp]);
-      }
+      // The cinema room is painted inline, because a class rule cannot beat an
+      // inline custom property and the frame's own style sets one.
+      if (g.cinema) root.style.setProperty("--background", CINEMA_BG);
       root.style.colorScheme = want.includes("dark") ? "dark" : "light";
-      root.setAttribute("data-flt-ramp", pushed.ramp);
     };
     apply();
     const mo = new MutationObserver(apply);
@@ -136,10 +164,9 @@ export function SceneShell({
       <Scene
         scene={scene}
         direction={pushed.direction}
+        sub={sub}
         phone={phone}
         dim={dim}
-        variant={variant}
-        side={side}
         rung={rung}
       />
     </div>

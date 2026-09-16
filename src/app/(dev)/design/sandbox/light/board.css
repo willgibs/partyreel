@@ -5,22 +5,26 @@
 
    House convention: FINAL states live OUTSIDE the media queries, so a
    reduced-motion reader gets the settled composition with no rule to undo;
-   entrances and loops live inside `no-preference` only, and any infinite loop
-   is marked [data-lgt-loop] so the stage's data-paused stops it on a hidden tab.
+   entrances and loops live inside `no-preference` only.
 
    ── WHAT THIS SHEET PROPOSES ──
    Four things the system does not have yet, written here so the board can show
    them and the ruling can move them (or not) into globals.css:
      1  --lgt-lift / --lgt-float   the shadow family in DARK (bible 10's rewrite
         has no values yet; --shadow-float is zeroed in .dark).
-     2  [data-lgt-lit]             the lit face, today lab-local in glow-lab.css
+     2  [data-lgt-cue="lit"]       the lit face, today lab-local in glow-lab.css
         and dark-only, here with the paper counterpart it has always lacked.
      3  [data-lgt-grain]           the aurora's dither. A field this large at
         this alpha BANDS in 8 bits; the grain is the fix, and it is a stand-in
         for a real tile (see the manifest's Handoff).
      4  --aurora-cadence           the field's clock, a sibling of the lamp's.
         Every aurora on this board reads it, so the board declares it (section
-        6) instead of rendering a frozen band. */
+        4) instead of rendering a frozen band.
+
+   ★ WHAT LEFT AT THE REVAMP (round six, 2026-09-16): the wipe, the phase
+   marker, the magnified grain detail, the paste clamp and the cost meter's solo
+   switch. Each belonged to an instrument the catalog replaced; a rule with no
+   call site is a rule the next reader has to disprove. */
 
 /* ─────────────── 1. THE SHADOW FAMILY IN DARK
 
@@ -38,28 +42,30 @@
    float = a layer over content that keeps living behind it (menu, dialog,
            sheet, toast). It detaches.
 
-   Both are declared on the light ground too, so a cue judged on paper is the
-   SAME cue and not a second design.
+   ★ ROUND TWO CORRECTION, KEPT: lift on a LIGHT ground is --shadow-float's
+   shipped alphas to the byte. Round one carried 0.10 / 0.14 here, which would
+   have re-tuned every paper card on the site as a side effect of a proposal
+   about dark. Paper does not move; dark gains the ramp it never had.
 
-   ★ ROUND TWO CORRECTION: lift on a LIGHT ground is now --shadow-float's
-   shipped alphas to the byte (0.06 / 0.10). Round one carried 0.10 / 0.14
-   here, which would have re-tuned every paper card on the site as a side
-   effect of a proposal about dark. The finding was never that the light
-   values are wrong. Paper does not move; dark gains the ramp it never had and
-   the family gains its second size. */
-[data-lgt-cues] {
+   ★ ROUND SIX MOVED THE DECLARATION ONTO THE GROUND ITSELF. It used to need a
+   [data-lgt-cues] wrapper, which the old matrices drew and a catalog card does
+   not: a cue inside a GroundBox with no wrapper computed `box-shadow: var(...)`
+   against an undeclared token and painted nothing at all. The kit's GroundBox
+   sets [data-ground], so the tokens are declared there and a card needs no
+   furniture to make a shadow appear. */
+:root {
   --lgt-lift:
     0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
   --lgt-float:
     0 4px 8px -2px oklch(0 0 0 / 0.09), 0 8px 16px -4px oklch(0 0 0 / 0.13);
 }
 
-/* The dark grounds the stage can paint. Scoped by [data-ground] (the stage
-   sets it) rather than by .dark, so the cinema room and the app's dark get the
-   same ramp without either of them owning the rule. */
-[data-ground="cinema"] [data-lgt-cues],
-[data-ground="ink"] [data-lgt-cues],
-[data-ground="app-dark"] [data-lgt-cues] {
+/* The dark grounds the kit can paint. Scoped by [data-ground] rather than by
+   .dark, so the cinema room, the footer's ink and the app's dark all get the
+   same ramp without any one of them owning the rule. */
+[data-ground="cinema"],
+[data-ground="ink"],
+[data-ground="app-dark"] {
   --lgt-lift:
     0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
   --lgt-float:
@@ -136,156 +142,42 @@
   }
 }
 
-/* The grain, magnified, so a judgement about it is possible at all. At 1x on
-   a 2x screen it is a soft mottle; at the device-pixel size it is a fine
-   even dither. The two specimens are the same tile and differ only in scale. */
-[data-lgt-grain-detail] {
-  position: relative;
-  overflow: hidden;
-  background-color: oklch(0.32 0.03 300);
-}
-[data-lgt-grain-detail]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.5;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
-  background-size: var(--lgt-grain-size, 180px) var(--lgt-grain-size, 180px);
-  image-rendering: pixelated;
-}
+/* ─────────────── 4. THE REST STATE, BOARD WIDE
 
-/* ─────────────── THE BOARD'S OWN MOTION
+   "Every lamp's rest state designed, not absent" is a claim, and round one made
+   it in prose. This is the claim as a switch: flip Motion to Rest and every
+   lamp on the board renders exactly what a visitor with prefers-reduced-motion
+   sees, which is the state declared OUTSIDE the engine's no-preference block
+   (the band resting off-layer at its own from-keyframe, the base doing all the
+   work). A media query cannot be simulated; removing the animation lands on the
+   same computed style, which is the whole point of the house convention that
+   final states live outside the query.
 
-   One loop, and it is the cadence specimen's phase marker: a hairline that
-   crosses each strip on that strip's own clock, so two lamps whose comets are
-   3s apart can be READ as 3s apart instead of guessed at. The lamps themselves
-   are the engine's; this board adds no light of its own.
+   ★ NARROW ON PURPOSE. It reaches the engine's two animated layers and the
+   publish beat, and nothing else. A blanket `animation: none` under this
+   attribute would also freeze the marketing reveal grammar on the real chapters
+   the cards render, whose PRE-animation state is opacity 0: the board would go
+   blank and read as broken rather than as resting.
 
-   Rest state (outside the query, deliberately): the marker sits at the left
-   edge, which is the animation's own from-keyframe, so reduced motion gets a
-   settled composition rather than a marker parked mid-travel. */
-[data-lgt-phase] {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  left: 0;
-  background: color-mix(in oklab, var(--foreground) 22%, transparent);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  [data-lgt-phase] {
-    animation: lgt-phase var(--lgt-dur, 8s) linear infinite;
-  }
-  [data-paused="true"] [data-lgt-loop] {
-    animation-play-state: paused;
-  }
-}
-
-@keyframes lgt-phase {
-  from {
-    left: 0;
-  }
-  to {
-    left: 100%;
-  }
-}
-
-/* ─────────────── 4. THE REST STATE, BOARD WIDE (round two)
-
-   "Every lamp's rest state designed, not absent" is a claim, and round one
-   made it in prose. This is the claim as a switch: flip it and every lamp on
-   the board renders exactly what a visitor with prefers-reduced-motion sees,
-   which is the state declared OUTSIDE the engine's no-preference block (the
-   band resting off-layer at its own from-keyframe, the base doing all the
-   work). A media query cannot be simulated; removing the animation lands on
-   the same computed style, which is the whole point of the house convention
-   that final states live outside the query.
-
-   ★ NARROW ON PURPOSE. It reaches the engine's two animated layers, this
-   board's phase marker and the publish beat, and nothing else. A blanket
-   `animation: none` under this attribute would also freeze the marketing
-   reveal grammar on the real chapters in part B, whose PRE-animation state is
-   opacity 0: the board would go blank and read as broken.
-
-   Specificity is three classes deep so it wins wherever globals.css lands in
-   the sheet order (a component-imported sheet has no guaranteed position
-   relative to the app's own). */
+   Specificity is three levels deep so it wins wherever globals.css lands in the
+   sheet order (a component-imported sheet has no guaranteed position relative
+   to the app's own). */
 [data-motion="rest"] [data-glw] [data-glw-band],
 [data-motion="rest"] [data-glw] [data-glw-edge] {
   animation: none;
-}
-[data-motion="rest"] [data-lgt-phase] {
-  animation: none;
-  left: 0;
 }
 [data-motion="rest"] [data-rxp-pubglow] {
   animation: none;
 }
 
-/* ─────────────── 5. THE WALK'S OWN TOOLS (round three)
-
-   Three small mechanisms the third round added, all of them about the WALK
-   rather than about the light: a wipe that puts unlit and lit in one frame, a
-   solo switch the cost meter uses to measure one lamp instead of twenty-two,
-   and a clamp on the pastes so part E can be scanned before it is read. */
-
-/* THE WIPE. The light layers are clipped at the handle and nothing else in the
-   chapter is touched, so the seam down the middle is the whole difference
-   between lit and unlit. The clip runs from the LEFT, so 0 percent is the
-   chapter as it ships and 100 percent is the chapter fully lit.
-
-   ★ THE HANDLE'S LINE IS A SIBLING, NOT A CHILD. Inside the clipped wrapper it
-   would be clipped by its own handle and vanish at 100 percent, which reads as
-   the control breaking at the end of its travel. */
-[data-lgt-wipe] {
-  position: absolute;
-  inset: 0;
-  clip-path: inset(0 0 0 var(--lgt-wipe, 0%));
-}
-[data-lgt-wipe-line] {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  left: var(--lgt-wipe, 0%);
-  background: color-mix(in oklab, var(--foreground) 24%, transparent);
-  pointer-events: none;
-}
-
-/* THE SOLO SWITCH. The cost meter sets data-lab-solo on the document element
-   for the six seconds it runs. "none" hides every lamp on the board; "target"
-   hides every lamp except the ones inside the specimen it is measuring. Both
-   rules are attribute selectors of equal weight, so the second one wins on
-   source order, which is why it is written second. */
-[data-lab-solo] [data-glw] {
-  display: none;
-}
-[data-lab-solo="target"] [data-lab-solo-target] [data-glw] {
-  display: block;
-}
-
-/* THE PASTE CLAMP. Collapsed, a paste shows its first lines and fades out;
-   the button under it is the only way to see the rest, which is deliberate:
-   nine full-height blocks were a third of the board's height and a reviewer
-   does not read them end to end on a walk. The fade is a mask rather than a
-   gradient overlay so it works on either ground without a second colour. */
-[data-lgt-paste] {
-  max-height: calc(var(--lgt-paste-lines, 6) * 1.625em + 2rem);
-  overflow-y: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
-}
-
-/* ─────────────── 6. THE AURORA'S CLOCK (round four, the fix)
+/* ─────────────── 5. THE AURORA'S CLOCK (round four, the fix)
 
    The fourth thing the system does not have yet, and the one the board was
-   RENDERING as if it did. The composer and the evidence pass the engine
-   `--glw-dur: var(--aurora-cadence)`, which is verbatim what their paste hands
+   RENDERING as if it did. The aurora passes the engine
+   `--glw-dur: var(--aurora-cadence)`, which is verbatim what its paste hands
    globals.css. Nothing declared the token: globals.css has --spill-cadence and
    no sibling, and the only other declarations on the board are inside exported
-   STRINGS (the register candidate's paste, the composer's paste), which are
-   text and reach nothing.
+   STRINGS (candidates.ts's blocks), which are text and reach nothing.
 
    ★ AN UNDECLARED TOKEN HERE DOES NOT FALL BACK, IT FREEZES THE LAMP. `vars`
    lands as an inline style on the same element that carries [data-glw], so it
@@ -294,19 +186,35 @@
    --glw-dur is not registered (@property) and no ancestor declares it, it
    resolves to the guaranteed-invalid value. `animation: glw-drift-x
    var(--glw-dur) linear infinite` is then an invalid shorthand and every
-   longhand resets, animation-name to `none`. The band stops dead while the
-   base stays lit, which reads as a design choice rather than a defect, and the
-   two clocks the board asks Will to rule between read as one moving band beside
-   one still one. It was invisible in QA because applying the aurora register
-   candidate declares the token and that block persists in localStorage: a
-   developer who had applied it once saw motion no reviewer would.
+   longhand resets, animation-name to `none`. The band stops dead while the base
+   stays lit, which reads as a design choice rather than a defect. It was
+   invisible in QA because applying the aurora register block declares the token
+   and that block persists in localStorage: a developer who had applied it once
+   saw motion no reviewer would.
 
    So the board declares the sibling itself, at the same place and with the same
-   value its paste asks for (`:root, .surface-paper`, three laps of the lamp's
-   clock). Two consequences worth keeping: every aurora on the board now follows
-   the cadence knobs under the clock row, because the ratio is a calc over the
-   lamp's own token rather than a literal; and when the ruling lands this
-   declaration is deleted, not moved, because globals.css will carry it. */
+   value its paste asks for. Two consequences worth keeping: every aurora on the
+   board follows the cadence knobs under the clock, because the ratio is a calc
+   over the lamp's own token rather than a literal; and when the ruling lands
+   this declaration is deleted, not moved, because globals.css will carry it. */
 :root {
   --aurora-cadence: calc(var(--spill-cadence) * 3);
+}
+
+/* ─────────────── 6. THE ENTRANCES, SETTLED (round six)
+
+   Every crop on this board declares `data-inview="true"` on its inner wrapper,
+   which is what marketing.css's chapter-1 final-state rules key off. Two
+   registers need a line of their own, because they animate on MOUNT rather than
+   on the attribute: the film cut, and the underlight's own arrival. A board
+   judging LIGHT must not depend on an entrance firing, and a real chapter
+   rendered inside a 340px window onto 790px can never give an
+   IntersectionObserver the ratio its Reveal asks for, so the copy would sit at
+   opacity 0 for ever and the card would read as an empty box. That is exactly
+   what round six's first build did; the type-scale board had already written
+   down the same remedy for the same reason. */
+[data-board="light"] [data-mkt-cut] {
+  animation: none;
+  opacity: 1;
+  transform: none;
 }
