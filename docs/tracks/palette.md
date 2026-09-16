@@ -2020,7 +2020,8 @@ two tables where the row is the dock control. `TrueViewport`, its entrance-settl
 
 ## Handoff (round 6)
 
-- Head: `62ce6072` on `lp/palette`, pushed. No preview: `preview: false`, and no `[preview]` or
+- Head: `668958e5` on `lp/palette`, pushed (the last code commit is `62ce6072`, the
+  launch-prep merge; this manifest is the tip). No preview: `preview: false`, and no `[preview]` or
   `[ci]` on any commit. The board is `/design/lab/palette`.
 - Synced with `origin/launch-prep` at `1244fbd8` (glow-specs integrated). The merge was clean:
   the adjacent deletions in `sandbox/registry.test.ts` (their two lines off `PLAIN`, my one)
