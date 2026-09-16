@@ -1,388 +1,216 @@
 import { defineBoard } from "@/components/lab/board-spec";
 
 /**
- * THE HOME HERO BOARD, AS DATA (the Library x Lab migration wave, 2026-09-15;
- * the asks rewritten in plain words the same night, the clarity round).
+ * THE HOME HERO, AS DATA. ROUND SIX, 2026-09-16: the stream catalog.
  *
- * Nothing here is new argument. Every candidate, rationale, copy proposal,
- * departure and asset is the round-four board's, moved out of three places it
- * was scattered across (`board.tsx`'s prose block, the hand-rolled `ConceptMeta`
- * table, and the metadata block each concept file declared beside its engine)
- * into the one list the template, the desk, the record and the review ledger all
- * read. What changed is where a reviewer meets it: the verdict and the four
- * calls are the first screen instead of a toggle and three stages.
+ * ★ THE DIRECTION IS RULED AND IS NOT ON THE BOARD ANY MORE. Will answered
+ * round five on all four asks (`docs/reviews/home-hero.json`): the source, the
+ * album coming out of the code; the lockup centred; the site's one line as the
+ * headline; no live count. The guest scanning and the photos flying in were the
+ * two candidates he did not pick, and they left with their files (`scan.tsx`,
+ * `inflow.tsx`; git holds them). A board that keeps showing what was decided is
+ * a museum, and this one is down to the single thing still open.
  *
- * ★ AND THE ASKS ARE NOW QUESTIONS A STRANGER CAN ANSWER. Will's first review
- * through the desk stopped at asks that were labels over tokens, which is what
- * all four of these were ("The direction: source | scan | inflow"). A reviewer
- * meets an ask on the desk or on the review card, away from the board's
- * argument, so each one now says what the thing is, where it lives on the site,
- * where to look, and what choosing each option would do. The three board
- * nicknames a reader would otherwise have to dig for (the source, the corridor,
- * the lockup) are glossed inside the ask that uses them. The ids did NOT
- * change: the review ledger joins on them, so an option may be reworded for
- * ever and an answer still lands on the ask it answered.
+ * ★ WHICH IS THE STREAM, IN HIS OWN WORDS: "The album coming out of the code
+ * definitely looks best. However, I think we can improve this visual a lot. The
+ * random stream feels worse than a more polished one." So the candidates are no
+ * longer three pictures, they are four COMPOSITIONS of the one picture, and the
+ * board is a catalog to rule on card by card rather than a paper about heroes.
  *
- * ★ THE CONCEPT FILES DECLARE ONLY `{ id, render }`. The metadata that used to
- * sit under each engine is HERE, because a candidate's rationale cannot live in
- * a `.tsx` module: `registry.ts` is imported by a SERVER page and by node tests,
- * so anything it reaches has to be pure data. The engines themselves are
- * untouched, which is the whole contract of the wave: it moves the argument, it
- * does not re-argue it.
+ * ★ AND NOTHING IN ANY OF THEM IS RANDOM. Round five dealt every frame four
+ * seeded values off an integer hash; round six replaced every one of them with a
+ * step in a declared cycle (`streams.ts`). That is the whole round, and it is
+ * why the four differ in GRAMMAR rather than in tuning: order, rhythm,
+ * arrangement, line.
  *
- * ★ AND THE COPY PROPOSALS ARE THE SINGLE SOURCE FOR THE RENDERED LOCKUPS.
- * `copyFor` in shared.tsx reads them back out of this file, so the words on the
- * card, the words in the hero and the words in the headlines section cannot
- * drift from each other the way three hand-kept copies did.
+ * This is the last exploration this board gets. The winner is wired into
+ * `cinema-hero.tsx` in the next round and appears in the Library with a `new`
+ * badge, so every card here is finished enough to ship exactly as drawn.
  */
 export const HOME_HERO = defineBoard({
   id: "home-hero",
   title: "The home hero",
 
   question:
-    "The home page's first screen has to say that a QR code turns into a shared album. Which picture says it: the album coming out of the code, a guest scanning it, or the photos flying in?",
+    "The home page opens on the album coming out of the QR code. Which composition should the photographs leaving it be?",
 
   round: {
-    n: 5,
-    date: "2026-09-15",
+    n: 6,
+    date: "2026-09-16",
     changed:
-      "The board moved onto the kit's template, then the four asks were rewritten in plain words with labelled options, and every card, lockup and dock switch relabelled to carry those same words. No concept, number or recommendation changed.",
+      "Four polished streams instead of three pictures. Every seeded value became a step in a declared cycle, so no frame is placed at random; the two directions Will did not pick left with their files.",
   },
   history: [
+    {
+      n: 5,
+      date: "2026-09-16",
+      changed:
+        "Will ruled the direction (the album out of the code), the centred lockup, the site's one line and no live count, and noted that the stream itself reads random.",
+    },
     {
       n: 4,
       date: "2026-09-15",
       changed:
-        "The two Will loves continued (the source's emanating direction, the scan with its phone ruled in), the inflow added as the honest test of the reverse reading, the burst and the river killed as heroes and moved to their own boards.",
-    },
-    {
-      n: 3,
-      date: "2026-09-15",
-      changed:
-        "Three variations off the ruled source, one file each, built by three tracks in parallel against one contract.",
-    },
-    {
-      n: 2,
-      date: "2026-09-14",
-      changed:
-        "The question sharpened to the QR becoming the album, answered three ways. Will ruled the source: definitely my favorite direction.",
-    },
-    {
-      n: 1,
-      date: "2026-09-12",
-      changed:
-        "Four grids answering where the type lives so no photograph is dimmed. Will's read: bland, generic, and none of them captured the QR.",
+        "The lane of photographs became a volume rather than a plane: three depths, half the frames portrait, eight a side, and the type's clear lane measured off the geometry instead of chosen.",
     },
   ],
   context:
-    "Round one measured the defect the board exists to fix: the shipped hero carries three darkening layers over a wall of 24 tiles at desktop and a fourth on a phone, because white type has to survive over whichever tile the 55 second drift parks under it, so bible 1 is inverted and not one photograph reads as a photograph. Its four grids fixed that and were still bland, because none of them was about the one thing Partyreel is. Round two asked the sharper question instead, and the answer has been iterating on one composition ever since.",
+    "Round one measured the defect the board exists to fix: the shipped hero carries three darkening layers over a wall of 24 tiles at desktop and a fourth on a phone, because white type has to survive over whichever tile the 55 second drift parks under it. Bible 1 is inverted there and not one photograph reads as a photograph. Every composition since has refused that trade by changing the shape instead: the album is a band through the middle, the type lives above and below it, and the code holds the exact centre at scanning size.",
 
   verdict: {
     recommendation:
-      "The album coming out of the code, with a guest scanning as the live second. The third answered the question it was built for and the answer is no, so it belongs on a page where the reader already scrolls.",
+      "The album lays itself out: the only one of the four where the stream stops being traffic and becomes an arrangement you can read.",
     because:
-      "It is the only one of the three whose shape IS the sentence: the real demo code holds the exact centre at the size a phone can scan, and the album branches out of it and never stops. Its photographs also grow as they travel, so the album gets easier to read the longer you look, where the third one's shrink to nothing at the object you most want looked at.",
+      "A stream that never stops can only be judged while it moves. This one travels out, stops in four held places a side and holds, so the hero is a picture at any instant a screenshot is taken. The other three are all better than round five; none of them is that.",
     overrule:
-      "If the cause matters more than the result, the guest scanning is already built and its phone is ruled in. Nothing on the board argues for the photos flying in as the home hero.",
+      "If the first screen has to feel continuous rather than composed, the mirrored pair is the calmest that never stops.",
   },
 
-  asks: [
-    {
-      id: "direction",
-      question:
-        "Which of the three pictures should the home page's first screen be?",
-      context:
-        "The hero is the first screen of partyreel.com: a headline, a sentence, two buttons, and a picture behind them. All three candidates put the real demo QR code in the middle at the size a phone can scan, and differ in what the photographs around it do. Two board nicknames, in case you meet them: the first picture is the source, and the moving lane of photographs is the corridor.",
-      look: "The three heroes section at 1440. Set Which picture in the dock to one at a time, then back to All three; each card is titled with its option's own words. Watch each one run, then look at it as a still.",
-      options: [
-        {
-          id: "source",
-          label: "The album comes out of the code",
-          means:
-            "The code holds the centre, still and scannable, and photographs branch out of it and never stop.",
-        },
-        {
-          id: "scan",
-          label: "A guest scans, then it comes out",
-          means:
-            "The same picture with the cause in it: a hand lifts a phone, the camera finds the code across the room, then the album leaves.",
-        },
-        {
-          id: "inflow",
-          label: "The photos fly into the code",
-          means:
-            "The mirror image: photographs come out of the dark and slide under the code's white plate, so the album closes into it.",
-        },
-      ],
-      recommended: "source",
-      because:
-        "You have already said you like the first two. The third was built to test whether the truer sentence, photos going IN, also makes the better picture; it reads while it moves and not as a still, where it looks like the first one and only the words tell them apart.",
-      overrule:
-        "If the hero should show a guest rather than a finished album, the second says the same thing with the cause in the frame.",
-      evidence: "concepts",
-      // No `control`: the Which picture switch carries a fourth option (All
-      // three) that no ask can offer, and dropping it would cost the board the
-      // side-by-side scroll that is its whole case.
-      state: { candidate: "all", canvas: "desktop" },
-    },
-    {
-      id: "headline",
-      question:
-        "Should the hero carry the site's one line, or a headline written for the winning picture?",
-      context:
-        "The headline is the big line of type in the hero. The site thesis is one ruled line used across the whole marketing site, and it is what all three render today. Each picture also proposes a headline written for its own mechanism, so the one where a guest scans offers a line about every camera in the room being one album.",
-      look: "The headlines section: the site's line first, then the three proposals, each in the face and at the size the hero ships. Or flip Headline in the dock and watch every picture's own line swap in.",
-      options: [
-        {
-          id: "ruled",
-          label: "The site's one line",
-          means:
-            "The hero keeps the thesis that already runs across the whole marketing site, and all three pictures read with it.",
-        },
-        {
-          id: "proposed",
-          label: "The picture's own line",
-          means:
-            "The hero carries the headline written for whichever picture is ruled in, so the words and the picture are one idea.",
-        },
-      ],
-      recommended: "ruled",
-      because:
-        "The thesis is one line for the whole site and every picture reads with it. Each proposal is sharper about its own mechanism, which is exactly what makes it a line for that picture rather than for the home page.",
-      overrule:
-        "Copy is open (bible 21). If the winning picture's own line reads better inside its own frame, it rides in with the picture.",
-      evidence: "words",
-      // The Headline switch IS this ask: its option ids are these ids, so
-      // picking an option on the review card previews it on every hero.
-      control: "copy",
-      state: { canvas: "desktop" },
-    },
-    {
-      id: "lockup",
-      question:
-        "Should the headline and buttons sit centred above and below the code, or left like the rest of the site?",
-      context:
-        "The lockup is the block of type and buttons in a hero: the headline, the sentence under it, and the two actions. Every other marketing page on the site puts that block on the left, and so does the hero that ships today. All three candidates centre it instead, because the code holds the middle of the frame and the photographs are symmetrical about it.",
-      look: "The three heroes section at 1440 and at 375: the type sits above and below the code in all three. Compare with Today, for reference at the foot of the board, whose type runs left.",
-      options: [
-        {
-          id: "centred",
-          label: "Centred, above and below the code",
-          means:
-            "The type stays where all three pictures put it, and the code keeps the exact middle of the frame.",
-        },
-        {
-          id: "left",
-          label: "Left, like every other page",
-          means:
-            "The type moves beside the picture, so all three compositions have to be rebuilt around it.",
-        },
-      ],
-      recommended: "centred",
-      because:
-        "The code owns the middle of the frame and the photographs are symmetrical about it, so the type lives above and below rather than beside it. Going left is what every other marketing hero does, which is precedent and not law.",
-      overrule:
-        "If the home page has to match the rest of the site, the type moves beside the picture and all three compositions change shape.",
-      evidence: "concepts",
-      state: { candidate: "all", canvas: "desktop" },
-    },
-    {
-      id: "count",
-      question:
-        "Should the hero carry a live count of photos and guests under the code?",
-      context:
-        "Under the code, two of the three pictures show a small line counting the photos and the guests in the album, which ticks upward while you watch. The number is a stand-in and nothing real is behind it yet. If it stays, the wiring round reads the demo event's own total and every tick is one real upload; it must never ship as invented data.",
-      look: "The three heroes section with Which picture on A guest scans: the small line under the white code plate, which starts at 282 photos from 48 guests and climbs. The photos flying in counts too; the first has a caption there instead.",
-      options: [
-        {
-          id: "keep",
-          label: "Keep it, wired to the real event",
-          means:
-            "The line stays, and at wiring it reads the demo event's own total, so every tick is one real upload.",
-        },
-        {
-          id: "cut",
-          label: "Cut the number from the hero",
-          means:
-            "No live number anywhere in the hero. The first two hold without it; the third loses its clearest sign that photos are arriving.",
-        },
-      ],
-      recommended: "keep",
-      because:
-        "A number climbing while you watch is the one thing in the frame that says this is happening right now. It is only worth having if it is real, so keeping it means wiring it to the demo event's own total.",
-      overrule:
-        "If a hero may not carry a live number at all, the line goes; the first two pictures hold without it.",
-      evidence: "concepts",
-      state: { candidate: "scan", canvas: "desktop" },
-    },
-  ],
+  // ★ NO ASKS, AND THE CARDS CARRY THE WHOLE CHOICE. This catalog is reviewed
+  // as a pick-one gallery: one treatment kept, or refinements asked for on one
+  // or more, or new directions. Everything the round opens IS one of the items,
+  // so a question beside them would be the same question twice (Will,
+  // 2026-09-16: asks only for what is not one item). It also sets the bar for
+  // the four cards below: the name, the one line and the four facts have to let
+  // a stranger choose between them without opening a single fold.
+  asks: [],
 
   candidates: [
     {
-      // ★ THE CARD'S TITLE IS THE OPTION'S LABEL. A reviewer answering the
-      // direction ask has to find the words he was offered ON the thing he is
-      // judging; "1. The source" was a nickname he had to go into the board to
-      // decode. The nickname survives in the rationale, glossed.
-      id: "source",
-      name: "1. The album comes out of the code",
-      recommended: true,
+      id: "mirror",
+      name: "1. A mirrored pair on every beat",
+      one: "One frame each way on every beat, same height, same depth. Calm and symmetric.",
+      verdict: "ship",
       rationale:
-        "The scan is where everything starts, so the hero makes that literal: the real demo QR holds the exact centre, still and scannable, and the album branches out of it and never stops. The board calls this one the source. Round four made its lane of photographs a volume rather than a plane.",
-      proposed: {
-        h1: "The whole event comes back to you.",
-        subhead:
-          "Guests scan the code. Every photo and video they take lands in your album, with no app and no account.",
-        secondary: "See a real album",
-      },
-      departures: [
-        {
-          id: "source-clean",
-          from: "precedent",
-          text: "The centred type is its only departure, and it is the board's rather than this picture's. Everything else is inside the bible: photographs at 100 percent with no darkening layer anywhere, the headline in the markup at full opacity, every animation inside the reduced-motion block with the settled lane as the rest state, cinema and unlit with no lamp.",
-          evidence: "concepts",
-        },
+        "The quietest of the four: round five's silhouette with every dealt value replaced and the spacing made even. Five stations walked in order, three depths in order, the two arms taking the same one on the same beat, so the eye finds the pattern in about two seconds and stops hunting.",
+      facts: [
+        ["Grammar", "One pair a beat, the arms exact mirrors, five stations"],
+        ["Cost", "18 frames lit of 28 nodes; 16.7 ms mean, measured"],
+        ["Frames", "the 34 squares (row 2), 14 a side, no photograph twice"],
+        ["At rest", "the fan standing symmetric about the code"],
       ],
     },
     {
-      id: "scan",
-      name: "2. A guest scans, then it comes out",
+      id: "phrase",
+      name: "2. Three frames, then a breath",
+      one: "Three frames leave together, then that side goes quiet and the other answers. It breathes.",
+      verdict: "ship",
       rationale:
-        "The first picture's lane of photographs, with the cause in frame, and since the phone is ruled in it is the phone that does it: a hand rises, the camera finds the code across the room, the capture fires, the code blooms in answer, and only then does the album branch out. One beat, in causal order.",
-      proposed: {
-        h1: "Every camera in the room, one album.",
-        subhead:
-          "Guests point a camera at the code, and their photos and videos land in your album, with no app and no account.",
-        secondary: "See what it made",
-      },
-      departures: [
-        {
-          id: "scan-phone",
-          from: "precedent",
-          text: "The phone is ruled in rather than asked, and three things hold it to a camera rather than to software, because a phone that reads as an app would break the pitch: no screen chrome but the notch, the device cropped by two frame edges so it is a held object and not a mockup, and what it looks at is visibly the same code standing across the room.",
-          evidence: "concepts",
-        },
-        {
-          id: "scan-light",
-          from: 1,
-          text: "Two things give off light on a hero that is cinema and unlit by standing ruling: the phone's screen, which lights itself and its own bezel and nothing else, and one white capture bloom behind the code's plate, spent in 400 ms once per turn of the album. Both brighten and neither darkens, so every photograph is still at 100 percent and there is no scrim.",
-          evidence: "concepts",
-        },
+        "Round five was a metronome with its beats scattered, and a metronome has no phrases. Three frames leave 170ms apart and step far, middle, near, so a phrase opens as one gesture; the bar is then empty and the other arm answers. A short flight empties the stream between phrases, so one reads.",
+      facts: [
+        [
+          "Grammar",
+          "Three frames 170ms apart, then an empty bar; the arms alternate",
+        ],
+        ["Cost", "12 frames lit of 24 nodes; 16.7 ms mean, measured"],
+        ["Frames", "the 34 squares (row 2), 12 a side, no photograph twice"],
+        ["At rest", "one phrase mid-flight, the answering side just leaving"],
+      ],
+    },
+    {
+      id: "settle",
+      name: "3. The album lays itself out",
+      recommended: true,
+      one: "Frames fly out and stop in four held places a side, long enough to read.",
+      verdict: "ship",
+      rationale:
+        "The one that stops being traffic. The places are a composition rather than a scatter, walked in order, and a place is never double booked: a frame holds for less time than its place takes to come round. Because it arrives rather than passes, the album is legible in a still.",
+      facts: [
+        ["Grammar", "Out, a held arrangement of four places a side, then gone"],
+        ["Cost", "15 frames lit of 22 nodes; 16.7 ms mean, measured"],
+        ["Frames", "the 34 squares (row 2) and the 12 portraits (row 12)"],
+        ["At rest", "the four places occupied: the idea standing still"],
       ],
       assets: [
         {
-          what: "A hand-and-phone cutout",
-          spec: "PNG with alpha, 1200 px on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and stays live; shot from just behind the holder's shoulder, the phone held up and angled away to the right, in low warm event light so the body is nearly a silhouette with one highlight along the edge; two variants, a one-handed grip and a two-handed one. The device is built in three flat layers for exactly this swap, so the cutout replaces the body and the rim and nothing else moves.",
-          replaces:
-            "the drawn device (.hhc-phone in sandbox/home-hero/scan.tsx).",
-          row: 8,
+          what: "12 event photographs, portraits",
+          spec: "Logged already. This is the treatment that needs them: a held frame reads at up to 332 px tall, where a 512 square cropped to 4:5 is upscaled.",
+          replaces: "the square crops, in the held places only.",
+          row: 12,
         },
       ],
     },
     {
-      id: "inflow",
-      name: "3. The photos fly into the code",
+      id: "ribbon",
+      name: "4. One fanned file a side",
+      one: "No scatter: one file each way up a rising arc, fanning as it goes.",
+      verdict: "refine",
       rationale:
-        "The mirror, built to answer one question honestly: is the truer sentence, photographs going INTO the code, also the better picture? Frames come out of the dark and slide UNDER the white plate, because an object hidden behind something opaque has gone somewhere and one that dissolves is erased.",
-      proposed: {
-        h1: "Everything they shoot lands here.",
-        subhead:
-          "Guests scan the code, and every photo and video they take goes straight into your album. Nothing to install.",
-        secondary: "See a real album",
-      },
-      departures: [
-        {
-          id: "inflow-still",
-          from: "precedent",
-          text: "The verdict this picture was built to give, on its own card rather than in a footnote: in MOTION it reads and it is the truer sentence; in a STILL it does not, because its geometry is the first picture's and the only cue left is the words. A directional soft edge was tried as the fix and abandoned: at a strength you can see, it eats the photograph.",
-          evidence: "concepts",
-        },
-        {
-          id: "inflow-ring",
-          from: 1,
-          text: "The splash ring carries an 18 px outer glow, this picture's one departure from cinema and unlit, and it is measured rather than decorative: the plate is surrounded by photographs by construction, so a hairline ring is legible only over the dark. There is no inner glow, which would whiten the plate and the frames under it, and bible 1 does not allow that.",
-          evidence: "concepts",
-        },
+        "The most composed of the four and the least like an album: the angle is a function of how far along the file a frame is, so the stream reads as one fanned object rather than as many photographs, and it fills the top corners the centred lockup leaves empty. A deck is a deck, and a camera roll is not.",
+      facts: [
+        [
+          "Grammar",
+          "One file a side on an arc, the angle fanning with distance",
+        ],
+        ["Cost", "14 frames lit of 28 nodes; 16.7 ms mean, measured"],
+        ["Frames", "the 34 squares (row 2), 14 a side, no photograph twice"],
+        ["At rest", "the full file standing, the fan legible end to end"],
       ],
     },
   ],
 
   departures: [
     {
-      id: "centred-lockup",
-      from: "precedent",
-      text: "All three put their type CENTRED and every other marketing hero goes left. Precedent rather than law: the code owns the middle of the frame and the photographs are symmetrical about it, so the type lives above and below it. Overrule it and the composition changes shape, because the type would then have to live beside the picture rather than around it.",
-      evidence: "concepts",
-    },
-    {
-      id: "live-count",
-      from: "precedent",
-      text: "The count under the code is the one fabricated thing in the frame, and it is load-bearing on the picture where the photos fly in, where it is what separates arriving from vanishing. It is a stand-in: at wiring it reads the demo event's real total and each tick is one real upload, or the line goes.",
-      evidence: "concepts",
-    },
-    {
       id: "stand-in-frames",
       from: 18,
-      text: "All three cycle the twelve landscape marketing stills, which are stock with unverified provenance (ASSETS row 6) and wrong in shape: half the lane is portrait now and a frame is read between 117 and 370 px. The board is honest about it rather than cropping around it, and the fix is ASSETS row 2.",
-      evidence: "stand-ins",
+      text: "The twelve stand-in stills are stock, unverified (ASSETS row 6), and wrong in shape: half of every stream is portrait. The fix is row 2, already requested.",
+      evidence: "stream",
     },
     {
-      id: "unshipped-reference",
+      id: "centred-lockup",
       from: "precedent",
-      text: "The bottom section mounts the SHIPPED hero from production code beside the candidates. It is the only production component on the board and it is there because the case is the scroll: three heroes whose photographs you can see, then the one with three darkening layers over twenty-four tiles.",
-      evidence: "today",
+      text: "The type is centred where every other marketing hero runs left. Ruled on round five, so it is precedent broken on purpose, and it is what lets the code hold the exact middle.",
+      evidence: "page",
     },
   ],
 
   assets: [
     {
       what: "34 event photographs, squares",
-      spec: "512x512, one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals; framed tight enough to read at 120 px (a face, two hands, a glass, a sparkler, a first dance), never a wide room shot, and each surviving a centre crop to 4:5 and to 4:3, because half the lane is portrait. 34 rather than a round 24 because the count is the composition's: the lane holds 17 frames a side in the air at 1440, the two arms are offset by half the set, and the two windows only come apart at twice the pool, which is what buys the one thing the pictures buy, that no photograph is ever on screen twice.",
-      replaces:
-        "the 12 landscape stand-ins all three pictures cycle (FRAMES in sandbox/home-hero/shared.tsx).",
+      spec: "Unchanged by this round. A stream needs twice its pool for the two arms never to show one photograph at once; 14 a side is the largest of the four, so 34 covers them all.",
+      replaces: "the 12 stand-ins (FRAMES in sandbox/home-hero/shared.tsx).",
       row: 2,
     },
   ],
 
   sections: [
     {
-      id: "concepts",
-      title: "The three heroes",
-      lede: "Each of the three at full size on the real cinema ground, carrying the headline it proposes and the rules it breaks. Which picture in the dock puts one on screen alone, and clicking a card's title does the same.",
+      id: "stream",
+      title: "The four streams",
+      lede: "The real hero at 1440, running, with its own Replay. Pick dresses the page below; A and B choose the pair.",
       argument: [
-        "One question, three mechanisms. The first puts the real demo code at the exact centre at scanning size and branches the album out of it in a lane that is a cone with the object at its apex. The second is that lane with the cause in the frame: a guest's hand rises, the camera finds the code across the room, the capture fires and the code blooms in answer. The third is the mirror, the room closing on the code, with nothing ever fading at the plate.",
-        "What all three hold fixed, and what makes them answers to round one rather than four more grids: photographs at 100 percent with no darkening layer anywhere, the headline in the markup at full opacity and never gated, the type ladder resolved per canvas, every animation inside the reduced-motion block with a designed rest state, and cinema and unlit by the standing ruling. Every departure from that is on the picture's own card rather than in a footnote.",
-        "The two canvases are two compositions rather than one squeezed. At 1440 the reader is being shown a room; at 375 the reader is holding the object the picture draws, which is why the second stands its hand almost centred out of the bottom edge and puts the two codes on one vertical axis.",
-        "None of the three carries an eyebrow LINE, and all three settled it the same way: the code is the eyebrow, and the caption under it names the thing the picture cannot say for itself. A word above the headline would be a fifth block of type in a composition that already holds a headline, a caption, a count, a sentence and two actions.",
+        "One picture, four compositions. The first keeps round five's flight and makes the placement symmetric: the two arms take the same station and the same depth on the same beat, so the code is visibly the axis. The second gives the cadence a phrase: three frames close together, an empty bar, then the other arm answers. The third stops: the frames come to rest in four held places a side and hold there long enough to be read. The fourth refuses scatter altogether and runs one fanned file each way along an arc.",
+        "What all four hold fixed, and what makes them answers to the note rather than four more tunings: not one value in any of them is seeded. Round five dealt every frame a vertical offset, a size jitter, a roll and a turn wobble off an integer hash, which is why sixteen frames on screen never resolved into a shape. Every one of those is now a step in a table you can read: a station table, a lane table, an aspect table, a roll table. A reader can watch one frame and know where the next will be.",
+        "And what none of them touches: photographs at 100 percent with no darkening layer anywhere, the headline in the markup at full opacity and never gated, the ladder resolved per canvas, every animation inside the reduced-motion block with its own designed rest state, the code still and scannable at the exact centre. The type's clear lane is measured off each stream's own geometry rather than chosen, so swapping the composition re-solves it.",
+        "What the Cost line is and is not. No phone was measured: the numbers are this machine, both canvases, on the meter below, and all four run at a 16.7 ms mean frame with three to twenty frames over 17 of about 108. The half that carries to a slower machine is the static one, which is the same number everywhere: the nodes handed to the compositor, the frames lit at the busiest instant, and one transform and one opacity written per lit card per frame, with no filter, no blur and the one shadow riding the card's own transform.",
       ],
       wiring: [
-        "The wiring lands in cinema-hero.tsx and nowhere else. Each picture's sheet carries its own keyframe prefix (hhs-, hhc-, hhi-) and its loops pause on a hidden tab through the stage's data-paused; production swaps that for useAmbientPause, which also pauses off screen. The QR is the real demo event's, live from NEXT_PUBLIC_DEMO_QR_TOKEN.",
+        "The winner lands in cinema-hero.tsx and nowhere else. `streams.ts` is already the shippable shape: pure, no React, both canvases solved at module load, one rAF loop writing transform and opacity and nothing else. Drop the three tables that lost and keep the engine. The lab pauses on a hidden TAB through the stage's data-paused; production swaps that for useAmbientPause, which also pauses off screen. The QR is the real demo event's, live from NEXT_PUBLIC_DEMO_QR_TOKEN.",
       ],
     },
     {
-      id: "words",
-      title: "The headlines",
-      lede: "The site's one line, then the headline each of the three pictures proposes, set in the face and at the size the hero ships them at.",
+      id: "pair",
+      title: "Two of them, on the real page",
+      lede: "A and B as whole home pages at 1:1, scrolled together: the real header over the hero, the next section under the fold.",
       argument: [
-        "A headline read at 13px in a data table is a different headline, which is why the copy proposals are on the board as copy. The thesis is the site's one line and predates every picture here; each proposal was written for its own mechanism, which is what makes it sharper and also what makes it a line for one picture rather than for the home page.",
+        "A hero is never seen the way a board shows it. On the page it has a sticky header over its top 64 px, a section arriving under its fold, and a reader who is scrolling rather than watching. These two frames are the real route's chrome, the real cinema wrapper and the real fifteen sections in the real order, with one component swapped, so the only thing that differs between the halves is the stream.",
       ],
     },
     {
-      id: "stand-ins",
-      title: "The photographs, at the size they are read",
-      lede: "The twelve placeholder stills at 120 px, the size the moving lane actually reads them at. It is the asset request made visible rather than described.",
+      id: "page",
+      title: "The pick, on the real page",
+      lede: "The picked card, worn by the home page. Nothing picked shows the hero that ships today, which is what all four replace.",
       argument: [
-        "Eleven of the twelve are landscape, none is wider than 900px, and the lane reads a frame between 117 and 370 px while cropping half of them to 4:5 and 4:3. At this size a wide room shot is grey mush and a subject near an edge loses its head to the crop, which is the whole content of ASSETS row 2's framing clause.",
-      ],
-    },
-    {
-      id: "today",
-      title: "Today, for reference",
-      lede: "The hero the site ships today, mounted from production code on the same canvas. Round one measured three darkening layers over its twenty-four tiles, and a fourth on a phone.",
-      argument: [
-        "The reference is the argument. White type had to survive over whichever tile the 55 second drift parked under it, so the wall is dimmed by a flat black, a three stop ramp and a radial vignette, and not one photograph reads as a photograph. Every candidate above carries zero darkening layers over its photographs, measured, and shows fewer and bigger pictures.",
+        "Round one's whole case was the scroll: a hero whose photographs you can see, and then the one with three darkening layers over twenty-four tiles. With nothing picked this frame is that reference, from production code, in the page it has to open. Pick a card and the same page wears it.",
       ],
     },
   ],
+
+  catalog: {
+    section: "stream",
+    control: "stream",
+    compare: ["compare-a", "compare-b"],
+  },
 
   controls: [
     {
@@ -395,87 +223,81 @@ export const HOME_HERO = defineBoard({
       default: "desktop",
     },
     {
-      // The switch says the same words the direction ask offers, shortened to
-      // fit a knob. It carries All three, which no ask can offer, so the ask
-      // does not mirror it.
-      id: "candidate",
-      label: "Which picture",
+      id: "stream",
+      label: "Stream",
+      // Nothing picked is a state of its own: the page below shows the hero
+      // that ships today until a card is picked, and pressing the picked card
+      // returns here (Will, 2026-09-16).
       options: [
-        { id: "all", label: "All three" },
-        { id: "source", label: "1. Out of the code" },
-        { id: "scan", label: "2. A guest scans" },
-        { id: "inflow", label: "3. Into the code" },
+        { id: "none", label: "Nothing picked" },
+        { id: "mirror", label: "1. Mirrored" },
+        { id: "phrase", label: "2. Phrased" },
+        { id: "settle", label: "3. Lays out" },
+        { id: "ribbon", label: "4. Fanned file" },
       ],
-      default: "all",
+      default: "none",
+      clearable: true,
+    },
+    // A and B: the two halves of the comparison, set from the catalog's cards.
+    {
+      id: "compare-a",
+      label: "A",
+      options: [
+        { id: "mirror", label: "1. Mirrored" },
+        { id: "phrase", label: "2. Phrased" },
+        { id: "settle", label: "3. Lays out" },
+        { id: "ribbon", label: "4. Fanned file" },
+      ],
+      default: "mirror",
     },
     {
-      // Mirrored by the headline ask, so these labels ARE that ask's labels.
-      id: "copy",
-      label: "Headline",
+      id: "compare-b",
+      label: "B",
       options: [
-        { id: "ruled", label: "The site's one line" },
-        { id: "proposed", label: "The picture's own line" },
+        { id: "mirror", label: "1. Mirrored" },
+        { id: "phrase", label: "2. Phrased" },
+        { id: "settle", label: "3. Lays out" },
+        { id: "ribbon", label: "4. Fanned file" },
       ],
-      default: "ruled",
+      default: "settle",
     },
   ],
 
   lookFirst: [
     {
-      section: "concepts",
-      state: { candidate: "source", canvas: "desktop", copy: "ruled" },
-      note: "The album coming out of the code, alone at 1440. The code holds the centre at scanning size and the album branches out of it and never stops.",
+      section: "stream",
+      state: { canvas: "desktop", stream: "none" },
+      note: "The four at 1440, running. Watch each for five seconds, then look away and look back: the question is whether you can tell where the next frame will be.",
     },
     {
-      section: "concepts",
-      state: { candidate: "scan" },
-      note: "The same picture with the cause in it: the hand rises, the camera finds the code, the capture fires, the code blooms, the album leaves.",
+      section: "stream",
+      state: { stream: "settle" },
+      note: "The board's answer. It travels out, stops in four held places a side, and holds. Take a screenshot at any moment: that is the test the other three cannot pass.",
     },
     {
-      section: "concepts",
-      state: { candidate: "inflow" },
-      note: "The mirror, where the photos fly in. Watch it run, then look at it as a still: that gap is the whole verdict on this one.",
+      section: "pair",
+      state: { "compare-a": "mirror", "compare-b": "settle" },
+      note: "The calmest of the three that never stop, against the one that lands, each as the whole home page. The header is over the hero and the next section is under the fold, as on the site.",
     },
     {
-      section: "concepts",
-      state: { candidate: "all", canvas: "phone" },
-      note: "All three at 375, where the reader is holding the object the picture draws. The phone canvas is a composition, not a squeeze.",
+      section: "page",
+      state: { stream: "settle" },
+      note: "The pick worn by the page at full height. Clear the pick in the dock and the same frame is the hero that ships today, which is the comparison round one was built on.",
     },
     {
-      section: "words",
-      state: { canvas: "desktop" },
-      note: "The four headlines at the size they ship. The site's one line first, then the one each picture proposes.",
-    },
-    {
-      section: "today",
-      state: { candidate: "all", canvas: "desktop" },
-      note: "The shipped hero last. Three darkening layers over twenty-four tiles is what the three above refuse.",
-    },
-  ],
-
-  notes: [
-    {
-      section: "concepts",
-      state: { canvas: "phone" },
-      text: "At 375 the first and the third keep their centred type and the second rebuilds itself around the hand. If the phone canvas reads as a cropped desktop, something is wrong: they are three separate layouts.",
-    },
-    {
-      section: "concepts",
-      text: "Replay remounts the pictures, because every arrival here is a CSS animation that has already finished by the time you scroll to it. Loops pause on a hidden tab, so a reading taken in a background tab reports them stopped.",
-    },
-    {
-      section: "stand-ins",
-      text: "These twelve are also the blog's cover pool and carry unverified provenance (ASSETS row 6). They are on the board as the honest stand-in, never as a proposal.",
+      section: "stream",
+      state: { canvas: "phone", stream: "none" },
+      note: "The four at 375, where the reader is holding the object the picture draws. The phone canvas is its own composition, never a squeezed desktop.",
     },
   ],
 
   links: {
-    bible: [1, 5, 13, 14, 18, 21],
+    bible: [1, 10, 13, 14, 18],
     pages: [
       {
         label: "Home",
         path: "/",
-        note: "the shipped hero, in the page it has to open",
+        note: "the hero that ships today, in the page it has to open",
       },
     ],
   },
