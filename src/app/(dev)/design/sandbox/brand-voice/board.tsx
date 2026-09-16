@@ -7,13 +7,10 @@ import {
   BoardPage,
   Catalog,
   CellLabel,
+  comparePair,
   type Ground,
-  Knob,
-  Labeled,
   type Mode,
   Paste,
-  type Spot,
-  SpotCompare,
 } from "@/components/lab";
 import { ImagePlus } from "lucide-react";
 
@@ -27,7 +24,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { MAX_EVENTS, planById, plansForTier } from "@/lib/constants/tiers";
 import { cn, formatBytes } from "@/lib/utils";
 
-import { CardGround, useAnchorAfterSettle, VoiceFrame } from "./frames";
+import {
+  CardGround,
+  TrueSize,
+  useAnchorAfterSettle,
+  VoiceFrame,
+} from "./frames";
 import { BRAND_VOICE } from "./spec";
 import {
   COUNTS,
@@ -44,17 +46,29 @@ import {
 } from "./voices";
 
 /**
- * THE BRAND-VOICE BOARD (round six, the catalog rebuild, 2026-09-16).
+ * THE BRAND-VOICE BOARD (round seven, the stepped review, 2026-09-16).
  *
- * ★ WILL'S BRIEF IS THE WHOLE SHAPE, and it is not the catalog shape the other
- * boards take. He asked for "a couple dozen spot examples across the marketing
- * site and app" where he can "compare 2 brand voices in usage side by side",
- * with "a config to choose which 2, then select my winner". A voice is not a
- * picture, so a grid of six pictures answers nothing: the thing being chosen is
- * applied in a hundred places and it is only judged in them. So the catalog is
- * the PICKER (six cards, each the same real screen written that way) and the
- * board's main surface is the SPOT LIST: twenty-four real places, each drawn
- * twice, under whichever two cards A and B are pressed on.
+ * What the board ARGUES lives in `spec.ts` and only there. What is here is the
+ * evidence for each declared section, as a function of the declared state, and
+ * there are eight of them: five are the walk, three are the deep evidence a
+ * reader reaches by opening the whole board.
+ *
+ *   01 catalog   the six voices as six cards (the winner ask's tiles)
+ *   02 pages     the real home page, wearing the card being pressed (the stage)
+ *   03 noun      two shipped guest lines, under album and under gallery
+ *   04 unfurl    the chat preview card, under each of its three lines
+ *   05 counts    the home page's one claim, under each pair of numbers
+ *   06 volumes   the winner loud and quiet: one voice at two volumes
+ *   07 spots     twenty-four real places, each drawn twice, under A and B
+ *   08 paste     the picked voice as the block a ruling lands
+ *
+ * ★ A CARD IS THREE LINES, NOT A SCREEN (round seven). Round six's card drew
+ * two whole screens, loud over quiet, which compared two screens rather than
+ * two voices: the eye went to the layout. The card is now the SAME three lines
+ * on the SAME spot, the home page's first screen, in every voice: the headline,
+ * the sentence under it, the button. The quiet volume did not disappear, it
+ * became the `volumes` section under the `scope` question, which is what it was
+ * always evidence for.
  *
  * ★ EVERY SPOT IS THE COMPONENT THAT SHIPS IT. `PageHero`, `SectionShell`, the
  * pricing markup with its figures read from tiers.ts, the create wizard's card,
@@ -63,15 +77,11 @@ import {
  * production components and whole real pages, not a screen of specimens).
  *
  * ★ AND NOTHING IS SCALED. Every spot is a real document at exactly 1440 or
- * exactly 375 (`frames.tsx` says why at length); the catalog's cards are the one
- * place a frame cannot go, so they paint the ground themselves at the phone's
- * own 343px column. Whether a headline takes three rows or four at 375 is the
+ * exactly 375 (`frames.tsx` says why at length); the cards and the three small
+ * specimens are the one place a frame cannot go, so they paint the ground
+ * themselves at the phone's own 343px column and ride `TrueSize` into a step's
+ * zoomed tile. Whether a headline takes three rows or four at 375 is the
  * sharpest fact on this board, and it is read rather than asserted.
- *
- * WHAT LEFT WITH ROUND FIVE: fifteen ledger rows of the home arc, the thirty
- * feature-page identity strings, two feature pages card by card, four diff
- * counters, and 13,000 words of argument. The argument is not withdrawn, it is
- * folded: what is above a fold now is what a reviewer has to READ.
  */
 
 /* -------------------------------------------------------------------------
@@ -909,50 +919,168 @@ function renderSpot(
 }
 
 /* -------------------------------------------------------------------------
- * The catalog card
+ * The catalog card, and the four small specimens
  * ---------------------------------------------------------------------- */
 
 const HERO = SPOTS.find((s) => s.id === "home-hero") as SpotDef;
 const EMPTY = SPOTS.find((s) => s.id === "dashboard-empty") as SpotDef;
 
 /**
- * ONE CARD: the same two screens, written six ways.
+ * ONE CARD: the same three lines, written six ways.
  *
- * ★ THE LOUD ONE AND THE QUIET ONE, on one card, because the thing that
- * separates these six is not a headline, it is whether the headline and the
- * empty state sound like one person. The hero is at the phone's own column and
- * its own type step, so the row a longer voice costs is visible on the card
- * rather than asserted in its facts.
+ * ★ THE SAME LINES ON THE SAME SPOT, which is the only way six voices can be
+ * compared at a glance. The spot is the home page's first screen (the loudest
+ * line on the site) and the three lines are the ones a reader meets in order:
+ * the headline, the sentence under it, the first button. Round six drew two
+ * whole screens per card and the eye went to the layout instead of the words.
+ *
+ * ★ AT THE SIZE A PHONE DRAWS THEM. `CardGround` pins the column to the 343px
+ * a 375 viewport gives and nothing here carries an `sm:` rung, so the card is
+ * the phone's own column at the phone's own type. The row a longer voice costs
+ * the h1 is therefore visible on the card rather than asserted in its facts.
  */
 function VoiceCard({ voice }: { voice: VoiceId }) {
   return (
-    <div className="flex flex-col">
-      <CardGround ground="cinema" className="px-0 py-7">
-        <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-          {line(HERO, "Small label", voice)}
-        </p>
-        <p className="mt-3 font-heading text-5xl leading-[1.05] text-balance">
-          {line(HERO, "Headline", voice)}
-        </p>
-        <p className="mt-4 text-[15px] text-pretty text-muted-foreground">
-          {line(HERO, "Sentence under it", voice)}
-        </p>
-      </CardGround>
-      <CardGround ground="app-light" className="px-0 py-6">
-        <p className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-          The app, quiet
-        </p>
-        <p className="mt-2 font-heading text-2xl text-balance">
-          {line(EMPTY, "Heading", voice)}
-        </p>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          {line(EMPTY, "Body", voice)}
-        </p>
-        <Button size="sm" className="mt-3">
-          {line(EMPTY, "Button", voice)}
-        </Button>
-      </CardGround>
-    </div>
+    <CardGround ground="cinema" className="px-0 py-7">
+      <p className="font-heading text-5xl leading-[1.05] text-balance">
+        {line(HERO, "Headline", voice)}
+      </p>
+      <p className="mt-4 text-[15px] text-pretty text-muted-foreground">
+        {line(HERO, "Sentence under it", voice)}
+      </p>
+      <Button size="lg" className="mt-5 h-11 px-6 text-base">
+        {line(HERO, "Buttons", voice).split("·")[0].trim()}
+      </Button>
+    </CardGround>
+  );
+}
+
+/**
+ * THE THREE CALLS A VOICE DOES NOT DECIDE, one specimen each, and the winner at
+ * two volumes.
+ *
+ * ★ EACH ONE IS ITS OWN SECTION, which is what makes them steps. The step
+ * surface draws an option by rendering the ask's whole evidence SECTION in that
+ * option's state, so three specimens sharing one section would put all three
+ * under every tile of every one of the three questions. One section, one
+ * specimen, one question.
+ *
+ * ★ AND EACH ONE RIDES `TrueSize` AND STOPS AT 100%. A tile zooms its stage to
+ * about a fifth, so a fixed 375 box would be 70 pixels of unreadable grey; the
+ * compensation returns the subtree to 1:1 and `maxWidth` hands it the tile's
+ * real column. On the stage below the same specimen takes its natural width.
+ */
+/** A ground has no edge of its own, and a cinema one on this board's own dark
+ *  page has no edge at all: the kit's catalog rings every card's ground for the
+ *  same reason (catalog.tsx's `paint`). */
+const GROUND_EDGE = "overflow-hidden rounded-lg ring-1 ring-foreground/10";
+
+function NounSpecimen({ gallery }: { gallery: boolean }) {
+  const noun = gallery ? NOUN.guest : NOUN.app;
+  return (
+    <TrueSize>
+      <div style={{ width: 343, maxWidth: "100%" }}>
+        <CardGround ground="app-light" className={GROUND_EDGE + " px-0 py-5"}>
+          <p className="rounded-md bg-muted px-3 py-2 text-center text-xs text-muted-foreground">
+            {`The host reviews uploads before they appear in the ${noun}.`}
+          </p>
+          <p className="mt-3 text-center text-[15px] text-muted-foreground">
+            {`Save this event and come back to the ${noun} whenever you like.`}
+          </p>
+        </CardGround>
+      </div>
+    </TrueSize>
+  );
+}
+
+/** What a chat draws under the title. The only warning a guest gets. */
+const UNFURL_LINE: Record<string, string> = {
+  email: "Add your photos. An email gets you in.",
+  join: "Add your photos to the album.",
+  "one-step": "Add your photos. One step to get in.",
+};
+
+function UnfurlSpecimen({ line: which }: { line: string }) {
+  return (
+    <TrueSize>
+      <div
+        style={{ width: 320, maxWidth: "100%" }}
+        className="overflow-hidden rounded-xl border border-border bg-card"
+      >
+        {/* A strip rather than the chat's 1.91:1 image: the picture is not what
+            is being judged, and at its real ratio it is the only thing that
+            fits in a tile. */}
+        <div className="h-16 bg-muted" aria-hidden />
+        <div className="px-3 py-2.5">
+          <p className="text-[11px] text-muted-foreground">partyreel.com</p>
+          <p className="mt-0.5 text-sm font-medium">{UNFURL.title}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {UNFURL_LINE[which] ?? UNFURL_LINE.email}
+          </p>
+        </div>
+      </div>
+    </TrueSize>
+  );
+}
+
+function CountsSpecimen({ pair }: { pair: string }) {
+  return (
+    <TrueSize>
+      <div style={{ width: 343, maxWidth: "100%" }}>
+        <CardGround ground="cinema" className={GROUND_EDGE + " px-0 py-6"}>
+          <p className="font-heading text-xl text-balance">
+            {pair === "hero" ? COUNTS.hero : COUNTS.demo}
+          </p>
+        </CardGround>
+      </div>
+    </TrueSize>
+  );
+}
+
+/**
+ * ONE VOICE, LOUD AND QUIET: the home page's first screen and the app's empty
+ * dashboard, in the same voice. It is the evidence under `scope`, whose two
+ * answers are a fact about how many GUIDES a ruling writes rather than a look,
+ * so the specimen shows what ONE voice covering both actually sounds like.
+ */
+function VolumesSpecimen({ voice }: { voice: VoiceId }) {
+  return (
+    <TrueSize>
+      <div
+        className="flex flex-wrap items-start gap-4"
+        style={{ maxWidth: "100%" }}
+      >
+        <figure style={{ width: 343, maxWidth: "100%" }}>
+          <CardGround ground="cinema" className={GROUND_EDGE + " px-0 py-6"}>
+            <p className="font-heading text-3xl leading-tight text-balance">
+              {line(HERO, "Headline", voice)}
+            </p>
+            <p className="mt-3 text-sm text-pretty text-muted-foreground">
+              {line(HERO, "Sentence under it", voice)}
+            </p>
+          </CardGround>
+          <figcaption className="mt-1.5 text-[10px] text-muted-foreground">
+            {`${VOICE_NAME[voice]}, on the site, loud`}
+          </figcaption>
+        </figure>
+        <figure style={{ width: 343, maxWidth: "100%" }}>
+          <CardGround ground="app-light" className={GROUND_EDGE + " px-0 py-6"}>
+            <p className="font-heading text-2xl text-balance">
+              {line(EMPTY, "Heading", voice)}
+            </p>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              {line(EMPTY, "Body", voice)}
+            </p>
+            <Button size="sm" className="mt-3">
+              {line(EMPTY, "Button", voice)}
+            </Button>
+          </CardGround>
+          <figcaption className="mt-1.5 text-[10px] text-muted-foreground">
+            {`${VOICE_NAME[voice]}, in the app, quiet`}
+          </figcaption>
+        </figure>
+      </div>
+    </TrueSize>
   );
 }
 
@@ -1032,13 +1160,100 @@ function pasteFor(voice: VoiceId): string {
 const asVoice = (option: string | undefined): VoiceId =>
   (VOICES.find((v) => v.id === option)?.id ?? "today") as VoiceId;
 
-/** The spot list, as the kit reads it: an id, a name and the line that says
- *  what to read HERE. */
-const SPOT_LIST: Spot[] = SPOTS.map((s) => ({
-  id: s.id,
-  name: s.name,
-  note: s.note,
-}));
+/**
+ * THE SPOT LIST: twenty-four real places, each drawn twice, under A and B.
+ *
+ * ★ NOT THE KIT'S `SpotCompare`, AND THE REASON IS THE SAME THING SAID TWICE.
+ * It printed a "What differs" line whose wording was the place's name and the
+ * two card names again, directly under the heading that had just said them
+ * (280 words over twenty-four places), and it labelled each half through
+ * `Compare` while the frame inside already carried the voice's name in its own
+ * caption, so every row read "Today Today Live Live". The row is the same
+ * shape, minus both: the frames carry the two names once, and the line under
+ * them is the place's own note, which is what a reviewer needs there. The kit
+ * finding, asked for in this round's Handoff: `SpotCompare` should take a
+ * `differs` per spot and should not label a half that labels itself.
+ *
+ * ★ THE FILE A SWEEP EDITS LEFT THE CAPTION and went into the section's wiring
+ * fold. Twenty-four paths beside twenty-four frames are wiring instructions in
+ * a reviewer's eye; the fold is two lines away and is where wiring belongs.
+ */
+function SpotRows({
+  state,
+  mode,
+  area,
+}: {
+  state: Record<string, string>;
+  mode: Mode;
+  area: string;
+}) {
+  const pair = comparePair(BRAND_VOICE, state);
+  if (!pair) return null;
+  const { a, b } = pair;
+  const shown = SPOTS.filter((s) => area === "all" || s.area === area);
+  const same = a.id === b.id;
+
+  return (
+    <div className="flex min-w-0 flex-col gap-8">
+      {shown.map((def) => {
+        const at: Mode = def.canvas === "phone" ? "phone" : mode;
+        const half = (id: string) => {
+          const voice = asVoice(id);
+          return (
+            <VoiceFrame
+              id={`bv-${def.id}-${id}`}
+              mode={at}
+              ground={def.ground as Ground}
+              title={VOICE_NAME[voice]}
+            >
+              <div key={voice} data-bv-swap>
+                {renderSpot(def, voice, at)}
+              </div>
+            </VoiceFrame>
+          );
+        };
+        return (
+          <section
+            key={def.id}
+            id={`bv-spot-${def.id}`}
+            className="flex min-w-0 flex-col gap-2"
+          >
+            <h3 className="text-sm font-medium">{def.name}</h3>
+            {same ? (
+              <>
+                {half(a.id)}
+                <CellLabel>
+                  {`A and B are both ${a.name}. Press B on another card to read this place under two of them.`}
+                </CellLabel>
+              </>
+            ) : (
+              <>
+                <div
+                  className="grid min-w-0 gap-4"
+                  // The columns as a NUMBER, because a breakpoint prefix here
+                  // reads the browser rather than the canvas: two 1440
+                  // documents never sit side by side, two 375 ones do.
+                  style={{
+                    gridTemplateColumns: `repeat(${mode === "phone" ? 2 : 1}, minmax(0, 1fr))`,
+                  }}
+                >
+                  {half(a.id)}
+                  {half(b.id)}
+                </div>
+                <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground">
+                    What differs:{" "}
+                  </span>
+                  {def.note}
+                </p>
+              </>
+            )}
+          </section>
+        );
+      })}
+    </div>
+  );
+}
 
 export function BrandVoiceBoard() {
   useAnchorAfterSettle("brand-voice");
@@ -1049,210 +1264,93 @@ export function BrandVoiceBoard() {
       spec={BRAND_VOICE}
       evidence={(id, state, api) => {
         const mode: Mode = state.canvas === "phone" ? "phone" : "desktop";
-        const area = state.area ?? "all";
         const picked = state.voice === "none" ? null : asVoice(state.voice);
         const wearing = picked ?? "today";
 
         switch (id) {
-          /* ── The six voices ───────────────────────────────────────── */
+          /* ── 01 The six voices: the winner ask's tiles ─────────────── */
           case "catalog":
             return (
-              <>
-                <Catalog
-                  spec={BRAND_VOICE}
-                  state={state}
-                  setState={api.setState}
-                  minWidth={375}
-                  render={(candidate) => (
-                    <VoiceCard voice={asVoice(candidate.id)} />
-                  )}
-                />
-                <CellLabel className="max-w-2xl">
-                  {`Pick drives the page walk and the paste; A and B drive the places below. Both screens sit at a phone's own 343px column, so a headline that costs a row costs it here.`}
-                </CellLabel>
-              </>
+              <Catalog
+                spec={BRAND_VOICE}
+                state={state}
+                setState={api.setState}
+                // 343 for the phone column, plus the card's own padding: the
+                // specimen inside has to be the width a 375 viewport gives or
+                // the wrap on the h1 is a different wrap.
+                minWidth={375}
+                render={(candidate) => (
+                  <VoiceCard voice={asVoice(candidate.id)} />
+                )}
+              />
             );
 
-          /* ── The spot list ────────────────────────────────────────── */
-          case "spots": {
-            const shown = SPOT_LIST.filter(
-              (s) =>
-                area === "all" ||
-                SPOTS.find((x) => x.id === s.id)?.area === area,
-            );
-            return (
-              <>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Knob label="Jump to">
-                    <select
-                      aria-label="Jump to a place"
-                      onChange={(e) => {
-                        const target = e.target.value;
-                        if (!target) return;
-                        document
-                          .getElementById(`bv-spot-${target}`)
-                          ?.scrollIntoView({ block: "start" });
-                      }}
-                      className="h-7 rounded-[var(--radius-action-sm)] border border-border bg-background px-2 text-[11px] outline-none focus:border-foreground/40"
-                    >
-                      <option value="">Pick a place</option>
-                      {shown.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                  </Knob>
-                  <CellLabel className="mt-0">
-                    {`${shown.length} of ${counted.spots} places, ${counted.differ} of ${counted.rows} lines differing.`}
-                  </CellLabel>
-                </div>
-                <SpotCompare
-                  spec={BRAND_VOICE}
-                  state={state}
-                  spots={shown}
-                  cols={mode === "phone" ? 2 : 1}
-                  render={(spot, candidate, side) => {
-                    const def = SPOTS.find((x) => x.id === spot.id) as SpotDef;
-                    const at: Mode = def.canvas === "phone" ? "phone" : mode;
-                    const voice = asVoice(candidate.id);
-                    return (
-                      <div id={`bv-spot-${spot.id}`}>
-                        <VoiceFrame
-                          id={`bv-${spot.id}-${candidate.id}`}
-                          mode={at}
-                          ground={def.ground as Ground}
-                          title={VOICE_NAME[voice]}
-                          // The file a sweep would edit, once per place rather
-                          // than twice: B is the same file as A.
-                          caption={side === "a" ? def.where : undefined}
-                        >
-                          <div key={voice} data-bv-swap>
-                            {renderSpot(def, voice, at)}
-                          </div>
-                        </VoiceFrame>
-                      </div>
-                    );
-                  }}
-                />
-              </>
-            );
-          }
-
-          /* ── The three calls a voice does not decide ───────────────── */
-          case "calls":
+          /* ── 02 The home page, wearing the pick (the stage) ────────── */
+          case "pages":
             return (
               <div className="flex flex-col gap-8">
-                <Labeled
-                  name="The link preview, in a group chat"
-                  note="One string, whichever voice wins."
-                >
-                  <div
-                    data-lab-specimen=""
-                    style={{ width: 360, maxWidth: "100%" }}
-                    className="overflow-hidden rounded-xl border border-border bg-card"
+                {!picked && (
+                  <CellLabel className="max-w-2xl">
+                    Nothing picked, so this is the site as it ships.
+                  </CellLabel>
+                )}
+                {WALK.map((chapter) => (
+                  <VoiceFrame
+                    key={chapter.id}
+                    id={`bv-walk-${chapter.id}-${wearing}`}
+                    mode={mode}
+                    ground={chapter.ground}
+                    // No caption: the voice is the one just pressed and the
+                    // canvas is on the strip, so a line under every frame
+                    // saying both is the board reading itself back.
+                    title={chapter.title}
                   >
-                    <div className="aspect-[1.91/1] bg-muted" aria-hidden />
-                    <div className="px-3 py-2.5">
-                      <p className="text-[11px] text-muted-foreground">
-                        partyreel.com
-                      </p>
-                      <p className="mt-0.5 text-sm font-medium">
-                        {UNFURL.title}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {state.unfurl === "join"
-                          ? "Add your photos to the album."
-                          : state.unfurl === "one-step"
-                            ? "Add your photos. One step to get in."
-                            : "Add your photos. An email gets you in."}
-                      </p>
+                    <div key={wearing} data-bv-swap>
+                      {chapter.spots.map((sid) => {
+                        const def = SPOTS.find((x) => x.id === sid) as SpotDef;
+                        return (
+                          <div key={sid}>{renderSpot(def, wearing, mode)}</div>
+                        );
+                      })}
                     </div>
-                  </div>
-                </Labeled>
-
-                <Labeled
-                  name={`The noun, on a guest's phone: ${state.noun === "gallery" ? NOUN.guest : NOUN.app}`}
-                  note="The site and the app say album; the guest pages say gallery."
-                >
-                  <div
-                    data-lab-specimen=""
-                    style={{ width: 375, maxWidth: "100%" }}
-                  >
-                    <CardGround ground="app-light" className="px-0 py-5">
-                      <p className="rounded-md bg-muted px-3 py-2 text-center text-xs text-muted-foreground">
-                        {`The host reviews uploads before they appear in the ${
-                          state.noun === "gallery" ? NOUN.guest : NOUN.app
-                        }.`}
-                      </p>
-                      <p className="mt-3 text-center text-[15px] text-muted-foreground">
-                        {`Save this event and come back to the ${
-                          state.noun === "gallery" ? NOUN.guest : NOUN.app
-                        } whenever you like.`}
-                      </p>
-                    </CardGround>
-                  </div>
-                </Labeled>
-
-                <Labeled
-                  name="The two counts the home page carries"
-                  note="The hero proposes one pair, the band below ships another."
-                >
-                  <div
-                    data-lab-specimen=""
-                    style={{ width: 420, maxWidth: "100%" }}
-                  >
-                    <CardGround ground="cinema" className="px-0 py-6">
-                      <p className="font-heading text-xl text-balance">
-                        {state.counts === "hero" ? COUNTS.hero : COUNTS.demo}
-                      </p>
-                    </CardGround>
-                  </div>
-                </Labeled>
+                  </VoiceFrame>
+                ))}
               </div>
             );
 
-          /* ── The pages, wearing the pick ──────────────────────────── */
-          case "pages":
+          /* ── 03, 04, 05: one question, one specimen ────────────────── */
+          case "noun":
+            return <NounSpecimen gallery={state.noun === "gallery"} />;
+
+          case "unfurl":
+            return <UnfurlSpecimen line={state.unfurl ?? "email"} />;
+
+          case "counts":
+            return <CountsSpecimen pair={state.counts ?? "demo"} />;
+
+          /* ── 06 One voice, loud and quiet (the scope question) ─────── */
+          case "volumes":
+            return <VolumesSpecimen voice={wearing} />;
+
+          /* ── 07 The spot list ─────────────────────────────────────── */
+          case "spots":
             return (
-              <>
-                <CellLabel className="max-w-2xl">
-                  {picked
-                    ? `The home page in ${VOICE_NAME[picked]}, top to bottom.`
-                    : "Nothing picked, so this is the site as it ships. Press Pick on a card above."}
+              <div className="flex min-w-0 flex-col gap-4">
+                <CellLabel className="mt-0">
+                  {`${counted.spots} places, ${counted.differ} of ${counted.rows} lines differing.`}
                 </CellLabel>
-                <div className="flex flex-col gap-8">
-                  {WALK.map((chapter) => (
-                    <VoiceFrame
-                      key={chapter.id}
-                      id={`bv-walk-${chapter.id}-${wearing}`}
-                      mode={mode}
-                      ground={chapter.ground}
-                      title={chapter.title}
-                      caption={`${VOICE_NAME[wearing]}, at ${mode === "phone" ? "375" : "1440"}.`}
-                    >
-                      <div key={wearing} data-bv-swap>
-                        {chapter.spots.map((sid) => {
-                          const def = SPOTS.find(
-                            (x) => x.id === sid,
-                          ) as SpotDef;
-                          return (
-                            <div key={sid}>
-                              {renderSpot(def, wearing, mode)}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </VoiceFrame>
-                  ))}
-                </div>
-              </>
+                <SpotRows
+                  state={state}
+                  mode={mode}
+                  area={state.area ?? "all"}
+                />
+              </div>
             );
 
-          /* ── The ruling, as a paste ───────────────────────────────── */
+          /* ── 08 The ruling, as a paste ────────────────────────────── */
           case "paste":
             return (
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-4">
                 <Paste
                   label={`marketing-voice.ts, in ${VOICE_NAME[wearing]}`}
                   code={pasteFor(wearing)}

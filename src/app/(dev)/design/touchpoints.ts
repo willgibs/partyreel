@@ -579,7 +579,7 @@ export const RULINGS: Ruling[] = [
       "src/lib/constants/marketing-voice.ts",
     ],
     board: {
-      note: "Six voices as cards, each writing the same two screens at a phone's own column; twenty-four real places across the site, the app and a guest's phone, each drawn twice under the two voices the dock picks; three questions (the noun, the unfurl line, the counts)",
+      note: "Round seven: six voices as cards, each writing the same three lines of the home page's first screen at the size a phone draws them, decided by one pick or none; the real home page under the card being pressed; the noun, the link preview, the numbers and how far the winner reaches as steps of their own, every answer drawn at once",
       variants: ["Today", "Keepsake", "Live", "Plain", "Everyone", "Aside"],
     },
   },

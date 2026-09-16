@@ -9,7 +9,9 @@ import { BRAND_VOICE } from "./spec";
 import { moved, SPOTS, tally, VOICE_IDS, VOICE_NAME, VOICES } from "./voices";
 
 /**
- * THE BOARD'S OWN CONTRACT (the catalog rebuild, 2026-09-16).
+ * THE BOARD'S OWN CONTRACT (the catalog rebuild, 2026-09-16; the shape and the
+ * subject dropped out of the facts strip at the stepped review, round seven,
+ * because the tile draws three lines in the voice instead).
  *
  * Two things can rot here and no other test would see either.
  *
@@ -47,15 +49,15 @@ describe("the six voices", () => {
       expect(item!.verdict).toBe(voice.verdict);
       expect(Boolean(item!.recommended)).toBe(Boolean(voice.recommended));
       expect(item!.rationale).toBe(voice.rationale);
-      // The `one` line is trimmed to the card's 120-character limit in the
-      // spec, so it is pinned by its opening rather than byte for byte.
-      expect(voice.one.startsWith((item!.one ?? "").slice(0, 40))).toBe(true);
+      expect(item!.one, `${voice.id}'s one line`).toBe(voice.one);
+      // What keeping a card lands as is a fact about the sweep, so it is the
+      // spec's alone; what the card SAYS is pinned to voices.ts.
+      expect(
+        item!.lands,
+        `${voice.id} says nothing about what it lands`,
+      ).toBeTruthy();
 
       const facts = Object.fromEntries(item!.facts ?? []);
-      expect(facts.Shape, `${voice.id}'s shape`).toBe(voice.shape);
-      expect(facts["A line is about"], `${voice.id}'s subject`).toBe(
-        voice.about,
-      );
       expect(facts.Risk, `${voice.id}'s risk`).toBe(voice.risk);
       const m = moved(voice.id);
       expect(
