@@ -112,8 +112,10 @@ trailer on every commit. The dev server on :3000 is Will's.
 
 ## Handoff (replaces the chat report)
 
-- Head `HEAD_SHA`, pushed; synced with `launch-prep` at `62fe4eac` (it had moved 23 commits: the
-  brand-voice, type-scale and docs-systems-strip tracks landed). The merge was clean.
+- Head: `8960d380` plus this line, pushed on `lp/floating-surfaces`. The four gates ran on
+  `c7771b9e`, the sync merge, which is the whole tree bar this manifest. Synced with `launch-prep` at
+  `62fe4eac`: it had moved 23 commits (the brand-voice, type-scale and docs-systems-strip tracks
+  landed) and the merge was clean.
 - **Gates on the synced tree:** typecheck ok, lint ok (0 errors, 6 pre-existing warnings, none in this
   lane), test ok (2,141 in 226 files), build ok (257 pages). `pnpm lab:smoke --base
   http://localhost:3107` green for this board on both halves: every route 200, and the reading at
