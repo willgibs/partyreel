@@ -209,8 +209,8 @@ Do not guess at a product decision.
 
 ## Handoff (replaces the chat report)
 
-- Head `b0950f6c`, pushed; no preview (the round reviews on a local `pnpm dev`
-  after integration).
+- The work ends at `b0950f6c`; the branch tip is this manifest's own commit.
+  Pushed; no preview (the round reviews on a local `pnpm dev` after integration).
 - Synced with `launch-prep` at `81d55e87` (merged twice: `88dafe50` mid-round,
   because `design.css` is in this track's `reads`, then the ADR fold's tip).
 - Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 pre-existing
