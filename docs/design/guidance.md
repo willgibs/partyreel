@@ -22,16 +22,17 @@ celebrations) can carry real delight. Everything CSS-first + `prefers-reduced-mo
 
 **emil-design-eng (the installed skill) is PRIMARY; Hobday's Safe Rules
 (anthonyhobday.com/sideprojects/saferules) are a SECONDARY advisory; neither is a bible.**
-Synthesis (Phase 2): *adopted*, no pure white surfaces, the elevation contract (no dark shadows,
+*Adopted*: no pure white surfaces, the elevation contract (no dark shadows,
 lighter-is-closer, one depth technique per mode), nested-corner math, muted paired icons,
-small-label tracking, the 4px-grid + radius-ratio math. *Already true*, near-black/near-white
+small-label tracking, the 4px-grid + radius-ratio math. *Already true*: near-black/near-white
 extremes, contrast hierarchy, brightness-distinct palette, ~2x horizontal button padding, two
-typefaces (mono left the product in the 2026-09-14 sweep), ~70ch prose. *Declined or
-deferred with reasons*, saturate-neutrals DECLINED (zero-chroma identity); 12-column grid noted for
-the Phase 6 marketing rebuild. **Guest reading-copy rule (NOW REAL, Phase 4):** guest-facing reading
+typefaces (there is no mono face in the product), ~70ch prose. *Declined or
+deferred with reasons*: saturate-neutrals DECLINED (zero-chroma identity); the 12-column grid is
+noted for a marketing rebuild rather than adopted. **The guest reading-copy rule:** guest-facing reading
 copy is 15-16px (`text-[15px]`/`text-base` on event description, gate prompts, growth cards, entry
-sheet rows); dense/structural UI (captions, counters, secondary labels) stays sm/xs. Host/admin keep
-14px until their phases.
+sheet rows); dense/structural UI (captions, counters, secondary labels) stays sm/xs. Host and admin
+are still on 14px.
+
 ## Skills
 
 The installed skills, and when a round reaches for each. A skill is guidance: it carries craft, not
@@ -69,8 +70,8 @@ messy so it's hard for me to understand the work").
 - **Dark and light are chosen separately.** They are not a package deal.
 - **One word answers an ask.** An ask names two or more options and a recommendation; Will answers
   in a word, and the panel composes the message he pastes into chat. The lab never writes the repo.
-- **A question carries its own context** (Will, 2026-09-15, after the first review through the desk:
-  "it was tough to understand what I was being asked for most of those questions"). An ask is a real
+- **A question carries its own context** (Will, 2026-09-15: "it was tough to understand what I was
+  being asked for most of those questions"). An ask is a real
   question a stranger can answer where it is met: what the thing is and where it lives on the site,
   where to look and what to compare, each option in words with what choosing it does. A nickname from
   the board is glossed the first time or left out. "Not clear to me" is an answer (`?`), and a board
@@ -88,9 +89,9 @@ messy so it's hard for me to understand the work").
 
 Every new or reworked page ends at one question, with the two screenshots side by side: **would this
 hold up next to the home page?** If the answer is no, the page is not done, and the round says so
-rather than shipping and hoping a later polish pass finds it. The gate is what the help centre
-missed when it shipped "incredibly bland and completely paper, best case, initial wireframes"
-(Will, 2026-08-27) while the home page got screenshot-and-iterate loops.
+rather than shipping and hoping a later polish pass finds it. A page that skips the gate ships
+"incredibly bland and completely paper, best case, initial wireframes" (Will, 2026-08-27) while the
+pages that got screenshot-and-iterate loops do not.
 
 ## The departure note
 

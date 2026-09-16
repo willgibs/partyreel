@@ -87,7 +87,7 @@ helpers in [`r2/delete.ts`](../../src/lib/r2/delete.ts): `deleteR2Objects()` chu
 
 ## Host-facing recovery (the "Trash" tab)
 
-> User-facing label is **"Trash"** (Phase 4 rename); the model + the internal identifiers
+> User-facing label is **"Trash"**; the model + the internal identifiers
 > (`recently-deleted.ts`, `listRecentlyDeleted*`, the `value="deleted"` tab key) keep the "recently deleted" name.
 
 - **RPCs** (`restore_media` / `restore_event` / `purge_media_now`): authenticated, ownership-gated SECURITY
