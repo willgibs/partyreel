@@ -43,7 +43,8 @@ answer that all six are rebuilt before any review; three run at a time under the
 | `brand-voice` | Round 4 catalog: six voices as cards, twenty-four real spots drawn twice under any two | integrated at `5868325e` |
 | `type-scale` | Round 4 catalog: five ladders as type specimens at true pixels, two on the same real page | integrated at `257df8fe`, 1,155 words under the budget |
 | `floating-surfaces` | Round 4 catalog: seven directions as cards on the app's dark over the album, the desk under two | integrated at `767e6182`, 2,317 words against a declared 2,400 |
-| `light`, `rounding`, `media-kit` | Round 4 catalogs (the twelve treatments on the real sections; the four families at true size; the sources' contact sheets) | building |
+| `light` | Round 4 catalog: the twelve treatments as cards on the real surfaces at true size, the aurora's landing as a two-way compare | integrated at `2326a924`, 2,889 words against a declared 2,950 |
+| `rounding`, `media-kit` | Round 4 catalogs (the four families at true size; the sources' contact sheets) | building |
 
 Round 1 is closed on the tree (both lanes integrated, the verification list walked on the dev server);
 Will's first review with per-item verdicts is the palette catalog plus the six rebuilt boards, on the
@@ -102,6 +103,7 @@ Next from him, once Round 4 lands: the sitting on the desk (the palette and the 
 / refine / kill and a note per item, one line to paste), and three questions the boards carry
 (brand-voice: one voice everywhere at three volumes, or two voices; whether bible 20 means the naming or
 the shape; type-scale: the compared pair side by side scrolling sideways at 1440, or the kit's wipe; floating-surfaces:
-seven cards or the four named, and the menu ground photograph, asset row 14). One product bug waits for
+seven cards or the four named, and the menu ground photograph, asset row 14; light: the grain tile and the
+worst-case overlap pair, rows 15 and 16). One product bug waits for
 the wiring round: every nested submenu paints nothing (`ui/dropdown-menu.tsx`'s `SubContent` has no portal).
 The launch-gated tasks are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).

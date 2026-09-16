@@ -105,7 +105,17 @@ directions; the pick worn by the real pages; four asks survive (the submenu, the
 the light); the reading went from 5,040 words to 2,317 against a declared 2,400 (about 1,300 of it is
 the template's own chrome, now a ROADMAP line). Two frame bugs fixed in the lane (a frame seeding its
 ground from the parent's first render) and one product bug found for the wiring round: nested
-submenus paint nothing because `SubContent` has no portal. One asset asked of Will (row 14).
+submenus paint nothing because `SubContent` has no portal. One asset asked of Will (row 14). **`light`** (merged `2326a924`), on Will's round-five answers (the kit lands, phase 1
+first, Accent as the register): the twelve treatments as cards, each the real production surface
+wearing it at true size (a crop of the section laid out at the canvas width, never a scale), four
+facts, the argument folded, keep / refine / kill under every one; Pick hands the site the treatment's
+block through the existing apply path and the real routes wear it at 1:1. The two asks he could not
+answer are gone as questions: the depth cues are two of the cards shown as the same surface without
+and with, the lit face is the `face` card's verdict, and the aurora's landing is a page-wide Landing
+switch with one real chapter under two options. Nine asks became four (the infusion order, the
+cadence, the paper hues, the publish beat's colour); the reading went from 10,164 words to 2,889
+against a declared 2,950, about 990 of it the template's own reprints (a kit line). Two assets asked
+(rows 15 and 16).
 
 Machine notes: four agents at once is the ceiling on 36 GB, one process each, a dev server killed by
 port; Vercel's daily cap kept the alias on the Library x Lab round's Phase 1 until 2026-09-17 00:13
