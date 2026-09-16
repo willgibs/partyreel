@@ -296,7 +296,8 @@ describe("listings", () => {
 
   it("listTracks reads every manifest", () => {
     const tracks = listTracks();
-    expect(tracks.length).toBeGreaterThan(5);
+    // Only open and handed-off tracks keep a manifest (the revamp, 2026-09-16).
+    expect(tracks.length).toBeGreaterThan(0);
     for (const t of tracks) {
       expect(t.name.length).toBeGreaterThan(0);
       expect(t.status.length).toBeGreaterThan(0);
