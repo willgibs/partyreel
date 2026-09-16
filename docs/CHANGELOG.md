@@ -50,6 +50,11 @@ scaffolds the pick-one shape.
 - `home-hero` (merged `56ea9185`, asked as pick-one at `c334de13`): round six's catalog of four
   compositions of the stream (mirror, phrase, settle, ribbon) on one engine, every seeded value a step in a
   declared table, the board recommending the settle; the winner asked on the four cards plus none; 743.
+  Will answered it none in chat the same evening (the symmetric approach like the original reference over
+  any scatter, `514a5902`), and round seven (`ccf93732`) was built in the root tree with no lane: the
+  engine gains a turn by distance, a polar placement and a lockup with its own axis, and the board carries
+  the band (Melius's shape, recommended), the orbit (Cosmos's ring centred on the code, the block hung
+  under it) and the band with the whole block under or over the code; 779.
 - `type-scale` (merged `ec7367e7`): one pick over five ladders, then letter spacing and the 404 heading as
   two-tile steps, the second staged behind the pick; round six's open question settled by one real page
   re-typing itself in place with a second copy under it on a fade; 486.

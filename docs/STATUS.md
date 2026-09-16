@@ -38,6 +38,7 @@ The kit findings the boards raised are the ROADMAP's first Now lines; none block
 | --- | --- | --- |
 | `lab-flow` | the review as a stepped onboarding form: tiles on one specimen, show versus choose, the three exits, one card at a time, staging, the desk's rows as steps | integrated at `c18570c4`; the catalog boards' reading halved with the deletions |
 | `home-hero` (round six) | four compositions of the stream (mirror, phrase, settle, ribbon) on the ruled hero, the last exploration before its wiring | integrated at `56ea9185`, 1,189 words under the budget |
+| `home-hero` (round seven) | Will answered round six none in chat, the symmetric approach by name; the Orchestrator built the band (the reference's), the orbit (Cosmos's ring round the code, the block under it) and the two unsplit stacks in the root tree the same evening | on the tree at `ccf93732`, 779 words |
 | `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | integrated at `ec7367e7`, 486 words |
 | `light` (round seven) | the twelve cards reshaped for the walk: one at a time on three specimens, before/after and what each lands as, the asks as tile steps | integrated at `7ed0d2a2`, 920 words, no declaration |
 | `palette` (round eight) | pick-one: the winner from the twelve or none, the accent and its reach as tile steps on the real product | integrated at `49ed0fbf`, 1,191 words, no declaration |

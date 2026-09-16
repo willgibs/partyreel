@@ -63,7 +63,10 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 review "favors you and makes me spend tons of time per track figuring what I'm even being asked"):
 `lab-flow` rebuilds the review as an onboarding form, every board is reshaped into steps four at a time
 with no new exploration, and his sitting resumes on the first two that land; the last lab-infrastructure
-round of the window.
+round of the window. His sitting opened on the hero and answered its round six `none` in chat, asking
+for the symmetric approach by name; with no parallel work left, round seven (the band, the orbit and the
+two stacks) was built here in the root tree rather than on a lane, the loop from here while the lab
+work winds down.
 
 ## In flight
 
@@ -147,5 +150,9 @@ palette and light first), pasted in batches with Copy so far.
   purchase priced on the card, the crowds question as two tiles on the blog's own row, the rule, spend
   and shoot questions means-only over real stages; 1,077 words, no declaration; the side-by-side section
   and its twenty-six dock pills deleted). Every board of the stepped review round is integrated.
+- `514a5902` the hero's round six transcribed as `stream=none` from Will's message; `ccf93732` home-hero
+  round seven built in the root tree (no lane, no manifest): the engine gains a turn by distance, a polar
+  placement and a lockup with its own axis; the band, the orbit and the two stacks on the board at 779
+  words, the four scatterings deleted.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
