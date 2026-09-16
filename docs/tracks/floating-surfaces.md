@@ -1,6 +1,6 @@
 ---
 track: floating-surfaces
-status: open
+status: handed-off
 cut: "be1638f2"          # round 6, the clarity round, cut from launch-prep
 cut_round_5: "c473707"
 merged_round_5: "9f4af09a"
@@ -1466,3 +1466,102 @@ went, and the canvas toggle went with it (it moved one frame; the desk is the 14
 section the 375 one). Building it turned up a quiet bug in the review pipeline: `lab:review` finds a
 board at the first brace after the word `defineBoard`, so a spec with a second import hands the
 scanner the wrong object and refuses every ruling as "not an ask on this board".
+
+## Handoff (round 6)
+
+- Head `2e9b1257` plus the one commit on top of it that stamps this file, pushed. No `[preview]` and
+  no `[ci]` on any push: the round's review surface is a local `pnpm dev` on `launch-prep` after
+  integration. Board: `/design/lab/floating-surfaces`; the review card lands on an ask at
+  `/design/lab/floating-surfaces?session=floating-surfaces.direction`.
+  **The marker that says "this is round six" is that no option on this board is a token any more.**
+  The dock's switches read "Squarer, like a surface" where they read "Sharp", and the frames over the
+  ladders read the same words as the question above them. A second marker: `PLAIN` in
+  `sandbox/registry.test.ts` no longer names this board, so the clarity ratchet checks its shape.
+- **Synced with `launch-prep` TWICE**, because it moved again while the gate ran: first at `99544a2b`
+  (merge `50178bf4`), which brought in glow-specs, brand-voice, rounding, the review card, home-hero,
+  media-kit and palette, then at `63240eac` (merge `2e9b1257`) for album-hero. **One conflict each
+  time, both the adjacent-deletion in `sandbox/registry.test.ts` the round brief predicted, both
+  resolved by keeping EVERY side's deletions**: `PLAIN` is now `["river-visual"]` alone. The whole
+  gate re-ran on the second merged tree.
+- Gates on the merged tree, each on its own exit code: **typecheck ok**, **lint ok** (0 errors, 6
+  warnings, all pre-existing and outside the lane), **test ok** (2182 in 219 files), **build ok** (257
+  static pages), **`pnpm lab:smoke --base http://localhost:3117` ok** (321 checks, 0 failing), and
+  `pnpm lab:review --dry 'review floating-surfaces r5: direction=card "the desk sold it";
+  submenu=delete; radius=nested; entrance=by-frequency; light=follow-light'` accepts one clause per
+  ask, with the note, and records five.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the five files of
+  `src/app/(dev)/design/sandbox/floating-surfaces/` this round touched (`spec.ts`, `board.tsx`,
+  `constants.ts`, `candidates.ts`, `directions.ts`) plus `sandbox/registry.test.ts`, which is the ONE
+  exception the round brief names: this board's line deleted from `PLAIN`. Nothing else, no kit file,
+  no other board.
+
+**The five asks as they now read.** The question, then the option labels in the order they are offered
+(the recommendation in bold); every id, on the ask and on every option, is unchanged.
+
+- `direction` **Which direction should everything that opens over the page follow?** Today's menus,
+  unchanged · **Card: a menu as a made object** · Glass: one lit pane · Command: a search field.
+- `submenu` **Should a menu still be able to open a second menu?** Keep the nested menu · **Delete it,
+  choices inline**.
+- `radius` **How round should a floating panel and its rows be?** Squarer, like a surface · **Today's
+  panel, rows corrected** · Rounder, like a button.
+- `entrance` **Should every floating surface appear at the same speed?** One speed for every surface ·
+  **Faster where you open often**.
+- `light` **In dark mode, should a floating panel cast a shadow?** No shadow, as dark ships · A soft
+  shadow, ruled here · **A soft shadow, the light board's call**.
+
+**Where the words now live, and why they cannot drift.** `spec.ts` is the one home: `constants.ts`
+reads the option labels back off the asks through `askOptionLabel(askId, optionId)`, so the corner
+ladder's four frames, the light ladder's two columns and the entrance's two frames are titled by the
+question itself; the ask ids ARE the dimension names and the option ids ARE the rung ids, so the
+lookup needs no second table and a relabel in `spec.ts` relabels every specimen. The four answers, the
+desk, the phone and the nested menu's two frames take their titles the same way. The dock's
+**Direction** switch is the direction ask to the id AND the label, so the ask declares
+`control: "direction"` and picking an option on the review card previews it on the whole page
+("Picking one sets the board's direction, so the choice is the preview" prints under the options).
+
+**What could not be made plain without changing the board, and why.**
+
+- **Three switches cannot mirror their ask, and the kit is right to refuse them.** Corner, How it
+  appears and Shadow in dark each carry an "as it ships" column their ask does not offer (the corner
+  ask offers three corrections, not "leave it"), and `control` requires the two id sets to be the same
+  SET. Dropping the baseline would cost the comparison the section exists for, so all three leave
+  `control` unset and carry the ask's words on their labels instead. **A kit need, if the Orchestrator
+  wants it:** let a `Control` mark one option as a baseline the mirror ignores (or let an `Ask` name
+  an id it does not offer), and those three switches become previews too.
+- **The light ask has three options over two columns, and no new evidence would fix that.** "A soft
+  shadow, ruled here" and "A soft shadow, the light board's call" are the same pixels to the byte:
+  what separates them is WHO rules the line, not anything visible. So both labels open with the words
+  the second column carries, the first column is the `today` option's label to the letter, and the
+  frame's caption says the two ways of saying yes are one column.
+- Nothing else was blocked. No candidate, number, recommendation or specimen changed, `round.n` stays
+  at 5 and `round.changed` says the asks were rewritten.
+
+**Verified.** On a local `pnpm dev` at :3117 (stopped before the build; no browser tab left open on my
+port). At 1440 and at 375 the document has no horizontal scroll (`scrollWidth == clientWidth` at both);
+the only horizontal scrollers on the page are the two frame strips that are meant to be (the 1440 desk
+inside a 1408 column, and the entrance's two 900px frames), and the dock WRAPS the longer labels onto
+three rows rather than clipping them. Read cold through the desk, each of the five asks prints its
+question, its context, "Where to look:", a "Take me there" link to its section, and every option with
+what choosing it does; on the board, `?session=floating-surfaces.<ask>` pins the same card under the
+dock. The light ladder's columns read "No shadow, as dark ships" and "A soft shadow" INSIDE the frame,
+and the corner's four read "As it ships today", "Squarer, like a surface", "Today's panel, rows
+corrected" and "Rounder, like a button". **Not re-verified, and honestly: reduced motion.** This round
+changed no motion, no keyframe and no duration, so round five's pass stands; the entrance frames are
+byte-identical apart from their titles.
+
+## Record (round 6; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-16). The floating-surfaces board's five asks were
+rewritten in plain words, after Will's first review through the desk stopped at questions that were
+labels with token options. Each ask now carries a real question, what the thing is and where it lives
+on the site, where to look and what to compare, and every option labelled in words with one sentence
+on what choosing it does; every ask id and option id is unchanged, so the ledger still joins on them.
+The evidence carries the same words: the four answers, the nested menu's two frames, the entrance's
+two and the corner and light ladders are all titled from the asks themselves through `askOptionLabel`,
+which reads `spec.ts` rather than a second table, and the dock's Direction switch mirrors the direction
+ask to the id and the label, so picking an option on the review card previews it. The applied badge
+stopped saying "radius nested, entrance by frequency": `contractLabel` left `candidates.ts` for
+`contractName` in `constants.ts`, and the two token tables it read went with it. The board's question,
+verdict, section titles and ledes went the same way, a nickname only with its gloss, and the outliers
+lede stopped promising an ask round four had removed. No direction, number, recommendation or specimen
+changed, and `floating-surfaces` came off the clarity ratchet's `PLAIN` list.
