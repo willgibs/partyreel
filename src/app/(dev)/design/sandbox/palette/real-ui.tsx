@@ -134,8 +134,8 @@ export function RealFloating({
       </div>
       <p className="text-[11px] text-muted-foreground">
         {applied
-          ? `These are the production components, portaled to the page, and the page is wearing ${applied}. The menu, the dialog and the popover all read --popover, the ring and --shadow-float, which is why the floating layer is the one place a set with no card step still has to work.`
-          : "These are the production components. A portal leaves every stage, so each button applies the pair to this page first and then opens: that is what a menu in production is painted by. Clear is in the dock."}
+          ? `Production components, portaled, on a page wearing ${applied}. All three read --popover, the ring and --shadow-float.`
+          : "Production components. A portal leaves every stage, so each button applies the pair to this page first, then opens."}
       </p>
     </div>
   );

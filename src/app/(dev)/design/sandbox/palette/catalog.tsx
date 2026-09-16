@@ -31,6 +31,7 @@ import {
   pairStyle,
   resolvePair,
   STATE_HUES,
+  type AccentMode,
   type BoardGround,
   type CardMode,
   type Pair,
@@ -215,6 +216,16 @@ function AccentBand({
  * shows one block where the others show two, which is the whole of that set's
  * claim visible without a word.
  */
+/** The strip's proportions, in one place: the label row has to track the blocks
+ *  exactly or it labels the wrong grey. */
+const STRIP: { ground: BoardGround; name: string; grow: number }[] = [
+  { ground: "cinema", name: "well", grow: 1 },
+  { ground: "cinema", name: "room", grow: 2 },
+  { ground: "ink", name: "slab", grow: 1 },
+  { ground: "mat", name: "mat", grow: 1 },
+  { ground: "paper", name: "page", grow: 2 },
+];
+
 function SwatchStrip({
   pair,
   accentDark,
@@ -225,23 +236,45 @@ function SwatchStrip({
   accentLight: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-lg ring-1 ring-foreground/10">
-      <div className="flex h-12">
-        {/* The well is the one ground with no register of its own: it belongs to
+    <div>
+      <div className="overflow-hidden rounded-lg ring-1 ring-foreground/10">
+        <div className="flex h-12">
+          {/* The well is the one ground with no register of its own: it belongs to
             neither mode and is spread under both, so it is painted from its own
             token rather than resolved through pairStyle. */}
-        <span
-          className="grow basis-0"
-          style={{ background: pair.dark.well["--gallery"] }}
-        />
-        <GroundBlock pair={pair} ground="cinema" grow={2} bars />
-        <GroundBlock pair={pair} ground="ink" grow={1} />
-        <GroundBlock pair={pair} ground="mat" grow={1} />
-        <GroundBlock pair={pair} ground="paper" grow={2} bars />
+          <span
+            style={{
+              background: pair.dark.well["--gallery"],
+              flexGrow: STRIP[0].grow,
+              flexBasis: 0,
+            }}
+          />
+          <GroundBlock pair={pair} ground="cinema" grow={STRIP[1].grow} bars />
+          <GroundBlock pair={pair} ground="ink" grow={STRIP[2].grow} />
+          <GroundBlock pair={pair} ground="mat" grow={STRIP[3].grow} />
+          <GroundBlock pair={pair} ground="paper" grow={STRIP[4].grow} bars />
+        </div>
+        <div className="flex border-t border-foreground/10">
+          <AccentBand pair={pair} ground="cinema" accentValue={accentDark} />
+          <AccentBand pair={pair} ground="paper" accentValue={accentLight} />
+        </div>
       </div>
-      <div className="flex border-t border-foreground/10">
-        <AccentBand pair={pair} ground="cinema" accentValue={accentDark} />
-        <AccentBand pair={pair} ground="paper" accentValue={accentLight} />
+      {/* ★ THE STRIP IS UNREADABLE WITHOUT THIS, which is a finding from
+          looking at round six's card rather than from a rule: five greys in a
+          row say nothing until you know which one is the room and which is the
+          slab, and the whole claim of the model (the slab sits LIGHTER than the
+          room) is in their order. It lives inside the card's specimen, so it
+          costs the reading budget nothing. */}
+      <div className="mt-1 flex text-[9px] leading-none text-muted-foreground">
+        {STRIP.map((b) => (
+          <span
+            key={b.name}
+            className="truncate px-2"
+            style={{ flexGrow: b.grow, flexBasis: 0 }}
+          >
+            {b.name}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -249,11 +282,24 @@ function SwatchStrip({
 
 /* ── The demo UI ────────────────────────────────────────────────────────── */
 
-/** One photograph on every card, on purpose: a ground is being compared, so the
- *  thing lying on it has to be the same thing every time. */
+/**
+ * A COLOURFUL MIX, ON EVERY CARD (round seven). Will's objection to the warm
+ * palettes was specifically that they "would clash with a colorful mix of
+ * photos", so the card cannot lay one photograph on the well and call it
+ * evidence: it has to hold the mix the objection is about, and the same mix on
+ * every card, because a ground is what is being compared.
+ *
+ * Five, chosen to span the wheel rather than the subject: gold, pastel, night
+ * blue, laser and a warm stage. What is still missing is the two HARD cases (a
+ * white dress on a white wall, and one candle), which is why the board asks for
+ * them in its assets.
+ */
 const TILES = [
   marketingImage("wedding-golden").src,
+  marketingImage("concert-confetti").src,
   marketingImage("party-balloons").src,
+  marketingImage("festival-lights").src,
+  marketingImage("festival-crowd").src,
 ];
 
 /**
@@ -276,12 +322,15 @@ function DemoPanel({
   ground,
   accentValue,
   accentForeground,
+  accentOn,
   name,
 }: {
   pair: Pair;
   ground: BoardGround;
   accentValue: string;
   accentForeground: string;
+  /** Whether the switch is on; the focus ring is only drawn when it is. */
+  accentOn: boolean;
   name: string;
 }) {
   const accent = {
@@ -346,12 +395,12 @@ function DemoPanel({
                   src={src}
                   alt=""
                   fill
-                  sizes="120px"
+                  sizes="80px"
                   className="object-cover"
                 />
               </span>
             ))}
-            {/* The third tile is the well with nothing in it yet: the one place
+            {/* The sixth tile is the well with nothing in it yet: the one place
                 a guest sees the bed on its own, and the reason the well is a
                 register rather than a shade of the room. */}
             <span className="aspect-square" />
@@ -359,30 +408,45 @@ function DemoPanel({
         </CardContent>
 
         {/* The footer is its own surface (bg-muted/50 over the card), so the
-            badge sits on the panel register and the button on the accent: two
-            of the five steps meeting in eighteen pixels. */}
+            live dot sits on the panel register and the primary action on the
+            accent: two of the five steps meeting in eighteen pixels, and two of
+            the accent's three jobs. */}
         <CardFooter className="justify-between gap-1.5 py-2">
-          <Badge
-            className="border-transparent"
+          <Badge variant="outline" className="gap-1 px-1.5">
+            <span
+              className="size-1.5 shrink-0 rounded-full"
+              style={{ background: "var(--brand)" }}
+            />
+            Live
+          </Badge>
+          <Button
+            size="xs"
             style={{
               background: "var(--brand)",
               color: "var(--brand-foreground)",
             }}
           >
-            Live
-          </Badge>
-          <Button size="xs">Share</Button>
+            Share
+          </Button>
         </CardFooter>
       </Card>
 
-      {/* The one form control: --input and --ring are the two tokens nothing
-          else on the card reads. Full width, because a button beside it at this
-          width leaves the value clipped and a clipped URL reads as a bug. */}
+      {/* The one form control. --input is the hairline nothing else on the
+          card reads; the RING is the accent's third job, so it is drawn only
+          while the switch is on. A real :focus-visible cannot be shown on
+          twelve cards at once, so it is painted at the production 2px and 2px
+          offset, and at rest the field is a field: twenty four white boxes
+          would be the loudest thing on a page about greys. */}
       <Input
         readOnly
         value="partyreel.com/e/9fq2"
         aria-label="The event link"
         className="h-7 text-[11px] md:text-[11px]"
+        style={
+          accentOn
+            ? { outline: "2px solid var(--brand)", outlineOffset: "2px" }
+            : undefined
+        }
       />
 
       <p
@@ -418,13 +482,16 @@ export function PalettePreview({
   id,
   cardMode,
   faint,
+  accentMode,
 }: {
   /** The candidate's id, which is the palette's. */
   id: string;
   cardMode: CardMode;
   faint: boolean;
+  /** The board's page-wide switch: none, or this palette's own declaration. */
+  accentMode: AccentMode;
 }) {
-  const { def, pair: raw, accent } = resolvePalette(id);
+  const { def, pair: raw, accent } = resolvePalette(id, accentMode);
   const pair = resolvePair(raw, cardMode, faint);
   return (
     <div className="flex flex-col gap-3">
@@ -433,12 +500,21 @@ export function PalettePreview({
         accentDark={accent.dark}
         accentLight={accent.light}
       />
+      {/* The declaration reads only while it is worn. With the switch off the
+          card is the achromatic palette and says nothing about accents, which
+          is the default state and the one the reading budget is measured in. */}
+      {accentMode === "own" && (
+        <p className="text-[11px] leading-snug text-muted-foreground">
+          <span className="text-foreground">{accent.label}.</span> {def.pairs}
+        </p>
+      )}
       <div className="flex min-w-0 gap-2">
         <DemoPanel
           pair={pair}
           ground="cinema"
           accentValue={accent.dark}
           accentForeground={accent.darkForeground}
+          accentOn={accentMode === "own"}
           name={def.name}
         />
         <DemoPanel
@@ -446,6 +522,7 @@ export function PalettePreview({
           ground="paper"
           accentValue={accent.light}
           accentForeground={accent.lightForeground}
+          accentOn={accentMode === "own"}
           name={def.name}
         />
       </div>
