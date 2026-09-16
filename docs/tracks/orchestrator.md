@@ -72,6 +72,7 @@ round of the window.
 | `lab-flow` | the kit: the review as a stepped onboarding form (the plan's Part 1) | its handoff; every board then verifies its walk on it |
 | `light` | `/design/lab/light` (round seven: reshaped into steps, one card at a time) | `lab-flow` for the walk |
 | `palette` | `/design/lab/palette` (round eight: pick-one, the winner from the twelve) | `lab-flow` for the walk |
+| `type-scale` | `/design/lab/type-scale` (round seven: pick-one, the winner from the five) | `lab-flow` for the walk |
 
 ## Waiting on Will
 

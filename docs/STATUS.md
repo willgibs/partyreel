@@ -49,6 +49,7 @@ under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
 | `lab-flow` | the review as a stepped onboarding form: tiles on one specimen, show versus choose, the three exits, one card at a time, staging, the desk's rows as steps | building |
 | `light` (round seven) | the twelve cards reshaped for the walk: one at a time on three specimens, before/after and what each lands as, the asks as tile steps | building |
 | `palette` (round eight) | pick-one: the winner from the twelve or none, the accent and its reach as tile steps | building |
+| `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | building |
 
 **The stepped review round** (opened 2026-09-16 at `02c409b4`, on his sitting's verdict: the review
 "favors you and makes me spend tons of time per track figuring what I'm even being asked"): the review
