@@ -133,8 +133,8 @@ export function ReviewQuestions({
       <div>
         <h2 className="text-sm font-semibold tracking-tight">Rule on it</h2>
         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-          One word an ask, a note where the word is not enough. Answer only what
-          you want to differ on; leaving an ask blank leaves it out of the
+          One word a question, a note where the word is not enough. Answer only
+          what you want to differ on; leaving one blank leaves it out of the
           message. Nothing here is written to the repo: Copy hands you one line
           to paste into chat.
         </p>

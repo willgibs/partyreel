@@ -70,6 +70,16 @@ type Params = Promise<Record<string, string | string[] | undefined>>;
  * walks it in, because a board's asks are what is left open once its cards have
  * been ruled on.
  */
+/**
+ * ★ A QUEUE ROW STACKS ON A PHONE (the sweep's finding, 2026-09-16). The board
+ * name, the question and the answer pill are three things, and `flex-wrap` on
+ * one baseline put all three on one 375 line where they collided. Below the
+ * `sm` breakpoint the row is a column and each part gets its own line; from
+ * there up it is the one baseline it was.
+ */
+const ROW =
+  "flex flex-col gap-1 px-4 py-3 transition-colors duration-150 hover:bg-muted/40 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3 sm:gap-y-1";
+
 type QueueEntry =
   | { kind: "ask"; ask: AskState }
   | { kind: "items"; row: BoardRow };
@@ -195,7 +205,7 @@ export default async function DeskPage({
       <Section
         id="waiting"
         title="Waiting on you"
-        blurb="Every catalog with a card still unruled and every ask with no answer, in board order. The review walks them one at a time and ends in one message to paste."
+        blurb="Every catalog with a card still unruled and every question with no answer, in board order. The review walks them one at a time and ends in one message to paste."
         aside={
           queue.length > 0 ? (
             <StartReview
@@ -215,14 +225,11 @@ export default async function DeskPage({
                   key={`${entry.row.id}.items`}
                   style={{ "--i": i } as React.CSSProperties}
                 >
-                  <LabLink
-                    href={itemsHref(entry.row.id)}
-                    className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3 transition-colors duration-150 hover:bg-muted/40"
-                  >
+                  <LabLink href={itemsHref(entry.row.id)} className={ROW}>
                     <span className="text-xs text-muted-foreground">
                       {entry.row.title}
                     </span>
-                    <span className="min-w-0 flex-1 text-sm font-medium">
+                    <span className="min-w-0 text-sm font-medium sm:flex-1">
                       {`The ${entry.row.items.length} in the catalog: keep, refine or kill each one`}
                     </span>
                     <Tag>
@@ -237,12 +244,12 @@ export default async function DeskPage({
                 >
                   <LabLink
                     href={askHref(entry.ask.board, entry.ask.ask.id)}
-                    className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3 transition-colors duration-150 hover:bg-muted/40"
+                    className={ROW}
                   >
                     <span className="text-xs text-muted-foreground">
                       {entry.ask.boardTitle}
                     </span>
-                    <span className="min-w-0 flex-1 text-sm font-medium">
+                    <span className="min-w-0 text-sm font-medium sm:flex-1">
                       {entry.ask.ask.question}
                     </span>
                     {entry.ask.answer && entry.ask.answer.choice === null ? (
@@ -269,12 +276,12 @@ export default async function DeskPage({
             <p className="text-sm">
               {withSpec.length === 0
                 ? "No board carries a spec yet, so nothing is queued here."
-                : "Every ask is answered and every catalog is ruled on this round."}
+                : "Every question is answered and every catalog is ruled on this round."}
             </p>
             <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-muted-foreground">
               {withSpec.length === 0
-                ? "The boards move onto the kit's template in the wave after this round; each one declares its asks then, and they queue here. Until then a board argues on its own page."
-                : "A new round opens the asks again. The answers so far are on each board below."}
+                ? "The boards move onto the kit's template in the wave after this round; each one declares its questions then, and they queue here. Until then a board argues on its own page."
+                : "A new round opens the questions again. The answers so far are on each board below."}
             </p>
             <p className="mt-3">
               <LabLink
@@ -337,7 +344,7 @@ export default async function DeskPage({
       <Section
         id="boards"
         title="Every standing board"
-        blurb="In registry order, the same order the board pages page through. A board with a spec shows its verdict and its asks; one without shows what it is exploring."
+        blurb="In registry order, the same order the board pages page through. A board with a spec shows its verdict and its questions; one without shows what it is exploring."
       >
         <ol className="space-y-2">
           {rows.map((row) => (

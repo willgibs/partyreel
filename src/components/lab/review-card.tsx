@@ -82,7 +82,7 @@ export function ReviewCard({
 }: {
   /** The board this card is mounted on; a step for any other board renders nothing. */
   boardId: string;
-  /** The WHOLE open queue, so "Ask N of M" counts the review and Next can cross. */
+  /** The WHOLE open queue, so "Step N of M" counts the review and Next can cross. */
   steps: readonly SessionStep[];
   /** The `session` value the server read, so the first paint is the right step. */
   param: string | null;

@@ -577,9 +577,9 @@ export function ReviewSession({
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 The Orchestrator runs it through{" "}
                 <code className="font-sans">pnpm lab:review</code>, which checks
-                every ask, option and catalog item against the board&rsquo;s own
-                spec and appends to docs/reviews. Nothing in this page writes
-                the repo.
+                every question, option and catalog item against the
+                board&rsquo;s own spec and appends to docs/reviews. Nothing in
+                this page writes the repo.
               </p>
 
               <ul className="mt-6 space-y-3">
@@ -680,7 +680,7 @@ export function ReviewSession({
                               },
                             })
                           }
-                          placeholder="Optional. Anything that is about the board rather than one ask."
+                          placeholder="Optional. Anything that is about the board rather than one question."
                           className="mt-1 w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors duration-150 outline-none placeholder:text-muted-foreground/70 focus:border-foreground/40"
                         />
                       </label>
@@ -699,7 +699,7 @@ export function ReviewSession({
               className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition-colors duration-150 hover:bg-muted/40"
             >
               <ArrowLeft className="size-3.5" />
-              The last ask
+              The last step
             </button>
             <LabLink
               href="/design/lab"

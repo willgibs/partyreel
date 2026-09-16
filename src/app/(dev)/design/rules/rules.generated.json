@@ -44,7 +44,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 81
+          "line": 85
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -52,7 +52,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 145
+          "line": 149
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -60,7 +60,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 197
+          "line": 201
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -68,7 +68,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 252
+          "line": 264
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -76,7 +76,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 273
+          "line": 285
         },
         {
           "title": "computes one anchor everywhere",
@@ -84,7 +84,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 330
+          "line": 342
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -92,7 +92,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 350
+          "line": 362
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -100,7 +100,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 360
+          "line": 372
         }
       ]
     },
@@ -178,7 +178,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 81
+          "line": 85
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -186,7 +186,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 145
+          "line": 149
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -194,7 +194,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 197
+          "line": 201
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -202,7 +202,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 252
+          "line": 264
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -210,7 +210,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 273
+          "line": 285
         },
         {
           "title": "computes one anchor everywhere",
@@ -218,7 +218,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 330
+          "line": 342
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -226,7 +226,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 350
+          "line": 362
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -234,7 +234,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 360
+          "line": 372
         }
       ]
     },
@@ -282,7 +282,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 81
+          "line": 85
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -290,7 +290,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 145
+          "line": 149
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -298,7 +298,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 197
+          "line": 201
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -306,7 +306,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 252
+          "line": 264
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -314,7 +314,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 273
+          "line": 285
         },
         {
           "title": "computes one anchor everywhere",
@@ -322,7 +322,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 330
+          "line": 342
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -330,7 +330,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 350
+          "line": 362
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -338,7 +338,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 360
+          "line": 372
         }
       ]
     },
@@ -460,7 +460,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 176
+          "line": 180
         },
         {
           "title": "links a card to the Library only once its entry really exists",
@@ -468,7 +468,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 186
+          "line": 190
         },
         {
           "title": "draws nothing at all for a board that declares no catalog",
@@ -476,7 +476,7 @@
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 193
+          "line": 197
         }
       ]
     },
@@ -498,7 +498,7 @@
             "any two, side by side"
           ],
           "file": "src/components/lab/compare-two.test.tsx",
-          "line": 62
+          "line": 66
         },
         {
           "title": "falls back to each control's declared default",
@@ -506,7 +506,7 @@
             "any two, side by side"
           ],
           "file": "src/components/lab/compare-two.test.tsx",
-          "line": 74
+          "line": 78
         },
         {
           "title": "says what differs, from the cards' own lines when none is given",
@@ -514,7 +514,7 @@
             "any two, side by side"
           ],
           "file": "src/components/lab/compare-two.test.tsx",
-          "line": 79
+          "line": 83
         },
         {
           "title": "draws a thing against itself ONCE, and says how to bring the seam back",
@@ -522,7 +522,7 @@
             "any two, side by side"
           ],
           "file": "src/components/lab/compare-two.test.tsx",
-          "line": 88
+          "line": 92
         },
         {
           "title": "renders nothing for a board that declares no compare controls",
@@ -530,7 +530,7 @@
             "any two, side by side"
           ],
           "file": "src/components/lab/compare-two.test.tsx",
-          "line": 100
+          "line": 104
         },
         {
           "title": "draws every spot twice, once under each side",
@@ -538,7 +538,7 @@
             "the same places, under two cards"
           ],
           "file": "src/components/lab/compare-two.test.tsx",
-          "line": 113
+          "line": 117
         },
         {
           "title": "names each place, so a spot is judged where it lives",
@@ -546,7 +546,7 @@
             "the same places, under two cards"
           ],
           "file": "src/components/lab/compare-two.test.tsx",
-          "line": 133
+          "line": 137
         },
         {
           "title": "draws one copy of a place when A and B name the same card",
@@ -554,7 +554,7 @@
             "the same places, under two cards"
           ],
           "file": "src/components/lab/compare-two.test.tsx",
-          "line": 145
+          "line": 149
         }
       ]
     },

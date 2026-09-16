@@ -6,7 +6,10 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { withDesignKey } from "@/lib/design-gate/links";
 import { cn } from "@/lib/utils";
 
-import { clearCandidate, useTunerCandidate } from "@/components/dev/candidate-style";
+import {
+  clearCandidate,
+  useTunerCandidate,
+} from "@/components/dev/candidate-style";
 
 import { useBoardPage } from "./board-page-context";
 import { setLabPref, useLabPrefs } from "./lab-prefs";
@@ -46,7 +49,11 @@ export function BoardDock({
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [open, setOpen] = useState(true);
+  // Null until the reader presses: the UNTOUCHED state is a class rather than a
+  // boolean, so the first paint is right on both widths with no flash and no
+  // effect (see THE PHONE OPENS COLLAPSED, below).
+  const [open, setOpen] = useState<boolean | null>(null);
+  const wide = useWide();
   const { fit, sidebar } = useLabPrefs();
   const page = useBoardPage();
   // The gate key rides the URL; read it from the browser (useSearchParams
@@ -88,6 +95,21 @@ export function BoardDock({
   }, []);
 
   const pill = DOCK_PILL;
+  /**
+   * ★ THE PHONE OPENS COLLAPSED (the sweep's finding, 2026-09-16: at 375 a
+   * board opened with about 500px of dock before its question). The template's
+   * whole promise is that a reviewer's first screen is the question and the
+   * answer, and two wrapped rows of pills broke it on the one width Will reads
+   * a board on most.
+   *
+   * The untouched state is CSS, not state: `hidden sm:flex` renders correctly
+   * on the server for both widths, so there is no hydration flash and no
+   * effect. A press resolves it to a real boolean, and `useWide` is only read
+   * to know which way that first press goes and what `aria-expanded` should
+   * say once the browser has told us.
+   */
+  const shown = open === null ? "hidden sm:flex" : open ? "flex" : "hidden";
+  const expanded = open ?? wide ?? true;
 
   return (
     <div
@@ -106,13 +128,18 @@ export function BoardDock({
             squeezed a board's switches into a 44px column at 375; brand-voice). */}
         <div
           className={cn(
-            "flex basis-full flex-wrap items-center gap-2 sm:min-w-0 sm:flex-1 sm:basis-auto",
-            !open && "hidden",
+            "basis-full flex-wrap items-center gap-2 sm:min-w-0 sm:flex-1 sm:basis-auto",
+            shown,
           )}
         >
           {children}
         </div>
-        <div className="flex basis-full flex-wrap items-center gap-2 sm:ml-auto sm:basis-auto">
+        <div
+          className={cn(
+            "basis-full flex-wrap items-center gap-2 sm:ml-auto sm:basis-auto",
+            shown,
+          )}
+        >
           {aside}
           {page && page.sections.length > 0 && (
             <details className="relative">
@@ -175,15 +202,18 @@ export function BoardDock({
           <Link href={withDesignKey("/design/lab", key)} className={pill}>
             Desk
           </Link>
-          <button
-            type="button"
-            aria-expanded={open}
-            onClick={() => setOpen((o) => !o)}
-            className={pill}
-          >
-            {open ? "Collapse" : "Controls"}
-          </button>
         </div>
+        {/* The one control that is never hidden, because it is the way back to
+            the rest. On a phone it is the whole dock until it is pressed. */}
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-label={label}
+          onClick={() => setOpen(!expanded)}
+          className={cn(pill, "ml-auto")}
+        >
+          {expanded ? "Collapse" : "Controls"}
+        </button>
       </div>
     </div>
   );
@@ -196,6 +226,24 @@ export function BoardDock({
  * the walk and the review panel all draw one and three copies of a border
  * radius is how a dock stops looking like one thing.
  */
+/**
+ * Whether the window is at least the `sm` breakpoint, or undefined on the
+ * server. The lab's idiom for a browser-only fact (lab-prefs.ts, walk.ts): a
+ * store outside React read with useSyncExternalStore, so nothing has to settle
+ * in an effect.
+ */
+function useWide(): boolean | undefined {
+  return useSyncExternalStore(
+    (notify) => {
+      const query = window.matchMedia("(min-width: 40rem)");
+      query.addEventListener("change", notify);
+      return () => query.removeEventListener("change", notify);
+    },
+    () => window.matchMedia("(min-width: 40rem)").matches,
+    () => undefined,
+  );
+}
+
 export const DOCK_PILL =
   "rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground";
 
