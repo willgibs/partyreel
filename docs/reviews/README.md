@@ -46,7 +46,9 @@ ruling draft. When a board leaves the lab (its ruling landed) its ledger is dele
 
 Paste as you go: the review card's spine and the desk carry "Copy so far", which composes every answer,
 verdict and note held at that moment, one line per board; a later paste of the same ask or item
-overwrites, so a sitting can land in batches.
+overwrites, so a sitting can land in batches. A multi-line paste is transcribed through stdin
+(`printf '%s\n' "<the lines>" | node scripts/lab-review.mjs`) or as one argument to `node` directly:
+`pnpm lab:review` flattens the newlines inside an argument into spaces.
 
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
 An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.
