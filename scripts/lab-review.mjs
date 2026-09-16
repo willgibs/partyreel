@@ -10,8 +10,9 @@
  *
  * The grammar is stated once, in docs/reviews/README.md:
  *
- *   review <board> r<n>: <ask>=<option> "a note"; <ask>=<option>; note: "a board note"
+ *   review <board> r<n>: <ask>=<option> "a note"; item:<id>=keep|refine|kill "a note"; note: "a board note"
  *   review <board> r<n>: <ask>=? "what was unclear"     (not answered: the question needs rewording)
+ *   review library: <entry-id>=keep|redesign|retire "a note"
  *
  * `?` is the reviewer's own answer, "this question is not clear to me" (Will's
  * first review, 2026-09-15, skipped two asks for exactly that reason and the
@@ -19,8 +20,18 @@
  * `choice: null`, and the desk shows the ask as waiting on a clearer question
  * rather than as answered.
  *
- * Every board, round, ask and option is validated against the board's own spec
- * (src/app/(dev)/design/sandbox/<board>/spec.ts) before anything is written,
+ * `item:<id>=<verdict>` is a ruling on ONE catalog card (the revamp,
+ * 2026-09-16), which is how an exploration comes back as "keep these three,
+ * refine that one, kill the rest" rather than as one answer about twelve
+ * things. The `item:` prefix keeps the two namespaces apart: an ask id and a
+ * candidate id are both one token, and a board is free to use the same word for
+ * both. `review library:` is the same gesture on a Library entry
+ * (keep | redesign | retire), landing in docs/reviews/_library.json, which is
+ * the redesign queue the desk shows and the Orchestrator cuts tracks from.
+ *
+ * Every board, round, ask, option, item and verdict is validated against the
+ * board's own spec (src/app/(dev)/design/sandbox/<board>/spec.ts), and every
+ * Library entry against rules.generated.json, before anything is written,
  * and a refusal names the line and column of the token it refused. The whole
  * message is all-or-nothing: one bad token writes nothing at all, so a paste is
  * never half-applied.
@@ -48,6 +59,20 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SANDBOX = ["src", "app", "(dev)", "design", "sandbox"];
 const REVIEWS = ["docs", "reviews"];
+const RULES = [
+  "src",
+  "app",
+  "(dev)",
+  "design",
+  "rules",
+  "rules.generated.json",
+];
+
+/** The two ladders, mirrored from board-spec.ts's ITEM_VERDICTS / LIBRARY_VERDICTS. */
+const ITEM_VERDICTS = ["keep", "refine", "kill"];
+const LIBRARY_VERDICTS = ["keep", "redesign", "retire"];
+/** The Library's line carries no round; the ledger stores one ruling per entry. */
+export const LIBRARY_LEDGER = "_library";
 
 /** A refusal the reader can act on: what was wrong, and where in the paste. */
 export class ReviewError extends Error {
@@ -234,9 +259,55 @@ function numberAt(src, range) {
 }
 
 /**
+ * THE CANDIDATE IDS OF A `candidates:` VALUE, or null when they cannot be read
+ * off the page.
+ *
+ * ★ ONE HOP, AND NO FURTHER. An array literal is read where it stands; a bare
+ * reference (`candidates: ITEMS`) is resolved to a `const ITEMS = [...]` in the
+ * SAME file, because that is the shape every catalog board is scaffolded in and
+ * writing the same twelve objects twice would be worse. Anything else, and a
+ * `.map` over another module is the case that bit the palette board, reads as
+ * NO items: the scanner refuses to guess, and `validate` tells the author to
+ * write them out. A silent empty list would accept any item id for ever.
+ */
+function candidateIdsIn(masked, src, range) {
+  if (masked[range[0]] === "[") return optionIdsIn(masked, src, range);
+  IDENT.lastIndex = range[0];
+  const m = IDENT.exec(masked);
+  if (!m || m.index !== range[0]) return null;
+  // A reference and nothing else: `ITEMS`, never `ITEMS.map(...)` or a call.
+  if (masked.slice(range[0] + m[0].length, range[1]).trim() !== "") return null;
+  const at = arrayOfConst(masked, m[0]);
+  return at === null ? null : optionIdsIn(masked, src, [at, masked.length]);
+}
+
+/** The index of the `[` a `const <name> ... = [` opens, or null. */
+function arrayOfConst(masked, name) {
+  const decl = new RegExp(`\\bconst\\s+${name}\\b`).exec(masked);
+  if (!decl) return null;
+  let i = decl.index + decl[0].length;
+  // Past the type annotation, whose own `[]` must not be mistaken for the
+  // value: the assignment is the first `=` that is not part of =>, ==, >= or !=.
+  while (i < masked.length) {
+    if (
+      masked[i] === "=" &&
+      masked[i + 1] !== "=" &&
+      masked[i + 1] !== ">" &&
+      !"=!<>".includes(masked[i - 1])
+    )
+      break;
+    i++;
+  }
+  i++;
+  while (i < masked.length && /\s/.test(masked[i])) i++;
+  return masked[i] === "[" ? i : null;
+}
+
+/**
  * One board's spec as the fields this script validates against: the id (the
- * directory, which is the board), the round it is in, and every ask with its
- * options. Anything else in a spec is for the board page to render.
+ * directory, which is the board), the round it is in, every ask with its
+ * options, whether its candidates are declared a CATALOG, and their ids.
+ * Anything else in a spec is for the board page to render.
  */
 export function readSpec(id, source) {
   const masked = mask(source);
@@ -287,7 +358,11 @@ export function readSpec(id, source) {
       i = close + 1;
     }
   }
-  return { id, round, asks };
+  const catalog = top.has("catalog");
+  const items = top.has("candidates")
+    ? candidateIdsIn(masked, source, top.get("candidates"))
+    : null;
+  return { id, round, asks, catalog, items };
 }
 
 /** Every standing board's spec, by id. An unreadable spec is a loud failure. */
@@ -350,12 +425,88 @@ const skipSpace = (line, at) => {
 };
 
 /**
+ * `<id>=<value> "an optional note"` from `at`; the shared half of every clause.
+ * `words` names the three tokens in the reader's language, so a refusal says
+ * "expected an option" on an ask and "expected a verdict" on an item.
+ */
+function readPair(line, at, lineNo, words) {
+  const id = readToken(line, at, lineNo, words.id);
+  const idAt = at + 1;
+  let i = id.end;
+  if (line[i] !== "=") {
+    throw new ReviewError(`expected "=" after ${words.after}`, {
+      line: lineNo,
+      column: i + 1,
+    });
+  }
+  i++;
+  const value = readToken(line, i, lineNo, words.value);
+  const valueAt = i + 1;
+  i = skipSpace(line, value.end);
+  let note;
+  if (line[i] === '"') {
+    const q = readQuoted(line, i, lineNo);
+    note = q.value;
+    i = q.end;
+  }
+  return { id: id.value, idAt, value: value.value, valueAt, note, end: i };
+}
+
+/** The `;` between entries, or the end of the line. True when there is more. */
+function readSeparator(line, at, lineNo) {
+  let i = skipSpace(line, at);
+  if (i >= line.length) return { more: false, end: i };
+  if (line[i] !== ";") {
+    throw new ReviewError('expected ";" between entries', {
+      line: lineNo,
+      column: i + 1,
+    });
+  }
+  return { more: true, end: i + 1 };
+}
+
+/**
  * One line of the grammar, with every token's column kept so a refusal can
  * point at it. A blank line and a `#` comment line parse to null.
+ *
+ * Two heads: `review <board> r<n>:` for a board, `review library:` for the
+ * Library's own rulings, which carry no round because the Library is not
+ * explored in rounds.
  */
 export function parseLine(raw, lineNo = 1) {
   const line = raw.replace(/\s+$/, "");
   if (!line.trim() || line.trim().startsWith("#")) return null;
+  const libraryHead = /^\s*review\s+library\s*:/.exec(line);
+  if (libraryHead) {
+    const entries = [];
+    let i = libraryHead[0].length;
+    while (true) {
+      i = skipSpace(line, i);
+      if (i >= line.length) break;
+      const pair = readPair(line, i, lineNo, {
+        id: "a library entry id",
+        after: "the entry",
+        value: "a verdict",
+      });
+      entries.push({
+        entry: pair.id,
+        entryAt: pair.idAt,
+        verdict: pair.value,
+        verdictAt: pair.valueAt,
+        note: pair.note,
+      });
+      const sep = readSeparator(line, pair.end, lineNo);
+      i = sep.end;
+      if (!sep.more) break;
+    }
+    if (entries.length === 0) {
+      throw new ReviewError("the line carries no ruling", {
+        line: lineNo,
+        column: line.length + 1,
+      });
+    }
+    return { kind: "library", entries, line: lineNo };
+  }
   const head = /^\s*review\s+/.exec(line);
   if (!head) {
     throw new ReviewError('a line must start with "review <board> r<n>:"', {
@@ -385,11 +536,13 @@ export function parseLine(raw, lineNo = 1) {
   i++;
 
   const answers = [];
+  const items = [];
   const notes = [];
   while (true) {
     i = skipSpace(line, i);
     if (i >= line.length) break;
     const noteHead = /^note\s*:/.exec(line.slice(i));
+    const itemHead = /^item\s*:/.exec(line.slice(i));
     if (noteHead) {
       i = skipSpace(line, i + noteHead[0].length);
       if (line[i] !== '"') {
@@ -401,56 +554,56 @@ export function parseLine(raw, lineNo = 1) {
       const q = readQuoted(line, i, lineNo);
       notes.push({ text: q.value, column: i + 1 });
       i = q.end;
+    } else if (itemHead) {
+      // `item:` is checked BEFORE the ask clause because a token may hold a
+      // colon: `readToken` would swallow `item:ember` whole.
+      const pair = readPair(
+        line,
+        skipSpace(line, i + itemHead[0].length),
+        lineNo,
+        { id: "a candidate id", after: "the item", value: "a verdict" },
+      );
+      items.push({
+        item: pair.id,
+        itemAt: pair.idAt,
+        verdict: pair.value,
+        verdictAt: pair.valueAt,
+        note: pair.note,
+      });
+      i = pair.end;
     } else {
-      const ask = readToken(line, i, lineNo, "an ask id");
-      const askAt = i + 1;
-      i = ask.end;
-      if (line[i] !== "=") {
-        throw new ReviewError('expected "=" after the ask', {
-          line: lineNo,
-          column: i + 1,
-        });
-      }
-      i++;
-      const choice = readToken(line, i, lineNo, "an option");
-      const choiceAt = i + 1;
-      i = skipSpace(line, choice.end);
-      let note;
-      if (line[i] === '"') {
-        const q = readQuoted(line, i, lineNo);
-        note = q.value;
-        i = q.end;
-      }
+      const pair = readPair(line, i, lineNo, {
+        id: "an ask id",
+        after: "the ask",
+        value: "an option",
+      });
       answers.push({
-        ask: ask.value,
-        askAt,
-        choice: choice.value,
-        choiceAt,
-        note,
+        ask: pair.id,
+        askAt: pair.idAt,
+        choice: pair.value,
+        choiceAt: pair.valueAt,
+        note: pair.note,
       });
+      i = pair.end;
     }
-    i = skipSpace(line, i);
-    if (i >= line.length) break;
-    if (line[i] !== ";") {
-      throw new ReviewError('expected ";" between entries', {
-        line: lineNo,
-        column: i + 1,
-      });
-    }
-    i++;
+    const sep = readSeparator(line, i, lineNo);
+    i = sep.end;
+    if (!sep.more) break;
   }
-  if (answers.length === 0 && notes.length === 0) {
-    throw new ReviewError("the line carries no answer and no note", {
+  if (answers.length === 0 && items.length === 0 && notes.length === 0) {
+    throw new ReviewError("the line carries no answer, no ruling and no note", {
       line: lineNo,
       column: line.length + 1,
     });
   }
   return {
+    kind: "board",
     board: board.value,
     boardAt,
     round: Number(round[1]),
     roundAt,
     answers,
+    items,
     notes,
     line: lineNo,
   };
@@ -466,12 +619,45 @@ export function parseMessage(text) {
 
 const list = (xs) => xs.join(", ");
 
+/**
+ * Every Library entry id, from the committed rules artifact. Null when the
+ * artifact is missing, which is a refusal rather than a free pass: an
+ * unvalidated entry id is a redesign request nobody can open.
+ */
+export function readLibraryEntries(root) {
+  const file = join(root, ...RULES);
+  if (!existsSync(file)) return null;
+  try {
+    const artifact = JSON.parse(readFileSync(file, "utf8"));
+    return new Set((artifact.components ?? []).map((c) => c.id));
+  } catch {
+    throw new ReviewError(
+      `${file} is not the rules artifact (pnpm design:rules)`,
+    );
+  }
+}
+
+/** The one place a repeated id on one line is refused, whatever it names. */
+function refuseDuplicates(rows, key, what, push) {
+  const seen = new Set();
+  for (const row of rows) {
+    if (seen.has(row[key.id])) {
+      push(row[key.at], `"${row[key.id]}" is ${what} twice on this line`);
+    }
+    seen.add(row[key.id]);
+  }
+}
+
 /** Every refusal in the message, against the specs; an empty array means go. */
-export function validate(entries, specs) {
+export function validate(entries, specs, library = null) {
   const errors = [];
   const at = (line, column, message) =>
     errors.push(new ReviewError(message, { line, column }));
   for (const e of entries) {
+    if (e.kind === "library") {
+      validateLibrary(e, library, at);
+      continue;
+    }
     const spec = specs.get(e.board);
     if (!spec) {
       at(
@@ -517,15 +703,100 @@ export function validate(entries, specs) {
         );
       }
     }
-    const seen = new Set();
-    for (const a of e.answers) {
-      if (seen.has(a.ask)) {
-        at(e.line, a.askAt, `"${a.ask}" is answered twice on this line`);
-      }
-      seen.add(a.ask);
-    }
+    validateItems(e, spec, at);
+    refuseDuplicates(
+      e.answers,
+      { id: "ask", at: "askAt" },
+      "answered",
+      (column, message) => at(e.line, column, message),
+    );
   }
   return errors;
+}
+
+/**
+ * A board line's `item:` clauses against its spec's catalog.
+ *
+ * ★ A BOARD WITH NO CATALOG HAS NO ITEMS, and saying so is the point: every
+ * board carries candidates, and accepting a verdict on one that the board never
+ * offered for ruling would record a decision on something nobody displayed.
+ */
+function validateItems(e, spec, at) {
+  if (e.items.length === 0) return;
+  if (!spec.catalog) {
+    at(
+      e.line,
+      e.items[0].itemAt,
+      `${e.board} declares no catalog, so it has no items to rule on`,
+    );
+    return;
+  }
+  if (spec.items === null) {
+    at(
+      e.line,
+      e.items[0].itemAt,
+      `${e.board}'s candidates cannot be read off its spec: write the items out as a const in spec.ts`,
+    );
+    return;
+  }
+  for (const i of e.items) {
+    if (!spec.items.includes(i.item)) {
+      at(
+        e.line,
+        i.itemAt,
+        `"${i.item}" is not an item on ${e.board} (${list(spec.items)})`,
+      );
+      continue;
+    }
+    if (!ITEM_VERDICTS.includes(i.verdict)) {
+      at(
+        e.line,
+        i.verdictAt,
+        `"${i.verdict}" is not a verdict (${list(ITEM_VERDICTS)})`,
+      );
+    }
+  }
+  refuseDuplicates(
+    e.items,
+    { id: "item", at: "itemAt" },
+    "ruled",
+    (column, message) => at(e.line, column, message),
+  );
+}
+
+/** A `review library:` line against the committed component index. */
+function validateLibrary(e, library, at) {
+  for (const r of e.entries) {
+    if (library === null) {
+      at(
+        e.line,
+        r.entryAt,
+        "there is no rules artifact to check an entry against; run pnpm design:rules",
+      );
+      continue;
+    }
+    if (!library.has(r.entry)) {
+      at(
+        e.line,
+        r.entryAt,
+        `"${r.entry}" is not a library entry (its id is the last segment of its /design/library URL)`,
+      );
+      continue;
+    }
+    if (!LIBRARY_VERDICTS.includes(r.verdict)) {
+      at(
+        e.line,
+        r.verdictAt,
+        `"${r.verdict}" is not a library verdict (${list(LIBRARY_VERDICTS)})`,
+      );
+    }
+  }
+  refuseDuplicates(
+    e.entries,
+    { id: "entry", at: "entryAt" },
+    "ruled",
+    (column, message) => at(e.line, column, message),
+  );
 }
 
 // ── The ledgers ──────────────────────────────────────────────────────────────
@@ -552,6 +823,23 @@ function readLedger(root, board) {
   }
 }
 
+/** The Library's ledger, whose shape is `{ entries: [...] }` and has no rounds. */
+function readLibraryLedger(root) {
+  const file = ledgerPath(root, LIBRARY_LEDGER);
+  if (!existsSync(file)) return { entries: [] };
+  try {
+    const value = JSON.parse(readFileSync(file, "utf8"));
+    if (!value || typeof value !== "object" || !Array.isArray(value.entries)) {
+      throw new Error("shape");
+    }
+    return value;
+  } catch {
+    throw new ReviewError(
+      `${file} is not the library ledger (see docs/reviews/README.md for the shape)`,
+    );
+  }
+}
+
 /**
  * The entries applied to their ledgers, in memory. One answer per ask per
  * round: answering again in the same round overwrites, and git keeps the
@@ -561,6 +849,27 @@ export function applyEntries(root, entries, { by, at }) {
   const changed = new Map();
   const summary = [];
   for (const e of entries) {
+    if (e.kind === "library") {
+      const ledger = changed.get(LIBRARY_LEDGER) ?? readLibraryLedger(root);
+      changed.set(LIBRARY_LEDGER, ledger);
+      if (!Array.isArray(ledger.entries)) ledger.entries = [];
+      for (const r of e.entries) {
+        const entry = { entry: r.entry, verdict: r.verdict };
+        if (r.note) entry.note = r.note;
+        entry.by = by;
+        entry.at = at;
+        const was = ledger.entries.findIndex((x) => x.entry === r.entry);
+        if (was < 0) ledger.entries.push(entry);
+        else ledger.entries[was] = entry;
+        summary.push([
+          "library",
+          r.entry,
+          r.verdict,
+          was < 0 ? "new" : "replaced",
+        ]);
+      }
+      continue;
+    }
     const ledger = changed.get(e.board) ?? readLedger(root, e.board);
     changed.set(e.board, ledger);
     let round = ledger.rounds.find((r) => Number(r.n) === e.round);
@@ -571,6 +880,7 @@ export function applyEntries(root, entries, { by, at }) {
     }
     if (!Array.isArray(round.answers)) round.answers = [];
     if (!Array.isArray(round.notes)) round.notes = [];
+    if (!Array.isArray(round.items)) round.items = [];
     for (const a of e.answers) {
       // "?" lands as a null choice: the ask stays open on the desk, flagged as
       // waiting on a clearer question, with the reviewer's words beside it.
@@ -585,6 +895,23 @@ export function applyEntries(root, entries, { by, at }) {
         `${e.board} r${e.round}`,
         a.ask,
         a.choice,
+        was < 0 ? "new" : "replaced",
+      ]);
+    }
+    // One verdict per item per round: ruling again in the same round
+    // overwrites, exactly as answering an ask again does.
+    for (const i of e.items) {
+      const entry = { item: i.item, verdict: i.verdict };
+      if (i.note) entry.note = i.note;
+      entry.by = by;
+      entry.at = at;
+      const was = round.items.findIndex((x) => x.item === i.item);
+      if (was < 0) round.items.push(entry);
+      else round.items[was] = entry;
+      summary.push([
+        `${e.board} r${e.round}`,
+        `item:${i.item}`,
+        i.verdict,
         was < 0 ? "new" : "replaced",
       ]);
     }
@@ -619,7 +946,7 @@ export function run(
   const entries = parseMessage(text);
   if (entries.length === 0) throw new ReviewError("nothing to record");
   const specs = readSpecs(root);
-  const errors = validate(entries, specs);
+  const errors = validate(entries, specs, readLibraryEntries(root));
   if (errors.length) return { ok: false, errors, summary: [] };
   const { ledgers, summary } = applyEntries(root, entries, { by, at: stamp });
   if (!dry) writeLedgers(root, ledgers);
@@ -632,6 +959,8 @@ const HELP = `pnpm lab:review "<the pasted line>"
 
   review <board> r<n>: <ask>=<option> "a note"; <ask>=<option>; note: "a board note"
   review <board> r<n>: <ask>=? "what was unclear"      (not answered; needs the note)
+  review <board> r<n>: item:<id>=keep|refine|kill "a note"   (one catalog card)
+  review library: <entry-id>=keep|redesign|retire "a note"   (a Library entry)
 
   --root <dir>   the repo to write into (default: this one)
   --by <name>    who answered (default: Will)

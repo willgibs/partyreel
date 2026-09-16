@@ -304,9 +304,13 @@ export function BoardMeta({
     ...spec.assets,
     ...spec.candidates.flatMap((c) => c.assets ?? []),
   ];
+  // ★ THE HEADINGS ARE A STRANGER'S WORDS, NOT THE CODE'S (the sweep's finding,
+  // 2026-09-16). `candidates` and `departures` are the spec's field names and
+  // they stay field names; what a reviewer reads is what the row IS. The
+  // glossary teaches both.
   const rows: [string, React.ReactNode[]][] = [
     [
-      "Candidates",
+      "Ideas",
       spec.candidates.length
         ? spec.candidates.map((c) => (
             <p key={c.id}>
@@ -324,7 +328,7 @@ export function BoardMeta({
         : [<p key="none">not yet on the board</p>],
     ],
     [
-      "Departures",
+      "Rules this breaks",
       departures.length
         ? departures.map((d) => (
             <p key={d.id}>

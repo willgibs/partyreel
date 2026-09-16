@@ -85,6 +85,7 @@ export {
   CANVAS,
   FitStage,
   type Ground,
+  GroundBox,
   type Mode,
   Stage,
   useTabHidden,
@@ -97,6 +98,8 @@ export {
   useFrameLock,
 } from "./frame";
 export { Compare, type CompareMode } from "./compare";
+export { comparePair, CompareTwo, type Spot, SpotCompare } from "./compare-two";
+export { Catalog, type CatalogRenderArgs, VerdictPill } from "./catalog";
 export { Cell, CellLabel, Labeled, Specimen } from "./specimen";
 export { ConceptCard } from "./concept-card";
 export { SelectTable } from "./select-table";
@@ -114,6 +117,7 @@ export { Notes } from "./notes";
 /* The review */
 export { composeReviewMessage, ReviewQuestions } from "./review";
 export { ReviewCard } from "./review-card";
+export { ItemVerdictRow } from "./item-verdict";
 export { scrollToSection, useDesignKey, Walk, WalkPages } from "./walk";
 
 /* The traps, documented once */

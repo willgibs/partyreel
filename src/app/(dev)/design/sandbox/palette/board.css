@@ -70,33 +70,11 @@
   box-shadow: var(--pal-float);
 }
 
-/* ─────────────── THE CATALOG GRID (round six, the clarity round)
-
-   ★ NOT Tailwind responsive classes. The lab's utilities compile into
-   `layer(utilities.lab)`, a SUB-layer of `utilities` (design.css says why), so
-   a rule production's sheet already emits beats a lab-only one on the same
-   element at every breakpoint: `lg:grid-cols-3` (production) silently won over
-   `xl:grid-cols-4` (lab-only) and the catalog laid three columns at 1440 with
-   both variants matching. This sheet is unlayered, so it settles it.
-
-   Four across at the review width, so twelve palettes are three rows; three on
-   a narrower window, where a fourth column would squeeze the demo panels below
-   the width a real Card reads at. */
-[data-pal-catalog] {
-  grid-template-columns: minmax(0, 1fr);
-}
-@media (min-width: 640px) {
-  [data-pal-catalog] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (min-width: 1024px) {
-  [data-pal-catalog] {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media (min-width: 1400px) {
-  [data-pal-catalog] {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
+/* THE CATALOG GRID LEFT THIS SHEET (the revamp, 2026-09-16). It is the kit's
+   `.lab-catalog` now, in design.css: an auto-fill of --lab-catalog-min, so the
+   column count follows the room rather than three hand-written breakpoints, and
+   every catalog board gets the same grid. The lesson that put it here in the
+   first place moved with it: the lab compiles its utilities into
+   `layer(utilities.lab)`, a SUB-layer of `utilities`, so `lg:grid-cols-3` from
+   production's sheet silently beat lab-only `xl:grid-cols-4` at every
+   breakpoint. A grid like this belongs in a sheet, never in variant classes. */

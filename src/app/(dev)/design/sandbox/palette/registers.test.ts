@@ -588,6 +588,82 @@ describe("the catalog", () => {
     expect(PALETTES.filter((p) => !p.mat).map((p) => p.id)).toEqual(["today"]);
   });
 
+  /**
+   * ★ AND THE CANDIDATES ARE PINNED THE SAME WAY (the revamp, 2026-09-16). The
+   * twelve are now written out a THIRD time, as `const ITEMS` in spec.ts, for
+   * the same reason the options are: `pnpm lab:review` reads a spec as text and
+   * resolves `candidates: ITEMS` one hop, so a `.map` over palettes.ts would
+   * read as no items at all and every ruling on a card would be refused. Three
+   * copies is three chances to drift, so every field is held here.
+   */
+  it("rules on the same twelve it offers, card for card", () => {
+    expect(PALETTE.candidates.map((c) => c.id)).toEqual(
+      PALETTES.map((p) => p.id),
+    );
+    expect(PALETTE.candidates.map((c) => c.name)).toEqual(
+      PALETTES.map((p) => p.name),
+    );
+    expect(PALETTE.candidates.map((c) => c.rationale)).toEqual(
+      PALETTES.map((p) => p.why),
+    );
+    expect(
+      PALETTE.candidates.filter((c) => c.recommended).map((c) => c.id),
+    ).toEqual(["ember"]);
+  });
+
+  it("says one line on the card and the same line in the ask", () => {
+    // The card on the board and the question on the desk have to say the same
+    // words, or the catalog and the question are two different catalogs.
+    const means = new Map(
+      ask.options.map((o) => [optionId(o), optionMeans(o)]),
+    );
+    for (const c of PALETTE.candidates) {
+      expect(c.one, `${c.id} has no line`).toBeTruthy();
+      expect(c.one, `${c.id}: the card and the ask say different things`).toBe(
+        means.get(c.id),
+      );
+    }
+  });
+
+  it("carries the board's own verdict on every card, and only one ship", () => {
+    const verdicts = PALETTE.candidates.map((c) => c.verdict);
+    for (const v of verdicts) expect(["ship", "refine", "kill"]).toContain(v);
+    // A board with an opinion ships exactly one, and it is the recommendation.
+    const ships = PALETTE.candidates.filter((c) => c.verdict === "ship");
+    expect(ships.map((c) => c.id)).toEqual([RECOMMENDED_PALETTE.id]);
+  });
+
+  /**
+   * THE FACTS ARE THE SWATCHES, MEASURED. Three numbers a reviewer compares
+   * across twelve cards, written as literals in the spec (the scanner again)
+   * and read here off the resolved palette, so a card cannot print a lightness
+   * the strip beside it does not paint.
+   */
+  it("prints the room, the page and the accent each card actually has", () => {
+    for (const c of PALETTE.candidates) {
+      const r = resolvePalette(c.id);
+      const facts = new Map(c.facts ?? []);
+      const at = (block: Record<string, string>) => {
+        const l = lOf(block["--background"] ?? "", block);
+        return l === null ? "none" : l.toFixed(3);
+      };
+      expect(facts.get("Room"), `${c.id}: Room`).toBe(at(r.pair.dark.room));
+      expect(facts.get("Page"), `${c.id}: Page`).toBe(at(r.pair.light.paper));
+      expect(facts.get("Accent"), `${c.id}: Accent`).toBe(r.accent.short);
+    }
+  });
+
+  it("declares the catalog the review reads", () => {
+    // Declaring this is the opt-in that puts the twelve on the desk as items to
+    // rule; the section, the pick and the two compare controls are held by
+    // registry.test.ts.
+    expect(PALETTE.catalog).toEqual({
+      section: "catalog",
+      control: "palette",
+      compare: ["compare-a", "compare-b"],
+    });
+  });
+
   it("spans the sets rather than re-listing one", () => {
     // A catalog of twelve that used three sets would be four rows of the same
     // argument. Every dark and every light the board carries is worn by at

@@ -167,6 +167,54 @@ export function Stage({
 }
 
 /**
+ * A PRODUCTION GROUND WITH NO CANVAS (the revamp, 2026-09-16).
+ *
+ * A `Stage` draws a VIEWPORT: 1440 or 375 CSS pixels of it, which is exactly
+ * what a hero needs and exactly what a catalog cell cannot have (a 280px card
+ * holding a 1440px canvas is a picture of a canvas). This is the other half of
+ * the same mechanism: the ground's class, its marketing attribute and its token
+ * overrides on a box that is whatever width its parent is.
+ *
+ * ★ IT MARKS ITSELF A SPECIMEN (`data-lab-specimen`), which is what keeps the
+ * reading budget honest: `pnpm lab:smoke` counts the words a reviewer has to
+ * READ and a specimen is something he LOOKS at, so everything in here is
+ * excluded. The marker is its own attribute rather than `data-ground`, because
+ * BoardPage writes `data-<controlId>` on the board ROOT and three boards
+ * declare a control called `ground`: keying off that blanked whole boards.
+ *
+ * ★ THE CLASS IS NOT OPTIONAL, and it is the trap the palette board paid for
+ * first. Production components carry `dark:` utilities whose variant is
+ * `&:is(.dark *):not(.surface-paper *)`, so custom properties alone would
+ * repaint the tokens and leave every `dark:` utility resolving against the LAB
+ * PAGE's mode: a dark preview inside a light board would wear the light half of
+ * every component it contains.
+ */
+export function GroundBox({
+  ground = "cinema",
+  className,
+  style,
+  children,
+}: {
+  ground?: Ground;
+  className?: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  const g = GROUND[ground];
+  return (
+    <div
+      className={cn(g.className, "bg-background text-foreground", className)}
+      {...(g.mkt ? { "data-mkt": "" } : {})}
+      data-ground={ground}
+      data-lab-specimen=""
+      style={{ ...g.style, ...style }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
  * A STAGE THAT TAKES ITS HEIGHT FROM ITS CONTENT (lifted from the brand-voice
  * board at the kit round, 2026-09-15).
  *

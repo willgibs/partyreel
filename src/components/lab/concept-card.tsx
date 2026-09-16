@@ -17,9 +17,10 @@ import type { Candidate } from "./board-spec";
  * table is a different headline; the whole reason copy is on a board rather than
  * in a doc is that it can be seen at its real weight.
  *
- * Departures ride the card rather than only the meta panel, because a departure
- * belongs to the candidate that causes it: ruling FOR that candidate is ruling
- * for its departures, and that should be visible at the moment of choosing.
+ * The rules an idea breaks ride the card rather than only the meta panel,
+ * because a departure belongs to the candidate that causes it: ruling FOR that
+ * candidate is ruling for its departures, and that should be visible at the
+ * moment of choosing. The card says "breaks"; the field is still `departures`.
  */
 export function ConceptCard({
   candidate,
@@ -105,7 +106,7 @@ export function ConceptCard({
               className="text-[11px] leading-snug text-muted-foreground"
             >
               <span className="font-medium text-foreground">
-                {typeof d.from === "number" ? `Departs bible ${d.from}` : d.from}
+                {typeof d.from === "number" ? `Breaks bible ${d.from}` : d.from}
                 :{" "}
               </span>
               {d.text}

@@ -45,11 +45,16 @@ type Spec = {
     options: string[];
     recommended: string | null;
   }[];
+  catalog: boolean;
+  items: string[] | null;
 };
 type Entry = {
+  kind: "board" | "library";
   board: string;
   round: number;
   answers: { ask: string; choice: string | null; note?: string }[];
+  items: { item: string; verdict: string; note?: string }[];
+  entries: { entry: string; verdict: string; note?: string }[];
   notes: { text: string }[];
   line: number;
 };
@@ -64,7 +69,12 @@ type LabReview = {
   readSpecs(root: string): Map<string, Spec>;
   parseMessage(text: string): Entry[];
   parseLine(raw: string, lineNo?: number): Entry | null;
-  validate(entries: Entry[], specs: Map<string, Spec>): Failure[];
+  validate(
+    entries: Entry[],
+    specs: Map<string, Spec>,
+    library?: Set<string> | null,
+  ): Failure[];
+  readLibraryEntries(root: string): Set<string> | null;
   run(
     text: string,
     options: { root: string; by?: string; at?: string; dry?: boolean },
@@ -94,7 +104,12 @@ const readLedger = (board: string) =>
         by: string;
       }[];
       notes: { on: string | null; text: string }[];
+      items: { item: string; verdict: string; note?: string; by: string }[];
     }[];
+  };
+const readLibrary = () =>
+  JSON.parse(readFileSync(ledgerFile("_library"), "utf8")) as {
+    entries: { entry: string; verdict: string; note?: string; by: string }[];
   };
 
 beforeAll(() => {
@@ -106,6 +121,15 @@ beforeAll(() => {
   copyFileSync(SPEC_FILE, join(sandbox, BOARD, "spec.ts"));
   // A directory with no spec must simply be skipped, not crash the read.
   mkdirSync(join(sandbox, "no-spec-here"), { recursive: true });
+  // The committed rules artifact, which is what a `review library:` line is
+  // checked against. Copied rather than stubbed: a hand-written fixture would
+  // stop proving that the real ids resolve.
+  const rules = join(root, "src", "app", "(dev)", "design", "rules");
+  mkdirSync(rules, { recursive: true });
+  copyFileSync(
+    join(process.cwd(), "src/app/(dev)/design/rules/rules.generated.json"),
+    join(rules, "rules.generated.json"),
+  );
 });
 
 afterAll(() => {
@@ -130,6 +154,10 @@ describe("the spec scanner", () => {
     expect(spec.asks.map((a) => a.question)).toEqual(
       SAMPLE_BOARD.asks.map((a) => a.question),
     );
+    // The catalog half: the opt-in, and the ids read through `candidates:
+    // ITEMS` to the const in the same file.
+    expect(spec.catalog).toBe(Boolean(SAMPLE_BOARD.catalog));
+    expect(spec.items).toEqual(SAMPLE_BOARD.candidates.map((c) => c.id));
   });
 
   it("finds the specs under a sandbox and skips a directory without one", () => {
@@ -167,7 +195,64 @@ describe("the spec scanner", () => {
         spec.asks.map((a) => a.recommended),
         `${board.id}: recommended`,
       ).toEqual(board.asks.map((a) => a.recommended));
+      expect(spec.catalog, `${board.id}: catalog`).toBe(Boolean(board.catalog));
+      // A catalog board must be readable off the page, or no ruling on its
+      // cards can ever be validated.
+      if (board.catalog) {
+        expect(spec.items, `${board.id}: items`).toEqual(
+          board.candidates.map((c) => c.id),
+        );
+      }
     }
+  });
+
+  it("resolves `candidates: ITEMS` one hop, past the type annotation's []", () => {
+    const source = `
+      const ITEMS: readonly Candidate<"one">[] = [
+        { id: "a", name: "A", one: "the first" },
+        { id: "b", name: "B" },
+      ];
+      export const B = defineBoard({
+        id: "hopped",
+        round: { n: 1, date: "2026-09-16", changed: "x" },
+        candidates: ITEMS,
+        catalog: { section: "one", control: "pick" },
+        sections: [{ id: "one", title: "One", lede: "l" }],
+      });
+    `;
+    const spec = lab.readSpec("hopped", source);
+    expect(spec.catalog).toBe(true);
+    expect(spec.items).toEqual(["a", "b"]);
+  });
+
+  it("reads a mapped candidates list as no items at all", () => {
+    // A `.map` over another module is the shape that bit the palette board.
+    // Reading it as an empty list would accept any item id for ever, so it
+    // reads as null and `validate` tells the author to write them out.
+    const source = `
+      export const B = defineBoard({
+        id: "mapped",
+        round: { n: 1, date: "2026-09-16", changed: "x" },
+        candidates: PALETTES.map((p) => ({ id: p.id, name: p.name })),
+        catalog: { section: "one" },
+        sections: [{ id: "one", title: "One", lede: "l" }],
+      });
+    `;
+    expect(lab.readSpec("mapped", source).items).toBeNull();
+  });
+
+  it("reads no catalog when a board only carries candidates", () => {
+    const source = `
+      export const B = defineBoard({
+        id: "plain",
+        round: { n: 1, date: "2026-09-16", changed: "x" },
+        candidates: [{ id: "a", name: "A" }],
+        sections: [{ id: "one", title: "One", lede: "l" }],
+      });
+    `;
+    const spec = lab.readSpec("plain", source);
+    expect(spec.catalog).toBe(false);
+    expect(spec.items).toEqual(["a"]);
   });
 
   it("is not fooled by structure that only appears inside prose", () => {
@@ -254,17 +339,56 @@ describe("the grammar", () => {
         { board: BOARD, round: ROUND, ask: "default", choice: "always" },
       ],
       [{ board: BOARD, round: ROUND, text: "a; semicolon inside a note" }],
+      [
+        { board: BOARD, round: ROUND, item: "as-data", verdict: "keep" },
+        {
+          board: BOARD,
+          round: ROUND,
+          item: "as-prose",
+          verdict: "kill",
+          note: "nobody reads it",
+        },
+      ],
     );
     const entries = lab.parseMessage(message);
     expect(entries).toHaveLength(1);
+    expect(entries[0].kind).toBe("board");
     expect(entries[0].board).toBe(BOARD);
     expect(entries[0].round).toBe(ROUND);
     expect(entries[0].answers.map((a) => [a.ask, a.choice, a.note])).toEqual([
       ["grain", "five", 'he said "five"'],
       ["default", "always", undefined],
     ]);
+    expect(entries[0].items.map((i) => [i.item, i.verdict, i.note])).toEqual([
+      ["as-data", "keep", undefined],
+      ["as-prose", "kill", "nobody reads it"],
+    ]);
     expect(entries[0].notes[0].text).toBe("a; semicolon inside a note");
     expect(lab.validate(entries, lab.readSpecs(root))).toEqual([]);
+  });
+
+  it("parses the Library's own line, which carries no round", () => {
+    const message = composeMessage(
+      [],
+      [],
+      [],
+      [
+        { entry: "masonry", verdict: "redesign", note: "the columns fight" },
+        { entry: "button", verdict: "keep" },
+      ],
+    );
+    expect(message).toBe(
+      'review library: masonry=redesign "the columns fight"; button=keep',
+    );
+    const entries = lab.parseMessage(message);
+    expect(entries[0].kind).toBe("library");
+    expect(entries[0].entries.map((r) => [r.entry, r.verdict])).toEqual([
+      ["masonry", "redesign"],
+      ["button", "keep"],
+    ]);
+    expect(
+      lab.validate(entries, lab.readSpecs(root), lab.readLibraryEntries(root)),
+    ).toEqual([]);
   });
 
   it("records 'not clear to me' as a null choice, and only with a note", () => {
@@ -311,6 +435,65 @@ describe("the grammar", () => {
     expect(twice.message).toContain("answered twice");
   });
 
+  it("names the line and column of every refusal on a catalog", () => {
+    const specs = lab.readSpecs(root);
+    const library = lab.readLibraryEntries(root);
+    const at = (line: string) =>
+      lab.validate([lab.parseLine(line) as Entry], specs, library)[0];
+    const head = `review ${BOARD} r${ROUND}: `;
+
+    const unknown = at(`${head}item:nope=keep`);
+    expect(unknown.message).toContain("is not an item");
+    // The refusal lists the ids that ARE on the board, so the fix is visible.
+    expect(unknown.message).toContain("as-data");
+    expect(unknown.column).toBe(`${head}item:`.length + 1);
+
+    const word = at(`${head}item:as-data=redesign`);
+    expect(word.message).toContain("is not a verdict");
+    expect(word.column).toBe(`${head}item:as-data=`.length + 1);
+
+    const twice = at(`${head}item:as-data=keep; item:as-data=kill`);
+    expect(twice.message).toContain("ruled twice");
+
+    const entry = at("review library: not-a-component=keep");
+    expect(entry.message).toContain("is not a library entry");
+    expect(entry.column).toBe("review library: ".length + 1);
+
+    const libraryWord = at("review library: button=refine");
+    expect(libraryWord.message).toContain("is not a library verdict");
+  });
+
+  it("refuses an item on a board with no catalog, and one it cannot read", () => {
+    const specs = new Map([
+      [
+        "plain",
+        { id: "plain", round: 1, asks: [], catalog: false, items: ["a"] },
+      ],
+      [
+        "mapped",
+        { id: "mapped", round: 1, asks: [], catalog: true, items: null },
+      ],
+    ]) as unknown as Map<string, Spec>;
+    const refuse = (line: string) =>
+      lab.validate([lab.parseLine(line) as Entry], specs)[0].message;
+    expect(refuse("review plain r1: item:a=keep")).toContain(
+      "declares no catalog",
+    );
+    expect(refuse("review mapped r1: item:a=keep")).toContain(
+      "write the items out",
+    );
+  });
+
+  it("refuses a library line when there is no rules artifact to check it against", () => {
+    expect(
+      lab.validate(
+        [lab.parseLine("review library: button=keep") as Entry],
+        new Map(),
+        null,
+      )[0].message,
+    ).toContain("no rules artifact");
+  });
+
   it("refuses a malformed line where it went wrong", () => {
     expect(() => lab.parseLine("light r4: a=b")).toThrowError(
       /must start with/,
@@ -321,7 +504,11 @@ describe("the grammar", () => {
       lab.parseLine(`review ${BOARD} r1: a=b "unclosed`),
     ).toThrowError(/closing quote/);
     expect(() => lab.parseLine(`review ${BOARD} r1:`)).toThrowError(
-      /no answer and no note/,
+      /no answer, no ruling and no note/,
+    );
+    expect(() => lab.parseLine("review library:")).toThrowError(/no ruling/);
+    expect(() => lab.parseLine(`review ${BOARD} r1: item:a`)).toThrowError(
+      /"="/,
     );
   });
 });
@@ -385,6 +572,53 @@ describe("the ledgers", () => {
       (a) => a.ask === "notes",
     );
     expect(answer).toMatchObject({ choice: null, note: "which note?" });
+  });
+
+  it("records a verdict on a catalog card, and overwrites it in the round", () => {
+    const first = lab.run(
+      `review ${BOARD} r${ROUND}: item:as-data=keep "the shape"; item:as-prose=kill`,
+      { root, at: "2026-09-15T14:40:00Z" },
+    );
+    expect(first.ok).toBe(true);
+    const round = readLedger(BOARD).rounds[0];
+    expect(round.items.map((i) => [i.item, i.verdict, i.note])).toEqual([
+      ["as-data", "keep", "the shape"],
+      ["as-prose", "kill", undefined],
+    ]);
+    lab.run(`review ${BOARD} r${ROUND}: item:as-data=refine`, {
+      root,
+      at: "2026-09-15T14:45:00Z",
+    });
+    const again = readLedger(BOARD).rounds[0].items;
+    expect(again.filter((i) => i.item === "as-data")).toHaveLength(1);
+    expect(again[0]).toMatchObject({ verdict: "refine" });
+    // The replacement drops the old note with the old verdict.
+    expect(again[0].note).toBeUndefined();
+  });
+
+  it("writes the Library's rulings to their own file, one per entry", () => {
+    const result = lab.run(
+      'review library: masonry=redesign "the columns fight the phone"',
+      { root, at: "2026-09-16T09:00:00Z" },
+    );
+    expect(result.ok).toBe(true);
+    expect(result.boards).toEqual(["_library"]);
+    expect(readLibrary().entries).toEqual([
+      {
+        entry: "masonry",
+        verdict: "redesign",
+        note: "the columns fight the phone",
+        by: "Will",
+        at: "2026-09-16T09:00:00Z",
+      },
+    ]);
+    lab.run("review library: masonry=keep", {
+      root,
+      at: "2026-09-16T09:05:00Z",
+    });
+    const entries = readLibrary().entries;
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({ verdict: "keep" });
   });
 
   it("a dry run validates and writes nothing", () => {

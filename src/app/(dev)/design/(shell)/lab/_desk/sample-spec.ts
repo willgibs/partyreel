@@ -1,4 +1,4 @@
-import { defineBoard } from "@/components/lab/board-spec";
+import { type Candidate, defineBoard } from "@/components/lab/board-spec";
 
 /**
  * THE DRY RUN (the Library x Lab round, 2026-09-15). The board registry is
@@ -12,8 +12,55 @@ import { defineBoard } from "@/components/lab/board-spec";
  * refused by `pnpm lab:review` ("sample" is not a standing board). That is the
  * refusal path, demonstrated rather than described.
  *
+ * ★ IT DECLARES A CATALOG (the revamp, 2026-09-16), so the dry run walks an
+ * items step and `lab-review.test.ts` holds the scanner to a real `const ITEMS`
+ * on disk. The shape here IS the shape every catalog board takes: the items
+ * written out as a `const`, `candidates: ITEMS`, a clearable pick control whose
+ * options are the ids, and two compare controls over the same ids.
+ *
  * Delete this the round the boards carry their own specs.
  */
+
+/**
+ * ★ THE ITEMS ARE WRITTEN OUT, NEVER MAPPED. `pnpm lab:review` reads a spec as
+ * TEXT rather than importing it (so a board's asks can be read with no build
+ * step), and it resolves `candidates: ITEMS` one hop to a `const` in the same
+ * file. A `.map` over another module reads as no items at all, so the script
+ * refuses it and says to write them out.
+ */
+const ITEMS: readonly Candidate<"walk" | "ledger">[] = [
+  {
+    id: "as-data",
+    name: "The asks as data",
+    one: "The board declares its asks; the desk, the session and the ledger read the one declaration.",
+    verdict: "ship",
+    facts: [
+      ["Files a board is", "two"],
+      ["Who reads the asks", "three surfaces"],
+    ],
+    rationale:
+      "The board declares its asks; the desk, the session and the ledger all read the one declaration.",
+    recommended: true,
+  },
+  {
+    id: "as-prose",
+    name: "The asks as prose",
+    one: "The board writes its asks into its own page and a reviewer answers in chat.",
+    verdict: "kill",
+    facts: [["Who reads the asks", "whoever opens the board"]],
+    rationale:
+      "The board writes its asks into its own page, and a reviewer answers in chat. What every board does today.",
+  },
+  {
+    id: "as-a-form",
+    name: "The asks as a form",
+    one: "Every decision on the board becomes a field, and the review is a questionnaire.",
+    verdict: "refine",
+    facts: [["Fields on a long board", "thirty or more"]],
+    rationale:
+      "Everything is captured and nothing is read: a form asks for agreement rather than for a judgement.",
+  },
+];
 export const SAMPLE_BOARD = defineBoard({
   id: "sample",
   title: "A sample board",
@@ -117,21 +164,7 @@ export const SAMPLE_BOARD = defineBoard({
       evidence: "ledger",
     },
   ],
-  candidates: [
-    {
-      id: "as-data",
-      name: "The asks as data",
-      rationale:
-        "The board declares its asks; the desk, the session and the ledger all read the one declaration.",
-      recommended: true,
-    },
-    {
-      id: "as-prose",
-      name: "The asks as prose",
-      rationale:
-        "The board writes its asks into its own page, and a reviewer answers in chat. What every board does today.",
-    },
-  ],
+  candidates: ITEMS,
   departures: [],
   assets: [],
   sections: [
@@ -146,10 +179,43 @@ export const SAMPLE_BOARD = defineBoard({
       lede: "What the session composes, and what the transcript writes.",
     },
   ],
+  catalog: {
+    section: "walk",
+    control: "shape",
+    compare: ["compare-a", "compare-b"],
+  },
+
+  controls: [
+    {
+      id: "shape",
+      label: "Shape",
+      // Nothing picked is a state of its own, and picking the picked option
+      // returns here (Will, 2026-09-16).
+      options: [
+        { id: "none", label: "Nothing picked" },
+        ...ITEMS.map((i) => ({ id: i.id, label: i.name })),
+      ],
+      default: "none",
+      clearable: true,
+    },
+    {
+      id: "compare-a",
+      label: "A",
+      options: ITEMS.map((i) => ({ id: i.id, label: i.name })),
+      default: ITEMS[0].id,
+    },
+    {
+      id: "compare-b",
+      label: "B",
+      options: ITEMS.map((i) => ({ id: i.id, label: i.name })),
+      default: ITEMS[1].id,
+    },
+  ],
+
   lookFirst: [
     {
       section: "walk",
-      note: "Answer the three, then read the message the session composes.",
+      note: "Rule on the three, answer the three asks, then read the message the session composes.",
     },
   ],
   links: { bible: [] },

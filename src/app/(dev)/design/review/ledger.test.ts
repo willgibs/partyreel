@@ -7,14 +7,22 @@ import { describe, expect, it, vi } from "vitest";
 // has no react-server condition.
 vi.mock("server-only", () => ({}));
 
-import { optionId } from "@/components/lab/board-spec";
+import {
+  ITEM_VERDICTS,
+  LIBRARY_VERDICTS,
+  optionId,
+} from "@/components/lab/board-spec";
 
+import { COMPONENTS } from "@/app/(dev)/design/rules/rules";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 import { SANDBOX } from "@/app/(dev)/design/touchpoints";
 
 import {
   latestRound,
   LedgerSchema,
+  LIBRARY_LEDGER,
+  LibraryLedgerSchema,
+  libraryRulings,
   readLedger,
   REVIEWS_DIR,
   WINDOW_LEDGER,
@@ -34,7 +42,10 @@ import { boardStatus, waitingOnWill } from "./status";
  * would otherwise sit there looking answered.
  */
 const dir = join(process.cwd(), REVIEWS_DIR);
-const files = readdirSync(dir).filter((f) => f.endsWith(".json"));
+const all = readdirSync(dir).filter((f) => f.endsWith(".json"));
+// The Library's ledger is a second shape in the same directory (no board, no
+// rounds), so it is checked against its own schema rather than the board one.
+const files = all.filter((f) => f !== `${LIBRARY_LEDGER}.json`);
 
 describe("the review ledgers", () => {
   it("has at least the window ledger", () => {
@@ -55,6 +66,39 @@ describe("the review ledgers", () => {
       );
     });
   }
+
+  it("checks the library ledger against its own schema, when there is one", () => {
+    const file = join(dir, `${LIBRARY_LEDGER}.json`);
+    if (!all.includes(`${LIBRARY_LEDGER}.json`)) {
+      // Nothing has been ruled on in the Library yet; the reader says so
+      // rather than throwing, which is what keeps the desk rendering.
+      expect(libraryRulings()).toEqual([]);
+      return;
+    }
+    const parsed = LibraryLedgerSchema.safeParse(
+      JSON.parse(readFileSync(file, "utf8")),
+    );
+    expect(
+      parsed.success ? [] : parsed.error.issues.map((i) => i.message),
+      "_library.json does not match the library ledger schema",
+    ).toEqual([]);
+    for (const r of libraryRulings()) {
+      expect(
+        COMPONENTS.some((c) => c.id === r.entry),
+        `_library.json rules on "${r.entry}", which is not a library entry`,
+      ).toBe(true);
+      expect(
+        LIBRARY_VERDICTS as readonly string[],
+        `_library.json stores "${r.verdict}"`,
+      ).toContain(r.verdict);
+    }
+  });
+
+  it("refuses the library ledger as a board id", () => {
+    // Two shapes, two readers: handing one to the other's schema would fail
+    // loudly at request time, so the board reader never accepts it at all.
+    expect(() => readLedger(LIBRARY_LEDGER)).toThrow(/refusing/);
+  });
 
   it("reads a missing ledger as null rather than throwing", () => {
     expect(readLedger("a-board-that-has-never-been-reviewed")).toBeNull();
@@ -120,6 +164,36 @@ describe("a board's status", () => {
         status.orphaned.map((a) => a.ask),
         `${spec.id}: the ledger answers an ask the spec no longer declares`,
       ).toEqual([]);
+    }
+  });
+
+  it("rules every catalog card with a word the vocabulary has", () => {
+    for (const spec of BOARDS) {
+      const status = boardStatus(spec.id);
+      // A board that declares no catalog offers nothing to rule on, however
+      // many candidates it carries.
+      if (!spec.catalog) expect(status.items).toEqual([]);
+      for (const row of status.ruled) {
+        expect(
+          ITEM_VERDICTS as readonly string[],
+          `${spec.id}/${row.item.id}: the ledger stores "${row.ruling.verdict}"`,
+        ).toContain(row.ruling.verdict);
+      }
+      expect(
+        status.orphanedItems.map((i) => i.item),
+        `${spec.id}: the ledger rules on a candidate the spec no longer declares`,
+      ).toEqual([]);
+    }
+  });
+
+  it("is complete only once every ask AND every card is answered", () => {
+    for (const spec of BOARDS) {
+      const status = boardStatus(spec.id);
+      if (status.complete) {
+        expect(status.open).toEqual([]);
+        expect(status.unclear).toEqual([]);
+        expect(status.openItems).toEqual([]);
+      }
     }
   });
 
