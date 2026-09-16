@@ -40,6 +40,7 @@ reads:
   - src/components/marketing/system/section-shell.tsx
 announces:
   - "Round 1 of the revamp (2026-09-16, 5cdebfe0): the lab guards itself against a stale stylesheet (src/components/lab/lab-chrome.tsx reads --lab-css-generation off .lab-shell; bump lab-css-generation.ts and design.css together when a shell rule changes; a stale copy after one reload means the SERVER: stop it, rm -rf .next/dev, start it); every pick toggles (review-store.ts writers toggleAnswer / setAnswerNote / setBoardNote / toggleItemVerdict / setItemNote, an `items` map keyed by itemHoldId); a wide page at 1:1 runs edge to edge (data-lab-bleed on Stage and FrameRow; a bleed inside a bleed keeps its box); board-spec.ts carries ITEM_VERDICTS, LIBRARY_VERDICTS, BuilderVerdict, Candidate.one/verdict/facts, Control.clearable, BoardSpec.catalog and LIMITS.readingWords; .lab-catalog is the unlayered grid in design.css. Two lanes cut: lab-catalog (the review's item scope, the catalog kit, the toolbox, the reading budget, the palette as proof; owns scripts/lab-smoke.mjs this round) and lab-sweep (walk every lab page and fix the shell; owns design.css and _data/glossary.ts this round). docs/reviews/README.md stays here: a grammar change is written into Handoff verbatim and landed at the merge."
+  - "The stepped review round (2026-09-16, 02c409b4): board-spec.ts carries Ask.lands / after / strip, AskOption.state, Candidate.lands, CatalogSpec.mode / winner / walk / stage and LIMITS.askLands / candidateLands; registry.test.ts rules on them (a staged ask waits on an earlier ask or a card of its own catalog; a pick-one catalog names a winner ask that mirrors the pick control and offers none; look is optional once every option is drawn; an ask mirroring a clearable control may offer its cleared default as none)."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
 ---
 
@@ -58,19 +59,27 @@ the docs diet and the track protocol (Round 2, the Orchestrator's, the protocol 
 Library as the complete inventory and a review surface (Round 3), the six paper boards rebuilt as
 catalogs (Round 4, closed on the tree the same day). The alias still serves Phase 1 of the
 Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every review meanwhile is a local
-`pnpm dev` after a hard reload.
+`pnpm dev` after a hard reload. The stepped review round opened 2026-09-16 on his sitting's verdict (the
+review "favors you and makes me spend tons of time per track figuring what I'm even being asked"):
+`lab-flow` rebuilds the review as an onboarding form, every board is reshaped into steps four at a time
+with no new exploration, and his sitting resumes on the first two that land; the last lab-infrastructure
+round of the window.
 
 ## In flight
 
 | track | board | waits on |
 | --- | --- | --- |
 | `home-hero` | `/design/lab/home-hero` (round six: the stream catalog before the wiring) | its handoff |
+| `lab-flow` | the kit: the review as a stepped onboarding form (the plan's Part 1) | its handoff; every board then verifies its walk on it |
+| `light` | `/design/lab/light` (round seven: reshaped into steps, one card at a time) | `lab-flow` for the walk |
+| `palette` | `/design/lab/palette` (round eight: pick-one, the winner from the twelve) | `lab-flow` for the walk |
 
 ## Waiting on Will
 
 The desk derives it (`/design/lab?key=`: every open ask and every unruled item of every board, from
 the specs minus the ledgers in `docs/reviews/`). Assets: [`../ASSETS.md`](../ASSETS.md). Next from
-him: a walk of the palette catalog once `lab-catalog` integrates, then the six catalog briefs.
+him: nothing until the first reshaped boards integrate; then the stepped sitting, board by board (the
+palette and light first), pasted in batches with Copy so far.
 
 ## Landed this window
 
