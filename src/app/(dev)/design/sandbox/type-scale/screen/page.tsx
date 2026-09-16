@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** The ids this route answers to; the board's `COMPARED` list names them. */
+/** The ids this route answers to; the board's `PAGES` list names them. */
 const SCREENS = ["dashboard"] as const;
 
 export default async function TypeScaleScreenRoute({

@@ -1,4 +1,4 @@
-# The type scale: five finished ladders, and the two calls left after one is picked
+# The type scale: five finished ladders, one pick, and two calls that ride whichever wins
 
 > **ROLE:** the `type-scale` exploration's standing proposal, kept here so it outlives the track
 > manifest. **NOT LAW** until Will rules; the board is `/design/lab/type-scale` while it stands, and
@@ -39,14 +39,28 @@ rather than 160 over 100) and the signed-in app should go quieter than today rat
 
 ## What is open
 
-Two questions, both on the board with their context and their options:
+Three questions, each a step of the board's walk, with its context and its options on it:
 
-1. **Letter spacing by size** (`tracking`). Four of the five cards make letter spacing and line
+1. **Which ladder** (`ladder`). The five cards are variants of one thing, so one pick decides them,
+   and "None of these" is an answer that carries the note: it clears the board and asks for new
+   directions rather than a refinement of a card.
+2. **Letter spacing by size** (`tracking`). Four of the five cards make letter spacing and line
    spacing a function of size. It moves no size, so it can be taken whichever card wins, and it is
    the only one of today's faults that today's numbers can fix by themselves.
-2. **The dead-link heading** (`not-found`). The one page title on the site set in Inter, the body
+3. **The dead-link heading** (`not-found`). The one page title on the site set in Inter, the body
    font, at a size no card reaches. Every card's paste puts it on the set, at the app's page step
-   inside the app and at the prose step on marketing.
+   inside the app and at the prose step on marketing. It waits on the pick, because a title cannot
+   join a set before one is chosen.
+
+## How two ladders are compared, which round six left open
+
+**One page, two copies, one canvas wide.** Round six put the pair in a row and half the comparison
+lived off the right edge of a 1440 window. The stage now loads ONE route, chosen on the step's
+config strip, and the ladder arrives as CSS in that page's own document, so pressing a card re-types
+the same page in the same place with no reload. `Against` lays a second copy of the route under the
+first on a fade, which reads a difference in SIZE the way side-by-side never can. The home page is
+the one surface the fade is honest about only one ladder at a time: its hero line rotates on its
+own, so the two copies land on different words.
 
 ## What a wiring round inherits
 
