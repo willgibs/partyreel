@@ -1,6 +1,6 @@
 ---
 track: media-kit
-status: open
+status: handed-off
 cut: "49ed0fbf"        # the stepped review round (2026-09-16): the media-kit board reshaped for it
 board: media-kit
 owns:
@@ -33,26 +33,103 @@ reads:
 
 **Discipline on this machine.** The dev server on :3000 is not yours: never touch it. Your server on :3128 only, killed by port; one process at a time, stopped before a build, a test run and the handoff; never `[preview]` or `[ci]`; stage files explicitly; the `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>` trailer on every commit. Three other agents run beside you in their own worktrees (`floating-surfaces` on :3125, `rounding` on :3126, `brand-voice` on :3127); merge `origin/launch-prep` before your handoff if it moved, never rebase.
 
-**Questions.** What the goal leaves open goes here, numbered, with your recommended answer; carry on with the recommendation.
+**Questions.** Answered with the recommendation and carried on with.
+
+1. **Does a keep-any gallery need a "None of these" exit?** No, and it cannot have one: `none` is the
+   winner ask's option, and a keep-any catalog has no winner ask. The equivalent exit here is thirteen
+   kills, which is a real answer the grammar already carries. Recommended and taken.
+2. **Should any of the four calls be staged behind another?** No. `after` hides a question until another
+   is decided, which is right only when the second is meaningless on its own; the crowds call is a risk
+   judgement that stands whatever the filing rule says, and the shoot stands whether or not the bridge is
+   bought. Staging either would have hidden a question nobody then unstages. Recommended and taken.
+3. **The side-by-side section and its two compare controls: keep or delete?** Delete. The one comparison
+   they were built for (a free conference floor beside a released room, at the real card size) IS the
+   crowds step now, where it is the question rather than a section, and the twenty-six pills they put in
+   the dock were a quarter of the board's reading. Recommended and taken.
+4. **Does `lands` reach the reviewer on a gallery walk?** Only on a picked card, and that is a kit
+   fact rather than a board one: `catalog.tsx` drew it for a card walked ALONE, and the palette's round
+   eight (merged into this branch) widened it to a picked card. Every card here carries `lands` as the
+   goal asks; a keep-any gallery could reasonably print it on all of them, which is a one-line kit change
+   and belongs to a lab lane, not to a board's round. Logged rather than taken.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. The lab ships no production byte this round, no source, price or clause moved, and
+  `docs/specs/media-kit.md` (owned) is still true line for line.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now → The lab and the kit: `catalog.tsx` prints a card's `lands` only when the card is walked alone or
+  picked, so a KEEP-ANY gallery (where every card is its own proposal and none is picked) never shows
+  what keeping one lands as; widen the guard, or give the gallery walk the same line the solo walk has.
+- Now → The lab and the kit: a step's option tiles always draw inside a 1440 canvas (`FitStage
+  mode="desktop"` in `step.tsx`), so a specimen narrower than the canvas lands as a thumbnail with an
+  acre of empty ground beside it; this board filled the canvas with the blog's real three-card row, but
+  the tile could take the canvas width its board declares.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` green for this board, its reading words
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The steps, one line each: `<ask>: decides <lands>; tiles | means-only; after <...>`
-- The cards, one line each: `<id>: lands as <...>`
-- Assets requested from Will: none, or one per line
-- Look at first: ...
+- Work head `aeb3e2c7`, merged with `origin/launch-prep` at `092ab4b8` into `839bcd3f` (never rebased);
+  this manifest commit rides on top of that. `launch-prep` had moved twice: `floating-surfaces` and
+  `rounding` landed, and with them a kit change this board wanted, `catalog.tsx` printing `lands` on a
+  PICKED card and not only on a solo one. Every card here carries `lands`, so picking one in the gallery
+  now says what the purchase buys.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 9 warnings are pre-existing and none in
+  this lane), test ok (2,164 in 228 files), build ok (258 pages); `pnpm lab:smoke --base
+  http://localhost:3128` green, 0 route failures, **1,077 reading words against the 1,200 budget** (1,298
+  against a declared 2,750 before), so the `reading` declaration is DELETED. Only `glow-doctrine` and
+  `glow-moments` still fail the budget, exactly as they did before this branch.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the owned board directory (`spec.ts`,
+  `board.tsx`, `preview.tsx`, `board.css`, `catalog.test.ts`) plus this file. `docs/specs/media-kit.md`
+  is owned and untouched: no source, price or clause moved this round. No exceptions.
+- The steps, one line each:
+  - the catalog: thirteen cards in ONE gallery (`keep-any`, `walk: "gallery"`), each ruled where it
+    stands, because a kept card is a purchase and the board's own answer keeps two of them.
+  - `rule`: decides six provenance fields on every entry in `marketing-media.ts` and a bar on a face with
+    no signed permission; means-only, two tiles; after the cards; stage `entry`, one real still with the
+    unverified line it carries beside six real facts; strip Canvas.
+  - `crowds`: decides whether 87,066 free conference photographs are a source or a footnote, and six of
+    the thirteen cards with them; TILES, both answers drawn on the blog's own three-card row at 1440 (the
+    free archive's floor, the released catalogue's room); mirrors `faces`; strip Canvas.
+  - `spend`: decides whether $56 of released photographs goes on all 24 marketing pages this week;
+    means-only; stage `bill`, the two lines that sum to it, each in the card it lands in; strip Canvas,
+    Kind of event; lands on Weddings whatever the crowds step left behind.
+  - `shoot`: decides whether one night we host produces the 36 masters and closes nine rows of ASSETS.md;
+    means-only; stage `pages`, the real routes at true pixels wearing the pick; strip Canvas.
+- The cards, one line each (`lands` is what keeping it BUYS, in money, because a kept card here is a
+  purchase rather than a token):
+  - `unsplash-plus`: lands as one $20 month, licensed for ever, every still but the conference rooms.
+    (The board's pick.)
+  - `istock`: lands as 3 frames at $12 from a credit pack: the conference rooms nothing else covers.
+  - `stocksy`: lands as $35 a frame for the one or two that carry a page; the 36 would be $1,260.
+  - `adobe-stock`: lands as a $49.99 pack of five credits, expiring after a year.
+  - `artgrid`: lands as $299 a year for the film: the 8 vertical clips, kept after cancellation.
+  - `websummit-flickr`: lands as 87,066 free conference frames for a credit line under each.
+  - `flickr-cc`: lands as the four kinds Web Summit cannot fill, free, on the same call.
+  - `envato-elements`: lands as a $198 lease; every file comes off the site when it stops.
+  - `nappy`: lands as the one thing the free corpus is worst at, and still no signed face.
+  - `mixkit`: lands as free clips the library may withdraw from under a published page.
+  - `coverr`: lands as an irrevocable grant over a grid that is two catalogues.
+  - `death-to-stock`: lands as $199 a year, rented; the pictures come off our site when we stop paying.
+  - `creative-market`: lands as $40 for 45 to 70 wedding frames, on a tier that forbids an advert.
+- Assets requested from Will: none new. The two standing asks are restated on the board and now carry
+  their row, so neither can be logged twice: the bridge ($20 of Unsplash+ plus 3 iStock frames, ASSETS.md
+  row 13) and the kit (36 masters, row 7); the 8 clips are row 4.
+- Look at first: **the crowds step.** Both answers are drawn on the blog's own three-card row at 1440, a
+  conference floor nobody in signed beside a room that did, which is the one question on this board a
+  picture can settle. Then the gallery, where six of the thirteen draw a card-shaped hole beside the frame
+  the site is wearing today, and Web Summit draws the reverse: the site has NO conference frame at all.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-16). Round seven reshaped round six's catalog for the
+stepped review without proposing a place, a price or an argument: the thirteen stay a keep-any catalog
+walked as a GALLERY, because a kept card is a purchase and the board's own answer keeps two of them, so
+there is no winner to pick and no "None of these". Every card is now drawn against the frame it would
+replace, in one scrolling row at the real card size, and says what keeping it BUYS in money; two columns
+rather than three, because at three the second half of every pair sat behind a scroll. The four calls
+became four steps with a specimen each: the rule drawn as one still's unverified line beside six real
+provenance facts, the crowds call as both answers on the blog's own three-card row, the spend as the two
+lines that sum to $56, the shoot on the real pages. The side-by-side section and its twenty-six compare
+pills left with the fourth fact on every card, and the board came in at 1,077 reading words against the
+1,200 budget, so its `reading` declaration was deleted rather than re-tuned.
