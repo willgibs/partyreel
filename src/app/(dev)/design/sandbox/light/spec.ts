@@ -420,7 +420,7 @@ export const LIGHT = defineBoard({
       question: "Once the shadows land, what should land second?",
       context:
         "The light enters the site in phases, and you ruled the shadows first. Three things could go second, and each one waits on something different before it can start.",
-      look: "The three rows: what each puts on the site, and what it waits on.",
+      look: "The three rows under the tiles say what each one is waiting on before it can start.",
       options: [
         {
           id: "home-arc",
@@ -468,21 +468,16 @@ export const LIGHT = defineBoard({
   },
 
   /**
-   * ★ THE NUMBER IS THE OLD TEMPLATE'S, AND IT IS MEASURED RATHER THAN
-   * ESTIMATED. Round six declared 2,950 and weighed 2,889; this one weighs
-   * 2,439 with the same template and a third fewer words of its own. About
-   * 1,070 of what is left is the template printing the same thing three times:
-   * a review panel with every ask (263), an index reprinting every lede (168),
-   * a "Rule on" row under every section (about 150) and a meta panel whose
-   * twelve cards, six departures and two assets are unfolded (about 490). The
-   * stepped review deletes the first three and folds the fourth, so the page a
-   * reviewer meets is about 1,370 and the walk shows one step of it at a time.
-   * Re-measure and re-declare at the merge; this is not a permanent number.
+   * ★ NO `reading` DECLARATION, AND THAT IS THE ROUND'S OWN RESULT. Round five
+   * weighed 10,164 words outside its folds, round six 2,889 against a declared
+   * 2,950; this one weighs 920 against the 1,200 every board is held to, so the
+   * escape hatch is deleted rather than re-tuned. Two things did it: the board
+   * says a third less (twelve one-lines and five questions, no four-fact strip,
+   * no argument above a fold), and the stepped review stopped printing every
+   * ask in a panel, every lede again in an index and the meta panel's twelve
+   * cards unfolded. If a later round adds words back, earn the budget again
+   * rather than declaring past it.
    */
-  reading: {
-    words: 2450,
-    why: "Measured at 2,439 on the old template, which prints every ask in a review panel, every lede again in an index and the meta panel's twelve cards unfolded: about 1,070 of these words leave with the stepped review. The board's own voice is twelve cards and five questions.",
-  },
 
   departures: [
     {
@@ -540,7 +535,7 @@ export const LIGHT = defineBoard({
     {
       id: "order",
       title: "What lands second",
-      lede: "The shadows are ruled. The three candidates for second, and what each waits on.",
+      lede: "The shadows are ruled. What each candidate for second is waiting on.",
     },
     {
       id: "pages",

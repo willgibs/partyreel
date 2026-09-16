@@ -84,9 +84,18 @@ const ONE_SHOT: ReadonlySet<TreatmentId> = new Set<TreatmentId>([
 
 /* ── Furniture ───────────────────────────────────────────────────────────── */
 
-/** A one-shot has already finished by the time a reviewer reaches it, and the
- *  honest way to run one again is to REMOUNT it: the incrementing key is the
- *  whole mechanism, and an animationend listener races the compositor. */
+/**
+ * A one-shot has already finished by the time a reviewer reaches it, and the
+ * honest way to run one again is to REMOUNT it: the incrementing key is the
+ * whole mechanism, and an animationend listener races the compositor.
+ *
+ * ★ THE BUTTON'S ROW IS A FIXED HEIGHT, AND THE HALF WITHOUT ONE KEEPS IT. The
+ * pair is bottom-aligned by the kit, so a Replay under only the "with it" half
+ * lifted that specimen above its own before and the two stopped being the same
+ * picture in the same place, which is the one thing a delta cannot afford.
+ */
+const REPLAY_ROW = "h-7";
+
 function Replayable({
   render,
 }: {
@@ -96,7 +105,7 @@ function Replayable({
   return (
     <div className="flex flex-col gap-2">
       {render(runId)}
-      <div>
+      <div className={REPLAY_ROW}>
         <ReplayButton runId={runId} onReplay={replay} />
       </div>
     </div>
@@ -401,78 +410,59 @@ function ReelSpecimen({
   );
 }
 
-/* ── One card's picture: the same specimen, twice ────────────────────────── */
-
-function Half({
-  caption,
-  children,
-}: {
-  caption: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <figure className="flex min-w-0 flex-col gap-1.5">
-      {children}
-      <figcaption className="text-[10px] text-muted-foreground">
-        {caption}
-      </figcaption>
-    </figure>
-  );
-}
+/* ── One card's picture: one half of it ──────────────────────────────────── */
 
 /**
- * THE CARD'S OWN EVIDENCE: as today, then with it.
+ * ONE HALF OF A CARD'S EVIDENCE: the job's specimen, with the treatment or
+ * without it.
  *
- * The chapter stacks (each half wants the whole canvas width); the two small
- * specimens sit side by side on the wide canvas and stack on the phone, because
- * a delta held across 500 pixels of scroll is a delta nobody can see.
+ * ★ THE KIT PAIRS THE TWO HALVES, NOT THIS BOARD. `Catalog` takes a `before`
+ * and a `render` and draws them through `BeforeAfter` when a card is walked
+ * alone, so this returns ONE specimen and the walk owns the composition. The
+ * two things a half still owns are its own: a lens, because a hairline is a
+ * hairline whichever half it is on, and a Replay, which belongs under the half
+ * that actually runs something.
  */
-export function BeforeAfter({
+export function TreatmentSpecimen({
   id,
+  phase,
   mode,
   landing,
 }: {
   id: TreatmentId;
+  phase: Phase;
   mode: Mode;
   landing: Placement;
 }) {
   const kind = SPECIMEN_OF[id];
-  const pair = (runId: number) => {
-    const half = (phase: Phase) =>
-      kind === "chapter" ? (
-        <ChapterSpecimen
-          treatment={id}
-          phase={phase}
-          mode={mode}
-          landing={landing}
-        />
-      ) : kind === "tiles" ? (
-        <TilesSpecimen treatment={id} phase={phase} mode={mode} />
-      ) : (
-        <ReelSpecimen treatment={id} phase={phase} mode={mode} runId={runId} />
-      );
-    return (
-      <div
-        className={cn(
-          "flex min-w-0 gap-4",
-          // A chapter half wants the whole canvas width, so the pair stacks;
-          // the two small specimens sit side by side and WRAP, which is the
-          // honest rule at 375 (a breakpoint here would read the browser's
-          // width, and the canvas is not the browser).
-          kind === "chapter" ? "flex-col" : "flex-row flex-wrap items-start",
-        )}
-      >
-        <Half caption="As today">{half("before")}</Half>
-        <Half caption="With it">{half("after")}</Half>
+  const body = (runId: number) =>
+    kind === "chapter" ? (
+      <ChapterSpecimen
+        treatment={id}
+        phase={phase}
+        mode={mode}
+        landing={landing}
+      />
+    ) : kind === "tiles" ? (
+      <TilesSpecimen treatment={id} phase={phase} mode={mode} />
+    ) : (
+      <ReelSpecimen treatment={id} phase={phase} mode={mode} runId={runId} />
+    );
+
+  // Only the "with it" half of a mark has anything to replay; a Replay under
+  // the half that does nothing would be a button that lies. The other half
+  // keeps the row, so the two specimens stay level.
+  if (ONE_SHOT.has(id))
+    return phase === "after" ? (
+      <Replayable render={body} />
+    ) : (
+      <div className="flex flex-col gap-2">
+        {body(0)}
+        <div className={REPLAY_ROW} aria-hidden />
       </div>
     );
-  };
-
-  if (ONE_SHOT.has(id)) return <Replayable render={pair} />;
-  // A hairline is a hairline at any card size, so the lens goes over BOTH
-  // halves at once: a lens on one of them would be a second difference.
-  if (HAIRLINE.has(id)) return <Loupe zoom={3}>{pair(0)}</Loupe>;
-  return pair(0);
+  if (HAIRLINE.has(id)) return <Loupe zoom={3}>{body(0)}</Loupe>;
+  return body(0);
 }
 
 /* ── Where it already lives: up to two real surfaces, small ──────────────── */

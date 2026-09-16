@@ -15,6 +15,7 @@ import { ReelFrame } from "@/components/marketing/frames";
 import { CinemaClose } from "@/components/marketing/sections/home/cinema-close";
 import { Privacy } from "@/components/marketing/sections/home/privacy";
 import { Glow } from "@/components/shared/glow";
+import { cn } from "@/lib/utils";
 
 import { PAPER_FIVE, PAPER_FIVE_VALUES, PAPER_FLAT_VALUES } from "./candidates";
 import { Light, type Placement } from "./composer";
@@ -228,13 +229,24 @@ export function HuesStage({ mode, hues }: { mode: Mode; hues: string }) {
  * which is precisely the difference the other two are arguing with: watch what
  * each one leaves behind rather than what it does while it runs.
  */
+/**
+ * ★ THE FRAME IS DRAWN BIG, BECAUSE A TILE IS A ZOOM-FIT OF THE CANVAS. The
+ * review draws this section once per option inside a tile about 250 pixels
+ * wide, and a tile fits the whole 1440 canvas into it: a 360-pixel frame in the
+ * corner of that canvas lands at 60 pixels and three beats become three dark
+ * rectangles. Drawn at 720 on a centred ground, the same tile shows a frame you
+ * can actually see the light on, and the stage under the tiles shows it whole.
+ */
 export function BeatStage({ mode, beat }: { mode: Mode; beat: string }) {
   const { runId, replay } = useReplay();
-  const w = mode === "desktop" ? 360 : 300;
+  const w = mode === "desktop" ? 720 : 300;
   return (
     <GroundBox
       ground="app-dark"
-      className="overflow-hidden rounded-lg p-4"
+      className={cn(
+        "overflow-hidden rounded-lg",
+        mode === "desktop" ? "p-16" : "p-8",
+      )}
       style={{ width: "fit-content" }}
     >
       <div className="flex flex-col gap-2">
@@ -284,31 +296,33 @@ export function BeatStage({ mode, beat }: { mode: Mode; beat: string }) {
 
 /* ── 5. What lands second ────────────────────────────────────────────────── */
 
-const SECOND: { id: string; name: string; lands: string; needs: string }[] = [
+const SECOND: { id: string; name: string; needs: string }[] = [
   {
     id: "home-arc",
     name: "The home page's two ends",
-    lands:
-      "The aurora on two sections: the guest ledger, and the closer above the footer.",
     needs: "The grain tile. A stand-in ships meanwhile.",
   },
   {
     id: "paper",
     name: "Paper",
-    lands:
-      "The five hues re-declared on the light ground, then the aurora on the paper chapters.",
     needs: "The palette board's paper ramp, in the same merge.",
   },
   {
     id: "features",
     name: "The feature pages",
-    lands:
-      "The seam on every feature hero with a screen; the throw and the lit face on the plates.",
     needs: "The media kit's feature art: these lights are sampled.",
   },
 ];
 
-/** The one call that is a plan rather than a picture: three rows, no specimen. */
+/**
+ * THE ONE CALL THAT IS A PLAN RATHER THAN A PICTURE: what each candidate is
+ * waiting on, and nothing else.
+ *
+ * ★ THE ROWS DO NOT REPEAT THE TILES. The step draws each option as a text tile
+ * carrying what choosing it means, directly above this, so a row that said the
+ * same thing again would be the same sentence twice on one screen, which is
+ * exactly the restatement this round is removing everywhere else.
+ */
 export function OrderStage() {
   return (
     <div className="grid gap-3 sm:grid-cols-3">
@@ -319,10 +333,7 @@ export function OrderStage() {
         >
           <p className="text-[12px] font-medium">{s.name}</p>
           <p className="text-[11px] leading-snug text-muted-foreground">
-            {s.lands}
-          </p>
-          <p className="text-[11px] leading-snug text-muted-foreground">
-            <span className="text-foreground">Needs: </span>
+            <span className="text-foreground">Waits on: </span>
             {s.needs}
           </p>
         </div>

@@ -26,7 +26,7 @@ import { blockFor, noBlockBecause } from "./blocks";
 import { ENGINE_DRIVE_FIX, LIGHT_CANDIDATES, PUBLISH_LEAN } from "./candidates";
 import { type Placement } from "./composer";
 import { FENCES, LANDS, type TreatmentId } from "./kit";
-import { BeforeAfter, Usages } from "./previews";
+import { TreatmentSpecimen, Usages } from "./previews";
 import {
   AuroraStage,
   BeatStage,
@@ -129,24 +129,36 @@ export function LightBoard() {
           /* ── The twelve ─────────────────────────────────────────────── */
           case "catalog":
             return (
-              // One column, and that is the whole reading. A card is the same
-              // real specimen drawn twice, and a chapter specimen is a window
-              // onto 1440: two cards abreast would halve both halves and hand
-              // back the unreadable comparison this round exists to end.
+              // ★ ONE COLUMN, AND THE KIT PAIRS THE HALVES. `before` and
+              // `render` are the same specimen with and without the treatment,
+              // and the walk draws them touching; the browse grid shows the
+              // "with it" half alone, which is what a gallery is for. A chapter
+              // specimen is a window onto 1440, so two cards abreast would
+              // halve both halves and hand back the unreadable comparison this
+              // round exists to end.
               <Catalog
                 spec={LIGHT}
                 state={state}
                 setState={api.setState}
                 minWidth={900}
+                before={(candidate) => (
+                  <TreatmentSpecimen
+                    id={candidate.id as TreatmentId}
+                    phase="before"
+                    mode={s.mode}
+                    landing={s.landing}
+                  />
+                )}
                 render={(candidate) => (
-                  <div className="flex flex-col gap-4">
-                    <BeforeAfter
-                      id={candidate.id as TreatmentId}
-                      mode={s.mode}
-                      landing={s.landing}
-                    />
-                    <Usages id={candidate.id as TreatmentId} mode={s.mode} />
-                  </div>
+                  <TreatmentSpecimen
+                    id={candidate.id as TreatmentId}
+                    phase="after"
+                    mode={s.mode}
+                    landing={s.landing}
+                  />
+                )}
+                usages={(candidate) => (
+                  <Usages id={candidate.id as TreatmentId} mode={s.mode} />
                 )}
               />
             );
