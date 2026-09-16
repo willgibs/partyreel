@@ -35,6 +35,8 @@ The lab and the kit:
 - `// @policy:` on the remaining tree-reading tests so `/design/library/policies` lists every line the gate holds.
 - CI caches only the pnpm store; cache `.next/cache` too if the wall time bites.
 - A `design.partyreel.com` mapping rewrites the two route prefixes and `_data/legacy-routes.ts` in one place.
+- Trim every standing board to `LIMITS.readingWords` (`pnpm lab:smoke` prints what each weighs; a board that declares a catalog fails the smoke over budget, a paper prints its weight until it is rebuilt).
+- Mount `ItemVerdictRow` with `LIBRARY_VERDICTS` on a Library entry's page so a scroll through the components fills `docs/reviews/_library.json` (the ledger, the reader and the desk's "Redesigns you asked for" are landed; Round 3 of the revamp).
 
 Marketing:
 - The home hero's wiring: Will's ruling on the variation through the desk, then the ruled mechanics into `cinema-hero.tsx` with a real `demoCount`, the board retired; the kinetic word in the h1 ruled; the hero stays unlit meanwhile.

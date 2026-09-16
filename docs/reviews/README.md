@@ -1,10 +1,11 @@
 # The review ledgers
 
 > **ROLE:** Will's answers and notes on the boards, one JSON file per board plus `_window.json` for
-> a round's notes that bind every board. **BELONGS HERE:** ask ids, choices (an option id, or `null`
-> for "not clear to me"), notes, who and when.
+> a round's notes that bind every board and `_library.json` for his verdicts on Library entries.
+> **BELONGS HERE:** ask ids, choices (an option id, or `null` for "not clear to me"), catalog item
+> verdicts (`keep | refine | kill`), Library entry verdicts (`keep | redesign | retire`), notes, who and when.
 > **NOT HERE:** the questions themselves (a board's `spec.ts` is the one home; a ledger stores ask
-> ids, never the text), the rulings once they land (the bible, `docs/decisions/design-record.md`).
+> ids, never the text), the rulings once they land (the bible, `docs/design/rulings.md`).
 > **GROWS BY:** Will answers on the board (the panel composes one message he pastes into chat); the
 > Orchestrator runs `pnpm lab:review "<the line>"` which validates every ask and option against the
 > board's spec and appends here; the Orchestrator's own notes carry `by: "ai:orchestrator"`. The
@@ -41,7 +42,21 @@ ruling draft. When a board leaves the lab (its ruling landed) its ledger is dele
 
 ## The message grammar
 
-`review <board> r<n>: <ask>=<option> "an optional note"; <ask>=<option>; note: "a board-wide note"`
+`review <board> r<n>: <ask>=<option> "an optional note"; item:<id>=<verdict> "an optional note"; note: "a board-wide note"`
 
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
 An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.
+
+`item:<id>=keep|refine|kill` rules on ONE card of a board's catalog (the revamp, 2026-09-16), where
+`<id>` is a candidate id from the board's spec. The `item:` prefix keeps the two namespaces apart: an
+ask id and a candidate id are both one token and a board may use the same word for both. A board that
+declares no `catalog` has no items, and a ruling on one is refused. One verdict per item per round;
+ruling again in the same round overwrites, exactly as answering an ask again does, and a round gains
+`items: [{ item, verdict, note?, by, at }]` beside its `answers`.
+
+`review library: <entry-id>=keep|redesign|retire "an optional note"` rules on a LIBRARY entry and
+lands in `_library.json`, whose shape is `{ "entries": [{ entry, verdict, note?, by, at }] }` with no
+rounds: the Library is not explored in rounds, so there is one ruling per entry and the newest
+overwrites. An `<entry-id>` is a component id from `rules.generated.json`, which is the last segment
+of its `/design/library` URL. The desk reads the `redesign` and `retire` ones as "Redesigns you asked
+for", which is the queue the Orchestrator cuts tracks from.

@@ -251,7 +251,7 @@ function boardRoot(html, id) {
  * anything. A board showing the real home page renders the home page's copy;
  * the brand-voice board shows seven headers on purpose. Those are words to LOOK
  * at, not words to read, so everything inside a stage (`data-stage-fit`), on a
- * production ground (`data-ground`) or inside a frame is excluded. What is left
+ * production ground (`data-ground`), inside a frame or inside a `<pre>` paste is excluded. What is left
  * is the board's own voice: its answer, its ledes, its labels and its notes,
  * which is exactly what "it reads like a PhD" was about.
  *
@@ -300,7 +300,10 @@ export function visibleWords(html) {
         name === "iframe" ||
         /\sdata-stage-fit(?=[\s>=])/.test(attrs) ||
         /\sdata-lab-specimen(?=[\s>=])/.test(attrs);
-      if (hidden || folded || specimen) skip = depth;
+      // A paste block (`<pre>`: the CSS a ruling would land) is copied, not
+      // read; the palette's weighed 695 words of tokens (2026-09-16).
+      const paste = name === "pre";
+      if (hidden || folded || specimen || paste) skip = depth;
     } else if (name === "summary" && depth === skip + 1 && summary === 0) {
       summary = depth;
     }

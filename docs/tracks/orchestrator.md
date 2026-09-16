@@ -61,7 +61,6 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 
 | track | board | waits on |
 | --- | --- | --- |
-| `lab-catalog` | `/design/lab/palette` (the proof), `/design/lab/kit` (the toolbox), the desk's item scope | its handoff; then Will's walk of the palette catalog |
 | `docs-systems-strip` | none (the four heavy system docs stripped to the system and its invariants; every ★ audited) | its handoff |
 
 ## Waiting on Will
@@ -78,6 +77,8 @@ him: a walk of the palette catalog once `lab-catalog` integrates, then the six c
   design.css generation 4); `52241e4f` the dev indicator bottom-right; `ce21ac31` the lab functions'
   file trace cut to 718 files (docs.ts's dynamic root marked turbopackIgnore); `d4ec4cff` docs-adr-fold
   integrated (the 25 ADRs folded, `docs/adr/` gone with the decisions tombstones, the reel spec and the
-  perf baseline); `aea90fd3` the citation sweep (247 code comments name the system docs).
+  perf baseline); `aea90fd3` the citation sweep (247 code comments name the system docs); `57b93286`
+  lab-catalog integrated (the item scope, the catalog kit, the toolbox, the reading budget, the palette as
+  the proof; the review grammar's item and library lines landed in docs/reviews/README.md).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

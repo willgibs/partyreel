@@ -36,12 +36,14 @@ palette catalog.
 
 | track | returns | state |
 | --- | --- | --- |
-| `lab-catalog` | the review's item scope (`item:<id>=keep\|refine\|kill "note"`), `Catalog`, `ItemVerdictRow`, `CompareTwo`, `SpotCompare`, the reading budget in `pnpm lab:smoke`, `pnpm new-board` scaffolding a catalog, `/design/lab/kit` as the toolbox, the palette rebuilt on the kit as the proof | building |
+| `lab-catalog` | the review's item scope (`item:<id>=keep\|refine\|kill "note"`), `Catalog`, `ItemVerdictRow`, `CompareTwo`, `SpotCompare`, the reading budget in `pnpm lab:smoke`, `pnpm new-board` scaffolding a catalog, `/design/lab/kit` as the toolbox, the palette rebuilt on the kit as the proof | integrated at `57b93286`; the palette verified on the desk |
 | `lab-sweep` | every lab page walked at 1440 and 375 and fixed in the shell; plain-English labels | integrated at `88dafe50` (the dev indicator moved and the lab functions' file trace cut from 2,248 to 718 files behind it) |
 
-What closes it: both lanes integrated, the walk of Round 1's verification list on a hard-reloaded dev
-server, Will's walk of the palette catalog (his first review with per-item verdicts), the six catalog
-briefs cut from what he says.
+Round 1 is closed on the tree (both lanes integrated, the verification list walked on the dev server);
+what remains of it is Will's walk of the palette catalog (his first review with per-item verdicts) and
+the six catalog briefs cut from what he says. The reading budget (1,200 words outside every closed fold,
+specimen and paste) fails all twelve standing boards on purpose: `pnpm lab:smoke` reports the routes and
+the budget apart, and the rebuilds must meet it.
 
 ## The previous round: the clarity round (2026-09-15 to 16, `be1638f2` to `1165e503`)
 

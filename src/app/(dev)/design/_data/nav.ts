@@ -294,7 +294,7 @@ export async function buildNav(): Promise<Nav> {
           items: [
             {
               href: "/design/lab/kit",
-              label: "The lab kit",
+              label: "The toolbox",
               note: "The pieces every board composes: the dock, the stage, the frame, the compare.",
             },
           ],
