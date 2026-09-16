@@ -18,6 +18,13 @@ import { type Candidate, defineBoard } from "@/components/lab/board-spec";
  * written out as a `const`, `candidates: ITEMS`, a clearable pick control whose
  * options are the ids, and two compare controls over the same ids.
  *
+ * ★ AND IT DECLARES EVERY STEP SHAPE AT ONCE (the stepped review, 2026-09-16),
+ * which no real board would: a winner ask over the cards, a walk that takes the
+ * cards one at a time, an ask whose options carry their own drawing state, and
+ * an ask STAGED behind another. A real board picks one reading of its catalog;
+ * the fixture exists so all four can be walked before a board commits to any of
+ * them, which is the whole point of a dry run.
+ *
  * Delete this the round the boards carry their own specs.
  */
 
@@ -134,6 +141,48 @@ export const SAMPLE_BOARD = defineBoard({
       because:
         "A board that has done the work has an opinion, and saying it is faster to disagree with than a neutral menu.",
       evidence: "walk",
+      // The option's own drawing state: the tiles render the evidence section
+      // once per option, in this state, so an option is looked at rather than
+      // read (the stepped review, 2026-09-16).
+      state: { shape: "as-data" },
+    },
+    {
+      id: "winner",
+      question: "Which of the three should the lab be built on?",
+      context:
+        "One of the three cards wins and the whole lab is built on it. Pressing a card shows it on the surface below; pressing it again records it.",
+      options: [
+        {
+          id: "as-data",
+          label: "The asks as data",
+          means: "One declaration, read by the desk, the session and the ledger.",
+          state: { shape: "as-data" },
+        },
+        {
+          id: "as-prose",
+          label: "The asks as prose",
+          means: "Each board writes its own, and a reviewer answers in chat.",
+          state: { shape: "as-prose" },
+        },
+        {
+          id: "as-a-form",
+          label: "The asks as a form",
+          means: "Every decision becomes a field and the review is a questionnaire.",
+          state: { shape: "as-a-form" },
+        },
+        {
+          id: "none",
+          label: "None of these: new directions",
+          means:
+            "Nothing here is close enough. Say what to try and the next round explores it.",
+        },
+      ],
+      recommended: "as-data",
+      because:
+        "The board declares its asks once and three surfaces read the one declaration.",
+      evidence: "walk",
+      control: "shape",
+      lands: "how every board declares what it is asking, and what the desk reads.",
     },
     {
       id: "notes",
@@ -162,6 +211,10 @@ export const SAMPLE_BOARD = defineBoard({
       because:
         "The note rides the answer into the ledger, so the reason and the ruling stay together for ever.",
       evidence: "ledger",
+      // Staged: the question only exists once the winner is the declared shape,
+      // and it is moot the moment the winner goes the other way.
+      after: { ask: "winner", option: "as-data" },
+      strip: ["compare-a"],
     },
   ],
   candidates: ITEMS,
@@ -183,6 +236,12 @@ export const SAMPLE_BOARD = defineBoard({
     section: "walk",
     control: "shape",
     compare: ["compare-a", "compare-b"],
+    // keep-any with a winner AND a one-at-a-time walk: no real board wants all
+    // three, and the fixture exists so all three can be walked.
+    mode: "keep-any",
+    winner: "winner",
+    walk: "one-at-a-time",
+    stage: "ledger",
   },
 
   controls: [

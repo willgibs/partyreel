@@ -4,15 +4,7 @@ import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-import {
-  anchorFor,
-  type Ask,
-  type BoardSpec,
-  optionId,
-  optionLabel,
-  optionMeans,
-  type Section,
-} from "./board-spec";
+import { anchorFor, type BoardSpec, type Section } from "./board-spec";
 
 /**
  * THE ANSWER, FIRST.
@@ -25,18 +17,13 @@ import {
  * words he can reply with. The argument is evidence FOR the answer and belongs
  * under it; the history belongs at the end, collapsed.
  *
- * ★ THE ASKS ARE OPTION PILLS, NOT SENTENCES. A ruling is one word ("registers",
- * "quarters", "B"), and the reviewer should be able to see the words he can say
- * without reading a paragraph to infer them. The recommended one is FILLED, so
- * the board's own answer is visible at a glance and a "yes" is the cheapest
- * reply; "See it" jumps to the section that argues it, which is the one link a
- * reviewer who disagrees actually wants.
- *
- * ★ AND AN ASK CARRIES ITS CONTEXT WHEREVER IT IS MET (the clarity round,
- * 2026-09-15). The pills wear the options' LABELS, and the ask's `context` and
- * `look` print here as they do on the desk's session and the review card: a
- * reviewer who reads the board's first screen must not meet a bare label with
- * four tokens under it, which is exactly what stopped Will's first review.
+ * ★ AND THE ASKS ARE NOT HERE ANY MORE (the stepped review, 2026-09-16). This
+ * block used to restate every ask as a row of option pills, the sections
+ * restated them again as "Rule on:", the review panel restated them a third
+ * time and the card a fourth. Four printings of one question is the density
+ * that made Will "spend tons of time per track figuring what I'm even being
+ * asked": the ONE place a question is asked is its step (`step.tsx`), and this
+ * is what a board says when nobody is reviewing it.
  */
 export function Answer({
   spec,
@@ -76,122 +63,19 @@ export function Answer({
           {round.changed}
         </p>
       </div>
-      <ul className="flex flex-col gap-2">
-        {spec.asks.map((ask) => (
-          <AskPills key={ask.id} boardId={spec.id} ask={ask} />
-        ))}
-      </ul>
     </section>
   );
 }
 
-function AskPills({ boardId, ask }: { boardId: string; ask: Ask }) {
-  return (
-    <li className="flex flex-col gap-1.5 rounded-lg border border-border bg-card px-3.5 py-3">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-[12px] font-medium">{ask.question}</span>
-        <a
-          href={`#${anchorFor(boardId, ask.evidence)}`}
-          className="text-[11px] text-muted-foreground underline decoration-foreground/20 underline-offset-2 transition-colors duration-150 ease-emphasis hover:text-foreground hover:decoration-foreground/50 motion-reduce:transition-none"
-        >
-          See it
-        </a>
-      </div>
-      {ask.context ? (
-        <p className="max-w-2xl text-[11px] leading-relaxed text-foreground/80">
-          {ask.context}
-        </p>
-      ) : null}
-      <div className="flex flex-wrap gap-1.5">
-        {ask.options.map((o) => (
-          <span
-            key={optionId(o)}
-            title={optionMeans(o)}
-            className={cn(
-              "rounded-md px-2 py-0.5 text-[11px] font-medium",
-              optionId(o) === ask.recommended
-                ? "bg-foreground text-background"
-                : "border border-border text-muted-foreground",
-            )}
-          >
-            {optionLabel(o)}
-          </span>
-        ))}
-      </div>
-      {ask.look ? (
-        <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
-          <span className="text-foreground">Where to look: </span>
-          {ask.look}
-        </p>
-      ) : null}
-      {ask.because ? (
-        <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
-          <span className="text-foreground">Why the board says so: </span>
-          {ask.because}
-        </p>
-      ) : null}
-      {ask.overrule ? (
-        <p className="text-[11px] leading-relaxed text-muted-foreground">
-          <span className="text-foreground">Overrule if: </span>
-          {ask.overrule}
-        </p>
-      ) : null}
-    </li>
-  );
-}
-
-/** The sections, numbered, each a link. It is the reviewer's map of a board he
- *  cannot see the end of, and it is derived, so it cannot drift from what is
- *  actually rendered below it. */
-export function BoardIndex({
-  spec,
-  className,
-}: {
-  spec: BoardSpec;
-  className?: string;
-}) {
-  return (
-    <nav
-      aria-label="The board's sections"
-      className={cn(
-        "flex max-w-2xl flex-col gap-1 rounded-lg border border-border bg-card px-4 py-3",
-        className,
-      )}
-    >
-      <p className="text-[12px] font-medium">
-        The evidence, in the order the board argues it
-      </p>
-      <ol className="mt-1 flex flex-col gap-1">
-        {spec.sections.map((s, i) => (
-          <li key={s.id} className="flex gap-2 text-[11px] leading-snug">
-            <span className="w-4 shrink-0 text-muted-foreground tabular-nums">
-              {i + 1}
-            </span>
-            <a
-              href={`#${anchorFor(spec.id, s.id)}`}
-              className="text-muted-foreground underline decoration-foreground/20 underline-offset-2 transition-colors duration-150 ease-emphasis hover:text-foreground hover:decoration-foreground/50 motion-reduce:transition-none"
-            >
-              <span className="mr-1.5 font-medium text-foreground">
-                {s.title}
-              </span>
-              {s.lede}
-            </a>
-          </li>
-        ))}
-      </ol>
-    </nav>
-  );
-}
-
 /**
- * ONE SECTION: the number, the title, the asks it answers restated, the lede,
- * the evidence, then the collapsed rest.
+ * ONE SECTION: the number, the title, the lede, the evidence, then the
+ * collapsed rest.
  *
- * ★ THE ASKS ARE RESTATED HERE, AND THAT IS NOT DECORATION. Walking a board
- * cold, the one thing a stranger cannot tell at any point is which ruling the
- * specimen in front of him belongs to: the asks live at the top, seventeen
- * thousand pixels up. They come from the spec, so the answer block, this header
- * and the meta panel are one source and cannot drift.
+ * ★ THE ASKS ARE NOT RESTATED HERE (the stepped review, 2026-09-16). They were,
+ * so that a stranger scrolling the board could tell which ruling a specimen
+ * belonged to; a review is now a walk through the questions themselves, each
+ * one with its own evidence under it, and the restatement was one of four
+ * printings of the same question on one page.
  *
  * ★ AND THE ARGUMENT IS COLLAPSED BY DEFAULT. The evidence is the thing; the
  * paragraphs explaining it are for the reader who disagrees with what he just
@@ -202,14 +86,12 @@ export function BoardSection({
   boardId,
   n,
   section,
-  asks,
   notes,
   children,
 }: {
   boardId: string;
   n: number;
   section: Section;
-  asks: readonly Ask[];
   notes?: readonly string[];
   children: React.ReactNode;
 }) {
@@ -225,25 +107,6 @@ export function BoardSection({
           </span>
           {section.title}
         </h2>
-        {asks.length > 0 ? (
-          <ul className="mt-2 space-y-1">
-            {asks.map((a) => (
-              <li
-                key={a.id}
-                className="flex gap-2 text-[11px] leading-snug text-foreground"
-              >
-                <span
-                  aria-hidden
-                  className="mt-[5px] size-1.5 shrink-0 rounded-full bg-foreground"
-                />
-                <span>
-                  <span className="text-muted-foreground">Rule on: </span>
-                  {a.question} ({a.options.map(optionLabel).join(", ")})
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
         <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
           {section.lede}
         </p>
@@ -360,19 +223,24 @@ export function BoardMeta({
         : [<p key="none">none</p>],
     ],
   ];
+  // ★ FOLDED (the stepped review, 2026-09-16). Every one of these rows is for
+  // the AUTHOR of the next round (what was considered, what it costs, what it
+  // asks Will for), and a reviewer who meets them open reads three screens of
+  // the board's own bookkeeping before the evidence. Nothing is hidden that one
+  // press does not return, and the smoke's reading budget counts what is open.
   return (
-    <dl
-      className={cn(
-        "grid grid-cols-[8rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-lg border border-border bg-card px-4 py-3 text-xs text-muted-foreground",
-        className,
-      )}
-    >
-      {rows.map(([label, lines]) => (
-        <div key={label} className="contents">
-          <dt className="text-[11px] font-medium text-foreground">{label}</dt>
-          <dd className="space-y-1">{lines}</dd>
-        </div>
-      ))}
-    </dl>
+    <details className={cn("max-w-2xl", className)}>
+      <summary className="cursor-pointer rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground">
+        The ideas, the rules it breaks and the assets it asks for
+      </summary>
+      <dl className="mt-2 grid grid-cols-[8rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-lg border border-border bg-card px-4 py-3 text-xs text-muted-foreground">
+        {rows.map(([label, lines]) => (
+          <div key={label} className="contents">
+            <dt className="text-[11px] font-medium text-foreground">{label}</dt>
+            <dd className="space-y-1">{lines}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
   );
 }

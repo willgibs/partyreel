@@ -8,6 +8,9 @@ import {
   boardStatus,
 } from "@/app/(dev)/design/review/status";
 
+import type { Transcribed } from "./review-message";
+import { holdId, itemHoldId } from "./step-id";
+
 /**
  * THE DESK'S ROWS (the Library x Lab round, 2026-09-15): one standing board,
  * with the asks that still wait on Will beside the registry's own facts (its
@@ -39,6 +42,10 @@ export type AskState = {
   /** Null when never answered; a null `choice` is "not clear to me" (the ask
    *  is still open, and the note says what a clearer question must cover). */
   answer: { choice: string | null; note?: string } | null;
+  /** Waiting on the question it declares `after` (the stepped review, 2026-09-16). */
+  staged: boolean;
+  /** Its prerequisite went the other way: not asked this round at all. */
+  moot: boolean;
 };
 
 /** One catalog card of one board, with the ruling standing against it (or none). */
@@ -105,9 +112,11 @@ export function askStates(board: DeskBoard, status: BoardStatus): AskState[] {
     round: spec.round.n,
     ask: a.ask,
     answer:
-      current && a.state !== "open"
+      current && (a.state === "answered" || a.state === "unclear")
         ? { choice: a.answer.choice, note: a.answer.note }
         : null,
+    staged: a.state === "staged",
+    moot: a.state === "moot",
   }));
 }
 
@@ -150,10 +159,19 @@ export function deskRows(
       legacy: status.spec === null,
       asks,
       items,
-      openItems: items.filter((i) => i.ruling === null),
+      // A pick-one catalog's cards are not a wait (status.ts): its decision is
+      // the winner ask, so `status.openItems` is already empty for it.
+      openItems: items.filter(
+        (i) => i.ruling === null && status.openItems.some((o) => o.item.id === i.item.id),
+      ),
       // "Not clear to me" keeps an ask in the queue: the next session asks it
-      // again, in the plainer words the board owes it.
-      open: asks.filter((a) => a.answer === null || a.answer.choice === null),
+      // again, in the plainer words the board owes it. A STAGED ask rides along
+      // too (dim on the desk, skipped by the walk) because the answer that
+      // unstages it can land in this very sitting, which only the browser
+      // knows; a MOOT one is gone for the round.
+      open: asks.filter(
+        (a) => (a.answer === null || a.answer.choice === null) && !a.moot,
+      ),
       // `status.notes` mixes the window's GLOBAL notes into every board, which
       // would print the same four lines fourteen times; the desk prints those
       // once, in their own section. What belongs on a row is the board's own:
@@ -177,5 +195,54 @@ export function openQueue(rows: BoardRow[]): AskState[] {
  * walk the same queue and a second copy would drift the day a row grew a field.
  */
 export function boardWork(rows: BoardRow[]) {
-  return rows.map((r) => ({ asks: r.open, items: r.openItems }));
+  return rows.map((r) => ({
+    asks: r.open,
+    items: r.openItems,
+    // The open work is what the ledger does NOT hold, so a staged step's
+    // prerequisite is never in it: the standing rulings ride along separately.
+    ruled: ledgerSideOf(r),
+  }));
+}
+
+/** One row's ledger side, by ask id and card id, for `after`. */
+function ledgerSideOf(row: BoardRow) {
+  const answers: Record<string, string | null> = {};
+  for (const a of row.asks) {
+    if (a.answer) answers[a.ask.id] = a.answer.choice;
+  }
+  const items: Record<string, string> = {};
+  for (const i of row.items) {
+    if (i.ruling) items[i.item.id] = i.ruling.verdict;
+  }
+  return { answers, items };
+}
+
+/**
+ * WHAT THE LEDGER ALREADY HOLDS, KEYED THE WAY THE SESSION HOLDS IT (the
+ * stepped review, 2026-09-16). "Copy so far" composes from the browser's store,
+ * which keeps every answer of the sitting for ever; without this it re-sent
+ * everything already transcribed on every later paste, and a three-answer batch
+ * arrived as thirty. The shape is `review-message.ts`'s, keyed by `holdId` and
+ * `itemHoldId` exactly as the store keys them, so the comparison is a lookup.
+ */
+export function transcribedFrom(rows: BoardRow[]): Transcribed {
+  const answers: Transcribed["answers"] = {};
+  const items: Transcribed["items"] = {};
+  for (const r of rows) {
+    for (const a of r.asks) {
+      if (a.answer)
+        answers[holdId(a.board, a.round, a.ask.id)] = {
+          choice: a.answer.choice,
+          note: a.answer.note,
+        };
+    }
+    for (const i of r.items) {
+      if (i.ruling)
+        items[itemHoldId(i.board, i.round, i.item.id)] = {
+          verdict: i.ruling.verdict,
+          note: i.ruling.note,
+        };
+    }
+  }
+  return { answers, items };
 }

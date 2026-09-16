@@ -1,5 +1,7 @@
 import {
   anchorFor,
+  type AskAfter,
+  type AskOption,
   type BoardSpec,
   type BuilderVerdict,
   ITEM_VERDICTS,
@@ -50,7 +52,18 @@ import { holdId, itemHoldId, itemsStepId, stepId } from "./step-id";
  * a "use client" module into its render.
  */
 
-export type SessionOption = { id: string; label: string; means?: string };
+export type SessionOption = {
+  id: string;
+  label: string;
+  means?: string;
+  /**
+   * The declared controls that DRAW this option on the ask's specimen, merged
+   * over the ask's own state. An option with neither this nor a control mirror
+   * cannot be drawn, and the step renders it as a text tile (the stepped
+   * review, 2026-09-16).
+   */
+  state?: Record<string, string>;
+};
 
 /** What every step carries, whichever kind it is. */
 type StepBase = {
@@ -64,6 +77,17 @@ type StepBase = {
   /** The dock state that shows this step's evidence; applied on landing. */
   state?: Record<string, string>;
   boardHref: string;
+  /** The earlier ask or card this step waits on; undefined when it waits on nothing. */
+  after?: AskAfter;
+  /**
+   * ★ THE LEDGER SIDE OF `after`, RESOLVED ON THE SERVER. Staging asks "has the
+   * prerequisite been decided?", and the answer can live in two places: the
+   * session's own store (this browser, this sitting) or the ledger on disk from
+   * an earlier sitting. Only the server can read the second, so it resolves it
+   * here once and the client combines the two in `stepBlocked`. The value is
+   * the option or verdict the ledger holds, or null when it holds none.
+   */
+  afterRuled?: string | null;
 };
 
 export type AskStep = StepBase & {
@@ -80,6 +104,20 @@ export type AskStep = StepBase & {
   overrule?: string;
   /** A dock control whose option ids equal this ask's, so a pick IS the preview. */
   control?: string;
+  /** What the answer decides platform-wide, in words. */
+  lands?: string;
+  /** The declared controls the step's config strip shows beside the stage. */
+  strip?: readonly string[];
+  /**
+   * This ask IS its board's catalog winner: the tiles are the catalog's own
+   * cards rather than generic option tiles, and "none" is the new-directions
+   * exit. Set from `catalog.winner`.
+   */
+  winner?: boolean;
+  /** The catalog's grid section, for a winner ask: what the tiles are drawn from. */
+  catalogSection?: string;
+  /** The section drawn under the tiles in the shown state (`catalog.stage`). */
+  stageSection?: string;
 };
 
 /** One catalog card, as a step's list renders it. */
@@ -90,6 +128,8 @@ export type SessionItem = {
   one?: string;
   /** The builder's own call, drawn as the card's pill. */
   verdict?: BuilderVerdict;
+  /** What keeping this card lands as, platform-wide, in words. */
+  lands?: string;
 };
 
 export type ItemsStep = StepBase & {
@@ -99,6 +139,12 @@ export type ItemsStep = StepBase & {
   items: readonly SessionItem[];
   /** The words a verdict may be, in the order they are offered. */
   vocabulary: readonly string[];
+  /** How the catalog is decided; a pick-one catalog queues no cards at all. */
+  mode: "pick-one" | "keep-any";
+  /** How the review walks the cards: all at once, or one large card at a time. */
+  walk: "gallery" | "one-at-a-time";
+  /** The section drawn under the cards in the shown state (`catalog.stage`). */
+  stageSection?: string;
 };
 
 export type SessionStep = AskStep | ItemsStep;
@@ -138,6 +184,51 @@ export function stepDone(step: SessionStep, store: ReviewStore): boolean {
   return of > 0 && held === of;
 }
 
+/**
+ * WHETHER A STEP MAY BE ASKED YET (the stepped review, 2026-09-16).
+ *
+ * ★ A QUESTION THAT ONLY EXISTS ONCE ANOTHER IS ANSWERED IS NOT A QUESTION YET.
+ * The aurora's landing is meaningless until the aurora is kept; the accent's
+ * reach is meaningless until an accent is chosen. Asking those anyway is what
+ * made a review feel like a form: half the questions were about a world the
+ * reviewer had not agreed to. So an ask declares `after`, and until its
+ * prerequisite is decided the step is STAGED (skipped by Back, Next and Start
+ * the review, dim on the desk); once the prerequisite goes the OTHER way the
+ * step is MOOT and never comes back this round.
+ *
+ * ★ AND BOTH HALVES OF "DECIDED" COUNT. The prerequisite may have been ruled in
+ * an earlier sitting (the ledger, resolved into `afterRuled` on the server) or
+ * answered a moment ago in this one (the store). The store wins where both
+ * speak, because it is the newer answer and the one the reviewer can see.
+ *
+ * "Not clear to me" is not a decision: it leaves the follow-up staged, which is
+ * exactly right, because the question it waits on has not been answered.
+ */
+export function stepBlocked(
+  step: SessionStep,
+  store: ReviewStore,
+): "staged" | "moot" | null {
+  const after = step.after;
+  if (!after) return null;
+  const held =
+    "ask" in after
+      ? store.answers[holdId(step.board, step.round, after.ask)]?.choice
+      : store.items[itemHoldId(step.board, step.round, after.item)]?.verdict;
+  const decided = held || step.afterRuled || null;
+  if (!decided || decided === UNCLEAR) return "staged";
+  const wanted = "ask" in after ? after.option : after.verdict;
+  if (wanted === undefined) return null;
+  return decided === wanted ? null : "moot";
+}
+
+/** The steps a walk may land on: everything not staged behind something else. */
+export function walkable(
+  steps: readonly SessionStep[],
+  store: ReviewStore,
+): SessionStep[] {
+  return steps.filter((s) => stepBlocked(s, store) === null);
+}
+
 const DESK_HREF = "/design/lab";
 
 /** A board's open work, in the order a session walks it: the catalog, then the asks. */
@@ -145,7 +236,32 @@ export type BoardWork = {
   asks: readonly AskState[];
   /** The catalog cards with no ruling yet; empty for a board with no catalog. */
   items: readonly ItemState[];
+  /**
+   * WHAT THE LEDGER ALREADY HOLDS FOR THIS BOARD, by ask id and card id. The
+   * open work is by definition what the ledger does NOT hold, so a staged
+   * step's prerequisite is never in `asks` or `items`: the ruling that unstages
+   * it has to ride along separately (`afterRuled`).
+   */
+  ruled?: {
+    answers: Readonly<Record<string, string | null>>;
+    items: Readonly<Record<string, string>>;
+  };
 };
+
+const NOTHING_RULED: NonNullable<BoardWork["ruled"]> = {
+  answers: {},
+  items: {},
+};
+
+/** What the ledger says about one step's prerequisite, or null when it says nothing. */
+function ruledFor(
+  after: AskAfter | undefined,
+  ruled: BoardWork["ruled"],
+): string | null | undefined {
+  if (!after) return undefined;
+  const r = ruled ?? NOTHING_RULED;
+  return ("ask" in after ? r.answers[after.ask] : r.items[after.item]) ?? null;
+}
 
 /**
  * The steps a session walks, with each step's evidence resolved against its
@@ -162,7 +278,7 @@ export function toSteps(
     const items = toItemsStep(w.items, specOf, key);
     return [
       ...(items ? [items] : []),
-      ...w.asks.map((a) => toAskStep(a, specOf, key)),
+      ...w.asks.map((a) => toAskStep(a, specOf, key, w.ruled)),
     ];
   });
 }
@@ -191,10 +307,15 @@ function evidenceOf(
   };
 }
 
+/** The option's own drawing state, when it declares one. */
+const optionState = (o: AskOption): Record<string, string> | undefined =>
+  typeof o === "string" ? undefined : (o.state as Record<string, string>);
+
 function toAskStep(
   a: AskState,
   specOf: (board: string) => BoardSpec | undefined,
   key: string | null,
+  ruled?: BoardWork["ruled"],
 ): AskStep {
   const { section, evidence, boardHref } = evidenceOf(
     a.board,
@@ -202,6 +323,8 @@ function toAskStep(
     specOf,
     key,
   );
+  const catalog = specOf(a.board)?.catalog;
+  const winner = catalog?.winner === a.ask.id;
   return {
     kind: "ask",
     board: a.board,
@@ -215,6 +338,7 @@ function toAskStep(
       id: optionId(o),
       label: optionLabel(o),
       means: optionMeans(o),
+      state: optionState(o),
     })),
     recommended: a.ask.recommended,
     because: a.ask.because,
@@ -223,6 +347,13 @@ function toAskStep(
     section: section?.id,
     state: a.ask.state as Record<string, string> | undefined,
     control: a.ask.control,
+    lands: a.ask.lands,
+    strip: a.ask.strip,
+    after: a.ask.after,
+    afterRuled: ruledFor(a.ask.after, ruled),
+    winner: winner || undefined,
+    catalogSection: winner ? catalog?.section : undefined,
+    stageSection: winner ? catalog?.stage : undefined,
     boardHref,
   };
 }
@@ -256,8 +387,15 @@ export function toItemsStep(
       name: i.item.name,
       one: i.item.one,
       verdict: i.item.verdict,
+      lands: i.item.lands,
     })),
     vocabulary: ITEM_VERDICTS,
+    // A board that declares neither is a keep-any catalog walked as a gallery:
+    // exactly what every catalog did before the shapes were named, so an
+    // unreshaped board keeps working (the stepped review, 2026-09-16).
+    mode: spec?.catalog?.mode ?? "keep-any",
+    walk: spec?.catalog?.walk ?? "gallery",
+    stageSection: spec?.catalog?.stage,
     evidence,
     section: section?.id,
     boardHref: href,

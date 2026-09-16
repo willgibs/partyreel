@@ -7,7 +7,7 @@
  * declared state. Everything between those two and the screen is here: the
  * template that renders a spec answer-first, the dock that carries the declared
  * controls, the true-viewport frame, the compare, the specimen furniture, the
- * measurements, the apply, the walk and the review panel.
+ * measurements, the apply, the walk and the review's step.
  *
  * ★ NOTHING OUTSIDE THE LAB MAY IMPORT THIS (boundary.test.ts). The kit is a
  * review instrument, not a component library: it reaches into `getComputedStyle`,
@@ -24,6 +24,8 @@
 export {
   anchorFor,
   type Ask,
+  type AskAfter,
+  type AskOption,
   type Asset,
   type BoardLinks,
   type BoardSpec,
@@ -49,7 +51,7 @@ export {
 } from "./board-spec";
 
 /* The template and its furniture */
-export { Answer, BoardIndex, BoardMeta, BoardSection } from "./answer";
+export { Answer, BoardMeta, BoardSection } from "./answer";
 export { type BoardApi, BoardPage } from "./board-page";
 export {
   type BoardPageContextValue,
@@ -99,7 +101,14 @@ export {
 } from "./frame";
 export { Compare, type CompareMode } from "./compare";
 export { comparePair, CompareTwo, type Spot, SpotCompare } from "./compare-two";
-export { Catalog, type CatalogRenderArgs, VerdictPill } from "./catalog";
+export {
+  Catalog,
+  type CatalogRenderArgs,
+  CatalogTiles,
+  type CatalogTilesMode,
+  VerdictPill,
+} from "./catalog";
+export { BeforeAfter } from "./before-after";
 export { Cell, CellLabel, Labeled, Specimen } from "./specimen";
 export { ConceptCard } from "./concept-card";
 export { SelectTable } from "./select-table";
@@ -115,8 +124,7 @@ export { CopyButton, Paste } from "./paste";
 export { Notes } from "./notes";
 
 /* The review */
-export { composeReviewMessage, ReviewQuestions } from "./review";
-export { ReviewCard } from "./review-card";
+export { CARD_PARAM, Step, type StepBoard } from "./step";
 export { ItemVerdictRow } from "./item-verdict";
 export { scrollToSection, useDesignKey, Walk, WalkPages } from "./walk";
 
