@@ -64,7 +64,7 @@
   --lab-toc-w: 200px;
   /* The stylesheet's generation, read by LabChrome to catch a browser holding
      an old copy of this file (lab-css-generation.ts holds the same number). */
-  --lab-css-generation: 2;
+  --lab-css-generation: 3;
 }
 .lab-shell-body {
   display: grid;
@@ -150,6 +150,18 @@ html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] {
 html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
   margin-left: 0;
   margin-right: 0;
+}
+/* THE CATALOG GRID (the revamp, 2026-09-16): one card per candidate, as many
+   across as fit. Unlayered on purpose: a lab-only `xl:grid-cols-4` in the
+   utilities.lab sub-layer loses to production's `lg:grid-cols-3`. A board sets
+   --lab-catalog-min for wider cards (a 375 phone canvas wants 420). */
+.lab-catalog {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(var(--lab-catalog-min, 280px), 100%), 1fr)
+  );
 }
 /* The tuner panel (motion-tuner.tsx sets data-lab-panel to its side and
    --lab-panel-w to its width while open): a wide page keeps its evidence

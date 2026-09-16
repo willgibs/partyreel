@@ -10,4 +10,4 @@
  * a notice everywhere. Bump BOTH when a rule the shell depends on changes;
  * lab-css-generation.test.ts keeps them equal.
  */
-export const LAB_CSS_GENERATION = 2;
+export const LAB_CSS_GENERATION = 3;
