@@ -57,14 +57,22 @@
    The top bar (top-bar.tsx) writes its height to --lab-topbar-h on <html>;
    the sidebar and the table of contents stick under it. lg: sidebar + content;
    xl: + the TOC rail. A wide page ([data-lab-wide], a board) drops the TOC
-   column always and the sidebar when the reading preference says so
-   (data-lab-sidebar, lab-prefs.ts), so a 1440 canvas has its room at 1:1. */
+   column always, so a 1440 canvas has its room at 1:1.
+
+   THE SIDEBAR TOGGLE WORKS ON EVERY PAGE (the sweep, 2026-09-16). It used to
+   collapse the sidebar only on a wide page, so the top bar's button (which is
+   on screen at every `lg` width) did nothing at all on a library page: it wrote
+   the preference, the grid ignored it, and a stranger read the control as
+   broken. One preference, one meaning, everywhere: `data-lab-sidebar`
+   (lab-prefs.ts) drops the sidebar column at `lg` on any page, and the table of
+   contents keeps its rail at `xl` because a wider measure is the point of
+   collapsing, not a wider rail. */
 .lab-shell {
   --lab-sidebar-w: 240px;
   --lab-toc-w: 200px;
   /* The stylesheet's generation, read by LabChrome to catch a browser holding
      an old copy of this file (lab-css-generation.ts holds the same number). */
-  --lab-css-generation: 3;
+  --lab-css-generation: 4;
 }
 .lab-shell-body {
   display: grid;
@@ -116,7 +124,11 @@
     display: none;
   }
 }
-.lab-shell-body:has([data-lab-wide]) .lab-toc {
+/* A wide page has no rail at any width, and no compact disclosure either: its
+   dock carries the Sections menu, and two jump controls for one list of
+   sections is one more than a reader needs (the sweep, 2026-09-16). */
+.lab-shell-body:has([data-lab-wide]) .lab-toc,
+.lab-shell-body:has([data-lab-wide]) .lab-toc-compact {
   display: none;
 }
 @media (min-width: 1280px) {
@@ -125,13 +137,19 @@
   }
 }
 @media (min-width: 1024px) {
-  html[data-lab-sidebar="collapsed"] .lab-shell-body:has([data-lab-wide]) {
+  html[data-lab-sidebar="collapsed"] .lab-shell-body {
     grid-template-columns: minmax(0, 1fr);
   }
-  html[data-lab-sidebar="collapsed"]
-    .lab-shell-body:has([data-lab-wide])
-    .lab-sidebar {
+  html[data-lab-sidebar="collapsed"] .lab-sidebar {
     display: none;
+  }
+}
+@media (min-width: 1280px) {
+  html[data-lab-sidebar="collapsed"] .lab-shell-body {
+    grid-template-columns: minmax(0, 1fr) var(--lab-toc-w);
+  }
+  html[data-lab-sidebar="collapsed"] .lab-shell-body:has([data-lab-wide]) {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 /* At 1:1 a wide page gives its stages the whole column, and a canvas or a
@@ -150,6 +168,27 @@ html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] {
 html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
   margin-left: 0;
   margin-right: 0;
+}
+/* THE BLEED REACHES THE WINDOW EDGE AND STOPS THERE (the sweep, 2026-09-16).
+   The rule above takes back a 1rem gutter, which is the wide page's own; a
+   board that ALSO pulls its rows left (rounding's `.rnd-wide` widens by
+   --rnd-grow-left) stacks its pull on top and the whole DOCUMENT scrolled
+   sideways by the difference, which is the one kind of sideways scroll a board
+   must never cause. The shell holds that promise here rather than asking every
+   board to know about it. `clip`, never `hidden`: a clip container is not a
+   scroll container, so the dock and the sidebar keep sticking to the window.
+
+   ★ THE @supports IS LOAD-BEARING, not a capability check. A bare
+   `overflow-x: clip` is DROPPED by the build's CSS pipeline (Lightning CSS
+   cannot downlevel the value for the configured targets, so it deletes the
+   declaration and then the empty rule); the same rule with `hidden` survives.
+   Inside `@supports` the block is passed through untouched, and every browser
+   this lab is read in supports `clip`. Check the compiled chunk, not the
+   source, before believing any lone modern value here. */
+@supports (overflow: clip) {
+  html[data-lab-fit="true"] .lab-content:has([data-lab-wide]) {
+    overflow-x: clip;
+  }
 }
 /* THE CATALOG GRID (the revamp, 2026-09-16): one card per candidate, as many
    across as fit. Unlayered on purpose: a lab-only `xl:grid-cols-4` in the
@@ -180,6 +219,32 @@ html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
    table-of-contents jump on a LIBRARY page put the heading behind the bar. */
 html:has(.lab-shell) {
   scroll-padding-top: calc(var(--lab-topbar-h, 48px) + 12px);
+}
+
+/* THE SKIP LINK (the sweep, 2026-09-16): off screen until it takes focus, then
+   a real control over the top bar. Plain CSS because the Tailwind pair for this
+   (`sr-only` + `focus-visible:not-sr-only`) breaks here: `not-sr-only` is used
+   nowhere in production, so it compiles only into `utilities.lab` and loses to
+   production's `sr-only` (the landmine at the head of this file). */
+.lab-skip {
+  /* Fixed, not absolute: shift-tabbing back to it from halfway down a long
+     doc has to put it on SCREEN, not at the top of the document. */
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  z-index: 50;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--foreground);
+  color: var(--background);
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  font-weight: 500;
+}
+.lab-skip:focus-visible {
+  left: 0.5rem;
+  top: 0.5rem;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 /* ─────────────────────────── The shell's disclosure ────────────────────────
