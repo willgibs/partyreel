@@ -8,7 +8,6 @@ owns:
   - docs/systems/
   - docs/SYSTEMS.md
   - docs/PRICING.md
-  - README.md
   - docs/specs/reel-v1.md
   - docs/perf/
   - docs/decisions/t1-
@@ -38,8 +37,8 @@ later change superseded gets nothing (the CHANGELOG and git hold it). The mappin
 0013 → `durability-backups.md`; 0019 → `profiles-social.md`; 0020 → `trust-safety-forensics.md`;
 0021, 0025 and 0023's billing rulings → `billing-caps.md` and `docs/PRICING.md`. Then sweep every
 "(ADR-00xx)" and `adr/` citation inside your lane (`docs/systems/`, `docs/SYSTEMS.md` loses its ADR
-column, `docs/PRICING.md`, `README.md` loses its ADR row) to the plain fact or a link to the system
-doc's section; delete `docs/adr/` whole. The same treatment for the rest of your lane: the five
+column, `docs/PRICING.md`) to the plain fact or a link to the system doc's section; delete
+`docs/adr/` whole (the root `README.md`'s ADR row is the Orchestrator's, dropped at the merge). The same treatment for the rest of your lane: the five
 `docs/decisions/t1-*` and `t2p5-marketing-ia.md` tombstones and `rpc-suite-blocked.md` (its two
 still-useful lines go in Handoff as ROADMAP one-liners, since the ROADMAP is the Orchestrator's);
 `docs/specs/reel-v1.md` (its settled scope and style catalog fold into `host-app.md`'s reel section,
