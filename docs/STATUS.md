@@ -29,7 +29,9 @@ is the loop, CLAUDE.md is 150 lines, the one-round manifest template, a manifest
 the record is two rounds deep and a test holds it, the 26 integrated manifests are gone, the 25 ADRs
 are folded into the system docs and every citation names the doc (`d4ec4cff`, `aea90fd3`); the
 Library's record pages and `docs/decisions/design-record.md` are gone (git keeps them); the four heavy
-system docs are stripped and every ★ audited (`0a48db70`). Round 2 is closed on the tree. **Round 3, the Library as the complete inventory**
+system docs are stripped and every ★ audited (`0a48db70`). Round 2 is closed on the tree. **The wind-down** (Will, mid-sitting): every board's favourites land in the Library as working versions
+and the board retires; a later exploration branches from an entry, never from an unselected board; the one
+exploration still owed is the home hero's stream catalog before its wiring. **Round 3, the Library as the complete inventory**
 (components, marketing sections and app screens with live previews, tokens; a review surface with
 keep / redesign / retire on every entry). **Round 4, the six paper boards rebuilt as catalogs**
 (brand-voice, type-scale, floating-surfaces, light, rounding, media-kit): cut at `385cfa99` on Will's

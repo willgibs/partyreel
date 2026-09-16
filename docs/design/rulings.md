@@ -8,6 +8,20 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-16 · the lab winds down into the Library; a favourite becomes a working version, never another tree of explorations
+
+**Became:** `docs/PROGRAM.md` "The round" (step 6) and "Every round gets Will's notes"; CLAUDE.md
+"Build"; the promote path is the priority of every sitting from here: a kept item lands in the
+Library as a working version and a board retires, and a later exploration branches from a Library
+entry rather than from a board that was never selected. The one exception he named: the home hero's
+stream gets a short catalog of polished treatments first, then the wiring.
+
+Verbatim: "let's do the catalog first to pick the best design then wire. However, for this existing
+desk work, let's make the overall goal to wind down the current lab work as we progress and pass our
+favorite ideas into the library, where they can be further branched into new explorations later but
+at least exist as a working version now. That way we don't accidentally branch this into infinite
+trees of track explorations, never actually selecting anything."
+
 ## 2026-09-16 · the home hero is the source, centred, without the count; the stream wants polish
 
 **Became:** `docs/reviews/home-hero.json` round 5 (`direction=source`, `headline=ruled`,

@@ -57,7 +57,10 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
    Orchestrator transcribes it (`pnpm lab:review`) and asks the follow-ups in chat.
 6. **Kept items are promoted**: the wiring round lands the component, section or screen, and its
    Library entry appears with a `new` badge, its preview, its variants and its contracts; the
-   catalog card links to it; killed items leave with the board; refined ones are the next brief.
+   catalog card links to it; killed items leave with the board; a refined one is refined INSIDE the
+   wiring round, not in another exploration. **The lab winds down into the Library** (Will,
+   2026-09-16): a sitting ends in promotion, a board retires once its favourites are working versions,
+   and a later exploration branches from a Library entry, never from a board nobody selected.
    **Never a second round of the same work without his notes between.**
 7. **The record is what is active**: the manifest is deleted in the merge commit, its Record joins
    the round's CHANGELOG entry, STATUS is replaced, the Library and the desk show the live state;
@@ -181,6 +184,9 @@ the question needs (a voice on two dozen real spots; scales on real UI).
 No second round of the same work is cut without his notes on the first (Will, 2026-09-16: agents
 run two and three rounds unattended "made research papers out of their first round's work"). The
 notes come through the desk, one line, transcribed by the Orchestrator; the next brief quotes them.
+And the next brief is the wiring, not another exploration (Will, 2026-09-16: "wind down the current
+lab work as we progress and pass our favorite ideas into the library... that way we don't accidentally
+branch this into infinite trees of track explorations, never actually selecting anything").
 
 ### Prototype first, focused rounds
 
