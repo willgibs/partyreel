@@ -64,7 +64,7 @@ export const BRIDGE: readonly BridgePost[] = [
     cover: "party-balloons",
     crop: "50% 42%",
     candidate: "bridge-festival-dusk",
-    why: "A guide that ranks every event type wants the most general celebration we can name, not one vertical's decor.",
+    why: "A guide that ranks every event type wants the most general celebration we can name, not one kind of event's decor.",
   },
   {
     slug: "birthday-party-photo-sharing",
@@ -164,7 +164,7 @@ export const BRIDGE: readonly BridgePost[] = [
     cover: "festival-lights",
     crop: "22% 45%",
     candidate: "bridge-trip-silhouettes",
-    why: "A group in silhouette on a mirrored flat at sunset. Trips is the one vertical the free corpus covers well, because travel is what photographers give away.",
+    why: "A group in silhouette on a mirrored flat at sunset. Trips is the one kind of event the free corpus covers well, because travel is what photographers give away.",
   },
   {
     slug: "guest-album-for-photographers-and-planners",
@@ -244,7 +244,7 @@ export const BRIDGE: readonly BridgePost[] = [
     cover: "wedding-golden",
     crop: "78% 45%",
     candidate: "bridge-ceremony",
-    why: "A ceremony with guests in the pews, seen from the back of the aisle. A post written for the guest who just scanned should show the room the guest is standing in; the shoot answers it with T4, one of the three phone-up frames, which is the only place this sheet reaches outside a post's own vertical.",
+    why: "A ceremony with guests in the pews, seen from the back of the aisle. A post written for the guest who just scanned should show the room the guest is standing in; the shoot answers it with T4, one of the three phone-up frames, which is the only place this sheet reaches outside a post's own kind of event.",
   },
   {
     slug: "wedding-album-password",

@@ -1,7 +1,8 @@
 ---
 track: rounding
-status: open
-cut: "be1638f2"          # round 6, the clarity round, cut from launch-prep
+status: integrated
+cut: "d5f0c3c9"          # round 6, the clarity round, cut from launch-prep
+merged: "00a82408"      # the branch head merged into launch-prep
 cut_round_5: "c473707"
 merged_round_5: "31788b38"
 merged_round_3: "a32981a"
@@ -966,3 +967,138 @@ Merged into `launch-prep` at `<sha>` (2026-09-15). Will's note on the rounding b
 Part B is the app, which is behind a sign-in, served from a screen route of the lane's own so the production MasonryColumns, EventCard, Dialog, DropdownMenu and guest EntryShell each get a viewport of their own; part G is the four candidates at once at 375. The shell's new dock carries every page-wide switch. The hand-written floating specimens and the whole compositions file went with the change.
 Three findings stopped being sentences and became things to look at, all measured in the running pages: the production entry sheet draws 22.4px today, 11.2 under quiet and 1398.6px under the pill, which the browser clamps to a half circle; the real dialog and menu both measure the 8px float token, portalled into the canvas; and on the live demo album at candidate D the guest masonry draws 6px tile corners inside the literal 3px gap it hard-codes, which is four corners meeting in three pixels on the one grid every guest sees.
 The walk found three faults and fixed them: a bordered frame handed the iframe a 1438px viewport under a caption reading 1440, the shell's non-wrapping Toggle took the page into a 131px horizontal scroll at 375, and a server component cannot read a constant out of a client module. The board still answers C (8 / 12 / 4), today's action rung, the quarter ladder, drop the dead rungs and pin the gap.
+
+
+## Handoff (round 6, the clarity round)
+
+- **Head `e04f1eef`**, the merge of `origin/launch-prep` into this round's one
+  code commit `ec3be86e` (the manifest commit follows it), pushed to
+  `origin/lp/rounding`. **No preview and no `[ci]`**: `preview: false` above,
+  and the round's review surface is a local `pnpm dev` on `launch-prep` after
+  integration. The board is `/design/lab/rounding?key=`; the marker of this
+  round in the rendered HTML is the ask **"Which corner should cards, menus and
+  photographs have?"** and the dock reading **"Surfaces: A, today | B, square |
+  C, soft | D, one family | Live, from the tuner"**.
+- **Synced.** `origin/launch-prep` had moved five commits to `1244fbd8`
+  (glow-specs integrated); merged, never rebased, at `e04f1eef`. The expected
+  conflict in `registry.test.ts` did not materialise: both sides deleted
+  adjacent lines from `PLAIN` and git took all three, so the list now stands at
+  eight boards with `glow-doctrine`, `glow-moments` and `rounding` gone. Checked
+  by eye after the merge.
+- **The gate on the synced tree, each step on its own exit code**, with the dev
+  server stopped and nothing else running: `pnpm typecheck` 0 · `pnpm lint` 0
+  (6 warnings, all pre-existing, 0 errors) · `pnpm test` 0 (218 files, 2153
+  tests) · `pnpm build` 0 (257 static pages, after `rm -rf .next/dev`).
+  `pnpm format` ran on the changed files.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`):
+
+  ```
+  src/app/(dev)/design/sandbox/registry.test.ts
+  src/app/(dev)/design/sandbox/rounding/board.tsx
+  src/app/(dev)/design/sandbox/rounding/candidates.ts
+  src/app/(dev)/design/sandbox/rounding/frames.tsx
+  src/app/(dev)/design/sandbox/rounding/screen-ids.ts
+  src/app/(dev)/design/sandbox/rounding/screens.tsx
+  src/app/(dev)/design/sandbox/rounding/spec.ts
+  ```
+
+  The one file outside `owns` is `registry.test.ts`, and it is the deletion the
+  round's brief names: this board's line is gone from `PLAIN`, so the clarity
+  ratchet now checks its shape. Nothing else in that file was touched.
+- **No migrations, no config changes, no assets requested.** No candidate,
+  number or recommendation moved, and no new evidence was built.
+
+### The five asks, as they now read
+
+1. **"Which corner should cards, menus and photographs have?"** ·
+   *A, today: 2 / 8 / 3* | *B, square: 0 / 6 / 0* | **C, soft: 8 / 12 / 4** |
+   *D, one family: 14 / 14 / 6*
+2. **"How round should buttons be?"** · **Today, 0.4 of the height** |
+   *A full pill* | *Quiet, 0.2 of the height*
+3. **"Which sizes should the seven corner steps climb in?"** ·
+   *The steps as they are today* | **Even quarters, 0.5 up to 2**
+4. **"Should the two largest corner steps be deleted?"** ·
+   *Keep all seven steps* | **Drop the top two steps**
+5. **"Should the gap between photographs follow their corner?"** ·
+   **Pin the gap to the photograph's corner** | *Leave the 3px gap as it is*
+
+The recommendation is bold, and every one of those words is now on the evidence
+as well as on the pill: the part C matrix headings, the part D nested heads, the
+two part E ladder columns, the part F rungs, the four part G phone titles, the
+part A and B frame captions, and the gap screen's two grids.
+
+### What changed under the words
+
+- **The surface candidates are `a | b | c | d` everywhere.** The asks always
+  spoke letters and the dock, the board state and `candidates.ts` spoke
+  `today | square | soft | family`, so the word on the pill was never the word
+  on the column and a ruling of "c" pointed at nothing a reader could flip to.
+  The ids the ledger joins on did not move; the control's did, which is what the
+  brief asked for. **Nothing had answered this board yet** (`docs/reviews/` holds
+  no `rounding.json`), so no recorded answer was orphaned, and `pnpm lab:review`
+  now refuses a stale `surfaces=soft` by name: *"soft" is not an option of
+  rounding.surfaces (a, b, c, d)*.
+- **`ANSWER.lines` in `candidates.ts` was deleted.** It was a hand-written
+  second copy of the five asks from before the template rendered them from the
+  spec, nothing had read it since, and two copies of one answer is the drift the
+  spec exists to end. `ANSWER` keeps the three values the rail and the Apply
+  button read.
+- **Jargon that was load-bearing got its gloss and the rest went.** "The rail"
+  is glossed once in part A's lede and left in the captions it names; the button
+  rows say "44px (h-11), the marketing button" rather than "h-11, the CTA"; the
+  dock's switches are "Buttons", "Corner steps" and "Window width".
+
+### Verified (local `pnpm dev` on :3317 in this worktree, then stopped)
+
+- Every label and every question pulled back out of the rendered board HTML by
+  hand: 22 of 22 present.
+- **The desk, read cold** (`/design/lab?session=rounding.surfaces` and
+  `…=rounding.gap`): the step shows the question, the context, "Where to look",
+  the "Open C. Every corner this ruling moves" link, and each option numbered
+  with its label and its `means` line. That is the test the round exists for.
+- `pnpm lab:smoke --base http://localhost:3317 --key …`: **324 checks, 0
+  failing.**
+- `pnpm lab:review --dry` accepted one clause an ask
+  (`surfaces=c; actions=today; ladder=quarters; dead-rungs=drop; gap=pinned`),
+  refused a stale token by name, and accepted `surfaces=? "…"` with its note.
+- **The board at 1440 and at 375** in one foreground tab, closed straight after:
+  the dock's longer labels wrap onto their own rows at 375 with nothing clipped
+  and no horizontal scroll, and the ask cards read cleanly at both widths. No
+  motion, animation or CSS was touched this round, so reduced motion is
+  unchanged from round four.
+
+### Three asks the words alone could not finish (for the kit lane)
+
+1. **The board's own answer block does not show `context` or `look`.**
+   `src/components/lab/answer.tsx` renders the question, the option labels (the
+   `means` line only as a `title` tooltip) and the `because`; so does
+   `review.tsx`. Only the desk's session renders the new fields. A reviewer who
+   meets an ask ON the board therefore still meets it without its context, which
+   is half of what this wave was for. **Kit need, not ours to fix.**
+2. **The review card cannot land the `gap` ask on its evidence.** Its evidence
+   is part B's *The gap* screen, and the App screen picker is deliberately board
+   local and out of the URL (round four's decision, with its reason in
+   `board.tsx`), so `state` cannot set it and the `look` line has to say "set App
+   screen to The gap in the dock". Declaring it a board control would land it in
+   one click but would overturn another round's deliberate call, so it was left
+   alone. Also: the desk's evidence link (`toSteps` in the lab page) carries the
+   anchor and the key but not the ask's `state` at all yet.
+3. **The `surfaces` ask cannot mirror its own dock control.** The control
+   carries a fifth position the ask does not offer (Live, the tuner's own
+   values, which is a real mode the board uses), and the kit's contract requires
+   the two id sets to match exactly. `control` is left unset, as the brief
+   allows, so picking A/B/C/D on the card does not preview it for this one ask.
+   A kit that let a control carry positions outside the ask would close this.
+
+One further honest limit, and it is the board's rather than the kit's: **"Should
+the two largest corner steps be deleted?" cannot be SEEN.** Its whole argument is
+a use count printed in a table (one use, and two), so a reviewer judges a number,
+not a picture. Making it plainer than it now is would need evidence this round
+was told not to build.
+
+## Record (round 6; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-16). Will's first review through the desk answered three asks on the light board and stopped at two that were a label over four tokens, so the clarity wave rewrote every board's asks in plain words; this was the rounding board's turn. Its five asks had been labels ("The surface family", "The action rung", "The derived ladder") over option ids nobody could read away from the board, and the worst of it was that the ids did not even match what the board showed: the asks offered a, b, c and d while the dock, the board state and candidates.ts offered today, square, soft and family, so a ruling of "c" pointed at nothing a reviewer could flip to.
+Each ask is now a question a stranger can answer where they meet it, on the desk or on the card: what the thing is and where it lives on the site, where to look and what to compare, and every option named in words with one line on what choosing it does. "Which corner should cards, menus and photographs have?" offers A, today: 2 / 8 / 3 through D, one family: 14 / 14 / 6; "How round should buttons be?" offers Today, 0.4 of the height, A full pill and Quiet, 0.2 of the height; the seven derived steps became "Which sizes should the seven corner steps climb in?", the dead rungs "Should the two largest corner steps be deleted?", and the gallery gap "Should the gap between photographs follow their corner?".
+The same words then went onto the evidence, which is the half that makes an ask answerable: the four candidates are called a, b, c and d everywhere now, so the matrix headings, the nested heads, the two ladder columns, the button rungs, the four phone titles, the frame captions and the gap screen's two grids all carry the option's own name. candidates.ts lost ANSWER.lines, a hand-written second copy of the five asks from before the template rendered them from the spec.
+No candidate, number or recommendation moved and no new evidence was built. Nothing had answered this board yet, so no recorded ruling was orphaned by the rename, and lab-review now refuses a stale token by name. The board came off the clarity ratchet's PLAIN list, which only shrinks. The board still answers C, soft, today's buttons, even quarters, drop the top two steps and pin the gap.

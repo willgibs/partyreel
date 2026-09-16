@@ -20,6 +20,13 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **Boards that should become catalogs in their next round** (the clarity round, 2026-09-15; the
+  palette board is the first): type-scale's sixteen ladder pairs, floating-surfaces' three directions
+  and rounding's four families each as a row of polished, named cards with demo UI to pick from, the
+  argument collapsed under them.
+- **The review card at 375 as a sheet** (the `lab-review-card` track, 2026-09-15): the card is static on
+  a phone; a bottom sheet that keeps the question and the picked option in view while the evidence
+  scrolls is the phone-native version.
 - **The kit's next two pieces, both written and working in `sandbox/brand-voice/frames.tsx`** (the
   `brand-voice` migration, 2026-09-15): `height="measured"` on `Frame` (a callback ref observing the
   portalled scene with the frame's own ResizeObserver, the `fonts` chain guarded on an about:blank

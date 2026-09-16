@@ -460,7 +460,7 @@ const HEIGHTS: {
   radius: (a: ActionRung) => number;
 }[] = [
   {
-    label: "h-8, the default",
+    label: "32px (h-8), the default",
     where: "every Button in the app, on --radius-action-sm",
     px: 32,
     token: "var(--radius-action-sm)",
@@ -468,7 +468,7 @@ const HEIGHTS: {
     radius: (a) => a.values.sm,
   },
   {
-    label: "h-9, size lg",
+    label: "36px (h-9), size lg",
     where: "0.9 x --radius-action",
     px: 36,
     token: "calc(var(--radius-action) * 0.9)",
@@ -476,7 +476,7 @@ const HEIGHTS: {
     radius: (a) => a.values.action * 0.9,
   },
   {
-    label: "h-10",
+    label: "40px (h-10)",
     where: "--radius-action itself. The reel's buttons and the footer CTA",
     px: 40,
     token: "var(--radius-action)",
@@ -484,7 +484,7 @@ const HEIGHTS: {
     radius: (a) => a.values.action,
   },
   {
-    label: "h-11, the CTA",
+    label: "44px (h-11), the marketing button",
     where: "size lg plus a className, in 26 files. Every marketing CTA",
     px: 44,
     token: "calc(var(--radius-action) * 0.9)",
@@ -492,7 +492,7 @@ const HEIGHTS: {
     radius: (a) => a.values.action * 0.9,
   },
   {
-    label: "h-12",
+    label: "48px (h-12)",
     where: "--radius-action-lg. One call site, the reel builder, at h-11",
     px: 48,
     token: "var(--radius-action-lg)",
@@ -643,7 +643,10 @@ export function RoundingBoard() {
   // every frame on the page: what a frame wears and what a ruling pastes can
   // therefore never disagree.
   const railCss = surface.values ? blockFor(surface, action, ladder) : "";
-  const railLabel = `${surface.letter}, ${action.name.split(",")[0].toLowerCase()} actions${ladder === "quarters" ? ", quarter ladder" : ""}`;
+  // ★ THE LABEL IS THE OPTIONS' WORDS (the clarity round). It captions every
+  // frame on the board, so it says "C, soft, today's buttons" rather than a
+  // letter and an id a reader would have to map back to an ask.
+  const railLabel = `${surface.name}, ${action.short}${ladder === "quarters" ? ", even quarters" : ""}`;
   const todayCss = blockFor(today, todayRung, "stock");
   const route = ROUTES.find((r) => r.id === routeId) ?? ROUTES[0];
   const w = FRAME_W[mode];
@@ -691,14 +694,14 @@ export function RoundingBoard() {
         />
       </div>
       <Proposal>
-        The home arc is where the four groups meet, and it is the one place the
+        The home page is where all four groups meet, and it is the one place the
         ruling can be judged as a whole: a card corner at the chapters, a
-        photograph corner in the film strip, a plan card at the band, and a CTA
-        at every one of them. Take it at 1440 and then at 375 with the dock, on
-        C, and the second read is the one that settles the tile. Then take the
-        guest album on D: the tiles come up to 6px and the gap stays at the 3px
-        its masonry hard-codes, which is the round&apos;s worst finding drawn by
-        the real page rather than argued about.
+        photograph in the film strip, a plan card at the band, and a button
+        under every one of them. Take it at 1440 and then at 375 on C, soft, and
+        the second read is the one that settles the photograph. Then take the
+        guest album on D, one family: the photographs come up to 6px while the
+        gap stays at the 3px the album hard-codes, which is the round&apos;s
+        worst finding drawn by the real page rather than argued about.
       </Proposal>
     </>
   );
@@ -734,14 +737,15 @@ export function RoundingBoard() {
         />
       </div>
       <Proposal>
-        The gap screen is the round&apos;s worst finding and it is not a
-        candidate: the guest gallery writes its column gap as a literal 3px in
-        three files while its tiles ride the token, so every candidate above a
-        3px tile opens corner holes on the one grid every guest sees. The door
-        screen is the second: the entry sheet takes its top corners from the
-        ACTION token at 1.4x, so the action rung, not the floating rung, decides
-        the shape of the first surface any guest meets. Put the rail on the pill
-        and look at it.
+        The gap screen is the round&apos;s worst finding, and it is not a
+        candidate: the guest album writes its gap as a fixed 3px in three files
+        while the photographs take their corner from the token, so any corner
+        above 3 opens holes on the one grid every guest sees. That is the
+        question &quot;Should the gap between photographs follow their
+        corner?&quot;, drawn rather than argued. The door screen is the second
+        finding: the sheet a guest meets first takes its top corners from a
+        BUTTON, at 1.4 times its corner. Set Buttons to A full pill and look at
+        it.
       </Proposal>
     </>
   );
@@ -765,10 +769,15 @@ export function RoundingBoard() {
               className="flex w-[15rem] flex-col gap-2"
             >
               <p className="text-sm font-medium">
-                {c.id === today.id ? "Today" : "The answer"}
+                {c.name}
                 <span className="ml-1.5 text-muted-foreground tabular-nums">
                   {c.values!.radius} / {c.values!.float} / {c.values!.tile}
                 </span>
+                {c.id === ANSWER.surface ? (
+                  <span className="ml-1.5 rounded-action-sm bg-foreground px-1.5 py-0.5 text-[10px] font-medium text-background">
+                    the answer
+                  </span>
+                ) : null}
               </p>
               <SurfaceSpecimen
                 radius={c.values!.radius}
@@ -811,7 +820,7 @@ export function RoundingBoard() {
             {CANDIDATES.map((c) => (
               <div key={c.id} className="flex flex-col gap-1.5">
                 <p className="text-sm font-medium">
-                  {c.letter}
+                  {c.name}
                   <span className="ml-1.5 text-muted-foreground tabular-nums">
                     {c.values!.radius} / {c.values!.float} / {c.values!.tile}
                   </span>
@@ -832,7 +841,7 @@ export function RoundingBoard() {
                     applyToSite(c, action, next);
                   }}
                 >
-                  Take {c.letter} to the rail
+                  Put {c.name} on the pages
                 </Button>
               </div>
             ))}
@@ -885,12 +894,12 @@ export function RoundingBoard() {
       </div>
 
       <Proposal>
-        The board lands on C for the surfaces. A is a corner nobody can see,
-        which makes the sharp half of bible 8 a claim rather than a look; B is
+        The board lands on C, soft. A, today is a corner nobody can see, which
+        makes the sharp half of bible 8 a claim rather than a look; B, square is
         the honest version of that claim and reads like a spreadsheet next to
-        photographs; D gives up the contrast the law exists for. C keeps the
-        contrast at two to one, which is enough to read, and lets a card have a
-        corner.
+        photographs; D, one family gives up the difference between a surface and
+        a button that the law exists for. C keeps that difference at two to one,
+        which is enough to read, and lets a card have a corner.
       </Proposal>
     </>
   );
@@ -903,7 +912,7 @@ export function RoundingBoard() {
           className="flex flex-col gap-3"
         >
           <p className="text-sm font-medium">
-            {surface.letter}
+            {surface.name}
             <span className="ml-1.5 text-muted-foreground tabular-nums">
               base {px(base)}, card at {cardMultiplier(ladder)}x ={" "}
               {px(stepValue(base, ladder, "xl"))}
@@ -945,7 +954,7 @@ export function RoundingBoard() {
                 data-rnd-ladder={ladder}
                 className="min-w-0"
               >
-                <p className="mb-2 text-sm font-medium">{c.letter}</p>
+                <p className="mb-2 text-sm font-medium">{c.name}</p>
                 <NestedSpecimen
                   radius={c.values!.radius}
                   outerMultiplier={cardMultiplier(ladder)}
@@ -972,10 +981,10 @@ export function RoundingBoard() {
           <div className="grid min-w-[44rem] grid-cols-[3rem_minmax(0,11rem)_minmax(0,11rem)_1fr] items-center gap-x-4 gap-y-4">
             <CellLabel className="font-medium text-foreground">Step</CellLabel>
             <CellLabel className="font-medium text-foreground">
-              Stock, at {px(base)}
+              The steps as they are today, at {px(base)}
             </CellLabel>
             <CellLabel className="font-medium text-foreground">
-              Quarters, at {px(base)}
+              Even quarters, at {px(base)}
             </CellLabel>
             <CellLabel className="font-medium text-foreground">
               Where it lands
@@ -1019,7 +1028,9 @@ export function RoundingBoard() {
                     <CellLabel>
                       {site.uses} {site.uses === 1 ? "use" : "uses"}:{" "}
                       {site.where}
-                      {dead ? ". A candidate for deletion." : ""}
+                      {dead
+                        ? '. One of the two "Drop the top two steps" removes.'
+                        : ""}
                     </CellLabel>
                   </div>
                 </div>
@@ -1029,10 +1040,10 @@ export function RoundingBoard() {
         </div>
       </div>
       <Proposal>
-        Quarters, and delete the top two rungs. rounded-3xl has one call site
-        and rounded-4xl has two, one of which is the Badge, which wants a pill
-        and should say so with rounded-full rather than borrowing 2.6x of a base
-        that is about to move.
+        Even quarters, and drop the top two steps. The largest step but one has
+        a single use in the product and the largest has two, one of which is the
+        Badge, which wants a full pill and should say so rather than borrowing
+        2.6 times a card corner that is about to move.
       </Proposal>
     </>
   );
@@ -1128,13 +1139,13 @@ export function RoundingBoard() {
         </div>
       </div>
       <Proposal>
-        Today&apos;s rung, and give the CTA a real size. The pill is a different
-        product and quiet gives up the second half of bible 8; what is actually
-        broken is that the loudest action on the site is an ad-hoc h-11 with a
-        className, and that a sheet is wearing a button&apos;s token. The ruling
-        should add a cta size to the Button (h-11 at 1.1 x --radius-action),
-        retire --radius-action-lg, and move the entry sheet onto the floating
-        layer.
+        Today, 0.4 of the height, and give the marketing button a real size. A
+        full pill is a different product, and Quiet, 0.2 of the height gives up
+        the second half of bible 8. What is actually broken is that the loudest
+        button on the site is a 44px one assembled by hand, and that a sheet is
+        wearing a button&apos;s corner. The ruling should add a cta size to the
+        Button (44px at 1.1 x --radius-action), retire --radius-action-lg, and
+        move the entry sheet onto the floating layer.
       </Proposal>
     </>
   );
@@ -1153,11 +1164,11 @@ export function RoundingBoard() {
         )}
       </div>
       <Proposal>
-        The phone is what settles the tile. On the guest canvas A&apos;s 3px
-        disappears into the gap and D&apos;s 6px, with the 6px gap it pins,
-        takes a visible slice out of every photograph at the width a guest
-        actually holds. That is the second argument for C: at 4px the corner
-        still reads and the image keeps its edges.
+        The phone is what settles the photograph. At the width a guest actually
+        holds, A, today&apos;s 3px disappears into the gap, and D, one
+        family&apos;s 6px, with the 6px gap it pins, takes a visible slice out
+        of every photograph. That is the second argument for C, soft: at 4px the
+        corner still reads and the image keeps its edges.
       </Proposal>
     </>
   );
@@ -1273,7 +1284,7 @@ function PhoneRow({
           w={CANVAS.phone.w}
           h={CANVAS.phone.h}
           css={blockFor(c, action, c.wants ?? ladder)}
-          title={`${c.letter}, ${c.values!.radius} / ${c.values!.float} / ${c.values!.tile}`}
+          title={`${c.name}: ${c.values!.radius} / ${c.values!.float} / ${c.values!.tile}`}
           caption={c.phone}
           reloadKey={reloadKey}
         />

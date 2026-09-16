@@ -1,7 +1,8 @@
 ---
 track: media-kit
-status: open
-cut: "be1638f2"          # round 6, the clarity round, cut from launch-prep
+status: integrated
+cut: "d5f0c3c9"          # round 6, the clarity round, cut from launch-prep
+merged: "f5a74fbd"      # the branch head merged into launch-prep
 cut_round_5: "1b647d7"
 merged_round_5: "df8d6afb"
 merged_round_4: "b399c354"
@@ -1307,3 +1308,166 @@ Two guards were repaired on the way: the review ledger could not read a spec who
 is followed by a named import, and refused every ruling on this board until its numbers came through one
 brace-free import; and the JSX count guard named two files when the board is four, which hid a real
 glued count. No candidate, number or recommendation changed, and no production byte.
+
+## Handoff (round 6)
+
+- Head: the tip of `lp/media-kit`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot name
+  its own commit). Two commits change what the board says, `4512c868` (the asks and the evidence) and
+  `e9fa97bf` (the last nickname); `db1d6f99` merged `launch-prep` between them and the commit after them
+  is this record. No preview: the round's review surface is a local `pnpm dev` on `launch-prep` after
+  integration, so no push carries `[preview]` or `[ci]`.
+- Synced with `launch-prep` at `8020075` (it had moved ten commits past the cut at `d5f0c3c9`:
+  `glow-specs` and `brand-voice` integrated). The expected adjacent-deletion conflict in
+  `registry.test.ts` did not materialise; git took every side's deletions and `PLAIN` now reads
+  `album-hero, floating-surfaces, home-hero, palette, river-visual, rounding, type-scale`, which is
+  round five's list minus this board and minus the three that landed with the merge. Read by eye.
+- Gates on the synced tree, each on its own exit code, re-run after the last pass: typecheck ok, lint ok
+  (0 errors, 6 warnings, all pre-existing and none in this lane), test ok (2155 in 218 files; this
+  track holds 79 across eight suites), build ok (257 static pages). `pnpm format` run on the changed
+  files. `pnpm lab:smoke --base http://localhost:3417`: 324 checks, 0 failing.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/media-kit.md` and eight
+  files under `src/app/(dev)/design/sandbox/media-kit/` (`bridge.ts`, `decision.test.ts`, `parts.tsx`,
+  `plan.ts`, `sheet.tsx`, `shoot.ts`, `sources.ts`, `spec.ts`), plus **the one exception the brief
+  names**: one line deleted from `PLAIN` in `src/app/(dev)/design/sandbox/registry.test.ts`, which is
+  otherwise untouched. No production byte changed, and `docs/specs/media-kit.md` and
+  `public/design/media-kit/` are as round five left them.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+
+### The four asks, as they now read
+
+Every id is round five's; only the words changed, so the ledger joins on them exactly as before.
+
+1. `rule` · **"Should every photograph on the site have to say where it came from?"**
+   `yes` = "Yes, require the six facts" · `no` = "No, leave the entries as they are"
+2. `spend` · **"Should we spend $56 on licensed photographs to run on until we shoot our own?"**
+   `buy` = "Buy the $56 set now" · `hold` = "Wait for the shoot, spend nothing"
+3. `crowds` · **"In a crowd shot, does every face need signed permission, or only the subject?"**
+   `subjects` = "Only the frame's subject" · `all-faces` = "Every recognisable face"
+4. `kit` · **"Should we shoot the 36 photographs ourselves at a real event?"**
+   `shoot` = "Shoot the 36 in one night" · `park` = "Park the shoot for now"
+
+Each carries a `context` that says what the thing is without a nickname (what a manifest entry is and
+what all twelve say today; what the stopgap actually buys, at $20 a month plus 3 frames at $12; what a
+model release is and why a crowd has one subject and dozens of faces behind it; what a night at an
+event we host produces), a `look` that names the section by its new title and the dock switch to set,
+and a `means` line per option saying what picking it does. `crowds` carries `state` so the review card
+lands with the sheet already filtered to corporate and conferences, which is the gap the ruling turns
+on. No ask mirrors a dock control: the three switches the dock carries (kind of event, route, geometry)
+are not what any of the four questions decides, so none takes a `control`.
+
+### The evidence carries the same words
+
+The `look` line sends a stranger to a section that repeats the option he was offered, the way the light
+board's columns do:
+
+- **The plan** (the `spend` question): the table is headed "Buy the $56 set now" and the list under it
+  "Wait for the shoot, spend nothing" (with the honest note that its fourth line answers the other three).
+- **The six facts on every entry** (`rule`): both cards are headed "Yes, require the six facts", and the
+  line above the fields is "No, leave the entries as they are: an entry on the site today says only
+  'unsplash (per lab-pack comment; provenance unverified)', and nothing else."
+- **Where to get them, ranked** (`crowds`): a caption under the sheet's intro asks the question in the
+  options' own words and says which cards each answer moves; the release badges read "Permission
+  signed" / "Permission per photograph" / "No permission signed" rather than the trade's "Releases
+  held"; and the Web Summit and Flickr verdicts name the two answers instead of "ask 3".
+- **The shoot, frame by frame** (`kit`): headed "Shoot the 36 in one night", and every group's caption
+  says what "Park" keeps instead ("6 frames to shoot. Park the shoot and this one keeps the 7 it has on
+  the site today").
+
+### The nicknames that left the surface
+
+- **"Ask 3" and "ask 1"** were on five rendered strings (the sheet's divider, the Web Summit and Flickr
+  verdicts, the CC BY licence note, the plan's corporate fallback, the bridge's barred-posts line). A
+  reviewer meeting one of those on the desk cannot resolve a number into a question, so each now says
+  what that question asks. `decision.test.ts` refuses the shorthand coming back in any rendered string.
+- **"A vertical"** is trade shorthand for a market segment AND this board's own word for a portrait
+  clip, three rows apart. Every segment use in a string a reviewer reads is "a kind of event" now,
+  including the dock control's label; the portrait sense is untouched (the vertical films, the eight
+  vertical clips, a master whose subject is vertical).
+- **"A model release"** is glossed once, in the `crowds` context, as the signed permission the person in
+  the frame gives, and the badges and verdicts use the plain phrase from there on.
+- **"The sourcing rule", "the bridge", "the release rule", "the kit shot in one night"**: the four
+  nicknames the brief named are gone as labels. Each is now the question itself plus the context that
+  says what it is.
+
+### The board around them
+
+The board's own question, the verdict and all eleven section titles and ledes are in the same words. The
+titles that were nicknames became what the section shows: "The sourcing sheet" is "Where to get them,
+ranked", "In the geometry it lands in" is "At the real size, on the real page", "The kit, as a call
+sheet" is "The shoot, frame by frame", "The record, prototyped" is "The six facts on every entry", "The
+gap, by vertical" is "What the free libraries do not have", and "The bridge, post by post" is "Every
+blog post, with what would replace its photo". `round.n` is still 5 (the ledger's round guard reads it);
+`round.changed` says the questions were rewritten.
+
+### Nothing was re-argued
+
+No candidate, number, price or recommendation moved, no specimen was added or removed, and every count
+and price is still interpolated from `facts.ts`. The suite that guards it got wider rather than
+narrower: `decision.test.ts` now scans the WHOLE ask card (question, context, look, every option label
+and `means`, because, overrule) for a digit the batch does not compute, where it used to scan only the
+question and the `because`, and it strips "question N" the way it stripped "ask N".
+
+### Verified
+
+- The desk's session read cold on each of the four (`/design/lab?session=media-kit.<ask>`), at 1440 and
+  at 375: the question, the context, "Where to look" with its link to the section, both options numbered
+  and labelled with their `means` line, the board's recommendation badged, and "This question is not
+  clear to me" as the third answer.
+- The board at 1440 and at 375 on a local `pnpm dev` (port 3417): every evidence section shows the
+  options' words, the two new headings hold one line at 375, and no rendered string matches `ask \d`.
+- The review ledger on the merged tree: `pnpm lab:review --dry 'review media-kit r5: rule=yes;
+  spend=buy; crowds=subjects; kit=shoot'` records four. A wrong option is refused naming the real ones
+  (`"all" is not an option of media-kit.crowds (subjects, all-faces)`), and `crowds=?` is refused
+  without a note. The clauses are separated by `;`, not `,`: the brief's example line uses commas and
+  the parser wants semicolons between entries.
+- Reduced motion: unchanged and still honoured. This round adds no keyframe and no transition; the
+  board mints none, and the develop beat it borrows from `marketing.css` settles outside the
+  `prefers-reduced-motion: no-preference` block.
+- A question I could not make plain without new evidence: **none of the four**. The one that came
+  closest is `crowds`, because the board cannot SHOW the difference between the two answers (the two
+  option labels sit on the cards and the divider, but a frame that would become legal under "Only the
+  frame's subject" is a frame we do not hold a licence to stage). It is answerable from the words, and
+  the sheet says which cards move; a board that wanted to show it would need a licensed crowd frame,
+  which is what the spend question is for.
+
+### Asks of another lane (no agent edits these; the exact patch)
+
+1. **`src/components/lab/answer.tsx` renders neither `context` nor `look`.** The ask card on the board
+   shows the question, the option labels (with `means` only as a `title` tooltip, which no touch device
+   has) and `because`. The two fields this whole round exists to add reach a reviewer ONLY through the
+   desk's session and the review card. A reviewer who walks the board instead of the session still meets
+   the round-five ask. Suggested: render `context` collapsed under the question and `look` as its own
+   line, and put `means` under the label rather than in a `title`. The kit lane's call, but every board
+   in this wave is writing text that two of its three surfaces drop.
+2. **`scripts/lab-review.mjs` finds the board object as the first `{` after the first `defineBoard`**,
+   so a spec with a named import under that line loses its ledger silently. Round five worked around it
+   by routing every number through one brace-free import (`facts.ts`); the fix is to match
+   `defineBoard(` rather than `defineBoard`. Still open, still load-bearing for this board.
+
+### Assets requested from Will
+
+Unchanged from round five in substance and wording; the `assets` block in `spec.ts` is the single source
+and the Orchestrator folds it. One word moved: row 7 reads "six per kind of event" rather than "six per
+vertical".
+
+## Record (round 6; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-16). Will's first review through the desk answered three
+asks and stopped at two that were labels with token options, so the media-kit board's four questions
+were rewritten as questions a stranger can answer where he meets them. "The sourcing rule" is "Should
+every photograph on the site have to say where it came from?"; "the bridge" is "Should we spend $56 on
+licensed photographs to run on until we shoot our own?"; "the release rule" is "In a crowd shot, does
+every face need signed permission, or only the subject?"; "the kit, shot in one night" is "Should we
+shoot the 36 photographs ourselves at a real event?". Each carries what the thing is, where to look and
+an option labelled in words with what picking it does, and every id is unchanged, so the ledger joins on
+them exactly as before. The evidence repeats those words: the plan table is headed "Buy the $56 set
+now" and the list under it "Wait for the shoot, spend nothing", both record cards say "Yes, require the
+six facts" with the line above the fields saying what "No" keeps, and the call sheet says "Shoot the 36
+in one night" while each group says what "Park" keeps instead. The nicknames left with them. "Ask 3"
+was on five rendered strings and a reviewer cannot turn a number into a question, so each says what it
+asks and a new guard refuses the shorthand; a model release is glossed once as signed permission and the
+sheet's badges read that way; and "a vertical", which this board also used for a portrait clip three
+rows down, is "a kind of event" everywhere the segment is meant. The board's question, verdict and all
+eleven section titles and ledes went the same way. Nothing was re-argued: no candidate, number, price or
+recommendation moved, every count is still computed from the batch, and the guard that pins that now
+reads the whole ask card rather than the question and the because.

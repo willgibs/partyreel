@@ -71,9 +71,9 @@ export const PLAN: PlanRow[] = [
     buy: "One month of Unsplash+, and download the whole kit inside it.",
     spend: UNSPLASH_MONTH,
     spendNote:
-      "The single month is the whole photographic spend for all five verticals, not for this one. It sits on the first row because a reviewer reads the first row.",
+      "The single month is the whole photographic spend for all five kinds of event, not for this one. It sits on the first row because a reviewer reads the first row.",
     fallback:
-      "Stocksy at $35 a frame for the one wedding photograph that carries a page. This is the vertical the corpus is already deepest in, so the fallback is about quality rather than coverage.",
+      "Stocksy at $35 a frame for the one wedding photograph that carries a page. This is the kind of event the corpus is already deepest in, so the fallback is about quality rather than coverage.",
   },
   {
     key: "birthdays",
@@ -91,18 +91,18 @@ export const PLAN: PlanRow[] = [
     sourceId: "istock",
     buy: `Budget ${HARD_FRAMES} frames at iStock Essentials for the conference rooms, on top of the month.`,
     spend: ISTOCK_FRAME * HARD_FRAMES,
-    spendNote: `${HARD_FRAMES} frames at $${ISTOCK_FRAME}. This is the vertical round three could not fill at all from the free corpus, and a curated premium library is thin on it too, so it is the one line worth paying per frame for.`,
-    fallback: `Web Summit's Flickr archive, free, ${WEBSUMMIT_CC.toLocaleString("en-US")} photographs under CC BY 2.0, if ask 3 rules that a crowd is not a subject and a credit line is acceptable. The catalogue is far better than anything the money buys; the licence is worse.`,
+    spendNote: `${HARD_FRAMES} frames at $${ISTOCK_FRAME}. This is the kind of event round three could not fill at all from the free corpus, and a curated premium library is thin on it too, so it is the one line worth paying per frame for.`,
+    fallback: `Web Summit's Flickr archive, free, ${WEBSUMMIT_CC.toLocaleString("en-US")} photographs under CC BY 2.0, if question 3 answers "Only the frame's subject" and a credit line is acceptable. The catalogue is far better than anything the money buys; the licence is worse.`,
   },
   {
     key: "festivals",
     label: VERTICAL_LABEL.festivals,
     sourceId: "unsplash-plus",
-    buy: "The same month. This is the vertical the free corpus already covers, so nothing extra is bought.",
+    buy: "The same month. This is the kind of event the free corpus already covers, so nothing extra is bought.",
     spend: 0,
     spendNote: "Covered by the month above.",
     fallback:
-      "The 22 CC0 frames already staged under public/design/media-kit/, which fill this vertical better than any other. They stay a bridge, never a ship.",
+      "The 22 CC0 frames already staged under public/design/media-kit/, which fill this kind of event better than any other. They stay a bridge, never a ship.",
   },
   {
     key: "trips",

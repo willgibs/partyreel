@@ -25,6 +25,21 @@ import { defineBoard } from "@/components/lab/board-spec";
  * this board ever put them on. So the single ask here is WHERE it closes, and
  * the answer block says the board is otherwise waiting on nothing.
  *
+ * ★ THE ASK IS WRITTEN FOR A STRANGER (the clarity round, 2026-09-15). Will
+ * answered three asks on the light board and stopped at two that were labels
+ * with token options, so the one ask here says what a lit surface IS, where to
+ * look at it, and what each of the two answers would do; the exemplar is
+ * `sandbox/light/spec.ts`. The ids never changed (`light`, `here`): the review
+ * ledger joins on them and a reworded label must not orphan an answer. The
+ * board's question, verdict and section lede were rewritten the same way. No
+ * law, shape, number, candidate or recommendation moved.
+ *
+ * ★ THE EVIDENCE CARRIES NO OPTION LABELS, AND THAT IS NOT AN OMISSION. The
+ * clarity rule that a specimen wears its option's words applies to an ask
+ * judged BY a specimen; this ask is procedural (which board rules it), so
+ * there is nothing to relabel. `look` points at the specimens the item is
+ * about, which are named Dressed and Today and stay that way.
+ *
  * Pure data on purpose (registry.test.ts enforces it): the board route is a
  * SERVER page and reads the question for its header, so a spec that imported
  * React or the boards' sheet would drag a client tree into a server render.
@@ -33,13 +48,13 @@ export const GLOW_DOCTRINE = defineBoard({
   id: "glow-doctrine",
   title: "The spill doctrine",
   question:
-    "How light becomes core to the identity without turning up everywhere: what SPILL is, what BEAM is, what admits each, and whether a lit surface may carry a shadow in dark.",
+    "How can light belong to the identity without turning up everywhere: what a spill is (light past an edge), what a beam is (a lit rim that travels), what earns each, and may a lit card carry a shadow?",
 
   round: {
     n: 4,
     date: "2026-09-15",
     changed:
-      "The board moved onto the kit's template. The verdict and the one open call are the first screen, the fourteen sections are the evidence under them, and the review panel composes the ledger line. No law, shape, number or verdict changed.",
+      "The board moved onto the kit's template, then its one open call was rewritten in plain words: a real question, what a lit surface is, where to look, and each answer labelled in words rather than as a token. No law, shape, number or verdict changed.",
   },
   history: [
     {
@@ -66,23 +81,40 @@ export const GLOW_DOCTRINE = defineBoard({
 
   verdict: {
     recommendation:
-      "Keep the board standing as the record of how the shipped light was reached, and close its one open item, the lit surface carve-out, on the light board rather than here.",
+      "Keep this board as the record of how the shipped light was reached, and rule its one open item, whether a lit card may carry a shadow in dark mode, on the light board rather than here.",
     because:
-      "The cue set was ruled in the second review (the hairline and the lip at 9 percent, the air blur gone) but the contract it amends was not, and that contract is now the light board's: its kit holds the same two inset shadows as the lit face and the depth family, under bible 10, on a worst-case pair of overlapping photographs. Ruling them twice writes two contracts for one shadow.",
+      "The two edges themselves were ruled in the second review (a hairline around the card, a lip along its top, the blur gone), but the dark-mode rule they break was not. That rule belongs to the light board now: its proposal holds the same two edges and the shadow family they would share, argued on a worst-case pair of overlapping photographs. Ruling them twice writes two contracts for one shadow.",
     overrule:
-      "If the carve-out belongs to the four dressed cards that argued it, say here and this board reopens with the elevation contract's line as its ask.",
+      "If the dressed card at item 05 is the surface this is really for, say here and the board reopens with that one line of the dark-mode rule as its ask.",
   },
 
   asks: [
     {
       id: "lit-surface",
-      question: "The lit surface carve-out",
-      options: ["light", "here"],
+      question:
+        "Where should the exception that lets a lit card carry a shadow in dark mode be ruled?",
+      context:
+        "A lit card is dressed with two faint inset edges, a hairline around it and a bright lip along its top, so it reads as catching light and lifts off whatever sits behind it. Dark mode's rule today is no shadows anywhere, and these are shadows, so they need an exception written into it. The light board asks about the same two edges in its own ask, Should the lit face join the kit?",
+      look: "This board's one evidence section, the item numbered 05 inside it, The lit surface: the card labelled Dressed beside the one labelled Today. The boxed note under the pair is the line of the rule that would change.",
+      options: [
+        {
+          id: "light",
+          label: "On the light board",
+          means:
+            "The light board's lit face ask decides it, beside the shadow family the same edges would share; this board then has nothing open.",
+        },
+        {
+          id: "here",
+          label: "Here, on this board",
+          means:
+            "This board reopens with that one line of the dark-mode rule as its ask, judged on the dressed card at item 05.",
+        },
+      ],
       recommended: "light",
       because:
-        "The light board asks the same two inset shadows as lit-face (adopt, adapt, drop) and depth (family, lift, neither), and it asks them beside the depth ramp they would share. One ruling, on the better evidence, in the doc that will carry it.",
+        "The light board asks about the same two edges, and it asks beside a worst-case pair of overlapping photographs and the shadow family they would share. One ruling, on the better evidence, in the document that will carry it.",
       overrule:
-        "If section 05's dressed card beside today's is the surface the carve-out is actually for, it is cheaper to rule it there.",
+        "If the dressed card at item 05 is really the surface this is for, it is cheaper to rule it on the specimen that argued it.",
       evidence: "record",
     },
   ],
@@ -158,8 +190,8 @@ export const GLOW_DOCTRINE = defineBoard({
   sections: [
     {
       id: "record",
-      title: "The doctrine, as the round argued it",
-      lede: "The board unchanged: the thesis, the four laws and the NEVER list, the sampled-against-fixed experiment, the five shapes, spill beside beam, the lit surface, the register, the states, the legibility ceiling and the calibration.",
+      title: "The rules for light, as the round argued them",
+      lede: "The board as the round built it, in nine numbered items: the four laws and the never list, the colour experiment, the five shapes, spill beside beam, the lit card at item 05, the strengths, the states and the calibration.",
       argument: [
         "Nine numbered sections in the order the round argued them, kept as they were built. The numbering inside is the board's own: 01 the four laws, 02 the experiment that could have falsified law 3, 03 the five shapes on production's real grounds, 04 spill beside beam with the corner A/B, 05 the lit surface, 06 the register, 07 the states the engine has to survive, 08 what a wash costs in legibility, 09 the calibration against the one glow already ruled beautiful.",
         "The RULES left in the promotion round and are not here to be read as law. The four SPILL laws, the four BEAM laws, the NEVER list, the LampCard's four questions and the lamp set's three registers live in design-system.md, which is the thing to cite. The constants on the board are its own copy, kept in sync by hand; where they disagree with the doc, the doc wins.",
@@ -174,14 +206,14 @@ export const GLOW_DOCTRINE = defineBoard({
   lookFirst: [
     {
       section: "record",
-      note: "Section 05 inside, the lit surface: the dressed card beside today's. It is the only thing on this board still open, and the ask above is only about where it gets ruled.",
+      note: "Item 05 inside, The lit surface: the card labelled Dressed beside the one labelled Today. It is the only thing on this board still open, and the ask above is only about where it gets ruled.",
     },
   ],
 
   notes: [
     {
       section: "record",
-      text: "Do not un-apply data-lit from the section 05 specimens to re-judge them. They are bare divs with no ring, so removing the 9 percent hairline puts them further from the shipped Card, not closer.",
+      text: "Do not un-apply data-lit from the item 05 specimens to re-judge them. They are bare divs with no ring, so removing the 9 percent hairline puts them further from the shipped Card, not closer.",
     },
   ],
 
