@@ -19,6 +19,21 @@
    grid does that already, so this board only tells it how narrow a ladder may
    get before its top rung stops reading (`minWidth`, board.tsx). */
 
+/* ★ A TILE ON THIS BOARD IS THE SPECIMEN, NOT A WINDOW ONTO IT. The step
+   surface crops a tile at 200px and lays them out from 240px wide, which is
+   right for a marketing page and wrong for type: at 240 a 160px masthead shows
+   one letter, and at 200 tall the small end is cropped away. Both specimens
+   here are already tile-sized at TRUE pixels (`true-scale.tsx`), so the board
+   asks for the room they need and nothing is cropped. `:has()` rather than a
+   board root, because a step renders the evidence outside the board's own
+   wrapper. */
+.lab-tiles:has([data-tsc-specimen]) {
+  --lab-tile-min: 30rem;
+}
+.lab-tile-view:has([data-tsc-specimen]) {
+  --lab-tile-h: 32rem;
+}
+
 /* THE LADDER, AS A SPECIMEN. The px number sits in a fixed gutter so five
    cards line their rungs up, and the word is clipped rather than wrapped: a
    masthead that wrapped to three lines in a card column would be a different

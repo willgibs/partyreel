@@ -32,10 +32,11 @@ import { cn } from "@/lib/utils";
 export function TrueScale({
   className,
   children,
+  ...rest
 }: {
   className?: string;
   children: React.ReactNode;
-}) {
+} & React.HTMLAttributes<HTMLDivElement>) {
   // The probe is never itself compensated, so what it measures is always the
   // ancestors' zoom and never its own.
   const probe = useRef<HTMLDivElement | null>(null);
@@ -80,7 +81,7 @@ export function TrueScale({
   }, []);
 
   return (
-    <div ref={probe} className={cn("min-w-0", className)}>
+    <div ref={probe} className={cn("min-w-0", className)} {...rest}>
       <div style={zoom === 1 ? undefined : { zoom: 1 / zoom }}>{children}</div>
     </div>
   );

@@ -182,7 +182,7 @@ export function SpacingSpecimen({
     // under the compensation is 1:1, so the paper's own padding, radius and
     // ring are the sizes they are on a page; the other way round the box would
     // be drawn at the tile's zoom and the specimen would sit in a 6px margin.
-    <TrueScale>
+    <TrueScale data-tsc-specimen="">
       <GroundBox
         ground="paper"
         className="overflow-hidden rounded-lg p-4 ring-1 ring-foreground/10"
@@ -254,7 +254,7 @@ export function DeadLinkSpecimen({
   const step = ladder.steps.prose ?? ladder.steps.section;
   const spec = onSet && step ? step[end] : SHIPPED[end];
   return (
-    <TrueScale>
+    <TrueScale data-tsc-specimen="">
       <GroundBox
         ground="paper"
         className="overflow-hidden rounded-lg p-6 ring-1 ring-foreground/10"
