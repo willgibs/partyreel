@@ -68,7 +68,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 237
+          "line": 241
         },
         {
           "title": "computes one anchor everywhere",
@@ -76,7 +76,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 250
+          "line": 254
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -84,7 +84,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 282
+          "line": 274
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -92,7 +92,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 292
+          "line": 284
         }
       ]
     },
@@ -194,7 +194,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 237
+          "line": 241
         },
         {
           "title": "computes one anchor everywhere",
@@ -202,7 +202,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 250
+          "line": 254
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -210,7 +210,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 282
+          "line": 274
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -218,7 +218,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 292
+          "line": 284
         }
       ]
     },
@@ -226,6 +226,8 @@
       "id": "board-spec",
       "file": "src/components/lab/board-spec.ts",
       "names": [
+        "ITEM_VERDICTS",
+        "LIBRARY_VERDICTS",
         "LIMITS"
       ],
       "specimens": [
@@ -287,7 +289,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 237
+          "line": 241
         },
         {
           "title": "computes one anchor everywhere",
@@ -295,7 +297,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 250
+          "line": 254
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -303,7 +305,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 282
+          "line": 274
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -311,7 +313,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 292
+          "line": 284
         }
       ]
     },
@@ -485,8 +487,10 @@
         "BoardSectionLink",
         "BoardSpec",
         "BoardState",
+        "BuilderVerdict",
         "CANVAS",
         "Candidate",
+        "CatalogSpec",
         "Cell",
         "CellLabel",
         "Compare",
@@ -505,12 +509,16 @@
         "FrameProps",
         "FrameRow",
         "Ground",
+        "ITEM_VERDICTS",
+        "ItemVerdict",
         "Knob",
+        "LIBRARY_VERDICTS",
         "LIMITS",
         "LabFit",
         "LabPrefs",
         "LabSidebar",
         "Labeled",
+        "LibraryVerdict",
         "LookFirst",
         "Loupe",
         "Mode",
@@ -562,6 +570,65 @@
           ],
           "file": "src/components/lab/boundary.test.ts",
           "line": 88
+        }
+      ]
+    },
+    {
+      "id": "lab-chrome",
+      "file": "src/components/lab/lab-chrome.tsx",
+      "names": [
+        "LabChrome"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "writes the reading preferences onto <html> and follows a change",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 52
+        },
+        {
+          "title": "renders nothing on a fresh stylesheet and forgets a past reload",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 63
+        },
+        {
+          "title": "reloads exactly once on a stale sheet in development",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 72
+        },
+        {
+          "title": "shows the notice instead of a second reload",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 79
+        },
+        {
+          "title": "treats a shell body that is not a grid as stale, whatever the number",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 87
+        },
+        {
+          "title": "is quiet where there is no shell to check",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 94
         }
       ]
     },
@@ -654,7 +721,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 214
+          "line": 212
         },
         {
           "title": "links the last ask of a board to the next board's first open ask",
@@ -662,7 +729,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 221
+          "line": 219
         },
         {
           "title": "links the last ask of the queue to the desk's summary",
@@ -670,7 +737,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 229
+          "line": 227
         },
         {
           "title": "renders nothing for a session on another board",
@@ -678,7 +745,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 237
+          "line": 235
         },
         {
           "title": "renders nothing when no session names an ask",
@@ -686,7 +753,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 242
+          "line": 240
         }
       ]
     },

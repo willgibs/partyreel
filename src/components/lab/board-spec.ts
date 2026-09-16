@@ -107,11 +107,30 @@ export type Asset = {
   row?: number;
 };
 
+/**
+ * THE VERDICTS (the revamp, 2026-09-16). A catalog is reviewed item by item:
+ * the builder says what each item is for with `ship | refine | kill`, and Will
+ * answers each card with `keep | refine | kill` and a note; a Library entry
+ * takes `keep | redesign | retire`, which is how a scroll through the live
+ * components turns into a redesign request. The ledger stores the word.
+ */
+export const ITEM_VERDICTS = ["keep", "refine", "kill"] as const;
+export type ItemVerdict = (typeof ITEM_VERDICTS)[number];
+export const LIBRARY_VERDICTS = ["keep", "redesign", "retire"] as const;
+export type LibraryVerdict = (typeof LIBRARY_VERDICTS)[number];
+export type BuilderVerdict = "ship" | "refine" | "kill";
+
 export type Candidate<SectionId extends string = string> = {
   id: string;
   name: string;
   rationale: string;
   recommended?: boolean;
+  /** The card's one line: what this is, in words a stranger knows. */
+  one?: string;
+  /** The builder's own call, drawn as the card's pill. */
+  verdict?: BuilderVerdict;
+  /** The Moment card's facts, generalised: label and value pairs under the preview. */
+  facts?: readonly (readonly [string, string])[];
   /** The hero concept contract, folded in: a candidate can carry its own copy proposal. */
   proposed?: {
     eyebrow?: string;
@@ -143,6 +162,28 @@ export type Control = {
   label: string;
   options: readonly { id: string; label: string }[];
   default: string;
+  /**
+   * The default is the CLEARED state and picking the picked option returns to
+   * it (Will, 2026-09-16: "I can't unpick a selection to return to a
+   * non-selected state"). A catalog's pick control declares a `none` option
+   * and makes it the default.
+   */
+  clearable?: boolean;
+};
+
+/**
+ * A board whose candidates are a CATALOG: a grid of ideas Will rules on one by
+ * one (keep, refine, kill, a note), the pick worn by the real pages below.
+ * Declaring this is the opt-in; a board without it keeps its candidates as
+ * the meta list.
+ */
+export type CatalogSpec<SectionId extends string = string> = {
+  /** The section whose evidence is the catalog grid. */
+  section: SectionId;
+  /** The declared control a Pick sets; its option ids are the candidate ids (plus its cleared default). */
+  control?: string;
+  /** The two declared controls any-two-side-by-side reads; their option ids are the candidate ids. */
+  compare?: readonly [string, string];
 };
 
 /** The board's state: every declared control's current option id. */
@@ -195,6 +236,7 @@ export type BoardSpec<S extends readonly Section[] = readonly Section[]> = {
   /** Empty allowed; the panel prints "none requested". */
   assets: readonly Asset[];
   sections: S;
+  catalog?: CatalogSpec<S[number]["id"]>;
   controls?: readonly Control[];
   lookFirst?: readonly LookFirst<S[number]["id"]>[];
   notes?: readonly Note<S[number]["id"]>[];
@@ -222,6 +264,9 @@ export const LIMITS = {
   note: 300,
   roundChanged: 300,
   context: 600,
+  candidateOne: 120,
+  /** The words a board may show outside its collapsed folds before it is a paper (the smoke measures it). */
+  readingWords: 1200,
 } as const;
 
 /**

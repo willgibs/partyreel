@@ -524,7 +524,8 @@ export function Catalog({
   faint,
   onPick,
 }: {
-  picked: string;
+  /** The picked palette's id, or null while nothing is picked. */
+  picked: string | null;
   cardMode: CardMode;
   faint: boolean;
   onPick: (id: string) => void;

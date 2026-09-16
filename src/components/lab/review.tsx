@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
-
 import { cn } from "@/lib/utils";
+
+import {
+  setAnswerNote,
+  setBoardNote,
+  toggleAnswer,
+  useReviewStore,
+} from "@/app/(dev)/design/(shell)/lab/_desk/review-store";
+import { holdId } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
 import {
   type BoardSpec,
@@ -68,9 +74,18 @@ export function ReviewQuestions({
   spec: BoardSpec;
   className?: string;
 }) {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [notes, setNotes] = useState<Record<string, string>>({});
-  const [boardNote, setBoardNote] = useState("");
+  // One store for the panel, the review card and the desk's session, so a
+  // pick made on any of them shows on all of them and clears the same way.
+  const store = useReviewStore();
+  const round = spec.round.n;
+  const answers: Record<string, string> = {};
+  const notes: Record<string, string> = {};
+  for (const ask of spec.asks) {
+    const held = store.answers[holdId(spec.id, round, ask.id)];
+    if (held?.choice) answers[ask.id] = held.choice;
+    if (held?.note) notes[ask.id] = held.note;
+  }
+  const boardNote = store.notes[spec.id] ?? "";
   const answered = spec.asks.filter((a) => answers[a.id]).length;
   const message = composeReviewMessage(spec, answers, notes, boardNote);
 
@@ -105,14 +120,7 @@ export function ReviewQuestions({
                     type="button"
                     aria-pressed={on}
                     title={o === "?" ? undefined : optionMeans(o)}
-                    onClick={() =>
-                      setAnswers((a) => {
-                        const next = { ...a };
-                        if (on) delete next[ask.id];
-                        else next[ask.id] = id;
-                        return next;
-                      })
-                    }
+                    onClick={() => toggleAnswer(spec.id, round, ask.id, id)}
                     className={cn(
                       "rounded-md px-2.5 py-1 text-[11px] font-medium transition-[transform,background-color,color] duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none",
                       on
@@ -136,7 +144,7 @@ export function ReviewQuestions({
               type="text"
               value={notes[ask.id] ?? ""}
               onChange={(e) =>
-                setNotes((n) => ({ ...n, [ask.id]: e.target.value }))
+                setAnswerNote(spec.id, round, ask.id, e.target.value)
               }
               placeholder="A note on this one (optional)"
               aria-label={`A note on ${ask.question}`}
@@ -157,7 +165,7 @@ export function ReviewQuestions({
           id={`${spec.id}-board-note`}
           rows={2}
           value={boardNote}
-          onChange={(e) => setBoardNote(e.target.value)}
+          onChange={(e) => setBoardNote(spec.id, e.target.value)}
           placeholder="Anything that is not an answer to one ask"
           className="w-full resize-y rounded-[var(--radius-action-sm)] border border-border bg-background px-2.5 py-1.5 text-[12px] outline-none focus-visible:border-foreground/40"
         />

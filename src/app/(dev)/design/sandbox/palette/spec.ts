@@ -395,8 +395,12 @@ export const PALETTE = defineBoard({
     {
       id: "palette",
       label: "Palette",
-      options: PALETTE_OPTIONS,
-      default: "ember",
+      // Nothing picked is a state of its own (Will, 2026-09-16): the pages
+      // below show the site as built until a card is picked, and picking the
+      // picked card returns here.
+      options: [{ id: "none", label: "Nothing picked" }, ...PALETTE_OPTIONS],
+      default: "none",
+      clearable: true,
     },
     {
       id: "reach",

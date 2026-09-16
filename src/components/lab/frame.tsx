@@ -413,10 +413,7 @@ export function Frame({
           />
         ) : null}
         {children && doc
-          ? createPortal(
-              <div className={themeClass}>{children}</div>,
-              doc.body,
-            )
+          ? createPortal(<div className={themeClass}>{children}</div>, doc.body)
           : null}
         {reach === "blocked" ? (
           <p className="absolute inset-x-0 top-0 bg-destructive px-2 py-1 text-[11px] font-medium text-white">
@@ -449,7 +446,9 @@ export function FrameRow({
   const register = useFrameLock(lock);
   return (
     <LockCtx.Provider value={register}>
-      <div className={cn("overflow-x-auto pb-2", className)}>
+      {/* data-lab-bleed: on a wide page at 1:1 the row takes the page's
+          gutter back and runs edge to edge before it scrolls (design.css). */}
+      <div data-lab-bleed className={cn("overflow-x-auto pb-2", className)}>
         <div className="flex w-fit gap-4">{children}</div>
       </div>
     </LockCtx.Provider>

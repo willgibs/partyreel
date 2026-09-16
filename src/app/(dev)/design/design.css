@@ -62,6 +62,9 @@
 .lab-shell {
   --lab-sidebar-w: 240px;
   --lab-toc-w: 200px;
+  /* The stylesheet's generation, read by LabChrome to catch a browser holding
+     an old copy of this file (lab-css-generation.ts holds the same number). */
+  --lab-css-generation: 2;
 }
 .lab-shell-body {
   display: grid;
@@ -131,9 +134,22 @@
     display: none;
   }
 }
-/* At 1:1 a wide page gives its stages the whole column. */
+/* At 1:1 a wide page gives its stages the whole column, and a canvas or a
+   frame row runs edge to edge before it scrolls sideways (Will, 2026-09-16:
+   "use the full window width without left padding before allowing overflow"):
+   the page keeps its gutter for text and gives it back to what is judged. */
 html[data-lab-fit="true"] [data-lab-wide] {
   max-width: none;
+}
+html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] {
+  margin-left: -1rem;
+  margin-right: -1rem;
+}
+/* A bleed inside a bleed (a Stage inside a board's own scroll row) keeps its
+   box: only the outermost surface takes the gutter back. */
+html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
+  margin-left: 0;
+  margin-right: 0;
 }
 /* The tuner panel (motion-tuner.tsx sets data-lab-panel to its side and
    --lab-panel-w to its width while open): a wide page keeps its evidence

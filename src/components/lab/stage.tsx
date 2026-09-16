@@ -132,6 +132,10 @@ export function Stage({
     <div
       ref={boxRef}
       data-stage-fit={trueScale ? "true" : "zoom"}
+      // At 1:1 on a wide page design.css gives this box the page's gutter back
+      // (data-lab-bleed), so a 1440 canvas uses the whole window before it
+      // scrolls sideways (Will, 2026-09-16).
+      data-lab-bleed={trueScale ? "" : undefined}
       className={
         trueScale
           ? "min-w-0 overflow-x-auto overflow-y-hidden"

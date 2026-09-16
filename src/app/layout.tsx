@@ -77,7 +77,11 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${urbanist.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      {/* suppressHydrationWarning on the body too: a browser extension
+          (ColorZilla writes cz-shortcut-listen) can edit the body before
+          React hydrates, and the dev overlay counted it as our issue. Scoped
+          to this one element, so a real mismatch below it still reports. */}
+      <body suppressHydrationWarning className="flex min-h-full flex-col">
         <Providers>{children}</Providers>
         <Toaster />
         {/* The spill engine's one turbulence field (round 1). Mounted at the

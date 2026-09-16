@@ -13,7 +13,8 @@ import {
   reviewKeysOwned,
 } from "@/app/(dev)/design/(shell)/lab/_desk/review-keys";
 import {
-  setReviewStore,
+  setAnswerNote,
+  toggleAnswer,
   useReviewStore,
 } from "@/app/(dev)/design/(shell)/lab/_desk/review-store";
 import {
@@ -138,27 +139,19 @@ export function ReviewCard({
 
   /* ── the answers ──────────────────────────────────────────────────────── */
 
-  const write = (patch: { choice?: string; note?: string }) => {
+  const write = (patch: { note: string }) => {
     if (!step) return;
-    const id = holdId(step.board, step.round, step.askId);
-    const now = store.answers[id];
-    setReviewStore({
-      ...store,
-      answers: {
-        ...store.answers,
-        [id]: {
-          choice: patch.choice ?? now?.choice ?? "",
-          note: patch.note ?? now?.note ?? "",
-        },
-      },
-    });
+    setAnswerNote(step.board, step.round, step.askId, patch.note);
   };
 
   const pick = (id: string) => {
-    write({ choice: id });
-    // The pick IS the preview: an ask that names a control shares its option
-    // ids with it, so choosing puts the board in the state being chosen.
-    if (step?.control && id !== UNCLEAR) setState({ [step.control]: id });
+    if (!step) return;
+    // A second click on the picked option clears it (the store's one toggle
+    // rule); only a SET previews. The pick IS the preview: an ask that names
+    // a control shares its option ids with it, so choosing puts the board in
+    // the state being chosen.
+    const set = toggleAnswer(step.board, step.round, step.askId, id);
+    if (set && step.control && id !== UNCLEAR) setState({ [step.control]: id });
   };
 
   /* ── landing: the state, then the evidence ────────────────────────────── */

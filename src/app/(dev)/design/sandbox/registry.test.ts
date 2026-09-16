@@ -215,10 +215,14 @@ describe("the board registry", () => {
           ).toBeTruthy();
           // The pick IS the preview: the card sets the control to the option
           // picked, which only works when the two id sets are the same set.
+          // A clearable control's default is "nothing picked", never a choice.
+          const mirrored = c!.options
+            .map((o) => o.id)
+            .filter((id) => !(c!.clearable && id === c!.default));
           expect(
             [...a.options.map(optionId)].sort(),
             `${b.id}: ask ${a.id} mirrors ${a.control} but their option ids differ`,
-          ).toEqual(c!.options.map((o) => o.id).sort());
+          ).toEqual(mirrored.sort());
         }
       }
       for (const c of b.controls ?? []) {

@@ -29,7 +29,7 @@ import {
 import { AccentWall } from "./call-sites";
 import { Catalog } from "./catalog";
 import { SITE_PAGES, SiteFrames, type PageId } from "./live";
-import { PALETTES, RECOMMENDED_PALETTE, resolvePalette } from "./palettes";
+import { PALETTES, resolvePalette } from "./palettes";
 import { RealFloating } from "./real-ui";
 import {
   accentBlock,
@@ -101,7 +101,9 @@ import { PALETTE } from "./spec";
 /** Everything the dock is claiming, resolved once per render. */
 function read(state: BoardState) {
   const mode = (state.canvas ?? "desktop") as Mode;
-  const paletteId = state.palette ?? RECOMMENDED_PALETTE.id;
+  // "none" is nothing picked: the real pages below wear the site as built.
+  const paletteId =
+    state.palette && state.palette !== "none" ? state.palette : "today";
   const reach = (state.reach ?? "all") as ReachId;
   const cardMode = (state.card ?? "declared") as CardMode;
   const faint = (state.faint ?? "in") === "in";
@@ -128,6 +130,9 @@ function read(state: BoardState) {
     pair,
     todayPair,
     isToday: picked.def.id === "today",
+    // The card that reads "Picked": none while nothing is picked, even though
+    // the pages below wear Today (Will, 2026-09-16: a pick must be clearable).
+    pickedId: state.palette && state.palette !== "none" ? state.palette : null,
     opts,
     label: applyLabel(pair, opts, picked.def.name),
     css: applyCss(pair, opts),
@@ -241,14 +246,15 @@ function PairWipe({
     </Stage>
   );
   return (
-    <div className="overflow-x-auto pb-2">
+    <div data-lab-bleed className="overflow-x-auto pb-2">
       <div style={{ width: w }} className="shrink-0">
         {isToday ? (
           <>
             {half(todayPair)}
             <CellLabel>
-              Today is picked, so both halves of the wipe would be the same
-              block. Pick any other palette in the dock and the seam comes back.
+              Nothing is picked (or Today is), so both halves of the wipe would
+              be the same block. Pick a palette in the catalog above, or in the
+              dock, and the seam comes back.
             </CellLabel>
           </>
         ) : (
@@ -317,10 +323,14 @@ export function PaletteBoard() {
             return (
               <>
                 <Catalog
-                  picked={s.def.id}
+                  picked={s.pickedId}
                   cardMode={cardMode}
                   faint={s.faint}
-                  onPick={(pid) => api.setState({ palette: pid })}
+                  onPick={(pid) =>
+                    api.setState({
+                      palette: state.palette === pid ? "none" : pid,
+                    })
+                  }
                 />
                 <CellLabel className="max-w-2xl">
                   {inWords(PALETTES.length)} palettes, and picking a card is

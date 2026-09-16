@@ -111,6 +111,33 @@ async function follow(route, res, expected) {
   report(route, `307 -> ${end.status}`, res.ms + end.ms, note, !bad.length);
   return target;
 }
+// ★ THE STYLESHEET CHECK (the revamp, 2026-09-16). A dev server names its CSS
+// chunks by path, so a browser can hold an old copy while the server is right;
+// the smoke proves the SERVER's side: every page that renders the shell links a
+// stylesheet that contains the shell's grid rule. Each stylesheet is fetched
+// once for the whole crawl.
+const sheets = new Map();
+async function sheetHasShell(href) {
+  if (!sheets.has(href)) {
+    sheets.set(
+      href,
+      fetch(new URL(href, base))
+        .then((r) => (r.ok ? r.text() : ""))
+        .then((css) => css.includes(".lab-shell-body"))
+        .catch(() => false),
+    );
+  }
+  return sheets.get(href);
+}
+async function shellStyled(html) {
+  if (!html.includes('class="lab-shell')) return true;
+  const hrefs = [
+    ...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g),
+  ].map((m) => m[1].replace(/&amp;/g, "&"));
+  const results = await Promise.all(hrefs.map(sheetHasShell));
+  return results.some(Boolean);
+}
+
 async function crawl() {
   const seen = new Set();
   const queue = [...SEEDS, ...SCENES];
@@ -123,8 +150,12 @@ async function crawl() {
       queue.push(await follow(route, res));
       continue;
     }
-    const ok = wanted(route).includes(res.status);
-    const note = ok ? "" : (res.error ?? `want ${wanted(route)}`);
+    let ok = wanted(route).includes(res.status);
+    let note = ok ? "" : (res.error ?? `want ${wanted(route)}`);
+    if (ok && res.status === 200 && !(await shellStyled(res.html))) {
+      ok = false;
+      note = "no stylesheet with the shell (stale or missing design.css chunk)";
+    }
     report(route, res.status, res.ms, note, ok);
     // React writes `&` as `&amp;` inside attributes; fragments are dropped.
     for (const m of ok ? res.html.matchAll(/href="(\/design\/[^"#]*)/g) : [])

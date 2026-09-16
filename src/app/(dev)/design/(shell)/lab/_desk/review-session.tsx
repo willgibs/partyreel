@@ -17,7 +17,9 @@ import {
 import {
   EMPTY_REVIEW,
   type ReviewStore,
+  setAnswerNote,
   setReviewStore,
+  toggleAnswer,
   useReviewStore,
 } from "./review-store";
 import {
@@ -136,28 +138,16 @@ export function ReviewSession({
     window.scrollTo({ top: 0 });
   };
 
+  // A second click on the picked option clears it: the store's one toggle
+  // rule, shared with the review card and the board's panel.
   const pick = (choice: string) => {
     if (!step) return;
-    const key = holdKey(step);
-    update({
-      ...store,
-      answers: {
-        ...store.answers,
-        [key]: { choice, note: store.answers[key]?.note ?? "" },
-      },
-    });
+    toggleAnswer(step.board, step.round, step.askId, choice);
   };
 
   const setNote = (note: string) => {
     if (!step) return;
-    const key = holdKey(step);
-    update({
-      ...store,
-      answers: {
-        ...store.answers,
-        [key]: { choice: store.answers[key]?.choice ?? "", note },
-      },
-    });
+    setAnswerNote(step.board, step.round, step.askId, note);
   };
 
   // The handler the shell may route keys to; until it does, the window

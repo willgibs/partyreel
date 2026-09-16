@@ -25,6 +25,16 @@ export type Trap = {
 
 export const TRAPS: readonly Trap[] = [
   {
+    id: "stale-lab-stylesheet",
+    tried:
+      "Trust `next dev` to serve design.css as it is on disk after a change.",
+    breaks:
+      "The CSS chunk's URL is its path, not its content, so a browser can keep an old copy for hours while the JS is fresh; and Turbopack's persistent cache (.next/dev) can keep serving the old chunk after an edit while the TSX around it is fresh. Either way the shell grid, the sticky dock and the wide page's max-width lift vanish, the sidebar stacks above the content, and nothing errors. It reads as five layout bugs.",
+    instead:
+      "LabChrome reads `--lab-css-generation` off `.lab-shell` after mount and reloads once (a notice where it cannot); bump the number in design.css and lab-css-generation.ts together when a shell rule changes.",
+    file: "src/components/lab/lab-chrome.tsx",
+  },
+  {
     id: "breakpoints-in-a-stage",
     tried: "Use a Tailwind breakpoint prefix inside a 375 stage.",
     breaks:

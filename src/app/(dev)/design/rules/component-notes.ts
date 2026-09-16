@@ -340,6 +340,9 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/lab/dock.tsx": {
     for: "a board's page-wide controls, always on screen, with the shell's reading controls at its right end",
   },
+  "src/components/lab/lab-chrome.tsx": {
+    for: "the shell's reading preferences written onto <html>, and the guard that catches a browser holding an old copy of the lab's stylesheet before it renders as five layout bugs",
+  },
   "src/components/lab/review-card.tsx": {
     for: "the ask being answered, pinned under the board's dock: the question in plain words, the options with what each one means, and the evidence it is about scrolled in underneath",
   },

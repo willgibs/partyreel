@@ -277,7 +277,14 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   `globals.css` while the dev server ran never reached the served stylesheet, and a `preview_stop` +
   `preview_start` restart served the SAME hashed chunk without it (Tailwind's own compiler emitted the
   rule fine). `rm -rf .next/dev` between the stop and the start is what fixed it; do that after any
-  edit to `globals.css` or `theme.css` before trusting what the pane shows.
+  edit to `globals.css`, `theme.css` or the lab's `design.css` before trusting what the pane shows
+  (2026-09-16: a rule added to `design.css` never reached the chunk, and a `touch` did not either).
+  **The lab guards itself** (`src/components/lab/lab-chrome.tsx`): `design.css` declares
+  `--lab-css-generation: N` on `.lab-shell` and `lab-css-generation.ts` holds the same N; the chrome
+  reads it after mount, reloads once in development when it is old (a `sessionStorage` flag stops a
+  loop) and otherwise shows a `role="alert"` strip. The strip after a reload means the SERVER's copy
+  is stale (the `.next/dev` cause above), not the browser's. Bump both numbers together when a
+  shell rule changes; `pnpm lab:smoke` also refuses a lab page whose stylesheet set lacks the shell.
   **The second cause is an ORPHANED SERVER.** `preview_stop` does not reliably reap `next-server`,
   so an orphan can keep winning the port and serve a bundle compiled before your files existed,
   which is why restarts and even an `.next` wipe can appear not to help. Its ugliest face is a page

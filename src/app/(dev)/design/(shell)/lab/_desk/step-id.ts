@@ -18,3 +18,19 @@ export function stepId(board: string, ask: string): string {
 export function holdId(board: string, round: number, ask: string): string {
   return `${board}.r${round}.${ask}`;
 }
+
+/** The one step a board's catalog takes in a session: `<board>.items`. */
+export const ITEMS_STEP = "items";
+
+export function itemsStepId(board: string): string {
+  return `${board}.${ITEMS_STEP}`;
+}
+
+/**
+ * The key an item's verdict is held under: `<scope>.r<round>.item.<id>`, where
+ * the scope is a board id (a catalog card) or `library` (an entry's redesign
+ * request, round 0).
+ */
+export function itemHoldId(scope: string, round: number, item: string): string {
+  return `${scope}.r${round}.item.${item}`;
+}
