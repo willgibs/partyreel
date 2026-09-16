@@ -536,7 +536,7 @@ export function SurfaceCheck({
 
       <Caption className="text-[10px]">
         The source dresses this stage only, so it sits with it. The dock holds
-        what moves the whole page: the canvas, the vertical every contact sheet
+        what moves the whole page: the canvas, the kind of event every sheet
         above draws, the route and the geometry.
       </Caption>
 

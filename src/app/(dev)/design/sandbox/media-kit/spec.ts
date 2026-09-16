@@ -192,7 +192,7 @@ export const MEDIA_KIT = defineBoard({
     {
       id: "free-only",
       name: "Free only, which the sheet now prices honestly",
-      rationale: `Everything below the line: ${F.barredSources} real catalogues, including the ${F.webSummit} CC BY conference photographs that are the deepest free corpus for the one vertical we cannot fill. It costs nothing and it cannot ship a face, so the crowds ask is what turns it from decoration into the answer.`,
+      rationale: `Everything below the line: ${F.barredSources} real catalogues, including the ${F.webSummit} CC BY conference photographs that are the deepest free corpus for the one kind of event we cannot fill. It costs nothing and it cannot ship a face, so the crowds ask is what turns it from decoration into the answer.`,
     },
   ],
 
@@ -212,7 +212,7 @@ export const MEDIA_KIT = defineBoard({
     {
       id: "rank-by-release",
       from: "precedent",
-      text: `Round three ranked sources by price. The free half is not cheap, it is unusable: every vertical this product sells into is a room full of recognisable faces, so a library with no release cannot supply the frames at any price. ${F.barredSources} of the ${F.sources} places sit below a line for that one reason, including the two best free catalogues on it.`,
+      text: `Round three ranked sources by price. The free half is not cheap, it is unusable: every kind of event this product sells into is a room full of recognisable faces, so a library with no release cannot supply the frames at any price. ${F.barredSources} of the ${F.sources} places sit below a line for that one reason, including the two best free catalogues on it.`,
       evidence: "sheet",
     },
     {
@@ -248,7 +248,7 @@ export const MEDIA_KIT = defineBoard({
       replaces: "nothing; everything below is the shoot.",
     },
     {
-      what: `${F.masters} event photographs, six per vertical`,
+      what: `${F.masters} event photographs, six per kind of event`,
       spec: "Weddings, birthdays, corporate, conferences, festivals, trips. 1600 px long edge, a third portrait, one dark warm grade; the call sheet is on this board, codes W1 to T6. Four are the palette board's hard cases and three show a guest holding a phone up.",
       replaces: `all ${F.ids} stand-ins by id.`,
       row: 7,
@@ -306,7 +306,7 @@ export const MEDIA_KIT = defineBoard({
       title: "Where to get them, ranked",
       lede: `${F.sources} real places to get photographs, ranked by whether the people in them have signed permission, each with its price, its licence clause quoted word for word, and a grid of its own thumbnails.`,
       argument: [
-        "Ranked by release rather than by price, and that inverts the list round three built. Every vertical this product sells into is a room full of recognisable people, so a free library with no release is not the cheap option, it is the one that cannot supply the frames. Every paid source with a release outranks every free one, and the sheet says so with a line across it.",
+        "Ranked by release rather than by price, and that inverts the list round three built. Every kind of event this product sells into is a room full of recognisable people, so a free library with no release is not the cheap option, it is the one that cannot supply the frames. Every paid source with a release outranks every free one, and the sheet says so with a line across it.",
         `The contact sheets are hotlinked, never copied: ${F.sheetPulls} pulls from the sources' own public search pages, ${F.frames} frames in all, each recorded as the source's own thumbnail URL, so a watermarked comp stays a watermarked comp and nothing paid is ever in our tree. A source that draws no sheet prints its own measured reason rather than sharing an excuse.`,
       ],
     },

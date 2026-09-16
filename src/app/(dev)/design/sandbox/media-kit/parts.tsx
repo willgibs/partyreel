@@ -450,7 +450,7 @@ export function BridgePart({
         {route === "licensed"
           ? `${POSTS_FILLED} of ${BRIDGE.length} filled, but ${POSTS_UNDER_RULE} of ${BRIDGE.length} under the rule: ${BARRED_POSTS.length} of them carry a face with no release. Fast, free, and still somebody else's party.`
           : route === "ours"
-            ? `All ${BRIDGE.length} from the kit. Six verticals, ${MASTERS.length} masters, and the squares, portraits, clips and film cut from the same night.`
+            ? `All ${BRIDGE.length} from the kit. Six kinds of event, ${MASTERS.length} masters, and the squares, portraits, clips and film cut from the same night.`
             : "Licensed on the details nobody studies, the shoot on everything a reader stops at. The bridge is dated: it ends when the kit lands."}
       </Caption>
 
