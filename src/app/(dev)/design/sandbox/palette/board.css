@@ -78,3 +78,29 @@
    `layer(utilities.lab)`, a SUB-layer of `utilities`, so `lg:grid-cols-3` from
    production's sheet silently beat lab-only `xl:grid-cols-4` at every
    breakpoint. A grid like this belongs in a sheet, never in variant classes. */
+
+/* ─────────────── THE TILE GEOMETRY THIS BOARD ASKS FOR (round eight)
+
+   A step draws every option as a tile, and a tile is the board's own evidence
+   section inside a 1440 canvas, ZOOM-FITTED to the tile's width (step.tsx's
+   `FitStage mode="desktop" fit="zoom"`) and then clipped at --lab-tile-h. Two
+   numbers follow from that and neither is a taste:
+
+   --lab-tile-min  the kit's 240 gives five columns at 1408, which is a 0.17
+                   scale: a dashboard at 0.17 is a smudge. 430 gives three,
+                   which is every option of every ask on this board in ONE row
+                   (two, three, two) at 0.32. Three-across is the trade the kit
+                   names: all of them visible at once beats any one of them
+                   bigger, and the stage under the tiles is where a thing is
+                   actually read.
+   --lab-tile-h    the default 200 crops at 630 canvas pixels, and these three
+                   specimens run to about nine hundred. 320 shows them whole,
+                   which is the point of reshaping them to be tile-sized.
+
+   Scoped to this board's root: the step renders inside [data-board], so the
+   properties reach .lab-tiles and .lab-tile-view without touching any other
+   board's. */
+[data-board="palette"] {
+  --lab-tile-min: 430px;
+  --lab-tile-h: 320px;
+}
