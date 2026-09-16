@@ -16,7 +16,7 @@ import {
 } from "@/app/(dev)/design/touchpoints";
 import { BoardFrame } from "./board-frame";
 import { BOARD_COMPONENTS } from "../boards";
-import { boardWork, deskRows } from "../_desk/queue";
+import { boardWork, deskRows, transcribedFrom } from "../_desk/queue";
 import { toSteps } from "../_desk/session-step";
 
 /**
@@ -70,24 +70,24 @@ export default async function BoardPage({
   // The review, when the session names an ask here. The whole queue rides
   // along (not just this board's), because "Ask 12 of 47" counts the review
   // and Next has to reach the next board's first open ask.
-  const review = param?.startsWith(`${ruling.id}.`)
+  const rows = param?.startsWith(`${ruling.id}.`)
+    ? deskRows(
+        SANDBOX.map((r) => ({
+          id: r.id,
+          title: r.title,
+          surfaceLabel: SURFACE_LABEL[r.surface],
+          note: r.board?.note ?? r.why,
+          tracks: r.board?.tracks ?? [r.id],
+        })),
+      )
+    : null;
+  const review = rows
     ? {
-        steps: toSteps(
-          boardWork(
-            deskRows(
-              SANDBOX.map((r) => ({
-                id: r.id,
-                title: r.title,
-                surfaceLabel: SURFACE_LABEL[r.surface],
-                note: r.board?.note ?? r.why,
-                tracks: r.board?.tracks ?? [r.id],
-              })),
-            ),
-          ),
-          boardSpec,
-          key,
-        ),
+        steps: toSteps(boardWork(rows), boardSpec, key),
         param,
+        // What the ledger holds, so the step's "Copy so far" sends only what
+        // this sitting added (the stepped review, 2026-09-16).
+        transcribed: transcribedFrom(rows),
       }
     : undefined;
 
@@ -101,6 +101,11 @@ export default async function BoardPage({
       review={review}
     >
       <WidePage>
+        {/* ★ IN SESSION MODE THE STEP IS THE PAGE (the stepped review,
+            2026-09-16). "One context and its questions alone on the screen"
+            cannot survive a record card, a badge row and a meta table above it:
+            the spine says which board this is and links the whole thing. */}
+        {review ? null : (
         <PageHeader
           title={ruling.title}
           // A board on the template answers in its own first block (the kit's
@@ -137,7 +142,8 @@ export default async function BoardPage({
             ],
           ]}
         />
-        {!spec && (
+        )}
+        {!review && !spec && (
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {ruling.why}
           </p>

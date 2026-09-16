@@ -28,7 +28,7 @@ import {
   WINDOW_LEDGER,
   windowNotesFor,
 } from "./ledger";
-import { boardStatus, waitingOnWill } from "./status";
+import { boardStatus } from "./status";
 
 /**
  * THE LEDGER READER'S GUARD. The ledgers are written by the Orchestrator from
@@ -192,16 +192,25 @@ describe("a board's status", () => {
       if (status.complete) {
         expect(status.open).toEqual([]);
         expect(status.unclear).toEqual([]);
+        expect(status.staged).toEqual([]);
         expect(status.openItems).toEqual([]);
       }
     }
   });
 
-  it("lists only the boards with something still open", () => {
-    const ids = SANDBOX.map((r) => r.id);
-    for (const row of waitingOnWill(ids)) {
-      expect(row.open).toBeGreaterThan(0);
-      expect(row.open).toBeLessThanOrEqual(row.of);
+  // A staged ask is not open and a moot one is not asked at all (the stepped
+  // review, 2026-09-16), so the four buckets have to partition the asks.
+  it("sorts every ask into exactly one bucket", () => {
+    for (const spec of BOARDS) {
+      const s = boardStatus(spec.id);
+      expect(
+        s.answered.length +
+          s.open.length +
+          s.unclear.length +
+          s.staged.length +
+          s.moot.length,
+        `${spec.id}: an ask fell into two buckets or none`,
+      ).toBe(s.asks.length);
     }
   });
 });

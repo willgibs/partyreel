@@ -64,7 +64,7 @@ it, hand off the smallest action, resume; a result that smells non-human gets a 
 `pnpm dev` (Turbopack on :3000; `rm -rf .next/dev` first when a CSS edit does not show) · `pnpm build` · `pnpm lint`
 (eslint; `next lint` is gone in 16) · `pnpm typecheck` · `pnpm test` (vitest) · `pnpm format` (prettier on your CHANGED
 files only; never the whole repo, it mangles dynamic classNames) · `pnpm design:rules` (regenerate the rules artifact
-after a contract, policy or `for` line changes). Node `.nvmrc` (22.21.1); pnpm 9.14.4. The gate before every commit:
+and `docs/design/library.md` after a contract, policy, `for` line or `touchpoints.ts` changes). Node `.nvmrc` (22.21.1); pnpm 9.14.4. The gate before every commit:
 `pnpm typecheck && pnpm lint && pnpm test`, plus `pnpm build` before a handoff. Formatting is not in the gate.
 
 **Stack (pinned; verify against current docs before upgrading):** Next.js 16.2.6 (App Router, `src/`, TS) · React

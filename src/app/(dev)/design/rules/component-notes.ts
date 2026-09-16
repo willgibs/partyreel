@@ -343,8 +343,19 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/lab/lab-chrome.tsx": {
     for: "the shell's reading preferences written onto <html>, and the guard that catches a browser holding an old copy of the lab's stylesheet before it renders as five layout bugs",
   },
-  "src/components/lab/review-card.tsx": {
-    for: "The step being answered, pinned under the board's dock: an ask in plain words with what each option means, or a catalog counted as its cards are ruled, over the evidence it is about",
+  "src/components/lab/step.tsx": {
+    for: "One context and its question alone on the screen: the options drawn as preview tiles on one specimen, the real thing on a stage below, Back and Next; showing an option is not answering it",
+  },
+  "src/components/lab/before-after.tsx": {
+    for: "The same specimen twice, touching: as today, then with the idea, captioned under the judged area, so a difference is looked at rather than remembered",
+  },
+  "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx": {
+    for: "The batch so far as one pasteable line, omitting every answer the ledger already holds, so a sitting can be sent in pieces without re-sending itself",
+    unspecimened: "one button; the step's spine and the desk are its specimens",
+  },
+  "src/app/(dev)/design/(shell)/lab/_desk/session-step.ts": {
+    for: "one step of a review, derived once from a board's spec and its ledger: what is asked, in what state, and whether it is staged behind a question nobody has answered yet",
+    unspecimened: "pure data; the step surface is the specimen",
   },
   "src/components/lab/catalog.tsx": {
     for: "An exploration as a grid of finished ideas: each card its own line, its live preview, its facts and the reviewer's verdict; every control on it drives a page-wide declared control",
