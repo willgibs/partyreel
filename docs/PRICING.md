@@ -17,7 +17,13 @@ mode; the live cutover is a launch task).
   GB amounts + structure live in `tiers.ts` and are mirrored in `tier_limits()` SQL.
 - **Monthly ingress meter** (bytes uploaded per month; never refunds on delete;
   unmarketed) is the anti-abuse guard — storage caps alone don't stop delete→re-upload
-  egress burn.
+  egress burn. It is a MULTIPLIER of the effective storage cap rather than a static number, so the
+  abuse bound scales with revenue instead of needing a new figure per plan. It stays unmarketed and
+  silently tunable, and it carries admin visibility plus a manual override, because the one outcome
+  worth engineering against is a false positive quietly blocking a paying host.
+- **A marketed number can only ever move UP.** Grandfathering makes every published limit sticky, so each
+  one lands at the conservative-but-generous end: raising a limit later is a gift, lowering it is a
+  broken promise. That asymmetry, not precision, is what picks these numbers.
 - **No watermarks on photos or the album, any tier** (only the free reel carries a small mark).
   The universal per-file limit (all tiers) stays in `lib/media/limits.ts`: **10 GB per file,
   photos and videos alike — size is the ONLY per-file gate, there is no duration cap** (the old
@@ -41,7 +47,7 @@ mode; the live cutover is a launch task).
   future win. Yearly Stripe prices live on the SAME products as monthly (portal
   monthly↔yearly switching rides same-product active prices, `proration_behavior:
   always_invoice`); env keys `STRIPE_PRICE_PRO_{100,500,2TB}_YR`. Note: a pass holder's prorated
-  credit (ADR-0025) lands as customer balance, which applies to the NEXT invoice — on yearly
+  credit lands as customer balance, which applies to the NEXT invoice — on yearly
   that's a year out (never lost; special-case only if it ever feels wrong in practice).
 
 - **Free** also gates features by tier: **password-protected albums + custom slugs** are locked on
@@ -49,20 +55,23 @@ mode; the live cutover is a launch task).
   2026-06-21 — allowing anonymous uploads is the opt-in), and **video is Pro-only** (a free event is
   photos-only for guests AND the host; enforced at upload in `create_media`/`create_media_as_host`,
   mirrored client-side by `videosAllowedForTier`). **Reel length is tier-capped** (`MAX_REEL_SECONDS`:
-  30s Free / 60s paid, ADR-0021); reel generation itself is free for every tier (watermark on Free).
+  30s Free / 60s paid); reel generation itself is free for every tier (watermark on Free). 30s is the
+  free-tier category norm and still holds a real 12 to 15 moment montage: 15s reads stingy, and past 60s a
+  montage sags while losing its Reels and TikTok reach.
   The first-event experience must still shine; it sells the upgrade. **Primary upgrade triggers:** a
   2nd event, outgrowing event #1's storage, wanting video, or password/custom-slug controls.
-- **Saving events is FREE** (Phase 3, ADR-0009): any signed-in visitor can save an event to
+- **Saving events is FREE** (Phase 3): any signed-in visitor can save an event to
   their dashboard. Deliberately ungated — it's the account-creation growth driver (a saved event
   is the reason a guest makes a free account), not a paid perk.
-- **Event Pass economics v2 (ADR-0025, ruled + BUILT 2026-08-27):** passes **STACK** (each purchase
+- **Event Pass economics v2 (ruled + BUILT 2026-08-27):** passes **STACK** (each purchase
   is a ledger row granting +1 event slot and +75 GB for its own ~1-yr window; `event_passes` +
   `profiles.event_slots`), and moving to Pro converts every live pass as **PRORATED CREDIT**
   (unused fraction of what was actually paid becomes Stripe customer balance that pays down
-  upcoming Pro invoices; nothing banked, nothing lost — supersedes the ADR-0023 banked-term
-  fallback). Renewal ($15, `STRIPE_PRICE_EVENT_PASS_RENEWAL`) chains a new window onto the
+  upcoming Pro invoices; nothing banked, nothing lost). Renewal ($15,
+  `STRIPE_PRICE_EVENT_PASS_RENEWAL`) chains a new window onto the
   soonest-expiring active pass: extends, never resets, and an unopened renewal year credits at
-  100%. At expiry without renewal the account recomputes down (eventually Free + the over-capacity
+  100%. The renewal price holds at $15 because a typical album costs us $3 to $5 a year and a renewal adds
+  almost no ingress, so it is priced as an easy yes; revisit only if full-utilization renewals cluster. At expiry without renewal the account recomputes down (eventually Free + the over-capacity
   retention flow). The renewal price is SURFACED on /pricing (the pass card + table + FAQ) via
   `EVENT_PASS_RENEWAL_PRICE_LABEL` in `tiers.ts`.
 - ≈ figures assume ~4 MB/photo and ~150 MB/min 1080p video — illustrative; the in-app
@@ -91,7 +100,7 @@ The shape lives in [`src/lib/constants/tiers.ts`](../src/lib/constants/tiers.ts)
 source of truth; read it, don't trust a doc copy** (an embedded snapshot here went stale and was
 removed 2026-08-27). What the file holds beyond the tables above: the `Plan` records + Stripe price
 env keys, `MAX_EVENTS`, the ingress model (`MONTHLY_INGRESS_BYTES.free = 20 GB`; paid tiers DERIVE
-`INGRESS_CAP_MULTIPLIER (3) x storage cap`, ADR-0021), `GATED_EVENT_SETTINGS` (password +
+`INGRESS_CAP_MULTIPLIER (3) x storage cap`), `GATED_EVENT_SETTINGS` (password +
 custom_slug), `MAX_REEL_SECONDS` (30/60), and the `friendlyCapacity` display helper. The DB
 `tier_type` enum still lists `max` (retired; coerced by `toBillingTier()`), and the SQL
 `tier_limits()` fn must mirror the file (a Vitest parity test guards it).
@@ -164,7 +173,7 @@ the portal opened; an immediate `cancel_subscription` downgraded back to Free.
 **Event Pass (wired, test mode):** the two one-time prices above. Checkout uses
 `mode:"payment"`, so no `customer.subscription.*` ever fires; provisioning rides
 `checkout.session.completed` (`metadata.plan_id="event_pass"`), which mints an `event_passes`
-LEDGER row (ADR-0025) and recomputes the profile from the ledger: +1 event slot and +75 GB for
+LEDGER row and recomputes the profile from the ledger: +1 event slot and +75 GB for
 that row's own ~1-year window, stacking with any other live pass. The renewal price carries
 `metadata.renewal="1"` and opens its window at the soonest-expiring active pass's expiry
 (extends, never resets); the daily sweep recomputes holders down as windows lapse. No new
@@ -227,8 +236,8 @@ state — stays well under the free tier early. **Human setup:** create a Resend
 
 **Custom SMTP for Supabase Auth emails (reuse Resend) — runbook.** Supabase's built-in
 email service (`noreply@mail.app.supabase.io`) is rate-limited (project-wide ~2 emails/hour,
-Pro-locked) and not production-grade — it's the real ceiling on the verified-email OTP flow
-(ADR-0008). Point Supabase Auth at the SAME Resend sending domain so the OTP code / magic
+Pro-locked) and not production-grade — it's the real ceiling on the verified-email OTP flow.
+Point Supabase Auth at the SAME Resend sending domain so the OTP code / magic
 link + the confirm/reset templates send via Resend. **Dashboard-only (no MCP/API path);
 Will pastes the credentials.**
 
