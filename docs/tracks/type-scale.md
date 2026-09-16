@@ -71,8 +71,32 @@ never `[preview]` or `[ci]`; stage files explicitly; the `Co-Authored-By: Claude
 :3121, `light` on :3122, `palette` on :3123); merge `origin/launch-prep` before your handoff if it
 moved, never rebase.
 
-**Questions.** What the goal leaves open goes here, numbered, with your recommended answer; carry on
-with the recommendation.
+**Questions.** Answered with the recommendation and carried on with; each is a one-line yes or no.
+
+1. **The round-six open question, settled: one page, two copies, one canvas wide.** Neither the
+   sideways row nor the kit's wipe. The stage loads ONE route (a `page` control on the winner
+   step's strip) and the ladder arrives as CSS in that page's own document, so pressing a card
+   re-types the same page in the same place with no reload; `against` lays a second copy of the
+   route UNDER the first on a fade, inside one canvas width. A fade is also the only honest way to
+   read a difference in SIZE, which is what the kit's own `Compare` says about its `stack` mode.
+   *Recommended: keep it.* The one cost is the home page, whose hero line rotates on its own, so
+   the two copies land on different words; its caption says so and `/about` is the stage's default.
+2. **`catalog.compare` and the cards' A and B pills are gone with it.** "The pair for any two" is
+   now the press (any card) against `Against` (any card), which is one gesture instead of two pills
+   and works inside a step, where the kit hides the pill rows. *Recommended: keep it gone.*
+3. **A kit finding for `lab-flow`: `OptionTiles` draws every tile inside a `FitStage fit="zoom"`,**
+   which is CSS `zoom: 0.2` in a 290px tile and fatal on a type board (a 16px card title lands at
+   three pixels). This board answers it locally with `true-scale.tsx`, which measures the zoom its
+   ancestors impose and divides it back out, so a specimen is 1:1 on the glass in a tile, on a
+   stage and on the board, and clips rather than shrinks. *Recommended: the kit offers a tile that
+   does not scale (a `fit` on the option tiles, or a `data-lab-true` opt-out), and this file
+   retires into it; until then it stays here, where the constraint lives.*
+4. **`not-found` is staged behind `ladder`** (`after: { ask: "ladder" }`, no option named), because
+   "put the title on the set" is not a question until a set is chosen. If nothing is picked the
+   specimen draws at the board's own recommendation and the caption says so. *Recommended: keep.*
+5. **Both follow-up controls are declared and off every strip.** `tracking` and `dead-link` exist
+   only so their ask can draw both answers as tiles; putting them on a config strip would print the
+   same question twice on one screen. *Recommended: keep.*
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 

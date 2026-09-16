@@ -533,7 +533,7 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/system/section-shell.tsx",
     ],
     board: {
-      note: "Five ladders as type specimens at the pixels they declare, side by side in one row at both widths; any two on the same real page scroll-locked; the pick worn by five real routes; two questions (letter spacing, the dead-link heading)",
+      note: "Round seven: five ladders as type specimens at the pixels they declare, decided by one pick or none; one real page under the card being pressed, with a second copy of it under the first on a fade; letter spacing and the dead-link title as steps of their own, both answers drawn at once",
       variants: [
         "A, tuned",
         "B, rungs",
