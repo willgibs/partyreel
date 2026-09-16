@@ -1469,7 +1469,7 @@ scanner the wrong object and refuses every ruling as "not an ask on this board".
 
 ## Handoff (round 6)
 
-- Head `2e9b1257` plus the one commit on top of it that stamps this file, pushed. No `[preview]` and
+- Head `63ee1a62` plus the one commit on top of it that stamps this file, pushed. No `[preview]` and
   no `[ci]` on any push: the round's review surface is a local `pnpm dev` on `launch-prep` after
   integration. Board: `/design/lab/floating-surfaces`; the review card lands on an ask at
   `/design/lab/floating-surfaces?session=floating-surfaces.direction`.
@@ -1477,14 +1477,18 @@ scanner the wrong object and refuses every ruling as "not an ask on this board".
   The dock's switches read "Squarer, like a surface" where they read "Sharp", and the frames over the
   ladders read the same words as the question above them. A second marker: `PLAIN` in
   `sandbox/registry.test.ts` no longer names this board, so the clarity ratchet checks its shape.
-- **Synced with `launch-prep` TWICE**, because it moved again while the gate ran: first at `99544a2b`
-  (merge `50178bf4`), which brought in glow-specs, brand-voice, rounding, the review card, home-hero,
-  media-kit and palette, then at `63240eac` (merge `2e9b1257`) for album-hero. **One conflict each
-  time, both the adjacent-deletion in `sandbox/registry.test.ts` the round brief predicted, both
-  resolved by keeping EVERY side's deletions**: `PLAIN` is now `["river-visual"]` alone. The whole
-  gate re-ran on the second merged tree.
+- **Synced with `launch-prep` THREE times**, because the clarity wave kept landing while the gate
+  ran: `99544a2b` (merge `50178bf4`: glow-specs, brand-voice, rounding, the review card, home-hero,
+  media-kit, palette), `63240eac` (merge `2e9b1257`: album-hero), `bea5ace8` (merge `63ee1a62`:
+  river-visual). **One conflict each time, every one the adjacent-deletion in
+  `sandbox/registry.test.ts` the round brief predicted, every one resolved by keeping EVERY side's
+  deletions.** With river-visual's line and this board's both gone, `PLAIN` is now EMPTY, which is the
+  ratchet arriving where it was always going: every board on the registry is checked for a real
+  question, a context, a look and labelled options. The list is left as `[]` rather than deleted,
+  because deleting it is a change to the kit's test, not to this lane. The whole gate re-ran on the
+  third merged tree.
 - Gates on the merged tree, each on its own exit code: **typecheck ok**, **lint ok** (0 errors, 6
-  warnings, all pre-existing and outside the lane), **test ok** (2182 in 219 files), **build ok** (257
+  warnings, all pre-existing and outside the lane), **test ok** (2183 in 219 files), **build ok** (257
   static pages), **`pnpm lab:smoke --base http://localhost:3117` ok** (321 checks, 0 failing), and
   `pnpm lab:review --dry 'review floating-surfaces r5: direction=card "the desk sold it";
   submenu=delete; radius=nested; entrance=by-frequency; light=follow-light'` accepts one clause per
