@@ -137,6 +137,22 @@ stay pinned by `provenance.test.ts` until the rule is ruled. The bridge ($56) an
 asked of Will again (rows 13 and 7). With it, all six paper boards are catalogs: the revamp's Round 4
 is closed on the tree, and Will's first review with per-item verdicts is the palette plus the six.
 
+**During the sitting.** Will's first per-item review began on his dev server; his batches transcribe
+as they arrive (the home hero ruled: the source, centred, no count, the stream wants polish; the two
+glow boards' asks closed on the light board), and "Copy so far" on the review card and the desk lets a
+sitting land in batches (`fd541941`). He ruled mid-sitting that the lab winds down into the Library:
+a kept idea becomes a working version, a board retires, and no further exploration is cut unless he
+asks for one by name; he asked for two. **`palette`, round seven** (merged `5a538c0a`) leaned the
+catalog cool and made the accent a config, on his note: Apple's system greys convert to hue 286 at a
+nearly flat chroma and their blue to 257, and the board had built its cool at 258 for four rounds,
+which is most of why Slate read blue; four new dark sets (Onyx, Graphite, Steel, Pitch) and two light
+ones (Pearl, Mist) were written from his sentence, very black and very white grounds carrying the
+contrast with cool greys above them; Loft, Press, Daylight, Gallery and Signal left and Ember stayed as
+the one warm comparison; every palette declares one accent behind a page-wide switch, off by default,
+that the paste obeys; every card lays a colourful mix of five photographs on its own well; the reading
+went from 3,817 words with no declaration to 2,924 against a declared 2,950. The home hero's stream
+catalog (`lp/home-hero`, round six) is the other exploration he named.
+
 Machine notes: four agents at once is the ceiling on 36 GB, one process each, a dev server killed by
 port; Vercel's daily cap kept the alias on the Library x Lab round's Phase 1 until 2026-09-17 00:13
 UTC, so every review ran on a local `pnpm dev`. Gates on the tree at the catalog's merge: typecheck,

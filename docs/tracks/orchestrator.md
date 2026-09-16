@@ -64,7 +64,6 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 
 | track | board | waits on |
 | --- | --- | --- |
-| `palette` | `/design/lab/palette` (round seven: cool greys, one optional accent per palette) | its handoff; Will skips the palette until it lands |
 | `home-hero` | `/design/lab/home-hero` (round six: the stream catalog before the wiring) | its handoff |
 
 ## Waiting on Will
@@ -101,5 +100,7 @@ him: a walk of the palette catalog once `lab-catalog` integrates, then the six c
   comment, the post-hydration trap).
 - `8587d3ed` media-kit integrated (thirteen sources as cards; 2,686 words against a declared 2,750).
   Round 4 is closed on the tree: every standing paper board is a catalog under its declared budget.
+- `5a538c0a` palette round seven integrated during the sitting (nine cool palettes, three controls, the
+  accent as a config; 2,924 words against a declared 2,950).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
