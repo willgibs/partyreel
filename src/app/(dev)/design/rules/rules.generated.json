@@ -1278,7 +1278,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 235
+          "line": 242
         },
         {
           "title": "records the option on a second press of the one being shown",
@@ -1286,7 +1286,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 247
+          "line": 254
         },
         {
           "title": "clears the answer on a third press and resets the stage",
@@ -1294,7 +1294,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 265
+          "line": 272
         },
         {
           "title": "draws every option on the board's own section, in that option's state",
@@ -1302,7 +1302,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 280
+          "line": 287
         },
         {
           "title": "falls back to text tiles when nothing declares how to draw an option",
@@ -1310,7 +1310,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 289
+          "line": 296
         },
         {
           "title": "asks the question in the words a stranger can answer it in",
@@ -1318,7 +1318,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 300
+          "line": 307
         },
         {
           "title": "marks the option the board recommends, and only that one",
@@ -1326,7 +1326,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 311
+          "line": 318
         },
         {
           "title": "carries the note with the answer",
@@ -1334,7 +1334,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 318
+          "line": 327
         },
         {
           "title": "applies the ask's declared state on landing",
@@ -1342,7 +1342,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 328
+          "line": 337
         },
         {
           "title": "holds Next until a question marked unclear says what was unclear",
@@ -1350,7 +1350,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 334
+          "line": 343
         },
         {
           "title": "renders nothing for a session on another board",
@@ -1358,7 +1358,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 346
+          "line": 355
         },
         {
           "title": "skips a staged step, and reaches it once its question is answered",
@@ -1366,7 +1366,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 353
+          "line": 362
         },
         {
           "title": "drops a staged step as moot when its question went the other way",
@@ -1374,7 +1374,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 376
+          "line": 385
         },
         {
           "title": "counts the walk without the staged steps",
@@ -1382,7 +1382,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 390
+          "line": 399
         },
         {
           "title": "asks a pick-one catalog's winner on the cards themselves",
@@ -1390,7 +1390,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 398
+          "line": 407
         },
         {
           "title": "walks a keep-any catalog one card at a time",
@@ -1398,7 +1398,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 412
+          "line": 421
         },
         {
           "title": "keeps a catalog as ONE step whichever way it is walked",
@@ -1406,7 +1406,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 419
+          "line": 428
         },
         {
           "title": "fills Next only once every card has a verdict",
@@ -1414,7 +1414,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 424
+          "line": 433
         }
       ]
     },

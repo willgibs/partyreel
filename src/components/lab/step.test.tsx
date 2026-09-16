@@ -222,8 +222,15 @@ function step(
   );
 }
 
+/**
+ * ★ A TILE IS NOT A <button>. It wraps the board's own evidence, and a real
+ * section contains real buttons: nesting one inside a button is invalid HTML
+ * and a hydration error (found live, 2026-09-16). So the tile is a
+ * `role="button"` div whose preview is inert, and the tests reach it the way a
+ * reader does.
+ */
 const tile = (label: string) =>
-  screen.getByText(label).closest("button") as HTMLElement;
+  screen.getByText(label).closest('[role="button"]') as HTMLElement;
 
 beforeEach(() => {
   push.mockClear();
@@ -312,7 +319,9 @@ describe("a step, as a form", () => {
     step("light.depth", fakeBoard());
     const said = screen.getAllByText("the board says");
     expect(said).toHaveLength(1);
-    expect(said[0].closest("button")).toHaveTextContent("The shadow family");
+    expect(said[0].closest('[role="button"]')).toHaveTextContent(
+      "The shadow family",
+    );
   });
 
   it("carries the note with the answer", async () => {

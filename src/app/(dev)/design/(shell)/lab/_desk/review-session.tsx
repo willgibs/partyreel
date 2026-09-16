@@ -202,22 +202,11 @@ export function ReviewSession({
           <ArrowLeft className="size-3.5" />
           The desk
         </LabLink>
-        <p className="text-xs text-muted-foreground tabular-nums">
-          {atEnd ? `${answered} answered` : `Step ${at + 1} of ${steps.length}`}
-          {sample && <span className="ml-2">· dry run</span>}
-        </p>
-      </div>
-
-      <div
-        className="mt-3 h-0.5 w-full overflow-hidden rounded-full bg-border"
-        role="presentation"
-      >
-        <div
-          className="h-full bg-foreground transition-[width] duration-200 ease-out motion-reduce:transition-none"
-          style={{
-            width: `${Math.round(((atEnd ? steps.length : at) / steps.length) * 100)}%`,
-          }}
-        />
+        {atEnd && (
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {answered} answered{sample && <span className="ml-2">· dry run</span>}
+          </p>
+        )}
       </div>
 
       {sample && (

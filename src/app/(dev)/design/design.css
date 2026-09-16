@@ -221,6 +221,16 @@ html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
     );
   }
 }
+/* ★ A TILE IS A WINDOW, NOT THE WHOLE SECTION. A board's evidence section can
+   be a four-thousand-pixel marketing page, and five of those zoom-fitted into
+   a row still stack to five screens: the point of a tile is that every option
+   is visible AT ONCE. The window shows the top of it and the stage below shows
+   the whole thing at full size. A board whose section is already tile-sized
+   sets --lab-tile-h and nothing is cropped. */
+.lab-tile-view {
+  max-height: var(--lab-tile-h, 200px);
+  overflow: hidden;
+}
 /* The tuner panel (motion-tuner.tsx sets data-lab-panel to its side and
    --lab-panel-w to its width while open): a wide page keeps its evidence
    clear of it on a desktop window; below 1024 the reader collapses the panel

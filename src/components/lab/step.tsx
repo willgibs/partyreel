@@ -619,13 +619,27 @@ function Tile({
   children?: React.ReactNode;
 }) {
   return (
-    <button
-      type="button"
+    // ★ NOT A <button>, AND THE PREVIEW IS INERT. A tile wraps the board's own
+    // evidence, and a real section contains real buttons: a <button> around one
+    // is invalid HTML and a hydration error (found live, 2026-09-16), and a
+    // press that reached a control inside the preview would be answering the
+    // question by fiddling with the picture of it. The preview is a picture:
+    // `inert` takes it out of the tab order and the a11y tree, and the tile
+    // itself is the only thing you can press.
+    <div
+      role="button"
+      tabIndex={0}
       data-dir-press
       aria-pressed={chosen}
       onClick={onPress}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onPress();
+        }
+      }}
       className={cn(
-        "flex h-full w-full min-w-0 flex-col gap-2 rounded-xl border p-2.5 text-left transition-colors duration-150 motion-reduce:transition-none",
+        "flex h-full w-full min-w-0 cursor-pointer flex-col gap-2 rounded-xl border p-2.5 text-left transition-colors duration-150 outline-none focus-visible:border-foreground/40 motion-reduce:transition-none",
         dashed && "border-dashed",
         chosen
           ? "border-foreground/40 bg-muted/40 ring-1 ring-foreground/40"
@@ -635,7 +649,11 @@ function Tile({
       )}
     >
       {children && (
-        <span data-lab-specimen="" className="block min-w-0 overflow-hidden">
+        <span
+          inert
+          data-lab-specimen=""
+          className="lab-tile-view block min-w-0"
+        >
           {children}
         </span>
       )}
@@ -667,7 +685,7 @@ function Tile({
           )}
         </span>
       </span>
-    </button>
+    </div>
   );
 }
 
