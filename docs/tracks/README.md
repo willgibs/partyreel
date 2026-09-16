@@ -163,12 +163,14 @@ rounds and `voice-infusion` cut. The rest follow the wave plan in [`../STATUS.md
 
 ## Previews
 
-The build gate (`scripts/vercel-ignore-build.mjs`) builds an `lp/<track>` push when the branch has
-no manifest yet, when its manifest says `status: handed-off`, or when the commit message carries
-`[preview]`. An open manifest skips whatever its `preview:` field says (the CI budget round,
-2026-09-15: `preview: true` on twelve boards meant twelve tracks building every push, which hit the
-free plan's 100 deployments a day and then could not build the one alias Will needed). Work in
-progress needs no preview; the handoff does.
+The build gate (`scripts/vercel-ignore-build.mjs`) builds an `lp/<track>` push ONLY when the commit
+message carries `[preview]`, and an agent never adds it on its own: the Orchestrator asks for a branch
+preview when a walk needs one. A manifest's `status` and `preview:` fields build nothing (the CI
+budget round, 2026-09-15, stopped `preview: true` building every push after twelve tracks hit the
+free plan's 100 deployments a day; the storage round the same evening stopped the handoff build too,
+after fourteen handoffs in a day put the project at 40 GB of its 10 GB monthly deployment storage).
+A round's review surface is the launch-prep alias after integration, built once per round close;
+the Orchestrator prunes deployments (`scripts/prune-vercel-deployments.mjs`) after every integration.
 
 `main` always builds. `launch-prep` builds ON REQUEST since 2026-09-11: say `[preview]` in the
 commit message of the push whose alias you mean to walk. Building it on every push was most of a
