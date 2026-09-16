@@ -51,14 +51,19 @@ under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
 | `media-kit` | Round 4 catalog: thirteen sources as cards with their contact sheets at the real card size | integrated at `8587d3ed`, 2,686 words against a declared 2,750 |
 | `palette` (round seven) | nine cool palettes and three controls, one optional accent per palette behind a switch, every card on a colourful mix of photographs | integrated at `5a538c0a`, 2,924 words against a declared 2,950; ready for the sitting |
 | `home-hero` (round six) | three or four polished stream treatments on the ruled hero, the last exploration before its wiring | building |
+| `lab-flow` | the review as a stepped onboarding form: tiles on one specimen, show versus choose, the three exits, one card at a time, staging, the desk's rows as steps | building |
+| `light` (round seven) | the twelve cards reshaped for the walk: one at a time on three specimens, before/after and what each lands as, the asks as tile steps | building |
+| `palette` (round eight) | pick-one: the winner from the twelve or none, the accent and its reach as tile steps | building |
 
-Round 1 is closed on the tree (both lanes integrated, the verification list walked on the dev server);
-Will's first review with per-item verdicts is the palette catalog plus the six rebuilt boards, on the
-desk, once Round 4 lands. The reading budget (1,200 words outside every closed fold,
-specimen and paste, or a spec's declared budget with its reason) is met by the six rebuilt boards and
-by type-scale outright; the six boards not yet rebuilt (the palette at 3,817, the two glow boards, the
-home hero, the album hero, the river) still fail it on purpose, and `pnpm lab:smoke` reports the routes
-and the budget apart.
+**The stepped review round** (opened 2026-09-16 at `02c409b4`, on his sitting's verdict: the review
+"favors you and makes me spend tons of time per track figuring what I'm even being asked"): the review
+becomes an onboarding form (`lab-flow`: one context and its questions alone on the screen, the options as
+preview tiles on one specimen, "None of these" as an exit, staged follow-ups, the desk's rows as open
+steps), every board is reshaped into steps four at a time with no new exploration (light and palette
+first; then type-scale, floating-surfaces, rounding, brand-voice, media-kit; the hero after its catalog),
+and his sitting resumes on the first two that land: the last lab-infrastructure round of the window. The
+reading budget is met by every rebuilt board; the two glow boards, the album hero and the river still fail
+it on purpose, and `pnpm lab:smoke` reports the routes and the budget apart.
 
 ## The previous round: the clarity round (2026-09-15 to 16, `be1638f2` to `1165e503`)
 
