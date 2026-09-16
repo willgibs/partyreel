@@ -17,58 +17,46 @@ desk, then the wiring; partyreel.com changes only at tagged milestone merges. Th
 (Will, 2026-09-14): every page reaches a cohesive informational flow and every point of the design system,
 the marketing site and the app is elevated platform-wide; nothing is protected.
 
-## The current round: the revamp (opened 2026-09-16 at `5cdebfe0`)
+## The current round: the stepped review round (opened 2026-09-16 at `02c409b4`; every board integrated at `dd77fc9e`)
 
-Will found the lab "super broken" on localhost (a browser holding an old copy of the lab's stylesheet, plus
-two real gaps: a pick that could not be unpicked, 1:1 canvases boxed in a centred column) and the
-explorations turning into research papers. The plan he approved runs four rounds, each opening with its own
-short planning pass: **Round 1, the lab** (in flight): the stale-stylesheet guard, one toggle rule for every
-pick, edge-to-edge canvases and the catalog's shared types landed at `5cdebfe0`; two lanes cut at `28d1aa95`.
-**Round 2, the docs diet and the track protocol** (the Orchestrator's): the protocol part landed (PROGRAM.md
-is the loop, CLAUDE.md is 150 lines, the one-round manifest template, a manifest deleted at its merge),
-the record is two rounds deep and a test holds it, the 26 integrated manifests are gone, the 25 ADRs
-are folded into the system docs and every citation names the doc (`d4ec4cff`, `aea90fd3`); the
-Library's record pages and `docs/decisions/design-record.md` are gone (git keeps them); the four heavy
-system docs are stripped and every ★ audited (`0a48db70`). Round 2 is closed on the tree. **The wind-down** (Will, mid-sitting): every board's favourites land in the Library as working versions
-and the board retires; a later exploration branches from an entry, never from an unselected board; the one
-exploration still owed is the home hero's stream catalog before its wiring. **Round 3, the Library as the complete inventory**
-(components, marketing sections and app screens with live previews, tokens; a review surface with
-keep / redesign / retire on every entry). **Round 4, the six paper boards rebuilt as catalogs**
-(brand-voice, type-scale, floating-surfaces, light, rounding, media-kit): cut at `385cfa99` on Will's
-answer that all six are rebuilt before any review, and closed on the tree the same day, every board
-under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
+Will stopped his first per-item sitting on the round-four catalogs ("the review process favors you and
+makes me spend tons of time per track figuring what I'm even being asked") and asked for every open track
+to run one more round shaping its previews for a question-based review. His steer binds from here: the end
+goal is the product, fast iterative rounds beat slow meticulous ones for design, HTML and CSS is shaping
+rather than QA, the lab is a means. The round ran in one day: the spec fields, then `lab-flow` rebuilt the
+review as an onboarding form (one context and its question alone on the screen, the options as preview
+tiles on one specimen, show before choose, "None of these" as a pick-one board's third exit, one card at a
+time for a keep-any board, staged follow-ups, the desk's rows as steps, "Copy so far" omitting what the
+ledger holds), then every board was reshaped into steps four agents at a time with no new exploration.
+Every reshaped board is under the standard 1,200 words with its declaration deleted. **The round is closed
+on the tree and its sitting is next**: Start the review on the desk walks the hero, the palette, light,
+type-scale, floating-surfaces, rounding, brand-voice and the media kit, and a pick's wiring round is cut the
+day he makes it (the wind-down: a favourite becomes a working version in the Library, the board retires).
+The kit findings the boards raised are the ROADMAP's first Now lines; none blocks the sitting.
 
 | track | returns | state |
 | --- | --- | --- |
-| the Round 1 and 2 lanes | `lab-catalog` `57b93286` (the item scope, the catalog kit, the toolbox, the reading budget, the palette as proof), `lab-sweep` `88dafe50` (every lab page walked and fixed; the lab functions' file trace cut to 718 files), `docs-systems-strip` `0a48db70` (the four heavy docs stripped, every ★ audited) | integrated |
-| the six Round 4 catalogs | brand-voice `5868325e` (six voices, twenty-four spots), type-scale `257df8fe` (five ladders, 1,155 words), floating-surfaces `767e6182` (seven directions, 2,317 against 2,400), light `2326a924` (twelve treatments, 2,889 against 2,950), rounding `128aca34` (six families, 2,564 against 2,800), media-kit `8587d3ed` (thirteen sources, 2,686 against 2,750) | integrated, each under its declared budget |
-| `home-hero` (round six) | four compositions of the stream (mirror, phrase, settle, ribbon) on the ruled hero, the last exploration before its wiring | integrated at `56ea9185`, 1,189 words under the budget |
 | `lab-flow` | the review as a stepped onboarding form: tiles on one specimen, show versus choose, the three exits, one card at a time, staging, the desk's rows as steps | integrated at `c18570c4`; the catalog boards' reading halved with the deletions |
+| `home-hero` (round six) | four compositions of the stream (mirror, phrase, settle, ribbon) on the ruled hero, the last exploration before its wiring | integrated at `56ea9185`, 1,189 words under the budget |
+| `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | integrated at `ec7367e7`, 486 words |
 | `light` (round seven) | the twelve cards reshaped for the walk: one at a time on three specimens, before/after and what each lands as, the asks as tile steps | integrated at `7ed0d2a2`, 920 words, no declaration |
 | `palette` (round eight) | pick-one: the winner from the twelve or none, the accent and its reach as tile steps on the real product | integrated at `49ed0fbf`, 1,191 words, no declaration |
-| `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | integrated at `ec7367e7`, 486 words |
 | `floating-surfaces` (round seven) | pick-one: the winner from the seven or none, the submenu, corner, entrance and shadow questions as tiles on one menu | integrated at `514aee2d`, 922 words, no declaration |
 | `rounding` (round seven) | pick-one: the winner from the six or none, the button, ladder, dead-rung and gap questions as tiles at true pixels | integrated at `7d90465c`, 684 words, no declaration |
 | `brand-voice` (round seven) | pick-one: the winner from the six voices or none on three lines at phone size, the noun, unfurl, counts and scope questions as steps | integrated at `0c1cfa60` |
 | `media-kit` (round seven) | keep-any as a gallery (a kept card is a purchase, priced on the card), the crowds question as two tiles, the rule, spend and shoot questions means-only | integrated at `61063785`, 1,077 words, no declaration |
 
-**The stepped review round** (opened 2026-09-16 at `02c409b4`, on his sitting's verdict: the review
-"favors you and makes me spend tons of time per track figuring what I'm even being asked"): the review
-becomes an onboarding form (`lab-flow`: one context and its questions alone on the screen, the options as
-preview tiles on one specimen, "None of these" as an exit, staged follow-ups, the desk's rows as open
-steps), every board is reshaped into steps four at a time with no new exploration (light and palette
-first; then type-scale, floating-surfaces, rounding, brand-voice, media-kit; the hero after its catalog),
-and his sitting resumes on the first two that land: the last lab-infrastructure round of the window. The
-reading budget is met by every rebuilt board; the two glow boards, the album hero and the river still fail
-it on purpose, and `pnpm lab:smoke` reports the routes and the budget apart.
+## The previous round: the revamp (2026-09-16, `5cdebfe0` to `48bd3bdc`)
 
-## The previous round: the clarity round (2026-09-15 to 16, `be1638f2` to `1165e503`)
-
-Will's first review through the desk answered three light asks and marked two not clear because the
-questions were labels with token options; every ask on the twelve boards was rewritten as a question a
-stranger can answer beside its evidence, `?` became an answer, the answering moved onto the board
-(`?session=`), and the palette board became the first catalog. Eleven tracks integrated; the CHANGELOG's
-entry "The Library x Lab round, Phase 3 opens as the clarity round" is the record.
+Will found the lab "super broken" on localhost and the explorations turning into papers. Round 1 fixed the
+lab (the stale-stylesheet guard, one toggle rule for every pick, edge-to-edge canvases, the catalog kit and
+the reading budget; `lab-catalog` `57b93286`, `lab-sweep` `88dafe50`); Round 2 made `docs/PROGRAM.md` the
+loop, CLAUDE.md 150 lines, a manifest deleted at its merge and the record two rounds deep, folded the 25
+ADRs and stripped the four heavy system docs (`d4ec4cff`, `aea90fd3`, `0a48db70`); Round 4 rebuilt the six
+paper boards as catalogs under declared budgets (`5868325e` to `8587d3ed`), and the palette's cool round
+seven landed mid-sitting (`5a538c0a`). Round 3, the Library as the complete inventory with keep / redesign
+/ retire on every entry, waits for its planning pass after the sitting. The CHANGELOG's entry "The revamp"
+is the record.
 
 ## Live state
 
@@ -81,7 +69,7 @@ entry "The Library x Lab round, Phase 3 opens as the clarity round" is the recor
   `pnpm dev` after a hard reload (the lab's chrome reloads a stale sheet once on its own).
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and
   fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 2198 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on
+- **Tests:** 2,160 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on
   `main` and `launch-prep` code pushes only; an `lp/*` push only on `[ci]`).
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup GitHub Action (about
   06:30 UTC) are live; the deletion-aware backup prune ships in dry-run (`PRUNE_MODE=live` is a launch flip).
@@ -108,12 +96,11 @@ prune crons and the shared `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-The desk derives the asks and the items (`/design/lab?key=`); the assets are in [`ASSETS.md`](ASSETS.md).
-Next from him: the sitting on the desk (the palette and the six rebuilt boards, keep
-/ refine / kill and a note per item, one line to paste), and three questions the boards carry
-(brand-voice: one voice everywhere at three volumes, or two voices; whether bible 20 means the naming or
-the shape; type-scale: the compared pair side by side scrolling sideways at 1440, or the kit's wipe; floating-surfaces:
-seven cards or the four named, and the menu ground photograph, asset row 14; light: the grain tile and the
-worst-case overlap pair, rows 15 and 16; rounding: six families or the four named). One product bug waits for
-the wiring round: every nested submenu paints nothing (`ui/dropdown-menu.tsx`'s `SubContent` has no portal).
-The launch-gated tasks are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).
+The desk derives the steps (`/design/lab?key=`); the assets are in [`ASSETS.md`](ASSETS.md). Next from him:
+the stepped sitting, board by board, pasted in batches with Copy so far (the Orchestrator transcribes each
+batch with `pnpm lab:review`); one question outside the walk, whether bible 20 means the naming or the
+shape (brand-voice); the assets still open: the menu ground photograph (row 14), the grain tile and the
+worst-case overlap pair (rows 15 and 16), the bright-edged tile set (row 17), and the media kit's 36 masters
+and $56 bridge, which its spend and shoot steps now ask. One product bug waits for the wiring round: every
+nested submenu paints nothing (`ui/dropdown-menu.tsx`'s `SubContent` has no portal). The launch-gated tasks
+are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).
