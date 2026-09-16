@@ -121,15 +121,37 @@ and why, for Will or the Orchestrator to overrule.
 
 - Design system: the lab's meta panel prints all twelve card summaries and every departure unfolded,
   which is about 490 of this board's 2,439 measured words and is the template's voice, not the board's.
+- Design system: `sandbox/media-kit/shoot.ts` (about line 582) names `sandbox/light/depth.tsx` as what
+  its overlap pair replaces; that file went at round six and the asset row now names the board's cards.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
+- Head <sha>, pushed; synced with launch-prep at <sha>
 - Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` green for this board, its reading words
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The steps, one line each: `<ask>: decides <lands>; tiles | means-only; after <...>`
-- The cards, one line each: `<id>: lands as <...>; before/after yes; usages <n>`
-- Assets requested from Will: none, or one per line
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file
+- The steps, in walk order after the cards:
+  - `landing`: decides the placement grammar SectionLight ships with; four tiles on one real chapter; after `item:aurora=keep`
+  - `cadence`: decides the one token every lamp and the field's clock multiply from; two tiles on one real chapter, plus the knob that writes the clock on the site
+  - `paper`: decides the five hues re-declared on the paper surface; three tiles on one real paper chapter, swatches under each
+  - `publish`: decides the publish beat's keyframe and a ratified violet moved five degrees; three tiles on one reel frame, each with a Replay
+  - `second`: decides which surfaces the wiring round touches after the shadows; means-only, three rows (an order, not a picture)
+- The cards, in Will's order (the light placements, the shadow-specific ones, the marks). Every one has
+  before/after on its job's one specimen: the lamps on the closer chapter (cinema), the depth cues on one
+  pair of overlapping event tiles in a panel (app dark), the marks on one reel frame (app dark).
+  - `seam`: lands as a band at any boundary, already on the footer, the strip and the feature screens; usages 1
+  - `throw`: lands as a wrapper at the call site, the QR plate and a card over open dark; usages 1
+  - `aurora`: lands as a new SectionLight, one chapter a page; usages 2 (a cinema chapter, a paper chapter)
+  - `step`: lands as nothing moving, every card, panel and well today; usages 1; lens
+  - `ring`: lands as nothing moving, 77 hairlines named as the fourth technique; usages 1; lens
+  - `lift`: lands as a shadow token, dark gaining the alpha it never had; usages 1
+  - `float`: lands as a second token, every floating primitive in both modes; usages 1
+  - `face`: lands as an attribute on three named surfaces and nowhere else; usages 2; lens
+  - `sweep`: lands as the engine's edge ring turned on beside the comet; usages 1; Replay
+  - `bloom`: lands as a resting base under the one-shot; usages 1; Replay
+  - `halo`: lands as a wrapper on one secondary action a page, argued each time; usages 2 (the white primary is one)
+  - `beam`: lands as nothing moving, one wrapper, one subject per view; usages 1
+- Assets requested from Will: none new. The two standing ones are unchanged and already logged: the grain
+  tile (ASSETS row 15) and the worst-case overlap pair (row 16).
 - Look at first: ...
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
