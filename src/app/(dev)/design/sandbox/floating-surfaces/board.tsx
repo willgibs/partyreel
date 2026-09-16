@@ -11,7 +11,6 @@ import {
   BoardPage,
   CANVAS,
   Catalog,
-  CellLabel,
   comparePair,
   Frame,
   FrameRow,
@@ -30,7 +29,6 @@ import { env } from "@/lib/env";
 
 import {
   contractCss,
-  rungCss,
   type EntranceRung,
   type Knobs,
   type LightRung,
@@ -38,35 +36,36 @@ import {
 } from "./candidates";
 import {
   askOptionLabel,
-  contractName,
-  RUNGS,
+  blockName,
   WALK,
   type Scene,
   type Sub,
 } from "./constants";
-import {
-  DIRECTION_META,
-  directionCss,
-  directionLabel,
-  type Direction,
-} from "./directions";
+import { DIRECTION_META, directionCss, type Direction } from "./directions";
 import { FLOATING_SURFACES } from "./spec";
 
 /**
- * THE FLOATING-SURFACES BOARD (round six, the revamp, 2026-09-16).
+ * THE FLOATING-SURFACES BOARD (round seven, the stepped review, 2026-09-16).
  *
  * What the board ARGUES lives in `spec.ts` and only there. What is left here is
  * what a board should be and nothing else: the evidence for each declared
  * section, as a function of the declared state.
  *
- * ★ THE ROUND IS A CATALOG, AND THE GRID IS THE BOARD. Round five's twelve
- * sections were a paper with pictures in it: four answers side by side, then
- * the desk, then the submenu, then the phone, then the family, then glass's
- * cost, then the directions as cards, then three ladders, then the outliers.
- * Seven of those were a comparison of the same seven things on a different
- * surface, which is what a page-wide switch is for. So: one grid of seven
- * cards, one comparison of any two on real surfaces, the four calls that are
- * not a card, and the real routes wearing the pick.
+ * ★ A SECTION IS NOW A STEP'S SPECIMEN, AND THAT IS WHY THEY ARE SMALL. The
+ * review draws a section ONCE PER OPTION as a tile and again full size on the
+ * stage below (`components/lab/step.tsx`), so a section holding four
+ * comparisons would be drawn four times over and read as a wall. Round six's
+ * one `calls` section (four headings, eleven frames) is four sections here,
+ * each ONE menu in whatever state the option being looked at sets: the branch
+ * held open or inline, the corner under its loupe, the trio landing, one panel
+ * on dark with and without its shadow. The comparison is the tiles.
+ *
+ * ★ AND THE CATALOG IS ONE PICK. `catalog.mode: "pick-one"` makes the seven
+ * cards the winner ask's own options, and `catalog.stage` puts the real product
+ * under them: press a card and the dashboard, the phone, the covering family
+ * and the guest's drawer all wear it. The any-two comparison round six opened
+ * with is folded under that, because a pick is the decision and a comparison is
+ * a tool for making it.
  *
  * ★ EVERY SPECIMEN IS A VIEWPORT, NEVER A STAGE, and that is not a preference.
  * Every radix panel portals its content to `globalThis.document.body`: inside a
@@ -76,14 +75,6 @@ import { FLOATING_SURFACES } from "./spec";
  * only honest surface for this family, which is why this board invented the
  * frame and why the kit owns it now: `Frame` carries the gate hold, the adopted
  * candidate sheet, the scroll lock, the blocked banner and the approach mount.
- *
- * ★ AND THE COMPARISONS DO NOT USE `CompareTwo`, WHICH IS DELIBERATE. Its
- * `side` mode is a grid of `minmax(0, 1fr)` columns, and a Frame is a fixed
- * width that will not shrink: a 1440 frame in a 1fr column runs straight past
- * the lab's content column at 1:1, which is the exact fault the round-five
- * sweep found and the shell now clips at the window edge. `FrameRow` is the
- * kit's own answer (a bleed, then a sideways scroll), so the pair is drawn in
- * one of those with `comparePair` naming the two cards.
  */
 
 /* ── The frames ────────────────────────────────────────────────────────── */
@@ -114,10 +105,8 @@ type ViewportProps = {
   direction?: Direction;
   /** The nested branch, kept or deleted, when this frame is showing that call. */
   sub?: Sub;
-  /** The three calls, as CSS, when this frame is showing them. */
+  /** The calls, as CSS, when this frame is showing one of them. */
   knobs?: Knobs;
-  /** Candidate classes this frame's panels wear (a ladder holds several). */
-  rungs?: readonly string[];
   /** A ground this frame PINS, when the ground is not the page's. */
   ground?: Ground;
   eager?: boolean;
@@ -143,12 +132,10 @@ function Viewport({
   direction = "today",
   sub,
   knobs,
-  rungs = [],
   ground,
   eager = false,
 }: ViewportProps) {
   const key = useDesignKey();
-  const rungKey = rungs.join(",");
   const pushedSub = (sub ?? state.submenu ?? "keep") as Sub;
   // ★ THE GROUND TRIPLE IS SEEDED ONCE AND NEVER RE-READ. The frame's src is its
   // React key, so a src that moved with the dock would remount the iframe on
@@ -175,8 +162,6 @@ function Viewport({
       // changes ONE frame can afford a reload where the ground, which changes
       // sixteen of them, cannot.
       sub: pushedSub,
-      ...(rungs.length === 1 ? { rung: rungs[0] } : {}),
-      ...(scene === "ladder" ? { dim: "light" } : {}),
       // `pin` tells the frame its ground is the EVIDENCE, so it ignores the
       // board's own URL when it corrects its seed (scene-shell.tsx).
       ...(ground ? { pin: "1" } : {}),
@@ -184,18 +169,23 @@ function Viewport({
     key ?? null,
   );
 
-  // The paste, built HERE and handed to the frame: the layer's material, the
-  // calls, and any panel-scoped rung the scene needs, all at once.
+  // The paste, built HERE and handed to the frame: the layer's material and
+  // whichever call this specimen is about.
+  const knobKey = knobs
+    ? `${knobs.radius}|${knobs.entrance}|${knobs.light}`
+    : "";
   const css = useMemo(
     () =>
       [
         directionCss(direction, "frame"),
         knobs ? contractCss(knobs, "frame") : "",
-        ...rungKey.split(",").filter(Boolean).map(rungCss),
       ]
         .filter(Boolean)
         .join("\n\n"),
-    [direction, knobs, rungKey],
+    // knobKey is the object's value, so a fresh literal on every render of the
+    // board does not rebuild a paste that did not change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [direction, knobKey],
   );
 
   // What the scene renders FROM rather than skins with. `run` is the replay:
@@ -228,22 +218,16 @@ function Viewport({
 
 /* ── The board ─────────────────────────────────────────────────────────── */
 
-/** A ladder asks for exactly the width its rungs need and renders at those
- *  pixels: judging a 6px corner against a 12px one at half scale judges the
- *  scale. Kept above 768 so `sm:` still resolves desktop-side inside the frame. */
-const ladderWidth = (rungs: number) => Math.max(800, rungs * 230);
-
 const WALK_PAGES = "/, /pricing, /help, /e/<token>, the dashboard";
 
-/** The four real surfaces any two cards are compared on. The desk is the whole
- *  argument; the other three are what makes the layer a FAMILY rather than a
- *  menu, which is what rule 15 is about. */
+/** The four real surfaces the pick is worn on, in one row. The desk is the
+ *  whole argument; the other three are what makes the layer a FAMILY rather
+ *  than a menu, which is what rule 15 is about. */
 const SPOTS = [
   {
     id: "desk",
     scene: "desk" as Scene,
-    name: "The host's desk, the production dashboard at 1440",
-    note: "Three panels at once on the real shell, chips and event cards.",
+    name: "The host's desk, the production dashboard",
     w: CANVAS.desktop.w,
     h: CANVAS.desktop.h,
   },
@@ -251,27 +235,34 @@ const SPOTS = [
     id: "pocket",
     scene: "pocket" as Scene,
     name: "The same host on a phone",
-    note: "Command answers 375 as a bottom sheet, on purpose.",
     w: CANVAS.phone.w,
     h: CANVAS.phone.h,
   },
   {
     id: "surfaces",
     scene: "surfaces" as Scene,
-    name: "The covering family: a dialog, a tooltip, a toast",
-    note: "A layer that only answers the menu is half an answer.",
+    name: "A dialog, a tooltip, a toast",
     w: CANVAS.phone.w,
     h: CANVAS.phone.h,
   },
   {
     id: "guest",
     scene: "guest" as Scene,
-    name: "The guest's entry drawer, the real EntryShell",
-    note: "The tenth surface, and the first thing anyone sees after the QR.",
+    name: "The guest's entry drawer",
     w: CANVAS.phone.w,
     h: CANVAS.phone.h,
   },
 ];
+
+/** A call's specimen is about ONE thing, so it carries one knob and the other
+ *  two stay as they ship: a corner tile that also moved the shadow would be two
+ *  differences in a comparison the question says is about one. */
+const ONE_CALL = (knob: Partial<Knobs>): Knobs => ({
+  radius: "off",
+  entrance: "off",
+  light: "off",
+  ...knob,
+});
 
 export function FloatingSurfacesBoard() {
   const { runId, replay } = useReplay();
@@ -292,6 +283,7 @@ export function FloatingSurfacesBoard() {
       evidence={(id, state, api) => {
         const pick = state.direction as Direction | "none";
         const picked = pick === "none" ? undefined : pick;
+        const worn = picked ?? "today";
         const knobs: Knobs = {
           radius: state.radius as RadiusRung | "off",
           entrance: state.entrance as EntranceRung | "off",
@@ -300,197 +292,175 @@ export function FloatingSurfacesBoard() {
         const shared = { state, runId, eager: EAGER.has(id) } as const;
 
         switch (id) {
-          /* 1 ─ The seven layers */
+          /* 1 ─ The seven layers: the winner ask's own tiles */
           case "catalog":
             return (
-              <>
-                <Catalog
-                  spec={FLOATING_SURFACES}
-                  state={state}
-                  setState={api.setState}
-                  // 328 for the menu plus the card's own 12px of padding each
-                  // side: the frame is the thing being judged, so the card is
-                  // sized off it rather than the other way round.
-                  minWidth={352}
-                  render={(candidate: Candidate) => (
-                    <Viewport
-                      {...shared}
-                      id={`card-${candidate.id}`}
-                      scene="menu"
-                      direction={candidate.id as Direction}
-                      // 328, not 340: three of these plus their gaps have to
-                      // clear the lab column at 1440 minus the scrollbar.
-                      w={328}
-                      h={420}
-                      title={candidate.name}
-                    />
-                  )}
-                />
-                <CellLabel className="max-w-2xl">
-                  Pick drives the page, so the real routes at the foot wear the
-                  card you press; A and B set the comparison under this. Ground
-                  moves all seven onto another surface at once.
-                </CellLabel>
-              </>
+              <Catalog
+                spec={FLOATING_SURFACES}
+                state={state}
+                setState={api.setState}
+                // 328 for the menu plus the card's own 12px of padding each
+                // side: the frame is the thing being judged, so the card is
+                // sized off it rather than the other way round.
+                minWidth={352}
+                render={(candidate: Candidate) => (
+                  <Viewport
+                    {...shared}
+                    id={`card-${candidate.id}`}
+                    scene="menu"
+                    direction={candidate.id as Direction}
+                    // 328, not 340: three of these plus their gaps have to
+                    // clear the lab column at 1440 minus the scrollbar.
+                    w={328}
+                    h={420}
+                    title={candidate.name}
+                  />
+                )}
+              />
             );
 
-          /* 2 ─ Any two, on the host's desk and the rest of the family */
+          /* 2 ─ The stage: the pick on the real product, any two folded under */
           case "desk": {
             const pair = comparePair(FLOATING_SURFACES, state);
-            if (!pair) return null;
-            const { a, b } = pair;
-            if (a.id === b.id) {
-              return (
-                <CellLabel className="max-w-2xl">
-                  A and B are both {a.name}, so both halves would be the same
-                  thing. Press B on another card in the catalog and the seam
-                  comes back.
-                </CellLabel>
-              );
-            }
             return (
-              <div className="flex flex-col gap-8">
-                {SPOTS.map((spot) => (
-                  <section key={spot.id} className="flex min-w-0 flex-col gap-2">
-                    <div>
-                      <h3 className="text-sm font-medium">{spot.name}</h3>
-                      <p className="mt-0.5 max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
-                        {spot.note}
-                      </p>
-                    </div>
-                    <FrameRow>
-                      {[a, b].map((c, i) => (
-                        <Viewport
-                          {...shared}
-                          key={c.id}
-                          id={`${spot.id}-${i === 0 ? "a" : "b"}`}
-                          scene={spot.scene}
-                          direction={c.id as Direction}
-                          w={spot.w}
-                          h={spot.h}
-                          title={`${i === 0 ? "A" : "B"}: ${c.name}`}
-                          // No caption: the card upstairs carries the line, and
-                          // eight of them here would be the paper again.
-                          caption={null}
-                        />
+              <div className="flex flex-col gap-3">
+                {/* flt-worn: board.css turns this row around below 640, so a
+                    phone meets the three phone canvases first instead of the
+                    left third of a 1440 dashboard. */}
+                <FrameRow className="flt-worn">
+                  {SPOTS.map((spot) => (
+                    <Viewport
+                      {...shared}
+                      key={spot.id}
+                      id={`worn-${spot.id}`}
+                      scene={spot.scene}
+                      direction={worn}
+                      w={spot.w}
+                      h={spot.h}
+                      title={spot.name}
+                      caption={
+                        picked
+                          ? DIRECTION_META[picked].label
+                          : "As the site ships"
+                      }
+                    />
+                  ))}
+                </FrameRow>
+                {/* A pick is the decision; a comparison is a tool for making
+                    one, so it is one press away rather than in the way. Its
+                    frames mount when the fold opens, never before. */}
+                {pair && pair.a.id !== pair.b.id && (
+                  <details className="min-w-0">
+                    <summary className="w-fit cursor-pointer rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none">
+                      Any two, side by side
+                    </summary>
+                    <div className="mt-3 flex flex-col gap-6">
+                      {SPOTS.map((spot) => (
+                        <FrameRow key={spot.id}>
+                          {[pair.a, pair.b].map((c, i) => (
+                            <Viewport
+                              {...shared}
+                              key={c.id}
+                              id={`${spot.id}-${i === 0 ? "a" : "b"}`}
+                              scene={spot.scene}
+                              direction={c.id as Direction}
+                              w={spot.w}
+                              h={spot.h}
+                              title={`${i === 0 ? "A" : "B"}: ${c.name}`}
+                              caption={spot.name}
+                            />
+                          ))}
+                        </FrameRow>
                       ))}
-                    </FrameRow>
-                  </section>
-                ))}
+                    </div>
+                  </details>
+                )}
               </div>
             );
           }
 
-          /* 3 ─ The four calls that are not a card */
-          case "calls":
+          /* 3 ─ The branch, held open or inline */
+          case "branch":
             return (
-              <div className="flex flex-col gap-8">
-                <Call
-                  title="The nested menu, and the bug inside it"
-                  note="Open the avatar on the left, hover Theme, and nothing paints."
-                >
-                  <FrameRow lock={false}>
-                    <Viewport
-                      {...shared}
-                      id="sub-real"
-                      scene="real"
-                      w={420}
-                      h={360}
-                      title="The account menu, as it ships"
-                      caption="app/user-menu.tsx, untouched."
-                    />
-                    <Viewport
-                      {...shared}
-                      id="sub-branch"
-                      scene="sub"
-                      direction={picked ?? "card"}
-                      w={560}
-                      h={360}
-                      title={askOptionLabel("submenu", state.submenu ?? "keep")}
-                      caption="Portalled, so it paints at all."
-                    />
-                  </FrameRow>
-                </Call>
+              <Viewport
+                {...shared}
+                id="branch"
+                scene="sub"
+                direction={worn}
+                w={560}
+                h={360}
+                title={askOptionLabel("submenu", state.submenu ?? "keep")}
+                caption="Portalled, so it paints at all."
+              />
+            );
 
-                <Call
-                  title="The corner, measured at six times"
-                  note="Outer arc the panel, inner arc the lit row, dashed arc where the row has to sit."
-                >
-                  <FrameRow lock={false}>
-                    {RUNGS.radius.map((r) => (
-                      <Viewport
-                        {...shared}
-                        key={r.label}
-                        id={`corner-${r.label}`}
-                        scene="nest"
-                        rungs={r.id ? [r.id] : []}
-                        w={236}
-                        h={330}
-                        title={r.label}
-                        caption={
-                          r.id ? "One line." : "As it ships: two different lines."
-                        }
-                      />
-                    ))}
-                  </FrameRow>
-                </Call>
+          /* 4 ─ The corner, at six times */
+          case "corner":
+            return (
+              <Viewport
+                {...shared}
+                id="corner"
+                scene="nest"
+                direction={worn}
+                // Sized off the scaled loupe (scenes.tsx): 500 of drawing plus
+                // the scene's own inset, and the real menu standing above it.
+                knobs={ONE_CALL({ radius: knobs.radius })}
+                w={560}
+                h={570}
+                title={
+                  knobs.radius === "off"
+                    ? "As it ships: two different lines"
+                    : askOptionLabel("radius", knobs.radius)
+                }
+              />
+            );
 
-                <Call
-                  title="How it appears: two rules disagree"
-                  note="One rule per frame, on the same three surfaces. Press Replay: the difference is the tooltip."
-                >
-                  <FrameRow lock={false}>
-                    {(["one-clock", "by-frequency"] as const).map((e) => (
-                      <Viewport
-                        {...shared}
-                        key={e}
-                        id={`entrance-${e}`}
-                        scene="trio"
-                        rungs={[`flt-e-${e}`]}
-                        w={900}
-                        h={300}
-                        title={askOptionLabel("entrance", e)}
-                        caption={
-                          e === "one-clock"
-                            ? "Rule 15, literally: one beat for all three."
-                            : "Rule 12, literally: 90ms for the first two."
-                        }
-                      />
-                    ))}
-                  </FrameRow>
-                </Call>
-
-                <Call
-                  title="The shadow in dark"
-                  note="The same panel twice on the app's own dark. Nothing casts there today."
-                >
-                  <FrameRow lock={false}>
-                    <Viewport
-                      {...shared}
-                      id="light-ladder"
-                      scene="ladder"
-                      ground="app-dark"
-                      rungs={RUNGS.light.map((r) => r.id).filter(Boolean)}
-                      w={ladderWidth(RUNGS.light.length)}
-                      h={300}
-                      title="No shadow, and a soft shadow"
-                      caption="The two options, one ground."
-                    />
-                  </FrameRow>
-                </Call>
-
-                <ApplyToSite
-                  block={{
-                    label: contractName(knobs),
-                    css: contractCss(knobs, "site"),
-                    what: "The three calls that are a paste, as the dock has them.",
-                    pages: WALK_PAGES,
-                  }}
+          /* 5 ─ How it appears */
+          case "appears":
+            return (
+              // ★ THE REPLAY IS IN THE SECTION, NOT ONLY IN THE DOCK. A step
+              // renders no dock (board-page.tsx), and this is the one question
+              // whose evidence exists only while it is moving: without a press
+              // to re-open them the two options are two identical still
+              // pictures. One press re-runs EVERY mounted frame, so the option
+              // tiles above land at the same moment as the stage.
+              <div className="flex flex-col items-start gap-2">
+                <Viewport
+                  {...shared}
+                  id="appears"
+                  scene="trio"
+                  direction={worn}
+                  knobs={ONE_CALL({ entrance: knobs.entrance })}
+                  w={900}
+                  h={300}
+                  title={
+                    knobs.entrance === "off"
+                      ? "As it ships: one beat for all three"
+                      : askOptionLabel("entrance", knobs.entrance)
+                  }
                 />
+                <ReplayButton runId={runId} onReplay={replay} />
               </div>
             );
 
-          /* 4 ─ The real routes, wearing the pick */
+          /* 6 ─ The shadow in dark. The layer as it SHIPS, pinned: four of the
+                 seven cards already cast, and a specimen wearing one of those
+                 would answer this question before it was asked. */
+          case "shadow":
+            return (
+              <Viewport
+                {...shared}
+                id="shadow"
+                scene="menu"
+                ground="app-dark"
+                knobs={ONE_CALL({ light: knobs.light })}
+                w={328}
+                h={420}
+                title={askOptionLabel("light", state.light ?? "today")}
+              />
+            );
+
+          /* 7 ─ The real routes, wearing the pick */
           case "pages":
             return (
               <>
@@ -515,10 +485,18 @@ export function FloatingSurfacesBoard() {
                     );
                   })}
                 </FrameRow>
+                {/* ONE block, not two. The layer and the three calls that are a
+                    paste land together, so what a reviewer walks the site in is
+                    the whole ruling rather than half of it. */}
                 <ApplyToSite
                   block={{
-                    label: directionLabel(picked ?? "card"),
-                    css: directionCss(picked ?? "card", "site"),
+                    label: blockName(knobs, picked ?? "card"),
+                    css: [
+                      directionCss(picked ?? "card", "site"),
+                      contractCss(knobs, "site"),
+                    ]
+                      .filter(Boolean)
+                      .join("\n\n"),
                     what: picked
                       ? `${DIRECTION_META[picked].label}: its material, radius and motion, not its anatomy.`
                       : "Nothing picked, so this is the board's own answer: Card's material, radius and motion.",
@@ -534,33 +512,5 @@ export function FloatingSurfacesBoard() {
         }
       }}
     />
-  );
-}
-
-/* ── The parts only this board has ─────────────────────────────────────── */
-
-/** One of the four calls: a heading, the one line that says what to read, and
- *  its evidence. Four of these instead of four sections, because they are four
- *  answers to one question ("what is still open once a layer is picked") and a
- *  section each would put three screens of chrome between them. */
-function Call({
-  title,
-  note,
-  children,
-}: {
-  title: string;
-  note: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="flex min-w-0 flex-col gap-2">
-      <div>
-        <h3 className="text-sm font-medium">{title}</h3>
-        <p className="mt-0.5 max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
-          {note}
-        </p>
-      </div>
-      {children}
-    </section>
   );
 }

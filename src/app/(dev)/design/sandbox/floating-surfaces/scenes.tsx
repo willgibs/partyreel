@@ -17,7 +17,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -29,12 +28,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-import {
-  RUNGS,
-  type Dim,
-  type Scene as SceneId,
-  type Sub,
-} from "./constants";
+import { type Scene as SceneId, type Sub } from "./constants";
 import { DirectionScene } from "./direction-scenes";
 import type { Direction } from "./directions";
 import { Backdrop, useSceneReplay } from "./stage-bits";
@@ -119,74 +113,6 @@ function GuestScene({ phone, rung }: { phone: boolean; rung?: string }) {
   );
 }
 
-/** A ladder: the same panel, every rung of one dimension, side by side in ONE
- *  frame. The rung rides the panel's own className, which is what lets four
- *  answers share a document. */
-function LadderScene({ phone, dim }: { phone: boolean; dim: Dim }) {
-  const on = useSceneReplay();
-  const rungs = RUNGS[dim];
-  return (
-    <>
-      <Backdrop
-        phone={phone}
-        chrome={false}
-        variant={dim === "radius" ? "calm" : "photos"}
-      />
-      {/* Two columns on the phone canvas rather than one: a held-open menu is
-          ~150px tall, so four rungs stacked would not fit 760 and the rungs
-          would cover each other instead of standing beside each other. */}
-      <div
-        className="absolute inset-0 grid items-start gap-3 p-3"
-        style={{
-          gridTemplateColumns: `repeat(${phone ? 2 : rungs.length}, minmax(0,1fr))`,
-        }}
-      >
-        {rungs.map((rung) => (
-          <div key={rung.label} className="flex flex-col items-start gap-1.5">
-            <span className="rounded-md bg-foreground px-1.5 py-0.5 text-[11px] font-medium text-background">
-              {rung.label}
-            </span>
-            <DropdownMenu open={on} modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="sm">
-                  Event
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className={cn("flt-panel", phone ? "w-40" : "w-48", rung.id)}
-                align="start"
-                side="bottom"
-                sideOffset={4}
-                avoidCollisions={false}
-              >
-                {/* The FIRST row wears the highlight at rest. The thing the
-                    radius ladder is actually about is whether the highlighted
-                    row's corner nests inside the panel's corner (bible 9), and
-                    with no row highlighted the item radius is invisible: this
-                    is the resting `focus:bg-accent` state, held. */}
-                {MENU_ROWS.slice(0, phone ? 2 : 3).map((r, i) => (
-                  <DropdownMenuItem
-                    key={r.label}
-                    className={
-                      i === 0 ? "bg-accent text-accent-foreground" : undefined
-                    }
-                  >
-                    {r.label}
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive">
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ))}
-      </div>
-    </>
-  );
-}
-
 type Corner = { panel: number; pad: number; item: number };
 
 /** Reads the corner off the LIVE panel rather than repeating the arithmetic in
@@ -236,6 +162,17 @@ const LOUPE_W = 200;
 const LOUPE_H = 118;
 const OX = 12;
 const OY = 12;
+/**
+ * ★ THE DRAWING IS SCALED, THE MAGNIFICATION IS NOT (round seven). The corner
+ * is now an option TILE as well as a stage: a tile is the section zoom-fitted
+ * to a third of the column (step.tsx), so a 200px loupe arrived there about 75
+ * pixels wide and three corners that differ by four pixels were three identical
+ * grey smudges. The viewBox is untouched and only the drawn size moves, so the
+ * arithmetic, the 6x and the caption all still say the same thing; what changes
+ * is that the dashed arc and the row's arc are far enough apart to SEE at the
+ * size the review looks at them.
+ */
+const LOUPE_SCALE = 2.5;
 
 /** The corner at 1:1, then the same corner at 6x with the arithmetic drawn on
  *  it. The solid outer arc is the panel, the solid inner arc is the lit row,
@@ -256,8 +193,8 @@ function Loupe({ corner }: { corner: Corner | null }) {
   return (
     <div className="flex flex-col gap-1">
       <svg
-        width={LOUPE_W}
-        height={LOUPE_H}
+        width={LOUPE_W * LOUPE_SCALE}
+        height={LOUPE_H * LOUPE_SCALE}
         viewBox={`0 0 ${LOUPE_W} ${LOUPE_H}`}
         aria-hidden
         className="overflow-visible"
@@ -308,12 +245,12 @@ function Loupe({ corner }: { corner: Corner | null }) {
           row
         </text>
       </svg>
-      <p className="text-[11px] tabular-nums">
+      <p className="text-sm tabular-nums">
         panel {panel.toFixed(1)} · padding {pad.toFixed(1)} · row{" "}
         {item.toFixed(1)}
       </p>
       <p
-        className="text-[11px] font-medium"
+        className="text-sm font-medium"
         style={{ color: nests ? undefined : "var(--destructive)" }}
       >
         {nests
@@ -433,22 +370,13 @@ function TrioScene({ rung }: { rung?: string }) {
   );
 }
 
-
-const DIRECTION_SCENES = [
-  "desk",
-  "pocket",
-  "menu",
-  "sub",
-  "real",
-  "surfaces",
-] as const;
+const DIRECTION_SCENES = ["desk", "pocket", "menu", "sub", "surfaces"] as const;
 
 export function Scene({
   scene,
   direction,
   sub,
   phone,
-  dim,
   rung,
 }: {
   scene: SceneId;
@@ -459,7 +387,6 @@ export function Scene({
   /** The nested branch, kept or deleted: anatomy too, so it travels the same way. */
   sub: Sub;
   phone: boolean;
-  dim: Dim;
   rung?: string;
 }) {
   if ((DIRECTION_SCENES as readonly string[]).includes(scene)) {
@@ -473,7 +400,6 @@ export function Scene({
     );
   }
   if (scene === "guest") return <GuestScene phone={phone} rung={rung} />;
-  if (scene === "ladder") return <LadderScene phone={phone} dim={dim} />;
   if (scene === "nest") return <NestScene rung={rung} />;
   return <TrioScene rung={rung} />;
 }
