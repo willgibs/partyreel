@@ -119,16 +119,25 @@ function Tile({
 export function PlanCard() {
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-foreground/25 bg-card p-5">
-      <Caption className="text-[11px]">
-        Every figure is read off the source&rsquo;s own card, never typed into a
-        sentence
-      </Caption>
+      {/* ★ THE CARD CARRIES THE QUESTION'S OWN WORDS (the clarity round,
+          2026-09-15). A reviewer meets the spend question on the desk or on the
+          review card, away from this board, so the two halves of this card are
+          labelled with the two answers it offers: the table is what "Buy" does,
+          the list under it is what "Wait" is answering. Labels only; not one
+          figure moved. */}
+      <div>
+        <h3 className="text-xs font-semibold">Buy the ${TOTAL} set now</h3>
+        <Caption className="mt-0.5 block text-[11px]">
+          What the money buys, row by row. Every figure is read off the
+          source&rsquo;s own card, never typed into a sentence.
+        </Caption>
+      </div>
 
       <div className="-mx-1 overflow-x-auto px-1">
         <table className="w-full min-w-[46rem] border-collapse text-left text-[11px]">
           <thead>
             <tr className="border-b border-border">
-              <th className="py-2 pr-3 font-medium">Vertical</th>
+              <th className="py-2 pr-3 font-medium">Kind of event</th>
               <th className="py-2 pr-3 font-medium">Source</th>
               <th className="py-2 pr-3 font-medium">What you do</th>
               <th className="py-2 pr-3 text-right font-medium">Spend</th>
@@ -199,7 +208,13 @@ export function PlanCard() {
       </div>
 
       <div className="mt-1">
-        <Caption className="mb-1.5 block">What the money does not buy</Caption>
+        <h3 className="text-xs font-semibold">
+          Wait for the shoot, spend nothing
+        </h3>
+        <Caption className="mt-0.5 mb-1.5 block">
+          What the money does not buy. The fourth line is the answer to the
+          other three.
+        </Caption>
         <ul className="space-y-1">
           {BRIDGE_LIMITS.map((line, i) => (
             <li
@@ -222,10 +237,16 @@ export function PlanCard() {
    One source. The facts on the left, the catalogue on the right.
    -------------------------------------------------------------------------- */
 
+/**
+ * ★ THE BADGE SAYS IT IN PLAIN WORDS, NOT THE TRADE'S (the clarity round,
+ * 2026-09-15). A model release is the signed permission the person in the frame
+ * gives, and the question this sheet is ranked by is asked in those words, so
+ * the badge a reviewer reads is in them too.
+ */
 const RELEASE_LABEL: Record<SourceCard["release"], string> = {
-  held: "Releases held",
-  "per-item": "Releases per item",
-  none: "No releases",
+  held: "Permission signed",
+  "per-item": "Permission per photograph",
+  none: "No permission signed",
 };
 
 function SourceRow({
@@ -395,6 +416,22 @@ export function SourcingSheet({ vertical }: { vertical: Vertical | "all" }) {
         and some sources serve theirs unwatermarked.
       </Caption>
 
+      {/* ★ THE LINE THIS SHEET IS RANKED BY IS A QUESTION WILL ANSWERS, so it
+          is named here in the words the question offers rather than as "ask 3",
+          which a reviewer who has not read the board cannot resolve. */}
+      <Caption className="max-w-3xl leading-relaxed">
+        The ranking turns on one question: in a crowd, does every face need
+        signed permission, or only the subject? Answer{" "}
+        <span className="font-medium text-foreground">
+          Only the frame&rsquo;s subject
+        </span>{" "}
+        and the crowd archives below the line become real sources; answer{" "}
+        <span className="font-medium text-foreground">
+          Every recognisable face
+        </span>{" "}
+        and they stay where they are.
+      </Caption>
+
       <div className="flex flex-col gap-3">
         {ALLOWED_SOURCES.map((s, i) => (
           <SourceRow key={s.id} source={s} vertical={vertical} rank={i + 1} />
@@ -404,8 +441,8 @@ export function SourcingSheet({ vertical }: { vertical: Vertical | "all" }) {
       <div className="flex items-center gap-3 pt-1">
         <span className="h-px flex-1 bg-destructive/40" />
         <Caption className="text-[11px] text-destructive">
-          Below the line: {BARRED_SOURCES.length} places that cannot put a frame
-          on a page under ask 1
+          Below the line: {BARRED_SOURCES.length} places that cannot put a
+          recognisable face on a page under the rule in question 1
         </Caption>
         <span className="h-px flex-1 bg-destructive/40" />
       </div>
@@ -499,7 +536,7 @@ export function SurfaceCheck({
 
       <Caption className="text-[10px]">
         The source dresses this stage only, so it sits with it. The dock holds
-        what moves the whole page: the canvas, the vertical every contact sheet
+        what moves the whole page: the canvas, the kind of event every sheet
         above draws, the route and the geometry.
       </Caption>
 

@@ -523,7 +523,7 @@ export const DERIVED: readonly Derived[] = [
     row: 3,
     what: "36 photographs for the gathering's field",
     spec: "1600 px long edge, a third portrait, placed in 3:2, 16:9, 1:1, 4:3, 4:5, 3:4 and 2:3 boxes",
-    from: "This row and row 7 are the same 36 frames. Row 7 specifies them by vertical and row 3 by the boxes they land in, and the crop rules on every card above already satisfy both",
+    from: "This row and row 7 are the same 36 frames. Row 7 specifies them by kind of event and row 3 by the boxes they land in, and the crop rules on every card above already satisfy both",
     replaces: "all twelve stand-ins, the same twelve row 7 names",
     askedBy: "hero-gathering",
   },
