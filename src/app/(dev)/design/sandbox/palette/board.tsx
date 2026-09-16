@@ -37,13 +37,11 @@ import {
   applyCss,
   applyLabel,
   blockFor,
-  FAINT_ALPHAS,
   FAINT_USES,
   lOf,
   MAT_USES,
   pairStyle,
   resolvePair,
-  RING_USES,
   stageGround,
   tokenBlock,
   type AccentMode,
@@ -470,6 +468,11 @@ export function PaletteBoard() {
             );
 
           /* ── A card over a photograph ───────────────────────────────── */
+          // ★ NO LABEL UNDER THIS ONE OR THE NEXT. A step draws its evidence
+          // section ONCE PER OPTION as a tile, so a caption identical on every
+          // tile is printed three times and says nothing the tiles do not.
+          // What each needs is ON the specimen: the resolved `--card` on the
+          // photograph, and what the third line is made of under the bands.
           case "card":
             return (
               <div className="max-w-2xl">
@@ -478,9 +481,6 @@ export function PaletteBoard() {
                     value={blockFor(pair, "app-dark")["--card"] ?? "unset"}
                   />
                 </ScopedTokens>
-                <CellLabel>
-                  {`The ring under the card is the elevation nobody wrote down, at ${RING_USES.faint} sites and ${RING_USES.onMedia} on media.`}
-                </CellLabel>
               </div>
             );
 
@@ -491,12 +491,6 @@ export function PaletteBoard() {
                 <ScopedTokens pair={pair} ground="paper" className="rounded-xl">
                   <TextBlock faint={s.faint} />
                 </ScopedTokens>
-                <CellLabel>
-                  {FAINT_ALPHAS.map(
-                    (a) => `${a.alpha} percent x${a.uses}`,
-                  ).join(", ")}
-                  {` = ${FAINT_USES} sites dimming by hand today.`}
-                </CellLabel>
               </div>
             );
 

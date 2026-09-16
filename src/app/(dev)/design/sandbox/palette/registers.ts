@@ -1796,7 +1796,7 @@ export const MAT_HOVER_USES = 8;
  * production, measured the same way on the same day. The 70 percent row is the
  * one that matters, because 70 percent of the second step is what --faint is.
  */
-export const FAINT_ALPHAS = [
+const FAINT_ALPHAS = [
   { alpha: 40, uses: 4 },
   { alpha: 50, uses: 7 },
   { alpha: 60, uses: 6 },
@@ -1805,10 +1805,6 @@ export const FAINT_ALPHAS = [
 ];
 
 export const FAINT_USES = FAINT_ALPHAS.reduce((n, a) => n + a.uses, 0);
-
-/** The ring elevation nobody wrote down, measured: `ring-foreground/5` is the
- *  app's quiet lift and `ring-white/70` is the one on media. */
-export const RING_USES = { faint: 37, firm: 13, onMedia: 29 };
 
 /* ── The text steps, in real copy ───────────────────────────────────────── */
 

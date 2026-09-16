@@ -688,8 +688,8 @@ export const PALETTE = defineBoard({
   ],
 
   reading: {
-    words: 1950,
-    why: "Measured at 1,940 on the stepped surface, down from 2,924: the asks stopped being printed three times (the answer block's pills, the section's Rule-on row and the review panel) and became steps, and the board's own voice is now the verdict, seven ledes and the twelve cards. About 550 of what is left is the catalog: twelve names, twelve one-lines and forty-eight facts, which IS the evidence.",
+    words: 1900,
+    why: "Measured at 1,865 on the stepped surface, down from 2,924: the four asks stopped being printed three times each (the answer block's pills, the section's Rule-on row, the review panel) and became steps. What is left is the board's own voice, and about 550 of it is the catalog: twelve names, twelve one-lines and forty-eight facts, which IS the evidence.",
   },
 
   links: {
