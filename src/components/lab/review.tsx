@@ -4,7 +4,12 @@ import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-import type { BoardSpec } from "./board-spec";
+import {
+  type BoardSpec,
+  optionId,
+  optionLabel,
+  optionMeans,
+} from "./board-spec";
 import { CopyButton } from "./paste";
 
 /**
@@ -30,6 +35,12 @@ import { CopyButton } from "./paste";
  * ★ AND AN UNANSWERED ASK IS OMITTED, NOT DEFAULTED. "Answer only the ones you
  * want to differ on" is the whole point of a recommendation; writing the
  * recommended option for every untouched ask would record agreement nobody gave.
+ *
+ * "?" IS AN ANSWER: "this question is not clear to me". It rides into the
+ * line as `ask=? "why"` and lands in the ledger as a null choice, so the desk
+ * keeps the ask open and the board owes a clearer question (the clarity
+ * round, 2026-09-15). The buttons show each option's LABEL; the line carries
+ * its id.
  */
 export function composeReviewMessage(
   spec: BoardSpec,
@@ -85,18 +96,20 @@ export function ReviewQuestions({
           <li key={ask.id} className="flex flex-col gap-1.5">
             <span className="text-[12px] font-medium">{ask.question}</span>
             <div className="flex flex-wrap gap-1.5">
-              {ask.options.map((o) => {
-                const on = answers[ask.id] === o;
+              {[...ask.options, "?" as const].map((o) => {
+                const id = o === "?" ? "?" : optionId(o);
+                const on = answers[ask.id] === id;
                 return (
                   <button
-                    key={o}
+                    key={id}
                     type="button"
                     aria-pressed={on}
+                    title={o === "?" ? undefined : optionMeans(o)}
                     onClick={() =>
                       setAnswers((a) => {
                         const next = { ...a };
                         if (on) delete next[ask.id];
-                        else next[ask.id] = o;
+                        else next[ask.id] = id;
                         return next;
                       })
                     }
@@ -106,12 +119,13 @@ export function ReviewQuestions({
                         ? "bg-foreground text-background"
                         : "border border-border text-muted-foreground hover:text-foreground",
                       !on &&
-                        o === ask.recommended &&
+                        id === ask.recommended &&
                         "border-foreground/40 text-foreground",
+                      o === "?" && !on && "border-dashed",
                     )}
                   >
-                    {o}
-                    {o === ask.recommended ? (
+                    {o === "?" ? "Not clear to me" : optionLabel(o)}
+                    {id === ask.recommended ? (
                       <span className="ml-1 opacity-60">proposed</span>
                     ) : null}
                   </button>

@@ -31,9 +31,14 @@ import {
 
 export type AskStatus =
   | { ask: Ask; state: "answered"; answer: Answer }
+  /** Will answered "?": the question was not clear enough to answer. The ask
+   *  stays open and the board owes a clearer question (the clarity round,
+   *  2026-09-15); the note on the answer says what was unclear. */
+  | { ask: Ask; state: "unclear"; answer: Answer }
   | { ask: Ask; state: "open" };
 
 export type AnsweredAsk = Extract<AskStatus, { state: "answered" }>;
+export type UnclearAsk = Extract<AskStatus, { state: "unclear" }>;
 export type OpenAsk = Extract<AskStatus, { state: "open" }>;
 
 export type BoardStatus = {
@@ -44,7 +49,10 @@ export type BoardStatus = {
   round: Round | null;
   asks: AskStatus[];
   answered: AnsweredAsk[];
+  /** Never answered this round. */
   open: OpenAsk[];
+  /** Answered "?": waiting on a clearer question, then an answer. */
+  unclear: UnclearAsk[];
   /** An answer whose ask the spec no longer declares: a stale ledger row. */
   orphaned: Answer[];
   /** This round's notes on this board, and the window's own. */
@@ -66,13 +74,17 @@ export function boardStatus(board: string): BoardStatus {
 
   const asks: AskStatus[] = (spec?.asks ?? []).map((ask) => {
     const answer = byAsk.get(ask.id);
-    return answer ? { ask, state: "answered", answer } : { ask, state: "open" };
+    if (!answer) return { ask, state: "open" };
+    return answer.choice === null
+      ? { ask, state: "unclear", answer }
+      : { ask, state: "answered", answer };
   });
   const declared = new Set((spec?.asks ?? []).map((a) => a.id));
   const orphaned = (current?.answers ?? []).filter((a) => !declared.has(a.ask));
 
   const answered = asks.filter((a): a is AnsweredAsk => a.state === "answered");
   const open = asks.filter((a): a is OpenAsk => a.state === "open");
+  const unclear = asks.filter((a): a is UnclearAsk => a.state === "unclear");
 
   return {
     board,
@@ -81,9 +93,10 @@ export function boardStatus(board: string): BoardStatus {
     asks,
     answered,
     open,
+    unclear,
     orphaned,
     notes: [...(round?.notes ?? []), ...windowNotesFor(board)],
-    complete: asks.length > 0 && open.length === 0,
+    complete: asks.length > 0 && open.length === 0 && unclear.length === 0,
   };
 }
 
@@ -100,7 +113,12 @@ export function waitingOnWill(boards: string[]): {
   return boards
     .map((board) => {
       const status = boardStatus(board);
-      return { board, open: status.open.length, of: status.asks.length };
+      // An unclear ask is still waiting: on a clearer question, then on Will.
+      return {
+        board,
+        open: status.open.length + status.unclear.length,
+        of: status.asks.length,
+      };
     })
     .filter((b) => b.open > 0);
 }

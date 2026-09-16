@@ -26,8 +26,10 @@ import { z } from "zod";
 const Answer = z.object({
   /** The ask's id, never its text: a spec may reword a question. */
   ask: z.string().min(1),
-  /** One of the ask's options, one token. */
-  choice: z.string().min(1),
+  /** The id of one of the ask's options, or null: "not clear to me" (`ask=?`
+   *  in the grammar), which keeps the ask open and asks the board for a
+   *  clearer question. The note beside it says what was unclear. */
+  choice: z.string().min(1).nullable(),
   note: z.string().optional(),
   by: z.string().min(1),
   at: z.string().min(1),

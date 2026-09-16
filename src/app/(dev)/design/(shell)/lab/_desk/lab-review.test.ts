@@ -12,6 +12,10 @@ import { join } from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { optionId } from "@/components/lab/board-spec";
+
+import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
+
 import { composeMessage } from "./review-message";
 import { SAMPLE_BOARD } from "./sample-spec";
 
@@ -35,16 +39,26 @@ const SCRIPT = "../../../../../../../scripts/lab-review.mjs";
 type Spec = {
   id: string;
   round: number | null;
-  asks: { id: string; question: string | null; options: string[]; recommended: string | null }[];
+  asks: {
+    id: string;
+    question: string | null;
+    options: string[];
+    recommended: string | null;
+  }[];
 };
 type Entry = {
   board: string;
   round: number;
-  answers: { ask: string; choice: string; note?: string }[];
+  answers: { ask: string; choice: string | null; note?: string }[];
   notes: { text: string }[];
   line: number;
 };
-type Failure = { line: number; column: number; message: string; display: string };
+type Failure = {
+  line: number;
+  column: number;
+  message: string;
+  display: string;
+};
 type LabReview = {
   readSpec(id: string, source: string): Spec;
   readSpecs(root: string): Map<string, Spec>;
@@ -65,14 +79,20 @@ const BOARD = SAMPLE_BOARD.id;
 const ROUND = SAMPLE_BOARD.round.n;
 
 let root = "";
-const ledgerFile = (board: string) => join(root, "docs", "reviews", `${board}.json`);
+const ledgerFile = (board: string) =>
+  join(root, "docs", "reviews", `${board}.json`);
 const readLedger = (board: string) =>
   JSON.parse(readFileSync(ledgerFile(board), "utf8")) as {
     board: string;
     rounds: {
       n: number;
       opened: string;
-      answers: { ask: string; choice: string; note?: string; by: string }[];
+      answers: {
+        ask: string;
+        choice: string | null;
+        note?: string;
+        by: string;
+      }[];
       notes: { on: string | null; text: string }[];
     }[];
   };
@@ -99,8 +119,10 @@ describe("the spec scanner", () => {
     expect(spec.asks.map((a) => a.id)).toEqual(
       SAMPLE_BOARD.asks.map((a) => a.id),
     );
+    // The scanner reads option IDS: a labelled option's label and meaning are
+    // prose, and must never pass as a choice.
     expect(spec.asks.map((a) => a.options)).toEqual(
-      SAMPLE_BOARD.asks.map((a) => [...a.options]),
+      SAMPLE_BOARD.asks.map((a) => a.options.map(optionId)),
     );
     expect(spec.asks.map((a) => a.recommended)).toEqual(
       SAMPLE_BOARD.asks.map((a) => a.recommended),
@@ -113,6 +135,39 @@ describe("the spec scanner", () => {
   it("finds the specs under a sandbox and skips a directory without one", () => {
     const specs = lab.readSpecs(root);
     expect([...specs.keys()]).toEqual([BOARD]);
+  });
+
+  it("reads every standing spec off disk as the registry exports it", () => {
+    // The sample proves the scanner on one file; this holds it to the twelve
+    // real ones, whichever option form each is on, so a spec the scanner
+    // misreads cannot silently refuse (or accept) a real review line.
+    const sandbox = join(
+      process.cwd(),
+      "src",
+      "app",
+      "(dev)",
+      "design",
+      "sandbox",
+    );
+    for (const board of BOARDS) {
+      const spec = lab.readSpec(
+        board.id,
+        readFileSync(join(sandbox, board.id, "spec.ts"), "utf8"),
+      );
+      expect(spec.round, `${board.id}: round`).toBe(board.round.n);
+      expect(
+        spec.asks.map((a) => a.id),
+        `${board.id}: ask ids`,
+      ).toEqual(board.asks.map((a) => a.id));
+      expect(
+        spec.asks.map((a) => a.options),
+        `${board.id}: option ids`,
+      ).toEqual(board.asks.map((a) => a.options.map(optionId)));
+      expect(
+        spec.asks.map((a) => a.recommended),
+        `${board.id}: recommended`,
+      ).toEqual(board.asks.map((a) => a.recommended));
+    }
   });
 
   it("is not fooled by structure that only appears inside prose", () => {
@@ -146,6 +201,31 @@ describe("the spec scanner", () => {
     expect(spec.asks[0].options).toEqual(["yes", "no"]);
   });
 
+  it("reads a labelled option's id and never its label or meaning", () => {
+    const source = `
+      export const B = defineBoard({
+        id: "labelled",
+        round: { n: 1, date: "2026-09-15", changed: "x" },
+        asks: [
+          {
+            id: "which",
+            question: "Which one?",
+            options: [
+              { id: "a", label: "The first one", means: "It has an id: inside its prose." },
+              "b",
+              { label: "Label first", id: "c" },
+            ],
+            recommended: "a",
+            evidence: "one",
+          },
+        ],
+        sections: [{ id: "one", title: "One", lede: "l" }],
+      });
+    `;
+    const spec = lab.readSpec("labelled", source);
+    expect(spec.asks[0].options).toEqual(["a", "b", "c"]);
+  });
+
   it("blanks every string and comment while keeping the offsets", () => {
     const src = 'const a = "one"; // two\n/* three */ const b = `four`;';
     const masked = lab.mask(src);
@@ -164,7 +244,13 @@ describe("the grammar", () => {
   it("parses what the session composes", () => {
     const message = composeMessage(
       [
-        { board: BOARD, round: ROUND, ask: "grain", choice: "five", note: 'he said "five"' },
+        {
+          board: BOARD,
+          round: ROUND,
+          ask: "grain",
+          choice: "five",
+          note: 'he said "five"',
+        },
         { board: BOARD, round: ROUND, ask: "default", choice: "always" },
       ],
       [{ board: BOARD, round: ROUND, text: "a; semicolon inside a note" }],
@@ -179,6 +265,21 @@ describe("the grammar", () => {
     ]);
     expect(entries[0].notes[0].text).toBe("a; semicolon inside a note");
     expect(lab.validate(entries, lab.readSpecs(root))).toEqual([]);
+  });
+
+  it("records 'not clear to me' as a null choice, and only with a note", () => {
+    const specs = lab.readSpecs(root);
+    const entry = lab.parseLine(
+      `review ${BOARD} r${ROUND}: grain=? "what is a grain?"`,
+    ) as Entry;
+    expect(entry.answers[0]).toMatchObject({
+      ask: "grain",
+      choice: "?",
+      note: "what is a grain?",
+    });
+    expect(lab.validate([entry], specs)).toEqual([]);
+    const bare = lab.parseLine(`review ${BOARD} r${ROUND}: grain=?`) as Entry;
+    expect(lab.validate([bare], specs)[0].message).toContain("needs a note");
   });
 
   it("ignores a blank line and a comment", () => {
@@ -204,16 +305,16 @@ describe("the grammar", () => {
 
     const option = at(`review ${BOARD} r${ROUND}: grain=seven`);
     expect(option.message).toContain("is not an option");
-    expect(option.column).toBe(
-      `review ${BOARD} r${ROUND}: grain=`.length + 1,
-    );
+    expect(option.column).toBe(`review ${BOARD} r${ROUND}: grain=`.length + 1);
 
     const twice = at(`review ${BOARD} r${ROUND}: grain=five; grain=three`);
     expect(twice.message).toContain("answered twice");
   });
 
   it("refuses a malformed line where it went wrong", () => {
-    expect(() => lab.parseLine("light r4: a=b")).toThrowError(/must start with/);
+    expect(() => lab.parseLine("light r4: a=b")).toThrowError(
+      /must start with/,
+    );
     expect(() => lab.parseLine(`review ${BOARD} 4: a=b`)).toThrowError(/r4/);
     expect(() => lab.parseLine(`review ${BOARD} r1: a`)).toThrowError(/"="/);
     expect(() =>
@@ -272,6 +373,18 @@ describe("the ledgers", () => {
     expect(result.ok).toBe(false);
     expect(result.errors[0].line).toBe(2);
     expect(readFileSync(ledgerFile(BOARD), "utf8")).toBe(before);
+  });
+
+  it("lands a ? answer as choice null with the note beside it", () => {
+    const result = lab.run(`review ${BOARD} r${ROUND}: notes=? "which note?"`, {
+      root,
+      at: "2026-09-15T14:30:00Z",
+    });
+    expect(result.ok).toBe(true);
+    const answer = readLedger(BOARD).rounds[0].answers.find(
+      (a) => a.ask === "notes",
+    );
+    expect(answer).toMatchObject({ choice: null, note: "which note?" });
   });
 
   it("a dry run validates and writes nothing", () => {

@@ -13,7 +13,13 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { anchorFor, LIMITS } from "@/components/lab/board-spec";
+import {
+  anchorFor,
+  LIMITS,
+  optionId,
+  optionLabel,
+  optionMeans,
+} from "@/components/lab/board-spec";
 import { RESERVED_PARAMS } from "@/components/lab/board-state";
 
 import { BOARDS, boardSpec } from "./registry";
@@ -91,8 +97,22 @@ describe("the board registry", () => {
       under(`${b.id}.verdict.overrule`, b.verdict.overrule, LIMITS.overrule);
       for (const a of b.asks) {
         under(`${b.id}.ask ${a.id}`, a.question, LIMITS.askQuestion);
+        under(`${b.id}.ask ${a.id}.context`, a.context, LIMITS.askContext);
+        under(`${b.id}.ask ${a.id}.look`, a.look, LIMITS.askLook);
         under(`${b.id}.ask ${a.id}.because`, a.because, LIMITS.askBecause);
         under(`${b.id}.ask ${a.id}.overrule`, a.overrule, LIMITS.askOverrule);
+        for (const o of a.options) {
+          under(
+            `${b.id}.ask ${a.id}.option ${optionId(o)}.label`,
+            optionLabel(o),
+            LIMITS.optionLabel,
+          );
+          under(
+            `${b.id}.ask ${a.id}.option ${optionId(o)}.means`,
+            optionMeans(o),
+            LIMITS.optionMeans,
+          );
+        }
       }
       for (const c of b.candidates) {
         under(`${b.id}.candidate ${c.id}`, c.rationale, LIMITS.rationale);
@@ -126,14 +146,22 @@ describe("the board registry", () => {
           ids.has(a.evidence),
           `${b.id}: ask ${a.id} points at ${a.evidence}`,
         ).toBe(true);
+        const optionIds = a.options.map(optionId);
         expect(
-          a.options,
+          optionIds,
           `${b.id}: ask ${a.id} does not offer its recommendation`,
         ).toContain(a.recommended);
-        for (const o of a.options) {
+        expect(
+          new Set(optionIds).size,
+          `${b.id}: ask ${a.id} repeats an option id`,
+        ).toBe(optionIds.length);
+        for (const o of optionIds) {
           expect(o, `${b.id}: option "${o}" is not one token`).toMatch(
             /^[a-z0-9][a-z0-9-]*$/i,
           );
+          // "?" is the reviewer's own answer ("not clear to me"); an option
+          // can never be spelled that way, or the ledger could not tell them apart.
+          expect(o).not.toBe("?");
         }
       }
       const askIds = b.asks.map((a) => a.id);
@@ -177,6 +205,22 @@ describe("the board registry", () => {
       for (const n of b.notes ?? []) check(n.state, `the note on ${n.section}`);
       for (const l of b.lookFirst ?? [])
         check(l.state, `the walk step at ${l.section}`);
+      for (const a of b.asks) {
+        check(a.state, `the ask ${a.id}`);
+        if (a.control !== undefined) {
+          const c = controls.get(a.control);
+          expect(
+            c,
+            `${b.id}: ask ${a.id} mirrors undeclared control "${a.control}"`,
+          ).toBeTruthy();
+          // The pick IS the preview: the card sets the control to the option
+          // picked, which only works when the two id sets are the same set.
+          expect(
+            [...a.options.map(optionId)].sort(),
+            `${b.id}: ask ${a.id} mirrors ${a.control} but their option ids differ`,
+          ).toEqual(c!.options.map((o) => o.id).sort());
+        }
+      }
       for (const c of b.controls ?? []) {
         expect(
           c.options.map((o) => o.id),
@@ -206,4 +250,74 @@ describe("the board registry", () => {
   it("computes one anchor everywhere", () => {
     expect(anchorFor("light", "composer")).toBe("light-composer");
   });
+});
+
+/**
+ * THE CLARITY RATCHET (Will, 2026-09-15: "it was tough to understand what I
+ * was being asked for most of those questions... the more clearly you can ask
+ * me questions, the more easily it is for me to respond"). A board on the
+ * string form asks in tokens ("seam", "family", "lift") that a reviewer
+ * cannot read away from the board's argument. A board off this list asks in
+ * plain words: a real question, an option labelled in words with what it
+ * means, and the context and the look that let a stranger answer.
+ *
+ * ★ THE LIST ONLY SHRINKS. The clarity wave deletes a board's line when its
+ * asks are rewritten; a new board is written in plain words from the start.
+ */
+const PLAIN: readonly string[] = [
+  "album-hero",
+  "brand-voice",
+  "floating-surfaces",
+  "glow-doctrine",
+  "glow-moments",
+  "home-hero",
+  "media-kit",
+  "palette",
+  "river-visual",
+  "rounding",
+  "type-scale",
+];
+
+describe("the asks, in plain words", () => {
+  it("lists only standing boards as still on the string form", () => {
+    const ids = new Set(BOARDS.map((b) => b.id));
+    for (const id of PLAIN) {
+      expect(ids.has(id), `PLAIN names "${id}", which is not a board`).toBe(
+        true,
+      );
+    }
+  });
+
+  for (const b of BOARDS.filter((x) => !PLAIN.includes(x.id))) {
+    it(`${b.id} asks every question in plain words`, () => {
+      for (const a of b.asks) {
+        expect(
+          a.question.trim().endsWith("?"),
+          `${b.id}: ask ${a.id} is a label, not a question: "${a.question}"`,
+        ).toBe(true);
+        expect(
+          a.context && a.context.trim().length > 0,
+          `${b.id}: ask ${a.id} carries no context`,
+        ).toBeTruthy();
+        expect(
+          a.look && a.look.trim().length > 0,
+          `${b.id}: ask ${a.id} does not say where to look`,
+        ).toBeTruthy();
+        for (const o of a.options) {
+          expect(
+            typeof o,
+            `${b.id}: ask ${a.id} still offers the bare token "${optionId(o)}"`,
+          ).toBe("object");
+          expect(
+            optionLabel(o).trim().length,
+            `${b.id}: option ${optionId(o)} has no label`,
+          ).toBeGreaterThan(0);
+          expect(
+            optionLabel(o),
+            `${b.id}: option ${optionId(o)} is labelled with its own token`,
+          ).not.toBe(optionId(o));
+        }
+      }
+    });
+  }
 });

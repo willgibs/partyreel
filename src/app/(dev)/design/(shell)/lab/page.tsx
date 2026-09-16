@@ -1,6 +1,12 @@
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 
-import { anchorFor, type BoardSpec } from "@/components/lab/board-spec";
+import {
+  anchorFor,
+  type BoardSpec,
+  optionId,
+  optionLabel,
+  optionMeans,
+} from "@/components/lab/board-spec";
 
 import { Callout } from "@/app/(dev)/design/(shell)/_shell/callout";
 import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
@@ -55,7 +61,13 @@ function toSteps(
       round: a.round,
       askId: a.ask.id,
       question: a.ask.question,
-      options: a.ask.options,
+      context: a.ask.context,
+      look: a.ask.look,
+      options: a.ask.options.map((o) => ({
+        id: optionId(o),
+        label: optionLabel(o),
+        means: optionMeans(o),
+      })),
       recommended: a.ask.recommended,
       because: a.ask.because,
       overrule: a.ask.overrule,
@@ -147,7 +159,14 @@ export default async function DeskPage({
   const live = [...tracks.values()].filter((t) => t.status !== "integrated");
   const withSpec = rows.filter((r) => r.spec);
   const answeredNow = rows.reduce(
-    (n, r) => n + r.asks.filter((a) => a.answer).length,
+    (n, r) => n + r.asks.filter((a) => a.answer?.choice).length,
+    0,
+  );
+  // Asks Will marked "not clear to me": still waiting, and the board owes a
+  // clearer question before he is asked again.
+  const unclearNow = rows.reduce(
+    (n, r) =>
+      n + r.asks.filter((a) => a.answer && a.answer.choice === null).length,
     0,
   );
 
@@ -161,6 +180,7 @@ export default async function DeskPage({
         stats={[
           ["waiting on you", queue.length],
           ["answered this round", answeredNow],
+          ["asked for a clearer question", unclearNow],
           ["standing boards", rows.length],
           ["tracks in flight", live.length],
         ]}
@@ -196,7 +216,17 @@ export default async function DeskPage({
                   <span className="min-w-0 flex-1 text-sm font-medium">
                     {a.ask.question}
                   </span>
-                  <Tag>{a.ask.recommended}</Tag>
+                  {a.answer && a.answer.choice === null ? (
+                    <Tag badge="updated">you asked for a clearer question</Tag>
+                  ) : (
+                    <Tag>
+                      {optionLabel(
+                        a.ask.options.find(
+                          (o) => optionId(o) === a.ask.recommended,
+                        ) ?? a.ask.recommended,
+                      )}
+                    </Tag>
+                  )}
                 </LabLink>
               </li>
             ))}
@@ -350,7 +380,7 @@ function BoardCard({
     status: tracks.get(name)?.status ?? null,
   }));
   const live = built.filter((b) => b.status && b.status !== "integrated");
-  const answered = row.asks.filter((a) => a.answer).length;
+  const answered = row.asks.filter((a) => a.answer?.choice).length;
 
   return (
     <li className="rounded-xl border border-border bg-card px-4 py-3">
@@ -398,20 +428,34 @@ function BoardCard({
             <li key={a.ask.id}>
               <LabLink
                 href={
-                  a.answer
+                  a.answer?.choice
                     ? `/design/lab/${row.id}`
                     : `${DESK_HREF}?session=${stepId(row.id, a.ask.id)}`
                 }
+                title={
+                  a.answer && a.answer.choice === null
+                    ? `Not clear to you: ${a.answer.note ?? ""}`
+                    : undefined
+                }
                 className={
-                  a.answer
+                  a.answer?.choice
                     ? "inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
                     : "inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 text-[11px] transition-colors duration-150 hover:bg-muted/60"
                 }
               >
                 {a.ask.question}
-                {a.answer && (
+                {a.answer?.choice && (
                   <span className="font-medium text-foreground">
-                    {a.answer.choice}
+                    {optionLabel(
+                      a.ask.options.find(
+                        (o) => optionId(o) === a.answer?.choice,
+                      ) ?? a.answer.choice,
+                    )}
+                  </span>
+                )}
+                {a.answer && a.answer.choice === null && (
+                  <span className="font-medium text-foreground">
+                    not clear, asked again
                   </span>
                 )}
               </LabLink>

@@ -1,0 +1,45 @@
+{
+  "board": "light",
+  "rounds": [
+    {
+      "n": 5,
+      "opened": "2026-09-16",
+      "answers": [
+        {
+          "ask": "kit",
+          "choice": "land",
+          "by": "Will",
+          "at": "2026-09-16T02:30:00Z"
+        },
+        {
+          "ask": "infusion",
+          "choice": "phase-1",
+          "by": "Will",
+          "at": "2026-09-16T02:30:00Z"
+        },
+        {
+          "ask": "register",
+          "choice": "accent",
+          "note": "Identity feels way too weak. Let's use accent as the global register, and we can modify it as needed in the future if it feels too strong.",
+          "by": "Will",
+          "at": "2026-09-16T02:30:00Z"
+        },
+        {
+          "ask": "aurora",
+          "choice": null,
+          "note": "I'm very confused by the question being asked here. Am I being asked what aurora placement within the footer? Or what aurora replacement looks better in general? Need to circle back to this one with more clarity on what you're asking.",
+          "by": "Will",
+          "at": "2026-09-16T02:30:00Z"
+        },
+        {
+          "ask": "depth",
+          "choice": null,
+          "note": "I'm not sure what I'm being asked here. Hard to visibly tell what Family and Lift are from the previews.",
+          "by": "Will",
+          "at": "2026-09-16T02:30:00Z"
+        }
+      ],
+      "notes": []
+    }
+  ]
+}

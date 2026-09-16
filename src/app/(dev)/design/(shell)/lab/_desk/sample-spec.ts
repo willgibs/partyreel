@@ -21,12 +21,14 @@ export const SAMPLE_BOARD = defineBoard({
   round: {
     n: 1,
     date: "2026-09-15",
-    changed: "The first spec-shaped board, written so the session can be walked before the real boards carry specs.",
+    changed:
+      "The first spec-shaped board, written so the session can be walked before the real boards carry specs.",
   },
   context:
     "Every standing board still argues in its own page. This one exists to show the shape a board takes once its asks, its verdict and its evidence are declared rather than drawn.",
   verdict: {
-    recommendation: "Answer in one word per ask, and leave the reasons to the notes.",
+    recommendation:
+      "Answer in one word per ask, and leave the reasons to the notes.",
     because:
       "A ruling that fits in a word can be recorded, counted and reversed; a paragraph cannot. The note beside it carries everything the word leaves out.",
     overrule:
@@ -36,7 +38,27 @@ export const SAMPLE_BOARD = defineBoard({
     {
       id: "grain",
       question: "How many asks should one board carry?",
-      options: ["three", "five", "as-many-as-it-takes"],
+      context:
+        "An ask is one decision a board hands you, answered by picking an option. A board with too many turns a review into a form; one with too few hides decisions inside its argument.",
+      look: "The walk section: the three asks here, one at a time, are the sample.",
+      options: [
+        {
+          id: "three",
+          label: "Three",
+          means: "The board keeps only its three biggest decisions.",
+        },
+        {
+          id: "five",
+          label: "Five",
+          means:
+            "Five fits one sitting and still covers a board's real decisions.",
+        },
+        {
+          id: "as-many-as-it-takes",
+          label: "As many as it takes",
+          means: "Every decision gets an ask, however many that is.",
+        },
+      ],
       recommended: "five",
       because:
         "Five fits one sitting and still covers a board's real decisions; past that a review turns into a form.",
@@ -46,7 +68,21 @@ export const SAMPLE_BOARD = defineBoard({
     {
       id: "default",
       question: "Should an ask carry a recommendation?",
-      options: ["always", "never"],
+      context:
+        'The recommendation is the board\'s own pick, marked "the board says" on the option. Agreeing with it is the cheapest answer.',
+      look: "This ask: one option carries the mark, the other does not.",
+      options: [
+        {
+          id: "always",
+          label: "Always",
+          means: "Every ask names the option the board would pick.",
+        },
+        {
+          id: "never",
+          label: "Never",
+          means: "The options are offered as a neutral menu.",
+        },
+      ],
       recommended: "always",
       because:
         "A board that has done the work has an opinion, and saying it is faster to disagree with than a neutral menu.",
@@ -55,7 +91,26 @@ export const SAMPLE_BOARD = defineBoard({
     {
       id: "notes",
       question: "Where do the reasons go?",
-      options: ["the-note", "the-board", "chat"],
+      context:
+        "A ruling is one option; the reason you picked it has to live somewhere the next round can read.",
+      look: "The ledger section: the note field under every ask, and the line the session composes.",
+      options: [
+        {
+          id: "the-note",
+          label: "The note under the ask",
+          means: "It rides the answer into the ledger, beside the option.",
+        },
+        {
+          id: "the-board",
+          label: "A note on the whole board",
+          means: "One note per board, at the end of the session.",
+        },
+        {
+          id: "chat",
+          label: "Chat",
+          means: "Said in the conversation, and not recorded with the answer.",
+        },
+      ],
       recommended: "the-note",
       because:
         "The note rides the answer into the ledger, so the reason and the ruling stay together for ever.",
@@ -92,7 +147,10 @@ export const SAMPLE_BOARD = defineBoard({
     },
   ],
   lookFirst: [
-    { section: "walk", note: "Answer the three, then read the message the session composes." },
+    {
+      section: "walk",
+      note: "Answer the three, then read the message the session composes.",
+    },
   ],
   links: { bible: [] },
 });

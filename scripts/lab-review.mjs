@@ -11,6 +11,13 @@
  * The grammar is stated once, in docs/reviews/README.md:
  *
  *   review <board> r<n>: <ask>=<option> "a note"; <ask>=<option>; note: "a board note"
+ *   review <board> r<n>: <ask>=? "what was unclear"     (not answered: the question needs rewording)
+ *
+ * `?` is the reviewer's own answer, "this question is not clear to me" (Will's
+ * first review, 2026-09-15, skipped two asks for exactly that reason and the
+ * ledger had no way to say so). It always needs a note, it is stored as
+ * `choice: null`, and the desk shows the ask as waiting on a clearer question
+ * rather than as answered.
  *
  * Every board, round, ask and option is validated against the board's own spec
  * (src/app/(dev)/design/sandbox/<board>/spec.ts) before anything is written,
@@ -183,6 +190,44 @@ function stringAt(src, range) {
   return stringsIn(src, range)[0] ?? null;
 }
 
+/**
+ * The option IDS of an `options: [...]` array, in order. An option is either a
+ * bare string (the transitional form) or an object whose `id` is the token
+ * the ledger stores; its `label` and `means` are prose and never options, so
+ * they are read off each object's own entries rather than swept up by
+ * `stringsIn` (which would let a label pass as a choice).
+ */
+function optionIdsIn(masked, src, range) {
+  const open = range[0];
+  if (masked[open] !== "[") return stringsIn(src, range);
+  const close = matchBracket(masked, open);
+  const out = [];
+  let i = open + 1;
+  while (i < close) {
+    const c = masked[i];
+    if (c === '"' || c === "'" || c === "`") {
+      const end = masked.indexOf(c, i + 1);
+      if (end < 0 || end > close) break;
+      out.push(src.slice(i + 1, end));
+      i = end + 1;
+      continue;
+    }
+    if (c === "{") {
+      const end = matchBracket(masked, i);
+      const id = entriesOf(masked, i + 1, end).get("id");
+      if (id) out.push(stringAt(src, id));
+      i = end + 1;
+      continue;
+    }
+    if (c === "[" || c === "(") {
+      i = matchBracket(masked, i) + 1;
+      continue;
+    }
+    i++;
+  }
+  return out.filter((x) => x !== null);
+}
+
 function numberAt(src, range) {
   const m = /-?\d+(?:\.\d+)?/.exec(src.slice(range[0], range[1]));
   return m ? Number(m[0]) : null;
@@ -225,7 +270,7 @@ export function readSpec(id, source) {
         ? stringAt(source, fields.get("id"))
         : null;
       const options = fields.has("options")
-        ? stringsIn(source, fields.get("options"))
+        ? optionIdsIn(masked, source, fields.get("options"))
         : [];
       if (askId) {
         asks.push({
@@ -455,7 +500,16 @@ export function validate(entries, specs) {
         );
         continue;
       }
-      if (!ask.options.includes(a.choice)) {
+      if (a.choice === "?") {
+        // "Not clear to me" is only useful with the words that say why.
+        if (!a.note || !a.note.trim()) {
+          at(
+            e.line,
+            a.choiceAt,
+            `${e.board}.${a.ask}=? needs a note saying what was unclear`,
+          );
+        }
+      } else if (!ask.options.includes(a.choice)) {
         at(
           e.line,
           a.choiceAt,
@@ -518,7 +572,9 @@ export function applyEntries(root, entries, { by, at }) {
     if (!Array.isArray(round.answers)) round.answers = [];
     if (!Array.isArray(round.notes)) round.notes = [];
     for (const a of e.answers) {
-      const entry = { ask: a.ask, choice: a.choice };
+      // "?" lands as a null choice: the ask stays open on the desk, flagged as
+      // waiting on a clearer question, with the reviewer's words beside it.
+      const entry = { ask: a.ask, choice: a.choice === "?" ? null : a.choice };
       if (a.note) entry.note = a.note;
       entry.by = by;
       entry.at = at;
@@ -575,6 +631,7 @@ export function run(
 const HELP = `pnpm lab:review "<the pasted line>"
 
   review <board> r<n>: <ask>=<option> "a note"; <ask>=<option>; note: "a board note"
+  review <board> r<n>: <ask>=? "what was unclear"      (not answered; needs the note)
 
   --root <dir>   the repo to write into (default: this one)
   --by <name>    who answered (default: Will)

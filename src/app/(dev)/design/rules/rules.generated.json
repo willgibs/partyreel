@@ -20,7 +20,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 41
+          "line": 47
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -28,7 +28,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 53
+          "line": 59
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -36,7 +36,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 58
+          "line": 64
         },
         {
           "title": "holds every string inside its limit",
@@ -44,7 +44,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 73
+          "line": 79
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -52,7 +52,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 120
+          "line": 140
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -60,7 +60,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 158
+          "line": 186
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -68,7 +68,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 193
+          "line": 237
         },
         {
           "title": "computes one anchor everywhere",
@@ -76,7 +76,23 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 206
+          "line": 250
+        },
+        {
+          "title": "lists only standing boards as still on the string form",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 282
+        },
+        {
+          "title": "{b.id} asks every question in plain words",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 292
         }
       ]
     },
@@ -130,7 +146,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 41
+          "line": 47
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -138,7 +154,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 53
+          "line": 59
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -146,7 +162,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 58
+          "line": 64
         },
         {
           "title": "holds every string inside its limit",
@@ -154,7 +170,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 73
+          "line": 79
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -162,7 +178,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 120
+          "line": 140
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -170,7 +186,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 158
+          "line": 186
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -178,7 +194,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 193
+          "line": 237
         },
         {
           "title": "computes one anchor everywhere",
@@ -186,7 +202,23 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 206
+          "line": 250
+        },
+        {
+          "title": "lists only standing boards as still on the string form",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 282
+        },
+        {
+          "title": "{b.id} asks every question in plain words",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 292
         }
       ]
     },
@@ -207,7 +239,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 41
+          "line": 47
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -215,7 +247,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 53
+          "line": 59
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -223,7 +255,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 58
+          "line": 64
         },
         {
           "title": "holds every string inside its limit",
@@ -231,7 +263,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 73
+          "line": 79
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -239,7 +271,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 120
+          "line": 140
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -247,7 +279,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 158
+          "line": 186
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -255,7 +287,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 193
+          "line": 237
         },
         {
           "title": "computes one anchor everywhere",
@@ -263,7 +295,23 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 206
+          "line": 250
+        },
+        {
+          "title": "lists only standing boards as still on the string form",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 282
+        },
+        {
+          "title": "{b.id} asks every question in plain words",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 292
         }
       ]
     },

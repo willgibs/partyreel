@@ -41,7 +41,17 @@ import { holdId, stepId } from "./step-id";
  * note field go so the digits work again.
  * The handler is registered with review-keys.ts so the shell can own the
  * keyboard later without this file changing.
+ *
+ * A STEP CARRIES THE ASK'S OWN CONTEXT (the clarity round, 2026-09-15). Will's
+ * first session stopped at "The aurora's placement: no | seam | both | room":
+ * a label and four tokens, with the board's argument for its own pick under
+ * them and the evidence a tab away. So a step now shows the question in plain
+ * words, what the thing is, where to look, and each option's label with what
+ * choosing it means; and "Not clear to me" is an answer of its own (`?`), so
+ * a question that still fails is recorded as failing rather than skipped.
  */
+
+export type SessionOption = { id: string; label: string; means?: string };
 
 export type SessionStep = {
   board: string;
@@ -49,7 +59,11 @@ export type SessionStep = {
   round: number;
   askId: string;
   question: string;
-  options: readonly string[];
+  /** What the thing is and where it lives, for a reader who has not read the board. */
+  context?: string;
+  /** Where to look and what to compare. */
+  look?: string;
+  options: readonly SessionOption[];
   recommended: string;
   because?: string;
   overrule?: string;
@@ -57,6 +71,9 @@ export type SessionStep = {
   evidence: { title: string; href: string } | null;
   boardHref: string;
 };
+
+/** The reviewer's own answer: "this question is not clear to me". */
+export const UNCLEAR = "?";
 
 const holdKey = (s: SessionStep) => holdId(s.board, s.round, s.askId);
 const stepParam = (s: SessionStep) => stepId(s.board, s.askId);
@@ -160,7 +177,7 @@ export function ReviewSession({
     if (atEnd || !step) return false;
     const n = Number(key);
     if (Number.isInteger(n) && n >= 1 && n <= step.options.length) {
-      pick(step.options[n - 1]);
+      pick(step.options[n - 1].id);
       return true;
     }
     if (key === "Enter" || key === "ArrowRight") {
@@ -293,24 +310,46 @@ export function ReviewSession({
           <h2 className="mt-1.5 font-heading text-2xl tracking-tight text-balance">
             {step.question}
           </h2>
-          {step.because && (
+          {step.context && (
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed">
+              {step.context}
+            </p>
+          )}
+          {(step.look || step.evidence) && (
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              {step.because}
+              <span className="font-medium text-foreground/80">
+                Where to look:{" "}
+              </span>
+              {step.look}
+              {step.evidence && (
+                <>
+                  {step.look ? " " : ""}
+                  <a
+                    href={step.evidence.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 underline underline-offset-2"
+                  >
+                    Open {step.evidence.title}
+                    <ExternalLink className="size-3 opacity-60" aria-hidden />
+                  </a>
+                </>
+              )}
             </p>
           )}
 
           <ul className="mt-5 space-y-1.5">
             {step.options.map((option, i) => {
-              const chosen = store.answers[holdKey(step)]?.choice === option;
+              const chosen = store.answers[holdKey(step)]?.choice === option.id;
               return (
-                <li key={option}>
+                <li key={option.id}>
                   <button
                     type="button"
                     data-dir-press
-                    onClick={() => pick(option)}
+                    onClick={() => pick(option.id)}
                     aria-pressed={chosen}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors duration-150",
+                      "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors duration-150",
                       chosen
                         ? "border-foreground/40 bg-card"
                         : "border-border hover:bg-muted/40",
@@ -318,7 +357,7 @@ export function ReviewSession({
                   >
                     <span
                       className={cn(
-                        "inline-flex size-5 shrink-0 items-center justify-center rounded-md border text-[11px] tabular-nums transition-colors duration-150",
+                        "mt-px inline-flex size-5 shrink-0 items-center justify-center rounded-md border text-[11px] tabular-nums transition-colors duration-150",
                         chosen
                           ? "border-transparent bg-foreground text-background"
                           : "border-border text-muted-foreground",
@@ -327,10 +366,17 @@ export function ReviewSession({
                     >
                       {chosen ? <Check className="size-3" /> : i + 1}
                     </span>
-                    <span className="min-w-0 flex-1 text-sm font-medium break-words">
-                      {option}
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium break-words">
+                        {option.label}
+                      </span>
+                      {option.means && (
+                        <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
+                          {option.means}
+                        </span>
+                      )}
                     </span>
-                    {option === step.recommended && (
+                    {option.id === step.recommended && (
                       <Tag className="shrink-0">the board says</Tag>
                     )}
                   </button>
@@ -338,6 +384,23 @@ export function ReviewSession({
               );
             })}
           </ul>
+
+          {step.because && (
+            <p className="mt-3 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+              <span className="font-medium text-foreground/70">
+                Why the board says so:{" "}
+              </span>
+              {step.because}
+            </p>
+          )}
+          {step.overrule && (
+            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+              <span className="font-medium text-foreground/70">
+                What would change it:{" "}
+              </span>
+              {step.overrule}
+            </p>
+          )}
 
           <label className="mt-4 block">
             <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
@@ -352,36 +415,30 @@ export function ReviewSession({
             />
           </label>
 
-          {(step.overrule || step.evidence) && (
-            <dl className="mt-3 space-y-1 text-xs text-muted-foreground">
-              {step.overrule && (
-                <div className="flex gap-1.5">
-                  <dt className="shrink-0 font-medium text-foreground/70">
-                    Would change it
-                  </dt>
-                  <dd>{step.overrule}</dd>
-                </div>
-              )}
-              {step.evidence && (
-                <div className="flex gap-1.5">
-                  <dt className="shrink-0 font-medium text-foreground/70">
-                    The evidence
-                  </dt>
-                  <dd>
-                    <a
-                      href={step.evidence.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 underline underline-offset-2"
-                    >
-                      {step.evidence.title}
-                      <ExternalLink className="size-3 opacity-60" aria-hidden />
-                    </a>
-                  </dd>
-                </div>
-              )}
-            </dl>
-          )}
+          {/* "?" is recorded, not skipped: the ledger then says which question
+              failed and why, and the board owes a clearer one. */}
+          <button
+            type="button"
+            data-dir-press
+            aria-pressed={store.answers[holdKey(step)]?.choice === UNCLEAR}
+            onClick={(e) => {
+              pick(UNCLEAR);
+              const field = (
+                e.currentTarget.parentElement as HTMLElement
+              )?.querySelector("textarea");
+              field?.focus();
+            }}
+            className={cn(
+              "mt-2 rounded-lg border border-dashed px-3 py-1.5 text-xs font-medium transition-colors duration-150",
+              store.answers[holdKey(step)]?.choice === UNCLEAR
+                ? "border-foreground/40 bg-card text-foreground"
+                : "border-border text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {store.answers[holdKey(step)]?.choice === UNCLEAR
+              ? "Marked as not clear: say what was unclear in the note"
+              : "This question is not clear to me"}
+          </button>
 
           <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
             <button
@@ -478,7 +535,13 @@ export function ReviewSession({
                                     !held?.choice && "text-muted-foreground/70",
                                   )}
                                 >
-                                  {held?.choice || "not answered"}
+                                  {held?.choice === UNCLEAR
+                                    ? "not clear to me"
+                                    : (s.options.find(
+                                        (o) => o.id === held?.choice,
+                                      )?.label ??
+                                      held?.choice ??
+                                      "not answered")}
                                 </span>
                               </button>
                               {held?.note && (

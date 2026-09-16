@@ -32,12 +32,31 @@ import { Copy, matrixCols, Photo, Takeaway } from "./shared";
 
 type Cue = "none" | "ring" | "shadow" | "lit";
 
+/**
+ * ★ THE COLUMN CARRIES THE OPTION'S NAME. Will's first review could not map
+ * "family | lift | neither" to columns labelled "Lighter is closer" and "A
+ * soft shadow" (2026-09-15: "hard to visibly tell what Family and Lift are
+ * from the previews"), so each cue is labelled with the word the ask offers.
+ * The shadow column says which member of the family it is showing (the lift
+ * under overlapping things, the float under a layer) because "the lift only"
+ * is that column on the photographs and the Neither column on the layer.
+ */
 const CUES: { id: Cue; label: string }[] = [
-  { id: "none", label: "Lighter is closer" },
-  { id: "ring", label: "The ring lift" },
-  { id: "shadow", label: "A soft shadow" },
-  { id: "lit", label: "The lit face" },
+  { id: "none", label: "Neither: today's steps and borders" },
+  { id: "ring", label: "The ring: a hairline edge" },
+  { id: "shadow", label: "Family: a soft shadow" },
+  { id: "lit", label: "The lit face: a bright top edge" },
 ];
+
+/** The shadow column's name on a subject that shows one member of the family. */
+function cueLabel(cue: { id: Cue; label: string }, subject: string): string {
+  if (cue.id !== "shadow") return cue.label;
+  if (subject === "stacked")
+    return "Family: the lift (Lift only shows this too)";
+  if (subject === "floating")
+    return "Family: the float (Lift only shows Neither here)";
+  return cue.label;
+}
 
 /** The cue as classes plus the data attribute board.css keys off. A cue that
  *  needs a box-shadow rides the sheet, never an inline literal: the values are
@@ -220,10 +239,7 @@ function FaceScreen({ cue, small }: { cue: Cue; small: boolean }) {
   return (
     <div
       aria-hidden
-      className={cn(
-        "relative overflow-hidden rounded-xl bg-gallery",
-        p.ring,
-      )}
+      className={cn("relative overflow-hidden rounded-xl bg-gallery", p.ring)}
       style={{ width: small ? 132 : 188, height: small ? 74 : 106 }}
       data-lgt-cue={p.cue}
     >
@@ -247,7 +263,13 @@ const PLATE_CELLS = Array.from({ length: 81 }, (_, i) => {
   const x = i % 9;
   const y = Math.floor(i / 9);
   const finder = (x < 3 && y < 3) || (x > 5 && y < 3) || (x < 3 && y > 5);
-  return finder ? (x % 2 === 1 && y % 2 === 1 ? 0 : 1) : (x * 7 + y * 13) % 3 === 0 ? 1 : 0;
+  return finder
+    ? x % 2 === 1 && y % 2 === 1
+      ? 0
+      : 1
+    : (x * 7 + y * 13) % 3 === 0
+      ? 1
+      : 0;
 });
 
 function FacePlate({ cue, small }: { cue: Cue; small: boolean }) {
@@ -424,7 +446,7 @@ export function DepthPart({
                 {CUES.map((c) => (
                   <Cell
                     key={c.id}
-                    name={c.label}
+                    name={cueLabel(c, s.id)}
                     className="min-h-0"
                     proposed={c.id === s.proposed ? s.proposedNote : undefined}
                   >

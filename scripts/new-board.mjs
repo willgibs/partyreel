@@ -76,10 +76,15 @@ export const ${CONST} = defineBoard({
   asks: [
     {
       id: "TODO",
-      question: "TODO: what a word answers",
-      options: ["yes", "no"],
+      question: "TODO: a real question, in plain words, ending in a question mark?",
+      context: "TODO: what the thing is and where it lives on the site, for someone who has not read the board. Gloss any nickname the first time.",
+      look: "TODO: which section, which switch, what to compare; the specimens are labelled with the options' names.",
+      options: [
+        { id: "yes", label: "TODO: the option in words", means: "TODO: what choosing it does." },
+        { id: "no", label: "TODO: the other option in words", means: "TODO: what choosing it does." },
+      ],
       recommended: "yes",
-      because: "TODO: why this one.",
+      because: "TODO: why the board recommends it, in plain words.",
       evidence: "TODO",
     },
   ],

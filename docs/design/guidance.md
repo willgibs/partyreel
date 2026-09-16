@@ -69,6 +69,20 @@ messy so it's hard for me to understand the work").
 - **Dark and light are chosen separately.** They are not a package deal.
 - **One word answers an ask.** An ask names two or more options and a recommendation; Will answers
   in a word, and the panel composes the message he pastes into chat. The lab never writes the repo.
+- **A question carries its own context** (Will, 2026-09-15, after the first review through the desk:
+  "it was tough to understand what I was being asked for most of those questions"). An ask is a real
+  question a stranger can answer where it is met: what the thing is and where it lives on the site,
+  where to look and what to compare, each option in words with what choosing it does. A nickname from
+  the board is glossed the first time or left out. "Not clear to me" is an answer (`?`), and a board
+  that receives it owes a clearer question, not a longer argument.
+- **The specimen carries the option's name.** Every cell, frame or column an ask is judged on is
+  labelled with the option's own words, so "Family" on the card is "Family" on the preview; a dock
+  control an ask mirrors uses the same labels, and picking the option previews it.
+- **A catalog beats a paper** (Will, 2026-09-15: "a dozen polished variants with preview palettes with
+  some demo UI to config & compare would've been far more helpful than this massive mountain"). An
+  exploration is a few (or many) polished variants, each a preview with the demo UI to configure and
+  compare it, to pick the best direction from and refine to production polish. The research stays
+  collapsed under the evidence or leaves the board.
 
 ## The screenshot gate
 

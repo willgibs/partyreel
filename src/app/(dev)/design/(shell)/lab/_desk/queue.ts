@@ -30,7 +30,9 @@ export type AskState = {
   /** The SPEC's round, which is the round a ledger line must quote. */
   round: number;
   ask: Ask;
-  answer: { choice: string; note?: string } | null;
+  /** Null when never answered; a null `choice` is "not clear to me" (the ask
+   *  is still open, and the note says what a clearer question must cover). */
+  answer: { choice: string | null; note?: string } | null;
 };
 
 /** A standing board on the desk: its spec when it has one, its asks, its verdict. */
@@ -82,7 +84,7 @@ export function askStates(board: DeskBoard, status: BoardStatus): AskState[] {
     round: spec.round.n,
     ask: a.ask,
     answer:
-      current && a.state === "answered"
+      current && a.state !== "open"
         ? { choice: a.answer.choice, note: a.answer.note }
         : null,
   }));
@@ -108,7 +110,9 @@ export function deskRows(
       spec: status.spec,
       legacy: status.spec === null,
       asks,
-      open: asks.filter((a) => a.answer === null),
+      // "Not clear to me" keeps an ask in the queue: the next session asks it
+      // again, in the plainer words the board owes it.
+      open: asks.filter((a) => a.answer === null || a.answer.choice === null),
       // `status.notes` mixes the window's GLOBAL notes into every board, which
       // would print the same four lines fourteen times; the desk prints those
       // once, in their own section. What belongs on a row is the board's own:

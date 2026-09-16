@@ -1,7 +1,8 @@
 # The review ledgers
 
 > **ROLE:** Will's answers and notes on the boards, one JSON file per board plus `_window.json` for
-> a round's notes that bind every board. **BELONGS HERE:** ask ids, choices, notes, who and when.
+> a round's notes that bind every board. **BELONGS HERE:** ask ids, choices (an option id, or `null`
+> for "not clear to me"), notes, who and when.
 > **NOT HERE:** the questions themselves (a board's `spec.ts` is the one home; a ledger stores ask
 > ids, never the text), the rulings once they land (the bible, `docs/decisions/design-record.md`).
 > **GROWS BY:** Will answers on the board (the panel composes one message he pastes into chat); the
@@ -30,6 +31,9 @@
 ```
 
 One answer per ask per round; answering again in the same round overwrites (git keeps the first).
+A `choice` of `null` is Will's "this question is not clear to me" (`<ask>=? "why"` in the grammar;
+the note is required): the ask stays open on the desk, flagged as waiting on a clearer question,
+and the board rewrites it before he is asked again (the clarity round, 2026-09-15).
 A new round is opened by the Orchestrator when it spawns it. `_window.json` holds notes whose `on`
 is a board id or `null` for the whole window. The desk derives "Waiting on Will" as every ask on a
 standing board with no answer in its latest round; a board whose asks are all answered shows its
@@ -38,3 +42,6 @@ ruling draft. When a board leaves the lab (its ruling landed) its ledger is dele
 ## The message grammar
 
 `review <board> r<n>: <ask>=<option> "an optional note"; <ask>=<option>; note: "a board-wide note"`
+
+`review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
+An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.

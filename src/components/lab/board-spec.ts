@@ -17,24 +17,69 @@
  * is fixed up front so the rules layer, the desk and the kit build on one type.
  */
 
-/** One token, no whitespace; hyphens allowed ("by-frequency"). A ruling is one word. */
-export type AskOption = string;
+/**
+ * ONE OPTION OF AN ASK (the clarity round, 2026-09-15). The ledger stores the
+ * `id`, one token, so a board may reword the label for ever without orphaning
+ * an answer; the reviewer reads the `label` and the `means` line.
+ *
+ * ★ A BARE STRING IS THE TRANSITIONAL FORM, NOT A SECOND SHAPE. Will's first
+ * review stopped at tokens nobody could read ("seam", "family", "lift"), so
+ * every option is now labelled in words a stranger knows and says what
+ * choosing it does. `registry.test.ts` lists the boards still on the string
+ * form (`PLAIN`) and that list only shrinks; a board off it may not use a
+ * bare string. Read an option through `optionId`, `optionLabel` and
+ * `optionMeans`, never by its shape.
+ */
+export type AskOption =
+  | string
+  | {
+      /** The token the ledger stores: one word, hyphens allowed. */
+      id: string;
+      /** The name a reviewer reads: "The footer seam only". */
+      label: string;
+      /** One sentence: what picking this does, and what it costs. */
+      means?: string;
+    };
 
+export const optionId = (o: AskOption): string =>
+  typeof o === "string" ? o : o.id;
+export const optionLabel = (o: AskOption): string =>
+  typeof o === "string" ? o : o.label;
+export const optionMeans = (o: AskOption): string | undefined =>
+  typeof o === "string" ? undefined : o.means;
+
+/**
+ * AN ASK CARRIES ITS OWN CONTEXT (Will, 2026-09-15: "the more clearly you can
+ * ask me questions, the more easily it is for me to respond... framing the
+ * context more with the question would help a ton"). A reviewer meets an ask
+ * on the desk or on the review card, away from the board's argument, so the
+ * ask itself has to say what the thing is, where it lives on the site, how to
+ * look at it and what each option would do. A nickname from the board is
+ * glossed the first time it appears or left out.
+ */
 export type Ask<SectionId extends string = string> = {
   /** Stable kebab id; the ledger stores it, never the question text. */
   id: string;
-  /** The label a word answers: "The dark ramp". */
+  /** A real question in plain words, ending in a question mark. */
   question: string;
-  /** Two or more options, one token each. */
+  /** What the thing is and where it lives on the site, for someone who has not read the board. */
+  context?: string;
+  /** Where to look and what to compare: the section, the switch, the labelled specimens. */
+  look?: string;
+  /** Two or more options; the ledger stores their ids. */
   options: readonly [AskOption, AskOption, ...AskOption[]];
-  /** One of `options`. */
-  recommended: AskOption;
-  /** The case in one or two sentences. */
+  /** The id of one of `options`. */
+  recommended: string;
+  /** Why the board recommends it, in one or two plain sentences. */
   because?: string;
   /** The one thing that would change the board's mind. */
   overrule?: string;
   /** The section that argues it; the pill links there. */
   evidence: SectionId;
+  /** The dock state that shows this ask's evidence; applied when the review card lands on it. */
+  state?: Partial<Record<string, string>>;
+  /** A dock control whose option ids equal this ask's, so picking an option previews it. */
+  control?: string;
 };
 
 export type Verdict = {
@@ -162,9 +207,13 @@ export const LIMITS = {
   recommendation: 240,
   because: 400,
   overrule: 200,
-  askQuestion: 120,
+  askQuestion: 160,
+  askContext: 400,
+  askLook: 240,
   askBecause: 300,
   askOverrule: 160,
+  optionLabel: 48,
+  optionMeans: 160,
   title: 60,
   lede: 240,
   argument: 600,

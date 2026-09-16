@@ -8,6 +8,9 @@ import {
   anchorFor,
   type Ask,
   type BoardSpec,
+  optionId,
+  optionLabel,
+  optionMeans,
   type Section,
 } from "./board-spec";
 
@@ -91,15 +94,16 @@ function AskPills({ boardId, ask }: { boardId: string; ask: Ask }) {
       <div className="flex flex-wrap gap-1.5">
         {ask.options.map((o) => (
           <span
-            key={o}
+            key={optionId(o)}
+            title={optionMeans(o)}
             className={cn(
               "rounded-md px-2 py-0.5 text-[11px] font-medium",
-              o === ask.recommended
+              optionId(o) === ask.recommended
                 ? "bg-foreground text-background"
                 : "border border-border text-muted-foreground",
             )}
           >
-            {o}
+            {optionLabel(o)}
           </span>
         ))}
       </div>
@@ -216,7 +220,7 @@ export function BoardSection({
                 />
                 <span>
                   <span className="text-muted-foreground">Rule on: </span>
-                  {a.question} ({a.options.join(", ")})
+                  {a.question} ({a.options.map(optionLabel).join(", ")})
                 </span>
               </li>
             ))}

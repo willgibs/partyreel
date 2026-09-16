@@ -8,6 +8,44 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-15 · a question carries its context; an exploration is a catalog
+
+**Became:** the ask shape (`src/components/lab/board-spec.ts`: a real question, its context, where to
+look, options labelled in words with what each means, the dock state that shows it); the `?` answer
+("not clear to me") in the review grammar; the review card on the board; `guidance.md#boards-the-
+review-surface`; PROGRAM.md "Exploration rounds are light and iterative"; the palette board rebuilt as
+the first catalog.
+
+On his first review through the desk (the light board; three asks answered, two marked not clear):
+
+> "I made it through these, but honestly, it was tough to understand what I was being asked for most
+> of those questions already... Remember that the more clearly you can ask me questions, the more
+> easily it is for me to respond."
+>
+> "Each exploration page feels like a small research paper into its track, so when you use very
+> technical terms or nicknames from spots in these 'reports', it makes me have to go deep into the
+> track to gain the relevant context and even begin understanding the question being asked. Having
+> the link helps a bit, but framing the context more with the question would help a ton."
+>
+> "That's also a helpful note for future agents we spawn: our goal is to get creative while designing
+> to find a combination of intuitive content flow/layouts and engaging visuals. When we're exploring,
+> the goal is to get a few of our best concepts created for review, pick the best direction and refine
+> for production polish. Simply designing a few (or many, complexity and context dependent)
+> variations will always beat a mountain of 'research text'. Prime example: for the new palette
+> exploration, it almost feels like I'm reading a PhD on color theory. We're simply exploring new
+> color palettes - having a dozen polished variants with preview palettes with some demo UI to config
+> & compare would've been far more helpful than this massive mountain we've created. Then I end up
+> with six configs that aren't clearly explained. I have to toggle around the page to see what they
+> impact. Building future explorations almost as a catalog of previews to select from would be much
+> faster, and likely more lightweight and streamlined on your side to simply design beautiful
+> components and organisms."
+
+On the two he could not answer: "Am I being asked what aurora placement within the footer? Or what
+aurora replacement looks better in general?" and "Hard to visibly tell what Family and Lift are from
+the previews." The ruling on the light board's register the same night: "Identity feels way too
+weak. Let's use accent as the global register, and we can modify it as needed in the future if it
+feels too strong."
+
 ## 2026-09-15 · the lab is an internal app; the library is the whole rule set
 
 **Became:** the Library x Lab round (this shell, the kit, the rule layer, the desk); `README.md`.

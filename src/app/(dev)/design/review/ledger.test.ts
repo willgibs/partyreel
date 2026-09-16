@@ -7,6 +7,8 @@ import { describe, expect, it, vi } from "vitest";
 // has no react-server condition.
 vi.mock("server-only", () => ({}));
 
+import { optionId } from "@/components/lab/board-spec";
+
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 import { SANDBOX } from "@/app/(dev)/design/touchpoints";
 
@@ -102,9 +104,17 @@ describe("a board's status", () => {
       const status = boardStatus(spec.id);
       for (const row of status.answered) {
         expect(
-          row.ask.options as readonly string[],
+          row.ask.options.map(optionId),
           `${spec.id}/${row.ask.id}: the ledger stores "${row.answer.choice}", which is not one of the ask's options`,
         ).toContain(row.answer.choice);
+      }
+      // "Not clear to me" is a null choice with the words that say why.
+      for (const row of status.unclear) {
+        expect(row.answer.choice).toBeNull();
+        expect(
+          row.answer.note?.trim().length,
+          `${spec.id}/${row.ask.id}: a ? answer with no note`,
+        ).toBeGreaterThan(0);
       }
       expect(
         status.orphaned.map((a) => a.ask),
