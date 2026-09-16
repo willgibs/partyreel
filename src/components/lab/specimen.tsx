@@ -128,7 +128,14 @@ export function Specimen({
   className,
   children,
 }: {
-  cols: number;
+  /**
+   * A number for equal cells; `"auto"` for a row of specimens at different
+   * TRUE widths (a 560 beside two 437s inside a 1440 stage), where equal
+   * columns could only fit the wide one by shrinking or scaling it, which the
+   * 1:1 law forbids for a thing whose size is being judged (the river-visual
+   * migration, 2026-09-15): each column is its content's width, centred.
+   */
+  cols: number | "auto";
   /** Tailwind's gap scale step; 4 is the board default. */
   gap?: 2 | 3 | 4 | 6 | 8;
   className?: string;
@@ -137,8 +144,17 @@ export function Specimen({
   const GAP = { 2: "gap-2", 3: "gap-3", 4: "gap-4", 6: "gap-6", 8: "gap-8" };
   return (
     <div
-      className={cn("grid min-w-0", GAP[gap], className)}
-      style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+      className={cn(
+        "grid min-w-0",
+        cols === "auto" && "justify-center",
+        GAP[gap],
+        className,
+      )}
+      style={
+        cols === "auto"
+          ? { gridAutoFlow: "column", gridAutoColumns: "max-content" }
+          : { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }
+      }
     >
       {children}
     </div>

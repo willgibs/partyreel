@@ -39,6 +39,7 @@ export function Compare({
   a,
   b,
   labels = ["Today", "The candidate"],
+  cols,
   className,
 }: {
   mode?: CompareMode;
@@ -47,6 +48,15 @@ export function Compare({
   a: React.ReactNode;
   b: React.ReactNode;
   labels?: [string, string];
+  /**
+   * The `side` columns as a NUMBER the board computes from its canvas
+   * (`mode === "desktop" ? 2 : 1`), because a breakpoint prefix inside a
+   * Stage reads the real browser window, not the canvas (stage.tsx's
+   * landmine): on a wide window the 375 stage laid two 160px halves where a
+   * phone has room for one (the river-visual migration, 2026-09-15). Left
+   * out, the responsive default holds for a Compare outside any stage.
+   */
+  cols?: 1 | 2;
   className?: string;
 }) {
   const [at, setAt] = useState(50);
@@ -56,7 +66,17 @@ export function Compare({
   return (
     <div className={cn("flex min-w-0 flex-col gap-2", className)}>
       {mode === "side" ? (
-        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+        <div
+          className={cn(
+            "grid min-w-0 gap-4",
+            cols === undefined && "grid-cols-1 sm:grid-cols-2",
+          )}
+          style={
+            cols === undefined
+              ? undefined
+              : { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }
+          }
+        >
           <Half label={left}>{a}</Half>
           <Half label={right}>{b}</Half>
         </div>
