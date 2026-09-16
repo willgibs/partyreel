@@ -520,17 +520,21 @@ export const PALETTE = defineBoard({
     },
   ],
 
+  /**
+   * ★ ONE ASK LEFT, AND IT IS ALREADY LOGGED. Round seven also asked for a
+   * portrait pair, because the guest masonry was a composition with hand-set
+   * tile ratios; round eight loads the demo event's own public route instead,
+   * so the album shows real media at its real ratios and the ask is moot. What
+   * is still faked is the mix of five stand-ins on every catalog card's well.
+   */
   assets: [
     {
       what: "Four hard cases inside the media kit's shot list",
       spec: "One high key (a white dress on a white wall), one low key (a dance floor lit by one lamp), one candle-warm, one stage-cool: four of the media kit's 36 masters at 1600px, landscape, one grade. A line on that shot list, not a second delivery.",
       replaces:
         "the five stand-ins on every card's well, which span gold, pastel, night blue and laser but hold no high key and no candle.",
-    },
-    {
-      what: "A portrait pair for the guest masonry",
-      spec: "Two of the same 36 at 1600px, PORTRAIT, the same grade. Every stand-in but one is landscape, so the guest album's column flow is faked.",
-      replaces: "the hand-set tile ratios in specimens.tsx.",
+      // Logged: ASSETS row 7 names all four hard cases inside the 36-master shoot.
+      row: 7,
     },
   ],
 
