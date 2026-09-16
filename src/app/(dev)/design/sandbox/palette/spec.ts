@@ -265,7 +265,7 @@ export const PALETTE = defineBoard({
     n: 8,
     date: "2026-09-16",
     changed:
-      "Reshaped as a stepped review: one pick from the twelve with None of these as the exit, then four questions with every option drawn on one specimen, the reach held back until an accent is on, and no palette added or changed.",
+      "Reshaped as a stepped review: one pick from the twelve, then four questions with every option drawn on one specimen. No palette added or changed.",
   },
   history: [
     {
@@ -287,8 +287,11 @@ export const PALETTE = defineBoard({
   verdict: {
     recommendation:
       "Graphite: a very black room at 0.105, a very white page at 0.995, Apple's cool greys between them, and no accent worn.",
+    // Short on purpose: the winner ask carries the argument, and the ask is
+    // what a reviewer meets on the step. Two copies of one sentence is the
+    // duplication the density budget is really about.
     because:
-      "Your note is about grounds, not greys: the black and the white carry the contrast, and everything on them is cool rather than merely lighter. Graphite is deep enough to be a ground and tinted enough to read cool on one. Onyx is the same answer halved and Steel is it doubled, so the three are an axis rather than three opinions.",
+      "The note was about grounds, not greys. Graphite is that sentence built; Onyx is it halved and Steel is it doubled, so the three are an axis rather than three opinions.",
     overrule:
       "If the page being a grey rather than a white is acceptable, Mist fixes the light side outright: a white card lifts 0.037 off it instead of 0.007.",
   },
@@ -542,7 +545,7 @@ export const PALETTE = defineBoard({
     {
       id: "catalog",
       title: "The catalog",
-      lede: "Twelve palettes, nine cool. Each card carries its own grounds, its text steps and a real product fragment in dark beside light.",
+      lede: "Twelve palettes, nine cool, each carrying its own grounds, its text steps and a product fragment in dark beside light.",
       argument: [
         "WHAT COOL MEANS HERE, MEASURED. Converted to oklch, Apple's six system greys sit at hue 286 with an almost constant chroma of 0.0066, and their blue sits at 257. Rounds three to six built this board's cool cast at 258, which is the blue's hue and not the grey's, at a chroma that rose with lightness the way the warm table does. Both were wrong for a grey: a cool grey's tint is a constant property of the family, not something the light does to it. The band is now theirs, and `gain` is how far past or short of their amount a set sits.",
         "THE SHAPE OF EVERY NEW SET IS WILL'S SENTENCE. A very black ground and a very white one carry the contrast; the surfaces sitting on them are cool greys rather than slightly lighter dead ones. Today's dark mode does the opposite: a 0.140 room with four semantic surfaces crushed between 0.210 and 0.250. Onyx, Graphite, Steel and Pitch are that sentence at four distances from black, with the tint at half, one and a half, two and one and a fifth times Apple's amount.",
@@ -552,7 +555,7 @@ export const PALETTE = defineBoard({
     {
       id: "pages",
       title: "The real product",
-      lede: "The marketing routes and the guest album loaded at true pixels beside today, the two signed-in screens rebuilt: all of it wearing the pick.",
+      lede: "The marketing routes and the guest album at true pixels beside today, the two signed-in screens rebuilt: all of it wearing the pick.",
       argument: [
         "A composition is honest about a component and dishonest about a page. What a ground has to survive is the rest of the page: the photograph beside the card, the CTA under the chapter, and the seam where the paper ends and the footer begins. The four marketing routes are real documents with the paste written into them, so the right frame is the site after the ruling, to the byte.",
         "Two screens are behind a sign-in, so the dashboard and an event are compositions built from production components rather than routes: the data, the counts and the copy are the board's, the components, the density and the breakpoint are real. They are here because this is where Will's objection lived, a colourful mix of photographs on a media-forward chrome, and no marketing route holds one. The guest album is public, so it loads as the real page.",
@@ -561,23 +564,23 @@ export const PALETTE = defineBoard({
     {
       id: "accent",
       title: "The accent",
-      lede: "The dashboard wearing the hue this palette declares, with all three of the accent's jobs in one frame: the mark, the things asking to be noticed, and the stand-in for a photograph.",
+      lede: "The dashboard wearing the hue this palette declares, with all three of the accent's jobs in one frame.",
       eager: true,
     },
     {
       id: "card",
       title: "A card over a photograph",
-      lede: "The one see-through surface in the system, on the only specimen where the answer is a look rather than a number.",
+      lede: "The one see-through surface in the system, on the specimen where the answer is a look rather than a number.",
     },
     {
       id: "faint",
       title: "The third text step",
-      lede: "The same three lines on the three grounds type lands on: the page, a card and the panel inside it.",
+      lede: "The same three lines on the three grounds type lands on: the page, a card, the panel.",
     },
     {
       id: "compare",
       title: "Any two, side by side",
-      lede: "The surface ladder under the two cards you pressed A and B on, with the seam on a slider.",
+      lede: "The surface ladder under the two cards on A and B, with the seam on a slider.",
       argument: [
         "Two canvases side by side is a memory test when the step being judged is 0.02, and an eye cannot hold that across a toggle press. One canvas with the join on a slider can be dragged onto the exact surface in question instead. The comparison the round was built for is Ladder against any cool card: same rhythm, same steps, one at chroma zero and one at Apple's hue. If the cool is not visible in that wipe at 1440, it is not visible anywhere.",
       ],
@@ -585,7 +588,7 @@ export const PALETTE = defineBoard({
     {
       id: "paste",
       title: "The ruling, as a paste",
-      lede: "The picked palette as the block that lands in globals.css and marketing.css, every answer above folded in.",
+      lede: "The picked palette as the block that lands in globals.css and marketing.css, every answer folded in.",
       wiring: [
         "theme.css needs --color-faint: var(--faint) in its @theme inline block before a text-faint utility exists; the board reaches the token with an arbitrary value, so nothing here depends on that line landing first. And .surface-mat is a new class: the token block lands with the paste, and the 35 sites that write bg-muted/N today become sections that carry it, which is a mechanical follow-up rather than part of this ruling.",
         "The accent prints only while the switch is on. Off resolves to the alias that ships (--brand is --primary), which is a ruling to change no line, so the paste is shorter by three blocks and the walk is the achromatic site.",
@@ -691,11 +694,19 @@ export const PALETTE = defineBoard({
     },
   ],
 
-  reading: {
-    words: 1900,
-    why: "Measured at 1,865 on the stepped surface, down from 2,924: the four asks stopped being printed three times each (the answer block's pills, the section's Rule-on row, the review panel) and became steps. What is left is the board's own voice, and about 550 of it is the catalog: twelve names, twelve one-lines and forty-eight facts, which IS the evidence.",
-  },
-
+  /**
+   * ★ NO `reading` DECLARATION ANY MORE, AND THAT IS THE ROUND'S RECEIPT. Round
+   * seven declared 2,950 and measured 2,924; round eight measures 1,191 against
+   * the standard 1,200, so the escape hatch is not needed and saying otherwise
+   * would be a board claiming a budget it does not spend. Where the 1,700 went:
+   * the four asks stopped being printed three times each (the answer block's
+   * pills, the section's Rule-on row, the review panel) and became steps; the
+   * app section folded into the real pages; the accent wall became one screen;
+   * the verdict stopped repeating the winner ask's argument. What is left is
+   * about 550 words of catalog (twelve names, twelve one-lines, forty-eight
+   * facts), which IS the evidence, and the headroom is nine words: a new
+   * sentence above the fold has to replace one.
+   */
   links: {
     bible: [1, 16],
     spec: "docs/specs/palette.md",
@@ -709,22 +720,17 @@ export const PALETTE = defineBoard({
       {
         label: "Help",
         path: "/help",
-        note: "the facts band and the closer panel",
+        note: "a wall of one card",
       },
       {
         label: "Contact",
         path: "/contact",
-        note: "the fifth ground, now the mat",
+        note: "the fifth ground, the mat",
       },
       {
         label: "The dashboard",
         path: "/dashboard",
-        note: "signed in, both modes, then one click to an event",
-      },
-      {
-        label: "The bible",
-        path: "/design/library/rules",
-        note: "rule 1, as it stands",
+        note: "signed in, both modes",
       },
     ],
   },

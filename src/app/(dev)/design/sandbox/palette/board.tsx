@@ -37,9 +37,7 @@ import {
   applyCss,
   applyLabel,
   blockFor,
-  FAINT_USES,
   lOf,
-  MAT_USES,
   pairStyle,
   resolvePair,
   stageGround,
@@ -186,19 +184,18 @@ function PairStage({
  * and it sits UNDER the canvas rather than on it: under a wipe, two lines of
  * numbers one over the other would be sliced down the middle.
  */
-function steps(
-  pair: Pair,
-  ground: BoardGround,
-  tone: "light" | "dark",
-): string {
+function steps(pair: Pair, ground: BoardGround): string {
   const block = blockFor(pair, ground);
   const at = (token: string) => {
     const l = lOf(block[token] ?? "", block);
     return l === null ? "none" : l.toFixed(3);
   };
-  return `${tone === "dark" ? "room" : "paper"} ${at("--background")}, ${
-    tone === "dark" ? "panel" : "mat"
-  } ${at("--muted")}, card ${at("--card")}, menu ${at("--popover")}`;
+  // ★ TWO NUMBERS, NOT FOUR (round eight). The caption used to print the
+  // ground, the panel, the card and the menu for BOTH palettes on BOTH
+  // canvases: sixteen numbers in two lines, which is a table nobody reads under
+  // a picture. The step being judged is the one from the ground to the card, so
+  // that is what the caption says and the wipe shows the rest.
+  return `${at("--background")} to ${at("--card")}`;
 }
 
 /**
@@ -258,11 +255,6 @@ function Canvas({ mode, children }: { mode: Mode; children: React.ReactNode }) {
     </div>
   );
 }
-
-/** The board writes its counts in words, so a derived number still reads like
- *  the sentence around it. */
-const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven"];
-const inWords = (n: number) => WORDS[n] ?? String(n);
 
 const WALK_PAGES = PALETTE.links.pages ?? [];
 
@@ -454,7 +446,7 @@ export function PaletteBoard() {
           /* ── The accent, and how far it reaches ─────────────────────── */
           case "accent":
             return (
-              <div className="max-w-2xl">
+              <div className="min-w-0">
                 <AccentDash
                   pair={pair}
                   accent={s.declared}
@@ -475,7 +467,7 @@ export function PaletteBoard() {
           // photograph, and what the third line is made of under the bands.
           case "card":
             return (
-              <div className="max-w-2xl">
+              <div className="min-w-0">
                 <ScopedTokens pair={pair} ground="app-dark">
                   <PhotoCard
                     value={blockFor(pair, "app-dark")["--card"] ?? "unset"}
@@ -487,7 +479,7 @@ export function PaletteBoard() {
           /* ── The third text step ────────────────────────────────────── */
           case "faint":
             return (
-              <div className="max-w-2xl">
+              <div className="min-w-0">
                 <ScopedTokens pair={pair} ground="paper" className="rounded-xl">
                   <TextBlock faint={s.faint} />
                 </ScopedTokens>
@@ -500,14 +492,14 @@ export function PaletteBoard() {
               <>
                 <Labeled
                   name={`the room · ${s.a.name} against ${s.b.name}`}
-                  note={`${s.a.name}: ${steps(s.aPair, "app-dark", "dark")}. ${s.b.name}: ${steps(s.bPair, "app-dark", "dark")}.`}
+                  note={`Ground to card: ${s.a.name} ${steps(s.aPair, "app-dark")}, ${s.b.name} ${steps(s.bPair, "app-dark")}.`}
                 >
                   <Canvas mode={mode}>
                     <CompareTwo
                       spec={PALETTE}
                       state={state}
                       mode="wipe"
-                      differs="The dark ladder: the page, the panel, the card and the menu over it."
+                      differs="The dark ladder, ground to menu."
                       render={(candidate) => (
                         <PaletteStack
                           id={candidate.id}
@@ -524,14 +516,14 @@ export function PaletteBoard() {
                 </Labeled>
                 <Labeled
                   name={`the paper · ${s.a.name} against ${s.b.name}`}
-                  note={`${s.a.name}: ${steps(s.aPair, "paper", "light")}. ${s.b.name}: ${steps(s.bPair, "paper", "light")}.`}
+                  note={`Page to card: ${s.a.name} ${steps(s.aPair, "paper")}, ${s.b.name} ${steps(s.bPair, "paper")}.`}
                 >
                   <Canvas mode={mode}>
                     <CompareTwo
                       spec={PALETTE}
                       state={state}
                       mode="wipe"
-                      differs="The light ladder: five surfaces inside 0.037 on Today, against a page a card can lift from."
+                      differs="The light ladder, page to menu."
                       render={(candidate) => (
                         <PaletteStack
                           id={candidate.id}
@@ -556,51 +548,23 @@ export function PaletteBoard() {
               .join("\n\n");
             return (
               <>
-                <ApplyToSite
-                  block={{
-                    label: s.label,
-                    css: s.css,
-                    what: `Hands the site ${s.def.name} and every answer above.`,
-                    pages:
-                      "the home arc, pricing, help, contact, the dashboard",
-                  }}
-                />
+                {/* ★ NO SECOND "APPLY TO THE SITE" HERE (round eight). The dock
+                    carries it, sticky, on every screen of the board, and the
+                    two were one button printed twice. The walk's links are the
+                    thing this section adds that the dock cannot. */}
                 <WalkPages pages={WALK_PAGES} />
-                <CellLabel className="max-w-2xl">
-                  {inWords(WALK_PAGES.length)} links, each opening with the
-                  block standing, until Clear.
-                </CellLabel>
                 {/* The RESOLVED palette, which is the point: the sets, the card
                     call and the third text step are all already in `pair`, so
                     this block is the paste this board's answers land and it
-                    cannot drift from what every specimen above is rendering. */}
+                    cannot drift from what every specimen above is rendering.
+                    What the paste still owes theme.css and the mat's call sites
+                    is the section's own "For the wiring round" fold, not a
+                    bullet list under it saying the same thing twice. */}
                 <Paste
                   label={`globals.css and marketing.css · ${s.def.name}`}
                   code={paste}
                   lines={14}
                 />
-                <ul className="max-w-2xl space-y-1 text-[11px] text-muted-foreground">
-                  {s.faint ? (
-                    <li>
-                      theme.css needs{" "}
-                      <span className="text-foreground">
-                        --color-faint: var(--faint);
-                      </span>{" "}
-                      before a text-faint utility exists.
-                    </li>
-                  ) : (
-                    <li>
-                      Ruled OUT, so the block declares no{" "}
-                      <span className="text-foreground">--faint</span> and the{" "}
-                      {FAINT_USES} sites keep fading by hand.
-                    </li>
-                  )}
-                  <li>
-                    <span className="text-foreground">.surface-mat</span> is a
-                    new class, and the {MAT_USES} sites writing bg-muted/N
-                    become sections that carry it.
-                  </li>
-                </ul>
                 <RealFloating
                   onApply={() => setCandidateCss(s.label, s.css)}
                   applied={applied?.label ?? null}

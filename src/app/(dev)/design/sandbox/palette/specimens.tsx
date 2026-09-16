@@ -373,8 +373,8 @@ export function PhotoCard({ value }: { value: string }) {
         sizes="720px"
         className="absolute inset-0 -z-10 size-full object-cover"
       />
-      <div className="flex flex-col gap-3 p-6">
-        <Card>
+      <div className="flex flex-col items-start gap-3 p-6">
+        <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Eight photos are waiting for review</CardTitle>
             <CardDescription>

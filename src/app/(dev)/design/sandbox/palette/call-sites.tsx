@@ -179,8 +179,13 @@ export function AccentDash({
       <ScopedTokens pair={pair} ground="app-dark" className="space-y-4 p-4">
         <Chrome accent={accent} reach={reach} on={on} dark />
 
-        <div className="grid grid-cols-2 gap-3">
-          <figure className="min-w-0 space-y-1.5">
+        {/* ★ CAPPED, NOT A GRID. The tile draws this inside a 1440 canvas and
+            the stage draws it at the board's own width, so a `grid-cols-2` of
+            4:3 media is 520 pixels tall on one and 130 on the other. Two fixed
+            columns keep the media the same size in both, and the rows above
+            and below spread with the width the way a real dashboard does. */}
+        <div className="flex flex-wrap gap-3">
+          <figure className="w-full max-w-[260px] min-w-0 space-y-1.5">
             <span className="relative block aspect-[4/3] overflow-hidden rounded-[var(--radius-tile)]">
               <Image
                 src={cover}
@@ -208,7 +213,7 @@ export function AccentDash({
             </figcaption>
           </figure>
 
-          <figure className="min-w-0 space-y-1.5">
+          <figure className="w-full max-w-[260px] min-w-0 space-y-1.5">
             <Job
               job="stand-in"
               accent={accent}
