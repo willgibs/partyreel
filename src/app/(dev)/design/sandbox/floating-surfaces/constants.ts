@@ -1,12 +1,8 @@
 import type { Ground } from "@/components/lab";
 import { optionId, optionLabel } from "@/components/lab/board-spec";
 
-import {
-  ENTRANCE_RUNGS,
-  LIGHT_RUNGS,
-  RADIUS_RUNGS,
-  type Knobs,
-} from "./candidates";
+import { type Knobs } from "./candidates";
+import { DIRECTION_META, type Direction } from "./directions";
 import { FLOATING_SURFACES } from "./spec";
 
 /**
@@ -18,24 +14,23 @@ import { FLOATING_SURFACES } from "./spec";
  */
 
 /**
- * THE SCENES. Round six cut six: `field`, `family`, `overlay`, `edge`, `select`
- * and `radio` were the outlier rows and rounds one to three's primitives
- * ladder, and the catalog answers both better. The edge panel did not lose its
- * evidence, it gained better evidence: `ui/sheet.tsx`'s one product call site is
- * the marketing mobile menu, and the real-pages section loads / at 375, so the
- * sheet is judged as the route rather than as a specimen of one.
+ * THE SCENES. Round six cut six outlier rows; round seven cut two more, and
+ * both were LADDERS: a scene that draws every answer side by side in one frame
+ * is what a tile step replaces, because the step draws the same specimen once
+ * per option and puts the one being looked at on a full-size stage. `ladder`
+ * (the shadow, two columns) is the `menu` scene in two states now, and `real`
+ * (the shipped account menu, to show the submenu bug) is one line of the
+ * branch ask's own context: the bug is the wiring round's, not a specimen.
  */
 export const SCENES = [
   "desk", // the real dashboard at 1440, the account menu and an event overflow open
   "pocket", // the same host on a phone
-  "menu", // one menu, one direction, at 328: the catalog card's preview
+  "menu", // one menu, one direction, at 328: the card's preview and the shadow specimen
   "sub", // the nested branch, kept and deleted
-  "real", // app/user-menu.tsx as it ships, theme submenu and all: the bug
   "surfaces", // the dialog over its scrim, the tooltip and the real toast
   "guest", // the guest's own entry drawer, the tenth surface
-  "ladder", // the shadow in dark, two columns
   "nest", // the corner at six times magnification
-  "trio", // the entrance: one rule per frame, on the same three surfaces
+  "trio", // the entrance: the tooltip, the menu and the dialog on one canvas
 ] as const;
 export type Scene = (typeof SCENES)[number];
 
@@ -45,9 +40,6 @@ export type Scene = (typeof SCENES)[number];
  *  changes sixteen of them, cannot. */
 export const SUBS = ["keep", "delete"] as const;
 export type Sub = (typeof SUBS)[number];
-
-export const DIMS = ["radius", "light", "entrance"] as const;
-export type Dim = (typeof DIMS)[number];
 
 export const GROUNDS = [
   "cinema",
@@ -81,10 +73,6 @@ export const GROUND_SET: Record<
  *  next without knowing which it was. */
 export const GROUND_CLASSES = ["dark", "surface-paper", "surface-ink"];
 
-/** The rungs of each ladder. The id is the candidate class the generated block
- *  matches on the panel itself, which is what lets one frame hold a whole ladder:
- *  a radix panel portals away from any wrapper we could put around it. The ""
- *  id is today, as it ships, with nothing overridden. */
 /**
  * THE WORDS THE ASK OFFERS, read back off the question (the clarity round,
  * 2026-09-15: the evidence carries the options' names, so "Squarer, like a
@@ -102,43 +90,22 @@ export function askOptionLabel(askId: string, option: string): string {
   return found ? optionLabel(found) : option;
 }
 
-/** The floor every ladder starts from. Not an option on any ask: the corner and
- *  the entrance asks offer no "leave it", so this column is the comparison. */
-const AS_SHIPS = "As it ships today";
-
-export const RUNGS: Record<Dim, { id: string; label: string }[]> = {
-  radius: [
-    { id: "", label: AS_SHIPS },
-    ...RADIUS_RUNGS.map((r) => ({
-      id: `flt-r-${r}`,
-      label: askOptionLabel("radius", r),
-    })),
-  ],
-  light: [
-    { id: "", label: askOptionLabel("light", "today") },
-    ...LIGHT_RUNGS.map((r) => ({
-      id: `flt-l-${r}`,
-      label: askOptionLabel("light", r),
-    })),
-  ],
-  entrance: [
-    { id: "", label: AS_SHIPS },
-    ...ENTRANCE_RUNGS.map((r) => ({
-      id: `flt-e-${r}`,
-      label: askOptionLabel("entrance", r),
-    })),
-  ],
-};
-
 /**
- * THE NAME AN APPLIED BLOCK WEARS, in the asks' words. It lived in candidates.ts
- * as `contractLabel` and read the raw tokens ("radius nested, entrance by
- * frequency"), which is exactly the badge a reviewer cannot parse; candidates.ts
- * has no imports by design, so the composition moved here, where the asks are
- * already in scope.
+ * THE NAME AN APPLIED BLOCK WEARS, in the asks' own words. It lived in
+ * candidates.ts as `contractLabel` and read the raw tokens ("radius nested,
+ * entrance by frequency"), which is exactly the badge a reviewer cannot parse;
+ * candidates.ts has no imports by design, so the composition moved here, where
+ * the asks are already in scope.
+ *
+ * ★ ROUND SEVEN FOLDED THE LAYER INTO IT. One block stands on the site at a
+ * time (apply.tsx is a radio across the whole board), so a board offering a
+ * layer block and a separate calls block offered two halves of one ruling and
+ * let a reviewer walk either half believing it was the whole. They land under
+ * one name now.
  */
-export function contractName(knobs: Knobs): string {
+export function blockName(knobs: Knobs, direction: Direction): string {
   const bits = [
+    `the ${DIRECTION_META[direction].label.toLowerCase()} layer`,
     knobs.radius === "off"
       ? null
       : `corner ${askOptionLabel("radius", knobs.radius).toLowerCase()}`,
@@ -147,9 +114,7 @@ export function contractName(knobs: Knobs): string {
       ? null
       : `appearing ${askOptionLabel("entrance", knobs.entrance).toLowerCase()}`,
   ].filter(Boolean);
-  return bits.length
-    ? `Floating layer: ${bits.join(", ")}`
-    : "Floating layer: as it ships";
+  return `Floating layer: ${bits.join(", ")}`;
 }
 
 /**

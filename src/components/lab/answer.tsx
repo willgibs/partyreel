@@ -180,7 +180,12 @@ export function BoardMeta({
             // about 990 words of template reprints in 2,889, 2026-09-16); the
             // card already folds it the same way, and a closed fold is not
             // reading. The summary carries the one line where the item has one.
-            <details key={c.id} className="lab-disclosure">
+            // ★ A NATIVE <details> FOLDS BY ITSELF. `.lab-disclosure` is the
+            // sidebar's grid collapse, keyed on data-open="true", which a
+            // details never sets: with the class on, every row here computed
+            // visibility: hidden on every board (floating-surfaces measured
+            // it live, 2026-09-16).
+            <details key={c.id}>
               <summary className="cursor-pointer">
                 <span
                   className={

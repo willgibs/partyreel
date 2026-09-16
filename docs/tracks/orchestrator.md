@@ -69,10 +69,8 @@ round of the window.
 
 | track | board | waits on |
 | --- | --- | --- |
-| `palette` | `/design/lab/palette` (round eight: pick-one, the winner from the twelve) | `lab-flow` for the walk |
-| `floating-surfaces` | `/design/lab/floating-surfaces` (round seven: pick-one, the winner from the seven) | its handoff |
-| `rounding` | `/design/lab/rounding` (round seven: pick-one, the winner from the six) | its handoff |
 | `brand-voice` | `/design/lab/brand-voice` (round seven: pick-one, the winner from the six voices) | its handoff |
+| `media-kit` | `/design/lab/media-kit` (round seven: keep-any as a gallery, a kept card is a purchase) | its handoff |
 
 ## Waiting on Will
 
@@ -130,5 +128,17 @@ palette and light first), pasted in batches with Copy so far.
   tile steps; the aurora's landing staged behind keeping the aurora; 920 words, the declaration deleted;
   the order ask renamed `second` so round five's `infusion=phase-1` stands). The agent force-pushed its
   own branch once after amending a pushed manifest commit: no damage, a rule broken, noted.
+- `49ed0fbf` palette integrated (round eight: one pick over the twelve with "None of these", the real
+  product as the stage on one Screen control, the accent, card, faint and reach questions as tile steps,
+  the reach staged behind accent=own; 1,191 words, no declaration; the guest masonry and its portrait-pair
+  ask withdrawn; two kit findings: `Candidate.lands` never draws on a pick-one gallery, and the spine
+  miscounts a blocked step opened by URL).
+- `ef5e737d` the kit draws Lands as on the picked card of any grid; `514aee2d` floating-surfaces integrated
+  (round seven: one pick over the seven with "None of these", the real product as the stage, the four
+  calls as tile steps each on one menu, the submenu bug named in its step's context; 922 words, no
+  declaration); the meta panel's Ideas rows made visible again (a native details folds by itself).
+- `7d90465c` rounding integrated (round seven: one pick over the six families with "None of these", one
+  real page re-skinned in place as the stage, the button, ladder, dead-rung and gap questions as tiles at
+  true pixels; 684 words, no declaration; `TrueScale` copied into the board pending its move into the kit).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

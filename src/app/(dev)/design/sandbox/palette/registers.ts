@@ -1727,33 +1727,7 @@ export function accentFor(def: { accent: AccentId }, mode: AccentMode): Accent {
  */
 export type ReachId = "all" | "attention" | "identity";
 
-export const REACHES: {
-  id: ReachId;
-  label: string;
-  short: string;
-  note: string;
-}[] = [
-  {
-    id: "all",
-    label: "All three",
-    short: "All",
-    note: "Identity, attention and the stand-in for a photograph all take the hue.",
-  },
-  {
-    id: "attention",
-    label: "Attention",
-    short: "Attention",
-    note: "Only the things asking to be noticed: the badge, the wizard step, the toast. The mark and the frames stay ink.",
-  },
-  {
-    id: "identity",
-    label: "Identity",
-    short: "Identity",
-    note: "Only the mark and the frames family. Attention stays ink, which keeps a state colour the only colour in the app.",
-  },
-];
-
-/** The three jobs, as the accent wall renders them. */
+/** The three jobs an accent is asked to do, which is what the reach rules on. */
 export const ACCENT_JOBS = ["identity", "attention", "stand-in"] as const;
 export type AccentJob = (typeof ACCENT_JOBS)[number];
 
@@ -1764,8 +1738,8 @@ export function jobTakesAccent(job: AccentJob, reach: ReachId): boolean {
   return job === "identity" || job === "stand-in";
 }
 
-/** `--brand` plus its foreground, which is the whole accent change: BRAND_HITS
- *  utilities in BRAND_FILES files read these two tokens and nothing else. */
+/** `--brand` plus its foreground, which is the whole accent change: 34
+ *  utilities in 16 files read these two tokens and nothing else. */
 export function accentStyle(
   accent: Accent,
   dark: boolean,
@@ -1822,7 +1796,7 @@ export const MAT_HOVER_USES = 8;
  * production, measured the same way on the same day. The 70 percent row is the
  * one that matters, because 70 percent of the second step is what --faint is.
  */
-export const FAINT_ALPHAS = [
+const FAINT_ALPHAS = [
   { alpha: 40, uses: 4 },
   { alpha: 50, uses: 7 },
   { alpha: 60, uses: 6 },
@@ -1831,57 +1805,6 @@ export const FAINT_ALPHAS = [
 ];
 
 export const FAINT_USES = FAINT_ALPHAS.reduce((n, a) => n + a.uses, 0);
-
-/** The accent's reach, measured the same way: `--brand` utilities in
- *  production. A hue ruling changes two token values and nothing else. */
-export const BRAND_HITS = 34;
-export const BRAND_FILES = 16;
-
-/** The ring elevation nobody wrote down, measured: `ring-foreground/5` is the
- *  app's quiet lift and `ring-white/70` is the one on media. */
-export const RING_USES = { faint: 37, firm: 13, onMedia: 29 };
-
-/* ── The grounds, counted by the job they do ────────────────────────────── */
-
-/**
- * ROUND TWO SHARPENED THIS AND ROUND FOUR ANSWERS IT.
- *
- * Round one said `--gallery` was doing two jobs, "a lightbox and a footer
- * slab". Re-read at ca952b5, the lightbox is not one of them: it paints its
- * backdrop with a literal `bg-black/90` (media-lightbox.tsx's DialogOverlay),
- * so the deepest surface in the product does not read the token at all. What
- * `--gallery` does is the WELL behind media and, through `.surface-ink`, the
- * footer SLAB, and those two want opposite things: a well should vanish under a
- * photograph, a slab has to hold type and sit on paper without punching a hole
- * in the page. Under the register model they stop being one token: the well is
- * the well and the slab is dark's raised register.
- */
-export const GROUND_JOBS = [
-  {
-    id: "overlay",
-    name: "The lightbox backdrop",
-    token: "a literal, not a token",
-    where: "shared/media-lightbox.tsx:617, bg-black/90",
-    wants:
-      "the deepest thing in the product, edge to edge, so a photograph is the only light in the room",
-  },
-  {
-    id: "well",
-    name: "The media well",
-    token: "--gallery",
-    where:
-      "event-card.tsx:77, reel-frame.tsx:28, play-badge.tsx:30, inline-reel-player.tsx:86",
-    wants: "to disappear under a photograph and never be noticed as a colour",
-  },
-  {
-    id: "slab",
-    name: "The ink slab",
-    token: ".surface-ink, derived from --gallery",
-    where: "the footer leaf on a paper page",
-    wants:
-      "to hold type and a card, and to read as a leaf on paper rather than a hole",
-  },
-] as const;
 
 /* ── The text steps, in real copy ───────────────────────────────────────── */
 

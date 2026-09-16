@@ -42,6 +42,18 @@ describe("the rounding families", () => {
     }
   });
 
+  /**
+   * ★ A CARD SAYS WHAT KEEPING IT COSTS (the stepped review, 2026-09-16). The
+   * one line says what a family IS; `lands` says what the repository does the
+   * morning after it wins, which is the half a reviewer cannot read off a
+   * picture of a corner.
+   */
+  it("says what every card lands as", () => {
+    for (const card of ROUNDING.candidates) {
+      expect(card.lands?.trim(), `${card.id}: no "lands" line`).toBeTruthy();
+    }
+  });
+
   it("names exactly one pick, and it is the board's recommendation", () => {
     const marked = SURFACES.filter((c) => c.recommended);
     expect(marked.map((c) => c.id)).toEqual([RECOMMENDED]);
