@@ -49,7 +49,7 @@ under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
 | `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | integrated at `ec7367e7`, 486 words |
 | `floating-surfaces` (round seven) | pick-one: the winner from the seven or none, the submenu, corner, entrance and shadow questions as tiles on one menu | integrated at `514aee2d`, 922 words, no declaration |
 | `rounding` (round seven) | pick-one: the winner from the six or none, the button, ladder, dead-rung and gap questions as tiles at true pixels | integrated at `7d90465c`, 684 words, no declaration |
-| `brand-voice` (round seven) | pick-one: the winner from the six voices or none, the noun, unfurl, counts and scope questions as tiles | building |
+| `brand-voice` (round seven) | pick-one: the winner from the six voices or none on three lines at phone size, the noun, unfurl, counts and scope questions as steps | integrated at `0c1cfa60` |
 | `media-kit` (round seven) | keep-any as a gallery (a kept card is a purchase), the crowds question as two tiles, the rule, spend and shoot questions means-only | building |
 
 **The stepped review round** (opened 2026-09-16 at `02c409b4`, on his sitting's verdict: the review

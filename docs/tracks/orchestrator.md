@@ -69,7 +69,6 @@ round of the window.
 
 | track | board | waits on |
 | --- | --- | --- |
-| `brand-voice` | `/design/lab/brand-voice` (round seven: pick-one, the winner from the six voices) | its handoff |
 | `media-kit` | `/design/lab/media-kit` (round seven: keep-any as a gallery, a kept card is a purchase) | its handoff |
 
 ## Waiting on Will
@@ -140,5 +139,10 @@ palette and light first), pasted in batches with Copy so far.
 - `7d90465c` rounding integrated (round seven: one pick over the six families with "None of these", one
   real page re-skinned in place as the stage, the button, ladder, dead-rung and gap questions as tiles at
   true pixels; 684 words, no declaration; `TrueScale` copied into the board pending its move into the kit).
+- `0c1cfa60` brand-voice integrated (round seven: one pick over the six voices with "None of these", the
+  tiles three lines in each voice at phone size, the real home page as the stage, the noun, unfurl and
+  counts questions as tiles and the scope question means-only behind the pick; the spot list stays as
+  the whole board's own section off the walk; its true-size box is the one of three copies whose reads
+  settle).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
