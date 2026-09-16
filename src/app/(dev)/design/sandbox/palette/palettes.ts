@@ -2,8 +2,10 @@ import {
   ACCENT_BY_ID,
   DARK_BY_ID,
   LIGHT_BY_ID,
+  accentFor,
   type Accent,
   type AccentId,
+  type AccentMode,
   type DarkId,
   type DarkSet,
   type LightId,
@@ -12,39 +14,64 @@ import {
 } from "./registers";
 
 /**
- * THE CATALOG (round six, the clarity round, 2026-09-15).
+ * THE CATALOG (round seven, the cool round, 2026-09-16).
  *
  * ★ WHY THIS FILE EXISTS. Rounds one to five built a MACHINE: six dark sets,
- * five light sets, four accents and five switches, thirty pairs times four hues
- * times eight combinations of the remaining calls. Will read it and said so
+ * five light sets, four accents and five switches. Will read it and said so
  * ("it almost feels like I'm reading a PhD on color theory... a dozen polished
  * variants with preview palettes with some demo UI to config & compare would've
  * been far more helpful"). A configuration space is not a choice. A CATALOG is:
  * twelve finished answers with names, each one complete, each one pickable.
  *
  * So this file is the curation layer over `registers.ts`, and nothing else. It
- * invents no value: every palette is one dark set plus one light set plus an
- * accent plus the mat call, all of them already argued and already pinned by
- * `registers.test.ts`. What it adds is the one thing the machine could not:
- * SOMEONE CHOSE. Twelve combinations out of the hundreds the switches allow,
- * each picked because it is a coherent answer rather than a reachable state.
+ * invents no value: every palette is one dark set plus one light set plus the
+ * one accent it declares, all of them argued and pinned by `registers.test.ts`.
+ *
+ * ★ THE CARD'S ARGUMENT IS NOT HERE, and that is the one-fact-one-home rule
+ * doing its work. Round six carried a `why` on every palette which was word for
+ * word the candidate's `rationale` in spec.ts, two copies of one sentence held
+ * equal by a test. The spec is where the review scanner reads it, so the spec
+ * is its home; what stays here is `pairs`, the accent config's own line, which
+ * nothing else says.
+ *
+ * ★ ROUND SEVEN LEANED THE WHOLE CATALOG COOL, which is Will's ruling a few
+ * questions into his first sitting: "I'm a much bigger fan of the cooler gray
+ * direction in slate, studio, and reel... Many of the warmer tones feel like
+ * they'd clash with a colorful mix of photos. Slate could even be less blue,
+ * but I'd like more cool gray options." So nine of the twelve are cool, three
+ * are the controls every cool card is read against (Today, Ladder at chroma
+ * zero, and Ember kept as the one warm comparison), and the warm light side
+ * left the board with Press and Daylight.
+ *
+ * ★ AND THE ACCENT BECAME A CONFIG. Every palette declares the ONE hue that
+ * would pair with its grey; the board's switch decides whether any of them is
+ * worn. That is what retired Gallery and Signal: with the accent off by
+ * default, "the palette with no accent" is every palette, and a card whose only
+ * claim was its hue is not a card.
  *
  * ★ THE RULE FOR ADDING ONE. A palette earns a row only if a reviewer could
- * prefer it FOR A REASON he could say out loud: a warmer room, a page that
- * stays white, no new hue to hold, the smallest possible change. Two rows that
- * differ only in a number are one row. Fewer than eight is not a catalog and
- * more than sixteen is a wall, which is why twelve is the standing size.
+ * prefer it FOR A REASON he could say out loud: a blacker ground, less of the
+ * cool, a white card on a grey page, the smallest possible change. Two rows
+ * that differ only in a number are one row, and two that differ only in the
+ * accent are now one row as well. Fewer than eight is not a catalog and more
+ * than sixteen is a wall, which is why twelve is the standing size.
  */
 export type PaletteDef = {
   /** The ledger's token, and the dock's option id. */
   id: string;
   /** One word, the name on the card and in the dock. */
   name: string;
-  /** The one reason to prefer this one, or the one thing it costs. */
-  why: string;
   dark: DarkId;
   light: LightId;
-  accent: AccentId;
+  /**
+   * THE ONE ACCENT THIS PALETTE DECLARES: the hue chosen for this grey, at the
+   * accent's only jobs (the primary action, the focus ring, the live dot). It
+   * is worn only while the board's accent switch is on, which is why no palette
+   * may declare `ink`: off is the switch's job, not a palette's.
+   */
+  accent: Exclude<AccentId, "ink">;
+  /** One line: why THAT hue for THIS grey. Read on the card and in the ask. */
+  pairs: string;
   /**
    * Whether the set-apart panel is its own ground. Every proposal says yes;
    * Today says no, because today it is `--muted` at six alphas of a token that
@@ -58,110 +85,122 @@ export const PALETTES: PaletteDef[] = [
   {
     id: "today",
     name: "Today",
-    why: "The one to come back to. Every other card is judged against this, and a ruling of Today is a ruling to change no line.",
     dark: "today",
     light: "today",
-    accent: "ink",
+    accent: "blue",
+    pairs:
+      "The save blue, because it is the only hue already in the system and Today's whole claim is that nothing new is needed.",
     mat: false,
-  },
-  {
-    id: "ember",
-    name: "Ember",
-    why: "Warm the room and leave the page alone: the cast does real work against skin on a dark ground and is a tax on paper. The only pair the old one-switch shape could not have produced.",
-    dark: "ember",
-    light: "paper",
-    accent: "flare",
-    mat: true,
-    recommended: true,
   },
   {
     id: "ladder",
     name: "Ladder",
-    why: "Ember's exact rhythm at chroma zero, for keeping the zero-chroma decision globals.css records as closed. Everything else on the board reads the same.",
     dark: "ladder",
     light: "paper",
     accent: "flare",
+    pairs:
+      "Flare, because a dead neutral chrome is the one ground that can carry the loudest hue on the board without arguing with it.",
+    mat: true,
+  },
+  {
+    id: "ember",
+    name: "Ember",
+    dark: "ember",
+    light: "paper",
+    accent: "flare",
+    pairs:
+      "Flare, at 330: the only hue that agrees with a warm room instead of fighting it.",
+    mat: true,
+  },
+  {
+    id: "onyx",
+    name: "Onyx",
+    dark: "onyx",
+    light: "pearl",
+    accent: "teal",
+    pairs:
+      "Teal, because a barely-tinted chrome has nothing for a hue to clash with, and teal is the farthest thing on the wheel from every state colour.",
+    mat: true,
+  },
+  {
+    id: "graphite",
+    name: "Graphite",
+    dark: "graphite",
+    light: "pearl",
+    accent: "teal",
+    pairs:
+      "Teal, at 86 degrees from the hue the greys are tinted with, so the accent can never be read as part of the chrome.",
+    mat: true,
+    recommended: true,
+  },
+  {
+    id: "steel",
+    name: "Steel",
+    dark: "steel",
+    light: "pearl",
+    accent: "flare",
+    pairs:
+      "Flare, because a strongly cool chrome is the one that most wants a warm counterweight at the primary action.",
+    mat: true,
+  },
+  {
+    id: "pitch",
+    name: "Pitch",
+    dark: "pitch",
+    light: "mist",
+    accent: "teal",
+    pairs:
+      "Teal, which is the one hue that still reads at full strength against a true black ground without glowing.",
+    mat: true,
+  },
+  {
+    id: "mist",
+    name: "Mist",
+    dark: "graphite",
+    light: "mist",
+    accent: "violet",
+    pairs:
+      "The reel's violet, the closest declaration to the chrome's own 286: the card that shows what an accent inside the grey's own family looks like.",
     mat: true,
   },
   {
     id: "slate",
     name: "Slate",
-    why: "A cool ground makes a warm photograph read warmer, which is the one thing a media product's ground can do for its media. No new hue: the accent is the save blue.",
     dark: "slate",
-    light: "cool",
-    accent: "blue",
-    mat: true,
-  },
-  {
-    id: "gallery",
-    name: "Gallery",
-    why: "The purist reading kept whole: nothing in the chrome is coloured, so the photographs are the only colour anywhere. It leaves a section with no photograph in it with no colour either.",
-    dark: "ladder",
-    light: "cool",
-    accent: "ink",
-    mat: true,
-  },
-  {
-    id: "studio",
-    name: "Studio",
-    why: "One number tunes the whole dark side and the ladder can never drift. It leans entirely on depth: without a ring and a shadow the card disappears.",
-    dark: "room",
-    light: "bright",
-    accent: "ink",
-    mat: true,
-  },
-  {
-    id: "loft",
-    name: "Loft",
-    why: "At 0.195 the dark already reads as a leaf on a page, so there is one dark ground instead of two. A dark chapter loses most of its drama and an OLED phone loses the true-black economy.",
-    dark: "lift",
-    light: "bright",
-    accent: "violet",
-    mat: true,
-  },
-  {
-    id: "press",
-    name: "Press",
-    why: "One temperature through the whole product, so nothing flips at the seam where a dark chapter meets the body. The page very slightly yellows a white dress, which is the case the cast is weakest against.",
-    dark: "ember",
-    light: "warm",
-    accent: "flare",
+    light: "pearl",
+    accent: "teal",
+    pairs:
+      "Teal, because Slate's old accent was the save blue and a blue accent on a blue-ish grey is what made the whole thing read blue.",
     mat: true,
   },
   {
     id: "reel",
     name: "Reel",
-    why: "The product is named for the reel, so the accent and the signature moment become one hue. The reel icon stops being special once everything else is violet too.",
     dark: "slate",
     light: "paper",
     accent: "violet",
+    pairs:
+      "Violet, at 300: the hue the host already presses to add a clip to the reel, promoted to the brand.",
     mat: true,
   },
   {
-    id: "signal",
-    name: "Signal",
-    why: "The answer with no new hue to hold anywhere in it: every colour on the card already ships. It is also the default accent of every product on the internet.",
+    id: "studio",
+    name: "Studio",
     dark: "room",
-    light: "paper",
-    accent: "blue",
-    mat: true,
-  },
-  {
-    id: "daylight",
-    name: "Daylight",
-    why: "Deliberately cross-cast: the room is warm and the page is cool, the way a print is warm and the wall it hangs on is not. The temperature flips at the seam, which is either the point or a fault.",
-    dark: "ember",
-    light: "cool",
-    accent: "flare",
+    light: "bright",
+    accent: "violet",
+    pairs:
+      "Violet, because a set with no chroma anywhere can afford the most saturated declaration on the board.",
     mat: true,
   },
   {
     id: "dusk",
     name: "Dusk",
-    why: "The smallest change that still moves anything: the dark side is fixed and the light side is not touched. The page keeps its five surfaces inside 0.037, so a card stays its hairline.",
-    dark: "ember",
+    dark: "graphite",
     light: "today",
-    accent: "flare",
+    accent: "teal",
+    pairs:
+      "Teal, kept the same as Graphite's, because the only difference between these two cards should be the light side.",
     mat: true,
   },
 ];
@@ -181,10 +220,16 @@ export type ResolvedPalette = {
   pair: Pair;
   darkSet: DarkSet;
   lightSet: LightSet;
+  /** What the palette DECLARES, whatever the switch says. */
+  declared: Accent;
+  /** What it WEARS under the switch: its own, or none. */
   accent: Accent;
 };
 
-export function resolvePalette(id: string): ResolvedPalette {
+export function resolvePalette(
+  id: string,
+  accentMode: AccentMode = "none",
+): ResolvedPalette {
   const def = PALETTE_BY_ID[id] ?? RECOMMENDED_PALETTE;
   const darkSet = DARK_BY_ID[def.dark];
   const lightSet = LIGHT_BY_ID[def.light];
@@ -192,7 +237,8 @@ export function resolvePalette(id: string): ResolvedPalette {
     def,
     darkSet,
     lightSet,
-    accent: ACCENT_BY_ID[def.accent],
+    declared: ACCENT_BY_ID[def.accent],
+    accent: accentFor(def, accentMode),
     pair: { dark: darkSet, light: lightSet },
   };
 }

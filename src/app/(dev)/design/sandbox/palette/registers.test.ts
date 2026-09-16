@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  optionId,
-  optionLabel,
-  optionMeans,
-} from "@/components/lab/board-spec";
+import { optionId } from "@/components/lab/board-spec";
 
 import {
   PALETTES,
@@ -18,13 +14,18 @@ import {
   ACCENT_BY_ID,
   DARKS,
   DARK_BY_ID,
+  DECLARABLE_ACCENTS,
   FAINT_USES,
   LIGHTS,
   LIGHT_BY_ID,
   MAT_USES,
   RECOMMENDATION,
   REGISTERS,
+  STATE_HUES,
   accentBlock,
+  applyCss,
+  castAt,
+  castLabel,
   jobTakesAccent,
   keepsCinemaOverride,
   keepsSlabRegister,
@@ -169,21 +170,55 @@ describe("the cast transform still reproduces round two's candidate C", () => {
 });
 
 describe("the rule the cast holds", () => {
-  it("leaves ink on paper neutral and casts only the surfaces", () => {
-    for (const id of ["warm", "cool"] as const) {
+  /**
+   * ★ ROUND SEVEN REVERSED THIS ON THE COOL SIDE, ON PURPOSE. Round three's
+   * rule was "a SURFACE carries the cast and ink does not", and it is right for
+   * the WARM side: a tinted black on a warm white yellows. Apple's own greys
+   * disprove it in the other direction. Their secondary label (#3C3C43) is
+   * tinted harder than any of their six greys, and Will asked for their greys
+   * as the reference for "the surfaces and the text steps" both. So the cool
+   * light sets carry the hue through the ink as well, at a third of the chroma,
+   * and a neutral ink is what would now be the odd thing in the frame.
+   */
+  it("carries the cool through the ink as well, at less of it", () => {
+    const chroma = (v: string) => Number(/oklch\([\d.]+ ([\d.]+)/.exec(v)![1]);
+    const hue = (v: string) =>
+      Number(/oklch\([\d.]+ [\d.]+ ([\d.]+)\)/.exec(v)![1]);
+    for (const id of ["pearl", "mist"] as const) {
       const light = LIGHT_BY_ID[id].paper;
-      // Every text step on paper keeps chroma 0, which is what lets black stay
-      // crisp on a cast white.
-      for (const token of [
-        "--foreground",
-        "--muted-foreground",
-        "--faint",
-        "--primary",
-        "--ring",
-      ]) {
-        expect(light[token]).toMatch(/ 0 0\)$/);
+      for (const token of ["--foreground", "--muted-foreground", "--faint"]) {
+        expect(hue(light[token]), `${id} ${token} hue`).toBe(286);
       }
-      expect(light["--background"]).not.toMatch(/ 0 0\)$/);
+      // The ink is tinted, and less than the surface it sits on is, so the
+      // type never becomes the coloured thing on the page.
+      expect(chroma(light["--foreground"])).toBeGreaterThan(0);
+      expect(chroma(light["--foreground"])).toBeLessThan(
+        chroma(light["--muted"]),
+      );
+      expect(hue(light["--background"])).toBe(286);
+    }
+  });
+
+  it("keeps the warm side's ink dead neutral, which is where the rule holds", () => {
+    // PAPER is the neutral light set every warm palette wears. Cast it warm at
+    // gain 1 (round two's candidate C) and every text step stays at chroma 0.
+    const warm = tint(LIGHT_BY_ID.paper.paper, false, "warm");
+    for (const token of ["--foreground", "--muted-foreground", "--faint"]) {
+      expect(warm[token]).toMatch(/ 0 0\)$/);
+    }
+    expect(warm["--background"]).not.toMatch(/ 0 0\)$/);
+  });
+
+  it("puts the cool on Apple's grey hue and not on their blue", () => {
+    // ★ THE MEASUREMENT THE ROUND TURNS ON. #8E8E93 and the rest of the system
+    // greys convert to hue 286; #007AFF converts to 257. Rounds three to six
+    // built the cast at 258, which is why Slate read blue.
+    for (const id of ["slate", "onyx", "graphite", "steel", "pitch"] as const) {
+      const bg = DARK_BY_ID[id].room["--background"];
+      expect(bg, `${id} room`).toMatch(/ 286\)$/);
+    }
+    for (const l of [0.05, 0.15, 0.3, 0.5, 0.7, 0.95]) {
+      expect(castAt(l, true, "cool").hue, `the band at ${l}`).toBe(286);
     }
   });
 
@@ -205,14 +240,23 @@ describe("the rule the cast holds", () => {
         warmthAt(0.325, cast).chroma,
       );
     }
-    // And in the sets themselves, read off the published strings.
-    for (const id of ["ember", "slate"] as const) {
+    // And in the sets themselves, read off the published strings: every cast
+    // set on the board, not only the two the rule was written for.
+    for (const id of [
+      "ember",
+      "slate",
+      "onyx",
+      "graphite",
+      "steel",
+      "pitch",
+    ] as const) {
       const set = DARK_BY_ID[id];
       const chroma = (v: string) =>
         Number(/oklch\([\d.]+ ([\d.]+)/.exec(v)![1]);
-      expect(chroma(set.well["--gallery"])).toBeLessThan(
-        chroma(set.room["--secondary"]),
-      );
+      expect(
+        chroma(set.well["--gallery"]),
+        `${id}: the bed must be quieter than the hover fill`,
+      ).toBeLessThan(chroma(set.room["--secondary"]));
     }
   });
 
@@ -221,12 +265,44 @@ describe("the rule the cast holds", () => {
     expect(tint(once, true, "warm", 1.6)).toEqual(once);
   });
 
-  it("keeps Cool's mat a true grey rather than a tint of its own page", () => {
-    // The set's whole argument: a gallery mat is dead neutral so the media is
-    // the only colour on the wall. If a transform ever swallows it, the answer
-    // to Will's "a grey that is not a tint of the text" is gone.
-    expect(LIGHT_BY_ID.cool.mat["--background"]).toBe("oklch(0.95 0 0)");
-    expect(LIGHT_BY_ID.cool.paper["--background"]).not.toMatch(/ 0 0\)$/);
+  it("builds the cool light sets out of Apple's measured greys", () => {
+    // The six values, converted once and written down here as well as in the
+    // sets, so a future edit that "tidies" one of them fails rather than
+    // quietly inventing a grey.
+    const GREYS = {
+      gray6: "0.963",
+      gray5: "0.923",
+      gray4: "0.862",
+      gray3: "0.831",
+      gray: "0.648",
+    };
+    // Pearl: a very white page with their gray6 as the set-apart ground.
+    expect(LIGHT_BY_ID.pearl.paper["--background"]).toBe(
+      "oklch(0.995 0.002 286)",
+    );
+    expect(LIGHT_BY_ID.pearl.paper["--muted"]).toContain(GREYS.gray6);
+    expect(LIGHT_BY_ID.pearl.paper["--secondary"]).toContain(GREYS.gray5);
+    expect(LIGHT_BY_ID.pearl.paper["--faint"]).toContain(GREYS.gray);
+    // Mist: the same ladder inverted, their gray6 as the PAGE and a pure white
+    // card, which is the one set where a card lifts by more than 0.01.
+    expect(LIGHT_BY_ID.mist.paper["--background"]).toContain(GREYS.gray6);
+    expect(LIGHT_BY_ID.mist.paper["--card"]).toBe("oklch(1 0 0)");
+    expect(LIGHT_BY_ID.mist.paper["--input"]).toContain(GREYS.gray3);
+    expect(LIGHT_BY_ID.mist.mat["--background"]).toContain(GREYS.gray5);
+    expect(LIGHT_BY_ID.mist.paper["--border"]).toContain(GREYS.gray4);
+  });
+
+  it("gives the light side a card step an eye can resolve", () => {
+    // What is wrong today, as a number: the page is 0.990 and the card 0.997.
+    const step = (id: "today" | "pearl" | "mist") => {
+      const b = LIGHT_BY_ID[id].paper;
+      return Math.abs(lOf(b["--card"]!, b)! - lOf(b["--background"]!, b)!);
+    };
+    expect(step("today")).toBeLessThan(0.01);
+    // Mist is the answer that fixes it outright; Pearl answers the other way,
+    // with the card AS the page and the ring doing the lifting.
+    expect(step("mist")).toBeGreaterThan(0.03);
+    expect(step("pearl")).toBe(0);
   });
 });
 
@@ -279,12 +355,24 @@ describe("the register model", () => {
     // room" in prose and keeps an override in its values would paste a lie.
     expect(keepsCinemaOverride(DARK_BY_ID.today)).toBe(true);
     expect(keepsCinemaOverride(DARK_BY_ID.ladder)).toBe(true);
-    for (const id of ["room", "ember", "slate", "lift"] as const) {
+    for (const id of [
+      "room",
+      "ember",
+      "slate",
+      "onyx",
+      "graphite",
+      "steel",
+      "pitch",
+    ] as const) {
       expect(keepsCinemaOverride(DARK_BY_ID[id]), id).toBe(false);
     }
-    // Lift's claim is that a lifted room needs no second register at all.
-    expect(keepsSlabRegister(DARK_BY_ID.lift)).toBe(false);
-    expect(keepsSlabRegister(DARK_BY_ID.ember)).toBe(true);
+    // Every cool set keeps the slab as a register of its own, because every one
+    // of them puts the room below 0.150 and a room that deep reads as a hole
+    // when it is dropped into paper.
+    for (const set of DARKS) {
+      if (set.id === "room") continue; // one room: the slab IS the room
+      expect(keepsSlabRegister(set), set.id).toBe(true);
+    }
   });
 
   it("gives every light set a mat block", () => {
@@ -360,15 +448,15 @@ describe("no token block can reference itself", () => {
 });
 
 describe("a pair is any dark beside any light", () => {
-  it("offers thirty combinations, and the paste reads the pair", () => {
-    expect(DARKS.length * LIGHTS.length).toBe(30);
-    const css = tokenBlock(pair("ember", "cool"));
-    expect(css).toContain(DARK_BY_ID.ember.room["--background"]);
-    expect(css).toContain(LIGHT_BY_ID.cool.paper["--background"]);
+  it("offers forty-five combinations, and the paste reads the pair", () => {
+    expect(DARKS.length * LIGHTS.length).toBe(45);
+    const css = tokenBlock(pair("graphite", "pearl"));
+    expect(css).toContain(DARK_BY_ID.graphite.room["--background"]);
+    expect(css).toContain(LIGHT_BY_ID.pearl.paper["--background"]);
     // And the two halves genuinely come from different sets.
-    const other = tokenBlock(pair("ember", "warm"));
-    expect(other).toContain(DARK_BY_ID.ember.room["--background"]);
-    expect(other).not.toContain(LIGHT_BY_ID.cool.mat["--background"]);
+    const other = tokenBlock(pair("graphite", "mist"));
+    expect(other).toContain(DARK_BY_ID.graphite.room["--background"]);
+    expect(other).not.toContain(LIGHT_BY_ID.pearl.paper["--background"]);
   });
 
   it("prints the mat register and the slab in every paste", () => {
@@ -379,7 +467,7 @@ describe("a pair is any dark beside any light", () => {
   });
 
   it("tells the Orchestrator to delete the cinema override when there is one room", () => {
-    expect(tokenBlock(pair("ember", "paper"))).toContain(
+    expect(tokenBlock(pair("graphite", "pearl"))).toContain(
       "DELETE the cinema override",
     );
     expect(tokenBlock(pair("ladder", "paper"))).toContain(
@@ -429,7 +517,15 @@ describe("the dark card ruling", () => {
   });
 
   it("makes the veil the moving answer on every candidate", () => {
-    for (const id of ["ladder", "ember", "slate", "lift"] as const) {
+    for (const id of [
+      "ladder",
+      "ember",
+      "slate",
+      "onyx",
+      "graphite",
+      "steel",
+      "pitch",
+    ] as const) {
       const declared = DARK_BY_ID[id].room["--card"];
       expect(card(id, "opaque")).toBe(declared);
       expect(card(id, "veil")).toBe(declared.replace(/\)$/, " / 0.62)"));
@@ -498,6 +594,9 @@ describe("the accent and its reach", () => {
     const css = accentBlock(flare, "all");
     expect(css).toContain(".surface-ink {");
     expect(css.match(/--brand:/g)).toHaveLength(3);
+    // And the focus ring with it: --ring is its own token, so an accent that
+    // only wrote --brand would land two of the three jobs Will named.
+    expect(css.match(/--ring:/g)).toHaveLength(3);
   });
 
   it("says in the paste which call sites a narrowed reach leaves on ink", () => {
@@ -529,11 +628,9 @@ describe("the walk's two emulated rulings", () => {
   });
 });
 
-/* ── The catalog (round six, the clarity round) ─────────────────────────── */
+/* ── The catalog (round seven, the cool round) ──────────────────────────── */
 
 describe("the catalog", () => {
-  const ask = PALETTE.asks.find((a) => a.id === "palette")!;
-
   it("is a catalog: between eight and sixteen finished palettes", () => {
     // Will's size, not an arbitrary one: "a dozen polished variants". Fewer
     // than eight is not a catalog and more than sixteen is a wall.
@@ -551,36 +648,87 @@ describe("the catalog", () => {
     }
   });
 
-  it("lands on exactly one, and it is the one registers.ts recommends", () => {
-    const picked = PALETTES.filter((p) => p.recommended);
-    expect(picked.map((p) => p.id)).toEqual(["ember"]);
-    expect(RECOMMENDED_PALETTE.dark).toBe(RECOMMENDATION.dark);
-    expect(RECOMMENDED_PALETTE.light).toBe(RECOMMENDATION.light);
-    expect(ask.recommended).toBe(RECOMMENDED_PALETTE.id);
+  /**
+   * ★ THE ROUND'S OWN CONTRACT (Will, 2026-09-16). The catalog leans cool: most
+   * of the cards carry the cool cast, the warm ones are down to a comparison,
+   * and the cool ones are built on very black and very white grounds rather
+   * than on the crush today ships.
+   */
+  it("leans cool: most cards cast, and only one of them warm", () => {
+    const hueOf = (id: string) => {
+      const bg = resolvePalette(id).pair.dark.room["--background"];
+      const hit = /^oklch\(\s*[\d.]+\s+([\d.]+)\s+([\d.]+)\s*\)$/.exec(bg);
+      return hit && Number(hit[1]) > 0 ? Number(hit[2]) : null;
+    };
+    const cool = PALETTES.filter((p) => hueOf(p.id) === 286);
+    const warm = PALETTES.filter((p) => {
+      const h = hueOf(p.id);
+      return h !== null && h < 180;
+    });
+    expect(cool.length).toBeGreaterThan(PALETTES.length / 2);
+    // "One or two comparison cards the builder marks kill" was the brief.
+    expect(warm.length).toBeLessThanOrEqual(2);
+    for (const p of warm) {
+      const card = PALETTE.candidates.find((c) => c.id === p.id)!;
+      expect(card.verdict, `${p.id} is warm and not marked kill`).toBe("kill");
+    }
   });
 
-  /**
-   * ★ THE ONE PIN THAT EARNS ITS KEEP. The ask's twelve options are written out
-   * as literals in spec.ts because the desk's review scanner reads a spec as
-   * TEXT (a computed `options` read as an ask with no answers at all, which is
-   * how this split came about). So the words live in the spec and the structure
-   * lives in palettes.ts, and this is what stops the two drifting: same ids, in
-   * the same order, with the same labels.
-   */
-  it("says the same twelve in the spec, the dock and palettes.ts", () => {
-    expect(ask.options.map(optionId)).toEqual(PALETTES.map((p) => p.id));
-    expect(ask.options.map(optionLabel)).toEqual(PALETTES.map((p) => p.name));
-    expect(PALETTE_OPTIONS.map((o) => o.id)).toEqual(PALETTES.map((p) => p.id));
-    for (const o of ask.options) {
-      expect(optionMeans(o), `${optionId(o)} has no line`).toBeTruthy();
+  it("builds every cool set on a very black ground", () => {
+    // The sentence, as a number: "very black/white backgrounds for solid
+    // contrast then cooler surfaces rather than darker bland grays". Today's
+    // app room is 0.140 with four surfaces crushed between 0.210 and 0.250.
+    for (const id of ["onyx", "graphite", "steel", "pitch"] as const) {
+      const set = DARK_BY_ID[id];
+      const l = (t: string) => lOf(set.room[t]!, set.room)!;
+      expect(l("--background"), `${id} room`).toBeLessThanOrEqual(0.125);
+      // And the surfaces above it are real steps rather than four hairlines.
+      expect(
+        l("--card") - l("--background"),
+        `${id} card step`,
+      ).toBeGreaterThan(0.1);
+      expect(l("--popover") - l("--card"), `${id} menu step`).toBeGreaterThan(
+        0.03,
+      );
     }
+  });
+
+  it("spans the degrees of cool rather than repeating one", () => {
+    // Will asked for "more cool gray options" at different degrees, so the
+    // family has to be an axis: four distinct amounts of the same hue.
+    const chromaOf = (id: DarkId) =>
+      Number(/oklch\([\d.]+ ([\d.]+)/.exec(DARK_BY_ID[id].room["--card"]!)![1]);
+    const amounts = (["onyx", "slate", "graphite", "steel"] as const).map(
+      chromaOf,
+    );
+    expect(new Set(amounts).size).toBe(amounts.length);
+    expect(amounts[0]).toBeLessThan(amounts[amounts.length - 1]);
+  });
+
+  it("lands on exactly one, and it is the one registers.ts recommends", () => {
+    const picked = PALETTES.filter((p) => p.recommended);
+    expect(picked.map((p) => p.id)).toEqual(["graphite"]);
+    expect(RECOMMENDED_PALETTE.dark).toBe(RECOMMENDATION.dark);
+    expect(RECOMMENDED_PALETTE.light).toBe(RECOMMENDATION.light);
+  });
+
+  it("says the same twelve in the dock and in palettes.ts", () => {
+    expect(PALETTE_OPTIONS.map((o) => o.id)).toEqual(PALETTES.map((p) => p.id));
+    expect(PALETTE_OPTIONS.map((o) => o.label)).toEqual(
+      PALETTES.map((p) => p.name),
+    );
+    // The pick control offers exactly the cards, plus its cleared default.
+    const pick = PALETTE.controls!.find((c) => c.id === "palette")!;
+    expect(pick.options.map((o) => o.id)).toEqual([
+      pick.default,
+      ...PALETTES.map((p) => p.id),
+    ]);
   });
 
   it("keeps Today as the one that changes no line", () => {
     const today = resolvePalette("today");
     expect(today.def.dark).toBe("today");
     expect(today.def.light).toBe("today");
-    expect(today.def.accent).toBe("ink");
     // The mat is a property of a palette now rather than a switch, and Today is
     // the only one that answers "no register": the set-apart ground ships as
     // alphas of a token that also does hover.
@@ -589,12 +737,11 @@ describe("the catalog", () => {
   });
 
   /**
-   * ★ AND THE CANDIDATES ARE PINNED THE SAME WAY (the revamp, 2026-09-16). The
-   * twelve are now written out a THIRD time, as `const ITEMS` in spec.ts, for
-   * the same reason the options are: `pnpm lab:review` reads a spec as text and
-   * resolves `candidates: ITEMS` one hop, so a `.map` over palettes.ts would
-   * read as no items at all and every ruling on a card would be refused. Three
-   * copies is three chances to drift, so every field is held here.
+   * ★ AND THE CANDIDATES ARE PINNED THE SAME WAY. The twelve are written out a
+   * second time, as `const ITEMS` in spec.ts, because `pnpm lab:review` reads a
+   * spec as text and resolves `candidates: ITEMS` one hop: a `.map` over
+   * palettes.ts would read as no items at all and every ruling on a card would
+   * be refused. Two copies is a chance to drift, so every field is held here.
    */
   it("rules on the same twelve it offers, card for card", () => {
     expect(PALETTE.candidates.map((c) => c.id)).toEqual(
@@ -603,26 +750,12 @@ describe("the catalog", () => {
     expect(PALETTE.candidates.map((c) => c.name)).toEqual(
       PALETTES.map((p) => p.name),
     );
-    expect(PALETTE.candidates.map((c) => c.rationale)).toEqual(
-      PALETTES.map((p) => p.why),
-    );
+    for (const c of PALETTE.candidates)
+      expect(c.rationale, `${c.id} has no argument`).toBeTruthy();
     expect(
       PALETTE.candidates.filter((c) => c.recommended).map((c) => c.id),
-    ).toEqual(["ember"]);
-  });
-
-  it("says one line on the card and the same line in the ask", () => {
-    // The card on the board and the question on the desk have to say the same
-    // words, or the catalog and the question are two different catalogs.
-    const means = new Map(
-      ask.options.map((o) => [optionId(o), optionMeans(o)]),
-    );
-    for (const c of PALETTE.candidates) {
-      expect(c.one, `${c.id} has no line`).toBeTruthy();
-      expect(c.one, `${c.id}: the card and the ask say different things`).toBe(
-        means.get(c.id),
-      );
-    }
+    ).toEqual(["graphite"]);
+    for (const c of PALETTE.candidates) expect(c.one, `${c.id}`).toBeTruthy();
   });
 
   it("carries the board's own verdict on every card, and only one ship", () => {
@@ -634,12 +767,12 @@ describe("the catalog", () => {
   });
 
   /**
-   * THE FACTS ARE THE SWATCHES, MEASURED. Three numbers a reviewer compares
+   * THE FACTS ARE THE SWATCHES, MEASURED. Four numbers a reviewer compares
    * across twelve cards, written as literals in the spec (the scanner again)
    * and read here off the resolved palette, so a card cannot print a lightness
    * the strip beside it does not paint.
    */
-  it("prints the room, the page and the accent each card actually has", () => {
+  it("prints the room, the page, the cast and the accent each card has", () => {
     for (const c of PALETTE.candidates) {
       const r = resolvePalette(c.id);
       const facts = new Map(c.facts ?? []);
@@ -649,7 +782,10 @@ describe("the catalog", () => {
       };
       expect(facts.get("Room"), `${c.id}: Room`).toBe(at(r.pair.dark.room));
       expect(facts.get("Page"), `${c.id}: Page`).toBe(at(r.pair.light.paper));
-      expect(facts.get("Accent"), `${c.id}: Accent`).toBe(r.accent.short);
+      expect(facts.get("Cast"), `${c.id}: Cast`).toBe(
+        castLabel(r.pair.dark.room["--background"]!),
+      );
+      expect(facts.get("Accent"), `${c.id}: Accent`).toBe(r.declared.short);
     }
   });
 
@@ -670,7 +806,98 @@ describe("the catalog", () => {
     // least one palette, and no palette repeats another's whole recipe.
     expect(new Set(PALETTES.map((p) => p.dark)).size).toBe(DARKS.length);
     expect(new Set(PALETTES.map((p) => p.light)).size).toBe(LIGHTS.length);
-    const recipes = PALETTES.map((p) => `${p.dark}/${p.light}/${p.accent}`);
+    const recipes = PALETTES.map((p) => `${p.dark}/${p.light}`);
     expect(new Set(recipes).size).toBe(PALETTES.length);
+  });
+});
+
+/* ── The accent, as a config (round seven) ──────────────────────────────── */
+
+describe("the optional accent", () => {
+  /**
+   * ★ THE WHOLE MECHANISM IN THREE FACTS (Will, 2026-09-16: "a single optional
+   * accent color config per theme where I can decide if an accent color would
+   * pair well"). Every palette declares one hue; the board's switch is off by
+   * default and resolves to the alias that ships; the paste carries the accent
+   * only while it is on.
+   */
+  it("makes every palette declare one hue, and never the off state", () => {
+    for (const p of PALETTES) {
+      expect(p.accent, `${p.id} declares the off state`).not.toBe("ink");
+      expect(DECLARABLE_ACCENTS.map((a) => a.id)).toContain(p.accent);
+      expect(p.pairs, `${p.id} does not say why that hue`).toBeTruthy();
+    }
+    // More than one hue across the catalog, or the config is a constant.
+    expect(new Set(PALETTES.map((p) => p.accent)).size).toBeGreaterThan(2);
+  });
+
+  it("wears none until the switch says own", () => {
+    for (const p of PALETTES) {
+      expect(resolvePalette(p.id, "none").accent.id).toBe("ink");
+      expect(resolvePalette(p.id, "own").accent.id).toBe(p.accent);
+      // The declaration is readable either way: a card says what it would
+      // pair with even while it is wearing nothing.
+      expect(resolvePalette(p.id, "none").declared.id).toBe(p.accent);
+    }
+    // Off is the default, so a call site that forgets the argument is
+    // achromatic rather than accidentally coloured.
+    expect(resolvePalette("graphite").accent.id).toBe("ink");
+  });
+
+  it("prints no accent block at all while it is off", () => {
+    const opts = {
+      reach: "all" as const,
+      matRegister: true,
+      faintOnDimmed: true,
+    };
+    const off = applyCss(pair("graphite", "pearl"), {
+      ...opts,
+      accent: resolvePalette("graphite", "none").accent,
+    });
+    const on = applyCss(pair("graphite", "pearl"), {
+      ...opts,
+      accent: resolvePalette("graphite", "own").accent,
+    });
+    // The slab always declares --brand (it has to, or a hue would never reach
+    // the mark at the foot of a page), so the test is whether an ACCENT block
+    // was printed at all, not whether the token appears anywhere.
+    expect(off).not.toContain("the accent:");
+    expect(off).not.toContain(ACCENT_BY_ID.teal.light);
+    expect(on).toContain("the accent:");
+    expect(on).toContain(ACCENT_BY_ID.teal.light);
+  });
+
+  it("mirrors the switch as an ask the ledger can store", () => {
+    const ask = PALETTE.asks.find((a) => a.id === "accent")!;
+    const control = PALETTE.controls!.find((c) => c.id === "accent")!;
+    expect(ask.control).toBe("accent");
+    expect(ask.options.map(optionId)).toEqual(control.options.map((o) => o.id));
+    expect(control.default).toBe("none");
+    // A two-option switch may not be clearable: the cleared state would be one
+    // of its own answers, and registry.test.ts would then see an ask with one
+    // option left to mirror.
+    expect(control.clearable).toBeUndefined();
+  });
+
+  it("keeps every declared hue clear of the state colours", () => {
+    // The accent's one hard constraint: at a 6px dot it must not be mistaken
+    // for like, destructive, warning, success, save or reel.
+    const hueOf = (v: string) =>
+      Number(/oklch\([\d.]+ [\d.]+ ([\d.]+)/.exec(v)![1]);
+    for (const a of DECLARABLE_ACCENTS) {
+      const h = hueOf(a.light);
+      for (const s of STATE_HUES) {
+        const raw = Math.abs(h - s.hue) % 360;
+        const apart = raw > 180 ? 360 - raw : raw;
+        // Blue and violet ARE state hues promoted on purpose (--save, --reel),
+        // which is their whole argument; every other pair keeps 25 degrees.
+        if (a.id === "blue" && s.token === "--save") continue;
+        if (a.id === "violet" && s.token === "--reel") continue;
+        expect(
+          apart,
+          `${a.id} sits ${apart.toFixed(0)} degrees from ${s.name}`,
+        ).toBeGreaterThan(25);
+      }
+    }
   });
 });

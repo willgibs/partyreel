@@ -132,8 +132,17 @@ export const CHOOSES = [
 
 /* ── The two halves of a ruling ─────────────────────────────────────────── */
 
-export type DarkId = "today" | "ladder" | "room" | "ember" | "slate" | "lift";
-export type LightId = "today" | "paper" | "bright" | "warm" | "cool";
+export type DarkId =
+  | "today"
+  | "ladder"
+  | "room"
+  | "ember"
+  | "slate"
+  | "onyx"
+  | "graphite"
+  | "steel"
+  | "pitch";
+export type LightId = "today" | "paper" | "bright" | "pearl" | "mist";
 
 export type DarkSet = {
   id: DarkId;
@@ -238,25 +247,51 @@ const BANDS: Record<
     },
   },
   cool: {
-    // The mirror of the warm table, at the blue end of the same distance from
-    // neutral. The near-whites go to 250 rather than 258 on purpose: a cool
-    // white pushed past 255 starts reading violet at small type sizes.
+    /**
+     * ★ ROUND SEVEN MOVED THE COOL OFF THE BLUE, AND THE REASON IS A
+     * MEASUREMENT (Will, 2026-09-16: "Slate could even be less blue, but I'd
+     * like more cool gray options... Apple has a beautiful palette, but we
+     * wouldn't use that blue they use").
+     *
+     * Converted to oklch, Apple's system greys are at hue 286 and their blue is
+     * at 257. Rounds three to six built the cool band at 258, which is their
+     * BLUE's hue: that is the whole reason Slate reads blue rather than cool.
+     * The band is now theirs, and the chroma is theirs too, read off the real
+     * values rather than mirrored off the warm table:
+     *
+     *   #1C1C1E gray6  0.227  c 0.0038      #E5E5EA gray5  0.923  c 0.0067
+     *   #2C2C2E gray5  0.294  c 0.0036      #F2F2F7 gray6  0.963  c 0.0066
+     *   #3A3A3C gray4  0.349  c 0.0034      #8E8E93 gray   0.648  c 0.0073
+     *   #636366 gray2  0.501  c 0.0047      #EBEBF5 label  0.943  c 0.0134
+     *
+     * So the curve is nearly FLAT rather than rising with lightness, which is
+     * the opposite of the warm table and is what makes a cool grey read as a
+     * grey: the tint is a constant property of the family, not a thing the
+     * light does. A set asks for more or less of it through `gain`, and gain 1
+     * is Apple's own amount.
+     */
     dark: (l) => {
-      if (l >= 0.9) return { chroma: 0.002, hue: 250 };
-      if (l >= 0.5) return { chroma: 0.005, hue: 255 };
-      if (l < 0.11) return { chroma: 0.004, hue: 258 };
-      if (l < 0.17) return { chroma: 0.006, hue: 258 };
-      if (l < 0.26) return { chroma: 0.008, hue: 258 };
-      if (l < 0.3) return { chroma: 0.009, hue: 258 };
-      return { chroma: 0.01, hue: 258 };
+      // The near-whites: type on a dark room. Restrained on purpose, well under
+      // Apple's own 0.0134 label tint, because type is read rather than looked
+      // at.
+      if (l >= 0.9) return { chroma: 0.003, hue: 286 };
+      // The text greys, where Apple's own tint is strongest.
+      if (l >= 0.6) return { chroma: 0.007, hue: 286 };
+      if (l >= 0.45) return { chroma: 0.005, hue: 286 };
+      // The surfaces: the cards, the menus, the hover fills.
+      if (l >= 0.2) return { chroma: 0.004, hue: 286 };
+      // The rooms and the well, which take the least of all, so a photograph
+      // is the only colour in its own bed.
+      if (l >= 0.1) return { chroma: 0.0035, hue: 286 };
+      return { chroma: 0.003, hue: 286 };
     },
+    // Kept for the transform's symmetry; every cool LIGHT set on the board is
+    // hand-written from the measured greys above instead, because Will asked
+    // for the surfaces AND the text steps to follow Apple rather than a curve.
     light: (l) => {
-      if (l < 0.8) return { chroma: 0, hue: 0 };
-      if (l >= 0.99) return { chroma: 0.003, hue: 250 };
-      if (l >= 0.96) return { chroma: 0.004, hue: 250 };
-      if (l >= 0.935) return { chroma: 0.005, hue: 250 };
-      if (l >= 0.905) return { chroma: 0.006, hue: 250 };
-      return { chroma: 0.007, hue: 250 };
+      if (l < 0.8) return { chroma: 0.004, hue: 286 };
+      if (l >= 0.99) return { chroma: 0.002, hue: 286 };
+      return { chroma: 0.0066, hue: 286 };
     },
   },
 };
@@ -286,7 +321,13 @@ function tintValue(
   if (!hit) return value;
   const l = Number(hit[1]);
   const { chroma, hue } = castAt(l, dark, cast);
-  const c = Math.round(chroma * gain * 1000) / 1000;
+  // ★ FOUR PLACES, NOT THREE (round seven). The cool band now runs at Apple's
+  // own amounts, which sit at 0.0035 and 0.0066; rounding to three would
+  // collapse a barely-cool set at gain 0.5 onto the same value as the set above
+  // it, and the whole point of the family is that the degree of coolness is the
+  // thing being ruled on. Round two's candidate C is unaffected: every value
+  // the warm table produces at gain 1 is exact at three places already.
+  const c = Math.round(chroma * gain * 10000) / 10000;
   return c === 0 ? value : `oklch(${l} ${c} ${hue})`;
 }
 
@@ -670,22 +711,22 @@ const SLATE_NEUTRAL = {
   },
 };
 
-export const SLATE_GAIN = 1.2;
+export const SLATE_GAIN = 1;
 
 const SLATE: DarkSet = {
   id: "slate",
   label: "Slate",
-  name: "Slate. A cold black, one room",
+  name: "Slate. A cool black, one room",
   thesis:
-    "The complement, argued straight: a cool room at 0.145 makes a warm photograph read warmer than a neutral one does, which is the one thing a media product's ground can do for its media.",
+    "The one Will already liked, with the blue taken out of it: the same room at 0.145, moved off hue 258 (which is Apple's BLUE) onto 286 (which is their grey), at Apple's own amount rather than a fifth more.",
   moves: [
-    "One room at 0.145 carrying hue 258, the slab lifted to 0.190, and marketing's override deleted.",
+    "One room at 0.145 carrying hue 286 at gain 1, the slab lifted to 0.190, and marketing's override deleted.",
+    "The cast is a third of what round six shipped: 0.0035 in the room against 0.0072, so the ground reads as a grey with a temperature rather than as a blue.",
     "The neutral ladder is the same rhythm as Ladder's (0.195, 0.235, 0.285, 0.325), so the ruling between them is the cast alone and every step is comparable.",
     "Borders run a point stronger than neutral (13 and 17 percent) because a cool ground swallows a white hairline faster than a warm one.",
-    "The near-whites stop at hue 250 rather than 258: a cool white pushed further starts reading violet at small type sizes.",
   ],
   trade:
-    "It re-opens the same zero-chroma decision Ember does, and it is the direction a photograph of a warm room fights rather than agrees with.",
+    "It re-opens the zero-chroma decision globals.css records as closed, and its room is the lightest of the cool family, so it is the one that gains least from a very black ground.",
   decides: {
     rooms:
       "One room at 0.145, cool. The slab lifts to 0.190 and marketing's override is deleted.",
@@ -702,75 +743,296 @@ const SLATE: DarkSet = {
   ).x,
 };
 
-const LIFT: DarkSet = {
-  id: "lift",
-  label: "Lift",
-  name: "Lift. No true black, one dark ground",
-  thesis:
-    "Take the whole dark mode a step up and off black. At 0.195 the room already reads as a leaf on a page, so the slab register collapses into it and there is one dark ground rather than two, with the well the only deep thing left.",
-  moves: [
-    "The room is 0.195, the panel 0.235, the card 0.265, the menu 0.305, the hover 0.340: the same rhythm, started higher.",
-    "The slab IS the room. This is the one candidate that says dark needs a single register, because the reason a slab has to lift is that a 0.14 room reads as a hole in paper, and a 0.195 room does not.",
-    "The well stays at 0.100, so a photograph is the darkest thing on the page and the chrome never competes with it.",
-    "Borders go to 15 and 19 percent, because a white hairline over a lifted ground is a weaker line than the same hairline over black.",
-  ],
-  trade:
-    "A dark marketing chapter loses most of its drama, and an OLED phone loses the true-black economy a 0.11 room was buying.",
-  decides: {
-    rooms:
-      "One, at 0.195, and the slab is the same value: dark needs one register, not two.",
-    well: "Split at 0.100 and the only deep surface in the product.",
-  },
-  room: {
-    "--background": "oklch(0.195 0 0)",
-    "--foreground": "oklch(0.965 0 0)",
-    "--card": "oklch(0.265 0 0)",
-    "--card-foreground": "oklch(0.965 0 0)",
-    "--popover": "oklch(0.305 0 0)",
-    "--popover-foreground": "oklch(0.965 0 0)",
-    "--primary": "oklch(0.965 0 0)",
-    "--primary-foreground": "oklch(0.195 0 0)",
-    "--secondary": "oklch(0.34 0 0)",
-    "--secondary-foreground": "oklch(0.965 0 0)",
-    "--muted": "oklch(0.235 0 0)",
-    "--muted-foreground": "oklch(0.745 0 0)",
-    "--faint": "oklch(0.6 0 0)",
-    "--accent": "oklch(0.34 0 0)",
-    "--accent-foreground": "oklch(0.965 0 0)",
-    "--border": "oklch(1 0 0 / 15%)",
-    "--input": "oklch(1 0 0 / 19%)",
-    "--ring": "oklch(0.88 0 0)",
-  },
-  slab: {
-    "--background": "oklch(0.195 0 0)",
-    "--foreground": "oklch(0.965 0 0)",
-    "--card": "oklch(0.265 0 0)",
-    "--card-foreground": "oklch(0.965 0 0)",
-    "--popover": "oklch(0.305 0 0)",
-    "--popover-foreground": "oklch(0.965 0 0)",
-    "--secondary": "oklch(0.34 0 0)",
-    "--secondary-foreground": "oklch(0.965 0 0)",
-    "--accent": "oklch(0.34 0 0)",
-    "--accent-foreground": "oklch(0.965 0 0)",
-    "--muted": "oklch(0.235 0 0)",
-    "--muted-foreground": "oklch(0.745 0 0)",
-    "--faint": "oklch(0.6 0 0)",
-    "--border": "oklch(1 0 0 / 15%)",
-    "--input": "oklch(1 0 0 / 19%)",
-    "--ring": "oklch(0.965 0 0)",
-    "--primary": "oklch(0.965 0 0)",
-    "--primary-foreground": "oklch(0.195 0 0)",
-    ...LEAF_BRAND,
-    ...FLOAT_ZERO,
-  },
-  well: {
-    "--gallery": "oklch(0.1 0 0)",
-    "--gallery-foreground": "oklch(0.965 0 0)",
-    "--gallery-muted": "oklch(0.62 0 0)",
-    "--gallery-border": "oklch(1 0 0 / 8%)",
-  },
-  cinemaBackground: "oklch(0.195 0 0)",
+/**
+ * THE COOL FAMILY (round seven, 2026-09-16). Will's brief, verbatim: "I'm a
+ * much bigger fan of the cooler gray direction... they feel more modern, clean,
+ * and combat less harshly with a very media-forward dashboard. Looks beautiful
+ * with the very black/white backgrounds for solid contrast then cooler surfaces
+ * rather than darker bland grays... I'd like more cool gray options."
+ *
+ * ★ THE SHAPE IS THAT SENTENCE, AND IT IS THE SAME SHAPE IN ALL FOUR. A very
+ * black GROUND, so the contrast is carried by the ground rather than by a step;
+ * then SURFACES that are cool greys rather than slightly lighter versions of
+ * the same dead grey. Today's dark mode does the opposite: a 0.140 room with
+ * four surfaces crushed between 0.210 and 0.250, which is four bland greys and
+ * no ground at all.
+ *
+ * ★ AND THE FOUR DIFFER BY DEGREE, WHICH IS WHAT HE ASKED FOR. The family is
+ * one ladder with two dials: how black the ground is, and how much of Apple's
+ * grey tint the surfaces carry (`gain`, where 1 is exactly their amount). Onyx
+ * is the blackest room and the least tint; Steel is the lightest room and the
+ * most; Graphite sits between them; Pitch takes the ground to near true black
+ * and the ladder to Apple's own measured steps.
+ *
+ * Written through a factory rather than four hand-typed blocks on purpose: the
+ * numbers ARE the candidate here, so a card's whole claim should be readable as
+ * eleven numbers in one object rather than found by diffing sixty lines.
+ */
+type CoolNumbers = {
+  /** The room: the page in dark mode, and the deepest ground a reader stands in. */
+  room: number;
+  /** The panel inside it (`--muted`). */
+  panel: number;
+  card: number;
+  menu: number;
+  /** The hover fill (`--secondary` and `--accent`). */
+  hover: number;
+  /** The slab: a dark leaf on a light page, so it sits LIGHTER than the room. */
+  slab: number;
+  /** The bed a photograph lies on: deeper than any room in the set. */
+  well: number;
+  text: number;
+  second: number;
+  faint: number;
+  /** The two white-veil hairlines, in percent. */
+  border: number;
+  input: number;
 };
+
+function coolNeutral(n: CoolNumbers) {
+  const L = (v: number) => `oklch(${v} 0 0)`;
+  const veil = (pct: number) => `oklch(1 0 0 / ${pct}%)`;
+  const steps = {
+    "--card": L(n.card),
+    "--popover": L(n.menu),
+    "--secondary": L(n.hover),
+    "--accent": L(n.hover),
+    "--muted-foreground": L(n.second),
+    "--faint": L(n.faint),
+    "--border": veil(n.border),
+    "--input": veil(n.input),
+  };
+  return {
+    room: {
+      "--background": L(n.room),
+      "--foreground": L(n.text),
+      ...steps,
+      "--card-foreground": L(n.text),
+      "--popover-foreground": L(n.text),
+      "--primary": L(n.text),
+      "--primary-foreground": L(n.room),
+      "--secondary-foreground": L(n.text),
+      "--accent-foreground": L(n.text),
+      "--muted": L(n.panel),
+      "--ring": L(Math.round((n.text - 0.1) * 1000) / 1000),
+    },
+    slab: {
+      "--background": L(n.slab),
+      "--foreground": L(n.text),
+      ...steps,
+      "--card-foreground": L(n.text),
+      "--popover-foreground": L(n.text),
+      "--primary": L(n.text),
+      "--primary-foreground": L(n.slab),
+      "--secondary-foreground": L(n.text),
+      "--accent-foreground": L(n.text),
+      // A leaf's own panel cannot be the room's panel: the slab is already
+      // lighter than the room, so the panel goes UP to the card instead.
+      "--muted": L(n.card),
+      "--ring": L(n.text),
+      ...LEAF_BRAND,
+      ...FLOAT_ZERO,
+    },
+    well: {
+      "--gallery": L(n.well),
+      "--gallery-foreground": L(n.text),
+      "--gallery-muted": L(n.second),
+      "--gallery-border": "oklch(1 0 0 / 8%)",
+    },
+  };
+}
+
+/** One cool set, from its numbers and its degree of cool. */
+function coolSet(
+  id: DarkId,
+  label: string,
+  name: string,
+  gain: number,
+  n: CoolNumbers,
+  prose: {
+    thesis: string;
+    moves: string[];
+    trade: string;
+    rooms: string;
+    well: string;
+  },
+): DarkSet {
+  const neutral = coolNeutral(n);
+  return {
+    id,
+    label,
+    name,
+    thesis: prose.thesis,
+    moves: prose.moves,
+    trade: prose.trade,
+    decides: { rooms: prose.rooms, well: prose.well },
+    room: tint(neutral.room, true, "cool", gain),
+    slab: tint(neutral.slab, true, "cool", gain),
+    well: tint(neutral.well, true, "cool", gain),
+    // One room: cinema IS the room, so every one of these tells the paste to
+    // delete marketing's override rather than printing a fourth dark.
+    cinemaBackground: tint(
+      { x: neutral.room["--background"] },
+      true,
+      "cool",
+      gain,
+    ).x,
+  };
+}
+
+export const ONYX_GAIN = 0.5;
+
+const ONYX = coolSet(
+  "onyx",
+  "Onyx",
+  "Onyx. The blackest room, cool as a trace",
+  ONYX_GAIN,
+  {
+    room: 0.075,
+    panel: 0.155,
+    card: 0.205,
+    menu: 0.25,
+    hover: 0.295,
+    slab: 0.145,
+    well: 0.045,
+    text: 0.97,
+    second: 0.72,
+    faint: 0.57,
+    border: 12,
+    input: 16,
+  },
+  {
+    thesis:
+      "Let the ground do the work. A room at 0.075 is nearly black, so every surface above it separates by contrast rather than by colour, and the cool is half of Apple's amount: present in the greys, never nameable as a hue.",
+    moves: [
+      "The room is the deepest of any set here at 0.075, and the steps above it are generous (0.155, 0.205, 0.250, 0.295) because a black ground can carry them.",
+      "The cast runs at half Apple's amount, 0.002 in the room and 0.0035 at the second text step, which is the least of the cool family.",
+      "The slab lifts to 0.145, exactly today's app room, so a footer leaf on paper sits where the eye already expects a dark surface.",
+      "The well goes to 0.045: a photograph lies on something closer to black than any chrome in the product.",
+    ],
+    trade:
+      "At 0.075 the room is close enough to black that an OLED phone shows banding on a gradient, and the cool is so slight that half the argument for it is invisible beside Ladder.",
+    rooms:
+      "One room at 0.075, barely cool. The slab lifts to 0.145 and marketing's override is deleted.",
+    well: "Split at 0.045 and the deepest surface in the product, which is what a bed for a photograph should be.",
+  },
+);
+
+export const GRAPHITE_GAIN = 1.5;
+
+const GRAPHITE = coolSet(
+  "graphite",
+  "Graphite",
+  "Graphite. A very black ground, cool surfaces",
+  GRAPHITE_GAIN,
+  {
+    room: 0.105,
+    panel: 0.175,
+    card: 0.225,
+    menu: 0.27,
+    hover: 0.315,
+    slab: 0.165,
+    well: 0.065,
+    text: 0.965,
+    second: 0.715,
+    faint: 0.565,
+    border: 12,
+    input: 16,
+  },
+  {
+    thesis:
+      "The middle of the family and the one this board would rule: a room at 0.105, deep enough to be a ground rather than a grey, with surfaces at half again Apple's tint so a card reads as cool rather than as lighter.",
+    moves: [
+      "One room at 0.105, which is marketing's cinema value taken across the whole product, so the app stops being 0.030 lighter than a chapter for no stated reason.",
+      "The surfaces carry 0.006 at the card and 0.0105 at the second text step: past Apple, because our surfaces sit on a blacker ground than theirs and a tint disappears into black.",
+      "The steps are 0.070, 0.050, 0.045, 0.045: the first is the big one, so the panel separates from the room and everything above it is a close ladder.",
+      "The well at 0.065 is the only thing deeper than the room, and it takes the least cast in the set.",
+    ],
+    trade:
+      "It is the set with the most values in it, so it is the one a future edit can most easily drift; and at 0.105 a light-mode user switching to dark gets a bigger jump than today's 0.140.",
+    rooms:
+      "One room at 0.105, cool. The slab lifts to 0.165 and marketing's override is deleted.",
+    well: "Split at 0.065, deeper than the room and the least tinted value in the set.",
+  },
+);
+
+export const STEEL_GAIN = 2;
+
+const STEEL = coolSet(
+  "steel",
+  "Steel",
+  "Steel. The cool taken as far as it goes",
+  STEEL_GAIN,
+  {
+    room: 0.125,
+    panel: 0.195,
+    card: 0.245,
+    menu: 0.29,
+    hover: 0.335,
+    slab: 0.185,
+    well: 0.08,
+    text: 0.965,
+    second: 0.72,
+    faint: 0.57,
+    border: 13,
+    input: 17,
+  },
+  {
+    thesis:
+      "The end of the axis: twice Apple's tint, so the greys are unmistakably cool and a warm photograph on them reads a degree warmer than it does anywhere else on the board.",
+    moves: [
+      "One room at 0.125, the lightest of the cool family, because a strong tint on a nearly black ground is wasted: there is not enough light in it to see the colour.",
+      "The cast is twice Apple's amount, 0.008 at the card and 0.014 at the second text step, which is about what their own secondary label carries.",
+      "Borders run a point stronger (13 and 17 percent), because a cool ground swallows a white hairline faster than a neutral one.",
+      "The well at 0.080 takes 0.006, so the bed stays the quietest thing in the set even here.",
+    ],
+    trade:
+      "Twice Apple's tint is a visible decision, and on a candle-lit photograph the ground disagrees with the picture rather than staying out of its way. It is the card to look at on the media grid first.",
+    rooms:
+      "One room at 0.125, strongly cool. The slab lifts to 0.185 and marketing's override is deleted.",
+    well: "Split at 0.080 and cool with the room, because a bed that disagrees with its own room reads as a seam.",
+  },
+);
+
+export const PITCH_GAIN = 1.2;
+
+const PITCH = coolSet(
+  "pitch",
+  "Pitch",
+  "Pitch. True black, and Apple's own ladder",
+  PITCH_GAIN,
+  {
+    // Apple's dark greys, measured: #1C1C1E is 0.227, #2C2C2E 0.294,
+    // #3A3A3C 0.349, #8E8E93 0.648. Their system background is #000000.
+    room: 0.03,
+    panel: 0.185,
+    card: 0.227,
+    menu: 0.294,
+    hover: 0.349,
+    slab: 0.155,
+    well: 0.02,
+    text: 0.98,
+    second: 0.685,
+    faint: 0.53,
+    border: 14,
+    input: 18,
+  },
+  {
+    thesis:
+      "The reference read literally: a room at 0.030, which is black on an OLED panel, with the card, the menu and the hover fill at Apple's own measured grey steps above it.",
+    moves: [
+      "The room is 0.030 and the well is 0.020, so a photograph is the only light on the page and the chrome is a set of islands floating on nothing.",
+      "The ladder above it is theirs: 0.227, 0.294, 0.349, which are #1C1C1E, #2C2C2E and #3A3A3C converted rather than invented.",
+      "The panel breaks from the ladder at 0.185, below the card, because our panel sits INSIDE a card and theirs does not.",
+      "An OLED phone draws no power at all for the room, which is a real economy on the surface a guest actually holds.",
+    ],
+    trade:
+      "A true black room is unforgiving: a white hairline over it is the harshest edge on the board, the card step is 0.197 rather than 0.050, and a long read on it is more tiring than on a 0.105 ground.",
+    rooms:
+      "One room at 0.030, which is true black on an OLED. The slab lifts to 0.155 and marketing's override is deleted.",
+    well: "Split at 0.020, deeper than black anywhere else in the product.",
+  },
+);
 
 export const DARKS: DarkSet[] = [
   TODAY_DARK,
@@ -778,7 +1040,10 @@ export const DARKS: DarkSet[] = [
   ONE_ROOM,
   EMBER,
   SLATE,
-  LIFT,
+  ONYX,
+  GRAPHITE,
+  STEEL,
+  PITCH,
 ];
 export const DARK_BY_ID = Object.fromEntries(
   DARKS.map((d) => [d.id, d]),
@@ -938,127 +1203,131 @@ const BRIGHT: LightSet = {
   },
 };
 
-const WARM_NEUTRAL = {
-  paper: {
-    "--background": "oklch(0.985 0 0)",
-    "--foreground": "oklch(0.145 0 0)",
-    "--card": "oklch(0.998 0 0)",
-    "--card-foreground": "oklch(0.145 0 0)",
-    "--popover": "oklch(0.999 0 0)",
-    "--popover-foreground": "oklch(0.145 0 0)",
-    "--primary": "oklch(0.145 0 0)",
-    "--primary-foreground": "oklch(0.998 0 0)",
-    "--secondary": "oklch(0.928 0 0)",
-    "--secondary-foreground": "oklch(0.145 0 0)",
-    "--muted": "oklch(0.952 0 0)",
-    "--muted-foreground": "oklch(0.46 0 0)",
-    "--faint": "oklch(0.62 0 0)",
-    "--accent": "oklch(0.928 0 0)",
-    "--accent-foreground": "oklch(0.145 0 0)",
-    "--border": "oklch(0.895 0 0)",
-    "--input": "oklch(0.895 0 0)",
-    "--ring": "oklch(0.3 0 0)",
-  },
-  mat: {
-    "--background": "oklch(0.952 0 0)",
-    "--card": "oklch(0.998 0 0)",
-    "--popover": "oklch(0.999 0 0)",
-    "--muted": "oklch(0.928 0 0)",
-    "--secondary": "oklch(0.9 0 0)",
-    "--accent": "oklch(0.9 0 0)",
-    "--faint": "oklch(0.62 0 0)",
-    "--border": "oklch(0.885 0 0)",
-    "--input": "oklch(0.885 0 0)",
-  },
-};
-
-export const WARM_GAIN = 1.3;
-
-const WARM_PAPER: LightSet = {
-  id: "warm",
-  label: "Warm",
-  name: "Warm. Uncoated stock",
+/**
+ * THE COOL LIGHT SIDE (round seven, 2026-09-16), and it is the same sentence as
+ * the dark one read the other way up: "very black/WHITE backgrounds for solid
+ * contrast then cooler surfaces rather than darker bland grays".
+ *
+ * ★ APPLE'S GREYS ARE WRITTEN OUT HERE RATHER THAN CAST BY THE TRANSFORM, and
+ * that is deliberate. Will asked for their greys as the reference for the
+ * surfaces AND the text steps, and their ladder is not a curve: it is six
+ * values with an almost constant tint (0.0066 to 0.0069) at hue 286. A
+ * transform would reproduce the tint and lose the SPACING, which is the half
+ * that matters on a light page, where today five surfaces sit inside 0.037.
+ *
+ *   #F2F2F7 gray6  0.963      #C7C7CC gray3  0.831
+ *   #E5E5EA gray5  0.923      #AEAEB2 gray2  0.752
+ *   #D1D1D6 gray4  0.862      #8E8E93 gray   0.648
+ *
+ * ★ AND THE INK CARRIES THE TINT TOO, which is a departure from round three's
+ * rule ("a SURFACE carries the cast and ink does not"). That rule was written
+ * for the WARM side, where it is right: black on a warm white has to stay dead
+ * neutral or it yellows. On the cool side the opposite holds, and Apple proves
+ * it: their secondary label is #3C3C43, which is tinted harder than any of
+ * their greys. A neutral ink on a cool page is the one thing in the frame that
+ * disagrees with everything else.
+ */
+const PEARL: LightSet = {
+  id: "pearl",
+  label: "Pearl",
+  name: "Pearl. A very white page, cool greys under it",
   thesis:
-    "The page is paper, so make it paper: a warm white at 0.985 with hue 85, the mat warmer still, and the ink left dead neutral so black on it is still black.",
+    "The page is the brightest thing in the product at 0.995 and the card is the same white, so nothing pretends to be a different white; every fill BELOW the page is one of Apple's cool greys, which is where the whole ladder now lives.",
   moves: [
-    "Every surface at 0.8 and up carries the cast; every text step stays at chroma 0, which is what keeps the type crisp on a warm ground.",
-    "The page sits at 0.985 rather than 0.977, because a warm ground reads a shade deeper than a neutral one at the same lightness.",
-    "The mat is at 0.952 and warmer than the page, the way an uncoated mat is warmer than the print on it.",
-    "The chroma rises as the value darkens (0.005 at the page, 0.009 at the hairline), so the edges of a card are the warmest thing on it.",
+    "The page and the card are both 0.995, so a card is defined by its hairline and its shadow rather than by a step of 0.007 no eye resolves.",
+    "The menu goes to pure white, the one surface in the product brighter than the page, because a menu is genuinely above it.",
+    "The panel is Apple's gray6 at 0.963 and the hover fill their gray5 at 0.923, so a set-apart band and a hover are finally 0.040 apart instead of 0.005.",
+    "Every text step carries the same 286 the surfaces do, at a third of the chroma, so the ink belongs to the family instead of sitting outside it.",
   ],
   trade:
-    "It re-opens the zero-chroma decision on the side where the case is weakest: a warm page very slightly yellows a white dress, and rows 05 and 08 are where that shows.",
+    "It leans on depth: with no ring and no shadow a card disappears, and a page at 0.995 is the brightest ground on the board, which is the hardest one to look at all day.",
   decides: {
-    mat: "A register at 0.952, warmer than the page, with the card back at the top.",
+    mat: "A register at 0.963, Apple's gray6, with the card back at the top so a card on a mat still lifts.",
   },
-  paper: tint(WARM_NEUTRAL.paper, false, "warm", WARM_GAIN),
-  mat: tint(WARM_NEUTRAL.mat, false, "warm", WARM_GAIN),
-};
-
-const COOL_NEUTRAL = {
   paper: {
-    "--background": "oklch(0.99 0 0)",
-    "--foreground": "oklch(0.145 0 0)",
-    "--card": "oklch(0.999 0 0)",
-    "--card-foreground": "oklch(0.145 0 0)",
-    "--popover": "oklch(0.999 0 0)",
-    "--popover-foreground": "oklch(0.145 0 0)",
-    "--primary": "oklch(0.145 0 0)",
-    "--primary-foreground": "oklch(0.999 0 0)",
-    "--secondary": "oklch(0.925 0 0)",
-    "--secondary-foreground": "oklch(0.145 0 0)",
-    "--muted": "oklch(0.955 0 0)",
-    "--muted-foreground": "oklch(0.46 0 0)",
-    "--faint": "oklch(0.62 0 0)",
-    "--accent": "oklch(0.925 0 0)",
-    "--accent-foreground": "oklch(0.145 0 0)",
-    "--border": "oklch(0.9 0 0)",
-    "--input": "oklch(0.9 0 0)",
-    "--ring": "oklch(0.3 0 0)",
+    "--background": "oklch(0.995 0.002 286)",
+    "--foreground": "oklch(0.145 0.006 286)",
+    "--card": "oklch(0.995 0.002 286)",
+    "--card-foreground": "oklch(0.145 0.006 286)",
+    "--popover": "oklch(1 0 0)",
+    "--popover-foreground": "oklch(0.145 0.006 286)",
+    "--primary": "oklch(0.145 0.006 286)",
+    "--primary-foreground": "oklch(0.995 0.002 286)",
+    "--secondary": "oklch(0.923 0.0067 286)",
+    "--secondary-foreground": "oklch(0.145 0.006 286)",
+    "--muted": "oklch(0.963 0.0066 286)",
+    "--muted-foreground": "oklch(0.46 0.009 286)",
+    "--faint": "oklch(0.648 0.0073 286)",
+    "--accent": "oklch(0.923 0.0067 286)",
+    "--accent-foreground": "oklch(0.145 0.006 286)",
+    "--border": "oklch(0.89 0.0068 286)",
+    "--input": "oklch(0.862 0.0068 286)",
+    "--ring": "oklch(0.3 0.008 286)",
+  },
+  mat: {
+    "--background": "oklch(0.963 0.0066 286)",
+    "--card": "oklch(0.995 0.002 286)",
+    "--popover": "oklch(1 0 0)",
+    "--muted": "oklch(0.923 0.0067 286)",
+    "--secondary": "oklch(0.895 0.0068 286)",
+    "--accent": "oklch(0.895 0.0068 286)",
+    "--faint": "oklch(0.648 0.0073 286)",
+    "--border": "oklch(0.862 0.0068 286)",
+    "--input": "oklch(0.862 0.0068 286)",
   },
 };
 
-export const COOL_GAIN = 0.8;
-
-const COOL_PAPER: LightSet = {
-  id: "cool",
-  label: "Cool",
-  name: "Cool. A gallery wall, on a true grey mat",
+const MIST: LightSet = {
+  id: "mist",
+  label: "Mist",
+  name: "Mist. A cool grey page, a pure white card",
   thesis:
-    "A daylight page at 0.990 with a trace of 250, and a mat that is DEAD NEUTRAL rather than a tint of anything, because a gallery mat is a true grey so the work on it is the only colour on the wall.",
+    "The same idea inverted, which is how Apple's own grouped screens are built: the PAGE is the cool grey and the card is pure white, so a card lifts by 0.037 rather than by 0.007 and the hairline stops carrying the whole idea.",
   moves: [
-    "The page takes the smallest cast of any set here (0.002 at the page, 0.006 at the hairline): a cool tint reads about twice as strongly as a warm one at the same chroma.",
-    "The mat is a hand-written 0.950 at chroma 0, the one block on this board that no transform produced, which is the whole answer to a grey that is not a tint of the text.",
-    "Ink stays neutral, as it does on every light set, so the only thing the cast reaches is the surfaces.",
-    "A cool page makes a warm photograph read warmer, so this is the light half of the argument Slate makes on the dark half.",
+    "The page is Apple's gray6 at 0.963 and the card is pure white, which is the largest card step on the board by a factor of five.",
+    "The set-apart ground goes DOWN rather than up: 0.923 on a page that is already grey, so a band inside the page still reads as set apart.",
+    "The hairlines are their gray4 and gray3 (0.862 and 0.831), stronger than today's 0.905, because a hairline on a grey page has less to work with.",
+    "A photograph on a grey page reads a shade brighter than the same photograph on a white one, which is the light-side half of what a cool ground buys.",
   ],
   trade:
-    "A cool ground can read as clinical next to a candle-lit photograph, and its mat deliberately disagrees with its own page, which is either the point or a seam.",
+    "The body is a grey rather than a white, which is the first thing a stranger notices; and every full-bleed white section on marketing now has to declare the card register or it reads as a hole.",
   decides: {
-    mat: "A register at 0.950 and dead neutral, deliberately not a tint of the page it sits in.",
+    mat: "A register at 0.923, BELOW the page rather than above it, because the page is already the set-apart grey.",
   },
-  paper: tint(COOL_NEUTRAL.paper, false, "cool", COOL_GAIN),
-  // Hand-written, not cast: the mat being a true grey is this set's argument.
+  paper: {
+    "--background": "oklch(0.963 0.0066 286)",
+    "--foreground": "oklch(0.145 0.006 286)",
+    "--card": "oklch(1 0 0)",
+    "--card-foreground": "oklch(0.145 0.006 286)",
+    "--popover": "oklch(1 0 0)",
+    "--popover-foreground": "oklch(0.145 0.006 286)",
+    "--primary": "oklch(0.145 0.006 286)",
+    "--primary-foreground": "oklch(1 0 0)",
+    "--secondary": "oklch(0.9 0.0068 286)",
+    "--secondary-foreground": "oklch(0.145 0.006 286)",
+    "--muted": "oklch(0.923 0.0067 286)",
+    "--muted-foreground": "oklch(0.46 0.009 286)",
+    "--faint": "oklch(0.648 0.0073 286)",
+    "--accent": "oklch(0.9 0.0068 286)",
+    "--accent-foreground": "oklch(0.145 0.006 286)",
+    "--border": "oklch(0.862 0.0068 286)",
+    "--input": "oklch(0.831 0.0069 286)",
+    "--ring": "oklch(0.3 0.008 286)",
+  },
   mat: {
-    "--background": "oklch(0.95 0 0)",
-    "--card": "oklch(0.999 0.002 250)",
-    "--popover": "oklch(0.999 0.002 250)",
-    "--muted": "oklch(0.92 0 0)",
-    "--secondary": "oklch(0.9 0 0)",
-    "--accent": "oklch(0.9 0 0)",
-    "--faint": "oklch(0.62 0 0)",
-    "--border": "oklch(0.89 0 0)",
-    "--input": "oklch(0.89 0 0)",
+    "--background": "oklch(0.923 0.0067 286)",
+    "--card": "oklch(1 0 0)",
+    "--popover": "oklch(1 0 0)",
+    "--muted": "oklch(0.9 0.0068 286)",
+    "--secondary": "oklch(0.862 0.0068 286)",
+    "--accent": "oklch(0.862 0.0068 286)",
+    "--faint": "oklch(0.648 0.0073 286)",
+    "--border": "oklch(0.831 0.0069 286)",
+    "--input": "oklch(0.831 0.0069 286)",
   },
 };
 
-export const LIGHTS: LightSet[] = [
-  TODAY_LIGHT,
-  PAPER,
-  BRIGHT,
-  WARM_PAPER,
-  COOL_PAPER,
-];
+export const LIGHTS: LightSet[] = [TODAY_LIGHT, PAPER, BRIGHT, PEARL, MIST];
 export const LIGHT_BY_ID = Object.fromEntries(
   LIGHTS.map((l) => [l.id, l]),
 ) as Record<LightId, LightSet>;
@@ -1066,9 +1335,9 @@ export const LIGHT_BY_ID = Object.fromEntries(
 /** What this board would rule if it had to, and the sentence that says why the
  *  split is what produced it. */
 export const RECOMMENDATION = {
-  dark: "ember" as DarkId,
-  light: "paper" as LightId,
-  why: "Ember on the dark side and Paper on the light one, which is a pair no earlier round could have named. Warming used to be one switch over both modes, and the reason to decline it was that a warm room and a warm page are one decision. They are not. On a dark ground the cast is doing work (skin against a room, and a room that stops reading as a dead screen); on paper the same cast is a tax paid by every white dress and every document. Split the ruling and the answer separates: warm the room, leave the page a true grey, and let the well stay the least tinted surface in the product. For anyone who wants the zero-chroma decision kept exactly as globals.css records it, Ladder is Ember's rhythm at chroma 0 and the rest of the board reads the same.",
+  dark: "graphite" as DarkId,
+  light: "pearl" as LightId,
+  why: "Graphite on the dark side and Pearl on the light one. Will's note is the whole argument and it is about grounds rather than about greys: a very black background and a very white one carry the contrast, and everything that sits on them is a cool grey rather than a slightly lighter dead one. Graphite is the middle of the cool family, deep enough at 0.105 to be a ground and tinted enough at half again Apple's amount to read cool on a black room; Pearl is the same idea on paper, a 0.995 page with Apple's own grey ladder underneath it and the ink tinted to match. Onyx is the same answer with the cool halved for anyone who wants the direction without the colour; Steel is it doubled.",
 };
 
 /* ── The dark card: as declared, opaque, or a veil ───────────────────────── */
@@ -1262,6 +1531,17 @@ export function lOf(value: string, block: TokenMap, depth = 0): number | null {
   return hit ? Number(hit[1]) : null;
 }
 
+/** The cast a token value carries, as a card's fact: the chroma and the hue it
+ *  sits at, or "none" for a dead grey (and for any derived value, which has no
+ *  cast of its own to report). */
+export function castLabel(value: string): string {
+  const hit = /^oklch\(\s*[\d.]+\s+([\d.]+)\s+([\d.]+)\s*\)$/.exec(
+    value.trim(),
+  );
+  if (!hit || Number(hit[1]) === 0) return "none";
+  return `${hit[1]} at ${hit[2]}`;
+}
+
 const ALPHA = /\/\s*([\d.]+)(%?)\s*\)/;
 
 /** The alpha of a token value as a fraction, or null when it is opaque. */
@@ -1325,7 +1605,22 @@ export function papersOf(set: LightSet) {
 
 /* ── The accent ─────────────────────────────────────────────────────────── */
 
-export type AccentId = "ink" | "blue" | "violet" | "flare";
+/**
+ * THE ACCENT IS A CONFIG NOW, NOT A COLUMN (round seven, 2026-09-16). Will:
+ * "We will likely not use an accent color to stick with our achromatic
+ * direction, but I would like to add a single optional accent color config per
+ * theme where I can decide if an accent color would pair well." So every
+ * palette DECLARES the one hue that would pair with its grey, the board opens
+ * with the accent off, and the switch turns it on everywhere at once.
+ *
+ * `ink` is not a declaration any more: it is what "off" resolves to, which is
+ * exactly what ships today (`--brand` aliases `--primary`). That is why a
+ * ruling of off prints no CSS at all.
+ */
+export type AccentId = "ink" | "blue" | "violet" | "flare" | "teal";
+
+/** Off, or the palette's own. The board's page-wide switch, and the paste. */
+export type AccentMode = "none" | "own";
 
 export type Accent = {
   id: AccentId;
@@ -1346,10 +1641,10 @@ export type Accent = {
 export const ACCENTS: Accent[] = [
   {
     id: "ink",
-    label: "Ink",
-    short: "Ink",
-    name: "Ink (today)",
-    why: "The brand token aliases the primary, so the mark, the badge and every wireframe frame are the same near-black as the type. Nothing can clash because nothing is coloured.",
+    label: "None",
+    short: "None",
+    name: "No accent (today, and the board's default)",
+    why: "The brand token aliases the primary, so the mark, the badge and every wireframe frame are the same near-black as the type. Nothing can clash because nothing is coloured, and the photographs are the only colour anywhere.",
     risk: "A section with no photograph in it has no colour at all, which is the binary rule 1 was rewritten to kill.",
     light: "oklch(0.145 0 0)",
     lightForeground: "oklch(0.998 0 0)",
@@ -1362,7 +1657,7 @@ export const ACCENTS: Accent[] = [
     short: "Blue",
     name: "Blue, hue 252",
     why: "Already in the system as --save, so promoting it adds no hue: one blue means save, download and Partyreel.",
-    risk: "It is the default accent of every product on the internet, and the save affordance loses the one hue that made it recognisable.",
+    risk: "Apple's own blue to within five degrees, which is the one thing ruled out by name.",
     light: "oklch(0.55 0.17 252)",
     lightForeground: "oklch(0.99 0 0)",
     dark: "oklch(0.72 0.15 252)",
@@ -1374,7 +1669,7 @@ export const ACCENTS: Accent[] = [
     short: "Violet",
     name: "Violet, hue 300",
     why: "Already in the system as --reel, the host's add-to-the-highlight-reel signal. The product is named for the reel, so the accent and the signature moment become one hue.",
-    risk: "The reel icon stops being special once everything else is violet too, and violet at small sizes is 30 degrees from the new hue below.",
+    risk: "The reel icon stops being special, and it sits 14 degrees from the hue the chrome is tinted with.",
     light: "oklch(0.58 0.2 300)",
     lightForeground: "oklch(0.99 0 0)",
     dark: "oklch(0.72 0.18 300)",
@@ -1386,10 +1681,22 @@ export const ACCENTS: Accent[] = [
     short: "Flare",
     name: "Flare, hue 330 (new)",
     why: "The one warm gap left on the wheel: 45 degrees off --like, 30 off --reel, and nowhere near a state colour. It reads as a party rather than as software, and it is the only option that is ours alone.",
-    risk: "A new hue to hold, and at a 6px dot it has to stay distinguishable from --reel violet, which is why it sits on the warm side of magenta.",
+    risk: "A new hue to hold, and at a 6px dot it has to stay clear of --reel violet.",
     light: "oklch(0.58 0.22 330)",
     lightForeground: "oklch(0.99 0 0)",
     dark: "oklch(0.7 0.2 330)",
+    darkForeground: "oklch(0.15 0 0)",
+  },
+  {
+    id: "teal",
+    label: "Teal 200",
+    short: "Teal",
+    name: "Teal, hue 200 (new)",
+    why: "The widest gap left on the wheel: 50 degrees from --save and 50 from --success, and 86 from the 286 the cool greys are tinted with, so it is the one hue that cannot be read as part of the chrome. It is also nowhere near the blue Will ruled out.",
+    risk: "It reads as software rather than as a party, and a colour-blind reader may take it for --success.",
+    light: "oklch(0.56 0.12 200)",
+    lightForeground: "oklch(0.99 0 0)",
+    dark: "oklch(0.75 0.11 200)",
     darkForeground: "oklch(0.15 0 0)",
   },
 ];
@@ -1397,6 +1704,19 @@ export const ACCENTS: Accent[] = [
 export const ACCENT_BY_ID = Object.fromEntries(
   ACCENTS.map((a) => [a.id, a]),
 ) as Record<AccentId, Accent>;
+
+/** The hues a palette may declare: everything except the off state. */
+export const DECLARABLE_ACCENTS = ACCENTS.filter((a) => a.id !== "ink");
+
+/**
+ * The accent a palette actually wears, which is the whole mechanism of the
+ * switch: its own declared hue, or none. Takes the declaration structurally
+ * rather than a PaletteDef, because palettes.ts imports this file and the other
+ * direction would be a cycle.
+ */
+export function accentFor(def: { accent: AccentId }, mode: AccentMode): Accent {
+  return mode === "own" ? ACCENT_BY_ID[def.accent] : ACCENT_BY_ID.ink;
+}
 
 /**
  * THE ACCENT'S REACH, which round three asked without ever rendering (round
@@ -1681,23 +2001,31 @@ export function accentBlock(accent: Accent, reach: ReachId = "all"): string {
       : reach === "attention"
         ? "/* globals.css, the accent: attention only. The mark and the frames keep var(--primary) at their call sites. */"
         : "/* globals.css, the accent: identity only. The badge, the wizard step and the toast keep var(--primary) at their call sites. */";
+  // ★ --ring RIDES ALONG, because the focus ring is one of the three jobs Will
+  // named for the accent (the primary action, the focus ring, the live dot) and
+  // it does NOT read --brand: it is its own token, set to a near-white in the
+  // dark and a near-black on paper. A paste that wrote only --brand would land a
+  // ruling the board is not showing.
   return [
     head,
     ":root,",
     ".surface-paper {",
     `  --brand: ${accent.light};`,
     `  --brand-foreground: ${accent.lightForeground};`,
+    `  --ring: ${accent.light};`,
     "}",
     "",
     ".dark {",
     `  --brand: ${accent.dark};`,
     `  --brand-foreground: ${accent.darkForeground};`,
+    `  --ring: ${accent.dark};`,
     "}",
     "",
     "/* the slab neutralises --brand today; the accent has to reach it */",
     ".surface-ink {",
     `  --brand: ${accent.dark};`,
     `  --brand-foreground: ${accent.darkForeground};`,
+    `  --ring: ${accent.dark};`,
     "}",
   ].join("\n");
 }
@@ -1777,13 +2105,13 @@ export function applyLabel(
         `${pair.dark.label.toLowerCase()} dark`,
         `${pair.light.label.toLowerCase()} light`,
       ];
-  if (opts.accent.id !== "ink") {
-    parts.push(
-      opts.reach === "all"
+  parts.push(
+    opts.accent.id === "ink"
+      ? "no accent"
+      : opts.reach === "all"
         ? opts.accent.label.toLowerCase()
         : `${opts.accent.label.toLowerCase()} on ${opts.reach}`,
-    );
-  }
+  );
   if (opts.matRegister) parts.push("the mat as a register");
   if (opts.faintOnDimmed) parts.push("faint on the dimmed sites");
   return `palette: ${parts.join(", ")}`;

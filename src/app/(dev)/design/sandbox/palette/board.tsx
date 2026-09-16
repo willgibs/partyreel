@@ -44,11 +44,11 @@ import {
   lOf,
   MAT_USES,
   pairStyle,
-  REACHES,
   resolvePair,
   RING_USES,
   stageGround,
   tokenBlock,
+  type AccentMode,
   type BoardGround,
   type CardMode,
   type Pair,
@@ -108,14 +108,19 @@ function read(state: BoardState) {
   const reach = (state.reach ?? "all") as ReachId;
   const cardMode = (state.card ?? "declared") as CardMode;
   const faint = (state.faint ?? "in") === "in";
+  // ★ THE ACCENT IS A PAGE-WIDE SWITCH AND IT IS OFF BY DEFAULT (Will,
+  // 2026-09-16). Off resolves to `ink`, which is the alias that ships, so every
+  // renderer, the label and the paste all get the achromatic answer from this
+  // one line and nothing downstream has to know the switch exists.
+  const accentMode = (state.accent ?? "none") as AccentMode;
 
-  const picked = resolvePalette(paletteId);
+  const picked = resolvePalette(paletteId, accentMode);
   const pair = resolvePair(picked.pair, cardMode, faint);
   // The two the wipe joins, from the catalog's own A and B controls. The kit
   // resolves them again for the Compare itself; these are here so the labels
   // and the printed lightnesses above the canvas name the same two.
-  const a = resolvePalette(state["compare-a"] ?? "today");
-  const b = resolvePalette(state["compare-b"] ?? "ember");
+  const a = resolvePalette(state["compare-a"] ?? "ladder", accentMode);
+  const b = resolvePalette(state["compare-b"] ?? "graphite", accentMode);
 
   const opts = {
     accent: picked.accent,
@@ -128,6 +133,9 @@ function read(state: BoardState) {
     desktop: mode === "desktop",
     def: picked.def,
     accent: picked.accent,
+    declared: picked.declared,
+    accentMode,
+    accentOn: accentMode === "own",
     reach,
     cardMode,
     faint,
@@ -200,9 +208,7 @@ function steps(
   };
   return `${tone === "dark" ? "room" : "paper"} ${at("--background")}, ${
     tone === "dark" ? "panel" : "mat"
-  } ${at("--muted")}, card ${at("--card")}, menu ${at("--popover")}, hover ${at(
-    "--secondary",
-  )}`;
+  } ${at("--muted")}, card ${at("--card")}, menu ${at("--popover")}`;
 }
 
 /**
@@ -296,7 +302,7 @@ export function PaletteBoard() {
               block={{
                 label: s.label,
                 css: s.css,
-                what: `Hands the whole site ${s.def.name}, its accent and the three remaining calls.`,
+                what: `Hands the whole site ${s.def.name} and every answer above.`,
                 pages: "the home arc, pricing, help, contact, the dashboard",
               }}
             />
@@ -328,16 +334,13 @@ export function PaletteBoard() {
                       id={candidate.id}
                       cardMode={cardMode}
                       faint={s.faint}
+                      accentMode={s.accentMode}
                     />
                   )}
                 />
                 <CellLabel className="max-w-2xl">
-                  {inWords(PALETTE.candidates.length)} palettes. Pick drives the
-                  whole page, so every section below, the real pages and the
-                  paste wear the card you press; A and B set the wipe under
-                  this. Rule each one keep, refine or kill in its own row, and
-                  open a menu on any card to see a real floating surface painted
-                  by that palette.
+                  Pick drives the whole page, A and B the wipe under it, Accent
+                  the hue each card declares.
                 </CellLabel>
               </>
             );
@@ -415,36 +418,39 @@ export function PaletteBoard() {
                     />
                   </Knob>
                   <CellLabel className="mt-0">
-                    {`This one stays beside its specimen: it changes this wall and nothing else. A hue ruling is two token values reaching ${BRAND_HITS} utilities in ${BRAND_FILES} files.`}
+                    {`An accent is two token values reaching ${BRAND_HITS} utilities in ${BRAND_FILES} files.`}
                   </CellLabel>
                 </div>
                 <div className="rounded-lg border border-border bg-card px-4 py-3">
-                  <p className="text-sm font-semibold">{accent.name}</p>
-                  <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
-                    {accent.why}
+                  <p className="text-sm font-semibold">
+                    {s.def.name} declares {s.declared.name}
+                    <span className="ml-2 font-normal text-muted-foreground">
+                      {s.accentOn ? "worn" : "not worn"}
+                    </span>
                   </p>
                   <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
-                    The risk: {accent.risk}
-                  </p>
-                  <p className="mt-1.5 max-w-3xl text-xs text-muted-foreground">
-                    <span className="text-foreground">The reach:</span>{" "}
-                    {REACHES.find((r) => r.id === reach)?.note}
+                    {s.def.pairs}
                   </p>
                 </div>
                 <Labeled
-                  name={`${accentGround === "cinema" ? "the room" : "the paper"} · ${s.def.name}'s accent on its three jobs · reach: ${reach}`}
-                  note="A job outside the ruled reach renders on near-black, which is what the ruling lands. All four hues are here so the picked one is judged against the ones it beat."
+                  name={`${accentGround === "cinema" ? "the room" : "the paper"} · none beside ${s.def.name}'s own · reach: ${reach}`}
+                  note="Every job twice: the achromatic site left, the declared hue right. A job outside the reach renders on near-black."
                 >
                   <PairStage
                     pair={pair}
                     ground={accentGround}
                     mode={mode}
-                    height={h(1480, 1800)}
+                    // Measured, not guessed: the wall's own content height at
+                    // each canvas, plus a hair. A Stage clips, and round seven
+                    // added a row while it was removing two columns.
+                    height={h(1740, 2180)}
                   >
                     <AccentWall
                       mode={mode}
                       dark={accentGround === "cinema"}
+                      accent={s.declared}
                       reach={reach}
+                      on={s.accentOn}
                     />
                   </PairStage>
                 </Labeled>
@@ -452,7 +458,7 @@ export function PaletteBoard() {
                 {/* 2. The card over a photograph. */}
                 <Labeled
                   name={`over a photograph, the room · ${s.def.name} · card ${cardMode}`}
-                  note={`Left: the card as this palette declares it, under the card switch. Right: today's 62 percent, fixed, so the difference is a look and not a footnote. The ring is the elevation system nobody wrote down, measured: ring-foreground/5 at ${RING_USES.faint} sites, ring-white/70 at ${RING_USES.onMedia} on media.`}
+                  note={`Left: as this palette declares it. Right: today's 62 percent, fixed. The ring is the elevation nobody wrote down, at ${RING_USES.faint} sites and ${RING_USES.onMedia} on media.`}
                 >
                   <PairStage
                     pair={pair}
@@ -496,7 +502,7 @@ export function PaletteBoard() {
                   {FAINT_ALPHAS.map(
                     (a) => `${a.alpha} percent x${a.uses}`,
                   ).join(", ")}
-                  {` = ${FAINT_USES} sites dimming the second step by hand, ${FAINT_ALPHAS[3].uses} of them at exactly the 70 percent the third colour is.`}
+                  {` = ${FAINT_USES} sites dimming by hand.`}
                 </CellLabel>
               </>
             );
@@ -537,10 +543,10 @@ export function PaletteBoard() {
                   </button>
                 </div>
                 <CellLabel className="mt-0 max-w-2xl">
-                  These three change this section only, so they stay beside it.
-                  A link clicked inside a frame navigates that frame; Reload
-                  brings it back.
+                  These three change this section only. A link clicked inside a
+                  frame navigates that frame; Reload brings it back.
                 </CellLabel>
+
                 <CellLabel className="mt-0 max-w-2xl">{page.note}</CellLabel>
                 <SiteFrames
                   page={page}
@@ -559,7 +565,7 @@ export function PaletteBoard() {
               <>
                 <Labeled
                   name={`an event, the room · ${s.def.name}`}
-                  note="The header, the stat band, the config chips, the command strip on the panel, the review queue and the grid: four crushed dark surfaces at once."
+                  note="The header, the stat band, the chips, the command strip, the review queue and the grid: four crushed dark surfaces at once."
                 >
                   <PairStage
                     pair={pair}
@@ -582,7 +588,7 @@ export function PaletteBoard() {
                 </Labeled>
                 <Labeled
                   name={`the dashboard, the room · ${s.def.name}`}
-                  note="The real filter chips, the storage track, the event cards, and a panel inside a card."
+                  note="The filter chips, the storage track, the event cards, and a panel inside a card."
                 >
                   <PairStage
                     pair={pair}
@@ -605,7 +611,7 @@ export function PaletteBoard() {
                 </Labeled>
                 <Labeled
                   name={`the guest album, the paper · ${s.def.name}`}
-                  note="The well is identical in both modes by design, so the only thing that moves between these two is the chrome around it."
+                  note="The well is identical in both modes, so only the chrome around it moves between these two."
                 >
                   <PairStage
                     pair={pair}
@@ -640,7 +646,7 @@ export function PaletteBoard() {
                   block={{
                     label: s.label,
                     css: s.css,
-                    what: `Hands the site ${s.def.name}, its accent, and the three remaining calls.`,
+                    what: `Hands the site ${s.def.name} and every answer above.`,
                     pages:
                       "the home arc, pricing, help, contact, the dashboard",
                   }}
@@ -648,10 +654,7 @@ export function PaletteBoard() {
                 <WalkPages pages={WALK_PAGES} />
                 <CellLabel className="max-w-2xl">
                   {inWords(WALK_PAGES.length)} links, each opening with the
-                  block standing. It persists in this browser until Clear, and
-                  the tuner panel on any of those pages clears it too. The event
-                  page needs the signed-in host, so the walk goes to the
-                  dashboard and the event is one click on.
+                  block standing, until Clear.
                 </CellLabel>
                 {/* The RESOLVED palette, which is the point: the sets, the card
                     call and the third text step are all already in `pair`, so
@@ -671,26 +674,19 @@ export function PaletteBoard() {
                       <span className="text-foreground">
                         --color-faint: var(--faint);
                       </span>{" "}
-                      in its @theme inline block before a text-faint utility
-                      exists. The board reaches the token with an arbitrary
-                      value, so nothing here depends on that line landing first.
+                      before a text-faint utility exists.
                     </li>
                   ) : (
                     <li>
-                      The third text colour is ruled OUT, so the block above
-                      declares no{" "}
-                      <span className="text-foreground">--faint</span> anywhere
-                      and theme.css needs nothing: the {FAINT_USES} sites keep
-                      fading the second step by hand.
+                      Ruled OUT, so the block declares no{" "}
+                      <span className="text-foreground">--faint</span> and the{" "}
+                      {FAINT_USES} sites keep fading by hand.
                     </li>
                   )}
                   <li>
                     <span className="text-foreground">.surface-mat</span> is a
-                    new class. The token block lands with the paste; the{" "}
-                    {MAT_USES} sites that write bg-muted/N today become sections
-                    that carry the class, which is a mechanical follow-up rather
-                    than part of this ruling. Every palette but Today rules it
-                    in, and the walk emulates it with one rule.
+                    new class, and the {MAT_USES} sites writing bg-muted/N
+                    become sections that carry it.
                   </li>
                 </ul>
                 <RealFloating

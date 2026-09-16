@@ -55,25 +55,25 @@ export const SITE_PAGES: SitePage[] = [
     id: "home",
     label: "Home",
     path: "/",
-    note: "The whole arc in one scroll: the cinema room, the paper body, the plan band and the footer slab. The seam where the paper ends and the slab begins is the one place the model's dark half is visible as a fact rather than as a claim, and the mark at the bottom carries the accent only if the slab declares it.",
+    note: "The whole arc in one scroll, and the seam where the paper ends and the footer slab begins.",
   },
   {
     id: "pricing",
     label: "Pricing",
     path: "/pricing",
-    note: "The densest cards in the product, on the page and then on the panel, plus the comparison table. If a set has no real card step, this is where it shows: a card only its hairline above the page reads as a ruled box rather than as a card.",
+    note: "The densest cards in the product. A page with no real card step shows it here first.",
   },
   {
     id: "help",
     label: "Help",
     path: "/help",
-    note: "A wall of one card, plus the facts band, which is the set-apart ground under its own name. A base that is wrong shows first where the same surface repeats twenty times.",
+    note: "A wall of one card, plus the facts band: the same surface repeated twenty times.",
   },
   {
     id: "contact",
     label: "Contact",
     path: "/contact",
-    note: "The fifth ground of the model: the card's bg-muted/40 panel, the one surface nobody had named, which is what the mat is named for. Take it with the mat switch on and then off.",
+    note: "The fifth ground: the panel nobody had named, which is what the mat is named for.",
   },
   ...(DEMO_QR_TOKEN
     ? [
@@ -81,7 +81,7 @@ export const SITE_PAGES: SitePage[] = [
           id: "guest" as const,
           label: "The guest album",
           path: `/e/${DEMO_QR_TOKEN}`,
-          note: "The live demo album, logged out, exactly as a guest gets it: the masonry on the well, which is the model's one register that belongs to neither mode. The surface every guest sees, and the only one that is the host's event rather than ours.",
+          note: "The demo album, logged out, as a guest gets it: the masonry on the well.",
         },
       ]
     : []),
