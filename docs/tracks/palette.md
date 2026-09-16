@@ -1,6 +1,6 @@
 ---
 track: palette
-status: open
+status: handed-off
 cut: "02c409b4"        # the stepped review round (2026-09-16): the palette board reshaped for it
 board: palette
 owns:
@@ -97,11 +97,21 @@ never `[preview]` or `[ci]`; stage files explicitly; the `Co-Authored-By: Claude
    (`css-source-policy.test.ts` pins that split). **Taken: the accurate pair**, "the grey ramp and every
    surface token in globals.css and marketing.css". A `lands` line naming the wrong file is a lie to the
    reviewer at the exact moment he is deciding.
-4. **The reading budget could not be measured on the stepped surface yet.** Declared 1,950, from 3,078
-   measured on the old card minus the 1,138 words `lab-flow` deletes (the answer block's ask pills 593, the
-   index 187, the review panel 243, the sections' Rule-on rows 115), all four counted live on :3123.
-   **To re-measure and correct at the merge** before the handoff; if the meta panel folding closed in
-   browse mode takes the twelve rationales with it, it lands nearer 1,600.
+4. **What reading budget should the board declare?** It could only be estimated before the step surface
+   merged (1,865, from 3,078 on the old card minus the 1,138 words the flow deletes). Measured on the
+   merged tree it is **1,191 against the standard 1,200**, so **taken: no declaration at all.** The last
+   hundred words came out of duplication rather than evidence: a second "Apply to the site" the sticky dock
+   already carries, a bullet list saying what the section's own wiring fold says, sixteen lightnesses in a
+   caption under a picture, and a verdict repeating the winner ask's argument. The headroom is nine words,
+   which is the honest state to leave it in: a board that does not need the escape hatch should not claim
+   one, and the next sentence above the fold has to replace one.
+5. **Is a tile a window or a thumbnail?** The kit draws one as the board's section inside a 1440 canvas,
+   zoom-fitted to the tile's width, then clipped at `--lab-tile-h`, so the default 240px minimum is five
+   columns at a 0.17 scale and a dashboard at 0.17 is a smudge. **Taken: `--lab-tile-min: 430px` and
+   `--lab-tile-h: 320px` on the board root**, which is three columns at 0.32 with nothing cropped, so every
+   option of every ask on this board lands in ONE row. The three ask specimens also stopped capping
+   themselves at `max-w-2xl`, which was leaving half of every tile empty, and cap their MEDIA instead so a
+   1440 canvas does not turn a 4:3 photograph into a 500px-tall tile.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -122,14 +132,68 @@ be a conflict); the Orchestrator regenerated it at `627ca513`, which is merged i
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` green for this board, its reading words
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The steps, one line each: `<ask>: decides <lands>; tiles | means-only; after <...>`
-- The cards, one line each: `<id>: lands as <...>`
-- Assets requested from Will: none, or one per line
-- Look at first: ...
+- Head is this manifest's own commit, the tip of `lp/palette`; the last code commit is `e75bc0de`. Pushed;
+  synced with `launch-prep` at `2b9e38d0` (merged four times, never rebased: the hero's round six, the
+  library artifact, the stepped review itself at `c18570c4`, and the type-scale cut).
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 6 warnings are pre-existing files outside
+  this lane), test ok (2,165), build ok (258 pages); `pnpm lab:smoke --base http://localhost:3123` ok (257
+  checks, 0 route failures; the 2 budget failures are the two glow boards, which fail on purpose).
+  **The board reads 1,191 words against the standard 1,200 and declares no budget at all**, from round
+  seven's 2,924 against a declared 2,950.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is 10 files, every one under an owned path
+  plus this manifest. No exceptions.
+- The steps, one line each:
+  - `palette` (the winner): decides the grey ramp and every surface token in globals.css and marketing.css;
+    tiles are the twelve catalog cards themselves plus "None of these"; strip `canvas` + `accent`; the
+    stage is the real product. A press shows, a second press records, "None of these" clears the pick,
+    which is the right preview of none. Verified all three live.
+  - `accent`: decides whether `--brand` stays the alias for `--primary`; two tiles, the dashboard with the
+    hue off and on, mirrored on the `accent` control.
+  - `card`: decides `--card` in `.dark`; three tiles, one card over one photograph, the resolved value
+    printed on the specimen. For a cool palette two of the three ARE the same pixels (the palette's own
+    value is already opaque) and on Today it is the other pair that match; the printed value is what makes
+    that read as an answer.
+  - `faint`: decides a new `--faint`; two tiles, one text block across the page, a card and the panel.
+  - `reach`: decides which `--brand` call sites keep the hue; three tiles on the same dashboard;
+    `after: { ask: "accent", option: "own" }`. Verified both ways live: with `accent=own` held, Next from
+    the accent step lands on it and the walk goes 41 to 42; with `accent=none` held, Next skips to `card`
+    and the walk stays 41.
+- The cards, one line each (`lands`): `today` no line changes · `ladder` the new rhythm with no hue, which
+  rules the cool out by ruling · `ember` a warm 0.120 room under a true grey page · `onyx` a near-black
+  0.075 room at half Apple's tint · `graphite` a 0.105 room, a 0.995 page, their greys between ·
+  `steel` the same shape at twice their tint · `pitch` a true black 0.030 room · `mist` a 0.963 cool page
+  with a white card lifting 0.037 · `slate` their grey hue at a third of their chroma · `reel` Slate's room
+  on the paper page with the reel's violet · `studio` one room derived as veils of the ink · `dusk` the
+  dark side only.
+- Assets requested from Will: **one, already logged.** The four hard cases inside the media kit's shot list
+  (ASSETS row 7 names all four). Round seven's portrait pair is WITHDRAWN: the guest masonry was a
+  composition with hand-set tile ratios and the board now loads the demo event's own public route, which
+  shows real media at its real ratios.
+- Two findings on the merged kit, neither mine to fix:
+  1. **`Candidate.lands` never draws on a pick-one gallery.** `catalog.tsx:271` guards it with `solo`, so
+     the twelve lines this round wrote are declared, validated by `registers.test.ts` and invisible on the
+     one catalog shape that is decided by a single pick, which is where "what would winning change" is
+     most worth reading. One line in `catalog.tsx` would draw it on the ringed card.
+  2. **The spine miscounts a blocked step opened by URL.** `/design/lab/palette?session=palette.reach` with
+     no `accent=own` held reads "step 42 of 41": the staged step is out of the total but numbered past it.
+     Walking with Back and Next is correct in both directions.
+- Look at first: `/design/lab/palette?key=...&session=palette.reach&accent=own&palette=graphite`. Three
+  tiles, one row, the same dashboard: the mark, the badge, the button, the live dot, the wizard pips and
+  the marketing frame are lit or near-black by the option, and pressing the next tile FADES the hue in and
+  out over 200ms rather than cutting, so what the ruling moves is what you see move. Then
+  `?session=palette.palette`: press Graphite once (the dashboard under the tiles re-skins, nothing
+  recorded), press it again (the ring, and "Copy so far" counts it), then press "None of these" (the ring
+  clears and the pick control is dropped from the URL).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-16). Round eight reshaped the palette catalog into a stepped
+review without adding a palette or an argument: the twelve became one pick (`mode: "pick-one"`, the
+`palette` winner ask mirroring the pick control with "None of these" as the new-directions exit) over a
+stage that shows the real product, and the four remaining questions became tile steps with every option
+drawn on ONE specimen. The accent wall of six job rows became one dashboard carrying all three of the
+accent's jobs, the card question became one card over one photograph with its resolved `--card` printed,
+the third text step became one block across three grounds, and the reach waits on `accent=own`. The four
+one-question switches left the dock for their own option states; the app section folded into the real
+pages, taking `GuestAlbum` with it. The board reads 1,191 words against the standard 1,200 and declares no
+budget at all, down from 2,924 against a declared 2,950.
