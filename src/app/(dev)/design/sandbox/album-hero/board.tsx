@@ -13,6 +13,7 @@ import {
   Stage,
   useReplay,
 } from "@/components/lab";
+import { optionId, optionLabel } from "@/components/lab/board-spec";
 import { ALBUM_FAQ } from "@/components/marketing/sections/features/album/album-faq";
 import { AttributionSection } from "@/components/marketing/sections/features/album/attribution-section";
 import { EverywhereSection } from "@/components/marketing/sections/features/album/everywhere-section";
@@ -93,21 +94,36 @@ export function AlbumHeroBoard() {
         const mode = state.canvas as Mode;
         const step = state.step as Step;
         const phone = mode === "phone";
+        // The width ask's own option, straight off the switch that mirrors it.
+        const width = state.columns === "both" ? "both" : "ship";
         // What the candidate's responsive rule RESOLVES TO on this canvas. The
         // shipped component is two columns everywhere; the candidate is two on
         // a phone and four on a laptop, so at 375 the switch is deliberately a
         // no-op, and the caption says so rather than leaving a stranger to
         // wonder whether the control is broken.
-        const cols = state.columns === "wide" ? (phone ? 2 : 4) : 2;
+        const cols = width === "both" ? (phone ? 2 : 4) : 2;
 
         switch (id) {
           case "hero":
             return <HeroReading mode={mode} step={step} runId={runId} />;
           case "album":
-            return <AlbumReading mode={mode} cols={cols} runId={runId} />;
+            return (
+              <AlbumReading
+                mode={mode}
+                width={width}
+                cols={cols}
+                runId={runId}
+              />
+            );
           case "page":
             return (
-              <PageReading mode={mode} step={step} cols={cols} runId={runId} />
+              <PageReading
+                mode={mode}
+                step={step}
+                width={width}
+                cols={cols}
+                runId={runId}
+              />
             );
           default:
             return null;
@@ -119,6 +135,20 @@ export function AlbumHeroBoard() {
 
 /** The canvas, in the words a caption uses. */
 const canvasLabel = (mode: Mode) => (mode === "phone" ? "375" : "1440");
+
+/**
+ * ★ THE EVIDENCE CARRIES THE OPTION'S OWN NAME (the clarity round, 2026-09-15).
+ * Will's first review could not map an ask's options onto the specimens in
+ * front of him, so every caption on this board says which option it is showing,
+ * in the ask's words. It is READ OFF THE SPEC rather than retyped, so a caption
+ * and the ask a reviewer answers can never drift into two vocabularies; the
+ * light board's `cueLabel` is the same rule spelled by hand.
+ */
+function optionWords(askId: string, id: string): string {
+  const ask = ALBUM_HERO.asks.find((a) => a.id === askId);
+  const option = ask?.options.find((o) => optionId(o) === id);
+  return option ? optionLabel(option) : id;
+}
 
 /**
  * 1 · THE HERO. A real viewport on the cinema ground, remounted by the canvas,
@@ -137,8 +167,11 @@ function HeroReading({
   const density = FIELD_DENSITY[mode];
   return (
     <Labeled
-      name={`${canvasLabel(mode)}, headline ${step}`}
-      note={`${density.cards} frames over a ${FIELD_FLIGHT_S} s flight, ${density.onScreen} on screen at any moment, every one a photograph. The type sits in a keep-out no frame enters, so the media stays at 100 percent and nothing is dimmed.`}
+      /* Three asks are judged here (the headline, the hero's words, the
+         no-script paint), so the caption names the option each one is showing
+         in that ask's own words rather than in the board's nicknames. */
+      name={`${canvasLabel(mode)} · Headline: ${optionWords("headline", step)}`}
+      note={`${density.cards} frames over a ${FIELD_FLIGHT_S} s flight, ${density.onScreen} on screen at any moment, every one a photograph. The type sits in a space no frame enters, so the media stays at 100 percent and nothing is dimmed. The words over the field are the live page's own words, unchanged. With Reduce Motion on, this paints the album spread out and still, which is what a reader with no JavaScript would get under the other no-script option.`}
     >
       <Stage
         key={`hero-${mode}-${step}-${runId}`}
@@ -158,21 +191,27 @@ function HeroReading({
  */
 function AlbumReading({
   mode,
+  width,
   cols,
   runId,
 }: {
   mode: Mode;
+  /** The width ask's option this specimen is showing. */
+  width: "ship" | "both";
   cols: number;
   runId: number;
 }) {
   const phone = mode === "phone";
   return (
     <Labeled
-      name={`The shipped album at ${cols} columns`}
+      /* Two asks are judged here (the width and the album's live signal), so
+         the caption names the width option in the ask's own words and the note
+         names the live one. */
+      name={`${optionWords("width", width)} · the album at ${cols} columns`}
       note={
         phone
-          ? "Two columns at 375 under either switch, which is what the candidate's responsive rule resolves to on a phone. Its only motion is the product's own entrance and one 6 px status dot."
-          : "The frame is 1154 px, about what the widened laptop cap would give, and not the 632 px the guest page ships at every viewport. Its only motion is the product's own entrance and one 6 px status dot."
+          ? "Two columns at 375 under either switch, which is what the candidate's responsive rule resolves to on a phone. Its only live signal is the green dot, as it ships, beside the words Live now."
+          : "The frame is 1154 px, about what the widened laptop page would give, and not the 632 px the guest page ships at every screen size. Its only live signal is the green dot, as it ships, beside the words Live now."
       }
     >
       <FitStage
@@ -199,17 +238,19 @@ function AlbumReading({
 function PageReading({
   mode,
   step,
+  width,
   cols,
   runId,
 }: {
   mode: Mode;
   step: Step;
+  width: "ship" | "both";
   cols: number;
   runId: number;
 }) {
   return (
     <Labeled
-      name={`${canvasLabel(mode)}, headline ${step}, album at ${cols}`}
+      name={`${canvasLabel(mode)} · Headline: ${optionWords("headline", step)} · Album: ${optionWords("width", width)}`}
       note="Hero, album, then every section the route ships, in its shipped order, down to the closing band. The stage measures its own content, so no section is ever clipped in half."
     >
       <FitStage

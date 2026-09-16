@@ -1,13 +1,28 @@
 import { defineBoard } from "@/components/lab/board-spec";
 
 /**
- * THE ALBUM PAGE'S HERO, AS DATA (the migration wave, 2026-09-15).
+ * THE ALBUM PAGE'S HERO, AS DATA (the migration wave, 2026-09-15; the asks
+ * rewritten in plain words the same night, the clarity round).
  *
  * Nothing here is new argument. Every ask, candidate, departure and asset is
  * round one's, moved out of `board.tsx`'s `BoardMeta` prop strings so that the
  * template, the desk's queue, the record and the review ledger read ONE list.
- * What changed is where a reviewer meets them: the verdict and the five
- * one-word calls are now the first screen instead of the last.
+ * What changed is where a reviewer meets them: the verdict and the five calls
+ * are now the first screen instead of the last.
+ *
+ * ★ AN ASK CARRIES ITS OWN CONTEXT, and that is what the clarity round bought.
+ * Will's first review through the desk stopped at asks that were labels with
+ * token options ("The headline step: lg | xl"): "when you use very technical
+ * terms or nicknames from spots in these reports, it makes me have to go deep
+ * into the track to gain the relevant context and even begin understanding the
+ * question being asked". So every ask here is a real question, says what the
+ * thing is and where it lives on the site, says where to look, and labels each
+ * option in words with what choosing it would do. The five ask ids and their
+ * ten option ids are UNCHANGED, because the ledger joins on them: `lg`, `xl`,
+ * `both`, `ship`, `pulse`, `arrival`, `lockup`, `settled`, `page`, `voice`.
+ * The nicknames this board used to ask in are glossed or gone: the vent is
+ * "the point in the middle", the lockup is "the page's own words", the
+ * cinema-to-paper cut is "the switch from the dark chapters to the light ones".
  *
  * TWO THINGS ARE SAID HERE THAT ROUND ONE SAID IN TWO PLACES, and both are
  * reconciliations rather than changes. The no-script frame was a question
@@ -18,6 +33,13 @@ import { defineBoard } from "@/components/lab/board-spec";
  * the number that DECIDES it stays in the ask and the working moved to the
  * album section's argument, where a reader who disagrees will look for it.
  *
+ * ★ THE DOCK'S TWO SWITCHES ARE THE ASKS' OWN OPTIONS. `step` mirrors the
+ * headline ask and `columns` mirrors the width ask, so picking an option on the
+ * review card previews it on the board. That needs the two id sets to be EQUAL
+ * (registry.test.ts checks it), which is why the album switch's second position
+ * is `both` and no longer `wide`: a control's ids bend to the ask's, never the
+ * other way round, because the ask's are the ledger's.
+ *
  * Pure data on purpose (registry.test.ts enforces it): the board route is a
  * SERVER page and reads this for its header, so a spec that imported React or
  * the board's sheet would drag a client tree into a server render.
@@ -27,13 +49,13 @@ export const ALBUM_HERO = defineBoard({
   title: "The album page's hero",
 
   question:
-    "The burst's field, killed as the home hero, becomes the live album's hero: emanating for ever, no code, and the product itself wide and calm below it. Is this the top of /features/album?",
+    "Should the album feature page open with a field of photographs flying out from the middle for ever, and the real live album wide and calm below it?",
 
   round: {
     n: 2,
     date: "2026-09-15",
     changed:
-      "The board moved onto the kit's template. The verdict and the five calls are the first screen, the three readings became declared sections with anchors and an executable walk, and the stages are the kit's. No candidate, number or recommendation changed.",
+      "The five asks rewritten in plain words: a real question, what the thing is, where to look, and each option labelled with what choosing it would do. The evidence carries the same words, and the dock's two switches are now the asks' own options. No candidate, number or recommendation changed.",
   },
   history: [
     {
@@ -48,63 +70,147 @@ export const ALBUM_HERO = defineBoard({
 
   verdict: {
     recommendation:
-      "Yes: the field as the album page's hero, looped for ever with the page's own lockup in a quiet zone no frame enters, and the real guest album composed and calm below it.",
+      "Yes: the field of photographs as the hero, looping for ever with the page's own words held clear of every frame, and the real guest album wide and calm below it.",
     because:
-      "An album that is alive is an album things are arriving into, from every direction, with no resolution, and that is the one thing a still picture of a grid cannot say. Splitting the page in two is what keeps both halves readable: the hero is the feeling and carries all of the movement, the album is the product and carries almost none.",
+      "An album that is alive is one that things are arriving into, from every direction, never finishing, and that is the one thing a still picture of a grid cannot say. Splitting the page in two is what keeps both halves readable: the hero is the feeling and carries all of the movement, the album is the product and carries almost none.",
     overrule:
-      "If a field that never resolves disturbs the cinema-to-paper cut a chapter and a half below it, the hero is too loud, and the answer is a slower clock rather than a smaller field.",
+      "If a field that never stops disturbs the page's switch from dark chapters to light ones, a chapter below, the hero is too loud, and the answer is a slower field rather than a smaller one.",
   },
 
   asks: [
     {
       id: "headline",
-      question: "The headline step",
-      options: ["lg", "xl"],
+      question: "How big should the headline over the field be?",
+      context:
+        "The page opens with a small eyebrow, a headline, one sentence and two buttons, over the field of photographs. The site's type ladder offers this page two sizes for that headline: the one the live page ships today, and one step up. The field is drawn around whatever the words occupy, so this choice changes the picture and not only the type.",
+      look: "The Hero section with the Headline switch in the dock set each way. Watch the clear space around the words, and how many photographs still have room to fly past them.",
+      options: [
+        {
+          id: "lg",
+          label: "Today's headline",
+          means:
+            "The page keeps the size it ships; the field keeps the most room to fly in, and the album below stays the loudest thing on the page.",
+        },
+        {
+          id: "xl",
+          label: "One step louder",
+          means:
+            "The headline grows one step, claims about 80 px more clear space in every direction, and the field launches from fewer directions.",
+        },
+      ],
       recommended: "lg",
       because:
-        "The one choice that changes the composition rather than the styling, because the field is re-solved against the lockup the step draws. lg leaves the album the canvas; xl takes about 80 px of quiet zone in every direction, and at 375 that drops a further slice of the compass out of the pool.",
+        "This is the one choice that changes the composition rather than the styling, because the field is redrawn around the words. The louder headline takes about 80 px of clear space in every direction, and on a phone that stops frames flying from more of the directions around the middle.",
       overrule:
-        "If this page's promise should be as loud as the home page's, xl is the louder sentence and the field pays for it in watchable directions.",
+        "If this page should promise as loudly as the home page does, the louder headline is the better sentence, and the field pays for it in frames you can watch.",
       evidence: "hero",
+      state: { canvas: "desktop" },
+      control: "step",
     },
     {
       id: "width",
-      question: "The album's width",
-      options: ["both", "ship"],
+      question: "How wide should the live album be on a laptop?",
+      context:
+        "The live album is the page a guest and the host actually open: one grid of every photo and video. It ships as two columns inside a 632 px column, at every screen size, because it was designed on a phone, so a laptop shows a phone's album down the middle. Widening it is two changes together: more columns, and a wider column for the whole guest page.",
+      look: "The Album section at 1440, with the Album switch in the dock set each way. Count the photographs on screen at once, and see how large a face reads in one tile.",
+      options: [
+        {
+          id: "ship",
+          label: "As it ships",
+          means:
+            "Two columns in a 632 px column at every screen size, about 314 px a tile, which is what a guest opens today.",
+        },
+        {
+          id: "both",
+          label: "Wider: four columns",
+          means:
+            "Four columns on a laptop inside a wider guest page, about 276 px a tile, and roughly twice the photographs in a screenful.",
+        },
+      ],
       recommended: "both",
       because:
-        "The CONTAINER decides the tile before the column count does: the guest page caps its whole column at max-w-2xl with px-5, so the album is 632 px wide at every viewport and columns-2 makes two tiles of about 314 px. The candidate is the column rule AND a wider laptop cap.",
+        "What decides the size of a tile is the column the album sits in, before the number of columns does: the guest page caps that column at 632 px at every screen size. So the candidate is both declarations, the column rule and a wider cap for the laptop.",
       overrule:
-        "The column rule on its own is worse than what ships: it cuts the same 632 px into four tiles of about 156 px. Both declarations, or neither.",
+        "More columns without the wider page is worse than what ships: the same 632 px becomes four tiles of about 156 px. Both changes, or neither.",
       evidence: "album",
+      state: { canvas: "desktop" },
+      control: "columns",
     },
     {
       id: "life",
-      question: "The album's life",
-      options: ["pulse", "arrival"],
+      question: "What should show that the album is filling live?",
+      context:
+        "The album fills while the party is still going, and the page has to say so. Today it says it with one small green dot beside the words Live now, pulsing every two seconds, and nothing else on this half of the page moves at all. The product's real behaviour is a new photograph landing at the top of the grid every few seconds as a guest uploads it.",
+      look: "The Album section, at the top right of the album beside the words Live now. The landing photograph is a proposal and is not built on this board, so judge whether the dot says enough on its own.",
+      options: [
+        {
+          id: "pulse",
+          label: "The green dot, as it ships",
+          means:
+            "The album's only live signal stays the small pulsing dot, and the hero above keeps all of the movement on the page.",
+        },
+        {
+          id: "arrival",
+          label: "A photograph landing at the top",
+          means:
+            "A new tile arrives at the head of the grid every few seconds, which is truer to the product and the thing most likely to fight the hero.",
+        },
+      ],
       recommended: "pulse",
       because:
-        "It ships with one live signal, a 6 px green dot pulsing every 2 s, and nothing else. The product's real behaviour is a new tile landing at the head of the album every few seconds with its green check, which is the truer demonstration and the thing most likely to fight the hero.",
+        "Splitting the page in two is what keeps both halves readable: the hero carries the movement and the album carries almost none. A landing photograph is the truer demonstration, and it is also the one thing likely to compete with the field above it.",
       evidence: "album",
     },
     {
       id: "no-script",
-      question: "The no-script hero",
-      options: ["lockup", "settled"],
+      question: "What should the hero show when the animation cannot run?",
+      context:
+        "Search crawlers, and readers with JavaScript turned off, never get the moving field. They get the headline, the sentence and the buttons on the dark ground and no photographs at all, because every frame starts collapsed at the middle and only the animation opens it out. The alternative paints the album already spread out and still.",
+      look: "Turn Reduce Motion on in your system settings and reload the Hero section: the album standing still around the middle is exactly what the second option would paint for everyone.",
+      options: [
+        {
+          id: "lockup",
+          label: "Words alone, as it is today",
+          means:
+            "A reader with no JavaScript gets the headline, the sentence and the buttons on the dark ground, and no photographs.",
+        },
+        {
+          id: "settled",
+          label: "The album, spread out and still",
+          means:
+            "Everyone's first paint is the album already spread around the middle, which then snaps back to the middle and blooms on every load.",
+        },
+      ],
       recommended: "lockup",
       because:
-        "The collapsed first frame sits inside prefers-reduced-motion: no-preference, which is the DEFAULT match, so a crawler and a reader with JavaScript off get the lockup alone on the cinema ground and no photographs. The reduced-motion reader is the one who gets the album settled and whole.",
+        "Nothing that carries meaning is hidden: the words and the buttons are ordinary markup that never moves, and the photographs are decoration. Painting the album settled for everyone costs a visible snap back to the middle on every load, which is worse to look at rather than better.",
       overrule:
-        "Painting the album settled for everyone costs a snap back to the vent on every load, which is worse to look at rather than better.",
+        "If a page about photographs showing a crawler none at all is not acceptable, the settled album is the answer.",
       evidence: "hero",
     },
     {
       id: "copy",
-      question: "The hero's copy",
-      options: ["page", "voice"],
+      question: "Whose words should the hero say?",
+      context:
+        "The words over the field are the live album page's own, printed exactly as the site says them today: Every photo, from every guest, in one place. A separate exploration, the brand voice board, is rewriting the site's sentences and proposes a new line for this page. This board proposes none of its own, because the field is what it argues.",
+      look: "The Hero section: the eyebrow, the headline and the sentence over the field are the live page's, unchanged. Read them as a visitor arriving from the nav would.",
+      options: [
+        {
+          id: "page",
+          label: "The live page's own words",
+          means:
+            "The hero keeps the page's shipped eyebrow, headline and sentence, and whatever the voice board lands later reaches this hero for free.",
+        },
+        {
+          id: "voice",
+          label: "Hold for the brand voice line",
+          means:
+            "This hero waits for the voice exploration to land a new sentence for the album page, and is judged on that line instead.",
+        },
+      ],
       recommended: "page",
       because:
-        "The hero renders /features/album's shipped eyebrow, h1 and subhead verbatim from feature-pages.ts. Bible 21 leaves every line open and the brand-voice board proposes a new subhead; this board proposes nothing of its own, because the field is the argument and the sentence is the page's.",
+        "The field is this board's argument and the sentence is the page's. Every line on the site is open to a later round, so the voice board's ruling reaches this hero on its own without this board proposing a second version of the same sentence.",
       evidence: "hero",
     },
   ],
@@ -174,7 +280,7 @@ export const ALBUM_HERO = defineBoard({
     {
       id: "hero",
       title: "The hero",
-      lede: "The field alone at a real viewport, looped for ever, with nothing at the centre but the vent the album comes out of and the page's own lockup in a quiet zone no frame ever enters.",
+      lede: "The field alone at a real screen size, looping for ever: photographs are born at a point in the middle and fly out past you, and the page's own words sit in a space no photograph ever enters.",
       argument: [
         "Every frame is born at a point at the centre and radiates around the whole compass AND forward, out of the screen: a near frame grows until it wipes past the edge while a far one stays small and slides out, so the field reads as depth rather than as a scatter. Nothing announces itself and nothing resolves, because a live album does not resolve either.",
         "The quiet zone is the condition the field is DRAWN FROM rather than a hope about the layout: one keep-out box per block of the lockup, measured to its ink, and each card is given, once, the progress after which its own box is permanently clear of every block. That is what lets the media stay at 100 percent with no scrim anywhere on the hero (bible 1). It was re-proved on the running field at all four canvas-and-step combinations: 2965 card instants against the ink, zero overlaps.",
@@ -184,7 +290,7 @@ export const ALBUM_HERO = defineBoard({
     {
       id: "album",
       title: "The live album, wide",
-      lede: "The shipped guest album composed, not drawn: the same masonry, the same tiles, the same lightbox, with the host's own chrome and almost no motion, so it never competes with the hero.",
+      lede: "The real guest album, the shipped component itself rather than a picture of one: the same grid, the same tiles, the host's own name above it, and almost no movement, so it never competes with the hero.",
       argument: [
         "The width arithmetic, measured in the live DOM. GuestMasonry is rendered in exactly ONE place in the product, live-gallery.tsx inside event-experience.tsx, whose container is mx-auto w-full max-w-2xl flex-1 px-5 py-8: 42rem less two 20 px pads is 632 px of content at every viewport, 1440 included. With columns-2 at a 3 px gap that is a tile of about 314 px; three columns would be about 209 px; and the responsive rule on its own would give about 156 px at xl. A laptop cap of max-w-6xl gives 1112 px of content and about 276 px at four columns, which is the figure the ask quotes.",
         "This board's own frame is a different width again, and the stage says so: 1440 less px-16 is 1312, capped at 1180, less the browser frame's padding and its hairline each side, which is 1154 px. Its two-column tile is about 576 px and its four-column tile about 286 px. The stage is therefore a picture of the END STATE, both declarations together, and not of the column rule alone.",
@@ -197,7 +303,7 @@ export const ALBUM_HERO = defineBoard({
     {
       id: "page",
       title: "The page, whole",
-      lede: "The hero, the album, then every section /features/album ships in its shipped order: the one stage where both animations run at once, and the only place the cinema-to-paper cut is judged under a running field.",
+      lede: "The hero, the album, then every section the live page ships, in its order: the only place both animations run at once, and the only place to judge the switch to the light chapters under a moving hero.",
       argument: [
         "The cut is the thing to look at. QualitySection winds the dark chapter down, PaperChapter flips the token subtree light on a hard hairline, and six desk sections run on paper before the close returns to cinema. If the field is too loud, the symptom shows up HERE, a chapter and a half below the hero, and not in the hero alone.",
         "The stage mirrors the route BY HAND and deliberately: a route module is not something to import from a board, because it carries its own metadata and Next owns its module graph. Two things are left out, both of them chrome the layout owns rather than the page: the BreadcrumbJsonLd, which is invisible, and the overlay MarketingHeader, whose sticky position would resolve against the lab page and ride down the board instead of sitting over the hero.",
@@ -216,12 +322,20 @@ export const ALBUM_HERO = defineBoard({
       ],
       default: "desktop",
     },
+    /* ★ THE TWO SWITCHES BELOW WEAR THE ASKS' OWN WORDS, ids included (the
+       clarity round): a reviewer who has just read "Wider: four columns" on the
+       review card has to find that same phrase on the dock, or the pick and the
+       preview are two vocabularies. `columns`' second position used to be
+       `wide`; it is `both` because the width ask's option is `both`, and a
+       control's ids bend to an ask's rather than the other way round. Both
+       labels are kept short on purpose: a two-option Toggle does not wrap, so a
+       long pair would push the dock into a sideways scroll at 375. */
     {
       id: "step",
       label: "Headline",
       options: [
-        { id: "lg", label: "lg" },
-        { id: "xl", label: "xl" },
+        { id: "lg", label: "Today's headline" },
+        { id: "xl", label: "One step louder" },
       ],
       default: "lg",
     },
@@ -229,10 +343,10 @@ export const ALBUM_HERO = defineBoard({
       id: "columns",
       label: "Album",
       options: [
-        { id: "ship", label: "2 columns" },
-        { id: "wide", label: "Responsive" },
+        { id: "ship", label: "As it ships" },
+        { id: "both", label: "Wider: four columns" },
       ],
-      default: "wide",
+      default: "both",
     },
   ],
 
@@ -245,7 +359,7 @@ export const ALBUM_HERO = defineBoard({
     {
       section: "hero",
       state: { step: "xl" },
-      note: "The same field against the louder lockup. This is the ask that changes the composition rather than the styling: the field is re-solved and the corridor beside the vent narrows.",
+      note: "The same field against the louder headline. This is the ask that changes the picture rather than the styling: the field is redrawn, and the clear lane beside the middle narrows.",
     },
     {
       section: "album",
@@ -254,17 +368,17 @@ export const ALBUM_HERO = defineBoard({
     },
     {
       section: "album",
-      state: { columns: "wide" },
-      note: "The candidate: the same component at four columns, in a frame about as wide as the widened cap would give. Roughly twice the photographs in a screenful.",
+      state: { columns: "both" },
+      note: "The candidate: the same component at four columns, in a frame about as wide as the widened page would give. Roughly twice the photographs in a screenful.",
     },
     {
       section: "page",
-      note: "The only stage where both animations run at once. Scroll to the cinema-to-paper cut with the field still flying a chapter and a half above it.",
+      note: "The only stage where both animations run at once. Scroll to the switch from the dark chapters to the light ones with the field still flying a chapter and a half above it.",
     },
     {
       section: "page",
       state: { canvas: "phone" },
-      note: "The hero and the cut at 375. The tail's vertical rhythm is approximate here and the hero and the cut are not; the argument under this section says why.",
+      note: "The hero and the switch to the light chapters at 375. The tail's vertical rhythm is approximate here and the hero and the switch are not; the argument under this section says why.",
     },
   ],
 
