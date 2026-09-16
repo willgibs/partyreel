@@ -5,6 +5,7 @@ import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 import { Callout } from "@/app/(dev)/design/(shell)/_shell/callout";
 import { Markdown } from "@/app/(dev)/design/(shell)/_shell/markdown";
 import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
+import { Pager } from "@/app/(dev)/design/(shell)/_shell/pager";
 import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
 import { Section } from "@/app/(dev)/design/(shell)/_shell/section";
 import { StatRow } from "@/app/(dev)/design/(shell)/_shell/stat-row";
@@ -239,6 +240,10 @@ export default async function LibraryHomePage({
         </div>
         <LibraryIndex rows={rows} />
       </Section>
+      {/* Every other library page ends with prev and next; the front door was
+          the one that did not, while `[` and `]` worked on it anyway (the
+          sweep, 2026-09-16). */}
+      <Pager />
     </Column>
   );
 }

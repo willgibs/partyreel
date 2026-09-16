@@ -143,7 +143,16 @@ function Body({ onClose }: { onClose: () => void }) {
           }}
           placeholder="Search rules, components, boards, docs"
           aria-label="Search"
+          // The field keeps the focus and the arrows move a cursor inside the
+          // list, so a screen reader hears the highlighted row only through
+          // `aria-activedescendant`; without it the list was silent and the
+          // whole palette read as an empty text box (the sweep, 2026-09-16).
+          role="combobox"
+          aria-expanded
           aria-controls="lab-palette-results"
+          aria-activedescendant={
+            count > 0 ? `lab-palette-row-${active}` : undefined
+          }
           className="h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
         {query && (
@@ -164,6 +173,7 @@ function Body({ onClose }: { onClose: () => void }) {
             {START.map((s, i) => (
               <Row
                 key={s.href}
+                at={i}
                 active={active === i}
                 onHover={() => setActive(i)}
                 onPick={() => go(s.href)}
@@ -185,6 +195,7 @@ function Body({ onClose }: { onClose: () => void }) {
                 return (
                   <Row
                     key={entry.key}
+                    at={at}
                     active={active === at}
                     onHover={() => setActive(at)}
                     onPick={() => go(entry.href)}
@@ -240,6 +251,7 @@ function Group({
 }
 
 function Row({
+  at,
   active,
   onHover,
   onPick,
@@ -247,6 +259,8 @@ function Row({
   context,
   tail,
 }: {
+  /** The row's place in the one flat sequence; the field points at it. */
+  at: number;
   active: boolean;
   onHover: () => void;
   onPick: () => void;
@@ -258,6 +272,7 @@ function Row({
     <li>
       <button
         type="button"
+        id={`lab-palette-row-${at}`}
         role="option"
         aria-selected={active}
         data-active={active}
