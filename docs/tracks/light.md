@@ -19,7 +19,6 @@ reads:
   - docs/reviews/_window.json
   - docs/design/README.md
   - docs/design/rulings.md
-  - docs/tracks/lab-flow.md
 ---
 
 # lp/light

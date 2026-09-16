@@ -4,21 +4,34 @@ import { boardSpec } from "@/app/(dev)/design/sandbox/registry";
 import { CopyButton } from "@/components/lab/paste";
 import { cn } from "@/lib/utils";
 
-import { composeSoFar } from "./review-message";
+import { composeSoFar, type Transcribed } from "./review-message";
 import { useReviewStore } from "./review-store";
 
 /**
  * COPY WHAT YOU HAVE SO FAR (Will, 2026-09-16). One button, on the review
- * card's spine and on the desk, that composes every held answer, verdict and
+ * step's spine and on the desk, that composes every held answer, verdict and
  * note across every board into the message the Orchestrator transcribes, so a
  * sitting can be pasted in batches at the reviewer's own pace. It never clears
  * anything: the same asks pasted again later simply overwrite in the ledger.
+ *
+ * ★ AND IT OMITS WHAT HAS ALREADY BEEN SENT (the stepped review, 2026-09-16).
+ * The store holds the whole sitting for ever, so the second paste of a batched
+ * review used to re-send the first. `transcribed` is what the ledger already
+ * holds, read on the server from the desk's own rows, and an entry that matches
+ * it choice-and-note is dropped; a changed one rides again.
  */
-export function CopySoFar({ className }: { className?: string }) {
+export function CopySoFar({
+  transcribed,
+  className,
+}: {
+  transcribed?: Transcribed;
+  className?: string;
+}) {
   const store = useReviewStore();
   const { message, answers, items, notes } = composeSoFar(
     store,
     (board) => boardSpec(board)?.round.n,
+    transcribed,
   );
   const held = answers + items + notes;
   if (held === 0) return null;

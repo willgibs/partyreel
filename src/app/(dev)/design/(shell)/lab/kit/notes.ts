@@ -157,12 +157,20 @@ export const KIT_PIECES: readonly KitPiece[] = [
     demo: "notes",
   },
   {
-    name: "ReviewCard, ReviewQuestions",
-    file: "src/components/lab/review-card.tsx",
-    note: "the step being answered, pinned under the dock: an ask in plain words, or a catalog counted as its cards are ruled",
+    name: "Step",
+    file: "src/components/lab/step.tsx",
+    note: "one context and its question alone on the screen: the options as preview tiles on one specimen, the real thing on a stage below, Back and Next",
     reach:
-      "never directly: the route mounts the card when a session names a step on this board, and the template mounts the panel.",
-    demo: "reviewCard",
+      "never directly: the template renders it instead of the board when the route carries a session on this board.",
+    demo: "step",
+  },
+  {
+    name: "BeforeAfter",
+    file: "src/components/lab/before-after.tsx",
+    note: "the same specimen twice, touching: as today, then with the idea, captioned under the judged area",
+    reach:
+      "for a card walked alone, where there is nothing on the screen to compare it to. Pass it to Catalog as `before`.",
+    demo: "beforeAfter",
   },
   {
     name: "useComputedTokens, useLineCount",

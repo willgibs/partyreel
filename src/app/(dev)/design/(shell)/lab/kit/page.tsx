@@ -19,7 +19,8 @@ import {
   LoupeDemo,
   NotesDemo,
   PasteDemo,
-  ReviewCardDemo,
+  BeforeAfterDemo,
+  StepDemo,
   SelectTableDemo,
   SpecimenDemo,
   SpotCompareDemo,
@@ -61,7 +62,8 @@ const DEMOS: Record<string, React.ComponentType> = {
   paste: PasteDemo,
   copy: CopyDemo,
   notes: NotesDemo,
-  reviewCard: ReviewCardDemo,
+  step: StepDemo,
+  beforeAfter: BeforeAfterDemo,
   toggle: ToggleDemo,
 };
 

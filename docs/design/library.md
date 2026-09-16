@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 16 policies · 143 contracts on 24 components · 12 standing boards.**
+**22 laws · 16 policies · 161 contracts on 27 components · 12 standing boards.**
 
 ## What binds you
 
@@ -326,20 +326,23 @@ function. A contract never freezes a look.
 
 Contracted but outside the library's directories:
 
+- `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (8 guards)
+- `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (12 guards)
 - `src/components/lab/apply.tsx` (3 guards)
+- `src/components/lab/before-after.tsx` (11 guards)
 - `src/components/lab/board-page.tsx` (12 guards)
 - `src/components/lab/board-spec.ts` (12 guards)
 - `src/components/lab/board-state.tsx` (5 guards)
-- `src/components/lab/catalog.tsx` (9 guards)
+- `src/components/lab/catalog.tsx` (11 guards)
 - `src/components/lab/compare-two.tsx` (8 guards)
 - `src/components/lab/dock.tsx` (5 guards)
 - `src/components/lab/frame.tsx` (3 guards)
 - `src/components/lab/index.ts` (3 guards)
 - `src/components/lab/item-verdict.tsx` (7 guards)
 - `src/components/lab/lab-chrome.tsx` (6 guards)
-- `src/components/lab/review-card.tsx` (19 guards)
 - `src/components/lab/specimen.tsx` (5 guards)
+- `src/components/lab/step.tsx` (18 guards)
 - `src/components/marketing/chrome/marketing-footer.tsx` (5 guards)
 - `src/components/marketing/legal/legal-document.tsx` (3 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
@@ -351,7 +354,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
-| `home-hero` | marketing | Round four: the source in its emanating direction and the scan with its phone, both loved; the inflow, the album streaming into the code rather than out of it, built to answer honestly whether the truer reading presents as well |
+| `home-hero` | marketing | Round six: four compositions of the album leaving the code, each the real hero at true size on the ruled lockup with its own Replay and four facts; the pick worn by the real home page below. The board recommends the settle. |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
 | `palette` | shared | Twelve finished palettes as cards, each with its grounds, text steps, accent and state colours plus a real piece of the product in dark beside light; Pick drives the whole page, A and B drive two wipes; three calls left after one is picked |
