@@ -95,7 +95,7 @@ export const DIRECTION_META: Record<Direction, DirectionMeta> = {
   today: {
     label: "Today",
     oneLine:
-      "An anonymous list: no subject, no groups, and Delete the event one row under Download everything.",
+      "An anonymous list: no title, no groups, and Delete the event one row under Download everything.",
     changes: [
       "The baseline, kept on the dock so every comparison has a floor.",
       "Its own miss is measured below: the panel's corner does not nest around its rows.",
@@ -106,9 +106,9 @@ export const DIRECTION_META: Record<Direction, DirectionMeta> = {
   card: {
     label: "Card",
     oneLine:
-      "A subject, labelled sections, an icon rail, state on the right, and the destructive row under its own rule.",
+      "A title, labelled groups, an icon rail, state on the right, and the row you cannot undo under its own rule.",
     changes: [
-      "Anatomy: a header row with the subject of the menu, sections with quiet labels, a 20px icon rail, a trailing column for state or a shortcut, and a footer rail for the destructive row.",
+      "Anatomy: a header row carrying the menu's title, groups with quiet labels, a 20px icon rail, a trailing column for state or a shortcut, and a footer rail for the row you cannot undo.",
       "Material: opaque popover, the hairline ring kept, and the light board's float shadow in light AND in dark, so the object has weight on a photograph.",
       "Radius: the nested rung, so the lit row's corner sits concentric inside the panel's (bible 9).",
       "Motion: 160ms in and 110ms out, a fade plus a 4px travel toward the trigger plus a hair of scale, on the emphasis curve.",
@@ -134,7 +134,7 @@ export const DIRECTION_META: Record<Direction, DirectionMeta> = {
   command: {
     label: "Command",
     oneLine:
-      "The list replaced by a field, with the groups flattened under it and no branch anywhere.",
+      "The list replaced by a field you type into, its groups flattened under it, and no menu opening a second menu.",
     changes: [
       "Model: the submenu is deleted. Everything a nested menu held is flattened into one list with a group label, and typing two letters is how you get to it.",
       "Anatomy: the field IS the header, rows carry a leading icon and a trailing group hint, and a hint rail at the foot says what the keys do.",

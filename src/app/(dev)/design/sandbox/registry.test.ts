@@ -264,9 +264,7 @@ describe("the board registry", () => {
  * ★ THE LIST ONLY SHRINKS. The clarity wave deletes a board's line when its
  * asks are rewritten; a new board is written in plain words from the start.
  */
-const PLAIN: readonly string[] = [
-  "floating-surfaces",
-];
+const PLAIN: readonly string[] = [];
 
 describe("the asks, in plain words", () => {
   it("lists only standing boards as still on the string form", () => {

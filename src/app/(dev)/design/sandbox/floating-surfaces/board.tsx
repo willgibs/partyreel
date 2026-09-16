@@ -31,7 +31,6 @@ import { env } from "@/lib/env";
 import { BIBLE } from "../../rules/bible";
 import {
   contractCss,
-  contractLabel,
   REDUCED_MOTION_CSS,
   rungCss,
   type EntranceRung,
@@ -39,7 +38,16 @@ import {
   type LightRung,
   type RadiusRung,
 } from "./candidates";
-import { RUNGS, WALK, type Ramp, type Scene, type Side } from "./constants";
+import {
+  askOptionLabel,
+  contractName,
+  RAMP_LABEL,
+  RUNGS,
+  WALK,
+  type Ramp,
+  type Scene,
+  type Side,
+} from "./constants";
 import {
   DIRECTION_META,
   directionCss,
@@ -262,7 +270,6 @@ export function FloatingSurfacesBoard() {
       evidence={(id, state) => {
         const direction = state.direction as Direction;
         const ramp = state.ramp as Ramp;
-        const meta = DIRECTION_META[direction];
         const knobs: Knobs = {
           radius: state.radius as RadiusRung | "off",
           entrance: state.entrance as EntranceRung | "off",
@@ -284,7 +291,7 @@ export function FloatingSurfacesBoard() {
                     direction={direction}
                     w={CANVAS.desktop.w}
                     h={CANVAS.desktop.h}
-                    title={`The host's desk, ${meta.label.toLowerCase()}`}
+                    title={`The host's desk: ${askOptionLabel("direction", direction)}`}
                     caption="The header's panel, the event's actions menu and the account menu open together, with the tooltip beside them. Flip the direction on the dock and the whole desk answers."
                   />
                 </FrameRow>
@@ -308,7 +315,11 @@ export function FloatingSurfacesBoard() {
                     // turned a four-way comparison into a three-way one.
                     w={328}
                     h={420}
-                    title={`${DIRECTION_META[d].label}${d === direction ? ", on the dock now" : ""}`}
+                    // The frame is titled with the OPTION a reviewer is
+                    // choosing between, never the nickname: the words on the
+                    // review card and the words over the specimen are one string
+                    // (the clarity round).
+                    title={`${askOptionLabel("direction", d)}${d === direction ? ", on the dock now" : ""}`}
                     caption={DIRECTION_META[d].oneLine}
                   />
                 ))}
@@ -326,8 +337,8 @@ export function FloatingSurfacesBoard() {
                   direction="card"
                   w={680}
                   h={380}
-                  title="Card: the submenu, done properly"
-                  caption="The best version of the tree, and it only exists here because this board wraps it in a portal: shipped, a submenu paints nothing at all."
+                  title={askOptionLabel("submenu", "keep")}
+                  caption="Card's submenu, the best version of the tree. It only exists here because this board wraps it in a portal: shipped, a submenu paints nothing at all."
                 />
                 <Viewport
                   {...shared}
@@ -336,8 +347,8 @@ export function FloatingSurfacesBoard() {
                   direction="command"
                   w={680}
                   h={380}
-                  title="Command: no submenu, two letters typed"
-                  caption="The same three values as a group in the one list. The recommendation takes this idea into card's anatomy."
+                  title={askOptionLabel("submenu", "delete")}
+                  caption="Command, with two letters typed: the same three choices as one labelled group in the single panel. The recommendation takes this idea into card's anatomy."
                 />
               </FrameRow>
             );
@@ -353,7 +364,7 @@ export function FloatingSurfacesBoard() {
                   direction={direction}
                   w={CANVAS.phone.w}
                   h={CANVAS.phone.h}
-                  title={`The host's phone, ${meta.label.toLowerCase()}`}
+                  title={`The host's phone: ${askOptionLabel("direction", direction)}`}
                   caption="Command answers 375 differently on purpose: a field with no keyboard is a bottom sheet with big rows."
                 />
                 <Viewport
@@ -420,7 +431,7 @@ export function FloatingSurfacesBoard() {
                   ground="cinema"
                   w={340}
                   h={420}
-                  title="Glass over the album"
+                  title="Glass over the album's photographs"
                   caption="A room behind the panel, which is the condition the blur is written for."
                 />
                 <Viewport
@@ -431,7 +442,7 @@ export function FloatingSurfacesBoard() {
                   ground="app-light"
                   w={340}
                   h={420}
-                  title="Glass over a flat app ground"
+                  title="Glass over a plain app screen"
                   caption="Nothing to let through, and the GPU still pays for the layer."
                 />
                 <Viewport
@@ -442,7 +453,7 @@ export function FloatingSurfacesBoard() {
                   ground="app-light"
                   w={340}
                   h={420}
-                  title="Card over the same flat ground"
+                  title="Card over the same plain screen"
                   caption="The comparison: what the same surface is worth when the material buys nothing."
                 />
               </FrameRow>
@@ -533,8 +544,11 @@ export function FloatingSurfacesBoard() {
                     rungs={RUNGS.light.map((r) => r.id).filter(Boolean)}
                     w={ladderWidth(RUNGS.light.length)}
                     h={300}
-                    title="The light ladder"
-                    caption={`Over ramp ${ramp}. Flip the ramp on the dock: a floating layer's light in dark is a question about the ground under it.`}
+                    title="No shadow, and a soft shadow"
+                    // Two columns for three options, and the caption says which:
+                    // "ruled here" and "the light board's call" are the same
+                    // pixels and differ only in who rules the line.
+                    caption={`Over ${RAMP_LABEL[ramp]}. Flip the dark greys on the dock: whether a panel needs a shadow depends on what is under it. Both ways of saying yes, ruled here and the light board's call, are this same second column.`}
                   />
                 </FrameRow>
                 <RungApplies dim="light" />
@@ -565,15 +579,11 @@ export function FloatingSurfacesBoard() {
                       rungs={[`flt-e-${e}`]}
                       w={900}
                       h={300}
-                      title={
-                        e === "one-clock"
-                          ? "One clock, rule 15 taken literally"
-                          : "By frequency, rule 12 taken literally"
-                      }
+                      title={askOptionLabel("entrance", e)}
                       caption={
                         e === "one-clock"
-                          ? "The family moves as one: the tooltip, the menu and the dialog on the same beat."
-                          : "The tooltip and the menu land in 90ms; the dialog keeps its own beat."
+                          ? "Rule 15 taken literally. They move as one: the tooltip, the menu and the dialog on the same beat."
+                          : "Rule 12 taken literally. The tooltip and the menu land in 90ms; the dialog keeps its own beat."
                       }
                     />
                   ))}
@@ -591,13 +601,13 @@ export function FloatingSurfacesBoard() {
           case "outliers":
             return (
               <>
-                <Knob label="Outlier">
+                <Knob label="Which surface">
                   <Toggle
-                    ariaLabel="Outlier"
+                    ariaLabel="Which surface"
                     options={[
-                      { id: "select" as Outlier, label: "Select" },
-                      { id: "sheet" as Outlier, label: "Sheet" },
-                      { id: "drawer" as Outlier, label: "Drawer" },
+                      { id: "select" as Outlier, label: "The select" },
+                      { id: "sheet" as Outlier, label: "The edge panel" },
+                      { id: "drawer" as Outlier, label: "The drawer" },
                     ]}
                     value={outlier}
                     onChange={setOutlier}
@@ -622,8 +632,8 @@ export function FloatingSurfacesBoard() {
                     knobs={knobs}
                     w={CANVAS.phone.w}
                     h={outlier === "select" ? 360 : 520}
-                    title="On the knobs in the dock"
-                    caption="The same primitive brought onto the contract you have set."
+                    title="On the switches in the dock"
+                    caption="The same surface brought onto the corner, the entrance and the shadow you have set above."
                   />
                   <Viewport
                     {...shared}
@@ -646,9 +656,9 @@ export function FloatingSurfacesBoard() {
                 <div className="flex flex-col gap-3">
                   <ApplyToSite
                     block={{
-                      label: contractLabel(knobs),
+                      label: contractName(knobs),
                       css: contractCss(knobs, "site"),
-                      what: "The three knobs as the dock has them, as one paste.",
+                      what: "The three switches as the dock has them, as one paste.",
                       pages: WALK_PAGES,
                     }}
                   />
@@ -738,7 +748,7 @@ function DirectionPanel({ direction }: { direction: Direction }) {
     <div className="flex max-w-3xl flex-col gap-2 rounded-xl border border-border bg-card px-4 py-3">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <p className="text-sm font-semibold">
-          The {meta.label.toLowerCase()} direction
+          {askOptionLabel("direction", direction)}
         </p>
         <p className="text-xs text-muted-foreground">{thesis}</p>
       </div>
@@ -777,7 +787,7 @@ function RungApplies({ dim }: { dim: "radius" | "light" | "entrance" }) {
         if (!value) {
           return (
             <p key={r.label} className="text-[11px] text-muted-foreground">
-              <span className="font-medium text-foreground">today: </span>
+              <span className="font-medium text-foreground">{r.label}: </span>
               what ships, so there is nothing to apply.
             </p>
           );
@@ -791,9 +801,9 @@ function RungApplies({ dim }: { dim: "radius" | "light" | "entrance" }) {
           <ApplyToSite
             key={r.label}
             block={{
-              label: contractLabel(knobs),
+              label: contractName(knobs),
               css: contractCss(knobs, "site"),
-              what: `The ${dim} rung "${r.label}", on the real primitives.`,
+              what: `"${r.label}", on the real surfaces.`,
               pages: WALK_PAGES,
             }}
           />
