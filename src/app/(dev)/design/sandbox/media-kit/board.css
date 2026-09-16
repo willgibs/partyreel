@@ -47,3 +47,27 @@
     color-mix(in oklch, var(--foreground) 16%, transparent) 10px
   );
 }
+
+/* ─────────────── THE TILE GEOMETRY THIS BOARD ASKS FOR (round seven)
+
+   A step draws every option as a tile: the board's own evidence section inside
+   a 1440 canvas, zoom-fitted to the tile's width (step.tsx's `FitStage
+   mode="desktop" fit="zoom"`) and then clipped at --lab-tile-h. Two numbers
+   follow, and neither is a taste:
+
+   --lab-tile-min  every ask here offers exactly TWO options, and the kit's 240
+                   gives five columns at 1408: two specimens at 0.17 scale with
+                   three empty columns beside them. 560 gives two, which is
+                   both options of every question in ONE row at 0.4, and the
+                   thing being compared is a 320 by 400 photograph.
+   --lab-tile-h    the crowds and entry specimens are a 400px card plus its
+                   caption and its ground padding, about 500 canvas pixels; the
+                   default 200 would cut every one of them in half.
+
+   Scoped to this board's root: the step renders inside [data-board], so the
+   properties reach .lab-tiles and .lab-tile-view without touching any other
+   board's. */
+[data-board="media-kit"] {
+  --lab-tile-min: 560px;
+  --lab-tile-h: 300px;
+}

@@ -12,12 +12,10 @@ import {
   CANVAS,
   Catalog,
   CellLabel,
-  CompareTwo,
   Frame,
   FrameRow,
   GroundBox,
   Knob,
-  Labeled,
   Toggle,
   WalkPages,
   type BoardSpec,
@@ -27,24 +25,27 @@ import {
 import { Caption } from "@/components/marketing/system/caption";
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 
-import { ContactStrip, firstFrame, ShareCard } from "./preview";
+import { ContactStrip, EntryFacts, SourceSwap } from "./preview";
 import { SOURCES, type SourceCard, type Vertical } from "./sources";
 import { MEDIA_KIT } from "./spec";
 import { EXPOSURE_CSS, swapCoverage, swapCss } from "./swap";
 
 /**
- * THE MEDIA-KIT BOARD (round six, the catalog, 2026-09-16).
+ * THE MEDIA-KIT BOARD (round seven, the stepped review, 2026-09-16).
  *
- * ★ THE ROUND IS A SUBTRACTION AND THE BOARD IS ITS RECEIPT. Round five was
- * eleven sections and 15,004 words, the heaviest board in the lab, and Will's
- * note on the round was that every exploration "feels like a small research
- * paper" where "designing a few variations will always beat a mountain of
- * research text". So the thirteen places are CARDS with their own photographs
- * at the real card size, and the plan table, the blog bridge, the exposure
- * table, the free-licence survey, the gap survey, the six-facts suite and the
- * call sheet are folded, quoted in four facts, or in docs/specs/media-kit.md.
- * Nothing that was found was withdrawn; it is underneath, which is where an
- * argument belongs once there is an answer above it.
+ * ★ THE ROUND RESHAPES ROUND SIX FOR THE WALK AND PROPOSES NOTHING NEW. The
+ * same thirteen places and the same four calls; what changed is that each of
+ * the four now has a specimen of its OWN rather than sharing one 1,298-word
+ * page, and that every card is drawn against the frame it would replace. The
+ * side-by-side section left with its twenty-six compare pills: the one
+ * comparison it existed for (a free conference floor beside a released room)
+ * is the crowds step now, where it is the question rather than a section.
+ *
+ * ★ FIVE SECTIONS, AND FOUR OF THEM ARE ONE STEP'S EVIDENCE. `catalog` is the
+ * gallery the cards are ruled in; `entry` is the rule, drawn; `crowds` is one
+ * conference card from whichever half of the catalog the `faces` switch names;
+ * `bill` is the two lines that sum to the bridge; `pages` is the real routes
+ * wearing the pick. A reviewer meets exactly one of them per question.
  *
  * ★ THE LINE IS DRAWN BY RENDERING THE CATALOG TWICE. `Catalog` maps the
  * board's candidates in one grid, and this board's whole ranking is a line
@@ -70,6 +71,7 @@ import { EXPOSURE_CSS, swapCoverage, swapCss } from "./swap";
 function read(state: BoardState) {
   const mode = (state.canvas ?? "desktop") as Mode;
   const vertical = (state.vertical ?? "weddings") as Vertical;
+  const faces = state.faces ?? "subjects";
   // "none" is nothing picked: the pages below show the site as built, and Apply
   // offers the exposure instead of an answer.
   const pickedId =
@@ -79,6 +81,7 @@ function read(state: BoardState) {
     mode,
     desktop: mode === "desktop",
     vertical,
+    faces,
     picked,
     css: picked ? swapCss(picked.id) : "",
     covers: picked ? swapCoverage(picked.id) : 0,
@@ -95,6 +98,39 @@ const KILLED = MEDIA_KIT.candidates.filter((c) => c.verdict === "kill");
 function half(candidates: BoardSpec["candidates"]): BoardSpec {
   return { ...MEDIA_KIT, candidates };
 }
+
+/**
+ * ★ TWO COLUMNS, BECAUSE THE PAIR HAS TO FIT. A card now draws the frame on the
+ * site today beside the place's own, and at three columns (a 437px content box)
+ * the second plate was 93 pixels wide with the rest behind a horizontal scroll:
+ * the comparison this round exists for, hidden on every card. 660 gives two
+ * columns of about 695 at 1440, whose 671px content box holds 320 + 24 + 320
+ * exactly, so the pair is always whole and the place's SECOND frame is the
+ * thing one nudge of the scroller brings in.
+ */
+const CARD_MIN = 660;
+
+/** How many of a place's frames ride beside today's: the first is the compare. */
+const SWAP_FRAMES = 2;
+
+/**
+ * THE TWO PLACES THE CROWDS QUESTION IS BETWEEN, and the two lines that sum to
+ * the bridge. Ids rather than cards, resolved through the same map everything
+ * else on this board goes through, so a renamed source fails here loudly
+ * instead of drawing a blank.
+ */
+const FREE_CROWD = "websummit-flickr";
+const RELEASED = "unsplash-plus";
+
+/** The bridge, as the two frames it is: the month, and the rooms it misses. */
+const BILL: readonly { id: string; cost: string; vertical?: Vertical }[] = [
+  { id: RELEASED, cost: "$20, the month. Every kind of event but one." },
+  {
+    id: "istock",
+    cost: "$36, three conference rooms at $12 each.",
+    vertical: "corporate",
+  },
+];
 
 /** The real pages a frame can load, and what to read on each. */
 const PAGES = [
@@ -146,27 +182,22 @@ export function MediaKitBoard() {
         const { w, h } = CANVAS[s.mode];
 
         switch (id) {
-          /* ── The places, ranked ─────────────────────────────────────── */
+          /* ── The places ─────────────────────────────────────────────── */
           case "catalog":
             return (
               <>
-                <CellLabel className="max-w-2xl">
-                  Pick drives the whole page; A and B set the comparison under
-                  it; Kind of event is in the dock and every strip follows it.
-                  Rule each place in its own row.
-                </CellLabel>
-
                 <Catalog
                   spec={half(KEPT)}
                   state={state}
                   setState={api.setState}
-                  minWidth={360}
+                  minWidth={CARD_MIN}
                   ground="paper"
                   render={(candidate) => (
-                    <ContactStrip
+                    <SourceSwap
                       source={byId.get(candidate.id)!}
                       vertical={s.vertical}
                       mode={s.mode}
+                      count={SWAP_FRAMES}
                     />
                   )}
                 />
@@ -175,8 +206,7 @@ export function MediaKitBoard() {
                 <div className="flex items-center gap-3 pt-2">
                   <span className="h-px flex-1 bg-destructive/40" />
                   <Caption className="text-[11px] text-destructive">
-                    Below the line: {KILLED.length} places the board would not
-                    use
+                    Below the line: {KILLED.length} the board would not use
                   </Caption>
                   <span className="h-px flex-1 bg-destructive/40" />
                 </div>
@@ -185,54 +215,94 @@ export function MediaKitBoard() {
                   spec={half(KILLED)}
                   state={state}
                   setState={api.setState}
-                  minWidth={360}
+                  minWidth={CARD_MIN}
                   ground="paper"
                   render={(candidate) => (
-                    <ContactStrip
+                    <SourceSwap
                       source={byId.get(candidate.id)!}
                       vertical={s.vertical}
                       mode={s.mode}
+                      count={SWAP_FRAMES}
                     />
                   )}
                 />
               </>
             );
 
-          /* ── Two catalogues, side by side ───────────────────────────── */
-          case "compare":
+          /* ── What an entry would have to say ────────────────────────── */
+          case "entry":
             return (
-              <>
-                <CompareTwo
-                  spec={MEDIA_KIT}
-                  state={state}
-                  cols={s.desktop ? 2 : 1}
-                  differs="The same kind of event, from two catalogues, in the card the blog actually renders."
-                  render={(candidate) => (
-                    <Stack
-                      source={byId.get(candidate.id)!}
-                      vertical={s.vertical}
-                      mode={s.mode}
-                    />
-                  )}
-                />
-                <Labeled
-                  name="the share card, 1200 by 630"
-                  note="Centre-cropped, no ladder: the surface a stranger meets first, in a message from a friend."
-                >
-                  <CompareTwo
-                    spec={MEDIA_KIT}
-                    state={state}
-                    cols={1}
-                    differs="The same two catalogues in the one geometry nothing on the site can tune per frame."
-                    render={(candidate) => (
-                      <Share
-                        source={byId.get(candidate.id)!}
-                        vertical={s.vertical}
-                      />
-                    )}
+              <GroundBox
+                ground="paper"
+                className="rounded-lg p-4 ring-1 ring-foreground/10"
+              >
+                <EntryFacts mode={s.mode} />
+              </GroundBox>
+            );
+
+          /* ── A crowd, or a room that signed ─────────────────────────── */
+          case "crowds": {
+            // The two answers, drawn: the free archive's conference floor, and
+            // the released catalogue's room, in the same three-card row the
+            // blog lays out at 1440. One kind of event, one difference.
+            //
+            // ★ THREE CARDS, NOT ONE, AND THE TILE IS WHY. A step draws each
+            // option inside a 1440 canvas scaled to the tile (step.tsx's
+            // `FitStage mode="desktop" fit="zoom"`), so a lone 320px card fills
+            // a fifth of the canvas and lands as a thumbnail with an acre of
+            // ground beside it. The blog's own row at 1440 is three of them,
+            // which fills the canvas with the real thing rather than padding.
+            const crowd = byId.get(FREE_CROWD)!;
+            const signed = byId.get(RELEASED)!;
+            const shown = s.faces === "all-faces" ? signed : crowd;
+            return (
+              <GroundBox
+                ground="paper"
+                className="rounded-lg p-4 ring-1 ring-foreground/10"
+              >
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <Caption className="text-[11px]">
+                    {s.faces === "all-faces"
+                      ? `${signed.name}: everyone in frame signed.`
+                      : `${crowd.name}: nobody in frame signed.`}
+                  </Caption>
+                  <ContactStrip
+                    source={shown}
+                    vertical={s.vertical}
+                    mode={s.mode}
+                    count={s.desktop ? 3 : 1}
                   />
-                </Labeled>
-              </>
+                </div>
+              </GroundBox>
+            );
+          }
+
+          /* ── What the bridge buys ───────────────────────────────────── */
+          case "bill":
+            return (
+              <GroundBox
+                ground="paper"
+                className="rounded-lg p-4 ring-1 ring-foreground/10"
+              >
+                <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+                  {BILL.map((line) => (
+                    <figure
+                      key={line.id}
+                      className="flex min-w-0 flex-col gap-1.5"
+                    >
+                      <ContactStrip
+                        source={byId.get(line.id)!}
+                        vertical={line.vertical ?? s.vertical}
+                        mode={s.mode}
+                        count={1}
+                      />
+                      <figcaption className="text-[11px] text-muted-foreground">
+                        {line.cost}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </GroundBox>
             );
 
           /* ── The real pages, wearing the pick ───────────────────────── */
@@ -309,60 +379,5 @@ export function MediaKitBoard() {
         }
       }}
     />
-  );
-}
-
-/**
- * One side of the comparison: three of a place's frames as the card the blog
- * renders, on the ground the blog renders it on, at true pixels in a scroller.
- *
- * ★ IT CARRIES NO NAME OF ITS OWN. `CompareTwo` labels each half with the
- * candidate's name already, and the strip prints the kind of event and the
- * size, so a caption here was a third name for one thing, in a second wording
- * lifted from `sources.ts` ("Web Summit's Flickr archive" under a card called
- * "Web Summit"). One name, one home.
- */
-function Stack({
-  source,
-  vertical,
-  mode,
-}: {
-  source: SourceCard;
-  vertical: Vertical;
-  mode: Mode;
-}) {
-  return (
-    <GroundBox
-      ground="paper"
-      className="rounded-lg p-4 ring-1 ring-foreground/10"
-    >
-      <ContactStrip source={source} vertical={vertical} mode={mode} count={3} />
-    </GroundBox>
-  );
-}
-
-/** The other side of the same two, at 1200 by 630 in a scroller of its own. */
-function Share({
-  source,
-  vertical,
-}: {
-  source: SourceCard;
-  vertical: Vertical;
-}) {
-  const frame = firstFrame(source.id, vertical);
-  return (
-    <GroundBox ground="cinema" className="rounded-lg p-4">
-      {frame ? (
-        <div data-lab-bleed className="overflow-x-auto pb-1">
-          <ShareCard frame={frame} />
-        </div>
-      ) : (
-        <div className="grid h-40 place-items-center rounded border border-dashed border-border">
-          <Caption className="text-[11px]">
-            No frames, so there is nothing honest to crop.
-          </Caption>
-        </div>
-      )}
-    </GroundBox>
   );
 }
