@@ -103,7 +103,10 @@ export const RIVER_VISUAL = defineBoard({
       overrule:
         "If the first use should be the hardest slot rather than the strongest, the card slot is that test.",
       evidence: "column",
-      state: { canvas: "desktop", origin: "code", motion: "live" },
+      // The axes this ask turns on, and nothing else: the canvas is the
+      // reviewer's own choice, and pinning it landed a phone reader on a 1440
+      // stage he then had to scroll sideways.
+      state: { origin: "code", motion: "live" },
     },
     {
       id: "code",
@@ -131,7 +134,7 @@ export const RIVER_VISUAL = defineBoard({
       overrule:
         "The guest album is the exception either way: a guest got there by scanning, so that screen takes the plain card.",
       evidence: "bank",
-      state: { origin: "code", canvas: "desktop" },
+      state: { origin: "code" },
     },
     {
       id: "guest-photos",
@@ -191,7 +194,7 @@ export const RIVER_VISUAL = defineBoard({
       because:
         "1.32 is the only number in the visual that is taste rather than arithmetic. It leaves the fall room to straighten before the fade takes it: squarer cuts the straightening, taller keeps the frames small for longer.",
       evidence: "bank",
-      state: { canvas: "desktop", motion: "live" },
+      state: { motion: "live" },
     },
   ],
 
