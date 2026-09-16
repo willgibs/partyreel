@@ -126,7 +126,7 @@ the shape, Aside is a kill on sight and the finding is worth having in writing.
 
 ## Handoff (replaces the chat report)
 
-- Head `a8271695`, pushed; synced with `launch-prep` at `86ccf239` (it had moved 11 commits; merged, gate re-run on the merged tree).
+- The branch is `lp/brand-voice`, pushed: the work is `e1ceac6d`, the sync merge `7994b5a9`, then this manifest. Synced with `launch-prep` at `86ccf239` (it had moved 11 commits; merged, the full gate re-run on the merged tree).
 - Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 pre-existing warnings), test ok (2221), build ok (256 pages). `pnpm lab:smoke --base http://localhost:3105` green for this board on both halves: all 8 `brand-voice` routes 200, **2,642 reading words against the 2,700 the spec declares** (round five weighed 13,024). The one smoke failure on the tree is `/design/lab/proposals/rounding` (404, pre-existing, another lane).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/brand-voice.md` + the five files under `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `frames.tsx`, `spec.ts`, `voices.ts`, new `voices.test.ts`) + this file. No exceptions.
 - **The items, one line each** (the builder's verdict; a kept one lands as the voice `docs/specs/brand-voice.md` is promoted to `docs/systems/brand-voice.md` in, and the `voice-infusion` round sweeps):
