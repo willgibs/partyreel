@@ -178,35 +178,41 @@ export function SpacingSpecimen({
   // than it does on the page it ships on. `GroundBox` also marks its subtree a
   // specimen, which is what keeps it out of the reading budget.
   return (
-    <GroundBox
-      ground="paper"
-      className="overflow-hidden rounded-lg p-4 ring-1 ring-foreground/10"
-    >
-      <TrueScale className="tsc-ladder tsc-spacing">
-        {SPACING_STEPS.map((id) => {
-          const value = today.steps[id];
-          if (!value) return null;
-          const spec = value[end];
-          const optic = optics(spec.px);
-          const ls = law ? optic.ls : FLAT_LS;
-          return (
-            <div key={id} className="tsc-rung">
-              {/* The size and the value it is set at, in the left rail: under
+    // ★ TRUE SCALE OUTSIDE THE GROUND, not inside it. In a tile everything
+    // under the compensation is 1:1, so the paper's own padding, radius and
+    // ring are the sizes they are on a page; the other way round the box would
+    // be drawn at the tile's zoom and the specimen would sit in a 6px margin.
+    <TrueScale>
+      <GroundBox
+        ground="paper"
+        className="overflow-hidden rounded-lg p-4 ring-1 ring-foreground/10"
+      >
+        <div className="tsc-ladder tsc-spacing">
+          {SPACING_STEPS.map((id) => {
+            const value = today.steps[id];
+            if (!value) return null;
+            const spec = value[end];
+            const optic = optics(spec.px);
+            const ls = law ? optic.ls : FLAT_LS;
+            return (
+              <div key={id} className="tsc-rung">
+                {/* The size and the value it is set at, in the left rail: under
                   the word they read as a caption for the row below. */}
-              <span className="tsc-rung-px">
-                {spec.px}
-                <span className="tsc-rung-note">{ls}em</span>
-              </span>
-              <Word
-                step={id}
-                spec={law ? { ...spec, lh: optic.lh } : spec}
-                ls={ls}
-              />
-            </div>
-          );
-        })}
-      </TrueScale>
-    </GroundBox>
+                <span className="tsc-rung-px">
+                  {spec.px}
+                  <span className="tsc-rung-note">{ls}em</span>
+                </span>
+                <Word
+                  step={id}
+                  spec={law ? { ...spec, lh: optic.lh } : spec}
+                  ls={ls}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </GroundBox>
+    </TrueScale>
   );
 }
 
@@ -248,13 +254,20 @@ export function DeadLinkSpecimen({
   const step = ladder.steps.prose ?? ladder.steps.section;
   const spec = onSet && step ? step[end] : SHIPPED[end];
   return (
-    <GroundBox
-      ground="paper"
-      className="overflow-hidden rounded-lg p-6 ring-1 ring-foreground/10"
-    >
-      <TrueScale className="flex justify-center">
+    <TrueScale>
+      <GroundBox
+        ground="paper"
+        className="overflow-hidden rounded-lg p-6 ring-1 ring-foreground/10"
+      >
+        {/* ★ CENTRED WHEN THERE IS ROOM, LEFT-ALIGNED WHEN THERE IS NOT, and
+            never centred by a flex parent. The screen's action row is
+            `sm:flex-row`, and a Tailwind prefix inside the lab reads the
+            BROWSER window rather than this box (stage.tsx's landmine), so its
+            min-content is about 340px whatever the box is. Centred, a 290px
+            tile would clip the title at both ends; left-aligned it clips only
+            where every other specimen on this board clips, at the right. */}
         <div
-          className="tsc-404"
+          className="tsc-404 mx-auto w-[28rem] max-w-full"
           data-on-set={onSet ? "" : undefined}
           style={
             {
@@ -286,7 +299,7 @@ export function DeadLinkSpecimen({
             }
           />
         </div>
-      </TrueScale>
-    </GroundBox>
+      </GroundBox>
+    </TrueScale>
   );
 }

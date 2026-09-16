@@ -60,9 +60,23 @@ export function TrueScale({
       setZoom((z) => (Math.abs(measured - z) > 0.002 ? measured : z));
     };
     read();
+    // ★ THE OBSERVED BOX IS THE DEVICE-PIXEL ONE, AND THE DEFAULT WOULD NEVER
+    // FIRE (measured, 2026-09-16: the compensation silently did nothing). An
+    // ancestor's `zoom` does not change this element's own layout size, so a
+    // plain ResizeObserver hears nothing when a tile's stage resolves its
+    // scale; the device-pixel content box is what actually changes. The
+    // fallback is the ordinary box, for a browser that refuses the option.
     const ro = new ResizeObserver(read);
-    ro.observe(el);
-    return () => ro.disconnect();
+    try {
+      ro.observe(el, { box: "device-pixel-content-box" });
+    } catch {
+      ro.observe(el);
+    }
+    window.addEventListener("resize", read);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", read);
+    };
   }, []);
 
   return (
