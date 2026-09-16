@@ -40,6 +40,10 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // Next's dev indicator sits bottom-left by default, on the lab sidebar's
+  // editor-root control at every width; localhost is the round's review
+  // surface (the lab-sweep track, 2026-09-16).
+  devIndicators: { position: "bottom-right" },
   // `X-Powered-By: Next.js` tells an attacker the framework and narrows their exploit search for
   // free. Nothing reads it.
   poweredByHeader: false,

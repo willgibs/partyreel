@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * THE GUEST ARRIVAL — what a guest meets when they tap the reel card on /e/ (R3, ADR-0022 ruling 2).
+ * THE GUEST ARRIVAL — what a guest meets when they tap the reel card on /e/ (R3, guest-flow.md ruling 2).
  *
  * It is the composite reveal's BACK HALF, deliberately: the host's Create beat earns the full
  * assembly (tiles flying in from their own grid), while a guest has no tiles on screen to fly. So the
@@ -257,7 +257,9 @@ export function GuestReelOverlay({
         signal: controller.signal,
         onProgress: (progress) =>
           setDownload((current) =>
-            current.phase === "encoding" ? { phase: "encoding", progress } : current,
+            current.phase === "encoding"
+              ? { phase: "encoding", progress }
+              : current,
           ),
       });
       if (controller.signal.aborted) return;
@@ -272,7 +274,13 @@ export function GuestReelOverlay({
       abortRef.current = null;
       setDownload({ phase: "idle" });
     }
-  }, [download.phase, payload.orientation, payload.styleId, qrToken, reelProps]);
+  }, [
+    download.phase,
+    payload.orientation,
+    payload.styleId,
+    qrToken,
+    reelProps,
+  ]);
 
   // The screen's footprint: the player caps its own WIDTH but not its height, so a 9:16 canvas would
   // overflow a short window. Cap by the viewport too, in dvh (never vh: mobile browser chrome makes
@@ -362,7 +370,7 @@ export function GuestReelOverlay({
             <p className="text-[9px] font-medium tracking-[0.24em] text-white/70 uppercase">
               The reel
             </p>
-            <p className="font-heading mt-1 text-xl leading-tight text-white">
+            <p className="mt-1 font-heading text-xl leading-tight text-white">
               {eventName}
             </p>
           </div>
@@ -397,7 +405,7 @@ export function GuestReelOverlay({
           <button
             type="button"
             onClick={handleShare}
-            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-action)] bg-white/12 text-sm font-medium text-white backdrop-blur-sm outline-none transition-transform duration-150 ease-emphasis active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:active:scale-100"
+            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-action)] bg-white/12 text-sm font-medium text-white backdrop-blur-sm transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] motion-reduce:active:scale-100"
           >
             <Share2 className="size-4" />
             Share
@@ -406,7 +414,7 @@ export function GuestReelOverlay({
             type="button"
             onClick={handleDownload}
             disabled={download.phase !== "idle"}
-            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-action)] bg-white text-sm font-medium text-zinc-900 outline-none transition-transform duration-150 ease-emphasis active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/70 disabled:opacity-70 motion-reduce:active:scale-100"
+            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-action)] bg-white text-sm font-medium text-zinc-900 transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100"
           >
             <Download className="size-4" />
             {download.phase === "idle" ? "Download" : "Working…"}
@@ -424,7 +432,7 @@ export function GuestReelOverlay({
         type="button"
         onClick={onClose}
         aria-label="Close the reel"
-        className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-3 z-50 flex size-9 items-center justify-center rounded-full bg-white/10 text-white/85 backdrop-blur-sm outline-none transition-transform duration-150 ease-emphasis active:scale-95 focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:active:scale-100"
+        className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-3 z-50 flex size-9 items-center justify-center rounded-full bg-white/10 text-white/85 backdrop-blur-sm transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-95 motion-reduce:active:scale-100"
       >
         <CloseGlyph />
       </button>

@@ -6,11 +6,10 @@ import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 // Per-event share card: the event name on the branded dark surface, so a pasted
 // event link unfurls with the real name. Private/missing events fall back to a
 // generic card (no existence/name leak — same rule as generateMetadata). Overrides
-// the site-wide opengraph-image for /e/[token]. One link per event (ADR-00010).
+// the site-wide opengraph-image for /e/[token]. One link per event (database-security.md0).
 export const alt = "A Partyreel event";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-
 
 export default async function EventOgImage({
   params,

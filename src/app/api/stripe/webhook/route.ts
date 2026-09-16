@@ -151,7 +151,7 @@ export async function POST(request: Request) {
   try {
     if (event.type === "checkout.session.completed") {
       // One-time Event Pass purchase → mint a LEDGER row, then recompute the profile
-      // from the ledger (ADR-0025; no subscription event fires for a one-time payment).
+      // from the ledger (billing-caps.md; no subscription event fires for a one-time payment).
       // Replay-safety moved OFF the event-time ordering guard onto the ledger's unique
       // stripe_session_id: a re-delivery inserts nothing and the recompute re-derives
       // the same absolute state.
@@ -159,7 +159,7 @@ export async function POST(request: Request) {
       if (ref) {
         // The window this purchase occupies: an initial pass stacks a fresh year from
         // the purchase instant; a renewal chains onto the soonest-expiring active pass
-        // (ADR-0023's "extends, never resets", now per-window). price_cents records
+        // (billing-caps.md's "extends, never resets", now per-window). price_cents records
         // what was ACTUALLY charged so promo purchases prorate off the real payment;
         // a missing amount degrades to 0 (never over-credit later).
         const passes = await getLivePasses(ref.userId);
@@ -190,7 +190,7 @@ export async function POST(request: Request) {
         return Response.json({ received: true });
       }
 
-      // A Pro checkout carrying a prorated pass credit (ADR-0025): honor it BEFORE the
+      // A Pro checkout carrying a prorated pass credit (billing-caps.md): honor it BEFORE the
       // generic customer binding. Three idempotent steps, each safe under Stripe's
       // three-day retry window, ordered so a mid-flight failure can always resume:
       //   1. grant the credit as Stripe customer balance (the idempotency key pins the
@@ -248,7 +248,7 @@ export async function POST(request: Request) {
     // Subscription lifecycle → derive tier + storage cap and write it (idempotent).
     // event_slots is nulled on EVERY subscription write: Pro is unlimited events, and a
     // stale stacked-pass slot count would cap a Pro host in enforce_event_limit's
-    // coalesce. tier_expires_at is nulled for the same doctrine (ADR-0025: nothing
+    // coalesce. tier_expires_at is nulled for the same doctrine (billing-caps.md: nothing
     // banked behind Pro; a credited pass already cleared it, this is the belt).
     const patch = resolveSubscriptionUpdate(event, planForPriceId);
     if (patch) {

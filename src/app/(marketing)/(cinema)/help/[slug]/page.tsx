@@ -105,7 +105,7 @@ export default async function HelpArticlePage({
   // compileMDX (rsc) renders the body to a ReactElement we drop into the prose
   // container. Frontmatter is already stripped (gray-matter), so no parseFrontmatter.
   // blockJS stays on (v6 default) — articles are first-party but we still keep raw JS
-  // expressions out; the spec/Callout JSX components are preserved (see ADR-0006).
+  // expressions out; the spec/Callout JSX components are preserved (see marketing-content.md).
   const { content } = await compileMDX({
     source: article.body,
     components: mdxComponents,

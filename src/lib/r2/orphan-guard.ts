@@ -1,5 +1,5 @@
 /**
- * Orphan-sweep circuit-breaker (ADR-0013 — media durability).
+ * Orphan-sweep circuit-breaker (durability-backups.md — media durability).
  *
  * The purge cron's orphan sweep (src/app/api/cron/purge/route.ts `sweepOrphans`) hard-deletes any
  * R2 object whose `media` row is gone. It TRUSTS the DB to decide "this is an orphan". If the media

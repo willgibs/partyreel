@@ -98,7 +98,7 @@ describe("QA #18 — create_guest inherits the read gate", () => {
     expect(body).toContain("v_event.visibility = 'password'");
   });
 
-  it("stays service-role-only (ADR-0016) in its defining migration", () => {
+  it("stays service-role-only (database-security.md) in its defining migration", () => {
     const { file } = latestDefinition("create_guest");
     expect(file).toMatch(
       /revoke execute on function public\.create_guest\([^)]*\) from public, anon, authenticated;/,
@@ -118,7 +118,7 @@ describe("QA #18 — get_upload_context feeds the route lock re-check", () => {
 
   it("keeps the anon EXECUTE grant (0028 — the four anon read RPCs) in its defining migration", () => {
     // A body replacement WITHOUT an explicit re-grant fails here on purpose: re-assert it
-    // (never service-role this one — the session token IS the authorization, ADR-0004).
+    // (never service-role this one — the session token IS the authorization, database-security.md).
     const { file } = latestDefinition("get_upload_context");
     expect(file).toContain(
       "grant execute on function public.get_upload_context(text, public.media_type) to anon, authenticated;",

@@ -112,7 +112,7 @@ export default async function DashboardPage({
   ]);
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
-  // Stacked Event Passes (ADR-0025): event_slots is the webhook-derived concurrent-pass
+  // Stacked Event Passes (billing-caps.md): event_slots is the webhook-derived concurrent-pass
   // count and overrides the static tier limit, exactly as enforce_event_limit does in SQL.
   const maxEvents = profile?.event_slots ?? MAX_EVENTS[tier];
   const used = events.length;

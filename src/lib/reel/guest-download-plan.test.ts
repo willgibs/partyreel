@@ -5,7 +5,7 @@ import {
   planReelDownload,
 } from "@/lib/reel/guest-download-plan";
 
-// The four ladder rungs the live red-team forces one at a time (ADR-0022 ruling 4), plus the
+// The four ladder rungs the live red-team forces one at a time (guest-flow.md ruling 4), plus the
 // refusals. If a rung's outcome changes, this is the file that has to say so.
 
 const artifact = (fresh: boolean) =>
@@ -86,7 +86,10 @@ describe("planReelDownload (the guest download ladder)", () => {
         planReelDownload(artifact(true), true),
         planReelDownload(artifact(false), true),
         planReelDownload(artifact(false), false),
-        planReelDownload({ ok: false, code: "no_artifact", filename: "r" }, true),
+        planReelDownload(
+          { ok: false, code: "no_artifact", filename: "r" },
+          true,
+        ),
         planReelDownload(
           { ok: false, code: "no_artifact", filename: "r" },
           false,

@@ -20,7 +20,7 @@ import {
  * forever with nothing failing anywhere. So this parses the archive back and compares every
  * member against the manifest and the files on disk.
  *
- * ★ PARSING a zip, never writing one (ADR-0018 ruled out hand-rolled encoders): a parse bug
+ * ★ PARSING a zip, never writing one (uploads-and-r2.md ruled out hand-rolled encoders): a parse bug
  * fails loudly here instead of silently in someone's extractor, and the CRCs are self-validating
  * against zip's own output.
  *

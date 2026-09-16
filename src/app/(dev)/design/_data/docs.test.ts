@@ -274,7 +274,7 @@ describe("sections", () => {
 });
 
 describe("listings", () => {
-  it("listSpecs returns the six board specs and not reel-v1", () => {
+  it("listSpecs returns the six board specs", () => {
     const specs = listSpecs();
     expect(specs.map((s) => s.slug)).toEqual([
       "brand-voice",

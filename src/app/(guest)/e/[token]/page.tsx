@@ -86,7 +86,7 @@ export async function generateMetadata({
 }
 
 // The unified guest EVENT page — a scanned QR lands here. The opaque qr_token IS the
-// capability (ADR-0004). State is a function of the host's `visibility`:
+// capability (database-security.md). State is a function of the host's `visibility`:
 //   private              → locked screen (master lock; no name/gallery/upload), an early return here
 //   password / account   → EventExperience renders the gate via the entry modal; an unsatisfied gate
 //                          resolves to access `none` (locked backdrop) or `teaser` (capped preview)
@@ -180,7 +180,7 @@ export default async function GuestEventPage({
   // For a LOCKED password event this still returns counts: the ratified entry
   // tease (the sheet says "N photos are waiting"; the header shows name only).
   //
-  // The guest REEL read (R3, ADR-0022) rides alongside it, awaited CONCURRENTLY:
+  // The guest REEL read (R3, guest-flow.md) rides alongside it, awaited CONCURRENTLY:
   // both are cheap indexed reads, and the reel card must be in the SHELL HTML
   // (a streamed top card would shift the keepsake album's hero as it lands), so
   // it cannot stream like the gallery does — but it must not cost a serial
@@ -217,7 +217,7 @@ export default async function GuestEventPage({
     ? await getHostAvatarUrl(event.id)
     : null;
 
-  // The named Guests section (ADR-0019): ONLY at full access (a teaser viewer
+  // The named Guests section (profiles-social.md): ONLY at full access (a teaser viewer
   // hasn't finished the gate; a locked page reveals name + count only), never in
   // the demo. getEventGuestList re-checks the host key server-side and returns
   // null when it's off (or pre-apply), so the section can't render unauthorized.

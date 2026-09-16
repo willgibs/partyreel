@@ -83,7 +83,7 @@ the service-role admin client (the deny-all tables); shared `TriageStatusControl
   ([`announcements/actions.ts`](../../src/app/admin/announcements/actions.ts)) inserts via the service-role
   client (the table has no host write policy). Hosts read it via the unchanged notification center →
   [notifications-analytics-growth.md](notifications-analytics-growth.md).
-- **Forensics (ADR-0020)** — the legal-hold + evidence-preservation surface: 24h capture-coverage
+- **Forensics** — the legal-hold + evidence-preservation surface: 24h capture-coverage
   health signal, the preserve form (hold + copy-to-preservation-prefix), per-hold audit-logged
   evidence/record exports, two-step hold release, the `forensic_audit_log` trail. Full model + the
   CSAM runbook: [trust-safety-forensics.md](trust-safety-forensics.md).

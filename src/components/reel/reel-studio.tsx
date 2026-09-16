@@ -53,7 +53,7 @@ import { cn } from "@/lib/utils";
 
 type Sheet = "none" | "moments" | "style" | "cover" | "length" | "layout";
 
-// Moments leads the tray (ADR-0024): WHAT is in the reel is the first question, and since R3.1 this is
+// Moments leads the tray (host-app.md): WHAT is in the reel is the first question, and since R3.1 this is
 // the primary door for answering it anywhere in the product. The other four style what is already there.
 const SHEETS: { id: Exclude<Sheet, "none">; label: string }[] = [
   { id: "moments", label: "Moments" },
@@ -449,7 +449,7 @@ export function ReelStudio({
                 })}
               </div>
               {/* The free-tier upgrade line. It followed the length control down from the marquee
-                  (ADR-0024): the Lock on 60s is the nudge, and this is the only place that says
+                  (host-app.md): the Lock on 60s is the nudge, and this is the only place that says
                   what to do about it, so the move had to bring it along. */}
               <p className="mt-2 text-[11px] text-white/45">
                 Auto fits your moments into {config.maxSeconds} seconds.

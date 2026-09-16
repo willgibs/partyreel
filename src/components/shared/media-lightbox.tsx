@@ -805,7 +805,7 @@ export function MediaLightbox({
                           className="h-5 w-px shrink-0 bg-white/20"
                         />
                         {/* Add to reel (host curation, approved-only): violet clapperboard
-                            when in-reel. No-op without a ReelProvider. Since ADR-0024 dropped
+                            when in-reel. No-op without a ReelProvider. Since host-app.md dropped
                             the tile chip, this is one of the reel's three curation doors (with
                             gallery bulk-Select and the Studio's Moments picker), and the only
                             one that acts on the moment you are actually looking at. */}

@@ -7,7 +7,7 @@ import { requireAdminAction } from "@/lib/auth/admin-context";
 import { preserveMedia, releaseHold } from "@/lib/forensics/preserve";
 import { captureError } from "@/lib/observability/sentry";
 
-// The preserve/hold actions for /admin/forensics (ADR-0020). Both re-check authz (admin + AAL2);
+// The preserve/hold actions for /admin/forensics (trust-safety-forensics.md). Both re-check authz (admin + AAL2);
 // both audit inside the service layer (success AND failure), so nothing here is silent.
 
 export async function preserveMediaAction(

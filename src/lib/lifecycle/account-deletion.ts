@@ -24,7 +24,7 @@
  * as a confident zero, and a confident zero here is the one bug that silently
  * orphans a whole account's media.
  *
- * ★ A FORENSIC HOLD OUTRANKS THE DELETION REQUEST (ADR-0020). An event holding
+ * ★ A FORENSIC HOLD OUTRANKS THE DELETION REQUEST (trust-safety-forensics.md). An event holding
  * ANY held media is skipped WHOLE (the cascade is all-or-nothing), so a held
  * account never reaches zero events and its auth user survives. It stays
  * anonymised the entire time, which is the ruled behaviour: anonymised at once,

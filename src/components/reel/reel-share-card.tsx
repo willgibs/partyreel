@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * The PUBLISH moment, as a persistent card under the poster (ADR-0022 d.1: the
+ * The PUBLISH moment, as a persistent card under the poster (guest-flow.md d.1: the
  * moment is mandated LOUD, one tap, default OFF).
  *
  * Two faces, one card. OFF is a violet call to action with the honest line about
@@ -85,7 +85,7 @@ export function useReelPublish(
   return { shared, pending, flip };
 }
 
-/** The Draft / Shared status chip (guest_visible defaults OFF, ADR-0022 ruling 1).
+/** The Draft / Shared status chip (guest_visible defaults OFF, guest-flow.md ruling 1).
  *  Lives IN the panel, never in FeedSectionHeader: that header is ratified as a
  *  locked-height label row, and an extra chip would reintroduce the bounce. */
 export function ReelStatusChip({ shared }: { shared: boolean }) {
@@ -127,7 +127,7 @@ export function ReelShareCard({
             type="button"
             onClick={() => flip(true)}
             disabled={pending}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-[var(--radius-action)] bg-reel text-sm font-medium text-white outline-none transition-transform duration-150 ease-emphasis active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-70 motion-reduce:active:scale-100"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-[var(--radius-action)] bg-reel text-sm font-medium text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100"
           >
             <Share2 className="size-4" aria-hidden />
             Share with guests

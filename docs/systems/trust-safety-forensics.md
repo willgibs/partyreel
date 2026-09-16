@@ -4,7 +4,7 @@
 > BELONGS HERE: the `upload_forensics` capture seam, `media.legal_hold_*` + the purge exclusions, the preservation prefix, `/admin/forensics`, the incident runbook, the NCMEC registration prep. · NOT HERE: the reports queue UI (→ [admin-observability.md](admin-observability.md)), the purge cron mechanics (→ [lifecycle-recovery.md](lifecycle-recovery.md)), grant/RLS conventions (→ [database-security.md](database-security.md)).
 > GROWS BY: integrate-in-place.
 
-## What it does (ADR-0020, the T1 ruling)
+## What it does
 
 Every completed upload writes ONE deny-all `upload_forensics` row (capture scope **A3-lite**): raw
 IP, timestamp, full user agent, `sec-ch-*` client hints, Vercel `x-vercel-ip-*` coarse geo, the
@@ -14,7 +14,8 @@ complete request, indexed for cross-event abuse correlation). Retention **B1**: 
 exactly as long as its media (`ON DELETE CASCADE`; no separate sweep). On a report, an admin sets a
 **legal hold** (`media.legal_hold_at/_reason`) and **preserves**: the original object is copied
 server-side to the segregated `preservation/` prefix + a JSON evidence snapshot (media + forensic +
-event rows) lands beside it. The sole egress is the audit-logged `/admin/forensics` export.
+event rows) lands beside it. The sole egress is the audit-logged `/admin/forensics` export. The hold and
+preservation machinery serves EVERY abuse report, not only the CSAM case the runbook below covers.
 
 ## Where it lives
 
@@ -50,8 +51,8 @@ event rows) lands beside it. The sole egress is the audit-logged `/admin/forensi
 - **Capture is best-effort-but-LOUD:** a capture failure never fails the upload, but it Sentry-warns
   (`forensic_capture_failed`, area `security`) and shows in the `/admin/forensics` 24h coverage gap.
 - **NO pre-strip EXIF capture.** The client-side EXIF strip means the server never sees EXIF; a
-  client-side pre-strip extraction is the most sensitive collection and is COUNSEL-GATED
-  (ADR-0020 decision 1). Do not build it without that sign-off.
+  client-side pre-strip extraction is the most sensitive collection, cuts against the marketed
+  EXIF-strip story, and is COUNSEL-GATED. Do not build it without that sign-off.
 - **A held-removed item stays off live:** `restore_media` refuses with reason `legal_hold`, which
   the wrapper deliberately maps to the vague default copy (an uploader/host must not learn a hold
   exists). The same discretion holds on the READ path: SELECT on `media` is COLUMN-scoped and the
@@ -119,7 +120,6 @@ or LE matter is open — 18 U.S.C. 2258A failure-to-preserve/report carries six-
 
 ## See also
 
-[ADR-0020](../adr/0020-forensic-capture-csam-policy.md) (the ruling + the counsel gate D2) ·
 [uploads-and-r2.md](uploads-and-r2.md) (the complete seam) · [lifecycle-recovery.md](lifecycle-recovery.md)
 (the purge sweeps the hold excludes) · [database-security.md](database-security.md) (deny-all
 conventions) · [admin-observability.md](admin-observability.md) (the portal shell + reports queue).

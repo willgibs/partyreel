@@ -119,7 +119,7 @@ describe("Pro plans ↔ Stripe wiring", () => {
   });
 });
 
-// checkout.session.completed fixture — the ADR-0025 recognizers read metadata,
+// checkout.session.completed fixture — the billing-caps.md recognizers read metadata,
 // client_reference_id, customer, id, created, mode, and amount_total.
 function checkoutEvent(opts: {
   planId?: string;
@@ -152,7 +152,7 @@ function checkoutEvent(opts: {
   } as unknown as Stripe.Event;
 }
 
-describe("eventPassSession (the ADR-0025 ledger recognizer)", () => {
+describe("eventPassSession (the billing-caps.md ledger recognizer)", () => {
   it("pulls out everything the ledger insert needs", () => {
     expect(
       eventPassSession(
@@ -225,7 +225,9 @@ describe("proCreditSession (the prorated Pass → Pro credit)", () => {
 
   it("returns null without the stamp, off subscription mode, or for junk values", () => {
     expect(
-      proCreditSession(checkoutEvent({ planId: "pro_100", mode: "subscription" })),
+      proCreditSession(
+        checkoutEvent({ planId: "pro_100", mode: "subscription" }),
+      ),
     ).toBeNull();
     expect(
       proCreditSession(

@@ -109,7 +109,16 @@ function assertReadable(rel: string): void {
 const readDocCached = cache(
   (rel: string): { body: string; data: Record<string, unknown> } => {
     assertReadable(rel);
-    const raw = readFileSync(join(process.cwd(), rel), "utf8");
+    // ★ `turbopackIgnore`: a dynamic path under process.cwd() makes the build
+    // trace the WHOLE project into every lab function (all of src/, supabase/,
+    // workers/, the lockfile: 2,248 files per function, measured 2026-09-16).
+    // The files this can read are already traced by name: TRACED_DOC_GLOBS in
+    // _data/legacy-routes.ts, applied by next.config.ts, which docs.test.ts
+    // checks against DOCS. Never widen the allow-list without a glob there.
+    const raw = readFileSync(
+      join(/*turbopackIgnore: true*/ process.cwd(), rel),
+      "utf8",
+    );
     const { content, data } = matter(raw);
     return { body: content, data: data as Record<string, unknown> };
   },
@@ -351,8 +360,7 @@ export function landminesOf(
 
 /**
  * The proposals under docs/specs: the exploration boards' settled documents.
- * README-like files are not proposals, and reel-v1.md is a shipped feature
- * spec that predates the program (the reel's record, not a board).
+ * README-like files are not proposals.
  */
 export function listSpecs(): {
   slug: string;
@@ -363,7 +371,7 @@ export function listSpecs(): {
   let files: string[] = [];
   try {
     files = readdirSync(dir).filter(
-      (f) => f.endsWith(".md") && !/^readme/i.test(f) && f !== "reel-v1.md",
+      (f) => f.endsWith(".md") && !/^readme/i.test(f),
     );
   } catch {
     return [];

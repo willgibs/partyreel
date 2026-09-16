@@ -1,7 +1,7 @@
 /**
  * Saved-events reads for the signed-in visitor. "Saved events" is the FREE
  * account-from-guest growth payoff (Phase 3): anyone can save an event to come
- * back to it. Augments the anonymous capability flow (ADR-0004) — see ADR-0009.
+ * back to it. Augments the anonymous capability flow (database-security.md) — see notifications-analytics-growth.md.
  *
  * `get_saved_events` is a SECURITY DEFINER RPC because it reads the name/host/cover
  * of events the saver does NOT own (events RLS is host-only). It is auth.uid()-based

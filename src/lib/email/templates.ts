@@ -148,7 +148,7 @@ export function contactFormEmail(opts: {
   };
 }
 
-// Internal operator alert — the orphan-sweep circuit-breaker tripped (ADR-0013). NOT host-facing,
+// Internal operator alert — the orphan-sweep circuit-breaker tripped (durability-backups.md). NOT host-facing,
 // so it skips layout()'s "you host an event" footer (mirrors contactFormEmail). No CTA: this is a
 // "go investigate" page, not a click-through. Sent at most once per (reason, day) via sendOnce.
 export function orphanBreakerEmail(opts: {
@@ -167,12 +167,12 @@ export function orphanBreakerEmail(opts: {
   <p style="margin:4px 0;"><strong>Objects scanned this run:</strong> ${opts.objectsScanned}</p>
   <p style="margin:4px 0;"><strong>Media rows in DB:</strong> ${opts.mediaCount}</p>
   <p style="margin:16px 0 4px;"><strong>What to check:</strong> confirm the Supabase <code>media</code> table is intact (not mid-restore, not a bad migration, not an RLS/query bug). If the DB is healthy and these really are orphans, run an explicit one-off purge with the breaker overridden. If not, the sweep correctly protected the bucket.</p>
-  <p style="color:#888;font-size:12px;margin-top:24px;">Partyreel operations alert (orphan-sweep safety, ADR-0013). Sent at most once per day per reason.</p>
+  <p style="color:#888;font-size:12px;margin-top:24px;">Partyreel operations alert (orphan-sweep safety, durability-backups.md). Sent at most once per day per reason.</p>
 </div>`,
   };
 }
 
-// Internal operator alert — the backup-prune circuit-breaker tripped (ADR-0013). NOT host-facing, so it
+// Internal operator alert — the backup-prune circuit-breaker tripped (durability-backups.md). NOT host-facing, so it
 // skips layout()'s "you host an event" footer (mirrors orphanBreakerEmail). No CTA: a "go investigate"
 // page. Sent at most once per (reason, day) via sendOnce. The prune is the ONLY job that deletes from the
 // last-resort backup, so a trip means it REFUSED to run and deleted nothing.
@@ -194,7 +194,7 @@ export function pruneBreakerEmail(opts: {
   <p style="margin:4px 0;"><strong>Media rows in DB:</strong> ${opts.mediaCount}</p>
   <p style="margin:4px 0;"><strong>Prune mode:</strong> ${esc(opts.mode)}</p>
   <p style="margin:16px 0 4px;"><strong>What to check:</strong> confirm the Supabase <code>media</code> table is intact (not mid-restore, not a bad migration, not an RLS/query bug) and the primary R2 bucket is populated. The prune deletes from the last-resort backup, so it fails closed: it deleted nothing and is waiting for a healthy source.</p>
-  <p style="color:#888;font-size:12px;margin-top:24px;">Partyreel operations alert (backup-prune safety, ADR-0013). Sent at most once per day per reason.</p>
+  <p style="color:#888;font-size:12px;margin-top:24px;">Partyreel operations alert (backup-prune safety, durability-backups.md). Sent at most once per day per reason.</p>
 </div>`,
   };
 }

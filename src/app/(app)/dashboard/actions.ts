@@ -151,7 +151,7 @@ export async function clearEventPasswordAction(
 
 // Custom slug set/change — its own action (NOT the general save). The slug is an
 // alias to the one /e/[token] link; the RPC enforces tier + format + uniqueness, and
-// changing it FREES the old slug for other events (no old->new redirect; ADR-0012).
+// changing it FREES the old slug for other events (no old->new redirect; host-app.md).
 export async function setEventSlugAction(
   eventId: string,
   slug: string,
@@ -177,7 +177,7 @@ export async function clearEventSlugAction(
   return { ok: true };
 }
 
-// The ADR-0019 event keys (profile display + the named guest list), persisted
+// The profiles-social.md event keys (profile display + the named guest list), persisted
 // per-toggle from the settings card (instant switches, not the RHF save flow —
 // each key is its own deliberate act, like the password/slug commits).
 export async function updateEventSocialSettingsAction(

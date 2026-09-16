@@ -1,5 +1,5 @@
 /**
- * Event Pass ledger writes (ADR-0025) — service-role only, called by the Stripe
+ * Event Pass ledger writes (billing-caps.md) — service-role only, called by the Stripe
  * webhook and the nightly sweeps. Three invariants live here:
  *
  *   1. INSERTS ARE THE IDEMPOTENCY BOUNDARY: one Checkout session mints at most
@@ -104,7 +104,8 @@ export async function recomputePassEntitlement(
     (current.tier_expires_at === null && derived.tierExpiresAt === null) ||
     (current.tier_expires_at !== null &&
       derived.tierExpiresAt !== null &&
-      Date.parse(current.tier_expires_at) === Date.parse(derived.tierExpiresAt));
+      Date.parse(current.tier_expires_at) ===
+        Date.parse(derived.tierExpiresAt));
   const same =
     current.tier === derived.tier &&
     current.storage_cap_bytes === derived.storageCapBytes &&

@@ -17,7 +17,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { profileSlugSchema } from "@/lib/validation/profile";
 
-// The /account social surface's actions (profiles + social slice, ADR-0019).
+// The /account social surface's actions (profiles + social slice, profiles-social.md).
 // Same shape as account/actions.ts' ActionResult, kept local so the two files
 // stay independently readable.
 export type SocialActionResult = { ok: true } | { ok: false; message: string };

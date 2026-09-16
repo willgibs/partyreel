@@ -85,7 +85,7 @@ export function SaveEventButton({
 
   // Best-effort newsletter capture (post-upload card only). Posts to /api/guests/capture-email, which
   // derives the verified account email server-side (getUser) and calls capture_guest_email via the
-  // service-role client (ADR-0016 -- the email is never client-supplied). Never blocks the save.
+  // service-role client (database-security.md -- the email is never client-supplied). Never blocks the save.
   const captureNewsletter = useCallback(async () => {
     if (!sessionToken) return;
     try {

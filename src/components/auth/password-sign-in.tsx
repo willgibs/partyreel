@@ -24,7 +24,7 @@ type PasswordAuthProps = {
   onForgot: () => void;
 };
 
-// Email + password surface for the host login page (ADR-0011): the lead sign-in form plus
+// Email + password surface for the host login page (auth-accounts.md): the lead sign-in form plus
 // an account-creation flow. Create reuses the existing OTP path to prove ownership, then
 // sets the chosen password via updateUser, so a password is only ever written on a verified
 // session. The shared <EmailSignIn> (also used by guests) is reused UNCHANGED.
@@ -200,7 +200,7 @@ function CreateAccount({
 }) {
   // Two phases: VERIFY (prove email ownership via the shared OTP) then PASSWORD (set it on
   // the now-verified session). Reusing EmailSignIn means no OTP duplication and no double
-  // email entry; the tradeoff (Risk C in ADR-0011) is that a tapped magic LINK instead of
+  // email entry; the tradeoff (Risk C in auth-accounts.md) is that a tapped magic LINK instead of
   // the code lands the host in the app password-less — they can set one in /account.
   const [phase, setPhase] = useState<"verify" | "password">("verify");
 

@@ -4,7 +4,7 @@
  * 1. REORDER — the provider must send the RPC exactly the ids it was handed, in
  *    order, and must REVERT when the RPC refuses. Both halves are load-bearing:
  *    reorder_reel's set-equality guard rejects a partial list outright (which is
- *    why the Studio's filmstrip dock, the ONLY reorder surface since ADR-0024,
+ *    why the Studio's filmstrip dock, the ONLY reorder surface since host-app.md,
  *    commits the FULL membership, hidden items included), and a Set keeps
  *    INSERTION order, so building a NEW Set from the reordered array is the only
  *    thing that actually reorders it. Re-adding into the old Set silently keeps

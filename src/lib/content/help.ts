@@ -35,7 +35,7 @@ export type { ArticleHeading } from "./collection";
 // cheaply (no MDX compile) for the index/sitemap/related/search; the article page
 // renders the body with next-mdx-remote/rsc. Frontmatter is validated against
 // `helpFrontmatterSchema` at read time, so a malformed article FAILS THE BUILD (a
-// build-time data-integrity net — see the Vitest test + ADR-0006). This module reads
+// build-time data-integrity net — see the Vitest test + marketing-content.md). This module reads
 // `node:fs`, so it is server/build-only by construction; the client search component
 // never imports it (it receives plain metadata via props). Round 7 (Blog) reuses this
 // same shape with a `content/blog` directory.

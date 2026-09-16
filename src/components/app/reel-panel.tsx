@@ -17,7 +17,7 @@ import { type ReelConfig } from "@/lib/db/queries/reel";
  *   config row    → ReelMarquee (the poster + the status + the share card)
  *
  * There used to be a third arm, a REORDER MODE that swapped the section for a
- * sortable grid. ADR-0024 retired it: reorder is Studio-only now (the dock), so
+ * sortable grid. host-app.md retired it: reorder is Studio-only now (the dock), so
  * this switch is a clean two-state one again.
  *
  * ★ The switch is on the CONFIG ROW, not on membership. Create-birth means the
@@ -48,7 +48,7 @@ export function ReelPanel({
   reelConfig: ReelConfig | null;
   /** Free tier → the live player + the .mp4 export carry the partyreel.com wordmark. */
   watermark: boolean;
-  /** The host's billing tier — the length cap derives from it (ADR-0021). */
+  /** The host's billing tier — the length cap derives from it (billing-caps.md). */
   tier: Tier;
   /**
    * highlight_reels.guest_visible — is the reel already shared with guests?

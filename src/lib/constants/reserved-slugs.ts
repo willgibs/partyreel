@@ -2,7 +2,7 @@
  * Reserved custom-event-slug words.
  *
  * WHY this exists (read before "simplifying" it away): a custom slug resolves ONLY
- * inside `/e/[slug]` (it is an alias to the one event link; ADR-0010 + ADR-0012), so
+ * inside `/e/[slug]` (it is an alias to the one event link; guest-flow.md + host-app.md), so
  * this list does NOT prevent route collisions — a slug can never shadow a top-level
  * route like `/admin`, `/pricing`, or `/login` (those live at a different path prefix).
  * It is purely BRAND / CLARITY / FUTURE-PROOFING:

@@ -27,7 +27,7 @@ import {
 
 /**
  * The quiet overflow on /u/[slug] for a signed-in, non-self viewer: Block (with
- * a confirm naming exactly what it does, ADR-0019 point 5) or Unblock. Blocking
+ * a confirm naming exactly what it does, profiles-social.md point 5) or Unblock. Blocking
  * is PRIVATE: the other side is never notified and can't see it, so the copy
  * says so. After a block the page refresh hides the follow button (the server's
  * blocked-either-way gate) while the profile itself stays public-by-existence.

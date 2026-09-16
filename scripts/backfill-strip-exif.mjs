@@ -15,7 +15,7 @@
  * What --live does per changed object:
  *   1. PUT the stripped bytes back under the SAME key + content-type (images shrink;
  *      videos keep their exact length - boxes are blanked in place).
- *   2. media.file_size_bytes := new size. INVARIANT (ADR-0014): this column mirrors the
+ *   2. media.file_size_bytes := new size. INVARIANT (database-security.md): this column mirrors the
  *      R2 HEAD size, and the storage-cap meter is derived from it - it must track the
  *      replaced object.
  *   3. profiles.storage_used_bytes -= delta and the upload-month storage_ledger row's

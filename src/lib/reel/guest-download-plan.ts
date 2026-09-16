@@ -1,5 +1,5 @@
 /**
- * The GUEST download LADDER, as a pure decision (R3, ADR-0022 ruling 4).
+ * The GUEST download LADDER, as a pure decision (R3, guest-flow.md ruling 4).
  *
  * The overlay's Download tap has four possible outcomes and they are chosen from exactly two facts:
  * what the route answered, and whether THIS device can encode. Keeping that choice pure (rather than

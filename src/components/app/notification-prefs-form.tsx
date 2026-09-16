@@ -15,7 +15,7 @@ import type { NotificationPrefs } from "@/lib/social/notification-prefs";
  * Account · Email preferences. The switches over notification_prefs, plus the
  * newsletter removal the privacy policy promises account holders.
  *
- * THE TIER MODEL (notification-prefs.ts, ADR-0019 point 6) is visible in what
+ * THE TIER MODEL (notification-prefs.ts, profiles-social.md point 6) is visible in what
  * is NOT here: tier 1 (sign-in codes, billing, storage and deletion warnings)
  * has no switch, because it is not a preference. The four tier-2 rows are
  * default-on with an opt-out; marketing is tier 3 and opt-in.

@@ -1,5 +1,5 @@
 // The reel's render dimensions + frame rate. ONE source so the live canvas player and the on-device
-// WebCodecs export (one draw fn) can never drift. 24fps montage (see docs/specs/reel-v1.md). The reel
+// WebCodecs export (one draw fn) can never drift. 24fps montage (the product shape: docs/systems/host-app.md, the reel section). The reel
 // ships in two ORIENTATIONS the host toggles: portrait 9:16 (default) and landscape 16:9 — every style
 // adapts to both from one core, so derive dims via reelDimensions(orientation), never hard-code a pair.
 export const FPS = 24;

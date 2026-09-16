@@ -55,8 +55,8 @@ Pre-strip objects are swept by the one-off [`scripts/backfill-strip-exif.mjs`](.
 
 **Download all (zip export, 2026-06-22).** Per-item Save streams ONE original (`presignDownload` attachment
 URL); **"Download all"** zips a whole album. Heavy/streaming work runs OFF Vercel on a separate **streaming
-export Worker** ([`workers/export/`](../../workers/export), `partyreel-export`, deployed via `wrangler`,
-ADR-0018). The flow: the browser hits a Next **mint route** (host [`/api/export/host`](../../src/app/api/export/host),
+export Worker** ([`workers/export/`](../../workers/export), `partyreel-export`, deployed via `wrangler`).
+The flow: the browser hits a Next **mint route** (host [`/api/export/host`](../../src/app/api/export/host),
 guest [`/api/export/guest`](../../src/app/api/export/guest)) which AUTHORIZES (host: `getUser` + own-event;
 guest: qr-resolve + `resolveGalleryAccess` + `loadGalleryRowsForAccess` — a guest can NEVER exceed `gallery.rows`),
 builds the manifest, and **HMAC-signs** `{v,jti,scope,eventId,zipName,items:[{key,name}],exp}` into an opaque
@@ -74,7 +74,7 @@ submit needs no gesture (survives the awaited mint) and an attachment response d
 cross-origin **iframe** downloads are a tightening browser restriction, so top-level is the durable choice. Cost: ~$0 marginal (R2 egress is free; store-zip CPU is just CRC32). Caps: ≤2000
 items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled` kill-switch surface at
 [`/admin/exports`](../../src/app/admin/exports). Deferred: an async build-to-R2 job for >cap albums; a custom
-`export.partyreel.com` subdomain (v1 uses `*.workers.dev`). Why these calls: [ADR-0018](../adr/0018-download-all-zip-export.md).
+`export.partyreel.com` subdomain (v1 uses `*.workers.dev`).
 
 ## Where it lives
 
@@ -87,7 +87,7 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   [`upload/server-pipeline.ts`](../../src/lib/upload/server-pipeline.ts) (Phase 3): the engine owns the
   shared spine (parse → zod → server-side classify/ext → `validateUpload` → key build →
   single/multipart presign; complete: multipart sum/abort guard → assemble → R2-HEAD → create RPC →
-  forensic capture, ADR-0020: one deny-all `upload_forensics` row per success, best-effort-but-loud —
+  forensic capture: one deny-all `upload_forensics` row per success, best-effort-but-loud —
   → [trust-safety-forensics.md](trust-safety-forensics.md)),
   the strategies own the per-identity gates + status mapping. Part-size math single-sourced in
   [`upload/part-plan.ts`](../../src/lib/upload/part-plan.ts). Response JSON shapes/key order are the
@@ -118,7 +118,7 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   cores under [`src/lib/export/`](../../src/lib/export) + [`src/app/api/export/`](../../src/app/api/export); the UI
   [`src/components/app/export/`](../../src/components/app/export) (modal + `useExportDownload`); the admin readout
   [`src/app/admin/exports/`](../../src/app/admin/exports). Env: `EXPORT_SIGNING_SECRET` (must equal the Worker's
-  secret) + `EXPORT_WORKER_URL`, both `.optional()` + `assertExportEnv()`. → [ADR-0018](../adr/0018-download-all-zip-export.md).
+  secret) + `EXPORT_WORKER_URL`, both `.optional()` + `assertExportEnv()`.
 
 ## Invariants (don't break)
 
@@ -138,7 +138,7 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   of gallery presigns the same treatment. (Found live 2026-07-21; note R2 403s also omit CORS headers,
   so an EXPIRED presign probed via CORS fetch masquerades as a CORS failure.)
 - **Never expose raw R2 keys/URLs to the browser** — presign server-side via the shared `toGridItems`;
-  the render routes are `force-dynamic` (ADR-0003). **Gallery read presigns are STABLE (Phase 3):**
+  the render routes are `force-dynamic`. **Gallery read presigns are STABLE (Phase 3):**
   `presignDownload({ stable: true })` pins the SigV4 signing date to the current 30-min bucket
   ([`r2/presign-bucket.ts`](../../src/lib/r2/presign-bucket.ts)), so two presigns of the same key in a
   bucket are byte-identical — the browser image cache works across refetches and the gallery ETag rolls
@@ -151,7 +151,7 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   construction (not a runtime viewer flag), guarded by a standing source test (`grid-items.email-safety.test.ts`).
   Live-verified: the anonymous SSR + `/api/guests/gallery` payloads carry no email field (item keys are
   `id, type, url, downloadUrl, uploaderName, isHost, isAnonymous`).
-- ★ **A locked event gates UPLOADS, not just viewing (ADR-0023 ruling 2).** The write path re-checks the
+- ★ **A locked event gates UPLOADS, not just viewing.** The write path re-checks the
   event's lock at ALL THREE guest seams (the `/api/guests` mint, presign, complete) via the shared
   `mayUploadPastLock(eventId)` (`src/lib/events/upload-lock.ts`): `private` refuses every guest write
   (owner uploads ride the HOST routes), `password` requires the signed HttpOnly unlock cookie **or**
@@ -174,7 +174,9 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   complete as a `photo` row and dodge the free-tier photos-only gate. Refuse, never repair.
 - **`create_media*` is the ONLY write path into `media`.** A host CANNOT RLS-insert directly even though
   `media_host_all` would allow the row — that bypasses the ledger + `storage_used_bytes` accounting + the
-  cap check (unmetered free storage). The RPC keeps the accounting honest.
+  cap check (unmetered free storage). The RPC keeps the accounting honest. It also **re-checks the key's
+  event prefix** (`events/<event_id>/%`, raising `bad_key` otherwise), so a valid session can never record
+  a row against another event's namespace (the DB-side twin of the complete seam's key pin).
 - **Host upload = `guest_id IS NULL`.** `create_media_as_host` is the authenticated twin of `create_media`:
   auth via `auth.uid()` + event ownership (not a token), same per-file limits + cap/ingress enforcement
   (host uploads **count against the plan**), `status='approved'` unconditionally (the host is the
@@ -192,7 +194,7 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   the ceiling. Without BOTH, an attacker could declare small, get ~640 part URLs, over-stuff each, and complete
   into a multi-TB **orphan** the backup Worker would replicate into the 35-day-locked bucket (`create_media`'s
   ceiling guards the DB/accounting, NOT the R2 object's existence). Don't drop either guard. *(Verified against
-  the real bucket: correct size → 200, oversized → 403; ADR-0003 + ADR-0014 posture.)*
+  the real bucket: correct size → 200, oversized → 403.)*
 - ★ **The preview PUT is size-bound + capped too** (same class of guard). The preview is NOT counted toward
   `file_size_bytes` (it's a small derivative), so an unbounded preview PUT to its server-built key would be a
   cap-EVASION / cost-abuse vector. The client declares the generated preview's size at presign; the engine binds
@@ -202,14 +204,22 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
 
 ## Gotchas (why it's like this — don't revert)
 
-- **Upload size-spoof is closed by an R2 HEAD at complete (ADR-0014) + a server-only RPC (ADR-0016).** The
+- **Upload size-spoof is closed by an R2 HEAD at complete + a server-only RPC.** The
   complete routes re-derive the real `file_size_bytes` from `headObjectSize` and pass THAT to the RPC, never
   the client's claim (a PUT-big-claim-tiny upload used to beat the cap). The R2-HEAD size is now TRULY
-  authoritative because `create_media` / `create_media_as_host` are **service-role-only** (ADR-0016): the
+  authoritative because `create_media` / `create_media_as_host` are **service-role-only**: the
   complete-upload route is the ONLY caller, so the prior anon-PostgREST bypass — which let a client call the
-  RPC directly with a spoofed size, dodging the HEAD — is closed (the `415962b` CHECK is the belt-and-braces
-  floor). `duration_seconds` / `width` / `height` stay client-supplied + NON-authoritative (the byte cap is
+  RPC directly with a spoofed size, dodging the HEAD — is closed (the `media.file_size_bytes`
+  `[0, 10 GiB]` CHECK is the belt-and-braces floor). `duration_seconds` / `width` / `height` stay client-supplied + NON-authoritative (the byte cap is
   the cost boundary).
+- **The export zip is STORE-method, streamed synchronously, from a proven lib.** Photos and videos are
+  already compressed, so deflate would burn Worker CPU for ~0% gain. Streaming ZIP64 has silent
+  correctness failure modes (central-directory offsets, data descriptors, CRC32) that surface only in
+  specific extractors, so `client-zip` earns its place despite the project's dependency-free leaning: it
+  is 2.6 kB inside the isolated Worker package and the app never sees it. Streaming rather than building
+  a zip into R2 keeps **zero temp storage** (the storage-billed margin) and needs no job table; the
+  browser's own download dialog is the progress UX. Tokens are not single-use: a 2-minute TTL plus the
+  fact that a replay only re-downloads already-authorized content is the accepted v1 bound.
 - **`uploadFile()` is shared, don't fork it.** The caller passes the endpoint pair + an `identity` object
   (`{ session_token }` guest / `{ event_id }` host) merged into both request bodies; presign/complete
   response shapes are identical. `HostUpload` is a SEPARATE component (no join/demo/email/`sessionRef`
@@ -257,4 +267,4 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
 
 ## See also
 
-[ADR-0003](../adr/0003-browser-r2-multipart-presigned.md) · [ADR-0014](../adr/0014-data-layer-security-posture.md) (size-spoof) · [billing-caps.md](billing-caps.md) (the cap the upload enforces) · [lifecycle-recovery.md](lifecycle-recovery.md) (reclaim) · [guest-flow.md](guest-flow.md) / [host-app.md](host-app.md) (the surfaces).
+[database-security.md](database-security.md) (the grant + RPC model) · [billing-caps.md](billing-caps.md) (the cap the upload enforces) · [lifecycle-recovery.md](lifecycle-recovery.md) (reclaim) · [guest-flow.md](guest-flow.md) / [host-app.md](host-app.md) (the surfaces).

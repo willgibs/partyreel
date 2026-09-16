@@ -1,4 +1,4 @@
-// Pure helpers for the media-backup Worker's deletion-aware prune (ADR-0013, Pillar B).
+// Pure helpers for the media-backup Worker's deletion-aware prune (durability-backups.md, Pillar B).
 // NO Worker globals here on purpose — this module is unit-tested in plain Node (prune-strategy.test.ts).
 //
 // The prune is the INVERSE of the orphan sweep and the ONLY job that deletes from the last-resort

@@ -1,7 +1,7 @@
 # Architecture — the whole picture
 
 > ROLE: the orienting mental model — how the pieces fit, end to end. Read this FIRST when you've "lost the thread."
-> BELONGS HERE: stack shape, route groups, the two stores of truth, the media/DB data flows, the daily jobs. · NOT HERE: per-system depth (→ the sibling `docs/systems/*` docs), why-decisions (→ `../adr/`), current state (→ `../STATUS.md`).
+> BELONGS HERE: stack shape, route groups, the two stores of truth, the media/DB data flows, the daily jobs. · NOT HERE: per-system depth (→ the sibling `docs/systems/*` docs), current state (→ `../STATUS.md`).
 > GROWS BY: integrate-in-place (refine the model; never append dated blocks).
 
 ## What Partyreel is, in one breath
@@ -12,7 +12,7 @@ curates, and a public album results, every QR seeding the next host. Data in **S
 RLS + capability RPCs); media bytes in **Cloudflare R2**; payments **Stripe**; email **Resend**;
 errors **Sentry**.
 
-## Route groups (one app, one domain — ADR-0002)
+## Route groups (one app, one domain)
 
 ```
 src/app/
@@ -27,13 +27,21 @@ src/app/
 
 - **Login lives in `(auth)`, not `(app)`, on purpose:** the `(app)` layout redirects anon → `/login`;
   if `/login` were under that gate it would redirect to itself forever.
+- **The `(app)` layout's `getUser()` is convenience ROUTING, not the security boundary** (that is RLS plus
+  the re-check in every Server Function and route handler → [database-security.md](database-security.md)).
+  The split still has to be honored when a route is added: anything needing a signed-in host goes under
+  `(app)`, and every unauthenticated entry point stays out of it.
+- **One domain is the growth loop, not a deployment convenience:** a scanned QR, a shared album and the
+  marketing site are the same recognizable origin, one cookie domain, one deploy. The price is that all
+  four surfaces share the root layout and its bundle baseline, so the root layout stays minimal and each
+  group carries its own chrome.
 - The always-dark **`gallery`** surface is unused as a full page (the one-link view-only state shipped as
-  a panel-removal on the themed event page, ADR-0010); its `--gallery` tokens persist for the lightbox
+  a panel-removal on the themed event page); its `--gallery` tokens persist for the lightbox
   backdrop + `SaveEventButton`'s `tone="gallery"`. → see [uploads-and-r2.md](uploads-and-r2.md).
 
 ## Two stores of truth
 
-The durability work (ADR-0013) added a **backup shadow for each**, all running OFF the app (Cloudflare +
+The durability work added a **backup shadow for each**, all running OFF the app (Cloudflare +
 GitHub Actions), so a backup failure is a durability risk, **never a user-facing outage**.
 
 - **Postgres rows** (Supabase) — events, media _metadata_, profiles, guests, ledgers, …
@@ -46,7 +54,7 @@ GitHub Actions), so a backup failure is a durability risk, **never a user-facing
   Cloudflare Queue → the backup Worker copies the object → BACKUP R2 (locked). The DB row + ledger are
   written by `create_media` (cap + ingress enforced). → [uploads-and-r2.md](uploads-and-r2.md).
 - **Media read:** app reads the row → presigns a GET → the **browser pulls bytes straight from PRIMARY
-  R2** (the backup is never in the read path; raw R2 keys never reach the browser — ADR-0003).
+  R2** (the backup is never in the read path; raw R2 keys never reach the browser).
 - **Media delete / lifecycle:** soft-delete flag → 30-day recovery window → the purge cron reclaims the
   row + the PRIMARY R2 object (the BACKUP copy is kept + locked). → [lifecycle-recovery.md](lifecycle-recovery.md).
 - **Database backup:** Supabase Pro daily backup (same-vendor) **plus** a nightly off-site `pg_dump` →
@@ -123,7 +131,6 @@ inline SQL in components); the boundary is RLS + SECURITY DEFINER capability RPC
 
 ## See also
 
-- [ADR-0002](../adr/0002-single-app-route-groups.md) — one app, route groups.
-- [ADR-0013](../adr/0013-media-durability-orphan-sweep-safety-and-backup.md) — durability (the 3 pillars).
-- [ADR-0003](../adr/0003-browser-r2-multipart-presigned.md) — presigned uploads / never expose keys.
+- [durability-backups.md](durability-backups.md): the three durability pillars.
+- [uploads-and-r2.md](uploads-and-r2.md): presigned uploads, and why raw keys never reach the browser.
 - [`../SYSTEMS.md`](../SYSTEMS.md) — the per-system index; [`../PRD.md`](../PRD.md) — the product why.

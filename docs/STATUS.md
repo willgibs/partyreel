@@ -25,9 +25,10 @@ explorations turning into research papers. The plan he approved runs four rounds
 short planning pass: **Round 1, the lab** (in flight): the stale-stylesheet guard, one toggle rule for every
 pick, edge-to-edge canvases and the catalog's shared types landed at `5cdebfe0`; two lanes cut at `28d1aa95`.
 **Round 2, the docs diet and the track protocol** (the Orchestrator's): the protocol part landed (PROGRAM.md
-is the loop, CLAUDE.md is under 150 lines, the one-round manifest template, a manifest deleted at its
-merge); the diet (the integrated manifests, the ADR fold, the record pages, the systems-doc strip, the
-record-depth policy test) lands as the lanes free. **Round 3, the Library as the complete inventory**
+is the loop, CLAUDE.md is 150 lines, the one-round manifest template, a manifest deleted at its merge),
+the record is two rounds deep and a test holds it, the 26 integrated manifests are gone, the 25 ADRs
+are folded into the system docs and every citation names the doc (`d4ec4cff`, `aea90fd3`); the
+systems-doc strip runs as the `docs-systems-strip` lane; the record pages wait for the catalog lane. **Round 3, the Library as the complete inventory**
 (components, marketing sections and app screens with live previews, tokens; a review surface with
 keep / redesign / retire on every entry). **Round 4, the six paper boards rebuilt as catalogs**
 (brand-voice, type-scale, floating-surfaces, light, rounding, media-kit), cut once Will has walked the
@@ -36,7 +37,7 @@ palette catalog.
 | track | returns | state |
 | --- | --- | --- |
 | `lab-catalog` | the review's item scope (`item:<id>=keep\|refine\|kill "note"`), `Catalog`, `ItemVerdictRow`, `CompareTwo`, `SpotCompare`, the reading budget in `pnpm lab:smoke`, `pnpm new-board` scaffolding a catalog, `/design/lab/kit` as the toolbox, the palette rebuilt on the kit as the proof | building |
-| `lab-sweep` | every lab page walked at 1440 and 375 and fixed in the shell; plain-English labels | building |
+| `lab-sweep` | every lab page walked at 1440 and 375 and fixed in the shell; plain-English labels | integrated at `88dafe50` (the dev indicator moved and the lab functions' file trace cut from 2,248 to 718 files behind it) |
 
 What closes it: both lanes integrated, the walk of Round 1's verification list on a hard-reloaded dev
 server, Will's walk of the palette catalog (his first review with per-item verdicts), the six catalog

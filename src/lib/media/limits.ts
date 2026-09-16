@@ -3,7 +3,7 @@
  * per-file gate (no duration cap); per-tier *counts* live in lib/constants/tiers.ts.
  *
  * The 10 GB ceiling is why uploads go browser → R2 directly (single PUT under 100 MB,
- * else multipart); a multi-GB body can never pass through a Vercel function. See ADR-0003.
+ * else multipart); a multi-GB body can never pass through a Vercel function. See uploads-and-r2.md.
  */
 
 /**

@@ -28,7 +28,7 @@ the lab, Will's verdicts, then the wiring. Vision and pricing: [`docs/PRD.md`](d
 | What binds design work? | the Library at `/design/library` (the bible, every component's contracts, the policies), levelled in [`docs/design/README.md`](docs/design/README.md); Will's rulings in [`docs/design/rulings.md`](docs/design/rulings.md) |
 | What assets has Will been asked for? | [`docs/ASSETS.md`](docs/ASSETS.md) |
 
-The system docs (what exists and don't-revert) win over the ROADMAP (provisional) and `docs/adr/` (rationale, being folded into them).
+The system docs (what exists and don't-revert) win over the ROADMAP (provisional); the old decision records are folded into them.
 
 ## Sessions & roles
 

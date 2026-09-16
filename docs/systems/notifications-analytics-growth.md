@@ -36,7 +36,9 @@ billing alerts, a durable per-item feed + push, per-item announcement un-read to
 ## Link analytics
 
 Per-event-per-day **aggregate counts, NO PII** (`link_stats`: `event_id, kind, day, count`; `kind` ∈
-`qr_scan | album_view`). No IP / user-agent / visitor identity is EVER stored.
+`qr_scan | album_view`). No IP / user-agent / visitor identity is EVER stored. The one link per event means
+only `qr_scan` is ever RECORDED now; `album_view` stays in the enum because the historical counts the admin
+metrics read are typed by it, and a Postgres enum value cannot be dropped.
 
 - **Bots are filtered AT INGEST** ([`analytics/bots.ts`](../../src/lib/analytics/bots.ts) `isLikelyBot`)
   because aggregate counters can't be cleaned retroactively.
@@ -90,7 +92,7 @@ group, so it is untracked too). Both product toggles were already ON project-sid
   counting; if the vendor ever changes, re-verify its "no cookies / never identifies you / no
   cross-site" sentences still hold.
 
-## Saved events (accounts-from-guest growth — ADR-0009)
+## Saved events (the accounts-from-guest growth loop)
 
 A signed-in visitor can SAVE any event to their dashboard — the FREE account-creation growth payoff. It
 AUGMENTS the anonymous capability flow; the upload pipeline is untouched. (Phase 4: saved events now live in
@@ -108,6 +110,9 @@ key is `saved_at`, threaded through `SavedEventCardData` → [host-app.md](host-
   saved cards link `/e/[qr_token]`. Cover keys are presigned server-side.
 - **Advisors:** both RPCs are in the authenticated (0029) list ONLY, never anon (0028); `saved_events` has a
   policy (no `rls_enabled_no_policy` INFO).
+- **`saved_events(user_id, event_id, saved_at)`** is PK'd on the pair with BOTH FKs `on delete cascade`, so
+  deleting the event or the account removes the save with no sweep to write. Saving stays FREE on every
+  tier: it is the reason a visitor makes an account, so pricing it would cost more than it earns.
 - **Gotcha:** `get_saved_events`'s generated return type understates nullability (a `RETURNS TABLE` fn types
   every column non-null); `SavedEventRow` in [`saved-events/card.ts`](../../src/lib/saved-events/card.ts)
   models the TRUE nullability and the query layer casts to it. Don't trust the generated nullability for
@@ -123,8 +128,10 @@ key is `saved_at`, threaded through `SavedEventCardData` → [host-app.md](host-
 The post-upload `<SaveAccountPrompt>` ([`save-account-prompt.tsx`](../../src/components/guest/save-account-prompt.tsx),
 rendered by [`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx)) REPLACED the old newsletter
 `EmailCapturePrompt` — account-first, with the newsletter opt-in folded into the
-save dialog as a checkbox. Opt-in writes via the **`capture_guest_email`** RPC (anon capability-token, the
-`session_token` is the auth): it sets `guests.email` only if null, and upserts the durable
+save dialog as a checkbox. Opt-in POSTs to [`/api/guests/capture-email`](../../src/app/api/guests/capture-email),
+which derives the address from the caller's own verified session (never the request body, which is what
+closed the victim-poisoning vector) and calls the now service-role-only **`capture_guest_email`** RPC
+through the admin client: it sets `guests.email` only if null, and upserts the durable
 **`newsletter_signups`** table (RLS deny-all). `newsletter_signups` is standalone (NOT a `guests` column) so
 the marketing list survives event/guest deletion (`event_id` is `on delete set null`). The old
 `/api/guests/email` route + its wrapper were removed as dead code (the RPC is reached ONLY via the in-page
@@ -132,4 +139,4 @@ browser path now). **Deferred:** the automatic "email me the album link" send (w
 
 ## See also
 
-[ADR-0009](../adr/0009-saved-events.md) · [guest-flow.md](guest-flow.md) (mounts the Save button / capture) · [admin-observability.md](admin-observability.md) (announcement publishing) · [lifecycle-recovery.md](lifecycle-recovery.md) (the nudges some alerts mirror) · [database-security.md](database-security.md).
+[guest-flow.md](guest-flow.md) (mounts the Save button / capture) · [admin-observability.md](admin-observability.md) (announcement publishing) · [lifecycle-recovery.md](lifecycle-recovery.md) (the nudges some alerts mirror) · [database-security.md](database-security.md).

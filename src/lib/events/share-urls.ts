@@ -1,6 +1,6 @@
 /**
  * Event link builder — the single place that turns an event's qr_token into the
- * absolute guest-facing URL. One link per event (ADR-00010): what a guest sees is
+ * absolute guest-facing URL. One link per event (database-security.md0): what a guest sees is
  * driven by the host's configs (visibility / accepting_uploads / allow_anonymous_uploads),
  * not by which link they hold.
  *
@@ -31,7 +31,7 @@ export function previewJoinUrl(siteUrl: string): string {
 
 /**
  * The host-facing "best" share URL: the custom slug when set, else the permanent
- * qr_token URL (ADR-0012). For DASHBOARD display/copy of the prettier link only — the
+ * qr_token URL (host-app.md). For DASHBOARD display/copy of the prettier link only — the
  * QR and the guest page's canonical link stay on the qr_token, since the slug is mutable
  * and the printed/permanent link must never break.
  */

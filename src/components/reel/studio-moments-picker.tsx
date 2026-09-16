@@ -3,7 +3,7 @@
 /**
  * THE MOMENTS PICKER: the Studio's in-room door for choosing what is in the reel.
  *
- * This is the primary selection surface since ADR-0024. The gallery tile used to carry a clapperboard
+ * This is the primary selection surface since host-app.md. The gallery tile used to carry a clapperboard
  * chip, so "add this to the reel" was a decision you made one card at a time, in a surface whose job is
  * moderation, next to four other chips. Will ruled that backwards: picking a cut is a MODE, and the
  * room you are in should carry the meaning instead of an icon repeated on every card. So membership is

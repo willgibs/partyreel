@@ -5,7 +5,7 @@
  * SECURITY: the client NEVER supplies the R2 key, the media_id (at presign), or a
  * filename. The presign route derives all of those server-side from the validated
  * content-type + the capability token (path-traversal / cross-event-write defense
- * — ADR-0003). The token names are distinct on purpose: `qr_token` (join),
+ * — uploads-and-r2.md). The token names are distinct on purpose: `qr_token` (join),
  * `session_token` (upload capability) — a mix-up here is a security bug.
  */
 import { z } from "zod";
@@ -26,7 +26,7 @@ export const MAX_DECLARED_DIMENSION = 100_000;
 // ─── POST /api/guests (join) ─────────────────────────────────────────────────
 // The join carries ONLY the capability `qr_token`. Identity (for account-required events) is a signed-in
 // Supabase session: the route derives the verified user id via getUser() and passes it as the trusted
-// p_user_id to the service-role-only create_guest (ADR-0016), which reads the email from auth.users for that
+// p_user_id to the service-role-only create_guest (database-security.md), which reads the email from auth.users for that
 // id and raises if an account-required event has no verified session. No email is ever sent in this request.
 export const joinSchema = z.object({
   qr_token: z.string().trim().min(1),
@@ -68,7 +68,7 @@ export const completeUploadSchema = z.object({
   // null for single-PUT uploads; the R2 uploadId for multipart.
   upload_id: z.string().min(1).nullable(),
   parts: z.array(partSchema).default([]),
-  // The localStorage device UUID, CAPTURE-ONLY (ADR-0020): recorded into the deny-all
+  // The localStorage device UUID, CAPTURE-ONLY (trust-safety-forensics.md): recorded into the deny-all
   // upload_forensics row at the complete seam; never product logic, never rendered.
   device_uuid: z.uuid().optional(),
 });

@@ -30,7 +30,7 @@ const ACTION_LABEL: Record<string, string> = {
   hold_released: "Hold released",
 };
 
-// The forensic capture + legal hold surface (ADR-0020, P8 operable + observable): the capture
+// The forensic capture + legal hold surface (trust-safety-forensics.md, P8 operable + observable): the capture
 // coverage health signal, the active-holds list with per-item preserve/export/release, and the
 // full audit trail. The incident procedure lives in docs/systems/trust-safety-forensics.md.
 export default async function ForensicsPage() {

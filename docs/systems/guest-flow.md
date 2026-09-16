@@ -8,8 +8,8 @@
 
 `/e/[token]` ([`page.tsx`](../../src/app/(guest)/e/[token]/page.tsx)) is the scanned-QR landing page — ONE
 unified event page ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)) whose state
-is driven by the host's configs. The opaque `qr_token` IS the authorization (ADR-0004); there is ONE link
-per event (ADR-0010 — the old `/a/[share_token]` album + `get_public_album` are gone).
+is driven by the host's configs. The opaque `qr_token` IS the authorization; there is ONE link
+per event (the old `/a/[share_token]` album + `get_public_album` are gone).
 `get_event_by_qr_token` resolves `qr_token` OR `custom_slug` (token wins) and returns the canonical
 `qr_token`, which the page threads to every downstream qr-keyed RPC.
 
@@ -59,7 +59,7 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
   make an event link installable to a home screen (standalone, paper/ink theme); static + global, leaks
   nothing event-specific.
 
-## State follows `visibility` (ADR-0007) — a 3-state enum, NOT a boolean
+## State follows `visibility`: a 3-state enum, NOT a boolean
 
 - **`private`** = the master lock → a locked screen (no name / gallery / upload); `generateMetadata` hides the name.
 - **`password`** → access `none`: a **ghost-grid backdrop** + the real "N photos & videos inside" count tease
@@ -166,15 +166,24 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
 
 ## Invariants (don't break)
 
-- **The opaque token IS the authorization (ADR-0004)** — never give `anon` direct table access; the guest
+- **The opaque token IS the authorization** — never give `anon` direct table access; the guest
   RPCs validate the token internally. → [database-security.md](database-security.md).
+- **A link, and an event password, are BEARER credentials.** Possession is the authorization, which is the
+  intended sharing model: whoever holds the link acts within whatever the configs allow, and a password
+  handed round a party is as shared as the party. So a surface may never leak one (no token in an OG tag,
+  a log line, a referrer or an analytics row), and the defenses that matter are the ones that survive a
+  leaked link: the config gates, the per-request re-checks, and a host's ability to rotate.
 - **The anon media RPCs gate on `visibility = 'open'`, NOT `<> 'private'`.** A password event's media must
   NEVER stream through `get_event_media_by_qr_token` / the anon path; it is served ONLY via the server
   admin-read (`getApprovedMediaForUnlock`, self-guarded by the unlock cookie) after `/api/guests/unlock`
   verifies the password. The bcrypt hash never leaves the DB (RPCs expose `has_password` only).
 - **The unlock cookie is a signed HMAC of `{eid,exp}`** (`UNLOCK_COOKIE_SECRET`, ~12 h) — the cookie *name*
-  isn't the boundary, the **signed eid** is. Password is set/cleared ONLY by `set_event_password` /
-  `clear_event_password` (host-auth SECURITY DEFINER; the column is revoked from the host UPDATE grant).
+  isn't the boundary, the **signed eid** is. It fails CLOSED when the secret is unset. Password is
+  set/cleared ONLY by `set_event_password` / `clear_event_password` (host-auth SECURITY DEFINER; the column
+  is revoked from the host UPDATE grant), and those two own the STATE as well as the hash:
+  `set_event_password` is the only path INTO `visibility='password'` (it flips hash and state atomically,
+  which is what keeps the `events_password_requires_hash` CHECK satisfiable), and `clear_event_password`
+  reverts to `open` only FROM `password`, never turning a `private` event public.
 - **The page calls `getUser()` for every non-private, non-demo event** (to resolve the access level + the
   identity gates — the gate must know whether the viewer is signed in; P1 relaxed this from the old
   upload-path-only call). With NO session it's a cheap LOCAL null (no network), so an anonymous event crowd
@@ -192,9 +201,18 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
 - **Silent, just-in-time, field-less for the common case:** a first-time guest picks files → `POST
   /api/guests {qr_token}` → `create_guest` issues a `session_token` (localStorage, returning-guest) behind
   the scenes → upload. Guest display names were REMOVED (cut 2b); `create_guest` is 2-arg.
+- **The localStorage `session_token` is the dedupe, and `guests` deliberately has NO unique
+  `(event_id, user_id)`.** One person may join the same event more than once (a second device, a cleared
+  browser), and an account is optional, so a uniqueness constraint there would break anonymous multi-join
+  rather than tidy anything.
+- **Supabase anonymous sign-ins stay OFF.** Capability tokens already give a guest immediate, scoped use,
+  so a per-scan `auth.users` row would be pure DB bloat; and an anonymous session carries no email, so it
+  could not satisfy the account gate it would supposedly serve. The account layer AUGMENTS the anonymous
+  flow and never replaces it: the contribution pipeline runs identically whether the uploader is anonymous
+  or signed in.
 - **`allow_anonymous_uploads = false` ⇒ an account is required to SEE the full gallery AND to upload** (P1
   gated the VIEW too: a signed-out viewer gets the teaser, see "Gallery access"; renamed + inverted from
-  `require_email`, ADR-0015; default is ON and FREE on every tier since 2026-06-21, see [host-app.md](host-app.md);
+  `require_email`; default is ON and FREE on every tier since 2026-06-21, see [host-app.md](host-app.md);
   turning it off is the opt-in, behind a consequence-confirm, not a paid feature). The account step lives in the entry
   modal (P2) as `<EnterEventPrompt>` — an email-primary "See all the photos" (the shared
   [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx); one tap = create account OR log in) with a
@@ -224,7 +242,7 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
 - **The doorbell:** the `media_gallery_doorbell` DB trigger sends a contentless `ping` on the PUBLIC
   Realtime broadcast channel `gallery:<qr_token>` whenever the approved-visible set changes (uploads,
   moderation flips, restores, purges — pending/hidden-internal transitions stay silent). The token IS the
-  channel capability (ADR-0004); the ping carries no data, the refetch is access-gated server-side.
+  channel capability; the ping carries no data, the refetch is access-gated server-side.
   Client: [`use-gallery-doorbell.ts`](../../src/lib/guest/use-gallery-doorbell.ts) + a leading-edge
   coalescer ([`refresh-coalescer.ts`](../../src/lib/guest/refresh-coalescer.ts): immediate refetch, ~2 s
   suppression + jitter, one trailing flush for bursts). Measured doorbell-to-render: **<1 s live**.
@@ -267,7 +285,7 @@ page through `event-experience.tsx`; the ~12 s poll is paused, the silent join s
 the queue skips the real upload — `simulateUpload` returns a synthetic `approved` outcome so the optimistic
 tile appears but is **never persisted**. The marketing side of the demo → [marketing-content.md](marketing-content.md).
 
-## The guest reel (R3, ADR-0022)
+## The guest reel (R3)
 
 Guests see the host's highlight reel on `/e/` **only after the host shares it** (`highlight_reels.guest_visible`,
 the host-side publish seam → [host-app.md](host-app.md)). Server resolution is
@@ -294,7 +312,9 @@ read; a streamed top card would CLS the keepsake hero):
   for the player's `onAssetsReady`** (2.5s cap): the engine re-fetches clips `cache: "no-store"`, so a cold
   first open decodes everything and animating over that work was on-device jitter (`6bc779d`). Reduced
   motion skips to settled, player paused with controls. Closing aborts any in-flight encode.
-- **Download** (settled row) — `POST /api/reel/download` re-derives EVERYTHING from the qr_token
+- **Download** (settled row; guests are MEANT to take the mp4 away, because watch-only would throttle the
+  growth loop at its strongest link while protecting nothing a screen recorder defeats, and the free-tier
+  watermark was designed for exactly this distribution) — `POST /api/reel/download` re-derives EVERYTHING from the qr_token
   (access must be `full`; `no_reel` = 404 oracle-free; the artifact must pass the same blessing as the
   host cache path) and answers per the pure
   [`guest-download-plan.ts`](../../src/lib/reel/guest-download-plan.ts) ladder: **fresh artifact** →
@@ -308,4 +328,4 @@ read; a streamed top card would CLS the keepsake hero):
 
 ## See also
 
-[ADR-0004](../adr/0004-anonymous-guests-capability-tokens.md) · [ADR-0007](../adr/0007-event-visibility-password-protection.md) · [ADR-0008](../adr/0008-account-from-guest-verified-email.md) · [ADR-0010](../adr/0010-one-link-per-event.md) · [ADR-0022](../adr/0022-reel-guest-surfacing.md) · [uploads-and-r2.md](uploads-and-r2.md) · [notifications-analytics-growth.md](notifications-analytics-growth.md).
+[database-security.md](database-security.md) (the capability-RPC inventory) · [auth-accounts.md](auth-accounts.md) (the sign-in the account gate uses) · [uploads-and-r2.md](uploads-and-r2.md) · [notifications-analytics-growth.md](notifications-analytics-growth.md).

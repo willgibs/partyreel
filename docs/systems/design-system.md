@@ -3,7 +3,7 @@
 > ROLE: the locked V1 visual system: token contracts, type, rounding, elevation, motion, state
 > colors, the error taxonomy's UX contract, and the craft-guidance stack.
 > BELONGS HERE: what the system IS + its invariants + don't-reverts. · NOT HERE: how it was chosen
-> (→ the design lab + `adr/`), per-surface redesigns (each surface's owning phase), shipping
+> (→ the design lab + [`../decisions/design-record.md`](../decisions/design-record.md)), per-surface redesigns (each surface's owning phase), shipping
 > narrative (→ [`../CHANGELOG.md`](../CHANGELOG.md)).
 > GROWS BY: edit-in-place as tokens/rules evolve; the lab (`/design`) stays the experimentation
 > venue, this doc records what's ratified.
@@ -901,7 +901,8 @@ and the page templates; `_data/` the nav model, the link grammar (`links.ts`), t
 shell group, the iframe scene routes; `src/components/lab/board-spec.ts` the board spec type; the
 authority model in [`../design/README.md`](../design/README.md); `pnpm lab:smoke` crawls every lab route) · `src/lib/design-gate/*` +
 `/api/design-gate` (the gate, outside the lab because production depends on it) ·
-[`../decisions/design-record.md`](../decisions/design-record.md) (the rulings, verbatim). Perf baselines: [`../perf/v1-baseline.md`](../perf/v1-baseline.md).
+[`../decisions/design-record.md`](../decisions/design-record.md) (the rulings, verbatim). The V1 perf
+baseline and its repeatable method are in git: `git show 44090827:docs/perf/v1-baseline.md`.
 
 ## Gotchas / don't-revert
 
