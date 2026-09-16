@@ -27,8 +27,8 @@ import {
   useTunerCandidate,
 } from "@/components/dev/candidate-style";
 
-import { AccentWall } from "./call-sites";
-import { PalettePreview } from "./catalog";
+import { AccentDash } from "./call-sites";
+import { PalettePreview, ScopedTokens } from "./catalog";
 import { SITE_PAGES, SiteFrames, type PageId } from "./live";
 import { resolvePalette } from "./palettes";
 import { RealFloating } from "./real-ui";
@@ -37,8 +37,6 @@ import {
   applyCss,
   applyLabel,
   blockFor,
-  BRAND_FILES,
-  BRAND_HITS,
   FAINT_ALPHAS,
   FAINT_USES,
   lOf,
@@ -55,13 +53,7 @@ import {
   type ReachId,
 } from "./registers";
 import { SurfaceStack } from "./sections";
-import {
-  AppDashboard,
-  AppEvent,
-  GuestAlbum,
-  PhotoCards,
-  TextSteps,
-} from "./specimens";
+import { AppDashboard, AppEvent, PhotoCard, TextBlock } from "./specimens";
 import { PALETTE } from "./spec";
 
 /**
@@ -276,16 +268,49 @@ const inWords = (n: number) => WORDS[n] ?? String(n);
 
 const WALK_PAGES = PALETTE.links.pages ?? [];
 
+/**
+ * THE APP SCREENS, ON THE SAME TOGGLE AS THE ROUTES (round eight, 2026-09-16).
+ *
+ * Round seven had a section of its own for these, six stages tall, arguing that
+ * "this is where the round is decided". It is, which is exactly why they belong
+ * in the stage the PICK sits over rather than a scroll further down: the winner
+ * step draws the twelve as tiles and this underneath, so pressing a card
+ * re-skins the real product. A frame cannot load these two (the app is behind
+ * a sign-in), so they are compositions and the toggle says so.
+ *
+ * ★ AND THE GUEST ALBUM IS NOT ONE OF THEM ANY MORE. Round seven rebuilt the
+ * masonry because the rest of the app had to be; the album is the one app
+ * surface that is PUBLIC, so the demo event's own route loads in a frame, on
+ * the same toggle, beside today. A rebuilt guest page next to the real one was
+ * two answers to one question.
+ */
+const APP_SCREENS = [
+  {
+    id: "dashboard" as const,
+    label: "The dashboard",
+    note: "The filter chips, the storage track, the event cards and a panel inside a card.",
+    height: [820, 960] as const,
+    render: (mode: Mode) => <AppDashboard mode={mode} />,
+  },
+  {
+    id: "event" as const,
+    label: "An event",
+    note: "The header, the stat band, the chips, the command strip, the review queue and the grid: four crushed dark surfaces at once.",
+    height: [1090, 780] as const,
+    render: (mode: Mode) => <AppEvent mode={mode} />,
+  },
+];
+
+type ScreenId = PageId | (typeof APP_SCREENS)[number]["id"];
+
 export function PaletteBoard() {
   // The switches that change ONE section each, so they stay beside it rather
   // than in the dock (the dock's rule: a page-wide switch is declared in the
   // spec, a per-specimen one sits with its specimen).
-  const [pageId, setPageId] = useState<PageId>("home");
+  const [screenId, setScreenId] = useState<ScreenId>("home");
   const [split, setSplit] = useState(true);
+  const [tone, setTone] = useState<"dark" | "light">("dark");
   const [reloadKey, setReloadKey] = useState(0);
-  const [accentGround, setAccentGround] = useState<"cinema" | "paper">(
-    "cinema",
-  );
   const applied = useTunerCandidate();
 
   return (
@@ -311,38 +336,163 @@ export function PaletteBoard() {
       }}
       evidence={(id, state, api) => {
         const s = read(state);
-        const { mode, desktop, pair, accent, reach, cardMode } = s;
+        const { mode, desktop, pair, cardMode } = s;
         const h = (d: number, p: number) => (desktop ? d : p);
-        const page = SITE_PAGES.find((p) => p.id === pageId) ?? SITE_PAGES[0];
 
         switch (id) {
           /* ── The catalog ────────────────────────────────────────────── */
           case "catalog":
             return (
+              <Catalog
+                spec={PALETTE}
+                state={state}
+                setState={api.setState}
+                minWidth={320}
+                render={(candidate) => (
+                  <PalettePreview
+                    id={candidate.id}
+                    cardMode={cardMode}
+                    faint={s.faint}
+                    accentMode={s.accentMode}
+                  />
+                )}
+              />
+            );
+
+          /* ── The real product, wearing the pick ─────────────────────── */
+          case "pages": {
+            const screen = APP_SCREENS.find((a) => a.id === screenId);
+            const page =
+              SITE_PAGES.find((p) => p.id === screenId) ?? SITE_PAGES[0];
+            return (
               <>
-                {/* The kit's grid and card. The only thing this board brings is
-                    the PREVIEW, because only this board has palettes; 320 is
-                    the narrowest a card can be with two real product fragments
-                    in it side by side. */}
-                <Catalog
-                  spec={PALETTE}
-                  state={state}
-                  setState={api.setState}
-                  minWidth={320}
-                  render={(candidate) => (
-                    <PalettePreview
-                      id={candidate.id}
-                      cardMode={cardMode}
-                      faint={s.faint}
-                      accentMode={s.accentMode}
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                  <Knob label="Screen">
+                    <Toggle
+                      ariaLabel="The screen"
+                      options={[
+                        ...SITE_PAGES.map((p) => ({
+                          id: p.id as ScreenId,
+                          label: p.label,
+                        })),
+                        ...APP_SCREENS.map((a) => ({
+                          id: a.id as ScreenId,
+                          label: a.label,
+                        })),
+                      ]}
+                      value={screenId}
+                      onChange={setScreenId}
                     />
+                  </Knob>
+                  {screen ? (
+                    // The app is a composition, so "beside today" is not on
+                    // offer: what it gets instead is the mode, which a route
+                    // carries for itself and a composition cannot.
+                    <Knob label="Mode">
+                      <Toggle
+                        ariaLabel="The mode"
+                        options={[
+                          { id: "dark" as const, label: "Dark" },
+                          { id: "light" as const, label: "Light" },
+                        ]}
+                        value={tone}
+                        onChange={setTone}
+                      />
+                    </Knob>
+                  ) : (
+                    <>
+                      <Knob label="Beside today">
+                        <Toggle
+                          ariaLabel="Beside today"
+                          options={[
+                            { id: "on", label: "On" },
+                            { id: "off", label: "Off" },
+                          ]}
+                          value={split ? "on" : "off"}
+                          onChange={(v) => setSplit(v === "on")}
+                        />
+                      </Knob>
+                      <button
+                        type="button"
+                        onClick={() => setReloadKey((n) => n + 1)}
+                        className="h-7 rounded-[var(--radius-action-sm)] border border-border px-2.5 text-[11px] font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none"
+                      >
+                        Reload both frames
+                      </button>
+                    </>
                   )}
-                />
-                <CellLabel className="max-w-2xl">
-                  Pick drives the whole page, A and B the wipe under it, Accent
-                  the hue each card declares.
+                </div>
+                <CellLabel className="mt-0 max-w-2xl">
+                  {screen ? screen.note : page.note}
                 </CellLabel>
+                {screen ? (
+                  <PairStage
+                    pair={pair}
+                    ground={tone === "dark" ? "app-dark" : "app-light"}
+                    mode={mode}
+                    height={h(screen.height[0], screen.height[1])}
+                  >
+                    {screen.render(mode)}
+                  </PairStage>
+                ) : (
+                  <SiteFrames
+                    page={page}
+                    mode={mode}
+                    split={split}
+                    candidateCss={s.css}
+                    candidateLabel={s.def.name}
+                    reloadKey={reloadKey}
+                  />
+                )}
               </>
+            );
+          }
+
+          /* ── The accent, and how far it reaches ─────────────────────── */
+          case "accent":
+            return (
+              <div className="max-w-2xl">
+                <AccentDash
+                  pair={pair}
+                  accent={s.declared}
+                  reach={s.reach}
+                  on={s.accentOn}
+                />
+                <CellLabel>
+                  {`${s.def.name} declares ${s.declared.name}, ${s.accentOn ? "worn" : "not worn"}. ${s.def.pairs}`}
+                </CellLabel>
+              </div>
+            );
+
+          /* ── A card over a photograph ───────────────────────────────── */
+          case "card":
+            return (
+              <div className="max-w-2xl">
+                <ScopedTokens pair={pair} ground="app-dark">
+                  <PhotoCard
+                    value={blockFor(pair, "app-dark")["--card"] ?? "unset"}
+                  />
+                </ScopedTokens>
+                <CellLabel>
+                  {`The ring under the card is the elevation nobody wrote down, at ${RING_USES.faint} sites and ${RING_USES.onMedia} on media.`}
+                </CellLabel>
+              </div>
+            );
+
+          /* ── The third text step ────────────────────────────────────── */
+          case "faint":
+            return (
+              <div className="max-w-2xl">
+                <ScopedTokens pair={pair} ground="paper" className="rounded-xl">
+                  <TextBlock faint={s.faint} />
+                </ScopedTokens>
+                <CellLabel>
+                  {FAINT_ALPHAS.map(
+                    (a) => `${a.alpha} percent x${a.uses}`,
+                  ).join(", ")}
+                  {` = ${FAINT_USES} sites dimming by hand today.`}
+                </CellLabel>
+              </div>
             );
 
           /* ── Any two, side by side ──────────────────────────────────── */
@@ -400,244 +550,9 @@ export function PaletteBoard() {
               </>
             );
 
-          /* ── The three calls left ───────────────────────────────────── */
-          case "calls":
-            return (
-              <>
-                {/* 1. The accent, by the job it does. */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <Knob label="Ground">
-                    <Toggle
-                      ariaLabel="Ground"
-                      options={[
-                        { id: "cinema" as const, label: "The room" },
-                        { id: "paper" as const, label: "The paper" },
-                      ]}
-                      value={accentGround}
-                      onChange={setAccentGround}
-                    />
-                  </Knob>
-                  <CellLabel className="mt-0">
-                    {`An accent is two token values reaching ${BRAND_HITS} utilities in ${BRAND_FILES} files.`}
-                  </CellLabel>
-                </div>
-                <div className="rounded-lg border border-border bg-card px-4 py-3">
-                  <p className="text-sm font-semibold">
-                    {s.def.name} declares {s.declared.name}
-                    <span className="ml-2 font-normal text-muted-foreground">
-                      {s.accentOn ? "worn" : "not worn"}
-                    </span>
-                  </p>
-                  <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
-                    {s.def.pairs}
-                  </p>
-                </div>
-                <Labeled
-                  name={`${accentGround === "cinema" ? "the room" : "the paper"} · none beside ${s.def.name}'s own · reach: ${reach}`}
-                  note="Every job twice: the achromatic site left, the declared hue right. A job outside the reach renders on near-black."
-                >
-                  <PairStage
-                    pair={pair}
-                    ground={accentGround}
-                    mode={mode}
-                    // Measured, not guessed: the wall's own content height at
-                    // each canvas, plus a hair. A Stage clips, and round seven
-                    // added a row while it was removing two columns.
-                    height={h(1740, 2180)}
-                  >
-                    <AccentWall
-                      mode={mode}
-                      dark={accentGround === "cinema"}
-                      accent={s.declared}
-                      reach={reach}
-                      on={s.accentOn}
-                    />
-                  </PairStage>
-                </Labeled>
-
-                {/* 2. The card over a photograph. */}
-                <Labeled
-                  name={`over a photograph, the room · ${s.def.name} · card ${cardMode}`}
-                  note={`Left: as this palette declares it. Right: today's 62 percent, fixed. The ring is the elevation nobody wrote down, at ${RING_USES.faint} sites and ${RING_USES.onMedia} on media.`}
-                >
-                  <PairStage
-                    pair={pair}
-                    ground="app-dark"
-                    mode={mode}
-                    height={h(460, 470)}
-                  >
-                    <PhotoCards mode={mode} />
-                  </PairStage>
-                </Labeled>
-
-                {/* 3. The third text step. */}
-                <Labeled
-                  name={`the text steps, the paper · ${s.def.name} · ${s.faint ? "the third colour in" : "fading by hand"}`}
-                >
-                  <PairStage
-                    pair={pair}
-                    ground="paper"
-                    mode={mode}
-                    height={h(350, 840)}
-                  >
-                    <TextSteps mode={mode} faint={s.faint} />
-                  </PairStage>
-                </Labeled>
-                <Labeled
-                  name={`the text steps, the room · ${s.def.name} · ${s.faint ? "the third colour in" : "fading by hand"}`}
-                >
-                  <PairStage
-                    pair={pair}
-                    ground="cinema"
-                    mode={mode}
-                    height={h(350, 840)}
-                  >
-                    <TextSteps mode={mode} faint={s.faint} />
-                  </PairStage>
-                </Labeled>
-                {/* The count is the same either way, because it is a
-                    measurement; what changes is what the third line in each
-                    canvas above is MADE of. */}
-                <CellLabel className="max-w-2xl">
-                  {FAINT_ALPHAS.map(
-                    (a) => `${a.alpha} percent x${a.uses}`,
-                  ).join(", ")}
-                  {` = ${FAINT_USES} sites dimming by hand.`}
-                </CellLabel>
-              </>
-            );
-
-          /* ── The real pages ─────────────────────────────────────────── */
-          case "pages":
-            return (
-              <>
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                  <Knob label="Page">
-                    <Toggle
-                      ariaLabel="The page"
-                      options={SITE_PAGES.map((p) => ({
-                        id: p.id,
-                        label: p.label,
-                      }))}
-                      value={pageId}
-                      onChange={setPageId}
-                    />
-                  </Knob>
-                  <Knob label="Beside today">
-                    <Toggle
-                      ariaLabel="Beside today"
-                      options={[
-                        { id: "on", label: "On" },
-                        { id: "off", label: "Off" },
-                      ]}
-                      value={split ? "on" : "off"}
-                      onChange={(v) => setSplit(v === "on")}
-                    />
-                  </Knob>
-                  <button
-                    type="button"
-                    onClick={() => setReloadKey((n) => n + 1)}
-                    className="h-7 rounded-[var(--radius-action-sm)] border border-border px-2.5 text-[11px] font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none"
-                  >
-                    Reload both frames
-                  </button>
-                </div>
-                <CellLabel className="mt-0 max-w-2xl">
-                  These three change this section only. A link clicked inside a
-                  frame navigates that frame; Reload brings it back.
-                </CellLabel>
-
-                <CellLabel className="mt-0 max-w-2xl">{page.note}</CellLabel>
-                <SiteFrames
-                  page={page}
-                  mode={mode}
-                  split={split}
-                  candidateCss={s.css}
-                  candidateLabel={s.def.name}
-                  reloadKey={reloadKey}
-                />
-              </>
-            );
-
-          /* ── The app, and the guest album ───────────────────────────── */
-          case "app":
-            return (
-              <>
-                <Labeled
-                  name={`an event, the room · ${s.def.name}`}
-                  note="The header, the stat band, the chips, the command strip, the review queue and the grid: four crushed dark surfaces at once."
-                >
-                  <PairStage
-                    pair={pair}
-                    ground="app-dark"
-                    mode={mode}
-                    height={h(1090, 780)}
-                  >
-                    <AppEvent mode={mode} />
-                  </PairStage>
-                </Labeled>
-                <Labeled name={`an event, the paper · ${s.def.name}`}>
-                  <PairStage
-                    pair={pair}
-                    ground="app-light"
-                    mode={mode}
-                    height={h(1090, 780)}
-                  >
-                    <AppEvent mode={mode} />
-                  </PairStage>
-                </Labeled>
-                <Labeled
-                  name={`the dashboard, the room · ${s.def.name}`}
-                  note="The filter chips, the storage track, the event cards, and a panel inside a card."
-                >
-                  <PairStage
-                    pair={pair}
-                    ground="app-dark"
-                    mode={mode}
-                    height={h(820, 960)}
-                  >
-                    <AppDashboard mode={mode} />
-                  </PairStage>
-                </Labeled>
-                <Labeled name={`the dashboard, the paper · ${s.def.name}`}>
-                  <PairStage
-                    pair={pair}
-                    ground="app-light"
-                    mode={mode}
-                    height={h(820, 960)}
-                  >
-                    <AppDashboard mode={mode} />
-                  </PairStage>
-                </Labeled>
-                <Labeled
-                  name={`the guest album, the paper · ${s.def.name}`}
-                  note="The well is identical in both modes, so only the chrome around it moves between these two."
-                >
-                  <PairStage
-                    pair={pair}
-                    ground="app-light"
-                    mode={mode}
-                    height={h(960, 900)}
-                  >
-                    <GuestAlbum mode={mode} />
-                  </PairStage>
-                </Labeled>
-                <Labeled name={`the guest album, the room · ${s.def.name}`}>
-                  <PairStage
-                    pair={pair}
-                    ground="app-dark"
-                    mode={mode}
-                    height={h(960, 900)}
-                  >
-                    <GuestAlbum mode={mode} />
-                  </PairStage>
-                </Labeled>
-              </>
-            );
-
           /* ── The paste ──────────────────────────────────────────────── */
           case "paste": {
-            const paste = [tokenBlock(pair), accentBlock(accent, reach)]
+            const paste = [tokenBlock(pair), accentBlock(s.accent, s.reach)]
               .filter(Boolean)
               .join("\n\n");
             return (
@@ -658,10 +573,8 @@ export function PaletteBoard() {
                 </CellLabel>
                 {/* The RESOLVED palette, which is the point: the sets, the card
                     call and the third text step are all already in `pair`, so
-                    this block is the paste this dock's answers land and it
-                    cannot drift from what every canvas above is rendering. The
-                    mat is the one answer that is not here, and it cannot be: it
-                    moves call sites rather than values. */}
+                    this block is the paste this board's answers land and it
+                    cannot drift from what every specimen above is rendering. */}
                 <Paste
                   label={`globals.css and marketing.css · ${s.def.name}`}
                   code={paste}

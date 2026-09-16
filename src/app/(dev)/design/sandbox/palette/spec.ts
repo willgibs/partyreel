@@ -3,54 +3,69 @@ import { type Candidate, defineBoard } from "@/components/lab/board-spec";
 import { PALETTE_OPTIONS } from "./palettes";
 
 /**
- * THE PALETTE BOARD, AS DATA (round seven, the cool round, 2026-09-16).
+ * THE PALETTE BOARD, AS DATA (round eight, the stepped review, 2026-09-16).
  *
- * ★ THE ROUND IS WILL'S, A FEW QUESTIONS INTO HIS FIRST SITTING ON THE CATALOG
- * AND BEFORE HE RULED ON ITS CARDS: "I'm a much bigger fan of the cooler gray
- * direction in slate, studio, and reel, think they feel more modern, clean, and
- * combat less harshly with a very media-forward dashboard. Looks beautiful with
- * the very black/white backgrounds for solid contrast then cooler surfaces
- * rather than darker bland grays. Many of the warmer tones feel like they'd
- * clash with a colorful mix of photos. Slate could even be less blue, but I'd
- * like more 'cool' gray options. Apple has a beautiful palette, but we wouldn't
- * use that blue they use." Plus: one optional accent per palette, as a config.
+ * ★ ROUND EIGHT ADDS NO PALETTE AND NO ARGUMENT. Round seven's catalog is the
+ * same twelve; what changed is that the board is now WALKED rather than read.
+ * The twelve are variants of one thing, so they are decided by ONE pick
+ * (`catalog.mode: "pick-one"`, the `palette` ask, "None of these" as the
+ * new-directions exit), and every question after it is a step of its own: one
+ * specimen, every option drawn on it as a tile, the real product underneath
+ * wearing whatever is being shown. The reach waits until an accent is on.
+ *
+ * ★ WHAT THAT DELETED. Four switches used to sit in the dock with nothing
+ * saying which question each served; they are the option states of their own
+ * asks now, so a step's strip carries only what it still needs beside its stage
+ * (the canvas, and the accent on the pick). The "three calls left" section,
+ * which was one ask's wall stacked on another ask's photograph stacked on a
+ * third ask's text, is three sections with one specimen each. The app section
+ * folded into the real pages, where it belongs: one toggle, the marketing
+ * routes and the app screens, all wearing the pick.
+ *
+ * ★ THE ROUND-SEVEN RULING STILL FRAMES THE PICK (Will, 2026-09-16): "I'm a
+ * much bigger fan of the cooler gray direction in slate, studio, and reel...
+ * Looks beautiful with the very black/white backgrounds for solid contrast then
+ * cooler surfaces rather than darker bland grays." And the accent: "We will
+ * likely not use an accent color to stick with our achromatic direction, but I
+ * would like to add a single optional accent color config per theme where I can
+ * decide if an accent color would pair well."
  *
  * ★ THE OPTIONS AND THE CANDIDATES ARE WRITTEN OUT HERE AND NOWHERE ELSE, and
  * that is not laziness about DRY, it is the desk. The review scanner reads a
- * spec as TEXT rather than importing it (so a board's asks can be read without
- * running a client tree), so an `options` or a `candidates` built by a `.map`
- * over another module reads as an ask with no answers and a catalog with no
- * cards. `lab-review.test.ts` caught exactly that. The structure lives in
- * `palettes.ts`, the values in `registers.ts`, the WORDS live here, and
- * `registers.test.ts` pins all three equal, id for id and line for line.
+ * spec as TEXT rather than importing it, so an `options` or a `candidates`
+ * built by a `.map` over another module reads as an ask with no answers and a
+ * catalog with no cards (`lab-review.test.ts` caught exactly that). The
+ * structure lives in `palettes.ts`, the values in `registers.ts`, the WORDS
+ * live here, and `registers.test.ts` pins all three equal, id for id.
  *
  * Pure data on purpose (registry.test.ts enforces it): the board route is a
  * SERVER page and reads the question for its header, so a spec that imported
  * React, the board or its sheet would drag a client tree into a server render.
- * `palettes.ts` is plain TypeScript for exactly the same reason.
  */
 
 /**
  * THE TWELVE, WRITTEN OUT. Nine cool, three controls.
  *
  * The four facts are the ones a reviewer compares across twelve cards: the dark
- * ground, the light ground, the cast the chrome carries (chroma and hue, or
- * none), and the one accent the palette declares. `registers.test.ts` reads all
- * four off the resolved palette, so a card can never print a number the strip
- * beside it does not paint.
+ * ground, the light ground, the cast the chrome carries, and the one accent the
+ * palette declares. `registers.test.ts` reads all four off the resolved palette,
+ * so a card can never print a number the strip beside it does not paint.
  *
- * The verdict is the BOARD's own call, drawn as the card's pill, and it is not
- * the reviewer's: Will answers each card keep, refine or kill in the row under
- * it. One ship, seven refine, four kill.
+ * `lands` is what winning MEANS, in files, and it is new in round eight: on a
+ * pick-one catalog the cards are not ruled one by one, so each card has to say
+ * what choosing it costs where the choosing happens. The verdict is still the
+ * BOARD's own call, drawn as the card's pill, and optional feedback for Will.
  */
 const ITEMS: readonly Candidate<
-  "catalog" | "compare" | "calls" | "pages" | "app" | "paste"
+  "catalog" | "pages" | "accent" | "card" | "faint" | "compare" | "paste"
 >[] = [
   {
     id: "today",
     name: "Today",
     one: "The site as it ships: three darks with no ladder, a page a card cannot lift off.",
     verdict: "kill",
+    lands:
+      "Nothing. The ramp, the grounds and the one see-through card stay exactly as they are.",
     facts: [
       ["Room", "0.140"],
       ["Page", "0.990"],
@@ -65,6 +80,8 @@ const ITEMS: readonly Candidate<
     name: "Ladder",
     one: "The same rhythm at chroma zero: the control for whether the cool is doing anything.",
     verdict: "kill",
+    lands:
+      "The new rhythm with no hue in it, which rules the whole cool direction out by ruling.",
     facts: [
       ["Room", "0.145"],
       ["Page", "0.977"],
@@ -79,6 +96,8 @@ const ITEMS: readonly Candidate<
     name: "Ember",
     one: "A warm dark room and a true grey page: round six's pick, kept as the one warm card.",
     verdict: "kill",
+    lands:
+      "A warm room at 0.120 under a true grey page, and the cool family leaves the board.",
     facts: [
       ["Room", "0.120"],
       ["Page", "0.977"],
@@ -86,13 +105,15 @@ const ITEMS: readonly Candidate<
       ["Accent", "Flare"],
     ],
     rationale:
-      "Kept so the reversal is visible rather than asserted. Lay it beside the media grid in the app section: that is where the warm tones were read as clashing with a colourful mix of photographs.",
+      "Kept so the reversal is visible rather than asserted. Lay it beside the dashboard's media grid: that is where the warm tones were read as clashing with a colourful mix of photographs.",
   },
   {
     id: "onyx",
     name: "Onyx",
     one: "The blackest room here, at half Apple's tint. The ground does the work, not the colour.",
     verdict: "refine",
+    lands:
+      "A near-black room at 0.075 with half Apple's tint: the direction with the colour turned down.",
     facts: [
       ["Room", "0.075"],
       ["Page", "0.995"],
@@ -107,6 +128,8 @@ const ITEMS: readonly Candidate<
     name: "Graphite",
     one: "A very black ground, a very white page, Apple's cool greys in between.",
     verdict: "ship",
+    lands:
+      "A 0.105 room, a 0.995 page and Apple's cool greys between them, in globals.css and marketing.css.",
     facts: [
       ["Room", "0.105"],
       ["Page", "0.995"],
@@ -122,6 +145,8 @@ const ITEMS: readonly Candidate<
     name: "Steel",
     one: "The cool as far as it goes, at twice Apple's tint, on the same white page.",
     verdict: "refine",
+    lands:
+      "The same shape at twice Apple's tint: the cool as far as this board is willing to take it.",
     facts: [
       ["Room", "0.125"],
       ["Page", "0.995"],
@@ -136,6 +161,8 @@ const ITEMS: readonly Candidate<
     name: "Pitch",
     one: "A true black room, with Apple's own measured grey steps above it.",
     verdict: "refine",
+    lands:
+      "A true black room at 0.030, so on an OLED panel a photograph is the only light on the page.",
     facts: [
       ["Room", "0.030"],
       ["Page", "0.963"],
@@ -150,6 +177,8 @@ const ITEMS: readonly Candidate<
     name: "Mist",
     one: "The light side inverted: a cool grey page, a pure white card lifting off it.",
     verdict: "refine",
+    lands:
+      "A cool grey page at 0.963 with a white card lifting 0.037 off it, over Graphite's room.",
     facts: [
       ["Room", "0.105"],
       ["Page", "0.963"],
@@ -164,6 +193,8 @@ const ITEMS: readonly Candidate<
     name: "Slate",
     one: "The one you liked, with the blue taken out: the same room on the grey hue.",
     verdict: "refine",
+    lands:
+      "The cool at Apple's grey hue and a third of their chroma, which is what less blue measures out to.",
     facts: [
       ["Room", "0.145"],
       ["Page", "0.995"],
@@ -178,6 +209,8 @@ const ITEMS: readonly Candidate<
     name: "Reel",
     one: "Slate's room on the paper page, declaring the product's own violet.",
     verdict: "refine",
+    lands:
+      "Slate's room under the paper page, and the reel's violet as the hue an accent would wear.",
     facts: [
       ["Room", "0.145"],
       ["Page", "0.977"],
@@ -192,6 +225,8 @@ const ITEMS: readonly Candidate<
     name: "Studio",
     one: "One room with every surface a veil of the ink, and no chroma anywhere in it.",
     verdict: "refine",
+    lands:
+      "One room derived as veils of the ink, with no chroma anywhere in the set.",
     facts: [
       ["Room", "0.125"],
       ["Page", "0.990"],
@@ -206,6 +241,8 @@ const ITEMS: readonly Candidate<
     name: "Dusk",
     one: "The smallest change: the dark side goes cool, the light side is untouched.",
     verdict: "kill",
+    lands:
+      "The dark side only: the app and the chapters go cool, the light side keeps every value it has.",
     facts: [
       ["Room", "0.105"],
       ["Page", "0.990"],
@@ -222,202 +259,238 @@ export const PALETTE = defineBoard({
   title: "The palette",
 
   question:
-    "Which of twelve palettes should the site wear now the catalog leans cool, and should it carry the accent that palette declares?",
+    "Which palette should the whole site wear, and should it carry the accent that palette declares?",
 
   round: {
-    n: 7,
+    n: 8,
     date: "2026-09-16",
     changed:
-      "Leaned cool and made the accent a config: four new cool sets on very black and very white grounds with Apple's greys above them, the cool moved off hue 258 (their blue) onto 286 (their grey), and one accent per palette behind a switch that is off.",
+      "Reshaped as a stepped review: one pick from the twelve with None of these as the exit, then four questions with every option drawn on one specimen, the reach held back until an accent is on, and no palette added or changed.",
   },
   history: [
+    {
+      n: 7,
+      date: "2026-09-16",
+      changed:
+        "Leaned cool and made the accent a config: four new cool sets on very black and very white grounds, the cool moved off hue 258 (Apple's blue) onto 286 (their grey), and one accent per palette behind a switch that is off.",
+    },
     {
       n: 6,
       date: "2026-09-15",
       changed:
         "Rebuilt as a catalog: twelve finished palettes, each a card carrying its own grounds, text steps, accent and state colours plus a real piece of the product in dark beside light.",
     },
-    {
-      n: 5,
-      date: "2026-09-15",
-      changed:
-        "Moved onto the kit's template, and the site judged as the real routes loaded beside today rather than as sections portalled into a stage.",
-    },
-    {
-      n: 4,
-      date: "2026-09-15",
-      changed:
-        "Named the system instead of adding to it: four registers and a bed, the dark and the light ruled separately, three new darks beside two new papers.",
-    },
-    {
-      n: 3,
-      date: "2026-09-14",
-      changed:
-        "Walked cold and cut rather than added: today beside the candidate in one canvas, the temperature demoted to a switch.",
-    },
-    {
-      n: 2,
-      date: "2026-09-14",
-      changed:
-        "Every candidate left the board as the paste its ruling lands, and the judged surfaces widened to what the product is made of.",
-    },
-    {
-      n: 1,
-      date: "2026-09-13",
-      changed:
-        "Three letters on the oklab ruler, which proved the ramp is wrong in ways a ruler shows rather than in ways an eye argues.",
-    },
   ],
   context:
-    "Round six put twelve finished palettes on one grid and the board's own pick was a warm one. Will read it and went the other way: cooler, and never Apple's blue. So the catalog was rewritten rather than reordered. Four sets are new and built from his sentence, Apple's system greys are the measured reference under all of them, the cool moved off the hue that was making it read blue, and the accent stopped being a column and became one declaration per palette behind a switch.",
+    "Round six put twelve finished palettes on one grid. Round seven leaned them cool on your note and moved the accent behind a switch. Round eight changes nothing about them: it turns the board into a walk, so the pick is one press and each remaining question stands alone on its own specimen.",
 
   verdict: {
     recommendation:
       "Graphite: a very black room at 0.105, a very white page at 0.995, Apple's cool greys between them, and no accent worn.",
     because:
-      "The note is about grounds, not greys: the black and the white carry the contrast, and everything on them is cool rather than merely lighter. Graphite is deep enough to be a ground and tinted enough to read cool on one. Onyx is the same answer halved and Steel is it doubled, so the three are an axis rather than three opinions.",
+      "Your note is about grounds, not greys: the black and the white carry the contrast, and everything on them is cool rather than merely lighter. Graphite is deep enough to be a ground and tinted enough to read cool on one. Onyx is the same answer halved and Steel is it doubled, so the three are an axis rather than three opinions.",
     overrule:
       "If the page being a grey rather than a white is acceptable, Mist fixes the light side outright: a white card lifts 0.037 off it instead of 0.007.",
   },
 
+  /**
+   * ★ THE WINNER FIRST, THEN ONE QUESTION PER STEP. The order is the walk, and
+   * the reach is staged: it is meaningless until an accent is on, so it stays
+   * off the desk and out of the walk until `accent=own` is held or ruled, and
+   * is moot the moment the accent is ruled off.
+   *
+   * Every ask draws every option on ONE specimen, which is why none of them
+   * carries a `look` any more: where to look is the tile you are pressing. The
+   * four switches that used to sit in the dock are these option states.
+   */
   asks: [
+    {
+      id: "palette",
+      question: "Which palette should the whole site wear?",
+      context:
+        "Twelve finished palettes. Each is one complete set: the dark room every marketing chapter and the whole app sit on, the light page under the body, and every surface between them. Press a card to wear it; the real pages under the cards re-skin as you press. None of these means none is right, and the note says what to try instead.",
+      options: [
+        { id: "today", label: "Today" },
+        { id: "ladder", label: "Ladder" },
+        { id: "ember", label: "Ember" },
+        { id: "onyx", label: "Onyx" },
+        { id: "graphite", label: "Graphite" },
+        { id: "steel", label: "Steel" },
+        { id: "pitch", label: "Pitch" },
+        { id: "mist", label: "Mist" },
+        { id: "slate", label: "Slate" },
+        { id: "reel", label: "Reel" },
+        { id: "studio", label: "Studio" },
+        { id: "dusk", label: "Dusk" },
+        {
+          id: "none",
+          label: "None of these",
+          means:
+            "New directions. The note says what to try: cooler, warmer, deeper, a different page, a different card step.",
+        },
+      ],
+      recommended: "graphite",
+      because:
+        "Your note was about grounds rather than greys, and Graphite is that sentence built: deep enough at 0.105 to be a ground, tinted at half again Apple's amount so everything on it reads cool. Onyx is the same answer halved, Steel is it doubled.",
+      overrule:
+        "A grey page instead of a white one. Mist fixes the light side outright, and it is the one real trade on the board.",
+      evidence: "catalog",
+      control: "palette",
+      lands:
+        "The grey ramp and every surface token in globals.css and marketing.css: both modes, the marketing site and the app.",
+      strip: ["canvas", "accent"],
+    },
     {
       id: "accent",
       question: "Should the site carry an accent colour at all?",
       context:
-        "Every palette declares the one hue that would pair with its grey, for the accent's three jobs: the primary action, the focus ring, the live dot. Nothing wears it until this is on. Off is what ships today.",
-      look: "The Accent switch in the dock. It flips all twelve cards, the wall and the real pages at once.",
+        "Every palette declares the one hue that would pair with its grey, for the accent's jobs: the mark, the primary action, the focus ring, the live dot, and the stand-in where a photograph has not been taken. Nothing wears it until this is on. Off is what ships today.",
       options: [
         {
           id: "none",
           label: "No accent",
           means:
             "The achromatic identity kept exactly: the photographs are the only colour anywhere, and the paste prints no accent block.",
+          state: { accent: "none" },
         },
         {
           id: "own",
           label: "The palette's own",
           means:
-            "Each palette wears the hue it declares, at the primary action, the focus ring and the live dot. The paste carries it.",
+            "The palette wears the hue it declares, and the paste carries it. Which places wear it is the next question.",
+          state: { accent: "own" },
         },
       ],
       recommended: "none",
       because:
         "Bible 1 is the achromatic identity, and a cool chrome already has a temperature. The switch exists so the answer is a ruling rather than an assumption.",
-      evidence: "calls",
+      evidence: "accent",
       control: "accent",
+      lands:
+        "Whether --brand stays the alias for --primary, or the palette's hue lands in globals.css and reaches every --brand site.",
     },
     {
       id: "reach",
       question: "If an accent is on, how far should it reach?",
       context:
-        "The brand token does three jobs: identity (the mark and the wireframe frames), attention (the badge, the wizard step, a toast), and standing in for a photograph where a section has none. A job left out goes back to near-black.",
-      look: "The accent wall: each job on its call sites, the palette's hue beside none.",
+        "The brand token does three unrelated jobs, and one hue may not be right for all three: identity (the mark), attention (the primary action, the badge, the wizard step, the live dot), and standing in for a photograph that has not been taken. A job left out keeps near-black.",
       options: [
         {
           id: "all",
           label: "All three jobs",
           means:
-            "The mark, the frames, the badge, the wizard step and the media stand-ins all take the colour.",
+            "The mark, the primary action, the badge, the wizard step and the media stand-ins all take the hue.",
+          state: { reach: "all" },
         },
         {
           id: "attention",
           label: "Only what asks to be noticed",
           means:
-            "The badge, the wizard step and the toast take it; the mark and the frames stay near-black.",
+            "The action, the badge and the wizard step take it; the mark and the stand-ins stay near-black.",
+          state: { reach: "attention" },
         },
         {
           id: "identity",
-          label: "Only the mark and the frames",
+          label: "Only the mark and the stand-ins",
           means:
             "Identity takes it and attention does not, so a state colour stays the only colour in the app.",
+          state: { reach: "identity" },
         },
       ],
       recommended: "all",
       because:
-        "A section with no photograph has all three jobs in it at once, and a narrower reach leaves the stand-in near-black.",
-      evidence: "calls",
+        "An event with no cover photograph has all three jobs in one frame, and a narrower reach leaves the stand-in near-black beside a coloured badge.",
+      evidence: "accent",
+      state: { accent: "own" },
       control: "reach",
+      after: { ask: "accent", option: "own" },
+      lands:
+        "Which --brand call sites keep the hue and which revert to var(--primary): the mark, the frames, or the attention set.",
     },
     {
       id: "card",
       question: "In dark mode, should a card be solid or see-through?",
       context:
-        "The product ships exactly one see-through surface and no document says so: in dark mode a card is 62 percent of a grey over what is behind it. Over a page it looks solid; over a photograph it turns to glass.",
-      look: "The two cards over a photograph: the palette's own value, and today's 62 percent.",
+        "The product ships exactly one see-through surface and no document says so: in dark mode a card is 62 percent of a grey over whatever is behind it. Over a page it looks solid; over a photograph it turns to glass. Every palette on this board retires it by accident.",
       options: [
         {
           id: "declared",
           label: "Solid, as the palette declares it",
           means:
             "A card is an opaque surface everywhere, and the one see-through surface in the system retires.",
+          state: { card: "declared" },
         },
         {
           id: "opaque",
           label: "Solid, and written down as a rule",
           means:
             "The same look, taken as an explicit rule rather than as a side effect of how the palettes are built.",
+          state: { card: "opaque" },
         },
         {
           id: "veil",
           label: "Keep it see-through",
           means:
-            "Today's 62 percent stays, so a card lying over a photograph keeps reading as glass.",
+            "Today's 62 percent stays, so a card lying over a photograph keeps reading as a pane of glass.",
+          state: { card: "veil" },
         },
       ],
       recommended: "declared",
       because:
         "Every palette retires the veil by accident, because a colour mixed off the room is opaque. That should be a ruling, not a side effect.",
-      evidence: "calls",
+      evidence: "card",
       control: "card",
+      lands:
+        "--card in .dark: an opaque value, or today's oklch(0.21 0 0 / 0.62) kept as the system's one translucent surface.",
     },
     {
       id: "faint",
       question: "Should there be a third, fainter text colour?",
       context:
-        "The site has two text greys and needs three: a timestamp, a caption and a hint are all dimmer than the second. Thirty seven places fade the second grey by hand and nineteen land on the same fade, so the step already exists as a habit.",
-      look: "The text steps on the page, on a card and on the panel. One colour is one grey; a fade is three.",
+        "The site has two text greys and needs three: a timestamp, a caption and a hint are all dimmer than the second. Thirty seven places fade the second grey by hand, and a fade composites against what is behind it, so the same line is a different grey on a card than on the page.",
       options: [
         {
           id: "in",
           label: "Yes, add the third colour",
           means:
-            "One new colour, so the third line is the same grey on the page, on a card and on the panel.",
+            "One new token, so the third line is the same grey on the page, on a card and on the panel.",
+          state: { faint: "in" },
         },
         {
           id: "out",
           label: "No, keep fading by hand",
           means:
             "The thirty seven places keep fading the second grey, and every ground gives a slightly different result.",
+          state: { faint: "out" },
         },
       ],
       recommended: "in",
       because:
-        "A fade composites against what is behind it, so the same line is a different grey on a card than on the page.",
+        "One token is one grey on all three grounds; an alpha is three greys. The specimen draws the same three lines on all three, which is the whole difference.",
       overrule: "A new custom property: theme.css owes it a line first.",
-      evidence: "calls",
+      evidence: "faint",
       control: "faint",
+      lands:
+        "A new --faint in globals.css and --color-faint in theme.css, or the 37 hand-faded sites stay as they are.",
     },
   ],
 
-  /**
-   * ★ THE CANDIDATES ARE THE TWELVE, and each one is ruled where it stands. The
-   * `palette` ask retired with round six: naming the one the site wears is what
-   * Pick does, and the desk reads a pick as a ruling, so asking it twice was
-   * asking for one item.
-   */
   candidates: ITEMS,
 
   /**
-   * ★ AND THE CATALOG IS THE EVIDENCE. Declaring this is what turns the grid
-   * into the review surface: Pick drives the whole page from a card, A and B
-   * drive the wipe below it, and each card carries keep, refine or kill with a
-   * note.
+   * ★ ONE PICK DECIDES THIS BOARD. The twelve are variants of one thing, so the
+   * catalog is `pick-one`: the cards are the winner ask's tiles, "None of
+   * these" is the new-directions exit, and the real pages sit under them
+   * wearing whatever is pressed. A verdict on a card is still accepted, as
+   * optional feedback, but it is not what the board is asking for.
    */
   catalog: {
     section: "catalog",
     control: "palette",
     compare: ["compare-a", "compare-b"],
+    mode: "pick-one",
+    winner: "palette",
+    stage: "pages",
   },
 
   departures: [
@@ -430,7 +503,7 @@ export const PALETTE = defineBoard({
     {
       id: "the-cast",
       from: "ruling",
-      text: "Ten of the twelve carry a cast, re-opening a decision globals.css records as closed: zero chroma IS the brand point. The cool sets also tint the INK, against round three's own rule, because Apple's own secondary label is tinted harder than any of their greys. Ladder is here at chroma zero so both can be ruled by looking.",
+      text: "Ten of the twelve carry a cast, re-opening a decision globals.css records as closed: zero chroma IS the brand point. The cool sets also tint the INK, against round three's own rule. Ladder is on the board at chroma zero so both can be ruled by looking.",
       evidence: "catalog",
     },
     {
@@ -442,8 +515,8 @@ export const PALETTE = defineBoard({
     {
       id: "the-veil",
       from: "precedent",
-      text: "Today ships one see-through surface, the dark card at 62 percent, and no document says so; every palette retires it silently. And an accent has to be written into the footer slab, or it reaches every surface except the mark at the foot of every page.",
-      evidence: "calls",
+      text: "Today ships one see-through surface, the dark card at 62 percent, and no document says so; every palette retires it silently, which is why it is a question of its own rather than a footnote.",
+      evidence: "card",
     },
   ],
 
@@ -465,47 +538,44 @@ export const PALETTE = defineBoard({
     {
       id: "catalog",
       title: "The catalog",
-      lede: "Twelve palettes, nine cool. Every ground a card declares, its text steps, and one product fragment in dark beside light, on a mix of photographs.",
+      lede: "Twelve palettes, nine cool. Each card carries its own grounds, its text steps and a real product fragment in dark beside light.",
       argument: [
         "WHAT COOL MEANS HERE, MEASURED. Converted to oklch, Apple's six system greys sit at hue 286 with an almost constant chroma of 0.0066, and their blue sits at 257. Rounds three to six built this board's cool cast at 258, which is the blue's hue and not the grey's, at a chroma that rose with lightness the way the warm table does. Both were wrong for a grey: a cool grey's tint is a constant property of the family, not something the light does to it. The band is now theirs, and `gain` is how far past or short of their amount a set sits.",
         "THE SHAPE OF EVERY NEW SET IS WILL'S SENTENCE. A very black ground and a very white one carry the contrast; the surfaces sitting on them are cool greys rather than slightly lighter dead ones. Today's dark mode does the opposite: a 0.140 room with four semantic surfaces crushed between 0.210 and 0.250. Onyx, Graphite, Steel and Pitch are that sentence at four distances from black, with the tint at half, one and a half, two and one and a fifth times Apple's amount.",
-        "WHY CINEMA AND INK ARE NOT TWO DARKS, which is the question round three asked and no round answered. The room is the deepest thing on its own page; the slab is the only dark thing on a page of paper. So the slab has to sit LIGHTER than the room rather than deeper, and neither of them is pure black today. Every card's strip shows it as a fact: the well, the room, the slab, then the mat and the page, left to right, deepest to brightest.",
         "WHAT IS WRONG TODAY, measured rather than argued. In light mode five surfaces sit inside 0.037 of each other with the page at the top of them, so a card is its hairline and nothing else. In dark mode the panel ships LIGHTER than the card it sits in, which is the ladder upside down. And in both modes there is nothing at all between 0.450 and 0.905, which is why 37 places fade a grey by hand to get a third text step.",
-        "WHAT THE WARM CARDS COST, which is the thing to check rather than take on trust. Ember is kept for one reason: to be laid beside the media grid and the album, where a warm ground and a colourful mix of photographs are in the same frame. The claim is that a cool ground makes a warm photograph read warmer and a warm ground argues with it. Press and Daylight left the board with the warm light set.",
       ],
+    },
+    {
+      id: "pages",
+      title: "The real product",
+      lede: "The marketing routes and the guest album loaded at true pixels beside today, the two signed-in screens rebuilt: all of it wearing the pick.",
+      argument: [
+        "A composition is honest about a component and dishonest about a page. What a ground has to survive is the rest of the page: the photograph beside the card, the CTA under the chapter, and the seam where the paper ends and the footer begins. The four marketing routes are real documents with the paste written into them, so the right frame is the site after the ruling, to the byte.",
+        "Two screens are behind a sign-in, so the dashboard and an event are compositions built from production components rather than routes: the data, the counts and the copy are the board's, the components, the density and the breakpoint are real. They are here because this is where Will's objection lived, a colourful mix of photographs on a media-forward chrome, and no marketing route holds one. The guest album is public, so it loads as the real page.",
+      ],
+    },
+    {
+      id: "accent",
+      title: "The accent",
+      lede: "The dashboard wearing the hue this palette declares, with all three of the accent's jobs in one frame: the mark, the things asking to be noticed, and the stand-in for a photograph.",
+      eager: true,
+    },
+    {
+      id: "card",
+      title: "A card over a photograph",
+      lede: "The one see-through surface in the system, on the only specimen where the answer is a look rather than a number.",
+    },
+    {
+      id: "faint",
+      title: "The third text step",
+      lede: "The same three lines on the three grounds type lands on: the page, a card and the panel inside it.",
     },
     {
       id: "compare",
       title: "Any two, side by side",
       lede: "The surface ladder under the two cards you pressed A and B on, with the seam on a slider.",
       argument: [
-        "Two canvases side by side is a memory test when the step being judged is 0.02, and an eye cannot hold that across a toggle press. One canvas with the join on a slider can be dragged onto the exact surface in question instead. The lightnesses are printed underneath, read off the same strings the canvas paints, so a number here cannot drift from a colour there.",
-        "THE COMPARISON THE ROUND WAS BUILT FOR is Ladder against any cool card: same rhythm, same steps, one at chroma zero and one at Apple's hue. If the cool is not visible in that wipe at 1440, it is not visible anywhere, and the whole direction is a conversation about numbers rather than about a look.",
-      ],
-    },
-    {
-      id: "calls",
-      title: "The accent, and the two calls left",
-      lede: "The accent on its jobs, the palette's hue beside none; then a card over a photograph, and the text steps.",
-      argument: [
-        "None of these is a colour a pick decides. The accent is a question about whether the achromatic identity should hold at all, and the wall answers it by putting the hue next to none at the size the call site ships at. The card is a question about opacity, and every palette changes it by accident. The third text step is a question about whether a new custom property exists, and a ruling of no means the fade stays, so the same line is a different grey on a card than on the page.",
-      ],
-    },
-    {
-      id: "pages",
-      title: "The real pages",
-      lede: "The production routes at true pixels, scrolled together: today left, the picked palette right, wearing the block the ruling lands.",
-      argument: [
-        "A composition is honest about a component and dishonest about a page. What a ground has to survive is the rest of the page: the photograph beside the card, the CTA under the chapter, the plan card in the band, and the seam where the paper ends and the footer begins. Home is the whole arc in one scroll; pricing is the densest card in the product; help is a wall of one card, which is where a wrong base shows first; contact is the panel the mat is named for.",
-      ],
-    },
-    {
-      id: "app",
-      title: "The app, and the guest album",
-      lede: "The densest chrome and the surface every guest sees, both modes: an event, the dashboard, the masonry on the well.",
-      argument: [
-        "THIS IS WHERE THE ROUND IS DECIDED. Will's objection to the warm tones was about a colourful mix of photographs, and these are the only surfaces where the product actually holds one: the dashboard's media grid, the review queue and the guest album. Read the cool cards and Ember here before reading anything else.",
-        "No frame can load these: the app is behind a sign-in, so they are compositions built from production components rather than routes. The data, the counts and the copy are the board's; the components, the density and the breakpoint are real. Will's round-four note opens the app's UI to this lane, so judge the layout as well as the colour.",
+        "Two canvases side by side is a memory test when the step being judged is 0.02, and an eye cannot hold that across a toggle press. One canvas with the join on a slider can be dragged onto the exact surface in question instead. The comparison the round was built for is Ladder against any cool card: same rhythm, same steps, one at chroma zero and one at Apple's hue. If the cool is not visible in that wipe at 1440, it is not visible anywhere.",
       ],
     },
     {
@@ -519,6 +589,14 @@ export const PALETTE = defineBoard({
     },
   ],
 
+  /**
+   * ★ FOUR OF THESE ARE NOT DOCK PILLS ANY MORE. `accent`, `reach`, `card` and
+   * `faint` are declared because their asks' option states set them and the
+   * tiles mirror them, not because a reviewer should hunt for them: no step puts
+   * them on its strip except the accent, which rides the pick so a palette can
+   * be judged with and without the hue it declares. The canvas and the two
+   * compare controls are the only ones a reader still drives by hand.
+   */
   controls: [
     {
       id: "canvas",
@@ -534,7 +612,8 @@ export const PALETTE = defineBoard({
       label: "Palette",
       // Nothing picked is a state of its own (Will, 2026-09-16): the pages
       // below show the site as built until a card is picked, and picking the
-      // picked card returns here.
+      // picked card returns here. It is also the right preview of "None of
+      // these", which is why the winner ask offers it as an option.
       options: [{ id: "none", label: "Nothing picked" }, ...PALETTE_OPTIONS],
       default: "none",
       clearable: true,
@@ -551,9 +630,9 @@ export const PALETTE = defineBoard({
       ],
       default: "none",
     },
-    // A and B: the two the wipe joins, set from the catalog's cards. They open
-    // on Ladder against the board's own pick, which is the comparison the whole
-    // round turns on: the same rhythm at chroma zero and at Apple's hue.
+    // A and B: the two the wipe joins. They open on Ladder against the board's
+    // own pick, which is the comparison the whole round turns on: the same
+    // rhythm at chroma zero and at Apple's hue.
     {
       id: "compare-a",
       label: "A",
@@ -597,41 +676,20 @@ export const PALETTE = defineBoard({
     },
   ],
 
-  lookFirst: [
-    {
-      section: "catalog",
-      state: { palette: "graphite" },
-      note: "Onyx, Graphite and Steel are one answer at half, one and a half and twice Apple's tint. Read those three against each other, on the mix of photographs lying on each well, before anything else.",
-    },
-    {
-      section: "catalog",
-      state: { accent: "own" },
-      note: "The accent switch on. Every card wears the one hue it declares and says why that hue for that grey; press it again for the achromatic default.",
-    },
-    {
-      section: "compare",
-      note: "Ladder against Graphite: the same rhythm at chroma zero and at Apple's hue. Drag the seam onto the card.",
-    },
-    {
-      section: "app",
-      note: "The dashboard's media grid and the guest album, which is where the round is decided. Put Ember on the board and come back: a warm ground and a colourful mix of photographs in one frame.",
-    },
-  ],
-
   notes: [
     {
       section: "catalog",
       text: "The five stand-ins on each well span gold, pastel, night blue and laser, which is a colourful mix but not a hard one. The high-key case and the candle-lit one are untested until the four hard cases land.",
     },
     {
-      section: "app",
-      text: "These are compositions, not routes: the breakpoint is honest because the canvas is a real width, but the data, the counts and the copy are the board's rather than a real event's.",
+      section: "pages",
+      text: "The dashboard and the event page are compositions, not routes: the breakpoint is honest because the canvas is a real width, but the data, the counts and the copy are the board's rather than a real event's.",
     },
   ],
 
   reading: {
-    words: 2950,
-    why: "Measured at 2,924. About 1,100 are the template's own: the dock lists all twelve palettes three times (165), the index reprints every lede (110), and the Rule-on panel prints every ask and every card a second time (280), on top of each card's Pick, A, B and verdict row. The board's own voice is about 950 and every argument is folded. Round six weighed 3,817 with no declaration at all.",
+    words: 1950,
+    why: "Measured at 1,940 on the stepped surface, down from 2,924: the asks stopped being printed three times (the answer block's pills, the section's Rule-on row and the review panel) and became steps, and the board's own voice is now the verdict, seven ledes and the twelve cards. About 550 of what is left is the catalog: twelve names, twelve one-lines and forty-eight facts, which IS the evidence.",
   },
 
   links: {
