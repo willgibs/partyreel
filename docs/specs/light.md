@@ -24,21 +24,28 @@ Will, round five (2026-09-16):
 
 ## What is open
 
-**Twelve treatments, ruled card by card** on the board's catalog (keep, refine or kill, with a note):
-the step, the ring, lift, float, the lit face, the seam, the throw, the aurora, the sweep, the bloom,
-the halo, the beam. Six of the twelve already run in production unnamed, which is the board's strongest
-fact and the reason the kill list matters more than the keep list. Two rulings that used to be separate
-questions are now just verdicts: keeping both **lift** and **float** is the shadow family in dark,
-keeping one is the lift only, killing both holds today's "Dark: NO shadows anywhere"; and **the lit
-face** is adopted, refined or dropped on its own card.
+**Twelve treatments, ruled one at a time** on the board's catalog (keep, refine or kill, with a note),
+in the order Will named them: the light placements, the shadow-specific ones, the marks. Each card is
+one specimen drawn twice, as today and with it, with what keeping it lands as platform-wide and up to
+two real surfaces already wearing it; the cards of one job share an object, a crop, a ground and a
+canvas, so the treatment is the only variable. In full: the seam, the throw, the aurora, the step, the
+ring, lift, float, the lit face, the sweep, the bloom, the halo, the beam. Six of the twelve already run
+in production unnamed, which is the board's strongest fact and the reason the kill list matters more
+than the keep list. Two rulings that used to be separate questions are now just verdicts: keeping both
+**lift** and **float** is the shadow family in dark, keeping one is the lift only, killing both holds
+today's "Dark: NO shadows anywhere"; and **the lit face** is adopted, refined or dropped on its own
+card.
 
-**Four calls that are not one card,** each asked on the board with its context and its look: what lands
-second (the home page's two ends, paper, or the feature pages), how slowly a lamp breathes (8 seconds or
-11), which of the five hues a lamp wears on paper (hand-tuned, one flat correction, or the dark five
-unchanged), and the colour of the publish beat (as shipped, the house five, or the five leaned to 305).
+**Four calls that are not one card,** each its own step with its own context and its own specimen: what
+lands second (the home page's two ends, paper, or the feature pages), how slowly a lamp breathes (8
+seconds or 11), which of the five hues a lamp wears on paper (hand-tuned, one flat correction, or the
+dark five unchanged), and the colour of the publish beat (as shipped, the house five, or the five leaned
+to violet). Three of the four draw every option on one specimen; the order stays words, because it is a
+plan rather than a thing to look at.
 
-**Where the aurora lands** is a page-wide switch rather than a question: both of a chapter's boundaries,
-one of them, or the whole section as a lit room. The footer keeps its own seam under every one of them.
+**Where the aurora lands** is a fifth question, staged behind keeping the aurora: both of a chapter's
+boundaries, one of them, or the whole section as a lit room. It is asked only once that card is kept,
+and it is moot the moment it is not. The footer keeps its own seam under every one of them.
 
 ## What a wiring round lands
 
