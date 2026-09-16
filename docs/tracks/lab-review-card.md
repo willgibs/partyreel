@@ -13,7 +13,7 @@ owns:
   - src/app/(dev)/design/(shell)/lab/[board]/
   - src/app/(dev)/design/(shell)/lab/_desk/
   - src/app/(dev)/design/(shell)/lab/page.tsx
-  - src/app/(dev)/design/(shell)/lab/kit/kit-demos.tsx
+  - src/app/(dev)/design/(shell)/lab/kit/
   - src/app/(dev)/design/rules/component-notes.ts
 reads:
   - src/components/lab/board-spec.ts
