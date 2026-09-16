@@ -133,10 +133,10 @@ be a conflict); the Orchestrator regenerated it at `627ca513`, which is merged i
 ## Handoff (replaces the chat report)
 
 - Head is this manifest's own commit, the tip of `lp/palette`; the last code commit is `e75bc0de`. Pushed;
-  synced with `launch-prep` at `2b9e38d0` (merged four times, never rebased: the hero's round six, the
-  library artifact, the stepped review itself at `c18570c4`, and the type-scale cut).
+  synced with `launch-prep` at `20898d63` (merged five times, never rebased: the hero's round six, the
+  library artifact, the stepped review itself at `c18570c4`, the type-scale cut, and light's round seven).
 - Gates on the synced tree: typecheck ok, lint ok (0 errors; the 6 warnings are pre-existing files outside
-  this lane), test ok (2,165), build ok (258 pages); `pnpm lab:smoke --base http://localhost:3123` ok (257
+  this lane), test ok (2,165), build ok (258 pages); `pnpm lab:smoke --base http://localhost:3123` ok (258
   checks, 0 route failures; the 2 budget failures are the two glow boards, which fail on purpose).
   **The board reads 1,191 words against the standard 1,200 and declares no budget at all**, from round
   seven's 2,924 against a declared 2,950.
