@@ -13,80 +13,25 @@
    OCCASIONAL act, so it gets the standard beat under 300ms and a custom ease,
    never theater: the eye has to land on the new sentence, not on the move. */
 
-/* ─────────────────────────── THE HEADING LADDER ───────────────────────────
-   ★ TWO LAB FACTS COLLIDE ON A COPY BOARD, and both of them lie about a line.
+/* ─────────────────── THE HEADING LADDER, RETIRED (round five) ───────────────
+   This sheet used to restore four heading tiers and the container gutter by
+   hand, keyed to a `data-bv-canvas` attribute, because two lab facts collided
+   on a copy board: the lab's own Tailwind entry outranked production's
+   responsive utilities, and a breakpoint prefix inside a Stage reads the REAL
+   browser viewport rather than the canvas, so the 375 stage took desktop
+   heading steps and a 2rem desktop gutter.
 
-   1. The lab compiles its OWN Tailwind entry scanning only src/app/(dev)/design
-      (design.css), so a responsive rung that no LAB file spells is never
-      emitted for a lab page: a marketing hero on a Stage resolves to its BASE
-      class and renders at 48px where the site renders 96px.
-   2. A Tailwind breakpoint prefix inside a Stage reads the REAL browser
-      viewport, not the canvas (zoom scales layout, never media queries), so
-      inside the 375 stage on a desktop every `sm:` and `lg:` rung fires.
+   Both are gone. The shell fixed the first (design.css emits into a sub-layer
+   of `utilities`, so a production component's responsive class wins on its own
+   element), and round five fixed the second by moving every specimen into a
+   real document: a frame at 375 IS a 375 viewport, so the media queries resolve
+   against the canvas. Measured on the merged tree at the phone canvas: the
+   hero's h1 renders at 48px and Container takes its 1rem gutter, which is what
+   the site renders, against the 96px and 2rem a stage was giving it.
 
-   Either one alone would be survivable on a board about colour or shadow. On
-   THIS board the whole argument is how a sentence sits: whether B's h1 takes
-   two lines or four at 375 is the board's sharpest fact about B, and it cannot
-   be read off a heading rendered at the wrong size at both ends.
-
-   So the board restores the ladder itself, keyed to the STAGE's canvas through
-   its own `data-bv-canvas` attribute (the house convention: a board's markup
-   keys off the `mode` prop) rather than to the browser. The values are the
-   shipped ones, resolved at each end of the real ramp, so a stage shows what
-   the page shows:
-     PageHero xl   text-5xl 3rem/1        → lg:text-8xl 6rem/1
-     PageHero lg   text-4xl 2.25rem/2.5   → lg:text-7xl 4.5rem/1
-     SectionShell  text-3xl 1.875rem/2.25 → lg:text-5xl 3rem/1
-     SectionShell lg  text-4xl 2.25/2.5   → lg:text-6xl 3.75rem/1
-   Nothing else in the lockup is responsive (the eyebrow is text-xs and both
-   subheads are single-rung), so this is the whole correction. Reported to the
-   Orchestrator as a shell finding: every board that stages a marketing hero
-   has it. */
-
-[data-bv-canvas="desktop"] [data-bv-type="hero-xl"] :is(h1, h2) {
-  font-size: 6rem;
-  line-height: 1;
-}
-[data-bv-canvas="phone"] [data-bv-type="hero-xl"] :is(h1, h2) {
-  font-size: 3rem;
-  line-height: 1;
-}
-
-[data-bv-canvas="desktop"] [data-bv-type="hero-lg"] :is(h1, h2) {
-  font-size: 4.5rem;
-  line-height: 1;
-}
-[data-bv-canvas="phone"] [data-bv-type="hero-lg"] :is(h1, h2) {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-}
-
-[data-bv-canvas="desktop"] [data-bv-type="section"] :is(h1, h2) {
-  font-size: 3rem;
-  line-height: 1;
-}
-[data-bv-canvas="phone"] [data-bv-type="section"] :is(h1, h2) {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
-}
-
-[data-bv-canvas="desktop"] [data-bv-type="section-lg"] :is(h1, h2) {
-  font-size: 3.75rem;
-  line-height: 1;
-}
-[data-bv-canvas="phone"] [data-bv-type="section-lg"] :is(h1, h2) {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-}
-
-/* The same fact, on the CONTAINER: Container is px-4 sm:px-6 lg:px-8, so inside
-   the 375 stage it takes the 2rem desktop gutter and every line wraps 32px
-   early. On a board whose argument is where a sentence breaks, that is not a
-   detail. Desktop is already correct (the real viewport and the canvas agree
-   above lg), so only the phone canvas is restated. */
-[data-bv-canvas="phone"] [data-bv-type] > div {
-  padding-inline: 1rem;
-}
+   Nothing replaces the block. A literal ladder in a board's sheet is a copy of
+   the type scale that another track is actively proposing to change, and this
+   board's whole argument is where a sentence breaks. */
 
 @media (prefers-reduced-motion: no-preference) {
   /* ★ NO FILL MODE, and it is not a detail. `both` leaves every swapped block

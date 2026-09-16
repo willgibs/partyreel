@@ -20,6 +20,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The kit's next two pieces, both written and working in `sandbox/brand-voice/frames.tsx`** (the
+  `brand-voice` migration, 2026-09-15): `height="measured"` on `Frame` (a callback ref observing the
+  portalled scene with the frame's own ResizeObserver, the `fonts` chain guarded on an about:blank
+  document, the reserved height remembered per frame and canvas) and `useAnchorAfterSettle` beside the
+  `Walk` (a hash re-applied on a short schedule while lazily mounted frames settle, cancelled by a wheel,
+  a touch or a key); lift both into `src/components/lab` and retire the board's local copies.
 - **Fold `RefSection` into `Section`** (the `lab-shell` track, 2026-09-15): the shell's `Section` anchors
   its heading, the gallery's older `RefSection` (`reference/reference-ui.tsx`) anchors its wrapper; the
   TOC reads both, but one shape is better than two.

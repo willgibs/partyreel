@@ -114,9 +114,10 @@ one, say so: "resume `lp/<track>`".)
    it). Then read `docs/STATUS.md` + the `docs/systems/` doc(s) the goal touches, and follow
    CLAUDE.md's working loop. First push: `git push -u origin lp/<track>`. Push freely: neither CI
    nor Vercel runs on a work-in-progress push (the CI budget round, 2026-09-15). Your review preview
-   at `partyreel-git-lp-<track>-partyreel.vercel.app` builds only when your manifest says
-   `status: handed-off` or a commit message carries `[preview]` (never on every push: the free plan
-   allows 100 deployments a day across the whole project), and the remote gate (`ci.yml`) runs on
+   at `partyreel-git-lp-<track>-partyreel.vercel.app` builds ONLY when a commit message carries
+   `[preview]`, which the Orchestrator asks for and you never add on your own (the storage round,
+   2026-09-15: building every handoff put deployment storage at four times the month's allowance;
+   the round's review surface is the launch-prep alias, built once at the close), and the remote gate (`ci.yml`) runs on
    your branch only when a commit message carries `[ci]`; the four local steps are the gate. UI-review
    only — the allow-list-gated flows fail there by design, see CLAUDE.md "Local dev vs. live testing".
 6. **Your manifest, before any other work** (the operating model, 2026-09-02). If the stub exists,
@@ -141,7 +142,7 @@ while its session is alive.
 Sync per above; fill the manifest's Handoff (head SHA, preview URL, the gates on the synced tree,
 the lane check `git diff --name-only origin/launch-prep...HEAD` pasted with any exception explained,
 proposed migrations/config changes) and Record (the CHANGELOG paragraph, past tense, at most 12
-lines); set `status: handed-off` (that push builds the preview; `[preview]` builds one earlier); push; one line in chat.
+lines); set `status: handed-off` (no preview builds: the Orchestrator builds the launch-prep alias once at the round's close); push; one line in chat.
 
 ## The hard gates (religious — no exceptions)
 

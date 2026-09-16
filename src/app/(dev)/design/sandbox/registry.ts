@@ -1,6 +1,7 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { ALBUM_HERO } from "./album-hero/spec";
+import { BRAND_VOICE } from "./brand-voice/spec";
 import { FLOATING_SURFACES } from "./floating-surfaces/spec";
 import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
 import { GLOW_MOMENTS } from "./glow-moments/spec";
@@ -33,6 +34,7 @@ export const BOARDS: readonly BoardSpec[] = [
   FLOATING_SURFACES,
   LIGHT,
   TYPE_SCALE,
+  BRAND_VOICE,
   ROUNDING,
   ALBUM_HERO,
 ];

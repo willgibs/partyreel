@@ -58,7 +58,6 @@ const OWNED = [
  * migration wave deletes; nothing is ever added.
  */
 const LEGACY: readonly string[] = [
-  "brand-voice",
   "media-kit",
   "palette",
 ];
