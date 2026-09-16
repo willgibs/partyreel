@@ -26,7 +26,6 @@ export type SearchKind =
   | "board"
   | "policy"
   | "landmine"
-  | "record"
   | "doc"
   | "proposal"
   | "track"
@@ -59,7 +58,6 @@ export const KIND_ORDER: SearchKind[] = [
   "board",
   "proposal",
   "doc",
-  "record",
   "ruling",
   "track",
   "glossary",
@@ -72,7 +70,6 @@ export const KIND_LABEL: Record<SearchKind, string> = {
   board: "Boards",
   policy: "Policies",
   landmine: "Landmines",
-  record: "The record",
   doc: "Doctrine",
   proposal: "Proposals",
   track: "Tracks",

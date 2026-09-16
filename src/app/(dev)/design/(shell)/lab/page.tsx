@@ -575,9 +575,6 @@ function BoardCard({
             the proposal
           </Ref>
         )}
-        <Ref to={{ kind: "record", id: row.id }} quiet>
-          the record
-        </Ref>
         {built
           .filter((b) => b.status)
           .map((b) => (

@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 /**
  * THE PRESS PAGE, built as THE CONTACT SHEET (Will's ruling, 2026-08-28, over the
  * specimen-sheet alternative: "focusing press around the assets and quick hit points").
- * The explored range is on the record: docs/decisions/design-record.md#press-identity.
+ * The explored range is on the record: git show 3ffe0d56:docs/decisions/design-record.md, #press-identity.
  *
  * ★ THIS PAGE LIVES IN (cinema), NOT (paper), and the reason is the NAV. A dark hero has
  * to be paired with a dark nav (Will), and the header skin is chosen by the group layout,

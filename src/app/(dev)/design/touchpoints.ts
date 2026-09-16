@@ -2,9 +2,8 @@
  * THE RULINGS REGISTRY of the design lab (thinned in the library round, 2026-09-02).
  *
  * One entry per ruling the lab has taken: what shipped, why in one line, and
- * where the rule lives now. The long record (the ruling verbatim, the round's
- * context, the board's files and last SHA) is docs/decisions/design-record.md,
- * anchored by these ids and rendered at /design/library/record. The rules a reader must
+ * where the rule lives now. The ruling verbatim is docs/design/rulings.md and
+ * the board's spec carries its round; git keeps a retired board. The rules a reader must
  * obey live in the system docs named in `lives`, never here.
  *
  * `board` is set ONLY while a board still stands in sandbox/ (its ruling is

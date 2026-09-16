@@ -178,11 +178,11 @@ export default async function RulePage({
             {ruling && (
               <li className="flex flex-wrap items-baseline gap-x-3 px-4 py-2.5">
                 <span className="w-24 shrink-0 text-[11px] text-muted-foreground">
-                  The record
+                  Ruled so far
                 </span>
-                <Ref to={{ kind: "record", id: ruling.id }}>
-                  what has been ruled so far
-                </Ref>
+                <span>
+                  {ruling.ruled}: {ruling.why}
+                </span>
               </li>
             )}
             {!board && track && (

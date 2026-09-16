@@ -122,12 +122,6 @@ export default async function BoardPage({
           meta={[
             ["Ruled", ruling.ruled],
             [
-              "Record",
-              <Ref key="record" to={{ kind: "record", id: ruling.id }} quiet>
-                design-record.md#{ruling.id}
-              </Ref>,
-            ],
-            [
               "Track",
               <span key="tracks" className="inline-flex flex-wrap gap-x-2">
                 {(board.tracks ?? [ruling.id]).map((t) =>

@@ -6,7 +6,7 @@ import { defineBoard } from "@/components/lab/board-spec";
  * The placement half of the glow round: the doctrine board proposed the rule,
  * this one argued the cases, and thirteen of them carry a verdict. Nothing here
  * is new argument. Every candidate, ruling and correction is read out of
- * `touchpoints.ts`, out of `docs/decisions/design-record.md#glow-moments` and
+ * `touchpoints.ts`, out of `docs/design/rulings.md` and
  * out of the board's own moments; what changed is that the one unruled item,
  * the publish beat's violet, is now the FIRST thing a reviewer meets instead of
  * moment 07 of fourteen.

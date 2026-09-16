@@ -161,7 +161,6 @@ export const RESERVED = {
     "guidance",
     "rulings",
     "doctrine",
-    "record",
     "glossary",
   ],
   lab: ["proposals", "tracks", "kit", "tools"],

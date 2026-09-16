@@ -29,21 +29,7 @@ import {
 const ROOT = process.cwd();
 const onDisk = (file: string) => existsSync(join(ROOT, file));
 
-describe("parseRef: the record, the boards and the bible", () => {
-  it("reads docs/decisions/design-record.md#palette as the palette record", () => {
-    expect(parseRef("docs/decisions/design-record.md#palette")).toEqual({
-      kind: "record",
-      id: "palette",
-    });
-  });
-
-  it("reads the bare record path as the record page", () => {
-    expect(parseRef("docs/decisions/design-record.md")).toEqual({
-      kind: "page",
-      href: "/design/library/record",
-    });
-  });
-
+describe("parseRef: the boards and the bible", () => {
   it("reads /design/c/palette#pal-02 as the palette board at pal-02", () => {
     expect(parseRef("/design/c/palette#pal-02")).toEqual({
       kind: "board",
@@ -225,13 +211,12 @@ describe("hrefFor", () => {
   const routed: LabRef[] = [
     { kind: "rule", id: "tokens-never-literals" },
     { kind: "board", id: "palette", anchor: "pal-02" },
-    { kind: "record", id: "palette" },
     { kind: "doc", doc: "design-system", anchor: "x" },
     { kind: "proposal", slug: "palette" },
     { kind: "track", name: "palette" },
   ];
 
-  it("routes a rule, board, record, doc, proposal and track under /design/", () => {
+  it("routes a rule, board, doc, proposal and track under /design/", () => {
     for (const ref of routed) {
       expect(hrefFor(ref), ref.kind).toMatch(/^\/design\//);
     }
@@ -239,10 +224,9 @@ describe("hrefFor", () => {
       "/design/library/rules/tokens-never-literals",
     );
     expect(hrefFor(routed[1])).toBe("/design/lab/palette#pal-02");
-    expect(hrefFor(routed[2])).toBe("/design/library/record/palette");
-    expect(hrefFor(routed[3])).toBe("/design/library/doctrine/design-system#x");
-    expect(hrefFor(routed[4])).toBe("/design/lab/proposals/palette");
-    expect(hrefFor(routed[5])).toBe("/design/lab/tracks/palette");
+    expect(hrefFor(routed[2])).toBe("/design/library/doctrine/design-system#x");
+    expect(hrefFor(routed[3])).toBe("/design/lab/proposals/palette");
+    expect(hrefFor(routed[4])).toBe("/design/lab/tracks/palette");
   });
 
   it("anchors a component, a policy, a ruling and the guidance", () => {
@@ -296,7 +280,7 @@ describe("githubFor, editorFor and fileFor", () => {
   it("offers no blob for a ref whose lab page is the destination", () => {
     expect(githubFor({ kind: "rule", id: "two-faces" })).toBeNull();
     expect(githubFor({ kind: "component", id: "button" })).toBeNull();
-    expect(githubFor({ kind: "record", id: "palette" })).toBeNull();
+    expect(githubFor({ kind: "board", id: "palette" })).toBeNull();
     expect(githubFor({ kind: "board", id: "palette" })).toBeNull();
     expect(githubFor({ kind: "external", url: "https://x.y" })).toBeNull();
   });
@@ -320,9 +304,6 @@ describe("githubFor, editorFor and fileFor", () => {
     expect(fileFor({ kind: "doc", doc: "craft" })).toBe(DOC_FILES.craft);
     expect(fileFor({ kind: "proposal", slug: "light" })).toBe(
       "docs/specs/light.md",
-    );
-    expect(fileFor({ kind: "record", id: "palette" })).toBe(
-      "docs/decisions/design-record.md",
     );
     expect(fileFor({ kind: "ruling", slug: "x" })).toBe(
       "docs/design/rulings.md",

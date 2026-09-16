@@ -79,6 +79,8 @@ him: a walk of the palette catalog once `lab-catalog` integrates, then the six c
   integrated (the 25 ADRs folded, `docs/adr/` gone with the decisions tombstones, the reel spec and the
   perf baseline); `aea90fd3` the citation sweep (247 code comments name the system docs); `57b93286`
   lab-catalog integrated (the item scope, the catalog kit, the toolbox, the reading budget, the palette as
-  the proof; the review grammar's item and library lines landed in docs/reviews/README.md).
+  the proof; the review grammar's item and library lines landed in docs/reviews/README.md); the Library's
+  record pages and docs/decisions/design-record.md deleted (`kind: "record"` is gone from links.ts; a
+  ruling's home is docs/design/rulings.md and the board's answer block; /design/record 307s to the rulings).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

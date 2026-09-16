@@ -28,7 +28,8 @@ pick, edge-to-edge canvases and the catalog's shared types landed at `5cdebfe0`;
 is the loop, CLAUDE.md is 150 lines, the one-round manifest template, a manifest deleted at its merge),
 the record is two rounds deep and a test holds it, the 26 integrated manifests are gone, the 25 ADRs
 are folded into the system docs and every citation names the doc (`d4ec4cff`, `aea90fd3`); the
-systems-doc strip runs as the `docs-systems-strip` lane; the record pages wait for the catalog lane. **Round 3, the Library as the complete inventory**
+Library's record pages and `docs/decisions/design-record.md` are gone (git keeps them); the systems-doc
+strip runs as the `docs-systems-strip` lane. **Round 3, the Library as the complete inventory**
 (components, marketing sections and app screens with live previews, tokens; a review surface with
 keep / redesign / retire on every entry). **Round 4, the six paper boards rebuilt as catalogs**
 (brand-voice, type-scale, floating-surfaces, light, rounding, media-kit), cut once Will has walked the

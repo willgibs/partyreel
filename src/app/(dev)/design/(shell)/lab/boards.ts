@@ -19,7 +19,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
  * map from a standing board's id to the composition that renders it. A board
  * gets an entry here only while it stands in sandbox/ (touchpoints.ts sets
  * `board` on the same ids; touchpoints.test.ts pins the two lists equal);
- * when its ruling lands, both go and docs/decisions/design-record.md keeps
+ * when its ruling lands, both go and docs/design/rulings.md keeps
  * the history. `legacy` marks a board that predates the kit's template (it
  * draws its own header, index and asks); the migration wave clears the flag
  * board by board, and the desk reads the spec (sandbox/registry.ts) for the

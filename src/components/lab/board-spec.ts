@@ -216,8 +216,6 @@ export type WalkPage = { label: string; path: string; note?: string };
 export type BoardLinks = {
   /** The bible rules in play, by number. */
   bible: readonly number[];
-  /** Defaults to docs/decisions/design-record.md#<id>. */
-  record?: string;
   /** Defaults to docs/tracks/<id>.md. */
   track?: string;
   /** docs/specs/<id>.md when one exists. */
