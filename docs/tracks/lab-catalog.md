@@ -1,6 +1,6 @@
 ---
 track: lab-catalog
-status: open
+status: handed-off
 cut: "5cdebfe0"          # Round 1 of the revamp: the foundation commit on launch-prep (2026-09-16)
 preview: false          # no branch preview; the round reviews on a local pnpm dev after integration
 owns:
@@ -168,23 +168,116 @@ Do not guess at a product decision.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none
+
+## Questions (answered with the recommendation and carried on)
+
+1. **Does the `palette` ask survive its own catalog?** The shape note says "asks
+   only for what is not one item", and "Which palette should the site wear?" is
+   the catalog. RECOMMENDATION, taken: keep it. Ruling twelve cards (which of
+   these survive) and naming the ONE the site wears are two different answers,
+   and only the second lands the paste. Every other catalog board should still
+   ask nothing that is one card.
+2. **`compareA` / `compareB` are camelCase and cannot be.** `BoardPage` writes
+   `data-<controlId>` on the board root and React refuses a camelCase custom
+   attribute with a console error on every render, which shipped and was caught
+   live. RECOMMENDATION, taken: the controls are `compare-a` / `compare-b`, and
+   `registry.test.ts` now refuses any control id that is not a lower-case data
+   attribute name.
+3. **Every standing board is over the reading budget.** All twelve, from 2,465
+   words (the album hero) to 15,004 (the media kit), against 1,200. The measure
+   excludes specimens and closed folds, so these are the board's OWN words: the
+   answer block, the ledes, the labels and the asks' context, look, because and
+   overrule. RECOMMENDATION: keep the budget failing rather than raising it, and
+   let the rounds that touch each board trim it. `pnpm lab:smoke` says the two
+   halves apart ("0 routes, 12 over the reading budget") so a route failure is
+   never hidden behind it.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **R6 (app polish + the deferred ledger):** trim every standing board to
+  `LIMITS.readingWords`; `pnpm lab:smoke` names the twelve and what each one
+  weighs today.
+- **R6:** rename the lab's nav entry for `/design/lab/kit` from "The lab kit" to
+  "The toolbox" in `src/app/(dev)/design/_data/nav.ts:298` (the page is retitled;
+  the nav is not this track's file).
+- **R7 / the Library round:** mount `ItemVerdictRow` on a Library entry's page
+  (`library/[id]/page.tsx`) with `LIBRARY_VERDICTS`, so a scroll through the
+  components fills `docs/reviews/_library.json` the way a board fills its own.
+  Everything under it is landed: the ledger, the reader, the desk's "Redesigns
+  you asked for" and `review library:` in `pnpm lab:review`.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; no preview (the round reviews on a local pnpm dev after integration)
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok with every board's reading words listed
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The grammar's new lines for `docs/reviews/README.md`, verbatim
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none
-- Look at first: ...
+- Head `b0950f6c`, pushed; no preview (the round reviews on a local `pnpm dev`
+  after integration).
+- Synced with `launch-prep` at `81d55e87` (merged twice: `88dafe50` mid-round,
+  because `design.css` is in this track's `reads`, then the ADR fold's tip).
+- Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 pre-existing
+  warnings), test ok (2,213 in 226 files), build ok (257 pages),
+  `pnpm design:rules` clean. `pnpm lab:smoke --base http://localhost:3101`: 313
+  checks, every route and every redirect green, and the reading table printed
+  for all twelve boards. It EXITS 1, and only on the budget: see Question 3.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is inside the
+  owned prefixes with no exception (`src/components/lab/`, `(shell)/lab/_desk/`,
+  `(shell)/lab/page.tsx`, `(shell)/lab/[board]/`, `(shell)/lab/kit/`,
+  `design/review/`, `sandbox/palette/`, `sandbox/registry.test.ts`,
+  `rules/component-notes.ts`, `rules/rules.generated.json`, `docs/design/library.md`,
+  `scripts/lab-review.mjs`, `scripts/lab-smoke.mjs`, `scripts/new-board.mjs`)
+  plus this file.
+- **The grammar's new lines for `docs/reviews/README.md`, verbatim.** Replace the
+  "The message grammar" section's body with:
+
+  ```
+  `review <board> r<n>: <ask>=<option> "an optional note"; item:<id>=<verdict> "an optional note"; note: "a board-wide note"`
+
+  `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
+  An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.
+
+  `item:<id>=keep|refine|kill` rules on ONE card of a board's catalog (the revamp, 2026-09-16), where
+  `<id>` is a candidate id from the board's spec. The `item:` prefix keeps the two namespaces apart: an
+  ask id and a candidate id are both one token and a board may use the same word for both. A board that
+  declares no `catalog` has no items, and a ruling on one is refused. One verdict per item per round;
+  ruling again in the same round overwrites, exactly as answering an ask again does, and a round gains
+  `items: [{ item, verdict, note?, by, at }]` beside its `answers`.
+
+  `review library: <entry-id>=keep|redesign|retire "an optional note"` rules on a LIBRARY entry and
+  lands in `_library.json`, whose shape is `{ "entries": [{ entry, verdict, note?, by, at }] }` with no
+  rounds: the Library is not explored in rounds, so there is one ruling per entry and the newest
+  overwrites. An `<entry-id>` is a component id from `rules.generated.json`, which is the last segment
+  of its `/design/library` URL. The desk reads the `redesign` and `retire` ones as "Redesigns you asked
+  for", which is the queue the Orchestrator cuts tracks from.
+  ```
+
+  And in the ROLE block, `BELONGS HERE` gains "catalog item verdicts" and the
+  `_library.json` file is named beside `_window.json`.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Assets requested from Will: none.
+- **Look at first:** `/design/lab/palette` on a local `pnpm dev`. The catalog is
+  the kit's now: press Pick on a card and the whole page wears it, press A on one
+  and B on another and the two wipes below join those two, and rule each card
+  keep / refine / kill with a note in its own row. The line it composes at the
+  foot of the board is `review palette r6: item:today=keep; item:ladder=kill "…"`,
+  and `pnpm lab:review --dry` takes it. Then `/design/lab/kit`, which is the
+  toolbox an agent reads before building a board, and `/design/lab` at 375, where
+  the queue rows stack and the board's dock opens collapsed.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-16). **`lab-catalog`** turned Will's
+directive ("catalogs of ideas to ship... kill, refine, or promote the best to the
+Library", 2026-09-16) into the review's third scope. A round's ledger gained
+`items` beside its answers and the Library gained `_library.json`; a board that
+declares `catalog` puts its cards on the desk as one items step per board, walked
+before that board's questions, with `stepDone` shared by the card, the session and
+"carry on". The grammar grew `item:<id>=keep|refine|kill "note"` and
+`review library: <entry>=keep|redesign|retire`, and `pnpm lab:review` reads a
+spec's `candidates` off the page, resolving `candidates: ITEMS` one hop and
+refusing a `.map`. The kit gained `Catalog`, `VerdictPill`, `ItemVerdictRow`,
+`CompareTwo`, `SpotCompare` and `GroundBox`; `pnpm new-board` scaffolds a catalog
+by default; `/design/lab/kit` became a toolbox with a live demo per tool; and
+`pnpm lab:smoke` now weighs each board's words outside every closed fold and
+every specimen against `LIMITS.readingWords`, which all twelve standing boards
+exceed. The palette board was rebuilt on the kit as the proof. The round also
+took the sweep's findings in this lane: the kit's visible words are a stranger's,
+a board's dock opens collapsed at 375, and the desk's queue rows stack there.
