@@ -205,7 +205,7 @@ export const RULINGS: Ruling[] = [
     why: "Calm arrival with a longer pause: a 700ms beat, a tall welcome, the directional step slide, the 900ms success morph.",
     lives: [
       "docs/systems/guest-flow.md",
-      "docs/systems/design-system.md#the-arrival-choreography-phase-45-ratified-calm-700ms",
+      "docs/systems/design-system.md#the-arrival-choreography-calm-700ms",
     ],
   },
   {
