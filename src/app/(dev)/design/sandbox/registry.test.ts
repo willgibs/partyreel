@@ -271,7 +271,6 @@ const PLAIN: readonly string[] = [
   "media-kit",
   "palette",
   "river-visual",
-  "rounding",
   "type-scale",
 ];
 
