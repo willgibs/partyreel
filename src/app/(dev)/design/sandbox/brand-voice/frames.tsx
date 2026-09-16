@@ -2,40 +2,25 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import {
-  CANVAS,
-  Frame,
-  type Ground,
-  type Mode,
-  useFrameLock,
-} from "@/components/lab";
+import { CANVAS, Frame, type Ground, type Mode } from "@/components/lab";
 import { cn } from "@/lib/utils";
 
-import type { VoiceId } from "./voices";
-
 /**
- * THE VOICES IN A REAL VIEWPORT (the Library x Lab migration wave, 2026-09-15).
+ * A SPOT IN A REAL DOCUMENT (the Library x Lab migration wave, 2026-09-15;
+ * trimmed to three exports by the catalog rebuild, 2026-09-16).
  *
- * ★ WHY THIS BOARD MOVED OFF THE STAGE, AND WHY IT MATTERS MORE HERE THAN
- * ANYWHERE. A Stage is a div, so a Tailwind breakpoint prefix inside it reads
- * the BROWSER's width rather than the canvas's: inside the 375 stage on a
- * desktop every `sm:` and `lg:` rung fired, so `Container` took the 2rem
- * desktop gutter and every heading took its desktop step. On a board about
- * colour or shadow that is survivable. On THIS board the whole argument is how
- * a sentence sits: whether B's h1 takes three rows or four at 375 is the
- * board's sharpest fact about B, and it cannot be read off a heading rendered
- * at the wrong size in a gutter that is 32px too wide.
- *
- * Round four restored the ladder by hand, in the board's own sheet, keyed to a
- * `data-bv-canvas` attribute: four heading tiers and a container gutter,
- * restated as literals. It worked and it was a lie waiting to happen, because
- * the literals had to be kept in step with a type scale another track is
- * actively proposing to change.
+ * ★ WHY THIS BOARD IS ON FRAMES AND NOT ON STAGES, AND WHY IT MATTERS MORE HERE
+ * THAN ANYWHERE. A Stage is a div, so a Tailwind breakpoint prefix inside it
+ * reads the BROWSER's width rather than the canvas's: inside a 375 stage on a
+ * desktop every `sm:` and `lg:` rung fires, so `Container` takes the 2rem
+ * desktop gutter and every heading takes its desktop step. On a board about
+ * colour that is survivable. On THIS board the whole argument is how a sentence
+ * sits: whether a headline takes three rows or four at 375 is the sharpest fact
+ * on the board about a voice, and it cannot be read off a heading rendered at
+ * the wrong size in a gutter that is 32px too wide.
  *
  * A frame is a real document at exactly 1440 or exactly 375, so the media
- * queries resolve against the canvas because the canvas IS the viewport. The
- * hand-restored ladder is deleted, the gutter rule with it, and the board now
- * measures what the site renders rather than what this file remembers.
+ * queries resolve against the canvas because the canvas IS the viewport.
  *
  * Three things follow, each a consequence of the frame being a document:
  *
@@ -45,16 +30,14 @@ import type { VoiceId } from "./voices";
  *    the frame's body. `data-mkt-skin` is free here in a way it never was on a
  *    stage: marketing.css flips the whole BODY on `body:has([data-mkt-skin])`,
  *    which a page showing cinema and paper at once must not do, and inside a
- *    frame that body is the frame's own.
- * 2. ★ THE HEIGHT IS MEASURED, NEVER WRITTEN. A frame is a fixed box like a
- *    stage, and a number typed into it is a promise about content that has to
- *    hold for three voices, two canvases and every edit to the copy, which is
- *    the entire activity on a copy board. Round two's hand-tuned heights
- *    clipped the word "it." off the thesis at 1440, on the exact surface an ask
- *    asks Will to choose on. So the wrapper reports its own height and the
- *    frame takes it. (Asked of the Orchestrator this round: a `height`
- *    of "measured" on the kit's Frame, which retires this hook from every
- *    board at once.)
+ *    frame that body is the frame's own. ONE skin per frame, which is why the
+ *    home page walks as four frames rather than one.
+ * 2. ★ THE HEIGHT IS MEASURED, NEVER WRITTEN. A frame is a fixed box, and a
+ *    number typed into it is a promise about content that has to hold for six
+ *    voices and two canvases, which is the entire activity on a copy board.
+ *    Round two's hand-tuned heights clipped the word "it." off the site's
+ *    loudest line at 1440. So the wrapper reports its own height and the frame
+ *    takes it.
  * 3. ★ THE REVEAL GRAMMAR IS FORCED TO ITS FINAL STATE. marketing.css rests
  *    every `[data-mkt-reveal]` slot at opacity 0 in BOTH motion preferences and
  *    waits on the Reveal island, which does not run inside a portalled scene.
@@ -62,30 +45,6 @@ import type { VoiceId } from "./voices";
  *    subhead Will cannot rule on. `data-inview` is the final state the CSS
  *    already defines, not an override.
  */
-
-/** Today first, then the two candidates: a comparison reads from the control. */
-export const COLUMNS: VoiceId[] = ["today", "house", "room"];
-
-/**
- * ★ A COLUMN IS HEADED WITH ITS OPTION'S OWN LABEL (the clarity round,
- * 2026-09-15). These three strings are `spec.ts`'s voice ask, word for word,
- * and they are also the dock's three switch labels. A reviewer who reads the
- * ask on the desk or on the review card and then opens the board has to find
- * the same words over the evidence, or the ask cannot be answered from the
- * evidence. Change one of them and you change all three places at once.
- */
-export const VOICE_TAG: Record<VoiceId, string> = {
-  today: "Today, the lines the site ships now",
-  house: "A, a tuning of the lines we have",
-  room: "B, rebuilt around the album filling",
-};
-
-/** The same three, short enough for a measured caption or a table head. */
-export const VOICE_SHORT: Record<VoiceId, string> = {
-  today: "Today",
-  house: "A",
-  room: "B",
-};
 
 /** The Stage's ground map (stage.tsx), applied inside the frame's document. */
 const SKIN: Record<
@@ -123,14 +82,14 @@ const SLACK = 2;
  * A frame reserves a box before its scene exists, and the only honest guess is
  * a full canvas. On a board of fifty frames that guess is wrong by tens of
  * thousands of pixels in total, so the page shrinks under the reader as the
- * frames land: measured on the phone canvas, a link carrying `#brand-voice-guest`
- * landed on its section and then watched it rise 14,500px as the frames above it
- * measured themselves. Every flip of the voice or the canvas paid it again.
+ * frames land: measured on the phone canvas, a link carrying a section hash
+ * landed on its section and then watched it rise 14,500px. Every flip of the
+ * voice or the canvas paid it again.
  *
  * The cache makes the guess a MEASUREMENT for every pass after the first: a
- * frame that has been this size before opens at it. It is keyed by frame id and
- * canvas because those are what decide a height, deliberately module-level
- * (it outlives a remount, which is the point) and deliberately not persisted,
+ * frame that has been this size before opens at it. Keyed by frame id and
+ * canvas because those are what decide a height, deliberately module-level (it
+ * outlives a remount, which is the point) and deliberately not persisted,
  * because a stale height from another build is worse than an honest guess.
  */
 const MEASURED = new Map<string, number>();
@@ -198,11 +157,11 @@ function useMeasured(
  * ★ A LINK'S ANCHOR CANNOT LAND ON A BOARD THAT IS STILL MEASURING ITSELF.
  *
  * The share format for a review note is a URL, and it carries a section: the
- * whole point of `#brand-voice-guest` is that it opens on the guest surfaces.
- * But the browser applies a hash ONCE, at load, when every frame is still
- * holding a reserved canvas rather than its content, and the board then shrinks
- * by tens of thousands of pixels underneath the reader. Measured before this
- * hook: the link landed on its section and then watched it rise 14,500px.
+ * whole point of a section hash is that it opens on that section. But the
+ * browser applies a hash ONCE, at load, when every frame is still holding a
+ * reserved canvas rather than its content, and the board then shrinks by tens
+ * of thousands of pixels underneath the reader. Measured before this hook: the
+ * link landed on its section and then watched it rise 14,500px.
  *
  * So the hash is re-applied on a short schedule while the board settles, and
  * the schedule is CANCELLED BY THE READER rather than by a timeout alone: a
@@ -244,16 +203,14 @@ export function useAnchorAfterSettle(boardId: string) {
   }, [boardId]);
 }
 
-/** Whatever a board hands a frame, on its ground, measured. */
+/** Whatever a board hands a frame, on its ground, measured, at 1:1. */
 export function VoiceFrame({
   id,
   mode,
   ground,
   title,
   caption,
-  lock,
   className,
-  bodyRef,
   children,
 }: {
   id: string;
@@ -261,11 +218,7 @@ export function VoiceFrame({
   ground: Ground;
   title: string;
   caption?: React.ReactNode;
-  /** A scroll group shared with the other columns of the same surface. */
-  lock?: ReturnType<typeof useFrameLock> | null;
   className?: string;
-  /** The measured wrapper, for a ruler that has to read the live heading. */
-  bodyRef?: (el: HTMLElement | null) => void;
   children: React.ReactNode;
 }) {
   const { w, h } = CANVAS[mode];
@@ -273,207 +226,93 @@ export function VoiceFrame({
   const g = SKIN[ground];
 
   return (
-    <Frame
-      id={id}
-      w={w}
-      h={height}
-      title={title}
-      caption={caption}
-      lock={lock}
-      onApproach
-    >
-      <div
-        ref={(el) => {
-          bodyRef?.(el);
-          return attach(el);
-        }}
-        // flow-root, so a child's margin cannot collapse out of the measured
-        // box and hand back a height shorter than what is drawn.
-        className={cn(
-          g.className,
-          "flow-root bg-background text-foreground",
-          className,
-        )}
-        style={g.style}
-        data-inview="true"
-        data-ground={ground}
-        {...(g.mkt ? { "data-mkt": "" } : {})}
-        {...(g.skin ? { "data-mkt-skin": g.skin } : {})}
-      >
-        {children}
-      </div>
-    </Frame>
-  );
-}
-
-/**
- * One surface, three voices, each in its own document.
- *
- * ★ STACKED AT 1440, ABREAST AT 375, and the reason is arithmetic rather than
- * taste. Three 375 documents are 1,125px and fit a 1440 window, so stacking
- * them would leave a thousand pixels of dead ground beside every specimen and
- * put the line being judged a screen away from the line it replaces. Three 1440
- * documents fit nothing, so the stack is the only honest layout there. Scaling
- * either of them is what this round exists to stop.
- *
- * ★ ONE SCROLL GROUP PER SURFACE, not one per board: three frames of the same
- * surface scroll together, which is the whole point of putting them side by
- * side, and a board's other rows are not dragged along with them.
- */
-export function VoiceFrames({
-  id,
-  mode,
-  ground,
-  render,
-  caption,
-}: {
-  id: string;
-  mode: Mode;
-  ground: Ground;
-  render: (voice: VoiceId) => React.ReactNode;
-  caption?: (voice: VoiceId) => React.ReactNode;
-}) {
-  const lock = useFrameLock(true);
-  const side = mode === "phone";
-  return (
-    <div className="overflow-x-auto pb-2">
-      <div
-        className={cn("flex w-fit gap-4", side ? "items-start" : "flex-col")}
-      >
-        {COLUMNS.map((v) => (
-          <VoiceFrame
-            key={v}
-            id={`${id}-${v}`}
-            mode={mode}
-            ground={ground}
-            lock={lock}
-            title={VOICE_TAG[v]}
-            caption={caption?.(v) ?? DEFAULT_CAPTION[v]}
-          >
-            {render(v)}
-          </VoiceFrame>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const DEFAULT_CAPTION: Record<VoiceId, string> = {
-  today: "The strings the site ships today, verbatim. The control.",
-  house: "The register the eight approved lines already speak, written down.",
-  room: "Recommended. Rebuilt from a code on a table filling an album.",
-};
-
-/**
- * Three voices INSIDE one document, at the specimen's real width.
- *
- * For chrome whose shipped width is already under 400px: an event card in the
- * dashboard's own three-up grid, a toast at sonner's 356, a notification row.
- * Three of them side by side IS the shipped layout at the shipped width, so a
- * frame each would be three documents saying the same thing about one.
- */
-export function VoiceCanvas({
-  id,
-  mode,
-  ground,
-  width,
-  render,
-  caption,
-}: {
-  id: string;
-  mode: Mode;
-  ground: Ground;
-  /** The specimen's REAL width in CSS pixels, never a guess. */
-  width: number;
-  render: (voice: VoiceId) => React.ReactNode;
-  caption?: React.ReactNode;
-}) {
-  const phone = mode === "phone";
-  return (
-    <div className="overflow-x-auto pb-2">
+    // ★ THE SCROLLER IS OUTSIDE THE FRAME, NEVER A SCALE ON IT. A 1440 document
+    // does not fit the board's column and the one thing this board may not do
+    // is shrink a specimen whose wrapping is the finding (Will, 2026-09-15).
+    <div className="min-w-0 overflow-x-auto pb-2">
       <div className="w-fit">
-        <VoiceFrame
+        <Frame
           id={id}
-          mode={mode}
-          ground={ground}
-          title="All three voices, in one document"
-          caption={
-            caption ??
-            "Each voice at the width the component ships at, headed with its own name from the ask."
-          }
-          className="px-6 py-8"
-        >
-          <div
-            className={
-              phone ? "flex flex-col gap-6" : "flex flex-wrap items-start gap-6"
-            }
-          >
-            {COLUMNS.map((v) => (
-              <div key={v} style={{ width: phone ? undefined : width }}>
-                <p className="mb-1.5 flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "inline-block size-1.5 rounded-full",
-                      v === "today"
-                        ? "bg-muted-foreground/50"
-                        : "bg-foreground",
-                    )}
-                  />
-                  {VOICE_TAG[v]}
-                  {v === "room" && (
-                    <span className="text-muted-foreground/70">
-                      recommended
-                    </span>
-                  )}
-                </p>
-                {render(v)}
-              </div>
-            ))}
-          </div>
-        </VoiceFrame>
-      </div>
-    </div>
-  );
-}
-
-/** One document in the SELECTED voice: a whole arc chapter, a feature page, the
- *  thesis pair. The ledger beside it carries today line by line, so the frame
- *  shows one voice and the comparison stays in one view. */
-export function ChapterFrame({
-  id,
-  mode,
-  ground,
-  title,
-  caption,
-  className,
-  bodyRef,
-  children,
-}: {
-  id: string;
-  mode: Mode;
-  ground: Ground;
-  title: string;
-  caption?: React.ReactNode;
-  className?: string;
-  bodyRef?: (el: HTMLElement | null) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="overflow-x-auto pb-2">
-      <div className="w-fit">
-        <VoiceFrame
-          id={id}
-          mode={mode}
-          ground={ground}
+          w={w}
+          h={height}
           title={title}
           caption={caption}
-          className={className}
-          bodyRef={bodyRef}
+          // No lock: a spot is exactly as tall as its content, so there is
+          // nothing to scroll inside it and nothing to keep in step.
           lock={null}
+          onApproach
         >
-          {children}
-        </VoiceFrame>
+          <div
+            ref={(el) => attach(el)}
+            // flow-root, so a child's margin cannot collapse out of the measured
+            // box and hand back a height shorter than what is drawn.
+            className={cn(
+              g.className,
+              "flow-root bg-background text-foreground",
+              className,
+            )}
+            style={g.style}
+            data-inview="true"
+            data-ground={ground}
+            {...(g.mkt ? { "data-mkt": "" } : {})}
+            {...(g.skin ? { "data-mkt-skin": g.skin } : {})}
+          >
+            {children}
+          </div>
+        </Frame>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A PRODUCTION GROUND AT A REAL PHONE COLUMN, with no iframe.
+ *
+ * The catalog's cards are the one place a frame cannot go: fifty documents
+ * mounted at once to answer "which of these six", before anybody has chosen
+ * anything to look at. So a card paints the ground itself and pins its column
+ * to 343px, which is EXACTLY what `Container` gives a 375 viewport (`px-4` a
+ * side). Nothing is scaled and no breakpoint is faked: the card is the phone's
+ * own column width, at the phone's own type, with the desktop rungs deliberately
+ * not firing because there is no `sm:` in anything it renders.
+ */
+export const PHONE_COLUMN = 343;
+
+export function CardGround({
+  ground,
+  className,
+  children,
+}: {
+  ground: Ground;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const g = SKIN[ground];
+  return (
+    <div
+      className={cn(
+        g.className,
+        "flow-root bg-background text-foreground",
+        className,
+      )}
+      // ★ NO `data-mkt-skin` HERE, AND IT IS NOT AN OVERSIGHT. marketing.css
+      // flips the whole document on `body:has([data-mkt-skin="cinema"])` to stop
+      // overscroll bleed on a real marketing route; inside a frame that body is
+      // the frame's own, but a card is on the BOARD's page, so the attribute
+      // would paint the lab itself room-dark and force `color-scheme: dark` on
+      // it. (globals-theme-contract.test.ts holds the same line for the paper
+      // chapter; the home-hero board learned it the same way.) The one thing the
+      // skin bought here, the 0.11 ground, is the inline `--background` above.
+      style={g.style}
+      data-inview="true"
+      data-ground={ground}
+      {...(g.mkt ? { "data-mkt": "" } : {})}
+    >
+      <div
+        className="mx-auto"
+        style={{ width: PHONE_COLUMN, maxWidth: "100%" }}
+      >
+        {children}
       </div>
     </div>
   );

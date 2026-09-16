@@ -40,6 +40,7 @@ const SEEDS = ["/design/library", "/design/lab"];
 const SCENES = [
   "/design/sandbox/floating-surfaces",
   "/design/sandbox/rounding/screen",
+  "/design/sandbox/type-scale/screen?screen=dashboard",
 ];
 // The boundary probe throws during server render on purpose (its page.tsx).
 // Whether that surfaces as a 500 or inside a 200 depends on where the shell's

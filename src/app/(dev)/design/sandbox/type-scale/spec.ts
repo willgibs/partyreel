@@ -1,187 +1,155 @@
-import { defineBoard } from "@/components/lab/board-spec";
+import { type Candidate, defineBoard } from "@/components/lab/board-spec";
 
 /**
- * THE TYPE-SCALE BOARD, AS DATA (the Library x Lab migration wave, 2026-09-15;
- * the four asks rewritten in plain words the same night, the clarity round).
+ * THE TYPE-SCALE BOARD, AS DATA (round six, the catalog rebuild, 2026-09-16).
  *
- * Nothing here is new argument. Every ask, candidate and departure is round
- * four's, moved out of `board.tsx` (its `ASKS`, its `DEPARTURES`, its
- * `BoardMeta` props) so that the template, the desk, the record and the review
- * ledger read ONE list. What changed is where a reviewer meets them: the
- * verdict and the four one-word calls are the first screen instead of sitting
- * under two paragraphs of preamble, and the board's four acts are declared
- * sections the dock can jump to and the walk can drive.
+ * ★ WILL'S NOTE IS THE WHOLE BRIEF: type-scale should be "a few different
+ * scales side by side" on real UI, with "no variable lists", and a track
+ * "returns a catalog to rule on item by item" (2026-09-16). So the five
+ * ladders are five CARDS, each drawn as a type specimen at true size; the
+ * comparison is two of them on the same real page at once; and the pick is
+ * worn by the real pages underneath. The eight sections became three, the four
+ * asks became two, and the token table, the glance tables, the reach
+ * paragraphs and the step descriptions all left with them. No size moved.
  *
- * ★ AN ASK IS ANSWERABLE WHERE IT IS MET, NOT ONLY ON THE BOARD. Will's first
- * review through the desk stopped at questions that were a label and a row of
- * tokens ("it was tough to understand what I was being asked for most of those
- * questions"), and a desk session shows an ask with the board a tab away. So
- * each question here says what the thing is and where it lives on the site
- * (`context`), which section and which switch to look at (`look`), and what
- * each option would actually do (`means`), and each option is NAMED rather
- * than lettered. The jargon this board runs on is glossed where it is first
- * met or dropped: a ladder is a set of heading sizes, leading is line spacing,
- * tracking is letter spacing, a register is one half of the site. The ids
- * never changed and never will: the review ledger joins on them.
+ * ★ THE FIVE ARE WRITTEN OUT HERE AND NOWHERE ELSE, and that is not laziness
+ * about DRY. `pnpm lab:review` reads a spec as TEXT rather than importing it
+ * (so a board's asks and cards can be validated with no build step), and it
+ * resolves `candidates: ITEMS` exactly one hop to a const in this file: a
+ * `.map` over `ladders.ts` would read as a catalog with no cards at all and
+ * every ruling on one would be refused. The numbers live in `ladders.ts`, the
+ * WORDS live here, and `ladders.test.ts` pins the two lists equal id for id.
  *
- * ★ THIS FILE IS ALSO THE ASK LIST `ladders.ts` COUNTS. `candidateCss` prints
- * "the fourth ask" inside the block Will copies, and round three proved that a
- * hand-typed ordinal goes stale the moment an ask is cut: `askOrdinal` reads
- * THIS array. The import points one way only (ladders.ts imports the spec, the
- * spec imports nothing but the kit's types), so the spec stays pure data and
- * `registry.ts` can hand it to a server page and to a node test.
+ * ★ AND A CARD IS A WHOLE-SITE ANSWER. Round five carried two switches, one
+ * per register, which is the machine the revamp is cutting; each card now
+ * names both halves and a reviewer who wants marketing from one and the app
+ * from another says so in the note under it.
  *
- * ★ AND THE CANDIDATE IDS ARE THE LADDER IDS, deliberately: `b`, `c`, `a`,
- * `today` are what `ladders.ts` calls them, what the two dock switches write
- * into the URL, and what a one-word ruling says. `ladders.test.ts` pins the two
- * lists equal so a ladder cannot be renamed here and not there.
+ * Pure data on purpose (registry.test.ts enforces it): the board route is a
+ * SERVER page and reads the question for its header, so a spec that imported
+ * React, the board or its sheet would drag a client tree into a server render.
  */
+const ITEMS: readonly Candidate<"items" | "compare" | "pages">[] = [
+  {
+    id: "b",
+    name: "B, rungs",
+    one: "One rung set, 12 to 160, widening as it climbs.",
+    verdict: "ship",
+    recommended: true,
+    facts: [
+      ["Masthead", "64 to 160"],
+      ["Section", "24 to 52"],
+      ["App title", "24 to 28"],
+      ["Middle", "yes"],
+    ],
+    rationale: "Today's sizes are a rough draft of this set.",
+  },
+  {
+    id: "c",
+    name: "C, registers",
+    one: "The public pages a poster, the app an instrument.",
+    verdict: "refine",
+    facts: [
+      ["Masthead", "80 to 200"],
+      ["Section", "26 to 40"],
+      ["App title", "20 flat"],
+      ["Middle", "yes"],
+    ],
+    rationale: "The one card that changes how the front of the site feels.",
+  },
+  {
+    id: "a",
+    name: "A, tuned",
+    one: "Today's desktop sizes, the phone end unpacked.",
+    verdict: "refine",
+    facts: [
+      ["Masthead", "64 to 160"],
+      ["Section", "26 to 48"],
+      ["App title", "24 flat"],
+      ["Middle", "no"],
+    ],
+    rationale: "The smallest change that could be right.",
+  },
+  {
+    id: "law",
+    name: "The spacing law alone",
+    one: "Today's sizes, the spacing read off the size.",
+    verdict: "refine",
+    facts: [
+      ["Masthead", "52 to 160"],
+      ["Section", "30 to 48"],
+      ["App title", "24 flat"],
+      ["Middle", "no"],
+    ],
+    rationale: "The only card that moves no size at all.",
+  },
+  {
+    id: "today",
+    name: "Today",
+    one: "The shipped ladder, both ends written out.",
+    verdict: "kill",
+    facts: [
+      ["Masthead", "52 to 160"],
+      ["Section", "30 to 48"],
+      ["App title", "24 flat"],
+      ["Middle", "no"],
+    ],
+    rationale: "The control every other card is read against.",
+  },
+];
+
 export const TYPE_SCALE = defineBoard({
   id: "type-scale",
   title: "The type scale",
 
   question:
-    "Which heading sizes should the site use, one set for the marketing pages and one for the signed-in app, chosen separately and judged on the real pages at 1440 and at 375?",
+    "Which of five finished sets of heading sizes should the site wear?",
 
   round: {
-    n: 5,
-    date: "2026-09-15",
+    n: 6,
+    date: "2026-09-16",
     changed:
-      "The four questions rewritten in plain words: each says what the thing is, where to look and what choosing an option would do, and each option is named rather than lettered. The candidates carry those names on the evidence and in the dock. No size, candidate or recommendation changed.",
+      "Rebuilt as a catalog: five ladders as five specimens at true size, any two on one real page, the pick worn by five routes.",
   },
   history: [
+    {
+      n: 5,
+      date: "2026-09-15",
+      changed:
+        "Moved onto the kit's template: the verdict first, the sections declared, the frames on the kit's own adopted sheet.",
+    },
     {
       n: 4,
       date: "2026-09-15",
       changed:
-        "The marketing reconstructions came off and seven real ROUTES went on, in frames exactly the canvas wide. The two registers became two switches in the dock, so any pair of ladders composes into one set.",
-    },
-    {
-      n: 3,
-      date: "2026-09-14",
-      changed:
-        "The board started answering: four asks with the board's own answer beside each, and the tracking law made adoptable on its own.",
-    },
-    {
-      n: 2,
-      date: "2026-09-14",
-      changed:
-        "Apply to the site, so a ladder is judged on the real pages, and the clamp the wiring round bakes.",
-    },
-    {
-      n: 1,
-      date: "2026-09-14",
-      changed:
-        "Four ladders written out at both ends, because today's phone end is hidden inside a class string.",
+        "The marketing reconstructions came off and seven real ROUTES went on, in frames exactly the canvas wide.",
     },
   ],
   context:
-    "Bible 5 holds and its numbers were never written. Today's ladder hides its phone end inside a class string, and written out that end has three distinct sizes doing the work of six: a page title and a chapter opener are both 36px, and the masthead sits four pixels above the home hero. Line-height arrives with whichever size class a ramp lands on. And every heading, from a 160px masthead to a 16px card title, is tracked at the same -0.03em.",
+    "Bible 5 holds and its numbers were never written. Five rounds wrote them and then kept writing: by round five the board carried two register switches, eight sections and a token table nobody could rule on. Every size stands. What changed is that five of them are finished ladders with names, and the argument is collapsed underneath them.",
 
   verdict: {
     recommendation:
-      "B on both halves of the site, with letter spacing made a function of size, and the page-not-found heading brought onto the same set.",
+      "B, rungs, on both halves of the site, with the dead-link heading brought onto the same set.",
     because:
-      "One set of sizes from 12 to 160 that widens as it climbs: every heading has a size at both ends of the screen and takes its line spacing and letter spacing from that size instead of picking them. Today's desktop sizes are already a rough, unevenly rounded version of that set, and the app finally gets the middle size it has never had.",
+      "Every heading gets a size at both ends of the screen and takes its spacing from that size. Today's sizes are a rough draft of the same set, and the app gains its missing middle.",
     overrule:
-      "C, if the public pages should read like a poster and the signed-in app should go quieter than it is today rather than louder.",
+      "C, registers, if the public pages should read like a poster and the app quieter.",
   },
 
   asks: [
     {
-      id: "marketing",
-      question: "Which heading sizes should the marketing pages use?",
-      context:
-        "Marketing is the public half of the site: the home page, pricing, the feature pages, about, help. Its headings run from the huge word at the top of a page down to a card title, and each size also carries a line spacing (the gap between wrapped lines) and a letter spacing (how tightly the letters sit). Four candidates propose a set of them. Today's set was never written down.",
-      look: "Section 01, the Marketing table: each row is one candidate read left to right, and the last columns mark only the faults that candidate's own numbers fix. Picking a row wears it on every page below.",
-      options: [
-        {
-          id: "b",
-          label: "B, rungs: one size set, 12 to 160",
-          means:
-            "Marketing stands on a shared set of sizes that widens as it climbs; the phone middle goes quieter to buy the top of the page its room.",
-        },
-        {
-          id: "c",
-          label: "C, registers: the public pages as a poster",
-          means:
-            "Five louder steps, a 200px word over a 120px headline, and the 24 to 30px tier folded up into the section heading above it.",
-        },
-        {
-          id: "a",
-          label: "A, tuned: today's sizes, kept",
-          means:
-            "Every desktop size the site ships stays; the phone end is unpacked so six headings separate, and each size names its own spacing.",
-        },
-        {
-          id: "today",
-          label: "Today, exactly as it ships",
-          means:
-            "Nothing changes: five marketing sizes, and at 375 three of them doing the work of six.",
-        },
-      ],
-      recommended: "b",
-      because:
-        "One set of sizes from 12 to 160 that widens as it climbs, so every heading has a size at both ends of the screen and takes its spacing from that size rather than picking one. Today's desktop sizes are already a rough version of it.",
-      overrule:
-        "C, if the front of the site should read like a poster: 200px over 120px rather than 160 over 100, and one fewer size in the middle.",
-      evidence: "glance",
-      state: { canvas: "desktop" },
-      control: "marketing",
-    },
-    {
-      id: "app",
-      question: "Which heading sizes should the signed-in app use?",
-      context:
-        "The app is everything behind sign-in: the dashboard, an event's page, the guest album, the admin portal. It has two heading sizes today, a 24px page title and a 16px card title, with nothing between them, so the row headings that belong in the gap are written as small uppercase labels inside a heading tag.",
-      look: "Section 01's second table, then section 06: the dashboard, the missing middle size and an admin page, each beside what production writes there today. Flip the App switch to compare two candidates.",
-      options: [
-        {
-          id: "b",
-          label: "B, rungs: one size set, 12 to 160",
-          means:
-            "The app gets a middle size at last, and the page title grows from 24px on a phone to 28px on a desktop instead of standing still at both.",
-        },
-        {
-          id: "c",
-          label: "C, registers: the app as an instrument",
-          means:
-            "Quieter than today: a 20px page title, with weight and colour carrying the rank beneath it, so the photographs stay the loud thing.",
-        },
-        {
-          id: "a",
-          label: "A, tuned: today's sizes, kept",
-          means:
-            "The app is untouched, which is this candidate's cost: no middle size, so the row headings stay labels wearing a heading tag.",
-        },
-        {
-          id: "today",
-          label: "Today, exactly as it ships",
-          means:
-            "Nothing changes: a 24px page title and a 16px card title, the same two at both screen widths.",
-        },
-      ],
-      recommended: "b",
-      because:
-        "The app gets the middle size it has never had, so the three row headings wearing a heading tag become headings, and the page title grows from 24px on a phone to 28px on a desktop instead of standing still at both.",
-      overrule:
-        "C, if the app's chrome should go quieter than today rather than louder: a 20px title, with weight and colour carrying the rank under it.",
-      evidence: "app",
-      state: { canvas: "desktop" },
-      control: "app",
-    },
-    {
       id: "tracking",
       question: "Should a heading's letter spacing change with its size?",
       context:
-        "Letter spacing is how tightly the letters of a word sit together. Every heading on the site, from the 160px word at the top of /about down to a 16px card title, is pulled in by the same amount today. The proposal makes it a function of size instead: tighter as a heading grows, looser as it shrinks. It moves no sizes, so it can be adopted whichever candidate wins.",
-      look: "Section 08: the same word at the masthead size and the same card title at 16px, once under each option. Neither of those rows moves when you flip the Marketing or App switch, which is what makes this its own call.",
+        "Every heading, from the 160px word atop /about down to a 16px card title, is letter-spaced by the same amount today. Four of the five cards make it a function of size instead.",
+      look: "The strip under the cards: a masthead and a card title, under each value.",
       options: [
         {
           id: "adopt",
-          label: "Adopt it: spacing follows size",
+          label: "Spacing follows the size",
           means:
-            "Each size carries its own letter spacing and line spacing. No size moves anywhere on the site under this option on its own.",
+            "Each size carries its own letter spacing and line spacing. On its own it moves no size anywhere on the site.",
         },
         {
           id: "keep",
@@ -192,25 +160,24 @@ export const TYPE_SCALE = defineBoard({
       ],
       recommended: "adopt",
       because:
-        "It is a function of size, so it moves no size and can be taken whichever candidate wins, and it is the only one of today's faults that today's numbers can fix by themselves.",
+        "It is the only one of today's faults that today's numbers can fix by themselves.",
       overrule:
-        "Keep the one value, if one number for every heading is the simplicity worth a loose masthead and a tight card title.",
-      evidence: "law",
-      state: { canvas: "desktop" },
+        "Keep one value, if the simplicity is worth a loose masthead and a tight card title.",
+      evidence: "items",
     },
     {
       id: "not-found",
       question:
         "Should the page-not-found heading use the site's heading font?",
       context:
-        "One screen catches every dead link: a mistyped public URL, a signed-in page that no longer exists, an admin page, and every guest link to a deleted event. Its title is the only page title on the site set in Inter, the body font, and it sits at a size no candidate's set reaches.",
-      look: "Section 07: the same screen twice, exactly as it ships on the left and on the chosen set of sizes on the right. The left half is pinned, so it never moves when you flip a switch.",
+        "One screen catches every dead link, including every guest link to a deleted event. Its title is the only page title on the site set in the body font.",
+      look: "The last frame under the pick.",
       options: [
         {
           id: "on-ladder",
           label: "Put it on the site's heading set",
           means:
-            "The title joins the set: the heading font, the app 404 at the page size and the public 404 at the size just above a card title.",
+            "The title joins the set: the heading font, the app screen at the page size and the public one at the size just above a card title.",
         },
         {
           id: "leave-off",
@@ -221,78 +188,44 @@ export const TYPE_SCALE = defineBoard({
       ],
       recommended: "on-ladder",
       because:
-        "It is the only page title on the site in Inter, and it is not an edge case: the marketing 404, the app 404, the admin 404 and every dead guest link.",
+        "It is the only page title on the site in Inter, and it is not an edge case.",
       overrule:
-        "Leave it off, and the exception becomes documented rather than swept.",
-      evidence: "not-found",
-      state: { canvas: "desktop" },
+        "Leave it off, and the exception is documented rather than swept.",
+      evidence: "pages",
     },
   ],
 
-  candidates: [
-    {
-      id: "b",
-      name: "B, rungs",
-      recommended: true,
-      rationale:
-        "One rung set from 12 to 160 with the ratio widening as it climbs. Every step sits on a rung at both ends, and leading and tracking are read off the rung, never chosen.",
-    },
-    {
-      id: "c",
-      name: "C, registers",
-      rationale:
-        "Two registers rather than one ladder. Marketing becomes editorial and much louder at the top; the app becomes an instrument and goes quieter, with weight carrying the hierarchy.",
-    },
-    {
-      id: "a",
-      name: "A, tuned",
-      rationale:
-        "Today's desktop numbers, kept. The phone end unpacked so six steps separate, a named leading on every step, and tracking inverse to size. The app is untouched, which is its cost.",
-    },
-    {
-      id: "today",
-      name: "Today",
-      rationale:
-        "The shipped ladder, both ends written out. Five marketing steps, two app steps, one tracking value for all of them. The control every other column is read against.",
-    },
-    {
-      id: "law",
-      name: "The spacing law alone",
-      rationale:
-        "Today's sizes, every one of them, with leading and tracking running inverse to size instead of a flat -0.03em. The smallest thing the board can ship, and its own apply button.",
-    },
-  ],
+  candidates: ITEMS,
+
+  /**
+   * ★ THE CATALOG IS THE EVIDENCE. Declaring this turns the grid into the
+   * review surface: Pick drives the pages below from a card, A and B drive the
+   * comparison, and each card carries keep, refine or kill with a note.
+   */
+  catalog: {
+    section: "items",
+    control: "ladder",
+    compare: ["compare-a", "compare-b"],
+  },
 
   departures: [
     {
-      id: "registers",
-      from: "precedent",
-      text: "One token set with two registers, and it was the board's call to make rather than Will's ask: nine names, one @theme block, and the register is only which rungs each half stands on. The full case is the argument under the glance.",
-      evidence: "glance",
-    },
-    {
-      id: "c-prose-tier",
-      from: "ruling",
-      text: "C collapses marketing's six heading steps to five and folds the 24/30 prose tier into the section step, so /about's story sections and /press's sections move up a tier. That contradicts design-system.md's documented three-tier h2 ladder; it is C's argument, not an oversight.",
-      evidence: "pair",
-    },
-    {
       id: "b-arithmetic",
       from: 2,
-      text: "B states bible 2 as arithmetic: marketing travels four rungs between 375 and 1440 and the app travels one. That turns 'marketing may be louder' from a judgement into a rule, which is a bible finding if B is adopted, and B is what the board recommends for both registers.",
-      evidence: "pair",
+      text: "B states bible 2 as arithmetic: marketing travels four rungs between the widths, the app one. A bible finding if B is adopted.",
+      evidence: "items",
     },
     {
       id: "404-face",
       from: 5,
-      text: "Bible 5 says one heading face on one site ladder, and the 404's h1 has always been outside both: Inter at 600, the only page title on the site that is not the heading face. Every paste puts it on the ladder, which is a change no ruling has made yet, so it is an ask rather than a silent fix.",
-      evidence: "not-found",
+      text: "Bible 5 says one heading face on one ladder, and the dead-link h1 has always been outside it. Every paste puts it on, hence the ask.",
+      evidence: "pages",
     },
     {
-      id: "masthead-squeeze",
-      from: "precedent",
-      text: "Every candidate closes the masthead's tracking squeeze (.mkt-name opens to +0.022em) onto the display step's OWN tracking, between -0.04em and -0.05em, rather than the shared -0.03em constant it lands on today. The paste closes it in marketing.css's own two places and leaves the squeeze itself running.",
-      evidence: "loudness",
+      id: "c-prose-tier",
+      from: "ruling",
+      text: "C folds marketing's prose tier into the section step, against the documented three-tier h2 ladder. C's argument, not an oversight.",
+      evidence: "compare",
     },
   ],
 
@@ -300,65 +233,32 @@ export const TYPE_SCALE = defineBoard({
 
   sections: [
     {
-      id: "glance",
-      title: "The four candidates, side by side",
-      lede: "One table per half of the site: each row is a candidate read left to right at the selected screen width, every number taken from the candidate itself, and the last columns marking only the faults its own numbers actually fix.",
+      id: "items",
+      title: "The five ladders, side by side",
+      lede: "One ladder a card, at true size.",
       argument: [
-        "Nine names, one @theme block, and the register is which rungs each half stands on: display through prose are marketing's, page through card are the app's. Two distinct sets would name every role twice and then have to answer which set a Card wears, since CardTitle is one component that ships on /pricing and on the dashboard, and it would duplicate the tracking law, which is a function of size and not of surface. Nothing in the set is computed from anything else in it, so the two halves are ruled separately without the set splitting: that is what the two switches in the dock are.",
-        "A row is a fix only if the ladder data makes it true, so a column cannot claim a fix it does not make: the ticks are computed by fixes() from the same steps the specimen renders. At 1440 that is also why A's marketing column reads as today's column, and the flat line under the table says so rather than letting a dead-looking control read as a broken one.",
+        "NOTHING HERE IS SCALED, AND THE CARDS CLIP RATHER THAN SHRINK. A specimen whose size is being judged may not be zoomed, so a 160px masthead shows four letters in a card column, which is how a masthead meets the edge of a page. What a reader compares across five cards is the cap height and the rhythm under it, and both are true to the pixel. Flip the Canvas switch to read the same five at the other end of the screen: the phone end is where today's ladder fails, and it is hidden inside a class string in production.",
+        "A MISSING STEP IS DRAWN AS A HOLE. Today and A, tuned carry no size between the app's page title and its card title, so production writes that rank as an 11px uppercase label inside a heading tag on the dashboard and a 14px one in admin. The gap in the card is read off the data, so a ladder cannot claim a step it does not carry.",
+        "ONE SET, TWO REGISTERS, AND IT WAS THE BOARD'S CALL. Display through prose are marketing's rungs and page through card are the app's, named once. Two separate sets would name every role twice and then have to answer which set a Card wears, since CardTitle is one component shipping on /pricing and on the dashboard, and they would duplicate a letter-spacing law that is a function of size and not of surface.",
       ],
       eager: true,
     },
     {
-      id: "pair",
-      title: "Every size, written out",
-      lede: "Each heading size the chosen pair would use at this screen width: the numbers, the word Partyreel set at that size, and a hairline the height of today's letters beside it, so the change reads as a shape before it reads as two numbers.",
-    },
-    {
-      id: "loudness",
-      title: "How loud the top of a page is",
-      lede: "The one huge word at the top of /about, at all four marketing candidates on one dark ground, loudest first. B and A keep today's 160px; C proposes 200px over a 120px headline.",
+      id: "compare",
+      title: "Any two, on the same real page",
+      lede: "A on one card, B on another: three real pages, loaded twice, scrolled together.",
       argument: [
-        "This is the one thing on the board that changes what the front of the site feels like, which is why it is judged on its own ground rather than inside the specimen: a 200px word beside a 160px word is a comparison the eye can make, and the same two numbers in a table is not.",
-      ],
-    },
-    {
-      id: "tokens",
-      title: "The set a later round would bake in",
-      lede: "The chosen pair as the table a wiring round types into the stylesheet: one fluid rule per size, so the set runs smoothly from 375 to 1440 with no width left to jump at, plus the two blocks this board hands the site.",
-      wiring: [
-        "Three tiers move with the wiring round rather than with a paste, and a heading that does not budge under an applied block is one of them, not a broken block: the app's section heading, which production writes as a label inside an h2 with no class worth aiming at; sixteen hand-rolled marketing headings at 30 / 36 that stop one rung short of SectionShell's ramp; and the guest entry title, written inline. Aiming a step at any of the three would move the real site under the Today pair, which is the control this board rests on.",
-        "What the other boards changed here, re-read in round five: nothing moved. The kill-mono sweep left the stat register on the heading face at 30 / 36, a size no hook reaches, so the wiring round takes it as a step and not as a class. Palette, light, floating-surfaces, rounding and media-kit still move no size, leading or tracking, and the one shell change this board asked for (an island on admin and on the guest routes) landed in round four and is reported live beside the Apply buttons.",
+        "A composition is honest about a component and dishonest about a page. What a size has to survive is the rest of the page around it: the photograph beside the heading, the CTA under the chapter, the plan card in the band. A frame gets three things no composition can: the canvas's own breakpoints, so at 375 the page's real phone layout runs; an evaluated clamp rather than one resolved here by hand; and everything else on the page moving with the step, which is the reach of the ruling made visible.",
+        "THE DASHBOARD IS A LAB SCREEN, NOT A ROUTE, and it is the only surface here that is not. The real dashboard is behind a sign-in and renders whichever events the reader's own account holds that morning, so a frame of it would change between two flips of a switch. This one is built from the same production components in a document of its own, at a real viewport, and it is re-laid out by exactly the block a ruling would land.",
       ],
     },
     {
       id: "pages",
-      title: "Real pages, at the pixels they ship",
-      lede: "Seven real pages, each in a window exactly as wide as the selected screen and wearing the chosen sizes: the page's own layout at that width, the sizes resolved by the browser, nothing scaled or redrawn.",
-      argument: [
-        "A frame gets three things a stage cannot. The canvas's own breakpoints, so at 375 the page's real phone layout runs instead of a desktop layout in a narrow box; an EVALUATED clamp rather than one resolved here by hand, so the board shows the token the wiring round bakes instead of arithmetic about it; and everything else on the page moving with the step, which is the reach of the ruling made visible.",
-      ],
-    },
-    {
-      id: "app",
-      title: "The app, where the headings are quiet",
-      lede: "The guest album as a real page, then the four signed-in surfaces a window cannot hold still, built here from the production components with the chosen sizes handed to them.",
-      argument: [
-        "The dashboard, the event page and admin are stages rather than frames, and the reason is not reach: all three mount a design island and all three are in the walk, so an applied block reaches them in a real tab. What a frame of them cannot do is hold still. /admin is behind a second factor, and the dashboard and the event page render whichever events the reviewer's own account holds that morning, so the surface being compared would change between two flips of a switch. A composed stage also carries the one thing no frame can: a tier production does not have.",
-      ],
-    },
-    {
-      id: "not-found",
-      title: "The page-not-found heading",
-      lede: "The screen every dead link lands on sets its title in Inter, the body font, at a size no candidate reaches. It is the marketing 404, the app 404, the admin 404 and every dead guest link.",
-    },
-    {
-      id: "law",
-      title: "Letter spacing, on its own",
-      lede: "The same word at the masthead size and the same card title at 16px, under one flat value and under the proposal. No size moves in the top half, which is what makes this a separate ruling.",
-      argument: [
-        "The pairing is not departed from, and it is no longer an ask. Inter with Urbanist survives the loudest step once tracking runs inverse to size: what reads wrong at 160px and again at 16px is the constant -0.03em, not the face. The pairing check sits under the law because it is the same evidence read twice, and a face round would be its own ruling.",
-        "The dock applies the law to the real site on its own, so this ask can be walked on the real pages with no size moving underneath the answer. That is the whole reason it keeps a second button beside the pair's.",
+      title: "The real pages, wearing the pick",
+      lede: "Five routes at true pixels, wearing the picked card.",
+      wiring: [
+        "The sweep is four headings no hook can reach, and all four have to move with the ruling: the app's section heading (a label inside an h2, no class worth aiming at), sixteen hand-rolled marketing headings at 30 / 36 that stop one rung short of SectionShell's ramp, the guest entry title, written inline as font-heading text-[28px], and the event name inside the production EventCard, a hand-rolled font-heading text-xl this round found when the dashboard became a frame. Aiming a step at any of them would move the real site under the Today card, which is the control this board rests on.",
+        "The bake is one @theme block whatever is ruled: the same nine names, each half standing on its own rungs, and the three four-breakpoint ramps in page-hero, section-shell and page-heading collapse to one class each. Only the root 404 is outside every design island (app/not-found.tsx renders outside both marketing and the app), so the dead link in the walk is the marketing one.",
       ],
     },
   ],
@@ -373,31 +273,46 @@ export const TYPE_SCALE = defineBoard({
       ],
       default: "desktop",
     },
-    // ★ THE TWO SWITCHES WEAR THE CANDIDATES' OWN NAMES (the clarity round,
-    // 2026-09-15), so the option a question offers is the option the dock
-    // previews. They carry the NAME and the asks carry the name plus its gloss,
-    // the way the light board's Register switch does: the kit's ControlKnobs
-    // only wraps a segmented control above six options, and four glossed labels
-    // measure 372px inside a 327px dock at 375, which is a sideways-scrolling
-    // document rather than a wide control (toggle.tsx's own landmine).
+    // Nothing picked is a state of its own (Will, 2026-09-16): the pages below
+    // show the site as built until a card is picked, and pressing the picked
+    // card returns here.
     {
-      id: "marketing",
-      label: "Marketing",
+      id: "ladder",
+      label: "Ladder",
       options: [
+        { id: "none", label: "Nothing picked" },
         { id: "b", label: "B, rungs" },
         { id: "c", label: "C, registers" },
         { id: "a", label: "A, tuned" },
+        { id: "law", label: "The law alone" },
         { id: "today", label: "Today" },
       ],
-      default: "b",
+      default: "none",
+      clearable: true,
     },
+    // A and B: the two halves of the comparison, set from the catalog's cards.
+    // They open on today against the board's own pick, which is the comparison
+    // a reader wants before he has picked anything.
     {
-      id: "app",
-      label: "App",
+      id: "compare-a",
+      label: "A",
       options: [
         { id: "b", label: "B, rungs" },
         { id: "c", label: "C, registers" },
         { id: "a", label: "A, tuned" },
+        { id: "law", label: "The law alone" },
+        { id: "today", label: "Today" },
+      ],
+      default: "today",
+    },
+    {
+      id: "compare-b",
+      label: "B",
+      options: [
+        { id: "b", label: "B, rungs" },
+        { id: "c", label: "C, registers" },
+        { id: "a", label: "A, tuned" },
+        { id: "law", label: "The law alone" },
         { id: "today", label: "Today" },
       ],
       default: "b",
@@ -406,45 +321,40 @@ export const TYPE_SCALE = defineBoard({
 
   lookFirst: [
     {
-      section: "glance",
-      note: "Both halves of the site at once, with the faults each candidate fixes. If the shape is wrong here, the rest of the walk is the wrong argument.",
+      section: "items",
+      note: "Read the five. The name, the line and the four numbers say what each one is, and the specimen under them is the ladder itself at true size.",
     },
     {
-      section: "loudness",
-      state: { marketing: "c" },
-      note: "C, registers at its loudest: a 200px word over a 120px headline. This is the one call that changes what the front of the site feels like, and it is the fastest to make.",
+      section: "items",
+      state: { canvas: "phone" },
+      note: "The same five at 375, which is where today's ladder fails: its page title and its chapter opener are both 36px and the huge word sits four pixels above the one under it.",
     },
     {
-      section: "pair",
-      state: { canvas: "phone", marketing: "today" },
-      note: "Today, exactly as it ships, at 375: the page title and the chapter opener both at 36px, and the huge word only four pixels above the one under it. Six sizes reading as three is the whole phone fault.",
+      section: "compare",
+      state: { canvas: "phone" },
+      note: "Today against B on the real home page, scrolled together: at 375 both halves stand on screen at once. Drag either frame and the other follows.",
+    },
+    {
+      section: "compare",
+      state: { canvas: "desktop", "compare-a": "b", "compare-b": "c" },
+      note: "The two live candidates at 1440: 160 over 100 beside 200 over 120. Two full pages do not fit one window, so the row scrolls sideways rather than shrinking either.",
     },
     {
       section: "pages",
-      state: { canvas: "desktop", marketing: "b" },
-      note: "The home page at 1440, wearing B, rungs. Scroll inside the window: this is the whole real page at the pixels it ships, not a drawing of it.",
-    },
-    {
-      section: "app",
-      state: { app: "c" },
-      note: "C, registers on a real dashboard, and the middle size beside what production writes there today. Flip the App switch to B, rungs and back here.",
-    },
-    {
-      section: "law",
-      note: "The masthead and a card title under one flat letter spacing and under the proposal. No size moves in the top half, which is what makes it a ruling of its own.",
+      state: { ladder: "b" },
+      note: "B worn by five real routes. The last frame is a dead link, whose title is the only page title on the site set in the body font.",
     },
   ],
 
   notes: [
     {
-      section: "pair",
+      section: "compare",
       state: { canvas: "phone" },
-      text: "At 375 today's page title and chapter opener are both 36px, and the huge word sits four pixels above the one under it. That collapse is only visible at this width, which is why every candidate carries both ends rather than one list of sizes.",
+      text: "At 375 each frame is 375 real pixels wide, so the page's own phone layout runs inside it rather than a desktop layout in a narrow box.",
     },
     {
-      section: "app",
-      state: { canvas: "desktop" },
-      text: "Measured in the album window: the guest entry title is written inline at 28px, a third hand-rolled heading outside both halves of the set, so nothing there moves under any pair. It is the surface most people who ever see Partyreel see.",
+      section: "pages",
+      text: "Nothing on the guest album moves under any card: its entry title is written inline, outside both registers.",
     },
   ],
 
@@ -452,32 +362,9 @@ export const TYPE_SCALE = defineBoard({
     bible: [2, 5],
     spec: "docs/specs/type-scale.md",
     pages: [
-      {
-        label: "the home",
-        path: "/",
-        note: "the display step and the whole arc",
-      },
-      {
-        label: "/pricing",
-        path: "/pricing",
-        note: "the title step over plan cards",
-      },
-      {
-        label: "a feature page",
-        path: "/features/curation",
-        note: "the title step as six pages wear it",
-      },
-      {
-        label: "/help",
-        path: "/help",
-        note: "the title step on a dense index",
-      },
+      { label: "the home", path: "/", note: "the display step and the arc" },
       { label: "/about", path: "/about", note: "the masthead, on paper" },
-      {
-        label: "/contact",
-        path: "/contact",
-        note: "the title step, short page",
-      },
+      { label: "/help", path: "/help", note: "the title step, dense index" },
       {
         label: "the dashboard",
         path: "/dashboard",
@@ -489,9 +376,9 @@ export const TYPE_SCALE = defineBoard({
         note: "the quietest surface in the product",
       },
       {
-        label: "a marketing 404",
+        label: "a dead link",
         path: "/events/not-a-real-event",
-        note: "the one h1 that is off the ladder",
+        note: "the one h1 that is off the set",
       },
     ],
   },
