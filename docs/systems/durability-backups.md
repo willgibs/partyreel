@@ -1,4 +1,4 @@
-# Durability & backups (ADR-0013)
+# Durability & backups
 
 > ROLE: how media bytes + DB rows survive a fault, and the safety on the orphan sweep — the mechanics behind the [architecture.md](architecture.md) overview.
 > BELONGS HERE: the orphan-sweep circuit-breaker, the media-backup Worker (Queue/DLQ/reconciliation), the DB backup Action, the restore (DR) procedure, the failure-points table, the cost gotcha. · NOT HERE: the high-level data-flow picture (→ [architecture.md](architecture.md)), the lifecycle sweeps themselves (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
@@ -55,6 +55,11 @@ deferred ($100–400/mo).
 
 Rows ← Supabase backup OR the `db/` dump; bytes ← copy `partyreel-backup` → `partyreel`. **A full restore
 needs BOTH halves.**
+
+The objectives this buys: media RPO is **seconds** on the live event path with the daily reconciliation as
+the backstop, DB RPO is **≤24 h**; RTO is a bucket-to-bucket copy at free in-region egress, minutes at
+today's size and hours at scale. Pillar A is what protects the objects during any window where the rows are
+transiently wrong, which is exactly when a restore is in progress.
 
 ## Invariants / gotchas (why it's like this — don't revert)
 
@@ -140,4 +145,4 @@ would-delete count, mode), with its own kill switch. Flipping to live also remov
 
 ## See also
 
-[ADR-0013](../adr/0013-media-durability-orphan-sweep-safety-and-backup.md) · [architecture.md](architecture.md) (the overview) · [lifecycle-recovery.md](lifecycle-recovery.md) (the cron that runs the guarded sweep) · [admin-observability.md](admin-observability.md) (P8).
+[architecture.md](architecture.md) (the overview) · [lifecycle-recovery.md](lifecycle-recovery.md) (the cron that runs the guarded sweep) · [admin-observability.md](admin-observability.md) (P8).

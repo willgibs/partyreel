@@ -44,7 +44,7 @@ helpers in [`r2/delete.ts`](../../src/lib/r2/delete.ts): `deleteR2Objects()` chu
 
 ## Invariants (don't break)
 
-- ★ **Legal-hold media is excluded from EVERY hard-delete path (ADR-0020).** `media.legal_hold_at`
+- ★ **Legal-hold media is excluded from EVERY hard-delete path.** `media.legal_hold_at`
   set → the removed-media sweep, standby eviction, and `purgeMediaNow` filter it BEFORE their
   R2-first delete; an expired event containing ANY held media is skipped WHOLE (the FK cascade is
   all-or-nothing); `purge_media_rows`/`purge_media_now`/`restore_media` guard it at the SQL boundary.
@@ -118,4 +118,4 @@ helpers in [`r2/delete.ts`](../../src/lib/r2/delete.ts): `deleteR2Objects()` chu
 
 ## See also
 
-[durability-backups.md](durability-backups.md) (the orphan sweep's safety + backups) · [billing-caps.md](billing-caps.md) (caps, passes) · [uploads-and-r2.md](uploads-and-r2.md) (R2 reclaim helpers) · [ADR-0013](../adr/0013-media-durability-orphan-sweep-safety-and-backup.md).
+[durability-backups.md](durability-backups.md) (the orphan sweep's safety + backups) · [billing-caps.md](billing-caps.md) (caps, passes) · [uploads-and-r2.md](uploads-and-r2.md) (R2 reclaim helpers).
