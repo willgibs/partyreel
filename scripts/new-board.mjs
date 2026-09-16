@@ -217,15 +217,45 @@ const PLAIN_SECTIONS = `  sections: [
 `;
 
 const CATALOG_ASK = `  /**
-   * ★ ASKS ONLY FOR WHAT IS NOT ONE ITEM. A catalog board's cards are ruled
-   * card by card (keep, refine, kill, a note); an ask is for the question that
-   * survives the choice, the way the palette's accent reach survives its
-   * twelve palettes. "Which of these" is not an ask, it is the catalog.
+   * ★ THE WINNER IS AN ORDINARY ASK (the stepped review, 2026-09-16), and it is
+   * the first one. "Explore N variants of X" ends in ONE of them winning, so
+   * the ask mirrors the pick control, offers every card plus "none", and the
+   * ledger line is \`${id}=<card>\` or \`${id}=none "new directions: ..."\`.
+   * The review draws the cards themselves as its tiles; a card verdict stays as
+   * optional feedback, which is the refine exit.
+   *
+   * ★ AND EVERY OTHER ASK IS FOR WHAT SURVIVES THE CHOICE, the way the palette's
+   * accent reach survives its twelve palettes. An ask that only exists once the
+   * winner went a certain way declares \`after\` and is not asked until it does.
    */
   asks: [
     {
+      id: "${id}",
+      question: "TODO: which of these should the site wear?",
+      context:
+        "TODO: what the thing is and where it lives on the site, for someone who has not read the board.",
+      // ★ WRITTEN OUT, like ITEMS and for the same reason: \`pnpm lab:review\`
+      // reads a spec as TEXT, and a \`.map\` over the cards reads as no options
+      // at all, so every answer to this question would be refused.
+      options: [
+        { id: "TODO-a", label: "TODO: its name", means: "TODO: what it is." },
+        { id: "TODO-b", label: "TODO: the second", means: "TODO: what it is." },
+        { id: "TODO-c", label: "TODO: the third", means: "TODO: what it is." },
+        {
+          id: "none",
+          label: "None of these: new directions",
+          means: "TODO: what a new round would explore instead.",
+        },
+      ],
+      recommended: "TODO-a",
+      because: "TODO: why the board recommends it, in plain words.",
+      lands: "TODO: what the answer decides platform-wide, in words.",
+      evidence: "catalog",
+      control: "pick",
+    },
+    {
       id: "TODO",
-      question: "TODO: what is still open once a card is picked?",
+      question: "TODO: what is still open once a card has won?",
       context:
         "TODO: what the thing is and where it lives on the site, for someone who has not read the board.",
       look: "TODO: which section, which switch, what to compare.",
@@ -236,6 +266,8 @@ const CATALOG_ASK = `  /**
       recommended: "yes",
       because: "TODO: why the board recommends it, in plain words.",
       evidence: "pages",
+      // Delete this line if the question stands whichever card wins.
+      after: { ask: "${id}", option: "TODO-a" },
     },
   ],
 `;
@@ -297,6 +329,14 @@ ${
     section: "catalog",
     control: "pick",
     compare: ["compare-a", "compare-b"],
+    // pick-one: the cards are variants of one thing and ONE wins, decided by
+    // the winner ask above. A catalog whose cards are each their own proposal
+    // is "keep-any" instead, and then every card takes a verdict; add
+    // walk: "one-at-a-time" when a card needs looking AT rather than across.
+    mode: "pick-one",
+    winner: "${id}",
+    // The real surface drawn under the tiles, wearing whatever is being shown.
+    stage: "pages",
   },
 `
     : `  candidates: [

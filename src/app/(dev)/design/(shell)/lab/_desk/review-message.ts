@@ -131,14 +131,40 @@ export function composeMessage(
 }
 
 /**
- * EVERYTHING HELD SO FAR, AS ONE MESSAGE (Will, 2026-09-16, a few questions
- * into his first sitting: "it's really annoying that there's not an option to
- * copy and send you only the answers I've completed so far... being able to
- * batch this at my own pace would be much more efficient"). Reads the store's
- * three maps by their key shapes (`<board>.r<n>.<ask>`, `<board>.r<n>.item.<id>`,
- * `<board>`), keeps only a held choice, a held verdict or a note with words,
- * and composes one line per board. A later paste of the same ask or item
- * overwrites in the ledger, so a partial paste is never a commitment.
+ * WHAT THE LEDGER ALREADY HOLDS, keyed exactly as the session's store keys it
+ * (`holdId`, `itemHoldId`). Built on the server from the desk's rows.
+ */
+export type Transcribed = {
+  answers: Record<string, { choice: string | null; note?: string }>;
+  items: Record<string, { verdict: string; note?: string }>;
+};
+
+const NOTHING_TRANSCRIBED: Transcribed = { answers: {}, items: {} };
+
+/** A note as the ledger would hold it: empty and absent are the same thing. */
+const sameNote = (a?: string, b?: string) =>
+  (a ?? "").trim() === (b ?? "").trim();
+
+/**
+ * EVERYTHING HELD SO FAR THAT IS NOT ALREADY IN THE LEDGER, AS ONE MESSAGE
+ * (Will, 2026-09-16, a few questions into his first sitting: "it's really
+ * annoying that there's not an option to copy and send you only the answers
+ * I've completed so far... being able to batch this at my own pace would be
+ * much more efficient"). Reads the store's three maps by their key shapes
+ * (`<board>.r<n>.<ask>`, `<board>.r<n>.item.<id>`, `<board>`) and composes one
+ * line per board.
+ *
+ * ★ AND IT OMITS WHAT HAS ALREADY BEEN SENT (the stepped review, 2026-09-16).
+ * The store is the whole sitting, for ever: without this, the second paste of a
+ * batched review re-sent every answer of the first, and the fifth re-sent
+ * forty. An entry the ledger holds with the SAME choice and the same note is
+ * dropped; change either and it rides again, because a changed answer is the
+ * one thing a later paste is for.
+ *
+ * ★ A CLEARED CHOICE WITH A SURVIVING NOTE IS SENT AS A NOTE. Clearing is
+ * deliberate (the one toggle rule), and the words that survive it are usually
+ * why: "on <ask>: ..." keeps them, where a silent drop threw away the
+ * expensive half of the answer.
  */
 export function composeSoFar(
   store: {
@@ -147,6 +173,7 @@ export function composeSoFar(
     notes: Record<string, string>;
   },
   roundOf: (board: string) => number | undefined,
+  transcribed: Transcribed = NOTHING_TRANSCRIBED,
 ): { message: string; answers: number; items: number; notes: number } {
   const answers: SessionAnswer[] = [];
   const items: SessionItem[] = [];
@@ -155,11 +182,24 @@ export function composeSoFar(
   const item = /^(.+)\.r(\d+)\.item\.([^.]+)$/;
   for (const [key, held] of Object.entries(store.answers)) {
     const m = ask.exec(key);
-    if (!m || !held.choice) continue;
+    if (!m) continue;
+    const [, board, round, id] = m;
+    if (!held.choice) {
+      if (held.note?.trim())
+        notes.push({
+          board,
+          round: Number(round),
+          text: `on ${id}: ${held.note}`,
+        });
+      continue;
+    }
+    const sent = transcribed.answers[key];
+    if (sent && sent.choice === held.choice && sameNote(sent.note, held.note))
+      continue;
     answers.push({
-      board: m[1],
-      round: Number(m[2]),
-      ask: m[3],
+      board,
+      round: Number(round),
+      ask: id,
       choice: held.choice,
       note: held.note || undefined,
     });
@@ -167,6 +207,9 @@ export function composeSoFar(
   for (const [key, held] of Object.entries(store.items)) {
     const m = item.exec(key);
     if (!m || !held.verdict) continue;
+    const sent = transcribed.items[key];
+    if (sent && sent.verdict === held.verdict && sameNote(sent.note, held.note))
+      continue;
     items.push({
       board: m[1],
       round: Number(m[2]),

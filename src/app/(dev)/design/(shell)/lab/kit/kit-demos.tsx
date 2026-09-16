@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import {
   type BoardSpec,
+  BeforeAfter,
   BoardDock,
   Catalog,
   Cell,
@@ -19,7 +20,7 @@ import {
   Loupe,
   Notes,
   Paste,
-  ReviewCard,
+  Step,
   SelectTable,
   type Spot,
   SpotCompare,
@@ -110,18 +111,41 @@ const DEMO_STEPS: AskStep[] = [
   },
 ];
 
-export function ReviewCardDemo() {
+/** The two halves of one card, touching: the whole of what BeforeAfter is. */
+export function BeforeAfterDemo() {
+  return (
+    <BeforeAfter
+      before={
+        <div className="grid h-20 w-40 place-items-center rounded-lg border border-border text-[11px] text-muted-foreground">
+          a plain edge
+        </div>
+      }
+      after={
+        <div className="grid h-20 w-40 place-items-center rounded-lg border border-border text-[11px] text-muted-foreground shadow-[0_0_24px_-6px_var(--color-foreground)]">
+          the same edge, lit
+        </div>
+      }
+    />
+  );
+}
+
+export function StepDemo() {
   const [ground, setGround] = useState("cinema");
   return (
     <div className="flex flex-col gap-3">
-      <ReviewCard
+      <Step
         boardId="kit-demo"
         steps={DEMO_STEPS}
         param="kit-demo.ground"
-        setState={(patch) => {
-          if (patch.ground) setGround(patch.ground);
+        board={{
+          state: { ground },
+          setState: (patch) => {
+            if (patch.ground) setGround(patch.ground);
+          },
+          // No section is drawn here: the demo's point is the show-versus-choose
+          // gesture, and a board's real evidence is a whole board.
+          evidence: () => null,
         }}
-        className="mx-0 mt-0 rounded-xl border sm:static"
       />
       <div
         className="flex h-24 items-center justify-center rounded-xl border border-border text-[11px]"
@@ -138,8 +162,9 @@ export function ReviewCardDemo() {
         the ground the ask names, set by the pick above
       </div>
       <p className="text-[11px] text-muted-foreground">
-        A pick on an ask that names a control sets that control, so the answer
-        and the evidence for it are one gesture. Press 1, 2 or 3.
+        A press on a tile SHOWS its option on the ground above; a second press
+        on the same tile records it, and a third clears it and puts the ground
+        back. Press 1, 2 or 3.
       </p>
     </div>
   );

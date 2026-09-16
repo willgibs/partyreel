@@ -4,14 +4,13 @@ import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { Answer, BoardIndex, BoardMeta, BoardSection } from "./answer";
+import { Answer, BoardMeta, BoardSection } from "./answer";
 import { BoardPageProvider, useBoardPage } from "./board-page-context";
 import type { BoardSpec, BoardState } from "./board-spec";
 import { ControlKnobs, useBoardState } from "./board-state";
 import { BoardDock } from "./dock";
 import { Notes } from "./notes";
-import { ReviewCard } from "./review-card";
-import { ReviewQuestions } from "./review";
+import { Step } from "./step";
 import { Walk } from "./walk";
 
 /**
@@ -21,7 +20,16 @@ import { Walk } from "./walk";
  * the evidence, a function of the declared state. This renders the first and
  * calls the second, in ONE fixed order, for every board:
  *
- *   the dock · the Answer · the index · the sections · the meta · the context
+ *   the dock · the Answer · the sections · the meta · the context
+ *
+ * ★ AND IN SESSION MODE IT RENDERS THE STEP AND NOTHING ELSE (the stepped
+ * review, 2026-09-16). A review is a form now: one context and its question
+ * alone on the screen, with the evidence the step needs drawn BY the step
+ * through this same `evidence(section, state, api)`. The sections are not
+ * mounted at all, so a reviewer answering a question about the composer is not
+ * also scrolling past the other eleven sections, the dock, the index and two
+ * restatements of the ask he is being asked. "Open the whole board" in the
+ * step's spine drops `?session=` and everything below comes back.
  *
  * ★ THE ORDER IS THE POINT, AND IT IS NOT NEGOTIABLE PER BOARD. Every board
  * before the template opened with three paragraphs of how it got here, then its
@@ -55,7 +63,6 @@ export function BoardPage({
   spec,
   dock,
   evidence,
-  review = true,
   className,
 }: {
   spec: BoardSpec;
@@ -67,12 +74,39 @@ export function BoardPage({
     state: BoardState,
     api: BoardApi,
   ) => React.ReactNode;
-  review?: boolean;
   className?: string;
 }) {
   const { state, setState, controls } = useBoardState(spec);
   const outer = useBoardPage();
   const api: BoardApi = { setState, spec };
+  const session = outer?.review;
+
+  if (session)
+    return (
+      <div
+        data-board={spec.id}
+        {...Object.fromEntries(
+          controls.map((c) => [`data-${c.id}`, state[c.id] ?? c.default]),
+        )}
+        className={cn("flex flex-col", className)}
+      >
+        <Step
+          boardId={spec.id}
+          steps={session.steps}
+          param={session.param}
+          transcribed={session.transcribed}
+          board={{
+            controls,
+            state,
+            // The step draws a section in a state of its OWN (an option's
+            // tile), which is not the board's: `evidence` takes the state it
+            // is handed rather than closing over the live one.
+            evidence: (sectionId, at) => evidence(sectionId, at, api),
+            setState,
+          }}
+        />
+      </div>
+    );
 
   return (
     <BoardPageProvider
@@ -107,23 +141,7 @@ export function BoardPage({
           <ControlKnobs controls={controls} state={state} setState={setState} />
         </BoardDock>
 
-        {/* The ask being answered, pinned under the dock, when the route
-            carried a session naming one on this board. It is a sibling of the
-            dock rather than a child of a wrapper around the two: a sticky
-            element only sticks while its PARENT is on screen, so a box around
-            the pair would unstick both a hundred pixels down the board. */}
-        {outer?.review ? (
-          <ReviewCard
-            boardId={spec.id}
-            steps={outer.review.steps}
-            param={outer.review.param}
-            setState={setState}
-          />
-        ) : null}
-
         <Answer spec={spec} />
-
-        <BoardIndex spec={spec} />
 
         {spec.sections.map((section, i) => (
           <BoardSection
@@ -131,7 +149,6 @@ export function BoardPage({
             boardId={spec.id}
             n={i + 1}
             section={section}
-            asks={spec.asks.filter((a) => a.evidence === section.id)}
           >
             {evidence(section.id, state, api)}
             <Notes
@@ -142,8 +159,6 @@ export function BoardPage({
             />
           </BoardSection>
         ))}
-
-        {review ? <ReviewQuestions spec={spec} /> : null}
 
         <BoardMeta spec={spec} />
 

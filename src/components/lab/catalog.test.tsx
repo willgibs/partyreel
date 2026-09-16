@@ -1,4 +1,5 @@
 // @contract-for: src/components/lab/catalog.tsx
+// @contract-for: src/components/lab/before-after.tsx
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -11,7 +12,7 @@ import {
 import { itemHoldId } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
 import { type BoardSpec, defineBoard } from "./board-spec";
-import { Catalog } from "./catalog";
+import { Catalog, CatalogTiles } from "./catalog";
 
 /**
  * THE CATALOG'S CONTRACT (the revamp, 2026-09-16).
@@ -192,6 +193,54 @@ describe("the catalog", () => {
     const links = screen.getAllByRole("link", { name: "now in the Library" });
     expect(links).toHaveLength(1);
     expect(links[0].getAttribute("href")).toContain("/design/library/button");
+  });
+
+  /**
+   * ★ THE STEP'S TILES ARE THIS SAME GRID (the stepped review, 2026-09-16), so
+   * a board's `board.tsx` never learns it is being reviewed. What is pinned is
+   * the difference the step needs: the page-wide pill rows go (the press on the
+   * card IS the pick there), and `only` draws ONE card with its before/after.
+   */
+  it("drops its page-wide pill rows in the step's tiles mode", () => {
+    render(
+      <CatalogTiles value={{ chosen: "one" }}>
+        <Catalog
+          spec={SPEC}
+          state={{ pick: "none" }}
+          setState={vi.fn()}
+          render={(c) => <p>preview of {c.name}</p>}
+        />
+      </CatalogTiles>,
+    );
+    expect(
+      screen.queryByRole("button", { name: /Pick The first/ }),
+    ).toBeNull();
+    // The verdict row survives: on a pick-one catalog it is the refine exit.
+    expect(
+      screen.getByRole("button", { name: "refine: The first" }),
+    ).toBeInTheDocument();
+  });
+
+  it("draws one card alone, as a before and after, when the walk asks for it", () => {
+    render(
+      <CatalogTiles value={{ only: "two" }}>
+        <Catalog
+          spec={SPEC}
+          state={{ pick: "none" }}
+          setState={vi.fn()}
+          render={(c) => <p>with {c.name}</p>}
+          before={(c) => <p>without {c.name}</p>}
+          usages={(c) => <p>{c.name} on the real page</p>}
+        />
+      </CatalogTiles>,
+    );
+    expect(screen.queryByText("with The first")).toBeNull();
+    expect(screen.getByText("without The second")).toBeInTheDocument();
+    expect(screen.getByText("with The second")).toBeInTheDocument();
+    // The captions sit UNDER the judged area, never inside it.
+    expect(screen.getByText("As today")).toBeInTheDocument();
+    expect(screen.getByText("With it")).toBeInTheDocument();
+    expect(screen.getByText("The second on the real page")).toBeInTheDocument();
   });
 
   it("draws nothing at all for a board that declares no catalog", () => {
