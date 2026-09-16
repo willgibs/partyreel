@@ -7,6 +7,7 @@ import { breadcrumbs } from "@/app/(dev)/design/_data/catalog";
 import { CopyLink, CopyPage } from "./copy";
 import { useReportPageFacts } from "./page-facts";
 import { LabLink, useNav } from "./shell-context";
+import { Toc } from "./toc";
 
 /**
  * EVERY PAGE OPENS THE SAME WAY (the Library x Lab round, 2026-09-15): the
@@ -21,6 +22,14 @@ import { LabLink, useNav } from "./shell-context";
  * header by structure, because those values are often elements rather than
  * strings. The header carries `data-copy-skip` so the BODY pass leaves it to
  * the head, and the pill row `data-copy-row` so it copies as one line.
+ *
+ * IT ALSO CLOSES WITH THE NARROW-WINDOW TABLE OF CONTENTS (the sweep,
+ * 2026-09-16), below 1280 where there is no rail. It used to open the content
+ * column instead, above the breadcrumbs, so a page announced its section list
+ * before it said what it was. Last in the header is the right place: a reader
+ * decides whether to jump after the title and the one line, not before them. On
+ * a board it renders nothing (design.css hides it on a wide page, where the
+ * dock's Sections menu is the jump control).
  */
 export function PageHeader({
   title,
@@ -74,7 +83,11 @@ export function PageHeader({
             ))}
           </nav>
         )}
-        <div className="flex items-center gap-1.5">
+        {/* ml-auto, not only the row's justify-between: a long trail (a doctrine
+            page's three levels at 375) wraps the actions onto their own line,
+            where justify-between leaves them at the LEFT margin reading as a
+            stray button row above the title (the sweep, 2026-09-16). */}
+        <div className="ml-auto flex items-center gap-1.5">
           {actions}
           <CopyLink className="hidden sm:inline-flex" />
           <CopyPage />
@@ -106,6 +119,7 @@ export function PageHeader({
           ))}
         </dl>
       )}
+      <Toc variant="inline" />
     </header>
   );
 }

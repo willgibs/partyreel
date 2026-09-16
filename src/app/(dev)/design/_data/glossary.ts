@@ -4,6 +4,11 @@
  * sandbox, lab, desk, board/touchpoint/ruling); these are the ones that stay,
  * each with the one sentence that tells it from its neighbours. Rendered at
  * /design/library/glossary and searched by the sidebar.
+ *
+ * A term leads with the word a STRANGER would use and names the code's word
+ * after it (the sweep, 2026-09-16): the ids in board-spec.ts stay `candidates`,
+ * `asks` and `departures` whatever the surface calls them, and a reader who
+ * meets either word here finds the other.
  */
 export type Term = {
   term: string;
@@ -82,13 +87,13 @@ export const GLOSSARY: Term[] = [
   {
     term: "Board",
     meaning:
-      "One open question and its candidates on the real tokens. A board is two files: its spec (the question, the verdict, the asks, the candidates, the sections) and its evidence.",
+      "One open question and the ideas answering it, on the real tokens. A board is two files: its spec (the question, the answer so far, the questions for Will, the ideas, the sections) and its evidence.",
     href: "/design/lab",
   },
   {
-    term: "Candidate, ask, departure, asset",
+    term: "Idea, question, departure, asset",
     meaning:
-      "A candidate is one answer the board argues; an ask is a question Will answers in one word; a departure is where a candidate leaves a rule or a ruling, and its cost; an asset is what the design needs Will to make.",
+      "An idea (the code calls it a candidate) is one answer the board argues; a question (an ask) is one Will answers in a word; a departure is a rule or a ruling the idea breaks, and what that costs; an asset is what the design needs Will to make.",
   },
   {
     term: "The desk",
@@ -136,7 +141,7 @@ export const RETIRED: { term: string; now: string }[] = [
     term: "Touchpoint",
     now: "a board (in the UI); the registry file keeps its name",
   },
-  { term: "Variants (of a board)", now: "candidates" },
+  { term: "Variants (of a board)", now: "ideas (the spec's `candidates`)" },
   {
     term: "The mono sheet",
     now: "the real tokens; there is one design language",

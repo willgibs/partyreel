@@ -34,14 +34,19 @@ export function LevelBadge({
   );
 }
 
-/** The one word under a badge: does this bind me right now? */
+/**
+ * The answer beside a badge: does this apply to me right now? A bare "Binds"
+ * in a column is the rule set's own word, not a stranger's (the sweep,
+ * 2026-09-16); the prose around it ("what binds you") reads fine and keeps the
+ * vocabulary, so only the standalone verdict changed.
+ */
 export function LevelVerdict({ level }: { level: LevelDef }) {
   const word =
     level.weight === "binds"
-      ? "Binds"
+      ? "Always applies"
       : level.weight === "conditional"
-        ? "Binds in scope"
-        : "Informs";
+        ? "Applies in scope"
+        : "Informs only";
   return (
     <span
       className={cn(

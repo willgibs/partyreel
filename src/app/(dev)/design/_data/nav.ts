@@ -8,6 +8,7 @@ import {
   ITEMS,
 } from "../gallery/registry";
 import { COMPONENTS, componentTitle } from "../rules/rules";
+import { boardSpec } from "../sandbox/registry";
 import { RULINGS, SANDBOX, SURFACE_LABEL, type Surface } from "../touchpoints";
 import { flatten, type Nav, type NavItem, type NavSection } from "./catalog";
 import {
@@ -23,7 +24,6 @@ import {
 import { GLOSSARY, RETIRED } from "./glossary";
 import { POLICY_TESTS } from "./links";
 import type { SearchEntry, SearchIndex } from "./search";
-import { readTrackStates } from "./tracks";
 
 /**
  * BUILDS THE NAV (server-only; the Library x Lab round, 2026-09-15): the two
@@ -83,12 +83,20 @@ const TOOLS: NavItem[] = [
   },
 ];
 
-function roundBadge(track?: { rounds?: number }): NavItem["badge"] {
-  return track?.rounds ? `round ${track.rounds}` : undefined;
+/**
+ * A BOARD'S ROUND COMES OFF ITS OWN SPEC (the sweep, 2026-09-16), never off the
+ * track manifests. It used to count a manifest's `merged_round_N` keys, and
+ * since `44090827` a manifest is DELETED at the merge that integrates it, so
+ * every standing board's badge would have quietly gone blank the moment its
+ * track retired. `spec.round.n` is the board's own record of which round it is
+ * in, it survives the track, and a board with no spec simply has no badge.
+ */
+function roundBadge(id: string): NavItem["badge"] {
+  const n = boardSpec(id)?.round.n;
+  return n ? `round ${n}` : undefined;
 }
 
 export async function buildNav(): Promise<Nav> {
-  const tracks = readTrackStates();
   const specs = listSpecs();
   const trackList = listTracks();
 
@@ -131,25 +139,16 @@ export async function buildNav(): Promise<Nav> {
       {
         id: `boards-${surface}`,
         label: `${SURFACE_LABEL[surface]} boards`,
-        items: items.map((r) => {
-          const names = r.board?.tracks ?? [r.id];
-          const rounds = Math.max(
-            0,
-            ...names.map((n) => tracks.get(n)?.rounds ?? 0),
-          );
-          return {
-            href: `/design/lab/${r.id}`,
-            label: r.title,
-            id: r.id,
-            note: r.board?.note ?? r.why,
-            badge: r.shipped
-              ? ("shipped" as const)
-              : rounds
-                ? roundBadge({ rounds })
-                : ("exploring" as const),
-            match: "prefix" as const,
-          };
-        }),
+        items: items.map((r) => ({
+          href: `/design/lab/${r.id}`,
+          label: r.title,
+          id: r.id,
+          note: r.board?.note ?? r.why,
+          badge: r.shipped
+            ? ("shipped" as const)
+            : (roundBadge(r.id) ?? ("exploring" as const)),
+          match: "prefix" as const,
+        })),
       },
     ];
   });
