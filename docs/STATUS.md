@@ -46,10 +46,12 @@ under its declared reading budget (1,151 to 2,889 words, from 4,220 to 15,004).
 | the six Round 4 catalogs | brand-voice `5868325e` (six voices, twenty-four spots), type-scale `257df8fe` (five ladders, 1,155 words), floating-surfaces `767e6182` (seven directions, 2,317 against 2,400), light `2326a924` (twelve treatments, 2,889 against 2,950), rounding `128aca34` (six families, 2,564 against 2,800), media-kit `8587d3ed` (thirteen sources, 2,686 against 2,750) | integrated, each under its declared budget |
 | `palette` (round seven) | nine cool palettes and three controls, one optional accent per palette behind a switch, every card on a colourful mix of photographs | integrated at `5a538c0a`, 2,924 words against a declared 2,950; ready for the sitting |
 | `home-hero` (round six) | four compositions of the stream (mirror, phrase, settle, ribbon) on the ruled hero, the last exploration before its wiring | integrated at `56ea9185`, 1,189 words under the budget |
-| `lab-flow` | the review as a stepped onboarding form: tiles on one specimen, show versus choose, the three exits, one card at a time, staging, the desk's rows as steps | building |
+| `lab-flow` | the review as a stepped onboarding form: tiles on one specimen, show versus choose, the three exits, one card at a time, staging, the desk's rows as steps | integrated at `c18570c4`; the catalog boards' reading halved with the deletions |
 | `light` (round seven) | the twelve cards reshaped for the walk: one at a time on three specimens, before/after and what each lands as, the asks as tile steps | building |
 | `palette` (round eight) | pick-one: the winner from the twelve or none, the accent and its reach as tile steps | building |
-| `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | building |
+| `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | integrated at `ec7367e7`, 486 words |
+| `floating-surfaces` (round seven) | pick-one: the winner from the seven or none, the submenu, corner, entrance and shadow questions as tiles on one menu | building |
+| `rounding` (round seven) | pick-one: the winner from the six or none, the button, ladder, dead-rung and gap questions as tiles | building |
 
 **The stepped review round** (opened 2026-09-16 at `02c409b4`, on his sitting's verdict: the review
 "favors you and makes me spend tons of time per track figuring what I'm even being asked"): the review

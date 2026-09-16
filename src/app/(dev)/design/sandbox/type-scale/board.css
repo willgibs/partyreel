@@ -12,20 +12,26 @@
    beat, and every page is a real frame wearing the block a ruling would land.
    Nothing below fights anything: it is layout. */
 
-/* ONE ROW, SCROLLED SIDEWAYS. Five ladders side by side IS the comparison
-   (Will, 2026-09-16: "a few different scales side by side"), and a card may
-   not narrow past the point where its top rung stops reading, so the row
-   scrolls rather than wraps. (0,2,0) so it outranks the kit's `.lab-catalog`
-   grid whichever order the two sheets land in. */
-[data-lab-catalog="type-scale"].lab-catalog {
-  display: flex;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-  scroll-snap-type: x proximity;
+/* FIVE CARDS, ALL OF THEM ON THE SCREEN AT ONCE. Round six scrolled them
+   sideways in one flex row, which reads well on a board and badly in a step:
+   the gallery step's whole promise is that every option is visible before you
+   pick one, and a card off the right edge is a card nobody reads. The kit's
+   grid does that already, so this board only tells it how narrow a ladder may
+   get before its top rung stops reading (`minWidth`, board.tsx). */
+
+/* ★ A TILE ON THIS BOARD IS THE SPECIMEN, NOT A WINDOW ONTO IT. The step
+   surface crops a tile at 200px and lays them out from 240px wide, which is
+   right for a marketing page and wrong for type: at 240 a 160px masthead shows
+   one letter, and at 200 tall the small end is cropped away. Both specimens
+   here are already tile-sized at TRUE pixels (`true-scale.tsx`), so the board
+   asks for the room they need and nothing is cropped. `:has()` rather than a
+   board root, because a step renders the evidence outside the board's own
+   wrapper. */
+.lab-tiles:has([data-tsc-specimen]) {
+  --lab-tile-min: 30rem;
 }
-[data-lab-catalog="type-scale"].lab-catalog > * {
-  flex: 0 0 var(--lab-catalog-min, 360px);
-  scroll-snap-align: start;
+.lab-tile-view:has([data-tsc-specimen]) {
+  --lab-tile-h: 32rem;
 }
 
 /* THE LADDER, AS A SPECIMEN. The px number sits in a fixed gutter so five
@@ -81,47 +87,42 @@
   border-top: 1px dashed color-mix(in oklab, currentColor 30%, transparent);
 }
 
-/* Letter spacing, on its own: the same two words under one flat value and
-   under the law, at the two ends of the ladder. */
-.tsc-law {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+/* The spacing specimen prints the value it is set at beside the size, so the
+   rail reads "160 / -0.045em" and the word beside it is the only thing being
+   compared. A wider gutter than a ladder card's, because "-0.045em" is longer
+   than any size on the board. */
+.tsc-spacing .tsc-rung {
+  grid-template-columns: 3.5rem minmax(0, 1fr);
 }
 
-.tsc-law-row {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.tsc-law-label {
+.tsc-rung-note {
+  display: block;
+  margin-top: 0.2rem;
   font-size: 11px;
-  line-height: 1.4;
-  color: color-mix(in oklab, currentColor 55%, transparent);
-}
-
-.tsc-law-pair {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-@media (max-width: 720px) {
-  .tsc-law-pair {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.tsc-law-half {
-  min-width: 0;
-}
-
-.tsc-law-name {
-  margin-top: 0.25rem;
-  font-size: 11px;
-  line-height: 1.4;
+  line-height: 1.3;
   font-variant-numeric: tabular-nums;
   color: color-mix(in oklab, currentColor 55%, transparent);
+}
+
+/* THE DEAD-LINK TITLE, RESTYLED THROUGH THE HOOK THE PASTE USES. `candidateCss`
+   lands `[data-not-found] h1 { ... }` and this is that rule, scoped to the
+   specimen, spending the three values the specimen resolves for the canvas. The
+   size is set on BOTH answers, because `sm:text-4xl` inside the lab reads the
+   browser window and not the canvas (stage.tsx's landmine). */
+.tsc-404 [data-not-found] h1 {
+  font-size: var(--tsc-404-size);
+  line-height: var(--tsc-404-lh);
+  letter-spacing: var(--tsc-404-ls);
+}
+.tsc-404[data-on-set] [data-not-found] h1 {
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: 700;
+}
+/* The screen's own entrance is a stagger on [data-not-found]; a specimen that
+   faded in every time a tile was pressed would be judged mid-animation. */
+.tsc-404 [data-not-found],
+.tsc-404 [data-not-found] > * {
+  animation: none;
+  opacity: 1;
+  transform: none;
 }

@@ -69,10 +69,10 @@ round of the window.
 
 | track | board | waits on |
 | --- | --- | --- |
-| `lab-flow` | the kit: the review as a stepped onboarding form (the plan's Part 1) | its handoff; every board then verifies its walk on it |
 | `light` | `/design/lab/light` (round seven: reshaped into steps, one card at a time) | `lab-flow` for the walk |
 | `palette` | `/design/lab/palette` (round eight: pick-one, the winner from the twelve) | `lab-flow` for the walk |
-| `type-scale` | `/design/lab/type-scale` (round seven: pick-one, the winner from the five) | `lab-flow` for the walk |
+| `floating-surfaces` | `/design/lab/floating-surfaces` (round seven: pick-one, the winner from the seven) | its handoff |
+| `rounding` | `/design/lab/rounding` (round seven: pick-one, the winner from the six) | its handoff |
 
 ## Waiting on Will
 
@@ -115,5 +115,15 @@ palette and light first), pasted in batches with Copy so far.
   palette); `56ea9185` home-hero integrated (round six: four compositions of the stream, mirror, phrase,
   settle and ribbon, on one engine; 1,189 words under the budget with no declaration; the board
   recommends the settle; its pick-one switch is three spec lines once the flow lands).
+- `c18570c4` lab-flow integrated (the review as a stepped onboarding form: `step.tsx` with tiles on one
+  specimen, show versus choose, the winner ask with none as the third exit, one card at a time with
+  `BeforeAfter`, staging through `Ask.after`, the desk's rows as steps with held badges, Copy so far
+  omitting what the ledger holds; the ask pills, the index, the "Rule on:" rows and the review panel
+  deleted, which halved the catalog boards' reading); `6907ce68` the three live manifests stop reading
+  the merged one.
+- `c334de13` the hero's catalog asked as pick-one (the winner ask on the four cards); `ec7367e7` type-scale
+  integrated (round seven: a three-step walk, the winner from five or none, one real page under the pressed
+  card with a second copy on a fade; 486 words; a kit finding: tiles draw inside a zoomed FitStage, so a
+  1:1 tile is owed by the kit and `true-scale.tsx` retires into it).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
