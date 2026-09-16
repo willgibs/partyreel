@@ -1,6 +1,6 @@
 ---
 track: glow-specs
-status: open
+status: handed-off
 cut: "be1638f2"          # round 2, the clarity round, cut from launch-prep
 cut_round_1: 1b647d76
 merged_round_1: "462b7095"
@@ -247,3 +247,87 @@ already carries the lit surface carve-out and the publish beat's violet as the `
 the answer block says so. The variants files and the boards' shared sheet stayed at the sandbox root,
 since `glow-contract.test.ts` and `border-beam-vendor.test.ts` read them by their exact paths;
 `/design/lab` now queues both open asks.
+## Handoff (round 2)
+
+- Head is the commit carrying this record; the code landed at `9579da76` and the merge of
+  `launch-prep` at `ad51514b`. Pushed. **No preview** (`preview: false`, and no `[preview]` or `[ci]`
+  on any commit): the round's review surface is a local `pnpm dev` on `launch-prep` after integration.
+- Synced with `origin/launch-prep` at `2eed7cb6` (it had moved by one commit since the cut at
+  `d5f0c3c9`; docs only, and none of it inside this lane), merged not rebased, and the gate re-run on
+  the merged tree.
+- Gates on the synced tree, each on its own exit code: typecheck ok, lint ok (0 errors, the 6
+  pre-existing warnings, none in this lane), test ok (218 files, 2152 tests), build ok (129 routes).
+  `pnpm lab:smoke --base http://localhost:3427` ok (324 checks, 0 failing). `pnpm format` reported all
+  three changed files already clean.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `sandbox/glow-doctrine/spec.ts`,
+  `sandbox/glow-moments/spec.ts` and `sandbox/registry.test.ts`. **The third is the one exception the
+  brief names**: both glow lines (`glow-doctrine`, `glow-moments`) deleted from `PLAIN`, nothing else
+  in that file touched. The two `board.tsx` compositions, the two variants files and `glow-lab-shared`
+  / `glow-lab.css` were not touched at all: this round is data only.
+
+### Every ask, as it now reads
+
+- **glow-doctrine `lit-surface`** (evidence: the one record section). "Where should the exception that
+  lets a lit card carry a shadow in dark mode be ruled?" Options: **On the light board** (`light`, the
+  board's pick) | **Here, on this board** (`here`).
+- **glow-moments `publish-violet`** (evidence: the one record section). "Where should the colour of the
+  flourish that fires when a host publishes be ruled?" Options: **On the light board** (`light`, the
+  board's pick) | **Here, on this board** (`here`).
+
+Both now carry `context` (what a lit card is; what the publish flourish is, and that the light board's
+own ask covers it) and `look` (the item numbered 05 / 07 inside the one evidence section, and the
+specimens by their on-screen names: Dressed beside Today, Sampled spill beside Today). The ask and
+option ids are UNCHANGED, so every answer already in the ledger still joins.
+
+### What could not be made plainer, and why
+
+- Nothing was left unclear, and nothing was split or removed: each board has one ask and it decides a
+  real thing (which board closes the item), so rule 1's split/add/remove cases did not arise.
+- **Rule 2 (the evidence carries the options' names) has nothing to bite on here, by construction.**
+  Both asks are PROCEDURAL: the options are two places to rule, not two things to look at, so there is
+  no `Cell`, `Compare` column or frame caption that could wear "On the light board". `look` instead
+  points at the specimens the ITEM is about, which keep their own names (Dressed / Today at item 05;
+  Sampled spill / Today at item 07). Neither board declares any `controls`, so no ask carries `state`
+  or `control` either, and the registry test would reject one that did. This is written into both
+  specs as a ★ comment so the next agent does not read the absence as an omission.
+- One consequence of the density limits worth knowing: `glow-doctrine`'s board question had to drop
+  "in dark" from its closing clause to fit `LIMITS.question` (200) with the two glosses in it. The
+  dark-mode detail survives in the verdict, the ask question and the ask context, which are where a
+  reviewer decides.
+
+### Verification walked
+
+- Both boards on a local dev server (`PORT=3427`) at 1440 and at 375: the answer block first (the
+  question, the verdict, what would change it, the round line), then the ask card with its question,
+  its two labelled pills (the recommended one filled), its because and its overrule; then the index
+  and the one anchored section, whose header restates the ask with the same labels. No horizontal
+  overflow at 375 (`document.documentElement.scrollWidth` = 375 on both) and no `font-mono` anywhere.
+- The desk read cold, as a stranger: `/design/lab?session=glow-doctrine.lit-surface` and
+  `?session=glow-moments.publish-violet` both render the question, the context paragraph, "Where to
+  look", the evidence link, the two options each with its `means` line, the board's pick, the because,
+  the overrule and the "This question is not clear to me" answer. Both boards' asks are in the queue.
+- The review round trip, dry: `pnpm lab:review --dry 'review glow-doctrine r4: lit-surface=light "..."'`
+  and `'review glow-moments r4: publish-violet=here; note: "..."'` both parse, so the reworded labels
+  did not orphan the ids. `lit-surface=maybe` is still refused with `"maybe" is not an option of
+  glow-doctrine.lit-surface (light, here)`, and `publish-violet=?` is refused until a note says what
+  was unclear. Nothing was written to `docs/reviews/`; `git status` is clean.
+- Reduced motion: this round adds no animation or transition of any kind (a spec is data, and neither
+  `board.tsx` was touched), so both pages still inherit the global guard in `globals.css` and the
+  engine's own, exactly as round 1 verified them.
+- Kit needs (`src/components/lab/` is not this track's): **none.** The `Ask` shape carried everything
+  these two asks needed. Assets requested from Will: **none** (both specs still declare `assets: []`).
+
+## Record (round 2; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-15). Both glow boards joined the clarity round: each had
+exactly one ask and each asked it as a label with two bare tokens ("The lit surface carve-out",
+`light | here`), which is the shape Will could not answer on the light board. Both are now real
+questions that carry their own context, so a stranger can answer them on the desk or on the review
+card without opening the board: what a lit card is and what the publish flourish is, where to look
+(items 05 and 07 inside each board's one evidence section, and the specimens by their on-screen names),
+and each answer labelled in words with what picking it would do. The board question, the verdict and
+the section lede followed into the same plain words, and both boards left the registry's clarity
+ratchet (`PLAIN`), which now checks their shape. The ask and option ids were untouched, so the review
+ledger still joins; no candidate, number, placement, verdict or recommendation moved, and neither
+evidence component was touched. Both asks are procedural (which board closes the item), so there was
+no specimen to relabel with an option's name.
