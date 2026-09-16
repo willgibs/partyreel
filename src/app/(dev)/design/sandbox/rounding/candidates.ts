@@ -1,34 +1,33 @@
 /**
- * THE ROUNDING BOARD'S NUMBERS (round two, 2026-09-14).
+ * THE ROUNDING BOARD'S NUMBERS (round six, the catalog rebuild, 2026-09-16).
  *
- * One home for everything the board is asking Will to rule on, so the
- * specimens, the printed arithmetic and the CSS paste can never disagree: a
- * cell renders what `blockFor()` writes, and `blockFor()` writes what a ruling
- * lands.
+ * One home for everything the board asks Will to rule on, so the cards, the
+ * printed arithmetic and the CSS paste can never disagree: a preview renders
+ * what `blockFor()` writes, and `blockFor()` writes what a ruling lands.
  *
- * THREE AXES, because the tokens are three independent decisions and a board
- * that bundles them makes the ruling harder, not easier:
+ * ★ A FAMILY IS A WHOLE ANSWER, NOT AN AXIS (this round's one structural
+ * change). Rounds one to five asked three independent questions at once
+ * (surfaces, actions, the ladder) and let a reader assemble an answer out of
+ * three switches, which is the "six configs that aren't clearly explained"
+ * Will ruled against on the palette board. A FAMILY now names every corner at
+ * once: the surface, the floating layer, the photograph and the gap between
+ * photographs. Six of them, each a position somebody could argue for out loud,
+ * ruled card by card.
  *
- *   SURFACES  --radius, --radius-float, --radius-tile (+ --gap-gallery, which
- *             is pinned to the tile so a corner never opens a hole). Four
- *             candidates, A to D.
- *   ACTIONS   --radius-action, -lg, -sm. Three rungs, because "round actions"
- *             has a low end and a high end and today's 0.4 x height sits
- *             between them.
- *   THE LADDER  the seven derived steps (rounded-sm to rounded-4xl). Stock
- *             today; the retune exists because the multipliers were chosen
- *             against a 2px base and 1.8x of a round base is a shape nobody
- *             asked for.
+ * The two axes that are NOT a family survive as asks, because they are true
+ * whichever family wins: the button RUNG (0.4 of the height, a pill, or half
+ * of today) and the derived LADDER (the seven steps above the card's corner).
+ * Both are board-wide switches, so flipping one redraws every card.
  *
  * ★ THE LADDER CANNOT BE RETUNED WITH A TOKEN. `@theme inline` in theme.css
  * substitutes each derived step INTO its utility at build time, so
  * `rounded-xl` ships as `border-radius: calc(var(--radius) * 1.4)` and
  * `--radius-xl` is empty at runtime. That is why an override of --radius
- * restyles a whole subtree (the board's columns rely on it) and why a ladder
- * retune is a theme.css edit rather than a token. `ladderCss()` writes the
- * utilities directly so the board can SHOW the retune before anyone commits
- * to it; the ruling lands in theme.css's @theme inline block, one line a step.
- * (First found by the floating-surfaces board; confirmed here.)
+ * restyles a whole subtree (every card on the catalog relies on it) and why a
+ * ladder retune is a theme.css edit rather than a token. `ladderCss()` writes
+ * the utilities directly so the board can SHOW the retune before anyone
+ * commits to it; the ruling lands in theme.css's @theme inline block, one line
+ * a step. (First found by the floating-surfaces board; confirmed here.)
  */
 
 export type SurfaceValues = {
@@ -42,25 +41,27 @@ export type SurfaceValues = {
   gap: number;
 };
 
+export type LadderId = "stock" | "quarters";
+
 export type SurfaceCandidate = {
   /**
-   * ★ THE ID IS THE ASK'S OPTION ID (the clarity round, 2026-09-15). The
-   * ledger joins a ruling to `a | b | c | d`, so the dock control, the board
-   * state and this list all speak that and nothing else; a rename here without
-   * a rename in spec.ts's `surface` control silently orphans an answer.
+   * ★ THE ID IS THE CARD'S ID AND THE CONTROL'S OPTION ID. The ledger joins a
+   * ruling to it (`item:c=keep`), the Pick button writes it into the `family`
+   * control, and A and B name it; a rename in one place without the other two
+   * silently orphans an answer.
    */
-  id: "a" | "b" | "c" | "d" | "live";
-  /** A, B, C, D, or Live: what the paste and the applied badge call it. */
-  letter: string;
-  /** The option's own words, and the heading over every column it is judged in. */
+  id: string;
+  /** The name on the card, the column and the frame caption. */
   name: string;
+  /** The card's one line, in words a stranger knows. */
+  one: string;
+  /** The builder's own call, drawn as the card's pill. */
+  verdict: "ship" | "refine" | "kill";
+  /** The board's own pick, marked with a dot on its card. */
+  recommended?: boolean;
   rationale: string;
-  /** Absent on the live column, which reads whatever the tuner wrote. */
-  values?: SurfaceValues;
-  /** The ladder this candidate wants, stated rather than implied. */
-  wants?: LadderId;
-  /** What the candidate does at 375, where the tile is the whole argument
-   *  (part G). One line, because a phone column has room for one. */
+  values: SurfaceValues;
+  /** What it does at 375, where the photograph is the whole argument. */
   phone: string;
 };
 
@@ -83,8 +84,6 @@ export type ActionRung = {
   values: ActionValues;
 };
 
-export type LadderId = "stock" | "quarters";
-
 /** The gap a tile radius wants. Below the radius, the four corners meeting at
  *  a junction open a visible diamond; 3px is the floor because the 3px gap is
  *  the album tell (press-sheet.tsx says so out loud). */
@@ -92,61 +91,95 @@ export function gapFor(tile: number): number {
   return Math.max(3, tile);
 }
 
+/**
+ * THE SIX FAMILIES.
+ *
+ * Four are the board's standing A to D, kept because three rounds of
+ * conversation refer to them by letter and because they are still the corners
+ * of the space. Two are written from the ground up for this round, where the
+ * four had a real gap:
+ *
+ *  E, print   decouples the photograph from the surface. Every other family
+ *             moves the two together and nothing says they have to: a corner
+ *             crops the image, and a square photograph cannot open a hole in
+ *             the album's gap.
+ *  F, half a step is the cheapest change that is visible at all. The
+ *             photograph does not move, so the fifty-two hand-written 3px
+ *             corners on the site keep agreeing with the token and a ruling
+ *             costs no sweep.
+ */
 export const SURFACES: SurfaceCandidate[] = [
   {
     id: "a",
-    letter: "A",
     name: "A, today",
-    rationale:
-      "2 / 8 / 3. Sharp surfaces, round actions, as shipped. The base is small enough that the seven derived steps are all within 4px of each other, so the ladder does nothing.",
+    one: "The site exactly as it ships: a 2px card, an 8px menu, a 3px photograph.",
+    verdict: "kill",
     values: { radius: 2, float: 8, tile: 3, gap: 3 },
-    wants: "stock",
+    rationale:
+      "The one to come back to: a ruling of A is a ruling to change no line.",
     phone:
-      "At 375 the tile corner is below one CSS pixel of visible arc. The grid reads as a contact sheet, which is the intent, and the cards read as panels.",
+      "At 375 the photograph's corner is under a pixel of visible arc, so the grid reads as a contact sheet and a card reads as a plain panel.",
   },
   {
     id: "b",
-    letter: "B",
     name: "B, square",
-    rationale:
-      "0 / 6 / 0. Bible 8 taken at its word: surfaces and photographs are square, the float rung stays round because sharp reads broken there, and the whole contrast is carried by the actions.",
+    one: "Bible 8 taken at its word: cards and photographs square, menus alone stay round.",
+    verdict: "refine",
     values: { radius: 0, float: 6, tile: 0, gap: 3 },
-    wants: "stock",
+    rationale:
+      "The honest version of the claim A only asserts. Deliberate on a dark chapter, unfinished on paper, which is the half that needs work.",
     phone:
-      "Square at 375 is the same object as square at 1440, which is the one honest thing about it. The menu is the only round shape left on the canvas.",
+      "Square at 375 is the same object as square at 1440, which is the one honest thing about it. The menu is the only round shape left on screen.",
   },
   {
     id: "c",
-    letter: "C",
     name: "C, soft",
-    rationale:
-      "8 / 12 / 4. Surfaces come up to meet the actions. The contrast narrows from eight times to two and survives, the tile keeps its photograph, and at a base of 8 the ladder starts to matter, so it takes the even one.",
+    one: "Surfaces come up to meet the buttons: a corner you can see, with the button still the roundest thing on screen.",
+    verdict: "ship",
+    recommended: true,
     values: { radius: 8, float: 12, tile: 4, gap: 4 },
-    wants: "quarters",
+    rationale:
+      "The contrast narrows from eight to one down to two and survives, the photograph keeps its edges, and a card finally has a corner.",
     phone:
-      "The tile still reads as a corner at a guest's width and still leaves the photograph its edges. The card keeps a corner at this width and still reads as a card, not a lozenge.",
+      "The photograph still reads as a corner at a guest's width and keeps its edges. The card holds its shape without becoming a lozenge.",
   },
   {
     id: "d",
-    letter: "D",
     name: "D, one family",
-    rationale:
-      "14 / 14 / 6. Surfaces, floats and actions all read as one shape and the contrast is carried by size alone. Wants the quarter ladder: on stock, a plan card lands at 25.2 and a badge at 36.4.",
+    one: "One shape for everything: cards, menus and buttons all read alike, with size alone telling them apart.",
+    verdict: "kill",
     values: { radius: 14, float: 14, tile: 6, gap: 6 },
-    wants: "quarters",
+    rationale:
+      "The simplest to state and the one that gives up the most: at 14 the card out-rounds the button, which is bible 8 upside down.",
     phone:
-      "A 6px tile at 375 eats the corner of a photograph that is already small, and the 6px gap it pins takes another column of image out of the grid.",
+      "A 6px corner at 375 eats the corner of a photograph that is already small, and the 6px gap it pins takes another slice out of the grid.",
   },
   {
-    id: "live",
-    letter: "Live",
-    name: "Live, from the tuner",
+    id: "e",
+    name: "E, print",
+    one: "Soft chrome around square photographs: a print in a mat. The one family that moves the two apart.",
+    verdict: "refine",
+    values: { radius: 10, float: 14, tile: 0, gap: 3 },
     rationale:
-      "Reads the tokens as the tuner writes them, so a knob moves this column and every real page together.",
+      "A corner crops the image, so the chrome softens and the photograph does not. It also closes the album's gap: a square tile cannot open a hole.",
     phone:
-      "Whatever the panel is set to, on the canvas a guest holds. Drag the tile knob here and watch the gap follow it.",
+      "The grid runs edge to edge with nothing taken off any photograph, inside the softest card on the board. That contrast is the whole look.",
+  },
+  {
+    id: "f",
+    name: "F, half a step",
+    one: "The smallest change you can see: a 6px card, a 10px menu, the photograph left exactly where it is.",
+    verdict: "refine",
+    values: { radius: 6, float: 10, tile: 3, gap: 3 },
+    rationale:
+      "The photograph does not move, so the fifty-two hand-written 3px corners keep agreeing and a ruling costs no sweep.",
+    phone:
+      "The card reads as rounded and the grid is untouched, which is what makes it cheap: at 375 nothing about the photographs changes.",
   },
 ];
+
+/** The board's own pick. */
+export const RECOMMENDED = "c";
 
 export const ACTIONS: ActionRung[] = [
   {
@@ -162,7 +195,7 @@ export const ACTIONS: ActionRung[] = [
     name: "A full pill",
     short: "pill buttons",
     rationale:
-      "999 everywhere. The full round, and the only rung whose shape does not depend on the height: it is the one rung the h-11 marketing CTA cannot fall off.",
+      "999 everywhere. The only rung whose shape does not depend on the height, so the odd 44px button cannot fall off it.",
     values: { action: 999, lg: 999, sm: 999 },
   },
   {
@@ -170,7 +203,7 @@ export const ACTIONS: ActionRung[] = [
     name: "Quiet, 0.2 of the height",
     short: "quiet buttons",
     rationale:
-      "8 / 9.6 / 6.4. Half of today. An action still rounder than a surface under A and B, and indistinguishable from one under C and D.",
+      "8 / 9.6 / 6.4. Half of today. Still rounder than a surface under A and B, and indistinguishable from one under C, D and E.",
     values: { action: 8, lg: 9.6, sm: 6.4 },
   },
 ];
@@ -212,7 +245,7 @@ export const STEP_CALL_SITES: Record<
 > = {
   sm: {
     uses: 8,
-    where: "the tooltip arrow, a select item",
+    where: "a tooltip arrow, a select item",
     specimen: "Tooltip",
   },
   md: {
@@ -222,27 +255,27 @@ export const STEP_CALL_SITES: Record<
   },
   lg: {
     uses: 105,
-    where: "inputs, plates, the lab's own toggles",
+    where: "inputs and plates",
     specimen: "Input",
   },
   xl: {
     uses: 66,
-    where: "Card, and the dashboard event card",
+    where: "Card, the event card",
     specimen: "Event card",
   },
   "2xl": {
     uses: 49,
-    where: "the pricing plan cards, the help cards",
+    where: "the plan cards, the help cards",
     specimen: "Plan card",
   },
   "3xl": {
     uses: 1,
-    where: "zip-modal-demo.tsx, one panel on /features/sharing",
+    where: "one panel, on /features/sharing",
     specimen: "One modal",
   },
   "4xl": {
     uses: 2,
-    where: "badge.tsx, and one label in attribution-stage.tsx",
+    where: "Badge, and one label",
     specimen: "Badge",
   },
 };
@@ -253,7 +286,7 @@ export const STEP_CALL_SITES: Record<
  *
  * ★ ROUND TWO GOT THIS WRONG AND THE BOARD SAID IT OUT LOUD: "three call
  * sites, all in the reel". The token has THIRTEEN raw uses in seven files, and
- * the one that matters is not a button at all. Recounted rather than repeated.
+ * the one that matters is not a button at all.
  */
 export const ACTION_SITES = {
   /** button.tsx's own size variants: xs, sm, lg and their three icon twins. */
@@ -266,11 +299,11 @@ export const ACTION_SITES = {
   files: 6,
 } as const;
 
-/** The board's answer, in one place, so the rail, the Apply button and every
- *  Proposal below can never drift apart. The five asks themselves live in
- *  spec.ts, which is what the template, the desk and the ledger read. */
+/** The board's answer, in one place, so the Pick, the Apply button and the
+ *  paste can never drift. The asks themselves live in spec.ts, which is what
+ *  the template, the desk and the ledger read. */
 export const ANSWER = {
-  surface: "c" as SurfaceCandidate["id"],
+  family: RECOMMENDED,
   action: "today" as ActionRung["id"],
   ladder: "quarters" as LadderId,
 } as const;
@@ -280,7 +313,7 @@ export function px(n: number): string {
   return `${Math.round(n * 100) / 100}px`;
 }
 
-/** The step's value under a candidate, for the arithmetic the board prints. */
+/** The step's value under a family, for the arithmetic the board prints. */
 export function stepValue(
   radius: number,
   ladder: LadderId,
@@ -294,17 +327,42 @@ export function stepValue(
  *
  * Card ships as `rounded-xl`, so its corner is the xl step: 1.4x under stock
  * and 1.25x under quarters. The board scopes a retune to a subtree
- * (`ladderCss("quarters", '[data-rnd-ladder="quarters"] ')`), so two columns
- * on one screen can be drawing different cards, and a cell that printed 1.4
- * captioned the answer column's 10px card as 11.2px. Everything the board
- * prints beside a card reads this instead.
+ * (`ladderCss("quarters", '[data-rnd-ladder="quarters"] ')`), so two cards on
+ * one screen can be drawing different cards, and a cell that printed 1.4
+ * captioned a 10px card as 11.2px. Everything printed beside a card reads this.
  */
 export function cardMultiplier(ladder: LadderId): number {
   return LADDERS[ladder].xl;
 }
 
+/**
+ * THE CARD'S FOUR FACTS, generated so a fact and a preview cannot disagree.
+ *
+ * The fourth one is the only place the board states bible 8's actual claim as
+ * a number: a button is the pressable thing, so it has to out-round the
+ * surface under it. Five of the six families leave the button where it ships,
+ * and the RATIO is what separates them; under D it inverts, which is the
+ * shortest case against D anyone has made in six rounds.
+ */
+export function factsFor(
+  c: SurfaceCandidate,
+): readonly (readonly [string, string])[] {
+  const base = c.values.radius;
+  const button = ACTIONS[0].values.action;
+  const ratio =
+    base === 0
+      ? "against a square card"
+      : `${Math.round((button / base) * 10) / 10}x the surface`;
+  return [
+    ["Surfaces", px(base)],
+    ["Menus", px(c.values.float)],
+    ["Photographs", `${px(c.values.tile)}, ${px(c.values.gap)} gap`],
+    ["Buttons", `${px(button)}, ${ratio}`],
+  ];
+}
+
 /** The ladder as CSS. `scope` prefixes every selector so the board can show a
- *  retune inside one column; the empty scope is the paste a ruling lands. */
+ *  retune inside one card; the empty scope is the paste a ruling lands. */
 export function ladderCss(ladder: LadderId, scope = ""): string {
   const m = LADDERS[ladder];
   const lines: string[] = [];
@@ -322,12 +380,11 @@ export function ladderCss(ladder: LadderId, scope = ""): string {
 }
 
 /**
- * THE PASTE. A surface candidate, an action rung and a ladder, written as the
- * block a ruling lands: the radius tokens live on `:root` ONLY (globals.css
- * says never to alias them to .surface-paper, because a paper chapter would
- * re-declare them and the tuner's inline value on <html> would stop piercing),
- * so `:root` is the whole selector list and there is nothing theme-dependent
- * here.
+ * THE PASTE. A family, an action rung and a ladder, written as the block a
+ * ruling lands: the radius tokens live on `:root` ONLY (globals.css says never
+ * to alias them to .surface-paper, because a paper chapter would re-declare
+ * them and an inline value on <html> would stop piercing), so `:root` is the
+ * whole selector list and there is nothing theme-dependent here.
  */
 export function blockFor(
   surface: SurfaceCandidate,
@@ -335,8 +392,7 @@ export function blockFor(
   ladder: LadderId,
 ): string {
   const v = surface.values;
-  if (!v) return "";
-  const head = `/* Rounding: surfaces ${surface.name}, ${action.short}, ${ladder === "quarters" ? "even quarters" : "the steps as they are today"}. */`;
+  const head = `/* Rounding: ${surface.name}, ${action.short}, ${ladder === "quarters" ? "even quarters" : "the steps as they are today"}. */`;
   const root = [
     ":root {",
     `  --radius: ${px(v.radius)};`,
@@ -360,7 +416,7 @@ export function blockFor(
   ].join("\n");
 }
 
-/** The label the tuner panel shows while a block is applied. */
+/** The label the applied badge shows while a block is standing. */
 export function blockLabel(
   surface: SurfaceCandidate,
   action: ActionRung,
@@ -368,4 +424,14 @@ export function blockLabel(
 ): string {
   const tail = ladder === "stock" ? "" : ", even quarters";
   return `rounding ${surface.name}, ${action.short}${tail}`;
+}
+
+/** One family by id, or null for "nothing picked". */
+export function familyById(id: string | undefined): SurfaceCandidate | null {
+  return SURFACES.find((c) => c.id === id) ?? null;
+}
+
+/** One action rung by id, defaulting to the shipped one. */
+export function rungById(id: string | undefined): ActionRung {
+  return ACTIONS.find((a) => a.id === id) ?? ACTIONS[0];
 }

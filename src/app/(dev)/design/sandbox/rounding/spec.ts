@@ -1,58 +1,150 @@
-import { defineBoard } from "@/components/lab/board-spec";
+import { type Candidate, defineBoard } from "@/components/lab/board-spec";
 
 /**
- * THE ROUNDING BOARD, AS DATA (the kit round, 2026-09-15; the asks rewritten
- * in plain words the same night, the clarity round).
+ * THE ROUNDING BOARD, AS DATA (round six, the catalog rebuild, 2026-09-16).
  *
- * The round-four board's own asks, candidates, departures and asset, moved out
- * of `board.tsx`. Its answer block already read like this one (five one-word
- * rulings and a button), which is exactly why it was the second pilot: it is
- * the board the template's Answer was generalised FROM, so the migration proves
- * the template can carry a board that had already solved the same problem by
- * hand.
+ * ★ THE ROUND IS A SUBTRACTION, AND WILL'S TWO NOTES ARE THE WHOLE BRIEF. "Each
+ * exploration page feels like a small research paper into its track... a few of
+ * our best concepts created for review, pick the best direction and refine for
+ * production polish", and "designing a few variations always beats a mountain
+ * of research text" (2026-09-16). Round five was 4,859 words outside its folds,
+ * seven lettered parts, five switches and an answer assembled out of three
+ * independent axes. This round names SIX WHOLE FAMILIES, rules on them card by
+ * card, and puts the argument underneath.
  *
- * ★ THE ASKS ARE THE ONE COPY OF THE ANSWER. `candidates.ts` used to carry a
- * hand-written `ANSWER.lines` saying the same five things in the board's own
- * shorthand; the template renders these, nothing read that, and two copies of
- * one answer is the drift the spec exists to end. It was deleted here.
- *
- * ★ AND EVERY ASK CARRIES ITS OWN CONTEXT (Will, 2026-09-15: "when you use very
- * technical terms or nicknames from spots in these reports, it makes me have to
- * go deep into the track to gain the relevant context"). So no ask is a label
- * over four tokens any more: each says what the thing is, where it lives on the
- * site, where to look, and what choosing each option would do. The option IDS
- * never changed, because the ledger joins on them; what changed is that the
- * surface candidates are now called `a | b | c | d` in the dock, the state and
- * `candidates.ts` too, so the word on the pill is the word on the column.
- *
- * Its seven parts keep their letters as titles, because a review conversation
- * about this board has been referring to "part B" for three rounds and an id
- * that says what it points at is a better link than a letter: the ids are the
- * words, the titles keep the letters.
+ * ★ THE SIX ARE WRITTEN OUT HERE, NEVER MAPPED, AND THAT IS NOT LAZINESS ABOUT
+ * DRY. The review scanner reads a spec as TEXT rather than importing it (so a
+ * board's asks and items can be read with no build step), and it resolves
+ * `candidates: ITEMS` exactly ONE HOP to a const array in this file. A `.map`
+ * over `candidates.ts` reads as no items at all, so every ruling on a card
+ * would be refused (the palette board learned it twice). The numbers live in
+ * `candidates.ts`, the WORDS live here, and `families.test.ts` pins the two
+ * lists equal id for id, name for name and fact for fact, so they cannot drift.
  *
  * Pure data on purpose (registry.test.ts enforces it): the board route is a
  * SERVER page and reads the question for its header, so a spec that imported
  * React or the board's sheet would drag a client tree into a server render.
+ * `candidates.ts` is plain TypeScript for exactly the same reason.
+ *
+ * The verdict is the BOARD's own call, drawn as the card's pill, and it is not
+ * the reviewer's: Will answers each card keep, refine or kill in the row under
+ * it. One ship, three refine, two kill, which is a board with an opinion.
  */
+const ITEMS: readonly Candidate<
+  "catalog" | "compare" | "pages" | "calls" | "paste"
+>[] = [
+  {
+    id: "a",
+    name: "A, today",
+    one: "The site exactly as it ships: a 2px card, an 8px menu, a 3px photograph.",
+    verdict: "kill",
+    facts: [
+      ["Surfaces", "2px"],
+      ["Menus", "8px"],
+      ["Photographs", "3px, 3px gap"],
+      ["Buttons", "16px, 8x the surface"],
+    ],
+    rationale:
+      "The one to come back to: a ruling of A is a ruling to change no line.",
+  },
+  {
+    id: "b",
+    name: "B, square",
+    one: "Bible 8 taken at its word: cards and photographs square, menus alone stay round.",
+    verdict: "refine",
+    facts: [
+      ["Surfaces", "0px"],
+      ["Menus", "6px"],
+      ["Photographs", "0px, 3px gap"],
+      ["Buttons", "16px, against a square card"],
+    ],
+    rationale:
+      "The honest version of the claim A only asserts. Deliberate on a dark chapter, unfinished on paper, which is the half that needs work.",
+  },
+  {
+    id: "c",
+    name: "C, soft",
+    one: "Surfaces come up to meet the buttons: a corner you can see, with the button still the roundest thing on screen.",
+    verdict: "ship",
+    recommended: true,
+    facts: [
+      ["Surfaces", "8px"],
+      ["Menus", "12px"],
+      ["Photographs", "4px, 4px gap"],
+      ["Buttons", "16px, 2x the surface"],
+    ],
+    rationale:
+      "The contrast narrows from eight to one down to two and survives, the photograph keeps its edges, and a card finally has a corner.",
+  },
+  {
+    id: "d",
+    name: "D, one family",
+    one: "One shape for everything: cards, menus and buttons all read alike, with size alone telling them apart.",
+    verdict: "kill",
+    facts: [
+      ["Surfaces", "14px"],
+      ["Menus", "14px"],
+      ["Photographs", "6px, 6px gap"],
+      ["Buttons", "16px, 1.1x the surface"],
+    ],
+    rationale:
+      "The simplest to state and the one that gives up the most: at 14 the card out-rounds the button, which is bible 8 upside down.",
+  },
+  {
+    id: "e",
+    name: "E, print",
+    one: "Soft chrome around square photographs: a print in a mat. The one family that moves the two apart.",
+    verdict: "refine",
+    facts: [
+      ["Surfaces", "10px"],
+      ["Menus", "14px"],
+      ["Photographs", "0px, 3px gap"],
+      ["Buttons", "16px, 1.6x the surface"],
+    ],
+    rationale:
+      "A corner crops the image, so the chrome softens and the photograph does not. It also closes the album's gap: a square tile cannot open a hole.",
+  },
+  {
+    id: "f",
+    name: "F, half a step",
+    one: "The smallest change you can see: a 6px card, a 10px menu, the photograph left exactly where it is.",
+    verdict: "refine",
+    facts: [
+      ["Surfaces", "6px"],
+      ["Menus", "10px"],
+      ["Photographs", "3px, 3px gap"],
+      ["Buttons", "16px, 2.7x the surface"],
+    ],
+    rationale:
+      "The photograph does not move, so the fifty-two hand-written 3px corners keep agreeing and a ruling costs no sweep.",
+  },
+];
+
 export const ROUNDING = defineBoard({
   id: "rounding",
   title: "The rounding",
 
   question:
-    "How round should the corners be across the site: cards and panels, the menus and dialogs that float over them, photographs in a grid, and the buttons?",
+    "How round should the corners be: cards and panels, the menus and dialogs over them, photographs in a grid, and the buttons?",
 
   round: {
-    n: 5,
-    date: "2026-09-15",
+    n: 6,
+    date: "2026-09-16",
     changed:
-      "The five asks rewritten so a stranger can answer them where they meet them: what the thing is, where to look, and options named in words instead of letters, with the same names on the evidence. No number, candidate or recommendation changed.",
+      "Rebuilt as a catalog: six whole families, each a card carrying one piece of the app at 1:1 beside a real 375 screen. Two are new, seven parts became five, and the argument went under the evidence.",
   },
   history: [
+    {
+      n: 5,
+      date: "2026-09-15",
+      changed:
+        "The five asks rewritten so a stranger can answer them where they meet them, and the board moved onto the kit's template.",
+    },
     {
       n: 4,
       date: "2026-09-15",
       changed:
-        "Stopped arranging and loaded the pages: same-origin frames at exactly 1440x930 or 375x760, the candidate written into the document, and every page-wide switch moved into the dock.",
+        "Stopped arranging and loaded the pages: same-origin frames at exactly 1440x930 or 375x760, with the candidate written into the document.",
     },
     {
       n: 3,
@@ -67,242 +159,190 @@ export const ROUNDING = defineBoard({
     },
   ],
   context:
-    "Rounds one to three judged the radius on COMPOSITIONS: real components, arranged by this board, standing in for pages. A composition is honest about a component and dishonest about a page, because what a radius has to survive is the rest of the page: the photograph beside the card, the CTA under the chapter, the plan card in the band, the tile in the grid. And a composition inside a Stage is dishonest twice over, because a Stage is a div.",
+    "Five rounds built a machine rather than a choice: three independent axes, five switches and a lettered part for each, so an answer had to be assembled by a reader rather than proposed by the board. The measurements behind it all stand and none of them was thrown away. What changed is that somebody chose: six of the reachable states are finished families with names, two of them written for this round, and the rest is collapsed underneath them.",
 
   verdict: {
     recommendation:
-      "C, soft: cards at 8, floating menus at 12, photographs at 4. Buttons keep today's roundness, the seven steps climb in even quarters, the top two steps go, and the gap between photographs follows the tile.",
+      "C, soft: an 8px card, a 12px menu, a 4px photograph, with the button left where it ships. The seven steps climb in even quarters, the top two go, and the gap follows the photograph.",
     because:
-      "At 8px a card has a corner you can see, and a button at 16 is still eight pixels rounder, so a control still reads as more pressable than the surface under it. Buttons are not what is broken: what is broken is a 44px marketing button wearing the corner of a 40px one, and the sheet every guest meets taking its corner from a button.",
+      "At 8px a card finally has a corner you can see, and a 16px button is still twice as round, so a control still reads as the pressable thing. What is broken is not the button: it is a 44px marketing button wearing a 40px one's corner, and a guest sheet taking its corner from a button.",
     overrule:
-      "If photographs may not move, the gap fix goes with them and the board's best finding with it. A, today is the ruling that changes nothing.",
+      "If a photograph may not be cropped by a corner, E, print is C with the photograph at zero and nothing else moved, and it closes the album's gap by deletion.",
   },
 
   asks: [
     {
-      id: "surfaces",
-      question: "Which corner should cards, menus and photographs have?",
-      context:
-        "Three numbers move together here: the corner of a card or panel, the corner of anything floating over the page (a menu, a dialog, a toast), and the corner of a photograph in a grid. Almost every surface on the site reads one of the three, so this is the shape of the whole product. Buttons are asked separately, below.",
-      look: "Part C, the four columns labelled A, today through D, one family, at true size. Then flip Surfaces in the dock and read part A (the home page) and part G (the same screen on four phones).",
-      options: [
-        {
-          id: "a",
-          label: "A, today: 2 / 8 / 3",
-          means:
-            "Nothing moves. Cards keep a 2px corner, menus 8, photographs 3, and the 64 hand-written corners on the site need no sweep.",
-        },
-        {
-          id: "b",
-          label: "B, square: 0 / 6 / 0",
-          means:
-            "Cards and photographs go square, menus keep a 6px corner, and every round shape left on the page is a button.",
-        },
-        {
-          id: "c",
-          label: "C, soft: 8 / 12 / 4",
-          means:
-            "Cards come up to 8px, menus to 12, photographs to 4: a corner you can see, with buttons still the roundest thing on the page.",
-        },
-        {
-          id: "d",
-          label: "D, one family: 14 / 14 / 6",
-          means:
-            "One shape for everything: cards and menus at 14, photographs at 6, with size alone telling a card from a button.",
-        },
-      ],
-      recommended: "c",
-      because:
-        "At 8px a card finally has a corner you can see, and a button at 16 is still eight pixels rounder, so a control still reads as the pressable thing. A, today is a claim nobody can see at 2px, and D gives that difference up.",
-      evidence: "tokens",
-      state: { surface: "c" },
-    },
-    {
       id: "actions",
       question: "How round should buttons be?",
       context:
-        "A button takes its corner from its own height: today a 40px button is 16px round, which is 0.4 of its height. It is the one shape meant to read as pressable, so it is ruled apart from the surfaces. Two things wear this corner and should not: the 44px marketing button, which borrows the corner of a 40px one, and the sheet that greets every guest.",
-      look: "Part F, the three columns labelled Today, 0.4 of the height, A full pill and Quiet, 0.2 of the height, at every height a button ships at, with the guest entry sheet on the row below them.",
+        "A button takes its corner from its own height: 16px on a 40px button, which is 0.4 of it. It is the one shape meant to read as pressable, so it is ruled apart from the families. Two things wear this corner and should not: the 44px marketing button, and the sheet that greets every guest.",
+      look: "The calls, first block: the three rungs on the real Button at every height it ships at, with the guest sheet below them.",
       options: [
         {
           id: "today",
           label: "Today, 0.4 of the height",
           means:
-            "Buttons keep the roundness they ship with: 16px on a 40px button, 12.8 on the small one the app uses everywhere.",
+            "Buttons keep what they ship with: 16px on a 40px button, 12.8 on the small one the app uses.",
         },
         {
           id: "pill",
           label: "A full pill",
           means:
-            "Every button becomes a half circle whatever its height, which is the one rung the odd 44px button cannot fall off.",
+            "A half circle at every height, which is the one rung the odd 44px button cannot fall off.",
         },
         {
           id: "quiet",
           label: "Quiet, 0.2 of the height",
           means:
-            "Half of today: 8px on a 40px button. Still rounder than a card under A and B, and the same shape as one under C and D.",
+            "Half of today: 8px on a 40px button, and the same shape as a card under C and F.",
         },
       ],
       recommended: "today",
       because:
-        "The roundness is not what is broken. What is broken is a 44px marketing button wearing the corner of a 40px one, and the sheet every guest meets taking its corner from a button at all.",
-      evidence: "actions",
+        "The roundness is not what is broken. What is broken is a 44px button wearing a 40px one's corner, and a sheet taking its corner from a button at all.",
+      evidence: "calls",
       control: "action",
     },
     {
       id: "ladder",
       question: "Which sizes should the seven corner steps climb in?",
       context:
-        "Above the card's own corner sits a ladder of seven sizes, from the smallest (a tooltip's arrow) to the largest (a badge), each a multiple of the card's number. The multipliers were picked when a card was 2px, where all seven land within 4px of each other. Once a card is 8px they spread out, and a plan card on the pricing page is either 12 or 14.4.",
-      look: "Part E: the two columns labelled The steps as they are today and Even quarters, one step a row, with the arithmetic and the use counts beside them. Set Surfaces to C, soft first, or every step looks alike.",
+        "Above the card's corner sits a ladder of seven sizes, from a tooltip's arrow up to a badge, each a multiple of it. The multipliers were picked when a card was 2px, where all seven land within 4px of each other. Once a card is 8px they spread, and a plan card is either 12 or 14.4.",
+      look: "The calls, second block: the seven steps drawn twice, today's beside even quarters, with the arithmetic on each row.",
       options: [
         {
           id: "stock",
           label: "The steps as they are today",
-          means:
-            "The seven multipliers stay as they ship: 0.6, 0.8, 1, 1.4, 1.8, 2.2 and 2.6 of the card's corner.",
+          means: "0.6, 0.8, 1, 1.4, 1.8, 2.2 and 2.6 of the card's corner.",
         },
         {
           id: "quarters",
           label: "Even quarters, 0.5 up to 2",
           means:
-            "The steps climb by an even quarter: 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2. A plan card lands at 12 rather than 14.4.",
+            "0.5, 0.75, 1, 1.25, 1.5, 1.75, 2. A plan card lands at 12 rather than 14.4.",
         },
       ],
       recommended: "quarters",
       because:
-        "At today's 2px card the two ladders are within half a pixel of each other, so nothing moves now. Once a card is 8px the difference is a plan card at 12 against one at 14.4, and a quarter is a step a person can hold in their head.",
-      evidence: "ladder",
-      state: { surface: "c" },
+        "At today's 2px card the two ladders are within half a pixel of each other, so nothing moves now. Once a card is round it is a plan card at 12 against one at 14.4, and a quarter is a step a person can hold in their head.",
+      evidence: "calls",
       control: "ladder",
     },
     {
       id: "dead-rungs",
       question: "Should the two largest corner steps be deleted?",
       context:
-        "The ladder's top two steps have three uses in the whole product between them: one panel on a marketing page, and the Badge, which is asking for a full pill and borrows the largest step to fake one. A step nobody uses still has to be kept honest every time the card's corner moves.",
-      look: "Part E, the last two rows: the use count is printed beside every step, and the two the board would delete say so. Compare them with the rows above, which carry 49 to 105 uses each.",
+        "The top two steps have three uses in the product between them: one marketing panel, and the Badge, which wants a full pill and borrows the largest step to fake one. A step nobody uses still has to be kept honest every time the card's corner moves.",
+      look: "The same block's last two rows, against the 49 to 105 uses on the rows above.",
       options: [
         {
           id: "keep",
           label: "Keep all seven steps",
-          means:
-            "The ladder keeps both top steps, and every future ruling on the card's corner has to carry them.",
+          means: "Both top steps stay, and every future ruling carries them.",
         },
         {
           id: "drop",
           label: "Drop the top two steps",
           means:
-            "The two largest steps go: the one panel takes the step below, and the Badge asks for a full pill, which is what it wanted.",
+            "The two largest go: the panel takes the step below, and the Badge asks for the pill it wanted.",
         },
       ],
       recommended: "drop",
       because:
-        "One of the two is used once, the other twice, and one of those two is the Badge faking a pill. Deleting them removes two numbers nobody is choosing and nothing anyone can see.",
-      evidence: "ladder",
-      state: { surface: "c" },
+        "One of the two is used once and the other twice, and one of those two is the Badge faking a pill.",
+      evidence: "calls",
     },
     {
       id: "gap",
       question: "Should the gap between photographs follow their corner?",
       context:
-        "The guest album lays photographs out in a tight grid. Each photograph's corner comes from a token this ruling moves, but the gap between them is written as a fixed 3px in three files. When the corner is bigger than the gap, the four corners meeting at a junction open a small hole, on the one page every guest sees.",
-      look: "Part B, with App screen set to The gap in the dock: the same nine photographs twice, labelled The gap follows the tile and A fixed 3px gap, as it ships. Take it on D, one family, where the corner is 6 and the hole is widest.",
+        "The guest album lays photographs out in a tight grid. Each photograph's corner comes from a token this ruling moves; the gap between them is a fixed 3px written into three files. Above a corner of 3, the four corners meeting at a junction open a hole, on the one page every guest sees.",
+      look: "The calls, last block: nine photographs twice, the gap following the corner beside the fixed 3px. Read it on D, where the hole is widest.",
       options: [
         {
           id: "pinned",
           label: "Pin the gap to the photograph's corner",
           means:
-            "The gap grows with the corner, and the three hard-coded 3px gaps become the token. It is a sweep across three files in another track's lane.",
+            "The gap grows with the corner, and the three hard-coded gaps become the token. A sweep across three files.",
         },
         {
           id: "free",
           label: "Leave the 3px gap as it is",
-          means:
-            "The gap stays fixed at 3px, so any corner above 3 opens holes between the photographs in the guest album.",
+          means: "The gap stays at 3px, so any corner above 3 opens holes.",
         },
       ],
       recommended: "pinned",
       because:
-        "The hole is only possible because the two numbers are set in different places. Tying the gap to the corner makes it impossible for a later ruling to open one again.",
+        "The hole is only possible because the two numbers live in different places. Tying the gap to the corner makes it impossible for a later ruling to open one again.",
       overrule:
         "Pinning it is a sweep across three files another track owns, so a yes here is also a yes to scheduling that.",
-      evidence: "app",
-      state: { surface: "d", canvas: "phone" },
+      evidence: "calls",
     },
   ],
 
-  candidates: [
-    {
-      id: "a",
-      name: "A, today: 2 / 8 / 3",
-      rationale:
-        "2 / 8 / 3. The site as built, and the only ruling that sweeps nothing: 64 corners in 28 files are px literals no candidate can move, and under A they keep agreeing with the tokens around them.",
-    },
-    {
-      id: "b",
-      name: "B, square: 0 / 6 / 0",
-      rationale:
-        "A harder surface with the action rung untouched, so the contrast between a surface and a control is at its widest. It reads as deliberate on cinema and as unfinished on paper.",
-    },
-    {
-      id: "c",
-      name: "C, soft: 8 / 12 / 4",
-      recommended: true,
-      rationale:
-        "8 / 12 / 4. A corner that is legible at a glance and still eight steps short of the action. It is also the candidate that makes the guest gallery's gap finding actionable rather than theoretical.",
-    },
-    {
-      id: "d",
-      name: "D, one family: 14 / 14 / 6",
-      rationale:
-        "Surfaces, floats and tiles at one number. The simplest system to state and the one that gives up the most: at D the guest tiles draw a 6px corner against a 3px gap and four corners meet in three pixels.",
-    },
-  ],
+  /**
+   * ★ THE BUDGET IS DECLARED, AND THE NUMBER IS THE WORK RATHER THAN AN EXCUSE.
+   * Round five weighed 4,859 words outside its folds; this one weighs about
+   * 2,700 with six families instead of four and more real UI than it had. Of
+   * those, roughly 1,100 are the template's own and no board can fold them: the
+   * answer, the index restating five ledes, the meta panel's six ideas and four
+   * rules-broken, and the review panel's instructions. The rest is the four
+   * asks, which cost about 140 words each BECAUSE Will ruled that a question
+   * has to carry its own context (2026-09-16), and the arithmetic the three
+   * calls are ruled on. Every paragraph that can be folded is folded, and the
+   * card previews and the pastes are specimens the smoke does not count.
+   */
+  reading: {
+    words: 2800,
+    why: "Four asks, each carrying its own context as Will's clarity ruling requires, plus the template's own thousand words. The argument is folded; what is left is questions, labels and arithmetic.",
+  },
+
+  /**
+   * ★ NAMING THE WINNER IS THE CATALOG'S JOB, NOT AN ASK'S. The palette board
+   * kept a "which one" ask beside its catalog because twelve rulings and one
+   * choice are different answers; here they are the same answer, because Pick
+   * IS the choice and the pages below wear it. Four asks survive, and every one
+   * of them is true whichever family wins.
+   */
+  candidates: ITEMS,
+
+  catalog: {
+    section: "catalog",
+    control: "family",
+    compare: ["compare-a", "compare-b"],
+  },
 
   departures: [
     {
       id: "gallery-gap",
       from: 8,
-      text: "The guest gallery's gap is a literal. guest-masonry.tsx, gallery-skeleton.tsx and ghost-grid.tsx write gap-[3px] while their tiles ride var(--radius-tile), so any tile above 3 opens corner holes on the one grid every guest sees. The fix is in another track's lane.",
-      evidence: "app",
+      text: "guest-masonry.tsx, gallery-skeleton.tsx and ghost-grid.tsx write gap-[3px] while their tiles ride var(--radius-tile), so any corner above 3 opens holes on the grid every guest sees.",
+      evidence: "calls",
     },
     {
       id: "entry-sheet",
       from: 9,
-      text: "The guest ENTRY SHEET wears the action token: entry-shell.tsx draws the first surface any guest meets at 1.4x the action radius, so the action rung decides the corner of a sheet. Either it moves to the floating layer's token or the rung is ruled knowing it owns a sheet.",
-      evidence: "actions",
+      text: "entry-shell.tsx draws the first surface any guest meets at 1.4x the action radius, so the button rung decides the corner of a sheet. It should move to the floating layer's token.",
+      evidence: "calls",
     },
     {
       id: "two-boards",
-      from: 9,
-      text: "The float rung is being ruled on two boards. This one sets --radius-float; the floating-surfaces proposal adds --radius-float-item and --radius-float-lg. They have to agree, and bible 9 says the item token is right.",
-      evidence: "tokens",
-    },
-    {
-      id: "action-lg",
-      from: "precedent",
-      text: "--radius-action-lg has exactly one call site, on an h-11. Every marketing CTA is size lg forced to h-11 in 26 files, so the loudest action on the site sits at 0.33 of its height while globals.css documents 0.4. The proposal is a cta size on the Button.",
-      evidence: "actions",
-    },
-    {
-      id: "ladder-is-baked",
-      from: "precedent",
-      text: "The derived ladder cannot be retuned with a token: @theme inline substitutes each step into its utility at build time, so --radius-xl is empty at runtime. The ruling lands on the multipliers in theme.css, one line a step, which is the Orchestrator's file.",
-      evidence: "ladder",
+      from: 15,
+      text: "The float corner is ruled on two boards: this one sets --radius-float, the floating-surfaces proposal adds --radius-float-item and --radius-float-lg. They have to agree.",
+      evidence: "catalog",
     },
     {
       id: "literal-corners",
       from: 8,
-      text: "Sixty-four corners on the site are literals rather than tokens: rounded-[2px], -[3px] and -[4px] account for 52 across 24 non-lab files. Under any candidate but A a photograph keeps today's corner while the card around it moves. A ruling of C is a ruling to sweep them.",
-      evidence: "site",
+      text: "Sixty-four corners are literals rather than tokens, 52 of them photographs across 24 files. Under any family but A and F a photograph keeps today's corner while the card moves, so a ruling is also a sweep.",
+      evidence: "pages",
     },
   ],
 
   assets: [
     {
       what: "A worst-case tile set for the gallery gap",
-      spec: "Four photographs whose edges are near-white and bright (a white tablecloth, an overexposed sky, a white dress against a window), 1200px long edge, JPG, so a corner hole between tiles is judged at maximum contrast instead of against the dark stills the board borrows.",
+      spec: "Four photographs with near-white, bright edges (a tablecloth, an overexposed sky, a white dress), 1200px long edge, JPG, so a corner hole is judged at maximum contrast.",
       replaces:
         "the wedding-golden, party-dj and festival-lights set in the app grid.",
     },
@@ -310,68 +350,115 @@ export const ROUNDING = defineBoard({
 
   sections: [
     {
-      id: "site",
-      title: "A. The real marketing pages, at true size",
-      lede: "Each real page in a window of its own, redrawn with the corner picked in the dock (the board calls that the rail), with the site as it ships beside it, the two scrolling together.",
+      id: "catalog",
+      title: "The six families",
+      lede: "Each card is one piece of the app at a phone's width, at 1:1: the photographs, the card, the menu over it, the buttons.",
       argument: [
-        "A same-origin iframe is the only 1:1 surface the lab has: the real route, the real components, the real breakpoints, the real scroll, wearing this column's radius and nobody else's. No zoom, no transform, no re-implementation, which is what makes it evidence rather than a picture of evidence.",
+        "WHY A FAMILY AND NOT THREE SWITCHES. Rounds one to five asked the surface, the button and the ladder as three independent questions and let a reader assemble an answer out of them, which is hundreds of reachable states and an answer in none. A family names every corner at once, so a card is a whole position somebody could argue for out loud rather than one coordinate of a machine.",
+        "HOW SIX WERE CHOSEN. Four are the standing A to D, kept because they are still the corners of the space and because a review conversation has referred to them by letter for three rounds. E and F are new, written where the four had a real gap: E moves the photograph away from the surface, which nothing before it did, and F is the cheapest change that is visible at all. Two families that differ only in a number would be one card.",
+        "WHY EVERY CARD SHOWS A PHONE. A corner is a fixed number of pixels and a phone is where the fewest of them are: a 6px corner on a 375 grid takes a visible slice out of a photograph that a 1440 window hides. The strip above the frame is drawn at 1:1 in this document with no breakpoint in it, and the frame under it is a real 375 viewport, so neither is scaled.",
+        "WHAT THE FOURTH FACT IS FOR. Bible 8's real claim is a ratio: a button is the pressable thing, so it has to out-round the surface under it. Five of the six families leave the button where it ships, so the ratio is what separates them. Under D it inverts, and the card out-rounds the button.",
       ],
     },
     {
-      id: "app",
-      title: "B. The app's own screens, at true size",
-      lede: "The dashboard, an event page, the guest album's grid and the sheet a guest meets first, served from this board's own route because they sit behind a sign-in.",
+      id: "compare",
+      title: "Any two, on the same real page",
+      lede: "One real page, loaded twice at true pixels and scrolled together, under whichever two cards you pressed A and B on.",
       argument: [
-        "Will's round-four note opens the app's UI to the lab. This is the app as it ships, at the size it ships, which is the thing a ruling has to be made against first. The guest grid is where the board's worst finding lives: at a tile above 3px the corners meet in the 3px literal gap and open a hole, on the one page every guest sees.",
+        "A composition is honest about a component and dishonest about a page, because what a corner has to survive is the rest of the page: the photograph beside the card, the CTA under the chapter, the plan card in the band, the tile in the grid. A same-origin frame is the only 1:1 surface the lab has, and the family is written into that document as the same paste a ruling would land.",
       ],
     },
     {
-      id: "tokens",
-      title: "C. Every corner this ruling moves, at true size",
-      lede: "The four candidates side by side, with the card, the floating menu, the photograph and the button under each, measured off the page rather than captioned from a number.",
+      id: "pages",
+      title: "The real pages, wearing the pick",
+      lede: "Home, the guest album and the host's own screen in whatever the catalog is picking. Nothing picked is the site as it ships.",
     },
     {
-      id: "nested",
-      title: "D. A corner inside a corner",
-      lede: "The rule for a shape sitting inside another: the inner corner is the outer one minus the padding between them, and where the product breaks it.",
-    },
-    {
-      id: "ladder",
-      title: "E. The seven corner steps",
-      lede: "The seven sizes, their multipliers and the arithmetic at a 2px card beside an 8px one, with how many places in the product use each. It is the part that decides whether a plan card is 12 or 14.4.",
+      id: "calls",
+      title: "The four calls a family does not settle",
+      lede: "The button rung at every height, the seven corner steps with their use counts, and the album's gap.",
       wiring: [
-        "The ladder is baked into its utilities by @theme inline, so the ruling lands on the multipliers in theme.css, one line a step. The board renders the retune as utility overrides because a token cannot reach it.",
+        "The derived ladder cannot be retuned with a token: @theme inline substitutes each step into its utility at build time, so --radius-xl is empty at runtime and the board renders the retune as utility overrides. The ruling lands on the multipliers in theme.css, one line a step, which is the Orchestrator's file.",
+        "--radius-action-lg has exactly one call site, on an h-11. Every marketing CTA is size lg forced to h-11 in 26 files, so the loudest action on the site sits at 0.33 of its height while globals.css documents 0.4. The proposal is a cta size on the Button at 1.1x the action radius, and the -lg token retires with it.",
       ],
     },
     {
-      id: "actions",
-      title: "F. Buttons, at every height they ship at",
-      lede: "The three roundness options on the real Button at every height it ships at, plus the two things wearing a button's corner that should not: the 44px marketing button and the guest entry sheet.",
-    },
-    {
-      id: "phones",
-      title: "G. All four candidates, on a phone",
-      lede: "Four 375 windows side by side, one candidate each, scrolled together. It is where the photograph's corner is settled, because that corner is a phone decision.",
+      id: "paste",
+      title: "The ruling, as a paste",
+      lede: "The picked family as the block that lands on :root, generated from whatever the dock is claiming.",
     },
   ],
 
   controls: [
+    /**
+     * ★ THE PICK IS CLEARABLE AND OPENS ON NOTHING (Will, 2026-09-16: "I can't
+     * unpick a selection to return to a non-selected state"). Nothing picked
+     * means the pages below show the site exactly as it ships.
+     */
     {
-      // ★ THE IDS ARE THE `surfaces` ASK'S OPTION IDS, and `candidates.ts`
-      // speaks the same four. The ask cannot declare `control: "surface"`
-      // because this switch carries a fifth position the ask does not offer
-      // (Live, the tuner's own values), and a mirrored control has to match
-      // the ask's options exactly.
-      id: "surface",
-      label: "Surfaces",
+      id: "family",
+      label: "The winner",
+      options: [
+        { id: "none", label: "Nothing picked" },
+        { id: "a", label: "A, today" },
+        { id: "b", label: "B, square" },
+        { id: "c", label: "C, soft" },
+        { id: "d", label: "D, one family" },
+        { id: "e", label: "E, print" },
+        { id: "f", label: "F, half a step" },
+      ],
+      default: "none",
+      clearable: true,
+    },
+    // A and B: the two the compare joins, set from the catalog's cards. They
+    // open on today against the board's own pick, which is the comparison a
+    // reader wants before he has picked anything.
+    {
+      id: "compare-a",
+      label: "A",
       options: [
         { id: "a", label: "A, today" },
         { id: "b", label: "B, square" },
         { id: "c", label: "C, soft" },
         { id: "d", label: "D, one family" },
-        { id: "live", label: "Live, from the tuner" },
+        { id: "e", label: "E, print" },
+        { id: "f", label: "F, half a step" },
       ],
       default: "a",
+    },
+    {
+      id: "compare-b",
+      label: "B",
+      options: [
+        { id: "a", label: "A, today" },
+        { id: "b", label: "B, square" },
+        { id: "c", label: "C, soft" },
+        { id: "d", label: "D, one family" },
+        { id: "e", label: "E, print" },
+        { id: "f", label: "F, half a step" },
+      ],
+      default: "c",
+    },
+    {
+      id: "page",
+      label: "Page",
+      options: [
+        { id: "home", label: "Home" },
+        { id: "pricing", label: "Pricing" },
+        { id: "album", label: "Album" },
+        { id: "guest", label: "Guest" },
+        { id: "app", label: "App" },
+      ],
+      default: "home",
+    },
+    {
+      id: "canvas",
+      label: "Width",
+      options: [
+        { id: "desktop", label: "1440" },
+        { id: "phone", label: "375" },
+      ],
+      default: "desktop",
     },
     {
       id: "action",
@@ -392,69 +479,38 @@ export const ROUNDING = defineBoard({
       ],
       default: "stock",
     },
-    {
-      id: "canvas",
-      label: "Window width",
-      options: [
-        { id: "desktop", label: "1440" },
-        { id: "phone", label: "375" },
-      ],
-      default: "desktop",
-    },
-    {
-      id: "compare",
-      label: "Compare",
-      options: [
-        { id: "split", label: "The site as it ships, beside it" },
-        { id: "single", label: "One window only" },
-      ],
-      default: "split",
-    },
   ],
 
   lookFirst: [
     {
-      section: "site",
-      state: { surface: "c", compare: "split" },
-      note: "The home page on C, soft beside the site as it ships, scrolled together. If the corner is wrong here it is wrong everywhere.",
+      section: "catalog",
+      note: "Read the six. The strip and the phone under each are the whole family, so nothing has to be switched to compare them.",
     },
     {
-      section: "app",
-      state: { surface: "d", canvas: "phone" },
-      note: "The guest album on D, one family, on a phone, with App screen set to The gap. The holes where four corners meet are the board's worst finding, on the page every guest sees.",
+      section: "catalog",
+      state: { family: "c" },
+      note: "The board's own pick, marked with a dot. C and F are the same idea half a step apart, so read those two against each other first.",
     },
     {
-      section: "ladder",
-      state: { surface: "c", ladder: "quarters" },
-      note: "The plan card at 14.4 against 12. That one number is the whole question about the seven steps.",
+      section: "compare",
+      state: { "compare-a": "a", "compare-b": "e" },
+      note: "Today against E, print on the home page, scrolled together. E is the one family that leaves a photograph its edges while the chrome softens.",
     },
     {
-      section: "actions",
+      section: "calls",
       state: { action: "pill" },
       note: "A full pill under the guest entry sheet: a half circle on a sheet, which is why the sheet's corner is a departure.",
     },
     {
-      section: "phones",
-      state: { canvas: "phone" },
-      note: "All four candidates at once. Settle the photograph's corner here, then read the rest of the board knowing it.",
-    },
-  ],
-
-  notes: [
-    {
-      section: "app",
-      state: { surface: "d", canvas: "phone" },
-      text: "Measured on D, one family: the photographs draw a 6px corner while the column gap stays at the fixed 3px the guest album hard-codes, so four corners meet in three pixels. Beside it, the same grid as built.",
-    },
-    {
-      section: "site",
-      state: { surface: "c" },
-      text: "The home page on C, soft still holds 48 corners at 2px and 22 at 3px beside cards at 10 and 12. That mismatch is the hand-written-corner departure, visible rather than counted.",
+      section: "pages",
+      state: { family: "c", canvas: "phone" },
+      note: "The real pages on C at a guest's width. If the photograph's corner is wrong it is wrong here first.",
     },
   ],
 
   links: {
-    bible: [8, 9],
+    bible: [8, 9, 15],
+    spec: "docs/specs/rounding.md",
     pages: [
       { label: "Home", path: "/", note: "every rounding group meets here" },
       {

@@ -274,7 +274,7 @@ describe("sections", () => {
 });
 
 describe("listings", () => {
-  it("listSpecs returns the six board specs", () => {
+  it("listSpecs returns the seven board specs", () => {
     const specs = listSpecs();
     expect(specs.map((s) => s.slug)).toEqual([
       "brand-voice",
@@ -282,6 +282,7 @@ describe("listings", () => {
       "light",
       "media-kit",
       "palette",
+      "rounding",
       "type-scale",
     ]);
     for (const spec of specs) {
