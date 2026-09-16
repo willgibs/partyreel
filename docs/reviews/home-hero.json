@@ -33,6 +33,21 @@
       ],
       "notes": [],
       "items": []
+    },
+    {
+      "n": 6,
+      "opened": "2026-09-16",
+      "answers": [
+        {
+          "ask": "stream",
+          "choice": "none",
+          "note": "I think I liked the more symmetrical approach more than the variants we're using to scatter the photos as they stream out, similar to our original reference example. Cosmos also has a beautiful version of this, where in our version we could place the QR code above the H1 and center the image rotation around the QR code rather than the H1 content. I'd also like a variant where don't split the H1 and other hero content with the QR, but rather have it above/below.",
+          "by": "Will",
+          "at": "2026-09-16T23:30:05Z"
+        }
+      ],
+      "notes": [],
+      "items": []
     }
   ]
 }
