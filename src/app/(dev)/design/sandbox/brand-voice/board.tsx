@@ -1060,7 +1060,7 @@ function VolumesSpecimen({ voice }: { voice: VoiceId }) {
             </p>
           </CardGround>
           <figcaption className="mt-1.5 text-[10px] text-muted-foreground">
-            The site, loud
+            {`${VOICE_NAME[voice]}, on the site, loud`}
           </figcaption>
         </figure>
         <figure style={{ width: 343, maxWidth: "100%" }}>
@@ -1076,7 +1076,7 @@ function VolumesSpecimen({ voice }: { voice: VoiceId }) {
             </Button>
           </CardGround>
           <figcaption className="mt-1.5 text-[10px] text-muted-foreground">
-            The app, quiet
+            {`${VOICE_NAME[voice]}, in the app, quiet`}
           </figcaption>
         </figure>
       </div>
