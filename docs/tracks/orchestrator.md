@@ -30,7 +30,6 @@ owns:
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
-  - docs/perf/v1-baseline.md
   - src/app/globals.css
   - src/app/theme.css
   - src/app/(marketing)/marketing.css

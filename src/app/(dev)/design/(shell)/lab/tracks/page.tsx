@@ -31,7 +31,6 @@ export default async function TracksPage({
   const tracks = trackList();
   const open = tracks.filter((t) => t.status === "open");
   const handedOff = tracks.filter((t) => t.status === "handed-off");
-  const done = tracks.filter((t) => t.status === "integrated");
 
   const boardOf = (name: string) =>
     SANDBOX.find((r) => r.id === name || r.board?.tracks?.includes(name));
@@ -97,13 +96,12 @@ export default async function TracksPage({
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title="Tracks"
-        description="Every branch with a manifest under docs/tracks: what it claims, what it is for, what it handed off. Rendered from the manifests, so nothing here is a second copy of one."
+        description="Every open branch with a manifest under docs/tracks: what it claims, what it is for, what it handed off. Rendered from the manifests, so nothing here is a second copy of one; an integrated track's manifest is deleted at its merge and lives in git."
       />
       <StatRow
         stats={[
           ["open", open.length],
           ["handed off", handedOff.length],
-          ["integrated", done.length],
         ]}
       />
 
@@ -133,27 +131,9 @@ export default async function TracksPage({
         </Section>
       )}
 
-      <Section
-        id="integrated"
-        title="Integrated"
-        blurb="Merged into launch-prep: their work is in the lab you are reading, and the manifest is the record of how it got here."
-      >
-        <ul className="flex flex-wrap gap-1.5">
-          {done.map((t) => (
-            <li key={t.track}>
-              <LabLink
-                href={`/design/lab/tracks/${t.track}`}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-[11px] transition-colors duration-150 hover:bg-muted/40"
-              >
-                {t.track}
-                {t.rounds > 1 && (
-                  <span className="text-muted-foreground">{`${t.rounds} rounds`}</span>
-                )}
-              </LabLink>
-            </li>
-          ))}
-        </ul>
-      </Section>
+      {/* An integrated track has no manifest: it is deleted in the merge commit
+          (the revamp, 2026-09-16), its Record folded into the CHANGELOG, and git
+          keeps the file. */}
       <Pager />
     </div>
   );

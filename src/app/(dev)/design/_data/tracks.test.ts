@@ -77,7 +77,7 @@ describe("the manifests on disk", () => {
   const tracks = trackList();
 
   it("reads every manifest in docs/tracks", () => {
-    expect(tracks.length).toBeGreaterThan(5);
+    expect(tracks.length).toBeGreaterThan(0);
     expect(readTrackStates().get(tracks[0].track)).toBeDefined();
   });
 
@@ -90,10 +90,12 @@ describe("the manifests on disk", () => {
     const stated = new Set(
       readdirSync(dir)
         .filter((f) => f.endsWith(".md") && f !== "README.md")
-        .filter((f) => /^\*\*Goal\.\*\*/m.test(readFileSync(join(dir, f), "utf8")))
+        .filter((f) =>
+          /^\*\*Goal\.\*\*/m.test(readFileSync(join(dir, f), "utf8")),
+        )
         .map((f) => f.replace(/\.md$/, "")),
     );
-    expect(stated.size).toBeGreaterThan(5);
+    expect(stated.size).toBeGreaterThan(0);
     for (const t of tracks) {
       expect(Boolean(t.goal), `${t.track}`).toBe(stated.has(t.track));
     }
@@ -110,7 +112,10 @@ describe("the manifests on disk", () => {
 
   it("keeps a merged track's round count above zero", () => {
     for (const t of tracks.filter((x) => x.merged)) {
-      expect(t.rounds, `${t.track} is merged but counts no round`).toBeGreaterThan(0);
+      expect(
+        t.rounds,
+        `${t.track} is merged but counts no round`,
+      ).toBeGreaterThan(0);
     }
   });
 });

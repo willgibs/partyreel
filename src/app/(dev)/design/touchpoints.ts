@@ -406,13 +406,10 @@ export const RULINGS: Ruling[] = [
     id: "reel-experience",
     title: "Reel experience",
     surface: "host",
-    ruled: "ADR-0023",
+    ruled: "milestone-1.5 (the QA round's product rulings)",
     shipped: "V1 Marquee in the feed",
-    why: "Marquee in the feed (ADR-0023): the poster card is the feed section, deeper editing graduates to a Reel Studio, the reel is born by Create.",
-    lives: [
-      "docs/adr/0023-qa-round-product-rulings.md",
-      "docs/systems/host-app.md",
-    ],
+    why: "Marquee in the feed: the poster card is the feed section, deeper editing graduates to a Reel Studio, the reel is born by Create.",
+    lives: ["docs/systems/host-app.md"],
   },
   {
     id: "glow-doctrine",
