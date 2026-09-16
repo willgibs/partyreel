@@ -354,7 +354,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
-| `home-hero` | marketing | Round four: the source in its emanating direction and the scan with its phone, both loved; the inflow, the album streaming into the code rather than out of it, built to answer honestly whether the truer reading presents as well |
+| `home-hero` | marketing | Round six: four compositions of the album leaving the code, each the real hero at true size on the ruled lockup with its own Replay and four facts; the pick worn by the real home page below. The board recommends the settle. |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
 | `palette` | shared | Twelve finished palettes as cards, each with its grounds, text steps, accent and state colours plus a real piece of the product in dark beside light; Pick drives the whole page, A and B drive two wipes; three calls left after one is picked |
