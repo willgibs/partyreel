@@ -3,7 +3,7 @@
 > ROLE: the visual system in force: token contracts, type, rounding, elevation, motion, state
 > colors, and the error taxonomy's UX contract.
 > BELONGS HERE: what the system IS + its invariants + don't-reverts. · NOT HERE: how it was chosen
-> (→ the design lab + [`../decisions/design-record.md`](../decisions/design-record.md)), the craft
+> (→ the design lab + [`../design/rulings.md`](../design/rulings.md)), the craft
 > defaults (→ [`../design/guidance.md`](../design/guidance.md)), per-surface redesigns (each
 > surface's own doc), shipping narrative (→ [`../CHANGELOG.md`](../CHANGELOG.md)).
 > GROWS BY: edit-in-place as tokens/rules evolve; the lab (`/design`) stays the experimentation
@@ -24,10 +24,9 @@ production imports (the reference pages render the real components and tokens, s
 construction; `/design/library/marketing` renders the marketing system on the cinema skin; the index
 is below) and a **WORKSHOP** that is empty by default (`sandbox/` holds only the boards whose ruling
 is still open). Prototype and compare there; when a ruling lands, the RULE moves here (or to its
-surface doc), the RECORD moves to
-[`docs/decisions/design-record.md`](../decisions/design-record.md), and the board is deleted (git
-keeps it). The thin registry the lab reads is `touchpoints.ts` (`RULINGS`: one line per ruling, where
-the rule lives), rendered at `/design/library/record`.
+surface doc), Will's words go to [`docs/design/rulings.md`](../design/rulings.md), and the board is
+deleted (git keeps it). The thin registry the lab reads is `touchpoints.ts` (`RULINGS`: one line per
+ruling, where the rule lives), rendered at `/design/library/record`.
 
 ## The identity: achromatic, media is the color
 
@@ -199,9 +198,9 @@ events and pricing, and closes on the FAQ, the CTA and the tail.
 
 > The two open boards
 > ([`sandbox/glow-doctrine-variants.tsx`](../../src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx),
-> `glow-moments`) hold the placements still under discussion; the rulings are
-> [on the record](../decisions/design-record.md#glow-doctrine) and the rules live here, because a rule
-> that lives only inside a lab TSX is a rule the next agent has to go excavating for.
+> `glow-moments`) hold the placements still under discussion; the rules live here rather than in the
+> boards, because a rule that lives only inside a lab TSX is a rule the next agent has to go
+> excavating for.
 
 Two siblings, and picking the wrong one is the usual mistake. **SPILL** is light falling FROM a lit
 thing onto what is near it. **BEAM** is an object lit BECAUSE IT IS the live subject. The ground
@@ -674,8 +673,7 @@ immediately. The cap (540ms) stops deep galleries from queuing forever; reduced-
 ## Event-feed + review motion + the live motion tuner
 
 The host event feed ([host-app.md](host-app.md)) is the densest motion cluster, all CSS-first,
-reduced-motion-safe, and var-tunable. The motion-defining picks
-([on the record](../decisions/design-record.md#event-feed)):
+reduced-motion-safe, and var-tunable. The motion-defining picks:
 - **A=Condense:** the sticky pill bar gains `data-stuck` once the feed scrolls past its top sentinel:
   a hairline + backdrop, and the pills shrink (`h-8`→`h-7`, smaller text) on a `transition-[transform,height,padding,font-size]`.
 - **B=Fade** (`[data-section-swap]`): the feed container is re-keyed on a pill change (and the floating
@@ -864,7 +862,7 @@ and the page templates; `_data/` the nav model, the link grammar (`links.ts`), t
 shell group, the iframe scene routes; `src/components/lab/board-spec.ts` the board spec type; the
 authority model in [`../design/README.md`](../design/README.md); `pnpm lab:smoke` crawls every lab route) · `src/lib/design-gate/*` +
 `/api/design-gate` (the gate, outside the lab because production depends on it) ·
-[`../decisions/design-record.md`](../decisions/design-record.md) (the rulings, verbatim). The perf
+[`../design/rulings.md`](../design/rulings.md) (Will's rulings, verbatim). The perf
 baseline and its repeatable method are in git: `git show 44090827:docs/perf/v1-baseline.md`.
 
 ## Gotchas / don't-revert
