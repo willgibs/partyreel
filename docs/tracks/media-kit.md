@@ -1084,21 +1084,21 @@ added to `public/`.
   deployment storage and the wave's previews are off, so this push says nothing about `[preview]` and
   builds nothing. The board is at `/design/lab/media-kit` on a dev server, and on the `launch-prep`
   alias when the Orchestrator builds it once at the close.
-- **Synced with `launch-prep` twice, and the second sync is the one that counts: `55e74015`.** The
-  first, at `a489d563`, brought home-hero and river-visual onto the kit, gave the two glow boards
-  specs, and taught the kit's `answer.tsx` to land an anchor once rather than twice. The second brought
-  album-hero, floating-surfaces and brand-voice, the Vercel storage round's
+- **Synced with `launch-prep` three times as the wave landed around it; the last is the one that
+  counts, `5959b433`.** `a489d563` brought home-hero and river-visual onto the kit, gave the two glow
+  boards specs, and taught the kit's `answer.tsx` to land an anchor once rather than twice;
+  `55e74015` brought album-hero, floating-surfaces and brand-voice, the storage round's
   `scripts/vercel-ignore-build.mjs` (an `lp/*` push now builds nothing unless its message says
-  `[preview]`, and this handoff push deliberately does not) and the `lab-review.mjs` fix below. Five
-  conflicts across the two merges, every one the adjacent-line kind the wave predicted, every one
-  resolved by keeping BOTH sides: `registry.ts` (the import and the `BOARDS` entry, `MEDIA_KIT` after
-  `BRAND_VOICE`, which is `touchpoints.ts`'s own order), `(shell)/lab/boards.ts` (three entries in one
-  hunk: theirs drop `legacy` from floating-surfaces and brand-voice, mine from media-kit) and
-  `kit-discipline.test.ts` (`LEGACY` is down to `palette` and `type-scale`). The whole gate was re-run
-  on each merged tree.
-- Gates on the merged tree, re-run in full after the second merge: typecheck ok, lint ok (0 errors, 6
+  `[preview]`, and this handoff push deliberately does not) and the `lab-review.mjs` fix below;
+  `5959b433` brought palette and the kit's paste-clamp fix. Seven conflicts across the three merges,
+  every one the adjacent-line kind the wave predicted, every one resolved by keeping BOTH sides:
+  `registry.ts` (the import and the `BOARDS` entry, `MEDIA_KIT` after `BRAND_VOICE`, which is
+  `touchpoints.ts`'s own order), `(shell)/lab/boards.ts` (three entries in one hunk: theirs drop
+  `legacy` from floating-surfaces and brand-voice, mine from media-kit) and `kit-discipline.test.ts`,
+  whose `LEGACY` list is down to `type-scale` alone. The whole gate was re-run on each merged tree.
+- Gates on the merged tree, re-run in full after the last merge: typecheck ok, lint ok (0 errors, 6
   warnings, all pre-existing and none in this lane), test ok (2140 in 218 files; this track's eight
-  suites hold 78), build ok (257 static pages), `pnpm lab:smoke --base http://localhost:3418` ok (314
+  suites hold 78), build ok (257 static pages), `pnpm lab:smoke --base http://localhost:3418` ok (322
   checks, 0 failing). The board re-checked on that tree at 1440: eleven anchored sections, no document
   overflow, no running animation.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
