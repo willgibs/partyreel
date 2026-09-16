@@ -69,10 +69,10 @@ round of the window.
 
 | track | board | waits on |
 | --- | --- | --- |
-| `lab-flow` | the kit: the review as a stepped onboarding form (the plan's Part 1) | its handoff; every board then verifies its walk on it |
-| `light` | `/design/lab/light` (round seven: reshaped into steps, one card at a time) | `lab-flow` for the walk |
-| `palette` | `/design/lab/palette` (round eight: pick-one, the winner from the twelve) | `lab-flow` for the walk |
-| `type-scale` | `/design/lab/type-scale` (round seven: pick-one, the winner from the five) | `lab-flow` for the walk |
+| `floating-surfaces` | `/design/lab/floating-surfaces` (round seven: pick-one, the winner from the seven) | its handoff |
+| `rounding` | `/design/lab/rounding` (round seven: pick-one, the winner from the six) | its handoff |
+| `brand-voice` | `/design/lab/brand-voice` (round seven: pick-one, the winner from the six voices) | its handoff |
+| `media-kit` | `/design/lab/media-kit` (round seven: keep-any as a gallery, a kept card is a purchase) | its handoff |
 
 ## Waiting on Will
 
@@ -115,5 +115,25 @@ palette and light first), pasted in batches with Copy so far.
   palette); `56ea9185` home-hero integrated (round six: four compositions of the stream, mirror, phrase,
   settle and ribbon, on one engine; 1,189 words under the budget with no declaration; the board
   recommends the settle; its pick-one switch is three spec lines once the flow lands).
+- `c18570c4` lab-flow integrated (the review as a stepped onboarding form: `step.tsx` with tiles on one
+  specimen, show versus choose, the winner ask with none as the third exit, one card at a time with
+  `BeforeAfter`, staging through `Ask.after`, the desk's rows as steps with held badges, Copy so far
+  omitting what the ledger holds; the ask pills, the index, the "Rule on:" rows and the review panel
+  deleted, which halved the catalog boards' reading); `6907ce68` the three live manifests stop reading
+  the merged one.
+- `c334de13` the hero's catalog asked as pick-one (the winner ask on the four cards); `ec7367e7` type-scale
+  integrated (round seven: a three-step walk, the winner from five or none, one real page under the pressed
+  card with a second copy on a fade; 486 words; a kit finding: tiles draw inside a zoomed FitStage, so a
+  1:1 tile is owed by the kit and `true-scale.tsx` retires into it).
+- `7ed0d2a2` light integrated (round seven: the twelve walked one at a time in Will's order on three
+  specimens, each drawn as today and with it, with what it lands as and its usages; the four calls as
+  tile steps; the aurora's landing staged behind keeping the aurora; 920 words, the declaration deleted;
+  the order ask renamed `second` so round five's `infusion=phase-1` stands). The agent force-pushed its
+  own branch once after amending a pushed manifest commit: no damage, a rule broken, noted.
+- `49ed0fbf` palette integrated (round eight: one pick over the twelve with "None of these", the real
+  product as the stage on one Screen control, the accent, card, faint and reach questions as tile steps,
+  the reach staged behind accent=own; 1,191 words, no declaration; the guest masonry and its portrait-pair
+  ask withdrawn; two kit findings: `Candidate.lands` never draws on a pick-one gallery, and the spine
+  miscounts a blocked step opened by URL).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

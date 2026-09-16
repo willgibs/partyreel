@@ -268,7 +268,12 @@ export function Catalog({
               )}
             </div>
 
-            {solo && candidate.lands && (
+            {/* What keeping or picking this card lands as, drawn on the card
+                walked alone AND on the picked card of any grid: a pick-one
+                gallery is decided by one pick, and "what would winning
+                change" is worth reading exactly there (the palette's round
+                eight finding, 2026-09-16). */}
+            {(solo || picked) && candidate.lands && (
               <p className="text-[11px] leading-snug">
                 <span className="text-muted-foreground">Lands as: </span>
                 {candidate.lands}

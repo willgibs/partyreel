@@ -73,11 +73,58 @@ export const HOME_HERO = defineBoard({
   // 2026-09-16: asks only for what is not one item). It also sets the bar for
   // the four cards below: the name, the one line and the four facts have to let
   // a stranger choose between them without opening a single fold.
-  asks: [],
+  asks: [
+    {
+      id: "stream",
+      question: "Which stream should the home hero ship?",
+      context:
+        "Four compositions of the album leaving the code, each the real hero at true size on the ruled lockup (centred, no count, the ruled headline). One wins and is wired into cinema-hero.tsx; the other three leave with the board.",
+      options: [
+        {
+          id: "mirror",
+          label: "1. Mirrored",
+          means:
+            "One pair a beat, the two arms exact mirrors on five stations in order.",
+        },
+        {
+          id: "phrase",
+          label: "2. Phrased",
+          means:
+            "Three frames 170 ms apart stepping far, middle, near, then an empty bar, the arms answering.",
+        },
+        {
+          id: "settle",
+          label: "3. Lays out",
+          means:
+            "A held arrangement of four places a side, then gone as the next arrives. The only one that stops, so it reads as a composition in a still.",
+        },
+        {
+          id: "ribbon",
+          label: "4. Fanned file",
+          means: "One file a side up an arc, the angle fanning with the distance.",
+        },
+        {
+          id: "none",
+          label: "None of these",
+          means: "New directions: say what to try instead in the note.",
+        },
+      ],
+      recommended: "settle",
+      because:
+        "It is the only one of the four that stops, so it is the only one that reads as a composition in a still, which is the test a hero has to survive.",
+      evidence: "stream",
+      control: "stream",
+      lands:
+        "The stream cinema-hero.tsx ships (src/components/marketing/sections/home/cinema-hero.tsx): one engine, the winning table, the other three deleted.",
+      strip: ["canvas"],
+    },
+  ],
 
   candidates: [
     {
       id: "mirror",
+      lands:
+        "cinema-hero.tsx on MIRROR_STATIONS, MIRROR_LANES and MIRROR_ROLL, its beat and its flight; the other tables deleted.",
       name: "1. A mirrored pair on every beat",
       one: "One frame each way on every beat, same height, same depth. Calm and symmetric.",
       verdict: "ship",
@@ -92,6 +139,8 @@ export const HOME_HERO = defineBoard({
     },
     {
       id: "phrase",
+      lands:
+        "cinema-hero.tsx on PHRASE_IN, PHRASE_BAR, PHRASE_FAN and PHRASE_LANES with its 6000 ms flight.",
       name: "2. Three frames, then a breath",
       one: "Three frames leave together, then that side goes quiet and the other answers. It breathes.",
       verdict: "ship",
@@ -109,6 +158,8 @@ export const HOME_HERO = defineBoard({
     },
     {
       id: "settle",
+      lands:
+        "cinema-hero.tsx on SETTLE_PLACES per canvas, SETTLE_BEAT, SETTLE_ARRIVE and SETTLE_GO.",
       name: "3. The album lays itself out",
       recommended: true,
       one: "Frames fly out and stop in four held places a side, long enough to read.",
@@ -132,6 +183,8 @@ export const HOME_HERO = defineBoard({
     },
     {
       id: "ribbon",
+      lands:
+        "cinema-hero.tsx on RIBBON_FAN and the arc that completes by the canvas edge.",
       name: "4. One fanned file a side",
       one: "No scatter: one file each way up a rising arc, fanning as it goes.",
       verdict: "refine",
@@ -210,6 +263,12 @@ export const HOME_HERO = defineBoard({
     section: "stream",
     control: "stream",
     compare: ["compare-a", "compare-b"],
+    // The stepped review (2026-09-16): four variants of one hero, so ONE wins.
+    // The winner ask mirrors the pick control and offers "none" as the
+    // new-directions exit; the real home page under the tiles wears the pick.
+    mode: "pick-one",
+    winner: "stream",
+    stage: "page",
   },
 
   controls: [

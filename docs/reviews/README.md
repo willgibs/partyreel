@@ -50,6 +50,12 @@ overwrites, so a sitting can land in batches. A multi-line paste is transcribed 
 (`printf '%s\n' "<the lines>" | node scripts/lab-review.mjs`) or as one argument to `node` directly:
 `pnpm lab:review` flattens the newlines inside an argument into spaces.
 
+"Copy so far" sends only what this sitting ADDED: an answer or verdict the ledger already holds with
+the same choice and the same note is omitted, a changed one rides again, and a choice cleared with its
+note still in the field arrives as `note: "on <ask>: ..."`. A pick-one catalog is decided by one ask
+whose options are its card ids plus `none`, so "None of these: new directions" lands as
+`<board> r<n>: <ask>=none "what to try instead"` and the grammar never grew a fourth word.
+
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
 An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.
 

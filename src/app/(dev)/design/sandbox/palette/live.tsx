@@ -79,7 +79,7 @@ export const SITE_PAGES: SitePage[] = [
     ? [
         {
           id: "guest" as const,
-          label: "The guest album",
+          label: "The album",
           path: `/e/${DEMO_QR_TOKEN}`,
           note: "The demo album, logged out, as a guest gets it: the masonry on the well.",
         },
