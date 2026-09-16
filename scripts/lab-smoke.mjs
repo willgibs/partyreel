@@ -9,18 +9,31 @@
  *   pnpm lab:smoke [--key <key>]       # dev is open; a key proves it travels
  *   pnpm build && pnpm start && pnpm lab:smoke --production --key "$DESIGN_PREVIEW_KEY"
  *
+ * IT ALSO MEASURES THE READING (the revamp, 2026-09-16). Will's note on the
+ * palette board's fifth round was that it read like "a PhD on color theory",
+ * and no test could say so: a board's length is a property of the rendered
+ * page, not of any file. So every board page is weighed here, in the words a
+ * reviewer actually MEETS (what is inside a closed fold, or hidden, does not
+ * count, which is the whole point of folding it), against LIMITS.readingWords
+ * in board-spec.ts. A board that truly needs more says why in its spec
+ * (`reading: { words, why }`) and the smoke prints the reason.
+ *
  * `--production` adds the closed door (no key, wrong key: 404); `--base <origin>`
  * points elsewhere; `--timeout <ms>` widens the 20s a cold dev compile can
  * exceed; `--dry` prints the plan and fetches nothing. Exit 1 on any failure,
  * never a hang (every request is aborted at the timeout). Node builtins only:
  * the tables come out of src/app/(dev)/design/_data/legacy-routes.ts by regex,
  * because the file is data (legacy-routes.test.ts imports it for real and
- * holds every destination and traced glob against the disk).
+ * holds every destination and traced glob against the disk). The budget and the
+ * per-board overrides are read the same way, and `registry.test.ts` holds every
+ * spec to the real module.
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const DATA = "src/app/(dev)/design/_data/legacy-routes.ts";
+const SPEC = "src/components/lab/board-spec.ts";
+const SANDBOX_DIR = "src/app/(dev)/design/sandbox";
 // The crawl starts at the two areas, plus the two iframe scene routes an href
 // crawl can never reach (a board builds their src client-side, key included).
 const SEEDS = ["/design/library", "/design/lab"];
@@ -138,6 +151,196 @@ async function shellStyled(html) {
   return results.some(Boolean);
 }
 
+/* ── The reading budget (the revamp, 2026-09-16) ──────────────────────────── */
+
+/** The cap, read off board-spec.ts, which is where the density limits live. */
+function readBudget() {
+  const src = readFileSync(join(process.cwd(), SPEC), "utf8");
+  const n = Number(/readingWords:\s*(\d+)/.exec(src)?.[1]);
+  if (!Number.isFinite(n))
+    throw new Error(`could not read LIMITS.readingWords out of ${SPEC}`);
+  return n;
+}
+
+/** Every board directory with a spec, and the override that spec declares. */
+function readBoards() {
+  const dir = join(process.cwd(), SANDBOX_DIR);
+  const out = new Map();
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    let src = "";
+    try {
+      src = readFileSync(join(dir, entry.name, "spec.ts"), "utf8");
+    } catch {
+      continue;
+    }
+    const m =
+      /reading:\s*\{\s*words:\s*(\d+),\s*why:\s*"((?:[^"\\]|\\.)*)"/.exec(src);
+    out.set(entry.name, m ? { words: Number(m[1]), why: m[2] } : null);
+  }
+  return out;
+}
+
+const VOID = new Set([
+  "area",
+  "base",
+  "br",
+  "col",
+  "embed",
+  "hr",
+  "img",
+  "input",
+  "link",
+  "meta",
+  "param",
+  "source",
+  "track",
+  "wbr",
+]);
+const ENTITY = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+  rsquo: "’",
+  lsquo: "‘",
+  ldquo: "“",
+  rdquo: "”",
+  hellip: "…",
+  mdash: "—",
+  ndash: "–",
+};
+const decode = (t) =>
+  t
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) =>
+      String.fromCodePoint(parseInt(n, 16)),
+    )
+    .replace(/&([a-z]+);/gi, (m, name) => ENTITY[name.toLowerCase()] ?? m);
+
+/** The board's own root (`<div data-board="...">`), not the shell around it. */
+function boardRoot(html, id) {
+  const at = html.indexOf(`data-board="${id}"`);
+  if (at < 0) return null;
+  const open = html.lastIndexOf("<", at);
+  const tags = /<\/?([a-zA-Z][\w-]*)([^>]*)>/g;
+  tags.lastIndex = open;
+  let depth = 0;
+  let m;
+  while ((m = tags.exec(html)) !== null) {
+    const [tag, name, attrs] = m;
+    if (tag[1] === "/") {
+      depth--;
+      if (depth === 0) return html.slice(open, m.index);
+      continue;
+    }
+    if (!VOID.has(name.toLowerCase()) && !attrs.trimEnd().endsWith("/"))
+      depth++;
+  }
+  return html.slice(open);
+}
+
+/**
+ * The words a reader MEETS on a page: everything outside a closed `<details>`
+ * (its summary still counts, because that is the line he reads), outside
+ * anything `hidden` or `aria-hidden`, and outside script, style and template.
+ *
+ * ★ A SPECIMEN IS NOT PROSE, and this is the line that makes the budget mean
+ * anything. A board showing the real home page renders the home page's copy;
+ * the brand-voice board shows seven headers on purpose. Those are words to LOOK
+ * at, not words to read, so everything inside a stage (`data-stage-fit`), on a
+ * production ground (`data-ground`), inside a frame or inside a `<pre>` paste is excluded. What is left
+ * is the board's own voice: its answer, its ledes, its labels and its notes,
+ * which is exactly what "it reads like a PhD" was about.
+ *
+ * ★ AND A FOLD IS THE ANSWER, NOT A LOOPHOLE. The template already collapses a
+ * section's argument and a card's rationale, so a board that has done the work
+ * passes this without losing a word of what it knows; a board that puts the
+ * argument above the fold is the one this is for.
+ */
+export function visibleWords(html) {
+  const clean = html
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<template[\s\S]*?<\/template>/gi, " ");
+  const tags = /<\/?([a-zA-Z][\w-]*)([^>]*)>/g;
+  const out = [];
+  let depth = 0;
+  let last = 0;
+  let skip = null;
+  let summary = 0;
+  let m;
+  const take = (upto) => {
+    if (skip === null || summary > 0) out.push(clean.slice(last, upto));
+  };
+  while ((m = tags.exec(clean)) !== null) {
+    take(m.index);
+    last = m.index + m[0].length;
+    const [tag, raw, attrs] = m;
+    const name = raw.toLowerCase();
+    if (tag[1] === "/") {
+      if (name === "summary" && summary === depth) summary = 0;
+      depth--;
+      if (skip !== null && depth < skip) skip = null;
+      continue;
+    }
+    if (VOID.has(name) || attrs.trimEnd().endsWith("/")) continue;
+    depth++;
+    if (skip === null) {
+      const hidden =
+        /\shidden(?=[\s>=])/.test(attrs) || /aria-hidden="true"/.test(attrs);
+      const folded = name === "details" && !/\sopen(?=[\s>=])/.test(attrs);
+      // ★ NOT `data-ground`: BoardPage writes `data-<controlId>` on the board
+      // ROOT and three boards declare a control called `ground`, so keying off
+      // it blanked three whole boards to zero words.
+      const specimen =
+        name === "iframe" ||
+        /\sdata-stage-fit(?=[\s>=])/.test(attrs) ||
+        /\sdata-lab-specimen(?=[\s>=])/.test(attrs);
+      // A paste block (`<pre>`: the CSS a ruling would land) is copied, not
+      // read; the palette's weighed 695 words of tokens (2026-09-16).
+      const paste = name === "pre";
+      if (hidden || folded || specimen || paste) skip = depth;
+    } else if (name === "summary" && depth === skip + 1 && summary === 0) {
+      summary = depth;
+    }
+  }
+  take(clean.length);
+  return decode(out.join(" ")).split(/\s+/).filter(Boolean).length;
+}
+
+const reading = [];
+let over = 0;
+/** One board's page, weighed. `html` is the crawled response body. */
+function weigh(id, html, budget, override) {
+  const root = boardRoot(html, id);
+  if (root === null) {
+    reading.push([
+      id,
+      "-",
+      "-",
+      "no board root (a legacy board draws its own)",
+    ]);
+    return;
+  }
+  const words = visibleWords(root);
+  const cap = override?.words ?? budget;
+  const ok = words <= cap;
+  const note = override
+    ? `over ${budget} by declaration: ${override.why}`
+    : ok
+      ? ""
+      : "a paper: collapse the argument or cut it";
+  reading.push([id, String(words), String(cap), note]);
+  if (!ok) {
+    over++;
+    report(`/design/lab/${id} (reading)`, words, 0, `over ${cap} words`, false);
+  }
+}
+
 async function crawl() {
   const seen = new Set();
   const queue = [...SEEDS, ...SCENES];
@@ -157,6 +360,9 @@ async function crawl() {
       note = "no stylesheet with the shell (stale or missing design.css chunk)";
     }
     report(route, res.status, res.ms, note, ok);
+    const board = /^\/design\/lab\/([a-z0-9-]+)$/.exec(route)?.[1];
+    if (ok && board && boards.has(board))
+      weigh(board, res.html, budget, boards.get(board));
     // React writes `&` as `&amp;` inside attributes; fragments are dropped.
     for (const m of ok ? res.html.matchAll(/href="(\/design\/[^"#]*)/g) : [])
       queue.push(m[1].replace(/&amp;/g, "&"));
@@ -198,12 +404,28 @@ async function closedDoor(redirects) {
 }
 
 const HEAD = ["route", "status", "ms", "note"];
-function print() {
-  const w = (i) => Math.max(HEAD[i].length, ...rows.map((r) => r[i].length));
+const READ_HEAD = ["board", "words", "budget", "note"];
+function table(head, body) {
+  const w = (i) => Math.max(head[i].length, ...body.map((r) => r[i].length));
   const line = (r) =>
     `${r[0].padEnd(w(0))}  ${r[1].padEnd(w(1))}  ${r[2].padStart(w(2))}  ${r[3]}`;
-  for (const r of [HEAD, ...rows]) console.log(line(r));
-  console.log(`\n${rows.length} checks, ${failures} failing`);
+  for (const r of [head, ...body]) console.log(line(r));
+}
+function print() {
+  table(HEAD, rows);
+  if (reading.length) {
+    console.log(`\nthe reading, outside every closed fold (budget ${budget}):`);
+    table(READ_HEAD, reading);
+  }
+  // The two halves are said apart on purpose: a route that does not answer is
+  // broken, a board that reads long is work. Both fail the run.
+  const routes = failures - over;
+  console.log(
+    `\n${rows.length} checks, ${failures} failing` +
+      (over
+        ? ` (${routes} route${routes === 1 ? "" : "s"}, ${over} over the reading budget)`
+        : ""),
+  );
 }
 function plan(redirects, globs) {
   const say = (s) => console.log(s);
@@ -218,9 +440,16 @@ function plan(redirects, globs) {
     say(`\nclosed door (no key, wrong key -> 404): ${doorRoutes(redirects)}`);
   say(`\ntraced doc globs (${globs.length}), held to disk by the test:`);
   for (const g of globs) say(`  ${g}`);
+  say(`\nthe reading budget: ${budget} words outside every closed fold, on`);
+  for (const [id, override] of boards)
+    say(
+      `  ${id}${override ? ` (declares ${override.words}: ${override.why})` : ""}`,
+    );
 }
 
 const { redirects, globs } = readTables();
+const budget = readBudget();
+const boards = readBoards();
 if (dry) plan(redirects, globs);
 else {
   const seen = await crawl();

@@ -60,7 +60,6 @@ function pageFor(href: string): string | null {
     .filter(Boolean);
   const dynamic: Record<string, string> = {
     "library/rules": "[id]",
-    "library/record": "[id]",
     "library/doctrine": "[doc]",
     "lab/proposals": "[slug]",
     "lab/tracks": "[track]",

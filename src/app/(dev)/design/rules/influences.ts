@@ -417,7 +417,7 @@ function rulingInfluences(): Influence[] {
     source: "ts",
     author: "Will",
     summary: r.why,
-    visibleAt: `/design/library/record/${r.id}`,
+    visibleAt: r.board ? `/design/lab/${r.id}` : "/design/library/rulings",
     ruledOn: /^\d{4}-\d{2}-\d{2}$/.test(r.ruled) ? r.ruled : undefined,
     surface: r.surface,
     enforces: r.lives,

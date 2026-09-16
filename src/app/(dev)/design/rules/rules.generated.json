@@ -20,7 +20,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 47
+          "line": 49
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -28,7 +28,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 59
+          "line": 61
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -36,7 +36,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 64
+          "line": 66
         },
         {
           "title": "holds every string inside its limit",
@@ -44,7 +44,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 79
+          "line": 85
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -52,7 +52,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 140
+          "line": 149
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -60,7 +60,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 186
+          "line": 201
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -68,7 +68,15 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 241
+          "line": 264
+        },
+        {
+          "title": "wires every catalog to a section, a pick and two compare controls",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 285
         },
         {
           "title": "computes one anchor everywhere",
@@ -76,7 +84,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 254
+          "line": 342
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -84,7 +92,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 274
+          "line": 362
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -92,7 +100,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 284
+          "line": 372
         }
       ]
     },
@@ -146,7 +154,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 47
+          "line": 49
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -154,7 +162,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 59
+          "line": 61
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -162,7 +170,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 64
+          "line": 66
         },
         {
           "title": "holds every string inside its limit",
@@ -170,7 +178,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 79
+          "line": 85
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -178,7 +186,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 140
+          "line": 149
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -186,7 +194,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 186
+          "line": 201
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -194,7 +202,15 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 241
+          "line": 264
+        },
+        {
+          "title": "wires every catalog to a section, a pick and two compare controls",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 285
         },
         {
           "title": "computes one anchor everywhere",
@@ -202,7 +218,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 254
+          "line": 342
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -210,7 +226,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 274
+          "line": 362
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -218,7 +234,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 284
+          "line": 372
         }
       ]
     },
@@ -231,7 +247,8 @@
         "LIMITS"
       ],
       "specimens": [
-        "/design/lab"
+        "/design/lab",
+        "/design/lab/kit"
       ],
       "indexed": false,
       "contracts": [
@@ -241,7 +258,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 47
+          "line": 49
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -249,7 +266,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 59
+          "line": 61
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -257,7 +274,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 64
+          "line": 66
         },
         {
           "title": "holds every string inside its limit",
@@ -265,7 +282,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 79
+          "line": 85
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -273,7 +290,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 140
+          "line": 149
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -281,7 +298,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 186
+          "line": 201
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -289,7 +306,15 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 241
+          "line": 264
+        },
+        {
+          "title": "wires every catalog to a section, a pick and two compare controls",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 285
         },
         {
           "title": "computes one anchor everywhere",
@@ -297,7 +322,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 254
+          "line": 342
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -305,7 +330,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 274
+          "line": 362
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -313,7 +338,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 284
+          "line": 372
         }
       ]
     },
@@ -333,7 +358,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 75
+          "line": 79
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -341,7 +366,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 93
+          "line": 97
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -349,7 +374,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 105
+          "line": 109
         },
         {
           "title": "is never also on the legacy list",
@@ -357,7 +382,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 113
+          "line": 117
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -365,7 +390,171 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 118
+          "line": 122
+        }
+      ]
+    },
+    {
+      "id": "catalog",
+      "file": "src/components/lab/catalog.tsx",
+      "names": [
+        "Catalog",
+        "VerdictPill"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws one card per declared candidate, with its own line and verdict",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 116
+        },
+        {
+          "title": "folds the rationale away, because a catalog is read by looking",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 132
+        },
+        {
+          "title": "marks the preview a specimen, so the reading budget counts what is read",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 139
+        },
+        {
+          "title": "picks into the board's declared control, never into the card",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 148
+        },
+        {
+          "title": "unpicks the picked card back to a clearable control's default",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 156
+        },
+        {
+          "title": "puts a card on either side of the comparison below",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 164
+        },
+        {
+          "title": "rules a card where it stands, under the board's own round",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 180
+        },
+        {
+          "title": "links a card to the Library only once its entry really exists",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 190
+        },
+        {
+          "title": "draws nothing at all for a board that declares no catalog",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 197
+        }
+      ]
+    },
+    {
+      "id": "compare-two",
+      "file": "src/components/lab/compare-two.tsx",
+      "names": [
+        "CompareTwo",
+        "SpotCompare"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "resolves A and B from the board's declared controls",
+          "suite": [
+            "any two, side by side"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 66
+        },
+        {
+          "title": "falls back to each control's declared default",
+          "suite": [
+            "any two, side by side"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 78
+        },
+        {
+          "title": "says what differs, from the cards' own lines when none is given",
+          "suite": [
+            "any two, side by side"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 83
+        },
+        {
+          "title": "draws a thing against itself ONCE, and says how to bring the seam back",
+          "suite": [
+            "any two, side by side"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "renders nothing for a board that declares no compare controls",
+          "suite": [
+            "any two, side by side"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 104
+        },
+        {
+          "title": "draws every spot twice, once under each side",
+          "suite": [
+            "the same places, under two cards"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "names each place, so a spot is judged where it lives",
+          "suite": [
+            "the same places, under two cards"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 137
+        },
+        {
+          "title": "draws one copy of a place when A and B name the same card",
+          "suite": [
+            "the same places, under two cards"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 149
         }
       ]
     },
@@ -392,7 +581,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 75
+          "line": 79
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -400,7 +589,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 93
+          "line": 97
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -408,7 +597,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 105
+          "line": 109
         },
         {
           "title": "is never also on the legacy list",
@@ -416,7 +605,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 113
+          "line": 117
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -424,7 +613,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 118
+          "line": 122
         }
       ]
     },
@@ -490,11 +679,14 @@
         "BuilderVerdict",
         "CANVAS",
         "Candidate",
+        "Catalog",
+        "CatalogRenderArgs",
         "CatalogSpec",
         "Cell",
         "CellLabel",
         "Compare",
         "CompareMode",
+        "CompareTwo",
         "ConceptCard",
         "Control",
         "ControlKnobs",
@@ -509,8 +701,10 @@
         "FrameProps",
         "FrameRow",
         "Ground",
+        "GroundBox",
         "ITEM_VERDICTS",
         "ItemVerdict",
+        "ItemVerdictRow",
         "Knob",
         "LIBRARY_VERDICTS",
         "LIMITS",
@@ -535,11 +729,14 @@
         "SectionIdOf",
         "SelectTable",
         "Specimen",
+        "Spot",
+        "SpotCompare",
         "Stage",
         "TRAPS",
         "Toggle",
         "Trap",
         "Verdict",
+        "VerdictPill",
         "Walk",
         "WalkPage",
         "WalkPages"
@@ -570,6 +767,75 @@
           ],
           "file": "src/components/lab/boundary.test.ts",
           "line": 88
+        }
+      ]
+    },
+    {
+      "id": "item-verdict",
+      "file": "src/components/lab/item-verdict.tsx",
+      "names": [
+        "ItemVerdictRow"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "offers exactly the vocabulary it is handed",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 34
+        },
+        {
+          "title": "takes the Library's own ladder as a prop, so one row serves both",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "holds a verdict under the ledger's own key",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 63
+        },
+        {
+          "title": "carries the note with the verdict",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 71
+        },
+        {
+          "title": "clears on a second press and keeps the note",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 85
+        },
+        {
+          "title": "presses exactly one word at a time",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 98
+        },
+        {
+          "title": "writes into the same store the Library line is composed from",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 110
         }
       ]
     },
@@ -649,7 +915,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 127
+          "line": 174
         },
         {
           "title": "marks the option the board recommends, and only that one",
@@ -657,15 +923,15 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 138
+          "line": 185
         },
         {
-          "title": "counts the ask across the whole queue, not this board's share",
+          "title": "counts the step across the whole queue, not this board's share",
           "suite": [
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 145
+          "line": 192
         },
         {
           "title": "holds a pick where the desk's summary reads it",
@@ -673,7 +939,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 150
+          "line": 197
         },
         {
           "title": "carries the note with the answer",
@@ -681,7 +947,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 166
+          "line": 213
         },
         {
           "title": "sets the board's control when the ask names one, so a pick is a preview",
@@ -689,7 +955,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 179
+          "line": 226
         },
         {
           "title": "leaves the board alone when the ask names no control",
@@ -697,7 +963,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 189
+          "line": 236
         },
         {
           "title": "applies the ask's declared state on landing",
@@ -705,7 +971,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 197
+          "line": 244
         },
         {
           "title": "records 'not clear to me' as an answer and puts the cursor in the note",
@@ -713,7 +979,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 203
+          "line": 250
         },
         {
           "title": "steps inside a board without navigating",
@@ -721,7 +987,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 212
+          "line": 259
         },
         {
           "title": "links the last ask of a board to the next board's first open ask",
@@ -729,7 +995,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 219
+          "line": 266
         },
         {
           "title": "links the last ask of the queue to the desk's summary",
@@ -737,7 +1003,15 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 227
+          "line": 274
+        },
+        {
+          "title": "clears a pick on a second press, and keeps the note",
+          "suite": [
+            "the review card"
+          ],
+          "file": "src/components/lab/review-card.test.tsx",
+          "line": 282
         },
         {
           "title": "renders nothing for a session on another board",
@@ -745,7 +1019,7 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 235
+          "line": 293
         },
         {
           "title": "renders nothing when no session names an ask",
@@ -753,7 +1027,39 @@
             "the review card"
           ],
           "file": "src/components/lab/review-card.test.tsx",
-          "line": 240
+          "line": 298
+        },
+        {
+          "title": "names the section and how many cards are in it",
+          "suite": [
+            "the review card on a catalog"
+          ],
+          "file": "src/components/lab/review-card.test.tsx",
+          "line": 305
+        },
+        {
+          "title": "counts the verdicts as they land, and they are not on the card",
+          "suite": [
+            "the review card on a catalog"
+          ],
+          "file": "src/components/lab/review-card.test.tsx",
+          "line": 312
+        },
+        {
+          "title": "fills Next only once every card has a verdict",
+          "suite": [
+            "the review card on a catalog"
+          ],
+          "file": "src/components/lab/review-card.test.tsx",
+          "line": 319
+        },
+        {
+          "title": "steps on to the board's first ask without navigating",
+          "suite": [
+            "the review card on a catalog"
+          ],
+          "file": "src/components/lab/review-card.test.tsx",
+          "line": 336
         }
       ]
     },
@@ -777,7 +1083,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 75
+          "line": 79
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -785,7 +1091,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 93
+          "line": 97
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -793,7 +1099,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 105
+          "line": 109
         },
         {
           "title": "is never also on the legacy list",
@@ -801,7 +1107,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 113
+          "line": 117
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -809,7 +1115,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 118
+          "line": 122
         }
       ]
     },

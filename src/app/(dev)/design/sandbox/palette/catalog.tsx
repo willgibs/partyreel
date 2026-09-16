@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Check, Ellipsis } from "lucide-react";
+import { Ellipsis } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,10 +25,7 @@ import { Input } from "@/components/ui/input";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
-import { optionId, optionMeans } from "@/components/lab/board-spec";
-
-import { PALETTES, resolvePalette, type PaletteDef } from "./palettes";
-import { PALETTE } from "./spec";
+import { resolvePalette } from "./palettes";
 import {
   GROUND_CLASS,
   pairStyle,
@@ -62,21 +59,15 @@ import {
  * transition would be twelve things changing colour at once, which is the exact
  * failure a catalog exists to avoid. The only motion in here is the production
  * components' own press feedback and the menu's own entrance.
+ *
+ * ★ THE GRID AND THE CARD LEFT THIS FILE (the revamp, 2026-09-16). What was
+ * proven here is now the kit's `Catalog`: the name with its dot, the builder's
+ * pill, the one line, the facts, the folded rationale, Pick, A, B and the
+ * reviewer's verdict row, on the `.lab-catalog` grid. This file keeps the one
+ * thing that is genuinely this board's, the PREVIEW: a palette painted on its
+ * own scoped tokens, which no other board can borrow because no other board
+ * has palettes. That is the shape every catalog board takes from here.
  */
-
-/**
- * A CARD'S ONE LINE, read off the ask it belongs to. The twelve `means` lines in
- * `spec.ts` are what a reviewer sees on the desk and on the review card, so the
- * card on the board has to say the same words or the catalog and the question
- * are two different catalogs. Joined on the option id, which is the ledger's own
- * join.
- */
-const LINES = new Map(
-  (PALETTE.asks.find((a) => a.id === "palette")?.options ?? []).map((o) => [
-    optionId(o),
-    optionMeans(o) ?? "",
-  ]),
-);
 
 /* ── The scoped panel ───────────────────────────────────────────────────── */
 
@@ -407,83 +398,41 @@ function DemoPanel({
   );
 }
 
-/* ── The card ───────────────────────────────────────────────────────────── */
+/* ── The preview ────────────────────────────────────────────────────────── */
 
 /**
- * ONE PALETTE, WHOLE. The name and the line first, because that is what a
- * reviewer reads; then the face; then the same product fragment in both modes,
- * which is what makes twelve of these comparable at a glance.
+ * ONE PALETTE'S FACE AND ITS DEMO, which is what the kit's `Catalog` mounts as
+ * a card's preview.
  *
- * The whole card is the control. Picking it sets the dock, so the pages below
- * reload on it: a catalog where a card is a picture and the selection lives
- * somewhere else is two things to keep in your head instead of one.
+ * The order is the argument in one object: the strip first (every ground the
+ * palette declares, deepest to brightest, with the accent and the states under
+ * it), then the SAME product fragment in dark beside light, which is what makes
+ * twelve of these comparable at a glance rather than twelve pictures.
+ *
+ * ★ IT PAINTS ITS OWN GROUND, so the kit's Catalog is given no `ground` prop.
+ * A stock production ground is the right default for a board judging shapes;
+ * this board is judging the grounds themselves, so every panel in here carries
+ * its candidate's tokens and its own theme class.
  */
-function CatalogCard({
-  def,
+export function PalettePreview({
+  id,
   cardMode,
   faint,
-  picked,
-  onPick,
 }: {
-  def: PaletteDef;
+  /** The candidate's id, which is the palette's. */
+  id: string;
   cardMode: CardMode;
   faint: boolean;
-  picked: boolean;
-  onPick: () => void;
 }) {
-  const { pair: raw, accent } = resolvePalette(def.id);
+  const { def, pair: raw, accent } = resolvePalette(id);
   const pair = resolvePair(raw, cardMode, faint);
   return (
-    <div
-      // ★ NOT `data-palette`: BoardPage writes `data-<controlId>` on the board
-      // ROOT for every declared control, and this board's control is called
-      // `palette`. A card wearing the same attribute makes any sheet selecting
-      // on [data-palette="ember"] hit thirteen elements, twelve of them cards.
-      data-pal-card={def.id}
-      data-picked={picked ? "true" : undefined}
-      className={cn(
-        "flex min-w-0 flex-col gap-3 rounded-xl border p-3",
-        picked
-          ? "border-foreground/40 bg-muted/40"
-          : "border-border bg-background",
-      )}
-    >
-      <div className="flex min-w-0 items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-sm leading-none font-medium">
-            {def.name}
-            {def.recommended ? (
-              <span
-                className="inline-block size-1.5 rounded-full bg-foreground"
-                title="The board's own pick"
-              />
-            ) : null}
-          </p>
-          <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
-            {LINES.get(def.id)}
-          </p>
-          <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground/70">
-            {def.why}
-          </p>
-        </div>
-        <Button
-          size="xs"
-          variant={picked ? "default" : "outline"}
-          onClick={onPick}
-          aria-pressed={picked}
-          className="shrink-0"
-        >
-          {picked ? <Check /> : null}
-          {picked ? "Picked" : "Pick"}
-        </Button>
-      </div>
-
+    <div className="flex flex-col gap-3">
       <SwatchStrip
         pair={pair}
         accentDark={accent.dark}
         accentLight={accent.light}
       />
-
       <div className="flex min-w-0 gap-2">
         <DemoPanel
           pair={pair}
@@ -500,48 +449,6 @@ function CatalogCard({
           name={def.name}
         />
       </div>
-    </div>
-  );
-}
-
-/**
- * The twelve, in one grid: four across at the review width, three on a narrower
- * window, two on a tablet, one on a phone. The catalog is the board's own
- * content rather than a Stage, so a real breakpoint is honest here (inside a
- * Stage it would not be).
- *
- * ★ THE COLUMNS ARE IN `board.css`, NOT IN TAILWIND CLASSES, and this is the
- * lab-sheet landmine biting in a new place. The lab compiles its utilities into
- * `layer(utilities.lab)`, a SUB-layer of `utilities`, so any rule production
- * already emits outranks a lab-only one on the same element whatever the
- * breakpoint. `lg:grid-cols-3` is in production's sheet and `xl:grid-cols-4` is
- * lab-only, so the pair silently laid three columns at 1440 with both variants
- * matching. The board's own sheet is unlayered and settles it.
- */
-export function Catalog({
-  picked,
-  cardMode,
-  faint,
-  onPick,
-}: {
-  /** The picked palette's id, or null while nothing is picked. */
-  picked: string | null;
-  cardMode: CardMode;
-  faint: boolean;
-  onPick: (id: string) => void;
-}) {
-  return (
-    <div data-pal-catalog className="grid gap-3">
-      {PALETTES.map((p) => (
-        <CatalogCard
-          key={p.id}
-          def={p}
-          cardMode={cardMode}
-          faint={faint}
-          picked={p.id === picked}
-          onPick={() => onPick(p.id)}
-        />
-      ))}
     </div>
   );
 }

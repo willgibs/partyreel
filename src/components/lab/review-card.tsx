@@ -19,6 +19,8 @@ import {
 } from "@/app/(dev)/design/(shell)/lab/_desk/review-store";
 import {
   SESSION_END,
+  stepDone,
+  stepHeld,
   type SessionStep,
   stepParam,
   UNCLEAR,
@@ -60,6 +62,13 @@ import { scrollToSection, useDesignKey } from "./walk";
  * composes nothing and appends nothing; `pnpm lab:review` is the only thing
  * that touches docs/reviews/.
  *
+ * ★ A CATALOG IS ONE STEP, AND THE CARD STAYS OUT OF ITS WAY (the revamp,
+ * 2026-09-16). An items step says what to rule on, counts the verdicts as they
+ * land and fills Next when every card has one; it renders no controls of its
+ * own, because the controls belong on the cards in the catalog underneath. A
+ * sticky card that listed twelve palettes with three buttons each would cover
+ * the twelve palettes.
+ *
  * Keys: 1..9 picks, Enter and the arrows step, Escape lets the note go. It
  * registers with `review-keys.ts` exactly as the desk's session does, so the
  * two can never both hold a key.
@@ -73,7 +82,7 @@ export function ReviewCard({
 }: {
   /** The board this card is mounted on; a step for any other board renders nothing. */
   boardId: string;
-  /** The WHOLE open queue, so "Ask N of M" counts the review and Next can cross. */
+  /** The WHOLE open queue, so "Step N of M" counts the review and Next can cross. */
   steps: readonly SessionStep[];
   /** The `session` value the server read, so the first paint is the right step. */
   param: string | null;
@@ -99,9 +108,10 @@ export function ReviewCard({
   // renders it, not this one.
   const mine = step?.board === boardId;
 
-  const held = step
-    ? store.answers[holdId(step.board, step.round, step.askId)]
-    : undefined;
+  const held =
+    step?.kind === "ask"
+      ? store.answers[holdId(step.board, step.round, step.askId)]
+      : undefined;
   const choice = held?.choice ?? "";
 
   /* ── what Next and Back reach ─────────────────────────────────────────── */
@@ -140,12 +150,12 @@ export function ReviewCard({
   /* ── the answers ──────────────────────────────────────────────────────── */
 
   const write = (patch: { note: string }) => {
-    if (!step) return;
+    if (step?.kind !== "ask") return;
     setAnswerNote(step.board, step.round, step.askId, patch.note);
   };
 
   const pick = (id: string) => {
-    if (!step) return;
+    if (step?.kind !== "ask") return;
     // A second click on the picked option clears it (the store's one toggle
     // rule); only a SET previews. The pick IS the preview: an ask that names
     // a control shares its option ids with it, so choosing puts the board in
@@ -203,7 +213,14 @@ export function ReviewCard({
   const onKey = (pressed: string): boolean => {
     if (!step || !mine) return false;
     const n = Number(pressed);
-    if (Number.isInteger(n) && n >= 1 && n <= step.options.length) {
+    // A digit on an items step does nothing: the verdicts are on the cards,
+    // and nine of twelve would be an arbitrary half of a catalog.
+    if (
+      step.kind === "ask" &&
+      Number.isInteger(n) &&
+      n >= 1 &&
+      n <= step.options.length
+    ) {
       pick(step.options[n - 1].id);
       setOpen(true);
       return true;
@@ -260,18 +277,21 @@ export function ReviewCard({
   if (!step || !mine) return null;
 
   const section = step.section;
-  const unclear = choice === UNCLEAR;
-  const picked = step.options.find((o) => o.id === choice);
-  const done = steps.filter(
-    (s) => store.answers[holdId(s.board, s.round, s.askId)]?.choice,
-  ).length;
+  const unclear = step.kind === "ask" && choice === UNCLEAR;
+  const picked =
+    step.kind === "ask" ? step.options.find((o) => o.id === choice) : undefined;
+  // One derivation for all three counts (session-step.ts), so the card, the
+  // desk's progress and "carry on" can never disagree about what is finished.
+  const here = stepHeld(step, store);
+  const filled = stepDone(step, store);
+  const done = steps.filter((s) => stepDone(s, store)).length;
 
   return (
     <div
       ref={ref}
       data-review-card
       role="region"
-      aria-label={`${step.boardTitle}: the ask being reviewed`}
+      aria-label={`${step.boardTitle}: the step being reviewed`}
       className={cn(
         // ★ THE NEGATIVE TOP MARGIN EATS THE TEMPLATE'S `gap-10`. The card and
         // the dock are two sticky layers that have to meet with no seam, and
@@ -286,7 +306,7 @@ export function ReviewCard({
       {/* The spine: where you are, and the way on. It survives the collapse. */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <span className="text-[11px] text-muted-foreground tabular-nums">
-          Ask {at + 1} of {steps.length}
+          Step {at + 1} of {steps.length}
         </span>
         <span className="hidden text-[11px] text-muted-foreground sm:inline">
           {step.boardTitle}
@@ -303,8 +323,13 @@ export function ReviewCard({
           </span>
         )}
         <span className="ml-auto flex flex-wrap items-center gap-1.5">
+          {step.kind === "items" && (
+            <span className="text-[11px] text-muted-foreground tabular-nums">
+              {here.held} of {here.of} ruled
+            </span>
+          )}
           <span className="text-[11px] text-muted-foreground tabular-nums">
-            {done} answered
+            {done} done
           </span>
           <Step
             dir="back"
@@ -315,7 +340,7 @@ export function ReviewCard({
             dir="next"
             href={hrefOf(hop(at + 1))}
             onGo={() => goTo(at + 1)}
-            filled={Boolean(choice)}
+            filled={filled}
           />
           <button
             type="button"
@@ -323,7 +348,11 @@ export function ReviewCard({
             onClick={() => setOpen((o) => !o)}
             className={DOCK_PILL}
           >
-            {open ? "Collapse" : "The ask"}
+            {open
+              ? "Collapse"
+              : step.kind === "items"
+                ? "The catalog"
+                : "The ask"}
           </button>
         </span>
       </div>
@@ -340,10 +369,40 @@ export function ReviewCard({
             !open && "truncate",
           )}
         >
-          {step.question}
+          {step.kind === "items"
+            ? `Rule on the ${step.items.length} in ${step.sectionTitle}`
+            : step.question}
         </h2>
 
-        {open && (
+        {/* ── A CATALOG: the card says what to do and gets out of the way ── */}
+        {open && step.kind === "items" && (
+          <>
+            <p className="mt-1 max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
+              Keep, refine or kill each card in the grid below, with a note
+              where the word is not enough. A second press on the same word
+              clears it; the note stays. Next fills once every card has a
+              verdict, and an unruled card is simply left out of the message.
+            </p>
+            {section && (
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                <span className="font-medium text-foreground/80">
+                  Where to look:{" "}
+                </span>
+                {step.sectionTitle}, under this card.
+                <button
+                  type="button"
+                  onClick={() => scrollToSection(boardId, section)}
+                  className="ml-1 font-medium text-foreground underline decoration-foreground/30 underline-offset-2 transition-colors duration-150 hover:decoration-foreground motion-reduce:transition-none"
+                >
+                  Take me there
+                </button>
+              </p>
+            )}
+          </>
+        )}
+
+        {/* ── AN ASK: the question, the options in words, the note ───────── */}
+        {open && step.kind === "ask" && (
           <>
             {step.context && (
               <p className="mt-1 max-w-3xl text-[11px] leading-relaxed text-muted-foreground">

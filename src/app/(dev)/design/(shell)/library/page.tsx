@@ -162,12 +162,9 @@ export default async function LibraryHomePage({
           </Ref>
           ,{" "}
           <Ref to={{ kind: "doc", doc: "design-system" }}>the system docs</Ref>,{" "}
+          and{" "}
           <Ref to={{ kind: "page", href: "/design/library/rulings" }}>
             Will&rsquo;s rulings
-          </Ref>{" "}
-          and{" "}
-          <Ref to={{ kind: "page", href: "/design/library/record" }}>
-            the record
           </Ref>
           .
         </p>

@@ -38,7 +38,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * THE BLOG INDEX (the composite Will ruled on 2026-08-28, from the four blog-identity lab
- * directions, on the record at docs/decisions/design-record.md#blog-identity): the Cutting Room as the base, the Broadsheet's small masthead and drawn rule as the
+ * directions, on the record at git show 3ffe0d56:docs/decisions/design-record.md, #blog-identity): the Cutting Room as the base, the Broadsheet's small masthead and drawn rule as the
  * page intro (reading "Blog", his word), the margin index made STICKY, and the library as a two-
  * to-three column wall of media-forward cards instead of full-width slabs.
  *

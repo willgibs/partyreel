@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { composeBoardLine, composeMessage, quoteNote } from "./review-message";
+import {
+  composeBoardLine,
+  composeLibraryLine,
+  composeMessage,
+  quoteNote,
+} from "./review-message";
 
 /**
  * THE GRAMMAR, from the composing side (the Library x Lab round, 2026-09-15).
@@ -27,7 +32,15 @@ describe("the review message", () => {
       composeBoardLine(
         "light",
         4,
-        [{ board: "light", round: 4, ask: "aurora", choice: "yes", note: "on paper too" }],
+        [
+          {
+            board: "light",
+            round: 4,
+            ask: "aurora",
+            choice: "yes",
+            note: "on paper too",
+          },
+        ],
         [{ board: "light", round: 4, text: "read the whole board first" }],
       ),
     ).toBe(
@@ -48,7 +61,15 @@ describe("the review message", () => {
       composeBoardLine(
         "light",
         4,
-        [{ board: "light", round: 4, ask: "aurora", choice: "yes", note: "   " }],
+        [
+          {
+            board: "light",
+            round: 4,
+            ask: "aurora",
+            choice: "yes",
+            note: "   ",
+          },
+        ],
         [{ board: "light", round: 4, text: "" }],
       ),
     ).toBe("review light r4: aurora=yes");
@@ -63,5 +84,81 @@ describe("the review message", () => {
     expect(
       composeMessage([], [{ board: "light", round: 4, text: "not yet" }]),
     ).toBe('review light r4: note: "not yet"');
+  });
+});
+
+describe("a catalog's rulings", () => {
+  it("writes the asks, then the items, then the board note", () => {
+    expect(
+      composeBoardLine(
+        "palette",
+        6,
+        [{ board: "palette", round: 6, ask: "reach", choice: "all" }],
+        [{ board: "palette", round: 6, text: "read the twelve first" }],
+        [
+          { board: "palette", round: 6, item: "ember", verdict: "keep" },
+          {
+            board: "palette",
+            round: 6,
+            item: "dusk",
+            verdict: "kill",
+            note: "the page stays white",
+          },
+        ],
+      ),
+    ).toBe(
+      'review palette r6: reach=all; item:ember=keep; item:dusk=kill "the page stays white"; note: "read the twelve first"',
+    );
+  });
+
+  it("prefixes every item, so an ask and a card may share a word", () => {
+    // `palette` is an ask id AND could be a candidate id; without the prefix
+    // the ledger could never tell the two apart.
+    expect(
+      composeBoardLine(
+        "palette",
+        6,
+        [{ board: "palette", round: 6, ask: "palette", choice: "ember" }],
+        [],
+        [{ board: "palette", round: 6, item: "palette", verdict: "keep" }],
+      ),
+    ).toBe("review palette r6: palette=ember; item:palette=keep");
+  });
+
+  it("carries a board that was only ruled on, never answered", () => {
+    expect(
+      composeMessage(
+        [],
+        [],
+        [{ board: "palette", round: 6, item: "ember", verdict: "refine" }],
+      ),
+    ).toBe("review palette r6: item:ember=refine");
+  });
+});
+
+describe("the Library's line", () => {
+  it("names the entries and their verdicts, with no round", () => {
+    expect(
+      composeLibraryLine([
+        { entry: "masonry", verdict: "redesign", note: "the columns fight" },
+        { entry: "button", verdict: "keep" },
+      ]),
+    ).toBe('review library: masonry=redesign "the columns fight"; button=keep');
+  });
+
+  it("is empty when nothing was ruled, and drops an entry with no verdict", () => {
+    expect(composeLibraryLine([])).toBe("");
+    expect(composeLibraryLine([{ entry: "button", verdict: "" }])).toBe("");
+  });
+
+  it("comes last in a session, after every board", () => {
+    expect(
+      composeMessage(
+        [{ board: "light", round: 4, ask: "aurora", choice: "yes" }],
+        [],
+        [],
+        [{ entry: "masonry", verdict: "retire" }],
+      ),
+    ).toBe("review light r4: aurora=yes\nreview library: masonry=retire");
   });
 });

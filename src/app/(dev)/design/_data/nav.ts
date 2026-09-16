@@ -9,7 +9,7 @@ import {
 } from "../gallery/registry";
 import { COMPONENTS, componentTitle } from "../rules/rules";
 import { boardSpec } from "../sandbox/registry";
-import { RULINGS, SANDBOX, SURFACE_LABEL, type Surface } from "../touchpoints";
+import { SANDBOX, SURFACE_LABEL, type Surface } from "../touchpoints";
 import { flatten, type Nav, type NavItem, type NavSection } from "./catalog";
 import {
   DOCS,
@@ -232,17 +232,6 @@ export async function buildNav(): Promise<Nav> {
           ],
         },
         ...families,
-        {
-          id: "history",
-          label: "History",
-          items: [
-            {
-              href: "/design/library/record",
-              label: "The record",
-              note: "Every ruling: what was decided, where it lives now.",
-            },
-          ],
-        },
       ],
     },
     {
@@ -294,7 +283,7 @@ export async function buildNav(): Promise<Nav> {
           items: [
             {
               href: "/design/lab/kit",
-              label: "The lab kit",
+              label: "The toolbox",
               note: "The pieces every board composes: the dock, the stage, the frame, the compare.",
             },
           ],
@@ -418,18 +407,6 @@ export function buildSearchIndex(nav: Nav): SearchIndex {
       );
     });
   }
-
-  for (const r of RULINGS)
-    out.push(
-      entry(
-        "record",
-        r.id,
-        r.title,
-        `/design/library/record/${r.id}`,
-        r.shipped ?? r.why,
-        [SURFACE_LABEL[r.surface], r.ruled],
-      ),
-    );
 
   for (const doc of INDEXED_DOCS) {
     const { path, title } = DOCS[doc];

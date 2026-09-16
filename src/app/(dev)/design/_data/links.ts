@@ -47,8 +47,6 @@ export type LabRef =
   | { kind: "component"; id: string; anchor?: ComponentAnchor }
   /** A standing board (touchpoints.ts SandboxId). */
   | { kind: "board"; id: string; anchor?: string }
-  /** A ruling's record entry (touchpoints.ts RulingId). */
-  | { kind: "record"; id: string }
   /** One of the five doctrine documents the library renders. */
   | { kind: "doc"; doc: LabDoc; anchor?: string }
   /** docs/specs/<slug>.md */
@@ -86,7 +84,6 @@ export const DOC_FILES: Record<LabDoc, string> = {
  */
 export { POLICY_TESTS };
 
-const RECORD_FILE = "docs/decisions/design-record.md";
 const RULINGS_FILE = "docs/design/rulings.md";
 const GUIDANCE_FILE = "docs/design/guidance.md";
 const BIBLE_FILE = "src/app/(dev)/design/rules/bible.ts";
@@ -146,7 +143,6 @@ function splitFragment(text: string): [string, string | undefined] {
  *   policy:<id>                          policy
  *   /design/c/<id> · /design/lab/<id>    board, when <id> is a standing board; else page
  *   /…                                   page, as is
- *   docs/decisions/design-record.md[#id] record (or the record page with no id)
  *   the five doctrine files[#anchor]     doc
  *   docs/design/rulings.md#<slug>        ruling (the rulings page with no slug)
  *   docs/design/guidance.md[#anchor]     guidance
@@ -194,11 +190,6 @@ export function parseRef(input: string): LabRef {
   }
 
   const [path, fragment] = splitFragment(text);
-
-  if (path === RECORD_FILE)
-    return fragment
-      ? { kind: "record", id: fragment }
-      : { kind: "page", href: "/design/library/record" };
 
   const doc = DOC_BY_FILE.get(path);
   if (doc) return anchored({ kind: "doc", doc }, fragment);
@@ -259,8 +250,6 @@ export function hrefFor(ref: LabRef): string | null {
       return `/design/library/${ref.id}${hash(ref.anchor)}`;
     case "board":
       return `/design/lab/${ref.id}${hash(ref.anchor)}`;
-    case "record":
-      return `/design/library/record/${ref.id}`;
     case "doc":
       return `/design/library/doctrine/${ref.doc}${hash(ref.anchor)}`;
     case "proposal":
@@ -297,8 +286,6 @@ export function labelFor(ref: LabRef): string {
       return `${ref.id}${hash(ref.anchor)}`;
     case "board":
       return `board ${ref.id}${hash(ref.anchor)}`;
-    case "record":
-      return `record ${ref.id}`;
     case "doc":
       return `${ref.doc}${hash(ref.anchor)}`;
     case "proposal":
@@ -328,11 +315,9 @@ export function fileFor(ref: LabRef): string | null {
     case "component":
       return COMPONENT_BY_ID.get(ref.id) ?? null;
     case "board":
-      // A standing board's page IS its file set (sandbox/<id>/); the record
-      // holds the ruling, so the board ref has no single file.
+      // A standing board's page IS its file set (sandbox/<id>/); its ruling
+      // is verbatim in docs/design/rulings.md, so the board ref has no single file.
       return null;
-    case "record":
-      return RECORD_FILE;
     case "doc":
       return DOC_FILES[ref.doc];
     case "proposal":

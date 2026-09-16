@@ -131,6 +131,13 @@ export type Candidate<SectionId extends string = string> = {
   verdict?: BuilderVerdict;
   /** The Moment card's facts, generalised: label and value pairs under the preview. */
   facts?: readonly (readonly [string, string])[];
+  /**
+   * The Library entry this card became, once it has one: the component id, the
+   * last segment of its /design/library URL. A kept idea is promoted to the
+   * Library (Will, 2026-09-16), and the card then carries the link so the
+   * catalog says where the ruling went rather than sitting there as history.
+   */
+  library?: string;
   /** The hero concept contract, folded in: a candidate can carry its own copy proposal. */
   proposed?: {
     eyebrow?: string;
@@ -209,8 +216,6 @@ export type WalkPage = { label: string; path: string; note?: string };
 export type BoardLinks = {
   /** The bible rules in play, by number. */
   bible: readonly number[];
-  /** Defaults to docs/decisions/design-record.md#<id>. */
-  record?: string;
   /** Defaults to docs/tracks/<id>.md. */
   track?: string;
   /** docs/specs/<id>.md when one exists. */
@@ -237,6 +242,13 @@ export type BoardSpec<S extends readonly Section[] = readonly Section[]> = {
   assets: readonly Asset[];
   sections: S;
   catalog?: CatalogSpec<S[number]["id"]>;
+  /**
+   * A board that truly needs more words than `LIMITS.readingWords` says WHY
+   * here, and `pnpm lab:smoke` prints the reason instead of failing it. A
+   * budget with no escape hatch gets gamed by moving prose into an image; one
+   * that asks for a sentence gets thought about.
+   */
+  reading?: { words: number; why: string };
   controls?: readonly Control[];
   lookFirst?: readonly LookFirst<S[number]["id"]>[];
   notes?: readonly Note<S[number]["id"]>[];

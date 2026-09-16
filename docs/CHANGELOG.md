@@ -9,6 +9,73 @@
 
 ---
 
+## 2026-09-16 — The revamp, in progress: the lab that works, the loop as the rulebook, the record two rounds deep (`5cdebfe0` onward)
+
+Will opened his review of the clarity round on localhost and found the lab "super broken": the
+sidebar as a full-width block at the top of every page, "On this page" a section above the title,
+1:1 canvases boxed in a centred column, the dock not sticky, a pick that could not be unpicked. Behind
+the bug was the finding that matters: the tracks "are turning into massively over-engineered pages"
+when he wanted "design catalogs of ideas to ship in the lab" to kill, refine or promote to the
+Library; agents run two and three rounds without his notes "made research papers out of their first
+round's work"; and the repo "over-indexes archival documentation". The plan he approved runs four
+rounds: the lab, the docs diet and the track protocol, the Library as the complete inventory, the six
+paper boards rebuilt as catalogs. His directive is verbatim in `docs/design/rulings.md` (2026-09-16).
+
+**Round 1, the lab.** The layout faults were a browser holding an old copy of the lab's stylesheet
+(Turbopack names dev chunks by path) and, once, the dev server's own cache serving the old chunk after
+an edit. The foundation (`5cdebfe0`): `LabChrome` reads `--lab-css-generation` off `.lab-shell` after
+mount, reloads once in development and otherwise shows a strip naming both causes;
+`lab-css-generation.ts` holds the number `design.css` declares and a test keeps them equal;
+`pnpm lab:smoke` refuses a lab page whose stylesheet set lacks the shell; a second click on any pick
+clears it, through one set of writers in `review-store.ts` that every surface uses; a wide page's
+stages and frame rows take the gutter back at 1:1 (`data-lab-bleed`); `board-spec.ts` gained the
+catalog's shared types (`ITEM_VERDICTS`, `LIBRARY_VERDICTS`, `Candidate.one / verdict / facts`,
+`Control.clearable`, `BoardSpec.catalog`, `LIMITS.readingWords`). Two lanes ran on it.
+**`lab-sweep`** (merged `88dafe50`) walked every lab page as a stranger at 1440 and 375, dark and
+light, keyboard only, and fixed the shell: "On this page" closes the page header instead of opening
+every page above its title (a board drops it for the dock's Sections menu); the top bar's sidebar
+button collapses the sidebar on any page, not only a board; a skip link is first in the tab order
+where thirty nav stops stood; the phone sheet gained a close and the two area pills; the content
+column clips at 1:1 so a bleed stops at the window edge whatever a board does; a board's round badge
+reads its own spec, since a manifest is deleted at its merge; the words a stranger reads were
+plainened; the ⌘K palette became a combobox. ★ A bare `overflow-x: clip` is dropped by Lightning CSS
+and survives only inside `@supports`. **`lab-catalog`** (merged `57b93286`) built the review's third
+scope and the catalog kit: a round's ledger gained `items` beside its answers and the Library
+`_library.json`; a board that declares `catalog` puts its cards on the desk as one items step per
+board, walked before that board's questions; the grammar grew `item:<id>=keep|refine|kill "note"` and
+`review library: <entry>=keep|redesign|retire`, parsed by `pnpm lab:review`, which reads a spec's
+`candidates` off the page; the kit gained `Catalog`, `VerdictPill`, `ItemVerdictRow`, `CompareTwo`,
+`SpotCompare` and `GroundBox`; `pnpm new-board` scaffolds a catalog by default; `/design/lab/kit` is
+the toolbox with a live demo per tool; the smoke weighs every board's words outside every closed fold
+and every specimen against the budget (all twelve standing boards are over it, 2,465 to 15,004 words,
+which is the measure of the papers); the palette was rebuilt on the kit as the proof; the dock opens
+collapsed at 375. Behind the merges: Next's dev indicator moved off the sidebar control (`52241e4f`),
+and the lab functions' file trace fell from 2,248 files to 718 once the doc reader's dynamic root
+carried `turbopackIgnore` (`ce21ac31`; the docs it needs were already traced by name).
+
+**Round 2, the docs diet and the track protocol.** `docs/PROGRAM.md` became the loop itself: Will's
+one-line ask, the questions that branch the work asked in chat, one track per board returning a
+catalog, one alias build per close, his verdicts on the desk, the promote path, never a second round
+without his notes; the agent boot and the integration steps; the record's depth. `CLAUDE.md` is 150
+lines. `docs/tracks/README.md` carries the one-round manifest template (Questions, the items one line
+each) and the spawn paragraph that says "return a catalog, not a paper"; a manifest is deleted in the
+merge commit that integrates it, and the 26 integrated ones left (`44090827`). STATUS is a snapshot,
+the CHANGELOG holds two entries, the ROADMAP's Now list is one line each, the PRD is eighty lines;
+`src/lib/record-depth-policy.test.ts` holds the caps. **`docs-adr-fold`** (merged `d4ec4cff`) read
+the 25 architecture decision records against their owning system docs and folded them: roughly thirty
+still-true invariants became dateless lines in the doc's own voice, the facts a doc already stated got
+no second line, the superseded ones were left to git; `docs/adr/` went whole with the decisions
+tombstones, the reel spec (its product shape opens host-app's reel section) and the perf baseline;
+one stale claim fell out (the guest email capture had been server-mediated since June while the doc
+still called it an anon RPC). The 247 citations in `src/`, `workers/` and `scripts/` name the system
+docs now (`aea90fd3`); the migrations keep theirs as immutable history. The `docs-systems-strip` lane
+runs next on the four heavy docs.
+
+Machine notes: four agents at once is the ceiling on 36 GB, one process each, a dev server killed by
+port; Vercel's daily cap kept the alias on the Library x Lab round's Phase 1 until 2026-09-17 00:13
+UTC, so every review ran on a local `pnpm dev`. Gates on the tree at the catalog's merge: typecheck,
+lint, 2,213 tests, the build.
+
 ## 2026-09-15 to 16 — The Library x Lab round: the lab as an internal app, every board on one kit, every ask in plain words, the first catalog (`2644310d` to `1165e503`)
 
 Will stopped his review of round four before it began: no cross-page navigation, every board a

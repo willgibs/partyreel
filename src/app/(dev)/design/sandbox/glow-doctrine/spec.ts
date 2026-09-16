@@ -5,7 +5,7 @@ import { defineBoard } from "@/components/lab/board-spec";
  *
  * Nothing here is new argument. The doctrine, its laws, its five shapes and the
  * corner A/B are the round's, read out of `touchpoints.ts`, out of
- * `docs/decisions/design-record.md#glow-doctrine` and out of the board's own
+ * `docs/design/rulings.md` and out of the board's own
  * sections; what changed is where a reviewer meets them. The board was a
  * fourteen-section wall that opened with "if you have ten minutes" and left the
  * one unruled item at section 05, halfway down; the template puts the answer and

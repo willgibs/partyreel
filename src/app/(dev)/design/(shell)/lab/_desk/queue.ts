@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Ask, BoardSpec } from "@/components/lab/board-spec";
+import type { Ask, BoardSpec, Candidate } from "@/components/lab/board-spec";
 
 import { type Note, windowNotesFor } from "@/app/(dev)/design/review/ledger";
 import {
@@ -16,6 +16,12 @@ import {
  * joined on the ask id); this only joins it to `touchpoints.ts` and flattens
  * the result into the queue the session walks. This track carried a local
  * ledger reader until that module landed, and it is gone.
+ *
+ * ★ AND THE CATALOG'S CARDS RIDE THE SAME ROW (the revamp, 2026-09-16). A
+ * board that declares `catalog` is asking to be ruled on card by card, so its
+ * unruled candidates queue exactly as its unanswered asks do; a board without
+ * one carries none, because every board has candidates and only some of them
+ * are a catalog.
  *
  * Server-only because the status reader touches the disk. The two strings the
  * browser also needs are in `step-id.ts`, which nothing here imports back.
@@ -35,6 +41,17 @@ export type AskState = {
   answer: { choice: string | null; note?: string } | null;
 };
 
+/** One catalog card of one board, with the ruling standing against it (or none). */
+export type ItemState = {
+  board: string;
+  boardTitle: string;
+  /** The SPEC's round, which is the round a ledger line must quote. */
+  round: number;
+  item: Candidate;
+  /** Null when nobody has ruled on this card in this round. */
+  ruling: { verdict: string; note?: string } | null;
+};
+
 /** A standing board on the desk: its spec when it has one, its asks, its verdict. */
 export type BoardRow = {
   id: string;
@@ -49,6 +66,10 @@ export type BoardRow = {
   tracks: string[];
   asks: AskState[];
   open: AskState[];
+  /** The catalog's cards, or none when the board declares no catalog. */
+  items: ItemState[];
+  /** The cards with no ruling this round: what the items step asks for. */
+  openItems: ItemState[];
   /** The notes aimed at THIS board: its ledger's own, and the window's on it. */
   notes: Note[];
 };
@@ -90,6 +111,23 @@ export function askStates(board: DeskBoard, status: BoardStatus): AskState[] {
   }));
 }
 
+/** The catalog's cards against one status reading, under the same round guard. */
+export function itemStates(board: DeskBoard, status: BoardStatus): ItemState[] {
+  const spec = status.spec;
+  if (!spec) return [];
+  const current = status.round !== null && status.round.n === spec.round.n;
+  return status.items.map((i) => ({
+    board: board.id,
+    boardTitle: board.title,
+    round: spec.round.n,
+    item: i.item,
+    ruling:
+      current && i.state === "ruled"
+        ? { verdict: i.ruling.verdict, note: i.ruling.note }
+        : null,
+  }));
+}
+
 /**
  * The desk's rows, in registry order. `boards` is the standing-board registry
  * (touchpoints.ts, mapped to plain data by the caller); a board with no spec is
@@ -105,11 +143,14 @@ export function deskRows(
   return boards.map((b) => {
     const status = statusOf(b.id);
     const asks = askStates(b, status);
+    const items = itemStates(b, status);
     return {
       ...b,
       spec: status.spec,
       legacy: status.spec === null,
       asks,
+      items,
+      openItems: items.filter((i) => i.ruling === null),
       // "Not clear to me" keeps an ask in the queue: the next session asks it
       // again, in the plainer words the board owes it.
       open: asks.filter((a) => a.answer === null || a.answer.choice === null),
@@ -128,4 +169,13 @@ export function deskRows(
 /** Every open ask across every board, in registry order then spec order. */
 export function openQueue(rows: BoardRow[]): AskState[] {
   return rows.flatMap((r) => r.open);
+}
+
+/**
+ * The rows as the session's input: each board's open catalog cards and its
+ * open asks. One place builds it, because the desk and the board route both
+ * walk the same queue and a second copy would drift the day a row grew a field.
+ */
+export function boardWork(rows: BoardRow[]) {
+  return rows.map((r) => ({ asks: r.open, items: r.openItems }));
 }

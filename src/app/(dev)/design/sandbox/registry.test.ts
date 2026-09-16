@@ -22,6 +22,8 @@ import {
 } from "@/components/lab/board-spec";
 import { RESERVED_PARAMS } from "@/components/lab/board-state";
 
+import { ITEMS_STEP } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
+
 import { BOARDS, boardSpec } from "./registry";
 
 /**
@@ -70,9 +72,13 @@ describe("the board registry", () => {
         expect(i, `${b.id}/spec.ts imports a stylesheet`).not.toMatch(/\.css$/);
         expect(i, `${b.id}/spec.ts imports its board`).not.toMatch(/board$/);
       }
-      expect(src, `${b.id}/spec.ts has JSX`).not.toMatch(
-        /<[A-Z][A-Za-z]*[\s/>]/,
-      );
+      // A named type argument (`Candidate<SectionId>`) reads to this
+      // heuristic exactly like an opening tag, so a spec writes its section
+      // union inline (`Candidate<"catalog" | "pages">`), which opens with `<"`.
+      expect(
+        src,
+        `${b.id}/spec.ts has JSX (or a named type argument: write the union inline)`,
+      ).not.toMatch(/<[A-Z][A-Za-z]*[\s/>]/);
     }
   });
 
@@ -116,6 +122,9 @@ describe("the board registry", () => {
       }
       for (const c of b.candidates) {
         under(`${b.id}.candidate ${c.id}`, c.rationale, LIMITS.rationale);
+        // The card's one line is the whole reading on a catalog grid: past
+        // this it wraps to four lines and twelve cards become a wall.
+        under(`${b.id}.candidate ${c.id}.one`, c.one, LIMITS.candidateOne);
       }
       for (const d of [
         ...b.departures,
@@ -168,6 +177,12 @@ describe("the board registry", () => {
       expect(new Set(askIds).size, `${b.id} has a duplicate ask id`).toBe(
         askIds.length,
       );
+      // A catalog's step is `<board>.items`, so an ask spelled that way would
+      // resolve to the wrong step and lose a reader's place silently.
+      expect(
+        askIds,
+        `${b.id}: "${ITEMS_STEP}" is the catalog's own step id, so no ask may use it`,
+      ).not.toContain(ITEMS_STEP);
       for (const n of b.notes ?? []) {
         expect(
           ids.has(n.section),
@@ -234,6 +249,14 @@ describe("the board registry", () => {
           RESERVED_PARAMS as readonly string[],
           `${b.id}: control "${c.id}" claims a reserved URL param`,
         ).not.toContain(c.id);
+        // ★ A CONTROL ID BECOMES `data-<id>` ON THE BOARD ROOT (board-page.tsx),
+        // and React refuses a camelCase custom attribute with a console error on
+        // every render: `compareA` shipped one until it was caught live. Lower
+        // case and hyphens, which is also what a URL param should look like.
+        expect(
+          c.id,
+          `${b.id}: control "${c.id}" is not a lower-case data attribute name`,
+        ).toMatch(/^[a-z][a-z0-9-]*$/);
       }
     }
   });
@@ -249,6 +272,71 @@ describe("the board registry", () => {
       BOARDS.map((b) => b.id).sort(),
       "a spec.ts the registry does not import",
     ).toEqual(onDisk);
+  });
+
+  /**
+   * A CATALOG'S OWN CONTRACT (the revamp, 2026-09-16). Declaring `catalog` is a
+   * board saying "rule on these card by card", and four things have to line up
+   * for that to work at all: the grid has a section to live in, the Pick button
+   * sets a control whose options ARE the cards, and the two compare controls
+   * exist and start on different cards (or A and B open identical and the first
+   * thing a reader sees is a comparison of a thing with itself).
+   */
+  it("wires every catalog to a section, a pick and two compare controls", () => {
+    for (const b of BOARDS) {
+      if (!b.catalog) continue;
+      const ids = b.candidates.map((c) => c.id);
+      expect(
+        b.sections.map((s) => s.id),
+        `${b.id}: the catalog points at section "${b.catalog.section}"`,
+      ).toContain(b.catalog.section);
+      expect(new Set(ids).size, `${b.id} repeats a candidate id`).toBe(
+        ids.length,
+      );
+      for (const id of ids) {
+        expect(id, `${b.id}: candidate "${id}" is not one token`).toMatch(
+          /^[a-z0-9][a-z0-9-]*$/i,
+        );
+      }
+
+      const controls = new Map((b.controls ?? []).map((c) => [c.id, c]));
+      if (b.catalog.control !== undefined) {
+        const pick = controls.get(b.catalog.control);
+        expect(
+          pick,
+          `${b.id}: the catalog picks undeclared control "${b.catalog.control}"`,
+        ).toBeTruthy();
+        // A clearable control's default is "nothing picked", which is not a
+        // card; every other option is one.
+        const offered = pick!.options
+          .map((o) => o.id)
+          .filter((id) => !(pick!.clearable && id === pick!.default));
+        expect(
+          offered.sort(),
+          `${b.id}: ${b.catalog.control}'s options are not the catalog's cards`,
+        ).toEqual([...ids].sort());
+      }
+
+      if (b.catalog.compare !== undefined) {
+        const [a, c] = b.catalog.compare;
+        expect(a, `${b.id}: the two compare controls are the same`).not.toBe(c);
+        for (const id of [a, c]) {
+          const control = controls.get(id);
+          expect(
+            control,
+            `${b.id}: the catalog compares undeclared control "${id}"`,
+          ).toBeTruthy();
+          expect(
+            ids,
+            `${b.id}: ${id} defaults to "${control!.default}", which is not a card`,
+          ).toContain(control!.default);
+        }
+        expect(
+          controls.get(a)!.default,
+          `${b.id}: A and B open on the same card`,
+        ).not.toBe(controls.get(c)!.default);
+      }
+    }
   });
 
   it("computes one anchor everywhere", () => {

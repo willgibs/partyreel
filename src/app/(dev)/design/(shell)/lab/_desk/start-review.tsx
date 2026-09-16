@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
 
 import { useReviewStore } from "./review-store";
+import { type SessionStep, stepDone } from "./session-step";
 
 /**
  * START OR RESUME (the Library x Lab round, 2026-09-15). The desk is rendered
@@ -21,17 +22,20 @@ import { useReviewStore } from "./review-store";
  * button is never dead and never a round trip to the wrong board.
  */
 export type ReviewEntry = {
-  /** The held key (`<board>.r<n>.<ask>`), so progress counts today's queue. */
-  key: string;
+  /** The step itself, so progress is `stepDone` and nothing else. */
+  step: SessionStep;
   /** Where that step is answered: its board, with the card open on it. */
   href: string;
 };
 
 export function StartReview({ steps }: { steps: ReviewEntry[] }) {
-  const { answers } = useReviewStore();
-  const answered = steps.filter((s) => answers[s.key]?.choice).length;
+  const store = useReviewStore();
+  // A catalog step counts as done only once EVERY card has a verdict, which is
+  // `stepDone`'s whole job: the desk, the card and the session share it, so
+  // "carry on" can never point at a step the card considers finished.
+  const answered = steps.filter((s) => stepDone(s.step, store)).length;
   const resuming = answered > 0 && answered < steps.length;
-  const next = steps.find((s) => !answers[s.key]?.choice) ?? steps[0];
+  const next = steps.find((s) => !stepDone(s.step, store)) ?? steps[0];
   if (!next) return null;
 
   return (
