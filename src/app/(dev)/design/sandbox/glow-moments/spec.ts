@@ -23,6 +23,21 @@ import { defineBoard } from "@/components/lab/board-spec";
  * spill outside the frame. The light board asks the same beat with an option
  * this board never had, so the single ask here is WHERE it closes.
  *
+ * ★ THE ASK IS WRITTEN FOR A STRANGER (the clarity round, 2026-09-15). Will
+ * answered three asks on the light board and stopped at two that were labels
+ * with token options, so the one ask here says what the publish flourish IS,
+ * where to look at it, and what each of the two answers would do; the exemplar
+ * is `sandbox/light/spec.ts`. The ids never changed (`light`, `here`): the
+ * review ledger joins on them and a reworded label must not orphan an answer.
+ * The board's question, verdict and section lede were rewritten the same way.
+ * No placement, verdict, correction or recommendation moved.
+ *
+ * ★ THE EVIDENCE CARRIES NO OPTION LABELS, AND THAT IS NOT AN OMISSION. The
+ * clarity rule that a specimen wears its option's words applies to an ask
+ * judged BY a specimen; this ask is procedural (which board rules it), so
+ * there is nothing to relabel. `look` points at the specimens the item is
+ * about, which are named Sampled spill and Today and stay that way.
+ *
  * Pure data on purpose (registry.test.ts enforces it): the board route is a
  * SERVER page and reads the question for its header, so a spec that imported
  * React or the boards' sheet would drag a client tree into a server render.
@@ -31,13 +46,13 @@ export const GLOW_MOMENTS = defineBoard({
   id: "glow-moments",
   title: "Spill placements",
   question:
-    "Where the light is earned: thirteen placements argued against the doctrine, which ship, which are killed, and whether the publish beat may keep a ratified state colour.",
+    "Where on the site is a glow earned: thirteen places argued against the rules for light, which ship, which are killed, and may the flourish when a host publishes keep the reel's violet?",
 
   round: {
     n: 4,
     date: "2026-09-15",
     changed:
-      "The board moved onto the kit's template. The verdict and the one open call are the first screen, the fourteen moments are the evidence under them, and the review panel composes the ledger line. No placement, verdict or correction changed.",
+      "The board moved onto the kit's template, then its one open call was rewritten in plain words: a real question, what the publish flourish is, where to look, and each answer labelled in words rather than as a token. No placement or verdict changed.",
   },
   history: [
     {
@@ -64,23 +79,40 @@ export const GLOW_MOMENTS = defineBoard({
 
   verdict: {
     recommendation:
-      "Keep the board standing as the record of the thirteen placements, and close its one open item, the publish beat's violet, on the light board rather than here.",
+      "Keep this board as the record of the thirteen places a glow was argued for, and rule its one open item, the colour of the flourish when a host publishes, on the light board rather than here.",
     because:
-      "Ten placements ship, one beam surface ships, three are killed and two were ruled to something else; all of it is in design-system.md. The violet is what is left, and the light board asks the same beat with a third option this board never had: move the ratified value five degrees onto the lamp set's 305, and decay to a base instead of to nothing.",
+      "Ten places ship, three are killed and two were ruled to something else, and all of it is written into the design system doc. The colour of the publish flourish is what is left, and the light board asks the same beat with an answer this board never had: move the violet five degrees onto the lamp set's own colours, and let it fade to a soft glow instead of to nothing.",
     overrule:
-      "If the beat belongs to the reel canvas that argued it rather than to a treatment sheet, say here and this board reopens with moment 07 as its ask.",
+      "If the beat belongs to the reel canvas that argued it rather than to a sheet of light treatments, say here and this board reopens with item 07 as its ask.",
   },
 
   asks: [
     {
       id: "publish-violet",
-      question: "The publish beat's violet",
-      options: ["light", "here"],
+      question:
+        "Where should the colour of the flourish that fires when a host publishes be ruled?",
+      context:
+        "When a host publishes an event, the reel's frame flashes a violet glow and fades out. Violet is a ratified colour for reel curation, and a colour that means something may not be used as light, so this board could only split it: violet on the controls, sampled light outside the frame. The light board asks about the same flourish in its own ask, What colour should the publish flourish be?",
+      look: "This board's one evidence section, the item numbered 07 inside it, The publish beat: press Publish under the pair and compare the specimen labelled Sampled spill with the one labelled Today, which is what ships now. Both replay together.",
+      options: [
+        {
+          id: "light",
+          label: "On the light board",
+          means:
+            "The light board's publish ask decides it, and it offers an answer this board never had: move the violet five degrees onto the lamp set.",
+        },
+        {
+          id: "here",
+          label: "Here, on this board",
+          means:
+            "This board reopens with item 07 as its ask, judged on the sampled light beside today's flat violet.",
+        },
+      ],
       recommended: "light",
       because:
-        "Violet is a ratified state colour for reel curation, so law 3 forbids it as light and this board could only split it: violet on the controls, the sampled spill outside the frame. The light board frames the same beat as a move onto the lamp set, which is the version with somewhere to go.",
+        "A colour that means something is not allowed to be used as light, so all this board could do was split it. The light board frames the same flourish as a move onto the lamp set's own colours, which is the version with somewhere to go.",
       overrule:
-        "If moment 07's sampled spill beside today's flat violet already answers it, the state-colour caveat is cheaper to rule on that specimen.",
+        "If the sampled light beside today's flat violet at item 07 already answers it, that specimen is the cheaper place to rule it.",
       evidence: "record",
     },
   ],
@@ -197,8 +229,8 @@ export const GLOW_MOMENTS = defineBoard({
   sections: [
     {
       id: "record",
-      title: "The thirteen moments, as the round argued them",
-      lede: "The board unchanged: ten placements that ship, three that are killed, two ruled to something else, where a beam is allowed, the whole-page scarcity test, and the rest of the field documented rather than built.",
+      title: "The thirteen places, as the round argued them",
+      lede: "The board as the round built it, in fourteen numbered items: ten places that ship, three killed, two ruled to something else, where a lit rim is allowed, the whole-page test of how far apart two glows must sit, and the rest listed.",
       argument: [
         "Fourteen numbered moments in the order the round argued them. Every one names its lamp, its direction, its colour source and the law that admits it, and carries a verdict pill, so a specimen can be judged without scrolling back to the doctrine. The fourteenth is not a placement: it is the catalogue of what was earned but not built and what was turned down with reasons, so the ruling had the whole field without the round spending itself on it.",
         "Two moments are instruments rather than proposals. Moment 09, the paper probe, is why the sampler forces a fifth of the wheel between hues and gives paper a lighter register. Moment 13, the whole page, is the only specimen that tests scarcity, and it is the one that falsified the doctrine's own count and turned it into a distance.",
@@ -213,14 +245,14 @@ export const GLOW_MOMENTS = defineBoard({
   lookFirst: [
     {
       section: "record",
-      note: "Moment 13 inside, the whole page with a lights switch. It is the only specimen that tests scarcity, the one that falsified the doctrine's count, and the closest thing on either board to the would-this-hold-up bar.",
+      note: "Item 13 inside, The whole page, with a lights switch. It is the only specimen that tests how far apart two glows must sit, the one that falsified the round's own count, and the closest thing on either board to the would-this-hold-up bar.",
     },
   ],
 
   notes: [
     {
       section: "record",
-      text: "Moment 04's frame counter needs a FOREGROUND window. A background tab throttles it to nothing, so the cost of the three sweep drives is the one number neither glow board could ever take.",
+      text: "Item 04's frame counter needs a FOREGROUND window. A background tab throttles it to nothing, so the cost of the three sweep drives is the one number neither glow board could ever take.",
     },
   ],
 

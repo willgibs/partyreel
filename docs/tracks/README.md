@@ -98,7 +98,8 @@ reads:                  # shared single-sources you depend on: never duplicate, 
 **Goal.** One paragraph, from the init.
 **Binds.** The bible, the contracts of every component under a path you own, and the policies; everything else is precedent (`docs/design/README.md#what-binds-you`). Will's rulings this track works under, by date (`docs/design/rulings.md`), or "none".
 **Verify on.** The pages or flows the handoff is judged on, local and the branch preview; for an
-exploration round, the board on its preview at 1440 and 375 with reduced motion honoured, nothing more.
+exploration round, the board at 1440 and 375 with reduced motion honoured, and every ask read cold on
+the desk's session (`/design/lab?session=<board>.<ask>`) as a stranger who has not read the board.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -133,7 +134,8 @@ session:
 > is the bible on `/design/library/rules` and the component contracts on `/design/library`; the whole
 > rule set, levelled, is `docs/design/README.md` (rendered at `/design/library`); everything else is
 > precedent: rising tides (bible 22), judge it from the ground up, elevate or rework, in the lab
-> first. Boot per
+> first. An exploration is a catalog of polished variants to pick from, not a paper, and every ask
+> carries its context (Will, 2026-09-15; `docs/design/guidance.md#boards-the-review-surface`). Boot per
 > `docs/PROGRAM.md` "Agent boot", build, then hand off by filling the manifest's Handoff and Record,
 > setting `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
 

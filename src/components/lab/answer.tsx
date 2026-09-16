@@ -31,6 +31,12 @@ import {
  * the board's own answer is visible at a glance and a "yes" is the cheapest
  * reply; "See it" jumps to the section that argues it, which is the one link a
  * reviewer who disagrees actually wants.
+ *
+ * ★ AND AN ASK CARRIES ITS CONTEXT WHEREVER IT IS MET (the clarity round,
+ * 2026-09-15). The pills wear the options' LABELS, and the ask's `context` and
+ * `look` print here as they do on the desk's session and the review card: a
+ * reviewer who reads the board's first screen must not meet a bare label with
+ * four tokens under it, which is exactly what stopped Will's first review.
  */
 export function Answer({
   spec,
@@ -91,6 +97,11 @@ function AskPills({ boardId, ask }: { boardId: string; ask: Ask }) {
           See it
         </a>
       </div>
+      {ask.context ? (
+        <p className="max-w-2xl text-[11px] leading-relaxed text-foreground/80">
+          {ask.context}
+        </p>
+      ) : null}
       <div className="flex flex-wrap gap-1.5">
         {ask.options.map((o) => (
           <span
@@ -107,8 +118,15 @@ function AskPills({ boardId, ask }: { boardId: string; ask: Ask }) {
           </span>
         ))}
       </div>
+      {ask.look ? (
+        <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
+          <span className="text-foreground">Where to look: </span>
+          {ask.look}
+        </p>
+      ) : null}
       {ask.because ? (
-        <p className="text-[11px] leading-relaxed text-muted-foreground">
+        <p className="max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
+          <span className="text-foreground">Why the board says so: </span>
           {ask.because}
         </p>
       ) : null}

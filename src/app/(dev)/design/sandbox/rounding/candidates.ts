@@ -43,9 +43,16 @@ export type SurfaceValues = {
 };
 
 export type SurfaceCandidate = {
-  id: "today" | "square" | "soft" | "family" | "live";
-  /** A, B, C, D, or Live: the ruling is this letter. */
+  /**
+   * ★ THE ID IS THE ASK'S OPTION ID (the clarity round, 2026-09-15). The
+   * ledger joins a ruling to `a | b | c | d`, so the dock control, the board
+   * state and this list all speak that and nothing else; a rename here without
+   * a rename in spec.ts's `surface` control silently orphans an answer.
+   */
+  id: "a" | "b" | "c" | "d" | "live";
+  /** A, B, C, D, or Live: what the paste and the applied badge call it. */
   letter: string;
+  /** The option's own words, and the heading over every column it is judged in. */
   name: string;
   rationale: string;
   /** Absent on the live column, which reads whatever the tuner wrote. */
@@ -68,7 +75,10 @@ export type ActionValues = {
 
 export type ActionRung = {
   id: "today" | "pill" | "quiet";
+  /** The option's own words: the heading over the column it is judged in. */
   name: string;
+  /** The same rung in two words, for a frame title and the applied badge. */
+  short: string;
   rationale: string;
   values: ActionValues;
 };
@@ -84,9 +94,9 @@ export function gapFor(tile: number): number {
 
 export const SURFACES: SurfaceCandidate[] = [
   {
-    id: "today",
+    id: "a",
     letter: "A",
-    name: "Today",
+    name: "A, today",
     rationale:
       "2 / 8 / 3. Sharp surfaces, round actions, as shipped. The base is small enough that the seven derived steps are all within 4px of each other, so the ladder does nothing.",
     values: { radius: 2, float: 8, tile: 3, gap: 3 },
@@ -95,9 +105,9 @@ export const SURFACES: SurfaceCandidate[] = [
       "At 375 the tile corner is below one CSS pixel of visible arc. The grid reads as a contact sheet, which is the intent, and the cards read as panels.",
   },
   {
-    id: "square",
+    id: "b",
     letter: "B",
-    name: "Square",
+    name: "B, square",
     rationale:
       "0 / 6 / 0. Bible 8 taken at its word: surfaces and photographs are square, the float rung stays round because sharp reads broken there, and the whole contrast is carried by the actions.",
     values: { radius: 0, float: 6, tile: 0, gap: 3 },
@@ -106,9 +116,9 @@ export const SURFACES: SurfaceCandidate[] = [
       "Square at 375 is the same object as square at 1440, which is the one honest thing about it. The menu is the only round shape left on the canvas.",
   },
   {
-    id: "soft",
+    id: "c",
     letter: "C",
-    name: "Soft",
+    name: "C, soft",
     rationale:
       "8 / 12 / 4. Surfaces come up to meet the actions. The contrast narrows from eight times to two and survives, the tile keeps its photograph, and at a base of 8 the ladder starts to matter, so it takes the even one.",
     values: { radius: 8, float: 12, tile: 4, gap: 4 },
@@ -117,9 +127,9 @@ export const SURFACES: SurfaceCandidate[] = [
       "The tile still reads as a corner at a guest's width and still leaves the photograph its edges. The card keeps a corner at this width and still reads as a card, not a lozenge.",
   },
   {
-    id: "family",
+    id: "d",
     letter: "D",
-    name: "One family",
+    name: "D, one family",
     rationale:
       "14 / 14 / 6. Surfaces, floats and actions all read as one shape and the contrast is carried by size alone. Wants the quarter ladder: on stock, a plan card lands at 25.2 and a badge at 36.4.",
     values: { radius: 14, float: 14, tile: 6, gap: 6 },
@@ -130,7 +140,7 @@ export const SURFACES: SurfaceCandidate[] = [
   {
     id: "live",
     letter: "Live",
-    name: "The tuner",
+    name: "Live, from the tuner",
     rationale:
       "Reads the tokens as the tuner writes them, so a knob moves this column and every real page together.",
     phone:
@@ -141,21 +151,24 @@ export const SURFACES: SurfaceCandidate[] = [
 export const ACTIONS: ActionRung[] = [
   {
     id: "today",
-    name: "Today, 0.4 x height",
+    name: "Today, 0.4 of the height",
+    short: "today's buttons",
     rationale:
       "16 / 19.2 / 12.8. The shipped ratio: round enough to read as pressable, short of a pill.",
     values: { action: 16, lg: 19.2, sm: 12.8 },
   },
   {
     id: "pill",
-    name: "Pill",
+    name: "A full pill",
+    short: "pill buttons",
     rationale:
       "999 everywhere. The full round, and the only rung whose shape does not depend on the height: it is the one rung the h-11 marketing CTA cannot fall off.",
     values: { action: 999, lg: 999, sm: 999 },
   },
   {
     id: "quiet",
-    name: "Quiet, 0.2 x height",
+    name: "Quiet, 0.2 of the height",
+    short: "quiet buttons",
     rationale:
       "8 / 9.6 / 6.4. Half of today. An action still rounder than a surface under A and B, and indistinguishable from one under C and D.",
     values: { action: 8, lg: 9.6, sm: 6.4 },
@@ -253,40 +266,13 @@ export const ACTION_SITES = {
   files: 6,
 } as const;
 
-/** The board's answer, in one place, so the top block, the Apply button and
- *  every Proposal below can never drift apart. */
+/** The board's answer, in one place, so the rail, the Apply button and every
+ *  Proposal below can never drift apart. The five asks themselves live in
+ *  spec.ts, which is what the template, the desk and the ledger read. */
 export const ANSWER = {
-  surface: "soft" as SurfaceCandidate["id"],
+  surface: "c" as SurfaceCandidate["id"],
   action: "today" as ActionRung["id"],
   ladder: "quarters" as LadderId,
-  /** One line a decision, each a one-word ruling for Will. */
-  lines: [
-    {
-      ask: "Surfaces",
-      value: "C, 8 / 12 / 4",
-      why: "A corner you can see, and still eight steps short of the action. A is a claim nobody can read at 2px and D gives up the contrast bible 8 exists for.",
-    },
-    {
-      ask: "Actions",
-      value: "Today, 0.4 x height",
-      why: "The rung is not what is broken. What is broken is the h-11 CTA that wears a token defined for h-10, and the guest sheet that wears the action token at all.",
-    },
-    {
-      ask: "The ladder",
-      value: "Quarters",
-      why: "0.5 / 0.75 / 1 / 1.25 / 1.5 / 1.75 / 2. Within half a pixel of stock at today's base and the difference between a plan card at 12 and at 14.4 once the base is 8.",
-    },
-    {
-      ask: "The dead rungs",
-      value: "Drop",
-      why: "rounded-3xl has one call site, rounded-4xl has two, and one of those is the Badge, which wants a pill and should say rounded-full.",
-    },
-    {
-      ask: "The gallery gap",
-      value: "Pinned",
-      why: "The gap follows the tile, and the three literal gap-[3px] on the guest grid become the token. Below the radius, four corners meeting open a hole.",
-    },
-  ],
 } as const;
 
 export function px(n: number): string {
@@ -350,7 +336,7 @@ export function blockFor(
 ): string {
   const v = surface.values;
   if (!v) return "";
-  const head = `/* Rounding: surfaces ${surface.letter}, actions ${action.id}, ladder ${ladder}. */`;
+  const head = `/* Rounding: surfaces ${surface.name}, ${action.short}, ${ladder === "quarters" ? "even quarters" : "the steps as they are today"}. */`;
   const root = [
     ":root {",
     `  --radius: ${px(v.radius)};`,
@@ -380,6 +366,6 @@ export function blockLabel(
   action: ActionRung,
   ladder: LadderId,
 ): string {
-  const tail = ladder === "stock" ? "" : ", quarter ladder";
-  return `rounding ${surface.letter}, ${action.id} actions${tail}`;
+  const tail = ladder === "stock" ? "" : ", even quarters";
+  return `rounding ${surface.name}, ${action.short}${tail}`;
 }
