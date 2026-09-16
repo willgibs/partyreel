@@ -273,7 +273,6 @@ const PLAIN: readonly string[] = [
   "home-hero",
   "media-kit",
   "palette",
-  "river-visual",
   "rounding",
   "type-scale",
 ];

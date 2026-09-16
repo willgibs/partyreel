@@ -2,13 +2,14 @@ import { defineBoard } from "@/components/lab/board-spec";
 
 /**
  * THE RIVER AS A FEATURE VISUAL, AS DATA (the Library x Lab migration wave,
- * 2026-09-15).
+ * 2026-09-15; the four asks rewritten in plain words the same night, the
+ * clarity round).
  *
  * Nothing here is new argument. Every ask, candidate, departure and asset is
  * round one's, moved out of `board.tsx` and out of `BoardMeta`'s prop strings so
  * the template, the desk, the record and the review ledger read ONE list. What
- * changed is where a reviewer meets them: the verdict and the four one-word
- * calls are the first screen instead of the last.
+ * changed is where a reviewer meets them: the verdict and the four calls are the
+ * first screen instead of the last.
  *
  * ★ THE FOUR RECOMMENDATIONS ARE NOT NEW EITHER, and this is the one place the
  * migration had to make something explicit that was implicit. Round one's asks
@@ -20,6 +21,18 @@ import { defineBoard } from "@/components/lab/board-spec";
  * candidate renders, and 1.32 is the visual's default. A reviewer who disagrees
  * presses the other pill; that is what the pills are for.
  *
+ * ★ AND THE ASKS ARE NOW IN PLAIN WORDS (Will, 2026-09-15: "the more clearly you
+ * can ask me questions, the more easily it is for me to respond"). The ids never
+ * moved, because the ledger joins on them; what moved is every word around them.
+ * "The river", "the bank", "the plate", "rest" and "1:1" were this board's own
+ * shorthand, and a reviewer meets an ask on the desk, away from the board that
+ * taught him the words. So every option is labelled in words with what picking
+ * it does, every ask says what the thing is and where to look, and the evidence
+ * carries the same words: the three placement sections are TITLED with the three
+ * options of the placement ask, the size row's captions open with the code
+ * ask's two, and the guest comparison labels both halves with the one answer
+ * they both are.
+ *
  * Pure data on purpose (registry.test.ts enforces it): the board route is a
  * SERVER page and reads the question for its header, so a spec that imported
  * React or a sheet would drag a client tree into a server render.
@@ -29,13 +42,13 @@ export const RIVER_VISUAL = defineBoard({
   title: "The river, a feature visual",
 
   question:
-    "The river as a section-scale feature visual, banked: three sizes, three origins, three real placements. Where does it go first, and does the code stay in it?",
+    "The river is the album pouring out of the scannable code, as one visual a page section can carry. Where should it go first, and should the code stay in it?",
 
   round: {
     n: 2,
     date: "2026-09-15",
     changed:
-      "The board moved onto the kit's template. The verdict and the four calls are the first screen, the rest state is a switch rather than a resolution done by hand, and the cost is measured in phases. No candidate, number or recommendation changed.",
+      "Onto the kit's template: the verdict and the four calls first, the still version a switch, the cost measured in phases. Then the four asks were rewritten in plain words with labelled options. No candidate, number or recommendation changed.",
   },
   history: [
     {
@@ -46,59 +59,139 @@ export const RIVER_VISUAL = defineBoard({
     },
   ],
   context:
-    "The river was one of the home hero's concepts. Will killed it there and banked it: the animation could drop down in one flow rather than two, and be saved to the lab's design bank as a feature visual rather than a hero, a smaller alternative presentation of the images emanating from the code. Round one deleted the hero's two braided arms, its clearing, its held beat and its two hand-typed geometries, derived every number from the box instead, and put the result on three real placements.",
+    "The river is the album pouring down out of the scannable code: one flow of photographs, tumbling as they leave it and straightening as they land. It was one of the home page's hero concepts. Will killed it there and kept it: the animation could drop in one flow rather than two, and be saved for later use as a feature visual rather than a hero, a smaller way of showing the pictures coming out of the code. Round one deleted the hero's two braided arms, its clearing and its two hand typed geometries, worked every number out from the width instead, and put the result in three real places.",
 
   verdict: {
     recommendation:
-      "Bank it as written, and place it first beside the copy of a how it works step, at 560, with the code in it.",
+      "Keep it as it stands, and use it first beside the words of a how it works step, at 560 px wide, with the scannable code still in it.",
     because:
-      "Every number is derived from the box, so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales on one clock. The column is the only slot tall enough to show the whole fall, which is the thing the visual is: the card slot reads it at its top third, and the guest album has to ghost it before it can carry it at all.",
+      "Every measurement is worked out from the width, so the 560, the 400 and the 240 are one visual at three sizes on one clock. The tall column is the only slot that shows the whole fall, which is the thing itself: a card slot shows the top third, and the empty guest album has to fade it to grey before it can carry it at all.",
     overrule:
-      "If a section visual may not carry a second call to action, the code comes out, and the scan floor that makes the object large in a small box goes with it.",
+      "If a picture inside a section may not also be a thing to scan, the code comes out, and the size floor that makes it large in a small box goes with it.",
   },
 
   asks: [
     {
       id: "placement",
-      question: "Where it goes first",
-      options: ["column", "card", "guest"],
+      question: "Which of the three real slots should carry the visual first?",
+      context:
+        "The visual is the event album pouring down out of the scannable code, one flow, sized to sit beside copy rather than fill a screen. The board puts it in three real slots, each drawn on the shell it would ship inside: beside the steps of a how it works section, in the picture slot of a feature card, and on the guest album screen before anyone has uploaded anything.",
+      look: "The three sections after the sizes, each titled with one of these options: Beside a how it works step, In a feature card's picture slot, On the empty guest album. Compare how much of the fall each slot shows.",
+      options: [
+        {
+          id: "column",
+          label: "Beside a how it works step",
+          means:
+            "It ships first in a how it works section on a feature page, 560 px wide, with the steps listed beside it.",
+        },
+        {
+          id: "card",
+          label: "In a feature card's picture slot",
+          means:
+            "It ships first in the picture slot of one card in a three card row, a short box that shows the top of the fall.",
+        },
+        {
+          id: "guest",
+          label: "On the empty guest album",
+          means:
+            "It ships first on the guest screen before anyone uploads, in place of today's faded grid of photographs.",
+        },
+      ],
       recommended: "column",
       because:
-        "The column is the only slot tall enough for the whole fall, and the one placement that draws the visual at its full banked width. The card slot is the hardest test rather than the best one, and the guest album is an app surface that has to ghost it.",
+        "The column is the only slot tall enough for the whole fall, and the only one that draws the visual at its full width. The card slot is the hardest test rather than the best one, and the guest album is an app screen that has to fade it to grey first.",
       overrule:
-        "If the first placement should be the hardest one rather than the strongest, the card slot is that test.",
+        "If the first use should be the hardest slot rather than the strongest, the card slot is that test.",
       evidence: "column",
+      state: { canvas: "desktop", origin: "code", motion: "live" },
     },
     {
       id: "code",
-      question: "The code, in or out",
-      options: ["in", "out"],
+      question: "Should the scannable code stay inside the visual?",
+      context:
+        "The album pours out of an object at the top of the flow. That object can be the real demo code, which a phone can actually scan, so the picture doubles as a way into the demo; or a plain white card with no code on it; or nothing at all, with the flow entering from above the frame. A code that still scans is 123 px wide whatever the box is, so the smaller the visual, the more of it the code takes.",
+      look: "The three sizes, and the dock: flip Pours out of between The demo code and A plain card on the same three specimens. Each caption opens with the answer it is showing and prints what the object took.",
+      options: [
+        {
+          id: "in",
+          label: "Keep the code in it",
+          means:
+            "The album pours out of the real scannable code, so the picture is also a way into the demo.",
+        },
+        {
+          id: "out",
+          label: "Take the code out",
+          means:
+            "The album pours out of a plain card, or out of nothing at all; the picture is only the album arriving.",
+        },
+      ],
       recommended: "in",
       because:
-        "It is what the album pours out of, and a scannable code is a second call to action inside a section visual. The price is fixed: 123 px of code whatever the box is, so its card is a quarter of the 560 column and three fifths of the 240 thumbnail.",
+        "The code is what the album pours out of, and one that scans turns the picture into a way in. The price is fixed at 123 px whatever the box is, so its card takes about a quarter of the 560 version and three fifths of the 240 one.",
       overrule:
-        "The guest album is the exception either way: a guest arrived by scanning, so that placement takes the plain plate.",
+        "The guest album is the exception either way: a guest got there by scanning, so that screen takes the plain card.",
       evidence: "bank",
+      state: { origin: "code", canvas: "desktop" },
     },
     {
       id: "guest-photos",
-      question: "May an empty album show photographs",
-      options: ["ghost", "none"],
+      question: "May an empty album show faint photographs of other events?",
+      context:
+        "Before anyone uploads, the guest album screen has nothing of its own to show. Today it shows a 3 by 3 grid of nine photographs of other events, drained of colour and turned down to a quarter, with the invitation to add the first one floating over it. The candidate keeps that faint treatment and changes the picture: the grid becomes the flow, pouring out of the card the guest just scanned.",
+      look: "The empty guest album section: today's grid beside the flow, both at the width the real guest page gives its gallery, and both labelled as the faded answer. The words alone answer is that screen with the picture taken out.",
+      options: [
+        {
+          id: "ghost",
+          label: "Yes, faded and grey",
+          means:
+            "Photographs of other events may appear drained of colour and turned down, as today's grid already is.",
+        },
+        {
+          id: "none",
+          label: "No, words alone",
+          means:
+            "No picture of other people's events at all: today's grid goes too, and the screen is type and a button.",
+        },
+      ],
       recommended: "ghost",
       because:
-        "Production already made this call for the mosaic it would replace, at grayscale and low alpha, so the promise is a thing arriving rather than a grid standing still. At full luminance an empty album promises pictures that do not exist.",
+        "The app already made this call for the grid this would replace, so the promise reads as something arriving rather than a wall standing still. At full colour an empty album promises pictures that do not exist yet.",
       overrule:
-        "If an empty state may carry no picture of other people's events at all, the mosaic goes with it and the screen is type alone.",
+        "If an empty screen may carry no picture of other people's events at all, the grid goes with it and the screen is words alone.",
       evidence: "guest",
+      state: { origin: "none" },
     },
     {
       id: "proportion",
-      question: "The box's proportion",
-      options: ["keep", "taller", "squarer"],
+      question: "Should the box stay a third taller than it is wide?",
+      context:
+        "Every measurement in the visual is worked out from its width except one: how tall the box is. It stands at 1.32 times the width, which is the room the falling frames need to straighten up before they fade out at the bottom. A squarer box cuts that straightening short; a taller one keeps the frames small for longer before they land.",
+      look: "The three sizes, which all share the one proportion: watch where a frame finishes straightening before it fades at the bottom. The board draws 1.32 only, so the other two are judged on the room the fall uses.",
+      options: [
+        {
+          id: "keep",
+          label: "Keep it as it is",
+          means:
+            "The box stays 1.32 times as tall as it is wide, the proportion every specimen on the board draws.",
+        },
+        {
+          id: "taller",
+          label: "Make it taller",
+          means:
+            "More fall in the same width: the frames stay small for longer and straighten later.",
+        },
+        {
+          id: "squarer",
+          label: "Make it squarer",
+          means:
+            "Less fall in the same width: the frames land sooner, with less room to straighten.",
+        },
+      ],
       recommended: "keep",
       because:
-        "1.32 is the only number in the visual that is taste rather than derivation. It leaves the fall room to straighten before the dissolve takes it: squarer cuts the straightening, taller keeps the frames small for longer.",
+        "1.32 is the only number in the visual that is taste rather than arithmetic. It leaves the fall room to straighten before the fade takes it: squarer cuts the straightening, taller keeps the frames small for longer.",
       evidence: "bank",
+      state: { canvas: "desktop", motion: "live" },
     },
   ],
 
@@ -118,7 +211,7 @@ export const RIVER_VISUAL = defineBoard({
     },
     {
       id: "origins",
-      name: "Three origins",
+      name: "Three things to pour out of",
       rationale:
         "The demo code on its printed card (a link, and a call to action in disguise), the same card blank where the subject is not the code, or no object at all, where the flow enters from above the frame. The last is the quietest and the first is the loudest.",
     },
@@ -177,21 +270,21 @@ export const RIVER_VISUAL = defineBoard({
   sections: [
     {
       id: "bank",
-      title: "The bank",
-      lede: "The three banked sizes at 1:1 on one clock, with the object the dock flips under all three at once: the demo code, a plain plate, or nothing.",
+      title: "The visual, at three sizes",
+      lede: "The three sizes at their true size on one clock, with the dock's Pours out of switch changing what the album comes out of under all three at once: the demo code, a plain card, or nothing.",
       argument: [
-        "One clock across all three, so the row is one visual at three scales and not three tunings. Every number a specimen draws is derived from its width: the frame size, the fan, the fall, the dissolve and the object. The one thing that is not derived is the code, which has an absolute floor in pixels, so the smaller the box the larger its share, and each caption prints the share it actually got.",
-        "That floor is the whole of the second ask. A scannable demo code is 123 px whatever the box is, so its printed card is about a quarter of the 560 column and three fifths of the 240 thumbnail: the small sizes pay for the code in composition rather than in legibility. Flip the dock's Origin to a plain plate and the object becomes a fifth of the box at every size, because taking the code out takes the scan floor out with it.",
-        "Rest is the reduced-motion state, authored rather than reproduced by hand. The flow's final state is the album fully deployed, written as custom properties during render, so a reduced-motion reader, a crawler and the server's own HTML all get the same still. Switching Motion to Rest stops the loop and clears the two properties it writes, which is exactly that reader's frame.",
+        "One clock across all three, so the row is one visual at three sizes and not three tunings. Every number a specimen draws is worked out from its width: the frame size, the fan, the fall, the fade and the object. The one thing that is not is the code, which has a floor in pixels it cannot go under and still scan, so the smaller the box the larger its share, and each caption prints the share it actually got.",
+        "That floor is the whole of the code ask. A scannable demo code is 123 px whatever the box is, so its printed card is about a quarter of the 560 column and three fifths of the 240 thumbnail: the small sizes pay for the code in composition rather than in legibility. Flip the dock's Pours out of to a plain card and the object becomes a fifth of the box at every size, because taking the code out takes its floor out with it.",
+        "The still version is what a reader who asked for less motion gets, authored rather than reproduced by hand. The flow's final state is the album fully spread, written as custom properties during render, so that reader, a crawler and the server's own HTML all get the same picture. Switching Motion to Rest stops the loop and clears the two properties it writes, which is exactly that reader's frame.",
       ],
     },
     {
       id: "column",
-      title: "The column, on a feature page",
-      lede: "Placement one, and the recommendation: the visual at the bank's own column size beside a how it works list, on the production section shell.",
+      title: "Beside a how it works step",
+      lede: "The first of the three slots, and the recommendation: the visual at 560 px beside the steps of a how it works section, drawn on the real section shell.",
       argument: [
-        "The width is read off the bank rather than typed, through the same function the specimen row uses, so this section draws exactly the number the first ask names: 560 at 1440 and 343 at 375. An earlier draft drew 460 here while the ask said 560, which put a width in front of a reviewer that nothing on the board rendered.",
-        "This is the only slot tall enough to show the whole fall. The container leaves 616 px for the step list beside it at 1440, which is more room than the list needs, and the visual keeps its full banked width rather than being squeezed to fit a column that was not designed around it.",
+        "The width is read off the sizes row rather than typed, through the same function that row uses, so this section draws exactly the number the first ask names: 560 at 1440 and 343 at 375. An earlier draft drew 460 here while the ask said 560, which put a width in front of a reviewer that nothing on the board rendered.",
+        "This is the only slot tall enough to show the whole fall. The container leaves 616 px for the step list beside it at 1440, which is more room than the list needs, and the visual keeps its full width rather than being squeezed to fit a column that was not designed around it.",
       ],
       wiring: [
         "The visual moves whole to src/components/marketing/system/river-visual.tsx with its sheet and swaps the lab's [data-paused] ancestor read for useAmbientPause. Nothing else about the file changes: it imports only the media manifest, FooterQr, Caption and the reduced-motion hook.",
@@ -199,36 +292,36 @@ export const RIVER_VISUAL = defineBoard({
     },
     {
       id: "card",
-      title: "The card slot, on a doors row",
-      lede: "Placement two, the hardest: the width the real three-up grid gives a door, on paper, beside the stills its neighbours carry today.",
+      title: "In a feature card's picture slot",
+      lede: "The second slot, and the hardest: the width the real three card row gives a card, on paper, beside the photographs its neighbours carry today.",
       argument: [
-        "A card slot is the hardest of the three because the box is short. The flow is read at its top third, where the frames are still small and still tumbling, and an object at the top of it eats a third of the picture. This is the slot that argues for taking the code out, and it is the reason the second ask is asked at all rather than assumed.",
-        "The width is the grid's, not the bank's: a three-up row inside max-w-5xl with a 16 px gap gives a door 330 px at 1440 and 311 at 375, where the bank's card size is 400. The caption prints the number the canvas drew rather than the one the bank banked.",
+        "A card slot is the hardest of the three because the box is short. The flow is read at its top third, where the frames are still small and still tumbling, and an object at the top of it eats a third of the picture. This is the slot that argues for taking the code out, and it is the reason the code ask is asked at all rather than assumed.",
+        "The width is the grid's, not the one the sizes row banked: a three card row inside max-w-5xl with a 16 px gap gives a card 330 px at 1440 and 311 at 375, where the banked card size is 400. The caption prints the number the canvas drew rather than the one the row banked.",
       ],
     },
     {
       id: "guest",
-      title: "The guest album, before anyone uploads",
-      lede: "Placement three, and an app surface: today's ghost mosaic beside the flow, both at the width the guest page really gives its gallery.",
+      title: "On the empty guest album",
+      lede: "The third slot, and an app screen: today's faded grid beside the flow, both at the width the guest page really gives its gallery.",
       argument: [
-        "Will opened the app's UI to the lab this round, so this placement is a redesign of a shipped app surface rather than a mock of one. Today's empty state is a 3 by 3 ghost mosaic of nine grayscale stills with the promise floating over it. The candidate keeps its two rules and changes its picture: the promise is a thing arriving, not a grid standing still, so the mosaic becomes the flow, pouring out of the plate the guest just scanned.",
-        "The column is derived from the page it ships on rather than picked: the guest page clamps at a 672 column with 20 px gutters, so its gallery is the canvas or 672, whichever is smaller, less the two gutters. That is 632 at 1440 and 335 at 375, read off the stage's own canvas so it cannot drift from it.",
-        "Type over the media is allowed here and nowhere else on this board. The flow is already a ghost, which is the treatment an empty album needs anyway; in every marketing placement the visual is at full luminance and the words go beside it. A feature visual has no clearing and never will, because the clearing was the hero's and it went with the hero.",
+        "Will opened the app's UI to the lab this round, so this placement is a redesign of a shipped app surface rather than a mock of one. Today's empty state is a 3 by 3 grid of nine photographs, drained of colour and turned down to a quarter, with the promise floating over it. The candidate keeps its two rules and changes its picture: the promise is a thing arriving, not a grid standing still, so the grid becomes the flow, pouring out of the card the guest just scanned.",
+        "The column is worked out from the page it ships on rather than picked: the guest page clamps at a 672 column with 20 px gutters, so its gallery is the canvas or 672, whichever is smaller, less the two gutters. That is 632 at 1440 and 335 at 375, read off the stage's own canvas so it cannot drift from it.",
+        "Type over the picture is allowed here and nowhere else on this board. The flow is already faded, which is the treatment an empty album needs anyway; in every marketing slot the visual is at full strength and the words go beside it. A feature visual has no clearing and never will, because the clearing was the hero's and it went with the hero.",
       ],
     },
     {
       id: "cost",
       title: "What it costs",
-      lede: "Measured here, now: the rest state, one instance running, and six at once, with everything else on the board hidden while the meter runs.",
+      lede: "Measured here, now: the still version, one of them running, and six at once, with everything else on the board hidden while the meter runs.",
       argument: [
-        "One rest state, one instance and six is the whole question a bank entry has to answer: what the floor is, what a real page pays, and what happens to a page that wants several. A real page mounts one, so the middle row is production truth and the last is the stress case.",
+        "The still version, one running and six is the whole question a saved visual has to answer: what the floor is, what a real page pays, and what happens to a page that wants several. A real page mounts one, so the middle row is production truth and the last is the stress case.",
         "The per-frame work does not grow with the box: twelve transform writes an instance a frame, and an opacity write only when it changed, which at rest is none. What does grow with the box is raster, which a frame gap cannot see, so the static line beside the meter is the half that carries to a slower machine.",
       ],
     },
     {
       id: "mount",
-      title: "The mount",
-      lede: "The props, every one of them derived from the box, and the paste a placement lands.",
+      title: "How a page uses it",
+      lede: "Every setting it takes, each one worked out from the width, and the block a placement copies.",
     },
   ],
 
@@ -252,12 +345,16 @@ export const RIVER_VISUAL = defineBoard({
       default: "cinema",
     },
     {
+      // The knob's own label in plain words too: "Origin" was this board's
+      // coinage and a reviewer meets it with no gloss. The id stays `origin`,
+      // because it is the URL param every shared link and every ask state
+      // carries.
       id: "origin",
-      label: "Origin",
+      label: "Pours out of",
       options: [
         { id: "code", label: "The demo code" },
-        { id: "plate", label: "A plain plate" },
-        { id: "none", label: "No object" },
+        { id: "plate", label: "A plain card" },
+        { id: "none", label: "Nothing at the top" },
       ],
       default: "code",
     },
@@ -281,12 +378,12 @@ export const RIVER_VISUAL = defineBoard({
         origin: "code",
         motion: "live",
       },
-      note: "The three banked sizes on one clock. If the row does not read as one visual at three scales, the bank entry is the wrong shape and the rest of the walk is the wrong argument.",
+      note: "The three sizes on one clock. If the row does not read as one visual at three sizes, the saved visual is the wrong shape and the rest of the walk is the wrong argument.",
     },
     {
       section: "bank",
       state: { origin: "none" },
-      note: "The same row with the object taken out. That one flip is the whole second ask: with the code the flow is a call to action, without it the album is simply arriving.",
+      note: "The same row with the object taken out. That one flip is the whole of the code ask: with the code the picture is an invitation, without it the album is simply arriving.",
     },
     {
       section: "bank",
@@ -296,16 +393,16 @@ export const RIVER_VISUAL = defineBoard({
     {
       section: "column",
       state: { motion: "live" },
-      note: "The recommended placement, at the width the first ask quotes. The list takes the rest of the container; judge whether the visual earns the room.",
+      note: "The recommended slot, at the width the first ask names. The list takes the rest of the container; judge whether the visual earns the room.",
     },
     {
       section: "card",
-      note: "The same visual in a short box on paper, where the object eats a third of the slot. This is the hardest of the three and the one that argues for no code.",
+      note: "The same visual in a short box on paper, where the object eats a third of the slot. This is the hardest of the three and the one that argues for taking the code out.",
     },
     {
       section: "guest",
       state: { origin: "none" },
-      note: "Today's mosaic beside the candidate, both at the width the guest page really gives its gallery. The third ask is whether an empty album may carry either of them.",
+      note: "Today's grid beside the candidate, both at the width the guest page really gives its gallery. The third ask is whether an empty album may carry either of them.",
     },
   ],
 
@@ -313,7 +410,7 @@ export const RIVER_VISUAL = defineBoard({
     {
       section: "bank",
       state: { ground: "paper" },
-      text: "On paper the plain plate is a white card with a faint field in it. At the lightness the first draft used it vanished into the card entirely, which is not a quiet object but a missing one.",
+      text: "On paper the plain card is a white card with a faint field in it. At the lightness the first draft used it vanished into the card entirely, which is not a quiet object but a missing one.",
     },
     {
       section: "card",
