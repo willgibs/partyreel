@@ -69,7 +69,6 @@ round of the window.
 
 | track | board | waits on |
 | --- | --- | --- |
-| `media-kit` | `/design/lab/media-kit` (round seven: keep-any as a gallery, a kept card is a purchase) | its handoff |
 
 ## Waiting on Will
 
@@ -144,5 +143,9 @@ palette and light first), pasted in batches with Copy so far.
   counts questions as tiles and the scope question means-only behind the pick; the spot list stays as
   the whole board's own section off the walk; its true-size box is the one of three copies whose reads
   settle).
+- `61063785` media-kit integrated (round seven: thirteen cards in one keep-any gallery, a kept card a
+  purchase priced on the card, the crowds question as two tiles on the blog's own row, the rule, spend
+  and shoot questions means-only over real stages; 1,077 words, no declaration; the side-by-side section
+  and its twenty-six dock pills deleted). Every board of the stepped review round is integrated.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

@@ -21,6 +21,8 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
 The lab and the kit:
+- The lab: `catalog.tsx` prints a card's `lands` only when the card is walked alone or picked, so a keep-any gallery never shows what keeping one lands as; widen the guard or give the gallery walk the solo walk's line (media-kit round seven).
+- The lab: a step's option tiles always draw inside a 1440 canvas (`FitStage mode="desktop"` in `step.tsx`), so a specimen narrower than the canvas lands as a thumbnail beside empty ground; the tile could take the canvas width its board declares (media-kit round seven).
 - The lab: the true-size box belongs in `src/components/lab` (a specimen at 1:1 inside a step's zoomed tile), built from brand-voice's copy, the only one of three whose reads SETTLE (`Stage` resolves its scale a pass after the box mounts and no ResizeObserver reports an ancestor's zoom, so type-scale's and rounding's copies measure 1 on mount and never compensate); the three board copies and floating-surfaces' enlarged loupe delete with the move.
 - The lab: a board whose option tile IS the specimen needs a declared way to say so (`--lab-tile-min`, `--lab-tile-h` and the phone column count) instead of a `:has()` rule in its own sheet (rounding round seven).
 - The lab: a one-at-a-time catalog step has no config strip, so a reviewer at 375 cannot switch Canvas from the walk (`?canvas=phone` does it); `CatalogSpec.strip`, mirroring `Ask.strip`, is the fix (light round seven).
