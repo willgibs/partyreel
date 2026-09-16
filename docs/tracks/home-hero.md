@@ -1,7 +1,8 @@
 ---
 track: home-hero
-status: open
+status: integrated
 cut: "be1638f2"          # round 6, the clarity round, cut from launch-prep
+merged: "e438aa4d"      # the branch head merged into launch-prep
 cut_round_4: "260c015"
 merged_round_5: "6a75fcc1"
 cut_round_5: "1b647d76"  # the round-5 branch is a fresh cut: the old one was deleted at its integration
@@ -351,3 +352,113 @@ reviewer had chosen. The measurement that is the board's argument was re-taken o
 and is unchanged: three darkening layers over media on the shipped hero, zero on all three
 candidates, whose only absolutely-positioned paints are the scan's two emissive layers, and every h1
 at `opacity: 1` with no transform at paint. No concept, number or recommendation changed.
+
+## Handoff (round 6, the clarity round)
+
+- Head: the tip of `lp/home-hero`, which is THIS commit (a manifest cannot name its own SHA). The
+  last code commit is `05b2f5a2`; everything below was measured on `2f98d022`, the merge of
+  `origin/launch-prep`. Pushed; **no preview** (`preview: false`): this round's review surface is a
+  local `pnpm dev` on `launch-prep` after integration, so no commit carries `[preview]` or `[ci]`.
+  **The board: `/design/lab/home-hero`. The session: `/design/lab?session=home-hero.direction`.**
+- Synced with launch-prep: **yes**, it had moved 15 commits (glow-specs, brand-voice and rounding
+  integrated, plus `5da989bd`, which makes the board's own answer block print an ask's `context` and
+  `look` beside its pills). Merged at `2f98d022`, never rebased. **One conflict, and it is the
+  adjacent deletion this whole wave causes:** `PLAIN` in `sandbox/registry.test.ts`, where
+  launch-prep had removed `glow-doctrine` and `glow-moments` and this branch had removed
+  `home-hero`. Resolved by keeping EVERY side's deletion, which is what the list means (it only
+  shrinks); the list now reads album-hero, floating-surfaces, media-kit, palette, river-visual,
+  type-scale.
+- Gates on the merged tree, each on its own exit code: typecheck ok, lint ok (0 errors; the 6
+  warnings are the pre-existing ones on `contact-form.tsx`, two feature sections, `jobs.ts` and
+  `use-flip.ts`), test ok (2155 in 218 files), build ok (257 static pages). `pnpm format` on the
+  three changed files: all already formatted. `pnpm lab:smoke --base http://localhost:3517` ok (324
+  checks, 0 failing). The dev server was killed by port before handoff.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `src/app/(dev)/design/sandbox/home-hero/{spec.ts,board.tsx}` plus this manifest, plus **the one
+  exception the brief names**: the `"home-hero"` line deleted from `PLAIN` in
+  `src/app/(dev)/design/sandbox/registry.test.ts`. Nothing else; **no CSS and no engine file was
+  touched**, which is also why reduced motion cannot have moved.
+
+### Every ask as it now reads
+
+- **direction**: "Which of the three pictures should the home page's first screen be?"
+  Options: *The album comes out of the code* | *A guest scans, then it comes out* | *The photos fly
+  into the code*. The context glosses the two nicknames a reader would otherwise have to dig for
+  (the source, the corridor). `control` is deliberately unset: the Which picture switch carries a
+  fourth option (All three) that no ask can offer, and dropping it would cost the board its
+  side-by-side scroll.
+- **headline**: "Should the hero carry the site's one line, or a headline written for the winning
+  picture?" Options: *The site's one line* | *The picture's own line*. Mirrors the `copy` control
+  (relabelled Headline), so its two labels are one string in two places and picking an option on the
+  review card previews it on every hero.
+- **lockup**: "Should the headline and buttons sit centred above and below the code, or left like
+  the rest of the site?" Options: *Centred, above and below the code* | *Left, like every other
+  page*.
+- **count**: "Should the hero carry a live count of photos and guests under the code?"
+  Options: *Keep it, wired to the real event* | *Cut the number from the hero*.
+
+### The evidence, carrying those words
+
+Each `ConceptCard` is titled with its own option's label ("1. The album comes out of the code"), so
+the words offered on the desk are the words on the thing being judged; the Which picture switch says
+the same words shortened to a knob. The headlines section's four lockups are labelled "The site's
+one line" and "The picture's own line" (they were "The site thesis" and "Proposed by ..."), which
+are the headline ask's labels exactly. The shipped hero's label at the foot of the board now says
+its type runs **Left, like every other page**, because the board builds no left candidate and that
+is the only place the lockup ask's other option can actually be seen.
+
+### What could not be made plain without new evidence
+
+**Two asks offer an option the board shows no specimen of, and this round built none** (rule 4: no
+new specimens). `lockup=left` has no left-aligned candidate, and `count=cut` has no version with the
+line removed; both options are answerable from their `means` sentence, and `left` is now pointed at
+the shipped hero as the nearest honest picture of it. If either comes back `?`, the fix is evidence
+rather than words: a fourth stage of the recommended concept with the type moved beside the lane,
+and the same stage with the count line gone. Named here rather than built, because a new specimen
+would have re-argued a board this round was told only to make readable.
+
+- Shared-file changes asked of the Orchestrator: **none.** The `PLAIN` deletion is the brief's own
+  exception and the merge above already reconciles it with the three boards that landed first.
+- Kit needs: **none.** `5da989bd` landed the one thing this board would have asked for (the answer
+  block printing `context` and `look`), so the board's first screen, the desk's session and the
+  review card now carry the same four asks word for word.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed;
+  `cinema-hero.tsx` is imported by the board and untouched.
+- Assets requested from Will: **no new ask.** The board's two are unchanged and still carried in the
+  spec's own `assets` shape, so the fold is a no-op: **ASSETS row 2** (the 34 event squares) and
+  **ASSETS row 8** (the hand-and-phone cutout).
+- Verified on a local `pnpm dev` at `2f98d022`: the board at **1440** (no horizontal overflow,
+  1440 = 1440; all four asks print their question, context, option pills, Where to look, Why the
+  board says so and Overrule if on the first screen) and at **375** (no horizontal overflow,
+  375 = 375; the Which picture knob wraps to two rows with nothing clipped, `scrollWidth` =
+  `clientWidth` on all three knobs; the three concept h1s at `opacity: 1`, `transform: none`, 48px).
+  The desk's session read cold as a stranger, all four asks in order: each one answerable from the
+  question, its context, its Where to look line and its labelled options alone. **Reduced motion
+  honoured, unchanged by construction**: the diff carries no CSS, and in the production stylesheets
+  every applied `hh*` animation sits inside a `prefers-reduced-motion: no-preference` block (7 of 7;
+  the two apparent exceptions are `animation-timing-function` lines inside `@keyframes` bodies,
+  which apply nothing).
+  `pnpm lab:review --dry 'review home-hero r5: direction=source; headline=ruled; lockup=centred;
+  count=keep'` accepts one clause per ask, and a second dry run proves the dissenting shapes
+  (`direction=inflow "..."`, `lockup=left`, `count=? "..."`).
+- **Look at first:** the answer block, and nothing else at the start. Four questions, each with a
+  paragraph of what the thing is, pills you can read without the board, and a line saying where to
+  look. If any of the four still needs the board to be understood, that is the finding, and `?` is
+  the answer that says so.
+
+## Record (round 6; the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
+
+Merged into `launch-prep` at `<sha>` (2026-09-16). The home hero board's four asks were rewritten as
+questions a stranger can answer where he meets them, which on this board meant admitting that all
+four had been labels over tokens ("The direction: source | scan | inflow") that only the board could
+decode. Each now carries what the thing is and where it lives on the site, where to look and what to
+compare, and every option labelled in words with one sentence on what choosing it does; the two
+nicknames a reader would have had to dig for, the source and the corridor, are glossed inside the
+ask that uses them. The ids did not move, so the ledger still joins, and no concept, number,
+recommendation or specimen changed. The harder half was the evidence: a card titled "1. The source"
+gave a reviewer nowhere to find the words he had been offered, so each concept card, the dock's
+concept switch and the four headline lockups now wear their option's own label, and the shipped hero
+at the foot of the board says in its own caption that its type runs left, because the board builds
+no left candidate and that caption is the only place the lockup ask's second option can be seen. Two
+options still have no specimen at all (a left-aligned lockup, a hero with the count removed) and the
+handoff names them as evidence a later round owes rather than words this one could fix.
