@@ -32,17 +32,20 @@ Library's record pages and `docs/decisions/design-record.md` are gone (git keeps
 strip runs as the `docs-systems-strip` lane. **Round 3, the Library as the complete inventory**
 (components, marketing sections and app screens with live previews, tokens; a review surface with
 keep / redesign / retire on every entry). **Round 4, the six paper boards rebuilt as catalogs**
-(brand-voice, type-scale, floating-surfaces, light, rounding, media-kit), cut once Will has walked the
-palette catalog.
+(brand-voice, type-scale, floating-surfaces, light, rounding, media-kit): cut at `385cfa99` on Will's
+answer that all six are rebuilt before any review; three run at a time under the machine ceiling.
 
 | track | returns | state |
 | --- | --- | --- |
 | `lab-catalog` | the review's item scope (`item:<id>=keep\|refine\|kill "note"`), `Catalog`, `ItemVerdictRow`, `CompareTwo`, `SpotCompare`, the reading budget in `pnpm lab:smoke`, `pnpm new-board` scaffolding a catalog, `/design/lab/kit` as the toolbox, the palette rebuilt on the kit as the proof | integrated at `57b93286`; the palette verified on the desk |
 | `lab-sweep` | every lab page walked at 1440 and 375 and fixed in the shell; plain-English labels | integrated at `88dafe50` (the dev indicator moved and the lab functions' file trace cut from 2,248 to 718 files behind it) |
+| `docs-systems-strip` | the four heavy system docs stripped to the system and its invariants, every ★ audited | building |
+| `brand-voice`, `type-scale`, `floating-surfaces` | Round 4 catalogs (the voice on two dozen real spots; the ladders side by side and two at once on real UI; the directions as cards with the desk under two) | building |
+| `light`, `rounding`, `media-kit` | Round 4 catalogs (the twelve treatments on the real sections; the four families at true size; the sources' contact sheets) | cut, waiting for a slot |
 
 Round 1 is closed on the tree (both lanes integrated, the verification list walked on the dev server);
-what remains of it is Will's walk of the palette catalog (his first review with per-item verdicts) and
-the six catalog briefs cut from what he says. The reading budget (1,200 words outside every closed fold,
+Will's first review with per-item verdicts is the palette catalog plus the six rebuilt boards, on the
+desk, once Round 4 lands. The reading budget (1,200 words outside every closed fold,
 specimen and paste) fails all twelve standing boards on purpose: `pnpm lab:smoke` reports the routes and
 the budget apart, and the rebuilds must meet it.
 

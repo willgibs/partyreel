@@ -62,6 +62,10 @@ Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every revie
 | track | board | waits on |
 | --- | --- | --- |
 | `docs-systems-strip` | none (the four heavy system docs stripped to the system and its invariants; every ★ audited) | its handoff |
+| `brand-voice` | `/design/lab/brand-voice` (the voice on two dozen real spots, two at once) | its handoff |
+| `type-scale` | `/design/lab/type-scale` (the ladders side by side, two on real UI) | its handoff |
+| `floating-surfaces` | `/design/lab/floating-surfaces` (the directions as cards, the desk under two) | its handoff |
+| `light`, `rounding`, `media-kit` | cut at `385cfa99`, spawned as slots free | a slot |
 
 ## Waiting on Will
 
