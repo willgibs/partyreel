@@ -39,6 +39,13 @@ export type AskOption =
       label: string;
       /** One sentence: what picking this does, and what it costs. */
       means?: string;
+      /**
+       * The declared controls that show THIS option on the ask's specimen
+       * (the stepped review, 2026-09-16), merged over `ask.state` and the
+       * `control` mirror: the review draws every option as a tile on one
+       * specimen, and a press shows it before anything is recorded.
+       */
+      state?: Partial<Record<string, string>>;
     };
 
 export const optionId = (o: AskOption): string =>
@@ -47,6 +54,18 @@ export const optionLabel = (o: AskOption): string =>
   typeof o === "string" ? o : o.label;
 export const optionMeans = (o: AskOption): string | undefined =>
   typeof o === "string" ? undefined : o.means;
+
+/**
+ * WHAT AN ASK WAITS ON (the stepped review, 2026-09-16). A question that only
+ * exists once another is answered a certain way (the aurora's landing once the
+ * aurora is kept; the accent's reach once `accent=own`) is STAGED: kept off the
+ * desk and out of the walk until its prerequisite is held or ruled, and moot
+ * when the prerequisite goes the other way. `option` or `verdict` left out
+ * means "answered at all".
+ */
+export type AskAfter =
+  | { ask: string; option?: string }
+  | { item: string; verdict?: "keep" | "refine" };
 
 /**
  * AN ASK CARRIES ITS OWN CONTEXT (Will, 2026-09-15: "the more clearly you can
@@ -80,6 +99,12 @@ export type Ask<SectionId extends string = string> = {
   state?: Partial<Record<string, string>>;
   /** A dock control whose option ids equal this ask's, so picking an option previews it. */
   control?: string;
+  /** What the answer decides platform-wide: the token, component, route or rule, in words. */
+  lands?: string;
+  /** The earlier ask, or the catalog card, this question waits on. */
+  after?: AskAfter;
+  /** The declared controls the step's config strip shows beside the stage (default: none). */
+  strip?: readonly string[];
 };
 
 export type Verdict = {
@@ -138,6 +163,8 @@ export type Candidate<SectionId extends string = string> = {
    * catalog says where the ruling went rather than sitting there as history.
    */
   library?: string;
+  /** What keeping this card lands as, platform-wide: the token, component or rule, in words. */
+  lands?: string;
   /** The hero concept contract, folded in: a candidate can carry its own copy proposal. */
   proposed?: {
     eyebrow?: string;
@@ -191,6 +218,22 @@ export type CatalogSpec<SectionId extends string = string> = {
   control?: string;
   /** The two declared controls any-two-side-by-side reads; their option ids are the candidate ids. */
   compare?: readonly [string, string];
+  /**
+   * HOW THE CATALOG IS DECIDED (the stepped review, 2026-09-16). `pick-one`:
+   * the cards are variants of one thing and ONE wins, asked by the `winner` ask
+   * (its options are the card ids plus `none`, its `control` the pick control,
+   * so "None of these" clears the board and lands in the ledger as an ordinary
+   * answer carrying its note); the card verdicts are optional feedback.
+   * `keep-any` (the default): every card is its own proposal and each takes a
+   * verdict.
+   */
+  mode?: "pick-one" | "keep-any";
+  /** pick-one: the ask that records the winner. */
+  winner?: string;
+  /** keep-any: how the review walks the cards (default gallery). */
+  walk?: "gallery" | "one-at-a-time";
+  /** The section drawn under the tiles in the pick's state: the real surface wearing the choice. */
+  stage?: SectionId;
 };
 
 /** The board's state: every declared control's current option id. */
@@ -266,6 +309,7 @@ export const LIMITS = {
   askLook: 240,
   askBecause: 300,
   askOverrule: 160,
+  askLands: 160,
   optionLabel: 48,
   optionMeans: 160,
   title: 60,
@@ -277,6 +321,7 @@ export const LIMITS = {
   roundChanged: 300,
   context: 600,
   candidateOne: 120,
+  candidateLands: 120,
   /** The words a board may show outside its collapsed folds before it is a paper (the smoke measures it). */
   readingWords: 1200,
 } as const;

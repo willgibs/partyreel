@@ -107,6 +107,7 @@ describe("the board registry", () => {
         under(`${b.id}.ask ${a.id}.look`, a.look, LIMITS.askLook);
         under(`${b.id}.ask ${a.id}.because`, a.because, LIMITS.askBecause);
         under(`${b.id}.ask ${a.id}.overrule`, a.overrule, LIMITS.askOverrule);
+        under(`${b.id}.ask ${a.id}.lands`, a.lands, LIMITS.askLands);
         for (const o of a.options) {
           under(
             `${b.id}.ask ${a.id}.option ${optionId(o)}.label`,
@@ -125,6 +126,11 @@ describe("the board registry", () => {
         // The card's one line is the whole reading on a catalog grid: past
         // this it wraps to four lines and twelve cards become a wall.
         under(`${b.id}.candidate ${c.id}.one`, c.one, LIMITS.candidateOne);
+        under(
+          `${b.id}.candidate ${c.id}.lands`,
+          c.lands,
+          LIMITS.candidateLands,
+        );
       }
       for (const d of [
         ...b.departures,
@@ -222,6 +228,16 @@ describe("the board registry", () => {
         check(l.state, `the walk step at ${l.section}`);
       for (const a of b.asks) {
         check(a.state, `the ask ${a.id}`);
+        for (const o of a.options) {
+          if (typeof o === "object" && o.state)
+            check(o.state, `option ${o.id} of ask ${a.id}`);
+        }
+        for (const id of a.strip ?? []) {
+          expect(
+            controls.get(id),
+            `${b.id}: ask ${a.id} puts undeclared control "${id}" on its strip`,
+          ).toBeTruthy();
+        }
         if (a.control !== undefined) {
           const c = controls.get(a.control);
           expect(
@@ -231,13 +247,18 @@ describe("the board registry", () => {
           // The pick IS the preview: the card sets the control to the option
           // picked, which only works when the two id sets are the same set.
           // A clearable control's default is "nothing picked", never a choice.
-          const mirrored = c!.options
-            .map((o) => o.id)
-            .filter((id) => !(c!.clearable && id === c!.default));
+          // A pick-one catalog's winner ask offers the cleared default too,
+          // as "None of these" (the stepped review, 2026-09-16): choosing it
+          // clears the board, which is the right preview of "none".
+          const all = c!.options.map((o) => o.id).sort();
+          const mirrored = all.filter(
+            (id) => !(c!.clearable && id === c!.default),
+          );
+          const offered = [...a.options.map(optionId)].sort();
           expect(
-            [...a.options.map(optionId)].sort(),
+            offered.join() === mirrored.join() || offered.join() === all.join(),
             `${b.id}: ask ${a.id} mirrors ${a.control} but their option ids differ`,
-          ).toEqual(mirrored.sort());
+          ).toBe(true);
         }
       }
       for (const c of b.controls ?? []) {
@@ -336,6 +357,82 @@ describe("the board registry", () => {
           `${b.id}: A and B open on the same card`,
         ).not.toBe(controls.get(c)!.default);
       }
+
+      // The stepped review (2026-09-16): a pick-one catalog is decided by ONE
+      // ask, which mirrors the pick control and offers "none" as the
+      // new-directions exit; a walk is a keep-any's choice; a stage is a section.
+      const cat = b.catalog;
+      if (cat.mode === "pick-one") {
+        expect(
+          cat.winner,
+          `${b.id}: a pick-one catalog names no winner ask`,
+        ).toBeTruthy();
+        expect(
+          cat.walk,
+          `${b.id}: walk is for keep-any; pick-one is one gallery step`,
+        ).toBeUndefined();
+      }
+      if (cat.winner !== undefined) {
+        const w = b.asks.find((a) => a.id === cat.winner);
+        expect(
+          w,
+          `${b.id}: the winner ask "${cat.winner}" is not declared`,
+        ).toBeTruthy();
+        expect(
+          w!.control,
+          `${b.id}: the winner ask ${cat.winner} must mirror the pick control`,
+        ).toBe(cat.control);
+        expect(
+          w!.options.map(optionId),
+          `${b.id}: the winner ask ${cat.winner} offers no "none" (the new-directions exit)`,
+        ).toContain("none");
+      }
+      if (cat.stage !== undefined) {
+        expect(
+          b.sections.map((s) => s.id),
+          `${b.id}: the catalog's stage points at section "${cat.stage}"`,
+        ).toContain(cat.stage);
+      }
+    }
+  });
+
+  /**
+   * A STAGED ASK WAITS ON SOMETHING REAL (the stepped review, 2026-09-16): an
+   * earlier ask of the same board (never itself, never a later one: the walk
+   * is in spec order) and an option it offers, or a card of the board's own
+   * catalog. Anything else would hide a question for ever.
+   */
+  it("stages an ask only after an earlier ask or a card of its own catalog", () => {
+    for (const b of BOARDS) {
+      b.asks.forEach((a, i) => {
+        const after = a.after;
+        if (!after) return;
+        if ("ask" in after) {
+          const j = b.asks.findIndex((x) => x.id === after.ask);
+          expect(
+            j,
+            `${b.id}: ask ${a.id} waits on unknown ask "${after.ask}"`,
+          ).toBeGreaterThanOrEqual(0);
+          expect(
+            j,
+            `${b.id}: ask ${a.id} waits on itself or on a later ask`,
+          ).toBeLessThan(i);
+          if (after.option !== undefined)
+            expect(
+              b.asks[j].options.map(optionId),
+              `${b.id}: ask ${a.id} waits on an option ${after.ask} does not offer`,
+            ).toContain(after.option);
+        } else {
+          expect(
+            b.catalog,
+            `${b.id}: ask ${a.id} waits on a card but the board has no catalog`,
+          ).toBeTruthy();
+          expect(
+            b.candidates.map((c) => c.id),
+            `${b.id}: ask ${a.id} waits on unknown card "${after.item}"`,
+          ).toContain(after.item);
+        }
+      });
     }
   });
 
@@ -379,10 +476,17 @@ describe("the asks, in plain words", () => {
           a.context && a.context.trim().length > 0,
           `${b.id}: ask ${a.id} carries no context`,
         ).toBeTruthy();
-        expect(
-          a.look && a.look.trim().length > 0,
-          `${b.id}: ask ${a.id} does not say where to look`,
-        ).toBeTruthy();
+        // Where to look is the tiles themselves once every option is drawn
+        // (a control mirror, or a state on every option), and then `look` is
+        // optional (the stepped review, 2026-09-16).
+        const drawn =
+          a.control !== undefined ||
+          a.options.every((o) => typeof o === "object" && o.state);
+        if (!drawn)
+          expect(
+            a.look && a.look.trim().length > 0,
+            `${b.id}: ask ${a.id} does not say where to look`,
+          ).toBeTruthy();
         for (const o of a.options) {
           expect(
             typeof o,
