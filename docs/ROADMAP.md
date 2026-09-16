@@ -21,6 +21,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
 The lab and the kit:
+- Every catalog board's `reading.why` and declared budget over-state the template's cost since the stepped review deleted the index, the "Rule on:" rows and the review panel (the boards read 1,141 to 1,662 on that tree); each board's own round rewrites its declaration.
 - The review card at 375 as a bottom sheet that keeps the question and the picked option in view while the evidence scrolls.
 - Evidence the asks still owe: a left-aligned lockup and a hero with no count on `home-hero`; the arriving tile, the settled no-script frame and the voice line on `album-hero`; a proportion control and the no-photographs guest screen on `river-visual`.
 - A measured-width wrap for the dock's knobs (a four-option switch with full labels overflows a 375 dock).
