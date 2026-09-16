@@ -56,6 +56,22 @@ import {
  */
 
 /**
+ * ★ THE HUE ARRIVES AND LEAVES, IT DOES NOT CUT. The reach ask asks WHICH
+ * PLACES keep the colour, and the answer is only legible if you can see what
+ * moved: press the next tile and the mark fades to near-black while the badge
+ * holds its teal, which is the ruling, drawn. 200ms on the emphasis curve, and
+ * a colour fade only, so nothing shifts position.
+ *
+ * `:not(button)` is load-bearing. The production Button carries its own
+ * `transition-all` for the press scale, and a descendant rule would replace it
+ * with colours alone and cost a real component its press feedback. It needs no
+ * help anyway: `transition-all` already covers the background it paints from
+ * `var(--brand)`.
+ */
+const FADE =
+  "[&_*:not(button)]:transition-colors [&_*:not(button)]:duration-200 [&_*:not(button)]:ease-emphasis motion-reduce:[&_*]:transition-none";
+
+/**
  * One job's cluster, lit or not. A job outside the ruled reach renders on INK,
  * which is exactly what the ruling lands: those call sites keep
  * `var(--primary)`.
@@ -82,7 +98,7 @@ function Job({
   return (
     <span
       style={accentStyle(lit ? accent : ACCENT_BY_ID.ink, dark)}
-      className={className}
+      className={cn(FADE, className)}
     >
       {children}
     </span>
