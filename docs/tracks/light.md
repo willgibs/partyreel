@@ -135,17 +135,22 @@ and why, for Will or the Orchestrator to overrule.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `sandbox/light/` + `docs/specs/light.md`
   + this file. No exceptions.
 - The steps, in walk order after the cards:
-  - `landing`: decides the placement grammar SectionLight ships with; four tiles on one real chapter; after `item:aurora=keep`
-  - `cadence`: decides the one token every lamp and the field's clock multiply from; two tiles on one real chapter, plus the knob that writes the clock on the site
-  - `paper`: decides the five hues re-declared on the paper surface; three tiles on one real paper chapter, swatches under each
-  - `publish`: decides the publish beat's keyframe and a ratified violet moved five degrees; three tiles on one reel frame, each with a Replay
-  - `second`: decides which surfaces the wiring round touches after the shadows; means-only, three rows (an order, not a picture)
+  - `landing`: decides the placement grammar SectionLight ships with; four tiles on one real
+    chapter; after `item:aurora=keep`
+  - `cadence`: decides the one token every lamp and the field's clock multiply from; two tiles on one
+    real chapter, plus the knob that writes the clock on the real site
+  - `paper`: decides the five hues re-declared on the paper surface; three tiles on one real paper
+    chapter, with the row's own swatches under each
+  - `publish`: decides the publish beat's keyframe and a ratified violet moved five degrees; three
+    tiles on one reel frame, each with a Replay
+  - `second`: decides which surfaces the wiring round touches after the shadows; means-only, three
+    rows (an order, not a picture)
 - The cards, in Will's order (the light placements, the shadow-specific ones, the marks). Every one has
   before/after on its job's one specimen: the lamps on the closer chapter (cinema), the depth cues on one
   pair of overlapping event tiles in a panel (app dark), the marks on one reel frame (app dark).
   - `seam`: lands as a band at any boundary, already on the footer, the strip and the feature screens; usages 1
   - `throw`: lands as a wrapper at the call site, the QR plate and a card over open dark; usages 1
-  - `aurora`: lands as a new SectionLight, one chapter a page; usages 2 (a cinema chapter, a paper chapter)
+  - `aurora`: lands as a new SectionLight, one chapter a page; usages 2 (cinema, then paper)
   - `step`: lands as nothing moving, every card, panel and well today; usages 1; lens
   - `ring`: lands as nothing moving, 77 hairlines named as the fourth technique; usages 1; lens
   - `lift`: lands as a shadow token, dark gaining the alpha it never had; usages 1
@@ -153,7 +158,8 @@ and why, for Will or the Orchestrator to overrule.
   - `face`: lands as an attribute on three named surfaces and nowhere else; usages 2; lens
   - `sweep`: lands as the engine's edge ring turned on beside the comet; usages 1; Replay
   - `bloom`: lands as a resting base under the one-shot; usages 1; Replay
-  - `halo`: lands as a wrapper on one secondary action a page, argued each time; usages 2 (the white primary is one)
+  - `halo`: lands as a wrapper on one secondary action a page, argued each time; usages 2 (one is the
+    white primary it cannot light)
   - `beam`: lands as nothing moving, one wrapper, one subject per view; usages 1
 - Assets requested from Will: none new. The two standing ones are unchanged and already logged: the grain
   tile (ASSETS row 15) and the worst-case overlap pair (row 16).
