@@ -1,6 +1,6 @@
 ---
 track: home-hero
-status: open
+status: handed-off
 cut: "3caa491c"          # the home hero's sixth round: the stream catalog before the wiring (2026-09-16)
 board: home-hero
 owns:
@@ -73,26 +73,83 @@ one process at a time; never `[preview]` or `[ci]`; stage files explicitly; the
 `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>` trailer on every commit. The `palette` track
 runs beside you in its own directory.
 
-**Questions.** What the goal leaves open goes here, numbered, with your recommended answer; carry on
-with the recommendation.
+**Questions.** Answered by the Orchestrator mid-round and carried on with; nothing waits on Will.
+
+1. *Which treatment does the board recommend?* → **settle** ("3. The album lays itself out"). It is
+   the only one of the four that stops, so it is the only one that reads as a composition in a
+   still, which is the test a hero has to survive. The other three are all better than round five
+   and none of them is that.
+2. *Does the caption under the code stay, now that the count is cut?* → **yes**. It is not a
+   number, and it says the one thing the picture cannot say for itself (where the frames came
+   from). It sits in the column the stream leaves clear by its own physics.
+3. *Four cards or three?* → **four**. The ribbon is the one that would go if it had to be three:
+   the most composed of them and the least like an album, which is exactly why it is worth a
+   verdict rather than a cut.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` green for this board, its reading words
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>`, and what the wiring round needs from each (the frames, the props, the reduced-motion rest)
-- Assets requested from Will: none, or one per line
-- Look at first: ...
+- Head `a7d9afcd` (this manifest); the work is `bf1ee166`. Synced: `origin/launch-prep`
+  had moved to `551ecab5` (the palette's seventh round, the stepped review's spec fields, the
+  track docs); merged, no conflicts, and the gates below are on the merged tree.
+- Gates: typecheck ok, lint ok (0 errors, 8 pre-existing warnings), test ok (2145), build ok (258
+  pages). `pnpm lab:smoke --base http://localhost:3112`: every route green, and this board reads
+  **1189 of its 1200 words** with no declaration (it was 3391 at round five).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: seventeen paths, all inside
+  `src/app/(dev)/design/sandbox/home-hero/`, plus this manifest. No exceptions.
+- **The items.** Every per-card value in all four is a step in a declared table; the integer hash
+  round five dealt from is gone. One engine (`streams.ts`), four tables; the wiring round keeps
+  the engine and deletes the three that lost.
+  - `mirror` — **ship**. One pair a beat, the two arms exact mirrors on five stations in order.
+    18 frames lit of 28 nodes at 1440. The wiring needs `MIRROR_STATIONS`, `MIRROR_LANES`,
+    `MIRROR_ROLL`, its beat and its flight; rest is the symmetric fan.
+  - `phrase` — **ship**. Three frames 170 ms apart stepping far, middle, near, then an empty bar,
+    the arms answering. 12 of 24. Needs `PHRASE_IN`, `PHRASE_BAR`, `PHRASE_FAN`, `PHRASE_LANES`
+    and its short flight (6000 ms: the flight is what makes a phrase visible); rest is one phrase
+    mid-flight.
+  - `settle` — **ship**, and the board's answer. Out, a held arrangement of four places a side at
+    1440 and three at 375, then gone as the next arrives. 15 of 22. Needs `SETTLE_PLACES` per
+    canvas, `SETTLE_BEAT`, `SETTLE_ARRIVE`, `SETTLE_GO` and its own late scale curve; rest is the
+    places occupied. A place is never double booked and `streams.test.ts` holds that.
+  - `ribbon` — **refine**. One file a side up an arc, the angle fanning with the distance
+    (`rollAt` by phase, `riseFlat`). 14 of 28. Needs `RIBBON_FAN` and the arc that completes by
+    the canvas edge; rest is the full file.
+  - All four: the hero composition itself is `hero.tsx` and it is already the shippable shape (the
+    ruled lockup centred, no count, the real demo QR still at the exact centre, the type placed
+    outside the stream's measured reach, the noscript rule intact). `cinema-hero.tsx` takes it
+    whole, swapping the lab's `data-paused` for `useAmbientPause`.
+- **Assets requested from Will:** nothing new. ASSETS row 2 (34 squares) stands and now covers all
+  four with nothing doubled (14 a side is the largest pool). The settle card asks for ASSETS row
+  12 (12 portraits), already logged: a held frame reads at up to 332 px tall, where a 512 square
+  cropped to 4:5 is upscaled.
+- **Look at first:** the four at 1440 with nothing picked, then `settle` alone, then the pick worn
+  by the real home page at the foot of the board. The board's walk runs that order.
+- **For the Orchestrator, three lines outside my lane.**
+  1. `src/app/(dev)/design/sandbox/media-kit/shoot.ts:565` names `sandbox/home-hero/scan.tsx` in
+     an asset row's `replaces`; that file is gone with the ruling.
+  2. The board's header still reads "Ruled: open (round two ruled 2026-09-14 ... the inflow
+     joins)", from `_data/touchpoints.ts`. Two rounds stale.
+  3. The catalog is left on the default `keep-any`, deliberately: `mode: "pick-one"` requires a
+     `winner` ask (`registry.test.ts`), and the brief was to add none. Turning it on is three
+     lines, all the Orchestrator's: `mode`, `winner`, and one ask mirroring the `stream` control
+     whose options are the four cards plus `none`. `candidate.lands` is left unwritten for the
+     same reason: nothing renders it yet, and four more lines would spend the eleven words of
+     reading budget this board has left.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-16). The home hero's sixth round answered Will's one
+note on the fifth ("the random stream feels worse than a more polished one") with a catalog of four
+compositions of the ruled picture, and retired the two directions he did not pick. Every seeded
+value became a step in a declared cycle, the spacing was evened so the stream reads as a procession
+rather than a clump at the code, scale and opacity moved onto the distance crossed so depth stops
+inverting, and the type's clear lane is now measured at the headline's real ink rather than its box.
+A scene route put each treatment on the real home page at 1:1, `streams.test.ts` pinned what a
+composition has to be true of, and the board came down from 3391 reading words to 1189.
