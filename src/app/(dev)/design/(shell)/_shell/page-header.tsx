@@ -83,7 +83,11 @@ export function PageHeader({
             ))}
           </nav>
         )}
-        <div className="flex items-center gap-1.5">
+        {/* ml-auto, not only the row's justify-between: a long trail (a doctrine
+            page's three levels at 375) wraps the actions onto their own line,
+            where justify-between leaves them at the LEFT margin reading as a
+            stray button row above the title (the sweep, 2026-09-16). */}
+        <div className="ml-auto flex items-center gap-1.5">
           {actions}
           <CopyLink className="hidden sm:inline-flex" />
           <CopyPage />
