@@ -1,7 +1,7 @@
 ---
 track: media-kit
 status: open
-cut: "be1638f2"          # round 6, the clarity round, cut from launch-prep
+cut: "d5f0c3c9"          # round 6, the clarity round, cut from launch-prep
 cut_round_5: "1b647d7"
 merged_round_5: "df8d6afb"
 merged_round_4: "b399c354"
