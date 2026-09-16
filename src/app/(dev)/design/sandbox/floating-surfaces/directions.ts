@@ -68,7 +68,36 @@ import {
   state,
 } from "./candidates";
 
-export const DIRECTIONS = ["today", "card", "glass", "command"] as const;
+/**
+ * THE SEVEN, AND WHY THE CATALOG GREW (round six, the revamp, 2026-09-16).
+ *
+ * Round four drew three directions because three was what the question needed
+ * to be asked at all: an anatomy answer, a material answer, a model answer.
+ * Will's standing ruling since ("designing a few, or many, variations always
+ * beats a mountain of research text") asks a round to return a CATALOG, and
+ * four cards where one is the floor is three real choices. So the board carries
+ * three more, each a coherent answer somebody could prefer for a reason they
+ * could say out loud, and each one an answer to a cost the first four pay:
+ *
+ *   compact  CARD'S COST, ANSWERED. Card's own line is that a two-row overflow
+ *            becomes furniture. Compact is the opposite anatomy: the smallest
+ *            honest menu, dense rows, a hairline between groups, nothing added.
+ *   paper    THE LAYER STOPS FLOATING. No shadow at all, a real border, a
+ *            squarer corner: a panel printed on the page rather than hovering
+ *            over it. The cheapest direction on the board and the quietest.
+ *   lift     THE EDGE COMES OFF. No ring, no border, and the shadow does the
+ *            whole job, in light and in dark. The opposite of paper, and the
+ *            strongest reading of bible 10's "a layer over content".
+ */
+export const DIRECTIONS = [
+  "today",
+  "card",
+  "glass",
+  "command",
+  "compact",
+  "paper",
+  "lift",
+] as const;
 export type Direction = (typeof DIRECTIONS)[number];
 
 export type DirectionMeta = {
@@ -146,6 +175,48 @@ export const DIRECTION_META: Record<Direction, DirectionMeta> = {
     paste:
       "The paste carries the material, the radius and the motion. The field, the filtering and the flattening are the direction: they are components, and they are the ruling.",
   },
+  compact: {
+    label: "Compact",
+    oneLine:
+      "The smallest honest menu: dense rows, a hairline between groups, state on the right, nothing added.",
+    changes: [
+      "Anatomy by density: rows at 26px instead of 32, labels at 13px, 4px of panel padding, a hairline rule carrying each group's name instead of a label row, and the trailing column kept because a value is why you opened the menu.",
+      "Material: opaque, the hairline ring kept, and a contact shadow only, so the panel sits on the page rather than over it.",
+      "Radius: a 6px panel around 2px rows, which is the squarest corner that still nests.",
+      "Motion: 90ms in and 60ms out, a fade and a 4px travel with no scale, because a dense list that scales reads as a jolt.",
+    ],
+    cost: "It gives nothing back to a menu that is hard to read: no title, so an overflow on a page of four events still makes you remember which one it belongs to, and a destructive row separated by colour alone.",
+    paste:
+      "The paste carries the material, the radius, the motion and the density, because row height and type size are CSS. The hairline group rule is markup: a change to dropdown-menu.tsx.",
+  },
+  paper: {
+    label: "Paper",
+    oneLine:
+      "Printed on the page rather than floating over it: no shadow anywhere, a real border, a squarer corner.",
+    changes: [
+      "Material: no shadow in either mode. The ring is replaced by a real 1px border, so the panel is told apart by an edge and a step of ground rather than by depth.",
+      "Radius: a 5px panel around 1px rows, the squarest corner on the board.",
+      "Motion: a pure fade, 120ms in and 90ms out, with no travel and no scale at all.",
+      "Anatomy: today's, unchanged. This direction is a claim about material and nothing else, which is why it is the cheapest one here.",
+    ],
+    cost: "Over a photograph it has the least separation of anything on the board: an edge and a ground step, with no depth at all. In dark that is the whole argument of the shadow call, taken to its end.",
+    paste:
+      "The paste carries all of it. Paper needs no component change, so it is the one direction that could land the afternoon it is ruled.",
+  },
+  lift: {
+    label: "Lift",
+    oneLine:
+      "The edge comes off: no ring and no border, with a doubled shadow doing the whole job in light and in dark.",
+    changes: [
+      "Material: no ring, no border. Two shadow layers, one tight and one wide, at roughly twice the float family's spread, in light AND in dark.",
+      "Radius: a 14px panel around 10px rows, the roundest on the board, because a shape with no edge needs its corner to say where it ends.",
+      "Motion: 180ms in, rising 8px with a hair of scale, 120ms out. The panel arrives from under the page rather than beside the trigger.",
+      "Anatomy: today's, unchanged, for the same reason as paper. These two are the two ends of one question about material.",
+    ],
+    cost: "It departs from the shipped elevation contract by name: a shadow in dark, on every panel, as the only thing separating it from the page. On a flat app screen with no photograph under it, that is a smudge rather than a lift.",
+    paste:
+      "The paste carries all of it, and it is the direction that most needs walking on a real page: a shadow with no edge under it reads differently on paper, on the room and on a photograph.",
+  },
 };
 
 /* -- THE RADIUS EACH DIRECTION PROPOSES ------------------------------------
@@ -170,6 +241,25 @@ const RADIUS: Record<
     item: "var(--radius-float)",
     panel: "calc(var(--radius-float) * 1.5)",
     lg: "calc(var(--radius-float) * 2.5)",
+  },
+  // 6px around 2px: the squarest pair that still nests inside 4px of padding.
+  compact: {
+    item: "calc(var(--radius-float) * 0.75 - 4px)",
+    panel: "calc(var(--radius-float) * 0.75)",
+    lg: "calc(var(--radius-float) * 1.5)",
+  },
+  // 5px around 1px, off the SURFACE token: a printed card is a surface, and the
+  // surface family is where the site's squarest corner already lives.
+  paper: {
+    item: "calc(var(--radius) * 0.5)",
+    panel: "calc(var(--radius) * 2.5)",
+    lg: "calc(var(--radius) * 5)",
+  },
+  // 14px around 10px: a shape with no edge needs its corner to say where it ends.
+  lift: {
+    item: "calc(var(--radius-float) * 1.75 - 4px)",
+    panel: "calc(var(--radius-float) * 1.75)",
+    lg: "calc(var(--radius-float) * 3)",
   },
 };
 
@@ -401,12 +491,156 @@ ${state(scope, EDGE_ANY, CLOSED)} {
 }`)}`;
 }
 
+function compactCss(scope: Scope): string {
+  return `/* DIRECTION "COMPACT": the smallest honest menu. Dense rows, the squarest
+   corner that still nests, a contact shadow rather than a float, and a clock
+   fast enough for a surface opened dozens of times in a session (bible 12).
+   The density IS the direction, so the row metrics are part of the paste. */
+${radiusBlock("compact", scope)}
+${lightGround(scope)} {
+  --flt-float: 0 1px 2px 0 oklch(0 0 0 / 0.12), 0 2px 6px -2px oklch(0 0 0 / 0.1);
+}
+${darkGround(scope)} {
+  --flt-float: 0 1px 2px 0 oklch(0 0 0 / 0.5);
+}
+${panels(scope, ALL)} {
+  box-shadow: ${RING}, var(--flt-float);
+  backdrop-filter: none;
+}
+${panels(scope, MENUS)} {
+  padding: 4px;
+}
+${inside(scope, ALL, ITEMS)} {
+  /* 26px rows: h-7 minus the two pixels a 13px label gives back. A menu you
+     open forty times a night should fit on one screen. */
+  min-height: 26px;
+  padding-block: 2px;
+  font-size: 13px;
+  line-height: 1.3;
+}
+${guarded(`@keyframes flt-compact-in {
+  from { opacity: 0; transform: translate(var(--flt-dx, 0px), var(--flt-dy, 0px)); }
+}
+@keyframes flt-compact-out {
+  to { opacity: 0; transform: translate(var(--flt-dx, 0px), var(--flt-dy, 0px)); }
+}
+@keyframes flt-compact-edge-in {
+  from { transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%)); }
+}
+@keyframes flt-compact-edge-out {
+  to { transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%)); }
+}
+${travel(scope)}
+${state(scope, ANCHORED, OPEN)} {
+  animation: flt-compact-in 90ms var(--ease-emphasis) both;
+}
+${state(scope, ANCHORED, CLOSED)} {
+  animation: flt-compact-out 60ms var(--ease-emphasis) both;
+}
+${state(scope, EDGE_ANY, OPEN)} {
+  animation: flt-compact-edge-in 220ms var(--ease-drawer) both;
+}
+${state(scope, EDGE_ANY, CLOSED)} {
+  animation: flt-compact-edge-out 160ms var(--ease-drawer) both;
+}`)}`;
+}
+
+function paperCss(scope: Scope): string {
+  return `/* DIRECTION "PAPER": the layer stops floating. No shadow in either mode, a
+   real border where the ring was, the squarest corner on the board, and a fade
+   with no travel and no scale. What tells a panel from the page is an edge and
+   a step of ground, which is exactly what the shadow call is asking about. */
+${radiusBlock("paper", scope)}
+${panels(scope, ALL)} {
+  /* The ring is REPLACED rather than composed: a ring and a border a pixel
+     apart on an opaque panel draw two edges (the glass block's own lesson). */
+  --tw-ring-shadow: 0 0 #0000;
+  border: 1px solid var(--border);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+${guarded(`@keyframes flt-paper-in {
+  from { opacity: 0; }
+}
+@keyframes flt-paper-out {
+  to { opacity: 0; }
+}
+@keyframes flt-paper-edge-in {
+  from { transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%)); }
+}
+@keyframes flt-paper-edge-out {
+  to { transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%)); }
+}
+${travel(scope)}
+${state(scope, ANCHORED, OPEN)} {
+  animation: flt-paper-in 120ms var(--ease-emphasis) both;
+}
+${state(scope, ANCHORED, CLOSED)} {
+  animation: flt-paper-out 90ms var(--ease-emphasis) both;
+}
+${state(scope, EDGE_ANY, OPEN)} {
+  animation: flt-paper-edge-in 240ms var(--ease-drawer) both;
+}
+${state(scope, EDGE_ANY, CLOSED)} {
+  animation: flt-paper-edge-out 170ms var(--ease-drawer) both;
+}`)}`;
+}
+
+function liftCss(scope: Scope): string {
+  return `/* DIRECTION "LIFT": the edge comes off and the light does everything. Two
+   shadow layers at roughly twice the float family's spread, in light AND in
+   dark, with no ring and no border under them. It departs from the shipped
+   elevation contract by name, which is the point: bible 10 allows a shadow
+   where a layer sits over content, and this is that reading taken to its end. */
+${radiusBlock("lift", scope)}
+${lightGround(scope)} {
+  --flt-float: 0 6px 12px -4px oklch(0 0 0 / 0.12), 0 16px 32px -8px oklch(0 0 0 / 0.16);
+}
+${darkGround(scope)} {
+  --flt-float: 0 6px 12px -4px oklch(0 0 0 / 0.55), 0 16px 32px -8px oklch(0 0 0 / 0.7);
+}
+${panels(scope, ALL)} {
+  --tw-ring-shadow: 0 0 #0000;
+  border: 0;
+  box-shadow: var(--flt-float);
+  backdrop-filter: none;
+}
+${guarded(`@keyframes flt-lift-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+}
+@keyframes flt-lift-out {
+  to { opacity: 0; transform: translateY(4px) scale(0.99); }
+}
+@keyframes flt-lift-edge-in {
+  from { transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%)); }
+}
+@keyframes flt-lift-edge-out {
+  to { transform: translate(var(--flt-edge-dx, 0), var(--flt-edge-dy, 100%)); }
+}
+${travel(scope)}
+${state(scope, ANCHORED, OPEN)} {
+  animation: flt-lift-in 180ms var(--ease-emphasis) both;
+}
+${state(scope, ANCHORED, CLOSED)} {
+  animation: flt-lift-out 120ms var(--ease-emphasis) both;
+}
+${state(scope, EDGE_ANY, OPEN)} {
+  animation: flt-lift-edge-in 280ms var(--ease-drawer) both;
+}
+${state(scope, EDGE_ANY, CLOSED)} {
+  animation: flt-lift-edge-out 180ms var(--ease-drawer) both;
+}`)}`;
+}
+
 /** A direction as CSS, in any of the three scopes. "today" is the empty string:
  *  the site as it stands, with nothing overridden. */
 export function directionCss(dir: Direction, scope: Scope): string {
   if (dir === "card") return cardCss(scope);
   if (dir === "glass") return glassCss(scope);
   if (dir === "command") return commandCss(scope);
+  if (dir === "compact") return compactCss(scope);
+  if (dir === "paper") return paperCss(scope);
+  if (dir === "lift") return liftCss(scope);
   return "";
 }
 

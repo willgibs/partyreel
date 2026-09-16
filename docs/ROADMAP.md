@@ -26,6 +26,13 @@ The lab and the kit:
 - A measured-width wrap for the dock's knobs (a four-option switch with full labels overflows a 375 dock).
 - `lab-review`'s scanner assumes a literal `defineBoard({`: keep every spec a literal or teach the scanner the wrapper.
 - Lift `height="measured"` on `Frame` and `useAnchorAfterSettle` out of `sandbox/brand-voice/frames.tsx` into the kit.
+- `SpotCompare` writes its own "What differs" line per spot with no way to shorten or suppress it (about 250 words of a two-dozen-spot board's budget); take an optional `differs` per spot.
+- `CompareTwo`'s grid squeezes a fixed-width child, so a pair of `Frame`s laid out through it overlaps (712px columns under 1440px frames): document that a frame belongs in a `FrameRow`, or give `Compare` a `max-content` column mode.
+- `Frame`'s `onApproach` cannot fire for a frame clipped out of a horizontal scroll row (the IntersectionObserver reports it as not intersecting): a row of frames takes the approach on the ROW, and the kit could carry that rather than each board.
+- The production `EventCard`'s event name is a hand-rolled `font-heading text-xl` no type hook reaches, so the type-scale wiring sweep is four headings, not three.
+- The board template's own chrome is about 1,300 words for a board with four asks and seven cards (the Answer prints every ask's context, look and because; the index repeats the ledes; the Rule-on panel repeats the asks): fold what repeats, so a catalog can meet 1,200 with its own words.
+- A `Frame` seeds its state from the parent's FIRST render, before `useBoardState` reads the URL, and the correcting `lab:set` lands before the frame has hydrated (a board opened at `?ground=cinema` painted every card on the app's dark); the floating-surfaces board rides the frame's src for that state, and the kit could carry the fix.
+- ★ `ui/dropdown-menu.tsx` renders `SubContent` with no `Portal` while `Content` carries `overflow-y-auto`, so every nested submenu in the product paints nothing (the account menu's theme picker is the call site, on every host page): a wiring-round fix, with the floating-surfaces catalog's kept card.
 - Fold the gallery's `RefSection` into the shell's `Section` (one anchor shape).
 - Delete `_desk/sample-spec.ts` and the desk's dry run once every standing board carries a spec.
 - Index the kit as a component family in the collector and delete `kit/notes.ts`; retire the panel half of the rounding board's `usePanelAwareWidth`.

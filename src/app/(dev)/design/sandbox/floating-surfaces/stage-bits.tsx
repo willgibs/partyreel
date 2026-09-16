@@ -126,20 +126,3 @@ export function useSceneReplay(initial = true) {
   }, []);
   return on;
 }
-
-/** Mirrors a flag one frame late. The nav viewport sizes itself from a
- *  ResizeObserver that radix only runs across a real open TRANSITION: a Root
- *  mounted already-open never measures, and the panel sits at 0x0 forever (the
- *  primitive's own comment describes the one-frame version of this). Every other
- *  panel is happy to be born open. */
-export function useNextFrame(on: boolean): boolean {
-  // `ticked` only ever goes forward; the flag reads `on && ticked`, so a replay
-  // closes the panel the moment `on` drops without a second state write.
-  const [ticked, setTicked] = useState(false);
-  useEffect(() => {
-    if (!on) return;
-    const id = window.setTimeout(() => setTicked(true), 32);
-    return () => window.clearTimeout(id);
-  }, [on]);
-  return on && ticked;
-}
