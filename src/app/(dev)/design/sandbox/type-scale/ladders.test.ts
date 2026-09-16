@@ -5,7 +5,6 @@ import { LIMITS } from "@/components/lab/board-spec";
 import {
   APP_BODY_PX,
   candidateCss,
-  COMPARED,
   fluid,
   HOOKS,
   LADDERS,
@@ -18,7 +17,8 @@ import {
   STEPS,
   themeBlock,
   tokenNames,
-  WORN,
+  PAGES,
+  pageById,
   type Ladder,
   type LadderId,
   type StepId,
@@ -26,7 +26,7 @@ import {
 import { TYPE_SCALE } from "./spec";
 
 /**
- * THE LADDERS' OWN LAWS (round six, the catalog rebuild).
+ * THE LADDERS' OWN LAWS (round six; the page list reshaped in round seven).
  *
  * What is pinned here is what a reader of the board is entitled to believe:
  * the five cards on the board ARE the five ladders in the data, every ladder
@@ -302,7 +302,7 @@ describe("the block a ruling would land", () => {
 
 describe("the pages a frame loads", () => {
   it("names a route, a scene or the demo album for every one", () => {
-    for (const page of [...COMPARED, ...WORN]) {
+    for (const page of PAGES) {
       const kind = page.scene ? "scene" : page.demo ? "demo" : "route";
       if (kind === "route") {
         expect(page.href.startsWith("/"), `${page.id} is a route`).toBe(true);
@@ -316,16 +316,29 @@ describe("the pages a frame loads", () => {
   });
 
   it("keeps every frame id unique, because a lock group joins on it", () => {
-    const ids = [...COMPARED, ...WORN].map((p) => p.id);
+    const ids = PAGES.map((p) => p.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("puts the dead link among the pages the pick is worn by", () => {
-    // The 404 ask's evidence is the `pages` section, so the screen it is asked
-    // about has to be in it.
+  it("asks about the dead link on its own specimen, and keeps the route too", () => {
+    // Round seven moved the 404 ask onto a specimen of its own, so both
+    // options can be drawn at once; the real route stays on the page strip,
+    // because a crop is not a page and the ruling has to survive one.
     expect(TYPE_SCALE.asks.find((a) => a.id === "not-found")!.evidence).toBe(
-      "pages",
+      "dead-link",
     );
-    expect(WORN.some((p) => p.href.startsWith("/events/"))).toBe(true);
+    expect(PAGES.some((p) => p.href.startsWith("/events/"))).toBe(true);
+  });
+
+  it("answers an unknown page id with the first one rather than nothing", () => {
+    // The `page` control is URL state, so a stale link can name a page that
+    // has since left the board: the strip must not render an empty stage.
+    expect(pageById("home").id).toBe("home");
+    expect(pageById("not-a-page").id).toBe(PAGES[0].id);
+  });
+
+  it("puts every page the strip offers on the board's own control", () => {
+    const control = TYPE_SCALE.controls!.find((c) => c.id === "page")!;
+    expect(control.options.map((o) => o.id)).toEqual(PAGES.map((p) => p.id));
   });
 });

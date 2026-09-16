@@ -664,19 +664,38 @@ export type RealPage = {
   scene?: true;
 };
 
-/** The three surfaces the A-against-B comparison runs on. */
-export const COMPARED: RealPage[] = [
+/**
+ * THE SIX SURFACES, AND THE STAGE SHOWS ONE AT A TIME (round seven, the
+ * stepped review, 2026-09-16).
+ *
+ * Round six drew three pages twice for the comparison and five more under the
+ * pick: eleven frames, six of them off the side of a 1440 window. A step shows
+ * ONE page, chosen on its config strip, and the ladder being pressed lands in
+ * that page's own document without a reload, so the comparison is the same
+ * page re-typing itself in the same place. `against` lays a second copy of it
+ * under the first at one canvas width, which is the round-six question
+ * settled: two ladders on one real page, no second canvas to scroll to.
+ */
+export const PAGES: RealPage[] = [
+  {
+    id: "about",
+    href: "/about",
+    label: "/about, on paper",
+    why: "The masthead over the prose tier C folds away. The board opens here: the biggest type on the site, and a page that holds still under a fade.",
+  },
   {
     id: "home",
     href: "/",
     label: "The home arc",
     why: "Four steps, fifteen sections, three grounds, one scroll.",
+    reach:
+      "The hero's line rotates on its own, so under a fade the two copies land on different words. Read this one a ladder at a time.",
   },
   {
-    id: "pricing",
-    href: "/pricing",
-    label: "/pricing",
-    why: "The title step over plan cards and a dense table.",
+    id: "help",
+    href: "/help",
+    label: "/help",
+    why: "The title step over a dense index.",
   },
   {
     id: "dashboard",
@@ -685,39 +704,23 @@ export const COMPARED: RealPage[] = [
     label: "The dashboard",
     why: "The app register, in a document of its own.",
   },
-];
-
-/** The pages the picked ladder is worn by, below the comparison. */
-export const WORN: RealPage[] = [
-  {
-    id: "home-worn",
-    href: "/",
-    label: "The home arc",
-    why: "The whole arc, as it ships.",
-  },
-  {
-    id: "about",
-    href: "/about",
-    label: "/about, on paper",
-    why: "The masthead over the prose tier C folds away.",
-  },
-  {
-    id: "help",
-    href: "/help",
-    label: "/help",
-    why: "The title step, dense index.",
-  },
   {
     id: "album",
     href: "",
     demo: true,
     label: "The guest album",
     why: "The surface most people ever see.",
+    reach:
+      "Nothing here moves: the entry title is written inline, outside both registers.",
   },
   {
-    id: "not-found",
+    id: "dead",
     href: "/events/not-a-real-event",
     label: "A dead link",
-    why: "The one page title set in Inter.",
+    why: "The one page title on the site set in Inter.",
   },
 ];
+
+export function pageById(id: string): RealPage {
+  return PAGES.find((p) => p.id === id) ?? PAGES[0];
+}
