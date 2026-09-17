@@ -73,6 +73,7 @@ are cut (development is parallel work again), the light sitting continues on its
 | --- | --- | --- |
 | `hero-wiring` | home-hero (retires) | nothing: the pick is ruled, the caption dropped; the alias after the merge |
 | `palette-wiring` | palette (retires) | nothing: Graphite, no accent, the card as declared, the faint colour in |
+| `album-hero` (round three) | album-hero | nothing: his six notes of 2026-09-17 are the brief (custom, calm, the album centred, a Cosmos card) |
 
 ## Waiting on Will
 
