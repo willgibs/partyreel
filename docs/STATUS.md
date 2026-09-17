@@ -46,6 +46,8 @@ light sitting continues on its cards; Copy so far sends only a board's open roun
 | `home-hero` (round six) | four compositions of the stream (mirror, phrase, settle, ribbon) on the ruled hero, the last exploration before its wiring | integrated at `56ea9185`, 1,189 words under the budget |
 | `palette-wiring` | the wind-down's first wiring: Graphite in both modes (a Pearl page, a Graphite room, Apple's cool greys), no accent, the dark card opaque, `--faint` as the third text step on 40 sites; the board retired | integrated at `88d0bec0`; bible 1 ruled and the ledger gone at `52e9afa2` |
 | `hero-wiring` | the wind-down's second wiring: the band streaming out of the real demo QR with the ruled block under it and no caption, the engine as `hero-stream.ts` with its contract (two breakpoints, the minimum 683 and 642 px), the wall, its scrims and the kinetic word gone, the board retired | integrated at `0c58ff76`; the ledger gone and the artifacts regenerated at `137e504b` |
+| `album-hero` (round three) | Will's six notes answered: the lockup composed for the page as one block with no gap, four calm compositions on one engine (the orbit, the field calmed, the shelf, the arrival) with the calm rule pinned by a test, the live album centred on a 720 / 880 / 1040 step; the board picks the orbit | integrated at `57e2c2e4`, 830 words; the touchpoint at `759a557b` |
+| `fix/album-fill-still` | a production bug on `/features/album` under Reduce Motion (a looping fill's end tick was Infinity): a looping fill has a defined still now, one settled pass, pinned by the test | merged at `0c9caedc`, on the alias since 04:45 UTC |
 | `home-hero` (round seven) | Will answered round six none in chat, the symmetric approach by name; the Orchestrator built the band (the reference's), the orbit (Cosmos's ring round the code, the block under it) and the two unsplit stacks in the root tree the same evening | on the tree at `ccf93732`, 779 words |
 | `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | integrated at `ec7367e7`, 486 words |
 | `light` (round seven) | the twelve cards reshaped for the walk: one at a time on three specimens, before/after and what each lands as, the asks as tile steps | integrated at `7ed0d2a2`, 920 words, no declaration |
@@ -71,8 +73,9 @@ is the record.
 
 - **Prod (partyreel.com)** = `main` @ tag `milestone-24` (`592da24`). **The `launch-prep` alias**
   (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the wind-down's two wirings, Graphite and
-  the band out of the code (`c7f6ebdd`, built 2026-09-17 04:23 UTC; the production smoke passed 250 checks
-  with the door closed, the two glow boards over the reading budget on purpose). Vercel's
+  the band out of the code, and the album page's reduced-motion fix (`0c9caedc`, built 2026-09-17 04:45 UTC;
+  the production smoke passed 250 checks with the door closed at `c7f6ebdd`, the two glow boards over the
+  reading budget on purpose; the album hero's round three is on the tree, not yet built). Vercel's
   cap is 100 deployments per trailing day on every path (canceled deployments register, builds do not), so
   `[preview]` stays the Orchestrator's and rare. Will's sitting runs on his local `pnpm dev` after a hard
   reload; the alias is the same tree for a phone.

@@ -75,7 +75,6 @@ are cut (development is parallel work again), the light sitting continues on its
 
 | track | board | waits on |
 | --- | --- | --- |
-| `album-hero` (round three) | album-hero | nothing: his six notes of 2026-09-17 are the brief (custom, calm, the album centred, a Cosmos card) |
 
 ## Waiting on Will
 
@@ -167,5 +166,9 @@ palette and light first), pasted in batches with Copy so far.
   ruled block under it and no caption, `hero-stream.ts` with its contract, the wall and the kinetic word
   gone, the board retired, the Library's `cinema-hero` entry badged new; the manifest deleted);
   `137e504b` the hero's ledger gone, the artifacts regenerated, ASSETS rows 2 and 12 on the shipped hero.
+- `0c9caedc` the album page's reduced-motion crash fixed on its own branch (a looping fill's still is one
+  settled pass; `use-album-fill.ts` and its test); `57e2c2e4` album-hero round three integrated (four calm
+  compositions, the one-block lockup, the album centred; 830 words; the manifest deleted); `759a557b` its
+  touchpoint says round three. No lane is open.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

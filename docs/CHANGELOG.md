@@ -56,13 +56,32 @@ round three at `cbad7faf`; three of the four slots.
   the composition (683 at `lg`, 642 at `base`, derived and pinned by the contract); its deferred line
   is the tablet breakpoint (the ROADMAP). The 34 squares (ASSETS row 2) stay the ask: 18 are needed
   for no photograph to be on screen twice.
+- `album-hero`, round three (merged `57e2c2e4`; the touchpoint at `759a557b`). Round three answered
+  Will's six notes on round two with four calm compositions on one engine and a lockup composed for
+  this page as ONE block, so the centre gap went with the vent it used to hold open. `compositions.ts`
+  places every photograph off the lockup's measured box rather than holding it off with a scrim, at
+  both headline steps, and the calm rule became arithmetic: nothing over 40 px a second, at most
+  sixteen frames lit, and every card's DOM box sized to its largest visible moment so a photograph only
+  ever scales down, which was the jitter. The still is now the loop's own first frame, which is why the
+  no-script answer flipped to painting the album settled. The album below is centred on a 720 / 880 /
+  1040 step, and the board is a pick-one catalog at 830 words with its declaration deleted. Three calls
+  it made on its own recommendation, for Will to overrule on the board: the page's arrivals stage goes
+  with the old hero (the centred album says "live" with the product); the arrival card's settle is the
+  one thing allowed past 40 px a second, written into the rule by name; at the louder headline step a
+  station with no room is dropped rather than shrunk, so the picture tells the truth about the cost.
+- The production bug it found, fixed on its own branch (merged `0c9caedc`, on the alias at 04:45 UTC):
+  `/features/album` threw for every reader with Reduce Motion on, because a looping fill's end tick
+  was Infinity and the reduced-motion jump indexed `arrivals[NaN]`. A loop has no end, so its still is
+  defined rather than reached: one pass landed with its checks cleared and its columns bounded
+  (`stillAlbumFill`), derived through the non-looping path; a running loop is never clamped at its
+  pass end; the test pins the still, the reported repro and the unclamped loop.
 
 **The alias.** Rebuilt at `a964d4a6` the moment Vercel's cap freed (00:16 UTC), the production smoke
 at 261 checks with the door closed; rebuilt again on the two wirings (the `[preview]` commit after the
 hero's fold; the smoke's result is STATUS's live state).
 
-**Next.** The album hero's round three integrates when it hands off; Will's sitting continues on the
-light board's cards; every pick from here is a wiring lane the day he makes it.
+**Next.** Will's sitting continues (the light board's cards, then the album hero's four); every pick
+from here is a wiring lane the day he makes it; no lane is open.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
 
