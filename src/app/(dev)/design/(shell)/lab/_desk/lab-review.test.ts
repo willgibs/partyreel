@@ -78,8 +78,16 @@ type LabReview = {
   run(
     text: string,
     options: { root: string; by?: string; at?: string; dry?: boolean },
-  ): { ok: boolean; errors: Failure[]; summary: string[][]; boards?: string[] };
+  ): {
+    ok: boolean;
+    errors: Failure[];
+    summary: string[][];
+    boards?: string[];
+    drift?: string | null;
+  };
   mask(src: string): string;
+  buildOf(text: string): string | null;
+  buildDrift(text: string, root: string): string | null;
 };
 
 const lab = (await import(SCRIPT)) as LabReview;
@@ -647,5 +655,35 @@ describe("the ledgers", () => {
       lab.run(`review ${BOARD} r${ROUND}: default=always`, { root }),
     ).toThrowError(/not a ledger/);
     writeFileSync(ledgerFile(BOARD), good);
+  });
+});
+
+/**
+ * THE BUILD STAMP SURVIVES THE ROUND TRIP (2026-09-17).
+ *
+ * The desk stamps a paste with the commit it was composed on, so the batch that
+ * once arrived a round behind (Will, 2026-09-17) can be told apart from one
+ * composed on the tree. The shape is a `#` line, which this grammar has always
+ * skipped, and that is the whole reason it is safe: what is pinned here is that
+ * the stamp changes NOTHING about what gets recorded.
+ */
+describe("a stamped paste", () => {
+  it("records exactly what the same paste records unstamped", () => {
+    const line = `review ${BOARD} r${ROUND}: grain=three`;
+    const stamped = lab.run(`# build 6f25638\n${line}`, { root, dry: true });
+    const bare = lab.run(line, { root, dry: true });
+    expect(stamped.ok).toBe(true);
+    expect(stamped.summary).toEqual(bare.summary);
+  });
+
+  it("reads the build out of the message, and nothing out of a bare one", () => {
+    expect(lab.buildOf("# build 6f25638\nreview x r1: a=b")).toBe("6f25638");
+    expect(lab.buildOf("review x r1: a=b")).toBeNull();
+    // A comment that is not a stamp stays a comment.
+    expect(lab.buildOf("# a note to self\nreview x r1: a=b")).toBeNull();
+  });
+
+  it("says nothing about drift when the paste carries no build", () => {
+    expect(lab.buildDrift("review x r1: a=b", process.cwd())).toBeNull();
   });
 });

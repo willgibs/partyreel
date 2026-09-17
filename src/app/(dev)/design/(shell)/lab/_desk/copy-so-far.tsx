@@ -23,9 +23,12 @@ import { useReviewStore } from "./review-store";
  */
 export function CopySoFar({
   transcribed,
+  build,
   className,
 }: {
   transcribed?: Transcribed;
+  /** The commit this page was built from; rides the paste as a `#` line. */
+  build?: string | null;
   className?: string;
 }) {
   const store = useReviewStore();
@@ -44,6 +47,7 @@ export function CopySoFar({
       );
     },
     transcribed,
+    build,
   );
   const held = answers + items + notes;
   if (held === 0) return null;

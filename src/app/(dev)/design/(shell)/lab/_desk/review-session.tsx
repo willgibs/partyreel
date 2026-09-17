@@ -109,6 +109,7 @@ export function ReviewSession({
   param,
   title,
   blurb,
+  build,
   sample = false,
 }: {
   steps: SessionStep[];
@@ -116,6 +117,8 @@ export function ReviewSession({
   param: string | null;
   title: string;
   blurb: string;
+  /** The commit this page was built from; rides the paste as a `#` line. */
+  build?: string | null;
   /** A dry run: the message it composes is refused by lab-review, by design. */
   sample?: boolean;
 }) {
@@ -185,8 +188,8 @@ export function ReviewSession({
   }, [steps, store]);
 
   const message = useMemo(
-    () => composeMessage(answers, notes, items),
-    [answers, notes, items],
+    () => composeMessage(answers, notes, items, [], build),
+    [answers, notes, items, build],
   );
   const answered = answers.length + items.length;
 

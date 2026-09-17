@@ -95,6 +95,7 @@ export function Step({
   param,
   board,
   transcribed,
+  build,
   onEnd,
   className,
 }: {
@@ -108,6 +109,8 @@ export function Step({
   board?: StepBoard;
   /** What the ledger already holds, so "Copy so far" omits it. */
   transcribed?: Transcribed;
+  /** The commit this page was built from; rides the paste as a `#` line. */
+  build?: string | null;
   /** The desk's summary; without it the last Next links there. */
   onEnd?: () => void;
   className?: string;
@@ -341,6 +344,7 @@ export function Step({
         n={n > 0 ? n : walk.length + 1}
         of={Math.max(walk.length, 1)}
         transcribed={transcribed}
+        build={build}
       />
 
       <header className="max-w-3xl">
@@ -432,11 +436,13 @@ function Spine({
   n,
   of,
   transcribed,
+  build,
 }: {
   step: SessionStep;
   n: number;
   of: number;
   transcribed?: Transcribed;
+  build?: string | null;
 }) {
   const key = useDesignKey();
   return (
@@ -446,8 +452,20 @@ function Spine({
         <span className="text-[11px] text-muted-foreground tabular-nums">
           step {n} of {of}
         </span>
+        {/* The build being served, beside the round it is serving. A page
+            cannot know a newer build exists, but the reviewer and the
+            Orchestrator can compare this one line (Will, 2026-09-17: a batch
+            arrived a round behind because nothing on the page said so). */}
+        {build && (
+          <span
+            className="text-[11px] text-faint tabular-nums"
+            title="The commit this page was built from. It rides the paste."
+          >
+            build {build}
+          </span>
+        )}
         <span className="ml-auto flex flex-wrap items-center gap-2">
-          <CopySoFar transcribed={transcribed} />
+          <CopySoFar transcribed={transcribed} build={build} />
           <Link
             href={withDesignKey(step.boardHref, key ?? null)}
             className="text-[11px] text-muted-foreground underline underline-offset-2 transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"

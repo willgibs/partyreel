@@ -30,6 +30,8 @@ import {
   transcribedFrom,
 } from "./_desk/queue";
 import { HeldBadge } from "./_desk/held-badge";
+import { buildStamp } from "@/app/(dev)/design/_data/build-stamp";
+
 import { ReviewSession } from "./_desk/review-session";
 import { SAMPLE_BOARD } from "./_desk/sample-spec";
 import { type SessionStep, stepParam, toSteps } from "./_desk/session-step";
@@ -133,6 +135,9 @@ export default async function DeskPage({
   const specOf = (board: string) => BOARDS.find((b) => b.id === board);
   const steps = toSteps(boardWork(rows), specOf, key);
   const transcribed = transcribedFrom(rows);
+  // Which commit drew this page. A build cannot know a newer one exists, so
+  // this rides the paste and `lab:review` compares it with the tree it writes.
+  const build = buildStamp()?.sha ?? null;
   // A staged step is listed (dim) but not counted: it is not a question yet.
   const waiting = steps.filter((s) => !s.after || s.afterRuled).length;
 
@@ -178,6 +183,7 @@ export default async function DeskPage({
             // run is walked, not resumed.
             param={param === SAMPLE_BOARD.id ? stepParam(walk[0]) : param}
             sample={sample}
+            build={build}
             title="The message"
             blurb="One line per board, in the ledger grammar. Paste it into chat and the answers land in docs/reviews."
           />
@@ -211,6 +217,20 @@ export default async function DeskPage({
         title="The desk"
         description="What waits on you, what every board is asking, and where the work is. Everything here is read from the repo: the boards' own specs, the manifests, and your answers so far. Nothing on this page writes anything."
       />
+      {/* ★ WHICH BUILD THIS IS. A page cannot know a newer one exists, and on a
+          stale deployment the round, the ledger and the spec all agree because
+          they came from one build, which is how a batch once arrived a round
+          behind with nothing on screen to say so (Will, 2026-09-17). The paste
+          carries this line and `pnpm lab:review` compares it with the tree. */}
+      {build && (
+        <p
+          className="mt-3 text-[11px] text-faint"
+          title="A page cannot know that a newer build exists. Your paste carries this line, and pnpm lab:review compares it with the tree it writes into."
+        >
+          Serving build <span className="tabular-nums">{build}</span>, and your
+          paste says so.
+        </p>
+      )}
       <StatRow
         stats={[
           ["waiting on you", waiting],
@@ -229,7 +249,7 @@ export default async function DeskPage({
         aside={
           steps.length > 0 ? (
             <span className="flex flex-wrap items-center gap-2">
-              <CopySoFar transcribed={transcribed} />
+              <CopySoFar transcribed={transcribed} build={build} />
               <StartReview
                 steps={steps.map((step) => ({ step, href: stepHref(step) }))}
               />

@@ -107,11 +107,29 @@ export function composeLibraryLine(rulings: LibraryEntryRuling[]): string {
  * line and wear the wrong number (which is how a round-seven answer was once
  * pasted as r5).
  */
+/**
+ * ★ THE PASTE SAYS WHICH BUILD IT WAS COMPOSED ON (2026-09-17).
+ *
+ * Will's third batch arrived as `r7` against a tree already on `r8`, because
+ * the alias had not been rebuilt since the board changed, and NOTHING on the
+ * page could have told him: the round, the ledger and the spec all come from
+ * one build, so a stale deployment shows an old round agreeing with an old
+ * ledger. A build cannot know a newer one exists, but the transcriber can:
+ * `scripts/lab-review.mjs` reads this line and compares it with the tree it is
+ * writing into, which is the one moment both numbers are in the same room.
+ *
+ * It is a `#` line, which the grammar has always skipped, so an older
+ * transcriber and every existing test read a stamped message unchanged.
+ */
+export const buildLine = (build?: string | null) =>
+  build ? `# build ${build}` : null;
+
 export function composeMessage(
   answers: SessionAnswer[],
   notes: SessionNote[] = [],
   items: SessionItem[] = [],
   library: LibraryEntryRuling[] = [],
+  build?: string | null,
 ): string {
   const order: { board: string; round: number }[] = [];
   const see = (board: string, round: number) => {
@@ -121,7 +139,7 @@ export function composeMessage(
   answers.forEach((a) => see(a.board, a.round));
   items.forEach((i) => see(i.board, i.round));
   notes.forEach((n) => see(n.board, n.round));
-  return [
+  const lines = [
     ...order.map(({ board, round }) => {
       const mine = answers.filter(
         (a) => a.board === board && a.round === round,
@@ -135,9 +153,10 @@ export function composeMessage(
       return composeBoardLine(board, round, mine, myNotes, myItems);
     }),
     composeLibraryLine(library),
-  ]
-    .filter(Boolean)
-    .join("\n");
+  ].filter(Boolean);
+  // An empty review carries no stamp: a bare "# build ..." reads as a message.
+  if (!lines.length) return "";
+  return [buildLine(build), ...lines].filter(Boolean).join("\n");
 }
 
 /**
@@ -226,6 +245,7 @@ export function composeSoFar(
   },
   openOf: (board: string) => OpenRound | undefined,
   transcribed: Transcribed = NOTHING_TRANSCRIBED,
+  build?: string | null,
 ): { message: string; answers: number; items: number; notes: number } {
   const answers: SessionAnswer[] = [];
   const items: SessionItem[] = [];
@@ -284,7 +304,7 @@ export function composeSoFar(
     note(board, open.round, text);
   }
   return {
-    message: composeMessage(answers, notes, items),
+    message: composeMessage(answers, notes, items, [], build),
     answers: answers.length,
     items: items.length,
     notes: notes.length,

@@ -95,6 +95,7 @@ export function BoardPage({
           steps={session.steps}
           param={session.param}
           transcribed={session.transcribed}
+          build={session.build}
           board={{
             controls,
             state,
