@@ -220,17 +220,9 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
 
   logo: {
     name: "Logo",
-    defaults: { markOnly: false, wordmarkOnly: false },
-    knobs: [
-      { kind: "toggle", prop: "markOnly", value: false },
-      { kind: "toggle", prop: "wordmarkOnly", value: false },
-    ],
-    render: (v) => (
-      <Logo
-        markOnly={Boolean(v.markOnly)}
-        wordmarkOnly={Boolean(v.wordmarkOnly)}
-      />
-    ),
+    defaults: { markOnly: false },
+    knobs: [{ kind: "toggle", prop: "markOnly", value: false }],
+    render: (v) => <Logo markOnly={Boolean(v.markOnly)} />,
   },
 
   kbd: {

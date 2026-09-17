@@ -225,5 +225,15 @@ palette and light first), pasted in batches with Copy so far.
   seconds on the alias; a capture in the first five reads as a dimmed, see-through room.
 - `9c657be6` `light-wiring` cut (the two shadows by role, the four depth techniques in the Library,
   the bright edge on the box that owns its radius, the board retired).
+- Will's fifth batch, in the root tree while `light-wiring` runs: `floating-surfaces r7`
+  `entrance=by-frequency` and `radius=nested` with a request to pop the question back up if Rounder
+  differs. It does: the corner is drawn filled, its tiles at true size through the kit's new `TrueFit`
+  (`src/components/lab/true-fit.tsx`, the fifth copy of that box promoted), and a staged follow-up ask
+  `roundness` (its options carry `state`, since a mirrored ask must offer every option of its control).
+  The v1 wordmark is wired: `src/lib/brand/wordmark.ts`, `Logo` alone in `currentColor`, the social
+  card, the Library entry, `logo.test.tsx`; ASSETS rows 18 (wired) and 19 (the icon, to come). These
+  files sit under prefixes `light-wiring` owns (`src/components/shared/`), so the agent was told by
+  message to leave them and to regenerate the artifacts at its sync. Card's wiring lane waits for
+  `light-wiring`'s merge: both own `src/components/ui/`.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

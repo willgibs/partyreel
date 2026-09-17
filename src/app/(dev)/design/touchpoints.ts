@@ -507,7 +507,7 @@ export const RULINGS: Ruling[] = [
     id: "floating-surfaces",
     title: "Floating surfaces",
     surface: "shared",
-    ruled: "in part (2026-09-17): Card, with Glass's quieter group labels and no glass; submenus kept at two levels; two calls open (the radius, the entrance)",
+    ruled: "in part (2026-09-17): Card, with Glass's quieter group labels and no glass; submenus kept at two levels; surfaces open by frequency; the corner is today's panel with its rows fixed, with one confirming step open (rounder or not)",
     shipped: null,
     why: "Bible 15 under exploration: every floating primitive on every ground, today beside two candidate treatments of radius, entrance and light or shadow in dark.",
     lives: [
@@ -515,7 +515,7 @@ export const RULINGS: Ruling[] = [
       "src/components/ui/",
     ],
     board: {
-      note: "Seven directions as cards, each the event menu at 328 wide on the app's dark over the album with the Ground switch moving all seven; the host's desk under two directions at once; two questions still open (the radius, the entrance)",
+      note: "Seven directions as cards, each the event menu at 328 wide on the app's dark over the album with the Ground switch moving all seven; the host's desk under two directions at once; one confirming question still open (the corner: today's panel with its rows fixed, or rounder)",
       variants: [
         "Today",
         "Card",

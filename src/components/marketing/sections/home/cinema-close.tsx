@@ -7,8 +7,8 @@ import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
  * credit variant on the cinema-cut register. "Roll credits on the group
  * chat." is the ruled Direction-B closing line (T1/IA section 12); the golden
  * reelThesis lands in the subhead so the page ends where the arc began, on
- * the reel. The credit renders the Logo lockup + the production line (the
- * real-logo asset stays a ROADMAP line).
+ * the reel. The credit is the production line alone (CtaBand says why it
+ * carries no Logo: the footer opens on the wordmark a screen below).
  *
  * ★ THE AURORA HERE IS A HORIZON (Will, 2026-09-17: the Aurora's placement is
  * "a mix of all of them... custom and bespoke", composed for the place). This

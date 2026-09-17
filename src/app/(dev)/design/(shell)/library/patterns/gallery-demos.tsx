@@ -47,18 +47,44 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     family: "patterns",
     section: "Brand",
     play: "logo",
-    // No variants axis: markOnly and wordmarkOnly are booleans with no value
-    // names to pin, and the config panel above already toggles both.
+    badge: "updated",
+    lede: "The v1 wordmark, alone: the nav, the footer and every door wear the same drawing with no mark beside it. It is drawn in the text colour of the ground it sits on, from one path in src/lib/brand/wordmark.ts, and sized by its height. The v1 icon is still to come, so the mark is a stand-in that nothing in production mounts.",
+    // No variants axis: markOnly is a boolean with no value names to pin, and
+    // the config panel above already toggles it.
     specimens: [
       {
-        label: "Lockup and mark",
-        hint: "default, then markOnly",
+        // The size every bar wears, on both grounds: the wordmark takes
+        // `currentColor`, so the paper half is the same component with nothing
+        // passed, which is the whole reason it has no fill of its own.
+        label: "In a bar",
+        hint: "<Logo /> · 22px tall, the nav and the footer · the ground sets the colour",
         node: (
-          <div className="flex flex-col gap-3">
-            <Logo />
-            <Logo markOnly />
+          <div className="flex flex-col gap-px overflow-hidden rounded-lg border">
+            <div className="dark flex h-14 items-center bg-background px-5 text-foreground">
+              <Logo />
+            </div>
+            <div className="surface-paper flex h-14 items-center bg-background px-5 text-foreground">
+              <Logo />
+            </div>
           </div>
         ),
+      },
+      {
+        label: "At display size",
+        hint: 'className="h-12" · sized by height, the width follows',
+        node: (
+          <div className="dark flex items-center rounded-lg bg-background px-6 py-8 text-foreground">
+            <Logo className="h-12" />
+          </div>
+        ),
+      },
+      {
+        // Shown so nobody reaches for it thinking it is the brand: the Aperture
+        // tile is what stood in before the wordmark and stands in for the icon
+        // until Will's v1 icon lands.
+        label: "The mark, a stand-in",
+        hint: "markOnly · the placeholder tile until the v1 icon arrives · no production call site",
+        node: <Logo markOnly />,
       },
     ],
   },

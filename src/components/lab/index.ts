@@ -113,6 +113,7 @@ export { Cell, CellLabel, Labeled, Specimen } from "./specimen";
 export { ConceptCard } from "./concept-card";
 export { SelectTable } from "./select-table";
 export { Loupe } from "./loupe";
+export { TrueFit } from "./true-fit";
 
 /* What a board measures, states and hands the site */
 export { useComputedTokens, useLineCount } from "./measure";

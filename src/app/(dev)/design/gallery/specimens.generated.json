@@ -74,7 +74,9 @@
       "<Tooltip>\n  <TooltipTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Hover me\n    </Button>\n  </TooltipTrigger>\n  <TooltipContent>Tooltips keep skip-delay</TooltipContent>\n</Tooltip>"
     ],
     "logo": [
-      "<div className=\"flex flex-col gap-3\">\n  <Logo />\n  <Logo markOnly />\n</div>"
+      "<div className=\"flex flex-col gap-px overflow-hidden rounded-lg border\">\n  <div className=\"dark flex h-14 items-center bg-background px-5 text-foreground\">\n    <Logo />\n  </div>\n  <div className=\"surface-paper flex h-14 items-center bg-background px-5 text-foreground\">\n    <Logo />\n  </div>\n</div>",
+      "<div className=\"dark flex items-center rounded-lg bg-background px-6 py-8 text-foreground\">\n  <Logo className=\"h-12\" />\n</div>",
+      "<Logo markOnly />"
     ],
     "play-badge": [
       "<Row>\n  <Poster>\n    <PlayBadge />\n  </Poster>\n  <Poster>\n    <PlayBadge size=\"lg\" />\n  </Poster>\n</Row>"

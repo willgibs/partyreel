@@ -13,19 +13,14 @@
 ## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` onward)
 
 **What Will did.** He opened his stepped sitting on the hero, answered its round six `none` in chat
-("I think I liked the more symmetrical approach more than the variants we're using to scatter the photos
-as they stream out, similar to our original reference example"), and the Orchestrator built round seven
-in the root tree the same evening (the band, the orbit, the two stacks; `ccf93732`, recorded under the
-stepped review round below). His batch then picked the hero (`stream=stack-above`, "We can drop the
-'Every photo here came from a guest who scanned it' label underneath the QR code") and the palette
-(`palette=graphite`, `accent=none`, `card=declared`, `faint=in`), answered four of the light board's asks
-(`cadence=8s`, `publish=house-five`, `second=home-arc`, `item:seam=keep`) and ruled the aurora off the
-light ground ("No light ground usage is a decision for now"); all transcribed at `257a690d`, verbatim in
-`docs/design/rulings.md`, the light board's `paper` ask withdrawn at `716cb49c`. He also asked that a
-handled question never copy again: "Copy so far" sends only a board's open round from `a6afec3b`
-(the rules artifact it left stale regenerated at `78a54014`). Ahead of his sitting he left six notes on
-the media kit and the album hero; the media kit's cards open a door to each source's own search
-(`c667db3c`) and the album hero's round three was cut on the notes (`cbad7faf`).
+("I think I liked the more symmetrical approach more than the variants we're using to scatter the
+photos"), and round seven was built in the root tree the same evening (`ccf93732`). His first batch
+picked the hero (`stream=stack-above`, the caption under the code dropped) and the palette (`graphite`,
+no accent, the card as declared, the faint colour in), answered four of the light board's asks and
+ruled the aurora off the light ground; all at `257a690d`, verbatim in `docs/design/rulings.md`. He asked
+that a handled question never copy again: "Copy so far" sends only a board's open round (`a6afec3b`).
+His six notes on the media kit and the album hero became the kit's search doors (`c667db3c`) and the
+album hero's round three (`cbad7faf`).
 
 **The lanes.** Two wiring lanes cut at `6f5c61e1` (`hero-wiring`, `palette-wiring`), the album hero's
 round three at `cbad7faf`; three of the four slots.
@@ -34,28 +29,18 @@ round three at `cbad7faf`; three of the four slots.
   became the site's palette in both modes: a Pearl page at 0.995 with a card the same white, one
   Graphite room at 0.105 for the app and every cinema chapter, Apple's cool greys at hue 286 between
   them, and no accent anywhere. The dark card went opaque, so the system's one translucent surface
-  retired by ruling rather than by accident, and the cinema deepening in marketing.css went with it
-  because the room is cinema now. `--faint` landed as the third text step in all four registers and
-  took the 40 hand-faded sites off their five alphas. The one unforeseen split: the media well dropped
-  to 0.065 and the footer slab lifted to 0.165, so `.surface-ink` writes its values out instead of
-  deriving them. The board retired into its ruling; 2,117 tests, 258 pages, the smoke at 0 route
-  failures. Its finding: the rule page falls through to a deleted manifest when a ruled board retires
-  (a ROADMAP line), and its deferred lines are the ROADMAP's (`.surface-mat`, the chart ramp, the
-  `--faint` a11y pass, the lab boards' hand-faded sites).
+  retired by ruling, and the cinema deepening in marketing.css went with it. `--faint` landed as the
+  third text step and took the 40 hand-faded sites off their five alphas. The one unforeseen split:
+  the media well dropped to 0.065 and the footer slab lifted to 0.165, so `.surface-ink` writes its
+  values out instead of deriving them. The board retired into its ruling.
 - `hero-wiring` (merged `0c58ff76`; the ledger gone and the artifacts regenerated at `137e504b`).
   Will's round-seven pick shipped: the home hero is the band of photographs streaming out of the real
-  demo QR on one axis, with the ruled headline, the ruled sentence and the two actions in one block at
-  the band's measured clear line, and no caption. The living album wall left with its three scrims,
-  its reel card and the kinetic word. The board's engine came out of the lab as `hero-stream.ts`, cut
-  to the one composition, with its horizontal turned into a fraction of the hero's half-width (so the
-  band is fluid) and its geometry turned from two canvases into two breakpoints, each solved at the
-  canvas Will judged and re-checked at the narrowest viewport it serves. Four numbers were measured
-  on the rendered page rather than reasoned about, one of which was a phone QR too small to scan. The
-  board retired in the same act; the Library's `cinema-hero` entry is badged new; 2,108 tests, 257
-  pages, the smoke at 0 route failures. Its finding: the ruled 560 px hero minimum does not survive
-  the composition (683 at `lg`, 642 at `base`, derived and pinned by the contract); its deferred line
-  is the tablet breakpoint (the ROADMAP). The 34 squares (ASSETS row 2) stay the ask: 18 are needed
-  for no photograph to be on screen twice.
+  demo QR on one axis, with the ruled block at the band's measured clear line and no caption. The
+  living album wall left with its three scrims, its reel card and the kinetic word. The board's engine
+  came out of the lab as `hero-stream.ts`, cut to the one composition, fluid on the hero's half-width
+  and solved at two breakpoints. Its finding: the ruled 560 px hero minimum does not survive the
+  composition (683 at `lg`, 642 at `base`, derived and pinned by the contract). The 34 squares (ASSETS
+  row 2) stay the ask: 18 are needed for no photograph to be on screen twice.
 - `album-hero`, round three (merged `57e2c2e4`; the touchpoint at `759a557b`). Round three answered
   Will's six notes on round two with four calm compositions on one engine and a lockup composed for
   this page as ONE block, so the centre gap went with the vent it used to hold open. `compositions.ts`
@@ -164,11 +149,22 @@ inside the round, answered by `depth=both`.
   than copied. The violet keyframes left; `publish-light.test.tsx` holds 26 function pins. Signed in on
   the alias: both resting states and the fence hold; the tap's swell was seen on the lab stand-in only.
 
+**The fifth batch.** `floating-surfaces r7`: `entrance=by-frequency`, and `radius=nested` with "Today's
+panel corrected and Rounder seem to be the same option... If there's meant to be a difference, please
+pop this question back up." There is one (8px with 4px rows against 12px with 8px), hidden because
+both NEST and a tile was a third of true size: the corner is drawn filled now, its tiles at true size
+through the kit's new `TrueFit` (the fifth copy of that box, promoted at last), and a staged follow-up
+step `roundness` re-asks only that pair with the pixels in its labels. He also delivered **the v1
+wordmark**: `src/lib/brand/wordmark.ts` holds his one path, `Logo` is the wordmark alone in
+`currentColor` on every door (22px in a bar), the social card draws the same path, the Library's Logo
+entry shows it on both grounds, and `logo.test.tsx` pins that it names itself, takes the ground's
+colour and has one home. The mark stays a stand-in until his v1 icon (ASSETS row 19).
+
 **The alias.** Rebuilt whenever a board or a wiring changes; the smoke's result is STATUS's live state.
 
-**Next.** `light-wiring` (the two shadows by role, the four depth techniques in the Library, the
-bright edge redrawn, the board retired). Will's sitting continues on floating-surfaces' radius and
-entrance, then rounding; Card's wiring is cut on those two answers; three phone-end type calls wait.
+**Next.** `light-wiring` is running; Card's wiring is cut when it merges (both own `src/components/ui/`).
+Will's sitting continues on floating-surfaces' one confirming step, then rounding; three phone-end type
+calls wait.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
 

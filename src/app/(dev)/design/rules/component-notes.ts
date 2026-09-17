@@ -224,7 +224,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the one acceptance line tying a sign-in or a guest's entry to Terms and Privacy",
   },
   "src/components/shared/logo.tsx": {
-    for: "the brand lockup, and the one splash of accent allowed in neutral chrome",
+    for: "the brand: the v1 wordmark alone, in the colour of whatever ground it sits on",
   },
   "src/components/shared/masonry.tsx": {
     for: "the shared masonry grid: true aspect ratios, space reserved before an image loads",
