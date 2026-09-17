@@ -117,12 +117,27 @@ Three lanes cut at `c338c95c`: `type-wiring`, `light` (round eight) and `aurora-
   measured at 375: marketing's sub-heads (20 flat) now out-shout the `prose` h2 above them (18) on
   /about and /help, the dead-link title is 18 beside 17px body, and the guest title went 28 to 24.
 
+- `light`, round eight (merged `ee0b21d6`; its touchpoint and the ASSETS rows at the next commit). The
+  same proposals asked as six steps Will could see, in the order the wiring needs them: where the
+  Aurora sits (four tiles on the real closer through the shipped `SectionLight`), shadows in dark mode
+  (ONE scene with four heights, the front card above the back one, a legend that says the four are not
+  rivals, two switches that take the outlines and the lighter panels away), the thin bright edge (a
+  fixed 4x corner on both halves), and three moments of light as asks so `landing` stays first. It
+  found why round seven showed nothing: the sweep ran BEHIND an opaque frame the size of its own box
+  (the "static gray edge ring" he saw was the frame's border), Replay re-keyed only a bloom, the bright
+  edge was an inset shadow painted under the photo, and the halo's wash sat under an opaque button. Every
+  mark was proven by two samples 500 ms apart at both widths, then looked at. The board recommends
+  `both` on the first two, `keep` on the bloom (the half the publish wiring waits on: rest on a base or
+  on nothing) and `skip` on the edge, the sweep and the halo. The composer, the kit and the twelve
+  previews were deleted; 700 words of 1,200.
+
 **The alias.** Rebuilt at `a964d4a6` the moment Vercel's cap freed (00:16 UTC), the production smoke
 at 261 checks with the door closed; rebuilt again on the two wirings (the `[preview]` commit after the
 hero's fold; the smoke's result is STATUS's live state).
 
-**Next.** The light board's round eight is in flight; Will's sitting continues on
-round eight (its first step places the Aurora's field on the home page), then the album hero's four.
+**Next.** No lane is open. Will's sitting continues on the light board's round eight (its first step
+places the Aurora's field on the home page), then the album hero's four; three phone-end calls from the
+type wiring wait on him.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
 

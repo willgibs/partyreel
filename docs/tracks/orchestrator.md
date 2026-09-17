@@ -76,7 +76,6 @@ are cut (development is parallel work again), the light sitting continues on its
 
 | track | board | waits on |
 | --- | --- | --- |
-| `light` | light (round eight) | the lane: six steps Will can see (`landing`, one `depth` question on one scene, the lit face, three marks that run) |
 
 ## Waiting on Will
 
@@ -188,5 +187,9 @@ palette and light first), pasted in batches with Copy so far.
   into Foundations' ladder; the manifest deleted); `4c5500da` the ledger gone, `aaa057dd` bible 5 ruled
   (the first of the two staged only the deletion: a removed path in a `git add` aborts the whole add).
   The three stylesheets are the Orchestrator's again.
+- `ee0b21d6` light round eight integrated (six steps: `landing`, `depth`, `face`, `sweep`, `bloom`,
+  `halo`, all asks so `landing` walks first; no `catalog`, so an `item:` clause is refused for this
+  board; 700 words; the manifest deleted); its touchpoint and ASSETS rows 10, 11, 15 and 16 follow.
+  No lane is open.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
