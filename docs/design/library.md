@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 17 policies · 195 contracts on 30 components · 9 standing boards.**
+**22 laws · 17 policies · 221 contracts on 33 components · 9 standing boards.**
 
 ## What binds you
 
@@ -349,6 +349,9 @@ Contracted but outside the library's directories:
 - `src/components/marketing/legal/legal-document.tsx` (3 guards)
 - `src/components/marketing/sections/home/hero-stream.ts` (12 guards)
 - `src/components/marketing/sections/home/pro-card-beam.tsx` (3 guards)
+- `src/components/reel/publish-light.tsx` (26 guards)
+- `src/components/reel/reel-share-card.tsx` (26 guards)
+- `src/components/reel/reel-studio.tsx` (26 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 

@@ -173,6 +173,17 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
       "a document singleton mounted once in the marketing layout; a second mount doubles every event, so the page lists it as text",
   },
 
+  /* reel (not a library directory: indexed for the publish light's contract) */
+  "src/components/reel/publish-light.tsx": {
+    for: "the light a shared reel rests in: the house five behind the Studio's frame and under the share card, swelling only for a share made on this page",
+  },
+  "src/components/reel/reel-share-card.tsx": {
+    for: "the share card under the reel's poster, with useReelPublish, the one share state the card, the chip and the Studio agree on",
+  },
+  "src/components/reel/reel-studio.tsx": {
+    for: "the reel's own room; its header, dock and tray are positioned so they stay above the publish light",
+  },
+
   /* shared */
   "src/components/shared/action-tooltip.tsx": {
     for: "the lightbox's icon tooltips; never on the SSR'd gallery tiles, which use native title",

@@ -333,6 +333,8 @@ forever, for the people who asked for less motion. Pinned by test.
 | **The Pro card's beam** | [pro-card-beam.tsx](../../src/components/marketing/sections/home/pro-card-beam.tsx) | beam (`pulse-outside`, the vendored border-beam) | the derived beam register of the lamp set |
 | **The feature heroes** (album, guests, sharing) | [screen-lamp.tsx](../../src/components/marketing/system/screen-lamp.tsx) under each page's stage (the arrivals stream, the attribution wall, the link frame) | `seam` | **sampled** from the frame the visitor is looking at |
 | **The QR plate switching on** | [qr-hero.tsx](../../src/components/marketing/sections/features/qr/qr-hero.tsx) | `bloom` armed on arrival, resting at `--glw-base: 0.34` | the house five (a code is ink on white, law 3's no-media branch) |
+| **A shared reel, in the Studio** | [publish-light.tsx](../../src/components/reel/publish-light.tsx) `StudioPublishLight`, behind the reel's frame in [reel-studio.tsx](../../src/components/reel/reel-studio.tsx): wings at the frame's sides, never over the media, mounted only while the reel is shared; the room is dark in both themes, so it is never fenced | `bloom`; the swell only for a share made on this page (`sharedHere`), otherwise the band eases up to the same base | the house five (Will, `publish=house-five`) |
+| **A shared reel, on the host's share card** | `ShareCardPublishLight`, a pool under [reel-share-card.tsx](../../src/components/reel/reel-share-card.tsx) centred on the card's bottom edge (nothing reaches the poster above it); the first lamp in the app, so it is the second name on the light-ground fence | `bloom`, the same gate | the house five; none at all on a light ground |
 
 **`ScreenLamp` is the ONE underlight as a component:** a lit
 object throws its own sampled light down off its bottom edge, full-bleed, as a sibling of the object
@@ -381,7 +383,7 @@ three effects. The kept FORMS: the **seam**, a band where two grounds meet (the 
 strip, every screen lamp); the **throw**, cast from a point on an object, which is how a plate sits on
 open dark without a rim; the **field**, a whole chapter lit at its own edges. Two MARKS are kept beside
 them (2026-09-17): the **bloom**, a one-time glow that rests lit and never decays to nothing (the QR
-plate ships it), and the **halo**, which lights an OBJECT from behind and never wraps a button ("Do not
+plate and the publish moment ship it), and the **halo**, which lights an OBJECT from behind and never wraps a button ("Do not
 like as a button wrapper, only to light objects from behind"; no production use yet, the Library holds
 its working specimen). Code identifiers do not move (`Glow`, SPILL, `--glw-*`, `--lamp-*`); the Library
 and these docs speak his word.
@@ -421,7 +423,12 @@ rather than a prop or a review note, so a chapter that turns to paper a round la
 own: `[data-section-light]:not(.dark *), .surface-paper [data-section-light] { display: none }`, which
 is theme.css's `dark` variant inverted (both halves are needed, since a paper chapter lives inside a
 forced-dark cinema wrapper and a cinema page in an explicit-light session has no `.dark` on `<html>`).
-It is scoped to the field and **never widened to `[data-glw]`**: the seams that already ship have
+★ It is ONE rule holding a list of lamp BOXES, never a second copy: the share card's publish light
+(`[data-rxp-cardlight]`, the first lamp in the app, which follows the host's theme) is the second name
+on it, and the Studio's twin is deliberately absent, because that room is a literal near-black in both
+themes and carries no `.dark`. The hook always sits on the light's own box, never on the object
+(`display: none` takes what it names). It names boxes one by one and is **never widened to
+`[data-glw]`**: the seams that already ship have
 their own paper behaviour, and today that behaviour is nothing at all, so a media-less lamp on paper
 still paints the dark register's five (open for Will; the hand-tuned paper five is in ROADMAP).
 

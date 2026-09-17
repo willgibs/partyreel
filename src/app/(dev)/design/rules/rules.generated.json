@@ -2433,6 +2433,665 @@
       "contracts": []
     },
     {
+      "id": "publish-light",
+      "file": "src/components/reel/publish-light.tsx",
+      "names": [
+        "ShareCardPublishLight",
+        "StudioPublishLight"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "opens an already-shared reel shared, and not shared HERE",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 95
+        },
+        {
+          "title": "marks a Share tap in the same render that mounts the light",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 101
+        },
+        {
+          "title": "clears both on Unshare",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "never celebrates a Share the server refused",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "comes back from a refused Unshare resting, not swelling",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "follows the server's echo when it disagrees with the tap",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 158
+        },
+        {
+          "title": "mounts nothing while the reel is a draft",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 178
+        },
+        {
+          "title": "mounts one bloom of the engine while the reel is shared",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 188
+        },
+        {
+          "title": "is decoration: hidden from assistive tech, on the light's own box",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "never puts a className on the lamp",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 206
+        },
+        {
+          "title": "takes the house five, never colours of its own",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 215
+        },
+        {
+          "title": "holds the swell at nothing unless the share happened here",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 225
+        },
+        {
+          "title": "rests at the same base on both roads",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 234
+        },
+        {
+          "title": "hooks the share card's light, and never the Studio's",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 247
+        },
+        {
+          "title": "is ONE rule: the card's light is named on the Aurora's fence, not given a copy",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 257
+        },
+        {
+          "title": "carries no light while Share is still the question",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 285
+        },
+        {
+          "title": "puts the light first and the card after it, in a positioned wrapper",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "keeps the fence's hook on the light, never on the card",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 312
+        },
+        {
+          "title": "hands the light both halves of the share state",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 325
+        },
+        {
+          "title": "mounts the light from the share state, once",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 355
+        },
+        {
+          "title": "puts the light before the reel, in a positioned wrapper that never clips",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 365
+        },
+        {
+          "title": "lights the reel's frame, never the Share button",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 380
+        },
+        {
+          "title": "lifts the header, the dock and the tray above the light",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 389
+        },
+        {
+          "title": "skips the theater under reduced motion, and the state still lands",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 403
+        },
+        {
+          "title": "leaves no violet flourish in the reveal grammar",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 416
+        },
+        {
+          "title": "adds no motion of its own, so reduced motion is the base and no swell",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 440
+        }
+      ]
+    },
+    {
+      "id": "reel-share-card",
+      "file": "src/components/reel/reel-share-card.tsx",
+      "names": [
+        "ReelShareCard",
+        "ReelStatusChip"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "opens an already-shared reel shared, and not shared HERE",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 95
+        },
+        {
+          "title": "marks a Share tap in the same render that mounts the light",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 101
+        },
+        {
+          "title": "clears both on Unshare",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "never celebrates a Share the server refused",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "comes back from a refused Unshare resting, not swelling",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "follows the server's echo when it disagrees with the tap",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 158
+        },
+        {
+          "title": "mounts nothing while the reel is a draft",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 178
+        },
+        {
+          "title": "mounts one bloom of the engine while the reel is shared",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 188
+        },
+        {
+          "title": "is decoration: hidden from assistive tech, on the light's own box",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "never puts a className on the lamp",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 206
+        },
+        {
+          "title": "takes the house five, never colours of its own",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 215
+        },
+        {
+          "title": "holds the swell at nothing unless the share happened here",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 225
+        },
+        {
+          "title": "rests at the same base on both roads",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 234
+        },
+        {
+          "title": "hooks the share card's light, and never the Studio's",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 247
+        },
+        {
+          "title": "is ONE rule: the card's light is named on the Aurora's fence, not given a copy",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 257
+        },
+        {
+          "title": "carries no light while Share is still the question",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 285
+        },
+        {
+          "title": "puts the light first and the card after it, in a positioned wrapper",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "keeps the fence's hook on the light, never on the card",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 312
+        },
+        {
+          "title": "hands the light both halves of the share state",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 325
+        },
+        {
+          "title": "mounts the light from the share state, once",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 355
+        },
+        {
+          "title": "puts the light before the reel, in a positioned wrapper that never clips",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 365
+        },
+        {
+          "title": "lights the reel's frame, never the Share button",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 380
+        },
+        {
+          "title": "lifts the header, the dock and the tray above the light",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 389
+        },
+        {
+          "title": "skips the theater under reduced motion, and the state still lands",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 403
+        },
+        {
+          "title": "leaves no violet flourish in the reveal grammar",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 416
+        },
+        {
+          "title": "adds no motion of its own, so reduced motion is the base and no swell",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 440
+        }
+      ]
+    },
+    {
+      "id": "reel-studio",
+      "file": "src/components/reel/reel-studio.tsx",
+      "names": [
+        "ReelStudio"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "opens an already-shared reel shared, and not shared HERE",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 95
+        },
+        {
+          "title": "marks a Share tap in the same render that mounts the light",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 101
+        },
+        {
+          "title": "clears both on Unshare",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "never celebrates a Share the server refused",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "comes back from a refused Unshare resting, not swelling",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "follows the server's echo when it disagrees with the tap",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 158
+        },
+        {
+          "title": "mounts nothing while the reel is a draft",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 178
+        },
+        {
+          "title": "mounts one bloom of the engine while the reel is shared",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 188
+        },
+        {
+          "title": "is decoration: hidden from assistive tech, on the light's own box",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "never puts a className on the lamp",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 206
+        },
+        {
+          "title": "takes the house five, never colours of its own",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 215
+        },
+        {
+          "title": "holds the swell at nothing unless the share happened here",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 225
+        },
+        {
+          "title": "rests at the same base on both roads",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 234
+        },
+        {
+          "title": "hooks the share card's light, and never the Studio's",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 247
+        },
+        {
+          "title": "is ONE rule: the card's light is named on the Aurora's fence, not given a copy",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 257
+        },
+        {
+          "title": "carries no light while Share is still the question",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 285
+        },
+        {
+          "title": "puts the light first and the card after it, in a positioned wrapper",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "keeps the fence's hook on the light, never on the card",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 312
+        },
+        {
+          "title": "hands the light both halves of the share state",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 325
+        },
+        {
+          "title": "mounts the light from the share state, once",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 355
+        },
+        {
+          "title": "puts the light before the reel, in a positioned wrapper that never clips",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 365
+        },
+        {
+          "title": "lights the reel's frame, never the Share button",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 380
+        },
+        {
+          "title": "lifts the header, the dock and the tray above the light",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 389
+        },
+        {
+          "title": "skips the theater under reduced motion, and the state still lands",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 403
+        },
+        {
+          "title": "leaves no violet flourish in the reveal grammar",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 416
+        },
+        {
+          "title": "adds no motion of its own, so reduced motion is the base and no swell",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 440
+        }
+      ]
+    },
+    {
       "id": "action-tooltip",
       "file": "src/components/shared/action-tooltip.tsx",
       "names": [
