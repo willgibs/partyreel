@@ -618,16 +618,16 @@ export const RULINGS: Ruling[] = [
     title: "The album page's hero",
     surface: "marketing",
     ruled:
-      "open (Will, 2026-09-15: the burst's field, killed as the home hero, becomes the live album's hero)",
+      "open (Will, 2026-09-15: the burst's field, killed as the home hero, becomes the live album's hero; his six notes of 2026-09-17 sent it back for a custom, calm round three)",
     shipped: null,
-    why: "The burst's emanating field as the /features/album hero: looped for the live feel, no code, the album product as a calm wide visual below it.",
+    why: "Round three answers his notes: a lockup composed for this page as one block, four calm compositions on one engine, the live album centred under each.",
     lives: [
       "src/app/(marketing)/(cinema)/features/album/page.tsx",
       "src/lib/constants/feature-pages.ts",
     ],
     board: {
-      note: "The burst's field with its centre taken out as the album page's hero, looped for ever with the page's own shipped lockup in a quiet zone no frame enters, the real guest album composed and calm below it, and the whole shipped route under the two so the cinema-to-paper cut is judged with the hero running",
-      variants: ["The hero", "The live album, wide", "The page, whole"],
+      note: "Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit",
+      variants: ["The orbit", "The field, calmed", "The shelf", "The arrival"],
     },
   },
   {
