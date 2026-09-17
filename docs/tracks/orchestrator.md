@@ -8,9 +8,7 @@ owns:
   - src/app/(dev)/design/layout.tsx
   - src/app/(dev)/design/(shell)/page.tsx
   - src/app/(dev)/design/_data/links.ts
-  - src/app/(dev)/design/_data/links.test.ts
   - src/app/(dev)/design/_data/docs.ts
-  - src/app/(dev)/design/_data/docs.test.ts
   - src/app/(dev)/design/_data/legacy-routes.ts
   - src/app/(dev)/design/_data/legacy-routes.test.ts
   - src/app/(dev)/design/touchpoints.ts
@@ -30,8 +28,6 @@ owns:
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
-  - src/app/globals.css
-  - src/app/theme.css
   - src/app/(marketing)/marketing.css
   - src/lib/events/visibility-labels.ts
   - src/lib/shared/use-entered-frame.ts
@@ -45,6 +41,7 @@ announces:
   - "The wiring rounds (2026-09-17): Graphite is the palette (globals.css, theme.css, marketing.css at 88d0bec0: a 0.995 page, a 0.105 room, --faint as the third text step, the dark card opaque, no accent, the cinema deepening gone); the three stylesheets are the Orchestrator's again; Copy so far sends only a board's open round (review-message.ts composeSoFar), so a store entry from a round the board has left never rides again."
   - "The second batch (2026-09-17, 4280a59c): the type scale is ruled (B, the spacing law, the dead link on the set) and the Aurora is one light in three kept forms (seam, throw, field), never on paper, on an 8 second clock. The stylesheets are released for the round: theme.css and marketing.css to type-wiring (plus the @utility font-heading block of globals.css), the rest of globals.css to aurora-wiring. review-message.ts: composeSoFar(store, openOf, transcribed) takes the open round's shape ({ round, asks, items }) and Transcribed carries notes by board."
   - "The third batch (2026-09-17, c9903c99 and dc4530df): every card of the light board's round seven is ruled (the bloom, the halo and the beam kept) and round eight is three steps (depth, face, sweep). SectionLight has NO default placement: `placement` is required, `room` takes a `from` origin on an edge of the box and every placement a `reach`, and its contract refuses the same composition twice on one page (Will: the Aurora is 'a mix of all of them... custom and bespoke'). ProCardBeam measures its card's corner and passes it, zero included. src/app/globals.css is released to publish-bloom for the round (the publish block and the one fence rule only)."
+  - "The fourth batch (2026-09-17, 871f650b to c64275a3): light r8 is fully answered and floating-surfaces picks Card. `pnpm lab:demo` (scripts/lab-demo.mjs) presses every open step and fails a frozen stage; a catalog card's preview is inert when the card is the press target (src/components/lab/catalog.tsx). Released to light-wiring for the round: src/app/globals.css, src/app/theme.css, _data/links.test.ts and _data/docs.test.ts (the two tests that name light as a standing board and its spec as NOT LAW); touchpoints.ts and touchpoints.test.ts stay here and the lane edits its own board's lines under the retirement exception."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
 ---
 
@@ -77,6 +74,7 @@ are cut (development is parallel work again), the light sitting continues on its
 
 | track | board | waits on |
 | --- | --- | --- |
+| `light-wiring` | `light` (retired by it) | the agent; then the Orchestrator's signed-in pass on the alias (the floating primitives and the lit surfaces in the app, dark and light) |
 
 ## Waiting on Will
 
