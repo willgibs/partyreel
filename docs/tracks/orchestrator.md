@@ -8,9 +8,10 @@ owns:
   - src/app/(dev)/design/layout.tsx
   - src/app/(dev)/design/(shell)/page.tsx
   - src/app/(dev)/design/_data/links.ts
-  - src/app/(dev)/design/_data/links.test.ts
   - src/app/(dev)/design/_data/docs.ts
-  - src/app/(dev)/design/_data/docs.test.ts
+  # links.test.ts and docs.test.ts are RELEASED again to `floating-wiring`: both
+  # name a standing board as their example, so every retirement re-points them.
+  # They come back when no lane is retiring a board.
   - src/app/globals.css
   - src/app/theme.css
   - src/app/(dev)/design/_data/legacy-routes.ts
