@@ -187,7 +187,8 @@ Each was answered with its recommendation and carried on, per the boot rules. No
 
 ## Handoff (replaces the chat report)
 
-- Head `HEAD_SHA`, pushed; synced with `launch-prep` at `6ad999f5` (it had moved: `voice-picks` merged
+- Head is the commit carrying this line, pushed; the wiring is `b8e77444` and the sync merge
+  `517476d4`. Synced with `launch-prep` at `6ad999f5` (it had moved: `voice-picks` merged
   plus four lab commits). One conflict, in `docs/design/library.md`, a GENERATED file: resolved by
   regenerating it and `rules.generated.json` rather than by hand-editing either.
 - Gates on the synced tree, each step read on its own exit code: `pnpm design:rules` ok, the specimen
