@@ -1,7 +1,7 @@
 ---
 track: floating-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "b3291f81"         # the launch-prep SHA the branch was cut from
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
+cut: "7534d02f"         # the launch-prep SHA the branch was cut from
 board: floating-surfaces # retired by this lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/components/ui/
@@ -16,6 +16,33 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/_data/docs.test.ts
   - src/app/(dev)/design/rules/influences.test.ts
   - docs/specs/floating-surfaces.md
+  # THE NINE MENUS (Q1). The goal says Card is "worn by the nine real menus" and
+  # that the groups are new markup AT each of them, but no call site was listed
+  # above. Added here with that reason; the guest account menu is voice-picks'
+  # and was left alone.
+  - src/components/app/user-menu.tsx
+  - src/components/app/notification-bell.tsx
+  - src/components/app/event-qr.tsx
+  - src/components/admin/admin-nav.tsx
+  - src/components/admin/operator-alerts.tsx
+  - src/components/admin/triage-status-control.tsx
+  - src/components/social/profile-actions-menu.tsx
+  # The operator nav's grouping is a property of a SURFACE, so it belongs in the
+  # single source rather than as a second copy inside the menu (Q2).
+  - src/lib/admin/nav.ts
+  - src/lib/admin/nav.test.ts
+  # GENERATED, never hand-edited: `pnpm design:rules` and the specimen collector.
+  - docs/design/library.md
+  - src/app/(dev)/design/rules/rules.generated.json
+  - src/app/(dev)/design/gallery/specimens.generated.json
+  # The owning system doc, refined in place for this lane's facts.
+  - docs/systems/design-system.md
+  # The retirement exception, my board's own lines only: the two unions and the
+  # ruling row; the standing list; and the board's iframe scene route in the
+  # smoke's SCENES (light-wiring did the same line for type-scale at b18d7f55).
+  - src/app/(dev)/design/touchpoints.ts
+  - src/app/(dev)/design/touchpoints.test.ts
+  - scripts/lab-smoke.mjs
 reads:                  # single-sources you depend on: never duplicate, never edit
   - src/app/globals.css
   - src/app/theme.css
@@ -107,15 +134,55 @@ list, which is the retirement working.
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+Each was answered with its recommendation and carried on, per the boot rules. None needs Will.
+
+1. **The lane owned no menu.** The goal says Card is "worn by the nine real menus" and that the groups
+   are NEW markup at each of them, but `owns` listed only `src/components/ui/`. **Taken:** the seven
+   call sites I touched are listed in `owns` above with that reason. `src/components/guest/guest-account-menu.tsx`
+   is the eighth and is `voice-picks`', so it was left alone (see Deferred); the ninth is the marketing
+   nav, which is a primitive rather than a call site and was wired inside `ui/navigation-menu.tsx`.
+2. **The corner and the entrance were meant to land in `globals.css`, which is a `read` this round.**
+   **Taken:** they land as ONE module, `src/components/ui/floating-layer.ts`, deriving the row's corner
+   from `--radius-float` rather than duplicating it. Nothing in `globals.css` or `theme.css` moved, and
+   the contract is now something a test can hold, which is what bible 15 never had. The one knob I could
+   not put there is the marketing nav's, which lives in `marketing.css` under the 2026-08-28 nav ruling
+   and whose default IS the standard rung; the policy allows a clock read from a `var()` and refuses a
+   typed number.
+3. **Card's anatomy on a menu with two rows.** The board's own cost line: "a two-row menu is suddenly
+   furniture. It is the right answer for the event menu and the wrong one for a three-row overflow."
+   **Taken:** the anatomy ships as PARTS a call site may leave out, not as a shape baked into the panel.
+   Five menus gained parts; the QR download and the profile overflow wear the layer and nothing else, and
+   each says so in a comment so the next agent does not read it as an oversight.
+4. **Which clock each surface gets.** `entrance=by-frequency` names the law, not the assignment.
+   **Taken:** three rungs, written at each call site with its reason. Instant 90/70 (tooltip, menu,
+   submenu, select), standard 200/150 (popover, dialog, marketing nav), edge 300/200 (sheet). Only the
+   tooltip, the menu and the select actually changed, which is Will's sentence exactly: the tooltip and
+   the menu land in 90ms and the dialog keeps its slower beat.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/design-system.md`: the floating-layer paragraph under Motion became **`### The
+  floating-layer contract`**, rewritten to what shipped (the module, the derived corner, the two
+  entrance languages, the three clocks, the no-glass guard, the two primitives outside the family by
+  name, Card's parts, the submenu landmine and the two-level cap). The heading is why
+  `PENDING_ANCHORS` in `_data/docs.test.ts` is now empty: `touchpoints.ts` pointed at
+  `#the-floating-layer-contract` and it finally exists. The prose after it became `### Skeletons,
+  tiles and the reveal chips` so the new subsection ends where its subject does.
+- Same doc, the Rounding table: the floating row now names the DERIVED row corner beside
+  `--radius-float`, so the pair is readable in the one place the tokens are listed.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **the design system** · `guest/entry-shell.tsx` renders a raw vaul drawer that never goes through
+  `ui/drawer.tsx`, with a literal radius: the floating surface most guests will ever see is outside the
+  contract, and `src/components/guest/` was `voice-picks`' lane this round.
+- **the design system** · `marketing/help/help-palette.tsx` builds its own floating panel outside
+  `src/components/ui/`, so it wears `rounded-float` by hand and `floating-layer.test.ts` cannot reach it.
+- **the design system** · on a narrow screen a submenu can still be pushed partly off the edge when its
+  parent panel leaves under about 130px on either side: radix flips to the roomier side and then
+  `limitShift` keeps the submenu attached to its trigger, so it will not slide further into view. The
+  product's one submenu fits (measured: 121px into 135px), but the durable answer for a phone is a
+  drill-down rather than a side-opening panel, which is a design question and not a wiring one.
 
 ## Handoff (replaces the chat report)
 

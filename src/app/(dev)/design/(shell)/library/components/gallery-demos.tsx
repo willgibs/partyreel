@@ -39,9 +39,15 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuFooter,
+  DropdownMenuGroup,
+  DropdownMenuHeader,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
+  DropdownMenuMeta,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -714,10 +720,15 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     id: "dropdown-menu",
     family: "components",
     section: "Overlays",
+    // CARD, AS THE WORKING VERSION (Will, floating-surfaces r7, 2026-09-17:
+    // "Card is my overall favorite"). Two specimens, because the ruling is two
+    // claims: the parts exist, AND a menu with nothing to say wears none of
+    // them. The full anatomy alone would read as a house style every overflow
+    // has to obey, which is the cost Card was judged against.
     specimens: [
       {
-        label: "Dropdown menu",
-        hint: "a destructive item is its own variant",
+        label: "A menu with something to say",
+        hint: "a title row, labelled groups, an icon rail, state on the right, a footer rail",
         node: (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -725,18 +736,61 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
                 <Settings /> Manage
               </Button>
             </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-64">
+              <DropdownMenuHeader meta="Pro">Ana and Theo</DropdownMenuHeader>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Share</DropdownMenuLabel>
+                <DropdownMenuItem>
+                  <Share2 /> Copy the guest link
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>The album</DropdownMenuLabel>
+                <DropdownMenuItem>
+                  <Heart /> Saved
+                  <DropdownMenuMeta>412</DropdownMenuMeta>
+                </DropdownMenuItem>
+                {/* The one branch the family allows, and the last one: a Sub
+                    inside a Sub throws at render (Will: a third level "gets too
+                    complicated"). */}
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Settings /> Who can upload
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuLabel>Who can upload</DropdownMenuLabel>
+                    <DropdownMenuItem>Anyone with the link</DropdownMenuItem>
+                    <DropdownMenuItem>
+                      Guests who verify an email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      Nobody, uploads are closed
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuGroup>
+              <DropdownMenuFooter>
+                <DropdownMenuItem variant="destructive">
+                  <Trash2 /> Delete the event
+                </DropdownMenuItem>
+              </DropdownMenuFooter>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      },
+      {
+        label: "A menu with nothing to say",
+        hint: "every part is optional: a two-row overflow wears the layer and stops",
+        node: (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Download
+              </Button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuLabel>Event</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <Share2 /> Share
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Heart /> Save
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive">
-                <Trash2 /> Delete
-              </DropdownMenuItem>
+              <DropdownMenuItem>SVG (best for print)</DropdownMenuItem>
+              <DropdownMenuItem>PNG (best for screens)</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),

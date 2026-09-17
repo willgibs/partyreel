@@ -636,7 +636,7 @@ the work mono used to do:
 | Surfaces (cards, inputs, sections) | `--radius` | `0.125rem` (sharp) |
 | Actions (buttons) | `--radius-action` / `-lg` / `-sm` | `1rem` @ h-10 · `1.2rem` @ h-12 · `0.8rem` @ h-8 (ratio ~0.4 x height); the in-between Button sizes DERIVE from `--radius-action` (h-6 0.6x, h-7 0.7x, h-9 0.9x, `button.tsx`), so one knob moves the whole ladder |
 | Media tiles | `--radius-tile` · `--gap-gallery` | radius `3px`; `--gap-gallery` (`3px`) is the ONE gap for EVERY media-tile grid: masonry galleries + the dense triage grids (Reviews / review takeover / admin moderation). Use `gap-[var(--gap-gallery)]`; one knob retunes them all |
-| Floating layer (menus, tooltips, toasts, dialogs, sheets' corners) | `--radius-float` | `0.5rem` (sharp reads broken on floating elements) |
+| Floating layer (menus, tooltips, toasts, dialogs, sheets' corners) | `--radius-float` | `0.5rem` (sharp reads broken on floating elements); a ROW inside one of those panels is `calc(--radius-float - 4px)`, derived in [`floating-layer.ts`](../../src/components/ui/floating-layer.ts) so retuning the token moves both |
 
 Nested-corner math: inner = outer minus gap. The sharp-surface/round-action contrast is the
 system's DELIBERATE exception to it.
@@ -767,25 +767,76 @@ symmetric S (`--ease-in-out-strong`), which eases in AND out of the change inste
 it. Timing stays asymmetric per the house rule by riding the OPEN state: enter 300ms, exit 220ms.
 This covers the overlay header and any full-bleed hero adopting the transparent-until-scrolled header.
 
-**THE FLOATING-LAYER CONTRACT** (bible 15): every floating surface ships `rounded-float` + `shadow-layer` + an origin-AWARE
-`transform-origin` + `fade-in-0`/`fade-out-0` beside its zoom + one house clock on `--ease-emphasis`.
-Miss any of the five and the surface reads wrong in a way that is hard to name: `rounded-lg` resolves
-to the 2px SHARP general-UI radius, a raw `shadow` is a fourth geometry (and the elevation policy
-refuses it), a centre origin detaches the panel from its trigger, and a scale with no fade pops. The
-shadow is `shadow-layer` in BOTH modes since the light ruling (2026-09-17; it was `shadow-float`,
-which drew nothing in dark), and the three surfaces that sat outside the family joined it then:
-`select.tsx`'s content, the navigation menu's indicator and the toast (sonner ships its own shadow,
-so the rule in `globals.css` outweighs it and re-states its focus ring). `select.tsx` still wears
-`rounded-md border`: its radius and its entrance are the floating-surfaces wiring's. The marketing nav
-is the one menu outside it. Three reusable
-patterns serve it: the **`data-swap`-gated box morph** (a size transition must be armed
+### The floating-layer contract
+
+**Bible 15: one radius, one entrance, one light, and since the `floating-surfaces` wiring
+(2026-09-17) they are a MODULE rather than a sentence.**
+[`floating-layer.ts`](../../src/components/ui/floating-layer.ts) exports what every panel wears and
+[`floating-layer.test.ts`](../../src/components/ui/floating-layer.test.ts) refuses a primitive that
+answers any of it locally. A rule spelled out in nine className strings is a rule the tenth panel
+never hears about, which is how the family drifted: the nav shipped `rounded-lg` (the 2px SHARP
+general-UI radius) and a stock shadow until the nav round, `select` shipped `rounded-md border` with
+no entrance at all, and three panels carried three hand-typed clocks nobody had ever compared.
+
+- **The corner** (`radius=nested`, confirmed by `roundness=nested`, Will 2026-09-17): an 8px panel
+  around 4px rows. `floatingCorner` is `rounded-float`; `floatingRow` is `calc(var(--radius-float) -
+  4px)`, DERIVED, because the 4px is the panel's own padding and bible 9 wants inner = outer minus the
+  gap. Move a panel's padding and you have moved its rows' corner. Rows were `rounded-md` (1.6px), so
+  the panel's arc missed its rows' by six times.
+- **The entrance**: one LANGUAGE per kind, with the clock inside it chosen by frequency, which is how
+  bible 15 and bible 12 stop disagreeing (`entrance=by-frequency`, Will 2026-09-17).
+  `floatingEntrance` is the anchored one (a fade, a hair of scale, 8px of travel from the anchored
+  side, on `--ease-emphasis`); `floatingEdgeEntrance` is the sheet's (the same fade, no scale, a long
+  slide from its own side, on `--ease-drawer`). `floatingClock` has three rungs and no more:
+  **instant** 90/70 (tooltip, dropdown, submenu, select: opened dozens of times an hour), **standard**
+  200/150 (popover, dialog, and the marketing nav through its own `--mkt-dropdown-*` knobs, whose
+  defaults ARE this rung), **edge** 300/200 (the sheet, where the distance is the affordance). Every
+  exit is faster than its entrance and nothing is over bible 12's 300ms ceiling.
+- **The light**: `shadow-layer` in BOTH modes since the light ruling (2026-09-17; it was
+  `shadow-float`, which drew nothing in dark). The elevation contract above owns it and the floating
+  module never re-states it.
+- **No translucency, on purpose.** Will liked the glassy panel and declined a one-off of it here
+  ("let's bank a near-term agent for a dedicated Glass exploration across marketing and app"), so the
+  policy refuses a `backdrop-filter` on any panel until that exploration lands. A scrim's blur is not
+  a panel's material and is untouched.
+- **Outside the family, by name**: `drawer.tsx` (vaul owns its drag physics, and its entrance is a
+  gesture rather than a curve) and `sonner.tsx` (a third-party surface themed through CSS variables;
+  it already reads `--radius-float`, and the rule in `globals.css` outweighs its own shadow and
+  re-states its focus ring). The navigation menu's indicator and the toast joined the shadow half in
+  the light round.
+
+**The menu's anatomy is Card** (`direction=card`, Will 2026-09-17: "Card is my overall favorite"), and
+it lives in [`dropdown-menu.tsx`](../../src/components/ui/dropdown-menu.tsx) as PARTS a call site may
+leave out, never as a shape baked into the panel: `DropdownMenuHeader` (the title row, what the menu
+belongs to), `DropdownMenuGroup` + `DropdownMenuLabel` (Glass's quieter label, sentence case at 70
+percent of the foreground, the one thing taken from that direction), the icon rail on the item itself
+(a call site never colours a leading glyph again), `DropdownMenuMeta` (the trailing column: the state
+you opened the menu to read) and `DropdownMenuFooter` (a ground of its own for the action you cannot
+undo). Card's own cost is real and the parts answer it: a two-row overflow wears the material, the
+corner, the entrance and the rail, and says nothing more.
+
+★ **A submenu MUST be portalled, and the failure it prevents is CONDITIONAL, not total.**
+`SubContent` shipped with no `Portal`, so it rendered inside `Content`, which carries
+`overflow-y-auto` AND animates with a transform. A transformed ancestor becomes the containing block
+for its `fixed` descendants, so a submenu opened by a CLICK (which puts the parent into its closing
+animation) had a real measured box, its rows, and painted nothing; a scrolled parent clipped it the
+same way. Hover on a settled parent worked, which is how it survived to production. **A menu stops at
+two levels** (Will, 2026-09-17: a third "gets too complicated"), and the cap is structural: each `Sub`
+publishes its depth and a third one throws at render, so there is no third level to review.
+
+Three reusable
+patterns serve the layer: the **`data-swap`-gated box morph** (a size transition must be armed
 only when there is a previous size to morph FROM, or a measured-late 0×0 first frame animates as a
 wipe), the **glass LAYER** (`backdrop-filter` on an inert `-z-10` sibling whose `opacity` animates,
 never a class-toggled filter on the bar itself, which both snaps and drags every descendant's repaint
 into a blurred region), and the **measured indicator** (JS writes `offsetLeft`/`offsetWidth`, CSS owns
 the tween; the first placement MUST suspend the transition and force a reflow or it flies in from
 x=0). Hover is the one place enters may be SLOWER than exits: a row that is skimmed rather than
-studied needs its in inside ~90ms and can take ~180ms to fade back out. Skeletons shimmer via a
+studied needs its in inside ~90ms and can take ~180ms to fade back out.
+
+### Skeletons, tiles and the reveal chips
+
+Skeletons shimmer via a
 background-position sweep (`--animate-shimmer`, linear on purpose: ambient loop, a strong curve
 stutters at the loop point). **`MediaTile` (every gallery tile) renders the shimmer skeleton under the photo
 until it decodes, then fades the photo in over it:** a cold presigned-R2 load (no thumbnail variant)

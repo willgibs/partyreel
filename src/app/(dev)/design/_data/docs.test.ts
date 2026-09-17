@@ -61,11 +61,10 @@ const isTraced = (path: string) => traced.some((re) => re.test(path));
  * heading its ratification will add. Each entry must still be missing (the
  * second assertion), so the set empties itself the day the heading lands.
  */
-const PENDING_ANCHORS = new Set([
-  // floating-surfaces is open (its spec is NOT LAW); design-system.md has no
-  // "The floating layer contract" section yet, only the radius table row.
-  "docs/systems/design-system.md#the-floating-layer-contract",
-]);
+// EMPTY since 2026-09-17, which is the set working rather than the set being
+// abandoned: its one entry was the floating-layer contract, and that heading
+// landed with the `floating-surfaces` wiring the day its board was ruled.
+const PENDING_ANCHORS = new Set<string>([]);
 
 /** Every file the shell renders: the doctrine, the rulings, the proposals, the manifests. */
 function renderedDocs(): string[] {

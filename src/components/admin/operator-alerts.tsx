@@ -6,9 +6,10 @@ import { Bell, Flag, LifeBuoy, Users } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuHeader,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
+  DropdownMenuMeta,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -22,25 +23,33 @@ export type OperatorAlertCounts = {
 // EXISTING pending-work counts from the layout. Derived-on-read STATE: the badge reflects current
 // pending work and clears as the operator triages (page-load + post-action revalidation refresh it;
 // no real-time, matching the host bell). Lists only non-zero categories, each linking to its surface.
+// THE ROW NAMES THE SURFACE AND THE COUNT RIDES THE RIGHT (Card, Will
+// 2026-09-17: "state on the right"). It used to be one sentence per row ("3 new
+// support submissions"), which put the number where the eye scans for a name
+// and made every row a different length; the count is the thing you opened this
+// for, so it gets the trailing column and the label stays a label. `state` is
+// what the number means, since "new" and "open" are not the same claim.
 const ALERTS = [
   {
     key: "support",
     href: "/admin/support",
     icon: LifeBuoy,
-    text: (n: number) =>
-      `${n} new support ${n === 1 ? "submission" : "submissions"}`,
+    label: "Support",
+    state: "new",
   },
   {
     key: "applicants",
     href: "/admin/applicants",
     icon: Users,
-    text: (n: number) => `${n} new ${n === 1 ? "applicant" : "applicants"}`,
+    label: "Applicants",
+    state: "new",
   },
   {
     key: "reports",
     href: "/admin/reports",
     icon: Flag,
-    text: (n: number) => `${n} open ${n === 1 ? "report" : "reports"}`,
+    label: "Reports",
+    state: "open",
   },
 ] as const;
 
@@ -67,21 +76,29 @@ export function OperatorAlerts({
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
-        <DropdownMenuLabel>Needs attention</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        <DropdownMenuHeader meta={total > 0 ? String(total) : undefined}>
+          Needs attention
+        </DropdownMenuHeader>
         {active.length === 0 ? (
           <p className="px-2 py-6 text-center text-sm text-muted-foreground">
             Nothing pending.
           </p>
         ) : (
-          active.map(({ key, href, icon: Icon, text }) => (
-            <DropdownMenuItem key={key} asChild>
-              <Link href={href} className="flex items-center gap-2">
-                <Icon className="size-4 text-muted-foreground" />
-                <span>{text(counts[key])}</span>
-              </Link>
-            </DropdownMenuItem>
-          ))
+          <DropdownMenuGroup>
+            {active.map(({ key, href, icon: Icon, label, state }) => (
+              <DropdownMenuItem key={key} asChild>
+                {/* The icon colour is the primitive's rail now, not a class
+                    typed here (dropdown-menu.tsx). */}
+                <Link href={href}>
+                  <Icon />
+                  <span>{label}</span>
+                  <DropdownMenuMeta>
+                    {counts[key]} {state}
+                  </DropdownMenuMeta>
+                </Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
