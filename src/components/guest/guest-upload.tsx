@@ -115,7 +115,7 @@ export function GuestUpload({
 
       {holdForApproval && (
         <p className="rounded-md bg-muted px-3 py-2 text-center text-xs text-muted-foreground">
-          The host reviews uploads before they appear in the gallery.
+          The host reviews uploads before they appear in the album.
         </p>
       )}
 

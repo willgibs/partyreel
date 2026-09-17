@@ -410,7 +410,7 @@ export function EventExperience({
             ) : (
               !isDemo && (
                 <p className="mt-7 text-center text-[15px] text-muted-foreground">
-                  The host has closed uploads. You can still browse the gallery.
+                  The host has closed uploads. You can still browse the album.
                 </p>
               )
             ))}
