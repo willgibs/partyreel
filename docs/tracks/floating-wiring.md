@@ -37,12 +37,13 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/gallery/specimens.generated.json
   # The owning system doc, refined in place for this lane's facts.
   - docs/systems/design-system.md
-  # The retirement exception, my board's own lines only: the two unions and the
-  # ruling row; the standing list; and the board's iframe scene route in the
-  # smoke's SCENES (light-wiring did the same line for type-scale at b18d7f55).
-  - src/app/(dev)/design/touchpoints.ts
-  - src/app/(dev)/design/touchpoints.test.ts
+  # The board's iframe scene route in the smoke's SCENES: it left with the
+  # board, exactly as type-scale's did at light-wiring's b18d7f55.
   - scripts/lab-smoke.mjs
+  # NOT claimed here on purpose: touchpoints.ts and touchpoints.test.ts stay the
+  # Orchestrator's and are edited under the retirement exception only, my own
+  # board's lines. Claiming them fails track-manifests.test.ts, which is the
+  # rule working: they are listed in the Lane check below instead.
 reads:                  # single-sources you depend on: never duplicate, never edit
   - src/app/globals.css
   - src/app/theme.css
@@ -186,14 +187,77 @@ Each was answered with its recommendation and carried on, per the boot rules. No
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree, each step's own exit code: typecheck ok, lint ok, test ok (N), build ok (M routes); `pnpm lab:smoke`; `pnpm lab:demo`
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- What landed, one line per part; which entrance each surface got and why; every menu that gained groups
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `HEAD_SHA`, pushed; synced with `launch-prep` at `6ad999f5` (it had moved: `voice-picks` merged
+  plus four lab commits). One conflict, in `docs/design/library.md`, a GENERATED file: resolved by
+  regenerating it and `rules.generated.json` rather than by hand-editing either.
+- Gates on the synced tree, each step read on its own exit code: `pnpm design:rules` ok, the specimen
+  collector (`node "src/app/(dev)/design/gallery/collect-specimens.mjs"`) ok, typecheck ok, lint ok (0
+  errors, the 9 expected warnings), test ok (2184), build ok (126 routes). `pnpm lab:smoke --base
+  http://localhost:3133`: 230 checks, 3 failing, and all three are expected. Two are the glow boards
+  over the reading budget on purpose. **The third is yours:** `/design/lab/tracks/floating-surfaces`
+  404s because bible 15 still says `status: "under exploration: floating-surfaces"`, and the rule page
+  falls back to "that is a track, not a standing board" and links a manifest that never existed. It
+  clears the moment you flip rule 15. `pnpm lab:demo --base http://localhost:3133`: 20 steps, 0 frozen,
+  and `floating-surfaces` is gone from the list, which is the retirement working.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the owned paths above plus this file,
+  plus the two retirement exceptions, my board's own lines only: `touchpoints.ts` (both unions, the
+  `board` block gone, `ruled`/`shipped`/`lives`/`why` rewritten to what shipped) and
+  `touchpoints.test.ts` (the standing list). Neither is in my `owns`, on purpose: claiming them fails
+  `track-manifests.test.ts` against the Orchestrator's own lane, which is how I found the rule.
+- **What landed.**
+  - `src/components/ui/floating-layer.ts`: bible 15 as a module. `floatingCorner`, `floatingRow`
+    (derived: `calc(var(--radius-float) - 4px)`, the 4px being the panel's padding, so the ruled 8/4
+    pair is ONE token to retune), `floatingSurface`, `floatingPanel`, `floatingEntrance`,
+    `floatingEdgeEntrance`, `floatingClock`. Nothing in `globals.css` or `theme.css` moved.
+  - `floating-layer.test.ts`, bible 15's first test (`@policy: engineering`, scoped so because a design
+    scope must be cited by a bible rule and rule 15's `enforcedBy` is yours). It refuses a panel that
+    spells its own corner or clock, a fourth clock rung, a corner that is not derived, an exit slower
+    than its entrance, an entrance over 300ms, and any `backdrop-filter` on a panel while the Glass
+    exploration is banked. It also refuses a NEW floating primitive nobody listed.
+  - `ui/dropdown-menu.tsx`: Card as parts. `DropdownMenuHeader` (title row, optional `meta`),
+    `DropdownMenuGroup` (spacing carried by the second group), `DropdownMenuLabel` (Glass's treatment:
+    sentence case, no tracking, the foreground at 70 percent), the icon rail on the item itself,
+    `DropdownMenuMeta` (the trailing column) and `DropdownMenuFooter` (the undoable action's own
+    ground). Rows are 32px. `DropdownMenuSeparator` survives untouched.
+  - The submenu, portalled and capped. Its 96px floor is restored and commented as a PHONE measurement.
+  - `ui/select.tsx` joins the family (it wore `rounded-md border` and no entrance at all);
+    `popover`, `tooltip`, `dialog`, `sheet` and `navigation-menu` read their corner, entrance and clock
+    from the module. The nav's links take the nested row corner. `drawer.tsx` and `sonner.tsx` are
+    outside by name, with reasons, in the test and the system doc.
+- **The entrance each surface got, and why.** Instant 90/70: the tooltip, the dropdown, the submenu and
+  the select, all opened dozens of times an hour and two of them by accident. Standard 200/150: the
+  popover (asked for), the dialog (wants a decision, and Will's own "the dialog keeps its slower beat")
+  and the marketing nav through `--mkt-dropdown-*`, whose defaults already ARE this rung. Edge 300/200
+  on `--ease-drawer`: the sheet, where the distance is the affordance. One fix found by measuring: the
+  tooltip's `instant-open` state (a keyboard focus) had `animation-name: none`, before and after the
+  light round; all three of radix's open states are in the language now.
+- **Every menu that gained parts.** The host account menu (title row from the identity block, which was
+  a `DropdownMenuLabel` doing two jobs; groups "Your account" and "Partyreel"; Sign out on the footer
+  rail; the theme submenu gains its own "Appearance" label, which the guest menu inherits for free
+  because it imports `ThemeSubmenu`). The notification bell (title row with the count as `meta`). The
+  operator alerts (title row, one group, the count moved to the trailing column). The operator nav
+  (twelve anonymous rows became four labelled groups; the grouping lives in `src/lib/admin/nav.ts` with
+  `navGroups()` and two new tests, because it is a property of a SURFACE). The triage picker (one
+  labelled group, no title row: the trigger already carries the badge). **Deliberately bare:**
+  `event-qr` (two rows) and `profile-actions-menu` (one row); each carries the reason in place.
+- Assets requested from Will: none. ★ `docs/ASSETS.md` row 14 asked for a dark event photograph as the
+  ground for this board's catalog; the board is gone, so that row's requester no longer exists. It is
+  yours to re-point or retire, as you did the light board's.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Look at first:** the account menu, and specifically its theme submenu on a phone. A submenu is
+  fully visible only while it is narrower than the room beside its parent (radix flips to the roomier
+  side, then `limitShift` keeps it attached to its trigger and it will not slide further in). I widened
+  this menu to `w-60` for the header, which left 119px for a picker that measures 121px, and measured
+  it back to `w-56` (135px of room). Both numbers are in the comment. The second look: `pnpm lab:smoke`
+  is one route from green, and that route is rule 15's status line.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-17). Every step of `floating-surfaces` was answered, so
+the picks shipped and the board went. Bible 15 stopped being a sentence and became
+`src/components/ui/floating-layer.ts` plus its first test: one corner with the row derived from
+`--radius-float`, two entrance languages, and three clocks chosen by how often a surface is opened.
+Card's anatomy landed in `ui/dropdown-menu.tsx` as PARTS a call site may leave out, worn by five real
+menus and deliberately not by two; `select` joined the family it had never been in; the submenu was
+portalled, capped at two levels by a guard that throws, and its width floor measured against a phone.
+`sandbox/floating-surfaces/` and its twelve files are gone.
