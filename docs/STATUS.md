@@ -62,12 +62,12 @@ is the record.
 ## Live state
 
 - **Prod (partyreel.com)** = `main` @ tag `milestone-24` (`592da24`). **The `launch-prep` alias**
-  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) still serves the Library x Lab round's Phase 1
-  (`a0ef9867`): every later `[preview]` push was refused by Vercel's daily cap (100 deployments per trailing
-  day, every path counted; canceled deployments register, builds do not). After 2026-09-17 00:13 UTC an
-  empty `[preview]` commit on `launch-prep` rebuilds it (the API path stays the fallback), then
-  `pnpm lab:smoke --production --key <DESIGN_PREVIEW_KEY>` and the prune. Until then every review is a local
-  `pnpm dev` after a hard reload (the lab's chrome reloads a stale sheet once on its own).
+  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the stepped review round with the hero's
+  round seven (`a964d4a6`, built 2026-09-17 00:16 UTC once Vercel's daily cap freed; the production smoke
+  passed 261 checks with the door closed, the two glow boards over the reading budget on purpose). Vercel's
+  cap is 100 deployments per trailing day on every path (canceled deployments register, builds do not), so
+  `[preview]` stays the Orchestrator's and rare. Will's sitting runs on his local `pnpm dev` after a hard
+  reload; the alias is the same tree for a phone.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and
   fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
 - **Tests:** 2,160 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on

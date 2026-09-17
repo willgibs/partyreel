@@ -57,8 +57,8 @@ a board ends in promotion into the Library, never in another exploration unless 
 explorations turning into papers; the plan he approved runs four rounds: the lab (Round 1, in flight),
 the docs diet and the track protocol (Round 2, the Orchestrator's, the protocol part landed), the
 Library as the complete inventory and a review surface (Round 3), the six paper boards rebuilt as
-catalogs (Round 4, closed on the tree the same day). The alias still serves Phase 1 of the
-Library x Lab round until Vercel's cap frees (2026-09-17 00:13 UTC); every review meanwhile is a local
+catalogs (Round 4, closed on the tree the same day). The alias was rebuilt at `a964d4a6` the moment
+Vercel's cap freed (2026-09-17 00:16 UTC) and serves the whole tree; his sitting runs on his local
 `pnpm dev` after a hard reload. The stepped review round opened 2026-09-16 on his sitting's verdict (the
 review "favors you and makes me spend tons of time per track figuring what I'm even being asked"):
 `lab-flow` rebuilds the review as an onboarding form, every board is reshaped into steps four at a time
