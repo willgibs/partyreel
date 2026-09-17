@@ -28,9 +28,10 @@ describe("the design lab's rulings registry", () => {
       [
         "glow-doctrine",
         "glow-moments",
-        "home-hero",
         // the two legacy marketing boards retired to the record in the
         // Library x Lab migration wave (2026-09-15)
+        // the home hero retired at its wiring round (2026-09-17): its
+        // favourite ships as cinema-hero.tsx
         // the review wave (2026-09-14)
         "palette",
         "light",

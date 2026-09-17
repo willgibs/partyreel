@@ -1723,6 +1723,112 @@
       "contracts": []
     },
     {
+      "id": "hero-stream",
+      "file": "src/components/marketing/sections/home/hero-stream.ts",
+      "names": [
+        "BPS",
+        "BUILT",
+        "FLIGHT",
+        "FRAME_SIZES",
+        "GEO",
+        "LG_MIN",
+        "REVEAL_MS",
+        "STREAM_FRAMES"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "%s keeps every frame off the block, at its worst width",
+          "suite": [
+            "the band leaves the type its measured lane"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 46
+        },
+        {
+          "title": "%s solves its clear line off the band, not off a guess",
+          "suite": [
+            "the band leaves the type its measured lane"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 75
+        },
+        {
+          "title": "%s fits the whole composition above the fold",
+          "suite": [
+            "the band leaves the type its measured lane"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 88
+        },
+        {
+          "title": "%s sizes every DOM box to its largest visible moment",
+          "suite": [
+            "no frame is ever rasterized above its own pixels"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 108
+        },
+        {
+          "title": "asks for the size it renders, at each breakpoint",
+          "suite": [
+            "no frame is ever rasterized above its own pixels"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 130
+        },
+        {
+          "title": "pairs every frame across the two breakpoints",
+          "suite": [
+            "one set of nodes serves both geometries"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 143
+        },
+        {
+          "title": "%s stands deployed, never collapsed at the code",
+          "suite": [
+            "the rest state is a composed still"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 160
+        },
+        {
+          "title": "places every frame from a table, never from a hash",
+          "suite": [
+            "nothing in the composition is dealt"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 189
+        },
+        {
+          "title": "deals no photograph twice on screen, once Will's set lands",
+          "suite": [
+            "nothing in the composition is dealt"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 206
+        },
+        {
+          "title": "takes every frame from the media manifest",
+          "suite": [
+            "nothing in the composition is dealt"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 215
+        },
+        {
+          "title": "%s keeps the compositor's layer count honest",
+          "suite": [
+            "what the composition costs"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 229
+        }
+      ]
+    },
+    {
       "id": "bulk-select-mock",
       "file": "src/components/marketing/sections/shared/bulk-select-mock.tsx",
       "names": [

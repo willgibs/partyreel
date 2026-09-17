@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 16 policies · 164 contracts on 27 components · 12 standing boards.**
+**22 laws · 16 policies · 175 contracts on 28 components · 11 standing boards.**
 
 ## What binds you
 
@@ -345,6 +345,7 @@ Contracted but outside the library's directories:
 - `src/components/lab/step.tsx` (18 guards)
 - `src/components/marketing/chrome/marketing-footer.tsx` (5 guards)
 - `src/components/marketing/legal/legal-document.tsx` (3 guards)
+- `src/components/marketing/sections/home/hero-stream.ts` (11 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 
@@ -354,7 +355,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
-| `home-hero` | marketing | Round seven: four symmetric compositions of the album leaving the code on one engine, each the real hero at true size with its own Replay; the band splits the type as before, the orbit and the two stacks keep it as one block. The board recommends the band. |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
 | `palette` | shared | Twelve finished palettes as cards, each with its grounds, text steps, accent and state colours plus a real piece of the product in dark beside light; Pick drives the whole page, A and B drive two wipes; three calls left after one is picked |
