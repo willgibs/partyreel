@@ -54,12 +54,15 @@ export const metadata: Metadata = {
   },
 };
 
-// The browser UI tint per scheme (Phase 4 PWA): ink in dark, paper in light,
-// matching the mono system so the standalone status bar / address bar blends in.
+// The browser UI tint per scheme (Phase 4 PWA): the room in dark, the page in
+// light, so the standalone status bar / address bar blends into the chrome.
+// The two are the sRGB of --background in globals.css, retuned with the palette
+// (Graphite, 2026-09-17): oklch(0.995 0.002 286) and oklch(0.105 0.0053 286).
+// A hex, not a var(): <meta name="theme-color"> is parsed before any stylesheet.
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fcfcfc" },
-    { media: "(prefers-color-scheme: dark)", color: "#101010" },
+    { media: "(prefers-color-scheme: light)", color: "#fdfdff" },
+    { media: "(prefers-color-scheme: dark)", color: "#040405" },
   ],
 };
 

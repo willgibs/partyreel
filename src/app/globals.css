@@ -92,26 +92,43 @@
    tuner override on <html> pierces every paper subtree. */
 :root,
 .surface-paper {
-  /* Light = paper. No pure white anywhere (Hobday): bg 0.99, card 0.997 —
-     the lift is real but hairlines, not contrast, do the layering. */
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.13 0 0);
-  --card: oklch(0.997 0 0);
-  --card-foreground: oklch(0.13 0 0);
-  --popover: oklch(0.997 0 0);
-  --popover-foreground: oklch(0.13 0 0);
-  --primary: oklch(0.13 0 0);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.13 0 0);
-  --muted: oklch(0.965 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.13 0 0);
+  /* Light = paper, the PEARL register (the palette's round eight, Will ruled
+     Graphite 2026-09-17). Two things changed and both are deliberate. The page
+     is the brightest thing in the product at 0.995 and a CARD IS THE SAME
+     WHITE: a card is defined by its hairline and its shadow, never by a step of
+     0.007 that no eye resolves. And every fill BELOW the page is one of Apple's
+     cool greys at hue 286 (their grey, not their blue at 258), so a panel and a
+     hover fill are 0.040 apart instead of 0.005. The menu is the one surface
+     brighter than the page, because a menu is genuinely above it. */
+  --background: oklch(0.995 0.002 286);
+  --foreground: oklch(0.145 0.006 286);
+  --card: oklch(0.995 0.002 286);
+  --card-foreground: oklch(0.145 0.006 286);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0.006 286);
+  --primary: oklch(0.145 0.006 286);
+  --primary-foreground: oklch(0.995 0.002 286);
+  --secondary: oklch(0.923 0.0067 286);
+  --secondary-foreground: oklch(0.145 0.006 286);
+  --muted: oklch(0.963 0.0066 286);
+  --muted-foreground: oklch(0.46 0.009 286);
+  /* THE THIRD TEXT STEP (faint=in, Will 2026-09-17). A timestamp, a caption and
+     a hint are all dimmer than the second grey, and ~37 places used to fade it
+     by hand with an alpha. An alpha composites against WHATEVER IS BEHIND IT,
+     so the same line was a different grey on a card than on the page; one token
+     is one grey on all three grounds. Measured on this register: 3.21:1 on the
+     page, 2.92:1 on the mat. That is a caption colour - never body copy, never
+     a control's only label, and never stacked with another alpha. */
+  --faint: oklch(0.648 0.0073 286);
+  --accent: oklch(0.923 0.0067 286);
+  --accent-foreground: oklch(0.145 0.006 286);
   --destructive: oklch(0.55 0.21 27);
-  --border: oklch(0.905 0 0);
-  --input: oklch(0.905 0 0);
-  --ring: oklch(0.3 0 0);
+  --border: oklch(0.89 0.0068 286);
+  --input: oklch(0.862 0.0068 286);
+  --ring: oklch(0.3 0.008 286);
+  /* The admin chart ramp is still at chroma 0: the palette's paste covers the
+     surface and text tokens, and a cast on five chart greys nobody has ruled
+     would be a value invented in a wiring round. Deferred, ROADMAP > Design. */
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -142,10 +159,17 @@
   --shadow-float:
     0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
 
-  /* Gallery canvas — identical in light & dark (media-first, theme-independent). */
-  --gallery: oklch(0.155 0 0);
-  --gallery-foreground: oklch(0.97 0 0);
-  --gallery-muted: oklch(0.62 0 0);
+  /* Gallery canvas — identical in light & dark (media-first, theme-independent).
+     ★ THE WELL SPLIT OFF THE SLAB at the palette's round eight. These were one
+     value (0.155) doing two jobs: the media well AND the footer leaf. Graphite
+     separates them - the well drops to 0.065, the deepest thing in the system
+     and the least tinted value in the set, so on an OLED panel a photograph is
+     the only light on it; the leaf lifts to 0.165 and lives in .surface-ink
+     below. An always-dark MEDIA surface is still --gallery*; a dark LEAF on a
+     paper page is .surface-ink. They are no longer the same colour. */
+  --gallery: oklch(0.065 0.0045 286);
+  --gallery-foreground: oklch(0.965 0.0045 286);
+  --gallery-muted: oklch(0.715 0.0105 286);
   --gallery-border: oklch(1 0 0 / 8%);
 
   /* ─── THE LAMP SET: the house palette for LIGHT (SPILL + BEAM + confetti).
@@ -239,28 +263,45 @@
 }
 
 .dark {
-  /* Dark = the night system: near-black room, translucent card, and the
-     lighter-is-closer elevation ladder (bg 0.14 -> card 0.21 -> popover/menu
-     0.23 opaque). NO shadows in dark (the contract); borders + surface steps
-     carry depth. */
-  --background: oklch(0.14 0 0);
-  --foreground: oklch(0.96 0 0);
-  --card: oklch(0.21 0 0 / 0.62);
-  --card-foreground: oklch(0.96 0 0);
-  --popover: oklch(0.23 0 0);
-  --popover-foreground: oklch(0.96 0 0);
-  --primary: oklch(0.96 0 0);
-  --primary-foreground: oklch(0.15 0 0);
-  --secondary: oklch(0.25 0 0);
-  --secondary-foreground: oklch(0.96 0 0);
-  --muted: oklch(0.245 0 0);
-  --muted-foreground: oklch(0.71 0 0);
-  --accent: oklch(0.25 0 0);
-  --accent-foreground: oklch(0.96 0 0);
+  /* Dark = the night system, the GRAPHITE room (Will ruled it 2026-09-17).
+     ONE room at 0.105 for the whole product: the app used to sit 0.030 lighter
+     than a marketing chapter for no stated reason, and marketing's own deeper
+     value is what the whole product now wears. Deep enough to be a GROUND
+     rather than a grey, with every surface above it carrying hue 286 at half
+     again Apple's tint - because our surfaces sit on a blacker ground than
+     theirs and a tint disappears into black, so a card has to read as cool
+     rather than as merely lighter. The ladder is 0.105 -> 0.175 -> 0.225 ->
+     0.27 -> 0.315: the first step is the big one, so a panel separates from the
+     room and everything above it is a close ladder. NO shadows in dark (the
+     contract); borders + surface steps carry depth. */
+  --background: oklch(0.105 0.0053 286);
+  --foreground: oklch(0.965 0.0045 286);
+  /* ★ THE VEIL RETIRED (card=declared, Will 2026-09-17: "If we ever need to
+     design that glass style over photos, we can design that custom."). This was
+     the system's ONE translucent surface and no document said so: 62% of a grey
+     over whatever sat behind it, which read solid over a page and turned to
+     glass over a photograph. A card is an OPAQUE surface everywhere now. Do not
+     re-introduce an alpha here; a glass surface over media is a design task with
+     its own ruling, not a token's side effect. */
+  --card: oklch(0.225 0.006 286);
+  --card-foreground: oklch(0.965 0.0045 286);
+  --popover: oklch(0.27 0.006 286);
+  --popover-foreground: oklch(0.965 0.0045 286);
+  --primary: oklch(0.965 0.0045 286);
+  --primary-foreground: oklch(0.105 0.0053 286);
+  --secondary: oklch(0.315 0.006 286);
+  --secondary-foreground: oklch(0.965 0.0045 286);
+  --muted: oklch(0.175 0.0053 286);
+  --muted-foreground: oklch(0.715 0.0105 286);
+  /* The third text step in the room (see :root). 4.47:1 on the room, 3.75:1 on
+     a card: a caption colour, never body copy. */
+  --faint: oklch(0.565 0.0075 286);
+  --accent: oklch(0.315 0.006 286);
+  --accent-foreground: oklch(0.965 0.0045 286);
   --destructive: oklch(0.7 0.19 22);
   --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.85 0 0);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.865 0.0105 286);
 
   /* Charts re-ramp BRIGHTER on near-black (the light ramp disappears). */
   --chart-1: oklch(0.92 0 0);
@@ -296,28 +337,73 @@
   color-scheme: light;
 }
 
+/* `.surface-mat` (the palette's round eight): the LIGHT set-apart ground, as a
+   register rather than as an alpha. The product marks a band as set apart with
+   `bg-muted/N` at six different alphas, which is six greys doing one job and
+   none of them a surface a card can sit on. This is the one ground: Apple's
+   gray6 at 0.963, with the card pushed back to the page's own white so a card
+   ON a mat still lifts, and the hover fill moved up a step so a band and a
+   hover are 0.040 apart instead of 0.005.
+
+   ★ IT IS DECLARED, NOT YET WORN. The ~35 `bg-muted/N` call sites become
+   sections carrying this class as a mechanical follow-up (ROADMAP > Design);
+   the ruling is the ground, not the sweep. Light only: it declares no dark
+   values, so a `.dark` subtree inside it keeps the room's ladder. Placed after
+   .surface-paper and before .surface-ink so an ink leaf on a mat still wins. */
+.surface-mat {
+  --background: oklch(0.963 0.0066 286);
+  --card: oklch(0.995 0.002 286);
+  --popover: oklch(1 0 0);
+  --muted: oklch(0.923 0.0067 286);
+  --secondary: oklch(0.895 0.0068 286);
+  --accent: oklch(0.895 0.0068 286);
+  --faint: oklch(0.648 0.0073 286);
+  --border: oklch(0.862 0.0068 286);
+  --input: oklch(0.862 0.0068 286);
+}
+
 /* `.surface-ink` (the library phase, 2026-09-11): the always-dark slab set in
-   ONE class. A leaf that paints with --gallery* needs the same re-mapping every
-   time (--ring, --border, --foreground, --muted-foreground and --brand are not
-   in the gallery family, so under paper they keep their LIGHT values and a
-   focus ring lands at 1.43:1 on the slab); the ink footer used to spray nine
-   of these on its own element. Leaf only, never page chrome (design-system.md:
-   a hand-assembled dark set is for a LEAF). The three the footer never
-   redeclared ride along, derived from the gallery pair rather than copied from
-   .dark, so they move when the ramp is retuned. Declared AFTER .surface-paper
-   so an ink leaf inside a paper chapter wins. */
+   ONE class. A leaf that paints dark needs the same re-mapping every time
+   (--ring, --border, --foreground, --muted-foreground and --brand are not in
+   the gallery family, so under paper they keep their LIGHT values and a focus
+   ring lands at 1.43:1 on the slab); the ink footer used to spray nine of these
+   on its own element. Leaf only, never page chrome (design-system.md: a
+   hand-assembled dark set is for a LEAF). Declared AFTER .surface-paper and
+   .surface-mat so an ink leaf inside a paper chapter or on a mat wins.
+
+   ★ WRITTEN OUT RATHER THAN DERIVED, since the palette's round eight. Every
+   line here used to read var(--gallery*), because the slab and the media well
+   were one value. Graphite splits them (the well at 0.065, the slab at 0.165),
+   so deriving would drag this leaf down to the well with it and a footer at the
+   bottom of a paper page would read as a hole rather than as a step. This is
+   the SLAB register of the ruled dark set, verbatim.
+
+   --brand is redeclared DIRECTLY here, and via --primary declared in this same
+   block: a var() inside a custom property is substituted where it is DECLARED,
+   so the :root `--brand: var(--primary)` resolved to paper ink back at :root
+   and inherits down already resolved. Overriding --primary alone leaves the
+   mark inverted on paper. */
 .surface-ink {
-  --background: var(--gallery);
-  --foreground: var(--gallery-foreground);
-  --card-foreground: var(--gallery-foreground);
-  --border: var(--gallery-border);
-  --muted: color-mix(in oklab, var(--gallery) 85%, var(--gallery-foreground));
-  --muted-foreground: var(--gallery-muted);
-  --ring: var(--gallery-foreground);
-  --brand: var(--gallery-foreground);
-  --brand-foreground: var(--gallery);
-  --primary: var(--gallery-foreground);
-  --primary-foreground: var(--gallery);
+  --background: oklch(0.165 0.0053 286);
+  --foreground: oklch(0.965 0.0045 286);
+  --card: oklch(0.225 0.006 286);
+  --card-foreground: oklch(0.965 0.0045 286);
+  --popover: oklch(0.27 0.006 286);
+  --popover-foreground: oklch(0.965 0.0045 286);
+  --primary: oklch(0.965 0.0045 286);
+  --primary-foreground: oklch(0.165 0.0053 286);
+  --secondary: oklch(0.315 0.006 286);
+  --secondary-foreground: oklch(0.965 0.0045 286);
+  --muted: oklch(0.225 0.006 286);
+  --muted-foreground: oklch(0.715 0.0105 286);
+  --faint: oklch(0.565 0.0075 286);
+  --accent: oklch(0.315 0.006 286);
+  --accent-foreground: oklch(0.965 0.0045 286);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.965 0.0045 286);
+  --brand: var(--primary);
+  --brand-foreground: var(--primary-foreground);
   --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
 }
 
@@ -2295,7 +2381,7 @@
 @media print {
   /* THE ROOM PRINTS LIGHT. The dark is not one background to patch: the cinema
      wrapper carries `.dark` (the whole token flip) and marketing.css paints the
-     BODY oklch(0.11), so muted text, card and hairline all resolve dark too.
+     BODY the room's own near-black, so muted text, card and hairline resolve dark too.
      Re-declaring the tokens on the wrapper turns the subtree light in one move
      (paper values, not the oklch originals: print is sRGB and ink on white is
      the point). !important because marketing.css's body rule is a tie on
@@ -2314,6 +2400,7 @@
     --popover-foreground: #111;
     --muted: #f4f4f4;
     --muted-foreground: #444;
+    --faint: #666;
     --border: #c9c9c9;
     --input: #c9c9c9;
     --ring: #666;

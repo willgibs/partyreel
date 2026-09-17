@@ -64,6 +64,12 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
+  /* The THIRD text step (the palette's round eight, faint=in): `text-faint`.
+     The utility has to exist here or the token is unreachable from a className,
+     which is why ~37 sites faded --muted-foreground by hand instead. A caption
+     colour (3.21:1 on the page, 4.47:1 in the room), never body copy, and never
+     stacked with an alpha of its own. */
+  --color-faint: var(--faint);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
