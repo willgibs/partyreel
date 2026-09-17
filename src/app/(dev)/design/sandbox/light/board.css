@@ -153,24 +153,35 @@
      landing   four options of a 1440 section, zoom-fitted: two columns, so the
                quiet field is drawn at half size rather than a fifth
      depth     three options of a 412 pixel crop: three columns at 1440
-     the rest  two options of a specimen up to 664 pixels: two columns
+     the rest  two options of a specimen up to 672 pixels: two columns
+
+   ★ THE MINIMUM IS THE SPECIMEN'S OWN WIDTH PLUS THE TILE'S 22 PIXELS OF
+   CHROME, PER STEP. The grid is an auto-fill, so on a very wide window a
+   smaller minimum makes a third column and the tile drops under the specimen's
+   width: TrueFit then scales a one pixel hairline to four fifths of a pixel,
+   which is the fault this file exists to end. A minimum at the specimen's
+   width means a tile is never narrower than what it shows.
 
    `:has()` on the kit's own list, keyed by the attribute every stage here
-   writes, because the four steps want three different grids and the board root
-   can only say one. --lab-tile-h only caps: every tile is as tall as its
-   picture and no taller. */
+   writes, because the steps want different grids and the board root can only
+   say one. --lab-tile-h only caps: every tile is as tall as its picture and no
+   taller. */
 [data-board="light"] {
   --lab-tile-h: 640px;
 }
 .lab-tiles:has([data-lgt-step="landing"]),
-.lab-tiles:has([data-lgt-step="face"]),
 .lab-tiles:has([data-lgt-step="sweep"]),
-.lab-tiles:has([data-lgt-step="bloom"]),
 .lab-tiles:has([data-lgt-step="halo"]) {
-  --lab-tile-min: 560px;
+  --lab-tile-min: 584px;
+}
+.lab-tiles:has([data-lgt-step="bloom"]) {
+  --lab-tile-min: 656px;
+}
+.lab-tiles:has([data-lgt-step="face"]) {
+  --lab-tile-min: 696px;
 }
 .lab-tiles:has([data-lgt-step="depth"]) {
-  --lab-tile-min: 420px;
+  --lab-tile-min: 436px;
 }
 /* ★ ONE COLUMN ON A PHONE, WHICH IS THE ONE PLACE THE KIT'S TWO-UP IS WRONG
    HERE. Two across at 375 is a 143 pixel picture of a 412 pixel scene: every
@@ -202,13 +213,17 @@
    band rests off-layer at its own from-keyframe and the ring at its own, which
    is the engine's declared state, and this mark's base is zero: a visitor who
    asked for less motion gets the photograph, arrived, with no light on it,
-   which is exactly what everybody else sees a second and a half later. */
+   which is exactly what everybody else sees two seconds later. */
 @media (prefers-reduced-motion: no-preference) {
+  /* Linear, as the engine's own loop is: an eased pass spends its time off the
+     photo at either end and crosses it in a blink. Two seconds puts the light
+     on the photo for a little over one, after the 200 ms the photo's own
+     arrival fade needs. */
   [data-board="light"] [data-lgt-once] [data-glw] [data-glw-band] {
-    animation: glw-mask-x 1700ms cubic-bezier(0.33, 0, 0.2, 1) 200ms both;
+    animation: glw-mask-x 2000ms linear 200ms both;
   }
   [data-board="light"] [data-lgt-once] [data-glw] [data-glw-edge] {
-    animation: glw-mask-xy 1700ms cubic-bezier(0.33, 0, 0.2, 1) 200ms both;
+    animation: glw-mask-xy 2000ms linear 200ms both;
   }
 }
 
@@ -233,8 +248,14 @@
 [data-motion="rest"] [data-glw] [data-glw-edge] {
   animation: none;
 }
-[data-board="light"][data-motion="rest"] [data-lgt-once] [data-glw] [data-glw-band],
-[data-board="light"][data-motion="rest"] [data-lgt-once] [data-glw] [data-glw-edge] {
+[data-board="light"][data-motion="rest"]
+  [data-lgt-once]
+  [data-glw]
+  [data-glw-band],
+[data-board="light"][data-motion="rest"]
+  [data-lgt-once]
+  [data-glw]
+  [data-glw-edge] {
   animation: none;
 }
 

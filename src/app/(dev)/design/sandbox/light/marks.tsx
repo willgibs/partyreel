@@ -111,67 +111,69 @@ function SweepSpecimen({ on, auto }: { on: boolean; auto: boolean }) {
   const [armRef, armed] = useArmed(runId);
   const img = marketingImage("wedding-toast");
   return (
-    <div ref={box}>
-      <GroundBox
-        ground="app-dark"
-        className="flex justify-center rounded-lg py-12"
-        style={{ width: SWEEP_W }}
-      >
-        {/* ★ THE PHOTO IS NOT MOUNTED UNTIL IT IS LOOKED AT, because the thing
+    <div ref={box} style={auto ? undefined : { maxWidth: SWEEP_W }}>
+      <TrueFit natural={SWEEP_W}>
+        <GroundBox
+          ground="app-dark"
+          className="flex justify-center rounded-lg py-12"
+          style={{ width: SWEEP_W }}
+        >
+          {/* ★ THE PHOTO IS NOT MOUNTED UNTIL IT IS LOOKED AT, because the thing
             being judged is an ARRIVAL. The stage sits under the tiles, so a
             photo mounted with the page has landed (and its light has passed)
             before anybody scrolls to it. The box holds the room; the tile
-            mounts when most of it is on the screen, and again on Replay. */}
-        <div ref={armRef} style={{ width: PHOTO.w, height: PHOTO.h }}>
-          {auto || armed ? (
-            <div
-              key={runId}
-              data-media-tile
-              className="relative isolate size-full overflow-hidden"
-              style={{ borderRadius: "var(--radius-tile)" }}
-            >
-              <Image
-                src={img.src}
-                alt=""
-                fill
-                sizes={`${PHOTO.w}px`}
-                className="object-cover"
-              />
-              {on ? (
-                // ★ ADDITIVE, BECAUSE THIS LIGHT IS OVER A PHOTOGRAPH. The
-                // engine blends normally, which is right for a lamp BEHIND
-                // content and reads as a milky haze laid on top of it: a lit
-                // photo "looking washed out rather than lit" is the engine's
-                // own words for the symptom. The wrapper is the board's, so
-                // the blend is set here and the engine is untouched.
-                <div
-                  aria-hidden
-                  data-lgt-once
-                  className="pointer-events-none absolute inset-0"
-                  style={{ mixBlendMode: "plus-lighter" }}
-                >
-                  <Glow
-                    shape="sweep"
-                    edge
-                    runId={runId}
-                    vars={{
-                      // A pass leaves nothing behind: it ends, which is the
-                      // whole difference between this and a lamp.
-                      "--glw-base": "0",
-                      "--glw-strength": "0.9",
-                      "--glw-scale": "2",
-                      "--glw-radius": "var(--radius-tile)",
-                      "--glw-from-y": "50%",
-                      "--glw-reach": "150%",
-                      "--glw-blur": "22px",
-                    }}
-                  />
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      </GroundBox>
+            mounts when all of it is on the screen, and again on Replay. */}
+          <div ref={armRef} style={{ width: PHOTO.w, height: PHOTO.h }}>
+            {auto || armed ? (
+              <div
+                key={runId}
+                data-media-tile
+                className="relative isolate size-full overflow-hidden"
+                style={{ borderRadius: "var(--radius-tile)" }}
+              >
+                <Image
+                  src={img.src}
+                  alt=""
+                  fill
+                  sizes={`${PHOTO.w}px`}
+                  className="object-cover"
+                />
+                {on ? (
+                  // ★ ADDITIVE, BECAUSE THIS LIGHT IS OVER A PHOTOGRAPH. The
+                  // engine blends normally, which is right for a lamp BEHIND
+                  // content and reads as a milky haze laid on top of it: a lit
+                  // photo "looking washed out rather than lit" is the engine's
+                  // own words for the symptom. The wrapper is the board's, so
+                  // the blend is set here and the engine is untouched.
+                  <div
+                    aria-hidden
+                    data-lgt-once
+                    className="pointer-events-none absolute inset-0"
+                    style={{ mixBlendMode: "plus-lighter" }}
+                  >
+                    <Glow
+                      shape="sweep"
+                      edge
+                      runId={runId}
+                      vars={{
+                        // A pass leaves nothing behind: it ends, which is the
+                        // whole difference between this and a lamp.
+                        "--glw-base": "0",
+                        "--glw-strength": "0.9",
+                        "--glw-scale": "2",
+                        "--glw-radius": "var(--radius-tile)",
+                        "--glw-from-y": "50%",
+                        "--glw-reach": "150%",
+                        "--glw-blur": "22px",
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </GroundBox>
+      </TrueFit>
       {auto ? null : (
         <ReplayRow runId={runId} onReplay={replay}>
           {on
@@ -187,14 +189,10 @@ export function SweepStage({ on }: { on: boolean }) {
   return (
     <div data-lgt-step="sweep">
       <TileOnly>
-        <TrueFit natural={SWEEP_W}>
-          <SweepSpecimen on={on} auto />
-        </TrueFit>
+        <SweepSpecimen on={on} auto />
       </TileOnly>
       <StageOnly>
-        <TrueFit natural={SWEEP_W} className="max-w-[560px]">
-          <SweepSpecimen on={on} auto={false} />
-        </TrueFit>
+        <SweepSpecimen on={on} auto={false} />
       </StageOnly>
     </div>
   );
@@ -225,40 +223,46 @@ function BloomSpecimen({ rests, auto }: { rests: boolean; auto: boolean }) {
   const { runId, replay, box } = useRun(auto);
   const [armRef, armed] = useArmed(runId);
   return (
-    <div ref={box}>
-      <GroundBox
-        ground="app-dark"
-        className="overflow-hidden rounded-lg"
-        style={{ width: BLOOM_W, padding: (BLOOM_W - REEL_W) / 2 }}
-      >
-        <div ref={armRef} className="relative isolate" style={{ width: REEL_W }}>
-          {/* The frame is there from the start (it is the object); the light is
-              the event, so it mounts when the frame is looked at and remounts
-              on Replay. The engine arms a bloom on its own arrival, but at 35
-              percent of a host this large, which is before the frame is on
-              the screen. */}
-          <div aria-hidden className="pointer-events-none absolute -inset-24">
-            {auto || armed ? (
-              <Glow
-                key={runId}
-                shape="bloom"
-                runId={runId}
-                vars={{
-                  "--glw-from-x": "50%",
-                  "--glw-from-y": "50%",
-                  "--glw-reach": "60%",
-                  "--glw-strength": "0.95",
-                  "--glw-base": rests ? "0.34" : "0",
-                  "--glw-blur": "26px",
-                }}
-              />
-            ) : null}
+    <div ref={box} style={auto ? undefined : { maxWidth: BLOOM_W }}>
+      <TrueFit natural={BLOOM_W}>
+        <GroundBox
+          ground="app-dark"
+          className="overflow-hidden rounded-lg"
+          style={{ width: BLOOM_W, padding: (BLOOM_W - REEL_W) / 2 }}
+        >
+          <div
+            ref={armRef}
+            className="relative isolate"
+            style={{ width: REEL_W }}
+          >
+            {/* The frame is there from the start (it is the object); the light is
+              the event, so it mounts when the whole frame is on the screen and
+              remounts on Replay. The engine arms a bloom on its own arrival,
+              but at 35 percent of a host this large, which is while the frame
+              is still below the fold. */}
+            <div aria-hidden className="pointer-events-none absolute -inset-24">
+              {auto || armed ? (
+                <Glow
+                  key={runId}
+                  shape="bloom"
+                  runId={runId}
+                  vars={{
+                    "--glw-from-x": "50%",
+                    "--glw-from-y": "50%",
+                    "--glw-reach": "60%",
+                    "--glw-strength": "0.95",
+                    "--glw-base": rests ? "0.34" : "0",
+                    "--glw-blur": "26px",
+                  }}
+                />
+              ) : null}
+            </div>
+            <div className="relative">
+              <ReelFrame />
+            </div>
           </div>
-          <div className="relative">
-            <ReelFrame />
-          </div>
-        </div>
-      </GroundBox>
+        </GroundBox>
+      </TrueFit>
       {auto ? null : (
         <ReplayRow runId={runId} onReplay={replay}>
           {rests
@@ -274,14 +278,10 @@ export function BloomStage({ rests }: { rests: boolean }) {
   return (
     <div data-lgt-step="bloom">
       <TileOnly>
-        <TrueFit natural={BLOOM_W}>
-          <BloomSpecimen rests={rests} auto />
-        </TrueFit>
+        <BloomSpecimen rests={rests} auto />
       </TileOnly>
       <StageOnly>
-        <TrueFit natural={BLOOM_W} className="max-w-[632px]">
-          <BloomSpecimen rests={rests} auto={false} />
-        </TrueFit>
+        <BloomSpecimen rests={rests} auto={false} />
       </StageOnly>
     </div>
   );
@@ -362,7 +362,11 @@ function HaloSpecimen({ on, both }: { on: boolean; both: boolean }) {
         </div>
       </Card>
       {both ? (
-        <div className="flex w-full flex-col items-start gap-2" inert aria-hidden>
+        <div
+          className="flex w-full flex-col items-start gap-2"
+          inert
+          aria-hidden
+        >
           <HaloPill tone="primary" lit={on}>
             Publish the reel
           </HaloPill>
@@ -381,9 +385,11 @@ export function HaloStage({ on }: { on: boolean }) {
         </TrueFit>
       </TileOnly>
       <StageOnly>
-        <TrueFit natural={HALO_W} className="max-w-[520px]">
-          <HaloSpecimen on={on} both />
-        </TrueFit>
+        <div style={{ maxWidth: HALO_W }}>
+          <TrueFit natural={HALO_W}>
+            <HaloSpecimen on={on} both />
+          </TrueFit>
+        </div>
         <p className="mt-3 max-w-xl text-[11px] leading-relaxed text-muted-foreground">
           {on
             ? "The dark button in the panel wears it. The white button under the panel wears the same glow: white cannot get brighter, so it turns pastel instead of lit."

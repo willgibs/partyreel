@@ -140,34 +140,21 @@ export function StageOnly({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * WHETHER THIS IS INSIDE AN OPTION TILE, for the one thing CSS cannot do: a
- * tile is `inert`, so nobody can press Replay on it, and a one-shot that ran
- * once while the reader was reading the question is a still picture by the
- * time he looks. A tile therefore replays itself; the stage never does.
- *
- * A callback ref rather than an effect: the answer is a fact about where the
- * node was mounted, and it is known the moment the node exists.
- */
-export function useInTile(): [(el: HTMLElement | null) => void, boolean] {
-  const [inTile, setInTile] = useState(false);
-  const ref = useCallback((el: HTMLElement | null) => {
-    if (el) setInTile(el.closest(".lab-tile-view") !== null);
-  }, []);
-  return [ref, inTile];
-}
-
-/**
- * ARMED: most of this specimen is on the screen, or Replay was pressed.
+ * ARMED: the whole specimen is on the screen, or Replay was pressed.
  *
  * ★ A ONE-SHOT THAT RUNS BELOW THE FOLD IS THE SAME BUG AS ONE THAT NEVER RUNS.
- * The stage sits under the tiles, so at first paint it can be half off the
+ * The stage sits under the tiles, so at first paint it is partly off the
  * screen, and the engine's own pause margin (25 percent of the viewport AHEAD
- * of the reader) would spend the pass before he scrolls to it. Sixty percent
- * of the specimen visible is "he is looking at it". It latches, because a mark
- * that replayed every time it was scrolled past would be a loop with extra
- * steps.
+ * of the reader) would spend the pass before he scrolls to it. Measured at
+ * 1440 by 900: two thirds of the stage's photograph is already showing while
+ * the question is still being read, so "most of it" armed the pass for nobody.
+ * All of it on the screen is "he has scrolled to it" (every specimen armed this
+ * way is shorter than a phone's window). It latches, because a mark that
+ * replayed every time it was scrolled past would be a loop with extra steps.
  */
-export function useArmed(runId: number): [(el: HTMLElement | null) => void, boolean] {
+export function useArmed(
+  runId: number,
+): [(el: HTMLElement | null) => void, boolean] {
   const [seen, setSeen] = useState(false);
   const io = useRef<IntersectionObserver | null>(null);
   const ref = useCallback((el: HTMLElement | null) => {
@@ -176,12 +163,12 @@ export function useArmed(runId: number): [(el: HTMLElement | null) => void, bool
     if (!el) return;
     const next = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.intersectionRatio >= 0.6)) {
+        if (entries.some((e) => e.intersectionRatio >= 0.95)) {
           setSeen(true);
           next.disconnect();
         }
       },
-      { threshold: [0.6] },
+      { threshold: [0.95] },
     );
     next.observe(el);
     io.current = next;

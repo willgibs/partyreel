@@ -64,11 +64,17 @@ function WithCorner({
       <div className="shrink-0" style={{ width }}>
         {children}
       </div>
-      <figure className="flex shrink-0 flex-col gap-1.5">
+      {/* As wide as the inset and no wider, so the caption wraps under it
+          instead of running out of a tile that is exactly as wide as its
+          picture. */}
+      <figure
+        className="flex shrink-0 flex-col gap-1.5"
+        style={{ width: INSET }}
+      >
         <CornerInset width={width} size={INSET} pad={pad}>
           {children}
         </CornerInset>
-        <figcaption className="text-[10px] text-muted-foreground">
+        <figcaption className="text-[10px] leading-snug text-muted-foreground">
           Its top left corner, four times the size
         </figcaption>
       </figure>

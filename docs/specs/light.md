@@ -70,6 +70,9 @@ thin outline ship on every surface, and the beam ships on the Pro card and is ru
   rather than paused by `useAmbientPause`.
 - **An inset box-shadow paints under an element's children.** On a media tile the child is the image,
   so the bright edge has to ride a pseudo-element above it; the board's paste does.
+- **The engine's resting ring is not under its travelling ring.** `[data-glw-edge-rest]` is a child of
+  the host inset by 20 pixels times `--glw-scale`, while the travelling ring's box is the host's own
+  edge (measured at scale 2 on a 400 by 300 host: the ring at 0, 0, the rest ring 40 pixels inside it).
 
 ## What the board still owes Will
 

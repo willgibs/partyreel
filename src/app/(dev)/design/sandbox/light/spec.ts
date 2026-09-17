@@ -204,7 +204,8 @@ export const LIGHT = defineBoard({
         {
           id: "room",
           label: "Across the whole section",
-          means: "The glow fills the section, so the words sit inside the light.",
+          means:
+            "The glow fills the section, so the words sit inside the light.",
         },
       ],
       recommended: "both",
@@ -220,7 +221,7 @@ export const LIGHT = defineBoard({
       id: "depth",
       question: "Should dark mode get shadows?",
       context:
-        "Dark mode has no shadows today. A panel stands out because it is a shade lighter than the page and has a thin outline. Both of those ship everywhere and neither is in question. That leaves two cases: one photo sitting on another, and a menu floating over a busy page. Each picture has both, and both shadows fall on the same photo.",
+        "Dark mode has no shadows today. A panel stands out because it is a shade lighter than the page and has a thin outline. Both of those ship everywhere and neither is in question. That leaves two cases: one photo sitting on another, and a menu floating over a busy page. Look at the lower photo in each picture: the front card's shadow lands on its left, the menu's on its right.",
       options: [
         {
           id: "none",
@@ -297,7 +298,7 @@ export const LIGHT = defineBoard({
           id: "keep",
           label: "With the streak of light",
           means:
-            "The same fade, then one pass of light across the photo, about a second and a half, then nothing.",
+            "The same fade, then one pass of light across the photo, a little over a second, then nothing.",
         },
       ],
       recommended: "skip",
@@ -340,8 +341,7 @@ export const LIGHT = defineBoard({
     },
     {
       id: "halo",
-      question:
-        "Should one button a page get a glow circling it from behind?",
+      question: "Should one button a page get a glow circling it from behind?",
       context:
         "Colour travels around the rim of a button from behind, and its face stays clean. On a dark button it reads as light. On the white main button, which is where a page's most important action usually is, white cannot get any brighter, so the same glow only tints it pastel. The large picture shows both.",
       options: [
