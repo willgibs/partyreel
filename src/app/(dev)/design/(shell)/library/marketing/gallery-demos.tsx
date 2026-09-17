@@ -12,6 +12,7 @@ import {
   ReelFrame,
 } from "@/components/marketing/frames";
 import { LiveQr } from "@/components/marketing/frames/live-qr";
+import { CinemaHero } from "@/components/marketing/sections/home/cinema-hero";
 import { FeatureDoor } from "@/components/marketing/sections/features/shared/feature-door";
 import { FeatureFaq } from "@/components/marketing/sections/features/shared/feature-faq";
 import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
@@ -353,6 +354,30 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
             </div>
           </PageHero>
         ),
+      },
+    ],
+  },
+
+  {
+    id: "cinema-hero",
+    title: "CinemaHero",
+    badge: "new",
+    family: "marketing",
+    section: "Heroes",
+    file: "src/components/marketing/sections/home/cinema-hero.tsx",
+    lede: "The home's own first screen, and the one hero that is not a PageHero: the album streams out of the real demo code and the type sits where the band is measured never to reach.",
+    specimens: [
+      {
+        // The REAL section at its real height, which is the only honest way to
+        // show it: the composition is solved against the viewport (the axis is
+        // clamped between the code clearing the site header and the block
+        // clearing the fold), so a shrunken copy would be a different hero.
+        // It is fluid by construction, so the frame's own width is what the
+        // band measures itself against.
+        label: "The home hero",
+        hint: "the real section · the band runs, the code is the live demo's, the loop pauses off screen",
+        bleed: true,
+        node: <CinemaHero />,
       },
     ],
   },
