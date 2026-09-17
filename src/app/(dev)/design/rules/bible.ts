@@ -123,14 +123,14 @@ export const BIBLE: BibleRule[] = [
     group: "type",
     statement:
       "One heading face on one site ladder. Every h1 sits on the ladder, never on a ramp of its own.",
-    why: "Will, 2026-08-29: normalize the site ladder so the pages read as one site; a page that needs its own scale has not been designed yet. The sizes are not nailed (2026-09-14): the type-scale exploration writes them and the rule inherits.",
+    why: "Will, 2026-08-29: normalize the site ladder so the pages read as one site; a page that needs its own scale has not been designed yet. The type ruling wrote the sizes (B, rungs, 2026-09-17): nine steps in theme.css, each carrying its own leading and tracking, marketing travelling four rungs between a phone and a desktop and the app one.",
     enforcedBy: [
       "src/app/(marketing)/marketing-h1-policy.test.ts",
       "src/components/marketing/system/page-hero-contract.test.ts",
+      "src/lib/type-ladder-policy.test.ts",
     ],
     ruledBy: "Will",
     ruledOn: "2026-08-29",
-    status: "under exploration: type-scale",
   },
   {
     id: "masthead-is-the-nav-label",
