@@ -221,6 +221,45 @@ describe("the catalog", () => {
     ).toBeInTheDocument();
   });
 
+  it("makes a pressable card's preview inert, so a frame in it cannot swallow the pick", async () => {
+    // A click inside a same-origin iframe never bubbles to the card, and the
+    // preview is most of the card. jsdom cannot host the frame, so what is
+    // pinned is the mechanism: the preview is inert exactly when the card is
+    // the press target, and the card itself still takes the press.
+    const onPress = vi.fn();
+    const { container, unmount } = render(
+      <CatalogTiles value={{ onPress }}>
+        <Catalog
+          spec={SPEC}
+          state={{ pick: "none" }}
+          setState={vi.fn()}
+          render={(c) => <p>preview of {c.name}</p>}
+        />
+      </CatalogTiles>,
+    );
+    for (const preview of container.querySelectorAll("[data-lab-specimen]")) {
+      expect(preview).toHaveAttribute("inert");
+    }
+    await userEvent.click(container.querySelector('[data-lab-card="one"]')!);
+    expect(onPress).toHaveBeenCalledWith("one");
+    unmount();
+
+    // The board page presses nothing, so its previews stay live.
+    const page = render(
+      <Catalog
+        spec={SPEC}
+        state={{ pick: "none" }}
+        setState={vi.fn()}
+        render={(c) => <p>preview of {c.name}</p>}
+      />,
+    );
+    for (const preview of page.container.querySelectorAll(
+      "[data-lab-specimen]",
+    )) {
+      expect(preview).not.toHaveAttribute("inert");
+    }
+  });
+
   it("draws one card alone, as a before and after, when the walk asks for it", () => {
     render(
       <CatalogTiles value={{ only: "two" }}>

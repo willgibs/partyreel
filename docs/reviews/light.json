@@ -164,6 +164,35 @@
           "at": "2026-09-17T17:10:35Z"
         }
       ]
+    },
+    {
+      "n": 8,
+      "opened": "2026-09-17",
+      "answers": [
+        {
+          "ask": "depth",
+          "choice": "both",
+          "note": "I now see how step, ring, lift, and float work together. Very good work.",
+          "by": "Will",
+          "at": "2026-09-17T18:46:02Z"
+        },
+        {
+          "ask": "face",
+          "choice": "keep",
+          "note": "I love the bright edge. It's a really nice subtle design touch, but I think the implementation could use a tweak to feel more polished and beautiful. The transparent border radius also revealed some mismatches here in the preview roundings.",
+          "by": "Will",
+          "at": "2026-09-17T18:46:02Z"
+        },
+        {
+          "ask": "sweep",
+          "choice": "skip",
+          "note": "I love that shimmer as a banked effect for later. However, for new photos to populate the gallery, I think it would become too visually overwhelming versus more subtle motion animations that add them in. The shimmer feels more like a delight moment. A couple dozen photos being uploaded in a single batch would cover the top of a gallery in shimmer.",
+          "by": "Will",
+          "at": "2026-09-17T18:46:02Z"
+        }
+      ],
+      "notes": [],
+      "items": []
     }
   ]
 }

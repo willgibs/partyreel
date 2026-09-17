@@ -472,7 +472,9 @@ function PageStage({
           id={`page-${page.id}`}
           src={pathFor(page.id, key ?? null, ground)}
           gated={page.gated}
-          onApproach
+          // Not `onApproach`: this is ONE frame and it is the stage of the
+          // winner's step, six tall cards below the press. Mounted lazily, a
+          // press at the top of the step changed a box that did not exist yet.
           w={w}
           h={h}
           css={picked ? blockFor(picked, action, ladder) : ""}

@@ -89,7 +89,8 @@ round, quoted from `docs/reviews/<board>.json`, and the rulings this track works
 (`docs/design/rulings.md`).
 **Verify on.** For a catalog: the board at 1440 and 375 with reduced motion honoured, every item's
 verdict and note reaching the desk and the composed line, the board under its reading budget
-(`pnpm lab:smoke`). For a wiring round: the pages or flows the handoff is judged on, local and live.
+(`pnpm lab:smoke`), every step's options changing its stage (`pnpm lab:demo --board <board>`). For a
+wiring round: the pages or flows the handoff is judged on, local and live.
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
@@ -106,7 +107,7 @@ verdict and note reaching the desk and the composed line, the board under its re
 ## Handoff (replaces the chat report)
 
 - Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok
+- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
 - The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
 - Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`

@@ -251,8 +251,22 @@ export function Catalog({
             {/* The preview is a SPECIMEN, marked as one: the reading budget
                 counts what a reviewer has to read, and this is what he looks
                 at. A board that paints its own ground (the palette's scoped
-                tokens) leaves `ground` out and still lands inside the marker. */}
-            <div data-lab-specimen="" className="min-w-0">
+                tokens) leaves `ground` out and still lands inside the marker.
+
+                ★ ON A PRESSABLE CARD THE PREVIEW IS INERT, as the kit's own
+                Tile is (step.tsx). The press target is the card, and a preview
+                is routinely a same-origin FRAME (floating-surfaces draws a live
+                menu in one): a click inside a frame never bubbles to this
+                document, so the picture, which is most of the card and the
+                part a reviewer aims at, swallowed every pick and only the
+                title line worked (found 2026-09-17, the sitting that stopped on
+                "clicking the configs didn't seem to change anything"). On the
+                board page, where nothing is pressed, the preview stays live. */}
+            <div
+              data-lab-specimen=""
+              className="min-w-0"
+              inert={tiles?.onPress ? true : undefined}
+            >
               {solo && before ? (
                 // ★ A CARD WALKED ALONE IS JUDGED AS A DIFFERENCE. With the
                 // other eleven off the screen there is nothing to compare it

@@ -159,13 +159,13 @@ export const FLOATING_SURFACES = defineBoard({
   title: "Floating surfaces",
 
   question:
-    "Which of seven layers should everything that opens over the page wear, and what are the four calls left once one wins?",
+    "Which of seven layers should everything that opens over the page wear, and what is left to call once one wins?",
 
   round: {
     n: 7,
     date: "2026-09-16",
     changed:
-      "Reshaped as a walk: one pick decides the seven cards, the real product below wears whatever you press, and each of the four calls left is one menu drawn in every state you can choose.",
+      "Reshaped as a walk: one pick decides the seven cards, the real product below wears whatever you press, and each call left is one menu drawn in every state you can choose. The shadow question has left: you answered it on the light board, and this board inherits it.",
   },
   history: [
     {
@@ -206,6 +206,12 @@ export const FLOATING_SURFACES = defineBoard({
    * is bible 9 against what ships, the entrance is two ratified rules
    * disagreeing, the shadow is a line the light board proposes anyway. A winner
    * marked "not clear to me" would otherwise take all four down with it.
+   *
+   * ★ THE SHADOW ASK LEFT INSIDE THE ROUND (2026-09-17). Its own context said
+   * "ruled once there and inherited here", and Will ruled it there the same day
+   * (`light r8: depth=both`, a larger shadow under menus, dialogs and toasts in
+   * dark). Asking it again here would be asking him twice, so the ask is gone
+   * and its section and its `light` control stay on the board page as evidence.
    */
   asks: [
     {
@@ -324,34 +330,6 @@ export const FLOATING_SURFACES = defineBoard({
       control: "entrance",
       lands:
         "The entrance block in globals.css, and a rewording of bible 15 so rule 12 sets the clock inside it.",
-    },
-    {
-      id: "light",
-      question: "In dark mode, should a floating panel cast a shadow?",
-      context:
-        "In dark nothing casts today: a panel is told from the page only by sitting a shade lighter. This is the light board's line as well, ruled once there and inherited here, so a yes lands on both. The specimen is the layer as it ships, because four of the seven cards already cast one.",
-      options: [
-        {
-          id: "today",
-          label: "No shadow, as dark ships",
-          means:
-            "Dark keeps no shadow, and a lighter surface stays the only thing separating a panel from the page.",
-        },
-        {
-          id: "shadow",
-          label: "A soft shadow, the light board's",
-          means:
-            "The light board's float shadow lands on these surfaces, ruled once on that board and inherited here.",
-        },
-      ],
-      recommended: "shadow",
-      because:
-        "Today's dark popover sits LIGHTER than the card it opens from, which is the ladder upside down.",
-      overrule: "Paper is a shadowless dark taken to both modes.",
-      evidence: "shadow",
-      control: "light",
-      lands:
-        "--flt-float in dark, on every floating panel, shared with the light board's float shadow.",
     },
   ],
 

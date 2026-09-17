@@ -289,6 +289,13 @@ has TWO setup traps that both produce a false "broken" reading, and neither is a
   loop) and otherwise shows a `role="alert"` strip. The strip after a reload means the SERVER's copy
   is stale (the `.next/dev` cause above), not the browser's. Bump both numbers together when a
   shell rule changes; `pnpm lab:smoke` also refuses a lab page whose stylesheet set lacks the shell.
+  **A stage that ignores its tiles is invisible to the smoke** (it answers 200 and weighs the same
+  words): `pnpm lab:demo` (`scripts/lab-demo.mjs`, real Chrome over its DevTools protocol, no new
+  dependency) presses every open step's pictured options and fails a stage that moves less than 0.1
+  percent, reading the FRAME rather than the label over it (the label names the pressed option, so it
+  moves on a frozen stage too) and re-reading a motion-only step by the animations it declares. ★ A
+  headless `--screenshot` cannot scroll (a fragment URL paints black, a tall window stretches a 100vh
+  hero); the same protocol gives a scrolled, lossless capture, which is how subtle light is judged.
   **The second cause is an ORPHANED SERVER.** `preview_stop` does not reliably reap `next-server`,
   so an orphan can keep winning the port and serve a bundle compiled before your files existed,
   which is why restarts and even an `.next` wipe can appear not to help. Its ugliest face is a page

@@ -50,7 +50,9 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
    variant with a live preview on a production ground, a name, one line, the builder's verdict and
    a facts strip; any two side by side on real pages; the pick worn by the real pages below; asks
    only for what is not one item; the argument collapsed. `pnpm lab:smoke` refuses a board over its
-   reading budget. Handoff is one line per item plus the questions it needs answered.
+   reading budget, and `pnpm lab:demo` presses every open step's options and refuses a stage that
+   does not change (a board has stopped a sitting that way). Handoff is one line per item plus the
+   questions it needs answered.
 4. **Integration**, and one alias build per round close (`[preview]` on that push alone).
 5. **Will reviews on the desk** (`/design/lab?key=`): Start the review, the card pins under each
    board's dock, keep / refine / kill and a note per item, a word per ask, one paste at the end. The

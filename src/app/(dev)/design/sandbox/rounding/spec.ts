@@ -503,6 +503,13 @@ export const ROUNDING = defineBoard({
     },
     // Which route the stage loads. One page at a time is what keeps a 1440
     // canvas from becoming a row of them.
+    //
+    // ★ IT OPENS ON THE APP, NOT ON THE HOME PAGE (2026-09-17). The home page's
+    // first screen is a hero: one plate, a strip of photographs and two
+    // buttons, so a family pressed above it changed almost nothing a reviewer
+    // could see, which reads as "the cards do nothing". The host's event screen
+    // holds all four groups in its first screen (a photograph grid on the gap,
+    // surfaces, a menu's trigger, buttons), so a press shows at once.
     {
       id: "page",
       label: "Page",
@@ -513,7 +520,7 @@ export const ROUNDING = defineBoard({
         { id: "guest", label: "Guest" },
         { id: "app", label: "App" },
       ],
-      default: "home",
+      default: "app",
     },
     {
       id: "canvas",

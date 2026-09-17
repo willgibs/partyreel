@@ -438,7 +438,7 @@
           "line": 204
         },
         {
-          "title": "draws one card alone, as a before and after, when the walk asks for it",
+          "title": "makes a pressable card's preview inert, so a frame in it cannot swallow the pick",
           "suite": [
             "the catalog"
           ],
@@ -446,12 +446,20 @@
           "line": 224
         },
         {
+          "title": "draws one card alone, as a before and after, when the walk asks for it",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 263
+        },
+        {
           "title": "draws nothing at all for a board that declares no catalog",
           "suite": [
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 246
+          "line": 285
         }
       ]
     },
@@ -812,7 +820,7 @@
           "line": 204
         },
         {
-          "title": "draws one card alone, as a before and after, when the walk asks for it",
+          "title": "makes a pressable card's preview inert, so a frame in it cannot swallow the pick",
           "suite": [
             "the catalog"
           ],
@@ -820,12 +828,20 @@
           "line": 224
         },
         {
+          "title": "draws one card alone, as a before and after, when the walk asks for it",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 263
+        },
+        {
           "title": "draws nothing at all for a board that declares no catalog",
           "suite": [
             "the catalog"
           ],
           "file": "src/components/lab/catalog.test.tsx",
-          "line": 246
+          "line": 285
         }
       ]
     },

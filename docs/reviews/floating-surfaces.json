@@ -1,0 +1,27 @@
+{
+  "board": "floating-surfaces",
+  "rounds": [
+    {
+      "n": 7,
+      "opened": "2026-09-17",
+      "answers": [
+        {
+          "ask": "direction",
+          "choice": "card",
+          "note": "Card is my overall favorite. However, I like the more subtle group labels from Glass. I also do think the glassy background would be more visually pleasant than the flat being used in Card now. However, I prefer not to create a one-off instance of glass here. Rather, let's bank a near-term agent for a dedicated Glass exploration across marketing and app so it feels more infused to our product. Glass + aurora atmospheric feels like a beautifully complementary identity for a media-forward product..",
+          "by": "Will",
+          "at": "2026-09-17T18:46:02Z"
+        },
+        {
+          "ask": "submenu",
+          "choice": "keep",
+          "note": "Yes, this unlocks much more comprehensive menus than limiting to a single list of everything included. However, we should not allow an additional third level of nesting. That gets too complicated.",
+          "by": "Will",
+          "at": "2026-09-17T18:46:02Z"
+        }
+      ],
+      "notes": [],
+      "items": []
+    }
+  ]
+}

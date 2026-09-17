@@ -121,8 +121,20 @@ type Corner = { panel: number; pad: number; item: number };
  *  real primitive, so a rung that claims to nest is checked by the board that
  *  proposes it, and a later retune of --radius-float shows up here by itself.
  *
- *  A timeout rather than requestAnimationFrame: rAF does not run on a hidden
- *  tab, and every frame on this board is one tab away from being hidden. */
+ *  ★ IT KEEPS READING, BECAUSE THE STAGE'S FRAME OUTLIVES A PRESS. A step's
+ *  option tiles each mount a fresh frame, but the stage under them is ONE frame
+ *  that receives the pressed option by event (a class on the panel, a style
+ *  block for the worn direction). This hook read once, on open, so the real
+ *  menu above changed by a few pixels while the 6x drawing and its caption
+ *  stayed on the first corner they ever measured. With Card worn that is
+ *  "panel 8.0 · padding 4.0 · row 4.0" under all three options, and it stopped
+ *  Will's sitting on 2026-09-17: "Clicking the configs didn't seem to change
+ *  anything." A quarter-second re-read that only sets state when a number moved
+ *  catches every cause (the rung, the direction, the theme, a later retune)
+ *  without having to name them.
+ *
+ *  Timers rather than requestAnimationFrame: rAF does not run on a hidden tab,
+ *  and every frame on this board is one tab away from being hidden. */
 function useCorner(on: boolean): Corner | null {
   const [corner, setCorner] = useState<Corner | null>(null);
   useEffect(() => {
@@ -130,8 +142,6 @@ function useCorner(on: boolean): Corner | null {
     // panel is closed, so a setState inside the effect body would only buy a
     // cascading render for a value nobody reads.
     if (!on) return;
-    let tries = 0;
-    let id = 0;
     const read = () => {
       const panel = document.querySelector<HTMLElement>(
         '[data-slot="dropdown-menu-content"]',
@@ -139,20 +149,29 @@ function useCorner(on: boolean): Corner | null {
       const item = panel?.querySelector<HTMLElement>(
         '[data-slot="dropdown-menu-item"]',
       );
-      if (!panel || !item) {
-        if (tries++ < 20) id = window.setTimeout(read, 50);
-        return;
-      }
+      if (!panel || !item) return;
       const p = getComputedStyle(panel);
       const i = getComputedStyle(item);
-      setCorner({
+      const next: Corner = {
         panel: parseFloat(p.borderTopLeftRadius) || 0,
         pad: parseFloat(p.paddingTop) || 0,
         item: parseFloat(i.borderTopLeftRadius) || 0,
-      });
+      };
+      setCorner((was) =>
+        was &&
+        was.panel === next.panel &&
+        was.pad === next.pad &&
+        was.item === next.item
+          ? was
+          : next,
+      );
     };
-    id = window.setTimeout(read, 80);
-    return () => window.clearTimeout(id);
+    const first = window.setTimeout(read, 80);
+    const again = window.setInterval(read, 250);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(again);
+    };
   }, [on]);
   return corner;
 }

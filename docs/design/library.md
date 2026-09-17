@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 17 policies · 195 contracts on 30 components · 9 standing boards.**
+**22 laws · 17 policies · 196 contracts on 30 components · 9 standing boards.**
 
 ## What binds you
 
@@ -332,11 +332,11 @@ Contracted but outside the library's directories:
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (12 guards)
 - `src/components/lab/apply.tsx` (3 guards)
-- `src/components/lab/before-after.tsx` (11 guards)
+- `src/components/lab/before-after.tsx` (12 guards)
 - `src/components/lab/board-page.tsx` (12 guards)
 - `src/components/lab/board-spec.ts` (12 guards)
 - `src/components/lab/board-state.tsx` (5 guards)
-- `src/components/lab/catalog.tsx` (11 guards)
+- `src/components/lab/catalog.tsx` (12 guards)
 - `src/components/lab/compare-two.tsx` (8 guards)
 - `src/components/lab/dock.tsx` (5 guards)
 - `src/components/lab/frame.tsx` (3 guards)
@@ -361,7 +361,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
 | `light` | shared | Round eight, the three steps still open: shadows in dark mode on one scene with a legend, the thin bright edge enlarged, and the streak of light that plays once |
-| `floating-surfaces` | shared | Seven directions as cards, each the event menu at 328 wide on the app's dark over the album with the Ground switch moving all seven; the host's desk under two directions at once; four questions (the submenu, the radius, the entrance, the light) |
+| `floating-surfaces` | shared | Seven directions as cards, each the event menu at 328 wide on the app's dark over the album with the Ground switch moving all seven; the host's desk under two directions at once; two questions still open (the radius, the entrance) |
 | `brand-voice` | marketing | Round seven: six voices as cards, each writing the same three lines of the home page's first screen at the size a phone draws them, decided by one pick or none; the real home page under the card being pressed; the noun, the link preview, the numbers and how far the winner reaches as steps of their own, every answer drawn at once |
 | `media-kit` | marketing | Thirteen real catalogues as cards, ranked by whether they hold a release, each with its clause, its price and a contact sheet at the real card size, ship above the line and kill below; four questions about the thirteen (the rule, the spend, the crowds, the shoot) |
 | `rounding` | shared | Six families as cards, each the card, the menu, the photograph and the button at true size plus a 375 frame; two families on the same real page scroll-locked; four questions (the button rung, the derived ladder, the dead rungs, the album's gap) |

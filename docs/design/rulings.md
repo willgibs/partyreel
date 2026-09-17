@@ -8,6 +8,47 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-17 · dark mode gets both shadows, the bright edge is kept and polished, the shimmer is banked; floating surfaces wear Card, submenus stop at two levels, and Glass gets its own exploration
+
+**Became:** `docs/reviews/light.json` round 8 (`depth=both`, `face=keep`, `sweep=skip`), which answers
+every step of the light board: the `light-wiring` lane lands the two shadows by role, the four depth
+techniques as one Library section and the bright edge redrawn, and the board retires;
+`docs/reviews/floating-surfaces.json` round 7 (`direction=card`, `submenu=keep`), with that board's
+shadow ask withdrawn inside the round because `depth=both` answered it, and its wiring cut when the
+last two calls (the radius, the entrance) are answered; the ROADMAP's banked Glass exploration and the
+banked shimmer. He stopped the sitting on a lab defect, fixed the same day: on the radius step the
+real menu changed but the 6x corner drawing was read once and never again, a press on a catalog
+card's picture landed inside its frame, and rounding's stage mounted lazily on a page where a family
+barely shows (`scenes.tsx`, `catalog.tsx`, the rounding board; `pnpm lab:demo` now proves every step
+changes its stage).
+
+Verbatim, on the shadows: "I now see how step, ring, lift, and float work together. Very good work."
+
+Verbatim, on the bright edge: "I love the bright edge. It's a really nice subtle design touch, but I think
+the implementation could use a tweak to feel more polished and beautiful. The transparent border radius
+also revealed some mismatches here in the preview roundings." (The mismatch was the edge drawn on a
+wrapper with a hand-typed radius and laid on the padding box, so its arc was not concentric with the
+surface's own. The wiring puts it on the box that owns the radius.)
+
+Verbatim, on the streak of light: "I love that shimmer as a banked effect for later. However, for new
+photos to populate the gallery, I think it would become too visually overwhelming versus more subtle
+motion animations that add them in. The shimmer feels more like a delight moment. A couple dozen photos
+being uploaded in a single batch would cover the top of a gallery in shimmer."
+
+Verbatim, on the floating layer: "Card is my overall favorite. However, I like the more subtle group
+labels from Glass. I also do think the glassy background would be more visually pleasant than the flat
+being used in Card now. However, I prefer not to create a one-off instance of glass here. Rather, let's
+bank a near-term agent for a dedicated Glass exploration across marketing and app so it feels more
+infused to our product. Glass + aurora atmospheric feels like a beautifully complementary identity for
+a media-forward product."
+
+Verbatim, on the nested menu: "Yes, this unlocks much more comprehensive menus than limiting to a single
+list of everything included. However, we should not allow an additional third level of nesting. That
+gets too complicated."
+
+Verbatim, on the lab, in chat: "I couldn't demo the variations for floating surface and rows roundness.
+Clicking the configs didn't seem to change anything."
+
 ## 2026-09-17 · the bloom, the halo and the beam are kept; the Aurora sits as a mix, composed for each place
 
 **Became:** `docs/reviews/light.json` round 7 (`item:bloom=keep`, `item:halo=keep`, `item:beam=keep` and the
