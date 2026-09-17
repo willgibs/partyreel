@@ -300,19 +300,19 @@ export const BIBLE: BibleRule[] = [
     n: 20,
     group: "copy",
     statement:
-      "Affirmative only: say who we are, never who we are not. The two fences that are product truth stand meanwhile (no human-response or human-moderation promise, no automation absolutes); the brand-voice exploration writes the do's.",
+      "Affirmative only: say who we are, never who we are not. The two fences that are product truth stand meanwhile (no human-response or human-moderation promise, no automation absolutes); the `voice` board writes the do's.",
     why: "Will, 2026-08-28: this is about who we are, not who we are not; a fenced use case is a host we told to leave. Reviewed 2026-09-14: a rule of don'ts with no do's is messy, and the voice guide replaces it.",
     enforcedBy: ["src/lib/content-policy.test.ts"],
     ruledBy: "Will",
     ruledOn: REVIEWED,
-    status: "under exploration: brand-voice",
+    status: "under exploration: voice",
   },
   {
     id: "copy-is-open",
     n: 21,
     group: "copy",
     statement:
-      "Copy is open. Every heading, thesis and line may be rewritten by the round that touches its section; the brand-voice round establishes the voice and the infusion round carries it site-wide.",
+      "Copy is open. Every heading, thesis and line may be rewritten by the round that touches its section; the `voice` board establishes the voice one won line at a time, and no copy is pinned by a test meanwhile.",
     why: "Kill for now (Will, 2026-09-14): all copy is unprotected until the voice exists. The former rule (the thesis and the primary CTA as ruled copy) is retired; marketing-voice.ts stays the one home and no copy is pinned by a test.",
     enforcedBy: "review",
     ruledBy: "Will",

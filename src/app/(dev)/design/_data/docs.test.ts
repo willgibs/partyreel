@@ -273,7 +273,11 @@ describe("sections", () => {
 });
 
 describe("listings", () => {
-  it("listSpecs returns the seven board specs", () => {
+  it("listSpecs returns every spec doc, retired boards included", () => {
+    // A spec doc OUTLIVES its board: it is cut to what was decided at the
+    // retirement and the whole set is folded into the system docs together
+    // (ROADMAP, "the lab"). So this list grows with the boards and shrinks
+    // only at that fold, which is why a retirement does not touch it.
     const specs = listSpecs();
     expect(specs.map((s) => s.slug)).toEqual([
       "brand-voice",

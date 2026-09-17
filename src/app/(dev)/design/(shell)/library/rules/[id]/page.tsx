@@ -8,7 +8,7 @@ import { Pager } from "@/app/(dev)/design/(shell)/_shell/pager";
 import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
 import { Section } from "@/app/(dev)/design/(shell)/_shell/section";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
-import { listSpecs } from "@/app/(dev)/design/_data/docs";
+import { listSpecs, listTracks } from "@/app/(dev)/design/_data/docs";
 import { POLICY_VIEWS } from "@/app/(dev)/design/_data/policies";
 import { BIBLE, BIBLE_GROUP_LABEL } from "@/app/(dev)/design/rules/bible";
 import { LEVEL_BY_ID } from "@/app/(dev)/design/rules/influences";
@@ -49,6 +49,9 @@ export default async function RulePage({
     ? (listSpecs().find((s) => s.slug === board) ?? null)
     : null;
   const ruling = board ? getRuling(board) : undefined;
+  // The manifests the desk already reads, so a rule never links one that is
+  // not on disk (see the branch below).
+  const hasTrack = Boolean(track) && listTracks().some((t) => t.name === track);
   const enforcing =
     rule.enforcedBy === "review"
       ? []
@@ -185,10 +188,29 @@ export default async function RulePage({
                 </span>
               </li>
             )}
+            {/* ★ A NAMED EXPLORATION MAY NOT EXIST YET, OR ANY MORE. This
+                branch used to link `docs/tracks/<name>.md` unconditionally, so
+                the rule page 404'd whenever a rule named something that was not
+                a manifest on disk. It fired TWICE on 2026-09-17: once when
+                `floating-wiring` retired its board and rule 15 still named it,
+                and again when rules 20 and 21 were re-pointed at the `voice`
+                board before that board was cut. A rule naming work that has not
+                started is normal and is exactly what "under exploration" means,
+                so the page says so instead of linking into a hole. */}
             {!board && track && (
               <li className="px-4 py-2.5 text-muted-foreground">
-                {track} is a track, not a standing board: read its manifest at{" "}
-                <Ref to={{ kind: "track", name: track }} quiet />.
+                {hasTrack ? (
+                  <>
+                    {track} is a track, not a standing board: read its manifest
+                    at <Ref to={{ kind: "track", name: track }} quiet />.
+                  </>
+                ) : (
+                  <>
+                    {track} has no board in the lab and no manifest yet: this
+                    rule is waiting on work that has not been cut. The statement
+                    above is the interim law until it is.
+                  </>
+                )}
               </li>
             )}
           </ul>

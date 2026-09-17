@@ -72,7 +72,6 @@ export type SandboxId =
   | "river-visual"
   | "glow-doctrine"
   | "glow-moments"
-  | "brand-voice"
   | "media-kit"
   | "rounding";
 
@@ -529,17 +528,15 @@ export const RULINGS: Ruling[] = [
     id: "brand-voice",
     title: "The brand voice",
     surface: "marketing",
-    ruled: "open (the revamp's catalog, 2026-09-16)",
-    shipped: null,
-    why: "Bible 20 under exploration, 21 open: the voice as a guide with do's, three registers and examples per surface; sample lines beside today's on real section shells.",
+    ruled:
+      "2026-09-17, retired UNRULED at round seven: Will killed it because six voices had been deepened through rounds nobody reviewed (the ledger was never once written), and asked for the voice to be rebuilt from won lines, one real line at a time, on the `voice` board",
+    shipped:
+      "the three calls a voice never decided: album as the one noun a guest reads, the link preview as one invitation, the bigger counts on one line",
+    why: "Retired unruled: the six were forced apart by a contract that made agreement owe an excuse; only its three non-voice answers shipped.",
     lives: [
-      "docs/specs/brand-voice.md",
       "src/lib/constants/marketing-voice.ts",
+      "docs/design/rulings.md",
     ],
-    board: {
-      note: "Round seven: six voices as cards, each writing the same three lines of the home page's first screen at the size a phone draws them, decided by one pick or none; the real home page under the card being pressed; the noun, the link preview, the numbers and how far the winner reaches as steps of their own, every answer drawn at once",
-      variants: ["Today", "Keepsake", "Live", "Plain", "Everyone", "Aside"],
-    },
   },
   {
     id: "media-kit",

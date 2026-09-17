@@ -27,10 +27,10 @@ describe("a proposal's standing", () => {
   it("takes a STATUS clause to the end of its sentence", () => {
     expect(
       proposalStatus(
-        "# Voice\n\n> STATUS: a PROPOSAL (the brand-voice track, round four,\n> 2026-09-15). Bible 20 says the rest.",
+        "# Voice\n\n> STATUS: a PROPOSAL (the voice track, round one,\n> 2026-09-18). Bible 20 says the rest.",
       ),
     ).toBe(
-      "STATUS: a PROPOSAL (the brand-voice track, round four, 2026-09-15)",
+      "STATUS: a PROPOSAL (the voice track, round one, 2026-09-18)",
     );
   });
 

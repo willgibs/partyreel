@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 19 policies · 242 contracts on 42 components · 7 standing boards.**
+**22 laws · 19 policies · 242 contracts on 42 components · 6 standing boards.**
 
 ## What binds you
 
@@ -160,13 +160,13 @@ It reads as an AI tell; recast with a comma, a colon, parentheses or two sentenc
 
 <small>enforced by `src/lib/no-em-dash-policy.test.ts`, `src/lib/content-policy.test.ts` · `/design/library/rules/no-em-dashes`</small>
 
-**20. Affirmative only: say who we are, never who we are not. The two fences that are product truth stand meanwhile (no human-response or human-moderation promise, no automation absolutes); the brand-voice exploration writes the do's.**
+**20. Affirmative only: say who we are, never who we are not. The two fences that are product truth stand meanwhile (no human-response or human-moderation promise, no automation absolutes); the `voice` board writes the do's.**
 
 Will, 2026-08-28: this is about who we are, not who we are not; a fenced use case is a host we told to leave. Reviewed 2026-09-14: a rule of don'ts with no do's is messy, and the voice guide replaces it.
 
-<small>**under exploration: brand-voice** · enforced by `src/lib/content-policy.test.ts` · `/design/library/rules/affirmative-only`</small>
+<small>**under exploration: voice** · enforced by `src/lib/content-policy.test.ts` · `/design/library/rules/affirmative-only`</small>
 
-**21. Copy is open. Every heading, thesis and line may be rewritten by the round that touches its section; the brand-voice round establishes the voice and the infusion round carries it site-wide.**
+**21. Copy is open. Every heading, thesis and line may be rewritten by the round that touches its section; the `voice` board establishes the voice one won line at a time, and no copy is pinned by a test meanwhile.**
 
 Kill for now (Will, 2026-09-14): all copy is unprotected until the voice exists. The former rule (the thesis and the primary CTA as ruled copy) is retired; marketing-voice.ts stays the one home and no copy is pinned by a test.
 
@@ -365,7 +365,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
-| `brand-voice` | marketing | Round seven: six voices as cards, each writing the same three lines of the home page's first screen at the size a phone draws them, decided by one pick or none; the real home page under the card being pressed; the noun, the link preview, the numbers and how far the winner reaches as steps of their own, every answer drawn at once |
 | `media-kit` | marketing | Thirteen real catalogues as cards, ranked by whether they hold a release, each with its clause, its price and a contact sheet at the real card size, ship above the line and kill below; four questions about the thirteen (the rule, the spend, the crowds, the shoot) |
 | `rounding` | shared | Six families as cards, each the card, the menu, the photograph and the button at true size plus a 375 frame; two families on the same real page scroll-locked; four questions (the button rung, the derived ladder, the dead rungs, the album's gap) |
 | `album-hero` | marketing | Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit |

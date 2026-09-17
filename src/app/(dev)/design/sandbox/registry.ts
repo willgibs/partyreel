@@ -1,7 +1,6 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { ALBUM_HERO } from "./album-hero/spec";
-import { BRAND_VOICE } from "./brand-voice/spec";
 import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
 import { GLOW_MOMENTS } from "./glow-moments/spec";
 import { MEDIA_KIT } from "./media-kit/spec";
@@ -36,7 +35,6 @@ export const BOARDS: readonly BoardSpec[] = [
   RIVER_VISUAL,
   GLOW_DOCTRINE,
   GLOW_MOMENTS,
-  BRAND_VOICE,
   MEDIA_KIT,
   ROUNDING,
   ALBUM_HERO,
