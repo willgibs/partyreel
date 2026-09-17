@@ -327,7 +327,7 @@ export default function HelpIndexPage() {
                             prefetch={false}
                             className="group/row flex items-center gap-3 py-2.5 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
                           >
-                            <span className="w-5 shrink-0 text-[11px] text-muted-foreground/50 tabular-nums transition-colors duration-150 group-hover/row:text-success">
+                            <span className="w-5 shrink-0 text-[11px] text-faint tabular-nums transition-colors duration-150 group-hover/row:text-success">
                               {String(articleIndex + 1).padStart(2, "0")}
                             </span>
                             <span className="min-w-0 flex-1">

@@ -41,6 +41,7 @@
  * the two is visible on one screen.
  */
 
+import { ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 
 import { BeforeAfter, type Mode } from "@/components/lab";
@@ -209,7 +210,8 @@ export function ContactStrip({
   const shown = shownVertical(source.id, vertical);
   const sheet = shown ? sheetFor(source.id, shown) : null;
 
-  if (!sheet || !shown) return <NoSheet source={source} mode={mode} />;
+  if (!sheet || !shown)
+    return <NoSheet source={source} vertical={vertical} mode={mode} />;
 
   return (
     <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
@@ -246,7 +248,44 @@ export function ContactStrip({
           ))}
         </div>
       </div>
+      {/* The door, under the sheet too: four hotlinked frames are a sample,
+          and the kind of event he asked for is what the door searches even
+          when the sheet fell back to another. */}
+      <ExploreLink source={source} vertical={vertical} className="self-start" />
     </div>
+  );
+}
+
+/**
+ * THE DOOR TO THE SOURCE (Will, 2026-09-17: "If media kit can't show me the
+ * photos it wants to use from a source due to licensing, it should at least be
+ * linked neatly to explore"). The source's own search for the kind of event on
+ * the dock, in a new tab, on every card: the hatch is a finding, but a finding
+ * with nowhere to go was a dead end on a board about where to go.
+ */
+function ExploreLink({
+  source,
+  vertical,
+  className,
+}: {
+  source: SourceCard;
+  vertical: Vertical;
+  className?: string;
+}) {
+  const name = source.name.split(",")[0];
+  return (
+    <a
+      href={source.search(vertical)}
+      target="_blank"
+      rel="noreferrer"
+      className={cn(
+        "inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium text-foreground/80 transition-colors hover:border-foreground/40 hover:text-foreground",
+        className,
+      )}
+    >
+      Explore on {name}
+      <ArrowUpRight className="size-3" aria-hidden />
+    </a>
   );
 }
 
@@ -267,10 +306,13 @@ export function ContactStrip({
  */
 function NoSheet({
   source,
+  vertical,
   mode,
   bare,
 }: {
   source: SourceCard;
+  /** The kind of event on the dock: what the door searches. */
+  vertical: Vertical;
   mode: Mode;
   /** Inside a pair the kind and the size are the pair's caption, said once. */
   bare?: boolean;
@@ -287,11 +329,12 @@ function NoSheet({
         style={{ width: w, height: h }}
         className="mk-hole grid max-w-full place-items-center p-5"
       >
-        <span className="bg-background/85 p-3 text-center">
+        <span className="flex flex-col items-center gap-2.5 bg-background/85 p-3 text-center">
           <Caption className="text-[11px] leading-snug">
             <span className="text-foreground">No frames.</span>{" "}
             {source.noSheet ?? "No reason recorded, which is itself a defect."}
           </Caption>
+          <ExploreLink source={source} vertical={vertical} />
         </span>
       </div>
     </div>
@@ -470,7 +513,7 @@ export function SourceSwap({
                 ))}
               </span>
             ) : (
-              <NoSheet source={source} mode={mode} bare />
+              <NoSheet source={source} vertical={vertical} mode={mode} bare />
             )
           }
         />

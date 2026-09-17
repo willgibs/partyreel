@@ -240,7 +240,7 @@ export function EventExperience({
               >
                 {event.host_display_name?.trim() && (
                   <span className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground/70">Hosted by</span>
+                    <span className="text-faint">Hosted by</span>
                     {hostAvatarUrl && (
                       // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, short-lived
                       <img
@@ -255,7 +255,7 @@ export function EventExperience({
                   </span>
                 )}
                 {event.host_display_name?.trim() && event.event_date && (
-                  <span aria-hidden className="text-muted-foreground/50">
+                  <span aria-hidden className="text-faint">
                     ·
                   </span>
                 )}

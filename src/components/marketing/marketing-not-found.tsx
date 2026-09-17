@@ -101,7 +101,7 @@ export function MissingFrameStrip({ label = "404" }: { label?: string }) {
           )}
         >
           {tile.missing && (
-            <span className="text-[9px] tracking-wider text-muted-foreground/70">
+            <span className="text-[9px] tracking-wider text-faint">
               {label}
             </span>
           )}

@@ -116,7 +116,31 @@ export type SourceCard = {
   verdict: string;
   /** True when the source cannot supply a frame this product may ship. */
   barred: boolean;
+  /**
+   * ★ THE DOOR TO THE SOURCE, for the kind of event on the dock (Will,
+   * 2026-09-17: "If media kit can't show me the photos it wants to use from a
+   * source due to licensing, it should at least be linked neatly to explore").
+   * The source's own search page with the vertical's words in it, so a card
+   * whose sheet cannot be drawn here is still one click from the frames; the
+   * drawable sources carry it too, under their sheet. plan.test.ts holds every
+   * one to https and to carrying the query.
+   */
+  search: (vertical: Vertical) => string;
 };
+
+/** What to type into a source's search for each kind of event: the frames the
+ *  brief wants are people at the event, never the venue. */
+export const SEARCH_QUERY: Record<Vertical, string> = {
+  weddings: "wedding reception guests",
+  birthdays: "birthday party friends",
+  corporate: "conference attendees",
+  festivals: "music festival crowd",
+  trips: "friends road trip",
+};
+
+const enc = (v: Vertical) => encodeURIComponent(SEARCH_QUERY[v]);
+/** The same words joined the way a path-style search wants them. */
+const slug = (v: Vertical, sep: string) => SEARCH_QUERY[v].split(" ").join(sep);
 
 export const VERTICAL_LABEL: Record<Vertical, string> = {
   weddings: "Weddings",
@@ -156,6 +180,7 @@ export const SOURCES: SourceCard[] = [
     id: "unsplash-plus",
     name: "Unsplash+",
     url: "https://unsplash.com/plus",
+    search: (v) => `https://unsplash.com/s/photos/${slug(v, "-")}?license=plus`,
     model: "subscription",
     price:
       "$20 a month, or $240 a year. A launch promotion was running at $7 a month and $84 a year on the date below.",
@@ -179,6 +204,7 @@ export const SOURCES: SourceCard[] = [
     id: "adobe-stock",
     name: "Adobe Stock, credit pack",
     url: "https://stock.adobe.com/",
+    search: (v) => `https://stock.adobe.com/search?k=${enc(v)}&filters%5Bcontent_type%3Aphoto%5D=1`,
     model: "per-image",
     price:
       "A 5-credit pack is $49.99, which is $9.99 a photo. 40 credits is $339.99. Credits expire after a year.",
@@ -204,6 +230,7 @@ export const SOURCES: SourceCard[] = [
     id: "istock",
     name: "iStock Essentials",
     url: "https://www.istockphoto.com/",
+    search: (v) => `https://www.istockphoto.com/search/2/image?phrase=${enc(v)}`,
     model: "per-image",
     price:
       "$12 a photo on the single-credit pack. An Essentials photo is one credit; twelve credits is about $144.",
@@ -227,6 +254,7 @@ export const SOURCES: SourceCard[] = [
     id: "stocksy",
     name: "Stocksy United",
     url: "https://www.stocksy.com/",
+    search: (v) => `https://www.stocksy.com/search/${enc(v)}`,
     model: "per-image",
     price: "$35 medium, $85 large, $135 extra large, per image.",
     firstSpend: 35,
@@ -251,6 +279,7 @@ export const SOURCES: SourceCard[] = [
     id: "envato-elements",
     name: "Envato Elements",
     url: "https://elements.envato.com/photos",
+    search: (v) => `https://elements.envato.com/photos/${slug(v, "+")}`,
     model: "subscription",
     price:
       "$16.50 a month billed annually ($198 a year), or $33 month to month.",
@@ -275,6 +304,7 @@ export const SOURCES: SourceCard[] = [
     id: "artgrid",
     name: "Artgrid, for clips",
     url: "https://artgrid.io/",
+    search: (v) => `https://artgrid.io/search/${slug(v, "-")}`,
     model: "subscription",
     price:
       "From $25 a month billed annually ($299 a year). There is no cheap single month: the low tiers are annual only.",
@@ -300,6 +330,7 @@ export const SOURCES: SourceCard[] = [
     id: "websummit-flickr",
     name: "Web Summit's Flickr archive",
     url: "https://www.flickr.com/photos/websummit/",
+    search: (v) => `https://www.flickr.com/search/?user_id=websummit&license=4&text=${enc(v)}&view_all=1`,
     model: "free",
     price: "Free. The cost is a visible credit line under every frame.",
     firstSpend: 0,
@@ -320,6 +351,7 @@ export const SOURCES: SourceCard[] = [
     id: "flickr-cc",
     name: "Flickr, filtered to CC BY 2.0",
     url: "https://www.flickr.com/search/?license=4",
+    search: (v) => `https://www.flickr.com/search/?license=4&text=${enc(v)}&view_all=1`,
     model: "free",
     price: "Free. The cost is the same credit line.",
     firstSpend: 0,
@@ -342,6 +374,7 @@ export const SOURCES: SourceCard[] = [
     id: "nappy",
     name: "Nappy",
     url: "https://nappy.co/",
+    search: (v) => `https://nappy.co/?s=${enc(v)}`,
     model: "free",
     price: "Free. Donations to the photographer are invited, not required.",
     firstSpend: 0,
@@ -364,6 +397,7 @@ export const SOURCES: SourceCard[] = [
     id: "mixkit",
     name: "Mixkit, for clips",
     url: "https://mixkit.co/free-stock-video/",
+    search: (v) => `https://mixkit.co/free-stock-video/${slug(v, "-")}/`,
     model: "free",
     price: "Free per item.",
     firstSpend: 0,
@@ -386,6 +420,7 @@ export const SOURCES: SourceCard[] = [
     id: "coverr",
     name: "Coverr, for clips",
     url: "https://coverr.co/",
+    search: (v) => `https://coverr.co/s?q=${enc(v)}`,
     model: "free",
     price: "Free.",
     firstSpend: 0,
@@ -410,6 +445,9 @@ export const SOURCES: SourceCard[] = [
     id: "death-to-stock",
     name: "Death to Stock",
     url: "https://www.deathtothestockphoto.com/",
+    // The only door there is: every browse path under it answers 404 to
+    // anything but a browser (see noSheet), so the home is the search.
+    search: () => "https://www.deathtothestockphoto.com/",
     model: "rental",
     price:
       "$20 a month or $199 a year for Brand. An extended licence starts at $179 a visual.",
@@ -435,6 +473,7 @@ export const SOURCES: SourceCard[] = [
     id: "creative-market",
     name: "Creative Market wedding bundles",
     url: "https://creativemarket.com/photos",
+    search: (v) => `https://creativemarket.com/search/${slug(v, "%20")}`,
     model: "bundle",
     price:
       "$7 to $15 a photo, or $40 to $100 for a collection of 45 to 70 frames, paid once.",

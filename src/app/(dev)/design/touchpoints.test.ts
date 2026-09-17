@@ -29,11 +29,11 @@ describe("the design lab's rulings registry", () => {
         "glow-doctrine",
         "glow-moments",
         // the two legacy marketing boards retired to the record in the
-        // Library x Lab migration wave (2026-09-15)
-        // the home hero retired at its wiring round (2026-09-17): its
-        // favourite ships as cinema-hero.tsx
+        // Library x Lab migration wave (2026-09-15), and two more with their
+        // rulings on 2026-09-17: the palette (Graphite) and the home hero,
+        // whose favourite ships as cinema-hero.tsx. A ruled board leaves
+        // sandbox/ and keeps only its RULINGS row
         // the review wave (2026-09-14)
-        "palette",
         "light",
         "type-scale",
         "floating-surfaces",

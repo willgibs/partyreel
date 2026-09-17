@@ -7,7 +7,6 @@ import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
 import { GLOW_MOMENTS } from "./glow-moments/spec";
 import { LIGHT } from "./light/spec";
 import { MEDIA_KIT } from "./media-kit/spec";
-import { PALETTE } from "./palette/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
 import { ROUNDING } from "./rounding/spec";
 import { TYPE_SCALE } from "./type-scale/spec";
@@ -26,14 +25,14 @@ import { TYPE_SCALE } from "./type-scale/spec";
  * A board without a spec renders through the legacy path in `boards.ts` and the
  * desk shows its touchpoints.ts note instead. The migration wave adds specs and
  * drops `legacy` flags board by board; a board LEAVES this list only when its
- * ruling lands and its directory goes (home-hero, 2026-09-17, whose favourite
- * now ships as the production hero).
+ * ruling lands and its directory goes, which two did on 2026-09-17: the palette
+ * (Graphite, now the token set) and home-hero (whose favourite now ships as the
+ * production hero).
  */
 export const BOARDS: readonly BoardSpec[] = [
   RIVER_VISUAL,
   GLOW_DOCTRINE,
   GLOW_MOMENTS,
-  PALETTE,
   FLOATING_SURFACES,
   LIGHT,
   TYPE_SCALE,

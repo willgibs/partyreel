@@ -1598,15 +1598,25 @@
 
 /* ─── Chapter 3: the skin block (the ONE sanctioned place for surface colors) ───
    The cinema wrapper carries class="dark" (the descendant-scoped token flip) +
-   data-mkt-skin="cinema"; this deepens the app's 0.14 night to the ruled cinema
-   room and fixes native form controls. 0-2-0 specificity so it can't lose the
-   --background tie against `.dark` on stylesheet order. The body:has rules stop
-   session-theme overscroll/short-page bleed around the wrappers (the red-team's
-   body-edge finding) — one per skin since the 2026-08-26 forced-light ruling
-   (marketing themes are AUTHORED; the app is the only theme-following surface):
-   cinema edges stay room-dark, paper edges stay paper-light, whatever the
-   session says. They are the file's only body selectors, sanctioned by the
-   policy test. ─── */
+   data-mkt-skin="cinema"; this fixes native form controls inside it.
+
+   ★ THE DEEPENING IS GONE, and that is the palette's round eight rather than a
+   deletion. This block used to re-declare --background, because the app's night
+   was 0.14 and a chapter wanted the deeper 0.11. Graphite takes marketing's own
+   deeper value across the WHOLE product (one room at 0.105), so a cinema
+   chapter and the app are the same ground and an override here would be a
+   second home for one number. If the two ever part again, the --background line
+   comes back HERE, at 0-2-0 specificity so it cannot lose the tie against
+   `.dark` on stylesheet order.
+
+   The body:has rules stop session-theme overscroll/short-page bleed around the
+   wrappers (the red-team's body-edge finding) — one per skin since the
+   2026-08-26 forced-light ruling (marketing themes are AUTHORED; the app is the
+   only theme-following surface): cinema edges stay room-dark, paper edges stay
+   paper-light, whatever the session says. They are the file's only body
+   selectors, sanctioned by the policy test. They must stay LITERAL: body sits
+   outside both wrappers, so var(--background) there resolves to the session's
+   own theme. These two are the room and the page of globals.css, by hand. ─── */
 
 /* ─── THE ACCENT BLOCK (the 2026-08-25 ruling: ACHROMATIC base, not
    monochromatic — occasional tasteful color accents for status feedback and
@@ -1633,17 +1643,16 @@
 }
 
 .dark[data-mkt-skin="cinema"] {
-  --background: oklch(0.11 0 0);
   color-scheme: dark;
 }
 
 body:has([data-mkt-skin="cinema"]) {
-  background: oklch(0.11 0 0);
+  background: oklch(0.105 0.0053 286);
   color-scheme: dark;
 }
 
 body:has([data-mkt-skin="paper"]) {
-  background: oklch(0.99 0 0);
+  background: oklch(0.995 0.002 286);
   color-scheme: light;
 }
 

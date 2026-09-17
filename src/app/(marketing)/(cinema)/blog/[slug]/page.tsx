@@ -187,7 +187,7 @@ export default async function BlogPostPage({
                   className="text-sm"
                 />
                 {updated && (
-                  <span className="text-xs text-muted-foreground/70">
+                  <span className="text-xs text-faint">
                     Updated {formatEventDate(updated)}
                   </span>
                 )}

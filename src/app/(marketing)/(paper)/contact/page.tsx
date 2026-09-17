@@ -188,7 +188,7 @@ export default function ContactPage() {
               style={{ "--i": 3 + i } as CSSProperties}
               className="mkt-learn group flex flex-col gap-2.5 border-t pt-5 transition-colors duration-150 hover:border-foreground/40"
             >
-              <span className="font-heading text-sm text-muted-foreground/60 tabular-nums">
+              <span className="font-heading text-sm text-faint tabular-nums">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <h3 className="font-heading text-lg">{tile.title}</h3>

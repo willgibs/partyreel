@@ -187,7 +187,7 @@ export function EmailSignIn({
                 ? `Resend in ${resendIn}s`
                 : "Resend code"}
           </button>
-          <span className="text-muted-foreground/40">·</span>
+          <span className="text-faint">·</span>
           <button
             type="button"
             onClick={() => {

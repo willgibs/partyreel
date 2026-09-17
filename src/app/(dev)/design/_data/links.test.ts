@@ -30,15 +30,19 @@ const ROOT = process.cwd();
 const onDisk = (file: string) => existsSync(join(ROOT, file));
 
 describe("parseRef: the boards and the bible", () => {
-  it("reads /design/c/palette#pal-02 as the palette board at pal-02", () => {
-    expect(parseRef("/design/c/palette#pal-02")).toEqual({
+  // The example was the palette until its ruling retired the board
+  // (2026-09-17). The URL form validates against the STANDING ids, so the
+  // example has to be a board that stands; `board:` does not validate, which is
+  // why the third case still reads an id that has left.
+  it("reads /design/c/light#lit-02 as the light board at lit-02", () => {
+    expect(parseRef("/design/c/light#lit-02")).toEqual({
       kind: "board",
-      id: "palette",
-      anchor: "pal-02",
+      id: "light",
+      anchor: "lit-02",
     });
-    expect(parseRef("/design/lab/palette")).toEqual({
+    expect(parseRef("/design/lab/light")).toEqual({
       kind: "board",
-      id: "palette",
+      id: "light",
     });
     expect(parseRef("board:palette#pal-02")).toEqual({
       kind: "board",

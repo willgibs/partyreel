@@ -464,7 +464,7 @@ function WelcomeStep({
               </>
             )}
             {host && eventDate && (
-              <span aria-hidden className="text-muted-foreground/50">
+              <span aria-hidden className="text-faint">
                 ·
               </span>
             )}

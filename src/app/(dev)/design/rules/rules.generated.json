@@ -1465,7 +1465,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 63
+          "line": 79
         },
         {
           "title": "keeps the QR server-rendered (no client island for a constant graphic)",
@@ -1473,7 +1473,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 71
+          "line": 87
         },
         {
           "title": "the seam glow owns the loop-pause contract, through the primitive",
@@ -1481,7 +1481,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 79
+          "line": 95
         },
         {
           "title": "reads the lamps' cadence from the one token, never a literal",
@@ -1489,7 +1489,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 99
+          "line": 115
         }
       ]
     },

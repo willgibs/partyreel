@@ -3,10 +3,7 @@ import type { CSSProperties } from "react";
 
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import {
-  MAX_REEL_SECONDS,
-  planById,
-} from "@/lib/constants/tiers";
+import { MAX_REEL_SECONDS, planById } from "@/lib/constants/tiers";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
@@ -70,7 +67,7 @@ export function UnlockGrid() {
                 {tile.body}
               </p>
             </div>
-            <p className="text-xs text-muted-foreground/60">{tile.freeLine}</p>
+            <p className="text-xs text-faint">{tile.freeLine}</p>
           </div>
         ))}
       </Reveal>

@@ -83,7 +83,7 @@ export function ItemVerdictRow({
         onChange={(e) => setItemNote(scope, round, id, e.target.value)}
         aria-label={`Your note on ${name}`}
         placeholder="Why, in a few words (optional)"
-        className="h-7 min-w-0 flex-1 basis-[10rem] rounded-[var(--radius-action-sm)] border border-border bg-background px-2 text-[11px] transition-colors duration-150 outline-none placeholder:text-muted-foreground/70 focus:border-foreground/40 motion-reduce:transition-none"
+        className="h-7 min-w-0 flex-1 basis-[10rem] rounded-[var(--radius-action-sm)] border border-border bg-background px-2 text-[11px] transition-colors duration-150 outline-none placeholder:text-faint focus:border-foreground/40 motion-reduce:transition-none"
       />
     </div>
   );

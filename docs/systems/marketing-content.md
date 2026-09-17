@@ -166,7 +166,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   **The paper/cinema split is per-CHAPTER, not per-page.** A page takes the rhythm by JOINING THE
   `(cinema)` GROUP and wrapping its reading body in ONE `PaperChapter` — which is exactly what /help and
   all six feature pages already do, so there is no new mechanism and the dark overlay nav, the dark
-  dropdowns, the dark overscroll and the `#040404` browser chrome all come with the group. Route groups
+  dropdowns, the dark overscroll and the `#040405` browser chrome all come with the group. Route groups
   do not appear in URLs, so adopting or dropping the treatment is a directory move with no redirect.
   `(paper)` holds only `/contact` and retires with it.
   **A DARK HERO DECIDES THE ROUTE GROUP** (bible 16), because a dark hero must be paired with a dark nav (Will)

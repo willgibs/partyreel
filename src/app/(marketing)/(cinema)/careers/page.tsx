@@ -158,7 +158,7 @@ export default function CareersPage() {
                     box as on a 160px frame, which is four times the weight for
                     the size. */}
                 <span className="relative inline-flex h-8 w-12 items-center justify-center self-start">
-                  <span className="text-xs font-medium text-muted-foreground/70 tabular-nums">
+                  <span className="text-xs font-medium text-faint tabular-nums">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <SelectMark index={index} strokeWidth={1.25} onReveal />

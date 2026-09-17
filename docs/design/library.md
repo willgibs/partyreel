@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 16 policies · 176 contracts on 28 components · 11 standing boards.**
+**22 laws · 16 policies · 176 contracts on 28 components · 10 standing boards.**
 
 ## What binds you
 
@@ -36,9 +36,9 @@ builds small. The nine levels, from [`README.md`](README.md#what-binds-you):
 
 **1. Achromatic UI with one accent; the media is the color. Where there is no media, the accent carries state and UI color and marketing may carry color of its own (aurora, non-sampled spill): a section without a picture is still beautiful, never bare.**
 
-The interface stays quiet so the pictures can carry the room, but quiet is not empty: the binary of has-media or is-boring is what the review killed (Will, 2026-09-14). The palette exploration writes the ramp and the accent; the light exploration writes the aurora.
+The interface stays quiet so the pictures can carry the room, but quiet is not empty: the binary of has-media or is-boring is what the review killed (Will, 2026-09-14). The palette ruling wrote the ramp and kept the accent off (Graphite, 2026-09-17); the light exploration writes the aurora.
 
-<small>**under exploration: palette** · enforced by `src/app/(marketing)/marketing-css-policy.test.ts` · `/design/library/rules/media-is-the-color`</small>
+<small>enforced by `src/app/(marketing)/marketing-css-policy.test.ts` · `/design/library/rules/media-is-the-color`</small>
 
 **2. Marketing and app share one token set. Marketing may be louder in most things (type, motion, color, scale, density); only the tokens are shared by law.**
 
@@ -357,7 +357,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
-| `palette` | shared | Twelve finished palettes as cards, each with its grounds, text steps, accent and state colours plus a real piece of the product in dark beside light; Pick drives the whole page, A and B drive two wipes; three calls left after one is picked |
 | `light` | shared | Twelve treatments as cards, each the real surface wearing it at true size with its own Replay and four facts; one real section under two treatments at once; Pick applies the treatment's block to the site; four questions (the infusion order, the cadence, the paper hues, the publish beat's colour) |
 | `type-scale` | shared | Round seven: five ladders as type specimens at the pixels they declare, decided by one pick or none; one real page under the card being pressed, with a second copy of it under the first on a fade; letter spacing and the dead-link title as steps of their own, both answers drawn at once |
 | `floating-surfaces` | shared | Seven directions as cards, each the event menu at 328 wide on the app's dark over the album with the Ground switch moving all seven; the host's desk under two directions at once; four questions (the submenu, the radius, the entrance, the light) |

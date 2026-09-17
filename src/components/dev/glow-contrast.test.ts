@@ -23,10 +23,13 @@ import { LAMP_SET } from "./lamp-set";
  * prose but never measures.
  */
 
-// The real production tokens (globals.css).
-const SLAB = "oklch(0.155 0 0)";
-const SLAB_FG = "oklch(0.97 0 0)";
-const SLAB_MUTED = "oklch(0.62 0 0)";
+// The real production tokens (globals.css), retuned with the palette (Graphite,
+// 2026-09-17). They are .surface-ink's, NOT --gallery*'s any more: the ruling
+// split the footer slab (0.165) from the media well (0.065), and the seam these
+// numbers exist for is drawn on the footer.
+const SLAB = "oklch(0.165 0.0053 286)";
+const SLAB_FG = "oklch(0.965 0.0045 286)";
+const SLAB_MUTED = "oklch(0.715 0.0105 286)";
 const PALETTE = [
   "oklch(0.72 0.17 25)",
   "oklch(0.8 0.15 85)",
@@ -80,7 +83,9 @@ describe("the ink slab's headroom", () => {
     // footer-contract.test.ts states these in prose: 17.9:1 body, 5.37:1 muted.
     const slab = parseOklch(SLAB)!;
     expect(contrastRatio(parseOklch(SLAB_FG)!, slab)).toBeGreaterThan(17);
-    expect(contrastRatio(parseOklch(SLAB_MUTED)!, slab)).toBeCloseTo(5.37, 1);
+    // 7.60:1 since the palette's round eight: the slab lifted 0.010 and the
+    // second text step lifted 0.095, so the ruling BOUGHT headroom on the seam.
+    expect(contrastRatio(parseOklch(SLAB_MUTED)!, slab)).toBeCloseTo(7.6, 1);
   });
 
   it("models the mask falloff, not just the layer opacity", () => {
@@ -225,9 +230,9 @@ describe("the lamp set module tracks the shipped --lamp-* five", () => {
 
   it("stays parseable, so the contrast table cannot go silently blank", () => {
     const report = worstCaseGround(
-      "oklch(0.14 0 0)",
-      "oklch(0.62 0 0)",
-      "oklch(0.62 0 0)",
+      "oklch(0.105 0.0053 286)",
+      "oklch(0.715 0.0105 286)",
+      "oklch(0.715 0.0105 286)",
       LAMP_SET,
       0.62,
     );

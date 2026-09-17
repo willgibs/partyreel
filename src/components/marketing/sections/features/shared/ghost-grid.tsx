@@ -31,7 +31,7 @@ export function GhostBackdrop({
         >
           {i % 4 === 3 || i % 4 === 0 ? (
             i === 3 || i === 4 ? (
-              <Camera className="size-4 text-muted-foreground/40" />
+              <Camera className="size-4 text-faint" />
             ) : null
           ) : null}
         </div>
