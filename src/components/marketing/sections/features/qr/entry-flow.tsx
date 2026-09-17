@@ -13,7 +13,7 @@ const UPLOADING_IDS = ["wedding-toast", "party-balloons", "reception-table"];
  * /features/qr dark close, part 1: THE ENTRY FLOW. Three mini frames of what a
  * guest actually sees after the scan, quoting the shipped entry modal's exact
  * strings ("You're invited to" / "Add your photos and videos in seconds. No
- * app, no account." / the gallery line) and the uploader's "Add photos &
+ * app, no account." / the album line) and the uploader's "Add photos &
  * videos" control, stylized to marketing. Fixture family: Maya & Jay.
  */
 
@@ -41,7 +41,7 @@ export function EntryFlow() {
         {/* 01 · The welcome. R4 / review B10: this card used to stop a third of
             the way down and leave the rest empty. It carries the modal's whole
             resting state now — byline avatar, the default primary label ("View
-            the gallery") and the browse-out ("Just browsing") — all strings the
+            the album") and the browse-out ("Just browsing") — all strings the
             shipped entry modal actually renders. */}
         <div {...cut(0)} className="flex flex-col gap-3">
           <StepLabel n="01" label="The welcome" />
@@ -60,7 +60,7 @@ export function EntryFlow() {
               <span className="font-medium text-foreground">Maya</span>
             </p>
             <span className="mt-auto flex h-9 items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground">
-              View the gallery
+              View the album
             </span>
             <span className="mt-1.5 flex h-8 items-center justify-center text-xs text-muted-foreground">
               Just browsing
@@ -78,7 +78,7 @@ export function EntryFlow() {
             </p>
             <p className="flex items-start gap-2.5 text-sm leading-relaxed">
               <Images className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-              Everyone&rsquo;s shots land in one gallery, yours included.
+              Everyone&rsquo;s shots land in one album, yours included.
             </p>
           </div>
         </div>

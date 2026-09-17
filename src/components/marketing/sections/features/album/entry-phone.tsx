@@ -115,7 +115,7 @@ function Welcome() {
         </p>
         <p className="flex items-start gap-2 text-[11px] leading-snug">
           <Images className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-          Everyone&rsquo;s shots land in one gallery. 18 are already inside.
+          Everyone&rsquo;s shots land in one album. 18 are already inside.
         </p>
       </div>
       <span className="mt-auto flex h-8 items-center justify-center rounded-md bg-primary text-xs font-medium text-primary-foreground">

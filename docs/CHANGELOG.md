@@ -24,26 +24,22 @@ his six notes became the kit's search doors (`c667db3c`) and the album hero's ro
 round three at `cbad7faf`; three of the four slots.
 
 - `palette-wiring` (merged `88d0bec0`; bible 1 ruled and the ledger gone at `52e9afa2`). Graphite became
-  the palette in both modes: a Pearl page at 0.995 with a card the same white, one Graphite room at 0.105
-  for the app and every cinema chapter, Apple's cool greys at hue 286 between them, no accent anywhere.
-  The dark card went opaque, retiring the system's one translucent surface by ruling along with the cinema
-  deepening; `--faint` landed as the third text step and took 40 hand-faded sites off their five alphas.
-  The one unforeseen split: the media well fell to 0.065 and the footer slab rose to 0.165, so
-  `.surface-ink` writes its values out. The board retired into its ruling.
-- `hero-wiring` (merged `0c58ff76`; the ledger gone and the artifacts regenerated at `137e504b`).
-  Will's round-seven pick shipped: the home hero is the band of photographs streaming out of the real demo
-  QR on one axis, the ruled block at the band's measured clear line, no caption; the living album wall left
-  with its scrims, its reel card and the kinetic word. The engine came out of the lab as `hero-stream.ts`,
-  cut to the one composition and solved at two breakpoints. Its finding: the ruled 560 px hero minimum does
-  not survive it (683 at `lg`, 642 at `base`, pinned by the contract). The 34 squares (ASSETS row 2) stay
-  the ask, 18 of them needed for no photograph to be on screen twice.
+  the palette in both modes: a Pearl page at 0.995, one Graphite room at 0.105 for the app and every cinema
+  chapter, Apple's cool greys at hue 286 between them, no accent anywhere. The dark card went opaque, which
+  retired the system's one translucent surface by ruling; `--faint` landed as the third text step and took 40
+  hand-faded sites off their five alphas. The one unforeseen split: the media well fell to 0.065 and the
+  footer slab rose to 0.165, so `.surface-ink` writes its values out.
+- `hero-wiring` (merged `0c58ff76`; the ledger gone and the artifacts regenerated at `137e504b`). The home
+  hero is the band of photographs streaming out of the real demo QR on one axis, the ruled block at the
+  band's measured clear line, no caption; the living album wall left with its scrims and the kinetic word.
+  The engine came out of the lab as `hero-stream.ts`. Its finding: the ruled 560 px hero minimum does not
+  survive it (683 at `lg`, 642 at `base`, pinned). The 34 squares (ASSETS row 2) stay the ask.
 - `album-hero`, round three (merged `57e2c2e4`; the touchpoint at `759a557b`). Will's six notes on round
-  two answered: four calm compositions on one engine, and the lockup composed for this page as ONE block,
-  so the centre gap left with the vent it held open. `compositions.ts` places every photograph off the
-  lockup's measured box rather than behind a scrim, and the calm rule became arithmetic (nothing over
-  40 px a second, at most sixteen frames lit, every card sized to its largest moment so a photograph only
-  scales down, which was the jitter); the still is the loop's own first frame. Three calls it made on its
-  own recommendation wait for Will on the board, which is 830 words with its declaration deleted.
+  two answered: four calm compositions on one engine, and the lockup composed for this page as ONE block, so
+  the centre gap left with the vent it held open. `compositions.ts` places every photograph off the lockup's
+  measured box rather than behind a scrim, and the calm rule became arithmetic (nothing over 40 px a second,
+  at most sixteen frames lit, every card sized to its largest moment so a photograph only scales down, which
+  was the jitter). Three calls it made on its own recommendation still wait for Will on the board.
 - The production bug it found, fixed on its own branch (merged `0c9caedc`): `/features/album` threw for
   every reader with Reduce Motion on, because a looping fill's end tick was Infinity and the jump indexed
   `arrivals[NaN]`. A loop has no end, so its still is defined rather than reached (`stillAlbumFill`,
@@ -74,16 +70,14 @@ Three lanes cut at `c338c95c`: `type-wiring`, `light` (round eight) and `aurora-
   8s on the token, 24s on the field's bands, `display: none` inside `.surface-paper`.
 
 - `type-wiring` (merged `0a52c8dc`; bible 5 ruled at `aaa057dd`, the ledger gone at `4c5500da`). Will's
-  type ruling shipped: ladder B baked as one `@theme static` block of nine `--text-*` steps generated
-  from the board's own `themeBlock(B)` rather than retyped, each a clamp through (375) and (1440) with
-  its own leading and tracking. Three four-breakpoint ramps collapsed to one class each and about sixty
-  headings moved onto a step by ROLE. Four traps were measured (the card step ships as `card-title`
-  because `text-card` is already a colour; a step's tracking beats `font-heading`'s flat value, which
-  stays as the off-ladder fallback; `cn()` silently dropped a step beside a text colour until
-  `utils.ts` declared the ladder to tailwind-merge; `tracking-tight` resolves to 0em here), all held by
-  `type-ladder-policy.test.ts`. The board retired into Foundations, which draws the ladder at true size
-  off the live tokens. Left for Will at 375: marketing's sub-heads (20) now out-shout the `prose` h2
-  above them (18), the dead-link title is 18 beside 17px body, and the guest title went 28 to 24.
+  type ruling shipped: ladder B baked as one `@theme static` block of nine `--text-*` steps generated from
+  the board's own `themeBlock(B)` rather than retyped, each a clamp through (375) and (1440). Three
+  four-breakpoint ramps collapsed to one class each and about sixty headings moved onto a step by ROLE. Four
+  traps were measured (`text-card` is already a colour so the step ships as `card-title`; a step's tracking
+  beats `font-heading`'s flat value, kept as the off-ladder fallback; `cn()` silently dropped a step beside a
+  text colour until `utils.ts` declared the ladder to tailwind-merge; `tracking-tight` is 0em here), all held
+  by `type-ladder-policy.test.ts`. The board retired into Foundations. Left for Will at 375: marketing's
+  sub-heads (20) out-shout the `prose` h2 above them (18), the dead-link title is 18 beside 17px body.
 
 - `light`, round eight (merged `ee0b21d6`), the board's last: the proposals asked as steps he could see,
   which found why round seven showed nothing (its effects all painted behind or under opaque boxes).
@@ -134,41 +128,47 @@ in `currentColor` on every door (22px in a bar), the social card draws the same 
 pins that it names itself, takes the ground's colour and has one home. The mark stays a stand-in until his
 v1 icon (ASSETS row 19).
 
-**The sixth batch.** `floating-surfaces r7: roundness=nested` ("Still no visual difference, but let's go
-with your pick for now") closes that board: every step is answered and its wiring is due. Then the one
-that matters most: **Will killed the brand voice exploration**, and the post-mortem is the lesson.
+**The sixth batch.** `roundness=nested` ("Still no visual difference, but let's go with your pick for now")
+closes floating surfaces. Then the one that matters: **Will killed the brand voice exploration.**
 `brand-voice r7` left `voice` open in his own words and answered the three questions the voice never
 decided (`noun=album`, `unfurl=join`, `counts=hero` with a layout note). His reason: the agent "worked too
 hard trying to generate multiple unique voices rather one that's perfect, then we kept running in through
 unreviewed rounds to dig deeper into each without shaping along the way." The tree agreed: it had reached
 ROUND SEVEN with `docs/reviews/brand-voice.json` never once written, carrying six voices, 24 spots, 510
-strings and 4,121 lines, and its own contract made two voices that AGREED owe a written excuse, which is
-the machine that forced them apart. Two rules stopped being prose: `registry.test.ts` fails a board past
-round 1 with no ledger (four are named in a grandfather list that only shrinks), and options are never
-forced apart. `voice-retire` deletes the board whole, keeping none of the 510 lines at his instruction and
-shipping only his three picks; a new `voice` board rebuilds the voice from won lines, one real line in its
-real place at a time, with what his wins have in common written up after each round and the next round's
-candidates drafted in it. He specified that form himself after withdrawing a two-draft idea of his own: a
-shape that "would likely require many fine notes over one cohesive answer" is the wrong shape, whatever its
-content. He also corrected the counts ask's premise: the band below the hero is "paired with a demo video,
-not the demo event", so the bigger pair claims nothing about the demo, whose content is replaced at launch.
+strings and 4,121 lines, and its own contract made two voices that AGREED owe a written excuse, which is the
+machine that forced them apart. Two rules stopped being prose: `registry.test.ts` fails a board past round 1
+with no ledger (four are grandfathered in a list that only shrinks), and options are never forced apart. He
+chose to keep none of the 510 lines, so `voice-picks` shipped his three answers and the board's own deletion
+follows; a new `voice` board rebuilds the voice from won lines, one real line in its real place at a time,
+with what his wins have in common written up after each round and the next round's candidates drafted in it.
+He specified that form himself after withdrawing a two-draft idea of his own: a shape that "would likely
+require many fine notes over one cohesive answer" is the wrong shape, whatever its content. He also
+corrected the counts premise: the band below the hero is "paired with a demo video, not the demo event".
 
 - `light-wiring` (merged `47bba92a`; bible 10 and 11 ruled and the ledger gone in the same window). Depth
-  became four techniques with one job each: the step and the ring on every surface, `--shadow-lift` only
-  where one object really overlaps another, `--shadow-layer` under anything the page keeps living behind,
-  and nothing under a surface lying flat, in either mode. Paper kept its bytes; dark and the ink slab
-  gained the ramp that made them read as shadowless. Forty-five raw shadows and thirty readers of one
-  token were judged once each by role, and three surfaces joined the floating family (select's content,
-  the nav indicator, and the toast, whose own `0 4px 12px` was a fourth geometry in light and nothing in
-  dark). `elevation-policy.test.ts` refuses the four ways back in. The bright edge shipped as one
-  `data-lit` attribute on the box that owns the radius, lit from the top edge, fenced to dark grounds,
-  its contract mutation-tested twelve ways. Foundations gained the legend Will said made the system
-  legible. The board retired atomically, and the shimmer stays in the engine unwired.
+  became four techniques with one job each: the step and the ring everywhere, `--shadow-lift` only where one
+  object really overlaps another, `--shadow-layer` under anything the page keeps living behind, and nothing
+  under a flat surface in either mode. Paper kept its bytes; dark and the ink slab gained the ramp that made
+  them read as shadowless. Forty-five raw shadows and thirty readers of one token were judged once each by
+  role, three surfaces joined the floating family (select, the nav indicator, the toast), and
+  `elevation-policy.test.ts` refuses the four ways back in. The bright edge shipped as one `data-lit`
+  attribute on the box that owns the radius, fenced to dark grounds, its contract mutation-tested twelve
+  ways. Foundations gained the legend Will said made the system legible; the shimmer stays unwired.
+
+- `voice-picks` (merged `2735ad92`). The only three things the killed exploration decided, shipped as working
+  versions. `noun=album` swept **17** guest strings, not the five the board claimed, and deliberately left the
+  CODE noun alone (`/api/guests/gallery`, `gallery-access*`, `LiveGallery`): guest-flow.md records that split
+  so nobody "fixes" it in either direction. `unfurl=join` made the link preview one invitation for every open
+  event instead of forking on `allow_anonymous_uploads` to announce the email step. `counts=hero` put 312 and
+  48 on one line with "Created for you." centred under it, which needed `splitFact` taught to split a fact on
+  its digit RUNS (it took the first integer and swallowed the rest, so 48 would have sat dead beside a popping
+  312). Three marketing mocks quoted the old guest copy and nothing went red because they were never pinned;
+  swept at the merge and added to `mock-parity.test.ts` so the next sweep takes them along.
 
 **The alias.** Rebuilt whenever a board or a wiring changes; the smoke's result is STATUS's live state.
 
-**Next.** Card's wiring and `voice-retire` are cut now, and integrate one at a time since both retire a
-board. His sitting continues on rounding, the album hero, the media kit and river-visual.
+**Next.** Card's wiring is in flight; the brand-voice board's deletion follows it. His sitting continues on
+rounding, the album hero, the media kit and river-visual.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
 
