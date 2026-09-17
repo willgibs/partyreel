@@ -13,15 +13,11 @@
 ## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` onward)
 
 **What Will did.** He opened his stepped sitting on the hero, answered its round six `none` in chat ("I
-think I liked the more symmetrical approach more than the variants we're using to scatter the photos"),
-and round seven was built the same evening (`ccf93732`). His first batch picked the hero
-(`stream=stack-above`, the caption dropped) and the palette (`graphite`, no accent, the card as declared),
-answered four of the light board's asks and ruled the aurora off the light ground, all at `257a690d` and
-verbatim in `docs/design/rulings.md`. "Copy so far" stopped resending handled questions (`a6afec3b`), and
-his six notes became the kit's search doors (`c667db3c`) and the album hero's round three (`cbad7faf`).
-
-**The lanes.** Two wiring lanes cut at `6f5c61e1` (`hero-wiring`, `palette-wiring`), the album hero's
-round three at `cbad7faf`; three of the four slots.
+think I liked the more symmetrical approach more than the variants we're using to scatter the photos"), and
+round seven was built the same evening. His first batch picked the hero (`stream=stack-above`) and the
+palette (`graphite`, no accent), answered four of the light board's asks and ruled the aurora off the light
+ground, all at `257a690d` and verbatim in `docs/design/rulings.md`. "Copy so far" stopped resending handled
+questions (`a6afec3b`). Two wiring lanes cut at `6f5c61e1`, the album hero's round three at `cbad7faf`.
 
 - `palette-wiring` (merged `88d0bec0`; bible 1 ruled and the ledger gone at `52e9afa2`). Graphite became
   the palette in both modes: a Pearl page at 0.995, one Graphite room at 0.105 for the app and every cinema
@@ -42,63 +38,47 @@ round three at `cbad7faf`; three of the four slots.
   was the jitter). Three calls it made on its own recommendation still wait for Will on the board.
 - The production bug it found, fixed on its own branch (merged `0c9caedc`): `/features/album` threw for
   every reader with Reduce Motion on, because a looping fill's end tick was Infinity and the jump indexed
-  `arrivals[NaN]`. A loop has no end, so its still is defined rather than reached (`stillAlbumFill`,
-  derived through the non-looping path), and a running loop is never clamped at its pass end.
+  `arrivals[NaN]`. A loop has no end, so its still is now defined rather than reached.
 
-**The second batch (`1cb34f70`).** Will ruled the type scale on every ask (`ladder=b`,
-`tracking=adopt`, `not-found=on-ladder`) and kept the throw and the aurora, which with the seam is the
-whole of what he calls the Aurora ("another alternative way to infuse the Aurora into our UI", every
-form off paper). He returned six light cards as `refine`, each note saying the card did not show what it
-asked ("our step, ring, lift, and float: a set of four options to choose from, or are we trying to use
-everything, and if so, how?"), then reread his paste worried the notes were crossed. They were not: the
-trailing `note: "on paper: ..."` was a withdrawn step whose text his browser still held. `composeSoFar`
-now sends nothing for a withdrawn step and `Transcribed` carries the round's notes, so held words never
-ride twice (`4280a59c`, five new cases).
+**The second batch (`1cb34f70`).** Will ruled the type scale on every ask and kept the throw and the
+aurora, which with the seam is the whole of what he calls the Aurora ("another alternative way to infuse
+the Aurora into our UI", every form off paper). He returned six light cards as `refine`, each note saying
+the card did not show what it asked, then reread his paste worried the notes were crossed. They were not:
+the trailing `note: "on paper: ..."` was a withdrawn step whose text his browser still held. `composeSoFar`
+now sends nothing for a withdrawn step and `Transcribed` carries the round's notes (`4280a59c`).
 Three lanes cut at `c338c95c`: `type-wiring`, `light` (round eight) and `aurora-wiring`.
 
 - `aurora-wiring` (merged `2987a5e5`; the tuner knob at the next commit). The three forms of light Will
-  kept landed as one family in his word. The clock is ruled to 8s on every lamp, with
-  `--aurora-cadence` declared beside it as a sibling (three laps, 24s) rather than a re-tune, and
-  `SectionLight` ships as the field's one mount: four placements, the accent register in one object, the
-  bottom band the top one flipped. The no-light-ground ruling became a CSS fence keyed on
-  `[data-section-light]`, scoped to the field so the four shipped seams keep their paper history. Being the
-  first shipped lamp on the transform drive exposed that drive's missing resting `translate`, which parked
-  the comet dead centre at full strength for every reduced-motion visitor; it rests at its own from-keyframe
-  now. Foundations presents the engine as Aurora with a specimen per form. No production call site yet: the
-  placement is round eight's first step,
-  and the throw's plate and the publish flourish wait on the bloom card. Verified on a fresh stylesheet:
-  8s on the token, 24s on the field's bands, `display: none` inside `.surface-paper`.
-
+  kept landed as one family in his word: the clock ruled to 8s on every lamp with `--aurora-cadence` beside
+  it as a sibling (three laps, 24s), and `SectionLight` as the field's one mount. The no-light-ground ruling
+  became a CSS fence keyed on `[data-section-light]`, scoped so the four shipped seams keep their paper
+  history. Being the first lamp on the transform drive exposed that drive's missing resting `translate`,
+  which parked the comet dead centre at full strength for every reduced-motion visitor.
 - `type-wiring` (merged `0a52c8dc`; bible 5 ruled at `aaa057dd`, the ledger gone at `4c5500da`). Will's
   type ruling shipped: ladder B baked as one `@theme static` block of nine `--text-*` steps generated from
   the board's own `themeBlock(B)` rather than retyped, each a clamp through (375) and (1440). Three
   four-breakpoint ramps collapsed to one class each and about sixty headings moved onto a step by ROLE. Four
-  traps were measured (`text-card` is already a colour so the step ships as `card-title`; a step's tracking
-  beats `font-heading`'s flat value, kept as the off-ladder fallback; `cn()` silently dropped a step beside a
-  text colour until `utils.ts` declared the ladder to tailwind-merge; `tracking-tight` is 0em here), all held
-  by `type-ladder-policy.test.ts`. The board retired into Foundations. Left for Will at 375: marketing's
-  sub-heads (20) out-shout the `prose` h2 above them (18), the dead-link title is 18 beside 17px body.
+  traps were measured and held by `type-ladder-policy.test.ts`, the sharpest being that `cn()` silently
+  dropped a step beside a text colour until `utils.ts` declared the ladder to tailwind-merge. The board
+  retired into Foundations. Left for Will at 375: marketing's sub-heads (20) out-shout the `prose` h2 above
+  them (18), and the dead-link title is 18 beside 17px body.
+- `light`, round eight (merged `ee0b21d6`), the board's last: it found why round seven showed nothing (its
+  effects all painted behind or under opaque boxes).
 
-- `light`, round eight (merged `ee0b21d6`), the board's last: the proposals asked as steps he could see,
-  which found why round seven showed nothing (its effects all painted behind or under opaque boxes).
-
-**The third batch (`c9903c99`, `dc4530df`).** Will finished round seven's walk on the ALIAS, which
-still served that round because no `[preview]` had followed `aaa057dd`, so his line arrived as `r7`
-against a tree on round eight. It was transcribed against round seven's own spec (`lab-review --root`
-on a scratch tree; today's spec refuses `r7` by design), which closes all twelve of that round's
-cards: the bloom kept, the halo kept "only to light objects from behind" and never as a button
-wrapper, the beam kept with "matching radii", and the Aurora's placement "a mix of all of them...
-custom and bespoke, not a couple of identity components reused everywhere in the same way constantly."
-Round eight lost the three steps that answered inside the round and stood at `depth`, `face` and
-`sweep`, 539 words. The beam's defect was the board's: the specimen's card named a radius token that
-does not exist, computed square, and the vendored library refuses a zero and falls back to 16px, so
-`ProCardBeam` measures its card's corner now, zero included, under a contract. The Aurora reached the
-home page the same day, each place composed for itself: the closer takes light at its bottom edge only,
-rising from the line it shares with the footer's seam so the two read as one horizon, and the guest
-ledger is lit from its open side. `SectionLight` lost its default placement and gained `from` and
-`reach`, and its contract refuses one page stamping a composition twice; a section with no boundary line
-cannot take a band, since the lamp's box clips the falloff into a hard line. One lane cut:
-`publish-bloom`. The lesson is in the manifest: the alias is rebuilt whenever a board changes.
+**The third batch (`c9903c99`, `dc4530df`).** Will finished round seven's walk on the ALIAS, which still
+served that round because no `[preview]` had followed `aaa057dd`, so his line arrived as `r7` against a tree
+on round eight, and was transcribed against round seven's own spec on a scratch tree. It closed all twelve
+of that round's cards: the bloom kept, the halo kept "only to light objects from behind" and never as a
+button wrapper, the beam kept with "matching radii", and the Aurora "a mix of all of them... custom and
+bespoke, not a couple of identity components reused everywhere in the same way constantly."
+The beam's defect was the board's: the specimen's card named a radius token that does not exist, computed
+square, and the vendored library refuses a zero and falls back to 16px, so `ProCardBeam` measures its
+card's corner now, zero included, under a contract. The Aurora reached the home page the same day, each
+place composed for itself: the closer takes light at its bottom edge only, rising from the line it shares
+with the footer's seam so the two read as one horizon, and the guest ledger is lit from its open side.
+`SectionLight` lost its default placement and gained `from` and `reach`, and its contract refuses one page
+stamping a composition twice. The lesson is in the manifest: the alias is rebuilt whenever a board
+changes.
 
 **The fourth batch (`871f650b`).** `light r8` answered every step (`depth=both`: "I now see how step,
 ring, lift, and float work together"; `face=keep`, with "a tweak to feel more polished" and the radius
@@ -118,32 +98,28 @@ on the old code, 25 open steps pass).
   a light ground through the ONE fence rule extended rather than copied. The violet keyframes left and
   `publish-light.test.tsx` holds 26 pins; signed in on the alias both resting states and the fence hold.
 
-**The fifth batch.** `floating-surfaces r7`: `entrance=by-frequency`, and `radius=nested` with "Today's
-panel corrected and Rounder seem to be the same option... If there's meant to be a difference, please
-pop this question back up." There is a difference (8px with 4px rows against 12px with 8px), hidden because
-both NEST and a tile was a third of true size: the corner is drawn filled at true size through the kit's new
-`TrueFit` (the fifth copy of that box, promoted at last), and a staged step re-asked only that pair. He also
-delivered **the v1 wordmark**: `src/lib/brand/wordmark.ts` holds his one path, `Logo` is the wordmark alone
-in `currentColor` on every door (22px in a bar), the social card draws the same path, and `logo.test.tsx`
-pins that it names itself, takes the ground's colour and has one home. The mark stays a stand-in until his
-v1 icon (ASSETS row 19).
+**The fifth batch.** `entrance=by-frequency`, and `radius=nested` with "Rounder seem to be the same
+option... please pop this question back up." There is a difference (8px with 4px rows against 12px with
+8px), hidden because both NEST and a tile was a third of true size: the corner is drawn filled at true size
+through the kit's new `TrueFit`, and a staged step re-asked only that pair. He also delivered **the v1
+wordmark**: `src/lib/brand/wordmark.ts` holds his one path, `Logo` is the wordmark alone in `currentColor`
+on every door (22px in a bar), the social card draws the same path. The mark stays a stand-in until his v1
+icon (ASSETS row 19).
 
 **The sixth batch.** `roundness=nested` ("Still no visual difference, but let's go with your pick for now")
 closes floating surfaces. Then the one that matters: **Will killed the brand voice exploration.**
-`brand-voice r7` left `voice` open in his own words and answered the three questions the voice never
-decided (`noun=album`, `unfurl=join`, `counts=hero` with a layout note). His reason: the agent "worked too
-hard trying to generate multiple unique voices rather one that's perfect, then we kept running in through
-unreviewed rounds to dig deeper into each without shaping along the way." The tree agreed: it had reached
-ROUND SEVEN with `docs/reviews/brand-voice.json` never once written, carrying six voices, 24 spots, 510
-strings and 4,121 lines, and its own contract made two voices that AGREED owe a written excuse, which is the
-machine that forced them apart. Two rules stopped being prose: `registry.test.ts` fails a board past round 1
-with no ledger (four are grandfathered in a list that only shrinks), and options are never forced apart. He
-chose to keep none of the 510 lines, so `voice-picks` shipped his three answers and the board's own deletion
-follows; a new `voice` board rebuilds the voice from won lines, one real line in its real place at a time,
-with what his wins have in common written up after each round and the next round's candidates drafted in it.
-He specified that form himself after withdrawing a two-draft idea of his own: a shape that "would likely
-require many fine notes over one cohesive answer" is the wrong shape, whatever its content. He also
-corrected the counts premise: the band below the hero is "paired with a demo video, not the demo event".
+`brand-voice r7` left `voice` open and answered the three questions the voice never decided
+(`noun=album`, `unfurl=join`, `counts=hero`). His reason: the agent "worked too hard trying to generate
+multiple unique voices rather one that's perfect, then we kept running in through unreviewed rounds to dig
+deeper into each without shaping along the way." The tree agreed: ROUND SEVEN with
+`docs/reviews/brand-voice.json` never once written, six voices and 4,121 lines deep, and its own contract
+made two voices that AGREED owe a written excuse, which is the machine that forced them apart. Two rules
+stopped being prose: `registry.test.ts` fails a board past round 1 with no ledger (four grandfathered in a
+list that only shrinks), and options are never forced apart. He kept none of the 510 lines, so `voice-picks`
+shipped his three answers; a new `voice` board rebuilds the voice from won lines, one real line in its real
+place at a time, the wins written up after each round and the next round's candidates drafted in that. He
+specified that form himself after withdrawing a two-draft idea of his own: a shape that "would likely
+require many fine notes over one cohesive answer" is the wrong shape, whatever its content.
 
 - `light-wiring` (merged `47bba92a`; bible 10 and 11 ruled and the ledger gone in the same window). Depth
   became four techniques with one job each: the step and the ring everywhere, `--shadow-lift` only where one
@@ -154,7 +130,6 @@ corrected the counts premise: the band below the hero is "paired with a demo vid
   `elevation-policy.test.ts` refuses the four ways back in. The bright edge shipped as one `data-lit`
   attribute on the box that owns the radius, fenced to dark grounds, its contract mutation-tested twelve
   ways. Foundations gained the legend Will said made the system legible; the shimmer stays unwired.
-
 - `voice-picks` (merged `2735ad92`). The only three things the killed exploration decided, shipped as working
   versions. `noun=album` swept **17** guest strings, not the five the board claimed, and deliberately left the
   CODE noun alone (`/api/guests/gallery`, `gallery-access*`, `LiveGallery`): guest-flow.md records that split
@@ -164,6 +139,28 @@ corrected the counts premise: the band below the hero is "paired with a demo vid
   its digit RUNS (it took the first integer and swallowed the rest, so 48 would have sat dead beside a popping
   312). Three marketing mocks quoted the old guest copy and nothing went red because they were never pinned;
   swept at the merge and added to `mock-parity.test.ts` so the next sweep takes them along.
+- `floating-wiring` (merged `8bb6aa9e`; bible 15 ruled and the ledger gone in the same window). Card shipped
+  as PARTS a menu may leave out rather than a shape baked into the panel, which is the board's own cost line
+  answered ("a two-row menu is suddenly furniture"): five menus gained a title row, labelled groups in
+  Glass's treatment, an icon rail and a footer rail; two wear the layer and nothing else, each saying so.
+  Bible 15 became a MODULE, `ui/floating-layer.ts`, with the row's corner DERIVED from `--radius-float`, so
+  the ruled 8/4 pair is one token to retune, and its first test refuses a panel that spells its own corner
+  or clock, a fourth clock rung, an exit slower than its entrance, a new primitive nobody listed, and any
+  `backdrop-filter` while Glass is banked. `select` joined the family (it wore `rounded-md` and no entrance
+  at all). The submenu is portalled and capped at two levels. Entrances by frequency: instant for the
+  tooltip, dropdown, submenu and select, standard for the popover and the dialog, the sheet's own edge rung.
+
+**The lab itself, upgraded (Will asked for it while the lanes ran).** Measured first across all 21 open
+steps: the stage sat up to 5.6 SCREENS below the option it answers to, one step was 19.7 screens tall, and
+nothing in the lab was sticky anywhere. That is what "clicking the configs didn't seem to change anything"
+actually was, twice. A step now reads the way a configurator does, stage above the options and pinned with
+the knobs that drive it, at every width: out of reach went 3 of 11 to 0, worst reach 5.6 screens to -0.2,
+tallest step 19.7 to 6.6. `look`, the author's sentence naming what separates the options, was carried on
+the step type and never rendered, which left river-visual's four words-only steps as a question and three
+unlabelled words; it prints now, and `registry.test.ts` requires one from any ask that draws nothing.
+`lab:demo` fails a stage that drifts back below its options, and prints the tallest step, the wordiest, and
+that 45% of the sitting asks with nothing to press. And the paste now says which build composed it, so the
+batch that arrived a round behind can be told apart from one composed on the tree.
 
 **The alias.** Rebuilt whenever a board or a wiring changes; the smoke's result is STATUS's live state.
 
