@@ -75,7 +75,6 @@ are cut (development is parallel work again), the light sitting continues on its
 | --- | --- | --- |
 | `type-wiring` | type-scale (retires) | the lane: ladder B as one `@theme` block, every heading on a step, the Library's Type section; holds `theme.css`, `marketing.css` and one block of `globals.css` |
 | `light` | light (round eight) | the lane: six steps Will can see (`landing`, one `depth` question on one scene, the lit face, three marks that run) |
-| `aurora-wiring` | none | the lane: the 8 second clock, `SectionLight`, the Aurora's three forms in the Library; holds `globals.css`; the home page's two call sites wait on Will's `landing` |
 
 ## Waiting on Will
 
@@ -176,5 +175,10 @@ palette and light first), pasted in batches with Copy so far.
   Copy so far never re-sends a held note nor anything for a step the board withdrew (`composeSoFar` takes
   the open round's shape; `Transcribed.notes`). Three lanes cut: `type-wiring`, `light` (round eight),
   `aurora-wiring`.
+- `2987a5e5` aurora-wiring integrated (the 8 second clock, `--aurora-cadence`, `SectionLight` with its
+  contract and its fence on paper, the Library's Aurora entry and the `SectionLight` entry, the transform
+  drive's resting translate; the manifest deleted); the tuner knob's default and words follow it.
+  `globals.css` is the Orchestrator's again, except the `@utility font-heading` block while
+  `type-wiring` is open.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
