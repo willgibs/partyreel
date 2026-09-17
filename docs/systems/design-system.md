@@ -489,6 +489,12 @@ Three things the wiring measured, each of which fails SILENTLY, now held by
   `0em` here and cancels it through `--tw-tracking`; never put one beside a step. `--tracking-tight`
   stays `0em` so the 90+ legacy `tracking-tight` usages are no-ops on everything else.
 
+**The one written exception: a LABEL inside a heading tag is not on the ladder.** The event feed's
+section header (`app/event-feed/feed-section-header.tsx`) is an 11px uppercase Inter label inside an
+`h2`, and the admin metric bands are its 14px cousin. The tag is there for the document OUTLINE, the
+look is a label, and this is the heading FACE's ladder: nothing set in Inter joins it. Restyling the
+feed is its own decision and not this ruling's, so until one is taken, do not "fix" these onto a step.
+
 **Weight is still tiered on top of the step** (one face, weight per tier; app page and card titles take
 the heading face, never Inter): page titles **700** via
 [`PageHeading`](../../src/components/shared/page-heading.tsx), the ONE source for every app and admin
