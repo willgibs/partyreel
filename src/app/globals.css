@@ -277,7 +277,7 @@
   ); /* = --ease-in-out-strong (on-screen movement) */
   --tune-rvl-title-ms: 1700ms; /* the title hold */
   /* The reel-experience beats: the publish flourish + the sheet/swap family. */
-  --tune-rxp-pub-ms: 700ms; /* publish flourish (share-card bloom / studio glow) */
+  --tune-rxp-pub-ms: 700ms; /* the publish beat: the Studio's confirmation card's hold (JS reads it; the light's swell is the engine's own clock) */
   --tune-rxp-sheet-ms: 260ms; /* studio sheets + content swaps (under the 300ms ceiling) */
 }
 

@@ -117,19 +117,12 @@ Three lanes cut at `c338c95c`: `type-wiring`, `light` (round eight) and `aurora-
   measured at 375: marketing's sub-heads (20 flat) now out-shout the `prose` h2 above them (18) on
   /about and /help, the dead-link title is 18 beside 17px body, and the guest title went 28 to 24.
 
-- `light`, round eight (merged `ee0b21d6`; its touchpoint and the ASSETS rows at the next commit). The
-  same proposals asked as six steps Will could see, in the order the wiring needs them: where the
-  Aurora sits (four tiles on the real closer through the shipped `SectionLight`), shadows in dark mode
-  (ONE scene with four heights, the front card above the back one, a legend that says the four are not
-  rivals, two switches that take the outlines and the lighter panels away), the thin bright edge (a
-  fixed 4x corner on both halves), and three moments of light as asks so `landing` stays first. It
-  found why round seven showed nothing: the sweep ran BEHIND an opaque frame the size of its own box
-  (the "static gray edge ring" he saw was the frame's border), Replay re-keyed only a bloom, the bright
-  edge was an inset shadow painted under the photo, and the halo's wash sat under an opaque button. Every
-  mark was proven by two samples 500 ms apart at both widths, then looked at. The board recommends
-  `both` on the first two, `keep` on the bloom (the half the publish wiring waits on: rest on a base or
-  on nothing) and `skip` on the edge, the sweep and the halo. The composer, the kit and the twelve
-  previews were deleted; 700 words of 1,200.
+- `light`, round eight (merged `ee0b21d6`). The same proposals asked as steps Will could see: where the
+  Aurora sits, shadows in dark mode on ONE scene with a legend that says the four are not rivals, the
+  thin bright edge with a fixed 4x corner, and three moments of light. It found why round seven showed
+  nothing: the sweep ran BEHIND an opaque frame the size of its own box (the "static gray edge ring"
+  was the frame's border), Replay re-keyed only a bloom, the bright edge was painted under the photo,
+  the halo's wash sat under an opaque button. The composer, the kit and the twelve previews deleted.
 
 **The third batch (`c9903c99`, `dc4530df`).** Will finished round seven's walk on the ALIAS, which
 still served that round because no `[preview]` had followed `aaa057dd`, so his line arrived as `r7`
@@ -151,13 +144,31 @@ lamp's box clips the falloff into a hard line), which design-system.md now says.
 entry holds the bloom and the halo as working specimens. One lane cut: `publish-bloom`. The lesson is
 in the manifest: the alias is rebuilt whenever a board changes.
 
-**The alias.** Rebuilt at `a964d4a6` the moment Vercel's cap freed (00:16 UTC), the production smoke
-at 261 checks with the door closed; rebuilt again on the two wirings (the `[preview]` commit after the
-hero's fold; the smoke's result is STATUS's live state).
+**The fourth batch (`871f650b`).** `light r8` answered every step (`depth=both`: "I now see how step,
+ring, lift, and float work together"; `face=keep`, with "a tweak to feel more polished" and the radius
+mismatches he saw in the preview; `sweep=skip`, the shimmer banked as "a delight moment") and
+`floating-surfaces r7` picked Card with Glass's quieter group labels and no one-off glass, kept the
+submenu at two levels, and asked by name for a Glass exploration across marketing and app. He stopped
+there: "Clicking the configs didn't seem to change anything." The presses had registered; the 6x
+corner drawing he was judging was read once and never again (`useCorner`), a press on a catalog
+card's picture landed inside its frame (`catalog.tsx`, the preview inert on a pressable card now), and
+rounding's stage mounted lazily on the home page's hero. `pnpm lab:demo` is the check that was
+missing: real Chrome over its DevTools protocol, pressing every open step and failing a stage that
+moves under 0.1 percent (FROZEN on the old code, 25 open steps pass). That board's shadow ask left
+inside the round, answered by `depth=both`.
 
-**Next.** `publish-bloom` is open (the publish moment in the house five, resting lit). Will's sitting
-continues on the light board's three steps, then the album hero's four; three phone-end calls from the
-type wiring wait on him.
+- `publish-bloom` (merged `7e713fe8`). The publish moment joined the Aurora: the engine's bloom in the
+  house five as wings behind the Studio's frame and as a pool under the share card, mounted only while
+  a reel is shared, the swell owed to the tap (`sharedHere`, which also ended the violet replaying on
+  every load of a shared reel), nothing on a light ground through the ONE fence rule extended rather
+  than copied. The violet keyframes left; `publish-light.test.tsx` holds 26 function pins. Owed: the
+  signed-in pass on the alias.
+
+**The alias.** Rebuilt whenever a board or a wiring changes; the smoke's result is STATUS's live state.
+
+**Next.** `light-wiring` (the two shadows by role, the four depth techniques in the Library, the
+bright edge redrawn, the board retired). Will's sitting continues on floating-surfaces' radius and
+entrance, then rounding; Card's wiring is cut on those two answers; three phone-end type calls wait.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
 

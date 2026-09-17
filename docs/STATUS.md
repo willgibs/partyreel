@@ -34,15 +34,15 @@ type-scale, floating-surfaces, rounding, brand-voice and the media kit, and a pi
 day he makes it (the wind-down: a favourite becomes a working version in the Library, the board retires).
 The kit findings the boards raised are the ROADMAP's first Now lines; none blocks the sitting.
 **The sitting's first night (2026-09-17):** the hero's round six answered none and round seven built in the
-root tree; his batch then picked the hero (`stream=stack-above`, the caption under the code dropped) and
-the palette (`graphite`, no accent, the card as declared, the faint colour in), answered four of the
-light board's asks and ruled the aurora off the light ground. Two wiring lanes are cut (`hero-wiring`,
-`palette-wiring`; the wind-down: each board retires as its favourite becomes a working version); the
-light sitting continues on its cards; Copy so far sends only a board's open round now (`a6afec3b`).
+root tree; his batch picked the hero (`stream=stack-above`) and the palette (`graphite`, no accent), answered
+four of the light board's asks and ruled the aurora off the light ground; two wiring lanes cut.
 **The second batch (`1cb34f70`):** the type scale ruled and the throw and the aurora kept; three lanes cut
-(below). Copy so far never re-sends a held note nor anything for a withdrawn step (`4280a59c`).
+(below). Copy so far sends only a board's open round, never a held note nor a withdrawn step (`4280a59c`).
 **The third batch (`c9903c99`):** round seven's last cards, given on the alias while the tree sat on round
 eight: the bloom, the halo (objects only) and the beam kept, the Aurora placed as a mix composed per place.
+**The fourth batch (`871f650b`):** the light board answered in full (both shadows, the bright edge kept, the
+shimmer banked), Card picked with submenus at two levels, a Glass exploration banked by name; he stopped on
+a frozen stage, fixed the same day with `pnpm lab:demo` proving every open step shows its options.
 
 | track | returns | state |
 | --- | --- | --- |
@@ -53,7 +53,7 @@ eight: the bloom, the halo (objects only) and the beam kept, the Aurora placed a
 | `type-wiring` | the wind-down's third wiring: Will ruled the type scale on every ask (`ladder=b`, `tracking=adopt`, `not-found=on-ladder`): ladder B as one `@theme` block, every heading on a step, the three ramps collapsed, the dead link on the set, the board retired into the Library's Type section; four silent failures held by `type-ladder-policy.test.ts`; three phone-end findings wait on Will | integrated at `0a52c8dc`; bible 5 ruled at `aaa057dd` |
 | `light` (round eight) | the board had stopped his sitting twice (the cards did not show what they asked): steps he can see, ONE `depth` question on one scene with a legend, the bright edge with a fixed 4x corner, the streak of light that plays; round seven's sweep had run behind an opaque frame | integrated at `ee0b21d6`; cut to `depth`, `face`, `sweep` at `c9903c99` (539 words) once his third batch answered the other three |
 | `aurora-wiring` | the lamps he kept (the seam, the throw, the field: one Aurora, never on paper) as working versions: the 8 second clock, `SectionLight`, the Library's Aurora entry; the transform drive's reduced-motion still fixed on the way | integrated at `2987a5e5`; the home page's two places composed at `dc4530df` (the closer's horizon, the ledger lit from its side), no default placement |
-| `publish-bloom` | the publish moment joins the Aurora: the house five behind the studio's frame and the share card, resting lit while a reel is shared, nothing on a light ground; the violet keyframes leave | OPEN, cut at `dc4530df`; the Orchestrator verifies signed in on the alias at the merge |
+| `publish-bloom` | the publish moment joins the Aurora: the house five as wings behind the studio's frame and a pool under the share card, resting lit while a reel is shared, the swell owed to the tap, nothing on a light ground; the violet keyframes left | integrated at `7e713fe8`; the signed-in pass on the alias is owed |
 | `floating-surfaces` (round seven) | pick-one: the winner from the seven or none, the submenu, corner, entrance and shadow questions as tiles on one menu | integrated at `514aee2d`, 922 words, no declaration |
 | `rounding` (round seven) | pick-one: the winner from the six or none, the button, ladder, dead-rung and gap questions as tiles at true pixels | integrated at `7d90465c`, 684 words, no declaration |
 | `brand-voice` (round seven) | pick-one: the winner from the six voices or none on three lines at phone size, the noun, unfurl, counts and scope questions as steps | integrated at `0c1cfa60` |
@@ -75,15 +75,15 @@ is the record.
 
 - **Prod (partyreel.com)** = `main` @ tag `milestone-24` (`592da24`). **The `launch-prep` alias**
   (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the wind-down's wirings (Graphite, the
-  band out of the code, the type ladder, the Aurora on the home page) and the light board's three steps
-  (`dc4530df`, built 2026-09-17; the production smoke passed 246 checks at `c9903c99` with the door closed,
+  band out of the code, the type ladder, the Aurora on the home page, the publish light) and the fixed
+  lab steps (built 2026-09-17; the production smoke passed 246 checks at `c9903c99` with the door closed,
   the two glow boards over the reading budget on purpose). Will reviews on the alias as well as on his
   local `pnpm dev`, so **the alias is rebuilt whenever a board changes** (his third batch landed in the
   wrong round because it was not). Vercel's cap is 100 deployments per trailing day on every path
   (canceled deployments register, builds do not), so `[preview]` stays the Orchestrator's.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and
   fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 2,115 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on
+- **Tests:** 2,143 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on
   `main` and `launch-prep` code pushes only; an `lp/*` push only on `[ci]`).
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup GitHub Action (about
   06:30 UTC) are live; the deletion-aware backup prune ships in dry-run (`PRUNE_MODE=live` is a launch flip).
@@ -111,7 +111,7 @@ prune crons and the shared `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 The desk derives the steps (`/design/lab?key=`); the assets are in [`ASSETS.md`](ASSETS.md). Next from him:
-the stepped sitting, board by board (the light board's three steps, then the album hero), pasted in
+the stepped sitting, board by board (floating-surfaces' radius and entrance, rounding, the album hero), pasted in
 batches with Copy so far; three phone-end type calls (the CHANGELOG's `type-wiring` record); one question outside the walk, whether bible 20 means the naming or the
 shape (brand-voice); the assets still open: the menu ground photograph (row 14), the grain tile and the
 worst-case overlap pair (rows 15 and 16), the bright-edged tile set (row 17), and the media kit's 36 masters

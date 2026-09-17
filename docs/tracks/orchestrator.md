@@ -30,6 +30,7 @@ owns:
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
+  - src/app/globals.css
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
   - src/lib/events/visibility-labels.ts
@@ -76,7 +77,6 @@ are cut (development is parallel work again), the light sitting continues on its
 
 | track | board | waits on |
 | --- | --- | --- |
-| `publish-bloom` | none (a wiring round) | the agent; then the Orchestrator's signed-in pass on the alias (the studio at 1440 and 375, the share card in dark and in light) |
 
 ## Waiting on Will
 
@@ -205,5 +205,20 @@ palette and light first), pasted in batches with Copy so far.
   rises from the line it shares with the footer's seam; the guest ledger is lit from its open side),
   `SectionLight` without a default placement, the Library's Aurora entry with the bloom and the halo
   as working specimens. One lane cut: `publish-bloom`.
+- `871f650b` Will's fourth batch and the lab defect that stopped it: `light r8` fully answered
+  (`depth=both`, `face=keep`, `sweep=skip`) and `floating-surfaces r7` picks Card and keeps submenus at
+  two levels, with that board's shadow ask withdrawn inside the round. The radius step's 6x corner
+  drawing was read once and never again (`scenes.tsx` `useCorner` keeps reading), a press on a catalog
+  card's picture landed inside its frame (`catalog.tsx`: the preview is inert on a pressable card),
+  and rounding's stage mounted lazily on the home page's hero (eager, and it opens on the app).
+  `pnpm lab:demo` (`scripts/lab-demo.mjs`) presses every open step and fails a frozen stage: FROZEN
+  on the old code, 25 open steps pass on the fix. ★ Plan mode is inherited by a running agent: it
+  stops mid-build with its work uncommitted and resumes by `SendMessage` once the plan is approved.
+- `7e713fe8` publish-bloom integrated (the engine's bloom in the house five behind the Studio's frame
+  and as a pool under the share card, mounted only while shared, the swell owed to the tap through
+  `sharedHere`, nothing on a light ground through the ONE fence rule, the violet keyframes gone,
+  `publish-light.test.tsx` with 26 function pins; the manifest deleted). The one conflict was the
+  generated `docs/design/library.md`, regenerated on the merged tree. `globals.css` is the
+  Orchestrator's again. Owed: the signed-in pass on the alias.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
