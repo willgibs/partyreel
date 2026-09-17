@@ -1,5 +1,6 @@
 /**
- * THE LIGHT BOARD'S CANDIDATES AS PASTES (round two, 2026-09-14).
+ * THE LIGHT BOARD'S CANDIDATES AS PASTES (round two, 2026-09-14; cut to the
+ * two blocks still open at round eight, 2026-09-17).
  *
  * Round one argued the doctrine on a stage. This file is the other half: each
  * candidate as the EXACT CSS block the ruling would land, so the same text the
@@ -22,8 +23,8 @@
  *    and --tw-shadow. A block that writes `box-shadow:` on a ringed element
  *    silently deletes its ring, which on a walk reads as "the candidate
  *    removed the hairlines". So a shadow candidate writes --tw-shadow (the
- *    slot Tailwind already reserved for it) and the lit face, which has no
- *    slot of its own, re-states var(--tw-ring-shadow) as its first layer.
+ *    slot Tailwind already reserved for it), and the bright edge writes its
+ *    shadow on a pseudo-element, which has no ring to lose.
  *
  * A candidate block is unlayered CSS rendered after every stylesheet, and an
  * unlayered declaration outranks every @layer, so none of this needs
@@ -170,226 +171,52 @@ const LIT_PAPER = `inset 0 0 0 1px color-mix(in oklab, var(--foreground) 8%, tra
  * says "adopt, adapt or drop" on the three named surfaces and not on a page.
  */
 export const LIT_FACE: LightCandidate = {
-  label: "Light: the lit face (media frames, screens, plates)",
-  what: "Every media tile, player and QR plate gains a hairline and a lip. Nothing else on the page changes.",
+  label: "Light: the thin bright edge (photos, players, the QR card)",
+  what: "Every media tile, player canvas and QR card gains a hairline and a one pixel top highlight, drawn above the image. Nothing else on the page changes.",
   pages:
     "/ (the film strip), /features/qr, /features/album (three plates), an event page (the host gallery)",
-  css: `/* THE LIT FACE (light board, the separate job).
-   Not elevation: material. An inset hairline and a lip on a face that is
-   catching light. Three surfaces: a media frame, a screen, a plate.
-   var(--tw-ring-shadow) is re-stated first so the hairline ring survives. */
+  css: `/* THE THIN BRIGHT EDGE (light board, round eight).
+   Not elevation: material. A hairline and a one pixel lip on a face that is
+   catching light. Three kinds of surface: a photo, a player, the QR card.
+
+   ON A PSEUDO-ELEMENT, NEVER ON THE ELEMENT. An inset box-shadow paints above
+   an element's own background and BELOW its children, and a media tile's child
+   is an image covering the whole box: the edge would be drawn and then painted
+   over, which is exactly what round seven's card showed.
+
+   contain: paint makes each surface the containing block for its own
+   pseudo-element WITHOUT changing how the surface itself is positioned (some of
+   these are absolutely positioned already, so position: relative is not safe
+   to hand out). Every one of them clips its own overflow today, which is the
+   only other thing paint containment does. The wiring round replaces all three
+   selectors with one data-lit attribute. */
 
 [data-media-tile],
 .bg-gallery,
 .bg-card:has(.bg-white) {
+  contain: paint;
+}
+
+[data-media-tile]::after,
+.bg-gallery::after,
+.bg-card:has(.bg-white)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
   box-shadow:
-    var(--tw-ring-shadow, 0 0 #0000),
     ${LIT_DARK};
 }
 
 /* On paper the lip reads off the BOTTOM edge: lit from above still, read off
    the far edge instead of the near one. .bg-gallery is deliberately absent:
    it is a dark screen on every ground, so it keeps the dark form. */
-.surface-paper [data-media-tile],
-.surface-paper .bg-card:has(.bg-white) {
+.surface-paper [data-media-tile]::after,
+.surface-paper .bg-card:has(.bg-white)::after {
   box-shadow:
-    var(--tw-ring-shadow, 0 0 #0000),
     ${LIT_PAPER};
 }`,
 };
 
-/* ────────────────────────────────  THE AURORA  ──────────────────────────── */
-
-/**
- * THE AURORA AS A PASTE. The board proves the placement on a stage; the paste
- * carries the two halves a ruling actually decides, the REGISTER and the
- * CLOCK, because the placement is markup (a chapter mounts a lamp at each of
- * its boundaries) and markup is the wiring round's.
- *
- * ★ IT REACHES EXACTLY THE RIGHT LAMPS, BY ACCIDENT OF THE ENGINE. An inline
- * style beats any sheet, so this block reaches only lamps that do NOT tune
- * themselves inline. The footer seam passes one var (its cadence) and takes
- * the rest from the engine, so it moves; the QR hero's bloom hard-codes its
- * base and reach inline, so it does not. That split is the doctrine's own:
- * FILL takes the field's register, MARK keeps its own.
- *
- * ★ THE CLOCK IS A SIBLING TOKEN, NEVER A RE-TUNE OF --spill-cadence. The
- * cadence is a lamp's property and the evidence block rules its number, so the aurora
- * takes a MULTIPLE of it (three laps, the board's own ratio) under a name of
- * its own. Writing 33s into --spill-cadence would be the opposite ruling: it
- * would slow every shipped lamp, the footer seam that is the board's model
- * first, and it would fight the two cadence knobs, which write that same token.
- * Nothing on the site consumes the sibling yet, because the aurora's mounts
- * are markup and markup is the wiring round's; the register below is the half
- * of the ruling a paste can carry, and the clock row in the evidence is where the
- * ratio is judged.
- */
-export const AURORA_REGISTER: LightCandidate = {
-  label: "Light: the aurora register",
-  what: "Every ambient lamp drops to the field's register, so the page reads as a room with a temperature rather than as things glowing. The lamp's clock is untouched: the aurora's is a sibling token, three laps of it.",
-  pages: "/ (the footer seam, the film strip), /pricing, /help, /contact",
-  css: `/* THE AURORA'S REGISTER (light board, the composer).
-   A low base with a band near zero, and a clock several times slower than a
-   lamp's, because a field the size of a chapter moving at a lamp's clock
-   reads as a screensaver. Reaches the ambient lamps and leaves the moments
-   alone: a bloom tunes itself inline and an inline style wins. */
-
-:root {
-  /* The lamp's clock keeps its token and its number, whichever the cadence ruling picks.
-     The aurora gains a SIBLING, a multiple of it: 33s against today's 11s,
-     24s against the engine's ruled 8s. Re-pointing --spill-cadence itself
-     would slow every shipped lamp, which is a different ruling entirely. */
-  --aurora-cadence: calc(var(--spill-cadence) * 3);
-}
-
-[data-glw] {
-  --glw-base: 0.3;
-  --glw-strength: 0.13;
-  --glw-blur: 38px;
-}
-
-/* Paper needs MORE opacity for the same presence, not less: a tint at l 0.88
-   against a near-white page has far less contrast with its ground than the
-   same tint has against oklch(0.11). */
-.surface-paper [data-glw] {
-  --glw-base: 0.52;
-  --glw-strength: 0.24;
-}`,
-};
-
-/* ───────────────────────────────  THE PAPER FIVE  ───────────────────────── */
-
-/**
- * THE HAND-TUNED PAPER FIVE.
- *
- * globals.css declares --lamp-1..5 once, at the dark register (l 0.72), and
- * NOTHING overrides them on paper: a media-less lamp on a paper chapter is
- * lighting a near-white page with a colour picked for a near-black room, and
- * that is the "dirty rather than lit" failure the sampled paper register was
- * invented to fix (sampled-palette.ts, SPILL_REGISTER.paper). The sampled path
- * fixed it for lamps WITH media; the house five never got the same treatment,
- * and design-system.md says so itself ("a hand-tuned paper five is still an
- * open design task"). This is that task.
- *
- * Why hand-tuned rather than one flat l 0.88 / c 0.08 row: the failure is per
- * hue and it is predictable. 85 amber goes dirty against white long before the
- * others, so it wants more lightness and less chroma; 155 green is muddier
- * still; 255 blue and 305 violet stay clean and can carry the chroma that
- * makes the light read as light at all. The five HUES are untouched, exactly,
- * which is the part that is the identity.
- */
-export const PAPER_FIVE_VALUES = [
-  "oklch(0.88 0.085 25)",
-  "oklch(0.905 0.07 85)",
-  "oklch(0.895 0.065 155)",
-  "oklch(0.87 0.085 255)",
-  "oklch(0.87 0.09 305)",
-] as const;
-
-/** The flat row the proposal replaces: SPILL_REGISTER.paper applied to the
- *  five house hues, which is what the sampled path would produce for them. */
-export const PAPER_FLAT_VALUES = [
-  "oklch(0.88 0.08 25)",
-  "oklch(0.88 0.08 85)",
-  "oklch(0.88 0.08 155)",
-  "oklch(0.88 0.08 255)",
-  "oklch(0.88 0.08 305)",
-] as const;
-
-export const PAPER_FIVE: LightCandidate = {
-  label: "Light: the paper five",
-  what: "Every lamp on a paper chapter is re-lit for a near-white page. The clearest look is the footer seam where the paper chapter meets the ink slab.",
-  pages:
-    "/ (the paper chapter: the album, curation, privacy), /pricing, /help, /contact",
-  css: `/* THE PAPER FIVE (light board, the evidence).
-   globals.css declares the lamp set once, at the dark register, and nothing
-   re-declares it on paper: a house lamp on a near-white page is wearing a
-   colour chosen for a near-black room. Same five hues, hand-tuned per hue,
-   because the failure is per hue: 85 and 155 go dirty against white long
-   before 255 and 305 do. */
-
-.surface-paper {
-  --lamp-1: ${PAPER_FIVE_VALUES[0]};
-  --lamp-2: ${PAPER_FIVE_VALUES[1]};
-  --lamp-3: ${PAPER_FIVE_VALUES[2]};
-  --lamp-4: ${PAPER_FIVE_VALUES[3]};
-  --lamp-5: ${PAPER_FIVE_VALUES[4]};
-}`,
-};
-
-/* ────────────────────  THE ENGINE'S ONE LINE (round three)  ─────────────── */
-
-/**
- * NOT AN "APPLY" CANDIDATE, AND DELIBERATELY SO: nothing on the site uses the
- * transform drive today, so applying this block to the running site would
- * change nothing visible, and a button that does nothing is worse than no
- * button. It is here because the evidence block's drive row proposes that the FIELD take
- * that drive, and the drive arrives with a law 4 defect that has never been
- * seen precisely because no shipped lamp uses it.
- *
- * glw-drift-x runs `translate: 32% 0` to `-32% 0`, and the animation lives in
- * the no-preference block, so the state a reduced-motion visitor gets is the
- * unanimated one: translate 0, the comet parked dead centre at full
- * --glw-strength. That is the same inversion the mask drive had fixed when its
- * resting mask-position was moved to its own from-keyframe. One line puts the
- * cheap drive back inside law 4.
- */
-export const ENGINE_DRIVE_FIX = `/* THE TRANSFORM DRIVE'S REST STATE (light board, the evidence).
-   Law 4: the base is how a reduced-motion arrival still arrives, band away.
-   glw-drift-x's own from-keyframe, declared OUTSIDE the no-preference block,
-   exactly as [data-glw-drive="mask"] already declares mask-position: 150% 0.
-   Without it the drive's rest state is translate 0, which is the middle of
-   its travel: the comet parked dead centre at full strength, forever, for
-   every visitor who asked for less motion. No shipped lamp uses this drive
-   today, which is the only reason the defect has never been seen. */
-
-[data-glw-drive="transform"] [data-glw-band] {
-  translate: 32% 0;
-}`;
-
-export const LIGHT_CANDIDATES = [
-  SHADOW_FAMILY,
-  LIT_FACE,
-  AURORA_REGISTER,
-  PAPER_FIVE,
-] as const;
-
-/* ─────────────────────────  THE PUBLISH BEAT (round six)  ───────────────── */
-
-/**
- * THE PUBLISH FLOURISH, LEANED TO 305.
- *
- * ★ IT IS A RATIFIED VALUE BEING MOVED, WHICH IS WHY IT IS ASKED RATHER THAN
- * TAKEN. `@keyframes rxp-pubglow` flashes oklch(0.62 0.2 300), the --reel
- * action hue, and returns to `transparent`: the beat leaves the object exactly
- * as it found it. The proposal moves the hue five degrees onto the lamp set's
- * own violet and lands the beat on a resting inset rather than on nothing, so
- * the frame stays faintly lit afterwards, which is what every other mark in the
- * kit does.
- *
- * ★ A KEYFRAME CANNOT BE OVERRIDDEN BY A TOKEN, so this re-declares the whole
- * animation. An unlayered candidate block is rendered after every author sheet
- * and a later @keyframes of the same name replaces the earlier one outright,
- * which is exactly the behaviour a paste wants here.
- */
-export const PUBLISH_LEAN: LightCandidate = {
-  label: "Light: the publish beat, leaned to 305",
-  what: "The publish flourish flashes the lamp set's violet instead of the reel's action hue, and decays to a soft resting inset rather than to nothing.",
-  pages: "The reel's publish moment, on an event you own",
-  css: `/* THE PUBLISH BEAT (light board, the mark job).
-   Five degrees, and a base. The hue joins the lamp set instead of borrowing
-   the action colour, and the beat decays to a resting inset so the object
-   stays lit after the moment, which is what a bloom is for. */
-
-@keyframes rxp-pubglow {
-  0% {
-    box-shadow: inset 0 0 0 0 transparent;
-  }
-  35% {
-    box-shadow: inset 0 0 46px 2px oklch(0.62 0.2 305 / 0.55);
-  }
-  100% {
-    box-shadow: inset 0 0 22px 1px oklch(0.62 0.2 305 / 0.14);
-  }
-}`,
-};
+export const LIGHT_CANDIDATES = [SHADOW_FAMILY, LIT_FACE] as const;
