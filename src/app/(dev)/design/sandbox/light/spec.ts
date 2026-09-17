@@ -346,41 +346,14 @@ export const LIGHT = defineBoard({
         "One token in globals.css: every lamp on the site, and the field's own slower clock, multiply from it.",
       strip: ["canvas"],
     },
-    {
-      id: "paper",
-      question: "On the light ground, which lamp colours should be used?",
-      context:
-        "The five lamp hues were tuned against a near-black room, and nothing re-declares them on paper, so a lamp on a light chapter wears colours picked for the dark. Two of the five go dirty against white.",
-      options: [
-        {
-          id: "hand-tuned",
-          label: "A hand-tuned paper set",
-          means:
-            "Each of the five corrected on its own for paper, and paper declares its own row.",
-          state: { hues: "hand-tuned" },
-        },
-        {
-          id: "flat",
-          label: "One flat correction for all five",
-          means:
-            "The dark five with a single lightness and chroma change applied to every one of them.",
-          state: { hues: "flat" },
-        },
-        {
-          id: "dark",
-          label: "The dark five, unchanged",
-          means: "Paper keeps the cinema hues exactly as they ship today.",
-          state: { hues: "dark" },
-        },
-      ],
-      recommended: "hand-tuned",
-      look: "Judge the hues, not the brightness.",
-      evidence: "hues",
-      control: "hues",
-      lands:
-        "The five hues re-declared on the paper surface: the first time the lamp set is tuned per ground.",
-      strip: ["canvas"],
-    },
+    // ★ THE `paper` ASK WAS WITHDRAWN (Will, 2026-09-17, on the board): "After
+    // experimenting with these, we may not be able to use the Aurora on
+    // white/paper surfaces... No light ground usage is a decision for now."
+    // The question assumed a lamp on the light ground; the decision is that
+    // there is none, which no option said, so the ask leaves rather than sit
+    // on the desk unanswered. The hues section stays as the evidence he judged
+    // it on; docs/design/rulings.md carries the words and the ROADMAP the flag
+    // on the app's light mode.
     {
       id: "publish",
       question: "What colour should the publish flourish be?",
