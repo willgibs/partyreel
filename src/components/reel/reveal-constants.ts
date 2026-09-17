@@ -32,9 +32,21 @@ export const RVL_MS = {
   "--tune-rvl-title-ms": 1700, // the title hold
 } as const;
 
-/** The reel-experience beats (publish flourish + sheets/swaps). */
+/**
+ * The reel-experience beats (the publish beat's hold + sheets/swaps).
+ *
+ * ★ `--tune-rxp-pub-ms` IS A TWO-PLACE KNOB NOW. It used to time the two violet
+ * keyframes as well; those left when the publish moment took the house light
+ * (2026-09-17, publish-light.tsx), so no `var(--tune-rxp-pub-ms, ...)` fallback
+ * exists in globals.css to mirror any more: the `:root` bake and this constant
+ * are the whole contract. It times the Studio's confirmation card and nothing
+ * else. The light's swell is the engine's bloom (1400ms, shared with the QR
+ * plate) and is deliberately NOT on this knob: the engine exposes no duration for
+ * a one-shot, and reaching into its band from outside would be a second writer
+ * on the engine's own element.
+ */
 export const RXP_MS = {
-  "--tune-rxp-pub-ms": 700, // the publish flourish (bloom / canvas glow)
+  "--tune-rxp-pub-ms": 700, // the publish beat: the Studio's confirmation card holds this + 900ms
   "--tune-rxp-sheet-ms": 260, // studio sheets + content swaps (under the 300ms ceiling)
 } as const;
 

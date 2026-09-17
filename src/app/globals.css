@@ -1061,10 +1061,17 @@
      [data-rxp-swap]        a content-swap entrance (state transitions ONLY —
                             @starting-style fires on FIRST PAINT, so never put
                             this on anything already present when the page loads)
-     [data-rxp-share]       the share card; [data-state="on"] fires the bloom
+     [data-rxp-share]       the share card; [data-state] is its state hook, and no
+                            rule here reads it since the violet ring left
      [data-rxp-studio]      the Studio room's takeover enter
      [data-rxp-sheet]       the Studio's control sheets (slide up over the canvas)
-     [data-rxp-pubglow]     the publish beat glowing on the canvas frame
+     [data-rxp-framelight] / [data-rxp-cardlight]
+                            the publish light's two lamp boxes, behind the Studio's
+                            frame and under the share card (publish-light.tsx).
+                            NO rule in this block: the light is the engine's bloom
+                            in the house five, resting lit while a reel is shared,
+                            and the card's box is named once, on the light-ground
+                            fence in the engine block below
      [data-rxp-toastcard]   the "Guests can now watch" confirmation
      [data-rxp-gstage] / [data-rxp-gscreen] / [data-rxp-gflash] /
      [data-rxp-gscrim] / [data-rxp-gtitle] / [data-rxp-gend]
@@ -1301,11 +1308,6 @@
       transform: translateY(10px) scale(0.99);
     }
   }
-  /* The publish flourish: the card flips state under 300ms, then ONE violet
-     bloom rides out from it (the occasional-frequency tier). */
-  [data-rxp-share][data-state="on"] {
-    animation: rxp-bloom var(--tune-rxp-pub-ms, 700ms) var(--ease-emphasis) both;
-  }
   /* The Studio enters like a SCENE, not a page: a scale settle from 1.03 on the
      strong curve (the film-cut grammar, softened). */
   [data-rxp-studio] {
@@ -1325,10 +1327,6 @@
       opacity: 0;
       transform: translateY(100%);
     }
-  }
-  [data-rxp-pubglow] {
-    animation: rxp-pubglow var(--tune-rxp-pub-ms, 700ms) var(--ease-emphasis)
-      both;
   }
   [data-rxp-toastcard] {
     transition:
@@ -1406,8 +1404,6 @@
   /* The flourishes are pure theater: reduced motion arrives without them (the JS
      side skips their holds too, so the state lands immediately). */
   [data-rvl-flash],
-  [data-rxp-share][data-state="on"],
-  [data-rxp-pubglow],
   [data-rxp-gstage][data-act="flash"] [data-rxp-gflash] {
     animation: none !important;
   }
@@ -1422,27 +1418,6 @@
   }
   100% {
     opacity: 0;
-  }
-}
-
-@keyframes rxp-bloom {
-  0% {
-    box-shadow: 0 0 0 0 oklch(0.62 0.2 300 / 0.45);
-  }
-  100% {
-    box-shadow: 0 0 0 18px oklch(0.62 0.2 300 / 0);
-  }
-}
-
-@keyframes rxp-pubglow {
-  0% {
-    box-shadow: inset 0 0 0 0 transparent;
-  }
-  35% {
-    box-shadow: inset 0 0 46px 2px oklch(0.62 0.2 300 / 0.55);
-  }
-  100% {
-    box-shadow: inset 0 0 0 0 transparent;
   }
 }
 
@@ -2369,9 +2344,22 @@
    ship (the footer's, the film strip's, the screen lamps') have their own
    paper behaviour and their own history; widening this to the engine would
    silently unlight four production lamps. What the engine does on paper today
-   is a separate question for Will, not a side effect of this rule. ── */
+   is a separate question for Will, not a side effect of this rule.
+
+   ★ ONE FENCE, A LIST OF LAMP BOXES. A lamp that can find itself on a light
+   ground is NAMED here, in this rule, and never given a second copy of it: two
+   fences drift, and the one that drifts is the one nobody re-reads. The share
+   card's publish light ([data-rxp-cardlight], publish-light.tsx) is the first
+   lamp in the APP, which follows the host's theme, so in light mode the card
+   takes no coloured light and its check and its words carry the moment. The
+   Studio's twin ([data-rxp-framelight]) is deliberately NOT here: that room is
+   a literal near-black in both themes and carries no `.dark`, so fencing it
+   would switch the light off over a ground that is not light. The hook sits on
+   the LIGHT's box, never on the object: `display: none` takes what it names. ── */
 [data-section-light]:not(.dark *),
-.surface-paper [data-section-light] {
+.surface-paper [data-section-light],
+[data-rxp-cardlight]:not(.dark *),
+.surface-paper [data-rxp-cardlight] {
   display: none;
 }
 

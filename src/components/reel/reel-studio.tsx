@@ -9,9 +9,11 @@
  * (reorder, without swapping modes) or a sheet that slides over it (the four
  * settings), so the reel is never off screen while the host works on it.
  *
- * The one loud action in here is Share, framed BY the canvas: the glow breathes on
- * the reel's own frame, because what is being published is the thing you are
- * looking at.
+ * The one loud action in here is Share, and what answers it is the canvas: what
+ * is being published is the thing you are looking at, so the reel's own frame is
+ * what lights up. A SHARED reel rests lit from behind, in the house five, for as
+ * long as it is shared (Will, 2026-09-17; publish-light.tsx holds the rulings and
+ * the lamp). The light is never over the media and never on the Share button.
  */
 
 import { Check, Download, Lock, Share2, X } from "lucide-react";
@@ -29,6 +31,7 @@ import {
   formatReelDuration,
   formatReelMeta,
 } from "@/components/reel/poster-card";
+import { StudioPublishLight } from "@/components/reel/publish-light";
 import { useReel } from "@/components/reel/reel-provider";
 import { useReelPublish } from "@/components/reel/reel-share-card";
 import { ReelStitchingDialog } from "@/components/reel/reel-stitching-dialog";
@@ -62,6 +65,20 @@ const SHEETS: { id: Exclude<Sheet, "none">; label: string }[] = [
   { id: "length", label: "Length" },
   { id: "layout", label: "Layout" },
 ];
+
+/**
+ * The player's own width caps, mirrored (CanvasReelPlayer, lib/reel/engine/player.tsx:
+ * `max-w-[360px]` portrait, `max-w-[640px]` landscape). The lit frame's wrapper
+ * takes the same cap so it is exactly as wide as the reel it holds, which is what
+ * lets the publish light be measured against the reel and not against the room.
+ * If the player's caps ever move, move these with them: a mismatch fails soft (the
+ * narrower of the two wins the reel's width, and the light sits a little off).
+ * Literal class names on purpose, so Tailwind's scanner sees them.
+ */
+const FRAME_CAP = {
+  portrait: "max-w-[360px]",
+  landscape: "max-w-[640px]",
+} as const;
 
 /** The dark-room chip: the Studio's own control language (the app's light chips
  *  would fight the room). */
@@ -179,8 +196,10 @@ export function ReelStudio({
     }
     setPublishing(true);
     publish.flip(true);
-    // The glow + the confirmation card ride ONE timer read from the same var the
-    // CSS animates on, so retiming the knob retimes both halves together.
+    // The confirmation card's hold, and only the card's. The LIGHT is not on this
+    // timer: the state mounts it (publish.shared) and it stays, and its swell is
+    // the engine's own 1400ms one-shot. At the baked 700 the card holds 1600ms, so
+    // it leaves a breath after the light has settled to its base.
     publishTimer.current = window.setTimeout(
       () => setPublishing(false),
       rxpMs("--tune-rxp-pub-ms") + 900,
@@ -192,16 +211,29 @@ export function ReelStudio({
     styleLabel: config.styleEntry.label,
     momentCount: config.timeline.length,
   });
+  const landscape = config.orientation === "landscape";
 
   return (
     // The room: full-bleed, near-black, its own world. min-h-dvh (never vh) so
     // mobile browser chrome cannot push the dock off the bottom.
+    //
+    // overflow-x-clip (never overflow-hidden): the publish light's field is wider
+    // than a phone, and the room's edge IS the screen's edge, so clipping there
+    // cuts nothing the screen was not already cutting while guaranteeing the
+    // wings can never hand the page a sideways scroll. `hidden` would also clip
+    // the y axis and turn the room into a scroll container.
     <div
       data-rxp-studio
-      className="fixed inset-x-0 top-0 z-40 flex h-dvh flex-col bg-[oklch(0.11_0_0)]"
+      className="fixed inset-x-0 top-0 z-40 flex h-dvh flex-col overflow-x-clip bg-[oklch(0.11_0_0)]"
     >
-      {/* Header: exit left, the room's name, ONE loud action right. */}
-      <div className="flex items-center justify-between gap-2 px-3 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-2">
+      {/* Header: exit left, the room's name, ONE loud action right.
+          ★ `relative z-10` IS THE STACK, here and on the dock and the tray below.
+          The publish light is positioned and reaches past the frame, and a
+          positioned box paints over every unpositioned one whatever the DOM
+          order, so left static these three would sit UNDER the light: the title
+          washed, the dock's thumbnails tinted. It reads as "the effect is too
+          strong" and sends you tuning opacity instead of fixing the stack. */}
+      <div className="relative z-10 flex items-center justify-between gap-2 px-3 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-2">
         <button
           type="button"
           onClick={exit}
@@ -244,34 +276,46 @@ export function ReelStudio({
       <div className="relative min-h-0 flex-1 px-6">
         <div
           className={cn(
-            "relative mx-auto h-full max-w-full",
-            config.orientation === "landscape"
-              ? "aspect-[16/9]"
-              : "aspect-[9/16]",
+            "mx-auto h-full max-w-full",
+            landscape ? "aspect-[16/9]" : "aspect-[9/16]",
           )}
         >
-          <button
-            type="button"
-            onClick={() => setShowControls((v) => !v)}
-            aria-pressed={showControls}
-            aria-label={
-              showControls ? "Hide playback controls" : "Show playback controls"
-            }
-            className="block w-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          {/* THE LIT FRAME. The height-fit box above is NOT the frame: the player
+              caps its own width (FRAME_CAP), so on a tall screen the box is wider
+              and taller than the reel inside it (400x712 around a 360x640 frame
+              at 1440x900, and far wider in landscape). A light centred on that
+              box sits off the reel. This wrapper hugs the player instead, so the
+              lamp's percentages are percentages of the thing being lit.
+              Lamp first, frame after it and positioned: the light stays behind
+              the reel by DOM order, and `isolate` keeps that local. Never
+              `overflow-hidden` here (glow-placement.test.ts). */}
+          <div
+            className={cn(
+              "relative isolate mx-auto w-full",
+              landscape ? FRAME_CAP.landscape : FRAME_CAP.portrait,
+            )}
           >
-            <CanvasReelPlayer
-              reelProps={config.reelProps}
-              showControls={showControls}
+            <StudioPublishLight
+              shared={publish.shared}
+              sharedHere={publish.sharedHere}
             />
-          </button>
-          {/* The publish beat: a violet glow breathing on the reel's OWN frame. */}
-          {publishing ? (
-            <div
-              aria-hidden
-              data-rxp-pubglow
-              className="pointer-events-none absolute inset-0 rounded-xl"
-            />
-          ) : null}
+            <button
+              type="button"
+              onClick={() => setShowControls((v) => !v)}
+              aria-pressed={showControls}
+              aria-label={
+                showControls
+                  ? "Hide playback controls"
+                  : "Show playback controls"
+              }
+              className="relative block w-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            >
+              <CanvasReelPlayer
+                reelProps={config.reelProps}
+                showControls={showControls}
+              />
+            </button>
+          </div>
         </div>
         {publishing ? (
           <div
@@ -299,8 +343,9 @@ export function ReelStudio({
 
       {/* The dock: reorder while the reel keeps playing, plus the "+" door into the
           picker. The dock stays ORDER-only otherwise (one job per surface) - adding
-          and removing happen in the sheet, where there is room to actually look. */}
-      <div className="px-3 pt-2">
+          and removing happen in the sheet, where there is room to actually look.
+          `relative z-10`: above the publish light (the header's note has why). */}
+      <div className="relative z-10 px-3 pt-2">
         {reel && config.membership.length > 1 ? (
           <StudioFilmstrip
             items={config.membership}
@@ -319,8 +364,10 @@ export function ReelStudio({
 
       {/* The control tray: five sheets that slide over the canvas. `mx-auto w-fit` + overflow rather
           than justify-center, because a centered flex row CLIPS its own start once the content
-          overflows, which on a narrow phone would hide the Moments chip. */}
-      <div className="px-3 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          overflows, which on a narrow phone would hide the Moments chip.
+          `relative z-10`: above the publish light (the header's note has why). The
+          sheet below shares the z-index and comes later, so it still covers both. */}
+      <div className="relative z-10 px-3 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="mx-auto flex w-fit max-w-full items-center gap-1.5 overflow-x-auto">
           {SHEETS.map(({ id, label }) => (
             <button

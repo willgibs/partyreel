@@ -7,6 +7,8 @@ import Image from "next/image";
 import { Camera, Check, Copy, Lock } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { StudioPublishLight } from "@/components/reel/publish-light";
+import { ReelShareCard } from "@/components/reel/reel-share-card";
 import { Glow } from "@/components/shared/glow";
 import { useSampledPalette } from "@/lib/shared/sampled-palette";
 import { BorderBeam } from "@/components/vendor/border-beam";
@@ -846,28 +848,23 @@ function PublishBeat() {
         </Spec>
         <Spec
           name="Today"
-          note="The shipped beat: a flat violet breathing on the frame. It replays with Publish too, so the two are compared moving, not one moving against one still."
+          note="What ships since 2026-09-17, ruled on the light board: the house five behind the reel's frame, the production lamp itself at the Studio's real size. It rests lit while the reel is shared, which is how it opens here; Publish replays the one swell a share earns. The flat violet is gone."
         >
-          <Ground
-            on="cinema"
-            className="relative flex min-h-64 items-center justify-center p-6"
-          >
-            {/* Keyed on the same runId so Publish replays BOTH sides. Comparing
-                a live beat against a frozen screenshot is not a comparison. */}
-            <div
-              key={runId}
-              data-rxp-pubglow
-              className="relative aspect-[9/16] w-28 overflow-hidden rounded-lg border border-border"
-            >
-              <Image
-                src={frame.src}
-                alt=""
-                fill
-                sizes="112px"
-                className="object-cover"
-              />
-            </div>
-          </Ground>
+          {/* Keyed on the same runId so Publish replays BOTH sides. Comparing
+              a live beat against a frozen screenshot is not a comparison. */}
+          <StudioStandIn key={runId} frameSrc={frame.src} swell={runId > 0} />
+        </Spec>
+        <Spec
+          name="Today, on the share card (a dark ground)"
+          note="The host's event page: the same light pools under the card while the reel is shared, and never reaches up onto the poster. The card's own buttons work here: Unshare takes the light away, Share with guests brings it back with its swell."
+        >
+          <ShareCardStandIn key={runId} ground="dark" swell={runId > 0} />
+        </Spec>
+        <Spec
+          name="Today, on the share card (a light ground)"
+          note="The same card, the same state, no coloured light: the Aurora stays off light grounds, so the check and the words carry the moment alone."
+        >
+          <ShareCardStandIn key={runId} ground="light" swell={runId > 0} />
         </Spec>
       </div>
       <Button
@@ -878,6 +875,166 @@ function PublishBeat() {
         Publish
       </Button>
     </Moment>
+  );
+}
+
+/**
+ * The Studio's room, stood in at REAL size, around the lamp that ships.
+ *
+ * The Studio is behind sign-in, so a board cannot mount it; what it can mount is
+ * the production lamp (publish-light.tsx) inside the same stack reel-studio.tsx
+ * builds: the header, the height-fit canvas area, the wrapper that hugs the
+ * frame with the lamp first in it, then the dock and the tray above the light.
+ * Real size matters because the lamp's blur is in pixels: a thumbnail-sized
+ * frame would show a softer, brighter light than the room ever has. 720px tall
+ * is a 13 inch laptop's viewport; the column's width does the rest, down to a
+ * phone's 24px gutters at 375.
+ *
+ * `overflow-hidden` stands in for the SCREEN here (the production room is the
+ * viewport, which clips both axes), not for a clipping ancestor of the lamp.
+ */
+function StudioStandIn({
+  frameSrc,
+  swell,
+}: {
+  frameSrc: string;
+  swell: boolean;
+}) {
+  const strip = [
+    "wedding-toast",
+    "party-dj",
+    "festival-crowd",
+    "wedding-petals",
+    "party-balloons",
+  ];
+  return (
+    <div
+      aria-hidden
+      className="relative isolate flex h-[720px] flex-col overflow-hidden rounded-2xl bg-[oklch(0.11_0_0)]"
+    >
+      <div className="relative z-10 flex items-center justify-between gap-2 px-3 pt-3 pb-2">
+        <span className="size-9 rounded-full border border-white/15" />
+        <div className="text-center">
+          <p className="text-[9px] font-medium tracking-[0.24em] text-white/50 uppercase">
+            The studio
+          </p>
+          <p className="text-[11px] text-white/40">0:30 · Cinematic</p>
+        </div>
+        <span className="flex h-9 items-center gap-1 rounded-[var(--radius-action-sm)] border border-reel/50 px-3 text-xs font-medium text-[oklch(0.8_0.14_300)]">
+          <Check className="size-3.5" />
+          Shared
+        </span>
+      </div>
+      <div className="relative min-h-0 flex-1 px-6">
+        <div className="mx-auto aspect-[9/16] h-full max-w-full">
+          <div className="relative isolate mx-auto w-full max-w-[360px]">
+            <StudioPublishLight shared sharedHere={swell} />
+            <div className="relative overflow-hidden rounded-xl border bg-black">
+              <div className="relative aspect-[9/16] w-full">
+                <Image
+                  src={frameSrc}
+                  alt=""
+                  fill
+                  sizes="360px"
+                  className="object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="relative z-10 flex justify-center gap-1.5 px-3 pt-2">
+        {strip.map((id) => (
+          <span
+            key={id}
+            className="relative h-16 w-9 overflow-hidden rounded-sm"
+          >
+            <Image
+              src={marketingImage(id).src}
+              alt=""
+              fill
+              sizes="36px"
+              className="object-cover"
+            />
+          </span>
+        ))}
+      </div>
+      <div className="relative z-10 flex justify-center gap-1.5 px-3 pt-2 pb-4">
+        {["Moments", "Style", "Cover", "Length", "Layout"].map((label) => (
+          <span
+            key={label}
+            className="flex h-8 items-center rounded-[var(--radius-action-sm)] border border-white/20 px-3 text-[11px] font-medium text-white/80"
+          >
+            {label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The host's Reel section, stood in around the REAL share card.
+ *
+ * The card is the production component with a local controller where the server
+ * action would be, so its two faces, its wrapper and its lamp are exactly what
+ * the event page mounts. The poster above it and the next section's header
+ * below it are the two neighbours the light must not touch, at the feed's own
+ * gaps (12px and 32px).
+ *
+ * ★ THE GROUND IS A CLASS, NOT A COLOUR. The card's lamp is fenced by ancestry
+ * (`.dark`, `.surface-paper`), exactly as theme.css's dark variant is, so a
+ * dark-LOOKING box in a light-mode lab would correctly paint no light. Each
+ * specimen therefore forces its own theme, whatever the lab is set to.
+ */
+function ShareCardStandIn({
+  ground,
+  swell,
+}: {
+  ground: "dark" | "light";
+  swell: boolean;
+}) {
+  const [shared, setShared] = useState(true);
+  const [sharedHere, setSharedHere] = useState(swell);
+  const poster = marketingImage("wedding-toast");
+  return (
+    <div
+      className={cn(
+        "rounded-2xl bg-background p-4 text-foreground",
+        ground === "dark" ? "dark" : "surface-paper border border-border",
+      )}
+    >
+      <div className="space-y-3">
+        <div className="relative h-28 overflow-hidden rounded-lg">
+          <Image
+            src={poster.src}
+            alt=""
+            fill
+            sizes="640px"
+            className="object-cover"
+          />
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent p-3 pt-8">
+            <p className="font-heading text-lg leading-tight text-white">
+              Maya and Jon
+            </p>
+          </div>
+        </div>
+        <ReelShareCard
+          publish={{
+            shared,
+            sharedHere,
+            pending: false,
+            flip: (next) => {
+              setShared(next);
+              setSharedHere(next);
+            },
+          }}
+        />
+      </div>
+      <p className="mt-8 text-xs font-medium text-muted-foreground">
+        Guests <span className="tabular-nums">12</span>
+      </p>
+    </div>
   );
 }
 
