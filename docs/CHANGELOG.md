@@ -74,27 +74,19 @@ Three lanes cut at `c338c95c`: `type-wiring`, `light` (round eight) and `aurora-
   8s on the token, 24s on the field's bands, `display: none` inside `.surface-paper`.
 
 - `type-wiring` (merged `0a52c8dc`; bible 5 ruled at `aaa057dd`, the ledger gone at `4c5500da`). Will's
-  type ruling shipped: ladder B baked as one `@theme static` block of nine `--text-*` steps in
-  theme.css, generated from the board's own `themeBlock(B)` rather than retyped, each step a clamp
-  through (375, phone) and (1440, desktop) carrying its own leading and tracking. The three
-  four-breakpoint ramps collapsed to one class each and about sixty headings moved onto a step by ROLE,
-  including the dead-link title, which joined the set through a `surface` prop rather than a second
-  component. Two traps were measured before anything moved (the card step ships as `card-title`
-  because `text-card` is already the colour; a step's tracking proven to beat `font-heading`'s flat
-  value in dev and in the production build, so the flat value stays as the off-ladder fallback) and two
-  more were found at the wiring: `cn()` silently dropped a step beside a text colour until `utils.ts`
-  declared the ladder to tailwind-merge, and `tracking-tight` resolves to 0em here and cancels a step's
-  tracking. All held by `src/lib/type-ladder-policy.test.ts`. The board retired atomically into the
-  Library's Foundations page, which draws the ladder at true size off the live tokens. Left for Will,
-  measured at 375: marketing's sub-heads (20 flat) now out-shout the `prose` h2 above them (18) on
-  /about and /help, the dead-link title is 18 beside 17px body, and the guest title went 28 to 24.
+  type ruling shipped: ladder B baked as one `@theme static` block of nine `--text-*` steps generated
+  from the board's own `themeBlock(B)` rather than retyped, each a clamp through (375) and (1440) with
+  its own leading and tracking. Three four-breakpoint ramps collapsed to one class each and about sixty
+  headings moved onto a step by ROLE. Four traps were measured (the card step ships as `card-title`
+  because `text-card` is already a colour; a step's tracking beats `font-heading`'s flat value, which
+  stays as the off-ladder fallback; `cn()` silently dropped a step beside a text colour until
+  `utils.ts` declared the ladder to tailwind-merge; `tracking-tight` resolves to 0em here), all held by
+  `type-ladder-policy.test.ts`. The board retired into Foundations, which draws the ladder at true size
+  off the live tokens. Left for Will at 375: marketing's sub-heads (20) now out-shout the `prose` h2
+  above them (18), the dead-link title is 18 beside 17px body, and the guest title went 28 to 24.
 
-- `light`, round eight (merged `ee0b21d6`). The same proposals asked as steps Will could see: where the
-  Aurora sits, shadows in dark mode on ONE scene with a legend that says the four are not rivals, the
-  thin bright edge with a fixed 4x corner, and three moments of light. It found why round seven showed
-  nothing: the sweep ran BEHIND an opaque frame the size of its own box (the "static gray edge ring"
-  was the frame's border), Replay re-keyed only a bloom, the bright edge was painted under the photo,
-  the halo's wash sat under an opaque button. The composer, the kit and the twelve previews deleted.
+- `light`, round eight (merged `ee0b21d6`), the board's last: the proposals asked as steps he could see,
+  which found why round seven showed nothing (its effects all painted behind or under opaque boxes).
 
 **The third batch (`c9903c99`, `dc4530df`).** Will finished round seven's walk on the ALIAS, which
 still served that round because no `[preview]` had followed `aaa057dd`, so his line arrived as `r7`
@@ -103,38 +95,34 @@ on a scratch tree; today's spec refuses `r7` by design), which closes all twelve
 cards: the bloom kept, the halo kept "only to light objects from behind" and never as a button
 wrapper, the beam kept with "matching radii", and the Aurora's placement "a mix of all of them...
 custom and bespoke, not a couple of identity components reused everywhere in the same way constantly."
-Round eight lost the three steps that answered (`landing`, `bloom`, `halo`) inside the round and stands
-at `depth`, `face` and `sweep`, 539 words. The beam's defect was the board's, and the wrapper's to
-prevent: the specimen's card named a radius token that does not exist, computed square, and the
-vendored library refuses a zero and falls back to 16px; `ProCardBeam` measures its card's corner now,
-zero included, under a contract. The Aurora reached the home page the same day, each place composed
-for itself: the closer takes the light at its bottom edge only, rising from the line it shares with
-the footer's seam so the two read as one horizon, and the guest ledger is lit from its open side.
-`SectionLight` lost its default placement and gained `from` and `reach`, and its contract refuses one
-page stamping a composition twice; a section with no boundary line of its own cannot take a band (the
-lamp's box clips the falloff into a hard line), which design-system.md now says. The Library's Aurora
-entry holds the bloom and the halo as working specimens. One lane cut: `publish-bloom`. The lesson is
-in the manifest: the alias is rebuilt whenever a board changes.
+Round eight lost the three steps that answered inside the round and stood at `depth`, `face` and
+`sweep`, 539 words. The beam's defect was the board's: the specimen's card named a radius token that
+does not exist, computed square, and the vendored library refuses a zero and falls back to 16px, so
+`ProCardBeam` measures its card's corner now, zero included, under a contract. The Aurora reached the
+home page the same day, each place composed for itself: the closer takes light at its bottom edge only,
+rising from the line it shares with the footer's seam so the two read as one horizon, and the guest
+ledger is lit from its open side. `SectionLight` lost its default placement and gained `from` and
+`reach`, and its contract refuses one page stamping a composition twice; a section with no boundary line
+cannot take a band, since the lamp's box clips the falloff into a hard line. One lane cut:
+`publish-bloom`. The lesson is in the manifest: the alias is rebuilt whenever a board changes.
 
 **The fourth batch (`871f650b`).** `light r8` answered every step (`depth=both`: "I now see how step,
 ring, lift, and float work together"; `face=keep`, with "a tweak to feel more polished" and the radius
 mismatches he saw in the preview; `sweep=skip`, the shimmer banked as "a delight moment") and
 `floating-surfaces r7` picked Card with Glass's quieter group labels and no one-off glass, kept the
 submenu at two levels, and asked by name for a Glass exploration across marketing and app. He stopped
-there: "Clicking the configs didn't seem to change anything." The presses had registered; the 6x
-corner drawing he was judging was read once and never again (`useCorner`), a press on a catalog
-card's picture landed inside its frame (`catalog.tsx`, the preview inert on a pressable card now), and
-rounding's stage mounted lazily on the home page's hero. `pnpm lab:demo` is the check that was
-missing: real Chrome over its DevTools protocol, pressing every open step and failing a stage that
-moves under 0.1 percent (FROZEN on the old code, 25 open steps pass). That board's shadow ask left
-inside the round, answered by `depth=both`.
+there: "Clicking the configs didn't seem to change anything." The presses had registered; the 6x corner
+drawing he was judging was read once and never again (`useCorner`), a press on a catalog card's picture
+landed inside its frame (`catalog.tsx`, the preview inert on a pressable card now), and rounding's stage
+mounted lazily on the home page's hero. `pnpm lab:demo` is the check that was missing: real Chrome over
+its DevTools protocol, pressing every open step and failing a stage that moves under 0.1 percent (FROZEN
+on the old code, 25 open steps pass).
 
-- `publish-bloom` (merged `7e713fe8`). The publish moment joined the Aurora: the engine's bloom in the
-  house five as wings behind the Studio's frame and as a pool under the share card, mounted only while
-  a reel is shared, the swell owed to the tap (`sharedHere`, which also ended the violet replaying on
-  every load of a shared reel), nothing on a light ground through the ONE fence rule extended rather
-  than copied. The violet keyframes left; `publish-light.test.tsx` holds 26 function pins. Signed in on
-  the alias: both resting states and the fence hold; the tap's swell was seen on the lab stand-in only.
+- `publish-bloom` (merged `7e713fe8`). The publish moment joined the Aurora: the engine's bloom as wings
+  behind the Studio's frame and a pool under the share card, mounted only while a reel is shared, the
+  swell owed to the tap (`sharedHere`, which also ended the violet replaying on every load), nothing on
+  a light ground through the ONE fence rule extended rather than copied. The violet keyframes left and
+  `publish-light.test.tsx` holds 26 pins; signed in on the alias both resting states and the fence hold.
 
 **The fifth batch.** `floating-surfaces r7`: `entrance=by-frequency`, and `radius=nested` with "Today's
 panel corrected and Rounder seem to be the same option... If there's meant to be a difference, please
@@ -165,10 +153,22 @@ shape that "would likely require many fine notes over one cohesive answer" is th
 content. He also corrected the counts ask's premise: the band below the hero is "paired with a demo video,
 not the demo event", so the bigger pair claims nothing about the demo, whose content is replaced at launch.
 
+- `light-wiring` (merged `47bba92a`; bible 10 and 11 ruled and the ledger gone in the same window). Depth
+  became four techniques with one job each: the step and the ring on every surface, `--shadow-lift` only
+  where one object really overlaps another, `--shadow-layer` under anything the page keeps living behind,
+  and nothing under a surface lying flat, in either mode. Paper kept its bytes; dark and the ink slab
+  gained the ramp that made them read as shadowless. Forty-five raw shadows and thirty readers of one
+  token were judged once each by role, and three surfaces joined the floating family (select's content,
+  the nav indicator, and the toast, whose own `0 4px 12px` was a fourth geometry in light and nothing in
+  dark). `elevation-policy.test.ts` refuses the four ways back in. The bright edge shipped as one
+  `data-lit` attribute on the box that owns the radius, lit from the top edge, fenced to dark grounds,
+  its contract mutation-tested twelve ways. Foundations gained the legend Will said made the system
+  legible. The board retired atomically, and the shimmer stays in the engine unwired.
+
 **The alias.** Rebuilt whenever a board or a wiring changes; the smoke's result is STATUS's live state.
 
-**Next.** `light-wiring` is finishing; Card's wiring and `voice-retire` cut when it merges and integrate
-one at a time. His sitting continues on rounding, the album hero, the media kit and river-visual.
+**Next.** Card's wiring and `voice-retire` are cut now, and integrate one at a time since both retire a
+board. His sitting continues on rounding, the album hero, the media kit and river-visual.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
 

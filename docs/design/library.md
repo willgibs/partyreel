@@ -94,17 +94,17 @@ Nested corners that share a center read as one shape; a ring with a radius of it
 
 ### light
 
-**10. In dark, depth is light first. A shadow is allowed where stacked or overlapping objects need separating (media cards, a layer over content), never as a flat surface effect.**
+**10. In dark, depth is light first, and BOTH shadows are available: the layer under anything the page keeps living behind, the lift where one object really sits on another. A flat surface takes neither, in either mode.**
 
-A shadow on a flat dark ground is a smudge, but two photographs on top of each other need an edge (Will, 2026-09-14); the light exploration writes light, shadow and lamp as one system and this rule inherits it.
+A shadow on a flat dark ground is a smudge, but two photographs on top of each other need an edge (Will, 2026-09-14), and the light board ruled both in on 2026-09-17 ("I now see how step, ring, lift, and float work together"), which gave dark and the ink slab the ramp they never had.
 
-<small>**under exploration: light** · held at review · `/design/library/rules/depth-in-dark`</small>
+<small>enforced by `src/lib/elevation-policy.test.ts` · `/design/library/rules/depth-in-dark`</small>
 
-**11. A lamp may light a section without media: the footer's seam is the model. The light exploration writes the doctrine that replaces the source-and-direction law.**
+**11. A lamp may light a section without media: the footer's seam is the model. The Aurora is the doctrine that replaced the source-and-direction law: one family, never on a light ground, composed for its place rather than repeated.**
 
-The source-and-direction law kept a monochrome identity from growing a second palette, but it also forbade the lamp Will likes most, the footer's, which emits from nothing (Will, 2026-09-14).
+The source-and-direction law kept a monochrome identity from growing a second palette, but it also forbade the lamp Will likes most, the footer's, which emits from nothing (Will, 2026-09-14); the light board wrote the doctrine across eight rounds and retired with it on 2026-09-17.
 
-<small>**retiring: light** · enforced by `src/components/shared/glow-placement.test.ts` · `/design/library/rules/lamps-without-media`</small>
+<small>enforced by `src/components/shared/glow-placement.test.ts` · `/design/library/rules/lamps-without-media`</small>
 
 ### motion
 

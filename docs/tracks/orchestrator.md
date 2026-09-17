@@ -8,7 +8,11 @@ owns:
   - src/app/(dev)/design/layout.tsx
   - src/app/(dev)/design/(shell)/page.tsx
   - src/app/(dev)/design/_data/links.ts
+  - src/app/(dev)/design/_data/links.test.ts
   - src/app/(dev)/design/_data/docs.ts
+  - src/app/(dev)/design/_data/docs.test.ts
+  - src/app/globals.css
+  - src/app/theme.css
   - src/app/(dev)/design/_data/legacy-routes.ts
   - src/app/(dev)/design/_data/legacy-routes.test.ts
   - src/app/(dev)/design/touchpoints.ts
@@ -74,7 +78,7 @@ are cut (development is parallel work again), the light sitting continues on its
 
 | track | board | waits on |
 | --- | --- | --- |
-| `light-wiring` | `light` (retired by it) | the agent; then the Orchestrator's signed-in pass on the alias (the floating primitives and the lit surfaces in the app, dark and light) |
+| none | | `floating-wiring` (Card) and `voice-retire` are cut next; both retire a board, so they touch `touchpoints.ts`, `touchpoints.test.ts`, `registry.ts`, `boards.ts` and the generated artifacts, and they integrate one at a time |
 
 ## Waiting on Will
 
@@ -246,5 +250,12 @@ palette and light first), pasted in batches with Copy so far.
   three picks. The new `voice` board is on the ROADMAP ahead of Glass, since bible 20 and 21 wait on it.
   ★ Mine at `voice-retire`'s merge: bible 20 and 21 re-pointed, `docs/reviews/brand-voice.json` deleted in
   its own commit, and `album-hero`'s "Hold for the brand voice line" option re-pointed at the new board.
+- `light-wiring` integrated at `47bba92a` (86 files; the conflict was the two generated artifacts, resolved
+  to theirs and regenerated). Mine at the merge: bible 10 and 11 both ruled (10 rewritten to say BOTH
+  shadows with the flat-surface rule, `enforcedBy` now `src/lib/elevation-policy.test.ts`; 11 naming the
+  Aurora as the doctrine that replaced the source-and-direction law), `docs/reviews/light.json` deleted,
+  ASSETS rows 10 and 11 marked superseded by 15 and 16 (the same two asks from the same board in two waves)
+  and 15 and 16 re-pointed off the deleted board at `SectionLight` and the Library's Elevation legend.
+  `globals.css`, `theme.css`, `_data/links.test.ts` and `_data/docs.test.ts` return to `owns` here.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
