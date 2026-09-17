@@ -30,20 +30,30 @@ ruling, where the rule lives), rendered at `/design/library/record`.
 
 ## The identity: achromatic, media is the color
 
-- **Zero-chroma chrome in BOTH modes.** Light = paper (bg `oklch(0.99 0 0)`, card `0.997`, fg
-  `0.13`); dark = night (bg `0.14`, translucent card `oklch(0.21 0 0 / 0.62)`, opaque popover
-  `0.23`). No pure white anywhere (Hobday rule, adopted): the bg/card lift is real but hairlines do
-  the layering, not contrast.
+- **Cool-grey chrome in BOTH modes** (Graphite, Will 2026-09-17; it was zero-chroma until then).
+  Light = the Pearl page (bg `oklch(0.995 0.002 286)`, card the SAME white, fg `0.145 0.006 286`,
+  menu pure white); dark = the Graphite room (bg `0.105 0.0053 286`, an OPAQUE card `0.225 0.006
+  286`, popover `0.27`, secondary/accent `0.315`). Hue 286 is Apple's grey, not their blue at 258,
+  at roughly half again their chroma because our grounds are blacker than theirs and a tint
+  disappears into black. A card is its hairline and its shadow, never a step of 0.007 no eye
+  resolves: the grounds carry the contrast, and everything on them reads cool rather than dead.
+  **Four registers, not two:** the page (`:root, .surface-paper`), the set-apart mat
+  (`.surface-mat`, light), the room (`.dark`) and the slab (`.surface-ink`).
+- **THREE text steps.** `--foreground`, `--muted-foreground`, and `--faint` for a timestamp, a
+  caption or a hint (`text-faint`). Forty places used to fade the second grey by hand at five
+  alphas; an alpha composites against whatever is behind it, so one line was three different greys.
+  `--faint` measures 3.21:1 on the page and 4.47:1 in the room: captions only, never body copy,
+  never a control's only label, and never stacked with a further alpha.
 - **`--brand` is an ALIAS of `--primary`** (ink). Don't reintroduce a brand hue; photography
   supplies all color. ("Saturate your neutrals" was consciously DECLINED: zero-chroma is the
   identity; a 0.002-0.004 warm-tint variant may get a lab round later, never silently.)
-  **Under exploration (bible 1, Will, 2026-09-14):** the accent may carry state and UI color
-  where there is no media, and marketing may carry color of its own (aurora, non-sampled spill), so
-  a section without a picture is still beautiful; the `palette` board proposes the achromatic ramp
-  (the light ramp has a 0.455 hole between 0.45 and 0.905, the dark ramp crushes four surfaces into
-  0.14 to 0.25, and three darks ship: cinema 0.11, the app 0.14, ink 0.155), the accent (today an
-  alias of ink; `--save` blue 252 and `--reel` violet 300 are the two icon-only action hues) and the
-  muted panel as one token. The ruling lands here.
+  **Ruled (bible 1, Will 2026-09-17, the palette's round eight):** the chrome went cool and the
+  accent stayed OFF. `--brand` remains the alias, no hue landed anywhere, and the photographs are
+  still the only colour; marketing may carry light of its own (aurora, non-sampled spill), so a
+  section without a picture is still beautiful. What the ruling fixed: the light ramp's 0.455 hole
+  between 0.45 and 0.905, the dark ramp crushing four surfaces into 0.14 to 0.25, and three darks
+  shipping at once (cinema 0.11, the app 0.14, ink 0.155) where there is now ONE room. `--save` blue
+  252 and `--reel` violet 300 stay the two icon-only action hues.
 - **Feedback + actions are ALWAYS colored** (the one exception): `--success` green, `--warning` amber,
   `--like` rose, `--destructive` red, `--save` blue (the first non-state ACTION hue), and `--reel` violet
   (the host reel-curation hue, on the `Clapperboard` icon), each with light/dark variants. State, not
@@ -55,15 +65,22 @@ ruling, where the rule lives), rendered at `/design/library/record`.
   `title` tooltips. Lives on the gallery tiles + the shared lightbox
   pill; brand stays mono (color is punctuation). → [host-app.md](host-app.md) for the action model.
 - **`--gallery*` stays always-dark in both themes** (media surfaces; never overridden in `.dark`).
-  ★ **Painting a subtree with `bg-gallery` is only half the job.** `--ring`, `--border`, `--foreground`,
-  `--muted-foreground` and `--brand` are NOT in that family, so under `.surface-paper` they keep their
-  LIGHT values: `outline-ring/50` (applied to `*`) lands a **1.44:1** focus ring on the slab against a 3:1
-  requirement, muted text reads **2.62:1** against 4.5:1, and a bare `border-t` paints a near-white
+  ★ **THE WELL AND THE SLAB ARE NO LONGER ONE VALUE** (Graphite, 2026-09-17). They were both 0.155
+  and `--gallery*` served both jobs. Now `--gallery` is the media WELL at `0.065 0.0045 286`, the
+  deepest thing in the system, so on an OLED panel a photograph is the only light on it; the dark
+  LEAF on a paper page is the slab at `0.165 0.0053 286`, and `.surface-ink` writes its own values
+  rather than deriving them. A `bg-gallery` on a leaf now paints two registers too deep: inside
+  `.surface-ink`, `bg-background` IS the slab.
+  ★ **Painting a subtree dark is only half the job.** `--ring`, `--border`, `--foreground`,
+  `--muted-foreground` and `--brand` are not surfaces, so under `.surface-paper` they keep their
+  LIGHT values: `outline-ring/50` (applied to `*`) lands a **1.41:1** focus ring on the slab against a 3:1
+  requirement, muted text reads **2.69:1** against 4.5:1, and a bare `border-t` paints a near-white
   hairline. All of it is INVISIBLE while working on a cinema page, where the subtree sits inside `.dark`.
-  Redeclare the tokens locally on the wrapper (`[--ring:var(--gallery-foreground)]` etc.) — the
-  `.surface-paper` mechanism applied to one subtree. **`--brand` must be redeclared DIRECTLY, not via
-  `--primary`:** a `var()` inside a custom property is substituted at the element that DECLARES it, so
-  `--brand: var(--primary)` already resolved to ink back at `:root` and inherits down resolved. The ink
+  Use `.surface-ink` rather than hand-redeclaring; it is the `.surface-paper` mechanism applied to one
+  subtree. **`--brand` must be redeclared DIRECTLY, not inherited:** a `var()` inside a custom property
+  is substituted at the element that DECLARES it, so `:root`'s `--brand: var(--primary)` already
+  resolved to paper ink and inherits down resolved; `.surface-ink` re-declares `--primary` and
+  `--brand` together so the alias re-resolves. The ink
   footer is the worked example ([marketing-footer.tsx](../../src/components/marketing/chrome/marketing-footer.tsx),
   pinned by `footer-contract.test.ts`).
   Three more the footer never hits: **`--shadow-float` must be
@@ -73,8 +90,8 @@ ruling, where the rule lives), rendered at `/design/library/record`.
   declaration); **`--card-foreground` travels WITH `--card`** (shadcn `Card` is `bg-card
   text-card-foreground`, so half-redeclaring makes a Card ink-on-ink, i.e. invisible rather than merely
   wrong), same for `--muted`/`--muted-foreground`; and `--input` paints the same near-white hairline
-  `--border` is redeclared to stop. Derive `--secondary`/`--accent` by `color-mix` over the gallery pair
-  rather than copying `.dark`'s literals, or the two drift the first time the dark ramp is retuned.
+  `--border` is redeclared to stop. `.surface-ink` carries all of them, which is why a leaf should wear
+  the class rather than assemble its own set.
 - ★ **A hand-assembled dark set is for a LEAF, never a page's chrome.** The ink footer's
   redeclaration works because the footer is a leaf: it knows every token its own children read. Scale
   that to page chrome and it fails, because such a set is always one token behind whatever a
@@ -537,7 +554,7 @@ math).
 - **Light:** exactly one shadow family, `--shadow-float` (soft, blur = 2x offset, single top light
   source), floating layer only. Surfaces are hairline-led, no shadows.
 - **Dark:** depth is light first (bible 10, Will, 2026-09-14): lighter-is-closer
-  surface steps (bg 0.14 → card 0.21 → popover 0.23+) + borders + the glass card, and **a shadow is
+  surface steps (bg 0.105 → muted 0.175 → card 0.225 → popover 0.27 → secondary 0.315) + borders, and **a shadow is
   allowed where stacked or overlapping objects need separating** (media cards, a layer over
   content), never as a flat surface effect. `--shadow-float` still resolves to a zero shadow in
   `.dark` until the `light` exploration writes shadow, lamp and light as one system and the wiring
@@ -545,8 +562,11 @@ math).
   case, and `ring-1 ring-foreground/5` (37 uses) is the lift idiom the contract does not name.
 - Components use the `shadow-float` utility; a raw `shadow-md/lg` on a primitive is precedent, not
   law, until the light ruling (the tabs active pill sheds its `shadow-sm` in dark).
-- The dark translucent card ships WITHOUT blanket backdrop-blur (alpha composites fine; blur only
-  where a surface sits over media).
+- ★ **There is no translucent surface in the system** (card=declared, Will 2026-09-17: "If we ever
+  need to design that glass style over photos, we can design that custom."). The dark card was
+  `oklch(0.21 0 0 / 0.62)` and no document said so: solid over a page, glass over a photograph. It
+  is opaque everywhere now, so nothing needs backdrop-blur and nothing should reintroduce an alpha
+  on a surface token. A glass surface over media is a design task with its own ruling.
 
 ## Motion
 
