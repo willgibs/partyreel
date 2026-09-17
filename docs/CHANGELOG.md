@@ -161,8 +161,8 @@ inside the round, answered by `depth=both`.
   house five as wings behind the Studio's frame and as a pool under the share card, mounted only while
   a reel is shared, the swell owed to the tap (`sharedHere`, which also ended the violet replaying on
   every load of a shared reel), nothing on a light ground through the ONE fence rule extended rather
-  than copied. The violet keyframes left; `publish-light.test.tsx` holds 26 function pins. Owed: the
-  signed-in pass on the alias.
+  than copied. The violet keyframes left; `publish-light.test.tsx` holds 26 function pins. Signed in on
+  the alias: both resting states and the fence hold; the tap's swell was seen on the lab stand-in only.
 
 **The alias.** Rebuilt whenever a board or a wiring changes; the smoke's result is STATUS's live state.
 
