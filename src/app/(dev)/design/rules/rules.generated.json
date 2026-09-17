@@ -16,7 +16,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 28
+          "line": 36
         },
         {
           "title": "is empty when nothing is held",
@@ -24,7 +24,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 53
+          "line": 61
         },
         {
           "title": "drops a note on a board whose round it cannot know",
@@ -32,7 +32,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 59
+          "line": 67
         },
         {
           "title": "omits an answer the ledger already holds with the same choice and note",
@@ -40,7 +40,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 67
+          "line": 75
         },
         {
           "title": "re-includes it the moment the choice changes",
@@ -48,7 +48,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 85
+          "line": 93
         },
         {
           "title": "re-includes it when only the note changed",
@@ -56,7 +56,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 99
+          "line": 107
         },
         {
           "title": "omits a verdict the ledger already holds, and sends a changed one",
@@ -64,7 +64,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 115
+          "line": 123
         },
         {
           "title": "sends a cleared choice's surviving note as a note on that ask",
@@ -72,7 +72,31 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 139
+          "line": 147
+        },
+        {
+          "title": "never sends an entry from a round the board has left, whatever the ledger lists",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 162
+        },
+        {
+          "title": "omits a not-clear answer the ledger holds as null with the same note",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 185
+        },
+        {
+          "title": "takes a board note along only on the board's open round",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 200
         }
       ]
     },
@@ -1441,7 +1465,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 63
+          "line": 79
         },
         {
           "title": "keeps the QR server-rendered (no client island for a constant graphic)",
@@ -1449,7 +1473,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 71
+          "line": 87
         },
         {
           "title": "the seam glow owns the loop-pause contract, through the primitive",
@@ -1457,7 +1481,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 79
+          "line": 95
         },
         {
           "title": "reads the lamps' cadence from the one token, never a literal",
@@ -1465,7 +1489,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 99
+          "line": 115
         }
       ]
     },
