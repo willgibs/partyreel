@@ -36,9 +36,9 @@ builds small. The nine levels, from [`README.md`](README.md#what-binds-you):
 
 **1. Achromatic UI with one accent; the media is the color. Where there is no media, the accent carries state and UI color and marketing may carry color of its own (aurora, non-sampled spill): a section without a picture is still beautiful, never bare.**
 
-The interface stays quiet so the pictures can carry the room, but quiet is not empty: the binary of has-media or is-boring is what the review killed (Will, 2026-09-14). The palette exploration writes the ramp and the accent; the light exploration writes the aurora.
+The interface stays quiet so the pictures can carry the room, but quiet is not empty: the binary of has-media or is-boring is what the review killed (Will, 2026-09-14). The palette ruling wrote the ramp and kept the accent off (Graphite, 2026-09-17); the light exploration writes the aurora.
 
-<small>**under exploration: palette** · enforced by `src/app/(marketing)/marketing-css-policy.test.ts` · `/design/library/rules/media-is-the-color`</small>
+<small>enforced by `src/app/(marketing)/marketing-css-policy.test.ts` · `/design/library/rules/media-is-the-color`</small>
 
 **2. Marketing and app share one token set. Marketing may be louder in most things (type, motion, color, scale, density); only the tokens are shared by law.**
 

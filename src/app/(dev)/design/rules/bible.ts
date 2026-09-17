@@ -76,11 +76,10 @@ export const BIBLE: BibleRule[] = [
     group: "identity",
     statement:
       "Achromatic UI with one accent; the media is the color. Where there is no media, the accent carries state and UI color and marketing may carry color of its own (aurora, non-sampled spill): a section without a picture is still beautiful, never bare.",
-    why: "The interface stays quiet so the pictures can carry the room, but quiet is not empty: the binary of has-media or is-boring is what the review killed (Will, 2026-09-14). The palette exploration writes the ramp and the accent; the light exploration writes the aurora.",
+    why: "The interface stays quiet so the pictures can carry the room, but quiet is not empty: the binary of has-media or is-boring is what the review killed (Will, 2026-09-14). The palette ruling wrote the ramp and kept the accent off (Graphite, 2026-09-17); the light exploration writes the aurora.",
     enforcedBy: ["src/app/(marketing)/marketing-css-policy.test.ts"],
     ruledBy: "Will",
     ruledOn: REVIEWED,
-    status: "under exploration: palette",
   },
   {
     id: "one-token-set",
