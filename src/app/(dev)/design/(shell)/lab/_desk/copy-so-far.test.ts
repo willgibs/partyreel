@@ -20,9 +20,17 @@ import { holdId, itemHoldId } from "./step-id";
  * ★ AND A CLEARED CHOICE'S NOTE SURVIVES AS A NOTE. Clearing is deliberate (the
  * one toggle rule), and the words that survive it are usually why; dropping
  * them threw away the expensive half of the answer.
+ *
+ * ★ AND ONLY THE BOARD'S OPEN ROUND RIDES (Will, 2026-09-17: "Once a question
+ * has been handled through you and fully resolved, it should not continue to
+ * copy for future batch answers"). A reshaped board drops asks and moves on a
+ * round; the store still holds the old round's entries, the ledger's map is
+ * built from the current spec and so never lists them, and they rode on every
+ * paste wearing the old round number. Closed rounds are closed.
  */
 describe("composeSoFar", () => {
-  const roundOf = (b: string) => (b === "light" ? 6 : undefined);
+  const ROUNDS: Record<string, number> = { light: 6, rounding: 6, palette: 6 };
+  const roundOf = (b: string) => ROUNDS[b];
   const nothing: Transcribed = { answers: {}, items: {} };
 
   it("composes only the held answers, verdicts and notes, one line per board", () => {
@@ -149,5 +157,54 @@ describe("composeSoFar", () => {
     expect(out.answers).toBe(0);
     expect(out.notes).toBe(1);
     expect(out.message).toBe('review light r6: note: "on paper: not yet"');
+  });
+
+  it("never sends an entry from a round the board has left, whatever the ledger lists", () => {
+    // The light board is in round 6 here; these are round-5 answers the store
+    // kept from an earlier sitting, on asks the reshaped spec no longer has.
+    const out = composeSoFar(
+      {
+        answers: {
+          "light.r5.kit": { choice: "land", note: "" },
+          "light.r5.register": { choice: "accent", note: "too weak" },
+          "light.r5.aurora": { choice: "", note: "confused by the question" },
+          "light.r6.cadence": { choice: "8s", note: "" },
+        },
+        items: { "light.r5.item.seam": { verdict: "keep", note: "" } },
+        notes: {},
+      },
+      roundOf,
+      nothing,
+    );
+    expect(out.answers).toBe(1);
+    expect(out.items).toBe(0);
+    expect(out.notes).toBe(0);
+    expect(out.message).toBe("review light r6: cadence=8s");
+  });
+
+  it("omits a not-clear answer the ledger holds as null with the same note", () => {
+    const key = holdId("light", 6, "paper");
+    const out = composeSoFar(
+      {
+        answers: { [key]: { choice: "?", note: "what is Family here" } },
+        items: {},
+        notes: {},
+      },
+      roundOf,
+      { answers: { [key]: { choice: null, note: "what is Family here" } }, items: {} },
+    );
+    expect(out.answers).toBe(0);
+    expect(out.message).toBe("");
+  });
+
+  it("takes a board note along only on the board's open round", () => {
+    const out = composeSoFar(
+      { answers: {}, items: {}, notes: { light: "the footer keeps its seam" } },
+      roundOf,
+      nothing,
+    );
+    expect(out.message).toBe(
+      'review light r6: note: "the footer keeps its seam"',
+    );
   });
 });

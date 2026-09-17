@@ -97,10 +97,11 @@ export function composeLibraryLine(rulings: LibraryEntryRuling[]): string {
 }
 
 /**
- * The whole session as one message, one line per board, boards in the order
- * they were first answered. A board answered across two rounds in one sitting
- * cannot happen (a board is in exactly one round), so the round comes from the
- * first entry for that board.
+ * The whole session as one message, one line per board and round, in the order
+ * they were first answered. `composeSoFar` only ever hands this one round per
+ * board; grouping on the pair is the guard that two rounds can never share a
+ * line and wear the wrong number (which is how a round-seven answer was once
+ * pasted as r5).
  */
 export function composeMessage(
   answers: SessionAnswer[],
@@ -108,20 +109,25 @@ export function composeMessage(
   items: SessionItem[] = [],
   library: LibraryEntryRuling[] = [],
 ): string {
-  const order: string[] = [];
-  const see = (board: string) => {
-    if (!order.includes(board)) order.push(board);
+  const order: { board: string; round: number }[] = [];
+  const see = (board: string, round: number) => {
+    if (!order.some((o) => o.board === board && o.round === round))
+      order.push({ board, round });
   };
-  answers.forEach((a) => see(a.board));
-  items.forEach((i) => see(i.board));
-  notes.forEach((n) => see(n.board));
+  answers.forEach((a) => see(a.board, a.round));
+  items.forEach((i) => see(i.board, i.round));
+  notes.forEach((n) => see(n.board, n.round));
   return [
-    ...order.map((board) => {
-      const mine = answers.filter((a) => a.board === board);
-      const myItems = items.filter((i) => i.board === board);
-      const myNotes = notes.filter((n) => n.board === board);
-      const round =
-        mine[0]?.round ?? myItems[0]?.round ?? myNotes[0]?.round ?? 0;
+    ...order.map(({ board, round }) => {
+      const mine = answers.filter(
+        (a) => a.board === board && a.round === round,
+      );
+      const myItems = items.filter(
+        (i) => i.board === board && i.round === round,
+      );
+      const myNotes = notes.filter(
+        (n) => n.board === board && n.round === round,
+      );
       return composeBoardLine(board, round, mine, myNotes, myItems);
     }),
     composeLibraryLine(library),
@@ -145,6 +151,11 @@ const NOTHING_TRANSCRIBED: Transcribed = { answers: {}, items: {} };
 const sameNote = (a?: string, b?: string) =>
   (a ?? "").trim() === (b ?? "").trim();
 
+/** "Not clear to me" is `?` in the store and in the grammar (UNCLEAR in
+ *  session-step.ts) and `null` in the ledger; the two are one answer. */
+const sameChoice = (sent: string | null, held: string) =>
+  (sent ?? "?") === held;
+
 /**
  * EVERYTHING HELD SO FAR THAT IS NOT ALREADY IN THE LEDGER, AS ONE MESSAGE
  * (Will, 2026-09-16, a few questions into his first sitting: "it's really
@@ -165,6 +176,16 @@ const sameNote = (a?: string, b?: string) =>
  * deliberate (the one toggle rule), and the words that survive it are usually
  * why: "on <ask>: ..." keeps them, where a silent drop threw away the
  * expensive half of the answer.
+ *
+ * ★ AND ONLY THE BOARD'S OPEN ROUND RIDES (Will, 2026-09-17: "Once a question
+ * has been handled through you and fully resolved, it should not continue to
+ * copy for future batch answers"). The store keeps every sitting for ever and a
+ * board moves on: the light board went from round five to round seven and
+ * dropped three asks on the way, so their round-five entries were never in
+ * `transcribed` (which is built from the CURRENT spec's asks) and rode on
+ * every paste, and the whole line wore the first entry's round. An entry from
+ * a round the board has left is closed, whatever the ledger says about it; a
+ * board with no round any more (retired) is gone with it.
  */
 export function composeSoFar(
   store: {
@@ -184,6 +205,7 @@ export function composeSoFar(
     const m = ask.exec(key);
     if (!m) continue;
     const [, board, round, id] = m;
+    if (roundOf(board) !== Number(round)) continue;
     if (!held.choice) {
       if (held.note?.trim())
         notes.push({
@@ -194,7 +216,7 @@ export function composeSoFar(
       continue;
     }
     const sent = transcribed.answers[key];
-    if (sent && sent.choice === held.choice && sameNote(sent.note, held.note))
+    if (sent && sameChoice(sent.choice, held.choice) && sameNote(sent.note, held.note))
       continue;
     answers.push({
       board,
@@ -207,6 +229,7 @@ export function composeSoFar(
   for (const [key, held] of Object.entries(store.items)) {
     const m = item.exec(key);
     if (!m || !held.verdict) continue;
+    if (roundOf(m[1]) !== Number(m[2])) continue;
     const sent = transcribed.items[key];
     if (sent && sent.verdict === held.verdict && sameNote(sent.note, held.note))
       continue;
@@ -220,10 +243,9 @@ export function composeSoFar(
   }
   for (const [board, text] of Object.entries(store.notes)) {
     if (!text?.trim()) continue;
-    const round =
-      roundOf(board) ??
-      answers.find((a) => a.board === board)?.round ??
-      items.find((i) => i.board === board)?.round;
+    // A board note has no round of its own: it rides the board's open round,
+    // and a board with none (retired) takes its notes with it.
+    const round = roundOf(board);
     if (round === undefined) continue;
     notes.push({ board, round, text });
   }
