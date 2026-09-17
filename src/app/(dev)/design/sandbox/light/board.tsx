@@ -3,305 +3,107 @@
 // the board's own sheet; it leaves with the board when the ruling lands.
 import "./board.css";
 
-import { useState } from "react";
-
 import {
   AppliedBadge,
   ApplyToSite,
   BoardPage,
-  CANVAS,
-  Catalog,
-  CellLabel,
-  Frame,
-  FrameRow,
-  Knob,
-  Labeled,
   Paste,
-  Toggle,
   type BoardState,
   type Mode,
 } from "@/components/lab";
 
-import { blockFor, noBlockBecause } from "./blocks";
-import { ENGINE_DRIVE_FIX, LIGHT_CANDIDATES, PUBLISH_LEAN } from "./candidates";
-import { type Placement } from "./composer";
-import { FENCES, LANDS, type TreatmentId } from "./kit";
-import { TreatmentSpecimen, Usages } from "./previews";
-import {
-  AuroraStage,
-  BeatStage,
-  ClockStage,
-  HuesStage,
-  OrderStage,
-} from "./stages";
+import { LIGHT_CANDIDATES } from "./candidates";
+import { DepthStage, type DepthPick } from "./depth";
+import { FaceStage } from "./face";
+import { LandingStage, type Placement } from "./landing";
+import { BloomStage, HaloStage, SweepStage } from "./marks";
 import { LIGHT } from "./spec";
 
 /**
- * THE LIGHT BOARD (round seven, the stepped review, 2026-09-16).
+ * THE LIGHT BOARD (round eight, 2026-09-17): six steps Will can see.
  *
- * ★ THE BOARD IS A WALK NOW. Will stopped his sitting here: "are each of these
- * individually proposed treatments? How will each be applied platform wide?
- * Some I can't even tell what the 'treatment' is from the comparison", and then
- * the shape he wanted, in his own words: "1 at a time may be more helpful
- * here", with "where it'll be used, a couple demo usages". So a card is one
- * screen: the same specimen twice (as today, then with it), what keeping it
- * lands as platform-wide, and the real surfaces already wearing it. Twelve
- * cards, then five steps that each bring their own context.
+ * ★ THE BOARD IS A FORM, AND EACH SECTION IS ONE STEP'S PICTURE. What it ASKS
+ * lives in `spec.ts` and only there. What is here is the evidence for each
+ * declared section, as a function of the declared state, and the review draws
+ * it twice over: once per option as a tile (the option's own state), and once
+ * under the tiles as the stage (the state being shown). So a section draws ONE
+ * state, never a row of them: a stage that drew its own three-up would be drawn
+ * nine times.
  *
- * What the board ARGUES lives in `spec.ts` and only there. What is left here is
- * the evidence for each declared section, as a function of the declared state.
+ * ★ A TILE AND THE STAGE WANT DIFFERENT PICTURES OF THE SAME SECTION, which is
+ * `fit.tsx`'s second star: every stage here renders a tight true-pixel crop for
+ * the tile and the whole scene for the stage, and board.css shows one of them.
  *
- * ★ FOUR OF THE SEVEN CONTROLS ARE A STEP'S OWN TILES. Landing, Cadence, Hues
- * and Beat each serve exactly one question, so the review draws every option on
- * that step's one specimen and the reviewer never meets the switch; the stage
- * below reads the state the tile set. That is why each of those sections draws
- * ONE state and never a row of them: a stage that drew its own three-up would
- * be drawn nine times.
- *
- * ★ REST IS SERVED BY board.css SECTION 4, THROUGH THE TEMPLATE'S ATTRIBUTE.
- * The template writes every declared control onto the board's root, so the
- * sheet selects `[data-motion="rest"]`. It is deliberately narrow (the engine's
- * two animated layers, the publish beat) because a blanket `animation: none`
- * would also freeze the marketing reveal grammar on the real sections, whose
- * pre-animation state is opacity 0, and the board would read as broken rather
- * than at rest.
+ * ★ REST IS SERVED BY board.css, THROUGH THE TEMPLATE'S ATTRIBUTE. The template
+ * writes every declared control onto the board's root, so the sheet selects
+ * `[data-motion="rest"]`. It is deliberately narrow (the engine's two animated
+ * layers and this board's one-shot) because a blanket `animation: none` would
+ * also freeze the marketing reveal grammar on the real section the first step
+ * renders, whose pre-animation state is opacity 0.
  *
  * ★ AND A REPLAY IS A REMOUNT. Every specimen that runs a one-shot owns its own
- * (previews.tsx, stages.tsx). An incrementing key is the whole mechanism, and
- * an animationend listener races the compositor.
+ * (marks.tsx). An incrementing key is the whole mechanism; the engine re-keys
+ * only a bloom, which is half of why round seven's sweep never replayed.
  */
 
 /** Everything the dock is claiming, resolved once per render. */
 function read(state: BoardState) {
-  const mode = (state.canvas ?? "desktop") as Mode;
-  const picked =
-    state.treatment && state.treatment !== "none"
-      ? (state.treatment as TreatmentId)
-      : null;
   return {
-    mode,
-    desktop: mode === "desktop",
+    mode: (state.canvas ?? "desktop") as Mode,
     landing: (state.landing ?? "both") as Placement,
-    cadence: state.cadence ?? "8s",
-    hues: state.hues ?? "hand-tuned",
-    beat: state.beat ?? "305",
-    picked,
-    block: picked ? blockFor(picked) : null,
+    depth: (state.depth ?? "both") as DepthPick,
+    outline: (state.outline ?? "on") === "on",
+    surface: (state.surface ?? "on") === "on",
+    face: (state.face ?? "keep") === "keep",
+    sweep: (state.sweep ?? "keep") === "keep",
+    bloom: (state.bloom ?? "keep") === "keep",
+    halo: (state.halo ?? "keep") === "keep",
   };
 }
 
-const WALK = LIGHT.links.pages ?? [];
-
 export function LightBoard() {
-  const [page, setPage] = useState<string>(WALK[0]?.path ?? "/");
-  // ★ ONE FRAME BY DEFAULT, AND THAT IS NOT LAZINESS. A frame is a REAL 1440
-  // viewport, so two of them side by side are 2880 pixels and the second one is
-  // off the right edge of a 1440 screen: it loads on approach, and approach
-  // never happens, so the frame wearing the ruling is the one nobody sees.
-  // Nothing picked shows the site as built; pick a card and this frame wears
-  // its block; turn Today on and scroll the row when a seam needs both.
-  const [split, setSplit] = useState<"on" | "off">("off");
-
   return (
     <BoardPage
       spec={LIGHT}
-      dock={(state) => {
-        const s = read(state);
-        return (
-          <>
-            {/* Which block stands on the site, and its clear. Absent until one
-                stands, so the dock does not carry an empty slot. */}
-            <AppliedBadge />
-            {s.block ? (
-              <ApplyToSite block={s.block} />
-            ) : s.picked ? (
-              <span className="text-[11px] text-muted-foreground">
-                {noBlockBecause(s.picked)}
-              </span>
-            ) : null}
-          </>
-        );
-      }}
-      evidence={(id, state, api) => {
+      // Which block stands on the site, and its clear. Absent until one stands,
+      // so the dock does not carry an empty slot.
+      dock={() => <AppliedBadge />}
+      evidence={(id, state) => {
         const s = read(state);
 
         switch (id) {
-          /* ── The twelve ─────────────────────────────────────────────── */
-          case "catalog":
+          case "landing":
+            return <LandingStage mode={s.mode} landing={s.landing} />;
+
+          case "depth":
             return (
-              // ★ ONE COLUMN, AND THE KIT PAIRS THE HALVES. `before` and
-              // `render` are the same specimen with and without the treatment,
-              // and the walk draws them touching; the browse grid shows the
-              // "with it" half alone, which is what a gallery is for. A chapter
-              // specimen is a window onto 1440, so two cards abreast would
-              // halve both halves and hand back the unreadable comparison this
-              // round exists to end.
-              <Catalog
-                spec={LIGHT}
-                state={state}
-                setState={api.setState}
-                minWidth={900}
-                before={(candidate) => (
-                  <TreatmentSpecimen
-                    id={candidate.id as TreatmentId}
-                    phase="before"
-                    mode={s.mode}
-                    landing={s.landing}
-                  />
-                )}
-                render={(candidate) => (
-                  <TreatmentSpecimen
-                    id={candidate.id as TreatmentId}
-                    phase="after"
-                    mode={s.mode}
-                    landing={s.landing}
-                  />
-                )}
-                usages={(candidate) => (
-                  <Usages id={candidate.id as TreatmentId} mode={s.mode} />
-                )}
+              <DepthStage
+                s={{ depth: s.depth, outline: s.outline, surface: s.surface }}
               />
             );
 
-          /* ── Where the aurora lands ─────────────────────────────────── */
-          case "aurora":
-            return <AuroraStage mode={s.mode} landing={s.landing} />;
+          case "face":
+            return <FaceStage lit={s.face} />;
 
-          /* ── How slowly a lamp breathes ─────────────────────────────── */
-          case "clock":
-            return <ClockStage mode={s.mode} cadence={s.cadence} />;
+          case "sweep":
+            return <SweepStage on={s.sweep} />;
 
-          /* ── The five hues, on paper ────────────────────────────────── */
-          case "hues":
-            return <HuesStage mode={s.mode} hues={s.hues} />;
+          case "bloom":
+            return <BloomStage rests={s.bloom} />;
 
-          /* ── The publish flourish ───────────────────────────────────── */
-          case "beat":
-            return <BeatStage mode={s.mode} beat={s.beat} />;
+          case "halo":
+            return <HaloStage on={s.halo} />;
 
-          /* ── What lands second ──────────────────────────────────────── */
-          case "order":
-            return <OrderStage />;
-
-          /* ── The real pages ─────────────────────────────────────────── */
-          case "pages": {
-            const { w, h } = CANVAS[s.mode];
-            const target = WALK.find((p) => p.path === page) ?? WALK[0];
-            const together = split === "on";
-            const css = s.block?.css ?? "";
-            return (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap items-center gap-3">
-                  <Knob label="Page">
-                    <Toggle
-                      ariaLabel="Page"
-                      options={WALK.map((p) => ({
-                        id: p.path,
-                        label: p.label,
-                      }))}
-                      value={page}
-                      onChange={setPage}
-                    />
-                  </Knob>
-                  <Knob label="Today beside it">
-                    <Toggle
-                      ariaLabel="Today beside it"
-                      options={[
-                        { id: "on" as const, label: "On" },
-                        { id: "off" as const, label: "Off" },
-                      ]}
-                      value={split}
-                      onChange={setSplit}
-                    />
-                  </Knob>
-                </div>
-                <FrameRow lock={together && !!css}>
-                  {together && css ? (
-                    <Frame
-                      id="lgt-today"
-                      src={target.path}
-                      w={w}
-                      h={h}
-                      title="Today"
-                      caption="The page as it ships, no sheet written into it."
-                      onApproach
-                    />
-                  ) : null}
-                  <Frame
-                    id="lgt-picked"
-                    src={target.path}
-                    w={w}
-                    h={h}
-                    css={css}
-                    title={s.block?.label ?? "Nothing picked"}
-                    caption={
-                      css
-                        ? "The picked treatment's paste, written into this document. Scroll the row for Today beside it."
-                        : "Nothing picked, so this is the site as built. Press Pick on a card above."
-                    }
-                    onApproach
-                  />
-                </FrameRow>
-                <CellLabel className="max-w-2xl">{target.note}</CellLabel>
-              </div>
-            );
-          }
-
-          /* ── The ruling, as a paste ─────────────────────────────────── */
+          /* ── What a wiring round lands ──────────────────────────────── */
           case "paste":
             return (
-              <div className="flex flex-col gap-5">
-                <Labeled
-                  name="The blocks"
-                  note="The same CSS a Pick hands the site, plus the one engine line no button applies."
-                >
-                  <div className="flex flex-col gap-4">
-                    {LIGHT_CANDIDATES.map((c) => (
-                      <Paste key={c.label} label={c.label} code={c.css} />
-                    ))}
-                    <Paste label={PUBLISH_LEAN.label} code={PUBLISH_LEAN.css} />
-                    <Paste
-                      label="Light: the engine's one line (the transform drive's rest state)"
-                      code={ENGINE_DRIVE_FIX}
-                    />
+              <div className="flex flex-col gap-6">
+                {LIGHT_CANDIDATES.map((c) => (
+                  <div key={c.label} className="flex flex-col gap-2">
+                    <ApplyToSite block={c} />
+                    <Paste label={c.label} code={c.css} />
                   </div>
-                </Labeled>
-
-                {/* Folded, both of them: a bill of materials is for the author
-                    of the wiring round and a fence list is for the reader who
-                    disagrees, and neither is what a reviewer is here to read.
-                    The smoke counts what is not folded. */}
-                <details className="text-[11px] leading-relaxed">
-                  <summary className="cursor-pointer text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none">
-                    The seven things a wiring round types into a file
-                  </summary>
-                  <ul className="mt-2 flex flex-col gap-1.5">
-                    {LANDS.map((l) => (
-                      <li key={l.what} className="text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          {l.what}
-                        </span>{" "}
-                        in {l.where}. {l.is}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-
-                <details className="text-[11px] leading-relaxed">
-                  <summary className="cursor-pointer text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none">
-                    What is never done, and the case behind each one
-                  </summary>
-                  <ul className="mt-2 flex flex-col gap-2">
-                    {FENCES.map((f) => (
-                      <li key={f.rule} className="text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          {f.rule}
-                        </span>{" "}
-                        {f.because}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
+                ))}
               </div>
             );
 
