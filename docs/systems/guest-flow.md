@@ -13,6 +13,14 @@ per event (the old `/a/[share_token]` album + `get_public_album` are gone).
 `get_event_by_qr_token` resolves `qr_token` OR `custom_slug` (token wins) and returns the canonical
 `qr_token`, which the page threads to every downstream qr-keyed RPC.
 
+★ **THE GUEST'S WORD IS "ALBUM", THE CODE'S WORD IS "GALLERY", AND THAT SPLIT IS DELIBERATE.** Will's
+`noun=album` pick (2026-09-17) swept every string a guest reads onto the site's one noun, because a guest
+who becomes a host used to meet both words. The CODE noun deliberately did NOT move with it: `/api/guests/gallery`,
+`gallery-access*`, `getGalleryStats`, `LiveGallery`, `GalleryPayload`, the RPCs and the columns keep their
+names, since renaming a live route buys a guest nothing and risks the one flow with no account behind it.
+Do not "fix" the mismatch in either direction: new guest copy says album, new code says whatever the
+neighbouring code says.
+
 ## Flow (top to bottom, contiguous)
 
 The ratified **left-editorial** layout ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)
@@ -69,9 +77,11 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
   RSC flight payload: a locked page leaks the event NAME + COUNT only, zero media URLs. The date is
   blanked too, because the welcome byline renders it.
 - **`open`** → the full experience, UNLESS account-required (`allow_anonymous_uploads=false`): a signed-out
-  viewer then gets a teaser (see "Gallery access" below). ★ **The OG description keys on the SAME column** —
-  anonymous-allowed keeps the "No app, no account" line, account-required says the event asks guests for an
-  email, so the preview a host pastes into a chat never promises what the entry modal then refuses.
+  viewer then gets a teaser (see "Gallery access" below). ★ **The OG description is ONE invitation for every
+  open event** — "Photos and videos from the day. Add yours." It used to fork on `allow_anonymous_uploads`
+  and announce the email step in the chat; Will's `unfurl=join` pick (2026-09-17) dropped that warning WITH
+  its cost in front of him ("More taps, and a share of them bounce at the email step"), so a pasted link
+  invites and the gate stays honest where it happens, at the entry modal's account step. Do not hedge it back.
 - **`accepting_uploads=false`** = the **view-only STATE** of the one page: the upload panel is removed
   entirely (a quiet "uploads closed" line), leaving the action row + gallery.
 
@@ -126,7 +136,7 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   visit per device (`pr_welcome_<qrToken>` via
   [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts); server snapshot "seen" = no
   flash). Suppressed for the owner + the demo. Primary reads "Continue" when a gate follows, else
-  "View the gallery". Inside the drawer the welcome stands `min-height: 55svh` (the ratified "tall"
+  "View the album". Inside the drawer the welcome stands `min-height: 55svh` (the ratified "tall"
   presence; `[data-entry-drawer] [data-welcome-step]`).
 - **THE HONEST-AFFORDANCE TABLE** (dismissal exists only when there is something to dismiss TO):
   welcome-before-PASSWORD = held (the continuous invitation→gate flow; the old X "closed" it only

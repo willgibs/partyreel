@@ -63,14 +63,17 @@ export async function generateMetadata({
   }
 
   const title = `Add photos to ${event.name}`;
-  // ★ The unfurl's promise is keyed on allow_anonymous_uploads, the column that decides it.
-  // With the account gate ON (allow_anonymous_uploads = false) a guest must sign in to see
-  // the full gallery and to upload, so the "no account" line was a promise the page then
-  // broke at the entry modal, in the preview a host pastes into a group chat. "No app" holds
-  // either way, and the gate costs an email rather than a download.
-  const description = event.allow_anonymous_uploads
-    ? `Add your photos and videos to ${event.name}. No app, no account, just your phone.`
-    : "Add your photos and videos. This event asks guests for an email.";
+  // ★ A PASTED LINK INVITES, IT DOES NOT WARN (Will, 2026-09-17, the `unfurl=join`
+  // pick, overruling the recommendation). This line used to fork on
+  // allow_anonymous_uploads so an account-gated event announced its email step in
+  // the group chat: the ONE warning a guest got before tapping. He chose to drop
+  // the warning WITH ITS COST IN FRONT OF HIM ("More taps, and a share of them
+  // bounce at the email step"), so the fork is gone and every open event unfurls
+  // the same invitation. Do NOT hedge this back toward a warning: an event that
+  // requires a verified email still gates the guest after the tap, and that was
+  // the trade he took, not one he missed. The gate itself is honest where it
+  // happens, at the entry modal's account step.
+  const description = "Photos and videos from the day. Add yours.";
   return {
     title,
     description,

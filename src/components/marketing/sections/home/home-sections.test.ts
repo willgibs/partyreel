@@ -54,13 +54,22 @@ describe("the home section order", () => {
     expect(SITE_THESIS.length).toBeLessThanOrEqual(64);
   });
 
-  it("the decomposition facts stay count-up parseable", () => {
-    // decomposition renders each pinned fact verbatim with its number
-    // animating: leading text, ONE integer, trailing text.
+  it("the decomposition facts stay pop-in parseable", () => {
+    // decomposition renders each pinned fact VERBATIM and animates every
+    // integer run inside it as its own digit group (splitFact there splits on
+    // the digit runs, so the parts always re-join to the constant). A fact may
+    // carry more than one number since Will's `counts=hero` pick put both
+    // counts on the band's first line, so the old "exactly one integer" shape
+    // is no longer the contract.
+    //
+    // What still breaks the grammar is a figure a READER sees as one number
+    // and the parser splits in two: "1,200" pops as 1 then 200, "3.5" as 3
+    // then 5. So the pin is: the band carries at least one number, and no
+    // digit run is joined to the next by a lone separator.
     const numeric = DECOMPOSITION_FACTS.filter((fact) => /\d/.test(fact));
     expect(numeric.length).toBeGreaterThan(0);
     for (const fact of numeric) {
-      expect(fact).toMatch(/^\D*\d+\D*$/);
+      expect(fact).not.toMatch(/\d[.,   ]\d/);
     }
   });
 });

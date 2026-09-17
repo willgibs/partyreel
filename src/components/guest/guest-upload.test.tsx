@@ -306,14 +306,16 @@ describe("GuestUpload: moderation copy", () => {
   it("hold_for_approval shows the review notice; auto_approve does not", () => {
     const { unmount } = mount({ event: HOLD_EVENT });
     expect(
-      screen.getByText("The host reviews uploads before they appear in the gallery."),
+      screen.getByText(
+        "The host reviews uploads before they appear in the album.",
+      ),
     ).toBeInTheDocument();
     unmount();
 
     mount();
     expect(
       screen.queryByText(
-        "The host reviews uploads before they appear in the gallery.",
+        "The host reviews uploads before they appear in the album.",
       ),
     ).not.toBeInTheDocument();
   });

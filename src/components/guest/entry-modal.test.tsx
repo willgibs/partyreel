@@ -132,12 +132,12 @@ describe("flow wiring", () => {
     expect(screen.queryByText(/invited/)).toBeNull();
   });
 
-  it("a public event's welcome dismisses to the gallery (no gate behind)", () => {
+  it("a public event's welcome dismisses to the album (no gate behind)", () => {
     renderModal({ gateSteps: [] });
     expect(
-      screen.getByRole("button", { name: "View the gallery" }),
+      screen.getByRole("button", { name: "View the album" }),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "View the gallery" }));
+    fireEvent.click(screen.getByRole("button", { name: "View the album" }));
     expect(localStorage.getItem(`pr_welcome_${QR}`)).toBe("1");
     expect(screen.queryByText(/invited/)).toBeNull();
   });
@@ -205,7 +205,7 @@ describe("the back affordance (reviewing the welcome)", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10);
     });
-    expect(screen.getByText("Opening the gallery")).toBeInTheDocument();
+    expect(screen.getByText("Opening the album")).toBeInTheDocument();
     expect(screen.getByLabelText("Event password")).toBeInTheDocument();
     // The refresh lands: the password gate drops, the account gate surfaces.
     rerender(
