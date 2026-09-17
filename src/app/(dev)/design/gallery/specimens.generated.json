@@ -141,6 +141,7 @@
     "screen-lamp": [
       "<PageHero\n  scale=\"lg\"\n  entrance=\"cut\"\n  eyebrow=\"Album\"\n  heading=\"One album, filling itself.\"\n  subhead=\"The cut register with a stage: the type holds, the object under it arrives with its own lamp.\"\n  className=\"overflow-x-clip py-12 pb-72\"\n>\n  <div className=\"mt-10\">\n    <ScreenLamp>\n      <div className=\"mx-auto grid max-w-md grid-cols-3 gap-1 rounded-xl border border-border bg-card p-2\">\n        {tiles(\"140px\")}\n      </div>\n    </ScreenLamp>\n  </div>\n</PageHero>"
     ],
+    "cinema-hero": ["<CinemaHero />"],
     "eyebrow": [],
     "caption": [
       "<Caption>\n  Every label, hint and descriptor on the site, in the body face.\n</Caption>"

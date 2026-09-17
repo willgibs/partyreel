@@ -68,7 +68,6 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
-  | "home-hero"
   | "album-hero"
   | "river-visual"
   | "glow-doctrine"
@@ -304,24 +303,14 @@ export const RULINGS: Ruling[] = [
     id: "home-hero",
     title: "The home hero",
     surface: "marketing",
-    ruled:
-      "open (round five ruled 2026-09-16: the source, the lockup centred, the live count cut, the headline as ruled; round six answered none, the symmetric approach asked for by name; round seven returned the band, the orbit and the two stacks, the winner still to be picked)",
-    shipped: null,
-    why: "Round five ruled the source; round six's scatterings were answered none; round seven is one catalog: the reference's band, the ring round the code, two unsplit stacks.",
+    ruled: "2026-09-17",
+    shipped: "Stacked, code above",
+    why: "Stacked, code above: the album streams out of the real demo code on one axis and the whole lockup hangs under it as one block, with no scrim over a photograph.",
     lives: [
-      "docs/systems/marketing-content.md",
       "src/components/marketing/sections/home/cinema-hero.tsx",
+      "src/components/marketing/sections/home/hero-stream.ts",
+      "docs/systems/marketing-content.md",
     ],
-    board: {
-      note: "Round seven: four symmetric compositions of the album leaving the code on one engine, each the real hero at true size with its own Replay; the band splits the type as before, the orbit and the two stacks keep it as one block. The board recommends the band.",
-      variants: [
-        "The band",
-        "The orbit",
-        "Stacked, code above",
-        "Stacked, code below",
-      ],
-      tracks: ["home-hero"],
-    },
   },
   {
     id: "pricing-plan-cards",

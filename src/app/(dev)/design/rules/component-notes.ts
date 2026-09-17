@@ -82,6 +82,13 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "swaps one line of text for another: the old blurs up and out, the new rises in",
   },
 
+  /* marketing / sections / home */
+  "src/components/marketing/sections/home/hero-stream.ts": {
+    for: "the home hero's band: where every photograph leaving the QR is at any instant, and the measured line the headline hangs from",
+    unspecimened:
+      "pure geometry; the hero it solves is the specimen (/design/library/cinema-hero)",
+  },
+
   /* marketing / sections / shared */
   "src/components/marketing/sections/shared/bulk-select-mock.tsx": {
     for: "the app's select tile and bulk bar, quoted for marketing: resting shapes, never controls",

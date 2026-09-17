@@ -44,11 +44,14 @@ describe("the home section order", () => {
     ]);
   });
 
-  it("the hero can split the ruled thesis around its kinetic slot", () => {
-    // cinema-hero derives its H1 halves from SITE_THESIS.split("event") so the
-    // byte-pinned constant stays the only copy source; a thesis rewrite that
-    // drops the slot word must revisit the hero, not silently break it.
-    expect(SITE_THESIS.split("event")).toHaveLength(2);
+  it("the hero renders the ruled thesis whole", () => {
+    // Retuned at the hero's wiring round (2026-09-17). The hero used to derive
+    // its H1 halves from SITE_THESIS.split("event") for the kinetic slot; the
+    // slot retired with the wall and the headline is the byte-pinned constant
+    // rendered verbatim, so what matters now is that the thesis is ONE line
+    // short enough to hold the ladder's top step without a bespoke ramp.
+    expect(SITE_THESIS).not.toMatch(/\n/);
+    expect(SITE_THESIS.length).toBeLessThanOrEqual(64);
   });
 
   it("the decomposition facts stay count-up parseable", () => {

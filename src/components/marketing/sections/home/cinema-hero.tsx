@@ -1,276 +1,340 @@
 "use client";
 
+// The hero's own sheet. It declares no keyframe, deliberately: the stream is
+// one rAF loop writing inline transforms, so there is nothing to collide with
+// (src/app/keyframe-uniqueness.test.ts, and the note in the sheet's header).
+import "./cinema-hero.css";
+
 import { Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  type CSSProperties,
   Suspense,
   lazy,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 
-import { Caption } from "@/components/marketing/system/caption";
-import { DemoTicket } from "@/components/marketing/system/demo-ticket";
-import { Container } from "@/components/shared/container";
+import { FooterQr } from "@/components/marketing/chrome/footer-qr";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import { track } from "@/lib/analytics/web";
-import {
-  MARKETING_IMAGES,
-  MARKETING_REELS,
-} from "@/lib/constants/marketing-media";
+import { marketingImage } from "@/lib/constants/marketing-media";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
+import { DEMO_EVENT_URL } from "@/lib/demo";
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
+import {
+  type Bp,
+  BUILT,
+  FRAME_SIZES,
+  frameAt,
+  GEO,
+  LG_MIN,
+  phaseOf,
+  REVEAL_MS,
+  restPhase,
+  revealEase,
+  STREAM_FRAMES,
+} from "./hero-stream";
+
 /**
- * LOUD (the loud/quiet map): THE LIVING ALBUM WALL (Will's 2026-08-25 rework
- * ruling: keep the bold media-forwardness, kill the "slides design" — the
- * single letterboxed cut-cut loop plus story segments and a timecode read as
- * a slideshow). The rework EMBODIES the thesis instead of presenting shots:
+ * THE HOME HERO: THE ALBUM LEAVING THE CODE (the hero's wiring round,
+ * 2026-09-17; it replaces the living album wall of 2026-08-25).
  *
- *  - The substrate is a full-bleed, slowly drifting WALL of real event media
- *    (the whole event, in one album — literally), edge to edge under a
- *    lower-third scrim. Many photos at once reads as an ALBUM; one cutting
- *    video reads as slides. The media supplies the color (the achromatic
- *    doctrine); the drift is ambient (linear, ~55s alternate) and rides the
- *    loop-pause contract via [data-mkt-wall] + data-paused in marketing.css.
- *  - ONE live reel card sits IN the wall (desktop+): the album's reel,
- *    playing the real engine render poster-first. It is product truth (album
- *    plus reel), not player chrome: its only adornment is a hairline ring and
- *    a duration caption. The card hides on mobile (the "Watch a sample
- *    reel" CTA carries the reel there); its <video> mounts post-hydration,
- *    play() rejection leaves the poster, ambient-pause pauses it.
- *  - LCP CONTRACT (revised for the wall): the LCP element is the H1 or an
- *    eager wall tile. The first WALL_EAGER tiles load eager (they paint the
- *    above-the-fold wall immediately; ~50-135KB each), the rest lazy; the
- *    reel-card poster is eager too (small). No element carries the full
- *    preload/fetchPriority trio anymore — with a text-or-tile LCP there is no
- *    single hero image to prioritize above the others.
- *  - The kinetic H1 keeps the byte-pinned SITE_THESIS with the SPLICE word
- *    mechanic (round 2: instant swap + one fast width glide — see SpliceWord)
- *    on a plain interval. Reduced motion: static thesis ("event"), static
- *    wall, no video.
- *  - The DEMO TICKET under the CTAs points at the real demo event (QR + tap
- *    route in one glass artifact — system/demo-ticket.tsx, shared with the nav's Features panel).
+ * Will's rulings, in order (`docs/design/rulings.md`): the SOURCE direction,
+ * the album coming out of the code, the lockup CENTRED rather than left like
+ * every other marketing page, the site's one ruled line as the headline and no
+ * live count anywhere (round five); the symmetric approach by name over the
+ * four scatterings (round six); and the pick this file is,
+ * `stream=stack-above`, with "we can drop the 'Every photo here came from a
+ * guest who scanned it' label underneath the QR code" (round seven).
+ *
+ * ★ THE ARGUMENT. Every other hero we have drawn puts photographs behind words
+ * and then dims the photographs so the words survive, which is what the wall
+ * this replaces did with three stacked scrims. This one refuses the trade by
+ * changing the shape of the composition: the album is a band streaming out of
+ * the code, the type is placed where the band is MEASURED never to reach
+ * (hero-stream.ts solves the clear line), and the real demo QR stands still at
+ * scanning size where the frames are born. The code is the eyebrow, the object
+ * and the argument at once, and there is no darkening layer anywhere over a
+ * photograph (bible 1).
+ *
+ * ★ NOTHING ABOUT THE CODE MOVES. The stillness is the point, and a QR that
+ * breathes is a QR nobody can scan. It is the real demo event's, live from
+ * NEXT_PUBLIC_DEMO_QR_TOKEN, server-rendered and tappable.
+ *
+ * ★ THE LCP IS THE HEADLINE, which is why it is plain markup at full opacity
+ * gated by nothing (bible 13, marketing-h1-policy.test.ts). The frames lit at
+ * rest load eager, because they are what a reduced-motion reader sees on the
+ * first paint; the two born inside the code load lazy.
+ *
+ * ★ WHAT LEFT WITH THE WALL, so nobody goes looking: WALL_ORDER, WALL_TILES,
+ * TALL_TILES, the three scrims, the reel card in the wall, HERO_EYEBROW, the
+ * DemoTicket under the actions (the code IS the demo affordance now) and the
+ * kinetic SpliceWord, whose pre-agreed fallback was exactly this, the ruled
+ * thesis rendered static. Git holds them at `85aa65d9`.
  */
 
 const SampleReelOverlay = lazy(
   () => import("../shared/sample-reel-overlay.lazy"),
 );
 
-function requireReel(id: string) {
-  const reel = MARKETING_REELS.find((r) => r.id === id);
-  if (!reel) throw new Error(`Unknown marketing reel id: ${id}`);
-  return reel;
-}
+/**
+ * The gap the reduced-motion split leaves, closed. The sheet paints the
+ * branch-out's first frame (every frame collapsed at the code) inside
+ * `prefers-reduced-motion: no-preference`, because an effect would run after
+ * the server's paint and the band would flash deployed and snap back. That is
+ * right for every reader except one: motion allowed, scripting off, nothing to
+ * run the loop. A <noscript> block is parsed only in exactly that case, so
+ * these rules land only there, later in the document than the sheet, and
+ * restore the rest state the frames already carry as custom properties. Two
+ * rules, because the rest state is per breakpoint.
+ */
+const NOSCRIPT_RULE = `<style>@media (prefers-reduced-motion:no-preference){.hhs-card{transform:var(--hhs-rest-base);opacity:var(--hhs-rest-o-base)}}@media (prefers-reduced-motion:no-preference) and (min-width:${LG_MIN}px){.hhs-card{transform:var(--hhs-rest-lg);opacity:var(--hhs-rest-o-lg)}}</style>`;
 
-// The LANDSCAPE render: its frame is FULL (the portrait classic render
-// letterboxes landscape clips, so its poster reads as black bars — judged on
-// screenshots, not code). Landscape is a real product orientation; honest.
-const HERO_REEL = requireReel("hero-candidate-02");
-
-// The ruled thesis splits around its kinetic slot; deriving the halves keeps
-// the byte-pinned constant the ONLY copy source (home-sections.test.ts pins
-// that this split stays valid). Reduced motion renders the thesis verbatim.
-const [THESIS_BEFORE, THESIS_AFTER] = SITE_THESIS.split("event") as [
-  string,
-  string,
-];
-
-const KINETIC_WORDS = ["wedding", "birthday", "festival", "send-off"] as const;
-const WORD_INTERVAL_MS = 3200;
-
-const HERO_EYEBROW = "One QR. No app. No account.";
-
-/** The wall's tile order: manifest media re-sequenced so adjacent tiles vary
- *  in palette and subject (hand-tuned against the real images, not random —
- *  determinism keeps SSR/client identical). The wall doubles the sequence so
- *  the drift never exposes an empty edge. */
-const WALL_ORDER = [
-  "wedding-golden",
-  "party-balloons",
-  "festival-crowd",
-  "wedding-toast",
-  "party-dj",
-  "wedding-petals",
-  "reception-table",
-  "festival-lights",
-  "wedding-rings",
-  "concert-confetti",
-  "reception-hall",
-  "wedding-arch",
-] as const;
-
-/** Tiles that load eager: the above-the-fold wall must paint with the page. */
-const WALL_EAGER = 6;
-
-/** Taller tiles at deterministic positions give the wall its album masonry
- *  rhythm (spans on a fixed grid; no measurement, no CLS). */
-const TALL_TILES = new Set([0, 3, 5, 8, 10, 13, 16, 19, 21]);
-
-const WALL_TILES = [...WALL_ORDER, ...WALL_ORDER].map((id, i) => {
-  const image = MARKETING_IMAGES.find((m) => m.id === id);
-  if (!image) throw new Error(`Unknown wall image id: ${id}`);
-  return { ...image, key: `${id}-${i}`, tall: TALL_TILES.has(i), index: i };
+/**
+ * ★ ONE SET OF NODES SERVES BOTH GEOMETRIES. The band's pool works out at nine
+ * a side at either breakpoint, so frame `i` is the same photograph in the same
+ * launch order on a phone and on a desktop: only its box, its launch time and
+ * its rest transform differ, and those ride as `-base` / `-lg` custom property
+ * pairs that the sheet chooses between. Nothing remounts at the breakpoint and
+ * no layout is ever measured to decide. `hero-stream.test.ts` holds the two
+ * pools equal, which is what this rests on.
+ *
+ * Solved once at module load, off pure arithmetic the server and the browser
+ * both agree on, so the rest state hydrates without a warning.
+ */
+const FRAMES = BUILT.lg.cards.map((lg, i) => {
+  const base = BUILT.base.cards[i];
+  const lgBox = BUILT.lg.box[i];
+  const baseBox = BUILT.base.box[i];
+  const lgRest = frameAt(lg, restPhase(lg), "lg", lgBox.fit);
+  const baseRest = frameAt(base, restPhase(base), "base", baseBox.fit);
+  return {
+    key: lg.key,
+    image: marketingImage(STREAM_FRAMES[lg.photo % STREAM_FRAMES.length]),
+    // Lit at rest means a reduced-motion reader, a crawler and a cold paint all
+    // see it, so it is worth the eager request; the two born inside the code
+    // are invisible until the loop moves them.
+    eager: lgRest.opacity > 0.02 || baseRest.opacity > 0.02,
+    style: {
+      "--hhs-w-base": `${baseBox.w}px`,
+      "--hhs-h-base": `${baseBox.h}px`,
+      "--hhs-w-lg": `${lgBox.w}px`,
+      "--hhs-h-lg": `${lgBox.h}px`,
+      "--hhs-rest-base": baseRest.transform,
+      "--hhs-rest-o-base": baseRest.opacity,
+      "--hhs-rest-lg": lgRest.transform,
+      "--hhs-rest-o-lg": lgRest.opacity,
+      "--hhs-z-base": baseRest.z,
+      "--hhs-z-lg": lgRest.z,
+    } as CSSProperties,
+  };
 });
 
-/** True only after hydration (server snapshot false): the post-hydration gate
- *  for the <video> mount, as a store subscription so no effect sets state. */
-const noopSubscribe = () => () => {};
-function useHydrated(): boolean {
-  return useSyncExternalStore(
-    noopSubscribe,
-    () => true,
-    () => false,
-  );
-}
+/**
+ * Every number the sheet lays the composition out from, in one place and taken
+ * from `hero-stream.ts` rather than retyped. They ride as `-base` / `-lg` pairs
+ * because an inline style beats any selector: the sheet resolves the plain
+ * names from these inside its media query, which is the only place a media
+ * query can win.
+ */
+const LAYOUT = {
+  "--hhs-axis-pct-base": `${GEO.base.axisPct}%`,
+  "--hhs-axis-pct-lg": `${GEO.lg.axisPct}%`,
+  "--hhs-axis-min-base": `${BUILT.base.axisMin}px`,
+  "--hhs-axis-min-lg": `${BUILT.lg.axisMin}px`,
+  "--hhs-below-base": `${BUILT.base.below}px`,
+  "--hhs-below-lg": `${BUILT.lg.below}px`,
+  "--hhs-min-h-base": `${BUILT.base.minH}px`,
+  "--hhs-min-h-lg": `${BUILT.lg.minH}px`,
+  "--hhs-low-base": `${BUILT.base.low}px`,
+  "--hhs-low-lg": `${BUILT.lg.low}px`,
+  "--hhs-fade-base": GEO.base.fade,
+  "--hhs-fade-lg": GEO.lg.fade,
+  "--hhs-persp-base": `${GEO.base.perspective}px`,
+  "--hhs-persp-lg": `${GEO.lg.perspective}px`,
+  "--hhs-qr-base": `${GEO.base.qr}px`,
+  "--hhs-qr-lg": `${GEO.lg.qr}px`,
+  "--hhs-h1-max-base": `${GEO.base.h1Max}px`,
+  "--hhs-h1-max-lg": `${GEO.lg.h1Max}px`,
+  "--hhs-low-max-base": `${GEO.base.lowMax}px`,
+  "--hhs-low-max-lg": `${GEO.lg.lowMax}px`,
+} as CSSProperties;
 
 export function CinemaHero() {
   const reduced = usePrefersReducedMotion();
   const { ref: pauseRef, paused } = useAmbientPause<HTMLElement>();
-  const mounted = useHydrated();
-  const [videoLive, setVideoLive] = useState(false);
-  const [wordIndex, setWordIndex] = useState(0);
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const nodes = useRef<(HTMLDivElement | null)[]>([]);
+  // The z-index each node is carrying, so it is written on change only.
+  const zNow = useRef<number[]>([]);
+  /**
+   * ★ THE CLOCK LIVES OUTSIDE THE EFFECT, and that is the whole pause. The loop
+   * tears down whenever `paused` flips (scrolled away, hidden tab), and an
+   * elapsed counter declared inside it would restart at zero every time a
+   * reader came back: the band would re-burst out of the code on every return,
+   * and a hero that replays its entrance whenever you scroll past it is a hero
+   * nobody trusts. Held here, the stream resumes on the frame it stopped on.
+   */
+  const elapsed = useRef(0);
 
-  // Post-hydration + full-motion only (SSR/no-JS/reduced ship poster only).
-  const showVideo = mounted && !reduced;
-
-  // Reel-card transport: play/pause rides the ambient-pause signal.
   useEffect(() => {
-    if (!showVideo) return;
-    const v = videoRef.current;
-    if (!v) return;
-    if (paused) v.pause();
-    else
-      v.play().catch(() => {
-        // The poster stays; no spinner (the production contract).
-      });
-  }, [showVideo, paused]);
+    const els = nodes.current;
+    if (reduced) {
+      // Reduced motion is authoritative even when it is switched on mid-visit:
+      // drop everything the loop wrote so the sheet's rest state takes back
+      // over, rather than freezing the band wherever it happened to be.
+      for (const el of els) {
+        if (!el) continue;
+        el.style.transform = "";
+        el.style.opacity = "";
+        el.style.zIndex = "";
+      }
+      zNow.current = [];
+      return;
+    }
+    if (paused) return;
 
-  // The kinetic word cycles on a plain interval, held while paused/offscreen
-  // (a word flipping in a background tab is wasted theater).
-  useEffect(() => {
-    if (reduced || paused) return;
-    const timer = setInterval(
-      () => setWordIndex((i) => (i + 1) % KINETIC_WORDS.length),
-      WORD_INTERVAL_MS,
-    );
-    return () => clearInterval(timer);
+    // The geometry the loop solves against, read off the same breakpoint the
+    // sheet is on. A resize across it re-points the tables; nothing remounts.
+    const mq = window.matchMedia(`(min-width: ${LG_MIN}px)`);
+    let bp: Bp = mq.matches ? "lg" : "base";
+    const onChange = () => {
+      bp = mq.matches ? "lg" : "base";
+    };
+    mq.addEventListener("change", onChange);
+
+    let raf = 0;
+    let last = 0;
+
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      const dt = last === 0 ? 0 : Math.min(now - last, 50);
+      last = now;
+      elapsed.current += dt;
+
+      const { cards, box, cycle } = BUILT[bp];
+      // The branch-out: one tween of the launch times from nothing to their
+      // steady spacing. The clock term runs the whole time, so there is no
+      // handoff between the entrance and the loop, only one expression.
+      const reveal = revealEase(elapsed.current / REVEAL_MS);
+      for (let i = 0; i < cards.length; i++) {
+        const el = els[i];
+        if (!el) continue;
+        const at = phaseOf(cards[i], elapsed.current, reveal, cycle);
+        // Past the edge of the screen, and no longer worth a composited layer.
+        if (at > box[i].exit) {
+          if (el.style.opacity !== "0") el.style.opacity = "0";
+          continue;
+        }
+        const f = frameAt(cards[i], at, bp, box[i].fit);
+        el.style.transform = f.transform;
+        el.style.opacity = String(f.opacity);
+        if (zNow.current[i] !== f.z) {
+          zNow.current[i] = f.z;
+          el.style.zIndex = String(f.z);
+        }
+      }
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      mq.removeEventListener("change", onChange);
+    };
   }, [reduced, paused]);
 
   return (
-    <section
-      ref={pauseRef}
-      data-paused={paused ? "true" : undefined}
-      className="relative -mt-[var(--mkt-header-h,4rem)] flex min-h-[100svh] flex-col justify-end overflow-hidden"
-    >
-      {/* THE ALBUM WALL (see the header comment). The grid is taller than the
-          viewport and drifts slowly; the doubled sequence covers the travel. */}
-      <div className="absolute inset-x-0 -top-[6%] -bottom-[10%]" aria-hidden>
+    <>
+      <section
+        ref={pauseRef}
+        /* Mirrored for the loop-pause contract's own grammar, and because it is
+           otherwise the one signal that is invisible while debugging; the loop
+           itself reads the hook, not the attribute. */
+        data-paused={paused ? "true" : undefined}
+        style={LAYOUT}
+        /* overflow-CLIP, not overflow-hidden: an `overflow: hidden` box is
+           still a SCROLL container, and this one's content is several viewports
+           wide, so a focus or an anchor inside it could shove the whole
+           composition sideways. `clip` clips the same pixels and creates no
+           scroll container. */
+        className="hhs-hero relative -mt-[var(--mkt-header-h,4rem)] overflow-clip bg-background"
+      >
+        {/* THE BAND. Full bleed and decorative: the album is the argument, but
+            it is the type that carries the sentence. The box is one hero tall
+            and centred on the axis, so the code, the band, the perspective's
+            vanishing point and the mask's centre all move together in one
+            number. */}
         <div
-          data-mkt-wall
-          className="grid h-[130%] w-full grid-flow-dense auto-rows-[minmax(0,1fr)] grid-cols-3 gap-1.5 sm:grid-cols-4 lg:grid-cols-5"
+          aria-hidden
+          className="hhs-band absolute inset-x-0 h-full"
+          style={{ top: "calc(var(--hhs-axis) - 50%)" }}
         >
-          {WALL_TILES.map((tile) => (
-            <div
-              key={tile.key}
-              className={`relative overflow-hidden ${tile.tall ? "row-span-2" : ""}`}
-            >
-              <Image
-                src={tile.src}
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 20vw, (min-width: 640px) 25vw, 34vw"
-                loading={tile.index < WALL_EAGER ? "eager" : "lazy"}
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
-        {/* The scrim: a flat base darkening (bright tiles must never compete
-            with the H1) + lower-third weight + an edge vignette. The wall
-            stays visibly alive midframe, but the type is sovereign. */}
-        <div className="absolute inset-0 bg-black/35" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/50" />
-        <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_30%_75%,transparent_30%,rgba(0,0,0,0.4)_100%)]" />
-        {/* THE MOBILE COPY SCRIM (R4/A12): at 375 the copy block sits high in
-            the frame, where the ramp above is at its weakest, so the eyebrow
-            and subhead ran straight over bright tiles. One extra ramp below sm
-            puts ink behind the WHOLE block; the desktop scrim (tuned against
-            the wall) is deliberately untouched. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-transparent sm:hidden" />
-      </div>
-
-      {/* THE REEL CARD: the album's live reel, sitting in the wall. */}
-      <div className="pointer-events-none absolute inset-0 hidden lg:block">
-        <div className="absolute right-[6%] bottom-[18%] w-[300px] xl:w-[340px]">
-          <div className="relative aspect-video overflow-hidden rounded-lg ring-1 ring-white/25">
-            <Image
-              src={HERO_REEL.poster}
-              alt=""
-              fill
-              sizes="260px"
-              loading="eager"
-              className="object-cover"
-            />
-            {showVideo && (
-              <video
-                ref={videoRef}
-                src={HERO_REEL.src}
-                preload="none"
-                muted
-                loop
-                playsInline
-                onPlaying={() => setVideoLive(true)}
-                className={`absolute inset-0 size-full object-cover transition-opacity duration-500 ${
-                  videoLive ? "opacity-100" : "opacity-0"
-                }`}
-              />
-            )}
-            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/70 to-transparent px-3 pt-8 pb-2.5">
-              <Caption className="text-white/80">The reel</Caption>
-              <Caption className="text-white/60 tabular-nums">
-                0:
-                {String(Math.round(HERO_REEL.durationSeconds)).padStart(2, "0")}
-              </Caption>
-            </div>
+          <div className="hhs-corridor">
+            {FRAMES.map((f, i) => (
+              <div
+                key={f.key}
+                ref={(el) => {
+                  nodes.current[i] = el;
+                }}
+                className="hhs-card"
+                style={f.style}
+              >
+                {/* At FULL luminance, and there is no scrim prop: a hero that
+                    needs one has not solved its composition (bible 1). */}
+                <div className="relative size-full overflow-hidden rounded-[var(--radius-tile)] bg-white/5 ring-1 ring-white/10 ring-inset">
+                  <Image
+                    src={f.image.src}
+                    alt=""
+                    fill
+                    sizes={FRAME_SIZES}
+                    loading={f.eager ? "eager" : "lazy"}
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      <div className="relative">
-        <Container className="pt-28 pb-14 sm:pb-20">
-          {/* white/75, up from white/60 (R4/A12): the wide tracking already
-              thins this line, and over a live media wall 60% lost it. */}
-          <p className="text-xs font-medium tracking-[0.22em] text-white/75 uppercase">
-            {HERO_EYEBROW}
-          </p>
-          <h1 className="mt-4 max-w-4xl font-heading text-5xl leading-[1.02] text-white sm:text-6xl md:text-7xl lg:text-8xl">
-            {THESIS_BEFORE}
-            {/* The accessible sentence stays the static thesis; the kinetic
-                slot is presentation only. */}
-            <span className="sr-only">event</span>
-            <span aria-hidden className="inline-flex align-baseline">
-              {reduced ? (
-                <span>event</span>
-              ) : (
-                <SpliceWord word={KINETIC_WORDS[wordIndex]} />
-              )}
-            </span>
-            {THESIS_AFTER}
+        {/* THE OBJECT, on the axis and at the exact centre of the band, above
+            the frames so they are born behind it. */}
+        <div
+          className="hhs-qr absolute left-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
+          style={{ top: "var(--hhs-axis)" }}
+        >
+          <DemoQr />
+        </div>
+
+        {/* THE BLOCK: the headline, the sentence and the two actions, together
+            and never split (Will's ask on round six), anchored at the measured
+            clear line rather than laid out in flow, so the code holds its place
+            whether the line runs to one row or two. No scrim and no darkening
+            layer over a frame anywhere: the geometry is what keeps the type off
+            the photographs, which is the argument. */}
+        <div
+          className="absolute inset-x-0 z-20 px-4 text-center sm:px-6 lg:px-8"
+          style={{ top: "calc(var(--hhs-axis) + var(--hhs-low))" }}
+        >
+          <h1
+            className="mx-auto font-heading text-5xl leading-[1] text-balance text-white sm:text-6xl md:text-7xl lg:text-8xl lg:leading-[0.95]"
+            style={{ maxWidth: "var(--hhs-h1-max)" }}
+          >
+            {SITE_THESIS}
           </h1>
-          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-pretty text-white/85">
+          <p
+            className="mx-auto mt-4 text-[15px] leading-relaxed text-pretty text-white/80 lg:mt-5"
+            style={{ maxWidth: "var(--hhs-low-max)" }}
+          >
             {SITE_SUBHEAD}
           </p>
-          <div className="mt-7 flex flex-wrap items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 lg:mt-7">
             <Button asChild size="lg" className="h-11 px-6 text-base">
               <Link
                 href={MARKETING_CTA.href}
@@ -282,10 +346,10 @@ export function CinemaHero() {
                 {MARKETING_CTA.label}
               </Link>
             </Button>
-            {/* A REAL SECONDARY BUTTON (R4/A13): a 25% hairline over a bright
-                media wall read as plain text at 375. A dark glass fill plus a
-                40% edge gives it a button's body while the solid-white primary
-                keeps the hierarchy. */}
+            {/* The reel stays the secondary action even though the code beside
+                it is the demo affordance: the code answers "what do my guests
+                do?" and the reel answers "what do I get?", and they are
+                different questions. */}
             <Button
               size="lg"
               variant="outline"
@@ -293,73 +357,54 @@ export function CinemaHero() {
                 track("reel_play");
                 setOverlayOpen(true);
               }}
-              className="h-11 gap-2 border-white/40 bg-black/40 px-5 text-base text-white backdrop-blur-[2px] hover:border-white/50 hover:bg-white/15 hover:text-white"
+              className="h-11 gap-2 border-white/35 bg-white/5 px-5 text-base text-white hover:border-white/50 hover:bg-white/15 hover:text-white"
             >
               <Play className="size-4 fill-current" />
               Watch a sample reel
             </Button>
           </div>
-          {/* The demo ticket: QR + route to the real demo event (Will's
-              checkpoint ask), replacing the text-only demo link here. */}
-          <div className="mt-5">
-            <DemoTicket />
-          </div>
-        </Container>
-      </div>
+        </div>
 
+        {/* The one reader the reduced-motion split cannot reach: motion
+            allowed, scripting off. See NOSCRIPT_RULE. */}
+        <noscript dangerouslySetInnerHTML={{ __html: NOSCRIPT_RULE }} />
+      </section>
+
+      {/* A sibling of the hero, never a child: the hero clips its overflow and
+          the overlay covers the viewport. */}
       {overlayOpen && (
         <Suspense fallback={null}>
           <SampleReelOverlay onClose={() => setOverlayOpen(false)} />
         </Suspense>
       )}
-    </section>
+    </>
   );
 }
 
-/** SPLICE (round 2; the Roll was "still not very clean" — Will's checkpoint
- *  review; three simultaneous motions read as a busy little machine at 8xl).
- *  The house film-cut grammar instead: the word swaps INSTANTLY, a projector
- *  splice — no travel, no crossfade — and the box width glides once, fast, so
- *  the sentence closing up around the new word is the ONLY visible motion.
- *  The natural clip during the glide reads as intent: a longer word wipes in
- *  as its box opens; a shorter word's box closes up behind the comma. The
- *  measured-width machinery survives from the Roll: the sizer holds the box
- *  pre-measure, then the explicit width owns layout; ResizeObserver re-syncs
- *  on late webfont swaps / breakpoint font-size changes / zoom (a stale
- *  measure clips the H1 indefinitely — the c1 lesson); ceil() guards
- *  sub-pixel clipping; the sizer is inline-block because ResizeObserver never
- *  fires for inline boxes. FALLBACK if this version also fails Will's eye:
- *  render "event" static and retire KINETIC_WORDS (pre-agreed). */
-function SpliceWord({ word }: { word: string }) {
-  const [width, setWidth] = useState<number | null>(null);
-  const sizerRef = useRef<HTMLSpanElement | null>(null);
-
-  useLayoutEffect(() => {
-    const sizer = sizerRef.current;
-    if (!sizer) return;
-    const sync = () => setWidth(Math.ceil(sizer.getBoundingClientRect().width));
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(sizer);
-    return () => ro.disconnect();
-  }, [word]);
-
+/**
+ * The real demo event's code, server-rendered and zero-JS (FooterQr's path),
+ * on the white plate scanners need. Drawn ONCE at the larger edge and sized by
+ * the sheet: an SVG with a viewBox scales without a second copy in the markup,
+ * and crispEdges keeps the modules sharp at either size. When no demo is
+ * configured it encodes the site and carries no link, so the composition still
+ * has its object.
+ */
+function DemoQr() {
+  const plate = (
+    <FooterQr
+      value={DEMO_EVENT_URL ?? "https://partyreel.com"}
+      size={GEO.lg.qr}
+    />
+  );
+  if (!DEMO_EVENT_URL) return plate;
   return (
-    <span
-      className="relative inline-block overflow-hidden align-baseline"
-      style={{
-        width: width === null ? undefined : width,
-        transition: "width 180ms var(--ease-in-out-strong)",
-      }}
+    <Link
+      href={DEMO_EVENT_URL}
+      aria-label="Scan with your phone, or tap to open the live demo"
+      className="inline-flex transition-transform duration-150 active:scale-[0.99]"
+      {...trackAttrs("cta_click", { cta: "demo-qr", location: "hero" })}
     >
-      <span
-        aria-hidden
-        ref={sizerRef}
-        className="invisible inline-block whitespace-nowrap"
-      >
-        {word}
-      </span>
-      <span className="absolute inset-0 whitespace-nowrap">{word}</span>
-    </span>
+      {plate}
+    </Link>
   );
 }
