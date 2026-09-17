@@ -362,9 +362,51 @@ inside each edge at 1440 and 14px at 375. A linear side mask on a wider box is a
 lit 40% at the object's own edge and ending on a straight line outside it; ruled out on sight, and
 pinned by test.
 
-All three seams ship at `--glw-dur: 11s` against the engine's ruled 8s. With more than one lamp the
-open question is the **system's register**, the whole page at 11s against the whole page at 8s, not
-one seam in isolation.
+**One clock, ruled** (Will, 2026-09-17). Every lamp reads `--spill-cadence` and it is **8s**: the
+engine's own register, judged as the whole home page at each rather than one seam in isolation, ending
+the two rounds in which every shipped lamp ran 11s against it. A lamp passes the token and never a
+literal, which is what lets one ruling re-time the page at once. The Aurora's field takes a SIBLING,
+`--aurora-cadence: calc(var(--spill-cadence) * 3)` (24s), because a field the size of a chapter moving
+at a lamp's clock reads as a screensaver. ★ The sibling must stay declared in `globals.css`: `vars`
+lands inline and outranks the engine's own `--glw-dur`, so an undeclared cadence is invalid at
+computed-value time, the `animation` shorthand goes with it, every longhand resets, and the band
+FREEZES over a still-lit base. That reads as a design choice rather than a defect, and it cost the
+light board a round to diagnose.
+
+### The Aurora, and its three forms
+
+**The Aurora is Will's word for the coloured light** (2026-09-17), and it is one family rather than
+three effects. The kept FORMS: the **seam**, a band where two grounds meet (the footer, the film
+strip, every screen lamp); the **throw**, cast from a point on an object, which is how a plate sits on
+open dark without a rim; the **field**, a whole chapter lit at its own two edges. Code identifiers do
+not move (`Glow`, SPILL, `--glw-*`, `--lamp-*`); the Library and these docs speak his word.
+
+**The field is [`SectionLight`](../../src/components/marketing/system/section-light.tsx)**, beside
+`ScreenLamp` and for the same reason: the placement grammar and the register live in ONE place, so a
+chapter asks for light rather than assembling two bands and four custom properties. Two seams at the
+section's own boundaries, the bottom one the top one flipped on its own axis (`scale: "1 -1"`; the
+engine has no bottom-seam shape and must not grow one, since only the vector differs and law 2 says a
+vector is the caller's to turn), each 42 percent of the section's height. `placement` is
+`both | top | bottom | room`; `middle` and `behind` are fenced rather than typed, because the copy
+then sits IN the light instead of in the clean band between two lamps. **Accent is the global
+register** ("Identity feels way too weak"), so there is no register axis: one object, `AURORA_VARS`,
+which every lamp in the file spreads. It takes the **transform drive** deliberately, since a
+chapter-scale mask repaints every frame. ★ Being the first shipped lamp on that drive is what exposed
+its missing resting `translate`: with the animation inside the no-preference block, a reduced-motion
+visitor saw the comet parked dead centre at full strength, which is law 4 inverted exactly as the mask
+drive's `mask-position: 50% 0` was. The drive now declares `glw-drift-x`'s own from-keyframe.
+
+★ **No Aurora on a light ground** (Will, 2026-09-17: "It's barely noticeable and almost appears as a
+weird shadow or a stray artifact... No light ground usage is a decision for now"). The fence is CSS
+rather than a prop or a review note, so a chapter that turns to paper a round later goes quiet on its
+own: `[data-section-light]:not(.dark *), .surface-paper [data-section-light] { display: none }`, which
+is theme.css's `dark` variant inverted (both halves are needed, since a paper chapter lives inside a
+forced-dark cinema wrapper and a cinema page in an explicit-light session has no `.dark` on `<html>`).
+It is scoped to the field and **never widened to `[data-glw]`**: the seams that already ship have
+their own paper behaviour, and today that behaviour is nothing at all, so a media-less lamp on paper
+still paints the dark register's five (open for Will; the hand-tuned paper five is in ROADMAP).
+`SectionLight` has **no production call site yet**, on purpose: the placement is the light board's
+round-eight question, and a lamp mounted before that answer is a placement nobody ruled.
 
 **Where the page already painted the media, sample the DOM.** `useSampledPaletteFromDom(ref)` reads
 the `<img>` elements the page has already painted, so `drawImage` reuses the decoded bitmap: zero

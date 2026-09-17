@@ -83,8 +83,10 @@ export function ScreenLamp({
           vars={{
             "--glw-h": `${height}px`,
             "--glw-strength": String(strength),
-            // 11s: the system's shipped register (every production lamp runs
-            // at it; the 8s-vs-11s ruling is open on the whole page, not here).
+            // The one lamp clock, read from its token: Will ruled 8s on the
+            // whole page (2026-09-17) and every production lamp follows it from
+            // here. Never a literal, or this lamp drifts out of the page's
+            // register the next time the ruling moves.
             "--glw-dur": "var(--spill-cadence)",
           }}
         />
