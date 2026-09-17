@@ -1,4 +1,5 @@
 import { CtaBand } from "@/components/marketing/system/cta-band";
+import { SectionLight } from "@/components/marketing/system/section-light";
 import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
 
 /**
@@ -8,16 +9,27 @@ import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
  * reelThesis lands in the subhead so the page ends where the arc began, on
  * the reel. The credit renders the Logo lockup + the production line (the
  * real-logo asset stays a ROADMAP line).
+ *
+ * ★ THE AURORA HERE IS A HORIZON (Will, 2026-09-17: the Aurora's placement is
+ * "a mix of all of them... custom and bespoke", composed for the place). This
+ * section ends on the footer, whose seam already throws the house light DOWN
+ * from their shared line. So the closer takes the light at its BOTTOM edge
+ * only, rising from that same line: the two lamps read as one horizon behind
+ * the last words of the film, and the top stays dark so the FAQ above ends in
+ * quiet. `both` would light the FAQ's border too and put a second bright line
+ * on a page that is trying to end.
  */
 export function CinemaClose() {
   return (
-    <CtaBand
-      className="border-t"
-      reveal="cinema"
-      heading="Roll credits on the group chat."
-      subhead={`${GOLDEN_LINES.reelThesis}. Free to host, and guests join with one scan.`}
-      demoLink
-      credit
-    />
+    <SectionLight placement="bottom" reach="58%">
+      <CtaBand
+        className="border-t"
+        reveal="cinema"
+        heading="Roll credits on the group chat."
+        subhead={`${GOLDEN_LINES.reelThesis}. Free to host, and guests join with one scan.`}
+        demoLink
+        credit
+      />
+    </SectionLight>
   );
 }

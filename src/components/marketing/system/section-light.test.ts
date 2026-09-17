@@ -1,5 +1,5 @@
 // @contract-for: src/components/marketing/system/section-light.tsx
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -229,5 +229,59 @@ describe("the aurora rests on the engine's designed still", () => {
     );
     expect(from, "glw-drift-x from-keyframe not found").not.toBeNull();
     expect(rest![1].trim()).toBe(from![1].trim());
+  });
+});
+
+/**
+ * THE PLACEMENT LAW (Will, 2026-09-17, asked which of the four placements the
+ * site takes): "I think we go with a mix of all of them. The Aurora infusion
+ * into our site identity should feel custom and bespoke, not a couple of
+ * identity components reused everywhere in the same way constantly."
+ *
+ * What a test can hold of that is the part that fails silently: a default
+ * creeping back (every new call site then looks like the last one without
+ * anybody choosing it), and one page stamping the same composition twice.
+ * Which composition a section takes is Will's and the call site's, never this
+ * file's.
+ */
+describe("the aurora is composed for the place", () => {
+  const walk = (dir: string): string[] =>
+    readdirSync(dir).flatMap((name) => {
+      const full = join(dir, name);
+      return statSync(full).isDirectory() ? walk(full) : [full];
+    });
+
+  /** Every production `<SectionLight ...>` opening tag, by the folder it lives in. */
+  const mounts = walk(join(ROOT, "src/components"))
+    .filter((f) => f.endsWith(".tsx") && !f.endsWith("section-light.tsx"))
+    .flatMap((f) => {
+      const text = stripComments(read(f.slice(ROOT.length + 1)));
+      return [...text.matchAll(/<SectionLight\b[^>]*>/g)].map((m) => ({
+        page: f.slice(ROOT.length + 1).split("/").slice(0, -1).join("/"),
+        tag: m[0].replace(/\s+/g, " "),
+      }));
+    });
+
+  it("found the call sites at all", () => {
+    // A pin that scans nothing passes forever.
+    expect(mounts.length, "no production mount found").toBeGreaterThan(1);
+  });
+
+  it("has no default placement to reach for", () => {
+    expect(code, "a default placement crept back").not.toMatch(
+      /placement\s*=\s*"/,
+    );
+    for (const { tag } of mounts) {
+      expect(tag, "a mount that names no placement").toMatch(/\splacement=/);
+    }
+  });
+
+  it("never stamps one composition twice on a page", () => {
+    const seen = new Map<string, string>();
+    for (const { page, tag } of mounts) {
+      const key = `${page} :: ${tag}`;
+      expect(seen.has(key), `${page} repeats ${tag}`).toBe(false);
+      seen.set(key, tag);
+    }
   });
 });

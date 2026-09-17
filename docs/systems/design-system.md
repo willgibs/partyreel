@@ -379,17 +379,35 @@ light board a round to diagnose.
 **The Aurora is Will's word for the coloured light** (2026-09-17), and it is one family rather than
 three effects. The kept FORMS: the **seam**, a band where two grounds meet (the footer, the film
 strip, every screen lamp); the **throw**, cast from a point on an object, which is how a plate sits on
-open dark without a rim; the **field**, a whole chapter lit at its own two edges. Code identifiers do
-not move (`Glow`, SPILL, `--glw-*`, `--lamp-*`); the Library and these docs speak his word.
+open dark without a rim; the **field**, a whole chapter lit at its own edges. Two MARKS are kept beside
+them (2026-09-17): the **bloom**, a one-time glow that rests lit and never decays to nothing (the QR
+plate ships it), and the **halo**, which lights an OBJECT from behind and never wraps a button ("Do not
+like as a button wrapper, only to light objects from behind"; no production use yet, the Library holds
+its working specimen). Code identifiers do not move (`Glow`, SPILL, `--glw-*`, `--lamp-*`); the Library
+and these docs speak his word.
+
+★ **The Aurora is composed for the place, never stamped** (Will, 2026-09-17, asked which placement the
+site takes: "a mix of all of them... custom and bespoke, not a couple of identity components reused
+everywhere in the same way constantly"). The REGISTER and the CLOCK are fixed so they cannot drift; the
+GEOMETRY is the call site's, chosen by looking at the section, and a call site says in a comment why.
+`SectionLight` therefore has **no default placement**, and its contract refuses the same composition
+twice on one page. The home page's two are the first: the **closer** takes the light at its bottom edge
+only (`placement="bottom" reach="58%"`), rising from the line it shares with the footer's seam so the
+two lamps read as one horizon; the **guest ledger**, the page's one left-aligned header, is lit from
+its open side (`placement="room" from={{ x: "0%", y: "50%" }} reach="62%"`). ★ A section with no
+boundary line of its own cannot take a band or a floor cast: the lamp's box clips its falloff, so the
+light ends in a hard line where nothing on the page explains one. A cast whose origin sits on a side
+edge, vertically centred, with a reach under about 64 percent finishes its falloff inside the box.
 
 **The field is [`SectionLight`](../../src/components/marketing/system/section-light.tsx)**, beside
 `ScreenLamp` and for the same reason: the placement grammar and the register live in ONE place, so a
 chapter asks for light rather than assembling two bands and four custom properties. Two seams at the
 section's own boundaries, the bottom one the top one flipped on its own axis (`scale: "1 -1"`; the
 engine has no bottom-seam shape and must not grow one, since only the vector differs and law 2 says a
-vector is the caller's to turn), each 42 percent of the section's height. `placement` is
-`both | top | bottom | room`; `middle` and `behind` are fenced rather than typed, because the copy
-then sits IN the light instead of in the clean band between two lamps. **Accent is the global
+vector is the caller's to turn), each 42 percent of the section's height unless the call site passes
+its own `reach`. `placement` is `both | top | bottom | room`, and `room` takes a `from` origin on or
+beside an edge of the box; `middle` and `behind` are fenced rather than typed, because the copy
+then sits IN the light instead of in the clean band beside it. **Accent is the global
 register** ("Identity feels way too weak"), so there is no register axis: one object, `AURORA_VARS`,
 which every lamp in the file spreads. It takes the **transform drive** deliberately, since a
 chapter-scale mask repaints every frame. ★ Being the first shipped lamp on that drive is what exposed
@@ -406,8 +424,6 @@ forced-dark cinema wrapper and a cinema page in an explicit-light session has no
 It is scoped to the field and **never widened to `[data-glw]`**: the seams that already ship have
 their own paper behaviour, and today that behaviour is nothing at all, so a media-less lamp on paper
 still paints the dark register's five (open for Will; the hand-tuned paper five is in ROADMAP).
-`SectionLight` has **no production call site yet**, on purpose: the placement is the light board's
-round-eight question, and a lamp mounted before that answer is a placement nobody ruled.
 
 **Where the page already painted the media, sample the DOM.** `useSampledPaletteFromDom(ref)` reads
 the `<img>` elements the page has already painted, so `drawImage` reuses the decoded bitmap: zero

@@ -221,26 +221,39 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     badge: "new",
     family: "marketing",
     section: "Shells",
-    lede: "The Aurora at chapter scale: a section's own two boundaries lit, with the copy in the clean band between them. Two seams, the bottom one the top one flipped on its own axis, each 42 percent of the section's height, on the accent register and a clock three laps slower than a lamp's. Dark grounds only, by construction.",
+    lede: "The Aurora at chapter scale, composed for the place. The register and the clock are fixed (the accent register, three laps slower than a lamp); the geometry is the call site's: which edges carry the light, how deep a band reaches, where a cast starts. There is no default placement on purpose, and two sections on one page never take the same composition. Dark grounds only, by construction.",
     variants: [
       {
         prop: "placement",
         source: "prop",
-        fallback: "both",
         options: ["both", "top", "bottom", "room"],
-        note: "Which of the section's boundaries carry the light. `middle` and `behind` are not values: the copy then sits IN the light instead of in the clean band between two of them, which is the half of the grammar a call site is most likely to get wrong.",
+        note: "Required, with no default: Will ruled the placement a mix, custom to each place. `middle` and `behind` are not values: the copy then sits IN the light instead of in the clean band beside it, which is the half of the grammar a call site is most likely to get wrong.",
+      },
+      {
+        prop: "from",
+        source: "prop",
+        fallback: "50% 88%",
+        options: ["50%", "88%"],
+        note: "`room` only: where the cast starts, as { x, y } on the section's own box. The default is the floor, centred (x 50%, y 88%). A call site may name another point on or beside an EDGE of the box, never its middle (that is the fill the doctrine refuses). A vertically centred origin with a reach under about 64 percent finishes its falloff inside the box, so no hard line appears where the section has no boundary of its own.",
+      },
+      {
+        prop: "reach",
+        source: "prop",
+        fallback: "42%",
+        options: ["42%", "120%"],
+        note: "How far the light goes. A band defaults to 42 percent of the section's height and the room's cast to 120 percent; a call site passes its own when the place asks for it.",
       },
     ],
     specimens: [
       {
-        // The default, and the form Will approved: a chapter lit at both of its
-        // own edges and nowhere in its middle. A real SectionShell underneath,
-        // so the copy is real copy on the real ground.
+        // A chapter lit at both of its own edges and nowhere in its middle. A
+        // real SectionShell underneath, so the copy is real copy on the real
+        // ground. One of four, never a default (the lede says why).
         label: "both",
         hint: "a chapter's two boundaries · the copy in the clean band between them",
         bleed: true,
         node: (
-          <SectionLight>
+          <SectionLight placement="both">
             <SectionShell
               eyebrow="Aurora"
               heading="A chapter with a temperature"
@@ -305,6 +318,32 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         ),
       },
       {
+        // The home page's guest ledger (no-app.tsx): the one left-aligned
+        // header on that page, lit from its open side. The origin sits ON the
+        // section's edge and is vertically centred, so the falloff finishes
+        // inside the box and no hard line is drawn where the section has no
+        // boundary of its own.
+        label: "room, from a side",
+        hint: 'from={{ x: "0%", y: "50%" }} reach="62%" · a ledger lit from its open side',
+        bleed: true,
+        node: (
+          <SectionLight
+            placement="room"
+            from={{ x: "0%", y: "50%" }}
+            reach="62%"
+          >
+            <SectionShell
+              eyebrow="Aurora"
+              heading="Lit from the side it opens to"
+              subhead="The cast starts on the section's own edge and falls away before it crosses the copy."
+              reveal="none"
+              align="left"
+              className="py-24"
+            />
+          </SectionLight>
+        ),
+      },
+      {
         // ★ THE FENCE, AS A SPECIMEN. Will, 2026-09-17: "we may not be able to
         // use the Aurora on white/paper surfaces. It's barely noticeable and
         // almost appears as a weird shadow or a stray artifact... No light
@@ -317,7 +356,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         bleed: true,
         node: (
           <PaperChapter>
-            <SectionLight>
+            <SectionLight placement="both">
               <SectionShell
                 eyebrow="Aurora"
                 heading="No light ground usage"

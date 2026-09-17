@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 17 policies · 192 contracts on 30 components · 9 standing boards.**
+**22 laws · 17 policies · 195 contracts on 30 components · 9 standing boards.**
 
 ## What binds you
 
@@ -275,7 +275,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/paper-chapter.tsx` | a run of sections forced onto paper inside a cinema page; the flip is a chapter cut | none |
 | `src/components/marketing/system/reveal.tsx` | the in-view trigger firing the marketing arrival grammar; CSS owns every bit of motion | none |
 | `src/components/marketing/system/screen-lamp.tsx` | the one underlight: a lit object throws light down, as a SIBLING and never from inside | is a seam that hangs BELOW the object (the one underlight mechanic); renders the lamp AFTER the children, as their sibling; breaks out full-bleed so the field's side edges land off-screen; samples from the DOM it wraps, never from URLs; passes the engine no className (the utilities layer outranks it) |
-| `src/components/marketing/system/section-light.tsx` | the Aurora at chapter scale: a section's own two edges lit, and never on a light ground | renders the primitive and nothing of its own; turns the bottom band rather than growing a second shape; never hands the lamp a className; reads the slow clock from its token, never as a literal; keeps the register in one object every lamp spreads; never clips the lamp it mounts; puts the content after the light, in its own positioned wrapper; marks the LIGHT with data-section-light, never the content; is fenced in CSS, mirroring the dark variant inverted; takes the transform drive, and the drive declares where it parks |
+| `src/components/marketing/system/section-light.tsx` | the Aurora at chapter scale: a section's own two edges lit, and never on a light ground | renders the primitive and nothing of its own; turns the bottom band rather than growing a second shape; never hands the lamp a className; reads the slow clock from its token, never as a literal; keeps the register in one object every lamp spreads; never clips the lamp it mounts; puts the content after the light, in its own positioned wrapper; marks the LIGHT with data-section-light, never the content; is fenced in CSS, mirroring the dark variant inverted; takes the transform drive, and the drive declares where it parks; found the call sites at all; has no default placement to reach for; never stamps one composition twice on a page |
 | `src/components/marketing/system/section-shell.tsx` | the marketing section wrapper: eyebrow, heading, subhead, clamp and arrival register | none |
 | `src/components/marketing/system/stat-band.tsx` | the counter band: numbers that roll or pop once, when the band scrolls into view | none |
 | `src/components/marketing/system/tilt-card.tsx` | the 3D pointer tilt; mouse only, because a finger on a card must scroll the page | none |

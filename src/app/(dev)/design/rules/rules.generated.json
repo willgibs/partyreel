@@ -2359,6 +2359,30 @@
           ],
           "file": "src/components/marketing/system/section-light.test.ts",
           "line": 193
+        },
+        {
+          "title": "found the call sites at all",
+          "suite": [
+            "the aurora is composed for the place"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 265
+        },
+        {
+          "title": "has no default placement to reach for",
+          "suite": [
+            "the aurora is composed for the place"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 270
+        },
+        {
+          "title": "never stamps one composition twice on a page",
+          "suite": [
+            "the aurora is composed for the place"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 279
         }
       ]
     },

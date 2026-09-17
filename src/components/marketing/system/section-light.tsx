@@ -44,13 +44,25 @@ import { Glow, type GlowVars } from "@/components/shared/glow";
  * the H1, which reads as "the effect is too strong" and sends you tuning
  * opacity instead of fixing the stack.
  *
- * No production call site yet, on purpose: the placement Will picks (the light
- * board's round eight asks it) decides which chapters carry one, and a lamp
- * mounted before that answer is a placement nobody ruled.
+ * ★ COMPOSE IT FOR THE PLACE, NEVER STAMP IT (Will, 2026-09-17, asked which of
+ * the four placements the site takes: "I think we go with a mix of all of them.
+ * The Aurora infusion into our site identity should feel custom and bespoke,
+ * not a couple of identity components reused everywhere in the same way
+ * constantly."). So there is no house default to reach for. The REGISTER and
+ * the CLOCK are fixed here, because those are what must not drift; the GEOMETRY
+ * is the call site's, chosen by looking at the section: which edges carry the
+ * light, how deep a band reaches, where a cast starts and how far it goes. Two
+ * sections on one page never take the same composition, and a call site says
+ * in a comment why its section takes the one it does. The home page's two are
+ * the first: the guest ledger is lit from its open side, and the closer's light
+ * rises from the floor it shares with the footer's seam.
  */
 
 /** The four placements that ship. `middle` and `behind` are fenced, not typed. */
 export type SectionLightPlacement = "both" | "top" | "bottom" | "room";
+
+/** A point on the section's own box, as CSS percentages (`{ x: "100%", y: "18%" }`). */
+export type SectionLightOrigin = { x: string; y: string };
 
 /**
  * THE ACCENT REGISTER, and the only one. Will, 2026-09-17: "Identity feels way
@@ -81,12 +93,17 @@ const AURORA_VARS: GlowVars = {
 };
 
 /**
- * Each band is 42 percent of the SECTION's height, so the light reaches a
- * chapter's own proportion rather than a pixel count that is right on one
- * section and wrong on the next. The engine sizes the lamp from --glw-h, so the
+ * A band is a share of the SECTION's height, so the light reaches a chapter's
+ * own proportion rather than a pixel count that is right on one section and
+ * wrong on the next. 42 percent is where the light board drew it; a call site
+ * may pass its own `reach`. The engine sizes the lamp from --glw-h, so the
  * wrapper carries the fraction and the lamp fills it.
  */
-const BAND_HEIGHT = "42%";
+const BAND_REACH = "42%";
+
+/** The room's own cast: from the section's floor, centred, past its far edge. */
+const ROOM_FROM: SectionLightOrigin = { x: "50%", y: "88%" };
+const ROOM_REACH = "120%";
 
 /**
  * ★ THE TRANSFORM DRIVE, DELIBERATELY. The mask drive is the footer's shipped
@@ -95,7 +112,7 @@ const BAND_HEIGHT = "42%";
  * WITH the window anyway. It also makes this the first shipped lamp on that
  * drive, which is why globals.css now declares its resting translate.
  */
-function Band({ edge }: { edge: "top" | "bottom" }) {
+function Band({ edge, reach }: { edge: "top" | "bottom"; reach: string }) {
   return (
     <div
       aria-hidden
@@ -104,7 +121,7 @@ function Band({ edge }: { edge: "top" | "bottom" }) {
       style={{
         top: edge === "top" ? 0 : undefined,
         bottom: edge === "bottom" ? 0 : undefined,
-        height: BAND_HEIGHT,
+        height: reach,
         // The flip, on the band's own axis. `scale` is the standalone property
         // (Tailwind v4's translate/scale utilities write these), so it composes
         // with nothing and needs no transform of its own.
@@ -121,12 +138,13 @@ function Band({ edge }: { edge: "top" | "bottom" }) {
 }
 
 /**
- * The room: one origin-anchored cast from the section's own floor, for a
- * chapter with nothing at its edges to light. Still a vector (law 2), which is
- * the whole difference between this and the fenced `behind`: that one sits the
- * origin at 46% and becomes the fill this doctrine refuses.
+ * The room: one origin-anchored cast, from the section's own floor unless the
+ * call site names another point ON AN EDGE of its box (a ledger lit from its
+ * open side). Still a vector (law 2), which is the whole difference between
+ * this and the fenced `behind`: that one sits the origin at 46% and becomes the
+ * fill this doctrine refuses, so an origin stays on or beside an edge.
  */
-function Room() {
+function Room({ from, reach }: { from: SectionLightOrigin; reach: string }) {
   return (
     <div
       aria-hidden
@@ -139,9 +157,9 @@ function Room() {
         vars={{
           ...AURORA_VARS,
           "--glw-blur": "48px",
-          "--glw-from-x": "50%",
-          "--glw-from-y": "88%",
-          "--glw-reach": "120%",
+          "--glw-from-x": from.x,
+          "--glw-from-y": from.y,
+          "--glw-reach": reach,
         }}
       />
     </div>
@@ -150,20 +168,33 @@ function Room() {
 
 export function SectionLight({
   children,
-  placement = "both",
+  placement,
+  from = ROOM_FROM,
+  reach,
 }: {
   children: ReactNode;
-  /** Which of the section's boundaries carry the light. */
-  placement?: SectionLightPlacement;
+  /**
+   * Which of the section's boundaries carry the light. Required on purpose:
+   * there is no house default, because the composition is chosen for the place.
+   */
+  placement: SectionLightPlacement;
+  /** `room` only: where the cast starts, a point on or beside an edge of the box. */
+  from?: SectionLightOrigin;
+  /** How far the light reaches: a band's share of the section's height, or the room's cast. */
+  reach?: string;
 }) {
   return (
     <div className="relative isolate">
       {placement === "room" ? (
-        <Room />
+        <Room from={from} reach={reach ?? ROOM_REACH} />
       ) : (
         <>
-          {placement !== "bottom" ? <Band edge="top" /> : null}
-          {placement !== "top" ? <Band edge="bottom" /> : null}
+          {placement !== "bottom" ? (
+            <Band edge="top" reach={reach ?? BAND_REACH} />
+          ) : null}
+          {placement !== "top" ? (
+            <Band edge="bottom" reach={reach ?? BAND_REACH} />
+          ) : null}
         </>
       )}
       <div className="relative">{children}</div>
