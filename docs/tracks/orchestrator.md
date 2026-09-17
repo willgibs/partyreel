@@ -30,6 +30,9 @@ owns:
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
+  - src/app/globals.css
+  - src/app/theme.css
+  - src/app/(marketing)/marketing.css
   - src/lib/events/visibility-labels.ts
   - src/lib/shared/use-entered-frame.ts
 reads:
@@ -38,7 +41,7 @@ reads:
 announces:
   - "Round 1 of the revamp (2026-09-16, 5cdebfe0): the lab guards itself against a stale stylesheet (src/components/lab/lab-chrome.tsx reads --lab-css-generation off .lab-shell; bump lab-css-generation.ts and design.css together when a shell rule changes; a stale copy after one reload means the SERVER: stop it, rm -rf .next/dev, start it); every pick toggles (review-store.ts writers toggleAnswer / setAnswerNote / setBoardNote / toggleItemVerdict / setItemNote, an `items` map keyed by itemHoldId); a wide page at 1:1 runs edge to edge (data-lab-bleed on Stage and FrameRow; a bleed inside a bleed keeps its box); board-spec.ts carries ITEM_VERDICTS, LIBRARY_VERDICTS, BuilderVerdict, Candidate.one/verdict/facts, Control.clearable, BoardSpec.catalog and LIMITS.readingWords; .lab-catalog is the unlayered grid in design.css. Two lanes cut: lab-catalog (the review's item scope, the catalog kit, the toolbox, the reading budget, the palette as proof; owns scripts/lab-smoke.mjs this round) and lab-sweep (walk every lab page and fix the shell; owns design.css and _data/glossary.ts this round). docs/reviews/README.md stays here: a grammar change is written into Handoff verbatim and landed at the merge."
   - "The stepped review round (2026-09-16, 02c409b4): board-spec.ts carries Ask.lands / after / strip, AskOption.state, Candidate.lands, CatalogSpec.mode / winner / walk / stage and LIMITS.askLands / candidateLands; registry.test.ts rules on them (a staged ask waits on an earlier ask or a card of its own catalog; a pick-one catalog names a winner ask that mirrors the pick control and offers none; look is optional once every option is drawn; an ask mirroring a clearable control may offer its cleared default as none)."
-  - "The wiring rounds (2026-09-17): the three stylesheets (globals.css, theme.css, marketing.css) are palette-wiring's this round; Copy so far sends only a board's open round (review-message.ts composeSoFar), so a store entry from a round the board has left never rides again."
+  - "The wiring rounds (2026-09-17): Graphite is the palette (globals.css, theme.css, marketing.css at 88d0bec0: a 0.995 page, a 0.105 room, --faint as the third text step, the dark card opaque, no accent, the cinema deepening gone); the three stylesheets are the Orchestrator's again; Copy so far sends only a board's open round (review-message.ts composeSoFar), so a store entry from a round the board has left never rides again."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
 ---
 
@@ -72,7 +75,6 @@ are cut (development is parallel work again), the light sitting continues on its
 | track | board | waits on |
 | --- | --- | --- |
 | `hero-wiring` | home-hero (retires) | nothing: the pick is ruled, the caption dropped; the alias after the merge |
-| `palette-wiring` | palette (retires) | nothing: Graphite, no accent, the card as declared, the faint colour in |
 | `album-hero` (round three) | album-hero | nothing: his six notes of 2026-09-17 are the brief (custom, calm, the album centred, a Cosmos card) |
 
 ## Waiting on Will
@@ -156,5 +158,10 @@ palette and light first), pasted in batches with Copy so far.
   round seven built in the root tree (no lane, no manifest): the engine gains a turn by distance, a polar
   placement and a lockup with its own axis; the band, the orbit and the two stacks on the board at 779
   words, the four scatterings deleted.
+- `88d0bec0` palette-wiring integrated (the wind-down's first wiring: Graphite in both modes, no accent,
+  the dark card opaque, `--faint` on 40 sites, the board retired into its ruling; the manifest deleted);
+  `52e9afa2` bible 1's "under exploration" status gone and its why in the past tense, the palette's
+  ledger gone with the board; `c667db3c` the media kit's search doors; `cbad7faf` the album hero's
+  round three cut on Will's six notes.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

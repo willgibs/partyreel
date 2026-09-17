@@ -44,6 +44,7 @@ light sitting continues on its cards; Copy so far sends only a board's open roun
 | --- | --- | --- |
 | `lab-flow` | the review as a stepped onboarding form: tiles on one specimen, show versus choose, the three exits, one card at a time, staging, the desk's rows as steps | integrated at `c18570c4`; the catalog boards' reading halved with the deletions |
 | `home-hero` (round six) | four compositions of the stream (mirror, phrase, settle, ribbon) on the ruled hero, the last exploration before its wiring | integrated at `56ea9185`, 1,189 words under the budget |
+| `palette-wiring` | the wind-down's first wiring: Graphite in both modes (a Pearl page, a Graphite room, Apple's cool greys), no accent, the dark card opaque, `--faint` as the third text step on 40 sites; the board retired | integrated at `88d0bec0`; bible 1 ruled and the ledger gone at `52e9afa2` |
 | `home-hero` (round seven) | Will answered round six none in chat, the symmetric approach by name; the Orchestrator built the band (the reference's), the orbit (Cosmos's ring round the code, the block under it) and the two unsplit stacks in the root tree the same evening | on the tree at `ccf93732`, 779 words |
 | `type-scale` (round seven) | pick-one: the winner from the five or none, the spacing and the 404 heading as tile steps | integrated at `ec7367e7`, 486 words |
 | `light` (round seven) | the twelve cards reshaped for the walk: one at a time on three specimens, before/after and what each lands as, the asks as tile steps | integrated at `7ed0d2a2`, 920 words, no declaration |

@@ -21,6 +21,8 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
 The lab and the kit:
+- The lab: `library/rules/[id]/page.tsx` links `docs/tracks/<id>.md` for any status whose track is not a standing board without checking the manifest exists, so the rule page 404s the next time a ruled board retires; make that branch read the track states the desk already reads.
+- The lab: ten boards under `(dev)` still fade `text-muted-foreground/N` by hand (`git grep 'text-muted-foreground/'`); move them onto `text-faint` as each board is next touched.
 - The lab: `catalog.tsx` prints a card's `lands` only when the card is walked alone or picked, so a keep-any gallery never shows what keeping one lands as; widen the guard or give the gallery walk the solo walk's line (media-kit round seven).
 - The lab: a step's option tiles always draw inside a 1440 canvas (`FitStage mode="desktop"` in `step.tsx`), so a specimen narrower than the canvas lands as a thumbnail beside empty ground; the tile could take the canvas width its board declares (media-kit round seven).
 - The lab: the true-size box belongs in `src/components/lab` (a specimen at 1:1 inside a step's zoomed tile), built from brand-voice's copy, the only one of three whose reads SETTLE (`Stage` resolves its scale a pass after the box mounts and no ResizeObserver reports an ancestor's zoom, so type-scale's and rounding's copies measure 1 on mount and never compensate); the three board copies and floating-surfaces' enlarged loupe delete with the move.
@@ -55,6 +57,8 @@ The lab and the kit:
 - Mount `ItemVerdictRow` with `LIBRARY_VERDICTS` on a Library entry's page so a scroll through the components fills `docs/reviews/_library.json` (the ledger, the reader and the desk's "Redesigns you asked for" are landed; Round 3 of the revamp).
 
 Marketing:
+- Site-wide: the ~35 `bg-muted/N` sites become sections carrying `.surface-mat`, which ships declared and unworn since the palette's wiring (`88d0bec0`); the palette spec called the sweep mechanical.
+- Site-wide: an a11y pass on `--faint` (3.21:1 on the page, 2.92:1 on the mat); a few of the 40 sites it inherited read closer to body copy than to a caption.
 - The home hero's wiring is cut (`hero-wiring`, 2026-09-17): the stack with the code above into `cinema-hero.tsx` without the caption, the kinetic word retired with the ruled line, the board retired; the hero stays unlit meanwhile.
 - Events then pricing on the home are both card grids; Will named chapter 3 the model, so it stays until he wants it varied.
 - The events manifest fill: the conference and trip stills are borrowed; real photographs are the fix, never a third scrim.
@@ -87,6 +91,7 @@ Marketing:
 - The root 404's browser tint (`theme-color` light over a dark page); the design-system doc's em-dashes go when it is next rewritten.
 
 The app:
+- The admin chart ramp (`--chart-1..5`, both modes) is still chroma 0 beside Graphite's cool greys; a cast on five greys is a ruling, not a wiring round's value.
 - ★ The aurora is dark-ground only (Will, 2026-09-17: "No light ground usage is a decision for now"): the app's light mode owes its own answer for lit surfaces before the dark versus light work starts.
 - Cross-gallery sort and filter for the Uploads hub (`get_my_uploads` is filter-ready; add a like-count sort).
 - Zip-export follow-ons: an async build-to-R2 job past the cap; a custom `export.partyreel.com`.
