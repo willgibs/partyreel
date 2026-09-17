@@ -293,7 +293,13 @@ has TWO setup traps that both produce a false "broken" reading, and neither is a
   words): `pnpm lab:demo` (`scripts/lab-demo.mjs`, real Chrome over its DevTools protocol, no new
   dependency) presses every open step's pictured options and fails a stage that moves less than 0.1
   percent, reading the FRAME rather than the label over it (the label names the pressed option, so it
-  moves on a frozen stage too) and re-reading a motion-only step by the animations it declares. ★ A
+  moves on a frozen stage too) and re-reading a motion-only step by the animations it declares. It also
+  fails a stage that has drifted BELOW the options it answers to (`--reach-limit`, a share of a nominal
+  900px screen): a stage that changes is worth nothing if the reviewer cannot see it change, which is
+  what Will reported twice as "clicking the configs didn't seem to change anything", and the step now
+  draws the stage above the options and pins it there. Every row prints the step's height and word
+  count, and the run ends with the tallest, the wordiest and how much of the sitting asks with nothing
+  to press: the reviewer's unit of work is the STEP, and the smoke weighs only the whole board page. ★ A
   headless `--screenshot` cannot scroll (a fragment URL paints black, a tall window stretches a 100vh
   hero); the same protocol gives a scrolled, lossless capture, which is how subtle light is judged.
   **The second cause is an ORPHANED SERVER.** `preview_stop` does not reliably reap `next-server`,

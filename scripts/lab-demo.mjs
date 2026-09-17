@@ -8,6 +8,7 @@
  *   pnpm lab:demo --board floating-surfaces      # one board
  *   pnpm lab:demo --only floating-surfaces.radius
  *   pnpm lab:demo --base https://<alias> --key "$DESIGN_PREVIEW_KEY"
+ *   pnpm lab:demo --reach-limit 0.4              # a stricter travel budget
  *
  * WHY IT EXISTS. A board stopped Will's sitting for the third time on
  * 2026-09-17: "Clicking the configs didn't seem to change anything." The presses
@@ -30,6 +31,18 @@
  * draws the SAME stage is printed as a warning: sometimes that is an option that
  * equals today, sometimes it is the next frozen stage. A step with no stage, or
  * with text-only options, is skipped and says so.
+ *
+ * ★ AND WHETHER THE CHANGE CAN BE SEEN (2026-09-17). A stage that changes is
+ * worth nothing if the reviewer cannot see it change. Measured across all 21
+ * open steps before the step was rebuilt: three stages sat up to 5.6 SCREENS
+ * below the option they answer to, which is what "clicking the configs didn't
+ * seem to change anything" actually was. The step now draws the stage ABOVE the
+ * options and pins it, so a stage that has drifted back below them FAILS here
+ * (`--reach-limit`, a share of a nominal 900px screen). Every step also prints
+ * its height and its word count, and the run ends with the tallest, the
+ * wordiest, and how much of the sitting asks with nothing to press: a reviewer's
+ * unit of work is the STEP, and nothing else measures one (`lab:smoke` weighs
+ * the whole board page).
  *
  * ★ IT LOOKS INSIDE THE FRAME, NOT AT THE LABEL OVER IT. A stage that is a frame
  * carries a title that names the pressed option, so the words change on every
@@ -73,6 +86,18 @@ if (!existsSync(CHROME)) {
 
 const W = 1440;
 const H = 2400;
+/**
+ * The screen a reviewer actually has, for judging how far they must travel.
+ * The window above is tall on purpose (a whole step in one capture), so reach
+ * and height are measured in pixels and divided by this.
+ */
+const SCREEN = 900;
+/**
+ * How far the evidence may sit from the option that changes it, as a share of
+ * that screen. Above this a press changes something out of sight, which is what
+ * Will reported twice as "clicking the configs didn't seem to change anything".
+ */
+const REACH_LIMIT = Number(opt("--reach-limit", 0.75));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const withKey = (path) => {
   const url = new URL(path, base);
@@ -239,6 +264,28 @@ const PAGE_LIB = `
       );
       return all[all.length - 1] ?? null;
     },
+    /**
+     * HOW FAR THE REVIEWER TRAVELS from the first option to the evidence it
+     * answers to. Negative means the stage is ABOVE the press, which is where
+     * it belongs: measured 2026-09-17, three steps put it up to 5.6 screens
+     * below, and that is what "clicking the configs didn't seem to change
+     * anything" actually was.
+     */
+    reach() {
+      const y = (el) => Math.round(el.getBoundingClientRect().top + scrollY);
+      const first = this.options()[0];
+      const stage = this.stage();
+      const doc = document.documentElement;
+      const words = (document.querySelector('main')?.innerText || '').trim().split(/\s+/).length;
+      // PIXELS, not screens: this browser's window is deliberately tall so a
+      // whole step is captured, which would make every step look like it fits.
+      // The caller divides by a nominal screen instead.
+      return {
+        height: doc.scrollHeight,
+        words,
+        reach: first && stage ? y(stage) - y(first) : null,
+      };
+    },
     /** Every animation and transition the stage declares, its frames included. */
     motion() {
       const s = this.stage();
@@ -343,11 +390,13 @@ try {
       withKey(`/design/lab/${board}?session=${encodeURIComponent(step)}`),
     );
     await evaluate(ws, PAGE_LIB);
+    const geo = await evaluate(ws, "window.__labDemo.reach()");
     const count = await evaluate(ws, "window.__labDemo.options().length");
     const hasStage = await evaluate(ws, "!!window.__labDemo.stage()");
     if (count < 2 || !hasStage) {
       rows.push({
         step,
+        geo,
         verdict: "skip",
         note: !hasStage ? "no stage under the tiles" : "fewer than two pictured options",
       });
@@ -373,7 +422,7 @@ try {
       });
     }
     if (shots.length < 2) {
-      rows.push({ step, verdict: "skip", note: "the stage could not be captured" });
+      rows.push({ step, geo, verdict: "skip", note: "the stage could not be captured" });
       continue;
     }
     const decoded = shots.map((s) => decodePng(s.png));
@@ -414,10 +463,18 @@ try {
       }
       if (verbose) motions.forEach((m, i) => console.log(`  ${step}: motion ${i}: ${m}`));
     }
-    if (!ok) failed++;
+    // ★ THE EVIDENCE HAS TO BE IN REACH OF THE PRESS. A stage that changes is
+    // worth nothing if the reviewer cannot see it change: before the step was
+    // rebuilt (2026-09-17) three of eleven stages sat up to 5.6 screens below
+    // the option they answer to. The step now draws the stage ABOVE the
+    // options and pins it, so a positive reach here means that came undone.
+    const outOfReach = geo.reach !== null && geo.reach > SCREEN * REACH_LIMIT;
+    if (!ok || outOfReach) failed++;
     rows.push({
       step,
-      verdict: ok ? "ok" : "FROZEN",
+      geo,
+      outOfReach,
+      verdict: outOfReach ? "OUT OF REACH" : ok ? "ok" : "FROZEN",
       note: `${shots.length} options, ${how}${
         ok && same.length && max >= threshold
           ? `; same picture: ${same.join(", ")}`
@@ -437,8 +494,26 @@ try {
 }
 
 const pad = Math.max(...rows.map((r) => r.step.length), 4);
-for (const r of rows)
-  console.log(`${r.step.padEnd(pad)}  ${r.verdict.padEnd(6)}  ${r.note}`);
+const screens = (px) => (px / SCREEN).toFixed(1);
+for (const r of rows) {
+  const g = r.geo ?? {};
+  const size = g.height
+    ? `${screens(g.height).padStart(4)} screens, ${String(g.words).padStart(4)} words`
+    : "";
+  console.log(
+    `${r.step.padEnd(pad)}  ${r.verdict.padEnd(12)}  ${size.padEnd(26)}  ${r.note}`,
+  );
+  if (r.outOfReach) {
+    const d = r.geo.reach;
+    const where =
+      d >= 0
+        ? `${screens(d)} screens BELOW`
+        : `${screens(-d)} screens above`;
+    console.log(
+      `${" ".repeat(pad)}  the stage sits ${where} the option that changes it: a press changes something out of sight`,
+    );
+  }
+}
 /**
  * ★ "SKIPPED" IS A COST, NOT AN EXEMPTION. A skipped step is one with nothing
  * to press: its options are words, so this script cannot judge it and neither
@@ -451,7 +526,20 @@ for (const r of rows)
  */
 const wordsOnly = rows.filter((r) => r.verdict === "skip").length;
 const share = rows.length ? Math.round((wordsOnly / rows.length) * 100) : 0;
-console.log(`\n${rows.length} steps, ${failed} frozen.`);
+const sized = rows.filter((r) => r.geo?.height);
+const tallest = sized.length
+  ? sized.reduce((a, b) => (a.geo.height > b.geo.height ? a : b))
+  : null;
+const wordiest = sized.length
+  ? sized.reduce((a, b) => (a.geo.words > b.geo.words ? a : b))
+  : null;
+console.log(`\n${rows.length} steps, ${failed} failing.`);
+if (tallest)
+  console.log(
+    `tallest: ${tallest.step} at ${screens(tallest.geo.height)} screens · ` +
+      `wordiest: ${wordiest.step} at ${wordiest.geo.words} words · ` +
+      `a reviewer's screen is taken as ${SCREEN}px.`,
+  );
 console.log(
   wordsOnly
     ? `${wordsOnly} of them (${share}%) ask with nothing to press: words only, judged on their \`look\` line.`
