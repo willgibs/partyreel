@@ -234,6 +234,11 @@ new.
   - `default: 11` to `default: 8`. ★ `setTunerValue` compares against `default` to decide whether to
     store an override or drop one, so leaving 11 would leave a phantom override that Reset never
     clears, and the light board's `useClocks` reads the same field as its SSR fallback.
+- **Stale 11s lines outside this lane**, now that the ruling landed (none touched, all one-liners):
+  `src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx:1354` (a note saying the specimen runs 8s
+  "while the shipped footer runs 11s"; the two now agree), and the light board's own
+  `candidates.ts:239`, `kit.ts:462` and `spec.ts` cadence rows, which are the `light` lane's while it
+  is open.
 - Assets requested from Will: none.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
 - Look at first: `/design/library/section-light` at 1440, the `room` placement and the paper frame
