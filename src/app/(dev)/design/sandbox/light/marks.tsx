@@ -27,7 +27,7 @@ import { StageOnly, TileOnly, TrueFit, useArmed } from "./fit";
  *    and `[data-glw]`'s own `overflow: hidden` kept any of it from escaping.
  *    Measured: the host's rect and the frame's rect were the same four numbers,
  *    `elementFromPoint` at its centre was the frame's play icon, and the band's
- *    `mask-position` was travelling the whole time (110% to 99% in 500 ms)
+ *    `mask-position` was travelling the whole time (116.7% to 99.4% in 500 ms)
  *    under it. The "static gray edge ring" he saw was the frame's own border.
  *    The halo's two button usages had the same fault (an opaque `Button` over
  *    the wash: "it reads" read as nothing at all). A mark that lands ON an

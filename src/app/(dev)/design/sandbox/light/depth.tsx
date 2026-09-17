@@ -68,7 +68,16 @@ type Geo = {
   rows: readonly string[];
 };
 
-/** The tile's crop and the stage's scene: one composition at two sizes. */
+/**
+ * The tile's crop and the stage's scene: one composition at two sizes.
+ *
+ * ★ `by` AND THE MENU'S LENGTH ARE ONE DECISION. The back card starts low
+ * enough that the front card's bottom edge crosses it a quarter of the way
+ * down, and the menu is long enough that its own bottom edge crosses the same
+ * photograph at about the same height. Both shadows then fall side by side in
+ * the bright band ABOVE the back card's title, which is the only part of an
+ * event card a shadow can be seen on.
+ */
 const GEO: Record<"tile" | "stage", Geo> = {
   tile: {
     w: 412,
@@ -78,9 +87,15 @@ const GEO: Record<"tile" | "stage", Geo> = {
     gap: 12,
     card: 220,
     bx: 96,
-    by: 89,
+    by: 112,
     menu: 164,
-    rows: ["Newest first", "Oldest first", "Most photos", "Name"],
+    rows: [
+      "Newest first",
+      "Oldest first",
+      "Most photos",
+      "Most guests",
+      "Name",
+    ],
   },
   stage: {
     w: 760,
@@ -90,11 +105,12 @@ const GEO: Record<"tile" | "stage", Geo> = {
     gap: 16,
     card: 340,
     bx: 230,
-    by: 138,
+    by: 150,
     menu: 224,
     rows: [
       "Newest first",
       "Oldest first",
+      "Recently updated",
       "Most photos",
       "Most guests",
       "Name",
