@@ -42,12 +42,27 @@ round three at `cbad7faf`; three of the four slots.
   failures. Its finding: the rule page falls through to a deleted manifest when a ruled board retires
   (a ROADMAP line), and its deferred lines are the ROADMAP's (`.surface-mat`, the chart ramp, the
   `--faint` a11y pass, the lab boards' hand-faded sites).
+- `hero-wiring` (merged `0c58ff76`; the ledger gone and the artifacts regenerated at `137e504b`).
+  Will's round-seven pick shipped: the home hero is the band of photographs streaming out of the real
+  demo QR on one axis, with the ruled headline, the ruled sentence and the two actions in one block at
+  the band's measured clear line, and no caption. The living album wall left with its three scrims,
+  its reel card and the kinetic word. The board's engine came out of the lab as `hero-stream.ts`, cut
+  to the one composition, with its horizontal turned into a fraction of the hero's half-width (so the
+  band is fluid) and its geometry turned from two canvases into two breakpoints, each solved at the
+  canvas Will judged and re-checked at the narrowest viewport it serves. Four numbers were measured
+  on the rendered page rather than reasoned about, one of which was a phone QR too small to scan. The
+  board retired in the same act; the Library's `cinema-hero` entry is badged new; 2,108 tests, 257
+  pages, the smoke at 0 route failures. Its finding: the ruled 560 px hero minimum does not survive
+  the composition (683 at `lg`, 642 at `base`, derived and pinned by the contract); its deferred line
+  is the tablet breakpoint (the ROADMAP). The 34 squares (ASSETS row 2) stay the ask: 18 are needed
+  for no photograph to be on screen twice.
 
-**The alias.** Rebuilt at `a964d4a6` the moment Vercel's cap freed (00:16 UTC): the production smoke
-passed 261 checks with the door closed. The next `[preview]` follows the hero's wiring.
+**The alias.** Rebuilt at `a964d4a6` the moment Vercel's cap freed (00:16 UTC), the production smoke
+at 261 checks with the door closed; rebuilt again on the two wirings (the `[preview]` commit after the
+hero's fold; the smoke's result is STATUS's live state).
 
-**Next.** The hero's wiring and the album hero's round three integrate as they hand off; Will's sitting
-continues on the light board's cards; every pick from here is a wiring lane the day he makes it.
+**Next.** The album hero's round three integrates when it hands off; Will's sitting continues on the
+light board's cards; every pick from here is a wiring lane the day he makes it.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
 

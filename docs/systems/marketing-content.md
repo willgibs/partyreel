@@ -224,7 +224,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   photographs circled there are provably the four that lead the album a screen later, and a reorder
   of the frame list cannot silently rot them. The two lists are separate on purpose: the hero repeats
   the roll three times, so id-based selection would circle every keeper three times over.
-  Its composition is this page's alone (home owns the drifting wall, pricing the stacked photos,
+  Its composition is this page's alone (home owns the band streaming out of the demo code, pricing the stacked photos,
   the footer the fanning pile), per the media doctrine in
   [`event-hero-media.tsx`](../../src/components/marketing/sections/events/event-hero-media.tsx).
   Marks stay ACHROMATIC (white pencil, not the obvious red): there is no brand hue (bible 1).

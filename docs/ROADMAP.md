@@ -59,7 +59,7 @@ The lab and the kit:
 Marketing:
 - Site-wide: the ~35 `bg-muted/N` sites become sections carrying `.surface-mat`, which ships declared and unworn since the palette's wiring (`88d0bec0`); the palette spec called the sweep mechanical.
 - Site-wide: an a11y pass on `--faint` (3.21:1 on the page, 2.92:1 on the mat); a few of the 40 sites it inherited read closer to body copy than to a caption.
-- The home hero's wiring is cut (`hero-wiring`, 2026-09-17): the stack with the code above into `cinema-hero.tsx` without the caption, the kinetic word retired with the ruled line, the board retired; the hero stays unlit meanwhile.
+- The home hero (`hero-stream.ts`, shipped `0c58ff76`) is solved at two breakpoints, so between 768 and 1023 it wears the phone's card size and measure on a tablet-width screen: correct, not composed; a third breakpoint when anyone judges it there (`Geo` takes one without a structural change). The hero stays unlit until the light board's home-arc wiring.
 - Events then pricing on the home are both card grids; Will named chapter 3 the model, so it stays until he wants it varied.
 - The events manifest fill: the conference and trip stills are borrowed; real photographs are the fix, never a third scrim.
 - The five remaining feature pages, one ground-up round each in nav order, the album page as the model (the brief: `git show 0f52503:docs/tracks/marketing-feature-pages.md`).

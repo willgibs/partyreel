@@ -1,0 +1,195 @@
+/* THE HOME HERO'S OWN SHEET (the hero's wiring round, 2026-09-17; the lab's
+   `sandbox/home-hero/hero.css`, cut to the one composition that shipped).
+   Classes under hhs- only, and it is the first co-located stylesheet in
+   `src/components`: everything else the app loads lives under `src/app`. It is
+   here because the rules below are inseparable from `cinema-hero.tsx` (they
+   paint the state its loop hands over from), and a hero-sized block in
+   marketing.css would be a rule nobody could find from the component.
+
+   IT DECLARES NO KEYFRAME, DELIBERATELY: the stream is one
+   requestAnimationFrame loop writing inline transforms, so there is nothing
+   here that could collide with a production or a lab keyframe. If a keyframe is
+   ever added, add this file to the sheet list in
+   `src/app/keyframe-uniqueness.test.ts`, which today scans only src/app and the
+   lab and would not see it.
+
+   ── THE TWO GEOMETRIES ──────────────────────────────────────────────────────
+
+   The hero carries one set of numbers below Tailwind's `lg` and another at or
+   above it, and `cinema-hero.tsx` renders BOTH, suffixed `-base` and `-lg`,
+   as custom properties. This sheet is what chooses between them.
+
+   ★ THE SUFFIXES ARE NOT DECORATION. An inline style beats any selector, so a
+   media query could never override a property the component had already written
+   under the plain name: the component declares only the suffixed pairs, and the
+   plain names are resolved HERE, where a media query can win. Break that and
+   the hero silently wears the phone's geometry on a desktop.
+
+   ── THE REST STATE / ENTRANCE SPLIT, and why it is inverted from the usual ──
+
+   House convention is "final states outside the media queries, entrances inside
+   `no-preference`", and that is exactly what this is, once you see which state
+   is which. The band's FINAL state is the album deployed at its steady spacing,
+   and it lives outside every preference query on `.hhs-card`, read from the
+   per-frame custom properties the component computes during render: a
+   reduced-motion reader, a crawler and the server's own HTML all get the
+   composition standing still, with nothing to undo.
+
+   The state inside `no-preference` is the branch-out's FIRST FRAME, every frame
+   collapsed at the code. It has to live in CSS rather than in an effect,
+   because an effect runs after the server's paint: the band would paint
+   deployed, then snap back to the code, then branch out again. Put the
+   pre-burst frame in the same query the animation itself is allowed in and the
+   burst is one beat.
+
+   THE GAP THAT LEFT, AND HOW IT IS CLOSED. One reader falls between the two
+   states: motion allowed, scripting off, so the pre-burst rule applies and
+   nothing ever runs the loop that would undo it. The hero renders a <noscript>
+   companion (NOSCRIPT_RULE in cinema-hero.tsx) carrying the two rules that put
+   the rest state back. A <noscript> body is parsed as markup only when
+   scripting is off, so the rules exist for exactly that reader, arrive later in
+   the document than this sheet and therefore win, and cost a scripted reader
+   nothing but the bytes. Nothing in the composition that carries meaning was
+   ever gated: the h1, the code, the sentence and the two actions are plain
+   markup (bible 13). */
+
+.hhs-hero {
+  --hhs-axis-pct: var(--hhs-axis-pct-base);
+  --hhs-axis-min: var(--hhs-axis-min-base);
+  --hhs-below: var(--hhs-below-base);
+  --hhs-min-h: var(--hhs-min-h-base);
+  --hhs-low: var(--hhs-low-base);
+  --hhs-fade: var(--hhs-fade-base);
+  --hhs-persp: var(--hhs-persp-base);
+  --hhs-qr: var(--hhs-qr-base);
+  --hhs-h1-max: var(--hhs-h1-max-base);
+  --hhs-low-max: var(--hhs-low-max-base);
+
+  /* ★ THE AXIS IS THE ONE NUMBER THE WHOLE COMPOSITION HANGS FROM: the code's
+     centre, the band's centre line, the corridor's vanishing point and the
+     block's top all take their vertical from it. It wants to sit at a fraction
+     of the hero, but a short window would push the block off the fold and a
+     very tall one would strand the code under the header, so it is clamped
+     between "the code clears the site header" and "the block still fits". */
+  --hhs-axis: clamp(
+    var(--hhs-axis-min),
+    var(--hhs-axis-pct),
+    calc(100% - var(--hhs-below))
+  );
+
+  /* ★ ONE SCREEN, EXACTLY. The site header is STICKY rather than out of flow,
+     so the hero's own -mt puts its top edge at the viewport's own top and
+     100svh ends at the fold: the section below it starts there, and the
+     header's band is the hero's first 64px. The floor is what the composition
+     needs (hero-stream.ts derives it from the code's clearance, the measured
+     clear line and the block); past it the hero grows and its last pixels
+     scroll, which is the honest failure. */
+  min-height: max(100svh, var(--hhs-min-h));
+}
+
+@media (min-width: 1024px) {
+  .hhs-hero {
+    --hhs-axis-pct: var(--hhs-axis-pct-lg);
+    --hhs-axis-min: var(--hhs-axis-min-lg);
+    --hhs-below: var(--hhs-below-lg);
+    --hhs-min-h: var(--hhs-min-h-lg);
+    --hhs-low: var(--hhs-low-lg);
+    --hhs-fade: var(--hhs-fade-lg);
+    --hhs-persp: var(--hhs-persp-lg);
+    --hhs-qr: var(--hhs-qr-lg);
+    --hhs-h1-max: var(--hhs-h1-max-lg);
+    --hhs-low-max: var(--hhs-low-max-lg);
+  }
+}
+
+/* The code is drawn once at the larger edge and sized here, so the markup
+   carries one QR path rather than one per breakpoint. crispEdges on the svg
+   keeps the modules sharp at either size, which is what a scanner needs. */
+.hhs-qr svg {
+  width: var(--hhs-qr);
+  height: var(--hhs-qr);
+}
+
+/* The band dissolves into the frame rather than being guillotined by the
+   hero's overflow: the outermost photograph is always half gone, which is the
+   argument (the album never stops). */
+.hhs-band {
+  /* ★ THE HERO MEASURES ITSELF. Every horizontal in hero-stream.ts is a
+     fraction of the hero's half-width, and this is what turns it into pixels:
+     50cqw is half of THIS box, so the band stretches to any viewport, survives
+     a resize with no listener, and is still correct inside the Library's
+     specimen frame, where a vw unit would be wildly wrong. */
+  container-type: inline-size;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 var(--hhs-fade),
+    #000 calc(100% - var(--hhs-fade)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 var(--hhs-fade),
+    #000 calc(100% - var(--hhs-fade)),
+    transparent 100%
+  );
+}
+
+/* The one perspective parent. perspective-origin defaults to its centre, which
+   IS the code, so the stream's vanishing point and the object agree for free. */
+.hhs-corridor {
+  position: absolute;
+  inset: 0;
+  perspective: var(--hhs-persp);
+  --hhs-half: 50cqw;
+}
+
+.hhs-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--hhs-w-base);
+  height: var(--hhs-h-base);
+  /* Centred on the axis by its own box, so the transform can stay pure travel. */
+  margin-left: calc(var(--hhs-w-base) / -2);
+  margin-top: calc(var(--hhs-h-base) / -2);
+  z-index: var(--hhs-z-base);
+  /* The frame carries the tile radius as well as the photograph inside it, so
+     the shadow below is cast by the picture's real silhouette. */
+  border-radius: var(--radius-tile);
+  transform: var(--hhs-rest-base);
+  opacity: var(--hhs-rest-o-base);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  /* Neighbouring frames overlap as the band curls, so a near photograph needs
+     an edge against the far one behind it. Bible 10 allows a shadow for exactly
+     this (stacked or overlapping media), never as a flat surface effect. It
+     rides the element's own transform, so a far frame casts a small shadow and
+     a near one a large one with no second curve to tune, and it darkens the
+     frame BEHIND rather than the frame itself: nothing is laid over a
+     photograph (bible 1). */
+  box-shadow: 0 18px 46px -16px rgb(0 0 0 / 0.66);
+}
+
+@media (min-width: 1024px) {
+  .hhs-card {
+    width: var(--hhs-w-lg);
+    height: var(--hhs-h-lg);
+    margin-left: calc(var(--hhs-w-lg) / -2);
+    margin-top: calc(var(--hhs-h-lg) / -2);
+    z-index: var(--hhs-z-lg);
+    transform: var(--hhs-rest-lg);
+    opacity: var(--hhs-rest-o-lg);
+  }
+}
+
+/* The branch-out's first frame: every photograph inside the code, at no size.
+   LAST, so it wins over both geometries above (equal specificity, source order
+   decides), and the loop takes over from here on the very next frame. */
+@media (prefers-reduced-motion: no-preference) {
+  .hhs-card {
+    transform: translate3d(0, 0, 0) scale(0);
+    opacity: 0;
+  }
+}
