@@ -136,7 +136,8 @@ All five were put to the Orchestrator mid-round and answered; each is recorded w
 
 ## Handoff (replaces the chat report)
 
-- Head `<sha>`, pushed; synced with `launch-prep` at `5b4c2063` (merged mid-round at `62850026`,
+- Head: the tip of `lp/hero-wiring` (`e098f530` carried the work; this line is the fill on top,
+  since a pushed commit is never amended). Synced with `launch-prep` at `5b4c2063` (merged mid-round at `62850026`,
   taking the palette's wiring: the three registration lines conflicted only in their comments, and
   both retirements are named there now; `touchpoints.test.ts`'s pinned list was the one real
   conflict and both ids are out of it).
@@ -172,9 +173,10 @@ All five were put to the Orchestrator mid-round and answered; each is recorded w
   of the code by the contract, not retyped); the twelve manifest stand-ins cycle until the set
   lands, and the swap is by id with nothing else changing.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
-- Browser pane: left on **tab-7**, my own tab, at `http://localhost:3131/design/library/cinema-hero`
-  and emulating 1440x930. The Orchestrator's tab-1 on :3000 was not disturbed after I noticed it.
-  My dev server on :3131 is still up; kill it by that port alone.
+- Browser pane: left on **tab-7**, my own tab, at `http://localhost:3131/design/library/cinema-hero`,
+  viewport emulation reset. The Orchestrator's tab-1 on :3000 was not disturbed once I noticed it
+  had taken the pane. My dev server on :3131 is stopped, so that tab will not answer until someone
+  runs one.
 - Look at first: the hero at 1440x720 and at 375x667, where the axis clamp is doing the work. That
   clamp is the one thing the board never had to solve, and it is what decides whether the
   composition Will picked survives a real window.
