@@ -73,7 +73,6 @@ export type SandboxId =
   | "river-visual"
   | "glow-doctrine"
   | "glow-moments"
-  | "palette"
   | "light"
   | "type-scale"
   | "floating-surfaces"
@@ -465,35 +464,23 @@ export const RULINGS: Ruling[] = [
   // seven boards registered up front by the Orchestrator so each track owns
   // only its sandbox/<id>/ directory. `variants` holds a placeholder until the
   // track hands off and the Orchestrator renames them at integration.
+  // RULED AND RETIRED (round eight, 2026-09-17). The board's twelve cards, its
+  // registers and its paste are gone from sandbox/; git keeps them and
+  // docs/design/rulings.md keeps Will's words. The ruling itself is now a
+  // stylesheet, which is what `lives` points at.
   {
     id: "palette",
     title: "The palette",
     surface: "shared",
-    ruled: "open (the revamp's catalog, 2026-09-16)",
-    shipped: null,
-    why: "Bible 1 under exploration: the achromatic ramp in both modes (the greys feel off), the accent's role where there is no media, the muted panel as one token.",
+    ruled: "2026-09-17",
+    shipped: "Graphite",
+    why: "Graphite: one room at 0.105, a page at 0.995 and Apple's cool greys between them; no accent, an opaque dark card, and --faint as the third text step.",
     lives: [
       "docs/systems/design-system.md#the-identity-achromatic-media-is-the-color",
       "src/app/globals.css",
       "src/app/theme.css",
+      "src/app/(marketing)/marketing.css",
     ],
-    board: {
-      note: "Twelve finished palettes as cards, each with its grounds, text steps, accent and state colours plus a real piece of the product in dark beside light; Pick drives the whole page, A and B drive two wipes; three calls left after one is picked",
-      variants: [
-        "Today",
-        "Ember",
-        "Ladder",
-        "Slate",
-        "Gallery",
-        "Studio",
-        "Loft",
-        "Press",
-        "Reel",
-        "Signal",
-        "Daylight",
-        "Dusk",
-      ],
-    },
   },
   {
     id: "light",
