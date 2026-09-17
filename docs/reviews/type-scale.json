@@ -1,0 +1,38 @@
+{
+  "board": "type-scale",
+  "rounds": [
+    {
+      "n": 7,
+      "opened": "2026-09-17",
+      "answers": [
+        {
+          "ask": "ladder",
+          "choice": "b",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        },
+        {
+          "ask": "tracking",
+          "choice": "adopt",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        },
+        {
+          "ask": "not-found",
+          "choice": "on-ladder",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        }
+      ],
+      "notes": [],
+      "items": [
+        {
+          "item": "b",
+          "verdict": "keep",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        }
+      ]
+    }
+  ]
+}

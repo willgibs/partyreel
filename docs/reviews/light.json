@@ -80,6 +80,62 @@
           "note": "This seam application of our Aurora looks great. I'm assuming I'm approving the colored glow component that can be applied as needed, not a single specific application of it right here.",
           "by": "Will",
           "at": "2026-09-17T03:10:59Z"
+        },
+        {
+          "item": "throw",
+          "verdict": "keep",
+          "note": "I like the throw. Assuming it's basically an alternative way to use our Aurora, similar to the seam.",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        },
+        {
+          "item": "aurora",
+          "verdict": "keep",
+          "note": "Approved on the Aurora. However, we're keeping all Aurora forms off of paper, as mentioned in the previous round. Assuming this, similar to seam and throw, is another alternative way to infuse the Aurora into our UI.",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        },
+        {
+          "item": "step",
+          "verdict": "refine",
+          "note": "I can't tell what's being asked because I can't tell what the step is here visually. Unless it's the gray surface behind the two guards in the 'with it' preview.",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        },
+        {
+          "item": "ring",
+          "verdict": "refine",
+          "note": "Would like to see more examples of this in use to judge",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        },
+        {
+          "item": "lift",
+          "verdict": "refine",
+          "note": "The drop shadows in this preview extend down, but since the top card in the stack is moved to a lower Y coordinate than the card below it, the shadows don't actually stack at all. Can't tell if they're helpful or not. Also, does this go with the previous ring or step, or are we choosing a single treatment? Seems like all three have been previewed in a similar function.",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        },
+        {
+          "item": "float",
+          "verdict": "refine",
+          "note": "Basically the same comment/question as the last - our step, ring, lift, and float: a set of four options to choose from, or are we trying to use everything, and if so, how?",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        },
+        {
+          "item": "face",
+          "verdict": "refine",
+          "note": "Genuinely cannot see it in action here.",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
+        },
+        {
+          "item": "sweep",
+          "verdict": "refine",
+          "note": "I see the static gray edge ring, but can't get the animation to play, even by clicking replay. Stopping here.",
+          "by": "Will",
+          "at": "2026-09-17T06:40:02Z"
         }
       ]
     }
