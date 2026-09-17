@@ -101,11 +101,27 @@ Three lanes cut at `c338c95c`: `type-wiring`, `light` (round eight) and `aurora-
   and the throw's plate and the publish flourish wait on the bloom card. Verified on a fresh stylesheet:
   8s on the token, 24s on the field's bands, `display: none` inside `.surface-paper`.
 
+- `type-wiring` (merged `0a52c8dc`; bible 5 ruled at `aaa057dd`, the ledger gone at `4c5500da`). Will's
+  type ruling shipped: ladder B baked as one `@theme static` block of nine `--text-*` steps in
+  theme.css, generated from the board's own `themeBlock(B)` rather than retyped, each step a clamp
+  through (375, phone) and (1440, desktop) carrying its own leading and tracking. The three
+  four-breakpoint ramps collapsed to one class each and about sixty headings moved onto a step by ROLE,
+  including the dead-link title, which joined the set through a `surface` prop rather than a second
+  component. Two traps were measured before anything moved (the card step ships as `card-title`
+  because `text-card` is already the colour; a step's tracking proven to beat `font-heading`'s flat
+  value in dev and in the production build, so the flat value stays as the off-ladder fallback) and two
+  more were found at the wiring: `cn()` silently dropped a step beside a text colour until `utils.ts`
+  declared the ladder to tailwind-merge, and `tracking-tight` resolves to 0em here and cancels a step's
+  tracking. All held by `src/lib/type-ladder-policy.test.ts`. The board retired atomically into the
+  Library's Foundations page, which draws the ladder at true size off the live tokens. Left for Will,
+  measured at 375: marketing's sub-heads (20 flat) now out-shout the `prose` h2 above them (18) on
+  /about and /help, the dead-link title is 18 beside 17px body, and the guest title went 28 to 24.
+
 **The alias.** Rebuilt at `a964d4a6` the moment Vercel's cap freed (00:16 UTC), the production smoke
 at 261 checks with the door closed; rebuilt again on the two wirings (the `[preview]` commit after the
 hero's fold; the smoke's result is STATUS's live state).
 
-**Next.** `type-wiring` and the light board's round eight are in flight; Will's sitting continues on
+**Next.** The light board's round eight is in flight; Will's sitting continues on
 round eight (its first step places the Aurora's field on the home page), then the album hero's four.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)

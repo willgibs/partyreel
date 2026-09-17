@@ -30,6 +30,9 @@ owns:
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
+  - src/app/globals.css
+  - src/app/theme.css
+  - src/app/(marketing)/marketing.css
   - src/lib/events/visibility-labels.ts
   - src/lib/shared/use-entered-frame.ts
 reads:
@@ -73,7 +76,6 @@ are cut (development is parallel work again), the light sitting continues on its
 
 | track | board | waits on |
 | --- | --- | --- |
-| `type-wiring` | type-scale (retires) | the lane: ladder B as one `@theme` block, every heading on a step, the Library's Type section; holds `theme.css`, `marketing.css` and one block of `globals.css` |
 | `light` | light (round eight) | the lane: six steps Will can see (`landing`, one `depth` question on one scene, the lit face, three marks that run) |
 
 ## Waiting on Will
@@ -180,5 +182,11 @@ palette and light first), pasted in batches with Copy so far.
   drive's resting translate; the manifest deleted); the tuner knob's default and words follow it.
   `globals.css` is the Orchestrator's again, except the `@utility font-heading` block while
   `type-wiring` is open.
+- `0a52c8dc` type-wiring integrated (ladder B as nine `--text-*` steps in theme.css, about sixty
+  headings on a step by role, the three ramps collapsed, the dead link on the set, `TYPE_STEPS` in
+  `utils.ts` so `cn()` keeps a step beside a colour, `type-ladder-policy.test.ts`, the board retired
+  into Foundations' ladder; the manifest deleted); `4c5500da` the ledger gone, `aaa057dd` bible 5 ruled
+  (the first of the two staged only the deletion: a removed path in a `git add` aborts the whole add).
+  The three stylesheets are the Orchestrator's again.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
