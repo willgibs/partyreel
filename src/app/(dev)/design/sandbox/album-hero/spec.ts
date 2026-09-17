@@ -53,7 +53,7 @@ const ITEMS: readonly Candidate<"catalog" | "hero" | "album" | "page">[] = [
     facts: [
       ["Grammar", "Fourteen held stations round the block; one swap a beat"],
       ["Cost", "13 lit of 14 nodes, 1 px a second"],
-      ["Frames", "24 squares (row 2) and the 11 portraits (row 9)"],
+      ["Frames", "34 squares (row 2) and the 11 portraits (row 9)"],
       ["At rest", "the ring standing, most stations occupied"],
     ],
     lands:
@@ -62,14 +62,14 @@ const ITEMS: readonly Candidate<"catalog" | "hero" | "album" | "page">[] = [
   {
     id: "field",
     name: "2. The field, calmed",
-    one: "Round two's picture at a third of the pace: photographs out from behind the words, for ever.",
+    one: "Round two's picture, slowed right down: photographs out from behind the words, for ever.",
     verdict: "refine",
     rationale:
-      "The same argument as round two, slowed until it is calm: seventeen rays, a twenty-nine second flight, and a frame crossing at about a third of last round's speed. The origin is behind the lockup's centre rather than in a hole cut through it, so a frame is dark until its whole box has left the words.",
+      "Round two's argument, slowed until it is calm. A frame is born at the centre, behind the words rather than in a hole cut through them, and is dark until it has cleared them; the rest of its flight is one slow crossing from the lockup's rim to the canvas edge, which is every frame of it anybody sees.",
     facts: [
-      ["Grammar", "Seventeen rays from behind the block, growing as they go"],
-      ["Cost", "12 lit of 17 nodes, 36 px a second"],
-      ["Frames", "24 squares (row 2) and the 11 portraits (row 9)"],
+      ["Grammar", "Fifteen rays, each crossing from the block's rim to the edge"],
+      ["Cost", "12 lit of 15 nodes, 24 px a second"],
+      ["Frames", "34 squares (row 2) and the 11 portraits (row 9)"],
       ["At rest", "the field deployed at its steady spacing"],
     ],
     lands:
@@ -85,7 +85,7 @@ const ITEMS: readonly Candidate<"catalog" | "hero" | "album" | "page">[] = [
     facts: [
       ["Grammar", "Two bands, opposite ways, wrapping off the canvas"],
       ["Cost", "12 lit of 12 nodes, 31 px a second"],
-      ["Frames", "24 squares (row 2); a band reads flat without the portraits"],
+      ["Frames", "34 squares (row 2); a band reads flat without the portraits"],
       ["At rest", "both bands full, evenly spaced"],
     ],
     lands:
@@ -101,7 +101,7 @@ const ITEMS: readonly Candidate<"catalog" | "hero" | "album" | "page">[] = [
     facts: [
       ["Grammar", "Fourteen places, ten taken; one lands, the oldest goes"],
       ["Cost", "10 lit of 14 nodes, 0 px a second"],
-      ["Frames", "24 squares (row 2) and the 11 portraits (row 9)"],
+      ["Frames", "34 squares (row 2) and the 11 portraits (row 9)"],
       ["At rest", "the scatter standing, four places empty"],
     ],
     lands:
@@ -166,7 +166,7 @@ export const ALBUM_HERO = defineBoard({
           id: "field",
           label: "2. The field, calmed",
           means:
-            "Last round's picture at a third of the speed and a third of the frames, born behind the words rather than in a gap in them.",
+            "Last round's picture at a quarter of the speed and a third of the frames, born behind the words rather than in a gap in them.",
         },
         {
           id: "shelf",
@@ -350,17 +350,17 @@ export const ALBUM_HERO = defineBoard({
 
   assets: [
     {
-      what: "24 event photographs as 512 x 512 squares",
-      spec: "One grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals, framed tight enough to read at 90 px (a face, two hands, a glass, a sparkler, a first dance), never a wide room shot.",
+      what: "34 event photographs, squares",
+      spec: "Unchanged by this round, and this board needs no more than the row already asks for: the largest pool here is seventeen frames, so 34 covers every composition with none repeated.",
       replaces:
-        "the 12 landscape stand-ins every composition cycles (FRAMES in the home hero's shared.tsx). The same 24 serve the hero and the album grid.",
+        "the 12 landscape stand-ins every composition cycles (FRAMES in the home hero's shared.tsx). The same 34 serve the hero and the album grid.",
       row: 2,
     },
     {
-      what: "11 more of the same as 4:5 portraits",
-      spec: "512 x 640, the same grade; recrops of the 24 are fine.",
+      what: "11 portrait crops of the squares",
+      spec: "Unchanged: 512 x 640, the same photograph recropped, the same grade.",
       replaces:
-        "one landscape stand-in per 4:5 slot. Half of every composition here is portrait, because half of what a guest shoots is a phone held up, and eleven of the twelve stand-ins are landscape.",
+        "the square box in every 4:5 slot. Half of each composition here is portrait, because half of what a guest shoots is a phone held up, and eleven of the twelve stand-ins are landscape.",
       row: 9,
     },
     {

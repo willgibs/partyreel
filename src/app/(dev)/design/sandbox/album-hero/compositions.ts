@@ -75,11 +75,11 @@ export type CompId = (typeof COMP_IDS)[number];
 export const BLOCK: Record<Mode, Record<Step, { w: number; h: number }>> = {
   desktop: {
     lg: { w: 732, h: 346 },
-    xl: { w: 976, h: 380 },
+    xl: { w: 976, h: 392 },
   },
   phone: {
     lg: { w: 343, h: 352 },
-    xl: { w: 343, h: 420 },
+    xl: { w: 343, h: 432 },
   },
 };
 
@@ -190,13 +190,12 @@ export type Card = {
    *  downward, and its radius in canvas px. */
   angle: number;
   radius: number;
-  /** The shelf: which band (-1 top, 1 foot), the band's y, and the travel. */
+  /** The shelf: which band (-1 top, 1 foot), and the band's y. */
   band: 1 | -1;
   y: number;
+  /** How far the card travels: the shelf's whole wrap, or the field's crossing
+   *  from the lockup's rim to the canvas edge. */
   span: number;
-  /** The radial field: the phase before which this card is still over the
-   *  lockup, solved once at build (see `birthOf`). */
-  hold: number;
   /** How far a held card drifts, in degrees along its arc (polar) or px. */
   drift: number;
 };
@@ -259,29 +258,31 @@ export type Comp = {
 const ORBIT_STATIONS = {
   desktop: [
     { angle: -96, push: 1, depth: 1 },
-    { angle: 84, push: 1, depth: 0.96 },
-    { angle: -14, push: 1.06, depth: 0.92 },
-    { angle: 166, push: 1.06, depth: 0.88 },
-    { angle: -136, push: 1.16, depth: 0.78 },
-    { angle: 44, push: 1.16, depth: 0.8 },
-    { angle: -56, push: 1.3, depth: 0.66 },
-    { angle: 124, push: 1.3, depth: 0.7 },
-    { angle: -172, push: 1.02, depth: 0.9 },
-    { angle: 8, push: 1.02, depth: 0.86 },
-    { angle: -114, push: 1.5, depth: 0.58 },
-    { angle: 66, push: 1.5, depth: 0.6 },
-    { angle: -34, push: 1.44, depth: 0.62 },
-    { angle: 146, push: 1.44, depth: 0.64 },
+    { angle: 84, push: 1, depth: 0.97 },
+    { angle: -14, push: 1.04, depth: 0.93 },
+    { angle: 166, push: 1.04, depth: 0.9 },
+    { angle: -136, push: 1.12, depth: 0.87 },
+    { angle: 44, push: 1.12, depth: 0.89 },
+    { angle: -56, push: 1.24, depth: 0.82 },
+    { angle: 124, push: 1.24, depth: 0.84 },
+    { angle: -172, push: 1.02, depth: 0.95 },
+    { angle: 8, push: 1.02, depth: 0.92 },
+    { angle: -114, push: 1.34, depth: 0.79 },
+    { angle: 66, push: 1.34, depth: 0.81 },
+    { angle: -34, push: 1.3, depth: 0.8 },
+    { angle: 146, push: 1.3, depth: 0.83 },
   ],
   // At 375 the lockup is 343 of a 375 canvas, so there is no beside: the ring
   // is six stations above and below it, never a squeezed desktop.
   phone: [
     { angle: -104, push: 1, depth: 1 },
     { angle: 76, push: 1, depth: 0.94 },
-    { angle: -68, push: 1.2, depth: 0.76 },
-    { angle: 112, push: 1.2, depth: 0.78 },
-    { angle: -92, push: 1.42, depth: 0.6 },
-    { angle: 88, push: 1.42, depth: 0.62 },
+    { angle: -68, push: 1.18, depth: 0.84 },
+    { angle: 112, push: 1.18, depth: 0.86 },
+    { angle: -124, push: 1.02, depth: 0.8 },
+    { angle: 56, push: 1.02, depth: 0.82 },
+    { angle: -90, push: 1.4, depth: 0.74 },
+    { angle: 90, push: 1.4, depth: 0.76 },
   ],
 } as const;
 
@@ -296,7 +297,7 @@ const orbit: Comp = {
   id: "orbit",
   kind: "polar",
   flight: { desktop: 33000, phone: 19000 },
-  beat: { desktop: 2600, phone: 3600 },
+  beat: { desktop: 2600, phone: 2600 },
   card: { desktop: 196, phone: 112 },
   mask: "radial",
   slots: (mode) => ORBIT_STATIONS[mode].length,
@@ -345,14 +346,25 @@ const orbit: Comp = {
  * ★ THE ORIGIN IS BEHIND THE LOCKUP'S CENTRE and there is no vent. Round two
  * cut a hole in the type so the birth had somewhere to happen; the hole was the
  * defect. Here a frame is born at the exact centre, BEHIND the words, and it is
- * dark until its whole box has cleared the block (`birthOf`). So the album
- * comes out from behind the sentence rather than out of a gap in it.
+ * dark until it has cleared them, which is what the first seventh of its flight
+ * is for.
  *
- * ★ THE SPEED IS THE WHOLE RULE. The travel is very nearly linear in the phase
- * and the flight is 29 seconds, which puts the fastest thing on the canvas at
- * about 34 px a second at 1440: a frame takes a slow breath to cross, and
- * nothing in the picture is ever the thing your eye is chasing.
+ * ★ AND THE OTHER SIX SEVENTHS ARE ALL SPENT WHERE SOMEBODY CAN SEE IT, which
+ * is the fix for the first draft of this round. Round two flew every card the
+ * same distance down every ray, so a card on a vertical ray was off the top of
+ * the canvas while a card on a horizontal one was still crossing: two thirds of
+ * the pool was either behind the words or past the edge at any instant, and the
+ * field read as five photographs at the corners. Each ray now runs from the
+ * radius at which the card clears the lockup to the radius at which it leaves
+ * the canvas, both solved per card, so the pool and the picture are the same
+ * number and the one dial left is how long the crossing takes.
+ *
+ * ★ WHICH MAKES THE SPEED THE WHOLE RULE. A card crosses its own band in about
+ * fourteen seconds, which is under 25 px a second at 1440: a frame takes a slow
+ * breath to cross, and nothing in the picture is ever the thing your eye is
+ * chasing.
  */
+
 /**
  * ★ THE RAYS ARE A TABLE, NOT A FAN GENERATOR, and the phone's is not the
  * desktop's squeezed. At 1440 the lockup is half the canvas wide and every
@@ -366,30 +378,32 @@ const orbit: Comp = {
  */
 const FIELD_RAYS: Record<Mode, readonly number[]> = {
   desktop: Array.from(
-    { length: 17 },
-    (_, i) => -90 + ((i * 8) % 17) * (360 / 17),
+    { length: 15 },
+    (_, i) => -90 + ((i * 7) % 15) * (360 / 15),
   ),
-  phone: [
-    -90, 90, -62, 118, -117, 63, -76, 104, -103, 77, -90, 90, -69, 111, -110,
-    70,
-  ],
+  phone: [-90, 90, -62, 118, -117, 63, -76, 104, -103, 77, -69, 111],
 };
 
 /** Three depths, walked in a short cycle: the near frames read over the far
  *  ones and the field has an axis without a perspective divide in it. */
 const FIELD_DEPTHS = [1, 0.74, 0.88, 0.66, 0.94, 0.8] as const;
 
-const FIELD_REACH = { desktop: 1040, phone: 560 } as const;
+/** The share of the flight spent behind the lockup, crossing the keep-out at
+ *  no size. It is the birth, and it is the only part of a card's life nobody
+ *  sees; every other frame of it is on the canvas. */
+const FIELD_HIDDEN = 0.14;
 /** The size at the rim against the size at the edge: growth is what reads as
  *  depth, and a shallow curve is what keeps it from reading as a rush. */
-const FIELD_GROW = [0.62, 1] as const;
-const FIELD_OUT = [0.86, 1] as const;
+const FIELD_GROW = [0.58, 1] as const;
+/** The fade up off the lockup's rim, and the dissolve at the canvas edge. */
+const FIELD_IN = 0.09;
+const FIELD_GONE = 0.86;
 
 const field: Comp = {
   id: "field",
   kind: "radial",
-  flight: { desktop: 29000, phone: 24000 },
-  beat: { desktop: 1706, phone: 1500 },
+  flight: { desktop: 16800, phone: 15000 },
+  beat: { desktop: 1200, phone: 1250 },
   card: { desktop: 236, phone: 132 },
   mask: "none",
   slots: (mode) => FIELD_RAYS[mode].length,
@@ -401,19 +415,28 @@ const field: Comp = {
     roll: ROLLS[slot % ROLLS.length],
     drift: 0,
   }),
-  place: (c, p, mode) => {
-    const r = p * FIELD_REACH[mode];
-    const out = clamp01(r / FIELD_REACH[mode]);
+  place: (c, p) => {
+    // Two segments and one expression: out to the lockup's rim behind the
+    // words, then the slow crossing to the canvas edge. `radius` is the rim
+    // and `span` the crossing, both solved per ray in `build`.
+    const out = clamp01((p - FIELD_HIDDEN) / (1 - FIELD_HIDDEN));
+    const r =
+      p < FIELD_HIDDEN
+        ? c.radius * (p / FIELD_HIDDEN)
+        : c.radius + c.span * out;
+    const grow =
+      p < FIELD_HIDDEN
+        ? 0.12 + (FIELD_GROW[0] - 0.12) * (p / FIELD_HIDDEN)
+        : FIELD_GROW[0] + (FIELD_GROW[1] - FIELD_GROW[0]) * out;
     return {
       x: Math.cos(c.angle) * r,
       y: Math.sin(c.angle) * r,
-      s: c.depth * (FIELD_GROW[0] + (FIELD_GROW[1] - FIELD_GROW[0]) * out),
+      s: c.depth * grow,
     };
   },
-  opacity: (c, p) =>
-    // Dark behind the lockup, up over the next tenth of the flight, out at the
-    // canvas edge. `hold` is solved per card against the block it has to clear.
-    smoothstep(c.hold, c.hold + 0.09, p) * (1 - smoothstep(FIELD_OUT[0], FIELD_OUT[1], p)),
+  opacity: (_c, p) =>
+    smoothstep(FIELD_HIDDEN, FIELD_HIDDEN + FIELD_IN, p) *
+    (1 - smoothstep(FIELD_GONE, 1, p)),
 };
 
 /* ── 3. THE SHELF: two bands, a contact sheet the party is feeding ───────── */
@@ -508,14 +531,18 @@ const ARRIVAL_STATIONS = {
   ],
   phone: [
     { angle: -100, push: 1, depth: 1 },
-    { angle: 80, push: 1, depth: 0.94 },
-    { angle: -66, push: 1.18, depth: 0.76 },
-    { angle: 114, push: 1.18, depth: 0.78 },
-    { angle: -94, push: 1.4, depth: 0.62 },
-    { angle: 86, push: 1.4, depth: 0.64 },
+    { angle: 80, push: 1, depth: 0.92 },
+    { angle: -66, push: 1.16, depth: 0.76 },
+    { angle: 114, push: 1.16, depth: 0.8 },
+    { angle: -120, push: 1.02, depth: 0.86 },
+    { angle: 60, push: 1.02, depth: 0.7 },
+    { angle: -92, push: 1.38, depth: 0.62 },
+    { angle: 88, push: 1.38, depth: 0.66 },
   ],
 } as const;
 
+/** The tilt, near zero: see the note on `roll` below. */
+const ARRIVAL_ROLLS = [-1.6, 1.1, -0.6, 2, -1.2, 0.5, -2, 1.4] as const;
 /** The settle: the share of the flight it takes, and how much large it starts.
  *  0.6 s of a 30 s flight at 1440. */
 const ARRIVAL_SETTLE = { desktop: 0.02, phone: 0.029 } as const;
@@ -527,9 +554,13 @@ const arrival: Comp = {
   id: "arrival",
   kind: "polar",
   flight: { desktop: 30000, phone: 20000 },
-  beat: { desktop: 3000, phone: 4000 },
+  beat: { desktop: 3000, phone: 3000 },
   card: { desktop: 204, phone: 118 },
-  mask: "radial",
+  // No mask: a landed photograph is HERE, at full strength, and a scatter that
+  // runs off the frame reads as one that carries on past it. The ring fades
+  // outward because that is the reference's depth cue; this one does not,
+  // because its cue is that every place is equally occupied.
+  mask: "none",
   slots: (mode) => ARRIVAL_STATIONS[mode].length,
   shape: (slot, mode) => {
     const st = ARRIVAL_STATIONS[mode][slot % ARRIVAL_STATIONS[mode].length];
@@ -538,7 +569,11 @@ const arrival: Comp = {
       push: st.push,
       depth: st.depth,
       band: 1,
-      roll: ROLLS[slot % ROLLS.length],
+      // ★ ALMOST SQUARE TO THE PAGE, which is what separates this card from the
+      // ring at a glance. A photograph the album has just taken delivery of is
+      // laid down rather than dealt: the tilt here is a degree or two, where
+      // the orbit's is the reference's five.
+      roll: ARRIVAL_ROLLS[slot % ARRIVAL_ROLLS.length],
       drift: 0,
     };
   },
@@ -588,26 +623,6 @@ export type Built = {
     photos: number;
   };
 };
-
-/**
- * THE ONE NUMBER THE RADIAL FIELD NEEDS: the phase after which this card's box
- * is clear of the lockup FOR THE REST OF ITS FLIGHT. Scanned backwards, so the
- * answer is the last moment it was over a word rather than the first moment it
- * was not; testing live would fade a frame up as it slipped past the sentence
- * and back down as it grew into the headline, which is a flicker AND a frame
- * over a word on the way.
- */
-function birthOf(c: Card, comp: Comp, mode: Mode, bw: number, bh: number) {
-  for (let i = SCAN; i >= 1; i--) {
-    const p = i / SCAN;
-    const q = comp.place(c, p, mode);
-    const e = extents(c.w * q.s, c.h * q.s, c.roll);
-    if (Math.abs(q.x) < bw + e.hw && Math.abs(q.y) < bh + e.hh) {
-      return Math.min(p + 1 / SCAN, 1);
-    }
-  }
-  return 0;
-}
 
 /**
  * THE LARGEST TRANSFORM SCALE A CARD EVER REACHES WHILE ANYBODY CAN SEE IT, and
@@ -700,7 +715,19 @@ export function build(comp: Comp, mode: Mode, step: Step): Built {
     // is what keeps the louder headline step honest instead of crowded.
     let radius = 0;
     let y = 0;
-    if (comp.kind === "polar") {
+    let travel = span;
+    if (comp.kind === "radial") {
+      // ★ EVERY RAY RUNS FROM ITS OWN RIM TO ITS OWN EDGE. The rim is the
+      // radius at which this card's box has cleared the lockup, the edge the
+      // radius at which it has left the canvas, and the flight between them is
+      // the whole of what a reader sees. A ray with no band at all (the
+      // horizontal ones at 375, where the lockup is 343 of a 375 canvas) is
+      // not launched.
+      radius = clearRadius(sh.angle, bw, bh, e.hw, e.hh);
+      const edge = edgeRadius(sh.angle, halfW, halfH, e.hw, e.hh);
+      if (!(edge > radius)) continue;
+      travel = edge - radius;
+    } else if (comp.kind === "polar") {
       // ★ THE STATION IS DRAWN OFF THE LOCKUP, never against a canvas. `push`
       // is a multiple of the smallest radius that clears the block along this
       // ray, so the ring hugs the words at 1 and stands a block further out at
@@ -738,14 +765,9 @@ export function build(comp: Comp, mode: Mode, step: Step): Built {
       radius,
       band: sh.band,
       y,
-      span,
-      hold: 0,
+      span: travel,
       drift: sh.drift,
     });
-  }
-
-  if (comp.kind === "radial") {
-    for (const c of cards) c.hold = birthOf(c, comp, mode, bw, bh);
   }
 
   const box = cards.map((c) => {
