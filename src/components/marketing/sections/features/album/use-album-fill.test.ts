@@ -94,8 +94,9 @@ describe("the filling album's derivation", () => {
     expect(still.done).toBe(false);
     // The pure repro, as reported: never a throw, at the pass end or past any clock.
     const nine = Array.from({ length: 9 }, (_, i) => ({
+      ...EVERYWHERE_FIXTURES[i % EVERYWHERE_FIXTURES.length],
       id: `f${i}`,
-      col: i % 3,
+      col: (i % 3) as 0 | 1 | 2,
       by: "A",
     }));
     const minimal = { fixtures: nine, seedCount: 3, loop: true };
