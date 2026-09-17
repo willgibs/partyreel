@@ -9,20 +9,21 @@ import {
   AppliedBadge,
   ApplyToSite,
   BoardPage,
+  type BoardState,
+  type Candidate,
   CANVAS,
   Catalog,
   comparePair,
   Frame,
   FrameRow,
+  type Ground,
   labScenePath,
   ReplayButton,
+  type Section,
+  TrueFit,
   useDesignKey,
   useReplay,
   WalkPages,
-  type BoardState,
-  type Candidate,
-  type Ground,
-  type Section,
 } from "@/components/lab";
 import { withDesignKey } from "@/lib/design-gate/links";
 import { env } from "@/lib/env";
@@ -397,22 +398,35 @@ export function FloatingSurfacesBoard() {
           /* 4 ─ The corner, at six times */
           case "corner":
             return (
-              <Viewport
-                {...shared}
-                id="corner"
-                scene="nest"
-                direction={worn}
-                // Sized off the scaled loupe (scenes.tsx): 500 of drawing plus
-                // the scene's own inset, and the real menu standing above it.
-                knobs={ONE_CALL({ radius: knobs.radius })}
-                w={560}
-                h={570}
-                title={
-                  knobs.radius === "off"
-                    ? "As it ships: two different lines"
-                    : askOptionLabel("radius", knobs.radius)
-                }
-              />
+              // ★ AT TRUE SIZE IN A TILE TOO (round eight). A tile is a 1440
+              // canvas zoomed into a third of the column, so this 560 pixel
+              // scene arrived about 170 wide and two corners four pixels apart
+              // were one thumbnail. The kit's TrueFit divides the zoom back
+              // out; on the stage, which is not zoomed, it does nothing.
+              <TrueFit natural={560} className="flt-corner-step">
+                <Viewport
+                  {...shared}
+                  id="corner"
+                  scene="nest"
+                  direction={worn}
+                  // Sized off the scaled loupe (scenes.tsx): 500 of drawing plus
+                  // the scene's own inset, and the real menu standing above it.
+                  knobs={ONE_CALL({ radius: knobs.radius })}
+                  w={560}
+                  h={570}
+                  // With a direction worn the resting stage is THAT layer's
+                  // own corner, not the shipped one, and Card's already nests:
+                  // a title saying "two different lines" over two lines that
+                  // agree is how a reviewer stops trusting the drawing.
+                  title={
+                    knobs.radius !== "off"
+                      ? askOptionLabel("radius", knobs.radius)
+                      : worn === "today"
+                        ? "As it ships: two different lines"
+                        : `${DIRECTION_META[worn].label}, its own corner`
+                  }
+                />
+              </TrueFit>
             );
 
           /* 5 ─ How it appears */

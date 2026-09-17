@@ -8,6 +8,24 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-17 · the v1 wordmark, alone; floating surfaces open by frequency, and the corner question pops back up
+
+**Became:** `src/lib/brand/wordmark.ts` (his SVG's one path), `Logo` as the wordmark alone in
+`currentColor` on every door, the social card, the Library's Logo entry, ASSETS rows 18 (wired) and 19
+(the icon, to come); `docs/reviews/floating-surfaces.json` round 7 (`radius=nested`,
+`entrance=by-frequency`) and the staged follow-up step `roundness` on that board, which re-asks only
+the pair he could not tell apart, drawn filled and at true size (the kit's new `TrueFit`).
+
+Verbatim, on the wordmark: "I just completed our v1 logo wordmark. Please add to library and replace our
+placeholder. The wordmark should exist alone in the nav & footer, I'll upload new v1 icon separately
+later once complete."
+
+Verbatim, on the corner: "Today's panel corrected and Rounder seem to be the same option, so I suppose
+this is also selecting rounder at the same time. If there's meant to be a difference, please pop this
+question back up." (There is one: his pick keeps today's 8px panel and fixes its rows to 4px; Rounder
+is a 12px panel with 8px rows. Both NEST, so both drew a dashed arc lying on a solid one, in a tile a
+third of true size. His `radius=nested` stands until the follow-up step says otherwise.)
+
 ## 2026-09-17 · dark mode gets both shadows, the bright edge is kept and polished, the shimmer is banked; floating surfaces wear Card, submenus stop at two levels, and Glass gets its own exploration
 
 **Became:** `docs/reviews/light.json` round 8 (`depth=both`, `face=keep`, `sweep=skip`), which answers

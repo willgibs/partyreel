@@ -45,6 +45,16 @@ ruling, where the rule lives), rendered at `/design/library/record`.
   alphas; an alpha composites against whatever is behind it, so one line was three different greys.
   `--faint` measures 3.21:1 on the page and 4.47:1 in the room: captions only, never body copy,
   never a control's only label, and never stacked with a further alpha.
+- **The brand is the v1 wordmark, alone** (Will, 2026-09-17: "The wordmark should exist alone in the nav
+  & footer, I'll upload new v1 icon separately later once complete"). One drawing, one home:
+  [`src/lib/brand/wordmark.ts`](../../src/lib/brand/wordmark.ts) holds his SVG's single path byte for
+  byte, [`Logo`](../../src/components/shared/logo.tsx) inlines it in `currentColor` (the ground sets the
+  colour: paper chapters, the app's light mode, the ink footer) and sizes it by HEIGHT (22px in a bar,
+  the width follows), and the social card (`src/app/opengraph-image.tsx`) draws the same path. Every
+  door mounts `<Logo />` and nothing else, so there is no lockup to keep in step. ★ Never retype or
+  optimise the path: replace the whole string from his next export. The MARK is still a stand-in (the
+  Aperture tile behind `markOnly`, mounted nowhere in production) until the v1 icon lands; what waits
+  on it is in the ROADMAP.
 - **`--brand` is an ALIAS of `--primary`** (ink). Don't reintroduce a brand hue; photography
   supplies all color. ("Saturate your neutrals" was consciously DECLINED: zero-chroma is the
   identity; a 0.002-0.004 warm-tint variant may get a lab round later, never silently.)

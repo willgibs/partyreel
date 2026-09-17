@@ -1105,6 +1105,7 @@
         "TRAPS",
         "Toggle",
         "Trap",
+        "TrueFit",
         "Verdict",
         "VerdictPill",
         "Walk",
@@ -4068,7 +4069,48 @@
         "/design/library/patterns"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "is the wordmark alone, and names itself",
+          "suite": [
+            "Logo"
+          ],
+          "file": "src/components/shared/logo.test.tsx",
+          "line": 21
+        },
+        {
+          "title": "takes the ground's colour rather than carrying a fill of its own",
+          "suite": [
+            "Logo"
+          ],
+          "file": "src/components/shared/logo.test.tsx",
+          "line": 30
+        },
+        {
+          "title": "draws the one path, in its own box",
+          "suite": [
+            "Logo"
+          ],
+          "file": "src/components/shared/logo.test.tsx",
+          "line": 39
+        },
+        {
+          "title": "keeps the drawing in one home",
+          "suite": [
+            "Logo"
+          ],
+          "file": "src/components/shared/logo.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "offers the stand-in mark only when asked, and never beside the wordmark",
+          "suite": [
+            "Logo"
+          ],
+          "file": "src/components/shared/logo.test.tsx",
+          "line": 70
+        }
+      ]
     },
     {
       "id": "masonry",

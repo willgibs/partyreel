@@ -58,6 +58,20 @@
   --lab-tile-min: 440px;
 }
 
+/* ★ THE CORNER'S TILES ARE TRUE SIZE (round seven's follow-up, 2026-09-17), so
+   theirs is the one window that IS taller than the kit's 200px: the scene is a
+   570px frame under its caption, drawn through the kit's TrueFit at whatever the
+   tile's width allows. Keyed on the class the board puts on that one section,
+   because the steps want different windows and the board root can only say one.
+   Two options stand side by side at 1440, so the minimum is wide enough for the
+   scene at nearly 1:1. */
+.lab-tiles:has(.flt-corner-step) {
+  --lab-tile-min: 520px;
+}
+.lab-tile-view:has(.flt-corner-step) {
+  --lab-tile-h: 680px;
+}
+
 /* THE STAGE'S ROW TURNS AROUND ON A PHONE. The pick is worn on four canvases in
    one sideways row, the 1440 dashboard first because that is the argument at
    1440. At 375 that same order opens on the left third of a desktop dashboard,

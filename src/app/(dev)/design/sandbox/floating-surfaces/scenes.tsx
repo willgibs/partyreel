@@ -197,7 +197,16 @@ const LOUPE_SCALE = 2.5;
  *  it. The solid outer arc is the panel, the solid inner arc is the lit row,
  *  and the dashed arc is where the row's corner has to sit for the two to share
  *  a centre (bible 9: the container is the object plus its offset). When the
- *  dashed arc and the row's arc are the same line, the rung nests. */
+ *  dashed arc and the row's arc are the same line, the rung nests.
+ *
+ *  ★ THE TWO ARE FILLED, NOT ONLY OUTLINED (round eight). As two strokes the
+ *  drawing answered "does it nest?" and nothing else: "rows corrected" (8 and
+ *  4) and "rounder" (12 and 8) BOTH nest, so both drew a dashed arc lying on a
+ *  solid one, and Will read them as one option ("seem to be the same option...
+ *  If there's meant to be a difference, please pop this question back up").
+ *  The question is how ROUND, and roundness is a silhouette: the panel is drawn
+ *  in the popover's own fill and the lit row in the accent's, so a 48 pixel
+ *  corner and a 72 pixel one are two different shapes at a glance. */
 function Loupe({ corner }: { corner: Corner | null }) {
   if (!corner) return null;
   const { panel, pad, item } = corner;
@@ -209,6 +218,9 @@ function Loupe({ corner }: { corner: Corner | null }) {
   /** A corner: the vertical run up into the arc, the arc, then the run right. */
   const cornerPath = (r: number, ox: number, oy: number, bottom: number) =>
     `M ${ox} ${bottom} L ${ox} ${oy + r * K} A ${Math.max(r * K, 0.01)} ${Math.max(r * K, 0.01)} 0 0 1 ${ox + r * K} ${oy} L ${END} ${oy}`;
+  /** The same corner closed along the crop's right and bottom, to be filled. */
+  const cornerFill = (r: number, ox: number, oy: number, bottom: number) =>
+    `${cornerPath(r, ox, oy, bottom)} L ${END} ${bottom} Z`;
   return (
     <div className="flex flex-col gap-1">
       <svg
@@ -218,6 +230,12 @@ function Loupe({ corner }: { corner: Corner | null }) {
         aria-hidden
         className="overflow-visible"
       >
+        {/* the two silhouettes first, under every line */}
+        <path
+          d={cornerFill(panel, OX, OY, LOUPE_H - 4)}
+          fill="var(--popover)"
+        />
+        <path d={cornerFill(item, ix, iy, LOUPE_H - 16)} fill="var(--accent)" />
         {/* the panel */}
         <path
           d={cornerPath(panel, OX, OY, LOUPE_H - 4)}

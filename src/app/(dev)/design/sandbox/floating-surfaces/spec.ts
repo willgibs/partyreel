@@ -304,6 +304,51 @@ export const FLOATING_SURFACES = defineBoard({
       lands:
         "--radius-float and the row radius on every panel in the family: menus, popovers, selects, the sheet.",
     },
+    // ★ THE SAME QUESTION, POPPED BACK UP AT WILL'S ASKING (2026-09-17). He
+    // answered `radius=nested` and added: "Today's panel corrected and Rounder
+    // seem to be the same option, so I suppose this is also selecting rounder at
+    // the same time. If there's meant to be a difference, please pop this
+    // question back up." There is one: they are different corners. They LOOKED
+    // alike because both nest (a dashed arc lying on a solid one, twice) and a
+    // tile was a third of true size. So the corner is drawn filled and at true
+    // size now, and this step asks only the pair he could not tell apart, with
+    // the pixels in the labels. Staged behind his own answer: had he picked the
+    // squarer corner there would be nothing to confirm.
+    {
+      id: "roundness",
+      question:
+        "You picked today's panel with its rows fixed. Rounder is a different corner: do you want it instead?",
+      context:
+        "Last time these two looked the same, because the drawing was thin lines at a third of its size. They are not the same. Your pick keeps the panel's corner where it ships, 8px, and only fixes the rows inside it. Rounder changes the panel itself. The large picture is the real menu, and under it the same corner six times bigger with both shapes filled in.",
+      options: [
+        {
+          id: "nested",
+          label: "Keep my pick: 8px panel, 4px rows",
+          means:
+            "The panel's corner stays exactly as it ships today. Only the rows change, from 1.6px to 4px, so they sit properly inside it.",
+          state: { radius: "nested" },
+        },
+        {
+          id: "round",
+          label: "Rounder: 12px panel, 8px rows",
+          means:
+            "The panel gets half as round again and the rows round like small buttons, so a menu reads as a cluster of things you press.",
+          state: { radius: "round" },
+        },
+      ],
+      recommended: "nested",
+      because:
+        "It is what you chose, it is Card's own corner, and it changes one number instead of two.",
+      overrule:
+        "If the rounder menu simply looks better to you now that you can see it, take it: it is two tokens either way.",
+      evidence: "corner",
+      // No `control`: a mirrored ask has to offer every option of its control
+      // (registry.test.ts), and this one offers two of the three on purpose. Each
+      // option carries its own state instead, which is the same preview.
+      lands:
+        "--radius-float and the row radius on every panel in the family. It only confirms or replaces your radius answer.",
+      after: { ask: "radius", option: "nested" },
+    },
     {
       id: "entrance",
       question: "Should every floating surface appear at the same speed?",

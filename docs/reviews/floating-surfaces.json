@@ -18,6 +18,19 @@
           "note": "Yes, this unlocks much more comprehensive menus than limiting to a single list of everything included. However, we should not allow an additional third level of nesting. That gets too complicated.",
           "by": "Will",
           "at": "2026-09-17T18:46:02Z"
+        },
+        {
+          "ask": "radius",
+          "choice": "nested",
+          "note": "Today's panel corrected and Rounder seem to be the same option, so I suppose this is also selecting rounder at the same time. If there's meant to be a difference, please pop this question back up.",
+          "by": "Will",
+          "at": "2026-09-17T19:50:48Z"
+        },
+        {
+          "ask": "entrance",
+          "choice": "by-frequency",
+          "by": "Will",
+          "at": "2026-09-17T19:50:48Z"
         }
       ],
       "notes": [],

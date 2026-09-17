@@ -207,10 +207,11 @@ function Index() {
           them. The track widens to 1.45fr to PAY for that padding, or the
           padding eats the column and the thesis starts wrapping. */}
       <div className="col-span-2 flex flex-col items-start gap-4 lg:col-span-1 lg:pr-12">
-        {/* Wordmark only: the mark's filled tile is a second white rectangle
-            directly under the QR plate, and the two read as a clash. */}
+        {/* The v1 wordmark, alone, as in the nav (Will, 2026-09-17). It was
+            already wordmark-only here: a mark's filled tile is a second white
+            rectangle directly under the QR plate, and the two read as a clash. */}
         <Link href="/" aria-label="Partyreel home">
-          <Logo wordmarkOnly />
+          <Logo />
         </Link>
         {/* Imports the ruled thesis rather than duplicating it: the original
             footer carried a byte-identical hardcoded copy, so a thesis rewrite

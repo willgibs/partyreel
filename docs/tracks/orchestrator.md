@@ -216,7 +216,24 @@ palette and light first), pasted in batches with Copy so far.
   and as a pool under the share card, mounted only while shared, the swell owed to the tap through
   `sharedHere`, nothing on a light ground through the ONE fence rule, the violet keyframes gone,
   `publish-light.test.tsx` with 26 function pins; the manifest deleted). The one conflict was the
-  generated `docs/design/library.md`, regenerated on the merged tree. `globals.css` is the
-  Orchestrator's again. Owed: the signed-in pass on the alias.
+  generated `docs/design/library.md`, regenerated on the merged tree. The signed-in pass on the alias
+  (`c64275a3`): the Studio's wings and the share card's pool rest lit with strength 0 on open, no
+  sideways scroll at 375 (a same-origin 375px frame inside the signed-in tab stands in for a phone:
+  the extension cannot resize a maximised window), the card's light `display: none` with `.dark`
+  removed. NOT flipped: the only shared reel is the public demo event's, so the tap's swell stays
+  proven by the lab stand-in and the contract. ★ The Studio and the event page fade in over several
+  seconds on the alias; a capture in the first five reads as a dimmed, see-through room.
+- `9c657be6` `light-wiring` cut (the two shadows by role, the four depth techniques in the Library,
+  the bright edge on the box that owns its radius, the board retired).
+- Will's fifth batch, in the root tree while `light-wiring` runs: `floating-surfaces r7`
+  `entrance=by-frequency` and `radius=nested` with a request to pop the question back up if Rounder
+  differs. It does: the corner is drawn filled, its tiles at true size through the kit's new `TrueFit`
+  (`src/components/lab/true-fit.tsx`, the fifth copy of that box promoted), and a staged follow-up ask
+  `roundness` (its options carry `state`, since a mirrored ask must offer every option of its control).
+  The v1 wordmark is wired: `src/lib/brand/wordmark.ts`, `Logo` alone in `currentColor`, the social
+  card, the Library entry, `logo.test.tsx`; ASSETS rows 18 (wired) and 19 (the icon, to come). These
+  files sit under prefixes `light-wiring` owns (`src/components/shared/`), so the agent was told by
+  message to leave them and to regenerate the artifacts at its sync. Card's wiring lane waits for
+  `light-wiring`'s merge: both own `src/components/ui/`.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
