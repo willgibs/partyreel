@@ -150,8 +150,6 @@
    pixels (fit.tsx), so each step asks for the columns its option count and its
    specimen's width need:
 
-     landing   four options of a 1440 section, zoom-fitted: two columns, so the
-               quiet field is drawn at half size rather than a fifth
      depth     three options of a 412 pixel crop: three columns at 1440
      the rest  two options of a specimen up to 672 pixels: two columns
 
@@ -169,13 +167,8 @@
 [data-board="light"] {
   --lab-tile-h: 640px;
 }
-.lab-tiles:has([data-lgt-step="landing"]),
-.lab-tiles:has([data-lgt-step="sweep"]),
-.lab-tiles:has([data-lgt-step="halo"]) {
+.lab-tiles:has([data-lgt-step="sweep"]) {
   --lab-tile-min: 584px;
-}
-.lab-tiles:has([data-lgt-step="bloom"]) {
-  --lab-tile-min: 656px;
 }
 .lab-tiles:has([data-lgt-step="face"]) {
   --lab-tile-min: 696px;
@@ -186,7 +179,7 @@
 /* ★ ONE COLUMN ON A PHONE, WHICH IS THE ONE PLACE THE KIT'S TWO-UP IS WRONG
    HERE. Two across at 375 is a 143 pixel picture of a 412 pixel scene: every
    shadow on it is a third of a pixel. One column is a 321 pixel picture, and
-   the most any step stacks is four. */
+   the most any step stacks is three. */
 @media (max-width: 639px) {
   [data-board="light"] .lab-tiles {
     grid-template-columns: minmax(0, 1fr);

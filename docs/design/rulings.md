@@ -8,6 +8,37 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-17 · the bloom, the halo and the beam are kept; the Aurora sits as a mix, composed for each place
+
+**Became:** `docs/reviews/light.json` round 7 (`item:bloom=keep`, `item:halo=keep`, `item:beam=keep` and the
+note on `landing`), which closes round seven's twelve cards. He finished that walk on the `launch-prep`
+alias while round eight sat on the tree, so the line was transcribed against round seven's own spec
+(`lab-review --root` on a scratch tree; today's spec refuses `r7` by design) and the alias is rebuilt
+whenever a board changes from here. Round eight is cut to the three steps still open (`depth`, `face`,
+`sweep`): `landing`, `bloom` and `halo` left inside the round with their pictures. `ProCardBeam` measures
+its card's corner and passes it, zero included, with its contract (`pro-card-beam.test.tsx`). The wiring
+follows the same day: the Aurora's places on the home page composed one by one, the publish glow resting
+lit in the house five, the halo's rule in the Library.
+
+Verbatim, on the halo: "Do not like as a button wrapper, only to light objects from behind."
+
+Verbatim, on the beam: "We need to always ensure that the beam border and card border have matching
+radii. In this example, the Pro card is off." (The board's Pro card named a radius token that does not
+exist, so it computed square; the vendored library refuses a zero and falls back to its own 16px without
+an error. Production's card matched at 2.8px. The wrapper measures now, so a square card gets a square
+ring.)
+
+Verbatim, on where the Aurora sits: "I think we go with a mix of all of them. The Aurora infusion into our
+site identity should feel custom and bespoke, not a couple of identity components reused everywhere in
+the same way constantly." This is a law for every later placement, not only the home page's two: a form
+and a placement are chosen for the place, and the same composition twice on one page is the thing to
+avoid.
+
+Verbatim, in chat the same morning, on the lab and on rising tides: "you're encouraged to Rising Tides any
+part of the library or lab as we progress; Rising Tides does not need to be limited to marketing and app."
+He also called the stepped, form-based review "an incredible resource" (a paraphrase of the rest): once
+the current lab work clears, the lab system is upgraded again before the next round begins.
+
 ## 2026-09-17 · the type scale is B with the spacing law and the dead link on the set; the Aurora is one light in three forms
 
 **Became:** `docs/reviews/type-scale.json` round 7 (`ladder=b`, `tracking=adopt`, `not-found=on-ladder`,

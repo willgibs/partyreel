@@ -21,7 +21,19 @@ import { type Candidate, defineBoard } from "@/components/lab/board-spec";
  *   the sweep  "I see the static gray edge ring, but can't get the animation to
  *              play, even by clicking replay. Stopping here."
  *
- * ★ SO THE WALK IS SIX STEPS HE CAN SEE, AND NOTHING ELSE. Three of the twelve
+ * ★ AND THEN HE ANSWERED THREE OF THE SIX BEFORE HE SAW THEM. The alias still
+ * served round seven while this round sat on the tree, so he finished the old
+ * walk there and his batch (2026-09-17) ruled the last three cards and the
+ * landing: the bloom kept, the halo kept "only to light objects from behind"
+ * and never as a button wrapper, the beam kept with its ring always matching
+ * the card's corner, and the Aurora's placement "a mix of all of them...
+ * custom and bespoke". The ledger holds them in round seven, where he gave
+ * them. So `landing`, `bloom` and `halo` left INSIDE this round with their
+ * pictures (the paper step's precedent), and the walk is the three he sent
+ * back because he could not see them. The rest of this header is the round as
+ * it was cut, and it still explains the three that stand.
+ *
+ * ★ SO THE WALK WAS SIX STEPS HE CAN SEE, AND NOTHING ELSE. Three of the twelve
  * were never decisions (the step, the ring and the beam ship everywhere today,
  * and keeping them "lands nothing"); four were ONE decision drawn as four rival
  * cards on a pair whose geometry defeated the shadow; one was painted under the
@@ -39,9 +51,9 @@ import { type Candidate, defineBoard } from "@/components/lab/board-spec";
  *
  * ★ `candidates: ITEMS` KEEPS ITS SHAPE AND DECLARES NO CATALOG. The transcriber
  * (`scripts/lab-review.mjs`) reads this file as TEXT and resolves that reference
- * one hop to the const below. With no `catalog` the six are the board's list of
- * ideas still open (the meta panel prints them) and none of them queues as a
- * card; the three Will kept are gone from it, because a kept card in a new
+ * one hop to the const below. With no `catalog` the four are the board's list
+ * of ideas still open (the meta panel prints them) and none of them queues as a
+ * card; every card Will kept is gone from it, because a kept card in a new
  * round would read as unruled.
  *
  * Pure data on purpose (registry.test.ts enforces it): the board route is a
@@ -50,9 +62,7 @@ import { type Candidate, defineBoard } from "@/components/lab/board-spec";
  */
 
 /** The ideas still open, each asked by the step named in its `lands`. */
-const ITEMS: readonly Candidate<
-  "landing" | "depth" | "face" | "sweep" | "bloom" | "halo" | "paste"
->[] = [
+const ITEMS: readonly Candidate<"depth" | "face" | "sweep" | "paste">[] = [
   {
     id: "lift",
     name: "The small shadow (lift)",
@@ -101,39 +111,19 @@ const ITEMS: readonly Candidate<
     rationale:
       "Half the engine's recipe never shipped. It is drawn over the object now, where it can be seen, and once, because an arrival is not a loop.",
   },
-  {
-    id: "bloom",
-    name: "The glow that stays (the bloom)",
-    one: "A one-time glow that settles to a soft resting light, so the object stays lit afterwards.",
-    verdict: "ship",
-    lands:
-      "A resting light under the publish moment. The QR card already ships one. Asked by the bloom step.",
-    rationale:
-      "A beat that decays to nothing leaves the object exactly as it was. A resting light is what makes a moment worth having.",
-  },
-  {
-    id: "halo",
-    name: "The glow behind a button (the halo)",
-    one: "Colour circles a button's rim from behind and its face stays clean.",
-    verdict: "kill",
-    lands:
-      "A wrapper on one dark button a page, argued every time. Skipping it drops a standing exception.",
-    rationale:
-      "On a white primary it can only tint, never light, and its own fence is argue it every time. That is not a rule anybody can follow.",
-  },
 ];
 
 export const LIGHT = defineBoard({
   id: "light",
   title: "Light, shadow and lamp",
   question:
-    "Six things are still open: where the Aurora sits on a section, whether dark mode gets shadows, one thin edge on photos, and three short moments of light.",
+    "Three things are still open: whether dark mode gets shadows, one thin edge on photos, and one short moment of light.",
 
   round: {
     n: 8,
     date: "2026-09-17",
     changed:
-      "Six steps you can see, in the order the wiring needs them. The Aurora forms you kept have left the walk, the four depth cards are one question on one scene with a legend, the thin edge is enlarged, and the three moments of light now play.",
+      "Three steps you can see. Your last batch answered the other three (where the Aurora sits, the glow that stays, the lit button), so they have left the walk. The four depth cards are one question on one scene with a legend, the thin edge is enlarged, and the streak of light now plays.",
   },
   history: [
     {
@@ -156,67 +146,25 @@ export const LIGHT = defineBoard({
     },
   ],
   context:
-    "Three explorations set this identity, and round five ruled its shape: light sorts by what it is doing, and a lamp needs a place rather than an object. Round seven kept the Aurora in three forms (the seam, the throw, the field), never on a light ground, and answered the clock (8 seconds), the publish colour (the house five) and what lands second (the home page's two ends). Three things left the walk because they were never decisions: the lighter panel and the thin outline ship on every surface, and the beam ships on the Pro card and is ruled.",
+    "Round five ruled this identity's shape: light sorts by what it is doing, and a lamp needs a place rather than an object. Round seven kept the Aurora in three forms (the seam, the throw, the field), never on a light ground, on an 8 second clock, in the house five. Its last batch kept the glow that stays after a moment, kept the halo only to light objects from behind and never as a button, kept the beam with its ring always matching its card, and ruled where the Aurora sits: a mix, composed for each section. The lighter panel and the thin outline ship everywhere and were never decisions.",
 
   verdict: {
     recommendation:
-      "Put the Aurora at both edges, give dark mode both shadows, let a publish settle to a soft glow, and skip the thin edge, the streak and the lit button.",
+      "Give dark mode both shadows, and skip the thin edge and the streak.",
     because:
-      "The first two are what the wiring is waiting on, and both are drawn where they can be judged. The resting glow already ships on the QR card. The other three are honest nos: the edge is a faint line on dark photos and nothing on bright ones, the streak repeats two things you turned down last month, and the lit button can only tint the button that matters.",
+      "The shadows are the one thing the wiring is waiting on, and both are drawn where they can be judged. The other two are honest nos: the edge is a faint line on dark photos and nothing on bright ones, and the streak repeats two things you turned down last month.",
     overrule:
-      "Any of the three nos is cheap to reverse: each is one step, and a yes lands as its own small piece of wiring.",
+      "Either no is cheap to reverse: each is one step, and a yes lands as its own small piece of wiring.",
   },
 
   /**
-   * ★ SIX STEPS, IN THE ORDER THE WIRING NEEDS THEM. `landing` first: the home
-   * page's two call sites wait on it and nothing else. Every step mirrors a
-   * declared control, so a press on a tile SHOWS it on the stage before
-   * anything is recorded, and every control DEFAULTS TO THE PROPOSAL, so the
-   * stage opens on the thing being asked about (for the three moments, that is
-   * what makes them run on arrival).
+   * ★ THREE STEPS, THE SHADOWS FIRST: the wiring round's sweep waits on them
+   * and on nothing else. Every step mirrors a declared control, so a press on
+   * a tile SHOWS it on the stage before anything is recorded, and every control
+   * DEFAULTS TO THE PROPOSAL, so the stage opens on the thing being asked about
+   * (for the streak, that is what makes it run on arrival).
    */
   asks: [
-    {
-      id: "landing",
-      question:
-        "Where should the Aurora sit on a section that has no photos in it?",
-      context:
-        "The Aurora is the coloured glow you kept. This is the last section of the home page, which has no photos, so the glow is its only colour. The small drawing on each picture marks where the light is, because the real glow is quiet at this size. The footer under it keeps its own glow whichever you choose.",
-      options: [
-        {
-          id: "both",
-          label: "At the top and the bottom",
-          means:
-            "A band of glow where the section starts and another where it ends. The words sit in the clear space between.",
-        },
-        {
-          id: "top",
-          label: "At the top only",
-          means:
-            "One band where the section starts, fading down into the words.",
-        },
-        {
-          id: "bottom",
-          label: "At the bottom only",
-          means:
-            "One band where the section ends, leading into whatever comes next.",
-        },
-        {
-          id: "room",
-          label: "Across the whole section",
-          means:
-            "The glow fills the section, so the words sit inside the light.",
-        },
-      ],
-      recommended: "both",
-      because:
-        "Two edges give the section a shape of its own and keep the middle clear, which is where the words are. Filling it puts colour behind the text.",
-      evidence: "landing",
-      control: "landing",
-      lands:
-        "Where the Aurora goes on the home page's two sections without photos, and the default for any section that takes it later.",
-      strip: ["canvas"],
-    },
     {
       id: "depth",
       question: "Should dark mode get shadows?",
@@ -311,62 +259,6 @@ export const LIGHT = defineBoard({
       lands:
         "One effect for an arriving photo or frame. It needs a play-once mode the glow does not have yet.",
     },
-    {
-      id: "bloom",
-      question:
-        "After a host publishes, should the reel's frame stay softly lit?",
-      context:
-        "Publishing makes the frame around the reel glow for a moment, in the Aurora's colours, which you ruled last round. Today that glow fades to nothing. The proposal lets it settle to a soft light that stays, the way the QR card's glow already does on the features page. Watch what each one leaves behind.",
-      options: [
-        {
-          id: "skip",
-          label: "It fades to nothing, as today",
-          means:
-            "The glow swells and disappears. A second later the frame looks exactly as it did before.",
-        },
-        {
-          id: "keep",
-          label: "It settles to a soft glow",
-          means:
-            "The same swell, resting at a low light, so a published reel looks different from a draft.",
-        },
-      ],
-      recommended: "keep",
-      because:
-        "A moment that leaves nothing behind changes nothing. The resting light is what tells a host at a glance that this reel is live, and the QR card already does it.",
-      evidence: "bloom",
-      control: "bloom",
-      lands:
-        "How the publish moment ends, and the rule for every one-time glow after it: rest lit, or return to nothing.",
-    },
-    {
-      id: "halo",
-      question: "Should one button a page get a glow circling it from behind?",
-      context:
-        "Colour travels around the rim of a button from behind, and its face stays clean. On a dark button it reads as light. On the white main button, which is where a page's most important action usually is, white cannot get any brighter, so the same glow only tints it pastel. The large picture shows both.",
-      options: [
-        {
-          id: "skip",
-          label: "No, buttons stay as they are",
-          means: "No button glows. One less exception to remember.",
-        },
-        {
-          id: "keep",
-          label: "Yes, on one dark button a page",
-          means:
-            "One secondary button a page may carry it, and each use has to be argued for.",
-        },
-      ],
-      recommended: "skip",
-      because:
-        "On the button that matters most it can only tint, never light. And a rule that has to be argued every time is not a rule anybody can follow.",
-      overrule:
-        "If the lit dark button is worth having on its own, keep it and the white button simply never wears it.",
-      evidence: "halo",
-      control: "halo",
-      lands:
-        "Whether a lit button exists at all. Skipping it removes a standing exception from the light rules.",
-    },
   ],
 
   candidates: ITEMS,
@@ -379,14 +271,9 @@ export const LIGHT = defineBoard({
    * rather than declaring past it.
    */
 
-  departures: [
-    {
-      id: "qr-is-a-mark",
-      from: 3,
-      text: "The QR card's shipped light is a moment, not spill: a glow with no direction, which the second law refuses. Naming what it is doing is what makes it legal.",
-      evidence: "bloom",
-    },
-  ],
+  // The QR card's glow was this board's one departure (a moment, not spill);
+  // keeping the bloom ruled it, so nothing here departs from the record now.
+  departures: [],
 
   assets: [
     {
@@ -406,11 +293,6 @@ export const LIGHT = defineBoard({
 
   sections: [
     {
-      id: "landing",
-      title: "Where the Aurora sits",
-      lede: "One real section of the home page at the placement picked in the dock. The footer keeps its own glow under all four.",
-    },
-    {
       id: "depth",
       title: "Shadows in dark mode",
       lede: "One dark screen with a panel, two overlapping cards and an open menu, and the legend of how the four work together.",
@@ -427,16 +309,6 @@ export const LIGHT = defineBoard({
       id: "sweep",
       title: "The streak of light",
       lede: "One photo landing, with a Replay. The light crosses it once and is gone.",
-    },
-    {
-      id: "bloom",
-      title: "The glow that stays",
-      lede: "The reel's frame at the moment of publishing, with a Replay. Watch what it leaves behind.",
-    },
-    {
-      id: "halo",
-      title: "The glow behind a button",
-      lede: "The end of a flow with its two buttons, and the white button wearing the same glow underneath.",
     },
     {
       id: "paste",
@@ -457,26 +329,6 @@ export const LIGHT = defineBoard({
    * doing (Will on the ring: "more examples of this in use to judge").
    */
   controls: [
-    {
-      id: "canvas",
-      label: "Canvas",
-      options: [
-        { id: "desktop", label: "1440" },
-        { id: "phone", label: "375" },
-      ],
-      default: "desktop",
-    },
-    {
-      id: "landing",
-      label: "The Aurora sits",
-      options: [
-        { id: "both", label: "Top and bottom" },
-        { id: "top", label: "Top" },
-        { id: "bottom", label: "Bottom" },
-        { id: "room", label: "Everywhere" },
-      ],
-      default: "both",
-    },
     {
       id: "depth",
       label: "Shadows",
@@ -524,24 +376,6 @@ export const LIGHT = defineBoard({
       default: "keep",
     },
     {
-      id: "bloom",
-      label: "After a publish",
-      options: [
-        { id: "skip", label: "Fades out" },
-        { id: "keep", label: "Stays lit" },
-      ],
-      default: "keep",
-    },
-    {
-      id: "halo",
-      label: "Lit button",
-      options: [
-        { id: "skip", label: "As today" },
-        { id: "keep", label: "With it" },
-      ],
-      default: "keep",
-    },
-    {
       id: "motion",
       label: "Motion",
       options: [
@@ -554,18 +388,14 @@ export const LIGHT = defineBoard({
 
   lookFirst: [
     {
-      section: "landing",
-      note: "Where the Aurora goes on a section without photos. It is the one answer the home page is waiting on.",
-    },
-    {
       section: "depth",
       state: { depth: "both" },
       note: "Both shadows fall on the same photograph: the small one under the front card, the larger one under the menu. Switch the outlines and the lighter panels off to see what each was doing.",
     },
     {
-      section: "bloom",
-      state: { bloom: "keep" },
-      note: "Press Replay and look at the frame a second after the glow ends.",
+      section: "sweep",
+      state: { sweep: "keep" },
+      note: "Press Replay and watch the light cross the photo once. It never loops.",
     },
   ],
 

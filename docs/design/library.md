@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 17 policies · 189 contracts on 29 components · 9 standing boards.**
+**22 laws · 17 policies · 192 contracts on 30 components · 9 standing boards.**
 
 ## What binds you
 
@@ -348,6 +348,7 @@ Contracted but outside the library's directories:
 - `src/components/marketing/chrome/marketing-footer.tsx` (5 guards)
 - `src/components/marketing/legal/legal-document.tsx` (3 guards)
 - `src/components/marketing/sections/home/hero-stream.ts` (12 guards)
+- `src/components/marketing/sections/home/pro-card-beam.tsx` (3 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 
@@ -359,7 +360,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
-| `light` | shared | Round eight, six steps in the order the wiring needs them: where the Aurora sits on a section, shadows in dark mode on one scene with a legend, the thin bright edge enlarged, and three moments of light that play |
+| `light` | shared | Round eight, the three steps still open: shadows in dark mode on one scene with a legend, the thin bright edge enlarged, and the streak of light that plays once |
 | `floating-surfaces` | shared | Seven directions as cards, each the event menu at 328 wide on the app's dark over the album with the Ground switch moving all seven; the host's desk under two directions at once; four questions (the submenu, the radius, the entrance, the light) |
 | `brand-voice` | marketing | Round seven: six voices as cards, each writing the same three lines of the home page's first screen at the size a phone draws them, decided by one pick or none; the real home page under the card being pressed; the noun, the link preview, the numbers and how far the winner reaches as steps of their own, every answer drawn at once |
 | `media-kit` | marketing | Thirteen real catalogues as cards, ranked by whether they hold a release, each with its clause, its price and a contact sheet at the real card size, ship above the line and kill below; four questions about the thirteen (the rule, the spend, the crowds, the shoot) |

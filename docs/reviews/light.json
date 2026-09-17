@@ -71,6 +71,12 @@
           "text": "on paper: After experimenting with these, we may not be able to use the Aurora on white/paper surfaces. It's barely noticeable and almost appears as a weird shadow or a stray artifact rather than the beautiful glow it has on darker surfaces. No light ground usage is a decision for now. This will have repercussions for our dark vs light mode app later we should flag now.",
           "by": "Will",
           "at": "2026-09-17T03:10:59Z"
+        },
+        {
+          "on": null,
+          "text": "on landing: I think we go with a mix of all of them. The Aurora infusion into our site identity should feel custom and bespoke, not a couple of identity components reused everywhere in the same way constantly.",
+          "by": "Will",
+          "at": "2026-09-17T17:10:35Z"
         }
       ],
       "items": [
@@ -136,6 +142,26 @@
           "note": "I see the static gray edge ring, but can't get the animation to play, even by clicking replay. Stopping here.",
           "by": "Will",
           "at": "2026-09-17T06:40:02Z"
+        },
+        {
+          "item": "bloom",
+          "verdict": "keep",
+          "by": "Will",
+          "at": "2026-09-17T17:10:35Z"
+        },
+        {
+          "item": "halo",
+          "verdict": "keep",
+          "note": "Do not like as a button wrapper, only to light objects from behind.",
+          "by": "Will",
+          "at": "2026-09-17T17:10:35Z"
+        },
+        {
+          "item": "beam",
+          "verdict": "keep",
+          "note": "We need to always ensure that the beam border and card border have matching radii. In this example, the Pro card is off.",
+          "by": "Will",
+          "at": "2026-09-17T17:10:35Z"
         }
       ]
     }

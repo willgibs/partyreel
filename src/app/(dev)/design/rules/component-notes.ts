@@ -88,6 +88,9 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened:
       "pure geometry; the hero it solves is the specimen (/design/library/cinema-hero)",
   },
+  "src/components/marketing/sections/home/pro-card-beam.tsx": {
+    for: "the beam on the Pro card, the one standing beam: its ring is always the card's own corner",
+  },
 
   /* marketing / sections / shared */
   "src/components/marketing/sections/shared/bulk-select-mock.tsx": {

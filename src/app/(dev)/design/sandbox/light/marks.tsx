@@ -1,20 +1,23 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef } from "react";
 
 import { GroundBox, ReplayButton, useReplay } from "@/components/lab";
-import { ReelFrame } from "@/components/marketing/frames";
 import { Glow } from "@/components/shared/glow";
-import { Card } from "@/components/ui/card";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
-import { cn } from "@/lib/utils";
 
 import { StageOnly, TileOnly, TrueFit, useArmed } from "./fit";
 
 /**
- * THE THREE MOMENTS OF LIGHT, AND EVERY ONE OF THEM RUNS (round eight).
+ * THE ONE MOMENT OF LIGHT STILL OPEN, AND IT RUNS (round eight).
+ *
+ * Three moments were drawn here. Will finished round seven's walk on the alias
+ * while this round was on the tree and ruled two of them on their old cards
+ * (2026-09-17): the bloom is kept, and the halo is kept "only to light objects
+ * from behind", never as a button wrapper. Both left with their specimens; the
+ * streak is the one he sent back, so it is the one that stays.
  *
  * Will's note on the sweep ended his second sitting on this board: "I see the
  * static gray edge ring, but can't get the animation to play, even by clicking
@@ -93,7 +96,7 @@ function ReplayRow({
   );
 }
 
-/* ── 1. The streak of light over an arriving photo (the sweep) ───────────── */
+/* ── The streak of light over an arriving photo (the sweep) ──────────────── */
 
 const SWEEP_W = 560;
 const PHOTO = { w: 400, h: 300 } as const;
@@ -193,208 +196,6 @@ export function SweepStage({ on }: { on: boolean }) {
       </TileOnly>
       <StageOnly>
         <SweepSpecimen on={on} auto={false} />
-      </StageOnly>
-    </div>
-  );
-}
-
-/* ── 2. The glow that stays lit after a publish (the bloom) ──────────────── */
-
-const BLOOM_W = 632;
-const REEL_W = 440;
-
-/**
- * THE REEL'S FRAME, AT THE MOMENT A HOST PUBLISHES.
- *
- * ★ BOTH HALVES ARE THE FIVE HOUSE COLOURS, BECAUSE THAT IS RULED. Will answered
- * the colour at round seven (`publish=house-five`: "Don't need a single stray
- * glow color"), so the shipped violet is not drawn here and nobody is asked it
- * twice. The ONE variable left is what the swell leaves behind: `--glw-base`,
- * nothing else. That is also the question the `aurora-wiring` lane is waiting
- * on for the publish moment ("whether a one-shot rests on a base or on nothing
- * is the same unruled bloom card").
- *
- * ★ THE NUMBERS ARE THE QR CARD'S, WHICH SHIPS (qr-hero.tsx): strength 0.95
- * decaying to a resting 0.34, a 26 pixel blur, a 60 percent reach on a host
- * well outside the object, so the whole falloff stays inside the box and the
- * light never ends on a straight edge.
- */
-function BloomSpecimen({ rests, auto }: { rests: boolean; auto: boolean }) {
-  const { runId, replay, box } = useRun(auto);
-  const [armRef, armed] = useArmed(runId);
-  return (
-    <div ref={box} style={auto ? undefined : { maxWidth: BLOOM_W }}>
-      <TrueFit natural={BLOOM_W}>
-        <GroundBox
-          ground="app-dark"
-          className="overflow-hidden rounded-lg"
-          style={{ width: BLOOM_W, padding: (BLOOM_W - REEL_W) / 2 }}
-        >
-          <div
-            ref={armRef}
-            className="relative isolate"
-            style={{ width: REEL_W }}
-          >
-            {/* The frame is there from the start (it is the object); the light is
-              the event, so it mounts when the whole frame is on the screen and
-              remounts on Replay. The engine arms a bloom on its own arrival,
-              but at 35 percent of a host this large, which is while the frame
-              is still below the fold. */}
-            <div aria-hidden className="pointer-events-none absolute -inset-24">
-              {auto || armed ? (
-                <Glow
-                  key={runId}
-                  shape="bloom"
-                  runId={runId}
-                  vars={{
-                    "--glw-from-x": "50%",
-                    "--glw-from-y": "50%",
-                    "--glw-reach": "60%",
-                    "--glw-strength": "0.95",
-                    "--glw-base": rests ? "0.34" : "0",
-                    "--glw-blur": "26px",
-                  }}
-                />
-              ) : null}
-            </div>
-            <div className="relative">
-              <ReelFrame />
-            </div>
-          </div>
-        </GroundBox>
-      </TrueFit>
-      {auto ? null : (
-        <ReplayRow runId={runId} onReplay={replay}>
-          {rests
-            ? "The glow swells and settles to a soft light that stays. Look at the frame a second after it ends."
-            : "The glow swells and fades to nothing. A second later the frame is exactly as it was."}
-        </ReplayRow>
-      )}
-    </div>
-  );
-}
-
-export function BloomStage({ rests }: { rests: boolean }) {
-  return (
-    <div data-lgt-step="bloom">
-      <TileOnly>
-        <BloomSpecimen rests={rests} auto />
-      </TileOnly>
-      <StageOnly>
-        <BloomSpecimen rests={rests} auto={false} />
-      </StageOnly>
-    </div>
-  );
-}
-
-/* ── 3. The glow behind a button (the halo) ──────────────────────────────── */
-
-const HALO_W = 520;
-
-/**
- * A BUTTON LIT FROM BEHIND, DRAWN THE WAY THE RECIPE DRAWS IT.
- *
- * ★ THE WASH LIVES ON THE PILL, UNDER THE LABEL AND OVER THE FILL. Round seven
- * wrapped a real `Button` and put the wash behind it, and a button's fill is
- * opaque: both of its usages rendered as plain buttons, and the caption under
- * one of them said "it reads". The glow-doctrine board had the structure right
- * (the pill carries the fill, the wash sits on it clipped by the pill's own
- * radius, the label is above both), so this is that, at the app's own tokens.
- */
-function HaloPill({
-  tone,
-  lit,
-  children,
-}: {
-  tone: "secondary" | "primary";
-  lit: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <span
-      className={cn(
-        "relative isolate inline-flex h-10 items-center overflow-hidden rounded-[var(--radius-action)] px-5 text-sm font-medium",
-        tone === "primary"
-          ? "bg-primary text-primary-foreground"
-          : "bg-secondary text-secondary-foreground",
-      )}
-      style={{ "--glw-radius": "var(--radius-action)" } as CSSProperties}
-    >
-      {lit ? (
-        <Glow
-          shape="halo"
-          vars={{
-            "--glw-blur": "8px",
-            "--glw-core": "36%",
-            "--glw-strength": "0.95",
-            "--glw-base": "0.8",
-            "--glw-dur": "5s",
-          }}
-        />
-      ) : null}
-      <span className="relative">{children}</span>
-    </span>
-  );
-}
-
-function HaloSpecimen({ on, both }: { on: boolean; both: boolean }) {
-  return (
-    <GroundBox
-      ground="app-dark"
-      className="flex flex-col items-center gap-6 rounded-lg px-10 py-12"
-      style={{ width: HALO_W }}
-    >
-      <Card className="w-full gap-0 py-0" inert aria-hidden>
-        <div className="flex flex-col gap-1.5 p-5">
-          <p className="text-base font-medium">Your reel is ready</p>
-          <p className="text-sm text-muted-foreground">
-            48 photos and 6 clips, cut to 0:48. Guests can watch it from the
-            album.
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2.5">
-            <HaloPill tone="primary" lit={false}>
-              Publish the reel
-            </HaloPill>
-            <HaloPill tone="secondary" lit={on}>
-              See the album
-            </HaloPill>
-          </div>
-        </div>
-      </Card>
-      {both ? (
-        <div
-          className="flex w-full flex-col items-start gap-2"
-          inert
-          aria-hidden
-        >
-          <HaloPill tone="primary" lit={on}>
-            Publish the reel
-          </HaloPill>
-        </div>
-      ) : null}
-    </GroundBox>
-  );
-}
-
-export function HaloStage({ on }: { on: boolean }) {
-  return (
-    <div data-lgt-step="halo">
-      <TileOnly>
-        <TrueFit natural={HALO_W}>
-          <HaloSpecimen on={on} both={false} />
-        </TrueFit>
-      </TileOnly>
-      <StageOnly>
-        <div style={{ maxWidth: HALO_W }}>
-          <TrueFit natural={HALO_W}>
-            <HaloSpecimen on={on} both />
-          </TrueFit>
-        </div>
-        <p className="mt-3 max-w-xl text-[11px] leading-relaxed text-muted-foreground">
-          {on
-            ? "The dark button in the panel wears it. The white button under the panel wears the same glow: white cannot get brighter, so it turns pastel instead of lit."
-            : "Both buttons as they ship today."}
-        </p>
       </StageOnly>
     </div>
   );

@@ -9,18 +9,22 @@ import {
   BoardPage,
   Paste,
   type BoardState,
-  type Mode,
 } from "@/components/lab";
 
 import { LIGHT_CANDIDATES } from "./candidates";
 import { DepthStage, type DepthPick } from "./depth";
 import { FaceStage } from "./face";
-import { LandingStage, type Placement } from "./landing";
-import { BloomStage, HaloStage, SweepStage } from "./marks";
+import { SweepStage } from "./marks";
 import { LIGHT } from "./spec";
 
 /**
- * THE LIGHT BOARD (round eight, 2026-09-17): six steps Will can see.
+ * THE LIGHT BOARD (round eight, 2026-09-17): the three steps still open.
+ *
+ * It was six. Will finished round seven's walk on the alias while this round
+ * sat on the tree, and that batch answered three of them (where the Aurora
+ * sits, the glow that stays, the lit button), so they left inside the round
+ * with their pictures. What stands is what he sent back because he could not
+ * see it: the shadows, the thin edge and the streak.
  *
  * ★ THE BOARD IS A FORM, AND EACH SECTION IS ONE STEP'S PICTURE. What it ASKS
  * lives in `spec.ts` and only there. What is here is the evidence for each
@@ -49,15 +53,11 @@ import { LIGHT } from "./spec";
 /** Everything the dock is claiming, resolved once per render. */
 function read(state: BoardState) {
   return {
-    mode: (state.canvas ?? "desktop") as Mode,
-    landing: (state.landing ?? "both") as Placement,
     depth: (state.depth ?? "both") as DepthPick,
     outline: (state.outline ?? "on") === "on",
     surface: (state.surface ?? "on") === "on",
     face: (state.face ?? "keep") === "keep",
     sweep: (state.sweep ?? "keep") === "keep",
-    bloom: (state.bloom ?? "keep") === "keep",
-    halo: (state.halo ?? "keep") === "keep",
   };
 }
 
@@ -72,9 +72,6 @@ export function LightBoard() {
         const s = read(state);
 
         switch (id) {
-          case "landing":
-            return <LandingStage mode={s.mode} landing={s.landing} />;
-
           case "depth":
             return (
               <DepthStage
@@ -87,12 +84,6 @@ export function LightBoard() {
 
           case "sweep":
             return <SweepStage on={s.sweep} />;
-
-          case "bloom":
-            return <BloomStage rests={s.bloom} />;
-
-          case "halo":
-            return <HaloStage on={s.halo} />;
 
           /* ── What a wiring round lands ──────────────────────────────── */
           case "paste":

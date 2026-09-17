@@ -1863,6 +1863,41 @@
       ]
     },
     {
+      "id": "pro-card-beam",
+      "file": "src/components/marketing/sections/home/pro-card-beam.tsx",
+      "names": [
+        "ProCardBeam"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws the ring at the card's corner",
+          "suite": [
+            "ProCardBeam"
+          ],
+          "file": "src/components/marketing/sections/home/pro-card-beam.test.tsx",
+          "line": 27
+        },
+        {
+          "title": "gives a square card a square ring, never the library's default",
+          "suite": [
+            "ProCardBeam"
+          ],
+          "file": "src/components/marketing/sections/home/pro-card-beam.test.tsx",
+          "line": 36
+        },
+        {
+          "title": "reads an unreadable corner as square",
+          "suite": [
+            "ProCardBeam"
+          ],
+          "file": "src/components/marketing/sections/home/pro-card-beam.test.tsx",
+          "line": 45
+        }
+      ]
+    },
+    {
       "id": "bulk-select-mock",
       "file": "src/components/marketing/sections/shared/bulk-select-mock.tsx",
       "names": [

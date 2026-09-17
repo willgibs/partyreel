@@ -474,7 +474,7 @@ export const RULINGS: Ruling[] = [
     id: "light",
     title: "Light, shadow and lamp",
     surface: "shared",
-    ruled: "in part (2026-09-17): the Aurora kept in three forms, off paper, on an 8 second clock; six steps open",
+    ruled: "in part (2026-09-17): the Aurora in three forms, off paper, on an 8 second clock, placed as a mix composed per section; the bloom, the halo (behind objects only) and the beam kept; three steps open",
     shipped: null,
     why: "Bible 10 rewritten and 11 retiring: depth in dark is light first with shadows where objects stack; a lamp may light a section without media; the aurora as identity.",
     lives: [
@@ -483,8 +483,8 @@ export const RULINGS: Ruling[] = [
       "src/components/shared/glow.tsx",
     ],
     board: {
-      note: "Round eight, six steps in the order the wiring needs them: where the Aurora sits on a section, shadows in dark mode on one scene with a legend, the thin bright edge enlarged, and three moments of light that play",
-      variants: ["Landing", "Depth", "Face", "Sweep", "Bloom", "Halo"],
+      note: "Round eight, the three steps still open: shadows in dark mode on one scene with a legend, the thin bright edge enlarged, and the streak of light that plays once",
+      variants: ["Depth", "Face", "Sweep"],
     },
   },
   {
