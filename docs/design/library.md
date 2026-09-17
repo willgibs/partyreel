@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 238 contracts on 41 components · 8 standing boards.**
+**22 laws · 19 policies · 242 contracts on 42 components · 7 standing boards.**
 
 ## What binds you
 
@@ -218,6 +218,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | --- | --- | --- |
 | A count can never glue itself to its noun | a multi-line JSX text run that opens with a space and holds an HTML entity, which Next 16's SWC renders as "24marketing". | `src/app/(dev)/design/sandbox/media-kit/board-jsx.test.ts:1` |
 | Keyframe names are unique | a second @keyframes of the same name in any stylesheet, which shadows the first for the rest of the session. | `src/app/keyframe-uniqueness.test.ts:1` |
+| Bible 15: one floating layer, read from one contract | a floating primitive that spells its own corner, entrance or clock instead of reading floating-layer.ts, a fourth clock rung, and any translucency on a panel while the Glass exploration is banked. | `src/components/ui/floating-layer.test.ts:1` |
 | Two shadows, each declared by its role | a stock Tailwind shadow, a hand-typed box-shadow or the retired shadow-float name on a production surface, and a ground that re-declares the theme without both shadows. | `src/lib/elevation-policy.test.ts:1` |
 | The record is two rounds deep | a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |
@@ -309,7 +310,7 @@ function. A contract never freezes a look.
 | `src/components/ui/card.tsx` | the panel the settings, dashboard, admin and auth surfaces are built out of | none |
 | `src/components/ui/dialog.tsx` | the modal, plus the fullScreen takeover a whole-screen surface asks for | none |
 | `src/components/ui/drawer.tsx` | the vaul bottom sheet; in the kit, and no product surface has claimed it yet | none |
-| `src/components/ui/dropdown-menu.tsx` | the menu behind the user menu, the notification bell and the admin controls | none |
+| `src/components/ui/dropdown-menu.tsx` | the menu behind the user menu, the notification bell and the admin controls | portals the submenu, so a transformed or scrolled parent cannot clip it; refuses a third level, at render, rather than in a review note; wears a title row, labelled groups and a footer rail when a menu has them; renders a two-row overflow with none of them, because Card's cost is real |
 | `src/components/ui/form.tsx` | the react-hook-form field stack, hand-authored: the radix-nova registry has no form item | none |
 | `src/components/ui/input-otp.tsx` | the six-slot code field: the emailed sign-in code, and the delete-account confirm | none |
 | `src/components/ui/input.tsx` | the one text field, from the guest password gate to the admin console | none |
@@ -364,7 +365,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
-| `floating-surfaces` | shared | Seven directions as cards, each the event menu at 328 wide on the app's dark over the album with the Ground switch moving all seven; the host's desk under two directions at once; one confirming question still open (the corner: today's panel with its rows fixed, or rounder) |
 | `brand-voice` | marketing | Round seven: six voices as cards, each writing the same three lines of the home page's first screen at the size a phone draws them, decided by one pick or none; the real home page under the card being pressed; the noun, the link preview, the numbers and how far the winner reaches as steps of their own, every answer drawn at once |
 | `media-kit` | marketing | Thirteen real catalogues as cards, ranked by whether they hold a release, each with its clause, its price and a contact sheet at the real card size, ship above the line and kill below; four questions about the thirteen (the rule, the spend, the crowds, the shoot) |
 | `rounding` | shared | Six families as cards, each the card, the menu, the photograph and the button at true size plus a 375 frame; two families on the same real page scroll-locked; four questions (the button rung, the derived ladder, the dead rungs, the album's gap) |

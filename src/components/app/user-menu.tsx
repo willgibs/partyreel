@@ -19,9 +19,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuFooter,
+  DropdownMenuGroup,
+  DropdownMenuHeader,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -81,6 +83,11 @@ export function ThemeSubmenu() {
         <TriggerIcon /> Theme
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent>
+        {/* The submenu carries its own label, the same part the parent's groups
+            use (Will, 2026-09-17: Glass's quieter group labels, "the submenu's
+            own label included"). A branch that opens with no heading makes the
+            reader hold the trigger's word in their head while they read. */}
+        <DropdownMenuLabel>Appearance</DropdownMenuLabel>
         {THEME_OPTIONS.map(({ value, label, Icon }) => (
           <DropdownMenuItem key={value} onSelect={() => setTheme(value)}>
             <Icon /> {label}
@@ -107,62 +114,84 @@ export function UserMenu({ email, displayName, avatarUrl }: UserMenuProps) {
       </DropdownMenuTrigger>
       {/* Override the trigger-width default (the avatar is tiny) — twMerge keeps
           this later w-56. align=end so it hangs from the right edge. */}
+      {/* ★ 224px IS A PHONE MEASUREMENT, NOT A TASTE. This menu holds the one
+          submenu in the product, and a submenu is fully visible only while it is
+          narrower than the room beside its parent (radix flips it to the roomier
+          side and then keeps it attached to its trigger). At 375 the container's
+          px-4 puts this panel's right edge at 359, so w-56 leaves 135px to its
+          left and the theme picker measures 121px: it fits with 14px to spare.
+          At w-60 the room is 119px and the picker hangs off the screen. Widen
+          this and re-measure the picker, or the theme rows go over the edge. */}
       <DropdownMenuContent align="end" className="w-56">
-        {/* Who you're signed in as: the editable display name (when set — the design touch) above
-            the email (always shown — the critical "who am I" identifier). */}
-        <DropdownMenuLabel className="flex flex-col gap-0.5">
+        {/* THE TITLE ROW, which is what the identity block always wanted to be
+            (Card, Will 2026-09-17). It was a DropdownMenuLabel wearing a
+            two-line flex column, so the part that names GROUPS was also the part
+            that named the person: two jobs, one slot. Who you are signed in as
+            is the menu's SUBJECT, so it takes the header: the editable display
+            name (when set) over the email, which is always shown because it is
+            the "who am I" answer. */}
+        <DropdownMenuHeader>
           {displayName?.trim() ? (
             <>
-              <span className="truncate leading-tight font-medium">
-                {displayName}
-              </span>
-              <span className="truncate text-xs leading-tight font-normal text-muted-foreground">
+              <span className="block truncate">{displayName}</span>
+              <span className="block truncate text-xs leading-tight font-normal text-muted-foreground">
                 {email ?? "Your account"}
               </span>
             </>
           ) : (
-            <span className="truncate leading-tight">
-              {email ?? "Your account"}
-            </span>
+            <span className="block truncate">{email ?? "Your account"}</span>
           )}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {/* In-app account settings (email, password / sign-in). Same-tab, unlike the
-            external links below. */}
-        <DropdownMenuItem asChild>
-          <Link href="/account">
-            <Settings /> Account
-          </Link>
-        </DropdownMenuItem>
-        {/* Cross-group links to the marketing site + help center. They open in a
-            NEW tab (target=_blank) so the host keeps their place in the app and can
-            use either as a side reference rather than navigating away; rel=noopener
-            is the standard pairing for _blank. (Signing out is unaffected, and the
-            recent /login guard means even a same-tab return would land them back in
-            the app.) */}
-        <DropdownMenuItem asChild>
-          <Link href="/" target="_blank" rel="noopener noreferrer">
-            <ArrowLeft /> Back to site
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/help" target="_blank" rel="noopener noreferrer">
-            <LifeBuoy /> Help center
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {/* Global light/dark/system theme picker (see ThemeSubmenu). */}
-        <ThemeSubmenu />
-        <DropdownMenuSeparator />
-        {/* Sign-out is a server action; a form submit clears cookies on the
-            response, then signOutAction redirects to /login. */}
-        <form action={signOutAction}>
+        </DropdownMenuHeader>
+        {/* TWO GROUPS WHERE THERE WERE THREE SEPARATORS. The rows never changed
+            what they do; the menu simply says which are yours and which are
+            ours, which is the whole of Card's argument. */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Your account</DropdownMenuLabel>
+          {/* In-app account settings (email, password / sign-in). Same-tab, unlike the
+              external links below. */}
           <DropdownMenuItem asChild>
-            <button type="submit" className="w-full">
-              <LogOut /> Sign out
-            </button>
+            <Link href="/account">
+              <Settings /> Account
+            </Link>
           </DropdownMenuItem>
-        </form>
+          {/* Global light/dark/system theme picker (see ThemeSubmenu). The one
+              nested menu in the product, and the reason the submenu had to be
+              portalled before it could be kept. */}
+          <ThemeSubmenu />
+        </DropdownMenuGroup>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Partyreel</DropdownMenuLabel>
+          {/* Cross-group links to the marketing site + help center. They open in a
+              NEW tab (target=_blank) so the host keeps their place in the app and can
+              use either as a side reference rather than navigating away; rel=noopener
+              is the standard pairing for _blank. (Signing out is unaffected, and the
+              recent /login guard means even a same-tab return would land them back in
+              the app.) */}
+          <DropdownMenuItem asChild>
+            <Link href="/" target="_blank" rel="noopener noreferrer">
+              <ArrowLeft /> Back to site
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/help" target="_blank" rel="noopener noreferrer">
+              <LifeBuoy /> Help center
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        {/* THE FOOTER RAIL: signing out is the one row here you cannot undo
+            without typing a password again, so it gets a ground of its own
+            rather than a hairline. Sign-out is a server action; a form submit
+            clears cookies on the response, then signOutAction redirects to
+            /login. */}
+        <DropdownMenuFooter>
+          <form action={signOutAction}>
+            <DropdownMenuItem asChild>
+              <button type="submit" className="w-full">
+                <LogOut /> Sign out
+              </button>
+            </DropdownMenuItem>
+          </form>
+        </DropdownMenuFooter>
       </DropdownMenuContent>
     </DropdownMenu>
   );

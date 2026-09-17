@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
+  DropdownMenuHeader,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { floatingRow } from "@/components/ui/floating-layer";
 
 type NotificationBellProps = {
   items: NotificationItem[];
@@ -63,8 +63,13 @@ export function NotificationBell({ items, badgeCount }: NotificationBellProps) {
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        {/* The title row rather than a label plus a rule: this panel has one
+            subject and a count, which is exactly what a header is for (Card,
+            Will 2026-09-17). The count is the state you opened it to read, so
+            it rides the trailing column. */}
+        <DropdownMenuHeader meta={count > 0 ? `${count} new` : undefined}>
+          Notifications
+        </DropdownMenuHeader>
         {items.length === 0 ? (
           <p className="px-2 py-6 text-center text-sm text-muted-foreground">
             You&rsquo;re all caught up.
@@ -112,14 +117,14 @@ export function NotificationBell({ items, badgeCount }: NotificationBellProps) {
                       href={item.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-md hover:bg-muted"
+                      className={cn("block hover:bg-muted", floatingRow)}
                     >
                       {row}
                     </a>
                   ) : (
                     <Link
                       href={item.href}
-                      className="block rounded-md hover:bg-muted"
+                      className={cn("block hover:bg-muted", floatingRow)}
                     >
                       {row}
                     </Link>

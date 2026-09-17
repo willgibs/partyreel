@@ -87,6 +87,12 @@ export function ProfileActionsMenu({
             <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>
+        {/* A ONE-ROW OVERFLOW WEARS THE MATERIAL AND NOTHING ELSE. Card's parts
+            (a title row, labelled groups, a footer rail for the undoable
+            action) are for a menu with something to say; on a single row a
+            footer rail would be a rail under the only thing there. The
+            destructive variant is the whole signal, and the confirm dialog
+            below is where blocking is actually explained. */}
         <DropdownMenuContent align="end">
           {blocked ? (
             <DropdownMenuItem onSelect={runUnblock} disabled={pending}>

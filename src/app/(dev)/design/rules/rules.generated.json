@@ -4456,9 +4456,12 @@
         "DropdownMenu",
         "DropdownMenuCheckboxItem",
         "DropdownMenuContent",
+        "DropdownMenuFooter",
         "DropdownMenuGroup",
+        "DropdownMenuHeader",
         "DropdownMenuItem",
         "DropdownMenuLabel",
+        "DropdownMenuMeta",
         "DropdownMenuPortal",
         "DropdownMenuRadioGroup",
         "DropdownMenuRadioItem",
@@ -4473,7 +4476,40 @@
         "/design/library/components"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "portals the submenu, so a transformed or scrolled parent cannot clip it",
+          "suite": [
+            "the menu opens a second menu, and never a third"
+          ],
+          "file": "src/components/ui/dropdown-menu.test.tsx",
+          "line": 40
+        },
+        {
+          "title": "refuses a third level, at render, rather than in a review note",
+          "suite": [
+            "the menu opens a second menu, and never a third"
+          ],
+          "file": "src/components/ui/dropdown-menu.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "wears a title row, labelled groups and a footer rail when a menu has them",
+          "suite": [
+            "Card's anatomy is parts, not a shape"
+          ],
+          "file": "src/components/ui/dropdown-menu.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "renders a two-row overflow with none of them, because Card's cost is real",
+          "suite": [
+            "Card's anatomy is parts, not a shape"
+          ],
+          "file": "src/components/ui/dropdown-menu.test.tsx",
+          "line": 136
+        }
+      ]
     },
     {
       "id": "form",
@@ -4904,6 +4940,13 @@
       "title": "A lamp is placed where light can fall",
       "summary": "a lamp mounted where its spill has nothing to land on, which shipped twice and was reverted twice.",
       "line": 2
+    },
+    {
+      "file": "src/components/ui/floating-layer.test.ts",
+      "scope": "engineering",
+      "title": "Bible 15: one floating layer, read from one contract",
+      "summary": "a floating primitive that spells its own corner, entrance or clock instead of reading floating-layer.ts, a fourth clock rung, and any translucency on a panel while the Glass exploration is banked.",
+      "line": 1
     },
     {
       "file": "src/lib/constants/marketing-media.test.ts",

@@ -3,6 +3,11 @@ import { cva } from "class-variance-authority"
 import { NavigationMenu as NavigationMenuPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import {
+  floatingEntrance,
+  floatingPanel,
+  floatingRow,
+} from "@/components/ui/floating-layer"
 import { ChevronDownIcon } from "lucide-react"
 
 // ★ THE FLOATING-LAYER CONTRACT (2026-08-28 nav round). This primitive shipped
@@ -168,7 +173,18 @@ function NavigationMenuViewport({
           // consumer) lands the origin exactly under the hovered label without
           // anyone needing to know the panel's width. The panel grows out of
           // the label you pointed at, which is what ties it to the indicator.
-          "origin-[calc(50%+var(--mkt-nav-origin-dx,0px))_top] relative mt-1.5 h-(--radix-navigation-menu-viewport-height) w-full overflow-hidden rounded-float bg-popover text-popover-foreground shadow-layer ring-1 ring-foreground/10 duration-[var(--mkt-dropdown-open-ms,200ms)] ease-emphasis data-closed:duration-[var(--mkt-dropdown-close-ms,130ms)] md:w-(--radix-navigation-menu-viewport-width) data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 " +
+          // ★ THE ONE CLOCK THE CONTRACT DOES NOT SET, and it is a knob rather
+          // than a number: --mkt-dropdown-*-ms in marketing.css, ruled in the
+          // 2026-08-28 nav round and driven live by the motion tuner. Its
+          // default (200ms in, 130ms out) IS the contract's standard rung, which
+          // is the right one by frequency: a mega-menu is a chapter switch a
+          // visitor opens a few times, not a control a host flips fifty times a
+          // night.
+          "origin-[calc(50%+var(--mkt-nav-origin-dx,0px))_top] relative mt-1.5 h-(--radix-navigation-menu-viewport-height) w-full overflow-hidden duration-[var(--mkt-dropdown-open-ms,200ms)] data-closed:duration-[var(--mkt-dropdown-close-ms,130ms)] md:w-(--radix-navigation-menu-viewport-width) " +
+          floatingPanel +
+          " " +
+          floatingEntrance +
+          " " +
           // THE MORPH, GATED (01-card-resize). Radix seeds the width/height vars
           // from a ResizeObserver, so on a FIRST open they are unset for one
           // frame — the content is md:absolute, so the box measures 0×0 and then
@@ -196,7 +212,10 @@ function NavigationMenuLink({
       // fast pass while the out stays calm. `transition-all` (the generated
       // default) is banned on primitives by the design system anyway.
       className={cn(
-        "flex items-center gap-2 rounded-md p-2 text-sm transition-[color,background-color] duration-[var(--mkt-dropdown-hover-out-ms,180ms)] ease-emphasis outline-none hover:bg-muted hover:duration-[var(--mkt-dropdown-hover-ms,90ms)] focus:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-1 in-data-[slot=navigation-menu-content]:rounded-md data-active:bg-muted/50 data-active:hover:bg-muted data-active:focus:bg-muted [&_svg:not([class*='size-'])]:size-4",
+        // The corner is the contract's row, not `rounded-md`: a link IS a row
+        // inside the panel above it, and bible 9 asks the two to share a centre.
+        "flex items-center gap-2 p-2 text-sm transition-[color,background-color] duration-[var(--mkt-dropdown-hover-out-ms,180ms)] ease-emphasis outline-none hover:bg-muted hover:duration-[var(--mkt-dropdown-hover-ms,90ms)] focus:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-1 data-active:bg-muted/50 data-active:hover:bg-muted data-active:focus:bg-muted [&_svg:not([class*='size-'])]:size-4",
+        floatingRow,
         className
       )}
       {...props}

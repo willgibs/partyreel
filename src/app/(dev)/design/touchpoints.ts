@@ -72,7 +72,6 @@ export type SandboxId =
   | "river-visual"
   | "glow-doctrine"
   | "glow-moments"
-  | "floating-surfaces"
   | "brand-voice"
   | "media-kit"
   | "rounding";
@@ -515,25 +514,16 @@ export const RULINGS: Ruling[] = [
     id: "floating-surfaces",
     title: "Floating surfaces",
     surface: "shared",
-    ruled: "in part (2026-09-17): Card, with Glass's quieter group labels and no glass; submenus kept at two levels; surfaces open by frequency; the corner is today's panel with its rows fixed, with one confirming step open (rounder or not)",
-    shipped: null,
-    why: "Bible 15 under exploration: every floating primitive on every ground, today beside two candidate treatments of radius, entrance and light or shadow in dark.",
+    ruled: "2026-09-17",
+    shipped: "Card's anatomy, the nested corner, entrances by frequency",
+    why: "Bible 15 as a module: one corner derived from --radius-float, one entrance language per kind with the clock set by frequency, one light, and no glass anywhere.",
     lives: [
       "docs/systems/design-system.md#the-floating-layer-contract",
-      "src/components/ui/",
+      "src/components/ui/floating-layer.ts",
+      "src/components/ui/floating-layer.test.ts",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/select.tsx",
     ],
-    board: {
-      note: "Seven directions as cards, each the event menu at 328 wide on the app's dark over the album with the Ground switch moving all seven; the host's desk under two directions at once; one confirming question still open (the corner: today's panel with its rows fixed, or rounder)",
-      variants: [
-        "Today",
-        "Card",
-        "Glass",
-        "Command",
-        "Compact",
-        "Paper",
-        "Lift",
-      ],
-    },
   },
   {
     id: "brand-voice",

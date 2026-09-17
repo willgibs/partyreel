@@ -55,6 +55,12 @@ export function EventQr({ joinUrl, eventName, style }: EventQrProps) {
               <Download /> Download
             </Button>
           </DropdownMenuTrigger>
+          {/* NO TITLE ROW AND NO GROUP, ON PURPOSE. Card is the family's shape
+              (Will, 2026-09-17) and its own declared cost is that "a two-row
+              menu is suddenly furniture". The trigger says Download and the two
+              rows say what you get; a header would repeat the button and a group
+              label would name a group of two. The parts are a vocabulary, and
+              this menu has nothing more to say. */}
           <DropdownMenuContent align="end">
             <DropdownMenuItem
               onClick={() => qrRef.current?.download(filename, "svg")}
