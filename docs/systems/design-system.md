@@ -136,8 +136,9 @@ ruling, where the rule lives), rendered at `/design/library/record`.
   that ARE real and produce the same symptom: a **stale dev CSS chunk** (Turbopack's chunk URLs are not
   content-hashed and it reuses filenames ACROSS worktrees, so a browser, or a second browser on the
   same port, can serve you another tree's stylesheet; the mechanism and the fix are in
-  [testing-verification.md](testing-verification.md)), and `text-*`
-  needing `text-[length:...]` for a `clamp()` because v4 cannot tell a size from a color. Load-bearing
+  [testing-verification.md](testing-verification.md)), and an arbitrary `text-[clamp(…)]` needing the
+  `text-[length:…]` form because v4 cannot tell a size from a color (the type ladder removed the site's
+  last one: a NAMED step cannot be misread). Load-bearing
   geometry still belongs in the stylesheet that owns the component's other CSS, for readability, not
   because utilities are unreliable.
 - `BRAND_HEX` (`src/lib/constants/site.ts`) is ink `#101010` for OG/satori.
@@ -397,32 +398,69 @@ is 10rem, `SectionShell` puts back 6rem of padding, `PaperChapter`'s border anot
 160px a specimen claimed.
 
 
-## Type: the heading face + the tiered scale
+## Type: the heading face + the ladder
 
 `font-heading` is a Tailwind `@utility` in globals.css (NOT a theme font token): the brand face
 **Urbanist** (`--font-display`, loaded in the root layout via next/font as a variable font) at **weight
-700** + **-0.03em** tracking. Urbanist is a real variable sans, so it carries no font-size-adjust, no
+700**, plus a flat **-0.03em** tracking that is now only the FALLBACK for headings the ladder does not
+reach. Urbanist is a real variable sans, so it carries no font-size-adjust, no
 synthetic text-stroke weight and no font-synthesis: a real bold weight does
 the work. Swap the brand face forever by repointing `--font-display` + retuning the two lines in the utility.
 
-**The tiered app heading scale** (one face, weight per tier; app page + card titles take the heading
-face, never Inter):
-- **Page titles** → `PageHeading` ([`src/components/shared/page-heading.tsx`](../../src/components/shared/page-heading.tsx)):
-  Urbanist **700**, `text-2xl` default (the event-name hero bumps to `text-3xl`). The ONE source for every app
-  + admin page `<h1>`, so headings cannot drift back to Inter.
-- **Card / section titles** → `CardTitle` (`ui/card.tsx`): Urbanist **600** (`font-semibold`), clearly a
-  heading above the labels below it.
-- **Per-setting labels** (`FormLabel`) + small uppercase eyebrow labels → **Inter 500**.
+**THE LADDER: nine steps, one set, both halves of the site** (Will's ruling, 2026-09-17, on the
+type-scale board's card B). Declared once as `--text-*` tokens in
+[`src/app/theme.css`](../../src/app/theme.css) and drawn at true size from those live tokens at
+`/design/library/foundations#ladder`, which is where you READ it: the numbers have one home, and this
+doc deliberately does not copy them. A step carries its own font-size, line-height and letter-spacing,
+so one class sets all three, and each is a `clamp()` through (375, phone) and (1440, desktop): there
+is no breakpoint to jump at, and no four-step ramp anywhere on the site.
 
-`PageHeading` deliberately adds no `font-semibold` (would drop 700→600) and no `tracking-tight` (our
-`--tracking-tight` is `0em`, which would CANCEL the utility's -0.03em). `--tracking-tight` stays `0em` so the
-90+ legacy `tracking-tight` usages are no-ops.
+**The law is the TRAVEL, not the sizes.** Every size sits on one rung set from 12 to 160 whose ratio
+widens as it climbs (one ratio cannot serve a 160px masthead and a 14px label). A marketing step moves
+exactly four rungs between 375 and 1440, an app step moves one, and the card step moves none: bible 2
+("marketing may be louder, scale included") as arithmetic rather than as judgement.
 
-**The marketing page-H1 ladder (titles must OWN their headers):** standard
-marketing page H1s ramp `text-4xl sm:text-5xl md:text-6xl lg:text-7xl` (the 72px class on desktop).
-The exemptions: the HOME hero keeps its unique display ramp (5xl→8xl), `/reel` runs at 7xl,
-long-title ARTICLE surfaces (help/blog/careers articles) stop at `lg:text-6xl`, and
-utility documents (`/contact` via SectionShell, the legal shell) stay at 4xl/5xl. The marketing **h2 ladder** has three real tiers, named rather than inferred: **24/30** (`text-2xl sm:text-3xl`) is the bespoke paper-prose section (/about's story, /press's sections, the careers page); **30/36/48** is `SectionShell`'s default body section (~70 sites); **36/48/60** is `SectionShell scale="lg"`, for a chapter's opener or closing anchor (the "Chapters" section above). Below `lg` that top tier equals the page h1's size, so on a phone a section's weight comes from its entrance and its air, not its type.
+| Step | Class | Wears it |
+| --- | --- | --- |
+| Display | `text-display` | the masthead, one or two words (`PageHero scale="display"`) |
+| Hero | `text-hero` | the cinema hero and the home (`PageHero scale="xl"`) |
+| Title | `text-title` | /help, the six feature heroes, /reel, /events (`PageHero scale="lg"`) |
+| Chapter | `text-chapter` | `SectionShell scale="lg"`, the article and role titles, the footer's closer |
+| Section | `text-section` | the body-section h2 (`SectionShell` default, ~70 sites) and a stat numeral |
+| Prose | `text-prose` | the paper prose head (/about, /press, /help, /contact) and a dead link on marketing |
+| Page | `text-page` | every app and admin h1 (`PageHeading`), the guest event and profile titles |
+| Subsection | `text-subsection` | the app's quiet middle: an event tile, the admin gate card, a quiet empty state |
+| Card title | `text-card-title` | `CardTitle`, and every sheet, drawer and dialog title |
+
+Three things the wiring measured, each of which fails SILENTLY, now held by
+[`src/lib/type-ladder-policy.test.ts`](../../src/lib/type-ladder-policy.test.ts):
+- **The card step is `card-title`, never `card`.** Tailwind v4 resolves a `text-*` class as a COLOR
+  before a font size, and `--color-card` (the surface) has existed far longer, so `--text-card` would
+  be a token no className could reach. No step may take a name the colour namespace owns.
+- **`cn()` has to be taught the ladder** ([`src/lib/utils.ts`](../../src/lib/utils.ts)). tailwind-merge
+  does not read the stylesheet, so an unknown `text-*` lands in its colour group and is dropped by any
+  real colour in the same call: `cn("font-heading text-chapter text-white")` returned `font-heading
+  text-white`. A step added to theme.css is added there in the same change.
+- **A step beats `font-heading`; a `tracking-*` or `leading-*` beats the step.** Tailwind sorts the
+  utilities layer by property and emits a custom `@utility` in the font-* position, ahead of the size
+  utilities, so at equal specificity the step's own spacing wins. But `tracking-tight` resolves to
+  `0em` here and cancels it through `--tw-tracking`; never put one beside a step. `--tracking-tight`
+  stays `0em` so the 90+ legacy `tracking-tight` usages are no-ops on everything else.
+
+**Weight is still tiered on top of the step** (one face, weight per tier; app page and card titles take
+the heading face, never Inter): page titles **700** via
+[`PageHeading`](../../src/components/shared/page-heading.tsx), the ONE source for every app and admin
+`<h1>` so headings cannot drift back to Inter; card titles **600** (`CardTitle` adds `font-semibold`);
+per-setting labels (`FormLabel`) and small uppercase eyebrows stay **Inter 500**. `PageHeading` adds no
+`font-semibold` (it would drop 700→600), and a caller passing a STOCK size (`text-3xl`) takes that h1
+off the ladder: name another STEP instead.
+
+**Marketing's page-H1 exemptions** (titles must OWN their headers): the standard page h1 is the `title`
+step; the HOME hero takes `hero`; long-title ARTICLE surfaces (help, blog and careers articles, and the
+blog index's featured card) stop at `chapter`, where a long line reads as prose rather than as a
+masthead; utility documents (`/contact` via SectionShell, the legal shell) use the section steps. On a
+phone the marketing steps sit closer together than they do at 1440, so a section's weight there comes
+from its entrance and its air as much as from its type.
 **The hero lockup owns all of this** ([`page-hero.tsx`](../../src/components/marketing/system/page-hero.tsx),
 pinned by `page-hero-contract.test.ts`): eyebrow / heading / subhead / actions on one shared `gap-6`
 grammar, with `scale` picking the type, `lg` the ladder above, `xl` the cinema register, `display`
@@ -443,21 +481,22 @@ registers, no unnamed minor variants** (Will, 2026-09-02): a new hero uses one o
 named one, and never condenses the existing ones into one template. The QR hero and the home hero
 stay hand-rolled: their object sits BESIDE the lockup, not under it.
 
-The **display step** is the MASTHEAD tier: `clamp(3.25rem, 12vw, 10rem)`, a 160px string, a recorded
-decision rather than a stray arbitrary value. Do not "fix" it back down toward 72px. /about's
+The **display step** is the MASTHEAD tier: a 160px string at 1440, a recorded decision rather than a
+stray arbitrary value. Do not "fix" it back down toward 72px. /about's
 "Partyreel" and /press's "Press" take it. **ONE OR TWO WORDS ONLY** (bible 6),
 and at this size **the H1 matches its NAV LABEL** (bible 6): a masthead is the loudest promise on the page,
 so it must be the word the reader just clicked; anything more specific goes in the eyebrow. Both:
-`whitespace-nowrap` is load-bearing under a 12vw clamp, and the trim below is reasoned about a single
-line, so a longer title belongs at `xl`. The tracking squeeze (`.mkt-name`) belongs to the STEP, not
-to the page that first used it: any masthead at this size arrives set slightly open and closes to the
-heading face's own `-0.03em`.
+`whitespace-nowrap` is load-bearing under a viewport-driven clamp, and the trim below is reasoned about
+a single line, so a longer title belongs at `xl`. The tracking squeeze (`.mkt-name`, marketing.css)
+belongs to the STEP, not to the page that first used it: any masthead at this size arrives set slightly
+open and closes to the display step's own tracking. It has to be closed THERE, reading the token:
+marketing.css is unlayered, so it beats the `utilities` layer whatever the specificity, and a masthead
+merely wearing `text-display` would still settle on whatever that file says.
 
-Three things it needs that a normal H1 does not. **`text-[length:...]`**, because v4 must be told whether a
-`clamp()` in `text-*` is a size or a color. An **asymmetric optical trim**: a normal heading's box is
+Two things it needs that a normal H1 does not. An **asymmetric optical trim**: a normal heading's box is
 about its ink, a display line's is not, and it is wrong in OPPOSITE directions at each end. Measured
-with canvas TextMetrics (Urbanist bold: cap 0.75em over the baseline, descender 0.25em under),
-`leading-[0.85]` + `py-[0.08em]` put the box top 0.125em ABOVE the cap while the box bottom lands
+with canvas TextMetrics (Urbanist bold: cap 0.75em over the baseline, descender 0.25em under), a
+0.85-ish leading + `py-[0.08em]` put the box top 0.125em ABOVE the cap while the box bottom lands
 0.094em ABOVE the descender, so one honest `gap-6` reads ~44px over the name and ~9px under it. The
 step therefore trims its TOP only (`-mt-[0.12em]`, in `em` so it holds across the clamp) and
 deliberately never its bottom: trimming both ends symmetrically is the intuitive move and it tightens

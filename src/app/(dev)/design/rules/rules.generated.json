@@ -2107,7 +2107,7 @@
           "line": 58
         },
         {
-          "title": "declares the type size as a length, not a bare clamp",
+          "title": "takes every size from the ladder, never from a number here",
           "suite": [
             "the page hero lockup"
           ],
@@ -2120,7 +2120,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 70
+          "line": 84
         },
         {
           "title": "keeps the side bearing out of the heading class, gated on align",
@@ -2128,7 +2128,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 74
+          "line": 88
         },
         {
           "title": "offers three named entrances, and the blur-rise never touches the h1",
@@ -2136,7 +2136,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 88
+          "line": 102
         },
         {
           "title": "renders the stage AFTER the lockup, inside the same Container",
@@ -2144,7 +2144,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 104
+          "line": 118
         },
         {
           "title": "keeps the tracking squeeze on the display step itself",
@@ -2152,7 +2152,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 116
+          "line": 130
         }
       ]
     },
@@ -3612,6 +3612,13 @@
       "scope": "engineering",
       "title": "Every track claims its lane",
       "summary": "a malformed track manifest, or two live tracks claiming the same path prefix.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/type-ladder-policy.test.ts",
+      "scope": "engineering",
+      "title": "One type ladder, reachable from a className",
+      "summary": "a step theme.css and cn() disagree on, a step name the color namespace already owns, and a heading ramp coming back.",
       "line": 1
     }
   ]

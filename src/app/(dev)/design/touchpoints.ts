@@ -73,7 +73,6 @@ export type SandboxId =
   | "glow-doctrine"
   | "glow-moments"
   | "light"
-  | "type-scale"
   | "floating-surfaces"
   | "brand-voice"
   | "media-kit"
@@ -173,7 +172,7 @@ export const RULINGS: Ruling[] = [
     why: "Card sections for settings, the focused column for onboarding; Urbanist for identity moments, Inter for functional headings.",
     lives: [
       "docs/systems/host-app.md",
-      "docs/systems/design-system.md#type-the-heading-face-the-tiered-scale",
+      "docs/systems/design-system.md#type-the-heading-face-the-ladder",
     ],
   },
   {
@@ -505,24 +504,17 @@ export const RULINGS: Ruling[] = [
     id: "type-scale",
     title: "The type scale",
     surface: "shared",
-    ruled: "open (the revamp's catalog, 2026-09-16)",
-    shipped: null,
-    why: "Bible 5 under exploration: the sizes are not nailed; one ladder for marketing and one for the app, on real pages at both widths, proposed as tokens.",
+    ruled: "2026-09-17",
+    shipped: "B, rungs",
+    why: "B, rungs: nine named steps on one rung set, each with its own leading and tracking; marketing travels four rungs between 375 and 1440, the app one, the card step none.",
     lives: [
-      "docs/systems/design-system.md",
+      "docs/systems/design-system.md#type-the-heading-face-the-ladder",
+      "src/app/theme.css",
+      "src/app/(dev)/design/(shell)/library/foundations/page.tsx#ladder",
       "src/components/marketing/system/page-hero.tsx",
       "src/components/marketing/system/section-shell.tsx",
+      "src/components/shared/page-heading.tsx",
     ],
-    board: {
-      note: "Round seven: five ladders as type specimens at the pixels they declare, decided by one pick or none; one real page under the card being pressed, with a second copy of it under the first on a fade; letter spacing and the dead-link title as steps of their own, both answers drawn at once",
-      variants: [
-        "A, tuned",
-        "B, rungs",
-        "C, registers",
-        "The spacing law",
-        "Today",
-      ],
-    },
   },
   {
     id: "floating-surfaces",

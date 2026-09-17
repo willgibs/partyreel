@@ -9,6 +9,8 @@ import { itemById } from "@/app/(dev)/design/gallery/registry";
 import { Specimen } from "@/app/(dev)/design/gallery/specimen";
 import { Column, Swatch } from "@/app/(dev)/design/reference/reference-ui";
 
+import { TypeLadder } from "./type-ladder";
+
 /**
  * THE TOKENS. Every swatch fills with the REAL CSS var and every specimen uses
  * the REAL utilities, so this page tracks the theme by construction: edit a
@@ -117,31 +119,53 @@ export default async function FoundationsPage({
       <Section
         id="type"
         title="Type"
-        blurb="Urbanist is the identity face (page titles, event names, marquees): bold at minus three percent tracking, via the font-heading utility. Inter carries everything functional. Two faces, and no third."
+        blurb="Urbanist is the identity face and Inter carries everything functional. Two faces, no third, and one nine-step ladder under both halves of the site."
       >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Specimen label="Identity" hint="font-heading · Urbanist 700">
-            <div className="space-y-2">
-              <p className="font-heading text-3xl">
-                Maya &amp; Jay&rsquo;s Wedding
-              </p>
-              <p className="font-heading text-xl">Create an event</p>
-              <p className="font-heading text-base">Your photos land here</p>
-            </div>
-          </Specimen>
-          <Specimen label="Functional" hint="font-sans · Inter">
-            <div className="space-y-2">
-              <p className="text-sm font-semibold">Guest uploads</p>
-              <p className="text-sm text-muted-foreground">
-                Body copy, labels, controls, and section headings stay in Inter.
-                Only identity moments opt into the heading face.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Smaller supporting text, captions, and metadata.
-              </p>
-            </div>
-          </Specimen>
-        </div>
+        <Sub
+          id="ladder"
+          title="The ladder"
+          blurb="Nine steps, one set. Marketing travels four rungs between a phone and 1440, the app travels one, and the card step travels none: that is the law, and the sizes follow from it. Every line below is the real utility class at true size, and every number is read back off the live token, so this page cannot drift from theme.css. Resize the window and the last column moves."
+        >
+          <TypeLadder />
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+            A dead link joins the set rather than sitting outside it: its title
+            takes the prose step on marketing and the page step inside the app.
+            Nothing in the heading face may wear a stock size (text-3xl) or an
+            arbitrary one; a heading the ladder cannot name is a heading whose
+            role has not been decided yet.
+          </p>
+        </Sub>
+        <Sub
+          id="faces"
+          title="The two faces"
+          blurb="The ladder is the heading face only. Everything functional stays in Inter at the body sizes, which is most of the product."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Specimen label="Identity" hint="font-heading · Urbanist 700">
+              <div className="space-y-2">
+                <p className="font-heading text-section">
+                  Maya &amp; Jay&rsquo;s Wedding
+                </p>
+                <p className="font-heading text-subsection">Create an event</p>
+                <p className="font-heading text-card-title font-semibold">
+                  Your photos land here
+                </p>
+              </div>
+            </Specimen>
+            <Specimen label="Functional" hint="font-sans · Inter">
+              <div className="space-y-2">
+                <p className="text-sm font-semibold">Guest uploads</p>
+                <p className="text-sm text-muted-foreground">
+                  Body copy, labels, controls, and section headings stay in
+                  Inter. Only identity moments opt into the heading face.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Smaller supporting text, captions, and metadata.
+                </p>
+              </div>
+            </Specimen>
+          </div>
+        </Sub>
       </Section>
 
       <Section
