@@ -45,7 +45,7 @@ function BarAction({
  */
 export function BulkBarMock({ count }: { count: number }) {
   return (
-    <span className="flex items-center gap-0.5 rounded-full border border-border bg-background/95 px-2 py-1.5 shadow-[0_6px_18px_rgba(0,0,0,0.18)] backdrop-blur sm:gap-1">
+    <span className="flex items-center gap-0.5 rounded-full border border-border bg-background/95 px-2 py-1.5 shadow-layer backdrop-blur sm:gap-1">
       <span className="px-2 text-xs font-medium">All</span>
       <span className="px-0.5 text-xs text-muted-foreground tabular-nums">
         {count}

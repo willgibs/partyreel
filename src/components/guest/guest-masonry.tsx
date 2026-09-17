@@ -88,6 +88,10 @@ export function GuestMasonry({
           <div
             key={p.queueId}
             data-media-tile
+            // The bright edge ([data-lit], globals.css) sits on the box that
+            // owns the tile radius, on a pending tile as on a landed one, so a
+            // photo does not gain an edge at the moment it finishes uploading.
+            data-lit=""
             style={{ borderRadius: "var(--radius-tile)" } as CSSProperties}
             className="relative mb-[3px] w-full overflow-hidden bg-black/10"
           >
@@ -143,6 +147,7 @@ export function GuestMasonry({
           <div
             key={item.id}
             data-media-tile
+            data-lit=""
             style={
               {
                 aspectRatio: tileAspect(item),

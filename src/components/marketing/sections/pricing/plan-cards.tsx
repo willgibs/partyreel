@@ -34,8 +34,11 @@ import { formatBytes } from "@/lib/utils";
  *
  * VISUAL IDENTITY = V2 "Stacked photos" (Will's sitting ruling, 2026-08-27:
  * "within the card v2 has a nice balance"): a small physical stack of real
- * event photos above each card head, using the back-pocket soft-shadow
- * exception (shadows may return where photos physically stack for depth).
+ * event photos above each card head, wearing `shadow-lift`. This was the
+ * back-pocket exception ("shadows may return where photos physically stack")
+ * and it is the rule since the light ruling (2026-09-17): prints lying on
+ * prints are the overlap the small shadow exists for. It reads on the ink card
+ * with paper's alphas because it lands on the white border of the print below.
  * Free stacks two, grayscale (your photos, before the color arrives); Pro
  * stacks four, vivid, on the ink. Hovering the card spreads the stack.
  *
@@ -82,7 +85,8 @@ function PhotoStack({ ink }: { ink?: boolean }) {
                 width={88}
                 height={88}
                 className={cn(
-                  "size-20 rounded-md border-4 object-cover shadow-lg",
+                  // Stacked prints: the overlap the small shadow was ruled for.
+                  "size-20 rounded-md border-4 object-cover shadow-lift",
                   "transition-transform duration-300 ease-emphasis motion-reduce:transition-none",
                   "group-hover:translate-x-(--sx) group-hover:rotate-(--sr)",
                   ink
@@ -203,7 +207,7 @@ export function PlanPair() {
         >
           <span
             aria-hidden
-            className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background shadow-sm transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
+            className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
             style={{
               transform: `translateX(calc(${cadence === "year" ? 1 : 0} * (100% + 0.25rem)))`,
             }}

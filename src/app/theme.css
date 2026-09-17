@@ -97,8 +97,17 @@
   --radius-tile: var(--radius-tile);
   --radius-float: var(--radius-float);
 
-  /* The elevation contract: the one light-mode shadow family (floating layer
-     only); resolves to nothing in dark (lighter-is-closer instead). */
+  /* The elevation contract's two shadows, as the two utilities a call site
+     declares its role with: `shadow-lift` (one object overlapping another of
+     its own lightness) and `shadow-layer` (anything the page keeps living
+     behind). Values per ground live in globals.css. Each compiles to
+     `--tw-shadow: var(...)`, the slot Tailwind composes beside the ring, so
+     wearing one never costs a surface its `ring-1` hairline; a bare
+     `box-shadow:` on a ringed surface does, silently.
+     `shadow-float` is the old name, kept for the lab alone (globals.css says
+     which board and when it goes); production never reads it. */
+  --shadow-lift: var(--shadow-lift);
+  --shadow-layer: var(--shadow-layer);
   --shadow-float: var(--shadow-float);
 
   /* Skeleton shimmer: a background-position sweep over a 200%-wide gradient

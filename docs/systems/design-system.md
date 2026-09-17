@@ -35,8 +35,9 @@ ruling, where the rule lives), rendered at `/design/library/record`.
   menu pure white); dark = the Graphite room (bg `0.105 0.0053 286`, an OPAQUE card `0.225 0.006
   286`, popover `0.27`, secondary/accent `0.315`). Hue 286 is Apple's grey, not their blue at 258,
   at roughly half again their chroma because our grounds are blacker than theirs and a tint
-  disappears into black. A card is its hairline and its shadow, never a step of 0.007 no eye
-  resolves: the grounds carry the contrast, and everything on them reads cool rather than dead.
+  disappears into black. A card on the page is its hairline, never a step of 0.007 no eye
+  resolves (and never a shadow: a surface lying flat takes none, see the Elevation contract): the
+  grounds carry the contrast, and everything on them reads cool rather than dead.
   **Four registers, not two:** the page (`:root, .surface-paper`), the set-apart mat
   (`.surface-mat`, light), the room (`.dark`) and the slab (`.surface-ink`).
 - **THREE text steps.** `--foreground`, `--muted-foreground`, and `--faint` for a timestamp, a
@@ -93,11 +94,13 @@ ruling, where the rule lives), rendered at `/design/library/record`.
   `--brand` together so the alias re-resolves. The ink
   footer is the worked example ([marketing-footer.tsx](../../src/components/marketing/chrome/marketing-footer.tsx),
   pinned by `footer-contract.test.ts`).
-  Three more the footer never hits: **`--shadow-float` must be
-  zeroed to the INVISIBLE value `0 0 0 0 oklch(0 0 0 / 0)`, never `none`** (Tailwind composes `--tw-shadow`
-  into a comma-separated `box-shadow` beside the ring/inset slots, and a `none` in that list invalidates the
-  whole declaration, taking any ring on the element with it — `.dark` says exactly this at its own
-  declaration); **`--card-foreground` travels WITH `--card`** (shadcn `Card` is `bg-card
+  Three more the footer never hits: **the two shadows are re-declared with the DARK ramp**
+  (`--shadow-lift`, `--shadow-layer`; on a paper page the leaf would otherwise inherit paper's 6 and
+  10 percent, which is nothing on a slab, and the footer's photo pile is a real reader), **and a
+  shadow token that must draw nothing is the INVISIBLE value `0 0 0 0 oklch(0 0 0 / 0)`, never
+  `none`** (Tailwind composes `--tw-shadow` into a comma-separated `box-shadow` beside the ring/inset
+  slots, and a `none` in that list invalidates the whole declaration, taking any ring on the element
+  with it — `.dark` says exactly this where it re-states the retired `--shadow-float`'s zero); **`--card-foreground` travels WITH `--card`** (shadcn `Card` is `bg-card
   text-card-foreground`, so half-redeclaring makes a Card ink-on-ink, i.e. invisible rather than merely
   wrong), same for `--muted`/`--muted-foreground`; and `--input` paints the same near-white hairline
   `--border` is redeclared to stop. `.surface-ink` carries all of them, which is why a leaf should wear
@@ -120,8 +123,9 @@ ruling, where the rule lives), rendered at `/design/library/record`.
   COLLAPSES THROUGH it and escapes as the ancestor's own margin, leaving the ground running on past the
   child and the next section's text rendering over it. `/help` avoids the second only because its straddle
   sits inside a section that already has vertical padding. A straddling child also carries `surface-paper`
-  ITSELF, which re-aliases the whole light block including `--shadow-float`: the attribute that makes it
-  straddle is the one that gives back its elevation.
+  ITSELF, which re-aliases the whole light block including the two shadows' paper alphas, and it wears
+  `shadow-lift`: a card laid across a cut is one object on another, which is the small shadow's case
+  (the same card lying flat on the page below the cut takes none).
 - **A rotated tile needs more frame than its size suggests.** A square's bounding box grows with
   rotation (`side x (cos t + sin t)`), so a 169px tile at 11deg spans ~197px: scatter offsets authored
   against the unrotated height sit ~28px further out than the arithmetic says, and clip against an
@@ -243,12 +247,15 @@ usually picks: ink takes the beam, paper takes spill in the paper register.
 | 3 | **Colour of the lit thing.** Real media where it exists, the lamp set where it does not. **Never a house token, never a state colour.** | The glow becoming a second brand palette. Amber storage warnings, violet reel glows |
 | 4 | **Falloff.** Fades with distance, never draws an edge, sits behind content, always warped, always an always-on base under any travelling band. | The paused-state invisibility trap |
 
-**Under exploration (bible 11 retiring, Will, 2026-09-14):** law 1 as written forbids the
+**Bible 11 (retiring, Will, 2026-09-14):** law 1 as written forbids the
 footer's seam, the one production lamp with no emitting media (`footer-glow.tsx`: "the footer's light
-is the house light") and the model Will named. A lamp may light a section without media; the `light`
-board writes the doctrine that replaces the source-and-direction law (where shadows return in dark,
-the aurora as a section-scoped ambient, the cadence, the lit surface), and the SPILL laws, the BEAM
-laws and the elevation contract inherit it.
+is the house light") and the model Will named. A lamp may light a section without media. The `light`
+board wrote what replaces the source-and-direction law and retired at its ruling (2026-09-17): light
+sorts by what it is doing and a lamp needs a PLACE rather than an object throwing it, the Aurora is
+that light in three forms on the 8 second clock and never on paper (below), the shadows returned in
+dark BY ROLE (the Elevation contract), the lit surface shipped as the bright edge (`data-lit`), and
+the streak of light over an arriving photograph is banked for a delight moment. The SPILL laws and
+the BEAM laws inherit it.
 
 **BEAM's four laws:** 1 it marks the object that is currently the LIVE SUBJECT (working, awaiting,
 uploading, publishing, live). 2 One subject per view. 3 **It ends when the state ends** (a beam is a
@@ -669,24 +676,78 @@ is an action, not a surface**. The legacy `rounded-sm..4xl` scale stays mapped o
 `rounded-xl`. Measurements ride Tailwind's 4px grid + the 0.4-height radius ratio (the system's
 math).
 
-## Elevation contract (one depth technique per mode)
+## Elevation contract (four heights, one job each)
 
-- **Light:** exactly one shadow family, `--shadow-float` (soft, blur = 2x offset, single top light
-  source), floating layer only. Surfaces are hairline-led, no shadows.
-- **Dark:** depth is light first (bible 10, Will, 2026-09-14): lighter-is-closer
-  surface steps (bg 0.105 → muted 0.175 → card 0.225 → popover 0.27 → secondary 0.315) + borders, and **a shadow is
-  allowed where stacked or overlapping objects need separating** (media cards, a layer over
-  content), never as a flat surface effect. `--shadow-float` still resolves to a zero shadow in
-  `.dark` until the `light` exploration writes shadow, lamp and light as one system and the wiring
-  lands it; `pricing/plan-cards.tsx`'s stacked photograph with `shadow-lg` on cinema is the worked
-  case, and `ring-1 ring-foreground/5` (37 uses) is the lift idiom the contract does not name.
-- Components use the `shadow-float` utility; a raw `shadow-md/lg` on a primitive is precedent, not
-  law, until the light ruling (the tabs active pill sheds its `shadow-sm` in dark).
+Will's ruling on the light board's depth step (2026-09-17): "A small shadow where one card sits on
+another, and a larger one under menus, dialogs and toasts"; and, once the four were drawn on one
+screen: "I now see how step, ring, lift, and float work together." They are never rivals and the
+rule is the SAME in both modes. The legend he ruled on lives at `/design/library/foundations#elevation`.
+
+| Height | Technique | How it is worn | Reached for |
+| --- | --- | --- | --- |
+| 1 | **The step** | `bg-card`, `bg-popover` (dark: bg 0.105 → muted 0.175 → card 0.225 → popover 0.27 → secondary 0.315) | First. A panel is a shade lighter than what it sits on. In light the card is the page's own white, so the step is a hair and the ring carries the edge |
+| 2 | **The ring** | `ring-1 ring-foreground/N`, `border` | On every surface: one hairline marks where a panel, a button or a menu ends |
+| 3 | **The lift** | `shadow-lift` (`--shadow-lift`) | ONLY where one object really overlaps another of its own lightness: stacked photographs (the pricing photo stack, the footer's photo pile, /help's mini album), a print deck (/features/qr), a card laid across a cinema-to-paper cut (the /help strip, the article and legal lead cards, the guest list), the contact stamp, the fanned badges, a white chip or play badge laid on a photograph |
+| 4 | **The layer** | `shadow-layer` (`--shadow-layer`) | Under anything the page keeps living behind: dialog, sheet, popover, dropdown and its sub content, select, tooltip, the navigation menu's viewport and indicator, the toast, the guest entry shell, the help palette, the host's floating action bar, the floating Add, the reveal's share prompt and the Studio's confirmation card; and a marketing mock that QUOTES one of those |
+
+- **A surface lying flat takes neither shadow, in either mode.** A shadow on a flat dark ground is a
+  smudge (bible 10) and on a flat light one it is a fifth technique; a card, a field, a segmented
+  control's thumb and a frame standing on the page are their step and their ring.
+- **One geometry, two sizes, one alpha ramp per ground** (blur = 2x offset, single top light source;
+  the layer is the lift at double the offsets). The values live in `globals.css` and nowhere else:
+  paper did not move (the lift is the old `--shadow-float` to the byte), and `.dark` and
+  `.surface-ink` gained the ramp they never had, because 6 percent of black over a 0.105 room is
+  arithmetically invisible, which is the whole reason dark read as shadowless.
+- **The role is the call site's to declare**, and `src/lib/elevation-policy.test.ts` refuses the four
+  ways round it: a stock or arbitrary Tailwind shadow, a hand-typed inline `box-shadow`, the retired
+  `shadow-float` name, and a ground that re-declares the ink without both shadows. `--shadow-float`
+  survives only as a bridge for the lab's rounding board and resolves to zero on both dark grounds.
+- ★ **Never overwrite `box-shadow` where a ring lives.** `ring-1` IS a box-shadow in Tailwind v4,
+  composed with `--tw-shadow` into one declaration, so a bare `box-shadow:` on a ringed surface
+  deletes its hairline with nothing to see in the source. Wear the utility (it writes `--tw-shadow`),
+  or re-state the ring first: the toast re-states sonner's focus ring for exactly this reason, and
+  the footer's photo pile re-states the card-stack recipe's hairline.
+- ★ **An unlayered rule outranks every utility.** `marketing.css`'s `[data-mkt] .mkt-stack-card` sets
+  a bare `box-shadow`, so `shadow-lift` on those cards does nothing at all; the footer's pile carries
+  the lift INLINE (`footer-demo.tsx`), token and never a literal.
+- ★ **`cn()` files `shadow-lift` and `shadow-layer` under shadow COLOUR**, as it always did
+  `shadow-float` (tailwind-merge does not read the theme). The two replace each other correctly, but
+  `cn("shadow-layer", "shadow-none")` keeps both and the stylesheet's order decides. Nothing in the
+  product does that today; the fix is one `theme.shadow` line in `src/lib/utils.ts`.
+- **A shadow that falls on a photograph does not follow the page's ground**: a photo is as bright
+  in the light theme as in the dark one, and paper's ramp is the faint one. It holds on the stacked
+  photographs today; if a lift over media ever reads weak in light, the fix is a ramp declared on
+  the media ground, never a raw shadow back.
 - ★ **There is no translucent surface in the system** (card=declared, Will 2026-09-17: "If we ever
   need to design that glass style over photos, we can design that custom."). The dark card was
   `oklch(0.21 0 0 / 0.62)` and no document said so: solid over a page, glass over a photograph. It
   is opaque everywhere now, so nothing needs backdrop-blur and nothing should reintroduce an alpha
   on a surface token. A glass surface over media is a design task with its own ruling.
+
+### The bright edge (`data-lit`): material, not elevation
+
+Will kept it on the light board's face step (2026-09-17: "I love the bright edge. It's a really nice
+subtle design touch") and asked for it polished. One pixel of light catching the bevel of a surface
+lit from above: brightest along the top, falling away down the sides, nothing at the foot, in the
+FOREGROUND colour at a low alpha and never a lamp hue (bible 3). Three kinds of surface take it and
+nothing else does: a photograph or a video (the masonry tiles, the event card, the canvas player,
+the inline reel player, the marketing frames' wells), a framed screen (`PhoneShell`'s bezel) and the
+QR card (`QrFrame`, `LiveQr`, the /features/qr plate). The rule is `[data-lit]` in `globals.css`, the
+Library judges it at `/design/library/foundations#bright-edge` with a fixed 4x corner per surface,
+and `src/components/shared/lit-edge-contract.test.ts` holds the function:
+
+- **The hook sits on the box that owns the radius**, and the radius is inherited, never typed. The
+  board's mismatch was a hand-typed radius on a wrapper (bible 9). `event-card.tsx` is the standing
+  trap: its outer `data-media-tile` wrapper is square, so the hook is on the rounded box inside it.
+- **`data-lit="border"` on a surface that wears Tailwind's 1px `border`**: the pseudo-element is pushed
+  out by that width so the light lands ON the border, one arc and not two. ★ Such a host must not
+  clip: `overflow: hidden` clips at the padding box, exactly where the border ends, so the edge is
+  drawn and then cut off to the pixel. The canvas player rounds its canvas instead of clipping it.
+- **Dark grounds only, through `@variant dark`**, so the one definition of dark in `theme.css`
+  decides and no pseudo-element is generated on paper at all (a gallery can hold hundreds of tiles).
+- **Generated only where it can be drawn right**: `@supports` requires `color-mix` and
+  `mask-composite` up front, because without the mask the gradient is a veil over the whole
+  photograph and without `color-mix` the build's own fallback is the foreground at full strength.
 
 ## Motion
 
@@ -706,11 +767,16 @@ symmetric S (`--ease-in-out-strong`), which eases in AND out of the change inste
 it. Timing stays asymmetric per the house rule by riding the OPEN state: enter 300ms, exit 220ms.
 This covers the overlay header and any full-bleed hero adopting the transparent-until-scrolled header.
 
-**THE FLOATING-LAYER CONTRACT** (bible 15): every floating surface ships `rounded-float` + `shadow-float` + an origin-AWARE
+**THE FLOATING-LAYER CONTRACT** (bible 15): every floating surface ships `rounded-float` + `shadow-layer` + an origin-AWARE
 `transform-origin` + `fade-in-0`/`fade-out-0` beside its zoom + one house clock on `--ease-emphasis`.
 Miss any of the five and the surface reads wrong in a way that is hard to name: `rounded-lg` resolves
-to the 2px SHARP general-UI radius, a raw `shadow` draws in dark mode against the elevation contract,
-a centre origin detaches the panel from its trigger, and a scale with no fade pops. The marketing nav
+to the 2px SHARP general-UI radius, a raw `shadow` is a fourth geometry (and the elevation policy
+refuses it), a centre origin detaches the panel from its trigger, and a scale with no fade pops. The
+shadow is `shadow-layer` in BOTH modes since the light ruling (2026-09-17; it was `shadow-float`,
+which drew nothing in dark), and the three surfaces that sat outside the family joined it then:
+`select.tsx`'s content, the navigation menu's indicator and the toast (sonner ships its own shadow,
+so the rule in `globals.css` outweighs it and re-states its focus ring). `select.tsx` still wears
+`rounded-md border`: its radius and its entrance are the floating-surfaces wiring's. The marketing nav
 is the one menu outside it. Three reusable
 patterns serve it: the **`data-swap`-gated box morph** (a size transition must be armed
 only when there is a previous size to morph FROM, or a measured-late 0×0 first frame animates as a

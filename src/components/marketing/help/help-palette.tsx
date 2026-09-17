@@ -286,7 +286,7 @@ export function HelpPaletteProvider({
             }}
             className={cn(
               skin.className,
-              "fixed top-[12vh] left-1/2 z-50 w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-float border bg-popover text-popover-foreground shadow-float ring-1 ring-foreground/10 duration-200 ease-emphasis outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:duration-150 data-closed:fade-out-0 data-closed:zoom-out-95",
+              "fixed top-[12vh] left-1/2 z-50 w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-float border bg-popover text-popover-foreground shadow-layer ring-1 ring-foreground/10 duration-200 ease-emphasis outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:duration-150 data-closed:fade-out-0 data-closed:zoom-out-95",
             )}
           >
             <DialogPrimitive.Title className="sr-only">
@@ -520,9 +520,11 @@ export function HelpSearchTrigger({
       type="button"
       onClick={open}
       className={cn(
-        // The desk elevation: the search field is the page's primary
-        // instrument, so it carries the float shadow at rest (R6 polish).
-        "flex h-14 w-full max-w-xl items-center gap-3.5 rounded-full border bg-card px-6 pr-3 text-left shadow-float ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none motion-reduce:transition-none",
+        // The page's primary instrument, edged by its border and its ring. It
+        // carried the float shadow until the light ruling (2026-09-17): a
+        // control lying flat takes none. On /help that shadow fell black on
+        // black and was never seen; on /contact it was a flat field on paper.
+        "flex h-14 w-full max-w-xl items-center gap-3.5 rounded-full border bg-card px-6 pr-3 text-left ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none motion-reduce:transition-none",
         className,
       )}
     >

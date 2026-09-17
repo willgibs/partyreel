@@ -120,6 +120,10 @@ export function MasonryColumns<T extends GridMedia>({
           <div
             key={item.id}
             data-media-tile
+            // The bright edge (globals.css, [data-lit]): this div owns the tile
+            // radius and clips the photo, so the hook sits here and nowhere
+            // above it. No value: a tile has no border for the light to land on.
+            data-lit=""
             // Host tiles (stagger off) opt out of the arrival fade-rise (emil: no
             // entrance theater on host); guest convergence (stagger on) keeps it.
             data-static={stagger ? undefined : ""}

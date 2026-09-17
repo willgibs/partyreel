@@ -43,7 +43,7 @@ export function ProfilesSection() {
             className="mx-auto w-full max-w-sm"
             style={{ "--i": 0 } as CSSProperties}
           >
-            <div className="rounded-2xl border bg-card p-6 shadow-[var(--shadow-float)]">
+            <div className="rounded-2xl border bg-card p-6">
               <div className="flex flex-col items-center gap-2 text-center">
                 <span className="grid size-16 place-items-center rounded-full border bg-muted font-heading text-2xl">
                   M

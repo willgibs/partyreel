@@ -292,7 +292,11 @@ describe("listings", () => {
     expect(specs.find((s) => s.slug === "brand-voice")?.status).toContain(
       "STATUS",
     );
-    expect(specs.find((s) => s.slug === "light")?.status).toContain("NOT LAW");
+    // A proposal that still STANDS says so; light was the example until its
+    // ruling cut docs/specs/light.md to what was decided (2026-09-17).
+    expect(specs.find((s) => s.slug === "rounding")?.status).toContain(
+      "NOT LAW",
+    );
   });
 
   it("listTracks reads every manifest", () => {

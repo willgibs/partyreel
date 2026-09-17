@@ -167,7 +167,7 @@ export function HowMuchFits() {
           data-mkt-toast
           data-on="true"
           aria-hidden
-          className="flex items-start gap-3 rounded-xl border bg-card px-4 py-3 shadow-[var(--shadow-float)]"
+          className="flex items-start gap-3 rounded-xl border bg-card px-4 py-3 shadow-layer"
           style={{ "--i": 0 } as CSSProperties}
         >
           <span className="mt-0.5 size-2 shrink-0 rounded-full bg-destructive" />

@@ -118,13 +118,16 @@ export default function HelpIndexPage() {
                 the cinema→paper cut — the negative bottom margin ends the
                 dark stage halfway up the strip, so the index arrives out of
                 the dark the way the album arrives out of the event on home
-                (the R2 negative-margin move: real layout, no translate). */}
+                (the R2 negative-margin move: real layout, no translate).
+                shadow-lift because it OVERHANGS: a card laid across a seam is
+                one object on another, which is the small shadow's whole job
+                (a card lying flat on the page below takes none). */}
           <nav
             aria-label="Browse by category"
             className="surface-paper mkt-line relative z-10 mx-auto mt-6 -mb-10 w-full max-w-3xl"
             style={{ "--i": 6 } as CSSProperties}
           >
-            <div className="[scrollbar-width:none] overflow-x-auto rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 [&::-webkit-scrollbar]:hidden">
+            <div className="[scrollbar-width:none] overflow-x-auto rounded-2xl border bg-card shadow-lift ring-1 ring-foreground/5 [&::-webkit-scrollbar]:hidden">
               {/* Ten cells since the account category (2026-09-01). The 84px
                     floor is the PHONE snap width only: on the grid it must
                     release (sm:min-w-0), or 10 x 84 overflows the 768px nav
@@ -184,7 +187,7 @@ export default function HelpIndexPage() {
                   data-mkt-reveal
                   style={{ "--i": index } as CSSProperties}
                   href={`/help/${article.slug}`}
-                  className="group mkt-learn flex flex-col overflow-hidden rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 transition-[transform,border-color] duration-200 ease-emphasis hover:-translate-y-0.5 hover:border-foreground/25 active:scale-[0.99] motion-reduce:transition-none"
+                  className="group mkt-learn flex flex-col overflow-hidden rounded-2xl border bg-card ring-1 ring-foreground/5 transition-[transform,border-color] duration-200 ease-emphasis hover:-translate-y-0.5 hover:border-foreground/25 active:scale-[0.99] motion-reduce:transition-none"
                 >
                   <span className="relative flex h-32 items-center justify-center border-b bg-muted/40">
                     {index === 0 && <MiniAlbumScene />}
@@ -405,7 +408,8 @@ function MiniAlbumScene() {
         <span
           key={img.id}
           className={cn(
-            "relative block size-16 overflow-hidden rounded-lg shadow-sm ring-1 ring-foreground/10",
+            // Three prints overlapping: the lift, never a stock shadow.
+            "relative block size-16 overflow-hidden rounded-lg shadow-lift ring-1 ring-foreground/10",
             i === 0 && "-rotate-6",
             i === 1 && "z-10 -mx-2.5 scale-110",
             i === 2 && "rotate-6",
@@ -421,7 +425,7 @@ function MiniAlbumScene() {
         </span>
       ))}
       {/* The QR chip: how all of it arrived. */}
-      <span className="absolute -right-4 -bottom-2 z-20 flex size-7 items-center justify-center rounded-md border bg-card shadow-sm">
+      <span className="absolute -right-4 -bottom-2 z-20 flex size-7 items-center justify-center rounded-md border bg-card shadow-lift">
         <span className="relative block size-3.5">
           <span className="absolute top-0 left-0 size-[5px] rounded-tl-[2px] border-[1.5px] border-r-0 border-b-0 border-foreground" />
           <span className="absolute top-0 right-0 size-[5px] rounded-tr-[2px] border-[1.5px] border-b-0 border-l-0 border-foreground" />
@@ -437,7 +441,7 @@ function CreateScene() {
   return (
     <span aria-hidden className="relative flex items-center justify-center">
       <span className="absolute size-10 -translate-x-3.5 -rotate-6 rounded-[10px] border-2 border-dashed border-foreground/25" />
-      <span className="relative z-10 flex size-10 translate-x-1.5 rotate-3 items-center justify-center rounded-[10px] border-2 border-foreground bg-card shadow-sm">
+      <span className="relative z-10 flex size-10 translate-x-1.5 rotate-3 items-center justify-center rounded-[10px] border-2 border-foreground bg-card">
         <span className="absolute h-0.5 w-4 rounded-full bg-foreground" />
         <span className="absolute h-4 w-0.5 rounded-full bg-foreground" />
       </span>
@@ -450,7 +454,7 @@ function ReelScene() {
   return (
     <span aria-hidden className="relative flex items-center">
       <span className="block h-16 w-11 -rotate-6 rounded-md border-2 border-foreground/20 bg-card" />
-      <span className="relative z-10 -mx-2 block h-[74px] w-[52px] overflow-hidden rounded-md shadow-sm ring-1 ring-foreground/10">
+      <span className="relative z-10 -mx-2 block h-[74px] w-[52px] overflow-hidden rounded-md shadow-lift ring-1 ring-foreground/10">
         <Image
           src={poster.src}
           alt=""

@@ -141,7 +141,8 @@ export function BadgeFan() {
         seed={4}
         className="hidden origin-bottom-right scale-[0.9] -rotate-[7deg] opacity-80 sm:-mr-12 sm:flex"
       />
-      <AttendeeBadge pulse seed={0} className="z-10 shadow-lg" />
+      {/* The front badge really overlaps the two behind it: the lift. */}
+      <AttendeeBadge pulse seed={0} className="z-10 shadow-lift" />
       <AttendeeBadge
         name="Marcus Lee"
         role="Crew"

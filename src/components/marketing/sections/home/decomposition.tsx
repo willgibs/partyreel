@@ -169,7 +169,7 @@ function ReelPoster() {
         className="object-cover"
       />
       <span className="absolute inset-0 flex items-center justify-center">
-        <span className="flex size-12 items-center justify-center rounded-full bg-white/90 text-gallery shadow-lg">
+        <span className="flex size-12 items-center justify-center rounded-full bg-white/90 text-gallery shadow-lift">
           <Play className="size-5 translate-x-0.5 fill-current" />
         </span>
       </span>

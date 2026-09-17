@@ -25,12 +25,17 @@ export function ReelFrame({
   return (
     <div aria-hidden className={cn("w-full", className)}>
       <BrowserFrame className="overflow-hidden">
-        <div className="relative aspect-video overflow-hidden rounded-xl bg-gallery">
+        {/* The player's well takes the bright edge (globals.css, [data-lit]):
+            it owns its radius and has no border, so the hook has no value. */}
+        <div
+          data-lit=""
+          className="relative aspect-video overflow-hidden rounded-xl bg-gallery"
+        >
           {media ?? (
             <>
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="flex size-14 items-center justify-center rounded-full bg-white/90 text-gallery shadow-lg">
+                <span className="flex size-14 items-center justify-center rounded-full bg-white/90 text-gallery shadow-lift">
                   <Play className="size-6 translate-x-0.5 fill-current" />
                 </span>
               </div>

@@ -52,15 +52,17 @@ function FormCard({ children }: { children: ReactNode }) {
   const stamp = marketingImage("party-balloons");
   return (
     <div className="relative rounded-2xl border bg-muted/50 p-6 ring-1 ring-foreground/5 sm:p-8">
-      {/* The postage stamp: white border, a hair of rotation, the soft-shadow
-          photo-depth exception. aria-hidden: pure stationery identity. */}
+      {/* The postage stamp: white border, a hair of rotation, and shadow-lift
+          because it really overhangs the card's top edge (one object on
+          another is the small shadow's case; it was a stock shadow-lg).
+          aria-hidden: pure stationery identity. */}
       <div aria-hidden className="absolute -top-4 right-6 rotate-3 sm:right-8">
         <Image
           src={stamp.src}
           alt=""
           width={64}
           height={64}
-          className="size-16 rounded-[4px] border-4 border-background object-cover shadow-lg"
+          className="size-16 rounded-[4px] border-4 border-background object-cover shadow-lift"
         />
       </div>
       <Caption>A note to Partyreel</Caption>

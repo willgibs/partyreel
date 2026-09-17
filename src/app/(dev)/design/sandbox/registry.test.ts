@@ -494,7 +494,8 @@ describe("the board registry", () => {
   });
 
   it("computes one anchor everywhere", () => {
-    expect(anchorFor("light", "composer")).toBe("light-composer");
+    // A standing board's id (light was the example until it retired).
+    expect(anchorFor("rounding", "composer")).toBe("rounding-composer");
   });
 });
 

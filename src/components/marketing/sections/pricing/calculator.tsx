@@ -138,7 +138,7 @@ export function Calculator() {
             >
               <span
                 aria-hidden
-                className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background shadow-sm transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
+                className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
                 style={{
                   transform: `translateX(calc(${hostingAgain ? 1 : 0} * (100% + 0.25rem)))`,
                 }}

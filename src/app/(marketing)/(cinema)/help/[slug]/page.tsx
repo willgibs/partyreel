@@ -205,9 +205,11 @@ export default async function HelpArticlePage({
 
               {/* THE SHORT ANSWER, straddling: frontmatter description as the
                   lead (the legal shell's two-register pattern; AUTHORING.md
-                  binds authors to write descriptions that carry this slot). */}
+                  binds authors to write descriptions that carry this slot).
+                  It overhangs the cut, so it wears shadow-lift (an overlap);
+                  a card lying flat on the page takes no shadow. */}
               <div className="surface-paper relative z-10 mt-8 -mb-10">
-                <div className="rounded-2xl border bg-card p-5 shadow-float ring-1 ring-foreground/5 sm:p-6">
+                <div className="rounded-2xl border bg-card p-5 shadow-lift ring-1 ring-foreground/5 sm:p-6">
                   <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
                     In short
                   </p>

@@ -24,8 +24,9 @@ import { cn } from "@/lib/utils";
  * marketing. Same three segments (Public / Password / Private, same icons),
  * same one-line hints (imported from the app module, the sanctioned
  * "any future surface" single source), driving ONE event-card preview through
- * the three guest-side states. The pill slides with the app's lifted-segment
- * look (bg-background + shadow-sm) instead of .mkt-tabs' 48px-radius track so
+ * the three guest-side states. The pill slides with the app's own segment
+ * look (bg-background on the muted track: a step and no shadow, exactly as
+ * visibility-selector.tsx ships it) instead of .mkt-tabs' 48px-radius track so
  * the mock stays shape-faithful; reduced motion swaps instantly.
  */
 
@@ -89,7 +90,7 @@ export function AccessSwitch() {
               exactly one segment + the gap-1. */}
           <span
             aria-hidden
-            className="absolute inset-y-1 left-1 w-[calc((100%-1rem)/3)] rounded-md bg-background shadow-sm transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
+            className="absolute inset-y-1 left-1 w-[calc((100%-1rem)/3)] rounded-md bg-background transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
             style={{
               transform: `translateX(calc(${index} * (100% + 0.25rem)))`,
             }}
@@ -161,7 +162,7 @@ export function AccessSwitch() {
               <PreviewPanel active={mode === "password"}>
                 <GhostBackdrop />
                 <div className="z-10 flex items-center justify-center p-3 [grid-area:1/1]">
-                  <div className="w-full max-w-[17rem] rounded-xl border bg-card/95 p-4 text-center shadow-sm backdrop-blur">
+                  <div className="w-full max-w-[17rem] rounded-xl border bg-card/95 p-4 text-center shadow-layer backdrop-blur">
                     <p className="flex items-center justify-center gap-1.5 text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
                       <Lock className="size-3" />
                       Almost in
@@ -185,7 +186,7 @@ export function AccessSwitch() {
               <PreviewPanel active={mode === "private"}>
                 <GhostBackdrop />
                 <div className="z-10 flex items-center justify-center p-3 [grid-area:1/1]">
-                  <div className="flex flex-col items-center gap-2 rounded-xl border bg-card/95 px-8 py-6 text-center shadow-sm backdrop-blur">
+                  <div className="flex flex-col items-center gap-2 rounded-xl border bg-card/95 px-8 py-6 text-center shadow-layer backdrop-blur">
                     <span className="flex size-9 items-center justify-center rounded-full border text-muted-foreground">
                       <Lock className="size-4" />
                     </span>

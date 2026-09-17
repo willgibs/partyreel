@@ -166,10 +166,7 @@ export function CareersStory() {
 function AlbumVisual() {
   return (
     <div aria-hidden>
-      <BrowserFrame
-        className="shadow-[var(--shadow-float)]"
-        label="partyreel.com/a/the-whole-event"
-      >
+      <BrowserFrame label="partyreel.com/a/the-whole-event">
         <div className="grid grid-cols-3 gap-[var(--gap-gallery)]">
           {ALBUM_TILES.map((id) => {
             const image = marketingImage(id);
@@ -203,12 +200,14 @@ function ReelVisual() {
     // whole section to match. "And then it becomes a film" also just reads
     // better in a film shape.
     <div aria-hidden>
-      <div className="overflow-hidden rounded-[var(--radius-float)] bg-gallery shadow-[var(--shadow-float)]">
-        <InlineReelPlayer
-          reelId="hero-candidate-02"
-          sizes="(min-width: 1024px) 55vw, 92vw"
-        />
-      </div>
+      {/* The float corner rides the player's own box, not a wrapper: the player
+          carries the bright edge, and an edge follows the corner of the box it
+          sits on (inline-reel-player.tsx says why a second clip breaks it). */}
+      <InlineReelPlayer
+        reelId="hero-candidate-02"
+        sizes="(min-width: 1024px) 55vw, 92vw"
+        className="rounded-[var(--radius-float)]"
+      />
     </div>
   );
 }
