@@ -17,7 +17,8 @@ import type { AlbumFixture } from "./album-fill-fixtures";
  *
  * Everything the grid needs is DERIVED from the tick by a pure function, which
  * is what makes reduced motion a derivation rather than an effect (t jumps to
- * the end: the full album, no strip, no checks) and what the unit test pins.
+ * the end: the full album, no strip, no checks; a looping fill jumps to its
+ * STILL, one settled pass, see stillAlbumFill) and what the unit test pins.
  *
  * ★ `layoutKey` is the MOUNTED COUNT, never the tick. useFlip re-runs its
  * layout effect whenever this changes; if it re-ran while a previous slide was
@@ -73,13 +74,33 @@ const DEFAULTS = {
   maxPerColumn: Number.POSITIVE_INFINITY,
 } as const;
 
-/** The end tick for a non-looping run: every arrival landed and its check cleared. */
+/**
+ * The end of one PASS: every arrival landed once and its check cleared. For a
+ * fill that ends it is the end; for one that loops it is the tick its STILL is
+ * taken at (stillAlbumFill), never a clamp on the running clock. Finite in
+ * both cases: the looping Infinity this used to return is the bug below.
+ */
 export function endTick(opts: AlbumFillOptions): number {
-  const { beatMs, checkMs, loop } = { ...DEFAULTS, ...opts };
-  if (loop) return Number.POSITIVE_INFINITY;
+  const { beatMs, checkMs } = { ...DEFAULTS, ...opts };
   const arrivals = opts.fixtures.length - opts.seedCount;
   const checkBeats = Math.ceil(checkMs / beatMs);
   return 2 * arrivals + 2 * checkBeats;
+}
+
+/**
+ * ★ A LOOPING FILL'S STILL IS ONE PASS, SETTLED (2026-09-17). Reduced motion
+ * jumps a fill to its end, and a loop's end was Infinity: `landed` became
+ * Infinity, `arrivals[Infinity % n]` was `arrivals[NaN]`, and /features/album
+ * threw for every reader with Reduce Motion on (the "everywhere" pair loops).
+ * A loop has no end, so its still is DEFINED rather than reached: the same
+ * album filled exactly once with its checks cleared and its columns bounded,
+ * which is what the running loop looks like whenever a pass has just settled.
+ * Derived through the non-looping path so the two can never drift; `done`
+ * stays false because a loop never finishes.
+ */
+export function stillAlbumFill(opts: AlbumFillOptions): AlbumFillView {
+  const once = { ...opts, loop: false };
+  return { ...deriveAlbumFill(endTick(once), once), done: !opts.loop };
 }
 
 /** Pure: the whole view from one tick. Exported for the test. */
@@ -96,7 +117,11 @@ export function deriveAlbumFill(
   const total = loop ? Number.POSITIVE_INFINITY : arrivals.length;
   const checkBeats = Math.ceil(checkMs / beatMs);
   const end = endTick(opts);
-  const t = Math.min(tick, end);
+  // A fill that ends clamps at its end. A loop never clamps, and asked for a
+  // tick past any clock (Infinity, the old reduced-motion jump) it answers
+  // with its still rather than with a NaN index.
+  if (loop && !Number.isFinite(tick)) return stillAlbumFill(opts);
+  const t = loop ? tick : Math.min(tick, end);
 
   // `progressed` keeps counting past the last landing so the final checks
   // still clear on the clock; `landed` is what is actually on screen.
@@ -150,9 +175,11 @@ export function useAlbumFill(
   const [tick, setTick] = useState(0);
   const beatMs = fill.beatMs ?? DEFAULTS.beatMs;
   const end = endTick(fill);
-  // Reduced motion is a DERIVATION to the end state, never a state reset.
+  // Reduced motion is a DERIVATION, never a state reset: the run's end for a
+  // fill that ends, one settled pass for one that loops (stillAlbumFill).
   const t = reduced ? end : tick;
-  const done = t >= end;
+  // A loop never finishes: its clock stops only for pause and reduced motion.
+  const done = !fill.loop && t >= end;
 
   useEffect(() => {
     if (paused || reduced || done) return;
@@ -160,5 +187,5 @@ export function useAlbumFill(
     return () => clearTimeout(id);
   }, [paused, reduced, done, t, beatMs]);
 
-  return deriveAlbumFill(t, fill);
+  return reduced ? stillAlbumFill(fill) : deriveAlbumFill(t, fill);
 }

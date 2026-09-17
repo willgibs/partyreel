@@ -6,7 +6,7 @@ import {
   HERO_FIXTURES,
   HERO_SEED_COUNT,
 } from "./album-fill-fixtures";
-import { deriveAlbumFill, endTick } from "./use-album-fill";
+import { deriveAlbumFill, endTick, stillAlbumFill } from "./use-album-fill";
 
 const hero = { fixtures: HERO_FIXTURES, seedCount: HERO_SEED_COUNT };
 
@@ -71,5 +71,51 @@ describe("the filling album's derivation", () => {
     expect(new Set(keys).size).toBe(keys.length);
     expect(v.columns.every((c) => c.length <= 4)).toBe(true);
     expect(v.done).toBe(false);
+  });
+
+  it("gives a looping fill a finite still: one pass landed, bounded, no strip and no check", () => {
+    // /features/album threw for every reader with Reduce Motion on: the
+    // everywhere pair loops, a loop's end tick was Infinity, and the jump to
+    // it indexed arrivals[NaN]. A loop's still is one settled pass.
+    const opts = {
+      fixtures: EVERYWHERE_FIXTURES,
+      seedCount: EVERYWHERE_SEED_COUNT,
+      loop: true,
+      upload: false,
+      maxPerColumn: 4,
+    };
+    expect(Number.isFinite(endTick(opts))).toBe(true);
+    const still = stillAlbumFill(opts);
+    expect(still.photos).toBe(EVERYWHERE_FIXTURES.length);
+    expect(still.columns.every((c) => c.length <= 4)).toBe(true);
+    expect(
+      still.columns.flat().every((x) => x.status !== "uploading" && !x.check),
+    ).toBe(true);
+    expect(still.done).toBe(false);
+    // The pure repro, as reported: never a throw, at the pass end or past any clock.
+    const nine = Array.from({ length: 9 }, (_, i) => ({
+      id: `f${i}`,
+      col: i % 3,
+      by: "A",
+    }));
+    const minimal = { fixtures: nine, seedCount: 3, loop: true };
+    expect(() => deriveAlbumFill(endTick(minimal), minimal)).not.toThrow();
+    expect(deriveAlbumFill(Number.POSITIVE_INFINITY, opts)).toEqual(still);
+  });
+
+  it("never clamps a running loop at its pass end", () => {
+    const opts = {
+      fixtures: EVERYWHERE_FIXTURES,
+      seedCount: EVERYWHERE_SEED_COUNT,
+      loop: true,
+      upload: false,
+      maxPerColumn: 4,
+    };
+    const end = endTick(opts);
+    const atEnd = deriveAlbumFill(end, opts);
+    const later = deriveAlbumFill(end + 20, opts);
+    expect(later.done).toBe(false);
+    expect(later.photos).toBe(atEnd.photos + 10);
+    expect(later.columns.every((c) => c.length <= 4)).toBe(true);
   });
 });
