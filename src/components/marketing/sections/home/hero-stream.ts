@@ -54,17 +54,44 @@ export const BPS: readonly Bp[] = ["base", "lg"];
  *  that is the one duplication here: a CSS media query cannot read a module. */
 export const LG_MIN = 1024;
 
-/** The site header is a transparent 4rem overlay sitting ON the hero, so the
- *  code has to start below it (the band is deliberately allowed to run under
- *  it: media behind transparent chrome is the house look). */
+/**
+ * The site header, in px. It is a STICKY 4rem bar, so it sits in the flow and
+ * the hero's own `-mt` pulls the hero back up to the viewport's top: the
+ * header's band is the hero's FIRST 64px, not a strip above them, and the hero
+ * is one screen tall rather than one screen plus a header. Measured on the
+ * rendered page rather than reasoned about, because reasoning about it got the
+ * answer wrong by exactly one header. The code has to start below that band;
+ * the photographs are deliberately allowed to run under it, since media behind
+ * transparent chrome is the house look.
+ */
 const HEADER = 64;
 
 /** The white plate's padding around the code, per side: FooterQr's own `p-2`,
  *  which is part of the object the type has to clear. */
 const PLATE_PAD = 8;
 
+/**
+ * The quiet zone the QR carries, in modules, on each side. FooterQr bakes the
+ * spec minimum of 4 into its viewBox, so the rendered edge covers the code plus
+ * eight.
+ */
+export const QR_QUIET = 8;
+
+/**
+ * ★ HOW SMALL THE CODE MAY BE DRAWN, in pixels per module. A scanner needs
+ * roughly three device pixels of each module to read it off a screen, which is
+ * the floor `footer-qr.tsx` is written against. It is what sizes `Geo.qr`, and
+ * it is not a design number: the phone's code was drawn at 112 first and
+ * measured 2.73 px per module on the live page, which is a code nobody can
+ * scan and the one failure this composition cannot survive, since the code IS
+ * the argument.
+ */
+export const QR_FLOOR_PX_PER_MODULE = 3;
+
 export type Geo = {
-  /** The QR's edge in px, quiet zone included; 112 still scans from a phone. */
+  /** The code's rendered edge in px, quiet zone included. Divided by the
+   *  module count it must clear QR_FLOOR_PX_PER_MODULE; hero-stream.test.ts
+   *  holds it there, so this is not a number to tune by eye. */
   qr: number;
   /** The unit card box at transform scale 1, before its aspect. */
   card: number;
@@ -73,12 +100,16 @@ export type Geo = {
   /** How much of each edge the band dissolves over. */
   fade: string;
   /**
-   * ★ THE BLOCK'S BOX, and its width is the widest line's INK rather than any
-   * element's box: the headline's two rendered lines at this breakpoint, plus
-   * headroom. It is the column the stream's reach is measured at, so re-measure
-   * it if the ruled line changes: copy is open (bible 21), and this is the one
-   * number a rewrite can invalidate. The height is measured on the rendered
-   * block (headline, sentence, actions and their gaps).
+   * ★ THE BLOCK'S BOX, BOTH NUMBERS MEASURED ON THE RENDERED BLOCK, never
+   * reasoned about. The width is the widest PAINTED line, which is not the same
+   * line at both breakpoints: at `lg` the headline sets it (696px of ink over
+   * two lines, plus headroom), at `base` the sentence does (it fills its whole
+   * 343 measure over three lines while the headline's widest is 225). It is the
+   * column the band's reach is measured at, so re-measure it if the ruled copy
+   * changes: copy is open (bible 21), and this is the one number a rewrite can
+   * invalidate. The height is the block's own, gaps included, and at `base` it
+   * carries the action row WRAPPED, because two buttons do not fit on a 375
+   * line and pretending otherwise costs 57px of fold.
    */
   blockW: number;
   blockH: number;
@@ -117,12 +148,12 @@ export type Geo = {
 
 export const GEO: Record<Bp, Geo> = {
   base: {
-    qr: 112,
+    qr: 128,
     card: 155,
     perspective: 360,
     fade: "16%",
     blockW: 343,
-    blockH: 296,
+    blockH: 353,
     h1Max: 343,
     lowMax: 343,
     margin: 28,
@@ -139,7 +170,7 @@ export const GEO: Record<Bp, Geo> = {
     perspective: 700,
     fade: "12%",
     blockW: 720,
-    blockH: 322,
+    blockH: 323,
     h1Max: 920,
     lowMax: 576,
     margin: 26,
@@ -350,12 +381,8 @@ export type Built = {
    * headline, the sentence and the actions hang from.
    */
   low: number;
-  /**
-   * The axis's floor, in px from the hero's TOP EDGE, which is not the top of
-   * the screen: the hero is pulled up under the site header by one header's
-   * height, so the header's own band ends two header heights into the box and
-   * the code has to start below that.
-   */
+  /** The axis's floor, in px from the hero's top edge, which IS the viewport's
+   *  top: the code clears the sticky header's band, with air. */
   axisMin: number;
   /** The block's whole reach below the axis, `low` included: the clamp's tail. */
   below: number;
@@ -467,7 +494,7 @@ export function build(bp: Bp): Built {
     plate,
   );
   const below = low + geo.blockH + geo.airFoot;
-  const axisMin = 2 * HEADER + geo.airTop + geo.qr / 2 + PLATE_PAD;
+  const axisMin = HEADER + geo.airTop + geo.qr / 2 + PLATE_PAD;
 
   return {
     cards,

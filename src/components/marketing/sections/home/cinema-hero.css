@@ -77,12 +77,14 @@
     calc(100% - var(--hhs-below))
   );
 
-  /* ★ THE HERO IS ONE SCREEN PLUS THE HEADER IT IS PULLED UP UNDER, so the part
-     a reader actually sees is exactly 100svh and the section below it starts at
-     the fold. The floor is what the composition needs (hero-stream.ts derives
-     it from the code, the measured clear line and the block); past it the hero
-     grows and the last of it scrolls, which is the honest failure. */
-  min-height: max(calc(100svh + var(--mkt-header-h, 4rem)), var(--hhs-min-h));
+  /* ★ ONE SCREEN, EXACTLY. The site header is STICKY rather than out of flow,
+     so the hero's own -mt puts its top edge at the viewport's own top and
+     100svh ends at the fold: the section below it starts there, and the
+     header's band is the hero's first 64px. The floor is what the composition
+     needs (hero-stream.ts derives it from the code's clearance, the measured
+     clear line and the block); past it the hero grows and its last pixels
+     scroll, which is the honest failure. */
+  min-height: max(100svh, var(--hhs-min-h));
 }
 
 @media (min-width: 1024px) {

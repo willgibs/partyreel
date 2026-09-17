@@ -1732,6 +1732,8 @@
         "FRAME_SIZES",
         "GEO",
         "LG_MIN",
+        "QR_FLOOR_PX_PER_MODULE",
+        "QR_QUIET",
         "REVEAL_MS",
         "STREAM_FRAMES"
       ],
@@ -1744,7 +1746,7 @@
             "the band leaves the type its measured lane"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 46
+          "line": 50
         },
         {
           "title": "%s solves its clear line off the band, not off a guess",
@@ -1752,7 +1754,7 @@
             "the band leaves the type its measured lane"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 75
+          "line": 82
         },
         {
           "title": "%s fits the whole composition above the fold",
@@ -1760,7 +1762,7 @@
             "the band leaves the type its measured lane"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 88
+          "line": 101
         },
         {
           "title": "%s sizes every DOM box to its largest visible moment",
@@ -1768,7 +1770,7 @@
             "no frame is ever rasterized above its own pixels"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 108
+          "line": 120
         },
         {
           "title": "asks for the size it renders, at each breakpoint",
@@ -1776,7 +1778,7 @@
             "no frame is ever rasterized above its own pixels"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 130
+          "line": 142
         },
         {
           "title": "pairs every frame across the two breakpoints",
@@ -1784,7 +1786,7 @@
             "one set of nodes serves both geometries"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 143
+          "line": 155
         },
         {
           "title": "%s stands deployed, never collapsed at the code",
@@ -1792,7 +1794,7 @@
             "the rest state is a composed still"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 160
+          "line": 172
         },
         {
           "title": "places every frame from a table, never from a hash",
@@ -1800,7 +1802,7 @@
             "nothing in the composition is dealt"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 189
+          "line": 201
         },
         {
           "title": "deals no photograph twice on screen, once Will's set lands",
@@ -1808,7 +1810,7 @@
             "nothing in the composition is dealt"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 206
+          "line": 218
         },
         {
           "title": "takes every frame from the media manifest",
@@ -1816,7 +1818,15 @@
             "nothing in the composition is dealt"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 215
+          "line": 229
+        },
+        {
+          "title": "%s keeps three pixels on every module",
+          "suite": [
+            "the code is scannable at the size it is drawn"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 243
         },
         {
           "title": "%s keeps the compositor's layer count honest",
@@ -1824,7 +1834,7 @@
             "what the composition costs"
           ],
           "file": "src/components/marketing/sections/home/hero-stream.test.ts",
-          "line": 229
+          "line": 269
         }
       ]
     },

@@ -1,6 +1,8 @@
 // @contract-for: src/components/marketing/sections/home/hero-stream.ts
 import { describe, expect, it } from "vitest";
 
+import qrcode from "qrcode-generator";
+
 import { marketingImage } from "@/lib/constants/marketing-media";
 
 import {
@@ -9,6 +11,8 @@ import {
   BUILT,
   type Bp,
   colOf,
+  QR_FLOOR_PX_PER_MODULE,
+  QR_QUIET,
   FRAME_SIZES,
   GEO,
   opacityAt,
@@ -96,16 +100,15 @@ describe("the band leaves the type its measured lane", () => {
 
   it.each(BPS)("%s fits the whole composition above the fold", (bp) => {
     const { axisMin, below, minH } = BUILT[bp];
-    // The hero is one screen plus the header it is pulled up under, so its own
-    // box has two header heights above the code's floor. At `minH` the clamp's
-    // two ends meet exactly: the code at its floor, the block ending at the
-    // fold.
-    expect(axisMin).toBeGreaterThanOrEqual(2 * 64);
+    // The hero is exactly one screen: the site header is sticky, so the hero's
+    // -mt puts its top edge at the viewport's top and its first 64px are the
+    // header's band. At `minH` the clamp's two ends meet exactly: the code at
+    // its floor, the block ending at the fold.
+    expect(axisMin).toBeGreaterThanOrEqual(64);
     expect(minH).toBe(axisMin + below);
-    // And it has to be a height a real window has. The shortest laptop the
-    // hero is verified on is 720 and the shortest phone 667, each plus the
-    // header the hero swallows.
-    const shortest = bp === "lg" ? 720 + 64 : 667 + 64;
+    // And it has to be a height a real window has: the shortest laptop the hero
+    // is verified on is 720 and the shortest phone 667.
+    const shortest = bp === "lg" ? 720 : 667;
     expect(
       minH,
       `${bp}: the hero cannot fit its block in the shortest window it is verified on`,
@@ -233,6 +236,32 @@ describe("nothing in the composition is dealt", () => {
     expect(new Set(STREAM_FRAMES).size, "a repeated id").toBe(
       STREAM_FRAMES.length,
     );
+  });
+});
+
+describe("the code is scannable at the size it is drawn", () => {
+  it.each(BPS)("%s keeps three pixels on every module", (bp) => {
+    // ★ THE ONE FAILURE THIS COMPOSITION CANNOT SURVIVE. The code is the
+    // eyebrow, the object and the argument at once, so a code drawn too small
+    // to read off a screen empties the whole hero of its point, and nothing
+    // about it looks wrong: it just does not scan. The phone's was drawn at 112
+    // first and measured 2.73 px per module on the live page.
+    //
+    // The module count is computed from a URL of the demo's own SHAPE, written
+    // out rather than imported: lib/demo.ts and lib/constants/site.ts both read
+    // `env`, which throws in this runner with no NEXT_PUBLIC_* set (the note
+    // home-sections.test.ts carries). A guest URL is the origin, "/e/" and a
+    // 32-character token, so this is the real length, and a longer token that
+    // pushed the code to the next QR version fails here rather than on a phone.
+    const code = qrcode(0, "M");
+    code.addData(`https://partyreel.com/e/${"0".repeat(32)}`);
+    code.make();
+    const span = code.getModuleCount() + QR_QUIET;
+    const perModule = GEO[bp].qr / span;
+    expect(
+      perModule,
+      `${bp}: ${perModule.toFixed(2)}px per module over ${span} modules`,
+    ).toBeGreaterThanOrEqual(QR_FLOOR_PX_PER_MODULE);
   });
 });
 
