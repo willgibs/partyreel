@@ -186,7 +186,8 @@ Handoff). The signed-in dashboard and the app's 404 are the Orchestrator's on th
 
 ## Handoff (replaces the chat report)
 
-- Head `HEAD_SHA`, pushed; synced with `launch-prep` at `0e6a2058` (it had moved: the Aurora's
+- Head: the tip of `origin/lp/type-wiring` (the work lands at `62dd4abf`, with this manifest
+  commit on top of it), pushed; synced with `launch-prep` at `0e6a2058` (it had moved: the Aurora's
   wiring). The merge touched only `docs/design/library.md`, which is generated, so it was resolved by
   rerunning `pnpm design:rules` on the merged tree rather than by hand; `globals.css` and
   `design-system.md` both auto-merged (Aurora took the spill engine and the lamp doctrine, this lane
