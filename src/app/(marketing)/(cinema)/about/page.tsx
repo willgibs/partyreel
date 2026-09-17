@@ -162,7 +162,7 @@ export default function AboutPage() {
         <SectionShell reveal="none" className="mkt-gather-clear pb-16 sm:pb-20">
           <div className="mx-auto max-w-[36rem]">
             <Eyebrow>{ABOUT_STORY.eyebrow}</Eyebrow>
-            <h2 className="mt-4 font-heading text-2xl text-balance sm:text-3xl">
+            <h2 className="mt-4 font-heading text-prose text-balance">
               {ABOUT_STORY.heading}
             </h2>
             <div className="mt-6 flex flex-col gap-5">
@@ -188,7 +188,7 @@ export default function AboutPage() {
         >
           <div className="max-w-2xl">
             <Eyebrow>{ABOUT_LEDGER.eyebrow}</Eyebrow>
-            <h2 className="mt-4 font-heading text-2xl text-balance sm:text-3xl">
+            <h2 className="mt-4 font-heading text-prose text-balance">
               {ABOUT_LEDGER.heading}
             </h2>
             <p className="mt-3 text-pretty text-muted-foreground">
@@ -235,7 +235,7 @@ export default function AboutPage() {
           is derived, never hardcoded, so it cannot outlive the open roles. */}
         <section className="border-t">
           <Container className="flex flex-col items-center gap-5 py-20 text-center sm:py-24">
-            <h2 className="max-w-2xl font-heading text-2xl text-balance sm:text-3xl">
+            <h2 className="max-w-2xl font-heading text-prose text-balance">
               {ABOUT_CAREERS.heading}
             </h2>
             <p className="max-w-xl text-pretty text-muted-foreground">

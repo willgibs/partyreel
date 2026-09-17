@@ -42,7 +42,11 @@ export function EmptyState({
         <h3
           className={cn(
             "text-sm font-medium",
-            variant === "quiet" && "font-heading text-lg font-normal",
+            // The quiet variant is typographic, so its title joins the ladder
+            // at the `subsection` step (18/20) instead of picking a stock size.
+            // The icon variant's title stays Inter body copy: it is a label,
+            // not a heading, and the ladder is only for the heading face.
+            variant === "quiet" && "font-heading text-subsection font-normal",
           )}
         >
           {title}

@@ -16,6 +16,11 @@ import { cn } from "@/lib/utils";
 export function MarketingNotFound() {
   return (
     <NotFoundScreen
+      // The marketing half, so the title takes the `prose` step and not the
+      // app's `page` step (Will's type ruling, 2026-09-17). Declared, never
+      // sniffed: the root 404 renders OUTSIDE (marketing), so [data-mkt] is
+      // absent there and an ancestor selector would read it as the app.
+      surface="marketing"
       icon={Compass}
       eyebrow="404"
       title="We lost this page"

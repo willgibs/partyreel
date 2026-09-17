@@ -38,7 +38,10 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-title"
       className={cn(
-        "font-heading text-base leading-snug font-semibold group-data-[size=sm]/card:text-sm",
+        // The ladder's `card-title` step (16 at every width; the one step that
+        // travels no rungs). Named `card-title` and not `card` because
+        // `text-card` is already the surface COLOR: see src/app/theme.css.
+        "font-heading text-card-title font-semibold group-data-[size=sm]/card:text-sm",
         className
       )}
       {...props}

@@ -43,7 +43,7 @@ export function GuestShareSection() {
           <Eyebrow {...rise(0)}>Made to share</Eyebrow>
           <h2
             {...rise(1)}
-            className="font-heading text-3xl text-balance sm:text-4xl"
+            className="font-heading text-section text-balance"
           >
             Every guest can take the reel home.
           </h2>

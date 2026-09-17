@@ -69,7 +69,7 @@ export function OneLink() {
           <Eyebrow {...rise(0)}>One link</Eyebrow>
           <h2
             {...rise(1)}
-            className="font-heading text-3xl text-balance sm:text-4xl"
+            className="font-heading text-section text-balance"
           >
             One link, the whole event.
           </h2>

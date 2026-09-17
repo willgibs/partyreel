@@ -150,7 +150,10 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "font-heading text-base leading-none font-medium",
+        // The ladder's `card-title` step. `leading-none` stays and deliberately
+        // overrides the step's line-height: a dialog header is a tight
+        // two-element lockup where the title's own box is the spacing.
+        "font-heading text-card-title leading-none font-medium",
         className
       )}
       {...props}

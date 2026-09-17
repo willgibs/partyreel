@@ -303,7 +303,7 @@ export default function PressPage() {
             centered block rather than another left-aligned one. */}
         <section className="border-t py-20 sm:py-24">
           <Container className="flex flex-col items-center gap-5 text-center">
-            <h2 className="max-w-2xl font-heading text-2xl text-balance sm:text-3xl">
+            <h2 className="max-w-2xl font-heading text-prose text-balance">
               Need anything else?
             </h2>
             <p className="max-w-xl text-pretty text-muted-foreground">

@@ -1,5 +1,32 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+/**
+ * ★ THE TYPE LADDER HAS TO BE DECLARED HERE OR `cn()` EATS IT (measured at the
+ * type wiring, 2026-09-17). tailwind-merge does not read our stylesheet, so any
+ * `text-*` class it cannot recognise as a font size falls into its `text-color`
+ * group, which accepts anything. Unextended, `cn("font-heading text-chapter
+ * text-white")` returned `font-heading text-white`: the step was dropped on
+ * every heading that also names a colour, silently, with nothing to see in the
+ * source. The nine names below are exactly the `--text-*` steps declared in
+ * src/app/theme.css; a step added there is added here in the same change, and
+ * the parity is pinned by src/lib/type-ladder-policy.test.ts.
+ */
+export const TYPE_STEPS = [
+  "display",
+  "hero",
+  "title",
+  "chapter",
+  "section",
+  "prose",
+  "page",
+  "subsection",
+  "card-title",
+] as const;
+
+const twMerge = extendTailwindMerge({
+  extend: { theme: { text: [...TYPE_STEPS] } },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

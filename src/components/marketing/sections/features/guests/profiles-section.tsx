@@ -90,7 +90,7 @@ export function ProfilesSection() {
           <Eyebrow {...rise(0)}>Profiles &amp; following</Eyebrow>
           <h2
             {...rise(1)}
-            className="font-heading text-3xl text-balance sm:text-4xl"
+            className="font-heading text-section text-balance"
           >
             One name across every party, if you want it.
           </h2>

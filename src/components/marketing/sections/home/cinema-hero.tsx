@@ -323,7 +323,7 @@ export function CinemaHero() {
           style={{ top: "calc(var(--hhs-axis) + var(--hhs-low))" }}
         >
           <h1
-            className="mx-auto font-heading text-5xl leading-[1] text-balance text-white sm:text-6xl md:text-7xl lg:text-8xl lg:leading-[0.95]"
+            className="mx-auto font-heading text-hero text-balance text-white"
             style={{ maxWidth: "var(--hhs-h1-max)" }}
           >
             {SITE_THESIS}

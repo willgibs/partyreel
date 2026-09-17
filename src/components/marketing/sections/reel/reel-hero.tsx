@@ -40,7 +40,7 @@ export function ReelHero() {
             {/* The H1 never carries a reveal-hidden state (the LCP rule,
                 pinned by marketing-h1-policy.test.ts); the slots around it
                 do the arriving. */}
-            <h1 className="font-heading text-4xl text-balance sm:text-5xl lg:text-7xl">
+            <h1 className="font-heading text-title text-balance">
               {GOLDEN_LINES.reelThesis}.
             </h1>
             <p

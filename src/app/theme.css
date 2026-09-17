@@ -19,8 +19,9 @@
      there is no mono face in the product. Never re-add. */
 
   /* Headings: the brand face is Urbanist (the font-heading utility bakes its own
-     -0.03em tracking + 700 weight). --tracking-tight stays 0em so the 90+ legacy
-     `tracking-tight` usages are no-ops; re-tuning them is its own deferred pass. */
+     700 weight; the -0.03em there is now only a FALLBACK, see the ladder below).
+     --tracking-tight stays 0em so the 90+ legacy `tracking-tight` usages are
+     no-ops; re-tuning them is its own deferred pass. */
   --tracking-tight: 0em;
 
   /* Motion — STRONG custom curves only (built-ins are too weak; emil-design-
@@ -113,4 +114,78 @@
       background-position: -200% 0;
     }
   }
+}
+
+/*
+  ═══════════════ THE TYPE LADDER (Will's ruling, 2026-09-17) ═══════════════
+
+  Nine steps, one set, both halves of the site. `display` through `prose` are
+  marketing's rungs and `page` through `card-title` are the app's, named once,
+  because `CardTitle` is ONE component shipping on /pricing and on the dashboard
+  and would otherwise have to answer which of two sets it wears.
+
+  ★ THE LAW IS THE TRAVEL, NOT THE SIZES. Every size here sits on a rung of one
+  set (12, 14, 16, 18, 20, 24, 28, 34, 42, 52, 64, 80, 100, 128, 160; the ratio
+  widens as it climbs, because one ratio cannot serve a 160px masthead and a
+  14px label). A marketing step moves exactly FOUR rungs between 375 and 1440,
+  an app step moves ONE, and the card step moves NONE. That is bible 2
+  ("marketing may be louder, scale included") written as arithmetic rather than
+  judgement: marketing is not a different ladder, it is a longer journey along
+  the same one.
+
+  ★ EVERY NUMBER IS GENERATED, NONE IS TYPED. This block is `themeBlock(B)` from
+  the type-scale board's own `ladders.ts`, printed and pasted whole at the
+  wiring. The clamp passes through (375, phone) and (1440, desktop), so the
+  ladder is continuous and the three four-breakpoint ramps it replaced
+  (page-hero, section-shell, page-heading) are gone. The fixed ends are rem so a
+  reader who raises their base size raises the whole ladder; only the middle
+  term is viewport-driven. Line height is a LENGTH, not a ratio, so it travels
+  with the clamp instead of multiplying it. Letter spacing is one em value per
+  step (the desktop end): em already scales with the size, and that single value
+  is what every frame on the board was judged wearing.
+
+  ★ THE CARD STEP IS `card-title`, NOT `card`, AND THAT IS NOT COSMETIC.
+  `--color-card` already exists (the surface), and Tailwind v4 resolves a
+  `text-*` class as a COLOR before a font size, so a `--text-card` token could
+  never be reached from a className. The board named the step `card` because it
+  aimed CSS at hooks rather than at classes; the wiring renames it and nothing
+  else moves. The other eight names were checked against the `--color-*`
+  namespace above and collide with nothing.
+
+  ★ `static` ON PURPOSE. Tailwind only emits the theme variables a utility
+  actually uses; the Library's Type section reads these vars directly so it can
+  print each step's own numbers, and a token that exists only when some page
+  happens to wear it is not a token. 27 declarations is a rounding error.
+
+  The steps' one home for WHAT WEARS WHAT is docs/systems/design-system.md; the
+  Library draws them at true size at /design/library/foundations#type.
+*/
+@theme static {
+  --text-display: clamp(4rem, 1.887rem + 9.01vw, 10rem);
+  --text-display--line-height: clamp(3.92rem, 2.272rem + 7.03vw, 8.6rem);
+  --text-display--letter-spacing: -0.045em;
+  --text-hero: clamp(2.625rem, 1.349rem + 5.45vw, 6.25rem);
+  --text-hero--line-height: clamp(2.888rem, 1.924rem + 4.11vw, 5.625rem);
+  --text-hero--letter-spacing: -0.042em;
+  --text-title: clamp(2.125rem, 1.113rem + 4.32vw, 5rem);
+  --text-title--line-height: clamp(2.465rem, 1.678rem + 3.36vw, 4.7rem);
+  --text-title--letter-spacing: -0.038em;
+  --text-chapter: clamp(1.75rem, 0.958rem + 3.38vw, 4rem);
+  --text-chapter--line-height: clamp(2.135rem, 1.506rem + 2.68vw, 3.92rem);
+  --text-chapter--letter-spacing: -0.035em;
+  --text-section: clamp(1.5rem, 0.884rem + 2.63vw, 3.25rem);
+  --text-section--line-height: clamp(1.89rem, 1.366rem + 2.24vw, 3.38rem);
+  --text-section--letter-spacing: -0.032em;
+  --text-prose: clamp(1.125rem, 0.773rem + 1.5vw, 2.125rem);
+  --text-prose--line-height: clamp(1.53rem, 1.201rem + 1.4vw, 2.465rem);
+  --text-prose--letter-spacing: -0.024em;
+  --text-page: clamp(1.5rem, 1.412rem + 0.38vw, 1.75rem);
+  --text-page--line-height: clamp(1.89rem, 1.804rem + 0.37vw, 2.135rem);
+  --text-page--letter-spacing: -0.02em;
+  --text-subsection: clamp(1.125rem, 1.081rem + 0.19vw, 1.25rem);
+  --text-subsection--line-height: clamp(1.53rem, 1.488rem + 0.18vw, 1.65rem);
+  --text-subsection--letter-spacing: -0.014em;
+  --text-card-title: 1rem;
+  --text-card-title--line-height: 1.4rem;
+  --text-card-title--letter-spacing: -0.006em;
 }

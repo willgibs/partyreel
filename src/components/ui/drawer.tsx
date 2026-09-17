@@ -99,7 +99,9 @@ function DrawerTitle({
     <DrawerPrimitive.Title
       data-slot="drawer-title"
       className={cn(
-        "font-heading text-base font-medium text-foreground",
+        // The ladder's `card-title` step, the same rank a sheet and a dialog
+        // take: one floating surface, one title size (src/app/theme.css).
+        "font-heading text-card-title font-medium text-foreground",
         className
       )}
       {...props}

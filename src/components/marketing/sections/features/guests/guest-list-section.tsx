@@ -57,7 +57,7 @@ export function GuestListSection() {
           <Eyebrow {...rise(0)}>The guest list</Eyebrow>
           <h2
             {...rise(1)}
-            className="font-heading text-3xl text-balance sm:text-4xl"
+            className="font-heading text-section text-balance"
           >
             See who showed up for the album.
           </h2>

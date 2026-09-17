@@ -442,7 +442,7 @@ function WelcomeStep({
         <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
           You&rsquo;re invited to
         </p>
-        <p className="mt-1.5 font-heading text-[28px] leading-[1.15] text-balance">
+        <p className="mt-1.5 font-heading text-page text-balance">
           {eventName}
         </p>
         {hasByline && (

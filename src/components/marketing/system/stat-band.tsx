@@ -70,7 +70,12 @@ export function StatBand({
     >
       {stats.map((stat) => (
         <div key={stat.label} className="flex flex-col items-center gap-2">
-          <div className="font-heading text-3xl tabular-nums sm:text-4xl">
+          {/* A FIGURE, not a section heading: it is nowhere in the document
+              outline, so its rank is purely optical. It still lands on the
+              `section` step (2026-09-17), which is the step that keeps the
+              numeral where it sits today against its uppercase label. Judged,
+              not inherited from the class it happened to share. */}
+          <div className="font-heading text-section tabular-nums">
             {stat.prefix}
             <StatValue value={stat.value} mode={mode} fired={inView} />
             {stat.suffix}

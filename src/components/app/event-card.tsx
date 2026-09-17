@@ -85,7 +85,11 @@ export function EventCard({
       {/* Legibility gradient: dark at the foot where the chrome sits. */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 space-y-1.5 p-3 text-white">
-        <h3 className="truncate font-heading text-xl leading-snug">{name}</h3>
+        {/* The ladder's `subsection` step (18/20): the app's quiet middle, one
+            rank over a card title and well under a page title. It was a
+            hand-rolled `text-xl` no type hook could reach until the wiring
+            (2026-09-17). */}
+        <h3 className="truncate font-heading text-subsection">{name}</h3>
         {byline && <p className="truncate text-xs text-white/75">{byline}</p>}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className={PILL}>

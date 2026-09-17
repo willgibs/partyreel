@@ -42,7 +42,11 @@ export function RouteError({ area, error, reset }: RouteErrorProps) {
           style={{ "--nf-i": 1 } as CSSProperties}
           className="flex flex-col gap-3"
         >
-          <h1 className="font-heading text-3xl text-balance sm:text-4xl">
+          {/* The app's `page` step, the same rank a dead link takes inside the
+              app (Will's type ruling, 2026-09-17). Every caller is app-side —
+              (app), (guest), (auth), admin — and marketing has its own
+              boundary, which passes surface="marketing" to NotFoundScreen. */}
+          <h1 className="font-heading text-page text-balance">
             Something went wrong
           </h1>
           <p className="text-pretty text-muted-foreground">

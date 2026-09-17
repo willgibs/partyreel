@@ -905,9 +905,26 @@
    (CardTitle adds font-semibold); per-setting LABELS stay Inter 500 (FormLabel).
    Urbanist is a proper variable sans, so the Instrument-era knobs (font-size-
    adjust, the synthetic text-stroke weight, font-synthesis) are gone — a real
-   bold weight does the work. Two knobs remain: WEIGHT (700 default) and TRACKING
-   (-3%). Swap the brand face forever by repointing --font-display (root layout)
-   + retuning these two lines. */
+   bold weight does the work. Two knobs remain: WEIGHT (700 default) and TRACKING.
+   Swap the brand face forever by repointing --font-display (root layout) +
+   retuning these two lines.
+
+   ★ THE -0.03em IS A FALLBACK NOW, NOT THE LAW (the type wiring, 2026-09-17).
+   Will's ruling gave every SIZE its own letter-spacing, tighter as it climbs
+   (-0.045em at 160px, -0.006em at 16px; src/app/theme.css). A flat value from
+   160 down to 16 was fault three the ladder answers, so a heading wearing both
+   `font-heading` and a step must take the STEP's value — and it does, measured
+   rather than assumed: Tailwind v4 sorts the `utilities` layer by property, not
+   by the order of the class string, and it emits every custom `@utility` in the
+   font-* position, BEFORE the `text-*` size utilities. Both selectors are
+   (0,1,0), so the later one wins and that is the step. Verified as computed
+   style in `pnpm dev` and again on `pnpm build && pnpm start`.
+
+   What this line still does: it dresses every heading the ladder does not
+   reach — the lab's own chrome, a marquee, a numeral, anything off the ladder —
+   so nothing loses its tracking on the way. Do NOT delete it, and do NOT put a
+   `tracking-*` class next to a step: `tracking-tight` resolves to 0em here and
+   cancels the step's own value through --tw-tracking. */
 @utility font-heading {
   font-family: var(--font-display, var(--font-sans));
   font-weight: 700;

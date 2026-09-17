@@ -48,7 +48,7 @@ export function PressSection({
     >
       <Container className="grid gap-8 lg:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] lg:gap-16">
         <div className="lg:sticky lg:top-[calc(var(--mkt-header-h)+2.5rem)] lg:self-start">
-          <h2 className="font-heading text-2xl text-balance sm:text-3xl">
+          <h2 className="font-heading text-prose text-balance">
             {heading}
           </h2>
           {note && (

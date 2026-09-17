@@ -186,7 +186,7 @@ export default async function HelpArticlePage({
                     <Badge variant="outline">{audienceTag}</Badge>
                   )}
                 </span>
-                <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
+                <h1 className="mt-4 font-heading text-chapter text-balance">
                   {article.frontmatter.title}
                 </h1>
                 {/* Paper only: the article's address, so a printed guide can

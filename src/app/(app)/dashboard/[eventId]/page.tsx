@@ -192,7 +192,9 @@ export default async function EventDetailPage({
           <ArrowLeft className="size-4" /> Back to events
         </Link>
         <div className="space-y-2">
-          <PageHeading className="text-3xl">{event.name}</PageHeading>
+          {/* No size override: the event name is this page's h1 and wears the
+              ladder's `page` step like every other app title (2026-09-17). */}
+          <PageHeading>{event.name}</PageHeading>
           {/* Stat line: date + the icon sub-stats (items / contributors / views).
               Native title only; NO radix Tooltip on these SSR'd elements (the
               host-hydration regression cause, see architecture.md). */}
