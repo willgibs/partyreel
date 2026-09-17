@@ -16,12 +16,15 @@ import { Glow } from "@/components/shared/glow";
  * is not a coincidence: the engine was calibrated against this footer. 210px
  * layer, base and band both at 0.62, 16px blur, the same five-ellipse field in
  * the same deliberately-scrambled 4/5/1/2/3 hue order, the same 100deg 9-stop
- * comet at 280% width, the same turbulence seed. The ONE override is the
- * cadence: the engine's ruled register is 8s and this surface ships 11s, so it
- * is passed explicitly rather than silently re-timing ratified live chrome by
- * 27%. Round 1 gave the home page two more lamps, all three at 11s, so the
- * open ruling is no longer "the footer alone with nothing else moving" but the
- * SYSTEM's register: the whole page at 11s against the whole page at 8s.
+ * comet at 280% width, the same turbulence seed.
+ *
+ * The cadence is still passed explicitly, and now for a different reason. It
+ * began as an override (the engine ruled 8s, this surface shipped 11s, and
+ * retiring the footer onto the engine would have re-timed ratified live chrome
+ * by 27%). Will judged the whole home page at each and ruled 8s on 2026-09-17,
+ * so --spill-cadence and the engine default now agree; what the var still buys
+ * is that ONE ruling re-times every lamp at once, and that the Aurora's field
+ * can run a multiple of this clock rather than a number written beside it.
  *
  * Colour comes from --lamp-* (globals.css) via the engine's own defaults, so
  * no `colors` prop: the footer's light is the house light. That is also why

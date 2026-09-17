@@ -152,6 +152,9 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/marketing/system/screen-lamp.tsx": {
     for: "the one underlight: a lit object throws light down, as a SIBLING and never from inside",
   },
+  "src/components/marketing/system/section-light.tsx": {
+    for: "the Aurora at chapter scale: a section's own two edges lit, and never on a light ground",
+  },
   "src/components/marketing/system/section-shell.tsx": {
     for: "the marketing section wrapper: eyebrow, heading, subhead, clamp and arrival register",
   },

@@ -2234,6 +2234,100 @@
       ]
     },
     {
+      "id": "section-light",
+      "file": "src/components/marketing/system/section-light.tsx",
+      "names": [
+        "SectionLight"
+      ],
+      "specimens": [
+        "/design/library/foundations",
+        "/design/library/marketing"
+      ],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "renders the primitive and nothing of its own",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 53
+        },
+        {
+          "title": "turns the bottom band rather than growing a second shape",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 78
+        },
+        {
+          "title": "never hands the lamp a className",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 86
+        },
+        {
+          "title": "reads the slow clock from its token, never as a literal",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 97
+        },
+        {
+          "title": "keeps the register in one object every lamp spreads",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 112
+        },
+        {
+          "title": "never clips the lamp it mounts",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 124
+        },
+        {
+          "title": "puts the content after the light, in its own positioned wrapper",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 133
+        },
+        {
+          "title": "marks the LIGHT with data-section-light, never the content",
+          "suite": [
+            "the aurora never lights a paper ground"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 149
+        },
+        {
+          "title": "is fenced in CSS, mirroring the dark variant inverted",
+          "suite": [
+            "the aurora never lights a paper ground"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 171
+        },
+        {
+          "title": "takes the transform drive, and the drive declares where it parks",
+          "suite": [
+            "the aurora rests on the engine's designed still"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 193
+        }
+      ]
+    },
+    {
       "id": "section-shell",
       "file": "src/components/marketing/system/section-shell.tsx",
       "names": [

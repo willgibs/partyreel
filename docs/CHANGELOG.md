@@ -76,12 +76,37 @@ round three at `cbad7faf`; three of the four slots.
   (`stillAlbumFill`), derived through the non-looping path; a running loop is never clamped at its
   pass end; the test pins the still, the reported repro and the unclamped loop.
 
+**The second batch (`1cb34f70`).** Will ruled the type scale on every ask (`ladder=b`,
+`tracking=adopt`, `not-found=on-ladder`) and kept the throw and the aurora, which with the seam is the
+whole of what he calls the Aurora ("another alternative way to infuse the Aurora into our UI", every
+form off paper). He returned six light cards as `refine`, each note saying the card did not show what it
+asked ("our step, ring, lift, and float: a set of four options to choose from, or are we trying to use
+everything, and if so, how?"), and then reread his paste worried the notes were crossed. They were not:
+the trailing `note: "on paper: ..."` was a step withdrawn inside the round whose text his browser still
+held. `composeSoFar` now takes the open round's shape and sends nothing for a withdrawn step, and
+`Transcribed` carries the round's notes so held words never ride twice (`4280a59c`, five new cases).
+Three lanes cut at `c338c95c`: `type-wiring`, `light` (round eight) and `aurora-wiring`.
+
+- `aurora-wiring` (merged `2987a5e5`; the tuner knob at the next commit). The three forms of light Will
+  kept landed as one family in his word. The clock is ruled to 8s on every lamp, with
+  `--aurora-cadence` declared beside it as a sibling (three laps, 24s) rather than a re-tune, and
+  `SectionLight` ships as the field's one mount: four placements, the accent register in one object,
+  the bottom band the top one flipped. The no-light-ground ruling became a CSS fence keyed on
+  `[data-section-light]`, the dark variant inverted, scoped to the field so the four shipped seams keep
+  their own paper history. Being the first shipped lamp on the transform drive exposed that drive's
+  missing resting `translate`, which parked the comet dead centre at full strength for every
+  reduced-motion visitor; it rests at its own from-keyframe now. Foundations presents the engine as
+  Aurora with a specimen per form, and `SectionLight` ships its placements plus a paper frame that
+  paints nothing on purpose. No production call site yet: the placement is round eight's first step,
+  and the throw's plate and the publish flourish wait on the bloom card. Verified on a fresh stylesheet:
+  8s on the token, 24s on the field's bands, `display: none` inside `.surface-paper`.
+
 **The alias.** Rebuilt at `a964d4a6` the moment Vercel's cap freed (00:16 UTC), the production smoke
 at 261 checks with the door closed; rebuilt again on the two wirings (the `[preview]` commit after the
 hero's fold; the smoke's result is STATUS's live state).
 
-**Next.** Will's sitting continues (the light board's cards, then the album hero's four); every pick
-from here is a wiring lane the day he makes it; no lane is open.
+**Next.** `type-wiring` and the light board's round eight are in flight; Will's sitting continues on
+round eight (its first step places the Aurora's field on the home page), then the album hero's four.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
 

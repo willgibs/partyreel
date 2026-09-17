@@ -221,14 +221,33 @@
   --radius-tile: 3px; /* media tiles: subtle, never opens corner holes */
   --gap-gallery: 3px; /* the ONE gap for every media-tile grid (masonry + the dense triage grids); use gap-[var(--gap-gallery)] */
   --radius-float: 0.5rem; /* menus/tooltips/toasts: sharp reads broken */
-  /* The lamps' cadence, ONE token (staged for the cadence sitting, 2026-09-11):
-     every shipped lamp (the footer seam, the film strip, the reel pool, the
-     feature heroes' screen lamps) passes --glw-dur: var(--spill-cadence). The
-     engine's ruled register is 8s (2026-08-31); every lamp shipped 11s; the
-     sitting judges the whole home page at each on the tuner's knob, and the
-     ruling lands here. Not --glw-* (the engine reads only its own knobs) and
-     not --lamp-* (the five are colour, fenced as light-never-UI). */
-  --spill-cadence: 11s;
+  /* The lamps' cadence, ONE token (ruled 2026-09-17): every shipped lamp (the
+     footer seam, the film strip, the reel pool, the feature heroes' screen
+     lamps) passes --glw-dur: var(--spill-cadence), so the whole page moves on
+     one clock. Will ruled 8s on the whole home page at each, which is the
+     engine's own register (2026-08-31) and ends the two rounds where every lamp
+     shipped 11s against it. Not --glw-* (the engine reads only its own knobs)
+     and not --lamp-* (the five are colour, fenced as light-never-UI). */
+  --spill-cadence: 8s;
+
+  /* THE AURORA'S CLOCK: a SIBLING of the lamp's, never a re-tune of it. A field
+     the size of a chapter moving at a lamp's clock reads as a screensaver, so
+     the Aurora takes three laps of whatever the lamp runs: 24s against the
+     ruled 8s. Re-pointing --spill-cadence itself would slow the footer seam
+     that is the model for all of this, which is a different ruling entirely.
+
+     ★ IT MUST BE DECLARED SOMEWHERE EVERY CONSUMER LOADS, AND AN UNDECLARED
+     CADENCE FREEZES THE BAND RATHER THAN FALLING BACK. SectionLight hands the
+     engine `--glw-dur: var(--aurora-cadence)` as an INLINE style, so it beats
+     the engine's own `[data-glw] { --glw-dur: 8s }` and there is nothing behind
+     it: --glw-dur is not registered with @property, so a var() reference to a
+     property nothing declares is invalid at computed-value time, the
+     `animation: glw-drift-x var(--glw-dur) ...` shorthand is then invalid, and
+     every longhand resets -- animation-name to `none`. The band stops dead
+     while the base stays lit, which reads as a design choice rather than a
+     defect. The light board hit exactly this and diagnosed it; the declaration
+     lives here so the site can never repeat it. */
+  --aurora-cadence: calc(var(--spill-cadence) * 3);
 
   /* Motion timing knobs — the RATIFIED production values (ratified in the /design/event-feed lab,
      Will 2026-06-22). Read by CSS via var(--tune-*, fallback) and by JS via getComputedStyle
@@ -1513,7 +1532,9 @@
      comet over it. The footer ships both at 0.62; that is the calibration. */
   --glw-base: 0.62;
   --glw-strength: 0.62;
-  /* 8s ruled by Will on the register (2026-08-31), down from 11s. */
+  /* 8s ruled by Will on the register (2026-08-31, held on the whole page
+     2026-09-17). --spill-cadence now carries the same number, so a lamp that
+     passes the token and a lamp that takes this default finally agree. */
   --glw-dur: 8s;
   --glw-blur: 16px;
   /* The recipe's pixel geometry is tuned for a 142px tile and MUST scale with
@@ -1895,6 +1916,21 @@
    a shimmer. Both are on the board; this one is the cheap one. ── */
 [data-glw-drive="transform"] [data-glw-band] {
   inset: 0 -90%;
+  /* ★ THE COMET RESTS WHERE ITS OWN ANIMATION STARTS, the transform drive's
+     half of the fix round 1 made for the mask drive (2026-09-17). The animation
+     lives in the no-preference block, so whatever this rule DECLARES is what a
+     reduced-motion visitor sees permanently -- and with no translate declared
+     that was `translate: none`, which on a band inset -90% either side puts the
+     gradient's own 50% peak at dead centre of the box at full --glw-strength:
+     the precise midpoint of the sweep, forever, for the people who asked for
+     less motion. Law 4 inverted, exactly as `mask-position: 50% 0` was.
+
+     Nobody had seen it because no shipped lamp used this drive; the Aurora's
+     field is the first, and a chapter-scale field is the worst possible place
+     to discover it. 32% is glw-drift-x's own from-keyframe, so the animated
+     path is unchanged down to the frame: only the reduced-motion and
+     never-started states move. */
+  translate: 32% 0;
   background: linear-gradient(
     100deg,
     transparent 0%,
@@ -2309,6 +2345,34 @@
     opacity: var(--glw-base);
     scale: 1.04;
   }
+}
+
+/* ── THE AURORA IS A DARK-GROUND LIGHT, BY CONSTRUCTION (Will, 2026-09-17).
+   His ruling, in his words: "we may not be able to use the Aurora on
+   white/paper surfaces. It's barely noticeable and almost appears as a weird
+   shadow or a stray artifact... No light ground usage is a decision for now."
+
+   So the fence is CSS rather than a prop, a lint or a review note: a chapter
+   that turns to paper later, or a SectionLight dropped into the app's light
+   mode, goes dark-quiet on its own instead of leaving an artifact nobody
+   diagnoses. The field carries no colour there at all, which is the same
+   degradation forced-colors, print and the no-mask fallback already take.
+
+   ★ IT MIRRORS THE `dark` VARIANT, INVERTED, AND THAT IS WHY IT IS TWO
+   SELECTORS. theme.css defines dark as `&:is(.dark *):not(.surface-paper *)`,
+   because a paper chapter forces a light subtree INSIDE a forced-dark cinema
+   wrapper. The naive `:root:not(.dark)` would be wrong twice: it would blank
+   every cinema page in an explicit-light session (the wrapper carries `.dark`,
+   not <html>), and it would miss a paper chapter nested in one.
+
+   ★ SCOPED TO [data-section-light], NEVER TO [data-glw]. The seams that already
+   ship (the footer's, the film strip's, the screen lamps') have their own
+   paper behaviour and their own history; widening this to the engine would
+   silently unlight four production lamps. What the engine does on paper today
+   is a separate question for Will, not a side effect of this rule. ── */
+[data-section-light]:not(.dark *),
+.surface-paper [data-section-light] {
+  display: none;
 }
 
 /* ── The states the doctrine has to survive. A purely decorative colour layer

@@ -38,6 +38,7 @@ import { MorphDelegate } from "@/components/marketing/system/morph-delegate";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { ScreenLamp } from "@/components/marketing/system/screen-lamp";
+import { SectionLight } from "@/components/marketing/system/section-light";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { TiltCard } from "@/components/marketing/system/tilt-card";
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -209,6 +210,122 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
               reveal="none"
               className="py-12"
             />
+          </PaperChapter>
+        ),
+      },
+    ],
+  },
+  {
+    id: "section-light",
+    title: "SectionLight",
+    badge: "new",
+    family: "marketing",
+    section: "Shells",
+    lede: "The Aurora at chapter scale: a section's own two boundaries lit, with the copy in the clean band between them. Two seams, the bottom one the top one flipped on its own axis, each 42 percent of the section's height, on the accent register and a clock three laps slower than a lamp's. Dark grounds only, by construction.",
+    variants: [
+      {
+        prop: "placement",
+        source: "prop",
+        fallback: "both",
+        options: ["both", "top", "bottom", "room"],
+        note: "Which of the section's boundaries carry the light. `middle` and `behind` are not values: the copy then sits IN the light instead of in the clean band between two of them, which is the half of the grammar a call site is most likely to get wrong.",
+      },
+    ],
+    specimens: [
+      {
+        // The default, and the form Will approved: a chapter lit at both of its
+        // own edges and nowhere in its middle. A real SectionShell underneath,
+        // so the copy is real copy on the real ground.
+        label: "both",
+        hint: "a chapter's two boundaries · the copy in the clean band between them",
+        bleed: true,
+        node: (
+          <SectionLight>
+            <SectionShell
+              eyebrow="Aurora"
+              heading="A chapter with a temperature"
+              subhead="The room is lit at its own edges. Nothing is glowing: the light is in the air, behind everything, on a clock three times slower than a lamp's."
+              reveal="none"
+              className="py-24"
+            />
+          </SectionLight>
+        ),
+      },
+      {
+        label: "top",
+        hint: "one band, at the opening edge · a page's first chapter",
+        bleed: true,
+        node: (
+          <SectionLight placement="top">
+            <SectionShell
+              eyebrow="Aurora"
+              heading="Light at the opening edge"
+              subhead="One band, where the chapter begins."
+              reveal="none"
+              className="py-24"
+            />
+          </SectionLight>
+        ),
+      },
+      {
+        label: "bottom",
+        hint: "the same seam, flipped on its own axis · a page's closing chapter",
+        bleed: true,
+        node: (
+          <SectionLight placement="bottom">
+            <SectionShell
+              eyebrow="Aurora"
+              heading="Light at the closing edge"
+              subhead="The engine has no bottom seam and should not grow one: the geometry is identical and only the vector differs."
+              reveal="none"
+              className="py-24"
+            />
+          </SectionLight>
+        ),
+      },
+      {
+        // The rarest of the four, and the one nearest a fence. It is still a
+        // VECTOR (the cast is anchored at the section's own floor and thrown
+        // upward), which is the whole difference between this and a fill behind
+        // everything: that one sits its origin mid-box and becomes the wash the
+        // doctrine refuses.
+        label: "room",
+        hint: "a cast from the section's own floor · for a chapter with nothing at its edges to light",
+        bleed: true,
+        node: (
+          <SectionLight placement="room">
+            <SectionShell
+              eyebrow="Aurora"
+              heading="The room, cast from its floor"
+              subhead="One origin-anchored cast rather than two bands. Rare: it is the placement nearest the fence, and it still declares where its light comes from."
+              reveal="none"
+              className="py-24"
+            />
+          </SectionLight>
+        ),
+      },
+      {
+        // ★ THE FENCE, AS A SPECIMEN. Will, 2026-09-17: "we may not be able to
+        // use the Aurora on white/paper surfaces. It's barely noticeable and
+        // almost appears as a weird shadow or a stray artifact... No light
+        // ground usage is a decision for now." So this frame is deliberately
+        // unlit: the same component with the same props, inside a paper
+        // chapter, painting nothing. A rule you can watch hold is worth more
+        // than a rule in a comment.
+        label: "on paper: nothing",
+        hint: "the same component inside a PaperChapter · the fence is in globals.css, not in a prop",
+        bleed: true,
+        node: (
+          <PaperChapter>
+            <SectionLight>
+              <SectionShell
+                eyebrow="Aurora"
+                heading="No light ground usage"
+                subhead="The field paints nothing here, so a chapter that turns to paper a round later goes quiet on its own."
+                reveal="none"
+                className="py-24"
+              />
+            </SectionLight>
           </PaperChapter>
         ),
       },

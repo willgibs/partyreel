@@ -293,24 +293,28 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
  */
 export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
   ...ROUNDING_TUNER_CONTROLS,
-  // ── The lamps' cadence (staged for the cadence sitting, 2026-09-11) ──
-  // Every lamp reads --spill-cadence (globals.css, 11s as shipped; the engine's
-  // ruled register is 8s). The honest A/B is the whole home page at each: drag,
-  // walk the page, rule. On <html> like the radius knobs.
+  // ── The lamps' cadence (ruled at the sitting, 2026-09-17) ──
+  // Every lamp reads --spill-cadence (globals.css, 8s since Will's ruling of
+  // 2026-09-17, down from the 11s the footer shipped at). The Aurora's field is
+  // not on this knob directly: it follows at three laps, through
+  // --aurora-cadence. On <html> like the radius knobs.
+  // ★ `default` IS LOAD-BEARING: setTunerValue compares against it to decide
+  // whether to store an override or drop one, so it must equal the shipped
+  // token or Reset leaves a phantom override behind.
   {
     kind: "range",
     cssVar: "--spill-cadence",
     label: "Lamp cadence",
     group: "lamps",
     description:
-      "One full cycle of every lamp's drift; the engine's ruled register is 8s, every lamp shipped at 11s.",
+      "One full cycle of every lamp's drift, ruled 8s on the whole page (2026-09-17); the Aurora's field follows at three laps of it.",
     ships:
       "the footer seam, the film strip, the reel pool, the feature heroes' screen lamps",
     min: 6,
     max: 14,
     step: 1,
     unit: "s",
-    default: 11,
+    default: 8,
   },
   {
     kind: "range",
