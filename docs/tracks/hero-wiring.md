@@ -1,6 +1,6 @@
 ---
 track: hero-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "a6afec3b"
 board: home-hero
 owns:
@@ -94,26 +94,99 @@ the alias live.
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+All five were put to the Orchestrator mid-round and answered; each is recorded with the answer taken.
+
+- **The board could not retire through `registry.ts` alone.** `BOARD_COMPONENTS` is typed
+  `Record<SandboxId, BoardEntry>` and `SandboxId` is declared in `touchpoints.ts`, so deleting the
+  board without that file is a typecheck failure. ANSWERED: `touchpoints.ts` released to this lane
+  for the hero's own entry; the retirement is atomic across the three registration lines. Done that
+  way, with no `Partial` widening; `touchpoints.test.ts`'s pinned SANDBOX list is the fourth file the
+  same act requires.
+- **The Library entry cannot live under `src/app/(dev)/design/gallery/`**, which is what the goal
+  said: `entry.ts` and `gallery.test.ts` require a family's entries to sit in that family's own
+  `*-demos.tsx`, because the collector derives a specimen's route from which page imports it.
+  ANSWERED: the family's module is right. The entry's id is `cinema-hero`, in
+  `(shell)/library/marketing/gallery-demos.tsx` under Heroes, badged `new`.
+- **`hero-stream-ids.ts` is not created.** The file existed so a SERVER route could validate
+  `?stream=` without reading a constant through a client barrel; both the route and the four ids
+  retired with the board, and the engine is a plain module any caller can read. ANSWERED: agreed.
+- **`component-notes.ts` needs one `for` line**, because the contract pulls `hero-stream.ts` into
+  `COMPONENTS` and `gallery.test.ts` fails a component without one. ANSWERED with the regenerated
+  artifacts: both listed under the lane check.
+- **`home-sections.test.ts` guarded a retired mechanic.** Its case pinned
+  `SITE_THESIS.split("event")` for the kinetic slot, which left with the wall; it stayed green while
+  its comment lied. ANSWERED: retune, never leave lying. It now pins that the thesis is one line
+  short enough to hold the ladder's top step without a bespoke ramp.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet (the hero's line in `docs/systems/marketing-content.md` is the Orchestrator's to refresh at the merge; propose the sentence here)
+- None made. One PROPOSED for the Orchestrator at the merge, `docs/systems/marketing-content.md`
+  line 227, where the careers page's aside still names the retired wall. Replace
+  "home owns the drifting wall, pricing the stacked photos," with
+  "home owns the band streaming out of the demo code, pricing the stacked photos,".
+  Line 219's "home's cinema-hero move" is still true: the hero is still the section pulled up under
+  the overlay chrome, and it is now pulled up onto the viewport's own top edge.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the home hero is solved at two breakpoints, so between 768 and 1023 it wears the phone's card
+  size and the phone's 343px measure on a tablet-width screen. It is correct and it fits; it is not
+  composed. A third breakpoint is the answer if anyone judges it there, and `Geo` takes one without
+  a structural change.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `<sha>`, pushed; synced with `launch-prep` at `5b4c2063` (merged mid-round at `62850026`,
+  taking the palette's wiring: the three registration lines conflicted only in their comments, and
+  both retirements are named there now; `touchpoints.test.ts`'s pinned list was the one real
+  conflict and both ids are out of it).
+- Gates on the synced tree: typecheck ok, lint ok, test ok (2,111), build ok (257 pages);
+  `pnpm lab:smoke` 245 checks, 0 route failures (the two failures are the glow boards over the
+  reading budget, which STATUS records as deliberate). `album-hero` and `river-visual` still render
+  off `shared.tsx`.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the owned paths and this file, plus
+  six named exceptions:
+  - `src/app/(dev)/design/touchpoints.ts` and `touchpoints.test.ts` and
+    `src/app/(dev)/design/(shell)/lab/boards.ts` and `sandbox/registry.ts`: the four registration
+    lines a board retirement has to move together, released to this lane (the migration wave's
+    precedent). The hero's entry keeps its RULINGS row and loses its `board` field.
+  - `src/app/(dev)/design/(shell)/library/marketing/gallery-demos.tsx`: the Library entry, which
+    must live in its family's own module.
+  - `src/app/(dev)/design/rules/component-notes.ts`: one `for` line for the engine.
+  - `rules.generated.json` and `docs/design/library.md`: regenerated by `pnpm design:rules`, and
+    `gallery/specimens.generated.json` by the specimen collector. The merge regenerates all three.
+  - `src/components/marketing/sections/home/home-sections.test.ts`: the retuned kinetic-word pin.
+  - NOT created: `hero-stream-ids.ts`, listed in `owns`. See the Questions.
+- The items, one line each:
+  - `stack-above`: KEPT, Will's pick, and the whole round. It lands as the Library's `cinema-hero`
+    entry, badged `new`, with the engine carrying its own contract.
+  - `band`, `orbit`, `stack-below`: retired with the board, tables and all. Git holds them at
+    `a6afec3b` under `sandbox/home-hero/streams.ts`.
+- **The ruled 560px hero minimum does not survive the composition.** It is 683 at `lg` and 642 at
+  `base`, derived (the code's clearance under the sticky header, plus the measured clear line, the
+  block and its foot air) rather than chosen, and the contract pins both. Checked on the shortest
+  window each serves: 1440x720 and 1024x720 at `lg`, 375x667 at `base`. Past the floor the hero
+  grows and its last pixels scroll, which is the honest failure.
+- Assets requested from Will: **the 34 squares (ASSETS row 2) are still the ask, unchanged**. The
+  band needs 18 for no photograph to be on screen twice (nine a side at either breakpoint, read out
+  of the code by the contract, not retyped); the twelve manifest stand-ins cycle until the set
+  lands, and the swap is by id with nothing else changing.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Browser pane: left on **tab-7**, my own tab, at `http://localhost:3131/design/library/cinema-hero`
+  and emulating 1440x930. The Orchestrator's tab-1 on :3000 was not disturbed after I noticed it.
+  My dev server on :3131 is still up; kill it by that port alone.
+- Look at first: the hero at 1440x720 and at 375x667, where the axis clamp is doing the work. That
+  clamp is the one thing the board never had to solve, and it is what decides whether the
+  composition Will picked survives a real window.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-17). Will's round-seven pick shipped: the home hero is
+the band of photographs streaming out of the real demo QR on one axis, with the ruled headline, the
+ruled sentence and the two actions in one block at the band's measured clear line, and no caption.
+The living album wall left with its three scrims, its reel card and the kinetic word. The board's
+engine came out of the lab as `hero-stream.ts`, cut to the one composition, with its horizontal
+turned into a fraction of the hero's half-width (so the band is fluid) and its geometry turned from
+two canvases into two breakpoints, each solved at the canvas Will judged and re-checked at the
+narrowest viewport it serves. Four numbers were measured on the rendered page rather than reasoned
+about, one of which was a phone QR too small to scan. The board retired in the same act.
