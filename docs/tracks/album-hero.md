@@ -1,6 +1,6 @@
 ---
 track: album-hero
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "78a54014"
 board: album-hero
 owns:
@@ -98,26 +98,92 @@ board under budget, every route green); the gate (typecheck, lint, test, build).
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The page's own arrivals stage goes with the old hero. Is that the intended trade?** The shipped
+  `/features/album` hero is `PageHero` over `ArrivalsStage`, the one demonstration on the site of what
+  "live" means: a tile lands at the head of the grid, the count ticks, a green check confirms it. Every
+  card here replaces the whole top, so that stage retires with it. **Recommended: let it go.** The real
+  album now sits centred directly under the hero and says the same thing with the product rather than
+  with a drawing of it, and the arrival card is that demonstration promoted into the hero itself. Built
+  on the recommendation; the stage is still in the page reading's tail through `EverywhereSection`, so
+  nothing about "live" leaves the page.
+- **The arrival's settle is the one thing on the board allowed past 40 px a second. Keep the
+  exception?** A landing card eases down from about five per cent large over six tenths of a second,
+  which is a beat rather than a drift. **Recommended: keep it, and keep it written into the rule** (the
+  test excepts that phase window by name rather than by a looser limit), because without it a landing
+  is a cross-fade and the card stops being about arrival at all.
+- **At the louder headline step a station with no room left is DROPPED rather than shrunk. Right
+  call?** At `xl` the lockup is 976 px of a 1440 canvas, so the ring is pushed outward and one or two
+  places fall off the edge. **Recommended: drop.** The picture then tells the truth about what the
+  louder headline costs, where shrinking the frames would hide the trade inside the photographs. The
+  headline step is a tile on the chosen card, so the cost is visible at the moment the question is asked.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. A lab-only round: nothing under `docs/systems/` is in this lane, and the engine's own facts
+  live in `compositions.ts` and its test.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now**: `/features/album` throws for any reader with Reduce Motion on. `useAlbumFill` sets
+  `t = endTick(fill)` under reduced motion and `endTick` is `Infinity` for a looping fill, so
+  `deriveAlbumFill` walks from `Infinity` and reads `.col` of `undefined`; the only looping call site is
+  `EverywhereStage`. Pre-existing, not this round's. The fix is a design call (what a looping fill's
+  still should be, probably one full pass with the columns bounded by `maxPerColumn`) plus a case in
+  `use-album-fill`'s test. Details in the Handoff.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head: this branch's tip, pushed. The work is two commits, `70b1686d` (the engine and the four
+  cards) and `4357c170` (the four tuned apart after the pane, and the blocks measured off the page);
+  synced with `launch-prep` at `5b313913` (Graphite, the hero's wiring and the alias), merged twice,
+  the second time after `sandbox/home-hero/` was cut back to `shared.tsx`, which is the only thing
+  this board imports from there.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors, the 9 pre-existing warnings), test ok
+  (2,116), build ok (257 pages); `pnpm lab:smoke` ok (244 checks, **0 routes failing**; the two glow
+  boards are over the reading budget as they were before this round, and `album-hero` reads 830 of
+  1,200 with its declaration deleted).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `sandbox/album-hero/*` + this file.
+  No exceptions. `field.tsx` and `field.css` are deleted (round two's engine, replaced by
+  `compositions.ts` + `hero.tsx` + `hero.css`); `registry.ts` and `touchpoints.ts` are untouched, and
+  the board keeps its id, its route and its registration.
+- The items, one line each: `orbit`: the Cosmos ring he asked for, and the board's pick; a kept one
+  becomes the hero component on `/features/album` plus the engine as a Library entry · `field`: round
+  two's picture slowed to 24 px a second and reparameterised so every frame of a card's life is on the
+  canvas; `refine` · `shelf`: two bands as a contact sheet, the calmest continuous motion here; `ship`
+  · `arrival`: a still scatter where one photograph lands at a time, the truest to the product;
+  `ship`. "None of these" is the third exit and clears the board.
+- Assets requested from Will: none new. The board cites ASSETS rows 2 (34 squares) and 9 (11 portrait
+  crops) unchanged; the largest pool on this board is seventeen frames, so row 2 already covers every
+  composition with no photograph twice. The two clips stay requested against the album grid.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Two things only the Orchestrator can do.** (a) The desk's own blurb for this board still describes
+  round two ("the burst's field with its centre taken out ... looped for ever"); `touchpoints.ts` is
+  the Orchestrator's file, and the line wants to become something like "Four calm compositions of the
+  album page's hero on one engine, with the live album centred under each." (b) `docs/reviews/` has no
+  `album-hero.json` yet, so nothing joins: round two's `width` ask is withdrawn and its replacement is
+  a NEW id (`album-width`, options `w720` / `w880` / `w1040`) so a later answer cannot be joined to a
+  different question. `headline`, `no-script` and `copy` keep their ids and option ids; `life` is
+  withdrawn, because the arrival card is that question drawn.
+- Look at first: **`/features/album` crashes under Reduce Motion**, and it is not this round's doing.
+  `useAlbumFill` (src/components/marketing/sections/features/album/use-album-fill.ts) does
+  `const t = reduced ? end : tick`, `endTick` returns `Number.POSITIVE_INFINITY` when `loop` is true,
+  and `deriveAlbumFill(Infinity, ...)` then reads `arrivals[NaN].col` and throws. The one looping call
+  site is `EverywhereStage`, which `EverywhereSection` renders on that route, so the whole page throws
+  during render. Reproduced as a pure call, not only in the browser:
+  `deriveAlbumFill(endTick({ fixtures, seedCount: 3, loop: true }), { fixtures, seedCount: 3, loop: true })`.
+  It is in the marketing lane rather than this one, so it is left alone here; until it is fixed, this
+  board's PAGE section inherits it under reduced motion, while the four cards, the hero section and the
+  album section are all fine there (verified: after a remount with the media query forced, all fourteen
+  cards carry no inline transform and nothing moves for over a second, which is the designed still).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-17). Round three answered Will's six notes on round two
+with four calm compositions on one engine and a lockup composed for this page as ONE block, so the
+centre gap went with the vent it used to hold open. `compositions.ts` places every photograph off the
+lockup's measured box rather than holding it off with a scrim, at both headline steps, and the calm
+rule became arithmetic: nothing over 40 px a second, at most sixteen frames lit, and every card's DOM
+box sized to its largest visible moment so a photograph only ever scales down, which was the jitter.
+The still is now the loop's own first frame, which is why the no-script answer flipped to painting the
+album settled. The album below is centred on a 720 / 880 / 1040 step, and the board is a pick-one
+catalog at 830 words with its declaration deleted.
