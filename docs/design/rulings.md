@@ -8,6 +8,37 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-17 · the hero is the stack with the code above; the palette is Graphite with no accent; the aurora stays off the light ground
+
+**Became:** `docs/reviews/home-hero.json` round 7 (`stream=stack-above`) and the `hero-wiring` lane
+(the caption under the code dropped); `docs/reviews/palette.json` round 8 (`palette=graphite`,
+`accent=none`, `card=declared`, `faint=in`) and the `palette-wiring` lane; `docs/reviews/light.json`
+round 7 (`cadence=8s`, `publish=house-five`, `second=home-arc`, `item:seam=keep`, and the `paper` ask
+withdrawn from the light board); the ROADMAP's flag on the app's light mode; "Copy so far" sending only
+a board's open round (`composeSoFar`).
+
+Verbatim, on the hero: "We can drop the "Every photo here came from a guest who scanned it" label
+underneath the QR code."
+
+Verbatim, on the palette's card in dark mode: "If we ever need to design that glass style over photos, we
+can design that custom."
+
+Verbatim, on the seam: "This seam application of our Aurora looks great. I'm assuming I'm approving the
+colored glow component that can be applied as needed, not a single specific application of it right
+here."
+
+Verbatim, on the publish flourish: "Let's keep it consistent with the rest of our glows. Don't need a
+single stray glow color, let's use either our house five or sampled depending on whether it "bleeds"
+from media."
+
+Verbatim, on the aurora on paper: "After experimenting with these, we may not be able to use the Aurora
+on white/paper surfaces. It's barely noticeable and almost appears as a weird shadow or a stray artifact
+rather than the beautiful glow it has on darker surfaces. No light ground usage is a decision for now.
+This will have repercussions for our dark vs light mode app later we should flag now."
+
+Verbatim, on the review: "Once a question has been handled through you and fully resolved, it should
+not continue to copy for future batch answers."
+
 ## 2026-09-16 · the lab winds down into the Library; a favourite becomes a working version, never another tree of explorations
 
 **Became:** `docs/PROGRAM.md` "The round" (step 6) and "Every round gets Will's notes"; CLAUDE.md

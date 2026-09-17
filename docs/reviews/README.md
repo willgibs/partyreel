@@ -52,7 +52,9 @@ overwrites, so a sitting can land in batches. A multi-line paste is transcribed 
 
 "Copy so far" sends only what this sitting ADDED: an answer or verdict the ledger already holds with
 the same choice and the same note is omitted, a changed one rides again, and a choice cleared with its
-note still in the field arrives as `note: "on <ask>: ..."`. A pick-one catalog is decided by one ask
+note still in the field arrives as `note: "on <ask>: ..."`. Only a board's open round rides at all: an
+answer from a round the board has left is closed and never copies again, whether or not the reshaped
+board still asks it (Will, 2026-09-17). A pick-one catalog is decided by one ask
 whose options are its card ids plus `none`, so "None of these: new directions" lands as
 `<board> r<n>: <ask>=none "what to try instead"` and the grammar never grew a fourth word.
 

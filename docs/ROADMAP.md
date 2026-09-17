@@ -55,7 +55,7 @@ The lab and the kit:
 - Mount `ItemVerdictRow` with `LIBRARY_VERDICTS` on a Library entry's page so a scroll through the components fills `docs/reviews/_library.json` (the ledger, the reader and the desk's "Redesigns you asked for" are landed; Round 3 of the revamp).
 
 Marketing:
-- The home hero's wiring: Will's ruling on the variation through the desk, then the ruled mechanics into `cinema-hero.tsx` with a real `demoCount`, the board retired; the kinetic word in the h1 ruled; the hero stays unlit meanwhile.
+- The home hero's wiring is cut (`hero-wiring`, 2026-09-17): the stack with the code above into `cinema-hero.tsx` without the caption, the kinetic word retired with the ruled line, the board retired; the hero stays unlit meanwhile.
 - Events then pricing on the home are both card grids; Will named chapter 3 the model, so it stays until he wants it varied.
 - The events manifest fill: the conference and trip stills are borrowed; real photographs are the fix, never a third scrim.
 - The five remaining feature pages, one ground-up round each in nav order, the album page as the model (the brief: `git show 0f52503:docs/tracks/marketing-feature-pages.md`).
@@ -87,6 +87,7 @@ Marketing:
 - The root 404's browser tint (`theme-color` light over a dark page); the design-system doc's em-dashes go when it is next rewritten.
 
 The app:
+- ★ The aurora is dark-ground only (Will, 2026-09-17: "No light ground usage is a decision for now"): the app's light mode owes its own answer for lit surfaces before the dark versus light work starts.
 - Cross-gallery sort and filter for the Uploads hub (`get_my_uploads` is filter-ready; add a like-count sort).
 - Zip-export follow-ons: an async build-to-R2 job past the cap; a custom `export.partyreel.com`.
 - Preview-variant follow-ons: a server-side backfill for pre-feature media; preview bytes on the storage meter; the moderation feed's preview; AVIF if quality demands.

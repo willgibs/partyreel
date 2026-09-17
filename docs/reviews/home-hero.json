@@ -48,6 +48,21 @@
       ],
       "notes": [],
       "items": []
+    },
+    {
+      "n": 7,
+      "opened": "2026-09-17",
+      "answers": [
+        {
+          "ask": "stream",
+          "choice": "stack-above",
+          "note": "We can drop the \"Every photo here came from a guest who scanned it\" label underneath the QR code",
+          "by": "Will",
+          "at": "2026-09-17T03:10:59Z"
+        }
+      ],
+      "notes": [],
+      "items": []
     }
   ]
 }

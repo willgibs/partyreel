@@ -40,6 +40,48 @@
         }
       ],
       "notes": []
+    },
+    {
+      "n": 7,
+      "opened": "2026-09-17",
+      "answers": [
+        {
+          "ask": "cadence",
+          "choice": "8s",
+          "by": "Will",
+          "at": "2026-09-17T03:10:59Z"
+        },
+        {
+          "ask": "publish",
+          "choice": "house-five",
+          "note": "Let's keep it consistent with the rest of our glows. Don't need a single stray glow color, let's use either our house five or sampled depending on whether it \"bleeds\" from media.",
+          "by": "Will",
+          "at": "2026-09-17T03:10:59Z"
+        },
+        {
+          "ask": "second",
+          "choice": "home-arc",
+          "by": "Will",
+          "at": "2026-09-17T03:10:59Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "on paper: After experimenting with these, we may not be able to use the Aurora on white/paper surfaces. It's barely noticeable and almost appears as a weird shadow or a stray artifact rather than the beautiful glow it has on darker surfaces. No light ground usage is a decision for now. This will have repercussions for our dark vs light mode app later we should flag now.",
+          "by": "Will",
+          "at": "2026-09-17T03:10:59Z"
+        }
+      ],
+      "items": [
+        {
+          "item": "seam",
+          "verdict": "keep",
+          "note": "This seam application of our Aurora looks great. I'm assuming I'm approving the colored glow component that can be applied as needed, not a single specific application of it right here.",
+          "by": "Will",
+          "at": "2026-09-17T03:10:59Z"
+        }
+      ]
     }
   ]
 }
