@@ -118,7 +118,7 @@ export function Calculator() {
               "focus-visible:ring-2 focus-visible:ring-ring/50",
             )}
           />
-          <div className="mt-2 flex justify-between text-[10px] tracking-[0.1em] text-muted-foreground/60 uppercase">
+          <div className="mt-2 flex justify-between text-[10px] tracking-[0.1em] text-faint uppercase">
             <span>{formatBytes(STOP_GB[0] * GIGABYTE)}</span>
             <span>{formatBytes(STOP_GB[STOP_GB.length - 1] * GIGABYTE)}</span>
           </div>
@@ -203,7 +203,7 @@ export function Calculator() {
               );
             })}
           </div>
-          <p className="mt-2 text-xs text-muted-foreground/60">
+          <p className="mt-2 text-xs text-faint">
             {formatBytes(bytes)} of the plan&apos;s {formatBytes(planCap)}
           </p>
 
@@ -228,14 +228,14 @@ export function Calculator() {
               {rec.reason}
             </p>
             {annualPlanFor(rec.planId) && (
-              <p className="mt-1.5 text-xs text-muted-foreground/70">
+              <p className="mt-1.5 text-xs text-faint">
                 Or {annualPlanFor(rec.planId)!.priceLabel} billed yearly, two
                 months free.
               </p>
             )}
 
             {rec.alternative && (
-              <p className="mt-3 text-xs text-pretty text-muted-foreground/70">
+              <p className="mt-3 text-xs text-pretty text-faint">
                 {rec.alternative}
               </p>
             )}

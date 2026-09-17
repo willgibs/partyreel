@@ -92,7 +92,7 @@ export function TypeDirectory() {
                     {theme}
                   </span>
                 ))}
-                <span className="rounded-full px-1 py-0.5 text-[11px] font-medium text-muted-foreground/70">
+                <span className="rounded-full px-1 py-0.5 text-[11px] font-medium text-faint">
                   and more
                 </span>
               </div>

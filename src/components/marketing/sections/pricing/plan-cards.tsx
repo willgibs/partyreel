@@ -120,7 +120,7 @@ function Item({
         <Minus
           className={cn(
             "mt-0.5 size-4 shrink-0",
-            ink ? "text-background/50" : "text-muted-foreground/60",
+            ink ? "text-background/50" : "text-faint",
           )}
           strokeWidth={2}
         />
@@ -162,7 +162,7 @@ function StatRow({
           <dt
             className={cn(
               "text-[10px] tracking-[0.14em] uppercase",
-              ink ? "text-background/50" : "text-muted-foreground/70",
+              ink ? "text-background/50" : "text-faint",
             )}
           >
             {s.label}
@@ -285,7 +285,7 @@ export function PlanPair() {
                 Start free
               </Link>
             </Button>
-            <p className="mt-3 text-center text-xs text-muted-foreground/70">
+            <p className="mt-3 text-center text-xs text-faint">
               No card. Upgrade only when you host again.
             </p>
           </div>

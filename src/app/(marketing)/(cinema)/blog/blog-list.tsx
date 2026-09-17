@@ -389,7 +389,7 @@ function Pager({
             <li
               key={`gap-${i}`}
               aria-hidden
-              className="px-1 text-sm text-muted-foreground/50"
+              className="px-1 text-sm text-faint"
             >
               &hellip;
             </li>
@@ -439,7 +439,7 @@ function PagerStep({
       className={cn(
         "px-2.5 py-1 text-sm transition-colors duration-150",
         disabled
-          ? "cursor-not-allowed text-muted-foreground/40"
+          ? "cursor-not-allowed text-faint"
           : "text-muted-foreground hover:text-foreground",
       )}
     >
@@ -558,9 +558,7 @@ function RailRow({
         )}
       />
       {label}
-      <span className="text-[11px] text-muted-foreground/70 tabular-nums">
-        {count}
-      </span>
+      <span className="text-[11px] text-faint tabular-nums">{count}</span>
     </button>
   );
 }

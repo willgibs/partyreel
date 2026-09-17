@@ -152,7 +152,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
             </h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
               <span>@{profile.slug}</span>
-              <span aria-hidden className="text-muted-foreground/50">
+              <span aria-hidden className="text-faint">
                 ·
               </span>
               <span>Joined {joined}</span>

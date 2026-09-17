@@ -97,7 +97,7 @@ export function GettingInStage() {
                         active ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="pt-0.5 text-xs font-medium text-muted-foreground/70 tabular-nums">
+                    <span className="pt-0.5 text-xs font-medium text-faint tabular-nums">
                       0{i + 1}
                     </span>
                     <span className="flex flex-col gap-1">

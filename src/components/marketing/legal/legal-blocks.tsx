@@ -35,7 +35,7 @@ export function LegalBlocks({
               <Tag
                 key={i}
                 className={cn(
-                  "space-y-1.5 pl-5 marker:text-muted-foreground/70",
+                  "space-y-1.5 pl-5 marker:text-faint",
                   block.ordered ? "list-decimal" : "list-disc",
                 )}
               >

@@ -410,8 +410,7 @@ const drawable = (
   step: AskStep,
   option: SessionOption,
   board?: StepBoard,
-): boolean =>
-  Boolean(board && step.section && (option.state || step.control));
+): boolean => Boolean(board && step.section && (option.state || step.control));
 
 const headingFor = (step: ItemsStep) =>
   step.walk === "one-at-a-time"
@@ -809,9 +808,7 @@ function ItemsBody({ step, board }: { step: ItemsStep; board?: StepBoard }) {
           />
           <CardStepButton
             dir="next"
-            onGo={
-              k < step.items.length - 1 ? () => setK(k + 1) : undefined
-            }
+            onGo={k < step.items.length - 1 ? () => setK(k + 1) : undefined}
           />
         </span>
       </div>
@@ -904,7 +901,7 @@ function NoteRow({
             : "A note on this one (optional)"
         }
         className={cn(
-          "h-9 min-w-0 flex-1 basis-[18rem] rounded-lg border bg-card px-3 text-[12px] transition-colors duration-150 outline-none placeholder:text-muted-foreground/70 focus:border-foreground/40 motion-reduce:transition-none",
+          "h-9 min-w-0 flex-1 basis-[18rem] rounded-lg border bg-card px-3 text-[12px] transition-colors duration-150 outline-none placeholder:text-faint focus:border-foreground/40 motion-reduce:transition-none",
           needsWhy ? "border-foreground/40" : "border-border",
         )}
       />
@@ -925,7 +922,9 @@ function NoteRow({
             : "border-border text-muted-foreground hover:text-foreground",
         )}
       >
-        {unclear ? "Marked: not clear to me" : "This question is not clear to me"}
+        {unclear
+          ? "Marked: not clear to me"
+          : "This question is not clear to me"}
       </button>
     </div>
   );

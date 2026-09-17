@@ -13,7 +13,7 @@ export function GhostGrid({ tiles = 9 }: { tiles?: number }) {
           className="flex aspect-square items-center justify-center border border-border/70 bg-muted/60"
           style={{ borderRadius: "var(--radius-tile)" }}
         >
-          {i % 4 === 1 && <Camera className="size-4 text-muted-foreground/40" />}
+          {i % 4 === 1 && <Camera className="size-4 text-faint" />}
         </div>
       ))}
     </div>

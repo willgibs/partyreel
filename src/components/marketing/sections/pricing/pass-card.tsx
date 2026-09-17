@@ -56,7 +56,7 @@ export function PassCard() {
           <div className="mt-3 font-heading text-4xl tabular-nums">
             <PricePop label={pass.priceLabel} />
           </div>
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-xs text-faint">
             Covers its event for about a year. Keep it live longer for{" "}
             {EVENT_PASS_RENEWAL_PRICE_LABEL} a year.
           </p>
@@ -98,7 +98,7 @@ export function PassCard() {
               the day
             </PassPoint>
           </ul>
-          <p className="mt-auto text-xs text-pretty text-muted-foreground/70">
+          <p className="mt-auto text-xs text-pretty text-faint">
             No subscription. When the year ends, renew for{" "}
             {EVENT_PASS_RENEWAL_PRICE_LABEL} or let it lapse: you drop back to
             Free with a {OVER_CAP_GRACE_DAYS}-day window to free up space or

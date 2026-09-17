@@ -310,7 +310,7 @@ export function PressSheet() {
 
       {/* A footnote, not a paragraph: it qualifies the grid above rather than competing
           with it, so it sits a step down in both size and tone. */}
-      <p className="mt-5 max-w-2xl text-xs text-pretty text-muted-foreground/75">
+      <p className="mt-5 max-w-2xl text-xs text-pretty text-faint">
         Everything here is Partyreel artwork, free to use in coverage as it
         ships. If a file needs editing to work in your layout, write instead and
         we will make the one you need.
