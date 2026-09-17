@@ -238,6 +238,47 @@ beforeEach(() => {
   window.scrollTo = vi.fn();
 });
 
+/**
+ * ★ THE EVIDENCE IS IN REACH OF THE PRESS (2026-09-17).
+ *
+ * Measured across all 21 open steps before this landed: the stage sat up to
+ * 5.6 SCREENS below the first option it answers to, and nothing in the lab was
+ * sticky. That is what Will reported twice as "clicking the configs didn't seem
+ * to change anything" - the presses registered and the evidence was off screen.
+ *
+ * These two pin the FUNCTION, never the look: the stage is rendered before the
+ * options in document order (so it is above them, and can be pinned there), and
+ * the author's `look` sentence reaches the reviewer at all. Nothing here
+ * asserts a height, a position value or a colour; a board may raise
+ * `--lab-stage-peek` and these still hold.
+ */
+describe("a step puts its evidence in reach", () => {
+  it("draws the stage before the options, not after them", () => {
+    const board = fakeBoard();
+    const { container } = step("light.depth", board);
+    const root = container.querySelector("[data-review-step]")!;
+    const stage = root.querySelector('[data-lab-specimen]:not([inert])')!;
+    const firstTile = root.querySelector('[role="button"][aria-pressed]')!;
+    expect(stage, "the step drew no stage").not.toBeNull();
+    // Node.DOCUMENT_POSITION_FOLLOWING === 4: the tile comes after the stage.
+    expect(
+      stage.compareDocumentPosition(firstTile) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      "the options must follow the stage so a press is seen",
+    ).toBeTruthy();
+  });
+
+  it("prints the author's line about what to look at", () => {
+    // `look` was carried on the step type and dropped by the renderer: on an
+    // ask whose options cannot be drawn it is the ONLY instruction there is,
+    // and river-visual's four steps shipped without it (found 2026-09-17).
+    step("light.depth", fakeBoard());
+    expect(
+      screen.getByText(/The Separate section on the App dark ground\./),
+    ).toBeTruthy();
+  });
+});
+
 describe("a step, show versus choose", () => {
   it("shows an option without recording it", async () => {
     const board = fakeBoard();

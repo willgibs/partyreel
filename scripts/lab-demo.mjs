@@ -439,7 +439,22 @@ try {
 const pad = Math.max(...rows.map((r) => r.step.length), 4);
 for (const r of rows)
   console.log(`${r.step.padEnd(pad)}  ${r.verdict.padEnd(6)}  ${r.note}`);
+/**
+ * ★ "SKIPPED" IS A COST, NOT AN EXEMPTION. A skipped step is one with nothing
+ * to press: its options are words, so this script cannot judge it and neither
+ * can a reviewer at a glance. That is the format Will has objected to since the
+ * first sitting ("designing a few variations always beats a mountain of
+ * research text"), so it is printed as a share of the sitting rather than
+ * filed quietly at the end. It is not a failure: a question about a price or a
+ * plan has nothing to draw, and `registry.test.ts` makes such an ask carry the
+ * `look` line that says what to compare instead.
+ */
+const wordsOnly = rows.filter((r) => r.verdict === "skip").length;
+const share = rows.length ? Math.round((wordsOnly / rows.length) * 100) : 0;
+console.log(`\n${rows.length} steps, ${failed} frozen.`);
 console.log(
-  `\n${rows.length} steps, ${failed} frozen, ${rows.filter((r) => r.verdict === "skip").length} skipped`,
+  wordsOnly
+    ? `${wordsOnly} of them (${share}%) ask with nothing to press: words only, judged on their \`look\` line.`
+    : "Every step draws its options.",
 );
 process.exit(failed ? 1 : 0);

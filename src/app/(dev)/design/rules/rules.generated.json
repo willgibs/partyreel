@@ -286,12 +286,20 @@
           "line": 326
         },
         {
+          "title": "makes an ask that cannot be drawn say what to look at instead",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 371
+        },
+        {
           "title": "wires every catalog to a section, a pick and two compare controls",
           "suite": [
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 363
+          "line": 400
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -299,7 +307,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 462
+          "line": 499
         },
         {
           "title": "computes one anchor everywhere",
@@ -307,7 +315,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 496
+          "line": 533
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -315,7 +323,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 517
+          "line": 554
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -323,7 +331,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 527
+          "line": 564
         }
       ]
     },
@@ -545,12 +553,20 @@
           "line": 326
         },
         {
+          "title": "makes an ask that cannot be drawn say what to look at instead",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 371
+        },
+        {
           "title": "wires every catalog to a section, a pick and two compare controls",
           "suite": [
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 363
+          "line": 400
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -558,7 +574,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 462
+          "line": 499
         },
         {
           "title": "computes one anchor everywhere",
@@ -566,7 +582,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 496
+          "line": 533
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -574,7 +590,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 517
+          "line": 554
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -582,7 +598,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 527
+          "line": 564
         }
       ]
     },
@@ -665,12 +681,20 @@
           "line": 326
         },
         {
+          "title": "makes an ask that cannot be drawn say what to look at instead",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 371
+        },
+        {
           "title": "wires every catalog to a section, a pick and two compare controls",
           "suite": [
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 363
+          "line": 400
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -678,7 +702,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 462
+          "line": 499
         },
         {
           "title": "computes one anchor everywhere",
@@ -686,7 +710,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 496
+          "line": 533
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -694,7 +718,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 517
+          "line": 554
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -702,7 +726,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 527
+          "line": 564
         }
       ]
     },
@@ -1362,12 +1386,28 @@
       "indexed": false,
       "contracts": [
         {
+          "title": "draws the stage before the options, not after them",
+          "suite": [
+            "a step puts its evidence in reach"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 256
+        },
+        {
+          "title": "prints the author's line about what to look at",
+          "suite": [
+            "a step puts its evidence in reach"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 271
+        },
+        {
           "title": "shows an option without recording it",
           "suite": [
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 242
+          "line": 283
         },
         {
           "title": "records the option on a second press of the one being shown",
@@ -1375,7 +1415,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 254
+          "line": 295
         },
         {
           "title": "clears the answer on a third press and resets the stage",
@@ -1383,7 +1423,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 272
+          "line": 313
         },
         {
           "title": "draws every option on the board's own section, in that option's state",
@@ -1391,7 +1431,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 287
+          "line": 328
         },
         {
           "title": "falls back to text tiles when nothing declares how to draw an option",
@@ -1399,7 +1439,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 296
+          "line": 337
         },
         {
           "title": "asks the question in the words a stranger can answer it in",
@@ -1407,7 +1447,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 307
+          "line": 348
         },
         {
           "title": "marks the option the board recommends, and only that one",
@@ -1415,7 +1455,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 318
+          "line": 359
         },
         {
           "title": "carries the note with the answer",
@@ -1423,7 +1463,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 327
+          "line": 368
         },
         {
           "title": "applies the ask's declared state on landing",
@@ -1431,7 +1471,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 337
+          "line": 378
         },
         {
           "title": "holds Next until a question marked unclear says what was unclear",
@@ -1439,7 +1479,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 343
+          "line": 384
         },
         {
           "title": "renders nothing for a session on another board",
@@ -1447,7 +1487,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 355
+          "line": 396
         },
         {
           "title": "skips a staged step, and reaches it once its question is answered",
@@ -1455,7 +1495,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 362
+          "line": 403
         },
         {
           "title": "drops a staged step as moot when its question went the other way",
@@ -1463,7 +1503,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 385
+          "line": 426
         },
         {
           "title": "counts the walk without the staged steps",
@@ -1471,7 +1511,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 399
+          "line": 440
         },
         {
           "title": "asks a pick-one catalog's winner on the cards themselves",
@@ -1479,7 +1519,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 407
+          "line": 448
         },
         {
           "title": "walks a keep-any catalog one card at a time",
@@ -1487,7 +1527,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 421
+          "line": 462
         },
         {
           "title": "keeps a catalog as ONE step whichever way it is walked",
@@ -1495,7 +1535,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 428
+          "line": 469
         },
         {
           "title": "fills Next only once every card has a verdict",
@@ -1503,7 +1543,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 433
+          "line": 474
         }
       ]
     },
