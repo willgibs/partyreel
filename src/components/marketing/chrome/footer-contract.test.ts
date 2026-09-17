@@ -113,16 +113,18 @@ describe("the ink-slab footer contract", () => {
   });
 
   it("reads the lamps' cadence from the one token, never a literal", () => {
-    // The engine's ruled register is 8s (2026-08-31); every lamp shipped 11s.
-    // Retiring the footer onto the engine without the override would have
-    // re-timed ratified chrome by 27%. Since the library phase (2026-09-11)
-    // the override is --spill-cadence in globals.css, one token for every
-    // lamp, so the cadence sitting rules once and the tuner's knob drives it.
+    // The engine's ruled register was 8s from the start (2026-08-31) and every
+    // lamp shipped 11s against it for two rounds; Will judged the whole home
+    // page at each on the tuner's knob and ruled 8s (2026-09-17), so the two
+    // finally agree. What this guards is not the number but the INDIRECTION:
+    // the footer reads --spill-cadence rather than restating a literal, which
+    // is what lets one ruling re-time every lamp at once and what the Aurora's
+    // own clock multiplies. A literal back in this file is the regression.
     const glow = stripComments(
       read("src/components/marketing/chrome/footer-glow.tsx"),
     );
     expect(glow).toMatch(/"--glw-dur":\s*"var\(--spill-cadence\)"/);
     const globals = read("src/app/globals.css");
-    expect(globals).toMatch(/--spill-cadence:\s*11s;/);
+    expect(globals).toMatch(/--spill-cadence:\s*8s;/);
   });
 });
