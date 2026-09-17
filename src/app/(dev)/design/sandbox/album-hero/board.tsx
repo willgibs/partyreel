@@ -3,18 +3,21 @@
 // the board's own sheet; it leaves with the board when the ruling lands.
 import "./board.css";
 
+import { useCallback, useState } from "react";
+
 import {
   BoardPage,
   CANVAS,
+  Catalog,
+  CellLabel,
   FitStage,
   Labeled,
   type Mode,
   ReplayButton,
   Stage,
-  useReplay,
 } from "@/components/lab";
-import { optionId, optionLabel } from "@/components/lab/board-spec";
 import { ALBUM_FAQ } from "@/components/marketing/sections/features/album/album-faq";
+import { ArrivalsHero } from "@/components/marketing/sections/features/album/arrivals-hero";
 import { AttributionSection } from "@/components/marketing/sections/features/album/attribution-section";
 import { EverywhereSection } from "@/components/marketing/sections/features/album/everywhere-section";
 import { GettingInSection } from "@/components/marketing/sections/features/album/getting-in-section";
@@ -30,101 +33,187 @@ import { RelatedFeatures } from "@/components/marketing/sections/features/shared
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 
-import { AlbumVisual } from "./album";
-import {
-  AlbumHeroField,
-  FIELD_DENSITY,
-  FIELD_FLIGHT_S,
-  type Step,
-} from "./field";
+import { type AlbumWidth, albumColumns, AlbumVisual } from "./album";
+import { BUILT, type CompId, type Step } from "./compositions";
+import { AlbumHero, type Paint } from "./hero";
 import { ALBUM_HERO } from "./spec";
 
 /**
- * THE ALBUM PAGE'S HERO (round one, 2026-09-15; on the kit's template since the
- * migration wave, round two, 2026-09-15).
+ * THE ALBUM PAGE'S HERO BOARD (round three, 2026-09-17): a catalog of four calm
+ * compositions, and three things they have to survive.
  *
- * What the board ARGUES lives in `spec.ts` now, and only there: the question,
- * the verdict, the five one-word calls, the two candidates, the departures and
- * the three assets. What is left here is what a board should be and nothing
- * else, which is the evidence for each declared section as a function of the
- * declared state.
+ * ★ A CARD IS THE REAL HERO AT 1:1, NOT A THUMBNAIL OF ONE. The grid's minimum
+ * column is the canvas itself, so the four stack in one column and each stage
+ * carries a real 1440 (Will's standing ruling on the lab's previews: 1:1, never
+ * zoom-fitted). A hero judged at 0.7 is a different hero, because the frames
+ * are the size of the thing being argued about.
  *
- * THE THREE READINGS ARE THE THREE SECTIONS, ordered the way the decision is
- * made rather than the way the page is built:
+ * ★ AND EVERY CARD REPLAYS ON ITS OWN, keyed on its own run rather than on one
+ * board-wide Replay: comparing two compositions means restarting one of them
+ * while the other holds still. Replay here is a remount, and because none of
+ * the four has an entrance tween, a remount simply returns the clock to zero,
+ * which is the composition's own rest state.
  *
- *  1. THE HERO alone, at a real viewport, so the field is judged as a hero.
- *  2. THE ALBUM alone, wide, so the product is judged as the product.
- *  3. THE PAGE: the two on top of the WHOLE shipped route, every section in its
- *     shipped order, so the hand-off (feeling -> product -> chapters) is judged
- *     whole and the cinema-to-paper cut, the flip most likely to be disturbed
- *     by a full-bleed hero that never stops moving, is judged UNDER it rather
- *     than imagined. It is also the only stage where both animations run at
- *     once, which was Will's original worry.
+ * ★ NOTHING PICKED IS A STATE OF ITS OWN. With the pick cleared, the page
+ * section shows the hero that SHIPS today, from production code, in the page it
+ * has to open. Press a card and the same page wears it, which is the only
+ * honest comparison the board can offer.
  *
- * ★ SECTIONS RATHER THAN A `reading` CONTROL, deliberately, because the round's
- * goal line can be read either way. A reading is not a variant of one specimen,
- * it is a different specimen: as sections the three get anchors, the index, the
- * dock's Sections menu, the asks restated over the evidence that argues them
- * and a walk that lands on them, and a link to one of them survives being
- * pasted into a chat. Collapsed into a single switch they would share one
- * anchor and the board would have exactly one section, which is the shape the
- * template exists to replace. The page-wide switches that ARE variants of one
- * specimen (the canvas, the headline step, the album's column rule) are the
- * declared controls, and they are in the dock, which is Will's note (a).
- *
- * THE STAGES ARE THE KIT'S. `Stage` for the hero, because a hero is a viewport
- * and has to be judged inside one; `FitStage` for the two compositions, which
- * are blocks of arbitrary height whose ground must end where they do. Round one
- * carried its own measuring stage for those; the kit owns that now, and the
- * kit's also re-measures when the webfont lands.
- *
- * THEY ARE 1:1 (the shell's default): a hero judged at 0.69 is a hero nobody
- * judged. A 1440 canvas scrolls sideways on a narrower window, and that is
- * correct.
+ * ★ THE STAGES ARE THE KIT'S: `Stage` for a hero, because a hero is a viewport
+ * and has to be judged inside one; `FitStage` for the two compositions of
+ * arbitrary height, whose ground must end where they do.
  */
 export function AlbumHeroBoard() {
-  const { runId, replay } = useReplay();
+  // One run counter per card: see the second landmine above.
+  const [runs, setRuns] = useState<Record<string, number>>({});
+  const replay = useCallback(
+    (id: string) => setRuns((r) => ({ ...r, [id]: (r[id] ?? 0) + 1 })),
+    [],
+  );
 
   return (
     <BoardPage
-      className="alb-board"
+      className="abh-board"
       spec={ALBUM_HERO}
-      dock={() => <ReplayButton runId={runId} onReplay={replay} />}
-      evidence={(id, state) => {
+      evidence={(id, state, api) => {
         const mode = state.canvas as Mode;
         const step = state.step as Step;
-        const phone = mode === "phone";
-        // The width ask's own option, straight off the switch that mirrors it.
-        const width = state.columns === "both" ? "both" : "ship";
-        // What the candidate's responsive rule RESOLVES TO on this canvas. The
-        // shipped component is two columns everywhere; the candidate is two on
-        // a phone and four on a laptop, so at 375 the switch is deliberately a
-        // no-op, and the caption says so rather than leaving a stranger to
-        // wonder whether the control is broken.
-        const cols = width === "both" ? (phone ? 2 : 4) : 2;
+        const pick = state.composition as CompId | "none";
+        const paint = (state["no-script"] ?? "running") as Paint;
+        const width = WIDTH[state.width ?? "w880"];
+        const run = (key: string) => runs[key] ?? 0;
 
         switch (id) {
-          case "hero":
-            return <HeroReading mode={mode} step={step} runId={runId} />;
+          case "catalog":
+            return (
+              <Catalog
+                spec={ALBUM_HERO}
+                state={state}
+                setState={api.setState}
+                minWidth={CANVAS.desktop.w}
+                render={(candidate) => {
+                  const comp = candidate.id as CompId;
+                  return (
+                    <div className="flex min-w-0 flex-col gap-2">
+                      <Stage
+                        key={`${comp}-${mode}-${run(comp)}`}
+                        mode={mode}
+                        ground="cinema"
+                      >
+                        <AlbumHero mode={mode} comp={comp} step="lg" />
+                      </Stage>
+                      <div className="flex justify-end">
+                        <ReplayButton
+                          runId={run(comp)}
+                          onReplay={() => replay(comp)}
+                        />
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+            );
+
+          case "hero": {
+            // Nothing picked yet is the board's own answer, said out loud: a
+            // step question needs a specimen, and the alternative is an empty
+            // frame with a sentence explaining why.
+            const comp = pick === "none" ? RECOMMENDED : pick;
+            return (
+              <Labeled
+                name={`${canvasLabel(mode)} · ${cardName(comp)} · Headline: ${step === "xl" ? "one step louder" : "today's"}`}
+                note={
+                  paint === "running"
+                    ? `${BUILT[comp][mode][step].facts.onScreen} frames lit at the busiest instant, at most ${BUILT[comp][mode][step].facts.speed} px a second. No photograph is ever under a word, so the media stays at 100 percent and nothing is dimmed.${pick === "none" ? " Nothing is picked yet, so this is the board's own recommendation." : ""}`
+                    : paint === "lockup"
+                      ? "A static paint with no photographs at all: what a crawler and a reader with JavaScript off get under the first answer."
+                      : "A static paint of the composition at rest: what a crawler and a reader with JavaScript off get under the second answer, and the loop's own first frame."
+                }
+              >
+                <Stage
+                  key={`hero-${comp}-${mode}-${step}-${paint}-${run("hero")}`}
+                  mode={mode}
+                  ground="cinema"
+                  bodySkin
+                >
+                  <AlbumHero
+                    mode={mode}
+                    comp={comp}
+                    step={step}
+                    paint={paint}
+                  />
+                </Stage>
+              </Labeled>
+            );
+          }
+
           case "album":
             return (
-              <AlbumReading
-                mode={mode}
-                width={width}
-                cols={cols}
-                runId={runId}
-              />
+              <Labeled
+                name={`${canvasLabel(mode)} · ${mode === "phone" ? "the canvas less its gutter" : `a ${width} px column`} · ${mode === "phone" ? 2 : albumColumns(width)} columns`}
+                note={
+                  mode === "phone"
+                    ? "Two columns at 375 whatever the width switch says, which is what the product ships on a phone. Its only live signal is the green dot beside the words Live now."
+                    : "The shipped guest album in a centred column, not the 632 px strip the live guest page gives a laptop today. Its only live signal is the green dot beside the words Live now."
+                }
+              >
+                <FitStage
+                  mode={mode}
+                  ground="cinema"
+                  bodySkin
+                  swapKey={`album-${mode}-${width}-${run("album")}`}
+                >
+                  <AlbumVisual
+                    mode={mode}
+                    width={width}
+                    runId={run("album")}
+                  />
+                </FitStage>
+              </Labeled>
             );
+
           case "page":
             return (
-              <PageReading
-                mode={mode}
-                step={step}
-                width={width}
-                cols={cols}
-                runId={runId}
-              />
+              <div className="flex min-w-0 flex-col gap-2">
+                <FitStage
+                  mode={mode}
+                  ground="cinema"
+                  bodySkin
+                  swapKey={`page-${pick}-${mode}-${step}-${width}-${run("page")}`}
+                >
+                  {/* ★ THE HERO TAKES ITS HEIGHT FROM THE BOX AROUND IT, never
+                      from the stage: the composition is `size-full` inside its
+                      own positioned root, so without a box of a known height it
+                      stretches to the whole measured page and flies frames past
+                      the FAQ. */}
+                  {pick === "none" ? (
+                    <ArrivalsHero />
+                  ) : (
+                    <div style={{ height: CANVAS[mode].h }}>
+                      <AlbumHero mode={mode} comp={pick} step={step} />
+                    </div>
+                  )}
+                  <AlbumVisual
+                    mode={mode}
+                    width={width}
+                    runId={run("page")}
+                  />
+                  <PageTail />
+                </FitStage>
+                <div className="flex items-center justify-between gap-3">
+                  <CellLabel>
+                    {pick === "none"
+                      ? "Nothing picked: the hero the page ships today, from production code, with the centred album under it."
+                      : "The picked hero, the album, then every section the route ships, in its shipped order, down to the closing band."}
+                  </CellLabel>
+                  <ReplayButton
+                    runId={run("page")}
+                    onReplay={() => replay("page")}
+                  />
+                </div>
+              </div>
             );
+
           default:
             return null;
         }
@@ -133,149 +222,29 @@ export function AlbumHeroBoard() {
   );
 }
 
+/** The card the board would pick, read off the spec rather than retyped, so a
+ *  change of mind in one place cannot leave the other saying the old thing. */
+const RECOMMENDED = (ALBUM_HERO.candidates.find((c) => c.recommended)?.id ??
+  "orbit") as CompId;
+
+const cardName = (id: CompId) =>
+  ALBUM_HERO.candidates.find((c) => c.id === id)?.name ?? id;
+
+/** The width switch's option ids, in px. The ids carry their own number so the
+ *  ledger reads without this table, and this is the one place it is parsed. */
+const WIDTH: Record<string, AlbumWidth> = {
+  w720: 720,
+  w880: 880,
+  w1040: 1040,
+};
+
 /** The canvas, in the words a caption uses. */
 const canvasLabel = (mode: Mode) => (mode === "phone" ? "375" : "1440");
 
 /**
- * ★ THE EVIDENCE CARRIES THE OPTION'S OWN NAME (the clarity round, 2026-09-15).
- * Will's first review could not map an ask's options onto the specimens in
- * front of him, so every caption on this board says which option it is showing,
- * in the ask's words. It is READ OFF THE SPEC rather than retyped, so a caption
- * and the ask a reviewer answers can never drift into two vocabularies; the
- * light board's `cueLabel` is the same rule spelled by hand.
- */
-function optionWords(askId: string, id: string): string {
-  const ask = ALBUM_HERO.asks.find((a) => a.id === askId);
-  const option = ask?.options.find((o) => optionId(o) === id);
-  return option ? optionLabel(option) : id;
-}
-
-/**
- * 1 · THE HERO. A real viewport on the cinema ground, remounted by the canvas,
- * the step and Replay: the pool is re-solved against the lockup the step draws,
- * so a step change is a new field rather than a restyled one.
- */
-function HeroReading({
-  mode,
-  step,
-  runId,
-}: {
-  mode: Mode;
-  step: Step;
-  runId: number;
-}) {
-  const density = FIELD_DENSITY[mode];
-  return (
-    <Labeled
-      /* Three asks are judged here (the headline, the hero's words, the
-         no-script paint), so the caption names the option each one is showing
-         in that ask's own words rather than in the board's nicknames. */
-      name={`${canvasLabel(mode)} · Headline: ${optionWords("headline", step)}`}
-      note={`${density.cards} frames over a ${FIELD_FLIGHT_S} s flight, ${density.onScreen} on screen at any moment, every one a photograph. The type sits in a space no frame enters, so the media stays at 100 percent and nothing is dimmed. The words over the field are the live page's own words, unchanged. With Reduce Motion on, this paints the album spread out and still, which is what a reader with no JavaScript would get under the other no-script option.`}
-    >
-      <Stage
-        key={`hero-${mode}-${step}-${runId}`}
-        mode={mode}
-        ground="cinema"
-        bodySkin
-      >
-        <AlbumHeroField mode={mode} step={step} />
-      </Stage>
-    </Labeled>
-  );
-}
-
-/**
- * 2 · THE LIVE ALBUM, WIDE. A composition rather than a viewport, so the ground
- * takes its height from the content.
- */
-function AlbumReading({
-  mode,
-  width,
-  cols,
-  runId,
-}: {
-  mode: Mode;
-  /** The width ask's option this specimen is showing. */
-  width: "ship" | "both";
-  cols: number;
-  runId: number;
-}) {
-  const phone = mode === "phone";
-  return (
-    <Labeled
-      /* Two asks are judged here (the width and the album's live signal), so
-         the caption names the width option in the ask's own words and the note
-         names the live one. */
-      name={`${optionWords("width", width)} · the album at ${cols} columns`}
-      note={
-        phone
-          ? "Two columns at 375 under either switch, which is what the candidate's responsive rule resolves to on a phone. Its only live signal is the green dot, as it ships, beside the words Live now."
-          : "The frame is 1154 px, about what the widened laptop page would give, and not the 632 px the guest page ships at every screen size. Its only live signal is the green dot, as it ships, beside the words Live now."
-      }
-    >
-      <FitStage
-        mode={mode}
-        ground="cinema"
-        bodySkin
-        swapKey={`album-${mode}-${cols}-${runId}`}
-      >
-        <AlbumVisual mode={mode} cols={cols} runId={runId} />
-      </FitStage>
-    </Labeled>
-  );
-}
-
-/**
- * 3 · THE PAGE, WHOLE. The hero at exactly one viewport's height, the album
- * under it, then the rest of the route.
- *
- * ★ THE HERO TAKES ITS HEIGHT FROM THE BOX AROUND IT, never from the stage. The
- * field is `size-full` inside its own positioned root, so without a box of a
- * known height it stretches to the whole measured composition and flies frames
- * past the FAQ.
- */
-function PageReading({
-  mode,
-  step,
-  width,
-  cols,
-  runId,
-}: {
-  mode: Mode;
-  step: Step;
-  width: "ship" | "both";
-  cols: number;
-  runId: number;
-}) {
-  return (
-    <Labeled
-      name={`${canvasLabel(mode)} · Headline: ${optionWords("headline", step)} · Album: ${optionWords("width", width)}`}
-      note="Hero, album, then every section the route ships, in its shipped order, down to the closing band. The stage measures its own content, so no section is ever clipped in half."
-    >
-      <FitStage
-        mode={mode}
-        ground="cinema"
-        bodySkin
-        swapKey={`page-${mode}-${step}-${cols}-${runId}`}
-      >
-        <div style={{ height: CANVAS[mode].h }}>
-          <AlbumHeroField mode={mode} step={step} />
-        </div>
-        <AlbumVisual mode={mode} cols={cols} runId={runId} />
-        <PageTail />
-      </FitStage>
-    </Labeled>
-  );
-}
-
-/**
- * THE REST OF THE ROUTE, under the new top. If the field is too loud, the
- * symptom shows up HERE (a reader arriving at the cinema-to-paper cut with the
- * album still flying a chapter above), not in the hero alone: QualitySection
- * winds the dark chapter down, PaperChapter flips the token subtree light on a
- * hard hairline, and six desk sections run on paper before the close returns to
- * cinema.
+ * THE REST OF THE ROUTE, under the new top. If a hero is too loud the symptom
+ * shows up HERE, at the cinema-to-paper cut with the album still going a
+ * chapter above, rather than in the hero alone.
  *
  * It mirrors src/app/(marketing)/(cinema)/features/album/page.tsx BY HAND and
  * deliberately: a route module is not something to import from a board (it

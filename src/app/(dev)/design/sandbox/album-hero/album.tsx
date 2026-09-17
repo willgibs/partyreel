@@ -12,12 +12,21 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { FRAMES, type Mode } from "../home-hero/shared";
 
 /**
- * THE LIVE ALBUM, WIDE (the album-hero track, round one, 2026-09-15).
+ * THE LIVE ALBUM, CENTRED AND WIDTH-CONSTRAINED (round one, 2026-09-15; recut
+ * on Will's note of 2026-09-17).
  *
- * Will's ruling: "keep an album page visual wide below as the actual live album
- * product, with less animation so the hero images and album animation don't
- * conflict and get too overwhelming". So the hero is the feeling and this is the
- * product, and the split is what keeps either of them readable.
+ * Will's first ruling: "keep an album page visual wide below as the actual live
+ * album product, with less animation so the hero images and album animation
+ * don't conflict and get too overwhelming". So the hero is the feeling and this
+ * is the product, and the split is what keeps either of them readable.
+ *
+ * ★ HIS SECOND NOTE RECUT IT: "the album dashboard visual beneath the hero
+ * should be centered and width constrained. The attached screenshot of the
+ * Cosmos hero is a good idea, but a bit wider." Round one ran the frame to
+ * 1180 px, which is a page-wide slab rather than a block under a centred
+ * lockup. It is now a centred column the reviewer sizes by eye: 720, 880 or
+ * 1040 at 1440, with 880 the board's own answer to "a bit wider". At 375 the
+ * frame is the canvas less its gutter, because there is nothing to constrain.
  *
  * IT IS THE SHIPPED COMPONENT, COMPOSED, NOT A DRAWING OF ONE. The grid is
  * `GuestMasonry` from src/components/guest, the real guest album: the same
@@ -30,23 +39,20 @@ import { FRAMES, type Mode } from "../home-hero/shared";
  * composed and never edited, so the production change this board argues for is
  * made from the outside, in album.css, where it can be read as a diff.
  *
- * THE ONE ARGUMENT: THE ALBUM'S WIDTH, AND IT IS TWO DECLARATIONS, NOT ONE.
+ * THE PRODUCTION ARGUMENT UNDER IT IS UNCHANGED, AND IT IS TWO DECLARATIONS.
  * `GuestMasonry` is `columns-2` at every width, which is right on the phone it
  * was designed for. But the number that actually decides the tile is the
  * CONTAINER, and the shipped guest page caps its whole column at `max-w-2xl`
- * with `px-5` (event-experience.tsx line 165, the only place GuestMasonry is
- * ever rendered, through live-gallery.tsx): 632 px of content at EVERY
- * viewport, 1440 included. So a shipped tile today is about 314 px, not the
- * 576 px this board's own 1154 px frame gives it, and raising the column count
- * ALONE would cut those same 632 px into four tiles of about 156 px, which is
- * worse than what ships. The candidate is therefore the column rule AND a
- * wider laptop cap. The board shows the end state under the dock's Album
- * switch: 2 columns is `column-count: 2` exactly as it ships, responsive is
- * the same component with that one number driven from the width it was given
- * (album.css), inside a frame already about as wide as the widened cap would
- * be. It is an APP-UI change and therefore a candidate, not a fait accompli:
- * Will opened the app's UI to the lab tracks on 2026-09-15, and the arithmetic
- * for both declarations is in BoardMeta.
+ * with `px-5` (event-experience.tsx, the only place GuestMasonry is ever
+ * rendered, through live-gallery.tsx): 632 px of content at EVERY viewport,
+ * 1440 included, so a shipped tile is about 314 px. This board's centred column
+ * gives 696, 856 or 1016 px of content inside the frame's own padding, which is
+ * a tile of about 346, 426 or 336 px depending on where the step is set, and
+ * the third column only arrives at the widest. Raising the column count ALONE
+ * would cut today's 632 px into four tiles of about 156 px, which is worse than
+ * what ships, so the candidate is the column rule AND a wider laptop cap. It is
+ * an APP-UI change and therefore a candidate rather than a fait accompli, and
+ * the album section's wiring note carries both declarations.
  *
  * BIBLE 4: a guest surface is the HOST'S. The chrome above the grid is the
  * event's own identity, in the shape the shipped guest page uses (the
@@ -87,18 +93,32 @@ const EVENT = {
   url: "partyreel.com/a/maya-and-jay",
 } as const;
 
+/** The three widths the album's own step offers, in px at 1440. The middle one
+ *  is the board's answer to "a bit wider" than the reference; the narrow one is
+ *  about what the reference itself holds; the wide one is where a third column
+ *  starts to earn its place. */
+export const ALBUM_WIDTHS = [720, 880, 1040] as const;
+export type AlbumWidth = (typeof ALBUM_WIDTHS)[number];
+
+/** How many columns a given width draws. Two is what the product ships and what
+ *  a 720 or an 880 column wants; the third only arrives at the widest, where a
+ *  tile is still over 340 px. A fourth would be a phone's album shrunk. */
+export const albumColumns = (width: AlbumWidth) => (width >= 1040 ? 3 : 2);
+
 export function AlbumVisual({
   mode,
-  cols,
+  width,
   runId,
 }: {
   mode: Mode;
-  /** The masonry's column count: 2 is what ships, the rest is the candidate. */
-  cols: number;
+  /** The centred column's width in px at 1440; ignored at 375, where the frame
+   *  is the canvas less its gutter. */
+  width: AlbumWidth;
   /** Bumped by Replay; remounts the grid so the product's entrance replays. */
   runId: number;
 }) {
   const phone = mode === "phone";
+  const cols = phone ? 2 : albumColumns(width);
   return (
     /* The album is its own chapter under a full-bleed hero, so it opens on
        real air rather than butting the field's dissolving edge: the top pad is
@@ -107,10 +127,15 @@ export function AlbumVisual({
     <div
       className={`alb-album ${phone ? "px-4 pt-12 pb-10" : "px-16 pt-20 pb-16"}`}
     >
-      <BrowserFrame
-        label={EVENT.url}
-        className={phone ? "" : "mx-auto max-w-[1180px]"}
+      {/* The centred, width-constrained column. It is a wrapper rather than a
+          prop on BrowserFrame because a production component is composed and
+          never edited: the frame keeps its own chrome and its own card, and
+          this board decides only how wide the column it sits in is. */}
+      <div
+        className={phone ? "" : "mx-auto"}
+        style={phone ? undefined : { maxWidth: width }}
       >
+      <BrowserFrame label={EVENT.url}>
         {/* THE HOST'S EVENT, not ours (bible 4). The shape is the shipped guest
             header's: name, byline, stats. */}
         <div
@@ -148,13 +173,14 @@ export function AlbumVisual({
           </span>
         </div>
         <div
-          key={`${mode}-${cols}-${runId}`}
+          key={`${mode}-${width}-${runId}`}
           className="alb-grid"
           style={{ "--alb-cols": cols } as CSSProperties}
         >
           <GuestMasonry items={ALBUM_ITEMS} />
         </div>
       </BrowserFrame>
+      </div>
     </div>
   );
 }

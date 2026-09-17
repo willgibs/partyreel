@@ -12,12 +12,13 @@
    `columns-2`, which is the phone it was designed for. Read the CONTAINER
    before the column count: event-experience.tsx caps the whole guest column at
    `max-w-2xl` with `px-5`, so the shipped album is 632 px wide at every
-   viewport and its tile is about 314 px, while this board's frame is 1154 px
-   and its two-column tile is about 576 px. The candidate is therefore TWO
-   declarations, not one: `columns-2 md:columns-3 xl:columns-4` in
+   viewport and its tile is about 314 px, while this board's centred column
+   gives 696, 856 or 1016 px of content depending on where its own step is set.
+   The candidate is therefore TWO declarations, not one:
+   `columns-2 md:columns-3 xl:columns-4` in
    src/components/guest/guest-masonry.tsx AND a wider laptop cap in
-   src/components/guest/event-experience.tsx, because the column rule on its
-   own would make four tiles of about 156 px out of today's 632 px. Driven by a
+   src/components/guest/event-experience.tsx, because the column rule on its own
+   would make four tiles of about 156 px out of today's 632 px. Driven by a
    variable here rather than by a breakpoint because a lab stage is a CANVAS,
    and a Tailwind prefix inside one reads the real browser viewport instead
    (stage.tsx). */

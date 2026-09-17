@@ -1,0 +1,107 @@
+/* THE ALBUM HERO'S OWN SHEET (round three, 2026-09-17; round two's field.css,
+   retired with the emanation-only board). Classes under `abh-` only, and this
+   sheet declares NO keyframe, deliberately: the composition is one
+   requestAnimationFrame loop writing inline transforms, so there is nothing
+   here that could collide with a production keyframe
+   (src/app/keyframe-uniqueness.test.ts reads every sheet under the lab).
+
+   ★ THE REST STATE IS THE ONLY STATE, and that is round three's simplification.
+   Round two carried two: the album deployed (outside every query) and the
+   field's first frame, every card collapsed on the vent (inside
+   `prefers-reduced-motion: no-preference`), because that board had a branch-out
+   whose first frame differed from its steady state. None of the four
+   compositions here has one. A card's phase is a closed form of the clock, so
+   the loop at elapsed 0 paints exactly what `--abh-rest` already holds: the
+   server's HTML, a reduced-motion reader, a crawler, a reader with scripting
+   off and the loop's own first frame are one picture, with nothing to undo and
+   nothing to flash. That is what makes the board's no-script question cheap to
+   answer either way, where round two's answer cost a visible snap.
+
+   THE OTHER ANSWER IS ONE ATTRIBUTE. Under `data-abh-noscript="lockup"` the
+   photographs are not rendered at all, which is what a reader with scripting
+   off got from round two and what the board draws so the two can be compared.
+   Nothing that carries meaning is ever gated either way: the eyebrow, the
+   headline, the sentence and the two actions are plain markup that never moves,
+   and the photographs are aria-hidden decoration. */
+
+.abh-field {
+  position: absolute;
+  inset: 0;
+  /* Each card carries its own z-index so a near photograph paints over a far
+     one. This keeps that ordering contained: the lockup above must not have to
+     out-number the whole pool. */
+  isolation: isolate;
+}
+
+/* A RING DISSOLVES TOWARD EVERY EDGE, which is the reference's look: the outer
+   stations stand in the soft part of the gradient and read fainter than the
+   inner ones. The per-card opacity does most of that work (it is measurable,
+   and the board's facts are read off it); this is the last few per cent, at the
+   canvas corners, where a card is half off the frame anyway. */
+.abh-field[data-abh-mask="radial"] {
+  -webkit-mask-image: radial-gradient(
+    ellipse 78% 82% at 50% 50%,
+    #000 46%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 78% 82% at 50% 50%,
+    #000 46%,
+    transparent 100%
+  );
+}
+
+/* A BAND DISSOLVES AT ITS TWO ENDS, so the shelf runs off the frame rather than
+   being guillotined by the stage's overflow: the outermost frame of a contact
+   sheet is always half gone, which is the argument (it does not end). */
+.abh-field[data-abh-mask="band"] {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+}
+
+.abh-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: var(--radius-tile);
+  transform: var(--abh-rest);
+  opacity: var(--abh-rest-o);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  /* ★ NO FILTER AND NO BLUR ANYWHERE, which is half of Will's "jittery/buggy".
+     The other half is the DOM box: `compositions.ts` sizes every card to its
+     largest visible moment, so a photograph only ever scales DOWN and is never
+     re-rasterised above its own raster. */
+}
+
+/* THE FRAMES' SHADOW: the light spec's LIFT family, which is the cue for two
+   objects of the same lightness overlapping, and that is what a ring and a
+   scatter do constantly. Bible 10 allows a shadow for exactly this and never as
+   a flat surface effect. It rides the card's own transform, so a far frame
+   casts a small shadow and a near one a large one with no second curve to tune,
+   and it darkens the ground BEHIND the photograph rather than the photograph
+   itself: nothing is laid over a picture (bible 1). */
+.abh-card > * {
+  box-shadow:
+    0 8px 18px -6px oklch(0 0 0 / 0.45),
+    0 18px 38px -10px oklch(0 0 0 / 0.5);
+}
+
+/* THE CROP, per card: the hero writes --abh-crop from a short declared cycle so
+   the same stand-in photograph shows a different part of itself in each frame.
+   It has to live here because next/image writes its own class onto the <img>. */
+.abh-card img {
+  object-position: var(--abh-crop, 50% 50%);
+}
