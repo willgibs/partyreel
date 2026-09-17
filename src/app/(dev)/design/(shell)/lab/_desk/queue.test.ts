@@ -9,7 +9,14 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 
 import type { BoardStatus } from "@/app/(dev)/design/review/status";
 
-import { askStates, boardWork, deskRows, itemStates, openQueue } from "./queue";
+import {
+  askStates,
+  boardWork,
+  deskRows,
+  itemStates,
+  openQueue,
+  transcribedFrom,
+} from "./queue";
 import { SAMPLE_BOARD } from "./sample-spec";
 import { holdId, itemHoldId, itemsStepId, stepId } from "./step-id";
 
@@ -244,5 +251,39 @@ describe("the catalog's cards", () => {
     expect(itemHoldId(s.board, s.round, s.item.id)).toBe(
       `${SAMPLE_BOARD.id}.r${SAMPLE_BOARD.round.n}.item.${s.item.id}`,
     );
+  });
+});
+
+/**
+ * WHAT "COPY SO FAR" IS TOLD THE LEDGER HOLDS (Will, 2026-09-17). Answers and
+ * verdicts were always here; notes were not, so a note already transcribed rode
+ * on every later paste and read as a note on whatever he answered last.
+ */
+describe("what the ledger already holds", () => {
+  const withNote = (n: number): BoardStatus => {
+    const s = status(n, []);
+    return {
+      ...s,
+      round: s.round && {
+        ...s.round,
+        notes: [{ on: null, text: "no light ground for now", by: "Will", at: AT }],
+      },
+    };
+  };
+
+  it("hands over the notes of the board's open round, by board", () => {
+    const rows = deskRows([BOARD], () => withNote(SAMPLE_BOARD.round.n), () => []);
+    expect(transcribedFrom(rows).notes).toEqual({
+      [SAMPLE_BOARD.id]: ["no light ground for now"],
+    });
+  });
+
+  it("holds nothing from a round the board has left", () => {
+    const rows = deskRows(
+      [BOARD],
+      () => withNote(SAMPLE_BOARD.round.n + 1),
+      () => [],
+    );
+    expect(transcribedFrom(rows).notes).toEqual({});
   });
 });

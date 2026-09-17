@@ -16,7 +16,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 36
+          "line": 54
         },
         {
           "title": "is empty when nothing is held",
@@ -24,7 +24,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 61
+          "line": 79
         },
         {
           "title": "drops a note on a board whose round it cannot know",
@@ -32,7 +32,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 67
+          "line": 85
         },
         {
           "title": "omits an answer the ledger already holds with the same choice and note",
@@ -40,7 +40,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 75
+          "line": 93
         },
         {
           "title": "re-includes it the moment the choice changes",
@@ -48,7 +48,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 93
+          "line": 112
         },
         {
           "title": "re-includes it when only the note changed",
@@ -56,7 +56,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 107
+          "line": 126
         },
         {
           "title": "omits a verdict the ledger already holds, and sends a changed one",
@@ -64,7 +64,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 123
+          "line": 142
         },
         {
           "title": "sends a cleared choice's surviving note as a note on that ask",
@@ -72,7 +72,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 147
+          "line": 166
         },
         {
           "title": "never sends an entry from a round the board has left, whatever the ledger lists",
@@ -80,7 +80,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 162
+          "line": 181
         },
         {
           "title": "omits a not-clear answer the ledger holds as null with the same note",
@@ -88,7 +88,31 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 185
+          "line": 204
+        },
+        {
+          "title": "never sends a note the ledger's open round already holds",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 223
+        },
+        {
+          "title": "sends a note again the moment its words change",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 249
+        },
+        {
+          "title": "sends nothing for a step the open round no longer asks",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 260
         },
         {
           "title": "takes a board note along only on the board's open round",
@@ -96,7 +120,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 200
+          "line": 282
         }
       ]
     },

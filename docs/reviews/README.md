@@ -54,9 +54,12 @@ overwrites, so a sitting can land in batches. A multi-line paste is transcribed 
 the same choice and the same note is omitted, a changed one rides again, and a choice cleared with its
 note still in the field arrives as `note: "on <ask>: ..."`. Only a board's open round rides at all: an
 answer from a round the board has left is closed and never copies again, whether or not the reshaped
-board still asks it (Will, 2026-09-17). A pick-one catalog is decided by one ask
-whose options are its card ids plus `none`, so "None of these: new directions" lands as
-`<board> r<n>: <ask>=none "what to try instead"` and the grammar never grew a fourth word.
+board still asks it, nothing rides for an ask or a card the open round no longer declares (a step
+withdrawn inside a round), and a note the ledger already holds is never sent twice (Will,
+2026-09-17). A quoted note belongs to the clause in front of it; `note:` clauses are the board's own
+and always print last, so a trailing one is never a note on the last answer. A pick-one catalog is
+decided by one ask whose options are its card ids plus `none`, so "None of these: new directions"
+lands as `<board> r<n>: <ask>=none "what to try instead"` and the grammar never grew a fourth word.
 
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
 An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.

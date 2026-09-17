@@ -79,6 +79,9 @@ export type BoardRow = {
   openItems: ItemState[];
   /** The notes aimed at THIS board: its ledger's own, and the window's on it. */
   notes: Note[];
+  /** The ledger's own note texts in the board's OPEN round, under the round
+   *  guard: what "Copy so far" must not send a second time. */
+  heldNotes: string[];
 };
 
 /** What the registry says about a board, as the desk needs it. */
@@ -180,6 +183,12 @@ export function deskRows(
         ...(status.round?.notes ?? []),
         ...notesOf(b.id).filter((n) => n.on === b.id),
       ],
+      // The round guard again (askStates): a ledger round the spec has left is
+      // history, and a note it holds may be said again in the new round.
+      heldNotes:
+        status.spec && status.round?.n === status.spec.round.n
+          ? (status.round.notes ?? []).map((n) => n.text)
+          : [],
     };
   });
 }
@@ -224,11 +233,15 @@ function ledgerSideOf(row: BoardRow) {
  * everything already transcribed on every later paste, and a three-answer batch
  * arrived as thirty. The shape is `review-message.ts`'s, keyed by `holdId` and
  * `itemHoldId` exactly as the store keys them, so the comparison is a lookup.
+ * Notes ride by board, because a board note has no key of its own: the store
+ * holds one per board and the ledger a list per round.
  */
 export function transcribedFrom(rows: BoardRow[]): Transcribed {
   const answers: Transcribed["answers"] = {};
   const items: Transcribed["items"] = {};
+  const notes: Transcribed["notes"] = {};
   for (const r of rows) {
+    if (r.heldNotes.length > 0) notes[r.id] = r.heldNotes;
     for (const a of r.asks) {
       if (a.answer)
         answers[holdId(a.board, a.round, a.ask.id)] = {
@@ -244,5 +257,5 @@ export function transcribedFrom(rows: BoardRow[]): Transcribed {
         };
     }
   }
-  return { answers, items };
+  return { answers, items, notes };
 }

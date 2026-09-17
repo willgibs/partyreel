@@ -1,7 +1,11 @@
 // @contract-for: src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx
 import { describe, expect, it } from "vitest";
 
-import { composeSoFar, type Transcribed } from "./review-message";
+import {
+  composeSoFar,
+  type OpenRound,
+  type Transcribed,
+} from "./review-message";
 import { holdId, itemHoldId } from "./step-id";
 
 /**
@@ -27,11 +31,25 @@ import { holdId, itemHoldId } from "./step-id";
  * round; the store still holds the old round's entries, the ledger's map is
  * built from the current spec and so never lists them, and they rode on every
  * paste wearing the old round number. Closed rounds are closed.
+ *
+ * ★ AND SO IS A STEP WITHDRAWN INSIDE A ROUND, AND A NOTE ALREADY SENT (Will,
+ * 2026-09-17, worried his notes were landing on the wrong questions). The light
+ * board's `paper` step was withdrawn after he ruled on it; his browser kept its
+ * text, and every later line ended in `note: "on paper: ..."`, which reads as a
+ * note on the last thing answered. Nothing rides for an ask or a card the open
+ * round no longer declares, and the ledger's own notes are compared like
+ * answers are.
  */
 describe("composeSoFar", () => {
-  const ROUNDS: Record<string, number> = { light: 6, rounding: 6, palette: 6 };
-  const roundOf = (b: string) => ROUNDS[b];
-  const nothing: Transcribed = { answers: {}, items: {} };
+  // Each board's open round as its spec would declare it: the number, and the
+  // asks and cards the transcriber would accept under it.
+  const OPEN: Record<string, OpenRound> = {
+    light: { round: 6, asks: ["cadence", "paper"], items: ["seam"] },
+    rounding: { round: 6, asks: ["gap"], items: [] },
+    palette: { round: 6, asks: [], items: ["ember", "slate"] },
+  };
+  const roundOf = (b: string) => OPEN[b];
+  const nothing: Transcribed = { answers: {}, items: {}, notes: {} };
 
   it("composes only the held answers, verdicts and notes, one line per board", () => {
     const out = composeSoFar(
@@ -84,6 +102,7 @@ describe("composeSoFar", () => {
       {
         answers: { [key]: { choice: "eleven", note: "the wide one" } },
         items: {},
+        notes: {},
       },
     );
     expect(out.answers).toBe(0);
@@ -99,7 +118,7 @@ describe("composeSoFar", () => {
         notes: {},
       },
       roundOf,
-      { answers: { [key]: { choice: "eleven" } }, items: {} },
+      { answers: { [key]: { choice: "eleven" } }, items: {}, notes: {} },
     );
     expect(out.message).toBe("review light r6: cadence=nine");
   });
@@ -113,7 +132,7 @@ describe("composeSoFar", () => {
         notes: {},
       },
       roundOf,
-      { answers: { [key]: { choice: "eleven", note: "" } }, items: {} },
+      { answers: { [key]: { choice: "eleven", note: "" } }, items: {}, notes: {} },
     );
     expect(out.message).toBe(
       'review light r6: cadence=eleven "on second thoughts"',
@@ -129,7 +148,7 @@ describe("composeSoFar", () => {
         notes: {},
       },
       roundOf,
-      { answers: {}, items: { [key]: { verdict: "kill" } } },
+      { answers: {}, items: { [key]: { verdict: "kill" } }, notes: {} },
     );
     expect(same.items).toBe(0);
     const changed = composeSoFar(
@@ -139,7 +158,7 @@ describe("composeSoFar", () => {
         notes: {},
       },
       roundOf,
-      { answers: {}, items: { [key]: { verdict: "kill" } } },
+      { answers: {}, items: { [key]: { verdict: "kill" } }, notes: {} },
     );
     expect(changed.message).toBe("review palette r6: item:ember=keep");
   });
@@ -191,10 +210,73 @@ describe("composeSoFar", () => {
         notes: {},
       },
       roundOf,
-      { answers: { [key]: { choice: null, note: "what is Family here" } }, items: {} },
+      {
+        answers: { [key]: { choice: null, note: "what is Family here" } },
+        items: {},
+        notes: {},
+      },
     );
     expect(out.answers).toBe(0);
     expect(out.message).toBe("");
+  });
+
+  it("never sends a note the ledger's open round already holds", () => {
+    // The paste that worried him: the paper step's words, held by the browser
+    // and already in the ledger from the batch before.
+    const paper = "After experimenting,\n  no light ground usage for now.";
+    const out = composeSoFar(
+      {
+        answers: { "light.r6.paper": { choice: "", note: paper } },
+        items: {},
+        notes: { light: "the footer keeps its seam" },
+      },
+      roundOf,
+      {
+        answers: {},
+        items: {},
+        notes: {
+          light: [
+            "on paper: After experimenting, no light ground usage for now.",
+            "the footer keeps its seam",
+          ],
+        },
+      },
+    );
+    expect(out.notes).toBe(0);
+    expect(out.message).toBe("");
+  });
+
+  it("sends a note again the moment its words change", () => {
+    const out = composeSoFar(
+      { answers: {}, items: {}, notes: { light: "the footer keeps its seam, slower" } },
+      roundOf,
+      { answers: {}, items: {}, notes: { light: ["the footer keeps its seam"] } },
+    );
+    expect(out.message).toBe(
+      'review light r6: note: "the footer keeps its seam, slower"',
+    );
+  });
+
+  it("sends nothing for a step the open round no longer asks", () => {
+    // `hues` was withdrawn inside round six and `halo` left the catalog: the
+    // store still holds all three, and the transcriber would refuse the line.
+    const out = composeSoFar(
+      {
+        answers: {
+          "light.r6.hues": { choice: "flat", note: "" },
+          "light.r6.landing": { choice: "", note: "neither reads on paper" },
+          "light.r6.cadence": { choice: "8s", note: "" },
+        },
+        items: { "light.r6.item.halo": { verdict: "kill", note: "" } },
+        notes: {},
+      },
+      roundOf,
+      nothing,
+    );
+    expect(out.answers).toBe(1);
+    expect(out.items).toBe(0);
+    expect(out.notes).toBe(0);
+    expect(out.message).toBe("review light r6: cadence=8s");
   });
 
   it("takes a board note along only on the board's open round", () => {

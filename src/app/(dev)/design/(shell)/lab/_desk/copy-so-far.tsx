@@ -18,7 +18,8 @@ import { useReviewStore } from "./review-store";
  * The store holds the whole sitting for ever, so the second paste of a batched
  * review used to re-send the first. `transcribed` is what the ledger already
  * holds, read on the server from the desk's own rows, and an entry that matches
- * it choice-and-note is dropped; a changed one rides again.
+ * it choice-and-note is dropped; a changed one rides again. The same holds for
+ * a note, and nothing rides for a step the board no longer asks (2026-09-17).
  */
 export function CopySoFar({
   transcribed,
@@ -30,7 +31,18 @@ export function CopySoFar({
   const store = useReviewStore();
   const { message, answers, items, notes } = composeSoFar(
     store,
-    (board) => boardSpec(board)?.round.n,
+    // The open round as the spec declares it today: a step the board withdrew
+    // is closed the moment it leaves the spec, whatever the store still holds.
+    (board) => {
+      const spec = boardSpec(board);
+      return (
+        spec && {
+          round: spec.round.n,
+          asks: spec.asks.map((a) => a.id),
+          items: spec.catalog ? spec.candidates.map((c) => c.id) : [],
+        }
+      );
+    },
     transcribed,
   );
   const held = answers + items + notes;

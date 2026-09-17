@@ -56,8 +56,12 @@ export type LibraryEntryRuling = {
  * inside quotes and the parser reads it as text there.
  */
 export function quoteNote(text: string): string {
-  const flat = text.replace(/\s+/g, " ").trim();
-  return `"${flat.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  return `"${flatNote(text).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}
+
+/** A note as one line: what the quote sends, and so what the ledger holds. */
+function flatNote(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
 }
 
 /** `<head>=<value>` with the note quoted beside it when there is one. */
@@ -143,9 +147,24 @@ export function composeMessage(
 export type Transcribed = {
   answers: Record<string, { choice: string | null; note?: string }>;
   items: Record<string, { verdict: string; note?: string }>;
+  /** By board: the texts of the notes the ledger holds in the board's OPEN round. */
+  notes: Record<string, string[]>;
 };
 
-const NOTHING_TRANSCRIBED: Transcribed = { answers: {}, items: {} };
+const NOTHING_TRANSCRIBED: Transcribed = { answers: {}, items: {}, notes: {} };
+
+/**
+ * A BOARD'S OPEN ROUND AS THE SPEC DECLARES IT: the number a line must quote,
+ * and the ask and card ids the transcriber would accept under it. Built in the
+ * browser from `boardSpec` (copy-so-far.tsx); undefined for a board that has
+ * left the lab.
+ */
+export type OpenRound = {
+  round: number;
+  asks: readonly string[];
+  /** The catalog's card ids; empty when the board declares no catalog. */
+  items: readonly string[];
+};
 
 /** A note as the ledger would hold it: empty and absent are the same thing. */
 const sameNote = (a?: string, b?: string) =>
@@ -186,6 +205,18 @@ const sameChoice = (sent: string | null, held: string) =>
  * every paste, and the whole line wore the first entry's round. An entry from
  * a round the board has left is closed, whatever the ledger says about it; a
  * board with no round any more (retired) is gone with it.
+ *
+ * ★ AND A STEP THE BOARD NO LONGER ASKS NEVER RIDES, NOR A NOTE THE LEDGER
+ * ALREADY HOLDS (Will, 2026-09-17, rereading a paste: "some of the notes aren't
+ * actually attached to the correct questions"). They were attached correctly;
+ * what he saw was the light board's `paper` step, withdrawn INSIDE round seven
+ * after he ruled on it, whose text his browser still held: a cleared choice
+ * with a surviving note, sent as `note: "on paper: ..."` at the end of every
+ * later line, which reads as a note on whatever he answered last. Two causes,
+ * two guards. An entry is only sent for an ask or a card the open round's spec
+ * still declares (a withdrawn ask's answer would be worse than noise: the
+ * transcriber refuses the whole line for it). And a note is compared with the
+ * ledger exactly as an answer is: the same words are not sent twice.
  */
 export function composeSoFar(
   store: {
@@ -193,7 +224,7 @@ export function composeSoFar(
     items: Record<string, { verdict: string; note: string }>;
     notes: Record<string, string>;
   },
-  roundOf: (board: string) => number | undefined,
+  openOf: (board: string) => OpenRound | undefined,
   transcribed: Transcribed = NOTHING_TRANSCRIBED,
 ): { message: string; answers: number; items: number; notes: number } {
   const answers: SessionAnswer[] = [];
@@ -201,18 +232,20 @@ export function composeSoFar(
   const notes: SessionNote[] = [];
   const ask = /^(.+)\.r(\d+)\.([^.]+)$/;
   const item = /^(.+)\.r(\d+)\.item\.([^.]+)$/;
+  // A note rides unless the ledger's open round already holds the same words.
+  const note = (board: string, round: number, text: string) => {
+    const held = transcribed.notes[board] ?? [];
+    if (held.some((h) => flatNote(h) === flatNote(text))) return;
+    notes.push({ board, round, text });
+  };
   for (const [key, held] of Object.entries(store.answers)) {
     const m = ask.exec(key);
     if (!m) continue;
     const [, board, round, id] = m;
-    if (roundOf(board) !== Number(round)) continue;
+    const open = openOf(board);
+    if (open?.round !== Number(round) || !open.asks.includes(id)) continue;
     if (!held.choice) {
-      if (held.note?.trim())
-        notes.push({
-          board,
-          round: Number(round),
-          text: `on ${id}: ${held.note}`,
-        });
+      if (held.note?.trim()) note(board, open.round, `on ${id}: ${held.note}`);
       continue;
     }
     const sent = transcribed.answers[key];
@@ -229,7 +262,8 @@ export function composeSoFar(
   for (const [key, held] of Object.entries(store.items)) {
     const m = item.exec(key);
     if (!m || !held.verdict) continue;
-    if (roundOf(m[1]) !== Number(m[2])) continue;
+    const open = openOf(m[1]);
+    if (open?.round !== Number(m[2]) || !open.items.includes(m[3])) continue;
     const sent = transcribed.items[key];
     if (sent && sent.verdict === held.verdict && sameNote(sent.note, held.note))
       continue;
@@ -245,9 +279,9 @@ export function composeSoFar(
     if (!text?.trim()) continue;
     // A board note has no round of its own: it rides the board's open round,
     // and a board with none (retired) takes its notes with it.
-    const round = roundOf(board);
-    if (round === undefined) continue;
-    notes.push({ board, round, text });
+    const open = openOf(board);
+    if (!open) continue;
+    note(board, open.round, text);
   }
   return {
     message: composeMessage(answers, notes, items),
