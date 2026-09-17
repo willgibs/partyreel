@@ -27,11 +27,7 @@ export function MatrixMark({
     </>
   ) : (
     <>
-      <Minus
-        className="inline size-4 text-muted-foreground/50"
-        strokeWidth={2}
-        aria-hidden
-      />
+      <Minus className="inline size-4 text-faint" strokeWidth={2} aria-hidden />
       <span className="sr-only">{label ?? "Not included"}</span>
     </>
   );

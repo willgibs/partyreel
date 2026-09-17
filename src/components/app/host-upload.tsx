@@ -186,5 +186,5 @@ function StatusIcon({ status }: { status: ItemStatus }) {
     return (
       <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
     );
-  return <Clock className="size-4 shrink-0 text-muted-foreground/50" />;
+  return <Clock className="size-4 shrink-0 text-faint" />;
 }

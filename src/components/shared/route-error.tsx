@@ -69,7 +69,7 @@ export function RouteError({ area, error, reset }: RouteErrorProps) {
         {error.digest && (
           <p
             style={{ "--nf-i": 3 } as CSSProperties}
-            className="text-xs text-muted-foreground/70"
+            className="text-xs text-faint"
           >
             Error code:{" "}
             <span className="rounded bg-muted px-1.5 py-0.5 text-foreground/80 tabular-nums select-all">

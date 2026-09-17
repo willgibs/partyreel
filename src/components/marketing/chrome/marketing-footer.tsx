@@ -31,7 +31,7 @@ import { FooterGlow } from "./footer-glow";
  * (~22px headings, ~60px row pitch, nothing hidden), so this pass spends the
  * type scale and drops the disclosure entirely.
  *
- * ── THE SLAB PAINTS WITH --gallery*, AND TAKES ITS TOKEN SET FROM .surface-ink ──
+ * ── THE SLAB IS .surface-ink, AND IT PAINTS WITH ITS OWN --background ──
  *   (globals.css, one class since the library phase, 2026-09-11; the reasoning below
  *   is why that class exists)
  *
@@ -39,33 +39,42 @@ import { FooterGlow } from "./footer-glow";
  * forced light), and the root 404 (.surface-paper, and OUTSIDE (marketing) so
  * marketing.css never loads). It must look identical in all three.
  *
- * --gallery* is the system's always-dark family, declared once in :root and
- * deliberately never overridden in .dark. globals.css states the rule outright:
+ * ★ THE SLAB IS NO LONGER THE MEDIA WELL (the palette's round eight, Graphite,
+ * 2026-09-17). Both jobs used to ride --gallery* at one value; the ruling splits
+ * them, the well down to 0.065 so a photograph is the only light on it and this
+ * leaf up to 0.165 so it reads as a step below a paper page rather than a hole
+ * in it. So the class writes the slab's values out and `bg-background` inside it
+ * is the slab. A `bg-gallery` here would now paint the WELL, which is a
+ * different, much deeper colour: do not reach for it.
+ *
+ * A .dark wrapper is still forbidden. globals.css states the rule outright:
  * "never nest .dark inside .surface-paper (always-dark media surfaces use
- * --gallery* instead)". A .dark wrapper here would ALSO silently neuter every
- * `dark:` utility in the subtree, because the custom variant is
+ * --gallery* instead)", and a .dark wrapper here would ALSO silently neuter
+ * every `dark:` utility in the subtree, because the custom variant is
  * `:is(.dark *):not(.surface-paper *)`.
  *
- * ★ But bg-gallery alone is a trap, and this is the part that bites: --ring,
- * --border, --foreground, --muted-foreground and --brand are NOT in that family,
- * so under paper they keep their LIGHT values. `* { outline-ring/50 }` in
- * globals then paints focus rings at oklch(0.3) on an oklch(0.155) slab: 1.44:1
- * measured, against a 3:1 requirement. Muted text lands at 2.62:1 against 4.5:1,
- * and a bare `border-t` paints a near-white hairline. None of it is visible
- * while working on cinema pages, where the footer sits inside .dark and the ring
- * reads 12.4:1. So the slab REDECLARES the tokens it needs, which is the
+ * ★ And a background alone is a trap, which is the part that bites: --ring,
+ * --border, --foreground, --muted-foreground and --brand are NOT surfaces, so
+ * under paper they keep their LIGHT values. `* { outline-ring/50 }` in globals
+ * then paints focus rings at oklch(0.3 0.008 286) on the slab: 1.41:1 measured,
+ * against a 3:1 requirement. Muted text lands at 2.69:1 against 4.5:1, and a
+ * bare `border-t` paints a near-white hairline. None of it is visible while
+ * working on cinema pages, where the footer sits inside .dark and the ring
+ * reads 13.6:1. So the slab REDECLARES the tokens it needs, which is the
  * .surface-paper mechanism applied to one subtree. Everything inside then uses
  * ordinary utilities and is correct by construction rather than by vigilance.
  * Do not remove these; the bug they fix is invisible on the page you develop on.
  *
- * --brand needs redeclaring DIRECTLY, not via --primary: a var() inside a custom
- * property is substituted at the element that DECLARES it, so --brand: var(--primary)
- * already resolved to ink back at :root and inherits down resolved.
+ * --brand needs redeclaring DIRECTLY, not inherited: a var() inside a custom
+ * property is substituted at the element that DECLARES it, so :root's
+ * --brand: var(--primary) already resolved to paper ink back at :root and
+ * inherits down resolved. The class re-declares --primary AND --brand together,
+ * so the alias re-resolves here.
  *
- * Contrast on the slab: --gallery-foreground 17.9:1, --gallery-muted 5.37:1 (AA
- * for body text). Never stack opacity on the muted token: /80 lands at ~4.0:1
- * and fails. --gallery-border is 2.49:1, so it is decoration only and must never
- * become a control boundary or a focus indicator.
+ * Contrast on the slab: --foreground 17.40:1, --muted-foreground 7.60:1 (AA for
+ * body text), --faint 4.21:1 (captions and timestamps only). Never stack an
+ * opacity on a text token here; the hairline is decoration and must never become
+ * a control boundary or a focus indicator.
  *
  * ── MOTION ──
  *
@@ -104,7 +113,8 @@ export function MarketingFooter() {
   return (
     <footer
       className={cn(
-        // The slab's token set: .surface-ink in globals.css (see the header note).
+        // The slab's token set AND its ground: .surface-ink in globals.css
+        // (see the header note). bg-background below is the slab, not the well.
         "surface-ink",
         // isolate + relative give the seam glow something to pin to without it
         // escaping over the page above.

@@ -388,7 +388,9 @@ describe("the search index", () => {
     const has = (query: string, kind: string) =>
       searchLab(index, query).some((g) => g.kind === kind && g.entries.length);
     expect(has("bible 22", "rule")).toBe(true);
-    expect(has("palette", "board")).toBe(true);
+    // A STANDING board: the search index is built from the registry, so a ruled
+    // board is not findable here (the palette was the example until 2026-09-17).
+    expect(has("rounding", "board")).toBe(true);
     expect(has("landmine", "glossary")).toBe(true);
     expect(has("no-em-dash-policy", "policy")).toBe(true);
   });

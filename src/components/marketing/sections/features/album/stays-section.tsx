@@ -20,7 +20,7 @@ import { STAYS } from "./album-copy";
  */
 
 const TICK = "absolute -top-px left-0 h-px w-8 bg-foreground";
-const ORDINAL = "text-xs font-medium text-muted-foreground/70 tabular-nums";
+const ORDINAL = "text-xs font-medium text-faint tabular-nums";
 
 export function StaysSection() {
   return (

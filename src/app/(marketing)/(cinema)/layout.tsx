@@ -57,7 +57,9 @@ export default function CinemaLayout({
 // The browser-UI tint for the always-dark cinema routes. Exported ONCE here and
 // never per page: viewport merges shallowly root -> leaf, so a per-page export
 // that missed a route would silently fall back to the root's light/dark pair.
-// #040404 is oklch(0.11 0 0) (the chapter-3 cinema room) in sRGB hex.
+// #040405 is oklch(0.105 0.0053 286) in sRGB hex: the ONE room the whole
+// product wears since the palette's round eight, so this is now the same value
+// the root layout pins for dark rather than a deeper cinema-only tint.
 export const viewport: Viewport = {
-  themeColor: "#040404",
+  themeColor: "#040405",
 };

@@ -46,7 +46,7 @@ export const metadata: Metadata = {
  * ★ THAT ARC IS THE (cinema) GROUP'S, NOT A NEW ONE. This page opens on the
  * room and rides ONE PaperChapter, which is what /help and all six feature
  * pages already do; the group's layout brings the dark overlay nav, the dark
- * dropdowns, the dark overscroll and the #040404 browser chrome with it. The
+ * dropdowns, the dark overscroll and the #040405 browser chrome with it. The
  * round's first build reached the same picture from the paper side (a
  * (spotlight) group whose header wore a hand-assembled --gallery* set), and
  * the reason that direction is closed is measurable: such a set is always one

@@ -66,6 +66,11 @@ export default async function FoundationsPage({
             tokens={[
               ["Foreground", "--foreground"],
               ["Muted foreground", "--muted-foreground"],
+              // The third text step (the palette's round eight): `text-faint`,
+              // for a timestamp, a caption or a hint. A token rather than an
+              // alpha of the step above, so it is ONE grey on the page, on a
+              // card and on the panel. Captions only; it is under 4.5:1.
+              ["Faint", "--faint"],
               ["Primary", "--primary"],
               ["Border", "--border"],
               ["Input", "--input"],

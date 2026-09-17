@@ -89,7 +89,7 @@ function Column({
               />
             ) : (
               <Minus
-                className="size-3.5 shrink-0 text-muted-foreground/60"
+                className="size-3.5 shrink-0 text-faint"
                 strokeWidth={2.5}
               />
             )}

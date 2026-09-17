@@ -8,7 +8,6 @@ import { GLOW_MOMENTS } from "./glow-moments/spec";
 import { HOME_HERO } from "./home-hero/spec";
 import { LIGHT } from "./light/spec";
 import { MEDIA_KIT } from "./media-kit/spec";
-import { PALETTE } from "./palette/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
 import { ROUNDING } from "./rounding/spec";
 import { TYPE_SCALE } from "./type-scale/spec";
@@ -33,7 +32,6 @@ export const BOARDS: readonly BoardSpec[] = [
   RIVER_VISUAL,
   GLOW_DOCTRINE,
   GLOW_MOMENTS,
-  PALETTE,
   FLOATING_SURFACES,
   LIGHT,
   TYPE_SCALE,

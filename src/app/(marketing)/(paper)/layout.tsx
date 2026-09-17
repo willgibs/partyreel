@@ -39,5 +39,5 @@ export default function PaperLayout({
 // (viewport merges shallowly root→leaf; this replaces the root's media pair
 // for the whole (paper) group — the cinema layout is the dark mirror).
 export const viewport: Viewport = {
-  themeColor: "#fcfcfc",
+  themeColor: "#fdfdff",
 };

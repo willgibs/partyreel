@@ -100,7 +100,7 @@ function RoleRow({ role, index }: { role: JobOpening; index: number }) {
       <div className="flex min-w-0 flex-col gap-2.5">
         <div className="flex items-center gap-3">
           <RoleEmblem slug={role.slug} className="-my-1 mr-1" />
-          <span className="text-xs font-medium text-muted-foreground/70 tabular-nums">
+          <span className="text-xs font-medium text-faint tabular-nums">
             {String(index + 1).padStart(2, "0")}
           </span>
           <span aria-hidden className="h-px flex-1 bg-border" />

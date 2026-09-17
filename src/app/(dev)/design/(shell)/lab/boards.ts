@@ -8,7 +8,6 @@ import { GlowMomentsBoard } from "@/app/(dev)/design/sandbox/glow-moments/board"
 import { HomeHeroBoard } from "@/app/(dev)/design/sandbox/home-hero/board";
 import { LightBoard } from "@/app/(dev)/design/sandbox/light/board";
 import { MediaKitBoard } from "@/app/(dev)/design/sandbox/media-kit/board";
-import { PaletteBoard } from "@/app/(dev)/design/sandbox/palette/board";
 import { RiverVisualBoard } from "@/app/(dev)/design/sandbox/river-visual/board";
 import { RoundingBoard } from "@/app/(dev)/design/sandbox/rounding/board";
 import { TypeScaleBoard } from "@/app/(dev)/design/sandbox/type-scale/board";
@@ -31,7 +30,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "home-hero": { Component: HomeHeroBoard },
   "glow-doctrine": { Component: GlowDoctrineBoard },
   "glow-moments": { Component: GlowMomentsBoard },
-  palette: { Component: PaletteBoard },
   light: { Component: LightBoard },
   "type-scale": { Component: TypeScaleBoard },
   "floating-surfaces": { Component: FloatingSurfacesBoard },
