@@ -25,6 +25,16 @@ export type Trap = {
 
 export const TRAPS: readonly Trap[] = [
   {
+    id: "vw-in-a-narrow-div",
+    tried:
+      "Preview a phone-width surface by putting the real markup in a 375px-wide div on the board page, and label it 375.",
+    breaks:
+      "Every step of the type ladder is a `vw` clamp, and `vw` is the BROWSER's width, not the container's. On a 1550 page the masthead rendered at 160px inside a box 375 wide, while the caption underneath said 64. Nothing errors and the layout looks plausible, so the reviewer answers a question about the wrong sizes: the previews are not merely imprecise, they are of the other breakpoint entirely.",
+    instead:
+      "A same-origin iframe is the only real viewport the lab has. `Frame` takes `children` and portals the composition INTO the frame's document, so no scene route is needed; it also copies the parent's <html> class, without which next/font's variables are absent and the whole scene falls back to a serif.",
+    file: "src/components/lab/frame.tsx",
+  },
+  {
     id: "stale-lab-stylesheet",
     tried:
       "Trust `next dev` to serve design.css as it is on disk after a change.",

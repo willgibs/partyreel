@@ -367,6 +367,18 @@ export function Frame({
           copy.dataset.labCopied = "";
           fdoc.head.appendChild(copy);
         });
+      // ★ THE FONT VARIABLES LIVE ON <html>, NOT IN A SHEET. next/font emits a
+      // class that DECLARES `--font-inter` and `--font-urbanist`, and the rule
+      // that does it comes over with the stylesheets above; what does not come
+      // over is the class itself, which sits on the parent's <html>. Without
+      // it every portalled scene fell back to the browser's serif while its
+      // sizes and colours were correct, which reads as a broken preview rather
+      // than a missing variable (found on the first portalled exploration,
+      // 2026-09-18). Copying the class brings the faces and the theme with it.
+      fdoc.documentElement.setAttribute(
+        "class",
+        document.documentElement.className,
+      );
       const reset = fdoc.createElement("style");
       reset.dataset.labCopied = "";
       reset.textContent = "body{margin:0}";
