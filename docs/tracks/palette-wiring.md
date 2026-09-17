@@ -126,7 +126,7 @@ board still renders on the new tokens.
 
 ## Handoff (replaces the chat report)
 
-- Head `<sha>`, pushed; synced with `launch-prep` at `78a54014` (it had moved by one commit, the
+- Head `59b11da8` (plus this one-line fill), pushed; synced with `launch-prep` at `78a54014` (it had moved by one commit, the
   same rules-artifact regeneration this lane had already made; merged clean at `7949eebc`).
 - Gates on the synced tree: typecheck ok, lint ok (0 errors, 9 pre-existing warnings), test ok
   (2,117; down from 2,176 because `registers.test.ts` retired with its board), build ok (258 static
