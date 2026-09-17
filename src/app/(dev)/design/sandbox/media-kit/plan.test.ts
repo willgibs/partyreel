@@ -17,6 +17,7 @@ import {
   BARRED_SOURCES,
   drawableVerticals,
   LICENCES,
+  SEARCH_QUERY,
   sheetFor,
   SOURCES,
   VERTICAL_LABEL,
@@ -97,6 +98,25 @@ describe("the plan", () => {
 });
 
 describe("the sourcing sheet", () => {
+  it("opens a door to every source for every kind of event", () => {
+    // Will, 2026-09-17: a source whose sheet cannot be drawn is "at least
+    // linked neatly to explore". Every source, every vertical: https, and the
+    // vertical's own words in the door, unless the source's only reachable
+    // door is its home (Death to Stock, whose browse paths refuse everything
+    // but a browser).
+    for (const s of SOURCES) {
+      for (const v of ALL_VERTICALS) {
+        const door = s.search(v);
+        expect(door, `${s.id} ${v}`).toMatch(/^https:\/\//);
+        const word = SEARCH_QUERY[v].split(" ")[0];
+        expect(
+          door === s.url || door.toLowerCase().includes(word),
+          `${s.id} ${v}: the door neither carries "${word}" nor is the source's own door`,
+        ).toBe(true);
+      }
+    }
+  });
+
   it("has a unique id, a price and a quoted clause on every card", () => {
     const ids = SOURCES.map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);
