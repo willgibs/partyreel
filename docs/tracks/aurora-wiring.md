@@ -1,6 +1,6 @@
 ---
 track: aurora-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "4280a59c"
 board: none
 owns:
@@ -15,6 +15,15 @@ owns:
   - src/components/shared/glow-placement.test.ts
   - src/app/(dev)/design/(shell)/library/foundations/gallery-demos.tsx
   - src/app/(dev)/design/(shell)/library/marketing/
+  # Added at handoff, not at the cut, and each one forced rather than chosen; the
+  # Handoff's lane check says why per file. Three are GENERATED (pnpm design:rules,
+  # the specimen collector) and a stale copy fails the gate; the fourth is one `for`
+  # line, which gallery.test.ts and component-index.test.ts both require of a new
+  # component in an indexed directory.
+  - docs/design/library.md
+  - src/app/(dev)/design/rules/rules.generated.json
+  - src/app/(dev)/design/gallery/specimens.generated.json
+  - src/app/(dev)/design/rules/component-notes.ts
 reads:
   - docs/reviews/light.json
   - docs/design/rulings.md
@@ -130,28 +139,116 @@ new.
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The transform drive's resting state was broken, and the field is the first lamp to sit on it.**
+  Built, not asked, because it is law 4 as code rather than a product call:
+  `[data-glw-drive="transform"] [data-glw-band]` declared no `translate`, and every engine animation
+  lives inside `@media (prefers-reduced-motion: no-preference)`, so a reduced-motion visitor saw the
+  comet parked dead centre at full strength, permanently. Identical to the `mask-position: 50% 0`
+  defect round 1 fixed on the other drive, and invisible until now only because no shipped lamp used
+  this one. It now declares `glw-drift-x`'s own from-keyframe (`translate: 32% 0`), so the animated
+  path is unchanged down to the frame and only the still moves. **Recommendation: keep.** Nothing to
+  relay unless Will wants the field on the mask drive instead, which would cost a chapter-sized
+  repaint every frame.
+- **`room` ships as a prop value although the kit's fence list is nearby.** The fenced placement is
+  `behind` (origin at 46%, which becomes a fill behind everything); `room` is an origin-anchored cast
+  from the section's own FLOOR, so it still declares a vector and passes law 2. Both `middle` and
+  `behind` are absent from the type. **Recommendation: keep the four, watch `room` at review.**
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet (expected: `docs/systems/design-system.md`, the lamps: the clock, the field, the vocabulary)
+- `docs/systems/design-system.md`, the lamp doctrine: the cadence paragraph rewritten (11s ruled to
+  8s, plus `--aurora-cadence` and why an undeclared sibling freezes a band), and a new
+  `### The Aurora, and its three forms` subsection (the vocabulary, `SectionLight`'s geometry and
+  register, the transform drive's resting translate, the light-ground fence, and the note that the
+  field has no production call site yet).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Design**: the Aurora's field has no production call site; the home's two candidates (the guest
+  ledger and the closer, `second=home-arc`) land the moment Will answers the light board's round-eight
+  placement question.
+- **Design**: the throw's production call site (the QR plate) still waits on the unruled bloom card;
+  the publish flourish (`rxp-bloom` / `rxp-pubglow`) waits on the same card.
+- **Design**: a hand-tuned PAPER five for `--lamp-1..5`. Nothing overrides the dark register on paper
+  today, so a media-less lamp on a paper chapter would light a near-white page with colours picked for
+  a near-black room. Latent rather than live (no production lamp sits on paper), and now doubly latent
+  since the Aurora is fenced off light grounds entirely.
+- **Design**: the grain tile (`docs/ASSETS.md` row 15). Not requested again; the field ships without
+  one and does not band at this register on the grounds tested.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- What landed, one line each: the clock, the field, the fence on paper, the contract, the two Library entries
-- What the engine does on `.surface-paper` today for the seams that already ship (one line, for Will)
-- The tuner knob's new sentence (for the Orchestrator's file)
-- Assets requested from Will: none
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- The work is `9c4bb8fd`; this manifest is the commit on top of it and is the branch head, pushed.
+  `origin/launch-prep` had not moved (still `c338c95c`), so no sync was needed.
+- Gates on the tree: typecheck ok, lint ok (0 errors, 9 pre-existing warnings, none in this lane),
+  test ok (2138 in 229 files), build ok (257 pages). `pnpm lab:smoke`: 0 route failures; the 2 are the
+  pre-existing reading-budget overruns on `glow-doctrine` (3916 words) and `glow-moments` (4495),
+  two legacy boards this lane does not own and did not touch.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is the owned paths plus four, each
+  forced: `docs/systems/design-system.md` (listed above), `docs/design/library.md` +
+  `src/app/(dev)/design/rules/rules.generated.json` (`pnpm design:rules` rewrites both and
+  `rules-registry.test.ts` fails on a stale copy), `src/app/(dev)/design/gallery/specimens.generated.json`
+  (the specimen collector, same deal), and **`src/app/(dev)/design/rules/component-notes.ts`**: one
+  added `for` line for `section-light.tsx`. Not optional and not cosmetic, since `gallery.test.ts`
+  and `component-index.test.ts` both fail on a new indexed component without one. One line, in the
+  sorted `marketing/system` group; no other lane is near it.
+- What landed:
+  - **The clock.** `--spill-cadence: 8s` with its comment rewritten, and
+    `--aurora-cadence: calc(var(--spill-cadence) * 3)` declared beside it with the freeze story. The
+    footer's, the film strip's, the reel's and every screen lamp's computed `animation-duration` now
+    reads 8s; the field's reads 24s; the QR bloom keeps its own 1.4s (a MARK tunes itself inline).
+  - **The field.** `src/components/marketing/system/section-light.tsx`: `placement` is
+    `both | top | bottom | room`, two seams at 42 percent of the section's height, the bottom one the
+    top one flipped (`scale: "1 -1"`), the accent register in one `AURORA_VARS` object, the transform
+    drive, `--glw-dur: var(--aurora-cadence)`, no `className` anywhere near the lamp. No production
+    call site, per the goal.
+  - **The fence on paper.** One rule in `globals.css`:
+    `[data-section-light]:not(.dark *), .surface-paper [data-section-light] { display: none }`,
+    theme.css's `dark` variant inverted. Verified three ways in the browser: outside `.dark` = none,
+    inside `.dark` = block, `.surface-paper` nested inside `.dark` = none.
+  - **The contract.** `section-light.test.ts`, 10 pins, all function: the engine and nothing of its
+    own, the flipped band, no className on the lamp, the clock from its token, one register object,
+    never clipping, content after the light in a positioned wrapper, the hook on the LIGHT and never
+    on the content (or paper would hide the chapter), the CSS fence with both halves, and the
+    transform drive's resting translate equal to `glw-drift-x`'s from-keyframe.
+  - **The Library.** Foundations' `glow` entry keeps its id and its URL and presents as **Aurora**,
+    with a lede in his vocabulary and one live specimen per kept form on a dark ground (the seam on a
+    boundary, the throw under a plate, the field through `SectionLight`), badged `updated`.
+    `SectionLight` gets its own entry under Marketing > Shells, badged `new`: the four placements
+    plus a fifth frame that is the FENCE as a specimen (the same component inside a `PaperChapter`,
+    deliberately painting nothing).
+- **What the engine does on `.surface-paper` today, for Will:** nothing at all. There is no
+  `.surface-paper [data-glw]` rule in `globals.css`, `theme.css` or `marketing.css`, and `--lamp-1..5`
+  are declared once at the DARK register, so a media-less seam on a paper chapter would light a
+  near-white page with colours picked for a near-black room (the "dirty rather than lit" failure the
+  sampled paper register fixed for lamps WITH media). It is latent, not live: no production lamp sits
+  on paper today. Widening the Aurora's fence to `[data-glw]` would unlight four shipped lamps, so it
+  is deliberately scoped to `[data-section-light]` and left as his question.
+- **The tuner knob's new sentence** (`src/components/dev/motion-tuner-config.ts`, the Orchestrator's
+  file). Three edits, and the third is load-bearing:
+  - the comment above the control: "Every lamp reads `--spill-cadence` (globals.css, 8s since Will's
+    ruling of 2026-09-17). The Aurora's field is not on this knob directly: it follows at three laps,
+    through `--aurora-cadence`."
+  - `description`: "One full cycle of every lamp's drift, ruled 8s on the whole page (2026-09-17); the
+    Aurora's field follows at three laps of it."
+  - `default: 11` to `default: 8`. ★ `setTunerValue` compares against `default` to decide whether to
+    store an override or drop one, so leaving 11 would leave a phantom override that Reset never
+    clears, and the light board's `useClocks` reads the same field as its SSR fallback.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `/design/library/section-light` at 1440, the `room` placement and the paper frame
+  beneath it (the fence, visible), then the footer of any page for the 8s clock.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-17). The three forms of light Will kept landed as one
+family in his word: the clock ruled to 8s on every lamp with `--aurora-cadence` declared beside it as
+a sibling (three laps, 24s) rather than a re-tune, and `SectionLight` shipped as the field's one
+mount, four placements, the accent register in one object, the bottom band the top one flipped. The
+no-light-ground ruling became a CSS fence keyed on `[data-section-light]`, mirroring the dark variant
+inverted, scoped to the field so the four shipped seams keep their own paper history. Being the first
+shipped lamp on the transform drive exposed that drive's missing resting `translate`, which parked the
+comet dead centre at full strength for every reduced-motion visitor; it now rests at its own
+from-keyframe. Two Library entries carry it: Foundations presents as Aurora with a specimen per form,
+and SectionLight ships its placements plus the paper frame that paints nothing on purpose. No
+production call site: the placement is round eight's question.
