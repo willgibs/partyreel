@@ -543,7 +543,7 @@ function AskBody({
           carry `data-lab-bleed`, which takes the page's gutter back and would
           then be clipped by this block's own overflow. */}
       {stage && (
-        <div className="z-20 flex flex-col gap-3 border-b border-border bg-background/90 pb-3 backdrop-blur sm:sticky sm:top-[var(--lab-topbar-h,0px)] sm:pt-3">
+        <div className="sticky top-[var(--lab-topbar-h,0px)] z-20 flex flex-col gap-3 border-b border-border bg-background/90 pt-2 pb-3 backdrop-blur sm:pt-3">
           {strip && <ConfigStrip step={step} board={board} />}
           {/* ★ THE PINNED STAGE DOES NOT TAKE THE POINTER. It is evidence, not
               a control: every press on this screen is a tile. Without this the
@@ -552,9 +552,12 @@ function AskBody({
               scrolling the step moved the frame 194px and the page 0). The
               board itself is one click away in the spine for poking at. */}
           <div className="relative min-w-0">
+            {/* A phone gets a shorter peek: 812px of viewport has to hold the
+                pinned evidence, a card and the fixed foot, and 375 is where the
+                travel it replaces was worst. */}
             <div
               data-lab-specimen=""
-              className="pointer-events-none min-w-0 overflow-hidden"
+              className="pointer-events-none min-w-0 overflow-hidden max-sm:[--lab-stage-peek:34vh]"
               style={{ maxHeight: "var(--lab-stage-peek, 40vh)" }}
             >
               {board.evidence(stageSection, stageState)}
