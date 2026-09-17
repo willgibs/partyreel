@@ -367,7 +367,7 @@ export function ReelReveal({
           act !== "settled" && "pointer-events-none",
         )}
       >
-        <div className="rounded-lg bg-white/95 p-3 shadow-lg">
+        <div className="rounded-lg bg-white/95 p-3 shadow-layer">
           <p className="text-sm font-semibold text-zinc-900">
             Your reel is ready
           </p>

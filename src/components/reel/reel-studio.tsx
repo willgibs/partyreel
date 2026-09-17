@@ -321,7 +321,7 @@ export function ReelStudio({
           <div
             data-rxp-toastcard
             role="status"
-            className="absolute inset-x-6 bottom-2 flex items-center gap-2 rounded-lg bg-white/95 p-2.5 shadow-lg"
+            className="absolute inset-x-6 bottom-2 flex items-center gap-2 rounded-lg bg-white/95 p-2.5 shadow-layer"
           >
             <span
               aria-hidden

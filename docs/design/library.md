@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 17 policies · 222 contracts on 33 components · 9 standing boards.**
+**22 laws · 18 policies · 229 contracts on 40 components · 8 standing boards.**
 
 ## What binds you
 
@@ -218,6 +218,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | --- | --- | --- |
 | A count can never glue itself to its noun | a multi-line JSX text run that opens with a space and holds an HTML entity, which Next 16's SWC renders as "24marketing". | `src/app/(dev)/design/sandbox/media-kit/board-jsx.test.ts:1` |
 | Keyframe names are unique | a second @keyframes of the same name in any stylesheet, which shadows the first for the rest of the session. | `src/app/keyframe-uniqueness.test.ts:1` |
+| Two shadows, each declared by its role | a stock Tailwind shadow, a hand-typed box-shadow or the retired shadow-float name on a production surface, and a ground that re-declares the theme without both shadows. | `src/lib/elevation-policy.test.ts:1` |
 | The record is two rounds deep | a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |
 | Every track claims its lane | a malformed track manifest, or two live tracks claiming the same path prefix. | `src/lib/track-manifests.test.ts:1` |
@@ -243,11 +244,11 @@ function. A contract never freezes a look.
 | --- | --- | --- |
 | `src/components/marketing/frames/album-frame.tsx` | the browser-album mock: an even grid of tiles holding event media, decorative | none |
 | `src/components/marketing/frames/browser-frame.tsx` | the browser card every media frame is built on: one card look, one window bar | none |
-| `src/components/marketing/frames/gallery-frame.tsx` | the lightbox-style album mock: one big frame on the dark gallery ground, plus a filmstrip | none |
-| `src/components/marketing/frames/live-qr.tsx` | the real, scannable demo QR; client only, since qr-code-styling touches window | none |
-| `src/components/marketing/frames/phone-frame.tsx` | the phone bezel (PhoneShell) and the guest-upload mock that fills it | none |
-| `src/components/marketing/frames/qr-frame.tsx` | the scan-to-join card: a drawn QR block, or the live demo code when a URL is passed | none |
-| `src/components/marketing/frames/reel-frame.tsx` | the video-player frame; pass real media and the painted-on transport steps aside | none |
+| `src/components/marketing/frames/gallery-frame.tsx` | the lightbox-style album mock: one big frame on the dark gallery ground, plus a filmstrip | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
+| `src/components/marketing/frames/live-qr.tsx` | the real, scannable demo QR; client only, since qr-code-styling touches window | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
+| `src/components/marketing/frames/phone-frame.tsx` | the phone bezel (PhoneShell) and the guest-upload mock that fills it | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
+| `src/components/marketing/frames/qr-frame.tsx` | the scan-to-join card: a drawn QR block, or the live demo code when a URL is passed | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
+| `src/components/marketing/frames/reel-frame.tsx` | the video-player frame; pass real media and the painted-on transport steps aside | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
 | `src/components/marketing/sections/features/shared/feature-door.tsx` | a feature's door card: the photograph IS the card, plus the chip that surface draws | gives every registry page a photograph, except the QR plate; only ever points at manifest images; keeps the white focus ring, offset inward, on the photographic link |
 | `src/components/marketing/sections/features/shared/feature-faq.tsx` | the one FAQ band all six feature pages share, and the only place their JSON-LD is emitted | none |
 | `src/components/marketing/sections/features/shared/feature-hero-eyebrow.tsx` | the feature hero's one eyebrow | none |
@@ -257,7 +258,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/sections/features/shared/text-swap.tsx` | swaps one line of text for another: the old blurs up and out, the new rises in | none |
 | `src/components/marketing/sections/shared/bulk-select-mock.tsx` | the app's select tile and bulk bar, quoted for marketing: resting shapes, never controls | none |
 | `src/components/marketing/sections/shared/confetti-burst.tsx` | the celebratory beat: confetti with real physics, one shot per fire, never an ambient loop | none |
-| `src/components/marketing/sections/shared/inline-reel-player.tsx` | the poster-first reel surface: no video bytes until someone asks to play | none |
+| `src/components/marketing/sections/shared/inline-reel-player.tsx` | the poster-first reel surface: no video bytes until someone asks to play | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
 | `src/components/marketing/sections/shared/learn-chevron.tsx` | the bare learn-more chevron, for a row that is already a link and cannot nest another | none |
 | `src/components/marketing/sections/shared/learn-more-link.tsx` | the recurring see-more link: the chevron's arms spread on hover, pure CSS | none |
 | `src/components/marketing/sections/shared/sample-reel-overlay.lazy.tsx` | the watch-a-sample-reel overlay, lazy so the home page never carries it | none |
@@ -292,7 +293,7 @@ function. A contract never freezes a look.
 | `src/components/shared/kbd.tsx` | the keyboard-key chip; dropped in a tooltip it picks that treatment up by data-slot | none |
 | `src/components/shared/legal-consent-line.tsx` | the one acceptance line tying a sign-in or a guest's entry to Terms and Privacy | links both documents in the same tab by default; opens in a new tab with noopener when asked; both consumers use the component, not a copy |
 | `src/components/shared/logo.tsx` | the brand lockup, and the one splash of accent allowed in neutral chrome | none |
-| `src/components/shared/masonry.tsx` | the shared masonry grid: true aspect ratios, space reserved before an image loads | none |
+| `src/components/shared/masonry.tsx` | the shared masonry grid: true aspect ratios, space reserved before an image loads | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
 | `src/components/shared/media-lightbox.lazy.tsx` | the lazy wrapper around the lightbox | none |
 | `src/components/shared/media-lightbox.tsx` | the media lightbox with its gesture physics | none |
 | `src/components/shared/not-found-screen.tsx` | the shared dead end for the not-found pages; content only, it wraps itself in nothing | none |
@@ -363,7 +364,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
-| `light` | shared | Round eight, the three steps still open: shadows in dark mode on one scene with a legend, the thin bright edge enlarged, and the streak of light that plays once |
 | `floating-surfaces` | shared | Seven directions as cards, each the event menu at 328 wide on the app's dark over the album with the Ground switch moving all seven; the host's desk under two directions at once; two questions still open (the radius, the entrance) |
 | `brand-voice` | marketing | Round seven: six voices as cards, each writing the same three lines of the home page's first screen at the size a phone draws them, decided by one pick or none; the real home page under the card being pressed; the noun, the link preview, the numbers and how far the winner reaches as steps of their own, every answer drawn at once |
 | `media-kit` | marketing | Thirteen real catalogues as cards, ranked by whether they hold a release, each with its clause, its price and a contact sheet at the real card size, ship above the line and kill below; four questions about the thirteen (the rule, the spend, the crowds, the shoot) |

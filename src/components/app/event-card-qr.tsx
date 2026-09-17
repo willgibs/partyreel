@@ -36,7 +36,7 @@ export function EventCardQr({
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Share ${eventName}`}
-        className="flex items-center justify-center rounded-[var(--radius-tile)] bg-white p-1.5 text-black shadow-[0_4px_12px_rgba(0,0,0,0.3)] outline-none transition-transform duration-150 ease-emphasis active:scale-95 focus-visible:ring-2 focus-visible:ring-white motion-reduce:active:scale-100"
+        className="flex items-center justify-center rounded-[var(--radius-tile)] bg-white p-1.5 text-black shadow-lift outline-none transition-transform duration-150 ease-emphasis active:scale-95 focus-visible:ring-2 focus-visible:ring-white motion-reduce:active:scale-100"
       >
         <QrCode className="size-5" aria-hidden />
       </button>

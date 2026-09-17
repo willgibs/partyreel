@@ -4,11 +4,14 @@ import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
 import { Pager } from "@/app/(dev)/design/(shell)/_shell/pager";
 import { Section, Sub } from "@/app/(dev)/design/(shell)/_shell/section";
+import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { EntryBlock } from "@/app/(dev)/design/gallery/gallery-ui";
 import { itemById } from "@/app/(dev)/design/gallery/registry";
 import { Specimen } from "@/app/(dev)/design/gallery/specimen";
 import { Column, Swatch } from "@/app/(dev)/design/reference/reference-ui";
 
+import { BrightEdge } from "./bright-edge";
+import { ElevationLegend } from "./elevation-legend";
 import { TypeLadder } from "./type-ladder";
 
 /**
@@ -244,16 +247,19 @@ export default async function FoundationsPage({
       <Section
         id="elevation"
         title="Elevation"
-        blurb="One depth technique per mode: in light, a single soft shadow on the floating layer; in dark, no shadows, lighter surface steps do the lifting. Split a block to see both at once."
+        aside={<Tag badge="updated" />}
+        blurb="Four techniques, one per height, and one screen uses all of them at once: the lighter panel, the thin outline, a small shadow where one object really overlaps another, and a larger one under anything that floats. A surface lying flat takes neither shadow, in either mode. Split the block to read it in light and dark at once."
       >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Specimen label="Floating layer" hint="shadow-float">
-            <div className="flex h-24 items-center justify-center rounded-[var(--radius-float)] bg-popover shadow-float">
-              <span className="text-sm text-muted-foreground">
-                Menu / tooltip / toast
-              </span>
-            </div>
-          </Specimen>
+        {/* The legend Will said finally made the system legible (2026-09-17),
+            on the light board's own scene. A sibling client component in the
+            type-ladder pattern: the scene measures its room and prints the two
+            live tokens, so nothing here can drift from globals.css. */}
+        <Specimen label="The four heights" hint="step · ring · lift · layer">
+          <ElevationLegend />
+        </Specimen>
+        {/* The step on its own: the three surfaces a panel can be, nested, so
+            the ladder is readable without the scene around it. */}
+        <div className="mt-3">
           <Specimen label="Surface steps" hint="bg / card / popover">
             <div className="space-y-2">
               <div className="rounded-lg bg-background p-2 text-center text-xs text-muted-foreground">
@@ -266,6 +272,18 @@ export default async function FoundationsPage({
             </div>
           </Specimen>
         </div>
+      </Section>
+
+      <Section
+        id="bright-edge"
+        title="The bright edge"
+        aside={<Tag badge="new" />}
+        blurb="One pixel of light catching the bevel of a surface lit from above: brightest along the top, falling away down the sides, nothing at the foot. Three kinds of surface take it (a photograph or a video, a framed screen, the QR card) and nothing else does. It is material, not elevation and not a lamp, and it exists on dark grounds only. Each surface is at true size beside its own top left corner at four times the size. If it ever reads as a frame, it is too strong."
+      >
+        {/* The light board's face step, kept and polished (Will, 2026-09-17).
+            The rule is [data-lit] in globals.css; bright-edge.tsx says why
+            this sheet forces its own two grounds instead of using the split. */}
+        <BrightEdge />
       </Section>
 
       <Section

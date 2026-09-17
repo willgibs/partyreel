@@ -41,10 +41,14 @@
       (menus/tooltips/toasts) rides --radius-float (sharp reads broken there).
       Nested corners follow inner = outer − gap (Hobday); sharp-surface/
       round-action is the system's one deliberate exception to that math.
-    • THE ELEVATION CONTRACT: light mode floats on ONE soft shadow family
-      (--shadow-float, blur = 2× offset, single top light source); dark mode
-      uses NO shadows — depth = lighter surface steps (bg 0.14 → card 0.21 →
-      popover 0.23) + borders. One depth technique per mode, never mixed.
+    • THE ELEVATION CONTRACT (Will's ruling, 2026-09-17): FOUR techniques, one
+      per height, never rivals. The STEP (a panel is a shade lighter than the
+      page) and the RING (a hairline marks an edge) ship on every surface. The
+      LIFT (--shadow-lift) goes only where one object overlaps another of its
+      own lightness; the LAYER (--shadow-layer) goes under anything the page
+      keeps living behind. A flat surface takes neither shadow, in either
+      mode. One geometry (blur = 2× offset, single top light source), two
+      sizes, one alpha ramp per ground.
     • TYPE: Urbanist is the heading face via the `font-heading` utility below
       (bold 700 at -3% tracking). TIERED app heading scale: PAGE titles 700
       (PageHeading), CARD/section titles 600 (CardTitle), per-setting LABELS stay
@@ -83,7 +87,8 @@
    paper theme" hook (marketing paper pages + paper chapters inside the cinema
    dark). Custom-property inheritance is nearest-ancestor, so a .surface-paper
    element inside `.dark` flips every token light for its subtree — including
-   the light elevation (--shadow-float returns) and light state colors. Tokens
+   the light elevation (both shadows take paper's alphas again, which is what a
+   card straddling a cinema-to-paper cut relies on) and light state colors. Tokens
    added to :root later reach paper surfaces automatically; `.dark`-only
    overrides stay dark-only. NEVER alias `.dark` this way, and never nest
    `.dark` inside `.surface-paper` (always-dark media surfaces use --gallery*
@@ -95,8 +100,9 @@
   /* Light = paper, the PEARL register (the palette's round eight, Will ruled
      Graphite 2026-09-17). Two things changed and both are deliberate. The page
      is the brightest thing in the product at 0.995 and a CARD IS THE SAME
-     WHITE: a card is defined by its hairline and its shadow, never by a step of
-     0.007 that no eye resolves. And every fill BELOW the page is one of Apple's
+     WHITE: a card is defined by its hairline, never by a step of 0.007 that no
+     eye resolves (and never by a shadow: since the light ruling a surface
+     lying flat takes none, see THE TWO SHADOWS below). And every fill BELOW the page is one of Apple's
      cool greys at hue 286 (their grey, not their blue at 258), so a panel and a
      hover fill are 0.040 apart instead of 0.005. The menu is the one surface
      brighter than the page, because a menu is genuinely above it. */
@@ -154,10 +160,36 @@
      signal, distinct from like-rose + save-blue. Used as the ICON color when in-reel / on hover. */
   --reel: oklch(0.62 0.2 300);
 
-  /* Elevation: the floating layer's one shadow family (blur = 2x offset,
-     single top light source). Dark mode zeroes it (see .dark). */
-  --shadow-float:
+  /* ─── THE TWO SHADOWS, BY ROLE (Will's ruling, 2026-09-17: "A small shadow
+     where one card sits on another, and a larger one under menus, dialogs and
+     toasts"). ONE geometry (blur = 2x offset, single top light source), TWO
+     sizes, ONE alpha ramp per ground.
+
+       LIFT   separates two objects of the same lightness that really overlap:
+              stacked photographs, a print deck, a card overhanging a seam.
+       LAYER  detaches anything the page keeps living behind: a menu, a
+              dialog, a sheet, a toast, a bar floating over the gallery.
+       A flat surface takes NEITHER, in either mode. A card on a page is its
+       step and its ring; a shadow under it is a smudge in dark and a fifth
+       technique in light. The role is the call site's to declare, by wearing
+       `shadow-lift` or `shadow-layer` (theme.css), and a raw Tailwind shadow
+       anywhere else is refused by src/lib/elevation-policy.test.ts.
+
+     ★ PAPER DID NOT MOVE. The lift here is the old --shadow-float to the byte
+     and the layer is that geometry at double the offsets. What the ruling
+     added is the DARK ramp (see .dark): 6 percent of black over a 0.105 room
+     is arithmetically invisible, which is the whole reason dark read as
+     shadowless. ─── */
+  --shadow-lift:
     0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
+  --shadow-layer:
+    0 4px 8px -2px oklch(0 0 0 / 0.09), 0 8px 16px -4px oklch(0 0 0 / 0.13);
+  /* THE OLD NAME, A BRIDGE FOR THE LAB ONLY. No production surface reads it
+     (the policy pins that): the rounding board's two floating specimens still
+     wear `shadow-float`, and that board is another lane's and mid-review. On a
+     light ground the alias is the same bytes it always was. It retires with
+     that board: delete the three declarations and theme.css's mapping. */
+  --shadow-float: var(--shadow-lift);
 
   /* Gallery canvas — identical in light & dark (media-first, theme-independent).
      ★ THE WELL SPLIT OFF THE SLAB at the palette's round eight. These were one
@@ -291,8 +323,10 @@
      theirs and a tint disappears into black, so a card has to read as cool
      rather than as merely lighter. The ladder is 0.105 -> 0.175 -> 0.225 ->
      0.27 -> 0.315: the first step is the big one, so a panel separates from the
-     room and everything above it is a close ladder. NO shadows in dark (the
-     contract); borders + surface steps carry depth. */
+     room and everything above it is a close ladder. Depth in dark is LIGHT
+     FIRST (bible 10): the surface steps and the hairlines carry it, and the two
+     shadows below are for the two cases they cannot reach (an overlap, a
+     layer), never for a flat surface. */
   --background: oklch(0.105 0.0053 286);
   --foreground: oklch(0.965 0.0045 286);
   /* ★ THE VEIL RETIRED (card=declared, Will 2026-09-17: "If we ever need to
@@ -343,7 +377,22 @@
   --save-foreground: oklch(0.13 0 0);
   --reel: oklch(0.72 0.18 300);
 
-  /* Dark mode has NO shadows; an invisible value keeps the utility valid. */
+  /* THE RAMP DARK NEVER HAD (the light board's depth ruling, 2026-09-17). The
+     geometry is the light block's, to the pixel; only the alpha changes,
+     because a shadow has to be darker than what it falls on. Judged on two
+     mid-key photographs and on a menu over a busy page, which are the only
+     two places these are allowed to land. */
+  --shadow-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
+  --shadow-layer:
+    0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
+  /* ★ THE ZERO IS RE-STATED, NOT INHERITED, AND IT IS LOAD-BEARING. :root and
+     .dark are the same element at the same specificity, so without this line
+     the light block's `--shadow-float: var(--shadow-lift)` would reach the dark
+     root on source order and hand a shadow to whatever still wears the old
+     name. The INVISIBLE value, never `none`: Tailwind composes --tw-shadow into
+     one comma-separated box-shadow beside the ring slots, and a `none` in that
+     list invalidates the whole declaration, taking the element's ring with it. */
   --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
 
   /* --gallery* intentionally NOT overridden: galleries stay dark in every theme. */
@@ -423,6 +472,14 @@
   --ring: oklch(0.965 0.0045 286);
   --brand: var(--primary);
   --brand-foreground: var(--primary-foreground);
+  /* The dark ramp, re-declared like everything else here: on a paper page the
+     leaf would otherwise inherit paper's 6 and 10 percent, which is nothing on
+     a slab (the footer's photo pile is an overlap, so it is a real reader).
+     The old name keeps its zero for the same reason .dark re-states it. */
+  --shadow-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
+  --shadow-layer:
+    0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
   --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
 }
 
@@ -1023,6 +1080,32 @@
 [data-sonner-toast][data-type="warning"] [data-icon],
 [data-sonner-toast][data-type="error"] [data-icon] {
   color: inherit !important;
+}
+
+/* THE TOAST IS A LAYER (the light ruling, 2026-09-17: "a larger one under
+   menus, dialogs and toasts"), and it was the one floating surface outside the
+   family: sonner ships its own `0 4px 12px rgba(0,0,0,.1)`, which is a fourth
+   geometry in light and nothing at all over a dark room.
+
+   WHY THE PROPERTY AND NOT --tw-shadow: a toast is sonner's element, not a
+   Tailwind surface, so it carries no ring and no composed box-shadow to
+   protect. WHY THREE ATTRIBUTES DEEP AND NO !important: sonner appends its
+   sheet to <head> at runtime, after ours, so its own (0,2,0) rule wins a tie on
+   source order; one more attribute wins on weight instead, in any order.
+
+   ★ THE FOCUS RING IS RE-STATED, BECAUSE THIS RULE WOULD OTHERWISE DELETE IT.
+   Sonner draws a focused toast's ring INSIDE the same box-shadow declaration
+   (the same trap as `ring-1` on our own surfaces), so a rule that sets only the
+   shadow takes the keyboard's focus mark with it. It is drawn in the house
+   ring colour rather than sonner's 20 percent black, which was never visible
+   in dark. */
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  box-shadow: var(--shadow-layer);
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"]:focus-visible {
+  box-shadow:
+    var(--shadow-layer),
+    0 0 0 2px color-mix(in oklab, var(--ring) 50%, transparent);
 }
 
 /* ═══════════ Reel reveal + reel experience (ratified, R3) ═══════════
@@ -2403,6 +2486,131 @@
    forced-colors and print already take two rules up. */
 @supports not (mask-image: linear-gradient(#000, transparent)) {
   [data-glw] {
+    display: none;
+  }
+}
+
+/* ═══════════ THE BRIGHT EDGE: [data-lit] ═══════════
+   Will, on the light board's round eight (2026-09-17): "I love the bright edge.
+   It's a really nice subtle design touch, but I think the implementation could
+   use a tweak to feel more polished and beautiful. The transparent border
+   radius also revealed some mismatches here in the preview roundings."
+
+   NOT ELEVATION, AND NOT A LAMP: MATERIAL. One pixel of light catching the
+   bevel of a surface that is lit from above, on exactly three kinds of
+   surface: a photograph or a video, a framed screen, and the QR card. It is
+   the FOREGROUND colour at a low alpha, never one of the five lamp hues (bible
+   3: those are light in a room, this is the room's own surface), it does not
+   move, and it is absent under everything else. A card, a menu and a button
+   already have their step and their ring; an edge on those is a third outline.
+
+   ★ THE MISMATCH, AND WHY IT CANNOT COME BACK. The board drew the cue on a bare
+   wrapper with a hand-typed radius, and laid it on the PADDING box while it
+   inherited the BORDER box's radius, so on a bordered surface the edge and the
+   corner were two different arcs (bible 9: "a ring with a radius of its own
+   reads as a mistake"). Here the hook sits on THE BOX THAT OWNS THE RADIUS, the
+   radius is inherited and never typed, and the pseudo-element is pushed out by
+   the border's width so it covers the border box: same box, same radius,
+   concentric by construction. CSS cannot read a border's width from a
+   pseudo-element, so the one fact it needs rides the attribute's value:
+
+       data-lit            the surface has no border (a photo, a player's well)
+       data-lit="border"   it wears Tailwind's 1px `border` (the QR card, a
+                           phone's bezel, the canvas player), and the light
+                           lands ON that border instead of drawing a second
+                           line inside it
+
+   ★ A BORDERED HOST MUST NOT CLIP. `overflow: hidden` clips at the PADDING
+   box, which is precisely where a border stops being visible, so the edge
+   would be drawn and then cut off to the pixel (the board's round seven lost a
+   whole card to the same kind of silence: an edge painted under its own
+   photograph). The canvas player rounds its canvas instead of clipping it.
+   The contract (src/components/shared/lit-edge-contract.test.ts) holds both.
+
+   ★ THE POLISH IS A FALLOFF, NOT A LINE. The board's version was a flat 9
+   percent hairline all the way round plus a 6 percent lip: a third outline on
+   a surface that had two. This one is brightest along the top, falls away down
+   the sides, and is nothing at the bottom, which is what a lit bevel does and
+   what a frame does not. If it ever reads as a frame, it is too strong.
+
+   ★ DARK GROUNDS ONLY, AND THE FENCE IS THE `dark` VARIANT ITSELF, NOT A COPY
+   OF IT. theme.css defines dark ONCE (`&:is(.dark *):not(.surface-paper *)`)
+   and `@variant dark` compiles this rule through that definition, so a paper
+   chapter inside a cinema page, the app in light mode and a guest gallery on a
+   light phone all paint nothing, and they paint nothing because no
+   pseudo-element is ever generated there (a masked layer per photograph is
+   not free, and a gallery can hold hundreds). On paper the foreground is ink,
+   so the same rule would draw a dark rim: the board tried that and cut it.
+
+   ON A PSEUDO-ELEMENT, ABOVE THE IMAGE. An inset box-shadow paints above an
+   element's own background and BELOW its children, and a media tile's child
+   is an image covering the whole box. `position: relative` rides @layer base
+   so a host that is already `absolute` or `sticky` by utility keeps its own
+   positioning (utilities outrank base), and one that is not positioned cannot
+   let the edge escape to an ancestor and ring the wrong box.
+
+   One pixel is drawn as a 1px padding ring through mask-composite (the
+   gradient fills the box, the mask keeps the box minus its content box). Both
+   spellings ship, because Safari composites on the prefixed one. ═══════════ */
+@layer base {
+  [data-lit] {
+    position: relative;
+  }
+}
+
+[data-lit] {
+  /* Reset on EVERY lit host, because a custom property inherits: a photograph
+     inside a lit phone would otherwise take the bezel's border width. */
+  --lit-border: 0px;
+}
+
+[data-lit="border"] {
+  --lit-border: 1px;
+}
+
+/* ★ THE EDGE IS GENERATED ONLY WHERE IT CAN BE DRAWN RIGHT, so the two ways it
+   can go wrong are "no edge", never "a wrong one". Without mask-composite the
+   gradient is a veil over the whole photograph; without color-mix the build's
+   own fallback is the foreground at FULL strength (Lightning CSS writes
+   `var(--foreground)` in place of each mix), which is a solid white frame
+   round every picture. Both are required up front rather than hidden after. */
+@supports (color: color-mix(in oklab, red, red)) and
+  ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  [data-lit] {
+    @variant dark {
+      &::after {
+        content: "";
+        position: absolute;
+        inset: calc(-1 * var(--lit-border));
+        border-radius: inherit;
+        padding: 1px;
+        pointer-events: none;
+        /* Lit from above: an ellipse anchored on the top edge, wider than the
+           box so the two top corners are still inside the light, and spent
+           before the bottom edge. */
+        background: radial-gradient(
+          135% 100% at 50% 0%,
+          color-mix(in oklab, var(--foreground) 30%, transparent) 0%,
+          color-mix(in oklab, var(--foreground) 13%, transparent) 36%,
+          color-mix(in oklab, var(--foreground) 4%, transparent) 66%,
+          transparent 92%
+        );
+        -webkit-mask-image:
+          linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+        mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+        -webkit-mask-clip: content-box, border-box;
+        mask-clip: content-box, border-box;
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+      }
+    }
+  }
+}
+
+/* The two states a decorative layer has to survive, the same two the lamps
+   take: no edge where colours are forced, and none on a printed sheet. */
+@media (forced-colors: active), print {
+  [data-lit]::after {
     display: none;
   }
 }

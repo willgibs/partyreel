@@ -578,9 +578,12 @@ export const DERIVED: readonly Derived[] = [
     what: "A worst-case pair of overlapping photographs",
     spec: "Two frames whose touching edges are both dark and low contrast, 1200 px long edge, so the depth cue is judged against the case it exists for",
     from: "W3 and C1 are already that pair: a dance floor lit by one lamp, and an evening table with no overhead light. Shoot them knowing they will be laid over each other",
+    // The light board asked for this pair and retired at its ruling
+    // (2026-09-17); its depth scene lives on as the Library's Elevation
+    // legend, which is where the pair lands when it is shot.
     replaces:
-      "the reception-hall and wedding-toast pair on the light board's lift and float cards (sandbox/light/, the depth job's specimen; depth.tsx went at round six)",
-    askedBy: "light",
+      "the wedding-rings and reception-table pair in the Library's Elevation legend (library/foundations/elevation-legend.tsx), the one scene where the small shadow and the larger one both land on a photograph",
+    askedBy: "the Library's Elevation legend",
   },
   {
     row: 12,

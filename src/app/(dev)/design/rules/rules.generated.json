@@ -307,7 +307,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 459
+          "line": 460
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -315,7 +315,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 469
+          "line": 470
         }
       ]
     },
@@ -558,7 +558,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 459
+          "line": 460
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -566,7 +566,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 469
+          "line": 470
         }
       ]
     },
@@ -670,7 +670,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 459
+          "line": 460
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -678,7 +678,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 469
+          "line": 470
         }
       ]
     },
@@ -1567,7 +1567,64 @@
         "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 198
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 213
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 228
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 253
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 270
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 292
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 306
+        }
+      ]
     },
     {
       "id": "live-qr",
@@ -1579,7 +1636,64 @@
         "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 198
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 213
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 228
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 253
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 270
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 292
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 306
+        }
+      ]
     },
     {
       "id": "phone-frame",
@@ -1592,7 +1706,64 @@
         "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 198
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 213
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 228
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 253
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 270
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 292
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 306
+        }
+      ]
     },
     {
       "id": "qr-frame",
@@ -1604,7 +1775,64 @@
         "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 198
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 213
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 228
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 253
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 270
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 292
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 306
+        }
+      ]
     },
     {
       "id": "reel-frame",
@@ -1616,7 +1844,64 @@
         "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 198
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 213
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 228
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 253
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 270
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 292
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 306
+        }
+      ]
     },
     {
       "id": "legal-document",
@@ -1948,7 +2233,64 @@
         "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 198
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 213
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 228
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 253
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 270
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 292
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 306
+        }
+      ]
     },
     {
       "id": "learn-chevron",
@@ -3739,7 +4081,64 @@
         "/design/library/patterns"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 198
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 213
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 228
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 253
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 270
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 292
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 306
+        }
+      ]
     },
     {
       "id": "media-lightbox.lazy",
@@ -4412,6 +4811,13 @@
       "scope": "marketing",
       "title": "MDX prose obeys the copy rules",
       "summary": "an em-dash or a broken internal link in the MDX reading surfaces, which the TypeScript AST guard cannot see.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/elevation-policy.test.ts",
+      "scope": "engineering",
+      "title": "Two shadows, each declared by its role",
+      "summary": "a stock Tailwind shadow, a hand-typed box-shadow or the retired shadow-float name on a production surface, and a ground that re-declares the theme without both shadows.",
       "line": 1
     },
     {

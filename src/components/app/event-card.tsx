@@ -111,16 +111,24 @@ export function EventCard({
   return (
     // data-static: a host management card, so opt out of the [data-media-tile]
     // arrival fade (emil: no entrance theater on host). It's not a lightbox tile.
+    //
+    // ★ data-lit IS ON THE ROUNDED BOX BELOW, NEVER ON THIS WRAPPER. This div
+    // has no radius (it only positions the chips over the card), and the bright
+    // edge inherits the radius of whatever carries the hook: on a square
+    // wrapper it would draw a square rim around a rounded photograph, which is
+    // the mismatch Will caught on the light board (globals.css, [data-lit]).
     <div data-media-tile data-static className="group relative">
       {href ? (
         <Link
           href={href}
+          data-lit=""
           className="relative block aspect-[16/10] overflow-hidden rounded-xl outline-none transition-transform duration-150 ease-emphasis active:scale-[0.99] focus-visible:ring-3 focus-visible:ring-ring/50 motion-reduce:active:scale-100"
         >
           {surface}
         </Link>
       ) : (
         <div
+          data-lit=""
           className={cn(
             "relative block aspect-[16/10] cursor-default overflow-hidden rounded-xl",
             variant === "trash" && "opacity-75 grayscale",
@@ -147,7 +155,7 @@ export function EventCard({
           mutually exclusive by variant, so they never overlap. */}
       {pendingCount > 0 && (
         <div
-          className="absolute top-2.5 right-2.5 z-10 rounded-full px-2 py-0.5 text-[10px] font-semibold shadow-sm"
+          className="absolute top-2.5 right-2.5 z-10 rounded-full px-2 py-0.5 text-[10px] font-semibold"
           style={{
             background: "var(--warning)",
             color: "var(--warning-foreground)",

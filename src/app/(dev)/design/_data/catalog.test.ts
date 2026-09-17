@@ -146,8 +146,10 @@ describe("the helpers", () => {
   it("light the longest matching item", () => {
     const hit = activeItem(nav, "/design/library/rules/no-em-dash");
     expect(hit?.item.href).toBe("/design/library/rules");
-    const board = activeItem(nav, "/design/lab/light");
-    expect(board?.item.href).toBe("/design/lab/light");
+    // A STANDING board: the nav is built from the registry, so a ruled board
+    // has no item to light (light was the example until 2026-09-17).
+    const board = activeItem(nav, "/design/lab/rounding");
+    expect(board?.item.href).toBe("/design/lab/rounding");
     const family = activeItem(nav, "/design/library/marketing");
     expect(family?.item.href).toBe("/design/library/marketing");
   });

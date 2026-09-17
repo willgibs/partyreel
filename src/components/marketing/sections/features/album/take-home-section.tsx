@@ -137,7 +137,7 @@ export function TakeHomeSection() {
           </span>
           <span className="absolute inset-0 bg-black/35" />
           <span className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <span className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-4 text-xs font-medium text-neutral-900 shadow-[var(--shadow-float)]">
+            <span className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-4 text-xs font-medium text-neutral-900">
               <Download className="size-3.5" /> Download album
             </span>
             <span className="text-[11px] font-medium text-white/85 tabular-nums">

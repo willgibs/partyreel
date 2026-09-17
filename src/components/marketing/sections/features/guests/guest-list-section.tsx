@@ -37,9 +37,9 @@ export function GuestListSection() {
     // home album's device, worn by a different object: a card of names, not
     // a browser frame. NEGATIVE MARGIN, not translate (the layout box must
     // really move); relative + z so it paints over the dark it overhangs;
-    // shadow-float is paper's real elevation, which reads as a card laid on
-    // the desk. Below lg the split stacks and the plain hard cut carries the
-    // seam, exactly as home's album does.
+    // the card wears shadow-lift (guest-list-card.tsx) because it overhangs,
+    // which is an overlap. Below lg the split stacks and the plain hard cut
+    // carries the seam, exactly as home's album does.
     <SectionShell className="py-16 sm:py-20">
       <MediaSplit
         className="lg:items-start"

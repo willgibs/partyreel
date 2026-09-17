@@ -9,6 +9,11 @@ import { LiveQr } from "./live-qr";
 // carries the accessible name). Round 3 swaps the decorative block for a REAL scannable
 // QR encoding the demo URL — same shell, no rebuild. Brand-tinted finder corners match
 // the real QR-preset look (brand only tints the finders; data stays grayscale).
+//
+// THE QR CARD takes the bright edge (globals.css, [data-lit]; LiveQr wears the
+// same hook on the same box). data-lit="border" because the card wears a
+// border: the light lands on it. The card must keep that 1px border and must
+// never clip, or the edge is cut off at the padding box (lit-edge-contract).
 
 const SIZE = 13;
 type CellKind = "dark" | "light" | "finder" | "finder-center";
@@ -56,6 +61,7 @@ export function QrFrame({
   const visual = (
     <div
       aria-hidden
+      data-lit="border"
       className={cn(
         "flex w-full max-w-[260px] flex-col items-center gap-3 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5",
         className,

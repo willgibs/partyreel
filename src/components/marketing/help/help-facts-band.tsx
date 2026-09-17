@@ -28,7 +28,7 @@ export function HelpFactsBand({ facts }: { facts: Fact[] }) {
   return (
     <div
       ref={ref}
-      className="overflow-hidden rounded-2xl border bg-card shadow-xs ring-1 ring-foreground/5"
+      className="overflow-hidden rounded-2xl border bg-card ring-1 ring-foreground/5"
     >
       <Perforation edge="top" />
       <div className="grid grid-cols-2 gap-px border-y bg-border sm:grid-cols-3 lg:grid-cols-5">

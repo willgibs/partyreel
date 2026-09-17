@@ -172,7 +172,8 @@ describe("bindsFor", () => {
   });
 
   it("leaves out the levels that inform, because obeying them builds small", () => {
-    const binds = bindsFor({ board: "light", surface: "shared" });
+    // A standing board (light was the example until its ruling retired it).
+    const binds = bindsFor({ board: "rounding", surface: "shared" });
     const levels = new Set(
       [
         ...binds.contracts,

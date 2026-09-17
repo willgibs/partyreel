@@ -82,6 +82,12 @@ export function InlineReelPlayer({
   return (
     <div
       ref={pauseRef}
+      // A player is one of the three kinds of surface that take the bright
+      // edge (globals.css, [data-lit]). THIS box owns the radius, so a caller
+      // that wants a different corner passes it as className (careers does)
+      // and never wraps the player in a second rounded, clipping box: the edge
+      // would follow the inner corner while the eye sees the outer one.
+      data-lit=""
       className={cn(
         "group relative w-full overflow-hidden rounded-xl bg-gallery",
         reel.orientation === "portrait" ? "aspect-[9/16]" : "aspect-video",

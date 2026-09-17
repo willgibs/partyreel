@@ -82,7 +82,8 @@ function PhotoStack({ ink }: { ink?: boolean }) {
                 width={88}
                 height={88}
                 className={cn(
-                  "size-20 rounded-md border-4 object-cover shadow-lg",
+                  // Stacked prints: the overlap the small shadow was ruled for.
+                  "size-20 rounded-md border-4 object-cover shadow-lift",
                   "transition-transform duration-300 ease-emphasis motion-reduce:transition-none",
                   "group-hover:translate-x-(--sx) group-hover:rotate-(--sr)",
                   ink
@@ -203,7 +204,7 @@ export function PlanPair() {
         >
           <span
             aria-hidden
-            className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background shadow-sm transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
+            className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
             style={{
               transform: `translateX(calc(${cadence === "year" ? 1 : 0} * (100% + 0.25rem)))`,
             }}

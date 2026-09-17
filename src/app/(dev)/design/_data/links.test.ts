@@ -30,19 +30,19 @@ const ROOT = process.cwd();
 const onDisk = (file: string) => existsSync(join(ROOT, file));
 
 describe("parseRef: the boards and the bible", () => {
-  // The example was the palette until its ruling retired the board
-  // (2026-09-17). The URL form validates against the STANDING ids, so the
-  // example has to be a board that stands; `board:` does not validate, which is
-  // why the third case still reads an id that has left.
-  it("reads /design/c/light#lit-02 as the light board at lit-02", () => {
-    expect(parseRef("/design/c/light#lit-02")).toEqual({
+  // The example was the palette, then light, until each one's ruling retired
+  // its board (both 2026-09-17). The URL form validates against the STANDING
+  // ids, so the example has to be a board that stands; `board:` does not
+  // validate, which is why the third case still reads an id that has left.
+  it("reads /design/c/rounding#rnd-02 as the rounding board at rnd-02", () => {
+    expect(parseRef("/design/c/rounding#rnd-02")).toEqual({
       kind: "board",
-      id: "light",
-      anchor: "lit-02",
+      id: "rounding",
+      anchor: "rnd-02",
     });
-    expect(parseRef("/design/lab/light")).toEqual({
+    expect(parseRef("/design/lab/rounding")).toEqual({
       kind: "board",
-      id: "light",
+      id: "rounding",
     });
     expect(parseRef("board:palette#pal-02")).toEqual({
       kind: "board",

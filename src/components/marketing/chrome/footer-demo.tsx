@@ -35,9 +35,25 @@ import { FooterQr } from "./footer-qr";
  * style, and the recipe is left owning only the rest pose, the transitions and
  * the fan. Do NOT move translate/rotate inline to "match": inline style outranks
  * the recipe's :hover rule and the fan would stop working everywhere.
+ *
+ * ★ THE PILE IS AN OVERLAP, SO IT WEARS THE LIFT, AND THE LIFT RIDES INLINE.
+ * Four photographs under a plate is the case the small shadow was ruled for
+ * (Will, 2026-09-17: "where one card sits on another"), on the one ground that
+ * never had a shadow at all. It cannot be the `shadow-lift` utility: the
+ * recipe's `[data-mkt] .mkt-stack-card` rule is UNLAYERED and sets a bare
+ * box-shadow (its hairline), so it outranks every Tailwind utility (which is
+ * also why the plate's old `shadow-none` never did anything: under the recipe
+ * it lost, and on the root 404 there was no shadow to take off).
+ * Inline outranks the recipe, and an inline box-shadow would delete the
+ * recipe's hairline, so PILE_SHADOW re-states that hairline first (the law in
+ * globals.css: never overwrite box-shadow where a ring lives). The token, never
+ * a literal: .surface-ink declares the dark ramp, so the pile reads the same
+ * under a paper page and under a cinema one.
  */
 
 const QR_PX = 128;
+/** The recipe's own hairline, then the lift (see the last star above). */
+const PILE_SHADOW = "0 0 0 1px var(--border), var(--shadow-lift)";
 /** Rest pose + fan delta per card. Tuned so each corner peeks from behind the
  *  plate at rest and clears it entirely when fanned. */
 const CARDS = [
@@ -99,6 +115,7 @@ export function FooterDemo({ href, value }: { href: string; value: string }) {
                 width: 96,
                 height: 96,
                 zIndex: i,
+                boxShadow: PILE_SHADOW,
                 "--cx": card.cx,
                 "--cy": card.cy,
                 "--rot": card.rot,
@@ -120,14 +137,17 @@ export function FooterDemo({ href, value }: { href: string; value: string }) {
         );
       })}
       {/* The plate is the top of the pile: same rest/fan grammar, zero delta, so
-          it stays put while the photos spread out from under it. */}
+          it stays put while the photos spread out from under it. It carries
+          the tile radius itself (the recipe's value) so its shadow has the
+          plate's corner on the root 404 too, where the recipe never loads. */}
       <span
-        className="mkt-stack-card absolute top-0 left-0 grid place-items-center bg-transparent shadow-none"
+        className="mkt-stack-card absolute top-0 left-0 grid place-items-center rounded-[var(--radius-tile)] bg-transparent"
         style={
           {
             width: QR_PX + 16,
             height: QR_PX + 16,
             zIndex: 20,
+            boxShadow: PILE_SHADOW,
             "--cx": "50px",
             "--cy": "26px",
             "--rot": "0deg",

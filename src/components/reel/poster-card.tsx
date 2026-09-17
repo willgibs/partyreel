@@ -99,7 +99,7 @@ export function PosterCard({
           aria-hidden
           className="pointer-events-none absolute inset-0 flex items-center justify-center"
         >
-          <span className="flex size-12 items-center justify-center rounded-full bg-white/90 shadow-lg">
+          <span className="flex size-12 items-center justify-center rounded-full bg-white/90 shadow-lift">
             <Play className="ml-0.5 size-5 fill-zinc-900 text-zinc-900" />
           </span>
         </span>

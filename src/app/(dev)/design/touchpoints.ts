@@ -72,7 +72,6 @@ export type SandboxId =
   | "river-visual"
   | "glow-doctrine"
   | "glow-moments"
-  | "light"
   | "floating-surfaces"
   | "brand-voice"
   | "media-kit"
@@ -470,22 +469,31 @@ export const RULINGS: Ruling[] = [
       "src/app/(marketing)/marketing.css",
     ],
   },
+  // RULED AND RETIRED (round eight, 2026-09-17). Will answered every step the
+  // board still asked (both shadows, the bright edge kept and polished, the
+  // streak of light banked for a delight moment), so its scenes and its paste
+  // left sandbox/; git keeps them and docs/design/rulings.md keeps his words.
+  // The ruling is two tokens, one attribute and two Library sections now, which
+  // is what `lives` points at.
   {
     id: "light",
     title: "Light, shadow and lamp",
     surface: "shared",
-    ruled: "in part (2026-09-17): the Aurora in three forms, off paper, on an 8 second clock, placed as a mix composed per section; the bloom, the halo (behind objects only) and the beam kept; three steps open",
-    shipped: null,
-    why: "Bible 10 rewritten and 11 retiring: depth in dark is light first with shadows where objects stack; a lamp may light a section without media; the aurora as identity.",
+    ruled: "2026-09-17",
+    shipped: "Both shadows by role, the bright edge, the Aurora",
+    why: "Step and ring everywhere, a small shadow only on a real overlap, a larger one under a layer; the bright edge on three kinds of surface; the Aurora, never on paper.",
     lives: [
       "docs/systems/design-system.md#light-spill-beam-and-the-lamp-set",
-      "docs/systems/design-system.md#elevation-contract-one-depth-technique-per-mode",
+      "docs/systems/design-system.md#elevation-contract-four-heights-one-job-each",
+      "src/app/globals.css",
+      "src/app/theme.css",
+      "src/lib/elevation-policy.test.ts",
+      "src/components/shared/lit-edge-contract.test.ts",
+      "src/app/(dev)/design/(shell)/library/foundations/page.tsx#elevation",
+      "src/app/(dev)/design/(shell)/library/foundations/page.tsx#bright-edge",
+      "src/components/marketing/system/section-light.tsx",
       "src/components/shared/glow.tsx",
     ],
-    board: {
-      note: "Round eight, the three steps still open: shadows in dark mode on one scene with a legend, the thin bright edge enlarged, and the streak of light that plays once",
-      variants: ["Depth", "Face", "Sweep"],
-    },
   },
   {
     id: "type-scale",

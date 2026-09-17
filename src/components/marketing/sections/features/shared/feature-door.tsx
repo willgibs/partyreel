@@ -141,7 +141,7 @@ function formatDuration(seconds: number): string {
 function QrPlateArt() {
   return (
     <span className="absolute inset-x-0 top-0 bottom-[34%] z-10 flex items-center justify-center">
-      <span className="w-fit rounded-lg bg-white p-2.5 shadow-[0_0_0_1px_oklch(1_0_0/0.08)] transition-transform duration-500 ease-emphasis group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100 sm:p-3">
+      <span className="w-fit rounded-lg bg-white p-2.5 ring-1 ring-white/8 transition-transform duration-500 ease-emphasis group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100 sm:p-3">
         <StyledQr
           value="https://partyreel.com"
           size={132}

@@ -46,7 +46,7 @@ export function VisibilitySelector({
           className={cn(
             "flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors outline-none",
             "hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50",
-            "data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm",
+            "data-[state=on]:bg-background data-[state=on]:text-foreground",
             "disabled:pointer-events-none disabled:opacity-50",
             "active:scale-[0.98] motion-reduce:active:scale-100",
           )}

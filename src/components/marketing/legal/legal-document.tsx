@@ -93,11 +93,12 @@ export function LegalDocument({
       {/* THE STRADDLE: the meta card arrives out of the dark and lands on the
           desk. Negative bottom margin overhangs the chapter's top padding by
           40px at every width (below lg the chapter compresses the section to
-          py-14, which still clears it: help ships this exact pairing). */}
+          py-14, which still clears it: help ships this exact pairing). An
+          overhanging card is an overlap, so it wears shadow-lift. */}
       <section>
         <Container>
           <div className="surface-paper relative z-10 mx-auto -mb-10 max-w-2xl">
-            <div className="rounded-2xl border bg-card p-5 shadow-float ring-1 ring-foreground/5 sm:p-6">
+            <div className="rounded-2xl border bg-card p-5 shadow-lift ring-1 ring-foreground/5 sm:p-6">
               <p className="text-sm text-muted-foreground tabular-nums">
                 {legalStatusLine(meta)} &middot; {minutes}
               </p>

@@ -165,8 +165,12 @@ export function QrHero() {
                       }}
                     />
                   </div>
+                  {/* The plate is the QR card, so it takes the bright edge on
+                      its border (globals.css, [data-lit]; qr-frame.tsx is the
+                      same object and says what the hook asks of this box). */}
                   <div
                     {...cut(2)}
+                    data-lit="border"
                     className="w-fit rounded-2xl border bg-card p-4 ring-1 ring-foreground/5"
                   >
                     <div className="w-fit rounded-xl bg-white p-4">
@@ -189,7 +193,7 @@ export function QrHero() {
                       {...cut(3 + i)}
                       label={QR_PRESETS[key].label}
                       active={key === HERO_PRESET}
-                      className={`${SWATCH_TILT[i]} shadow-sm`}
+                      className={SWATCH_TILT[i]}
                     />
                   ))}
                 </div>

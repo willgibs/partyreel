@@ -124,7 +124,7 @@ export function VisibilityFrames() {
       >
         <Album />
         <Over>
-          <span className="flex h-7 items-center rounded-md bg-primary px-3 text-[11px] font-medium text-primary-foreground shadow-[var(--shadow-float)]">
+          <span className="flex h-7 items-center rounded-md bg-primary px-3 text-[11px] font-medium text-primary-foreground shadow-layer">
             See all 214 photos
           </span>
         </Over>
@@ -133,7 +133,7 @@ export function VisibilityFrames() {
       <Cell icon={KeyRound} title="Password" hint={VISIBILITY_HINTS.password}>
         <Album ghost />
         <Over>
-          <div className="w-full max-w-[10.5rem] rounded-xl border bg-card/95 p-3 text-center shadow-[var(--shadow-float)]">
+          <div className="w-full max-w-[10.5rem] rounded-xl border bg-card/95 p-3 text-center shadow-layer">
             <p className="flex items-center justify-center gap-1 text-[9px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
               <Lock className="size-2.5" />
               Almost in
@@ -154,7 +154,7 @@ export function VisibilityFrames() {
       <Cell icon={Lock} title="Private" hint={VISIBILITY_HINTS.private}>
         <Album ghost />
         <Over>
-          <div className="flex flex-col items-center gap-1.5 rounded-xl border bg-card/95 px-4 py-3 text-center shadow-[var(--shadow-float)]">
+          <div className="flex flex-col items-center gap-1.5 rounded-xl border bg-card/95 px-4 py-3 text-center shadow-layer">
             <span className="flex size-7 items-center justify-center rounded-full border text-muted-foreground">
               <Lock className="size-3.5" />
             </span>

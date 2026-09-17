@@ -97,7 +97,7 @@ export function ReviewSwitch() {
       >
         <span
           aria-hidden
-          className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background shadow-sm transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
+          className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
           style={{ transform: `translateX(calc(${index} * (100% + 0.25rem)))` }}
         />
         {SEGMENTS.map(({ mode: value, label, Icon }) => (
@@ -123,8 +123,9 @@ export function ReviewSwitch() {
 
       {/* The path: three plates on one rule. The rule is real (a hairline
           behind the plates), the plates sit on it, and only the photograph
-          moves. shadow-float is paper's real elevation, the desk's one card. */}
-      <div className="relative rounded-2xl border bg-card p-5 shadow-[var(--shadow-float)] ring-1 ring-foreground/5 sm:p-6">
+          moves. The desk's one card lies flat, so it is its border and its
+          ring: no shadow (the light ruling, 2026-09-17). */}
+      <div className="relative rounded-2xl border bg-card p-5 ring-1 ring-foreground/5 sm:p-6">
         {/* The rule and the three-across path exist from sm up; on a phone the
             path stacks top to bottom with its objects centred. */}
         <span

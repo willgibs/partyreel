@@ -75,7 +75,7 @@ function Screen({
 function TableCard() {
   return (
     <div className="relative flex min-h-[19rem] flex-col items-center justify-center gap-3 rounded-[1.25rem] bg-black/50 p-4">
-      <div className="w-full rounded-lg bg-white p-4 text-center text-neutral-900 shadow-[var(--shadow-float)]">
+      <div className="w-full rounded-lg bg-white p-4 text-center text-neutral-900">
         <div className="mx-auto w-fit">
           <StyledQr
             value={QR_VALUE}

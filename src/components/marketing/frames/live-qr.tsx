@@ -21,7 +21,11 @@ export function LiveQr({
 }) {
   return (
     <Link href={url} aria-label="Try the live demo" className={className}>
-      <div className="flex w-full max-w-[260px] flex-col items-center gap-3 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-transform duration-150 active:scale-[0.99]">
+      <div
+        // The QR card's bright edge, on its border (qr-frame.tsx says why).
+        data-lit="border"
+        className="flex w-full max-w-[260px] flex-col items-center gap-3 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-transform duration-150 active:scale-[0.99]"
+      >
         <div className="rounded-lg bg-white p-2">
           {/* "classic" (mono) per the 2026-08-25 achromatic ruling: the bold
               preset's coral finder corners were the one legacy brand hue left
