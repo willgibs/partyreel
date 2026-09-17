@@ -28,11 +28,12 @@ import { describe, expect, it } from "vitest";
  * retunes how the edge LOOKS without asking a test. What is held is where the
  * hook may sit, what the rule may be made of, and the one ground it exists on.
  *
- * THE HEADER NAMES SEVEN HOSTS, THE TABLE BELOW HOLDS ALL ELEVEN. A
+ * THE HEADER NAMES SEVEN HOSTS, THE TABLE BELOW HOLDS ALL TWELVE. A
  * `@contract-for` line puts this contract on that component's block in the
  * Library, which is right for the seven that live in the Library's own
- * directories. The other four (the guest masonry, the event card, the canvas
- * player, the /features/qr hero) are product files the index does not list:
+ * directories. The other five (the guest masonry, the event card, the reel's
+ * poster card, the canvas player, the /features/qr hero) are product files the
+ * index does not list:
  * naming them would pull each one into it, where each then owes a `for` line
  * and the gallery's event-card entry has to drop its `file`. They are bound by
  * exactly the same assertions; they are just not advertised twice.
@@ -53,6 +54,7 @@ const HOSTS: Record<string, Kind> = {
   "src/components/shared/masonry.tsx": "media",
   "src/components/guest/guest-masonry.tsx": "media",
   "src/components/app/event-card.tsx": "media",
+  "src/components/reel/poster-card.tsx": "media",
   "src/lib/reel/engine/player.tsx": "media",
   "src/components/marketing/sections/shared/inline-reel-player.tsx": "media",
   "src/components/marketing/frames/reel-frame.tsx": "media",
@@ -96,15 +98,23 @@ function hostsIn(rel: string): Host[] {
     if (ts.isJsxAttribute(node) && node.name.getText(source) === "data-lit") {
       const init = node.initializer;
       // A bare `data-lit` renders "true", which `[data-lit="border"]` and the
-      // host table below would both misread, so only a string literal counts.
+      // host table below would both misread, so only a string literal counts:
+      // written plainly, in braces, or as the lit arm of `cond ? "" : undefined`
+      // (a surface that is lit in one of its states, the poster card's still).
+      const literal = (e: ts.Expression | undefined): string | null =>
+        !e
+          ? null
+          : ts.isStringLiteral(e)
+            ? e.text
+            : ts.isConditionalExpression(e) &&
+                e.whenFalse.getText(source) === "undefined"
+              ? literal(e.whenTrue)
+              : null;
       const value =
         init && ts.isStringLiteral(init)
           ? init.text
-          : init &&
-              ts.isJsxExpression(init) &&
-              init.expression &&
-              ts.isStringLiteral(init.expression)
-            ? init.expression.text
+          : init && ts.isJsxExpression(init)
+            ? literal(init.expression)
             : null;
       // The hook's siblings on the same element. Read attribute by attribute
       // and never as one string: the hook's own value is the word "border".

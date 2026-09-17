@@ -77,7 +77,15 @@ export function PosterCard({
   nameClassName?: string;
 }) {
   return (
-    <div className={cn("relative overflow-hidden rounded-lg", className)}>
+    <div
+      // The bright edge (globals.css, [data-lit]) on the STILL cover only. A
+      // cover still is a photograph and this box owns its corner; a live
+      // player (the host's Marquee) carries the edge on its own bordered
+      // screen, flush with this one, so lighting both would draw it twice on
+      // the same pixels. `playBadge` is already the "this is a still" signal.
+      data-lit={playBadge ? "" : undefined}
+      className={cn("relative overflow-hidden rounded-lg", className)}
+    >
       {media}
 
       {/* The bottom gradient: legibility for the name/meta over ANY media, from

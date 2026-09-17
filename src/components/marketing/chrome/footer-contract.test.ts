@@ -64,6 +64,15 @@ describe("the ink-slab footer contract", () => {
       "--brand-foreground:",
       "--card-foreground:",
       "--muted:",
+      // The two shadows (the light ruling, 2026-09-17). The leaf re-declares
+      // the DARK ramp: on a paper page it would otherwise inherit paper's
+      // alphas, which are nothing on a slab, and the demo's photo pile under
+      // the QR plate is a real overlap that reads `--shadow-lift`. The old
+      // name is pinned only while it exists: it is the lab's bridge now, and
+      // unless the leaf re-states its zero the paper page's alias would reach
+      // in (globals.css, THE OLD NAME).
+      "--shadow-lift:",
+      "--shadow-layer:",
       "--shadow-float:",
     ]) {
       expect(block, `${token} missing from .surface-ink`).toContain(token);
