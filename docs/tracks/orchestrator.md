@@ -30,7 +30,6 @@ owns:
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
-  - src/app/globals.css
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
   - src/lib/events/visibility-labels.ts
@@ -44,6 +43,7 @@ announces:
   - "The home hero ships (2026-09-17, 0c58ff76): src/components/marketing/sections/home/cinema-hero.tsx is the band streaming out of the demo code on hero-stream.ts, and the home-hero board is retired; sandbox/home-hero/shared.tsx outlives it for the album-hero and river-visual boards (FRAMES, CANVAS, GUTTER, LADDER, Mode, Photo) and nothing else under that folder exists."
   - "The wiring rounds (2026-09-17): Graphite is the palette (globals.css, theme.css, marketing.css at 88d0bec0: a 0.995 page, a 0.105 room, --faint as the third text step, the dark card opaque, no accent, the cinema deepening gone); the three stylesheets are the Orchestrator's again; Copy so far sends only a board's open round (review-message.ts composeSoFar), so a store entry from a round the board has left never rides again."
   - "The second batch (2026-09-17, 4280a59c): the type scale is ruled (B, the spacing law, the dead link on the set) and the Aurora is one light in three kept forms (seam, throw, field), never on paper, on an 8 second clock. The stylesheets are released for the round: theme.css and marketing.css to type-wiring (plus the @utility font-heading block of globals.css), the rest of globals.css to aurora-wiring. review-message.ts: composeSoFar(store, openOf, transcribed) takes the open round's shape ({ round, asks, items }) and Transcribed carries notes by board."
+  - "The third batch (2026-09-17, c9903c99 and dc4530df): every card of the light board's round seven is ruled (the bloom, the halo and the beam kept) and round eight is three steps (depth, face, sweep). SectionLight has NO default placement: `placement` is required, `room` takes a `from` origin on an edge of the box and every placement a `reach`, and its contract refuses the same composition twice on one page (Will: the Aurora is 'a mix of all of them... custom and bespoke'). ProCardBeam measures its card's corner and passes it, zero included. src/app/globals.css is released to publish-bloom for the round (the publish block and the one fence rule only)."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
 ---
 
@@ -76,6 +76,7 @@ are cut (development is parallel work again), the light sitting continues on its
 
 | track | board | waits on |
 | --- | --- | --- |
+| `publish-bloom` | none (a wiring round) | the agent; then the Orchestrator's signed-in pass on the alias (the studio at 1440 and 375, the share card in dark and in light) |
 
 ## Waiting on Will
 
@@ -190,6 +191,19 @@ palette and light first), pasted in batches with Copy so far.
 - `ee0b21d6` light round eight integrated (six steps: `landing`, `depth`, `face`, `sweep`, `bloom`,
   `halo`, all asks so `landing` walks first; no `catalog`, so an `item:` clause is refused for this
   board; 700 words; the manifest deleted); its touchpoint and ASSETS rows 10, 11, 15 and 16 follow.
-  No lane is open.
+- `c9903c99` Will's third batch: he finished round seven's walk on the ALIAS, which still served that
+  round (no `[preview]` since `aaa057dd`), so his `r7` line was transcribed against round seven's own
+  spec (`lab-review --root` on a scratch tree holding `git show ee0b21d6^1:.../light/spec.ts` and a
+  copy of the ledger; today's spec refuses `r7` by design). The bloom, the halo (objects only, never a
+  button) and the beam kept; the Aurora's placement "a mix of all of them... custom and bespoke".
+  Round eight cut to `depth`, `face`, `sweep` inside the round (539 words); `ProCardBeam` measures its
+  card's corner under a new contract (the board's Pro card named a radius token that does not exist,
+  computed square, and the vendored library refuses a zero and falls back to 16px). The alias is
+  rebuilt whenever a board changes from here: a board that differs between the tree and the alias is
+  how a sitting lands in the wrong round.
+- `dc4530df` the Aurora's two places on the home page, each composed for itself (the closer's light
+  rises from the line it shares with the footer's seam; the guest ledger is lit from its open side),
+  `SectionLight` without a default placement, the Library's Aurora entry with the bloom and the halo
+  as working specimens. One lane cut: `publish-bloom`.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

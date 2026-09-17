@@ -131,12 +131,32 @@ Three lanes cut at `c338c95c`: `type-wiring`, `light` (round eight) and `aurora-
   on nothing) and `skip` on the edge, the sweep and the halo. The composer, the kit and the twelve
   previews were deleted; 700 words of 1,200.
 
+**The third batch (`c9903c99`, `dc4530df`).** Will finished round seven's walk on the ALIAS, which
+still served that round because no `[preview]` had followed `aaa057dd`, so his line arrived as `r7`
+against a tree on round eight. It was transcribed against round seven's own spec (`lab-review --root`
+on a scratch tree; today's spec refuses `r7` by design), which closes all twelve of that round's
+cards: the bloom kept, the halo kept "only to light objects from behind" and never as a button
+wrapper, the beam kept with "matching radii", and the Aurora's placement "a mix of all of them...
+custom and bespoke, not a couple of identity components reused everywhere in the same way constantly."
+Round eight lost the three steps that answered (`landing`, `bloom`, `halo`) inside the round and stands
+at `depth`, `face` and `sweep`, 539 words. The beam's defect was the board's, and the wrapper's to
+prevent: the specimen's card named a radius token that does not exist, computed square, and the
+vendored library refuses a zero and falls back to 16px; `ProCardBeam` measures its card's corner now,
+zero included, under a contract. The Aurora reached the home page the same day, each place composed
+for itself: the closer takes the light at its bottom edge only, rising from the line it shares with
+the footer's seam so the two read as one horizon, and the guest ledger is lit from its open side.
+`SectionLight` lost its default placement and gained `from` and `reach`, and its contract refuses one
+page stamping a composition twice; a section with no boundary line of its own cannot take a band (the
+lamp's box clips the falloff into a hard line), which design-system.md now says. The Library's Aurora
+entry holds the bloom and the halo as working specimens. One lane cut: `publish-bloom`. The lesson is
+in the manifest: the alias is rebuilt whenever a board changes.
+
 **The alias.** Rebuilt at `a964d4a6` the moment Vercel's cap freed (00:16 UTC), the production smoke
 at 261 checks with the door closed; rebuilt again on the two wirings (the `[preview]` commit after the
 hero's fold; the smoke's result is STATUS's live state).
 
-**Next.** No lane is open. Will's sitting continues on the light board's round eight (its first step
-places the Aurora's field on the home page), then the album hero's four; three phone-end calls from the
+**Next.** `publish-bloom` is open (the publish moment in the house five, resting lit). Will's sitting
+continues on the light board's three steps, then the album hero's four; three phone-end calls from the
 type wiring wait on him.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)

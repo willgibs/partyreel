@@ -5,7 +5,7 @@
 > what shipped (→ [`CHANGELOG.md`](CHANGELOG.md), two rounds deep), how systems work (→ [`systems/`](systems)),
 > what might be next (→ [`ROADMAP.md`](ROADMAP.md)). GROWS BY: being replaced at every round close.
 
-**Updated:** 2026-09-16
+**Updated:** 2026-09-17
 
 ## The era
 
@@ -41,6 +41,8 @@ light board's asks and ruled the aurora off the light ground. Two wiring lanes a
 light sitting continues on its cards; Copy so far sends only a board's open round now (`a6afec3b`).
 **The second batch (`1cb34f70`):** the type scale ruled and the throw and the aurora kept; three lanes cut
 (below). Copy so far never re-sends a held note nor anything for a withdrawn step (`4280a59c`).
+**The third batch (`c9903c99`):** round seven's last cards, given on the alias while the tree sat on round
+eight: the bloom, the halo (objects only) and the beam kept, the Aurora placed as a mix composed per place.
 
 | track | returns | state |
 | --- | --- | --- |
@@ -48,10 +50,10 @@ light sitting continues on its cards; Copy so far sends only a board's open roun
 | `palette-wiring` | the wind-down's first wiring: Graphite in both modes (a Pearl page, a Graphite room, Apple's cool greys), no accent, the dark card opaque, `--faint` as the third text step on 40 sites; the board retired | integrated at `88d0bec0`; bible 1 ruled and the ledger gone at `52e9afa2` |
 | `hero-wiring` | the wind-down's second wiring: the band streaming out of the real demo QR with the ruled block under it and no caption, the engine as `hero-stream.ts` with its contract (two breakpoints, the minimum 683 and 642 px), the wall, its scrims and the kinetic word gone, the board retired | integrated at `0c58ff76`; the ledger gone and the artifacts regenerated at `137e504b` |
 | `album-hero` (round three) | Will's six notes answered: the lockup composed for the page as one block with no gap, four calm compositions on one engine (the orbit, the field calmed, the shelf, the arrival) with the calm rule pinned by a test, the live album centred on a 720 / 880 / 1040 step; the board picks the orbit | integrated at `57e2c2e4`, 830 words; the touchpoint at `759a557b` |
-| `fix/album-fill-still` | a production bug on `/features/album` under Reduce Motion (a looping fill's end tick was Infinity): a looping fill has a defined still now, one settled pass, pinned by the test | merged at `0c9caedc`, on the alias since 04:45 UTC |
 | `type-wiring` | the wind-down's third wiring: Will ruled the type scale on every ask (`ladder=b`, `tracking=adopt`, `not-found=on-ladder`): ladder B as one `@theme` block, every heading on a step, the three ramps collapsed, the dead link on the set, the board retired into the Library's Type section; four silent failures held by `type-ladder-policy.test.ts`; three phone-end findings wait on Will | integrated at `0a52c8dc`; bible 5 ruled at `aaa057dd` |
-| `light` (round eight) | the board had stopped his sitting twice (the cards did not show what they asked): six steps he can see, `landing` first on the shipped `SectionLight`, ONE `depth` question on one scene with a legend, the bright edge with a fixed 4x corner, three moments of light that play; round seven's sweep had run behind an opaque frame | integrated at `ee0b21d6`, 700 words |
-| `aurora-wiring` | the lamps he kept (the seam, the throw, the field: one Aurora, never on paper) as working versions: the 8 second clock, `SectionLight`, the Library's Aurora entry; the home page's two call sites wait on `landing`, the throw's and the publish flourish on the bloom card; the transform drive's reduced-motion still fixed on the way | integrated at `2987a5e5` |
+| `light` (round eight) | the board had stopped his sitting twice (the cards did not show what they asked): steps he can see, ONE `depth` question on one scene with a legend, the bright edge with a fixed 4x corner, the streak of light that plays; round seven's sweep had run behind an opaque frame | integrated at `ee0b21d6`; cut to `depth`, `face`, `sweep` at `c9903c99` (539 words) once his third batch answered the other three |
+| `aurora-wiring` | the lamps he kept (the seam, the throw, the field: one Aurora, never on paper) as working versions: the 8 second clock, `SectionLight`, the Library's Aurora entry; the transform drive's reduced-motion still fixed on the way | integrated at `2987a5e5`; the home page's two places composed at `dc4530df` (the closer's horizon, the ledger lit from its side), no default placement |
+| `publish-bloom` | the publish moment joins the Aurora: the house five behind the studio's frame and the share card, resting lit while a reel is shared, nothing on a light ground; the violet keyframes leave | OPEN, cut at `dc4530df`; the Orchestrator verifies signed in on the alias at the merge |
 | `floating-surfaces` (round seven) | pick-one: the winner from the seven or none, the submenu, corner, entrance and shadow questions as tiles on one menu | integrated at `514aee2d`, 922 words, no declaration |
 | `rounding` (round seven) | pick-one: the winner from the six or none, the button, ladder, dead-rung and gap questions as tiles at true pixels | integrated at `7d90465c`, 684 words, no declaration |
 | `brand-voice` (round seven) | pick-one: the winner from the six voices or none on three lines at phone size, the noun, unfurl, counts and scope questions as steps | integrated at `0c1cfa60` |
@@ -72,17 +74,16 @@ is the record.
 ## Live state
 
 - **Prod (partyreel.com)** = `main` @ tag `milestone-24` (`592da24`). **The `launch-prep` alias**
-  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the wind-down's four wirings: Graphite,
-  the band out of the code, the type ladder and the Aurora's clock and field, with the album hero's round
-  three (`aaa057dd`, built 2026-09-17; the production smoke passed 245 checks with the door closed, the two
-  glow boards over the reading budget on purpose; signed in, the dashboard, an event page, the app's 404
-  and a dialog title all measured on their steps). Vercel's
-  cap is 100 deployments per trailing day on every path (canceled deployments register, builds do not), so
-  `[preview]` stays the Orchestrator's and rare. Will's sitting runs on his local `pnpm dev` after a hard
-  reload; the alias is the same tree for a phone.
+  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the wind-down's wirings (Graphite, the
+  band out of the code, the type ladder, the Aurora on the home page) and the light board's three steps
+  (`dc4530df`, built 2026-09-17; the production smoke passed 246 checks at `c9903c99` with the door closed,
+  the two glow boards over the reading budget on purpose). Will reviews on the alias as well as on his
+  local `pnpm dev`, so **the alias is rebuilt whenever a board changes** (his third batch landed in the
+  wrong round because it was not). Vercel's cap is 100 deployments per trailing day on every path
+  (canceled deployments register, builds do not), so `[preview]` stays the Orchestrator's.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and
   fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 2,160 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on
+- **Tests:** 2,115 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on
   `main` and `launch-prep` code pushes only; an `lp/*` push only on `[ci]`).
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup GitHub Action (about
   06:30 UTC) are live; the deletion-aware backup prune ships in dry-run (`PRUNE_MODE=live` is a launch flip).
@@ -110,8 +111,8 @@ prune crons and the shared `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 The desk derives the steps (`/design/lab?key=`); the assets are in [`ASSETS.md`](ASSETS.md). Next from him:
-the stepped sitting, board by board, pasted in batches with Copy so far (the Orchestrator transcribes each
-batch with `pnpm lab:review`); one question outside the walk, whether bible 20 means the naming or the
+the stepped sitting, board by board (the light board's three steps, then the album hero), pasted in
+batches with Copy so far; three phone-end type calls (the CHANGELOG's `type-wiring` record); one question outside the walk, whether bible 20 means the naming or the
 shape (brand-voice); the assets still open: the menu ground photograph (row 14), the grain tile and the
 worst-case overlap pair (rows 15 and 16), the bright-edged tile set (row 17), and the media kit's 36 masters
 and $56 bridge, which its spend and shoot steps now ask. One product bug waits for the wiring round: every
