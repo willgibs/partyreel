@@ -80,6 +80,37 @@
           "at": "2026-09-16T02:30:00Z"
         }
       ]
+    },
+    {
+      "n": 6,
+      "opened": "2026-09-17",
+      "answers": [],
+      "notes": [
+        {
+          "on": "brand-voice",
+          "text": "Feels like the agent worked too hard trying to generate multiple unique voices rather one that's perfect, then we kept running in through unreviewed rounds to dig deeper into each without shaping along the way. Now we have a massive amount of ideas, but it feels like the best version would've been a mesh of examples from multiple voices at different points (today's, keepsake, live, plain) rather than forcing each to have a very specific tone so it felt differentiated for the sake of the exploration.",
+          "by": "Will",
+          "at": "2026-09-17T21:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "A form that yields many fine notes instead of one answer is the wrong form. Two parallel full drafts are antithetical to our new multi-stage question approach meant to handle individual decisions and produce single winners; the two drafts would likely require many fine notes over one cohesive answer. The better strategy would likely be to give me tighter comparisons of copy in real cases, one at a time, and use my winning selections to build the brand voice, rather than presenting two options.",
+          "by": "Will",
+          "at": "2026-09-17T21:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "Judge copy where it is used, never in a silo. Starting with just a few spot example statements may make a voice sound good in a silo, but not perform well in actual usage. I'd rather shape it as we see the voice applied in real cases.",
+          "by": "Will",
+          "at": "2026-09-17T21:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "Build up from the ground up, shaping along the way rather than just selecting one of these for the sake of it.",
+          "by": "Will",
+          "at": "2026-09-17T21:00:00Z"
+        }
+      ]
     }
   ]
 }

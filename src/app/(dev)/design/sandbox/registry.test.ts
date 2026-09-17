@@ -296,6 +296,63 @@ describe("the board registry", () => {
   });
 
   /**
+   * ★ A ROUND IS NOT OPENED UNTIL THE LAST ONE WAS REVIEWED (Will, 2026-09-17).
+   *
+   * `docs/PROGRAM.md` has said "never a second round of the same work without
+   * his notes between" since the revamp, and it was prose, so nothing noticed
+   * when `brand-voice` reached ROUND SEVEN with no review ever recorded: six
+   * voices, 24 spots, 510 strings, 4,121 lines, and not one verdict. He killed
+   * it for exactly that ("we kept running in through unreviewed rounds to dig
+   * deeper into each without shaping along the way"). Deepening is the cheapest
+   * thing an agent can do and the least useful, so the prose gets a test.
+   *
+   * The check is deliberately the weakest one that catches the disease: past
+   * round 1, SOME round must have been recorded. It does not demand the
+   * previous round specifically, because a board reviewed at r7 after being
+   * rebuilt at r6 is fine and common here.
+   *
+   * IN DEBT, and this list only ever shrinks: four boards were already past
+   * round 1 unreviewed when the rule landed. Each is on Will's queue and its
+   * line is deleted the day he walks it. Adding a board here is not a way to
+   * pass the test, it is a promise to get it reviewed before it moves again.
+   */
+  const UNREVIEWED_BEFORE_THE_RULE = new Set([
+    "album-hero", // r3, waiting on his four picks and three recommendation calls
+    "media-kit", // r7, waiting on the spend and shoot asset asks
+    "river-visual", // r2, not yet walked
+    "rounding", // r7, five steps open, next after floating surfaces
+  ]);
+
+  it("has a review on the record before a board opens a second round", () => {
+    for (const b of BOARDS) {
+      if (b.round.n <= 1) continue;
+      let rounds = 0;
+      try {
+        const led = JSON.parse(
+          readFileSync(join(ROOT, "docs/reviews", `${b.id}.json`), "utf8"),
+        ) as { rounds?: unknown[] };
+        rounds = led.rounds?.length ?? 0;
+      } catch {
+        rounds = 0;
+      }
+      if (UNREVIEWED_BEFORE_THE_RULE.has(b.id)) {
+        // The grandfather list is a debt, not a category: the moment a board
+        // here gets its first review the exemption is stale and must go, or it
+        // would quietly cover the board's NEXT unreviewed round too.
+        expect(
+          rounds,
+          `${b.id} has been reviewed, so drop it from UNREVIEWED_BEFORE_THE_RULE`,
+        ).toBe(0);
+        continue;
+      }
+      expect(
+        rounds,
+        `${b.id} is at round ${b.round.n} with no review in docs/reviews/${b.id}.json: a round is not opened until the last one was reviewed`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  /**
    * A CATALOG'S OWN CONTRACT (the revamp, 2026-09-16). Declaring `catalog` is a
    * board saying "rule on these card by card", and four things have to line up
    * for that to work at all: the grid has a section to live in, the Pick button

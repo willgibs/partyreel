@@ -278,12 +278,20 @@
           "line": 285
         },
         {
+          "title": "has a review on the record before a board opens a second round",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 326
+        },
+        {
           "title": "wires every catalog to a section, a pick and two compare controls",
           "suite": [
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 306
+          "line": 363
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -291,7 +299,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 405
+          "line": 462
         },
         {
           "title": "computes one anchor everywhere",
@@ -299,7 +307,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 439
+          "line": 496
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -307,7 +315,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 459
+          "line": 516
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -315,7 +323,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 469
+          "line": 526
         }
       ]
     },
@@ -529,12 +537,20 @@
           "line": 285
         },
         {
+          "title": "has a review on the record before a board opens a second round",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 326
+        },
+        {
           "title": "wires every catalog to a section, a pick and two compare controls",
           "suite": [
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 306
+          "line": 363
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -542,7 +558,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 405
+          "line": 462
         },
         {
           "title": "computes one anchor everywhere",
@@ -550,7 +566,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 439
+          "line": 496
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -558,7 +574,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 459
+          "line": 516
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -566,7 +582,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 469
+          "line": 526
         }
       ]
     },
@@ -641,12 +657,20 @@
           "line": 285
         },
         {
+          "title": "has a review on the record before a board opens a second round",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 326
+        },
+        {
           "title": "wires every catalog to a section, a pick and two compare controls",
           "suite": [
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 306
+          "line": 363
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -654,7 +678,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 405
+          "line": 462
         },
         {
           "title": "computes one anchor everywhere",
@@ -662,7 +686,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 439
+          "line": 496
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -670,7 +694,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 459
+          "line": 516
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -678,7 +702,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 469
+          "line": 526
         }
       ]
     },

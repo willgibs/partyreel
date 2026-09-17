@@ -12,77 +12,64 @@
 
 ## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` onward)
 
-**What Will did.** He opened his stepped sitting on the hero, answered its round six `none` in chat
-("I think I liked the more symmetrical approach more than the variants we're using to scatter the
-photos"), and round seven was built in the root tree the same evening (`ccf93732`). His first batch
-picked the hero (`stream=stack-above`, the caption under the code dropped) and the palette (`graphite`,
-no accent, the card as declared, the faint colour in), answered four of the light board's asks and
-ruled the aurora off the light ground; all at `257a690d`, verbatim in `docs/design/rulings.md`. He asked
-that a handled question never copy again: "Copy so far" sends only a board's open round (`a6afec3b`).
-His six notes on the media kit and the album hero became the kit's search doors (`c667db3c`) and the
-album hero's round three (`cbad7faf`).
+**What Will did.** He opened his stepped sitting on the hero, answered its round six `none` in chat ("I
+think I liked the more symmetrical approach more than the variants we're using to scatter the photos"),
+and round seven was built the same evening (`ccf93732`). His first batch picked the hero
+(`stream=stack-above`, the caption dropped) and the palette (`graphite`, no accent, the card as declared),
+answered four of the light board's asks and ruled the aurora off the light ground, all at `257a690d` and
+verbatim in `docs/design/rulings.md`. "Copy so far" stopped resending handled questions (`a6afec3b`), and
+his six notes became the kit's search doors (`c667db3c`) and the album hero's round three (`cbad7faf`).
 
 **The lanes.** Two wiring lanes cut at `6f5c61e1` (`hero-wiring`, `palette-wiring`), the album hero's
 round three at `cbad7faf`; three of the four slots.
 
-- `palette-wiring` (merged `88d0bec0`; bible 1 ruled and the ledger gone at `52e9afa2`). Graphite
-  became the site's palette in both modes: a Pearl page at 0.995 with a card the same white, one
-  Graphite room at 0.105 for the app and every cinema chapter, Apple's cool greys at hue 286 between
-  them, and no accent anywhere. The dark card went opaque, so the system's one translucent surface
-  retired by ruling, and the cinema deepening in marketing.css went with it. `--faint` landed as the
-  third text step and took the 40 hand-faded sites off their five alphas. The one unforeseen split:
-  the media well dropped to 0.065 and the footer slab lifted to 0.165, so `.surface-ink` writes its
-  values out instead of deriving them. The board retired into its ruling.
+- `palette-wiring` (merged `88d0bec0`; bible 1 ruled and the ledger gone at `52e9afa2`). Graphite became
+  the palette in both modes: a Pearl page at 0.995 with a card the same white, one Graphite room at 0.105
+  for the app and every cinema chapter, Apple's cool greys at hue 286 between them, no accent anywhere.
+  The dark card went opaque, retiring the system's one translucent surface by ruling along with the cinema
+  deepening; `--faint` landed as the third text step and took 40 hand-faded sites off their five alphas.
+  The one unforeseen split: the media well fell to 0.065 and the footer slab rose to 0.165, so
+  `.surface-ink` writes its values out. The board retired into its ruling.
 - `hero-wiring` (merged `0c58ff76`; the ledger gone and the artifacts regenerated at `137e504b`).
-  Will's round-seven pick shipped: the home hero is the band of photographs streaming out of the real
-  demo QR on one axis, with the ruled block at the band's measured clear line and no caption. The
-  living album wall left with its three scrims, its reel card and the kinetic word. The board's engine
-  came out of the lab as `hero-stream.ts`, cut to the one composition, fluid on the hero's half-width
-  and solved at two breakpoints. Its finding: the ruled 560 px hero minimum does not survive the
-  composition (683 at `lg`, 642 at `base`, derived and pinned by the contract). The 34 squares (ASSETS
-  row 2) stay the ask: 18 are needed for no photograph to be on screen twice.
-- `album-hero`, round three (merged `57e2c2e4`; the touchpoint at `759a557b`). Round three answered
-  Will's six notes on round two with four calm compositions on one engine and a lockup composed for
-  this page as ONE block, so the centre gap went with the vent it used to hold open. `compositions.ts`
-  places every photograph off the lockup's measured box rather than holding it off with a scrim, at
-  both headline steps, and the calm rule became arithmetic: nothing over 40 px a second, at most
-  sixteen frames lit, and every card's DOM box sized to its largest visible moment so a photograph only
-  ever scales down, which was the jitter. The still is now the loop's own first frame, which is why the
-  no-script answer flipped to painting the album settled. The album below is centred on a 720 / 880 /
-  1040 step, and the board is a pick-one catalog at 830 words with its declaration deleted. Three calls
-  it made on its own recommendation, for Will to overrule on the board: the page's arrivals stage goes
-  with the old hero (the centred album says "live" with the product); the arrival card's settle is the
-  one thing allowed past 40 px a second, written into the rule by name; at the louder headline step a
-  station with no room is dropped rather than shrunk, so the picture tells the truth about the cost.
-- The production bug it found, fixed on its own branch (merged `0c9caedc`, on the alias at 04:45 UTC):
-  `/features/album` threw for every reader with Reduce Motion on, because a looping fill's end tick
-  was Infinity and the reduced-motion jump indexed `arrivals[NaN]`. A loop has no end, so its still is
-  defined rather than reached: one pass landed with its checks cleared and its columns bounded
-  (`stillAlbumFill`), derived through the non-looping path; a running loop is never clamped at its
-  pass end; the test pins the still, the reported repro and the unclamped loop.
+  Will's round-seven pick shipped: the home hero is the band of photographs streaming out of the real demo
+  QR on one axis, the ruled block at the band's measured clear line, no caption; the living album wall left
+  with its scrims, its reel card and the kinetic word. The engine came out of the lab as `hero-stream.ts`,
+  cut to the one composition and solved at two breakpoints. Its finding: the ruled 560 px hero minimum does
+  not survive it (683 at `lg`, 642 at `base`, pinned by the contract). The 34 squares (ASSETS row 2) stay
+  the ask, 18 of them needed for no photograph to be on screen twice.
+- `album-hero`, round three (merged `57e2c2e4`; the touchpoint at `759a557b`). Will's six notes on round
+  two answered: four calm compositions on one engine, and the lockup composed for this page as ONE block,
+  so the centre gap left with the vent it held open. `compositions.ts` places every photograph off the
+  lockup's measured box rather than behind a scrim, and the calm rule became arithmetic (nothing over
+  40 px a second, at most sixteen frames lit, every card sized to its largest moment so a photograph only
+  scales down, which was the jitter); the still is the loop's own first frame. Three calls it made on its
+  own recommendation wait for Will on the board, which is 830 words with its declaration deleted.
+- The production bug it found, fixed on its own branch (merged `0c9caedc`): `/features/album` threw for
+  every reader with Reduce Motion on, because a looping fill's end tick was Infinity and the jump indexed
+  `arrivals[NaN]`. A loop has no end, so its still is defined rather than reached (`stillAlbumFill`,
+  derived through the non-looping path), and a running loop is never clamped at its pass end.
 
 **The second batch (`1cb34f70`).** Will ruled the type scale on every ask (`ladder=b`,
 `tracking=adopt`, `not-found=on-ladder`) and kept the throw and the aurora, which with the seam is the
 whole of what he calls the Aurora ("another alternative way to infuse the Aurora into our UI", every
 form off paper). He returned six light cards as `refine`, each note saying the card did not show what it
 asked ("our step, ring, lift, and float: a set of four options to choose from, or are we trying to use
-everything, and if so, how?"), and then reread his paste worried the notes were crossed. They were not:
-the trailing `note: "on paper: ..."` was a step withdrawn inside the round whose text his browser still
-held. `composeSoFar` now takes the open round's shape and sends nothing for a withdrawn step, and
-`Transcribed` carries the round's notes so held words never ride twice (`4280a59c`, five new cases).
+everything, and if so, how?"), then reread his paste worried the notes were crossed. They were not: the
+trailing `note: "on paper: ..."` was a withdrawn step whose text his browser still held. `composeSoFar`
+now sends nothing for a withdrawn step and `Transcribed` carries the round's notes, so held words never
+ride twice (`4280a59c`, five new cases).
 Three lanes cut at `c338c95c`: `type-wiring`, `light` (round eight) and `aurora-wiring`.
 
 - `aurora-wiring` (merged `2987a5e5`; the tuner knob at the next commit). The three forms of light Will
   kept landed as one family in his word. The clock is ruled to 8s on every lamp, with
   `--aurora-cadence` declared beside it as a sibling (three laps, 24s) rather than a re-tune, and
-  `SectionLight` ships as the field's one mount: four placements, the accent register in one object,
-  the bottom band the top one flipped. The no-light-ground ruling became a CSS fence keyed on
-  `[data-section-light]`, the dark variant inverted, scoped to the field so the four shipped seams keep
-  their own paper history. Being the first shipped lamp on the transform drive exposed that drive's
-  missing resting `translate`, which parked the comet dead centre at full strength for every
-  reduced-motion visitor; it rests at its own from-keyframe now. Foundations presents the engine as
-  Aurora with a specimen per form, and `SectionLight` ships its placements plus a paper frame that
-  paints nothing on purpose. No production call site yet: the placement is round eight's first step,
+  `SectionLight` ships as the field's one mount: four placements, the accent register in one object, the
+  bottom band the top one flipped. The no-light-ground ruling became a CSS fence keyed on
+  `[data-section-light]`, scoped to the field so the four shipped seams keep their paper history. Being the
+  first shipped lamp on the transform drive exposed that drive's missing resting `translate`, which parked
+  the comet dead centre at full strength for every reduced-motion visitor; it rests at its own from-keyframe
+  now. Foundations presents the engine as Aurora with a specimen per form. No production call site yet: the
+  placement is round eight's first step,
   and the throw's plate and the publish flourish wait on the bloom card. Verified on a fresh stylesheet:
   8s on the token, 24s on the field's bands, `display: none` inside `.surface-paper`.
 
@@ -151,20 +138,37 @@ inside the round, answered by `depth=both`.
 
 **The fifth batch.** `floating-surfaces r7`: `entrance=by-frequency`, and `radius=nested` with "Today's
 panel corrected and Rounder seem to be the same option... If there's meant to be a difference, please
-pop this question back up." There is one (8px with 4px rows against 12px with 8px), hidden because
-both NEST and a tile was a third of true size: the corner is drawn filled now, its tiles at true size
-through the kit's new `TrueFit` (the fifth copy of that box, promoted at last), and a staged follow-up
-step `roundness` re-asks only that pair with the pixels in its labels. He also delivered **the v1
-wordmark**: `src/lib/brand/wordmark.ts` holds his one path, `Logo` is the wordmark alone in
-`currentColor` on every door (22px in a bar), the social card draws the same path, the Library's Logo
-entry shows it on both grounds, and `logo.test.tsx` pins that it names itself, takes the ground's
-colour and has one home. The mark stays a stand-in until his v1 icon (ASSETS row 19).
+pop this question back up." There is a difference (8px with 4px rows against 12px with 8px), hidden because
+both NEST and a tile was a third of true size: the corner is drawn filled at true size through the kit's new
+`TrueFit` (the fifth copy of that box, promoted at last), and a staged step re-asked only that pair. He also
+delivered **the v1 wordmark**: `src/lib/brand/wordmark.ts` holds his one path, `Logo` is the wordmark alone
+in `currentColor` on every door (22px in a bar), the social card draws the same path, and `logo.test.tsx`
+pins that it names itself, takes the ground's colour and has one home. The mark stays a stand-in until his
+v1 icon (ASSETS row 19).
+
+**The sixth batch.** `floating-surfaces r7: roundness=nested` ("Still no visual difference, but let's go
+with your pick for now") closes that board: every step is answered and its wiring is due. Then the one
+that matters most: **Will killed the brand voice exploration**, and the post-mortem is the lesson.
+`brand-voice r7` left `voice` open in his own words and answered the three questions the voice never
+decided (`noun=album`, `unfurl=join`, `counts=hero` with a layout note). His reason: the agent "worked too
+hard trying to generate multiple unique voices rather one that's perfect, then we kept running in through
+unreviewed rounds to dig deeper into each without shaping along the way." The tree agreed: it had reached
+ROUND SEVEN with `docs/reviews/brand-voice.json` never once written, carrying six voices, 24 spots, 510
+strings and 4,121 lines, and its own contract made two voices that AGREED owe a written excuse, which is
+the machine that forced them apart. Two rules stopped being prose: `registry.test.ts` fails a board past
+round 1 with no ledger (four are named in a grandfather list that only shrinks), and options are never
+forced apart. `voice-retire` deletes the board whole, keeping none of the 510 lines at his instruction and
+shipping only his three picks; a new `voice` board rebuilds the voice from won lines, one real line in its
+real place at a time, with what his wins have in common written up after each round and the next round's
+candidates drafted in it. He specified that form himself after withdrawing a two-draft idea of his own: a
+shape that "would likely require many fine notes over one cohesive answer" is the wrong shape, whatever its
+content. He also corrected the counts ask's premise: the band below the hero is "paired with a demo video,
+not the demo event", so the bigger pair claims nothing about the demo, whose content is replaced at launch.
 
 **The alias.** Rebuilt whenever a board or a wiring changes; the smoke's result is STATUS's live state.
 
-**Next.** `light-wiring` is running; Card's wiring is cut when it merges (both own `src/components/ui/`).
-Will's sitting continues on floating-surfaces' one confirming step, then rounding; three phone-end type
-calls wait.
+**Next.** `light-wiring` is finishing; Card's wiring and `voice-retire` cut when it merges and integrate
+one at a time. His sitting continues on rounding, the album hero, the media kit and river-visual.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
 

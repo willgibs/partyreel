@@ -235,5 +235,16 @@ palette and light first), pasted in batches with Copy so far.
   files sit under prefixes `light-wiring` owns (`src/components/shared/`), so the agent was told by
   message to leave them and to regenerate the artifacts at its sync. Card's wiring lane waits for
   `light-wiring`'s merge: both own `src/components/ui/`.
+- Will's sixth batch. `floating-surfaces r7: roundness=nested` confirms the corner and closes that board;
+  `brand-voice r7` records `voice=?` with his words plus `noun=album`, `unfurl=join` and `counts=hero`,
+  and he killed the rest of that exploration. The ledger for it was created by that paste and had never
+  existed: the board was at ROUND SEVEN with no review on record. Two rules landed with the record: a
+  board past round 1 with no `docs/reviews/<id>.json` fails `registry.test.ts` (four boards grandfathered
+  in a list that only shrinks, each on his queue), and options are never forced apart (that board made two
+  voices that agreed owe a written excuse). Two lanes are cut when `light-wiring` merges: Card's wiring,
+  and `voice-retire`, which deletes the board whole (he chose to keep none of the 510 lines) and ships his
+  three picks. The new `voice` board is on the ROADMAP ahead of Glass, since bible 20 and 21 wait on it.
+  ★ Mine at `voice-retire`'s merge: bible 20 and 21 re-pointed, `docs/reviews/brand-voice.json` deleted in
+  its own commit, and `album-hero`'s "Hold for the brand voice line" option re-pointed at the new board.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

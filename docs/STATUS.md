@@ -29,20 +29,20 @@ tiles on one specimen, show before choose, "None of these" as a pick-one board's
 time for a keep-any board, staged follow-ups, the desk's rows as steps, "Copy so far" omitting what the
 ledger holds), then every board was reshaped into steps four agents at a time with no new exploration.
 Every reshaped board is under the standard 1,200 words with its declaration deleted. **The round is closed
-on the tree and its sitting is next**: Start the review on the desk walks the hero, the palette, light,
-type-scale, floating-surfaces, rounding, brand-voice and the media kit, and a pick's wiring round is cut the
-day he makes it (the wind-down: a favourite becomes a working version in the Library, the board retires).
-The kit findings the boards raised are the ROADMAP's first Now lines; none blocks the sitting.
-**The sitting's first night (2026-09-17):** the hero's round seven built in the root tree; his batch picked
-the hero (`stream=stack-above`) and the palette (`graphite`, no accent) and ruled the aurora off light grounds.
-**The second batch (`1cb34f70`):** the type scale ruled, the throw and the aurora kept; Copy so far sends
-only a board's open round. **The third (`c9903c99`):** round seven's last cards, given on the alias: the
-bloom, the halo (objects only) and the beam kept, the Aurora placed as a mix composed per place.
-**The fourth batch (`871f650b`):** the light board answered in full (both shadows, the bright edge kept, the
-shimmer banked), Card picked with submenus at two levels, a Glass exploration banked by name; he stopped on
-a frozen stage, fixed the same day (`pnpm lab:demo` proves every open step shows its options).
-**The fifth:** entrances by frequency, the corner re-asked as one staged step (`roundness`), and **the v1
-wordmark delivered and wired** (alone, on every door; the icon to come).
+on the tree and its sitting is running**: Start the review walks what is left (rounding, the album hero, the
+media kit, river-visual), and a pick's wiring round is cut the day he makes it (the wind-down: a favourite
+becomes a working version, the board retires). The kit findings are the ROADMAP's first Now lines.
+**The sitting (2026-09-17), batch by batch:** the hero (`stream=stack-above`) and the palette (`graphite`,
+no accent), the aurora ruled off light grounds; the type scale, with the throw and the aurora kept
+(`1cb34f70`); the bloom, the halo (objects only) and the beam, the Aurora composed per place (`c9903c99`);
+the light board answered in full and Card picked with submenus at two levels, Glass banked by name
+(`871f650b`), after he stopped on a frozen stage, fixed the same day (`pnpm lab:demo` now proves every open
+step shows its options); then entrances by frequency, the corner re-asked as one staged step, and **the v1
+wordmark delivered and wired** (alone, on every door; the icon to come). **The sixth:** the corner confirmed,
+closing floating surfaces, and **the brand voice exploration killed unruled** at round seven, where it had
+arrived with no review ever recorded (six voices, 510 strings, 4,121 lines). Three picks stand and ship
+(`noun=album`, `unfurl=join`, `counts=hero`); the voice restarts as a board built from won lines, and an
+unreviewed second round is now a test rather than prose.
 
 | track | returns | state |
 | --- | --- | --- |
@@ -54,9 +54,9 @@ wordmark delivered and wired** (alone, on every door; the icon to come).
 | `light` (round eight) | the board had stopped his sitting twice (the cards did not show what they asked): steps he can see, ONE `depth` question on one scene with a legend, the bright edge with a fixed 4x corner, the streak of light that plays; round seven's sweep had run behind an opaque frame | integrated at `ee0b21d6`; cut to `depth`, `face`, `sweep` at `c9903c99` (539 words) once his third batch answered the other three |
 | `aurora-wiring` | the lamps he kept (the seam, the throw, the field: one Aurora, never on paper) as working versions: the 8 second clock, `SectionLight`, the Library's Aurora entry; the transform drive's reduced-motion still fixed on the way | integrated at `2987a5e5`; the home page's two places composed at `dc4530df` (the closer's horizon, the ledger lit from its side), no default placement |
 | `publish-bloom` | the publish moment joins the Aurora: the house five as wings behind the studio's frame and a pool under the share card, resting lit while a reel is shared, the swell owed to the tap, nothing on a light ground; the violet keyframes left | integrated at `7e713fe8`; signed in on the alias the Studio's wings and the card's pool rest lit with no swell on open, no sideways scroll at 375, and the card's light is `display: none` off a dark ground; the tap's swell is proven on the lab stand-in and by the contract only (the one shared reel is the public demo's, not flipped) |
-| `floating-surfaces` (round seven) | pick-one: the winner from the seven or none, the submenu, corner, entrance and shadow questions as tiles on one menu | integrated at `514aee2d`; ruled Card, submenus at two levels, entrances by frequency, the corner `nested`; one confirming step open (`roundness`); its wiring is cut when `light-wiring` merges |
+| `floating-surfaces` (round seven) | pick-one: the winner from the seven or none, the submenu, corner, entrance and shadow questions as tiles on one menu | integrated at `514aee2d`; **every step answered**: Card, submenus at two levels, entrances by frequency, the corner `nested` confirmed on the follow-up step; its wiring is cut when `light-wiring` merges |
 | `rounding` (round seven) | pick-one: the winner from the six or none, the button, ladder, dead-rung and gap questions as tiles at true pixels | integrated at `7d90465c`, 684 words, no declaration |
-| `brand-voice` (round seven) | pick-one: the winner from the six voices or none on three lines at phone size, the noun, unfurl, counts and scope questions as steps | integrated at `0c1cfa60` |
+| `brand-voice` (round seven) | pick-one over six voices, with the noun, unfurl, counts and scope as steps | integrated at `0c1cfa60`; **killed unruled** (no review in seven rounds): the `voice-retire` lane deletes it and ships his three picks, and a new `voice` board rebuilds the voice from won lines |
 | `media-kit` (round seven) | keep-any as a gallery (a kept card is a purchase, priced on the card), the crowds question as two tiles, the rule, spend and shoot questions means-only | integrated at `61063785`, 1,077 words, no declaration |
 
 ## The previous round: the revamp (2026-09-16, `5cdebfe0` to `48bd3bdc`)
@@ -68,19 +68,18 @@ loop, CLAUDE.md 150 lines, a manifest deleted at its merge and the record two ro
 ADRs and stripped the four heavy system docs (`d4ec4cff`, `aea90fd3`, `0a48db70`); Round 4 rebuilt the six
 paper boards as catalogs under declared budgets (`5868325e` to `8587d3ed`), and the palette's cool round
 seven landed mid-sitting (`5a538c0a`). Round 3, the Library as the complete inventory with keep / redesign
-/ retire on every entry, waits for its planning pass after the sitting. The CHANGELOG's entry "The revamp"
-is the record.
+/ retire on every entry, waits for its planning pass. The CHANGELOG's "The revamp" is the record.
 
 ## Live state
 
 - **Prod (partyreel.com)** = `main` @ tag `milestone-24` (`592da24`). **The `launch-prep` alias**
   (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the wind-down's wirings (Graphite, the
   band out of the code, the type ladder, the Aurora on the home page, the publish light) and the fixed
-  lab steps (built 2026-09-17; the production smoke passed 246 checks at `c9903c99` with the door closed,
-  the two glow boards over the reading budget on purpose). Will reviews on the alias as well as on his
-  local `pnpm dev`, so **the alias is rebuilt whenever a board changes** (his third batch landed in the
-  wrong round because it was not). Vercel's cap is 100 deployments per trailing day on every path
-  (canceled deployments register, builds do not), so `[preview]` stays the Orchestrator's.
+  lab steps (built 2026-09-17; the smoke passed 246 checks at `c9903c99`, the two glow boards over the
+  reading budget on purpose). Will reviews on the alias as well as his local `pnpm dev`, so **the alias is
+  rebuilt whenever a board changes** (his third batch landed in the wrong round because it was not).
+  Vercel's cap is 100 deployments per trailing day on every path (canceled ones register, builds do not),
+  so `[preview]` stays the Orchestrator's.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and
   fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
 - **Tests:** 2,150 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on
@@ -111,10 +110,11 @@ prune crons and the shared `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 The desk derives the steps (`/design/lab?key=`); the assets are in [`ASSETS.md`](ASSETS.md). Next from him:
-the stepped sitting, board by board (floating-surfaces' one confirming step, rounding, the album hero), pasted in
-batches with Copy so far; three phone-end type calls (the CHANGELOG's `type-wiring` record); one question outside the walk, whether bible 20 means the naming or the
-shape (brand-voice); the assets still open: the menu ground photograph (row 14), the grain tile and the
-worst-case overlap pair (rows 15 and 16), the bright-edged tile set (row 17), and the media kit's 36 masters
-and $56 bridge, which its spend and shoot steps now ask. One product bug waits for the wiring round: every
+the stepped sitting, board by board (rounding, the album hero, the media kit, river-visual), pasted in
+batches with Copy so far; three phone-end type calls (the CHANGELOG's `type-wiring` record); the assets still
+open: the menu ground photograph (row 14), the grain tile and the worst-case overlap pair (rows 15 and 16),
+the bright-edged tile set (row 17), the v1 icon (row 19), and the media kit's 36 masters and $56 bridge,
+which its spend and shoot steps now ask. The bible-20 question (naming or shape) becomes the new `voice`
+board's first ask rather than dying with brand-voice. One product bug waits for the wiring round: every
 nested submenu paints nothing (`ui/dropdown-menu.tsx`'s `SubContent` has no portal). The launch-gated tasks
 are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).

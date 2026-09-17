@@ -63,7 +63,14 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
    wiring round, not in another exploration. **The lab winds down into the Library** (Will,
    2026-09-16): a sitting ends in promotion, a board retires once its favourites are working versions,
    and a later exploration branches from a Library entry, never from a board nobody selected.
-   **Never a second round of the same work without his notes between.**
+   **Never a second round of the same work without his notes between**, and that is a test now, not a
+   hope: `registry.test.ts` fails a board past round 1 with no `docs/reviews/<id>.json`. It went
+   unenforced and `brand-voice` reached round seven with no review ever recorded (six voices, 510
+   strings, 4,121 lines, killed unruled 2026-09-17). Deepening an unreviewed board is the cheapest
+   thing an agent can do and the least useful. A corollary from the same post-mortem: **never force a
+   board's options apart.** That board's own contract made two voices that agreed owe a written
+   excuse, so its author separated them to satisfy it; options earn their place by being real
+   contenders for the one decision, and two that land on the same answer is a finding, not a debt.
 7. **The record is what is active**: the manifest is deleted in the merge commit, its Record joins
    the round's CHANGELOG entry, STATUS is replaced, the Library and the desk show the live state;
    git holds everything older.

@@ -8,6 +8,54 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-17 · the brand voice exploration is killed unruled; the voice is rebuilt from won lines, one comparison at a time
+
+**Became:** `docs/reviews/brand-voice.json` round 7, created and closed in one paste (`voice` left open with
+his words, `noun=album`, `unfurl=join`, `counts=hero`); the `voice-retire` lane, which deletes all 4,121
+lines of the board and ships only the three picks; a new board `voice` at round 1 in the form below; bible
+20 and 21 re-pointed at it; `docs/reviews/_window.json` round 6; and one enforced rule, that a board past
+round 1 with no ledger fails `registry.test.ts`. The board had reached **round seven with no review ever
+recorded** and its own contract penalised two voices for agreeing, which is the machine that produced what
+he is describing here.
+
+Verbatim, on the kill: "For the main brand voice selection I marked as not clear, I understood but think it
+may be worth killing the rest of the brand voice exploration I have not answered yet. The reason being:
+feels like the agent worked too hard trying to generate multiple unique voices rather one that's perfect,
+then we kept running in through unreviewed rounds to dig deeper into each without shaping along the way.
+Now we have a massive amount of ideas, but it feels like the best version would've been a mesh of examples
+from multiple voices at different points (today's, keepsake, live, plain) rather than forcing each to have
+a very specific tone so it felt differentiated for the sake of the exploration."
+
+Verbatim, on what replaces it: "For the new brand voice, it may be best to build up from the ground up,
+shaping along the way rather than just selecting one of these for the sake of it." Asked whether to keep
+any of the 510 lines, he chose to keep none.
+
+Verbatim, on the form, which is the durable half. He first asked for two parallel drafts and withdrew it
+himself before any work started: "I'm worried that my two-voice full draft pages are antithetical to our
+new multi-stage question approach meant to handle individual decisions and produce single winners. The two
+drafts would likely require many fine notes over one cohesive answer. The better strategy would likely be
+to give me tighter comparisons of copy in real cases, one at a time, and use my winning selections to build
+the brand voice, rather than presenting two options." The constraint that survived from the withdrawn
+version stands with it: "Starting with just a few spot example statements may make a voice sound good in a
+silo, but not perform well in actual usage. I'd rather shape it as we see the voice applied in real cases."
+
+So the voice is never declared and then applied. Each step is one real line in its real place with three or
+four close candidates and one winner; after each round what his wins have in common is written up, and the
+next round's candidates are drafted in that, so the rounds narrow.
+
+Verbatim, correcting the counts ask's premise, which was wrong on the board: "The demo is a fake event we're
+creating, and does not accept new uploads, only simulate the experience. While we are pointing to the demo
+event in other places of the site, the section below the home hero where these numbers are being used is
+paired with a demo video, not the demo event. So there's not as big of a mental barrier you make think, the
+numbers simply feel like they're referencing this example reel from a conceptual event, not the demo
+explicitly. With that said, the existing demo content will be completely replaced prior to launch to feel
+more full and real." His note on the pick: "I think it'd be nice to make that the first line, then stacked
+center under, 'Created for you.'"
+
+Verbatim, closing floating surfaces: "Still no visual difference, but let's go with your pick for now. We
+can always adjust later once we start implementing everything into the app." Every step of that board is
+answered and its wiring is cut.
+
 ## 2026-09-17 · the v1 wordmark, alone; floating surfaces open by frequency, and the corner question pops back up
 
 **Became:** `src/lib/brand/wordmark.ts` (his SVG's one path), `Logo` as the wordmark alone in
