@@ -33,6 +33,12 @@ on the tree and its sitting is next**: Start the review on the desk walks the he
 type-scale, floating-surfaces, rounding, brand-voice and the media kit, and a pick's wiring round is cut the
 day he makes it (the wind-down: a favourite becomes a working version in the Library, the board retires).
 The kit findings the boards raised are the ROADMAP's first Now lines; none blocks the sitting.
+**The sitting's first night (2026-09-17):** the hero's round six answered none and round seven built in the
+root tree; his batch then picked the hero (`stream=stack-above`, the caption under the code dropped) and
+the palette (`graphite`, no accent, the card as declared, the faint colour in), answered four of the
+light board's asks and ruled the aurora off the light ground. Two wiring lanes are cut (`hero-wiring`,
+`palette-wiring`; the wind-down: each board retires as its favourite becomes a working version); the
+light sitting continues on its cards; Copy so far sends only a board's open round now (`a6afec3b`).
 
 | track | returns | state |
 | --- | --- | --- |
