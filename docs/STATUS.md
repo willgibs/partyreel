@@ -115,6 +115,6 @@ batches with Copy so far; three phone-end type calls (the CHANGELOG's `type-wiri
 open: the menu ground photograph (row 14), the grain tile and the worst-case overlap pair (rows 15 and 16),
 the bright-edged tile set (row 17), the v1 icon (row 19), and the media kit's 36 masters and $56 bridge,
 which its spend and shoot steps now ask. The bible-20 question (naming or shape) becomes the new `voice`
-board's first ask rather than dying with brand-voice. One product bug waits for the wiring round: every
-nested submenu paints nothing (`ui/dropdown-menu.tsx`'s `SubContent` has no portal). The launch-gated tasks
+board's first ask rather than dying with brand-voice. One product bug waits for the wiring round: `SubContent`
+has no `Portal`, so a nested submenu is CLIPPED when its parent is transformed or scrolled (corrected live). The launch-gated tasks
 are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).
