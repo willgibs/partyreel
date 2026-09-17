@@ -21,6 +21,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
 The lab and the kit:
+- The lab: the spec docs of retired boards (`docs/specs/palette.md`, then `type-scale.md` once its wiring lands) still read as standing proposals; at Round 3's planning, fold what is still true into `docs/systems/design-system.md` and delete them with their slugs in `_data/docs.test.ts`.
 - The lab: `library/rules/[id]/page.tsx` links `docs/tracks/<id>.md` for any status whose track is not a standing board without checking the manifest exists, so the rule page 404s the next time a ruled board retires; make that branch read the track states the desk already reads.
 - The lab: ten boards under `(dev)` still fade `text-muted-foreground/N` by hand (`git grep 'text-muted-foreground/'`); move them onto `text-faint` as each board is next touched.
 - The lab: `catalog.tsx` prints a card's `lands` only when the card is walked alone or picked, so a keep-any gallery never shows what keeping one lands as; widen the guard or give the gallery walk the solo walk's line (media-kit round seven).

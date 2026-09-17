@@ -30,9 +30,6 @@ owns:
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
-  - src/app/globals.css
-  - src/app/theme.css
-  - src/app/(marketing)/marketing.css
   - src/lib/events/visibility-labels.ts
   - src/lib/shared/use-entered-frame.ts
 reads:
@@ -43,6 +40,7 @@ announces:
   - "The stepped review round (2026-09-16, 02c409b4): board-spec.ts carries Ask.lands / after / strip, AskOption.state, Candidate.lands, CatalogSpec.mode / winner / walk / stage and LIMITS.askLands / candidateLands; registry.test.ts rules on them (a staged ask waits on an earlier ask or a card of its own catalog; a pick-one catalog names a winner ask that mirrors the pick control and offers none; look is optional once every option is drawn; an ask mirroring a clearable control may offer its cleared default as none)."
   - "The home hero ships (2026-09-17, 0c58ff76): src/components/marketing/sections/home/cinema-hero.tsx is the band streaming out of the demo code on hero-stream.ts, and the home-hero board is retired; sandbox/home-hero/shared.tsx outlives it for the album-hero and river-visual boards (FRAMES, CANVAS, GUTTER, LADDER, Mode, Photo) and nothing else under that folder exists."
   - "The wiring rounds (2026-09-17): Graphite is the palette (globals.css, theme.css, marketing.css at 88d0bec0: a 0.995 page, a 0.105 room, --faint as the third text step, the dark card opaque, no accent, the cinema deepening gone); the three stylesheets are the Orchestrator's again; Copy so far sends only a board's open round (review-message.ts composeSoFar), so a store entry from a round the board has left never rides again."
+  - "The second batch (2026-09-17, 4280a59c): the type scale is ruled (B, the spacing law, the dead link on the set) and the Aurora is one light in three kept forms (seam, throw, field), never on paper, on an 8 second clock. The stylesheets are released for the round: theme.css and marketing.css to type-wiring (plus the @utility font-heading block of globals.css), the rest of globals.css to aurora-wiring. review-message.ts: composeSoFar(store, openOf, transcribed) takes the open round's shape ({ round, asks, items }) and Transcribed carries notes by board."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
 ---
 
@@ -75,6 +73,9 @@ are cut (development is parallel work again), the light sitting continues on its
 
 | track | board | waits on |
 | --- | --- | --- |
+| `type-wiring` | type-scale (retires) | the lane: ladder B as one `@theme` block, every heading on a step, the Library's Type section; holds `theme.css`, `marketing.css` and one block of `globals.css` |
+| `light` | light (round eight) | the lane: six steps Will can see (`landing`, one `depth` question on one scene, the lit face, three marks that run) |
+| `aurora-wiring` | none | the lane: the 8 second clock, `SectionLight`, the Aurora's three forms in the Library; holds `globals.css`; the home page's two call sites wait on Will's `landing` |
 
 ## Waiting on Will
 
@@ -169,6 +170,11 @@ palette and light first), pasted in batches with Copy so far.
 - `0c9caedc` the album page's reduced-motion crash fixed on its own branch (a looping fill's still is one
   settled pass; `use-album-fill.ts` and its test); `57e2c2e4` album-hero round three integrated (four calm
   compositions, the one-block lockup, the album centred; 830 words; the manifest deleted); `759a557b` its
-  touchpoint says round three. No lane is open.
+  touchpoint says round three.
+- `1cb34f70` Will's second batch transcribed (type-scale r7 ruled on every ask; light r7: the throw and
+  the aurora kept, six cards returned as refine; the repeated paper note not recorded twice); `4280a59c`
+  Copy so far never re-sends a held note nor anything for a step the board withdrew (`composeSoFar` takes
+  the open round's shape; `Transcribed.notes`). Three lanes cut: `type-wiring`, `light` (round eight),
+  `aurora-wiring`.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

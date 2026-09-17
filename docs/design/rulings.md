@@ -8,6 +8,39 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-17 · the type scale is B with the spacing law and the dead link on the set; the Aurora is one light in three forms
+
+**Became:** `docs/reviews/type-scale.json` round 7 (`ladder=b`, `tracking=adopt`, `not-found=on-ladder`,
+`item:b=keep`, no notes: every answer the board's own recommendation) and the `type-wiring` lane (one
+`@theme` block, every heading on a step, the board retired into the Library's Type section);
+`docs/reviews/light.json` round 7 (`item:throw=keep`, `item:aurora=keep`, and `step`, `ring`, `lift`,
+`float`, `face`, `sweep` returned as `refine`), the `aurora-wiring` lane (the Aurora as one Library
+component in three kept forms, the seam, the throw and the field; the 8 second clock; `SectionLight`,
+dark grounds only) and the light board's round eight (three cards that were never decisions leave the
+walk, four become one question on one scene, the marks must run). Naming from here: "the Aurora" is
+his word for the coloured light as a whole; the board's chapter-scale "aurora" is its FIELD form.
+
+Verbatim, on the throw: "I like the throw. Assuming it's basically an alternative way to use our Aurora,
+similar to the seam."
+
+Verbatim, on the field: "Approved on the Aurora. However, we're keeping all Aurora forms off of paper, as
+mentioned in the previous round. Assuming this, similar to seam and throw, is another alternative way to
+infuse the Aurora into our UI."
+
+Verbatim, on the depth cues, which is the question round eight answers on the board itself: "our step,
+ring, lift, and float: a set of four options to choose from, or are we trying to use everything, and if
+so, how?" And on the lift's specimen: "since the top card in the stack is moved to a lower Y coordinate
+than the card below it, the shadows don't actually stack at all."
+
+Verbatim, on the lit face: "Genuinely cannot see it in action here." On the sweep: "I see the static gray
+edge ring, but can't get the animation to play, even by clicking replay. Stopping here."
+
+Verbatim, on the review itself, after rereading his paste: "please be sure everything paired together
+makes sense, and we aren't attached notes to incorrect questions and messing everything up getting
+crisscrossed." (Nothing was crossed: the trailing `note: "on paper: ..."` was the batch before's, held
+by his browser under a step withdrawn inside the round. "Copy so far" now sends nothing for a withdrawn
+step and never a note the ledger already holds.)
+
 ## 2026-09-17 · the hero is the stack with the code above; the palette is Graphite with no accent; the aurora stays off the light ground
 
 **Became:** `docs/reviews/home-hero.json` round 7 (`stream=stack-above`) and the `hero-wiring` lane
