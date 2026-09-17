@@ -70,9 +70,9 @@ is the record.
 ## Live state
 
 - **Prod (partyreel.com)** = `main` @ tag `milestone-24` (`592da24`). **The `launch-prep` alias**
-  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the stepped review round with the hero's
-  round seven (`a964d4a6`, built 2026-09-17 00:16 UTC once Vercel's daily cap freed; the production smoke
-  passed 261 checks with the door closed, the two glow boards over the reading budget on purpose). Vercel's
+  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the wind-down's two wirings, Graphite and
+  the band out of the code (`c7f6ebdd`, built 2026-09-17 04:23 UTC; the production smoke passed 250 checks
+  with the door closed, the two glow boards over the reading budget on purpose). Vercel's
   cap is 100 deployments per trailing day on every path (canceled deployments register, builds do not), so
   `[preview]` stays the Orchestrator's and rare. Will's sitting runs on his local `pnpm dev` after a hard
   reload; the alias is the same tree for a phone.
