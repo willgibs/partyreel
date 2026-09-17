@@ -98,7 +98,7 @@ export function SaveAccountPrompt({
       </div>
       <p className="font-heading text-lg">Keep these photos</p>
       <p className="mx-auto mt-1 mb-4 max-w-xs text-[15px] text-muted-foreground">
-        Create a free account to save this event and come back to the gallery
+        Create a free account to save this event and come back to the album
         whenever you want.
       </p>
       <div className="flex justify-center">

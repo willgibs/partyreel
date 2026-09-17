@@ -95,6 +95,7 @@ export function Step({
   param,
   board,
   transcribed,
+  build,
   onEnd,
   className,
 }: {
@@ -108,6 +109,8 @@ export function Step({
   board?: StepBoard;
   /** What the ledger already holds, so "Copy so far" omits it. */
   transcribed?: Transcribed;
+  /** The commit this page was built from; rides the paste as a `#` line. */
+  build?: string | null;
   /** The desk's summary; without it the last Next links there. */
   onEnd?: () => void;
   className?: string;
@@ -341,6 +344,7 @@ export function Step({
         n={n > 0 ? n : walk.length + 1}
         of={Math.max(walk.length, 1)}
         transcribed={transcribed}
+        build={build}
       />
 
       <header className="max-w-3xl">
@@ -432,11 +436,13 @@ function Spine({
   n,
   of,
   transcribed,
+  build,
 }: {
   step: SessionStep;
   n: number;
   of: number;
   transcribed?: Transcribed;
+  build?: string | null;
 }) {
   const key = useDesignKey();
   return (
@@ -446,8 +452,20 @@ function Spine({
         <span className="text-[11px] text-muted-foreground tabular-nums">
           step {n} of {of}
         </span>
+        {/* The build being served, beside the round it is serving. A page
+            cannot know a newer build exists, but the reviewer and the
+            Orchestrator can compare this one line (Will, 2026-09-17: a batch
+            arrived a round behind because nothing on the page said so). */}
+        {build && (
+          <span
+            className="text-[11px] text-faint tabular-nums"
+            title="The commit this page was built from. It rides the paste."
+          >
+            build {build}
+          </span>
+        )}
         <span className="ml-auto flex flex-wrap items-center gap-2">
-          <CopySoFar transcribed={transcribed} />
+          <CopySoFar transcribed={transcribed} build={build} />
           <Link
             href={withDesignKey(step.boardHref, key ?? null)}
             className="text-[11px] text-muted-foreground underline underline-offset-2 transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
@@ -494,9 +512,66 @@ function AskBody({
   const live = step.options.find((o) => o.id === (shown || choice));
   const stageState = { ...board?.state, ...stateFor(step, live) };
   const stageSection = step.stageSection ?? step.section;
+  const strip = board && step.strip && step.strip.length > 0;
+  const stage = board && stageSection;
 
   return (
     <>
+      {/* ★ WHERE TO LOOK, BEFORE WHAT TO PRESS. `look` is the author's own
+          sentence naming what separates the options, and it was carried on the
+          step type and then dropped: `answer.tsx` printed it in browse mode and
+          the step never did. On an ask whose options cannot be drawn it is the
+          ONLY instruction a reviewer gets, so river-visual's four steps were
+          three unlabelled words and a stage (measured 2026-09-17). */}
+      {step.look && (
+        <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
+          <span className="text-foreground">What to look at: </span>
+          {step.look}
+        </p>
+      )}
+
+      {/* ★ THE EVIDENCE IS PINNED, AND IT COMES BEFORE THE OPTIONS.
+          Measured 2026-09-17 across all 21 open steps: the stage sat a median
+          0.5 and a worst 5.6 SCREENS below the first option it answers to, and
+          nothing in the lab was sticky. That is exactly what Will reported
+          twice as "clicking the configs didn't seem to change anything" - the
+          presses registered and the evidence was off screen. Reading order is
+          now the one a configurator uses: here is the page, here are the ways
+          it could look, press one. The knobs ride with it because they drive
+          it. A board whose stage needs more room raises `--lab-stage-peek`.
+          No negative margin on this block, on purpose: a board's stage may
+          carry `data-lab-bleed`, which takes the page's gutter back and would
+          then be clipped by this block's own overflow. */}
+      {stage && (
+        <div className="z-20 flex flex-col gap-3 border-b border-border bg-background/90 pb-3 backdrop-blur sm:sticky sm:top-[var(--lab-topbar-h,0px)] sm:pt-3">
+          {strip && <ConfigStrip step={step} board={board} />}
+          {/* ★ THE PINNED STAGE DOES NOT TAKE THE POINTER. It is evidence, not
+              a control: every press on this screen is a tile. Without this the
+              stage swallows the wheel, because a stage is usually a same-origin
+              `Frame` and a wheel over an iframe scrolls the iframe (measured:
+              scrolling the step moved the frame 194px and the page 0). The
+              board itself is one click away in the spine for poking at. */}
+          <div className="relative min-w-0">
+            <div
+              data-lab-specimen=""
+              className="pointer-events-none min-w-0 overflow-hidden"
+              style={{ maxHeight: "var(--lab-stage-peek, 40vh)" }}
+            >
+              {board.evidence(stageSection, stageState)}
+            </div>
+            {/* The cut reads as "there is more below" rather than as a broken
+                box. It only paints where the stage is actually clipped, which
+                is why it sits on the wrapper and not inside the specimen: a
+                child of [data-lab-specimen] would be photographed by lab:demo
+                as part of the picture it compares. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-b from-transparent to-background"
+            />
+          </div>
+        </div>
+      )}
+
       {step.winner && step.catalogSection && board ? (
         <GalleryStep
           step={step}
@@ -517,15 +592,8 @@ function AskBody({
         />
       )}
 
-      {board && step.strip && step.strip.length > 0 && (
-        <ConfigStrip step={step} board={board} />
-      )}
-
-      {board && stageSection && (
-        <div data-lab-specimen="" className="min-w-0">
-          {board.evidence(stageSection, stageState)}
-        </div>
-      )}
+      {/* A step with knobs but no stage still needs them, under the options. */}
+      {strip && !stage && <ConfigStrip step={step} board={board} />}
     </>
   );
 }

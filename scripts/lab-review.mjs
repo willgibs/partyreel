@@ -47,6 +47,7 @@
  * Flags: --root <dir> (default: cwd, and what the test points at a scratch
  * tree), --by <name> (default Will), --at <iso>, --dry, --json, --help.
  */
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -617,6 +618,71 @@ export function parseMessage(text) {
     .filter((x) => x !== null);
 }
 
+/**
+ * THE BUILD THE MESSAGE WAS COMPOSED ON, when the desk stamped it.
+ *
+ * ★ WHY THIS IS HERE (Will, 2026-09-17). His third batch arrived as `r7`
+ * against a tree already on `r8`, because the alias had not been rebuilt since
+ * the board changed, and nothing on the page could have told him: the round,
+ * the ledger and the spec all come from one build, so a stale deployment shows
+ * an old round agreeing with an old ledger. The line had to be transcribed
+ * against a scratch tree holding the older spec.
+ *
+ * A build cannot know a newer one exists. This process can: it holds the
+ * message AND the working tree, which is the one moment both numbers are in
+ * the same room. It is a `#` line, which the grammar has always skipped, so an
+ * unstamped paste reads exactly as before.
+ */
+export function buildOf(text) {
+  for (const raw of text.split("\n")) {
+    const m = /^\s*#\s*build\s+([0-9a-f]{7,40})\s*$/i.exec(raw);
+    if (m) return m[1].toLowerCase();
+  }
+  return null;
+}
+
+/** What the tree holds now, or null outside a git checkout. */
+function treeHead(root) {
+  try {
+    return execFileSync("git", ["-C", root, "rev-parse", "HEAD"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .trim()
+      .toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * One line about the gap between the build he reviewed and the tree being
+ * written into. NEVER a refusal: the answers are his either way, and the round
+ * check already refuses a line that truly does not fit the spec. This exists so
+ * that when that refusal comes, the reason is on screen instead of being
+ * guessed at.
+ */
+export function buildDrift(text, root) {
+  const build = buildOf(text);
+  if (!build) return null;
+  const head = treeHead(root);
+  if (!head) return `composed on build ${build}`;
+  if (head.startsWith(build)) return `composed on build ${build}, the tree's own`;
+  let behind = null;
+  try {
+    behind = execFileSync(
+      "git",
+      ["-C", root, "rev-list", "--count", `${build}..HEAD`],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+    ).trim();
+  } catch {
+    return `composed on build ${build}, which this tree does not know (a different branch, or not fetched)`;
+  }
+  return behind === "0"
+    ? `composed on build ${build}, which is AHEAD of this tree`
+    : `composed on build ${build}, ${behind} commit${behind === "1" ? "" : "s"} behind this tree: check the board changed rounds`;
+}
+
 const list = (xs) => xs.join(", ");
 
 /**
@@ -950,7 +1016,13 @@ export function run(
   if (errors.length) return { ok: false, errors, summary: [] };
   const { ledgers, summary } = applyEntries(root, entries, { by, at: stamp });
   if (!dry) writeLedgers(root, ledgers);
-  return { ok: true, errors: [], summary, boards: [...ledgers.keys()] };
+  return {
+    ok: true,
+    errors: [],
+    summary,
+    boards: [...ledgers.keys()],
+    drift: buildDrift(text, root),
+  };
 }
 
 // ── The command ──────────────────────────────────────────────────────────────
@@ -1014,6 +1086,7 @@ function main(argv) {
         {
           ok: result.ok,
           summary: result.summary,
+          drift: result.drift ?? null,
           errors: result.errors.map((e) => ({
             line: e.line,
             column: e.column,
@@ -1042,6 +1115,10 @@ function main(argv) {
   console.log(
     `\n${result.summary.length} recorded in ${result.boards.map((b) => `docs/reviews/${b}.json`).join(", ")}${argv.includes("--dry") ? " (dry run: nothing written)" : ""}`,
   );
+  // The build he composed on, beside the tree being written into. Printed last
+  // because it is context for everything above, and only when the desk stamped
+  // the paste: an unstamped message says nothing rather than guessing.
+  if (result.drift) console.log(result.drift);
   return 0;
 }
 

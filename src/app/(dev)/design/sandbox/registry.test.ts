@@ -353,6 +353,43 @@ describe("the board registry", () => {
   });
 
   /**
+   * ★ AN ASK THAT DRAWS NOTHING SAYS SO (2026-09-17).
+   *
+   * A step's tiles are only PICTURES when the option carries a `state` of its
+   * own or the ask mirrors a `control` (`drawable()` in `step.tsx`). Everything
+   * else degrades to a text tile, which is legitimate - plenty of questions are
+   * about a rule, a price or a plan rather than a look - but it is the format
+   * Will has objected to since the beginning, and it must be a decision rather
+   * than an oversight. Measured 2026-09-17: nine of twenty open steps had
+   * nothing to press, and every one of them happened to carry a `look`. This
+   * keeps that true.
+   *
+   * `look` is the author's sentence naming what separates the options and where
+   * to find it, and the step renders it above the evidence. An ask that draws
+   * nothing and explains nothing leaves a reviewer with a question and a wall.
+   */
+  it("makes an ask that cannot be drawn say what to look at instead", () => {
+    let undrawable = 0;
+    for (const b of BOARDS) {
+      for (const a of b.asks) {
+        const drawable = a.options.some(
+          (o) => typeof o !== "string" && o.state !== undefined,
+        );
+        if (drawable || a.control) continue;
+        undrawable++;
+        expect(
+          a.look?.trim(),
+          `${b.id}.${a.id} draws no option (no option state, no mirrored control) and has no \`look\` saying what to compare`,
+        ).toBeTruthy();
+      }
+    }
+    // Not vacuous: the standing boards really do carry words-only asks, and
+    // `pnpm lab:demo` skips exactly these. If this ever reaches zero the rule
+    // above has stopped being checked rather than stopped being needed.
+    expect(undrawable, "no ask reached the rule").toBeGreaterThan(0);
+  });
+
+  /**
    * A CATALOG'S OWN CONTRACT (the revamp, 2026-09-16). Declaring `catalog` is a
    * board saying "rule on these card by card", and four things have to line up
    * for that to work at all: the grid has a section to live in, the Pick button

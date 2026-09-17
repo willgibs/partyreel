@@ -115,8 +115,9 @@ export function PasswordGate({
             dark ? "text-white/60" : "text-muted-foreground",
           )}
         >
-          The host keeps this gallery private for guests. Enter the password
-          from your invite to come in.
+          {/* album, not gallery: the `noun=album` pick (Will, 2026-09-17). */}
+          The host keeps this album private for guests. Enter the password from
+          your invite to come in.
         </p>
       </div>
       <form onSubmit={onSubmit} className="w-full space-y-3">
@@ -197,7 +198,7 @@ export function PasswordGate({
             onClick={onRetry}
             className="h-12 w-full text-[15px]"
           >
-            Open the gallery
+            Open the album
           </Button>
         ) : (
           <Button
@@ -235,8 +236,8 @@ export function PasswordGate({
             )}
           >
             {stalled
-              ? "You're unlocked, the gallery just didn't open. Give it one more tap."
-              : "Opening the gallery"}
+              ? "You're unlocked, the album just didn't open. Give it one more tap."
+              : "Opening the album"}
           </p>
         )}
       </form>

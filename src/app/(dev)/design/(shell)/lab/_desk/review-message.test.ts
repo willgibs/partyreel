@@ -162,3 +162,55 @@ describe("the Library's line", () => {
     ).toBe("review light r4: aurora=yes\nreview library: masonry=retire");
   });
 });
+
+/**
+ * THE BUILD STAMP (2026-09-17).
+ *
+ * Will's third batch arrived as `r7` against a tree already on `r8`, because
+ * the alias had not been rebuilt since the board changed, and nothing on the
+ * page could have told him: the round, the ledger and the spec all come from
+ * one build, so a stale deployment shows an old round agreeing with an old
+ * ledger. The paste carries the build it was composed on so `lab:review` can
+ * compare the two, which is the one moment both numbers are in the same room.
+ */
+describe("the build the message was composed on", () => {
+  it("rides as a comment line, above the first board", () => {
+    expect(
+      composeMessage(
+        [{ board: "light", round: 4, ask: "aurora", choice: "yes" }],
+        [],
+        [],
+        [],
+        "6f25638",
+      ),
+    ).toBe("# build 6f25638\nreview light r4: aurora=yes");
+  });
+
+  it("is a `#` line, which the grammar has always skipped", () => {
+    // The point of the shape: an older transcriber, and every paste already in
+    // flight, reads a stamped message exactly as it read an unstamped one.
+    const stamped = composeMessage(
+      [{ board: "light", round: 4, ask: "aurora", choice: "yes" }],
+      [],
+      [],
+      [],
+      "6f25638",
+    );
+    expect(stamped.split("\n")[0].startsWith("#")).toBe(true);
+    expect(stamped.split("\n").slice(1).join("\n")).toBe(
+      composeMessage([
+        { board: "light", round: 4, ask: "aurora", choice: "yes" },
+      ]),
+    );
+  });
+
+  it("says nothing when there is nothing to say", () => {
+    // A bare "# build ..." would read as a message with a review in it.
+    expect(composeMessage([], [], [], [], "6f25638")).toBe("");
+    expect(
+      composeMessage([
+        { board: "light", round: 4, ask: "aurora", choice: "yes" },
+      ]),
+    ).toBe("review light r4: aurora=yes");
+  });
+});

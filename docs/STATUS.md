@@ -56,7 +56,7 @@ unreviewed second round is now a test rather than prose.
 | `publish-bloom` | the publish moment joins the Aurora: the house five as wings behind the studio's frame and a pool under the share card, resting lit while a reel is shared, the swell owed to the tap, nothing on a light ground; the violet keyframes left | integrated at `7e713fe8`; signed in on the alias the Studio's wings and the card's pool rest lit with no swell on open, no sideways scroll at 375, and the card's light is `display: none` off a dark ground; the tap's swell is proven on the lab stand-in and by the contract only (the one shared reel is the public demo's, not flipped) |
 | `floating-surfaces` (round seven) | pick-one: the winner from the seven or none, the submenu, corner, entrance and shadow questions as tiles on one menu | integrated at `514aee2d`; **every step answered**: Card, submenus at two levels, entrances by frequency, the corner `nested` confirmed on the follow-up step; its wiring lane is cut now that `light-wiring` has merged |
 | `rounding` (round seven) | pick-one: the winner from the six or none, the button, ladder, dead-rung and gap questions as tiles at true pixels | integrated at `7d90465c`, 684 words, no declaration |
-| `brand-voice` (round seven) | pick-one over six voices, with the noun, unfurl, counts and scope as steps | integrated at `0c1cfa60`; **killed unruled** (no review in seven rounds): the `voice-retire` lane deletes it and ships his three picks, and a new `voice` board rebuilds the voice from won lines |
+| `brand-voice` (round seven) | pick-one over six voices, with the noun, unfurl, counts and scope as steps | integrated at `0c1cfa60`; **killed unruled** (no review in seven rounds). `voice-picks` shipped his three answers at `2735ad92` (album on 17 guest strings, the link preview as one invitation, the counts on one line); the board's deletion and the new `voice` board follow |
 | `media-kit` (round seven) | keep-any as a gallery (a kept card is a purchase, priced on the card), the crowds question as two tiles, the rule, spend and shoot questions means-only | integrated at `61063785`, 1,077 words, no declaration |
 
 ## The previous round: the revamp (2026-09-16, `5cdebfe0` to `48bd3bdc`)
@@ -115,6 +115,6 @@ batches with Copy so far; three phone-end type calls (the CHANGELOG's `type-wiri
 open: the menu ground photograph (row 14), the grain tile and the worst-case overlap pair (rows 15 and 16),
 the bright-edged tile set (row 17), the v1 icon (row 19), and the media kit's 36 masters and $56 bridge,
 which its spend and shoot steps now ask. The bible-20 question (naming or shape) becomes the new `voice`
-board's first ask rather than dying with brand-voice. One product bug waits for the wiring round: every
-nested submenu paints nothing (`ui/dropdown-menu.tsx`'s `SubContent` has no portal). The launch-gated tasks
+board's first ask rather than dying with brand-voice. One product bug waits for the wiring round: `SubContent`
+has no `Portal`, so a nested submenu is CLIPPED when its parent is transformed or scrolled (corrected live). The launch-gated tasks
 are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).

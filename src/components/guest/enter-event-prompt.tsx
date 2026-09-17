@@ -52,7 +52,7 @@ export function EnterEventPrompt({
           : "See all the photos"}
       </p>
       <p className="mx-auto mt-2 mb-4 max-w-xs text-base leading-relaxed text-muted-foreground">
-        To keep this gallery just for guests, the host asks for a quick email
+        To keep this album just for guests, the host asks for a quick email
         check. One tap, no password needed, and you&rsquo;re in.
       </p>
       <div className="mx-auto max-w-xs text-left">

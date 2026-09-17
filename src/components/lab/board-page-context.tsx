@@ -28,6 +28,8 @@ export type BoardReview = {
   param: string | null;
   /** What the ledger already holds, so "Copy so far" omits what was sent. */
   transcribed?: Transcribed;
+  /** The commit this page was built from; it rides the paste as a `#` line. */
+  build?: string | null;
 };
 
 export type BoardPageContextValue = {

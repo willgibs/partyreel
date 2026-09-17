@@ -86,10 +86,26 @@ export const SECTION_HEADERS: Record<
   pricing: { line: "Start free, upgrade for more events.", status: "ruled" },
 } as const;
 
-/** RULED (Will, 2026-08-25): the decomposition's third fact warmed from "Edited by no one." */
+/**
+ * The decomposition band's facts, in the order the band stacks them.
+ *
+ * RULED (Will, 2026-08-25): the closing fact warmed from "Edited by no one."
+ * RESHAPED (Will, 2026-09-17, the `counts=hero` pick): the band used to run
+ * three facts across one baseline row ("Built from 214 photos." / "Shot by 23
+ * guests." / "Created for you."), quoting the demo event's real numbers. He
+ * took the BIGGER pair and gave the layout himself: "I think it'd be nice to
+ * make that the first line, then stacked center under, 'Created for you.'" So
+ * the two counts share the first line and the closing fact sits centred under
+ * it. He also corrected the ask's premise, which had called the numbers a claim
+ * about the demo event: the band "is paired with a demo video, not the demo
+ * event", so they read as an example reel from a conceptual event.
+ *
+ * ★ TWO NUMBERS ON ONE LINE is load-bearing: decomposition.tsx animates EVERY
+ * integer run in a fact as its own pop-in group. Keep each count a bare integer
+ * (no "1,200", no "3.5"), or a reader sees one figure where the band pops two.
+ */
 export const DECOMPOSITION_FACTS = [
-  "Built from 214 photos.",
-  "Shot by 23 guests.",
+  "312 photos from 48 guests.",
   "Created for you.",
 ] as const;
 

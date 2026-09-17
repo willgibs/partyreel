@@ -16,6 +16,8 @@ import {
 } from "@/app/(dev)/design/touchpoints";
 import { BoardFrame } from "./board-frame";
 import { BOARD_COMPONENTS } from "../boards";
+import { buildStamp } from "@/app/(dev)/design/_data/build-stamp";
+
 import { boardWork, deskRows, transcribedFrom } from "../_desk/queue";
 import { toSteps } from "../_desk/session-step";
 
@@ -88,6 +90,9 @@ export default async function BoardPage({
         // What the ledger holds, so the step's "Copy so far" sends only what
         // this sitting added (the stepped review, 2026-09-16).
         transcribed: transcribedFrom(rows),
+        // Which commit drew this page, so a batch composed on a stale alias can
+        // be told apart from one composed on the tree (Will, 2026-09-17).
+        build: buildStamp()?.sha ?? null,
       }
     : undefined;
 

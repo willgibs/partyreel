@@ -82,7 +82,7 @@ describe("PasswordGate", () => {
     expect(await screen.findByText(/You(’|')re in/)).toBeInTheDocument();
     expect(screen.getByLabelText("Event password")).toBeInTheDocument();
     expect(screen.getByLabelText("Event password")).toBeDisabled();
-    expect(screen.getByText("Opening the gallery")).toBeInTheDocument();
+    expect(screen.getByText("Opening the album")).toBeInTheDocument();
   });
 
   it("a stalled hold turns the button into Retry (the form never re-enables)", async () => {
@@ -107,7 +107,7 @@ describe("PasswordGate", () => {
         onRetry={onRetry}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Open the gallery" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open the album" }));
     expect(onRetry).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText("Event password")).toBeDisabled();
   });

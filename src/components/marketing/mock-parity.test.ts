@@ -78,6 +78,32 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/entry-modal.tsx",
     literal: "Just browsing",
   },
+  // ★ THE NOUN (Will, 2026-09-17: `noun=album`). These three quote the guest's
+  // entry sheet, and all three said "gallery" for as long as the sheet did.
+  // They went stale the moment `voice-picks` swept the app and NOTHING went
+  // red, because they were not pinned: that is exactly how a mock strands.
+  // Pinned here so the next sweep of that sheet takes them with it.
+  {
+    label: "album entry phone one-album promise",
+    marketingFile:
+      "src/components/marketing/sections/features/album/entry-phone.tsx",
+    appFile: "src/components/guest/entry-modal.tsx",
+    literal: "shots land in one album",
+  },
+  {
+    label: "qr entry flow one-album promise",
+    marketingFile:
+      "src/components/marketing/sections/features/qr/entry-flow.tsx",
+    appFile: "src/components/guest/entry-modal.tsx",
+    literal: "shots land in one album",
+  },
+  {
+    label: "qr entry flow browse-in button",
+    marketingFile:
+      "src/components/marketing/sections/features/qr/entry-flow.tsx",
+    appFile: "src/components/guest/entry-modal.tsx",
+    literal: "View the album",
+  },
   {
     label: "album review switch guest toast",
     marketingFile:
