@@ -64,7 +64,8 @@ export type RulingId =
   | "floating-surfaces"
   | "brand-voice"
   | "media-kit"
-  | "rounding";
+  | "rounding"
+  | "type-phone";
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
@@ -73,7 +74,8 @@ export type SandboxId =
   | "glow-doctrine"
   | "glow-moments"
   | "media-kit"
-  | "rounding";
+  | "rounding"
+  | "type-phone";
 
 export type Ruling = {
   id: RulingId;
@@ -560,6 +562,27 @@ export const RULINGS: Ruling[] = [
         "Artgrid",
         "Web Summit",
         "Flickr CC",
+      ],
+    },
+  },
+  {
+    id: "type-phone",
+    title: "Type at a phone",
+    surface: "shared",
+    ruled: "open (the first question-first exploration, 2026-09-18)",
+    shipped: null,
+    why: "Bible 5's ladder shipped and measured three places that read wrong at 375 and right at 1440; each is one decision with its options drawn at true pixels.",
+    lives: [
+      "src/app/theme.css",
+      "src/components/marketing/system/page-hero.tsx",
+      "src/components/shared/not-found-screen.tsx",
+    ],
+    board: {
+      note: "Three decisions, no page: the marketing sub-head tier, the dead-link title, and whether the display step's optical trim tracks its leading. Every option is the real surface in a 375 column at true pixels, which the shape makes structural rather than optional",
+      variants: [
+        "The sub-head tier",
+        "The dead-link title",
+        "The display trim",
       ],
     },
   },

@@ -50,6 +50,16 @@ export {
   type WalkPage,
 } from "./board-spec";
 
+/* An exploration: the questions in, an ordinary board out (2026-09-17) */
+export {
+  type Decision,
+  type DecisionOption,
+  defineExploration,
+  type ExplorationInput,
+  type PreviewKey,
+} from "./exploration";
+export { ExplorationBoard } from "./exploration-board";
+
 /* The template and its furniture */
 export { Answer, BoardMeta, BoardSection } from "./answer";
 export { type BoardApi, BoardPage } from "./board-page";

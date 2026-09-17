@@ -650,7 +650,7 @@ function OptionTiles({
               onPress={() => onPress(option)}
             >
               {drawn ? (
-                <FitStage mode="desktop" fit="zoom">
+                <FitStage mode={step.tile ?? "desktop"} fit="zoom">
                   {drawn}
                 </FitStage>
               ) : null}

@@ -125,12 +125,15 @@ The manifest is the init. The whole prompt for the new session:
 
 > You are an AGENT on Partyreel's elevation program. Track `<track>`: your manifest is committed at
 > `docs/tracks/<track>.md` and is your whole init (goal, what binds, owned paths, verification,
-> Will's notes on the last round). Return a catalog, not a paper: each item a polished variant with a
-> live preview on a production ground and a one-line label, built so Will reacts to each item on its
-> own; you choose the presentation and the count, and where the question is not a set of things (a
-> voice, a scale) you build the comparison the question needs on real pages; asks only for what is
-> not one item; the argument collapsed; the smoke refuses a board over its reading budget. Read his
-> notes on the last round first. Anything the goal leaves open goes under the manifest's Questions
+> Will's notes on the last round). **Return DECISIONS, not a paper**: author with
+> `defineExploration` (`src/components/lab/exploration.ts`), one question per decision in plain words
+> asking for one winner, every option drawn as a preview of the real surface, six to eight decisions a
+> round at most. His bar is a minute each: read the question, look at the options, pick, note, next.
+> A big goal is shaped PROGRESSIVELY, never as one "pick one": `after` stages a question behind
+> another answer so a round can unlock the next, and decisions with no `after` between them are
+> independent pieces. Do not build a page, a verdict essay, departures or a catalog of cards to rule
+> on one by one. `src/app/(dev)/design/sandbox/type-phone` is the worked example. Read his notes on
+> the last round first. Anything the goal leaves open goes under the manifest's Questions
 > with your recommended answer, and you carry on with the recommendation. Design law is the bible on
 > `/design/library/rules` and the component contracts on `/design/library`; everything else is
 > precedent: rising tides (bible 22), from the ground up, in the lab first. Boot per

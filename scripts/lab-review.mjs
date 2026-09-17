@@ -312,8 +312,31 @@ function arrayOfConst(masked, name) {
  */
 export function readSpec(id, source) {
   const masked = mask(source);
-  const open = masked.indexOf("{", masked.indexOf("defineBoard("));
-  if (open < 0) throw new ReviewError(`${id}/spec.ts: no defineBoard({ ... })`);
+  /**
+   * ★ THE SHAPE IS FOUND, NOT ASSUMED, AND A FILE IT CANNOT READ IS REFUSED.
+   *
+   * This was `masked.indexOf("{", masked.indexOf("defineBoard("))`, and when
+   * `defineBoard(` was absent the inner call returned -1, `indexOf("{", -1)`
+   * CLAMPED TO 0, and the scanner read the first `{` anywhere in the file. A
+   * spec it did not understand was therefore mis-scanned into
+   * `{ round: null, asks: [] }` rather than refused, and a null round skips the
+   * round check entirely (`validate`: `if (spec.round !== null && ...)`). The
+   * throw could only ever fire on a file with no brace at all.
+   *
+   * `defineExploration` is the question-first shape (2026-09-17): different
+   * constructor, same keys on disk (`id`, `round.n`, `asks[].id`, option ids),
+   * because those keys are what this scanner and every ledger already speak.
+   */
+  const call = /\bdefine(?:Board|Exploration)\s*\(/.exec(masked);
+  if (!call)
+    throw new ReviewError(
+      `${id}/spec.ts: no defineBoard({ ... }) or defineExploration({ ... })`,
+    );
+  const open = masked.indexOf("{", call.index + call[0].length);
+  if (open < 0)
+    throw new ReviewError(
+      `${id}/spec.ts: ${call[0].trim()} opens no object literal`,
+    );
   const top = entriesOf(masked, open + 1, matchBracket(masked, open));
   const roundRange = top.get("round");
   const round = roundRange

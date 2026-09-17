@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 19 policies · 242 contracts on 42 components · 6 standing boards.**
+**22 laws · 19 policies · 242 contracts on 42 components · 7 standing boards.**
 
 ## What binds you
 
@@ -366,6 +366,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
 | `media-kit` | marketing | Thirteen real catalogues as cards, ranked by whether they hold a release, each with its clause, its price and a contact sheet at the real card size, ship above the line and kill below; four questions about the thirteen (the rule, the spend, the crowds, the shoot) |
+| `type-phone` | shared | Three decisions, no page: the marketing sub-head tier, the dead-link title, and whether the display step's optical trim tracks its leading. Every option is the real surface in a 375 column at true pixels, which the shape makes structural rather than optional |
 | `rounding` | shared | Six families as cards, each the card, the menu, the photograph and the button at true size plus a 375 frame; two families on the same real page scroll-locked; four questions (the button rung, the derived ladder, the dead rungs, the album's gap) |
 | `album-hero` | marketing | Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit |
 | `river-visual` | marketing | The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost |

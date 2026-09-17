@@ -6,6 +6,7 @@ import { GlowMomentsBoard } from "@/app/(dev)/design/sandbox/glow-moments/board"
 import { MediaKitBoard } from "@/app/(dev)/design/sandbox/media-kit/board";
 import { RiverVisualBoard } from "@/app/(dev)/design/sandbox/river-visual/board";
 import { RoundingBoard } from "@/app/(dev)/design/sandbox/rounding/board";
+import { TypePhoneBoard } from "@/app/(dev)/design/sandbox/type-phone/board";
 import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 
 /**
@@ -32,4 +33,5 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   rounding: { Component: RoundingBoard },
   "album-hero": { Component: AlbumHeroBoard },
   "river-visual": { Component: RiverVisualBoard },
+  "type-phone": { Component: TypePhoneBoard },
 };

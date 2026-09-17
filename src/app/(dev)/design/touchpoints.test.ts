@@ -41,6 +41,7 @@ describe("the design lab's rulings registry", () => {
         // the review wave (2026-09-14)
         "media-kit",
         "rounding",
+        "type-phone",
         // round four (2026-09-15): the burst and the river, killed as heroes
         "album-hero",
         "river-visual",

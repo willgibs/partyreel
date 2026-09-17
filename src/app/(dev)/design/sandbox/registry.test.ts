@@ -369,24 +369,25 @@ describe("the board registry", () => {
    * nothing and explains nothing leaves a reviewer with a question and a wall.
    */
   it("makes an ask that cannot be drawn say what to look at instead", () => {
-    let undrawable = 0;
+    let examined = 0;
     for (const b of BOARDS) {
       for (const a of b.asks) {
+        examined++;
         const drawable = a.options.some(
           (o) => typeof o !== "string" && o.state !== undefined,
         );
         if (drawable || a.control) continue;
-        undrawable++;
         expect(
           a.look?.trim(),
           `${b.id}.${a.id} draws no option (no option state, no mirrored control) and has no \`look\` saying what to compare`,
         ).toBeTruthy();
       }
     }
-    // Not vacuous: the standing boards really do carry words-only asks, and
-    // `pnpm lab:demo` skips exactly these. If this ever reaches zero the rule
-    // above has stopped being checked rather than stopped being needed.
-    expect(undrawable, "no ask reached the rule").toBeGreaterThan(0);
+    // Not vacuous, and the count is of asks LOOKED AT rather than asks caught.
+    // Counting the caught ones would fail on the day every board draws its
+    // options, which is the day `defineExploration` has finished its job: an
+    // exploration built question-first cannot produce an undrawable ask at all.
+    expect(examined, "no ask reached the rule").toBeGreaterThan(0);
   });
 
   /**

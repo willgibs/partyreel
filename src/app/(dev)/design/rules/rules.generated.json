@@ -299,7 +299,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 400
+          "line": 401
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -307,7 +307,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 499
+          "line": 500
         },
         {
           "title": "computes one anchor everywhere",
@@ -315,7 +315,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 533
+          "line": 534
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -323,7 +323,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 554
+          "line": 555
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -331,7 +331,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 564
+          "line": 565
         }
       ]
     },
@@ -566,7 +566,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 400
+          "line": 401
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -574,7 +574,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 499
+          "line": 500
         },
         {
           "title": "computes one anchor everywhere",
@@ -582,7 +582,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 533
+          "line": 534
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -590,7 +590,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 554
+          "line": 555
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -598,7 +598,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 564
+          "line": 565
         }
       ]
     },
@@ -694,7 +694,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 400
+          "line": 401
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -702,7 +702,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 499
+          "line": 500
         },
         {
           "title": "computes one anchor everywhere",
@@ -710,7 +710,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 533
+          "line": 534
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -718,7 +718,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 554
+          "line": 555
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -726,7 +726,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 564
+          "line": 565
         }
       ]
     },
@@ -1112,8 +1112,12 @@
         "CostMeter",
         "CostPhase",
         "DOCK_PILL",
+        "Decision",
+        "DecisionOption",
         "Departure",
         "DockRow",
+        "ExplorationBoard",
+        "ExplorationInput",
         "FitStage",
         "Frame",
         "FrameProps",
@@ -1138,6 +1142,7 @@
         "Note",
         "Notes",
         "Paste",
+        "PreviewKey",
         "RESERVED_PARAMS",
         "ReplayButton",
         "Round",

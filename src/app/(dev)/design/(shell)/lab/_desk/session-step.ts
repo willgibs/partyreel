@@ -108,6 +108,8 @@ export type AskStep = StepBase & {
   lands?: string;
   /** The declared controls the step's config strip shows beside the stage. */
   strip?: readonly string[];
+  /** The canvas an option's tile draws in (`Ask.tile`). */
+  tile?: "desktop" | "phone";
   /**
    * This ask IS its board's catalog winner: the tiles are the catalog's own
    * cards rather than generic option tiles, and "none" is the new-directions
@@ -349,6 +351,7 @@ function toAskStep(
     control: a.ask.control,
     lands: a.ask.lands,
     strip: a.ask.strip,
+    tile: a.ask.tile,
     after: a.ask.after,
     afterRuled: ruledFor(a.ask.after, ruled),
     winner: winner || undefined,

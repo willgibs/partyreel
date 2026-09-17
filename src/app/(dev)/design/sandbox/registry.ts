@@ -6,6 +6,7 @@ import { GLOW_MOMENTS } from "./glow-moments/spec";
 import { MEDIA_KIT } from "./media-kit/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
 import { ROUNDING } from "./rounding/spec";
+import { TYPE_PHONE } from "./type-phone/spec";
 
 /**
  * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
@@ -38,6 +39,7 @@ export const BOARDS: readonly BoardSpec[] = [
   MEDIA_KIT,
   ROUNDING,
   ALBUM_HERO,
+  TYPE_PHONE,
 ];
 
 export function boardSpec(id: string): BoardSpec | undefined {

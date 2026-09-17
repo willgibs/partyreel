@@ -46,13 +46,13 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
    paragraph. An agent's questions during the round go in its manifest under "Questions" with its
    recommended answer; the Orchestrator relays them the same way and quotes the answer back. An
    agent never guesses at a product decision.
-3. **The agent returns a catalog** on `/design/lab/<board>`: a grid of ideas, each a polished
-   variant with a live preview on a production ground, a name, one line, the builder's verdict and
-   a facts strip; any two side by side on real pages; the pick worn by the real pages below; asks
-   only for what is not one item; the argument collapsed. `pnpm lab:smoke` refuses a board over its
-   reading budget, and `pnpm lab:demo` presses every open step's options and refuses a stage that
-   does not change (a board has stopped a sitting that way). Handoff is one line per item plus the
-   questions it needs answered.
+3. **The agent returns DECISIONS** at `/design/lab/<board>`, authored with `defineExploration` (the
+   shape is "A round returns DECISIONS" below): one question per decision in plain words, every
+   option drawn, the winner worn by the evidence pinned above the options. `pnpm lab:smoke` refuses a
+   board over its reading budget; `pnpm lab:demo` presses every open step's options, refuses a stage
+   that does not change or that has drifted out of reach of the press, and prints how much of the
+   sitting asks with nothing to press. Handoff is one line per decision plus the questions it needs
+   answered.
 4. **Integration**, and one alias build per round close (`[preview]` on that push alone).
 5. **Will reviews on the desk** (`/design/lab?key=`): Start the review, the card pins under each
    board's dock, keep / refine / kill and a note per item, a word per ask, one paste at the end. The
@@ -179,14 +179,31 @@ call is the agent's each time, prototyped in the lab first; big reversible swing
 steps; the app's UI is inside this. The older half holds: spread the rise, and every page still ends
 at the "would this hold up next to the homepage?" check.
 
-### A round returns a catalog
+### A round returns DECISIONS
 
-An exploration is a catalog of polished variants to pick from, not a paper (Will, 2026-09-15 and
-2026-09-16): each item a live preview on a production ground with a name, one line, the builder's
-verdict and its facts; any two side by side on real pages; the pick worn by the real pages; asks only
-for what is not one item, each carrying its context. "Simply designing a few variations will always
-beat a mountain of research text." Where the question is not a set of things, build the comparison
-the question needs (a voice on two dozen real spots; scales on real UI).
+**An exploration is a list of decisions, not a page** (Will, 2026-09-17). His bar is a minute each:
+"Read a question, worded in clean natural language, that clearly asks me to make one decision (winner)
+within the group · Preview each option fully, visuals-forward where possible, to quickly find a
+favorite or request refinements, with any relevant configs included · Select my winner, leave optional
+notes, and onto the next." When that holds, agents can be run in parallel on anything and real
+decisions come back with nothing lost.
+
+Author with **`defineExploration`** (`src/components/lab/exploration.ts`) and nothing else. You write
+the questions and one preview per option; it derives the sections, the controls, the state patches and
+the verdict, and emits an ordinary board, so the desk, the walk, the grammar and `lab:review` all work
+unchanged. **Every option is drawn, by construction**: the shape where an option has nothing to press
+does not exist, and a missing preview is a TYPE error rather than a blank tile at the review. Declare
+`tile: "phone"` when the previews are a 375 column.
+
+Shape a big goal **progressively**, never as one "pick one": `after` stages a question behind another
+answer, so a round can unlock the next question once it returns, and two decisions with no `after`
+between them are independent pieces he can take in any order. Prefer more rounds of narrower questions
+to one wide one.
+
+What NOT to build: a page with argument, a verdict essay, departures, assets, or keep / refine / kill
+over N cards. "Simply designing a few variations will always beat a mountain of research text", and a
+question wrapped in a research paper is the thing this replaced. `src/app/(dev)/design/sandbox/type-phone`
+is the worked example; the boards still open predate this and are being cleared, not copied.
 
 ### Every round gets Will's notes
 

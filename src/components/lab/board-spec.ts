@@ -105,6 +105,14 @@ export type Ask<SectionId extends string = string> = {
   after?: AskAfter;
   /** The declared controls the step's config strip shows beside the stage (default: none). */
   strip?: readonly string[];
+  /**
+   * The canvas an option's TILE draws in. Default "desktop" (1440), because
+   * most evidence is a page. An ask whose options are a phone column says
+   * "phone" (375) and its tiles stop being thumbnails in an empty 1440 room,
+   * which is what a question about SIZE needs (found on the first
+   * question-first exploration, 2026-09-18).
+   */
+  tile?: "desktop" | "phone";
 };
 
 export type Verdict = {
