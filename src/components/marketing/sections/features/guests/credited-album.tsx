@@ -70,7 +70,7 @@ export function CreditedAlbum() {
           <Eyebrow {...rise(0)}>Every shot credited</Eyebrow>
           <h2
             {...rise(1)}
-            className="font-heading text-3xl text-balance sm:text-4xl"
+            className="font-heading text-section text-balance"
           >
             Names ride with the photos.
           </h2>

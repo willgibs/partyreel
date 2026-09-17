@@ -165,7 +165,7 @@ export default function HelpIndexPage() {
             <Reveal className="flex flex-col gap-1.5">
               <h2
                 data-mkt-reveal
-                className="font-heading text-2xl tracking-tight sm:text-3xl"
+                className="font-heading text-prose"
               >
                 Start here
               </h2>
@@ -220,7 +220,7 @@ export default function HelpIndexPage() {
             <Reveal className="flex flex-col gap-1.5">
               <h2
                 data-mkt-reveal
-                className="font-heading text-2xl tracking-tight sm:text-3xl"
+                className="font-heading text-prose"
               >
                 The numbers
               </h2>
@@ -246,7 +246,7 @@ export default function HelpIndexPage() {
             <Reveal className="flex flex-col gap-1.5">
               <h2
                 data-mkt-reveal
-                className="font-heading text-2xl tracking-tight sm:text-3xl"
+                className="font-heading text-prose"
               >
                 Every guide, in order
               </h2>
@@ -362,7 +362,7 @@ export default function HelpIndexPage() {
              contact first, then onward per the de-silo ruling). ───────────── */}
       <section>
         <Container className="flex flex-col items-center gap-4 py-16 text-center sm:py-20">
-          <h2 className="font-heading text-2xl tracking-tight sm:text-3xl">
+          <h2 className="font-heading text-prose">
             Still need help?
           </h2>
           <p className="max-w-md text-pretty text-muted-foreground">

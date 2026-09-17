@@ -84,7 +84,7 @@ export function CareersStory() {
           </Eyebrow>
           <h2
             data-mkt-reveal
-            className="font-heading text-3xl text-balance sm:text-4xl"
+            className="font-heading text-section text-balance"
             style={{ "--i": 1 } as CSSProperties}
           >
             {roll.title}
@@ -118,7 +118,7 @@ export function CareersStory() {
             </Eyebrow>
             <h2
               data-mkt-reveal
-              className="font-heading text-3xl text-balance sm:text-4xl"
+              className="font-heading text-section text-balance"
               style={{ "--i": 1 } as CSSProperties}
             >
               {selects.title}
@@ -144,7 +144,7 @@ export function CareersStory() {
             </Eyebrow>
             <h2
               data-mkt-reveal
-              className="font-heading text-3xl text-balance sm:text-4xl"
+              className="font-heading text-section text-balance"
               style={{ "--i": 1 } as CSSProperties}
             >
               {reel.title}

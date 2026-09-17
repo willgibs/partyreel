@@ -31,19 +31,30 @@ type SectionShellProps = ComponentProps<"section"> & {
   /** Extra classes for the inner Container (e.g. width clamps). */
   containerClassName?: string;
   /**
-   * Heading tier. "default" is the body-section h2 (30/36/48). "lg" steps it
-   * into the one empty slot in the site's h2 ladder (36/48/60): above every
-   * body section, below the 72px page h1. It is a VOCABULARY item for a
-   * chapter's opener or closing anchor, not a chapter template: the pacing
-   * principle (design-system.md, "Chapters") wants each such section designed
-   * bespoke, and this is just the type step several of those designs share.
+   * Heading tier. "default" is the body-section h2: the ladder's `section`
+   * step, 24 at a phone and 52 at 1440. "lg" is the `chapter` step (28/64),
+   * which sits above every body section and below the page h1. It is a
+   * VOCABULARY item for a chapter's opener or closing anchor, not a chapter
+   * template: the pacing principle (design-system.md, "Chapters") wants each
+   * such section designed bespoke, and this is just the type step several of
+   * those designs share.
    */
   scale?: "default" | "lg";
 };
 
+/**
+ * ★ ONE CLASS PER TIER, AND IT IS A LADDER STEP (Will's type ruling,
+ * 2026-09-17). Each step carries its own size, line-height and letter-spacing
+ * as one clamp through (375, phone) and (1440, desktop) — see theme.css. The
+ * four-breakpoint ramps that used to live here jumped at every breakpoint and
+ * inherited whatever leading the class they landed on happened to carry, which
+ * is the fault the ladder answers. Never put a `sm:`/`lg:` size back, and never
+ * a `leading-*` or `tracking-*` beside a step: both are read off the size, and
+ * either one silently cancels the step's own value.
+ */
 const HEADING_SCALE: Record<NonNullable<SectionShellProps["scale"]>, string> = {
-  default: "text-3xl sm:text-4xl lg:text-5xl",
-  lg: "text-4xl sm:text-5xl lg:text-6xl",
+  default: "text-section",
+  lg: "text-chapter",
 };
 
 const WIDTH_CLASS: Record<NonNullable<SectionShellProps["width"]>, string> = {

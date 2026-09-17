@@ -51,7 +51,7 @@ export function PrintShop() {
           <Eyebrow {...rise(0)}>Print it</Eyebrow>
           <h2
             {...rise(1)}
-            className="font-heading text-3xl text-balance sm:text-4xl"
+            className="font-heading text-section text-balance"
           >
             It was made to be printed.
           </h2>

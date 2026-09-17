@@ -116,7 +116,9 @@ function SheetTitle({
     <SheetPrimitive.Title
       data-slot="sheet-title"
       className={cn(
-        "font-heading text-base font-medium text-foreground",
+        // The ladder's `card-title` step: a sheet's title is a card title that
+        // arrived from the edge, not a page title (src/app/theme.css).
+        "font-heading text-card-title font-medium text-foreground",
         className
       )}
       {...props}

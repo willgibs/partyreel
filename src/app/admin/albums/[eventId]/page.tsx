@@ -66,7 +66,9 @@ export default async function AdminAlbumDetailPage({
       </Link>
 
       <div>
-        <PageHeading className="text-3xl">{event.name}</PageHeading>
+        {/* No size override: the event name is this page's h1 and wears the
+            ladder's `page` step like every other app title (2026-09-17). */}
+        <PageHeading>{event.name}</PageHeading>
         <p className="text-sm text-muted-foreground">
           {hostLabel ?? event.host_id}
         </p>

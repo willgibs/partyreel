@@ -102,7 +102,7 @@ export function QrHero() {
             <FeatureHeroEyebrow {...cut(0)} label={page.navLabel} />
             {/* LCP rule: the H1 never carries a reveal-hidden state (the home
                 hero's ratified shape). The stub around it does the arriving. */}
-            <h1 className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="font-heading text-title text-balance">
               {page.h1}
             </h1>
             <p

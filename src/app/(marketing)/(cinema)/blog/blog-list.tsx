@@ -607,7 +607,7 @@ function FeaturedCard({ post }: { post: BlogListItem }) {
         <span className="text-[11px] font-medium tracking-[0.14em] text-white/70 uppercase">
           Latest
         </span>
-        <h2 className="line-clamp-3 max-w-3xl font-heading text-3xl leading-[1.05] text-balance text-white sm:text-4xl md:text-5xl lg:text-6xl">
+        <h2 className="line-clamp-3 max-w-3xl font-heading text-chapter text-balance text-white">
           {post.title}
         </h2>
         <span className="hidden max-w-xl text-sm text-pretty text-white/75 sm:block">

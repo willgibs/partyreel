@@ -147,7 +147,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h1 className="font-heading text-[28px] leading-snug text-balance">
+            <h1 className="font-heading text-page text-balance">
               {name}
             </h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">

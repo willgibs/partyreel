@@ -96,7 +96,7 @@ export default async function RolePage({
             <div className="mt-6">
               <Eyebrow>{job.catchAll ? "Always open" : "Open role"}</Eyebrow>
             </div>
-            <h1 className="mt-3 max-w-3xl font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
+            <h1 className="mt-3 max-w-3xl font-heading text-chapter text-balance">
               {job.title}
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-pretty text-muted-foreground">
@@ -200,7 +200,7 @@ export default async function RolePage({
               <div className="flex flex-col gap-5 lg:pt-1">
                 <div>
                   <Eyebrow>Apply</Eyebrow>
-                  <h2 className="mt-3 font-heading text-2xl text-balance sm:text-3xl">
+                  <h2 className="mt-3 font-heading text-prose text-balance">
                     {job.catchAll
                       ? "Tell us what you'd want to own."
                       : `Applying for ${job.title}.`}

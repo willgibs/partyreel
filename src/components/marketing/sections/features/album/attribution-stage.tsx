@@ -105,7 +105,7 @@ export function AttributionStage() {
             <Eyebrow {...rise(0)}>Names</Eyebrow>
             <h2
               {...rise(1)}
-              className="font-heading text-3xl text-balance sm:text-4xl"
+              className="font-heading text-section text-balance"
             >
               Every shot says who took it.
             </h2>

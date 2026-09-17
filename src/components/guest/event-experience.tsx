@@ -226,7 +226,7 @@ export function EventExperience({
         <h1
           data-arrive
           style={{ "--arrive-i": 0 } as React.CSSProperties}
-          className="font-heading text-[28px] leading-snug text-balance"
+          className="font-heading text-page text-balance"
         >
           {event.name}
         </h1>

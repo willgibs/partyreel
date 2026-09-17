@@ -42,6 +42,8 @@ export function MarketingRouteError({
       </div>
       <main className="flex flex-1 items-center justify-center px-6 py-16">
         <NotFoundScreen
+          // Marketing's half of the dead-end ladder: the `prose` step.
+          surface="marketing"
           icon={RefreshCcw}
           eyebrow="Error"
           title="That one didn't develop."

@@ -138,7 +138,7 @@ export default function ContactPage() {
             header + email card stacked left, the form spanning right. */}
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.6fr] lg:grid-rows-[auto_1fr] lg:gap-x-14 lg:gap-y-8">
           <div className="flex flex-col gap-5 lg:col-start-1 lg:row-start-1 lg:pt-2">
-            <h2 className="font-heading text-2xl tracking-tight sm:text-3xl">
+            <h2 className="font-heading text-prose">
               Send a note
             </h2>
             <p className="text-pretty text-muted-foreground">

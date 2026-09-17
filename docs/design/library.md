@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 16 policies · 189 contracts on 29 components · 10 standing boards.**
+**22 laws · 17 policies · 189 contracts on 29 components · 9 standing boards.**
 
 ## What binds you
 
@@ -221,6 +221,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | The record is two rounds deep | a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |
 | Every track claims its lane | a malformed track manifest, or two live tracks claiming the same path prefix. | `src/lib/track-manifests.test.ts:1` |
+| One type ladder, reachable from a className | a step theme.css and cn() disagree on, a step name the color namespace already owns, and a heading ramp coming back. | `src/lib/type-ladder-policy.test.ts:1` |
 
 ## Guidance
 
@@ -270,7 +271,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/eyebrow.tsx` | the section eyebrow atom: Inter, uppercase, tracked | none |
 | `src/components/marketing/system/media-split.tsx` | the media-and-copy split; the media half gets the wider run, because media is the color | none |
 | `src/components/marketing/system/morph-delegate.tsx` | one delegated listener grows a clicked card into the page it opens; the cards stay server | none |
-| `src/components/marketing/system/page-hero.tsx` | the shared hero lockup for the identity pages: eyebrow, heading, subhead, actions | renders the heading as an h1, never a lesser tag; never puts a reveal-hidden state on the h1 (the LCP rule); keeps one shared gap for every scale; trims the display step's TOP only, never its bottom; keeps the display step's descender padding; declares the type size as a length, not a bare clamp; keeps every scale in the table rather than inline; keeps the side bearing out of the heading class, gated on align; offers three named entrances, and the blur-rise never touches the h1; renders the stage AFTER the lockup, inside the same Container; keeps the tracking squeeze on the display step itself |
+| `src/components/marketing/system/page-hero.tsx` | the shared hero lockup for the identity pages: eyebrow, heading, subhead, actions | renders the heading as an h1, never a lesser tag; never puts a reveal-hidden state on the h1 (the LCP rule); keeps one shared gap for every scale; trims the display step's TOP only, never its bottom; keeps the display step's descender padding; takes every size from the ladder, never from a number here; keeps every scale in the table rather than inline; keeps the side bearing out of the heading class, gated on align; offers three named entrances, and the blur-rise never touches the h1; renders the stage AFTER the lockup, inside the same Container; keeps the tracking squeeze on the display step itself |
 | `src/components/marketing/system/paper-chapter.tsx` | a run of sections forced onto paper inside a cinema page; the flip is a chapter cut | none |
 | `src/components/marketing/system/reveal.tsx` | the in-view trigger firing the marketing arrival grammar; CSS owns every bit of motion | none |
 | `src/components/marketing/system/screen-lamp.tsx` | the one underlight: a lit object throws light down, as a SIBLING and never from inside | is a seam that hangs BELOW the object (the one underlight mechanic); renders the lamp AFTER the children, as their sibling; breaks out full-bleed so the field's side edges land off-screen; samples from the DOM it wraps, never from URLs; passes the engine no className (the utilities layer outranks it) |
@@ -359,7 +360,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
 | `light` | shared | Twelve treatments as cards, each the real surface wearing it at true size with its own Replay and four facts; one real section under two treatments at once; Pick applies the treatment's block to the site; four questions (the infusion order, the cadence, the paper hues, the publish beat's colour) |
-| `type-scale` | shared | Round seven: five ladders as type specimens at the pixels they declare, decided by one pick or none; one real page under the card being pressed, with a second copy of it under the first on a fade; letter spacing and the dead-link title as steps of their own, both answers drawn at once |
 | `floating-surfaces` | shared | Seven directions as cards, each the event menu at 328 wide on the app's dark over the album with the Ground switch moving all seven; the host's desk under two directions at once; four questions (the submenu, the radius, the entrance, the light) |
 | `brand-voice` | marketing | Round seven: six voices as cards, each writing the same three lines of the home page's first screen at the size a phone draws them, decided by one pick or none; the real home page under the card being pressed; the noun, the link preview, the numbers and how far the winner reaches as steps of their own, every answer drawn at once |
 | `media-kit` | marketing | Thirteen real catalogues as cards, ranked by whether they hold a release, each with its clause, its price and a contact sheet at the real card size, ship above the line and kill below; four questions about the thirteen (the rule, the spend, the crowds, the shoot) |

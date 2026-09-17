@@ -61,10 +61,24 @@ describe("the page hero lockup", () => {
     expect(code).toContain("py-[0.08em]");
   });
 
-  it("declares the type size as a length, not a bare clamp", () => {
-    // Tailwind v4 cannot infer whether a clamp() in text-* is a size or a
-    // color, and guesses wrong silently.
-    expect(code).toContain("text-[length:clamp(");
+  it("takes every size from the ladder, never from a number here", () => {
+    // Will's type ruling (2026-09-17): one nine-step set in theme.css, each
+    // step a clamp through (375, phone) and (1440, desktop) carrying its own
+    // line-height and letter-spacing. The ambiguity the old rule guarded (v4
+    // cannot tell a clamp() in `text-*` from a color and guesses silently) went
+    // with the arbitrary value: a named step cannot be misread. What replaces
+    // it is the rule that actually matters — no hero invents a size, a leading
+    // or a tracking of its own, at any breakpoint.
+    const table = code.slice(
+      code.indexOf("const HERO_SCALE"),
+      code.indexOf("export type HeroEntrance"),
+    );
+    for (const step of ["text-display", "text-hero", "text-title"])
+      expect(table).toContain(step);
+    expect(table).not.toMatch(/text-\[/);
+    expect(table).not.toMatch(/\b(sm|md|lg|xl):text-/);
+    expect(table).not.toMatch(/\bleading-/);
+    expect(table).not.toMatch(/\btracking-/);
   });
 
   it("keeps every scale in the table rather than inline", () => {

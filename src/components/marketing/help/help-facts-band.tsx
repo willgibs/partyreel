@@ -44,7 +44,7 @@ export function HelpFactsBand({ facts }: { facts: Fact[] }) {
               index === 3 && "sm:col-span-2 lg:col-span-1",
             )}
           >
-            <span className="font-heading text-2xl tabular-nums sm:text-3xl">
+            <span className="font-heading text-prose tabular-nums">
               {reduced ? (
                 fact.value
               ) : (

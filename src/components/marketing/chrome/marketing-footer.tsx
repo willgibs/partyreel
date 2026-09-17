@@ -138,7 +138,7 @@ function SignOff() {
   // whole invitation stands down to the thesis.
   if (!DEMO_EVENT_URL) {
     return (
-      <p className="max-w-xl font-heading text-3xl sm:text-4xl">
+      <p className="max-w-xl font-heading text-chapter">
         {SITE_THESIS}
       </p>
     );
@@ -154,9 +154,10 @@ function SignOff() {
           <FooterDemo href={DEMO_EVENT_URL} value={DEMO_EVENT_URL} />
         </div>
         <div className="flex flex-col items-start gap-4">
-          <h2 className="font-heading text-3xl sm:text-4xl">
-            Explore a demo event.
-          </h2>
+          {/* The `chapter` step, with the sign-off above it: the footer is the
+              page's CLOSER, not one more body section, and the ladder is where
+              that rank is said out loud (2026-09-17). */}
+          <h2 className="font-heading text-chapter">Explore a demo event.</h2>
           <p className="max-w-sm text-[17px] text-pretty text-muted-foreground">
             <span className="hidden sm:inline">
               Scan the code for a real event album on your phone, exactly the

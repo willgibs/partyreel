@@ -9,7 +9,6 @@ import { LIGHT } from "./light/spec";
 import { MEDIA_KIT } from "./media-kit/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
 import { ROUNDING } from "./rounding/spec";
-import { TYPE_SCALE } from "./type-scale/spec";
 
 /**
  * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
@@ -25,9 +24,10 @@ import { TYPE_SCALE } from "./type-scale/spec";
  * A board without a spec renders through the legacy path in `boards.ts` and the
  * desk shows its touchpoints.ts note instead. The migration wave adds specs and
  * drops `legacy` flags board by board; a board LEAVES this list only when its
- * ruling lands and its directory goes, which two did on 2026-09-17: the palette
- * (Graphite, now the token set) and home-hero (whose favourite now ships as the
- * production hero).
+ * ruling lands and its directory goes, which three did on 2026-09-17: the
+ * palette (Graphite, now the token set), home-hero (whose favourite now ships
+ * as the production hero) and type-scale (B, rungs, now the nine `--text-*`
+ * steps in theme.css and the Library's own Type section).
  */
 export const BOARDS: readonly BoardSpec[] = [
   RIVER_VISUAL,
@@ -35,7 +35,6 @@ export const BOARDS: readonly BoardSpec[] = [
   GLOW_MOMENTS,
   FLOATING_SURFACES,
   LIGHT,
-  TYPE_SCALE,
   BRAND_VOICE,
   MEDIA_KIT,
   ROUNDING,

@@ -169,8 +169,9 @@ export default async function BlogPostPage({
                   ))}
                 </div>
               )}
-              {/* Article surfaces stop at lg:text-6xl by the H1 ladder's own exemption. */}
-              <h1 className="max-w-3xl font-heading text-4xl leading-[1.05] text-balance sm:text-5xl lg:text-6xl">
+              {/* Article surfaces stop at the `chapter` step by the H1 ladder's
+                  own exemption: a long title read as prose, not as a masthead. */}
+              <h1 className="max-w-3xl font-heading text-chapter text-balance">
                 {post.frontmatter.title}
               </h1>
               {/* THE STANDFIRST. The frontmatter description is a hand-written sell for the piece

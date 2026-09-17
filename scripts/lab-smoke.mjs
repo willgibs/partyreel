@@ -37,10 +37,10 @@ const SANDBOX_DIR = "src/app/(dev)/design/sandbox";
 // The crawl starts at the two areas, plus the two iframe scene routes an href
 // crawl can never reach (a board builds their src client-side, key included).
 const SEEDS = ["/design/library", "/design/lab"];
+// (type-scale's scene left with its board on 2026-09-17, at its ruling.)
 const SCENES = [
   "/design/sandbox/floating-surfaces",
   "/design/sandbox/rounding/screen",
-  "/design/sandbox/type-scale/screen?screen=dashboard",
 ];
 // The boundary probe throws during server render on purpose (its page.tsx).
 // Whether that surfaces as a 500 or inside a 200 depends on where the shell's
