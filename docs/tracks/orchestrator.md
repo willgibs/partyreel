@@ -222,6 +222,8 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
   the merge stages it as changed and a plain `git rm` refuses; the refusal broke a chained script once
   (2026-09-18) and the next block committed the wrong merge under the wrong message. So: one script per merge,
   `set -e` with a trap, every step on its own exit code, never a `&&` chain that a `;` can skip past.
+  ★ Nor `pnpm vitest run ... | grep` inside a `&&` chain: the chain sees GREP'S exit, and the docs commit `ab604092`
+  (2026-09-18) went out with the record-depth test red that way; read the test's exit into a variable first, then commit.
 - **The RULINGS rows' keep-both.** Two lanes appending rows after river-visual's conflict with git's hunk
   ending INSIDE the first lane's last row (the two closing lines are common to both sides), so a plain
   union of ours and theirs needs that row's `},\n  },\n  {` put back by hand before the next row; typecheck

@@ -120,19 +120,13 @@ reference, never a cap and a test.
   375 and no light-against-dark in round one; the palette ships closed behind a key if it wins. Three defects it
   found in the shipped portal are on the ROADMAP's admin bucket.
 - `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the
-  tree. One pure module, `src/lib/surface`, answers which surface a build serves, and the proxy, the `requireAdmin`
-  seam and the purge cron decide from it: the admin surface serves an allow-list (the portal, sign-in, MFA, the cron
-  route, the design-gate probe) and rewrites the rest to a real 404, the app surface 404s `/admin` whatever the Host
-  says, and unset serves both, which is the whole rollback. The cron answers and stops on the admin surface, and the
-  database showed that call writing no heartbeat. Four calls the lane recommended stand (the probe and `robots.txt`
-  stay reachable on the admin host; the domain moves after the milestone that puts this code on `main`; a
-  `[preview]` push builds twice). The cutover ran the same night up to the preview proof: Will created
-  `partyreel-admin` in the dashboard and minted a team token (the old one was project-scoped), the Orchestrator
-  mirrored its settings, copied and verified its env value by value (the first copy was ciphertext: Vercel's env
-  list never decrypts), dropped the Sentry upload trio that failed its build, added the admin preview callback to
-  the Supabase redirect list in Chrome, and probed the preview host's allow-list: the portal, sign-in, MFA, the cron
-  route, the probe and `robots.txt` serve, everything else is a real 404. Left: Will's sign-in there, the milestone,
-  the domain move (`docs/tracks/orchestrator.md`).
+  tree. One pure module, `src/lib/surface`, answers which surface a build serves; the proxy, the `requireAdmin` seam
+  and the purge cron decide from it (the admin surface an allow-list, the app surface 404ing `/admin`, unset serving
+  both, which is the rollback). The lane's four calls stand (the probe and `robots.txt` reachable on the admin host,
+  the domain after the milestone, a `[preview]` push building twice). The cutover ran the same night up to the
+  preview proof: the project created by Will, a team token minted (the old one was project-scoped), settings
+  mirrored, env copied and verified value by value after a first copy of ciphertext, the Sentry upload trio dropped,
+  the preview callback added in Supabase, the preview host's allow-list probed and Will's sign-in there.
 - `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console stopped meaning four crons. The catalog
   gained three kinds (a `scheduled` job with its own rows, a `signal` whose only question is what failed in the last
   24 hours, a `derived` reading riding another job's counts), all through the one pure `jobHealth`, and nine jobs
@@ -157,17 +151,15 @@ reference, never a cap and a test.
   entrance, the size, the home on real pages, the phone) and `privacy-hero` round two, the same trail fed by
   a path where the cursor would be, replacing round one's spirals and wake after Will's none (`rush`, two
   notches over the home hero, recommended). Round one's verdict was transcribed from chat into the ledger.
-- **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48 commits)
-  after Will's sign-in and MFA step-up on the admin preview host: partyreel.com now runs the surface module (inert on
-  the apex until its flag is set), the jobs console on three kinds with the Worker's queue-depth reading, the purge
-  sub-sweeps and the limiters that report, and the static chart aliases; the four new boards answer 404 without a
-  key. `partyreel-admin`'s production build went READY, Will moved the domain in the dashboard (the API move is the one
-  step the Orchestrator's guardrails refuse), a fresh `_vercel` TXT at GoDaddy verified it (the apex domain object
-  lives under his personal account), and the apex took `NEXT_PUBLIC_SURFACE=app` with a redeploy: partyreel.com
-  404s `/admin`, admin.partyreel.com serves only the portal. The cutover closed the same night, red-teamed live: every app route,
-  the lab (keyed too), the guest paths and the webhook are 404 on the admin host under GET and POST, case and
-  traversal variants included; the cron there answers 401 without the secret and `skipped: not_this_surface` with
-  it; Will signed in on the new host and `/admin/metrics`, `/admin/albums` and `/admin/forensics` rendered.
+- **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48
+  commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console on
+  three kinds with the Worker's depth reading, the sub-sweeps and the limiters that report, and the static chart
+  aliases; the four new boards answer 404 without a key. The cutover closed the same night: Will moved the domain in
+  the dashboard (the API move is the one step the Orchestrator's guardrails refuse), a fresh `_vercel` TXT at GoDaddy
+  verified it (the apex domain object lives under his personal account), the apex took `NEXT_PUBLIC_SURFACE=app`
+  with a redeploy, and the live red-team matched the runbook's table (every app route, the lab and the webhook 404
+  on the admin host under GET and POST; the cron there 401 without the secret, `skipped: not_this_surface` with
+  it); Will signed in on the new host and the three env-proving pages rendered.
 
 **Next.** His sitting on the boards on the desk (`privacy-hero` already answered none, its round two in
 `image-trail`), and the ghost on a disposable event on the alias; `image-trail` and `cursor-backdrop` integrate as
