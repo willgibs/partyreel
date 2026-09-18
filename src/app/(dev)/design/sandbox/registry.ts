@@ -2,11 +2,14 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { ALBUM_HERO } from "./album-hero/spec";
 import { ALBUM_PAGE } from "./album-page/spec";
+import { BODY_TYPE } from "./body-type/spec";
 import { GALLERY_WIDTH } from "./gallery-width/spec";
+import { GLASS } from "./glass/spec";
 import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
 import { RIVER_CARD } from "./river-card/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
+import { VOICE } from "./voice/spec";
 
 /**
  * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
@@ -27,6 +30,9 @@ import { RIVER_VISUAL } from "./river-visual/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   LOOSE_ENDS,
+  GLASS,
+  BODY_TYPE,
+  VOICE,
   PRIVACY_HERO,
   ALBUM_PAGE,
   RIVER_CARD,

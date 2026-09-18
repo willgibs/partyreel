@@ -100,7 +100,10 @@ retired `type-phone`; both agents were told so by message.
 | `heroes` | integrated at `6b5ea1bf` (handed off `766f5a66`) | done | Sonnet, :3133 | nothing |
 | `river-card` | integrated at `3ed62f0c` (handed off `64c25a02`; the RULINGS rows' union needed album-page's closing lines put back by hand) | done | Sonnet, :3134 | nothing |
 | `ghost-wiring` | integrated at `31c94253` (handed off `79169b2c`; its two mid-lane claims accepted) | done | Opus, :3132 | nothing |
-| `voice` | cut fresh at `13dd8ffd` (round one of the voice derived from won lines; Will asked for it by name 2026-09-17, ahead of Glass) | nothing yet | Opus, :3135 | the whole board per its manifest: six to eight real lines, bible 20's question first, then integrate |
+| `voice` | integrated at `e0b92af6` (handed off `5e6e5481`; eight lines, 234 smoke checks, 8 demo steps) | done | Opus, :3135 | nothing; round two is cut from his notes |
+| `glass` | integrated at `30aaf705` (handed off `f8ab4ad9`; seven steps, 250 smoke checks; one unused import cleaned at the record) | done | Opus, :3132 | nothing; round two is cut from his notes |
+| `loose-ends` | cut at `5e03ffe2` (six ROADMAP decisions on their real surfaces) | building | Sonnet, :3133 | the whole board per its manifest |
+| `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 
 `gallery-width` integrated at `3a519e0d`. The three resumed lanes integrated the same afternoon (`6b5ea1bf`,
 `31c94253`, `3ed62f0c`), the full gate green on the final tree (2,189 tests, 254 pages), and the round's
@@ -123,7 +126,9 @@ retired `type-phone`; both agents were told so by message.
      below first).
 3. **Show the ghost** on a DISPOSABLE event on the alias, then delete the event (never the public
    "Partyreel Demo"). If he wants another animation, the parked "pour" is the one.
-4. **Propose a milestone** to Will: `main` is about 1,090 commits behind `launch-prep`.
+4. **Done 2026-09-18:** `milestone-25` merged (`bf9cbd74`) and deployed on Will's word; the classifier refuses a
+   push to `main` from a script, so the push is run as its own plain command, and Will granted it standing
+   ("You always have full permission to push to main once we're ready").
 5. **`lab-scrub`** once no old-surface board stands (about 4,200 lines of the old authoring surface); its
    Handoff carries the never-owned doc edits word for word. Ask Will first: removing `item:` retires his
    keep/refine/kill verdicts (2026-09-16).
@@ -132,8 +137,11 @@ retired `type-phone`; both agents were told so by message.
 
 - **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]` (a build takes
   about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
-  the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains `"build":"<sha7>"` (the page
-  prints "Serving build"). The key must ride the QUERY on a plain request; the `x-design-key` header alone
+  the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains the sha7 (the page prints "Serving build",
+  and the stamp rides the RSC payload with ESCAPED quotes, `\"build\":\"<sha7>`, so grep for the bare sha7,
+  never for `"build":"`; a poll on the quoted form watched a READY alias for 15 minutes and never matched). The
+  same keyed lab page also carries `sentry-release=<sha40>` (the Sentry SDK's stamp on a dynamic page); the static
+  home page carries neither, which is why a poll on `/` sees nothing. The key must ride the QUERY on a plain request; the `x-design-key` header alone
   answers 404, and no `sentry-release` marker exists in the HTML. After every integration:
   `node scripts/prune-vercel-deployments.mjs --apply`.
 - **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it); `pnpm lab:demo

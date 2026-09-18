@@ -49,6 +49,9 @@ export type RulingId =
   | "album-hero"
   | "river-visual"
   | "loose-ends"
+  | "glass"
+  | "body-type"
+  | "voice"
   | "privacy-hero"
   | "album-page"
   | "river-card"
@@ -75,6 +78,9 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "loose-ends"
+  | "glass"
+  | "body-type"
+  | "voice"
   | "privacy-hero"
   | "album-page"
   | "river-card"
@@ -410,8 +416,10 @@ export const RULINGS: Ruling[] = [
     id: "glow-doctrine",
     title: "The spill doctrine",
     surface: "shared",
-    ruled: "2026-08-28 and 08-31, the lit surface 2026-09-17; the board retired 2026-09-18",
-    shipped: "the spill engine (glow.tsx), the bright edge ([data-lit]) with light-wiring, the Aurora with aurora-wiring",
+    ruled:
+      "2026-08-28 and 08-31, the lit surface 2026-09-17; the board retired 2026-09-18",
+    shipped:
+      "the spill engine (glow.tsx), the bright edge ([data-lit]) with light-wiring, the Aurora with aurora-wiring",
     why: "Retired with nothing open: SPILL is light from a lit thing, BEAM a live subject lit at its edge; the engine, the bright edge and the Aurora all ship.",
     lives: [
       "docs/systems/design-system.md#light-spill-beam-and-the-lamp-set",
@@ -423,8 +431,10 @@ export const RULINGS: Ruling[] = [
     id: "glow-moments",
     title: "Spill placements",
     surface: "shared",
-    ruled: "2026-08-31, the publish beat 2026-09-17; the board retired 2026-09-18",
-    shipped: "the placements with light-wiring, the publish beat in the house five with publish-bloom",
+    ruled:
+      "2026-08-31, the publish beat 2026-09-17; the board retired 2026-09-18",
+    shipped:
+      "the placements with light-wiring, the publish beat in the house five with publish-bloom",
     why: "Retired with nothing open: the placements ship, the QR plate takes our own light, the upload takes none, and the publish beat wears the house five.",
     lives: ["docs/systems/design-system.md#the-shipped-light"],
   },
@@ -516,10 +526,7 @@ export const RULINGS: Ruling[] = [
     shipped:
       "the three calls a voice never decided: album as the one noun a guest reads, the link preview as one invitation, the bigger counts on one line",
     why: "Retired unruled: the six were forced apart by a contract that made agreement owe an excuse; only its three non-voice answers shipped.",
-    lives: [
-      "src/lib/constants/marketing-voice.ts",
-      "docs/design/rulings.md",
-    ],
+    lives: ["src/lib/constants/marketing-voice.ts", "docs/design/rulings.md"],
   },
   {
     id: "media-kit",
@@ -646,7 +653,12 @@ export const RULINGS: Ruling[] = [
     ],
     board: {
       note: "Four decisions, no page: the live album or today's filling demo at 896 with its foot faded, three kinds of subtle motion around the words at the home hero's pace, a pool, no light or a halo for the album, and where the page's second light goes",
-      variants: ["The album", "The motion", "The album's light", "A second light"],
+      variants: [
+        "The album",
+        "The motion",
+        "The album's light",
+        "A second light",
+      ],
       tracks: ["heroes"],
     },
   },
@@ -720,6 +732,85 @@ export const RULINGS: Ruling[] = [
         "The phone's screen cycle",
         "The Live | Review photograph",
         "The lightbox pill",
+      ],
+    },
+  },
+  {
+    id: "glass",
+    title: "Glass",
+    surface: "shared",
+    ruled:
+      'open (Will, 2026-09-17: "bank a near-term agent for a dedicated Glass exploration across marketing and app so it feels more infused to our product"; 2026-09-18: the app\'s media chrome first, both grounds asked separately)',
+    shipped: null,
+    why: "The system has no translucent surface and the app has faint glass nobody decided; round one makes it one material and asks which media surfaces wear it, on each ground.",
+    lives: [
+      "src/components/shared/media-lightbox.tsx",
+      "src/components/app/host-media-grid.tsx",
+      "src/components/guest/guest-reel-overlay.tsx",
+      "src/components/ui/floating-layer.ts",
+    ],
+    board: {
+      note: "Seven decisions, no page, every option a real app screen in a real viewport over real photographs at 1440 and 375: the recipe itself on the lightbox's action pill (four, named in numbers, each one's contrast and frame cost measured), one grade of glass or two, what sits behind the photograph, the chips over tiles at a phone, the reel's controls, the host's row as three panes or one, and the light ground on its own step",
+      variants: [
+        "The recipe",
+        "The grades",
+        "Behind the photograph",
+        "The tiles",
+        "The reel's controls",
+        "The host's row",
+        "On paper",
+      ],
+    },
+  },
+  {
+    id: "body-type",
+    title: "Body and label type",
+    surface: "shared",
+    ruled:
+      'open (Will, 2026-09-18: "everything should be addressed in our design system type ladder" reaches body and label sizes, one question-first board first)',
+    shipped: null,
+    why: "The heading ladder stops at 16 and about 920 sites below it pick their own size; seven decisions set the body, caption and label steps that replace them.",
+    lives: [
+      "src/app/theme.css",
+      "src/lib/utils.ts",
+      "src/lib/type-ladder-policy.test.ts",
+    ],
+    board: {
+      note: "Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame",
+      variants: [
+        "A guest's reading copy",
+        "The app's working body",
+        "Marketing reading copy",
+        "The caption step, and the floor",
+        "The label step",
+        "Buttons on the ladder",
+        "The line-height rule",
+      ],
+    },
+  },
+  {
+    id: "voice",
+    title: "The voice",
+    surface: "shared",
+    ruled:
+      "open (Will, 2026-09-17: the brand-voice board killed unruled at round seven; the voice is rebuilt from won lines, one real comparison at a time)",
+    shipped: null,
+    why: "No voice is declared: eight real lines in their real places, three or four close candidates each, and the voice is written up from what his wins share.",
+    lives: [
+      "src/lib/constants/marketing-voice.ts",
+      "src/app/(dev)/design/rules/bible.ts",
+    ],
+    board: {
+      note: "Eight decisions, no page: bible 20's open question drawn on the guest sheet's own line, the home hero's sentence, a feature page's headline, the Pro card's line beside the Free card, a host's empty dashboard, the email ask, an empty album and an upload's toast; every candidate set in the shipped surface at 1440 or in a 375 column",
+      variants: [
+        "Naming an absence",
+        "The home hero's sentence",
+        "A feature page's headline",
+        "The Pro card's line",
+        "A host's first screen",
+        "Asking for an email",
+        "An empty album",
+        "The upload's answer",
       ],
     },
   },
