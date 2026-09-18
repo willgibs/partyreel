@@ -48,6 +48,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "body-type"
   | "voice"
   | "privacy-hero"
   | "album-page"
@@ -74,6 +75,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "body-type"
   | "voice"
   | "privacy-hero"
   | "album-page"
@@ -692,6 +694,32 @@ export const RULINGS: Ruling[] = [
         "The gallery's width",
         "Where the words sit",
         "The host's galleries",
+      ],
+    },
+  },
+  {
+    id: "body-type",
+    title: "Body and label type",
+    surface: "shared",
+    ruled:
+      'open (Will, 2026-09-18: "everything should be addressed in our design system type ladder" reaches body and label sizes, one question-first board first)',
+    shipped: null,
+    why: "The heading ladder stops at 16 and about 920 sites below it pick their own size; seven decisions set the body, caption and label steps that replace them.",
+    lives: [
+      "src/app/theme.css",
+      "src/lib/utils.ts",
+      "src/lib/type-ladder-policy.test.ts",
+    ],
+    board: {
+      note: "Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame",
+      variants: [
+        "A guest's reading copy",
+        "The app's working body",
+        "Marketing reading copy",
+        "The caption step, and the floor",
+        "The label step",
+        "Buttons on the ladder",
+        "The line-height rule",
       ],
     },
   },
