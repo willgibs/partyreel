@@ -139,7 +139,9 @@ retired `type-phone`; both agents were told so by message.
   about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
   the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains the sha7 (the page prints "Serving build",
   and the stamp rides the RSC payload with ESCAPED quotes, `\"build\":\"<sha7>`, so grep for the bare sha7,
-  never for `"build":"`; a poll on the quoted form watched a READY alias for 15 minutes and never matched). The key must ride the QUERY on a plain request; the `x-design-key` header alone
+  never for `"build":"`; a poll on the quoted form watched a READY alias for 15 minutes and never matched). The
+  same keyed lab page also carries `sentry-release=<sha40>` (the Sentry SDK's stamp on a dynamic page); the static
+  home page carries neither, which is why a poll on `/` sees nothing. The key must ride the QUERY on a plain request; the `x-design-key` header alone
   answers 404, and no `sentry-release` marker exists in the HTML. After every integration:
   `node scripts/prune-vercel-deployments.mjs --apply`.
 - **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it); `pnpm lab:demo
