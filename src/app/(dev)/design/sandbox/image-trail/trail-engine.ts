@@ -574,6 +574,14 @@ export function factsOf(
   spec: TrailSpec,
   paths: readonly Path[],
   over: number,
+  /**
+   * ★ THE SCREEN, SO "LIT" MEANS ON SCREEN. A path that sweeps past the edge
+   * leaves photographs still fading where nobody can see them, and counting
+   * those would put a number on a tile that is true of the arithmetic and false
+   * of the picture. Left out, every card counts, which is right for a source
+   * that stays inside the frame.
+   */
+  within?: { w: number; h: number },
 ): { lit: number; beat: number; nodes: number; born: number } {
   const states = paths.map(() => emptyState(spec));
   let lit = 0;
@@ -590,7 +598,16 @@ export function factsOf(
     // The first life is a ramp from an empty screen, so the busiest instant is
     // only meaningful once the trail has filled.
     if (t < lifeMs(spec)) continue;
-    const n = litAt(states, spec, t).length;
+    const seen = litAt(states, spec, t);
+    const n = within
+      ? seen.filter(
+          ({ frame }) =>
+            frame.x > -spec.size / 2 &&
+            frame.x < within.w + spec.size / 2 &&
+            frame.y > -spec.size &&
+            frame.y < within.h + spec.size,
+        ).length
+      : seen.length;
     if (n > lit) lit = n;
   }
   return {
