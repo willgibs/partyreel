@@ -8,6 +8,11 @@ import {
   Trash2,
 } from "lucide-react";
 
+import {
+  GalleryEmptyState,
+  GUEST_GHOST_FRAMES,
+} from "@/components/guest/gallery-empty-state";
+import { River } from "@/components/shared/river/river";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -96,6 +101,7 @@ import {
 import type { GalleryEntry } from "@/app/(dev)/design/gallery/entry";
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 import {
+  EmptyAlbumDemo,
   FormDemo,
   OtpDemo,
   PasswordStrengthDemo,
@@ -449,6 +455,57 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
           <div className="space-y-2">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id: "river",
+    badge: "new",
+    family: "components",
+    section: "Surfaces",
+    lede: "A flow of photographs falling through a box, sized by its container. Its first home is the empty guest album, where the PLACEMENT fades it; the component itself is always at full luminance and never carries a layer over a photograph.",
+    specimens: [
+      // The real call site, at the two widths the guest page actually gives its
+      // gallery (event-experience.tsx: max-w-2xl inside px-5, so 335 at a phone
+      // and 632 from 672 up). Fixed widths on purpose: a library frame is as
+      // wide as the window, and the WIDTH is the point of these two, so the
+      // specimen states it rather than inheriting whatever the stage has.
+      // The two with a CTA go through a client demo: the button is only drawn
+      // when the viewer can upload, and a server module cannot mint a handler
+      // (interactive-demos.tsx says the rest).
+      {
+        label: "The empty guest album, at a phone",
+        hint: "335px: exactly what live-gallery.tsx mounts when an album has nothing in it yet",
+        node: <EmptyAlbumDemo width={335} />,
+      },
+      {
+        label: "and at the guest column's full width",
+        hint: "632px: one geometry, no second tuning, because every length in the flow is a fraction of the box",
+        node: <EmptyAlbumDemo width={632} />,
+      },
+      {
+        label: "Uploads closed",
+        hint: "no onAddFirst: the promise stands over the flow on its own",
+        node: (
+          <div style={{ width: 335 }}>
+            <GalleryEmptyState />
+          </div>
+        ),
+      },
+      {
+        // ★ WHAT A LATER PLACEMENT NEEDS TO SEE: the fade above belongs to the
+        // empty album (an album with nothing in it may not promise pictures
+        // that do not exist), NOT to the river. Everywhere else it pours at
+        // full luminance, and a placement that wants it quiet filters its own
+        // wrapper rather than dimming the component or laying a scrim over the
+        // photographs (bible 1).
+        label: "The river itself, unfaded",
+        hint: "decorative, aria-hidden, nothing focusable; one rAF loop, paused off screen and under reduced motion",
+        node: (
+          <div style={{ width: 335 }}>
+            <River frames={GUEST_GHOST_FRAMES} />
           </div>
         ),
       },
