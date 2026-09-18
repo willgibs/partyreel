@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import { AlbumHeroBoard } from "@/app/(dev)/design/sandbox/album-hero/board";
 import { GalleryWidthBoard } from "@/app/(dev)/design/sandbox/gallery-width/board";
 import { RiverVisualBoard } from "@/app/(dev)/design/sandbox/river-visual/board";
+import { VoiceBoard } from "@/app/(dev)/design/sandbox/voice/board";
 import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 
 /**
@@ -22,6 +23,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  voice: { Component: VoiceBoard },
   "gallery-width": { Component: GalleryWidthBoard },
   "album-hero": { Component: AlbumHeroBoard },
   "river-visual": { Component: RiverVisualBoard },

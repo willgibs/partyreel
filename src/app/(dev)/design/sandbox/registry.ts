@@ -3,6 +3,7 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { ALBUM_HERO } from "./album-hero/spec";
 import { GALLERY_WIDTH } from "./gallery-width/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
+import { VOICE } from "./voice/spec";
 
 /**
  * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
@@ -22,6 +23,7 @@ import { RIVER_VISUAL } from "./river-visual/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  VOICE,
   GALLERY_WIDTH,
   RIVER_VISUAL,
   ALBUM_HERO,

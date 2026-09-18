@@ -1,0 +1,68 @@
+/* The voice board's sheet (2026-09-18). Class prefix: vce-.
+
+   It holds two rules and they exist for one reason: the home hero is drawn here
+   STANDING STILL, from `cinema-hero.css` and `hero-stream.ts`, with no rAF loop
+   behind it. Nothing else on this board needs a stylesheet, and nothing here
+   changes a candidate: the words are the candidates, and a board sheet that
+   restyled the surface a line is read on would be judging its own drawing.
+
+   ★ THE REST STATE, PUT BACK FOR A READER WHO ASKED FOR NO LESS MOTION.
+   `cinema-hero.css` paints the branch-out's FIRST frame (every photograph
+   collapsed inside the code at scale 0) inside `prefers-reduced-motion:
+   no-preference`, because production hands over from it to its loop on the very
+   next frame. This board runs no loop, so without the rule below a reviewer
+   whose machine allows motion would meet an empty band under the sentence they
+   were asked about. It restores exactly what the hero's own <noscript>
+   companion restores, per breakpoint, from the frames' own custom properties.
+
+   ★ IT WINS ON SPECIFICITY (0,2,0 against 0,1,0), NEVER ON SOURCE ORDER. Two
+   co-located sheets imported from the same module have no order a board may
+   rely on, and the production rule is the last one in its own file on purpose.
+
+   ★ AND THE HERO'S OWN FLOOR IS RELEASED. `min-height: max(100svh, ...)` is
+   correct on a page, where the hero IS the first screen; inside a 1440 by 930
+   stage `100svh` reads the LAB's window, which the capture pass makes 2400 px
+   tall, so the hero would be two and a half times its stage and the block would
+   be positioned off the bottom of it. The stage is the viewport here, so the
+   hero takes the stage's box and the composition's own clamps do the rest. */
+
+.vce-hero.hhs-hero {
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vce-hero .hhs-card {
+    transform: var(--hhs-rest-base);
+    opacity: var(--hhs-rest-o-base);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
+  .vce-hero .hhs-card {
+    transform: var(--hhs-rest-lg);
+    opacity: var(--hhs-rest-o-lg);
+  }
+}
+
+/* ★ A LOCKUP THAT HAS ALREADY ARRIVED. The feature hero is the production
+   `PageHero` on the film-cut register: its eyebrow, subhead and actions carry
+   `data-mkt-cut`, which marketing.css animates from nothing once `Reveal` has
+   seen the section, with `animation-fill-mode: both` and a per-slot delay. Two
+   reasons that is wrong on a board. A reviewer who has not scrolled the section
+   into view is asked about a headline with no sentence under it; and a capture
+   taken while the fill is holding a slot's backwards state photographs an empty
+   hero, which is how this was found (2026-09-18: the subhead and both buttons
+   were laid out, at opacity 1 in the DOM, and absent from every screenshot).
+   The entrance is not what any question here asks about, so the wrapper hands
+   the lockup the state a reader has by the time they read the line.
+
+   ★ THE DOUBLED SELECTOR IS THE POINT. `[data-inview="true"] [data-mkt-cut]`
+   is (0,2,0), so a class plus a descendant would only tie and the winner would
+   be whichever sheet the bundler happened to put last. The class and its data
+   attribute together make this (0,3,0), which wins on specificity alone. */
+.vce-settled[data-vce-settled] [data-mkt-cut],
+.vce-settled[data-vce-settled] [data-mkt-reveal] {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
