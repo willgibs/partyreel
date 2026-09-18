@@ -57,6 +57,8 @@ import {
 } from "@/lib/email/templates";
 import { sendOnce } from "@/lib/email/send";
 import { assertCronEnv, serverEnv } from "@/lib/env";
+import { forEachIsolated, tallyNote } from "@/lib/jobs/isolate";
+import { createSweepRunner } from "@/lib/jobs/purge-sweeps";
 import {
   INACTIVE_DAYS,
   WARN_BEFORE_DAYS,
@@ -315,13 +317,13 @@ export async function GET(request: Request): Promise<Response> {
   // Each sweep is independently guarded so one failure doesn't abort the rest. The catch
   // ALSO reports to Sentry — a failed sweep was previously buried in the 200 response body
   // (Vercel never alerts on it), so a broken sweep meant storage silently wasn't reclaimed.
+  //
+  // The guard now lives in `createSweepRunner` (src/lib/jobs/purge-sweeps.ts), which also gives the
+  // FOUR promoted sub-sweeps a `job_runs` row, a kill switch and a card of their own. For every
+  // other sweep its behaviour is byte-identical to the inline try/catch this replaced.
+  const sweepRunner = createSweepRunner(triggeredBy);
   const runSweep = async (name: string, fn: () => Promise<unknown>) => {
-    try {
-      sweeps[name] = await fn();
-    } catch (e) {
-      captureError("cron", e, { sweep: name });
-      sweeps[name] = { error: String(e) };
-    }
+    sweeps[name] = await sweepRunner.run(name, fn);
   };
 
   await runSweep("expired_events", () =>
@@ -731,130 +733,149 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
   let reduced = 0;
   let cleared = 0;
 
-  for (const p of candidates ?? []) {
-    const cap = effectiveStorageCap(toBillingTier(p.tier), p.storage_cap_bytes);
-    if (cap === null) continue; // unlimited tier — not subject to the cap
+  // ★ PER-ROW ISOLATION (QA #27). This loop opens grace windows, sends email and auto-reduces
+  // media. One bounced address or one bad profile used to abort it, so every account BEHIND that
+  // row was skipped for the night, silently — the sweep's own catch turned the throw into one
+  // `{ error }` on the parent run and nothing said "and 93 accounts were never looked at". Each
+  // account is isolated now, and the tally travels with the result so the sweep still closes RED.
+  const rows_tally = await forEachIsolated(
+    candidates ?? [],
+    async (p) => {
+      const cap = effectiveStorageCap(
+        toBillingTier(p.tier),
+        p.storage_cap_bytes,
+      );
+      if (cap === null) return; // unlimited tier — not subject to the cap
 
-    // ACTIVE bytes = non-removed media in non-deleted events.
-    const { data: media, error: mErr } = await admin
-      .from("media")
-      .select(
-        "id, file_size_bytes, events!media_event_id_fkey!inner(host_id, deleted_at)",
-      )
-      .eq("events.host_id", p.id)
-      .is("events.deleted_at", null)
-      .neq("status", "removed");
-    if (mErr) throw new Error(`select active media: ${mErr.message}`);
-    const rows = (media ?? []) as unknown as {
-      id: string;
-      file_size_bytes: number;
-    }[];
-    const activeBytes = rows.reduce((s, m) => s + m.file_size_bytes, 0);
+      // ACTIVE bytes = non-removed media in non-deleted events.
+      const { data: media, error: mErr } = await admin
+        .from("media")
+        .select(
+          "id, file_size_bytes, events!media_event_id_fkey!inner(host_id, deleted_at)",
+        )
+        .eq("events.host_id", p.id)
+        .is("events.deleted_at", null)
+        .neq("status", "removed");
+      if (mErr) throw new Error(`select active media: ${mErr.message}`);
+      const rows = (media ?? []) as unknown as {
+        id: string;
+        file_size_bytes: number;
+      }[];
+      const activeBytes = rows.reduce((s, m) => s + m.file_size_bytes, 0);
 
-    // ENGAGE at the write-path line, not the bare cap (QA #26): uploads are accepted up to
-    // cap + cap/10, so a host inside that deliberate headroom is exactly where the product put
-    // them — emailing "over your limit" and later auto-removing their media is wrong. Once truly
-    // over, the reduce below still targets the REAL cap (hysteresis, so it can't flap).
-    const engageAt = capWithWriteHeadroom(cap);
+      // ENGAGE at the write-path line, not the bare cap (QA #26): uploads are accepted up to
+      // cap + cap/10, so a host inside that deliberate headroom is exactly where the product put
+      // them — emailing "over your limit" and later auto-removing their media is wrong. Once truly
+      // over, the reduce below still targets the REAL cap (hysteresis, so it can't flap).
+      const engageAt = capWithWriteHeadroom(cap);
 
-    if (activeBytes <= engageAt) {
-      if (p.storage_grace_until) {
+      if (activeBytes <= engageAt) {
+        if (p.storage_grace_until) {
+          await admin
+            .from("profiles")
+            .update({ storage_grace_until: null })
+            .eq("id", p.id);
+          cleared++;
+        }
+        return;
+      }
+
+      if (!p.storage_grace_until) {
+        const graceUntil = new Date(
+          now.getTime() + OVER_CAP_GRACE_DAYS * 86_400_000,
+        );
+        await admin
+          .from("profiles")
+          .update({ storage_grace_until: graceUntil.toISOString() })
+          .eq("id", p.id);
+        graceOpened++;
+        if (p.email) {
+          const { subject, html } = overCapGraceStartEmail({
+            capLabel: formatBytes(cap),
+            deadline: fmtDate(graceUntil),
+            dashboardUrl,
+          });
+          await sendOnce({
+            kind: "over_cap_grace_start",
+            dedupeKey: `${p.id}:${graceUntil.toISOString()}`,
+            profileId: p.id,
+            to: p.email,
+            subject,
+            html,
+          });
+        }
+        return;
+      }
+
+      const graceUntil = new Date(p.storage_grace_until);
+      if (now >= graceUntil) {
+        const ids = selectForAutoReduce(rows, cap);
+        if (ids.length) {
+          const { error: rmErr } = await admin
+            .from("media")
+            .update({
+              status: "removed",
+              removed_at: now.toISOString(),
+              // QA #2: mark these as SYSTEM-binned so sweepStandbyBudget (same invocation, seconds
+              // later) excludes them. Without it the standby sweep hard-deletes the media this sweep
+              // just promised the host was recoverable for 30 days.
+              removed_by_system: true,
+            })
+            .in("id", ids);
+          if (rmErr) throw new Error(`auto-reduce remove: ${rmErr.message}`);
+        }
         await admin
           .from("profiles")
           .update({ storage_grace_until: null })
           .eq("id", p.id);
-        cleared++;
+        reduced++;
+        if (p.email) {
+          const recoverableUntil = fmtDate(
+            new Date(now.getTime() + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000),
+          );
+          const { subject, html } = overCapReducedEmail({
+            recoverableUntil,
+            dashboardUrl,
+          });
+          await sendOnce({
+            kind: "over_cap_reduced",
+            dedupeKey: `${p.id}:${graceUntil.toISOString()}`,
+            profileId: p.id,
+            to: p.email,
+            subject,
+            html,
+          });
+        }
+      } else if (
+        now.getTime() >=
+        graceUntil.getTime() - OVER_CAP_REMINDER_DAYS * 86_400_000
+      ) {
+        if (p.email) {
+          const { subject, html } = overCapReminderEmail({
+            deadline: fmtDate(graceUntil),
+            dashboardUrl,
+          });
+          const sent = await sendOnce({
+            kind: "over_cap_reminder",
+            dedupeKey: `${p.id}:${graceUntil.toISOString()}`,
+            profileId: p.id,
+            to: p.email,
+            subject,
+            html,
+          });
+          if (sent) reminded++;
+        }
       }
-      continue;
-    }
-
-    if (!p.storage_grace_until) {
-      const graceUntil = new Date(
-        now.getTime() + OVER_CAP_GRACE_DAYS * 86_400_000,
-      );
-      await admin
-        .from("profiles")
-        .update({ storage_grace_until: graceUntil.toISOString() })
-        .eq("id", p.id);
-      graceOpened++;
-      if (p.email) {
-        const { subject, html } = overCapGraceStartEmail({
-          capLabel: formatBytes(cap),
-          deadline: fmtDate(graceUntil),
-          dashboardUrl,
-        });
-        await sendOnce({
-          kind: "over_cap_grace_start",
-          dedupeKey: `${p.id}:${graceUntil.toISOString()}`,
-          profileId: p.id,
-          to: p.email,
-          subject,
-          html,
-        });
-      }
-      continue;
-    }
-
-    const graceUntil = new Date(p.storage_grace_until);
-    if (now >= graceUntil) {
-      const ids = selectForAutoReduce(rows, cap);
-      if (ids.length) {
-        const { error: rmErr } = await admin
-          .from("media")
-          .update({
-            status: "removed",
-            removed_at: now.toISOString(),
-            // QA #2: mark these as SYSTEM-binned so sweepStandbyBudget (same invocation, seconds
-            // later) excludes them. Without it the standby sweep hard-deletes the media this sweep
-            // just promised the host was recoverable for 30 days.
-            removed_by_system: true,
-          })
-          .in("id", ids);
-        if (rmErr) throw new Error(`auto-reduce remove: ${rmErr.message}`);
-      }
-      await admin
-        .from("profiles")
-        .update({ storage_grace_until: null })
-        .eq("id", p.id);
-      reduced++;
-      if (p.email) {
-        const recoverableUntil = fmtDate(
-          new Date(now.getTime() + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000),
-        );
-        const { subject, html } = overCapReducedEmail({
-          recoverableUntil,
-          dashboardUrl,
-        });
-        await sendOnce({
-          kind: "over_cap_reduced",
-          dedupeKey: `${p.id}:${graceUntil.toISOString()}`,
-          profileId: p.id,
-          to: p.email,
-          subject,
-          html,
-        });
-      }
-    } else if (
-      now.getTime() >=
-      graceUntil.getTime() - OVER_CAP_REMINDER_DAYS * 86_400_000
-    ) {
-      if (p.email) {
-        const { subject, html } = overCapReminderEmail({
-          deadline: fmtDate(graceUntil),
-          dashboardUrl,
-        });
-        const sent = await sendOnce({
-          kind: "over_cap_reminder",
-          dedupeKey: `${p.id}:${graceUntil.toISOString()}`,
-          profileId: p.id,
-          to: p.email,
-          subject,
-          html,
-        });
-        if (sent) reminded++;
-      }
-    }
-  }
+    },
+    {
+      onError: (p, e) =>
+        captureError("cron", e, {
+          sweep: "over_capacity",
+          // The profile ID, never the address: a Sentry extra is not the place for a recipient.
+          profile_id: p.id,
+        }),
+    },
+  );
 
   return {
     candidates: candidates?.length ?? 0,
@@ -862,6 +883,11 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
     reminded,
     reduced,
     cleared,
+    // The isolation tally travels WITH the result: `rows_failed` is what makes this sub-sweep's run
+    // close as an error, so keeping the accounts behind a bad row alive never buys a green night.
+    rows_failed: rows_tally.failed,
+    rows_not_attempted: rows_tally.skipped,
+    rows_note: tallyNote("accounts", rows_tally) ?? undefined,
   };
 }
 
@@ -887,23 +913,40 @@ async function sweepRenewalNudges(admin: AdminClient, now: Date) {
   const siteUrl = await getSiteUrl();
   const renewUrl = `${siteUrl}/dashboard`;
   let nudged = 0;
-  for (const p of data ?? []) {
-    if (!p.email || !p.tier_expires_at) continue;
-    const { subject, html } = renewalNudgeEmail({
-      expiresOn: fmtDate(new Date(p.tier_expires_at)),
-      renewUrl,
-    });
-    const sent = await sendOnce({
-      kind: "renewal_nudge",
-      dedupeKey: `${p.id}:${p.tier_expires_at}`,
-      profileId: p.id,
-      to: p.email,
-      subject,
-      html,
-    });
-    if (sent) nudged++;
-  }
-  return { eligible: data?.length ?? 0, nudged };
+  // PER-ROW ISOLATION (QA #27): one refused address stopped every nudge behind it. This sweep is
+  // not a promoted job (it only emails), so its tally rides the parent run's counts.
+  const tally = await forEachIsolated(
+    data ?? [],
+    async (p) => {
+      if (!p.email || !p.tier_expires_at) return;
+      const { subject, html } = renewalNudgeEmail({
+        expiresOn: fmtDate(new Date(p.tier_expires_at)),
+        renewUrl,
+      });
+      const sent = await sendOnce({
+        kind: "renewal_nudge",
+        dedupeKey: `${p.id}:${p.tier_expires_at}`,
+        profileId: p.id,
+        to: p.email,
+        subject,
+        html,
+      });
+      if (sent) nudged++;
+    },
+    {
+      onError: (p, e) =>
+        captureError("cron", e, {
+          sweep: "renewal_nudges",
+          profile_id: p.id,
+        }),
+    },
+  );
+  return {
+    eligible: data?.length ?? 0,
+    nudged,
+    rows_failed: tally.failed,
+    rows_not_attempted: tally.skipped,
+  };
 }
 
 /**
@@ -939,87 +982,108 @@ async function sweepInactiveFreeEvents(admin: AdminClient, now: Date) {
   let warned = 0;
   let removed = 0;
 
-  for (const e of events ?? []) {
-    const prof = e.profiles as unknown as {
-      email: string | null;
-      last_active_at: string;
-    };
+  // ★ PER-ROW ISOLATION (QA #27). This loop SOFT-DELETES a host's event and emails them about
+  // it, so a single bad row used to mean every candidate behind it was neither warned nor
+  // removed that night, with nothing but one `{ error }` on the parent run to show for it.
+  const tally = await forEachIsolated(
+    events ?? [],
+    async (e) => {
+      const prof = e.profiles as unknown as {
+        email: string | null;
+        last_active_at: string;
+      };
 
-    // Newest upload (any status — a recent upload means the event is still in use).
-    // mustQuery, because this read can only ever move the verdict toward DELETION:
-    // swallowed, a failed query looked identical to "this event has never had an
-    // upload", so a busy album whose other timestamps were old got warned and then
-    // removed for inactivity. A transient DB error must abort the sweep (it resumes
-    // next night), never silently age out live events.
-    const media = await mustQuery(
-      admin
-        .from("media")
-        .select("created_at")
-        .eq("event_id", e.id)
-        .order("created_at", { ascending: false })
-        .limit(1),
-      "cron/purge: newest upload for inactivity",
-    );
-    const latestUpload = media?.[0]?.created_at;
-
-    const activityMs = Math.max(
-      new Date(prof.last_active_at).getTime(),
-      new Date(e.created_at).getTime(),
-      new Date(e.updated_at).getTime(),
-      latestUpload ? new Date(latestUpload).getTime() : 0,
-    );
-    const action = inactivityAction(activityMs, nowMs);
-    if (action === "none") continue;
-
-    if (action === "remove") {
-      // purge_at is DERIVED by the set_event_purge_at trigger from deleted_at (single source,
-      // un-spoofable — mirrors media). We still compute purgeAt locally for the email's
-      // "recoverable until" date, but the persisted value comes from the trigger, not this write.
-      const purgeAt = new Date(
-        nowMs + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
+      // Newest upload (any status — a recent upload means the event is still in use).
+      // mustQuery, because this read can only ever move the verdict toward DELETION:
+      // swallowed, a failed query looked identical to "this event has never had an
+      // upload", so a busy album whose other timestamps were old got warned and then
+      // removed for inactivity. A transient DB error must abort the sweep (it resumes
+      // next night), never silently age out live events.
+      const media = await mustQuery(
+        admin
+          .from("media")
+          .select("created_at")
+          .eq("event_id", e.id)
+          .order("created_at", { ascending: false })
+          .limit(1),
+        "cron/purge: newest upload for inactivity",
       );
-      const { error: delErr } = await admin
-        .from("events")
-        .update({ deleted_at: now.toISOString() })
-        .eq("id", e.id)
-        .is("deleted_at", null);
-      if (delErr) throw new Error(`inactive soft-delete: ${delErr.message}`);
-      removed++;
-      if (prof.email) {
-        const { subject, html } = inactivityRemovedEmail({
+      const latestUpload = media?.[0]?.created_at;
+
+      const activityMs = Math.max(
+        new Date(prof.last_active_at).getTime(),
+        new Date(e.created_at).getTime(),
+        new Date(e.updated_at).getTime(),
+        latestUpload ? new Date(latestUpload).getTime() : 0,
+      );
+      const action = inactivityAction(activityMs, nowMs);
+      if (action === "none") return;
+
+      if (action === "remove") {
+        // purge_at is DERIVED by the set_event_purge_at trigger from deleted_at (single source,
+        // un-spoofable — mirrors media). We still compute purgeAt locally for the email's
+        // "recoverable until" date, but the persisted value comes from the trigger, not this write.
+        const purgeAt = new Date(
+          nowMs + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
+        );
+        const { error: delErr } = await admin
+          .from("events")
+          .update({ deleted_at: now.toISOString() })
+          .eq("id", e.id)
+          .is("deleted_at", null);
+        if (delErr) throw new Error(`inactive soft-delete: ${delErr.message}`);
+        removed++;
+        if (prof.email) {
+          const { subject, html } = inactivityRemovedEmail({
+            eventName: e.name,
+            recoverableUntil: fmtDate(purgeAt),
+            dashboardUrl,
+          });
+          await sendOnce({
+            kind: "inactivity_removed",
+            dedupeKey: e.id,
+            profileId: e.host_id,
+            to: prof.email,
+            subject,
+            html,
+          });
+        }
+      } else if (prof.email) {
+        const deadline = new Date(activityMs + INACTIVE_DAYS * 86_400_000);
+        const { subject, html } = inactivityWarningEmail({
           eventName: e.name,
-          recoverableUntil: fmtDate(purgeAt),
+          deadline: fmtDate(deadline),
           dashboardUrl,
         });
-        await sendOnce({
-          kind: "inactivity_removed",
-          dedupeKey: e.id,
+        const sent = await sendOnce({
+          kind: "inactivity_warning",
+          dedupeKey: `${e.id}:${activityMs}`,
           profileId: e.host_id,
           to: prof.email,
           subject,
           html,
         });
+        if (sent) warned++;
       }
-    } else if (prof.email) {
-      const deadline = new Date(activityMs + INACTIVE_DAYS * 86_400_000);
-      const { subject, html } = inactivityWarningEmail({
-        eventName: e.name,
-        deadline: fmtDate(deadline),
-        dashboardUrl,
-      });
-      const sent = await sendOnce({
-        kind: "inactivity_warning",
-        dedupeKey: `${e.id}:${activityMs}`,
-        profileId: e.host_id,
-        to: prof.email,
-        subject,
-        html,
-      });
-      if (sent) warned++;
-    }
-  }
+    },
+    {
+      onError: (e, err) =>
+        captureError("cron", err, {
+          sweep: "inactive_free_events",
+          // The event id, never the host's address.
+          event_id: e.id,
+        }),
+    },
+  );
 
-  return { candidates: events?.length ?? 0, warned, removed };
+  return {
+    candidates: events?.length ?? 0,
+    warned,
+    removed,
+    rows_failed: tally.failed,
+    rows_not_attempted: tally.skipped,
+    rows_note: tallyNote("events", tally) ?? undefined,
+  };
 }
 
 /**

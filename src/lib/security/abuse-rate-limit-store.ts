@@ -11,6 +11,7 @@ import { createHmac } from "node:crypto";
 
 import { mustQuery } from "@/lib/db/must-query";
 import { serverEnv } from "@/lib/env";
+import { recordSignalFailure } from "@/lib/jobs/failure-log";
 import {
   ABUSE_LIMITS,
   abuseRateDecision,
@@ -62,16 +63,33 @@ export async function checkAbuseRate(
   // alert could never fire: the one path nobody would ever learn was broken.
   // Throwing here does NOT change the allow/deny posture (the callers still fail
   // open, on purpose); it just makes the outage visible.
-  const data = await mustQuery(
-    admin.rpc("action_rate", {
-      p_kind: kind,
-      p_ip_hash: ipHash,
-      p_scope_hash: scopeHash,
-      p_breadth_since: breadthSince,
-      p_scope_since: scopeSince,
-    }),
-    `security/abuse-limiter: action_rate(${kind})`,
-  );
+  //
+  // ROADMAP QA #19, the second half: throwing makes the outage visible to the CALLER, which then
+  // fails open with a captureWarning. What nothing counted was how often that happened, so the
+  // console could not tell a limiter that has been dead for a week from one nobody tripped. The
+  // failure is recorded into the `abuse_limiter` signal on the way past; the throw is unchanged.
+  let data: unknown;
+  try {
+    data = await mustQuery(
+      admin.rpc("action_rate", {
+        p_kind: kind,
+        p_ip_hash: ipHash,
+        p_scope_hash: scopeHash,
+        p_breadth_since: breadthSince,
+        p_scope_since: scopeSince,
+      }),
+      `security/abuse-limiter: action_rate(${kind})`,
+    );
+  } catch (e) {
+    await recordSignalFailure({
+      job: "abuse_limiter",
+      area: "security",
+      operation: `action_rate(${kind})`,
+      error: e,
+      extra: { kind },
+    });
+    throw e;
+  }
   const snap = (data ?? {}) as {
     distinct_scopes?: number;
     scope_hits?: number;
@@ -83,14 +101,31 @@ export async function checkAbuseRate(
   );
 }
 
-/** Record ONE action event (best-effort; callers ignore errors). */
+/**
+ * Record ONE action event (best-effort; callers ignore errors).
+ *
+ * ★ THE SILENT HALF OF QA #19, and the worse one. Every call site wraps this in `.catch(() => {})`,
+ * so a failing INSERT means the counters never accumulate, which means every later decision reads
+ * zero hits, which means ALLOWED — the limiter is off and looks identical to one nobody has tripped.
+ * Reporting it here rather than at the seven call sites covers all of them at once, and the swallow
+ * upstream is left exactly as it was: the write is genuinely best-effort, it just is not silent.
+ */
 export async function recordAbuseEvent(
   kind: AbuseKind,
   ipHash: string,
   scopeHash: string,
 ): Promise<void> {
   const admin = createAdminClient();
-  await admin
+  const { error } = await admin
     .from("action_attempts")
     .insert({ kind, ip_hash: ipHash, scope_hash: scopeHash });
+  if (error) {
+    await recordSignalFailure({
+      job: "abuse_limiter",
+      area: "security",
+      operation: `action_attempts insert (${kind})`,
+      error: new Error(error.message),
+      extra: { kind, code: error.code },
+    });
+  }
 }

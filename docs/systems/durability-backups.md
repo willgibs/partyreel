@@ -80,7 +80,8 @@ transiently wrong, which is exactly when a restore is in progress.
 
 | Failure | Containment |
 | --- | --- |
-| Worker error / queue backlog | auto-retries → DLQ; the daily reconciliation backstop |
+| Worker error / queue backlog | auto-retries → DLQ; the daily reconciliation backstop; the backlog and the DLQ depth are now REPORTED (see below) |
+| Objects stuck in the DLQ | every Worker run reads the depth; any dead letter reads as FAILED on `/admin/jobs` and raises `job_dead_letters_pending`; the next reconcile copies them |
 | Missed R2 event notification | reconciliation re-copies within 24 h |
 | GitHub DB-backup fails | run fails loudly + post-upload byte-size verify, and the run's heartbeat closes with `always()` so a failure shows as FAILED on `/admin/jobs` rather than as a silence; a run that stops firing altogether trips the missed-run alert |
 | DB-password / secret drift | the backup breaks until the secret updates (the app uses separate Supabase API keys, unaffected) |
@@ -91,6 +92,17 @@ All three pillars now satisfy the zero-silent-failure mandate: the reconcile, th
 backup each carry a kill switch and a heartbeat, and a missing run raises a Sentry event. The model +
 the per-job fail-open/fail-closed postures live in [admin-observability.md](admin-observability.md)
 "Backend jobs".
+
+★ **The Worker reports the QUEUE and DEAD-LETTER depths on every scheduled run**
+([`queue-metrics.ts`](../../workers/backup/src/queue-metrics.ts)), through `Queue.metrics()` on two
+producer bindings it never sends to (`BACKUP_QUEUE`, `BACKUP_DLQ` in `wrangler.jsonc`). They were a
+Cloudflare-dashboard-only fact, and a dead letter is a media object with NO backup copy until a
+reconcile catches it — the exact silence the jobs console exists to end. The numbers ride the
+heartbeat's free-form `counts` under `queue_backlog` / `dead_letter_backlog` (+ `_oldest_min`), which
+the app's pure catalog names for the reader; the strings are pinned by a test on BOTH sides, since
+the packages cannot import each other. The bindings are OPTIONAL in `Env` and every read is guarded:
+a metrics call must never cost a backup run, and an unreadable queue reports NO key rather than a
+zero. → [admin-observability.md](admin-observability.md).
 
 ★ **The two Worker jobs report through the APP, on a URL DERIVED from `PRUNE_API_URL`** (its sibling
 path, [`job-heartbeat.ts`](../../workers/backup/src/job-heartbeat.ts)) — a Worker cannot reach the

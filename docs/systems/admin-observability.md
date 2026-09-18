@@ -123,9 +123,11 @@ the service-role admin client (the deny-all tables); shared `TriageStatusControl
   health signal, the preserve form (hold + copy-to-preservation-prefix), per-hold audit-logged
   evidence/record exports, two-step hold release, the `forensic_audit_log` trail. Full model + the
   CSAM runbook: [trust-safety-forensics.md](trust-safety-forensics.md).
-- **Jobs (P8)** — the backend-job console: every job (the purge cron, the backup Worker's reconcile
-  and prune, the nightly DB-backup Action) with its health, its last runs and what each reported, a
-  per-job kill switch, and Run now where the app can actually start the job. Model + invariants below.
+- **Jobs (P8)** — the backend-job console: every job (the purge cron and its four promoted
+  sub-sweeps, the backup Worker's reconcile and prune plus its queue and dead-letter depths, the
+  nightly DB-backup Action, and the rolling email / limiter signals) with its health, its last runs
+  and what each reported, a per-job kill switch, and Run now where the app can actually start the
+  job. Model + invariants below.
 - **Security** — MFA status.
 
 ## Backend jobs (zero silent failures)
@@ -134,8 +136,35 @@ Every backend job reports through ONE heartbeat table whatever it runs on, becau
 no run is indistinguishable from a healthy one when it stops firing. The catalog
 ([`jobs/catalog.ts`](../../src/app/admin/jobs/catalog.ts)) is the single source for what jobs exist,
 their cadence, their flag key and whether the app can start them; the store is
-[`queries/jobs.ts`](../../src/lib/db/queries/jobs.ts); `job_runs` and the four `ops_flags` rows are
-deny-all, service-role only.
+[`queries/jobs.ts`](../../src/lib/db/queries/jobs.ts); the machinery the jobs themselves call is
+[`src/lib/jobs/`](../../src/lib/jobs); `job_runs` and the `ops_flags` rows are deny-all,
+service-role only.
+
+**THREE KINDS OF CATALOG ENTRY**, because "job" means three different things once everything reports.
+All three resolve through the SAME pure `jobHealth`, so the page, the alerts bell and the purge
+cron's scan can never hold three definitions of healthy.
+
+| kind | what it is | rows | health |
+| --- | --- | --- | --- |
+| `scheduled` | fires on a clock | its own `job_runs` rows | the cadence + the missed-run rule |
+| `signal` | work with no schedule (a send, a limiter read) | only its FAILURE rows | a rolling 24h window: anything failed → failed; nothing at all → "No activity", never green |
+| `derived` | a reading only the Worker can take | none: it rides another job's `counts` | the value, plus the health of the run that carried it |
+
+| job | kind | cadence | switch | what it reports |
+| --- | --- | --- | --- | --- |
+| `purge_cron` | scheduled | daily 04:00 | `purge_cron_enabled` | every sweep's tally, the freshness scan |
+| `purge_orphans` | scheduled | inside the purge | `purge_orphans_enabled` | pages scanned, objects deleted, breaker trips |
+| `purge_deleted_accounts` | scheduled | inside the purge | `purge_deleted_accounts_enabled` | accounts finished / held, bytes freed, rows failed |
+| `purge_inactivity` | scheduled | inside the purge | `purge_inactivity_enabled` | candidates, warned, removed, rows failed |
+| `purge_over_capacity` | scheduled | inside the purge | `purge_over_capacity_enabled` | grace opened, reminded, reduced, rows failed |
+| `backup_reconcile` | scheduled | daily 05:00 | `backup_reconcile_enabled` | checked / copied / failed, plus both queue depths |
+| `backup_prune` | scheduled | weekly Mon 06:00 | `backup_prune_enabled` | scanned / gone / deleted, mode, plus both queue depths |
+| `backup_queue` | derived | every Worker run | none | the live copy queue's backlog + its oldest message |
+| `backup_dead_letters` | derived | every Worker run | none | objects the live path gave up on: ANY is a failure |
+| `db_backup` | scheduled | daily 06:00 | `db_backup_enabled` | the GitHub Action's dump |
+| `email_delivery` | signal | rolling 24h | none | sends vs failed-or-refused sends |
+| `abuse_limiter` | signal | rolling 24h | none | actions recorded vs limiter errors |
+| `unlock_limiter` | signal | rolling 24h | none | failed unlocks recorded vs limiter errors |
 
 - **A run opens a row and closes it** with a status (`running`/`ok`/`error`/`skipped`), a duration and
   free-form `counts`, so the console says what a run DID, not just that it happened.
@@ -146,9 +175,28 @@ deny-all, service-role only.
   DB-backup Action fail OPEN (a missing backup is worse than a missing log line); the backup prune fails
   CLOSED (it is the only job that deletes from the last-resort copy).
 - ★ **The missed-run signal rides the purge cron**, the only scheduled app-side code (and it runs on the
-  APP surface only, see the Perimeter invariant): at the end of every run it checks EVERY job for a
-  terminal row within 1.5x its own cadence and raises one Sentry `job_missed_run` warning per silent job. The verdict comes from `jobHealth`, the SAME pure function
-  the page renders, so the alert and the console can never drift apart.
+  APP surface only, see the Perimeter invariant): at the end of
+  every run it checks EVERY job for a terminal row within 1.5x its own cadence and raises one Sentry
+  `job_missed_run` warning per silent job. The verdict comes from `jobHealth`, the SAME pure function
+  the page renders, so the alert and the console can never drift apart. ★ **A freshness rule can only
+  page on SILENCE**, so the two kinds that are never silent alert at their own source instead: a
+  depth reading raises `job_dead_letters_pending` / `job_queue_backlog` inside `/api/internal/job-run`
+  the moment the Worker hands it over, and a signal failure raises its Sentry event where it happens
+  (`src/lib/jobs/failure-log.ts`). Calling `jobHealth` without the signal or reading inputs returns
+  `never`, never `missed`, so the scan never pages on a number it did not take.
+- **A sub-sweep is a job.** The four purge sweeps that loop over ACCOUNTS (orphans, account deletion,
+  inactivity, over-capacity) open and close a row of their own inside the parent run, through
+  `createSweepRunner` ([`jobs/purge-sweeps.ts`](../../src/lib/jobs/purge-sweeps.ts)), which the
+  cron's `runSweep` delegates to; the other seven still ride the parent row. Each has its own switch
+  and fails CLOSED on an unreadable one, matching the parent (they all delete or soft-delete).
+- ★ **Per-row isolation never buys silence** (QA #27). `forEachIsolated`
+  ([`jobs/isolate.ts`](../../src/lib/jobs/isolate.ts)) lets the accounts BEHIND a bad row still run,
+  and the tally travels with the sweep's result: any `rows_failed` closes that sub-sweep's run as an
+  ERROR. Five consecutive failures abort the loop instead, because that is a dead dependency rather
+  than a bad row, and a run that "completed" against a dead database is the lie being removed.
+- **A signal's failure count is a FLOOR, not a census.** The failure log damps a burst to one row per
+  quarter hour per instance so a database outage cannot storm the very table the console reads; every
+  event still reaches Sentry unthrottled, and the card says so.
 - **Heartbeat writes degrade, health reads do not.** A job must not die because its bookkeeping failed,
   so the writes swallow and report (the caller raises the warning, since Sentry never enters
   `src/lib/db/*`). The reads use `mustQuery` and throw, and the page draws a LOUD banner instead of a
@@ -158,8 +206,15 @@ deny-all, service-role only.
   [`/api/internal/job-run`](../../src/app/api/internal/job-run/route.ts), authenticated with the shared
   internal-jobs bearer (`PRUNE_API_SECRET`, reused rather than minting a second secret). That endpoint
   can PAUSE a job but never START one, so those two get no Run now button: the app has no way to
-  trigger them, and a button that lies is worse than a sentence that explains.
-  → [durability-backups.md](durability-backups.md).
+  trigger them, and a button that lies is worse than a sentence that explains. Its `counts` field is
+  a free-form record on both ends, which is what lets the Worker add the queue depths ADDITIVELY: an
+  app deploy predating the Worker's stores the extra keys harmlessly, one postdating it reads them.
+  Only a `scheduled` job may open a run there (a start against a signal or a reading would leave a
+  `running` row nothing will ever close). → [durability-backups.md](durability-backups.md).
+- ★ **A missing reading is never a zero.** An unreadable queue contributes no key at all, the card
+  says "No reading", and a stale reading inherits its source's health — a depth of zero read four
+  days ago is not a healthy queue. A fabricated zero on a dead-letter card is this console's failure
+  mode in its purest form: the health signal inventing the answer it exists to go and find.
 
 ## Safety (reports / operator review)
 

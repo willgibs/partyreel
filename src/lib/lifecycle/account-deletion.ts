@@ -39,6 +39,7 @@ import "server-only";
 
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { partitionEventsByHold } from "@/lib/forensics/legal-hold";
+import { forEachIsolated, tallyNote } from "@/lib/jobs/isolate";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { deleteR2Objects } from "@/lib/r2/delete";
 import { reelOutputKey } from "@/lib/r2/keys";
@@ -126,6 +127,10 @@ export type AccountDeletionSweepResult = {
   freed_bytes: number;
   /** Present only before migration 20260902130000 is applied. */
   skipped?: "not_provisioned";
+  /** Accounts this run isolated and failed on, so its heartbeat closes as an error (QA #27). */
+  rows_failed?: number;
+  rows_not_attempted?: number;
+  rows_note?: string;
 };
 
 export type AccountPurgeResult = {
@@ -393,19 +398,37 @@ export async function sweepDeletedAccounts(
     throw error;
   }
 
-  for (const { id: userId } of candidates) {
-    result.accounts += 1;
-    const one = await purgeAccount(admin, userId, handled);
-    result.events += one.events;
-    result.hold_blocked_events += one.hold_blocked_events;
-    result.media_rows += one.media_rows;
-    result.r2_deleted += one.r2_deleted;
-    result.r2_errored += one.r2_errored;
-    result.freed_bytes += one.freed_bytes;
-    if (one.outcome === "deleted") result.accounts_deleted += 1;
-    else result.accounts_held += 1;
-  }
+  // ★ PER-ROW ISOLATION (QA #27). One account whose R2 delete or auth delete threw used to abort
+  // the whole sweep, so every account BEHIND it in the queue waited another day — for a deletion
+  // that is immediate by ruling, and with nothing but one `{ error }` on the run to show for it.
+  // Each account is isolated now; `rows_failed` travels with the tally so the sweep's own run still
+  // closes RED (src/lib/jobs/purge-sweeps.ts reads it), and the next run retries the failed ones.
+  const tally = await forEachIsolated(
+    candidates,
+    async ({ id: userId }) => {
+      result.accounts += 1;
+      const one = await purgeAccount(admin, userId, handled);
+      result.events += one.events;
+      result.hold_blocked_events += one.hold_blocked_events;
+      result.media_rows += one.media_rows;
+      result.r2_deleted += one.r2_deleted;
+      result.r2_errored += one.r2_errored;
+      result.freed_bytes += one.freed_bytes;
+      if (one.outcome === "deleted") result.accounts_deleted += 1;
+      else result.accounts_held += 1;
+    },
+    {
+      onError: (row, e) =>
+        captureError("cron", e, {
+          sweep: "deleted_accounts",
+          user_id: row.id,
+        }),
+    },
+  );
 
+  result.rows_failed = tally.failed;
+  result.rows_not_attempted = tally.skipped;
+  result.rows_note = tallyNote("accounts", tally) ?? undefined;
   return result;
 }
 

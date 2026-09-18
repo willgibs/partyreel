@@ -9,6 +9,7 @@ import { requireAdmin } from "@/lib/auth/admin-context";
 import { countApplicationsByStatus } from "@/lib/db/queries/applications";
 import { countOpenReports } from "@/lib/db/queries/reports";
 import { countContactByStatus } from "@/lib/db/queries/support";
+import { countUnhealthyJobs } from "@/lib/jobs/health-summary";
 import { PageHeading } from "@/components/shared/page-heading";
 
 // The operations portal segment. Canonical path is /admin on every host; in prod
@@ -64,14 +65,20 @@ export default async function AdminLayout({
 
   // Pending-work counts for the header alerts bell (the same queries the Overview cards use). Cheap
   // head-counts; refresh on page-load + post-triage revalidation (no real-time, matching the host bell).
-  const [support, applicants, reports] = await Promise.all([
+  // `jobs` is backend health: "the purge sweep has not run in three days" is pending work in exactly
+  // the sense the other three are, and it never throws (an unreadable console resolves to one).
+  const [support, applicants, reports, jobs] = await Promise.all([
     countContactByStatus("new"),
     countApplicationsByStatus("new"),
     countOpenReports(),
+    countUnhealthyJobs(),
   ]);
 
   return (
-    <AdminShell email={ctx.email} alerts={{ support, applicants, reports }}>
+    <AdminShell
+      email={ctx.email}
+      alerts={{ support, applicants, reports, jobs }}
+    >
       {children}
       {/* Key-gated, inert otherwise: a board's candidate block on the portal's
           own pages (the second round, 2026-09-15). */}
