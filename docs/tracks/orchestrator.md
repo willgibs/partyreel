@@ -169,10 +169,15 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
   admin project's own launch-prep alias host, confirmed from its first preview deployment). (3) DONE bar the human half: the admin preview host `partyreel-admin-git-launch-prep-partyreel.vercel.app` is
   READY on `109cfac9` (built by `POST /v13/deployments` with `gitSource`, since the project's own build of the push
   had no env yet) and its allow-list probed exactly as the table above; the callback is in the Supabase list. WILL
-  signs in there through the account chooser (`partyr33l@gmail.com`) and completes the MFA step-up onto `/admin`. (4) At the milestone that carries this code to `main`: add `CRON_SECRET` to the admin project; move the
-  domain (remove `admin.partyreel.com` from `partyreel`, then add it to `partyreel-admin`); set
-  `NEXT_PUBLIC_SURFACE=app` on `partyreel` PRODUCTION only then (earlier, the portal is dark between the merge and
-  the move); run the runbook's checks a to g. Rollback at any step: unset the variable on either project.
+  signs in there through the account chooser (`partyr33l@gmail.com`) and completes the MFA step-up onto `/admin`. (4) The milestone landed (milestone-26, `df173c2e`): `CRON_SECRET` is on the admin project, both production
+  builds are READY, partyreel.com serves `df173c2e`. LEFT, in this order: the domain move, which is WILL'S CLICK
+  (the classifier refuses the Orchestrator's `DELETE /v9/projects/partyreel/domains/admin.partyreel.com` +
+  `POST /v10/projects/partyreel-admin/domains` as a DNS-class change): in the dashboard, project `partyreel` →
+  Settings → Domains → remove `admin.partyreel.com`, then project `partyreel-admin` → Settings → Domains → add
+  `admin.partyreel.com` (DNS is unchanged; under a minute of 404 on the admin host between the two); THEN the
+  Orchestrator sets `NEXT_PUBLIC_SURFACE=app` on `partyreel` PRODUCTION and redeploys `main` (the scratch script
+  `apex-flag.mjs`; never before the move, or the portal is dark), then the runbook's checks a to g. Rollback at any
+  step: unset the variable on either project; move the domain back the same way.
 - **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]` (a build takes
   about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
   the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains the sha7 (the page prints "Serving build",

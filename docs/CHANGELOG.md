@@ -163,10 +163,16 @@ against a reference, never a cap and a test.
   landed in the merge; the additive migration (four `ops_flags` rows, one `sent_emails` index) is applied with the
   advisor set unchanged; the Worker deployed the same night (version `d7b16bcc`, both queue producers bound), so the depth reading lands with the next 05:00 UTC run.
 
+- **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48 commits)
+  after Will's sign-in and MFA step-up on the admin preview host: partyreel.com now runs the surface module (inert on
+  the apex until its flag is set), the jobs console on three kinds with the Worker's queue-depth reading, the purge
+  sub-sweeps and the limiters that report, and the static chart aliases; the four new boards answer 404 without a
+  key. `partyreel-admin`'s production build is READY. The domain move is the one step the Orchestrator's guardrails
+  refused (a DNS-class change), so it is Will's dashboard click; the apex flag and redeploy follow it.
+
 **Next.** His sitting on the boards on the desk (`privacy-hero` already answered none, its round two in
-`image-trail`), and the ghost on a disposable event on the alias; the `admin` board, `image-trail` and
-`cursor-backdrop` integrate as they hand off; the admin cutover's remaining steps as Will's two dashboard steps
-land (the Vercel project, the wrangler login); then the wiring lanes from his notes.
+`image-trail`), and the ghost on a disposable event on the alias; `image-trail` and `cursor-backdrop` integrate as
+they hand off; the domain move, then the apex flag, close the cutover; then the wiring lanes from his notes.
 
 ## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` to `00e82dba`)
 
