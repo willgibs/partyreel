@@ -89,7 +89,7 @@ export function AttributionStage() {
                   <span className="inline-flex items-center gap-1.5">
                     <TextSwap value={current.name} />
                     {current.badge && (
-                      <span className="inline-flex h-4 items-center rounded-4xl bg-white/20 px-1.5 text-[10px] font-medium">
+                      <span className="inline-flex h-4 items-center rounded-full bg-white/20 px-1.5 text-[10px] font-medium">
                         Host
                       </span>
                     )}
@@ -103,10 +103,7 @@ export function AttributionStage() {
         >
           <div className="flex flex-col gap-4">
             <Eyebrow {...rise(0)}>Names</Eyebrow>
-            <h2
-              {...rise(1)}
-              className="font-heading text-3xl text-balance sm:text-4xl"
-            >
+            <h2 {...rise(1)} className="font-heading text-section text-balance">
               Every shot says who took it.
             </h2>
             <p
@@ -139,7 +136,7 @@ export function AttributionStage() {
                         active ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="font-heading text-base text-foreground">
+                    <span className="font-heading text-subsection text-foreground">
                       {row.title}
                     </span>
                     <span className="text-sm leading-relaxed">{row.body}</span>

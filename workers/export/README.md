@@ -1,6 +1,6 @@
 # Partyreel export Worker (`partyreel-export`)
 
-Streaming **"Download all"** zip-export Worker (ADR-0003 — heavy/streaming work runs off Vercel). The
+Streaming **"Download all"** zip-export Worker (uploads-and-r2.md — heavy/streaming work runs off Vercel). The
 browser form-POSTs a signed manifest token (minted + authorized by the Next app); this Worker verifies the
 HMAC + expiry + per-key layout, then streams a **store-only zip** of the named R2 objects straight from the
 `partyreel` bucket to the response. Bytes never buffer fully and never touch Vercel.

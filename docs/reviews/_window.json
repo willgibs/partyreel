@@ -1,0 +1,116 @@
+{
+  "board": "_window",
+  "rounds": [
+    {
+      "n": 4,
+      "opened": "2026-09-15",
+      "answers": [],
+      "notes": [
+        {
+          "on": null,
+          "text": "Page-wide controls always on screen: the GUI control should be fixed so that variants can be toggled on different previews anywhere on the page for better back-and-forth comparisons.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "Pixel-perfect previews: the iframe previews throw off anything related to size; never zoom, scale or transform a specimen whose size is being judged.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "More real UI: live production components and whole real pages as the comparison surfaces, not a screen of specimens.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "The app's UI is open: any UI that touches the app in an active lab track may be worked on before the dedicated app agents get to it later.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": "palette",
+          "text": "Dark and light are chosen separately; dark applies to marketing and the app's dark mode, light to paper and the app's light mode. Argue the theming model from the ground up.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": "light",
+          "text": "Feels like a research report without applicable takeaways; synthesise the spill doctrine and placements into it; the section configurator for aurora placements is the promising part.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": "brand-voice",
+          "text": "Show the voices in use on production UI across marketing and the app; every comparison must show the distinction.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        },
+        {
+          "on": "media-kit",
+          "text": "Pivot to discovery and sourcing: a few potential sources rather than exact picks.",
+          "by": "Will",
+          "at": "2026-09-15T04:00:00Z"
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "opened": "2026-09-16",
+      "answers": [],
+      "notes": [
+        {
+          "on": null,
+          "text": "A question carries its context: on the desk it was tough to understand what was being asked for most of the questions; very technical terms and nicknames from spots in the boards force a reader deep into the track to gain the context to even begin understanding the question. Having the link helps a bit, but framing the context with the question would help a ton. The more clearly a question is asked, the more easily it is answered.",
+          "by": "Will",
+          "at": "2026-09-16T02:30:00Z"
+        },
+        {
+          "on": null,
+          "text": "Each exploration page feels like a small research paper into its track. The goal is to get creative while designing to find a combination of intuitive content flow and layouts and engaging visuals: a few of our best concepts created for review, pick the best direction and refine for production polish. Designing a few (or many, complexity and context dependent) variations always beats a mountain of research text.",
+          "by": "Will",
+          "at": "2026-09-16T02:30:00Z"
+        },
+        {
+          "on": "palette",
+          "text": "Reads like a PhD on color theory when we are simply exploring new palettes; six configs that are not clearly explained, toggled around the page to see what they impact. A dozen polished variants with preview palettes and some demo UI to configure and compare would have been far more helpful: build explorations as a catalog of previews to select from.",
+          "by": "Will",
+          "at": "2026-09-16T02:30:00Z"
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "opened": "2026-09-17",
+      "answers": [],
+      "notes": [
+        {
+          "on": "brand-voice",
+          "text": "Feels like the agent worked too hard trying to generate multiple unique voices rather one that's perfect, then we kept running in through unreviewed rounds to dig deeper into each without shaping along the way. Now we have a massive amount of ideas, but it feels like the best version would've been a mesh of examples from multiple voices at different points (today's, keepsake, live, plain) rather than forcing each to have a very specific tone so it felt differentiated for the sake of the exploration.",
+          "by": "Will",
+          "at": "2026-09-17T21:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "A form that yields many fine notes instead of one answer is the wrong form. Two parallel full drafts are antithetical to our new multi-stage question approach meant to handle individual decisions and produce single winners; the two drafts would likely require many fine notes over one cohesive answer. The better strategy would likely be to give me tighter comparisons of copy in real cases, one at a time, and use my winning selections to build the brand voice, rather than presenting two options.",
+          "by": "Will",
+          "at": "2026-09-17T21:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "Judge copy where it is used, never in a silo. Starting with just a few spot example statements may make a voice sound good in a silo, but not perform well in actual usage. I'd rather shape it as we see the voice applied in real cases.",
+          "by": "Will",
+          "at": "2026-09-17T21:00:00Z"
+        },
+        {
+          "on": null,
+          "text": "Build up from the ground up, shaping along the way rather than just selecting one of these for the sake of it.",
+          "by": "Will",
+          "at": "2026-09-17T21:00:00Z"
+        }
+      ]
+    }
+  ]
+}

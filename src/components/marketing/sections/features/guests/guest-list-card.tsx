@@ -70,13 +70,13 @@ export function GuestListCard({ names }: { names: string[] }) {
   }, []);
 
   return (
-    <div className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-float)] sm:p-6">
+    <div className="rounded-2xl border bg-card p-5 shadow-lift sm:p-6">
       <div className="flex items-baseline justify-between">
         {/* "Guests" is the real event-page section label. */}
         <span className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
           Guests
         </span>
-        <span className="font-mono text-xs text-muted-foreground tabular-nums">
+        <span className="text-xs text-muted-foreground tabular-nums">
           {names.length} signed in
         </span>
       </div>

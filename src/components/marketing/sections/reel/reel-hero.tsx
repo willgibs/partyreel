@@ -5,7 +5,7 @@ import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
@@ -40,12 +40,12 @@ export function ReelHero() {
             {/* The H1 never carries a reveal-hidden state (the LCP rule,
                 pinned by marketing-h1-policy.test.ts); the slots around it
                 do the arriving. */}
-            <h1 className="font-heading text-4xl text-balance sm:text-5xl lg:text-7xl">
+            <h1 className="font-heading text-title text-balance">
               {GOLDEN_LINES.reelThesis}.
             </h1>
             <p
               {...cut(2)}
-              className="max-w-xl text-pretty text-lg text-muted-foreground"
+              className="max-w-xl text-lg text-pretty text-muted-foreground"
             >
               {
                 "Your guests' photos, cut into a cinematic highlight video, automatically. You pick the style, the engine does the editing."
@@ -55,7 +55,7 @@ export function ReelHero() {
               {...cut(3)}
               className="mt-2 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6"
             >
-              <Button asChild size="lg" className="h-11 px-6 text-base">
+              <Button asChild size="cta">
                 <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
               </Button>
               <DemoCtaLink />
@@ -69,10 +69,10 @@ export function ReelHero() {
                 sizes="320px"
                 className="rounded-2xl border bg-black ring-1 ring-foreground/5"
               />
-              <MonoCaption className="mt-3 text-center">
+              <Caption className="mt-3 text-center tabular-nums">
                 A real Partyreel reel ·{" "}
                 {formatReelSeconds(HERO_REEL.durationSeconds)}
-              </MonoCaption>
+              </Caption>
             </div>
           </div>
         </Reveal>

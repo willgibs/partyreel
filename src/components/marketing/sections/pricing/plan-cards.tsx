@@ -34,15 +34,18 @@ import { formatBytes } from "@/lib/utils";
  *
  * VISUAL IDENTITY = V2 "Stacked photos" (Will's sitting ruling, 2026-08-27:
  * "within the card v2 has a nice balance"): a small physical stack of real
- * event photos above each card head, using the back-pocket soft-shadow
- * exception (shadows may return where photos physically stack for depth).
+ * event photos above each card head, wearing `shadow-lift`. This was the
+ * back-pocket exception ("shadows may return where photos physically stack")
+ * and it is the rule since the light ruling (2026-09-17): prints lying on
+ * prints are the overlap the small shadow exists for. It reads on the ink card
+ * with paper's alphas because it lands on the white border of the print below.
  * Free stacks two, grayscale (your photos, before the color arrives); Pro
  * stacks four, vivid, on the ink. Hovering the card spreads the stack.
  *
  * PRICE REGISTER: money renders in the DISPLAY face (Urbanist via font-heading)
- * with tabular numerals, values in Inter — the mono face came from the old
- * page's register and read devtool on these cards (Will's sitting flag). Geist
- * Mono keeps only its documented timecode duty elsewhere.
+ * with tabular numerals, values in Inter. The old page set money in mono and it
+ * read devtool on these cards (Will's sitting flag); the kill-mono sweep took
+ * this register to every number that is the subject of its block (2026-09-14).
  *
  * Every number renders from tiers.ts. The A16 rule holds on both surfaces:
  * green check = you get this; muted minus = a cap, not an inclusion.
@@ -82,7 +85,8 @@ function PhotoStack({ ink }: { ink?: boolean }) {
                 width={88}
                 height={88}
                 className={cn(
-                  "size-20 rounded-md border-4 object-cover shadow-lg",
+                  // Stacked prints: the overlap the small shadow was ruled for.
+                  "size-20 rounded-md border-4 object-cover shadow-lift",
                   "transition-transform duration-300 ease-emphasis motion-reduce:transition-none",
                   "group-hover:translate-x-(--sx) group-hover:rotate-(--sr)",
                   ink
@@ -120,7 +124,7 @@ function Item({
         <Minus
           className={cn(
             "mt-0.5 size-4 shrink-0",
-            ink ? "text-background/50" : "text-muted-foreground/60",
+            ink ? "text-background/50" : "text-faint",
           )}
           strokeWidth={2}
         />
@@ -137,7 +141,7 @@ function Item({
   );
 }
 
-/** The hairline-divided stat pair (the Biograph proof cluster, mono numerals). */
+/** The hairline-divided stat pair (the Biograph proof cluster). */
 function StatRow({
   stats,
   ink,
@@ -162,7 +166,7 @@ function StatRow({
           <dt
             className={cn(
               "text-[10px] tracking-[0.14em] uppercase",
-              ink ? "text-background/50" : "text-muted-foreground/70",
+              ink ? "text-background/50" : "text-faint",
             )}
           >
             {s.label}
@@ -203,7 +207,7 @@ export function PlanPair() {
         >
           <span
             aria-hidden
-            className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background shadow-sm transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
+            className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
             style={{
               transform: `translateX(calc(${cadence === "year" ? 1 : 0} * (100% + 0.25rem)))`,
             }}
@@ -243,11 +247,16 @@ export function PlanPair() {
         >
           <PhotoStack />
           <div className="flex flex-col gap-2">
-            <h2 className="font-heading text-xl">{free.name}</h2>
+            {/* Both on the ladder by ROLE (2026-09-18): a plan's name is a
+                card's title in the marketing register (`subsection`, as every
+                tile title here is), and its price is the number the card is
+                about, which is the `section` step's "stat numeral". The Pro
+                card and the Event Pass wear the same pair. */}
+            <h2 className="font-heading text-subsection">{free.name}</h2>
             <p className="text-sm text-pretty text-muted-foreground">
               Your first event, covered.
             </p>
-            <div className="mt-3 font-heading text-4xl tabular-nums">
+            <div className="mt-3 font-heading text-section tabular-nums">
               <PricePop label={free.priceLabel} />
             </div>
           </div>
@@ -285,7 +294,7 @@ export function PlanPair() {
                 Start free
               </Link>
             </Button>
-            <p className="mt-3 text-center text-xs text-muted-foreground/70">
+            <p className="mt-3 text-center text-xs text-faint">
               No card. Upgrade only when you host again.
             </p>
           </div>
@@ -302,11 +311,11 @@ export function PlanPair() {
           </span>
           <PhotoStack ink />
           <div className="flex flex-col gap-2">
-            <h2 className="font-heading text-xl">Pro</h2>
+            <h2 className="font-heading text-subsection">Pro</h2>
             <p className="text-sm text-pretty text-background/75">
               For hosts who host again.
             </p>
-            <div className="mt-3 font-heading text-4xl tabular-nums">
+            <div className="mt-3 font-heading text-section tabular-nums">
               {/* Keyed remount so a size/cadence change swaps the price instantly
                 (high-frequency interaction: no re-pop theater). */}
               <PricePop key={proDisplay.id} label={proDisplay.priceLabel} />

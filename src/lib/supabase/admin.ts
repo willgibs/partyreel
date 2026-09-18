@@ -6,7 +6,7 @@
  * Use it ONLY for trusted, privileged paths that must sidestep RLS: the Stripe
  * webhook writing `profiles.tier` (Phase 4), the purge cron (Phase 3), and
  * service-role maintenance. Guest reads/writes do NOT use this — they go through
- * security-definer RPCs validated by capability token (see the schema / ADR-0004).
+ * security-definer RPCs validated by capability token (see the schema / database-security.md).
  */
 import "server-only";
 

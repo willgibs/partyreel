@@ -75,9 +75,7 @@ function ReportCard({ report }: { report: ReviewReport }) {
     <Card>
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-base">
-            {report.event?.name ?? "Unknown event"}
-          </CardTitle>
+          <CardTitle>{report.event?.name ?? "Unknown event"}</CardTitle>
           <Badge variant={meta.badge}>{meta.label}</Badge>
         </div>
         {/* toLocaleString() renders in the server's tz/locale during SSR and the browser's on

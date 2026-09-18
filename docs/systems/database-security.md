@@ -1,7 +1,7 @@
 # Database & security model
 
 > ROLE: the data-layer security model + the DB workflow every schema change follows.
-> BELONGS HERE: RLS shapes, the capability-token RPC inventory, the advisor 0028/0029 split + expected set, the column-grant lockdown pattern + its lessons, the migrations workflow, rate-limiting. · NOT HERE: a single feature's own RPC details (→ that feature's doc), why-decisions (→ `../adr/0001`, `0004`, `0014`).
+> BELONGS HERE: RLS shapes, the capability-token RPC inventory, the advisor 0028/0029 split + expected set, the column-grant lockdown pattern + its lessons, the migrations workflow, rate-limiting. · NOT HERE: a single feature's own RPC details (→ that feature's doc).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -10,12 +10,12 @@
 cookies, it does **not** authorize. Every Server Function / route handler re-verifies authz with
 `getUser()` (→ [auth-accounts.md](auth-accounts.md)) AND relies on RLS policies / SECURITY DEFINER RPCs
 at the DB. Anonymous guests have no JWT: they authorize via **capability tokens** validated INSIDE
-SECURITY DEFINER RPCs (ADR-0004); `anon` never gets direct table access. Privileged writes go through the
+SECURITY DEFINER RPCs; `anon` never gets direct table access. Privileged writes go through the
 service-role admin client (`server-only`).
 
 ## Where it lives
 
-- Schema = Supabase-native SQL migrations + RLS + generated types (ADR-0001) in [`../../supabase/migrations/`](../../supabase/migrations).
+- Schema = Supabase-native SQL migrations + RLS + generated types (no ORM) in [`../../supabase/migrations/`](../../supabase/migrations).
 - Clients: [`../../src/lib/supabase/`](../../src/lib/supabase) — `client` (browser/anon), `server`
   (RSC/route handlers, async), `middleware` (proxy refresh), `admin` (service-role, `server-only`, bypasses RLS).
 - Data access only via [`../../src/lib/db/`](../../src/lib/db) (queries/mutations) — never inline SQL in components.
@@ -29,7 +29,7 @@ The expected, accepted set:
 - **5 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
   revoke), READS ONLY:** `get_event_by_qr_token`, `get_event_media_by_qr_token`, `get_upload_context`,
   `get_public_profile`, `get_event_reel_by_qr_token`. The opaque token IS the authorization for the
-  qr-keyed ones (ADR-0004); these only
+  qr-keyed ones; these only
   READ visibility-gated event/media state, so anon EXECUTE is safe. `get_event_reel_by_qr_token` (the 5th,
   R3 guest surfacing, `20260730120000`) returns the published reel for an OPEN event only
   (`guest_visible=true` internally; unpublished/empty/gated ⇒ zero rows — no publish-state oracle): its
@@ -52,12 +52,12 @@ The expected, accepted set:
   account-required album hides its Guests list from an anonymous viewer, so the reverse surface must
   too). Both keep their anon grant — the fix is the payload, not the grant. (Was 8 —
   the five guest WRITE/password RPCs were server-mediated 2026-06-08; see below. `get_public_album` was
-  DROPPED in the one-link consolidation, ADR-0010.)
+  DROPPED in the one-link consolidation.)
 - **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** `create_media`,
   `create_media_as_host`, `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`.
   A 2026-06-08 live pentest proved anon EXECUTE on these was directly PostgREST-callable, BYPASSING every
-  route-level guard (the ADR-0014 R2-HEAD size authority, the unlock rate-limiter) → cap-evasion cost-bomb
-  (H1) + an unthrottled password oracle (H2) + spam/victim-email poisoning (H3). FIX (ADR-0016): `revoke
+  route-level guard (the R2-HEAD size authority, the unlock rate-limiter) → cap-evasion cost-bomb
+  (H1) + an unthrottled password oracle (H2) + spam/victim-email poisoning (H3). FIX: `revoke
   execute … from public, anon, authenticated`; the Next routes invoke them via the **service-role admin
   client** with **server-derived trusted values** (R2-HEAD size; `getUser()` user_id/host_id; the verified
   email read from `auth.users`, never the client). THE LESSON: enforce at the boundary the attacker actually
@@ -97,7 +97,9 @@ The expected, accepted set:
   `notify_gallery_change` [the gallery doorbell, Phase 3], `set_media_removal_provenance`,
   `guard_media_privileged_transitions`, `guard_event_privileged_transitions` [the QA-Q3 transition
   guards, see Invariants], …). If an unexpected one shows up, an over-broad
-  grant slipped in. (`enforce_event_pro_gates` was DROPPED in S5 — see below.)
+  grant slipped in. (`enforce_event_pro_gates` was DROPPED in S5 — see below.) The trigger-only
+  functions keep their EXECUTE **revoked from `anon`/`authenticated`** and still fire: a trigger runs
+  as the table owner, so revoking the grant closes direct calls without touching the trigger.
 - **Realtime gotcha (the doorbell):** `realtime.send()` swallows its own insert failures into a WARNING by
   design, and `realtime.messages` has NO day-partitions until the Realtime service first activates (the first
   client channel subscription creates them). So on a project that has never had a realtime connection, a
@@ -106,7 +108,7 @@ The expected, accepted set:
 - **Deny-all tables** = the accepted `rls_enabled_no_policy` INFO: `reports`, `sent_emails`,
   `newsletter_signups`, `unlock_attempts`, `action_attempts`, `contact_submissions`, `job_applications`,
   `export_log` (per-attempt "Download all" log — HMAC-of-IP, never a raw IP), `ops_flags` (the `export_enabled`
-  kill-switch + future ops toggles), `upload_forensics` + `forensic_audit_log` (ADR-0020 — raw IP BY RULING,
+  kill-switch + future ops toggles), `upload_forensics` + `forensic_audit_log` (raw IP BY RULING,
   deny-all is the containment; → [trust-safety-forensics.md](trust-safety-forensics.md)) — all
   operator/service-role-only. The "Download all" export adds NO new
   SECURITY DEFINER RPC (the mint routes are server-mediated; the Worker authorizes nothing), so the 0028/0029
@@ -122,12 +124,17 @@ The expected, accepted set:
 
 ## Invariants (don't break)
 
+- ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully-qualifies every object
+  name** (`public.events`, `auth.users`, `extensions.crypt`). The function runs as its owner, so an
+  unpinned `search_path` lets a caller shadow an unqualified name with their own object and execute it
+  with owner privileges. An authoritative function scan is part of every security pass; a new RPC
+  without the pin is the one that breaks it. No SECURITY DEFINER body uses dynamic SQL.
 - **Host table writes are COLUMN-locked, not just row-locked.** RLS gates the ROW (ownership); Supabase's
   default grant gives `authenticated` UPDATE/INSERT/DELETE on EVERY column. So host-writable tables must
   `revoke insert,update,delete … from authenticated` (and `anon`) and re-grant ONLY the legit columns:
   - **`profiles`** — writable: `announcements_seen_at`, `welcomed_at`. Service-role only: `email` (QA #23, `20260729180000`: it is the recipient of EVERY transactional email, so a client-writable value is a mail-redirect primitive; audited across both deployed branches first — no client path ever wrote it), `display_name` (Phase 1: the `authenticated` UPDATE grant was REVOKED so the public name can't be set unfiltered; written ONLY by `updateDisplayNameAction` via the admin client, after required + profanity + reserved checks), `tier`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
-  - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`) WITHOUT a column grant — do NOT grant `update(purge_at)`. Likewise ungranted: `removed_by_uploader` (owner-context `remove_my_upload` — a guest's private self-deletion), `removed_by_system` (the cron's auto-reduce marker, QA #2), `removed_by_admin` + `status_before_removed` (operator provenance + the pre-removal status, QA #8/#24, trigger/service-role-written). **SELECT is column-scoped too** (migration `20260707150000`): `legal_hold_at`/`legal_hold_reason` are NOT granted, so the owning host can't detect a legal hold via PostgREST (the host may BE the investigated uploader — ADR-0020 discretion), and neither are the three later flags above. Consequences: an authenticated `select("*")` on media ERRORS — the host reads enumerate `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts`; a Vitest parity test pins that list to the grant, and pins `MediaRow` to strip every ungranted column); a WHERE on a hold column errors from the RLS client too (`purgeMediaNow`'s held-filter runs on the admin client); and a new media column is FAIL-CLOSED (invisible to hosts) until added to BOTH the grant and `MEDIA_HOST_COLUMNS`.
-  - **`guests`** — SELECT is column-scoped (QA #41, `20260729180000`): `session_token` is NOT granted. It is the PLAINTEXT guest upload capability (ADR-0004), and `guests_host_select` would otherwise hand every host their guests' tokens over PostgREST. All three readers use the service-role client; no host-facing read exists. Writes were already fully revoked (RPC-only).
+  - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`) WITHOUT a column grant — do NOT grant `update(purge_at)`. Likewise ungranted: `removed_by_uploader` (owner-context `remove_my_upload` — a guest's private self-deletion), `removed_by_system` (the cron's auto-reduce marker, QA #2), `removed_by_admin` + `status_before_removed` (operator provenance + the pre-removal status, QA #8/#24, trigger/service-role-written). **SELECT is column-scoped too** (migration `20260707150000`): `legal_hold_at`/`legal_hold_reason` are NOT granted, so the owning host can't detect a legal hold via PostgREST (the host may BE the investigated uploader, so the hold is invisible by design), and neither are the three later flags above. Consequences: an authenticated `select("*")` on media ERRORS — the host reads enumerate `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts`; a Vitest parity test pins that list to the grant, and pins `MediaRow` to strip every ungranted column); a WHERE on a hold column errors from the RLS client too (`purgeMediaNow`'s held-filter runs on the admin client); and a new media column is FAIL-CLOSED (invisible to hosts) until added to BOTH the grant and `MEDIA_HOST_COLUMNS`.
+  - **`guests`** — SELECT is column-scoped (QA #41, `20260729180000`): `session_token` is NOT granted. It is the PLAINTEXT guest upload capability, and `guests_host_select` would otherwise hand every host their guests' tokens over PostgREST. All three readers use the service-role client; no host-facing read exists. Writes were already fully revoked (RPC-only).
   - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE are REVOKED at the table grant, so the ONLY write path is the access-checking `like_media` RPC. A raw browser insert would otherwise let a user "like" (and then, via `get_my_likes`, presign) media they can't see — the `saved_events` lesson (write through the RPC, never a raw insert).
   - **`reel_items`** — HOST-RLS (SELECT + DELETE scoped to the host's own event via ownership); INSERT/UPDATE REVOKED at the table grant, so the ONLY add path is the access-checked `add_to_reel` RPC (host-owned event + media `approved` + not removed), and the ONLY position-update path is the `reorder_reel(p_event_id, p_media_ids)` RPC (host-owns + a set-equality guard: the id list must EXACTLY equal the event's current reel set, else `stale`). Un-reel is the host-RLS delete from the browser. Mirrors `media_likes` exactly but HOST-scoped, not owner-self (S5 Reel R1; reorder 2026-06-22).
   - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list` (+ `insert(host_id)`, `update(deleted_at)` — SOFT-DELETE ONLY; the un-delete direction is refused by a trigger, see below). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
@@ -159,11 +166,11 @@ The expected, accepted set:
   as its first lock** — single lock, single order, no deadlock is constructible. `restore_event`'s
   un-delete re-fires `enforce_event_limit`, which re-locks the SAME row in the SAME transaction (a
   same-txn re-lock is a no-op). Never lock a second host's row inside these bodies.
-- **The guest WRITE path inherits the READ gate** (ADR-0023 ruling 2): `create_guest` refuses a `private`
+- **The guest WRITE path inherits the READ gate**: `create_guest` refuses a `private`
   event outright and requires `p_unlock_proven` for `password`, and `get_upload_context` returns
   `visibility` so presign/complete re-check per request. `get_upload_context` therefore stays one of the
   FIVE anon 0028 RPCs — service-role-ing it would break every guest presign. → [uploads-and-r2.md](uploads-and-r2.md).
-- **Never expose raw R2 keys/URLs to the browser** — presign server-side (ADR-0003). → [uploads-and-r2.md](uploads-and-r2.md).
+- **Never expose raw R2 keys/URLs to the browser** — presign server-side. → [uploads-and-r2.md](uploads-and-r2.md).
 - **The Stripe webhook is the SOLE writer of `tier`/`storage_cap_bytes`** — never trust the client for entitlements. → [billing-caps.md](billing-caps.md).
 - **The service-role / secret key is server-only** (behind `import "server-only"`); never `NEXT_PUBLIC_`.
 - **Events have no end date** — deletion is the only lifecycle exit (the anti-abuse core).
@@ -176,7 +183,7 @@ The expected, accepted set:
   `event_password_hash`/`custom_slug` (and, before S5 un-gated it, `allow_anonymous_uploads`) to steal Pro
   features). You MUST
   `revoke insert,update,delete … from authenticated` at the TABLE level FIRST, then `grant (cols)`. Verify
-  with `has_column_privilege`, then re-run `get_advisors`. (ADR-0014; fixed in `…163011_lock_down_events_write_grant`.)
+  with `has_column_privilege`, then re-run `get_advisors`. (Fixed in `…163011_lock_down_events_write_grant`.)
 - **RPCs created via the Supabase MCP `apply_migration` inherit a default privilege that GRANTS EXECUTE to
   `anon`.** A bare `revoke … from public` does NOT remove it (it bit the slug RPCs). Any host-only RPC
   created via the MCP must explicitly `revoke execute … from anon`; always re-run `get_advisors` to confirm anon vs authenticated placement.
@@ -192,7 +199,7 @@ The expected, accepted set:
   `events!inner(...)`. The embedded resource keeps its table name (`events`), so `.eq("events.col", …)` filters
   are unchanged. When adding ANY table with two FKs, grep the codebase for embeds between those tables. (Fixed
   `184bcb1`; verify a hinted embed against live PostgREST — a green build proves nothing here.)
-- **Upload size-spoof (closed, ADR-0014):** `create_media`/`_as_host` once trusted the CLIENT
+- **Upload size-spoof (closed):** `create_media`/`_as_host` once trusted the CLIENT
   `file_size_bytes` (PUT-big-claim-tiny beat the cap). The real size is now re-derived from an R2 HEAD at
   complete (`headObjectSize`, [`../../src/lib/r2/presign.ts`](../../src/lib/r2/presign.ts)); the client value is advisory. → [uploads-and-r2.md](uploads-and-r2.md).
 - **Rate limits must be ABUSE-focused, NOT volume-focused — an event concentrates guests behind ONE venue/
@@ -222,6 +229,9 @@ The expected, accepted set:
    anon vs authenticated placement of any new RPC). 3. Regenerate `types.ts`. 4. Add a rolled-back
    Supabase-MCP RPC contract check (run the RPCs inside a `DO $$ … RAISE EXCEPTION $$` block so nothing persists).
 
+**Migrations are immutable history**: never edit one that has been applied, add a new one. The filename IS
+the applied version, which is what keeps the repo and the live schema comparable.
+
 QA-round workflow lessons (2026-07-29 — don't relearn these):
 - **★ Apply BEFORE push when an RPC signature changes.** PostgREST resolves RPCs by argument NAME, so
   code that passes a new arg before the migration lands fails EVERY call (it broke every guest join in
@@ -239,4 +249,4 @@ QA-round workflow lessons (2026-07-29 — don't relearn these):
 
 ## See also
 
-[ADR-0001](../adr/0001-supabase-native-data-layer.md) (data layer) · [ADR-0004](../adr/0004-anonymous-guests-capability-tokens.md) (capability tokens) · [ADR-0014](../adr/0014-data-layer-security-posture.md) (the white-hat hardening) · [auth-accounts.md](auth-accounts.md) · [uploads-and-r2.md](uploads-and-r2.md) · [billing-caps.md](billing-caps.md).
+[auth-accounts.md](auth-accounts.md) · [uploads-and-r2.md](uploads-and-r2.md) · [billing-caps.md](billing-caps.md).

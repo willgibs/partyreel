@@ -24,7 +24,11 @@ export function GalleryFrame({
           </>
         }
       >
-        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gallery">
+        {/* The media well takes the bright edge (globals.css, [data-lit]). */}
+        <div
+          data-lit=""
+          className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gallery"
+        >
           <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent" />
           <div className="absolute right-3 bottom-3 size-10 rounded-lg bg-brand/30" />
         </div>

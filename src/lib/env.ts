@@ -83,7 +83,7 @@ const serverSchema = z.object({
   // string; `.optional()` so the app builds without it. assertUnlockEnv() asserts it
   // at request time (the unlock route 500s if unset). Set in Vercel + .env.local.
   UNLOCK_COOKIE_SECRET: z.string().min(1).optional(),
-  // Shared bearer secret for the backup-prune confirm endpoint (ADR-0013). The media-backup Worker
+  // Shared bearer secret for the backup-prune confirm endpoint (durability-backups.md). The media-backup Worker
   // (workers/backup, the weekly `prune` branch) POSTs candidate mediaIds to /api/internal/backup-prune
   // with `Authorization: Bearer $PRUNE_API_SECRET`; the route verifies it (timing-safe) before any DB
   // confirm. `.optional()` so the app builds without it; assertPruneApiEnv() asserts at request time so

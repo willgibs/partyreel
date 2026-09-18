@@ -106,7 +106,9 @@ export function PasswordGate({
           <Lock className="size-3" aria-hidden />
           Almost in
         </p>
-        <h1 className="mt-1.5 text-center font-heading text-[22px] leading-tight text-balance">
+        {/* The guest title step (`page`), the same one the entry sheet's
+            event name and the album's own h1 wear. */}
+        <h1 className="mt-1.5 text-center font-heading text-page text-balance">
           {eventName} is private
         </h1>
         <p
@@ -115,8 +117,9 @@ export function PasswordGate({
             dark ? "text-white/60" : "text-muted-foreground",
           )}
         >
-          The host keeps this gallery private for guests. Enter the password
-          from your invite to come in.
+          {/* album, not gallery: the `noun=album` pick (Will, 2026-09-17). */}
+          The host keeps this album private for guests. Enter the password from
+          your invite to come in.
         </p>
       </div>
       <form onSubmit={onSubmit} className="w-full space-y-3">
@@ -197,7 +200,7 @@ export function PasswordGate({
             onClick={onRetry}
             className="h-12 w-full text-[15px]"
           >
-            Open the gallery
+            Open the album
           </Button>
         ) : (
           <Button
@@ -235,8 +238,8 @@ export function PasswordGate({
             )}
           >
             {stalled
-              ? "You're unlocked, the gallery just didn't open. Give it one more tap."
-              : "Opening the gallery"}
+              ? "You're unlocked, the album just didn't open. Give it one more tap."
+              : "Opening the album"}
           </p>
         )}
       </form>

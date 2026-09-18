@@ -31,7 +31,7 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
 - App-side limits (client-safe, secret-free): [`tiers.ts`](../../src/lib/constants/tiers.ts) (`MAX_EVENTS`,
   `MONTHLY_INGRESS_BYTES`, `DEFAULT_STORAGE_CAP_BYTES`, `videosAllowedForTier`, `toBillingTier`,
   `EVENT_PASS_RENEWAL_PRICE_LABEL`).
-- The Event Pass LEDGER (ADR-0025): pure window math in [`billing/passes.ts`](../../src/lib/billing/passes.ts)
+- The Event Pass LEDGER: pure window math in [`billing/passes.ts`](../../src/lib/billing/passes.ts)
   (`activeNowPasses` / `passChainExpiry` / `passWindowForPurchase` / `passProCreditCents` /
   `derivePassEntitlement`, fixture-tested); DB access in
   [`db/queries/event-passes.ts`](../../src/lib/db/queries/event-passes.ts) +
@@ -56,21 +56,35 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
   — `req.json()` mutates the bytes and the signature check fails. Bad/missing signature → 400.
   `runtime="nodejs"` + `dynamic="force-dynamic"`. *(Cross-cutting landmine.)*
 - **`tier_limits()` MUST mirror `tiers.ts`** (`max_events`, `monthly_ingress_bytes`,
-  `default_storage_cap_bytes`). Changing its return columns needs **DROP + CREATE** (create-or-replace can't
+  `default_storage_cap_bytes`, `max_reel_seconds`). A tier limit that only exists in TypeScript is a
+  suggestion: the reel's length cap is mirrored in SQL for exactly that reason, and the server re-derives
+  it from the host's own tier at render and mint time rather than trusting the length the client sends. Changing its return columns needs **DROP + CREATE** (create-or-replace can't
   change a function's return type).
 - **`tiers.ts` is client-import-safe — keep it secret-free** (no env, no Stripe Price IDs). The Price-ID↔plan
   mapping lives in `stripe/plans.ts` (reads env via `assertStripeEnv()`), NEVER in `tiers.ts`.
 - `profiles.tier` / `storage_cap_bytes` / `tier_expires_at` / `stripe_event_created_at` are
   service-role/webhook-write-only (never client-writable). → [database-security.md](database-security.md).
-- **ONE PLAN AT A TIME FOR PRO; PASSES STACK (ADR-0023, amended by ADR-0025).** `/api/stripe/checkout`
+- **ONE PLAN AT A TIME FOR PRO; PASSES STACK.** `/api/stripe/checkout`
   still refuses everything for an active Pro (a second subscription double-bills one cap; the portal owns
   upgrades/downgrades/cancellation), resolved server-side by `resolveEntitlement()` from `profiles` (never
   the request body). Event Passes STACK: a second pass purchase is a normal checkout minting another
   ledger row (+1 event slot, +75 GB for its own year); renewal eligibility reads the LEDGER (an
   active-now window must exist), not the profile label. The old cap-collapse hazard (a pass write
   flattening a Pro cap) is gone structurally: pass state recomputes from the ledger and never touches a
-  Pro profile (`.neq("tier","pro")` rides in the recompute's WHERE clause).
-- **The prorated Pass→Pro credit (ADR-0025) is honored in the webhook, idempotently**: balance grant
+  Pro profile (`.neq("tier","pro")` rides in the recompute's WHERE clause). Cap-stacking for PRO (cap as
+  the max, or as the sum) was considered and rejected: both make provisioning resolve two live entitlements
+  on every webhook, and both are genuinely ambiguous at the lapse boundary, since "whose media survives when
+  one plan ends?" has no honest answer. The rule the gate exists to enforce is narrower than it looks: no
+  move may COLLAPSE a cap. Only Pro to Event Pass does that, which is why a live pass MAY start Pro (every
+  Pro size exceeds 75 GB) while a Pro holder may not buy a pass, and why a pass holder still cannot buy a
+  SECOND pass mid-move.
+- **A plan SWITCH routes to the Stripe billing portal, and that is deliberate.** `/pricing` is statically
+  generated and tier-blind, so a Pro host tapping a different Pro size reaches checkout and is refused
+  there; the button acts on the `already_subscribed` refusal code by opening the portal, which is where
+  Stripe applies correct proration. Making the page dynamic to relabel one button was the worse trade. The
+  launch consequence: the portal configuration MUST permit switching between the Pro prices, which makes it
+  load-bearing rather than cosmetic.
+- **The prorated Pass→Pro credit is honored in the webhook, idempotently**: balance grant
   keyed `pass-credit-<sessionId>` (a Stripe idempotency key, so retries never double-grant) → consume all
   live passes (0 rows on replay) → clear `tier_expires_at`/`event_slots`. Customer balance auto-applies
   to upcoming invoices and is EXCLUDED from Checkout's own first invoice — the reason it beats an
@@ -85,12 +99,20 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
   construction and is disambiguated with a follow-up select: guard declined → 200, no such profile → 5xx.
   The customer-binding write deliberately leaves NO stamp, because `customer.subscription.created` can
   carry an earlier `created` than the checkout session that produced it. **Pass purchases no longer ride
-  this guard at all** (ADR-0025): their replay-safety is the ledger's unique `stripe_session_id`, and the
+  this guard at all**: their replay-safety is the ledger's unique `stripe_session_id`, and the
   profile write is a derived-absolute recompute.
 - **Subscription writes null `event_slots` + `tier_expires_at` ALWAYS** — a stale stacked-pass slot count
   would cap a Pro host inside SQL's `enforce_event_limit` coalesce, and nothing banks behind Pro. The
   downgrade path then calls `recomputePassEntitlement`, so live UNCREDITED passes resurface as
   entitlement instead of evaporating.
+
+- ★ **Reel artifact bytes are EXEMPT from storage metering, and the bound is structural.** The rendered
+  `.mp4` does not decrement the host's cap, because the reel is the product's flagship moment and its
+  creation is free on every tier: charging for it would let a Free host near their cap be blocked from the
+  one feature that sells the product, and would turn regeneration into user-visible replace-or-add maths.
+  The exemption is only safe while **one artifact per event** holds (a re-render overwrites the same stable
+  key), so that is pinned by a test rather than assumed. If per-event reels ever become plural, this
+  exemption has to be re-decided BEFORE that ships.
 
 ## Gotchas (why it's like this — don't revert)
 
@@ -111,14 +133,14 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
   `storage_cap_bytes=null` → 2 GB default). `plans.ts` is `server-only` (reads env) → don't import it in
   Vitest; test `provision.ts`. Pin `apiVersion` to the installed SDK's bundled version (`stripe@22.2.0` →
   `"2026-05-27.dahlia"`); bump deliberately on SDK upgrade.
-- **Event Pass is a ONE-TIME payment on a LEDGER (ADR-0025)** — checkout uses `mode:"payment"` (from
+- **Event Pass is a ONE-TIME payment on a LEDGER** — checkout uses `mode:"payment"` (from
   `plan.billing === "one_time"`), so NO `customer.subscription.*` fires; **`checkout.session.completed`**
   (recognized by `eventPassSession` via `session.metadata.plan_id === "event_pass"`) mints one
   `event_passes` row (idempotent on `stripe_session_id`; `price_cents` = `session.amount_total`, so promo
   purchases prorate off the real payment) and `recomputePassEntitlement` derives the profile. Each row
   owns a `[start_at, expires_at)` WINDOW: an initial purchase stacks a fresh year from the purchase
   instant; a **renewal** (the cheaper `STRIPE_PRICE_EVENT_PASS_RENEWAL` price, `metadata.renewal="1"`)
-  inserts a row whose window STARTS at the soonest-expiring active pass's expiry — ADR-0023's "extends,
+  inserts a row whose window STARTS at the soonest-expiring active pass's expiry: "extends,
   never resets", per-window, and an unopened renewal year credits at 100% on a Pro move. Renewal
   eligibility requires an ACTIVE-NOW window (`activeNowPasses`), read from the ledger at checkout (the
   old label/timestamp gates are gone). `sweepExpiredPasses` is now a full recompute pass over holders

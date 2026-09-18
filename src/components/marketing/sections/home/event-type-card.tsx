@@ -101,7 +101,7 @@ export function EventTypeCard({
         />
 
         <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 p-5">
-          <span className="font-heading text-lg leading-tight text-white sm:text-xl">
+          <span className="font-heading text-subsection text-white">
             {title}
           </span>
           {/* white/85, not /80: the teaser is the smaller face over the

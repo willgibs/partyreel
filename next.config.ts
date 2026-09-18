@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 import { BLOG_REDIRECTS } from "./src/lib/content/blog-redirects";
+import {
+  LAB_REDIRECTS,
+  TRACED_DOC_GLOBS,
+} from "./src/app/(dev)/design/_data/legacy-routes";
 
 /**
  * Security response headers (QA #42). Applied to EVERY route, app and API alike.
@@ -36,6 +40,10 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // Next's dev indicator sits bottom-left by default, on the lab sidebar's
+  // editor-root control at every width; localhost is the round's review
+  // surface (the lab-sweep track, 2026-09-16).
+  devIndicators: { position: "bottom-right" },
   // `X-Powered-By: Next.js` tells an attacker the framework and narrows their exploit search for
   // free. Nothing reads it.
   poweredByHeader: false,
@@ -46,11 +54,16 @@ const nextConfig: NextConfig = {
   // The map lives in src/lib/content/blog-redirects.ts so a test can hold it against the live
   // slugs; this is the only config surface the blog touches.
   async redirects() {
-    return BLOG_REDIRECTS.map(({ from, to }) => ({
-      source: `/blog/${from}`,
-      destination: `/blog/${to}`,
-      permanent: true,
-    }));
+    return [
+      ...BLOG_REDIRECTS.map(({ from, to }) => ({
+        source: `/blog/${from}`,
+        destination: `/blog/${to}`,
+        permanent: true,
+      })),
+      // The lab's old URLs (the Library x Lab round, 2026-09-15): temporary, so
+      // the key-carrying query is forwarded and nothing is cached for good.
+      ...LAB_REDIRECTS.map((r) => ({ ...r, permanent: false })),
+    ];
   },
   images: {
     // AVIF preferred, WebP fallback (array order matters). The default config
@@ -80,6 +93,13 @@ const nextConfig: NextConfig = {
    * so a plain `node_modules/sharp/**` would match nothing. Both forms are listed anyway, and
    * `@img+*` covers the linux-x64 variants Vercel installs.
    */
+  // The design lab reads repo markdown at request time (the desk's manifests,
+  // the proposals, the rulings, the record, the doctrine); the files are outside
+  // the bundle unless traced in. One key covers every shell route (the Library
+  // x Lab round, 2026-09-15; the list lives beside the lab's redirects).
+  outputFileTracingIncludes: {
+    "/design/": TRACED_DOC_GLOBS,
+  },
   outputFileTracingExcludes: {
     "**": [
       "node_modules/.pnpm/sharp@*/**",

@@ -32,9 +32,7 @@ export default async function SecurityPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <ShieldCheck className="size-5 text-foreground" />
-            <CardTitle className="text-base">
-              Two-factor authentication
-            </CardTitle>
+            <CardTitle>Two-factor authentication</CardTitle>
           </div>
           <CardDescription>
             Required for portal access, and active on{" "}

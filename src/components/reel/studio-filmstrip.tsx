@@ -47,7 +47,7 @@ export function AddMomentsTile({
       onClick={onClick}
       aria-label="Choose moments"
       style={{ width: TILE_W, aspectRatio: UNIFORM_TILE_ASPECT }}
-      className="flex shrink-0 items-center justify-center rounded-[4px] border border-dashed border-white/25 text-white/60 transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] motion-reduce:active:scale-100"
+      className="flex shrink-0 items-center justify-center rounded-tile border border-dashed border-white/25 text-white/60 transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] motion-reduce:active:scale-100"
     >
       <Plus className="size-4" aria-hidden />
     </button>

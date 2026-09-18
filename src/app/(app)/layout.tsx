@@ -3,6 +3,7 @@ import { after } from "next/server";
 
 import { NotificationBell } from "@/components/app/notification-bell";
 import { UserMenu } from "@/components/app/user-menu";
+import { AppDesignIsland } from "@/components/dev/app-design-island";
 import { AppShell } from "@/components/shared/app-shell";
 import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
 import { touchHostActive } from "@/lib/db/mutations/profile";
@@ -75,6 +76,10 @@ export default async function AppLayout({
           during onboarding. */}
       <ClaimUploadsOnAuth />
       {children}
+      {/* Key-gated (server-validated ?key=), inert for every host: the rounding
+          knobs and a board's candidate block on the app's own pages, so a
+          sitting is judged here too, not only on the marketing site. */}
+      <AppDesignIsland />
     </AppShell>
   );
 }

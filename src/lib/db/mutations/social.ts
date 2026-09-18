@@ -1,5 +1,5 @@
 /**
- * Social writes (ADR-0019 data layer): follow/unfollow, block/unblock,
+ * Social writes (profiles-social.md data layer): follow/unfollow, block/unblock,
  * notification prefs, guest-side profile hides, and the profile handle.
  *
  * Write-path map (WHY each shape):
@@ -37,7 +37,7 @@ const NO_DATA_FOUND = "P0002";
 
 /**
  * Follow a profile. Idempotent (re-follow no-ops). Under a block in EITHER
- * direction this SUCCEEDS while writing nothing: blocks are private (ADR-0019
+ * direction this SUCCEEDS while writing nothing: blocks are private (profiles-social.md
  * point 5) and an error here would let a blocked user confirm the block by
  * probing. Do not "fix" that by surfacing a distinct result.
  */
@@ -222,7 +222,7 @@ export async function setNotificationPrefs(
 }
 
 /**
- * Hide an attended event from MY public profile (ADR-0019 point 2). I stay on
+ * Hide an attended event from MY public profile (profiles-social.md point 2). I stay on
  * the event's guest list (that list is the HOST's key, not mine). Idempotent:
  * a duplicate hide is success. Owner-RLS insert; hiding an event I never
  * attended is a harmless no-op row the profile read never reaches.
@@ -275,7 +275,7 @@ export async function unhideEventFromProfile(
 }
 
 /**
- * The two ADR-0019 event keys, host-set from the event settings card:
+ * The two profiles-social.md event keys, host-set from the event settings card:
  * display_in_profile (publish this event on MY public profile) and
  * show_guest_list (name every signed-in uploader on the album). Plain RLS
  * update: the migration added both columns to the events column-scoped

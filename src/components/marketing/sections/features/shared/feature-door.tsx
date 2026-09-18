@@ -141,7 +141,7 @@ function formatDuration(seconds: number): string {
 function QrPlateArt() {
   return (
     <span className="absolute inset-x-0 top-0 bottom-[34%] z-10 flex items-center justify-center">
-      <span className="w-fit rounded-lg bg-white p-2.5 shadow-[0_0_0_1px_oklch(1_0_0/0.08)] transition-transform duration-500 ease-emphasis group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100 sm:p-3">
+      <span className="w-fit rounded-lg bg-white p-2.5 ring-1 ring-white/8 transition-transform duration-500 ease-emphasis group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100 sm:p-3">
         <StyledQr
           value="https://partyreel.com"
           size={132}
@@ -291,12 +291,13 @@ export function FeatureDoor({
             aspect === "wide" && "sm:max-w-xl sm:p-7",
           )}
         >
+          {/* A door's title is a tile's title (`subsection`, like every
+              marketing tile); the wide door is the featured one and sits one
+              step up (`subhead`). Two steps, never a stock ramp per aspect. */}
           <span
             className={cn(
-              "flex items-center gap-1.5 font-heading leading-tight text-white",
-              aspect === "wide"
-                ? "text-xl sm:text-3xl"
-                : "text-lg sm:text-xl",
+              "flex items-center gap-1.5 font-heading text-white",
+              aspect === "wide" ? "text-subhead" : "text-subsection",
             )}
           >
             {door.title}

@@ -4,7 +4,7 @@
  * must NOT see reports on their own events). The page gates on requireAdmin() before calling this.
  *
  * Reported media is presigned HERE (server-side) so the operator can see the content — raw R2
- * keys never reach the browser (ADR-0003). Events + media are fetched in batched `.in()` lookups
+ * keys never reach the browser (uploads-and-r2.md). Events + media are fetched in batched `.in()` lookups
  * rather than PostgREST embeds to keep the shapes flat and the nullable media_id easy to reason about.
  */
 import "server-only";

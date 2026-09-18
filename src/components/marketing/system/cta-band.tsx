@@ -19,10 +19,10 @@ type CtaBandProps = {
   /** Render the recurring demo CTA line under the buttons (DemoCtaLink-gated). */
   demoLink?: boolean;
   /**
-   * The cinema-close credit: the Geist Mono production line, alone. One per
-   * page at most (it reads as the final frame). Deliberately NO Logo lockup:
-   * the footer opens with the brand mark ~250px below, and doubling it read
-   * as a mistake (R4-A23) — the mono line carries the film-credit register.
+   * The cinema-close credit: the production line, alone. One per page at most
+   * (it reads as the final frame). Deliberately NO Logo lockup: the footer
+   * opens with the brand mark ~250px below, and doubling it read as a mistake
+   * (R4-A23). The line's own quiet register carries the film credit.
    */
   credit?: boolean;
   reveal?: "cinema" | "standard" | "none";
@@ -62,7 +62,7 @@ export function CtaBand({
     >
       <div className="mt-8 flex flex-col items-center gap-4">
         <div className="flex flex-col items-center gap-3 sm:flex-row">
-          <Button asChild size="lg" className="h-11 px-6 text-base">
+          <Button asChild size="cta">
             <Link
               href={primary.href}
               {...trackAttrs("cta_click", {
@@ -74,12 +74,7 @@ export function CtaBand({
             </Link>
           </Button>
           {secondary && (
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline">
               <Link
                 href={secondary.href}
                 {...trackAttrs("cta_click", {

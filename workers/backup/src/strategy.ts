@@ -1,4 +1,4 @@
-// Pure copy-strategy helpers for the media-backup Worker (ADR-0013, Pillar B).
+// Pure copy-strategy helpers for the media-backup Worker (durability-backups.md, Pillar B).
 // NO Worker globals here on purpose — this module is unit-tested in plain Node (strategy.test.ts).
 
 // Objects at or below this size are copied with a single streaming put; larger objects use the R2

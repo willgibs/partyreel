@@ -26,7 +26,7 @@ import { Reveal } from "./reveal";
  * about its ink. A display line is not, and it is wrong in OPPOSITE directions
  * at each end. Measured off the live 160px wordmark with canvas TextMetrics
  * (Urbanist bold: cap 0.75em over the baseline, the "y" descender 0.25em under
- * it), `leading-[0.85]` plus `py-[0.08em]` put the box top 0.125em ABOVE the
+ * it), a 0.85-ish leading plus `py-[0.08em]` put the box top 0.125em ABOVE the
  * cap, while the box bottom lands 0.094em ABOVE the descender. So a uniform
  * `gap-6` reads ~44px over the name and only ~9px under it: too loose, then too
  * tight, from one honest value. That is the "hero spacing is off" Will flagged.
@@ -34,9 +34,22 @@ import { Reveal } from "./reveal";
  * The round's build answered it with per-pair margins (mt-1/mt-5/mt-8) on that
  * one page, which lands correct pixels but leaves the page sharing no spacing
  * convention with the lane, and hands the next page the same puzzle. So the gap
- * stays uniform and the DISPLAY STEP TRIMS ITSELF: `-mt-[0.12em]` takes back
- * the top overhang so the shared gap measures from the CAP. It is in `em`, so
- * it holds across the whole clamp rather than at one width.
+ * stays uniform and the DISPLAY STEP TRIMS ITSELF: a negative top margin takes
+ * back the overhang so the shared gap measures from the CAP.
+ *
+ * ★ THE TRIM TRACKS THE LEADING (Will, 2026-09-18, `display-trim=clamped`).
+ * The overhang is two things added together: the half-leading, which follows
+ * the step's line height, and the face's own ascender-to-cap distance, which is
+ * a constant in `em`. The step's leading is itself a clamp (tighter at 1440
+ * than at a phone), so the flat `-0.12em` this used to be was right at 1440
+ * only and left a sliver of air over the caps at 375. `calc((1em - 1lh) / 2 -
+ * 0.19em)` separates them: the first term is minus the half-leading at
+ * whatever width is drawing (`1lh` is this element's own line height), the
+ * second is the constant, fitted so 1440 keeps exactly the -0.12em it shipped
+ * with. A phone therefore trims more (about -0.18em), never less.
+ * ★ Mind the SIGN: the board's tile drew `(1lh - 1em) / 2 - 0.05em`, which
+ * agrees at 1440 and trims LESS at a phone (about -0.06em), the opposite of
+ * what it claimed; page-hero-contract.test.ts pins this form.
  *
  * ★ There is deliberately NO bottom trim. The box UNDERSTATES the ink there
  * (the descender hangs below it), so a negative margin would tighten the one
@@ -58,7 +71,17 @@ import { Reveal } from "./reveal";
 
 export type HeroScale = "display" | "xl" | "lg";
 
-/** The heading + its optical trim, per step. Add a step, do not inline one. */
+/**
+ * The heading + its optical trim, per step. Add a step, do not inline one.
+ *
+ * ★ THE SIZE IS A LADDER TOKEN, NEVER A NUMBER HERE (Will's type ruling,
+ * 2026-09-17). `text-display`, `text-hero` and `text-title` each carry their own
+ * font-size, line-height and letter-spacing as one clamp through (375, phone)
+ * and (1440, desktop), declared once in `src/app/theme.css`. The four-breakpoint
+ * ramps this table used to hold are gone: a step is a pair, not a list of
+ * sizes, and a ramp could only ever jump at a breakpoint. What stays in the
+ * table is what is NOT the size: the optical trims, the balance and the nowrap.
+ */
 const HERO_SCALE: Record<
   HeroScale,
   {
@@ -83,7 +106,7 @@ const HERO_SCALE: Record<
    */
   display: {
     heading:
-      "mkt-name -mt-[0.12em] py-[0.08em] text-[length:clamp(3.25rem,12vw,10rem)] leading-[0.85] whitespace-nowrap",
+      "mkt-name mt-[calc((1em-1lh)/2-0.19em)] py-[0.08em] text-display whitespace-nowrap",
     /**
      * ★ LEFT-ALIGNED ONLY, and never folded back into `heading`. This is the
      * optical SIDE BEARING: at 160px a capital carries visible space inside
@@ -101,10 +124,10 @@ const HERO_SCALE: Record<
      */
     leadIn: "[margin-inline-start:-0.045em]",
   },
-  /** The cinema register (the home hero's ramp). */
-  xl: { heading: "text-5xl sm:text-6xl md:text-7xl lg:text-8xl" },
-  /** The standard page ramp, shared with /help and the six feature heroes. */
-  lg: { heading: "text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl" },
+  /** The cinema register: the `hero` step (its two ends live in theme.css). */
+  xl: { heading: "text-hero" },
+  /** The `title` step, shared with /help and the six feature heroes. */
+  lg: { heading: "text-title text-balance" },
 };
 
 /**

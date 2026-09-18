@@ -85,10 +85,13 @@ export function PricingTeaser() {
                   {card.name}
                 </p>
                 {/* The ratified price register (/pricing, 2026-08-27): money in
-                    the DISPLAY face with tabular numerals, never mono -- mono on
-                    a price reads devtool. The teaser had drifted back to
-                    font-mono; corrected at round 1b. */}
-                <div className="mt-3 font-heading text-3xl font-medium tracking-tight tabular-nums">
+                    the DISPLAY face with tabular numerals. It is the model the
+                    kill-mono sweep took site-wide for every number that is the
+                    subject of its block (2026-09-14), and that role is the
+                    ladder's `section` step ("a stat numeral"), the one
+                    /pricing's cards wear too. No tracking-tight beside it: it
+                    resolves to 0em here and would cancel the step's own. */}
+                <div className="mt-3 font-heading text-section font-medium tabular-nums">
                   <PricePop label={card.price} />
                 </div>
                 <p className="mt-auto pt-3 text-xs leading-relaxed text-muted-foreground">
@@ -115,15 +118,10 @@ export function PricingTeaser() {
           className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
           style={{ "--i": 6 } as CSSProperties}
         >
-          <Button asChild size="lg" className="h-11 px-6 text-base">
+          <Button asChild size="cta">
             <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
           </Button>
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className="h-11 px-6 text-base"
-          >
+          <Button asChild size="cta" variant="outline">
             <Link href="/pricing">See full pricing</Link>
           </Button>
         </div>

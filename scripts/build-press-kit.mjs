@@ -4,7 +4,7 @@
  *
  * Why a committed artifact and not a route handler (2026-08-28, the press-kit round): the zip
  * is a handful of static files that change only when the brand does, so a CDN-served file beats any
- * runtime code. And ADR-0018 ruled AGAINST hand-rolled zip encoders (streaming ZIP64 has silent
+ * runtime code. And uploads-and-r2.md ruled AGAINST hand-rolled zip encoders (streaming ZIP64 has silent
  * correctness failure modes that only surface in specific extractors), confining a zip library
  * to the isolated Worker package. So: no encoder, no dependency, no route. The system `zip`
  * writes it here, and src/lib/constants/press-kit.test.ts parses it back and CRC-checks every

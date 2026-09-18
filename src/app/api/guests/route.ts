@@ -15,7 +15,7 @@ import { joinSchema } from "@/lib/validation/upload";
 
 // POST joins a guest to an event via the create_guest RPC (validated by the
 // event's qr_token) and returns an opaque session_token — the guest's capability
-// for subsequent uploads (ADR-0004). No account, no JWT.
+// for subsequent uploads (database-security.md). No account, no JWT.
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     joinKeys = null;
   }
 
-  // QA #18 (ADR-0023 ruling 2): the write path inherits the read gate — resolve the event's
+  // QA #18 (host-app.md ruling 2): the write path inherits the read gate — resolve the event's
   // visibility BEFORE minting. `private` never mints (the /e/ page master-locks everyone, owner
   // included; a 403 leaks nothing the page didn't already show any link-holder). `password`
   // requires the unlock cookie or ownership (mayUploadPastLock — the owner reads the album

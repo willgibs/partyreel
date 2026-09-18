@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Reveal } from "@/components/marketing/system/reveal";
+import { SectionLight } from "@/components/marketing/system/section-light";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 
@@ -49,45 +50,53 @@ const CLAIMS: { title: string; body: string }[] = [
 
 export function NoApp() {
   return (
-    <SectionShell
-      eyebrow="Guests"
-      heading={SECTION_HEADERS.noApp.line}
-      align="left"
-      containerClassName="max-w-4xl"
-    >
-      {/* ONE CHOREOGRAPHY (R4): a two-line header holds slots 0-1, so the rows
+    // ★ LIT FROM ITS OPEN SIDE (Will, 2026-09-17: the Aurora is composed for
+    // the place, "custom and bespoke"). This is the home page's one
+    // left-aligned header, so its upper right is the only empty quarter in the
+    // chapter: the cast starts there, on the section's right edge, and falls
+    // away across the ledger before it reaches the claims. Nothing else on the
+    // page is lit from a side.
+    <SectionLight placement="room" from={{ x: "0%", y: "50%" }} reach="62%">
+      <SectionShell
+        eyebrow="Guests"
+        heading={SECTION_HEADERS.noApp.line}
+        align="left"
+        containerClassName="max-w-4xl"
+      >
+        {/* ONE CHOREOGRAPHY (R4): a two-line header holds slots 0-1, so the rows
           continue at 2 and the pointer closes at 5, under ONE observer. */}
-      <Reveal className="mt-10 sm:mt-12">
-        <ul className="border-t">
-          {CLAIMS.map((claim, i) => (
-            <li
-              // Per-row border-b, never divide-y (the /about ledger's reason):
-              // divide-y hangs the rule on the NEXT sibling. The last row keeps
-              // its rule so the pointer reads as the ledger's footer line.
-              key={claim.title}
-              data-mkt-reveal
-              className="grid gap-x-10 gap-y-2 border-b py-7 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] sm:py-8"
-              style={{ "--i": i + 2 } as CSSProperties}
-            >
-              {/* No text-balance on a 2-4 word heading in a grid cell: balance
+        <Reveal className="mt-10 sm:mt-12">
+          <ul className="border-t">
+            {CLAIMS.map((claim, i) => (
+              <li
+                // Per-row border-b, never divide-y (the /about ledger's reason):
+                // divide-y hangs the rule on the NEXT sibling. The last row keeps
+                // its rule so the pointer reads as the ledger's footer line.
+                key={claim.title}
+                data-mkt-reveal
+                className="grid gap-x-10 gap-y-2 border-b py-7 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] sm:py-8"
+                style={{ "--i": i + 2 } as CSSProperties}
+              >
+                {/* No text-balance on a 2-4 word heading in a grid cell: balance
                   can pick a worse break than the natural one at that length. */}
-              <h3 className="font-heading text-xl sm:text-2xl">
-                {claim.title}
-              </h3>
-              <p className="text-[15px] leading-7 text-pretty text-muted-foreground">
-                {claim.body}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <div
-          data-mkt-reveal
-          className="mt-8"
-          style={{ "--i": 5 } as CSSProperties}
-        >
-          <LearnMoreLink href="/features/guests">How guests join</LearnMoreLink>
-        </div>
-      </Reveal>
-    </SectionShell>
+                <h3 className="font-heading text-subhead">{claim.title}</h3>
+                <p className="text-[15px] leading-7 text-pretty text-muted-foreground">
+                  {claim.body}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div
+            data-mkt-reveal
+            className="mt-8"
+            style={{ "--i": 5 } as CSSProperties}
+          >
+            <LearnMoreLink href="/features/guests">
+              How guests join
+            </LearnMoreLink>
+          </div>
+        </Reveal>
+      </SectionShell>
+    </SectionLight>
   );
 }

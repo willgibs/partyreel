@@ -1,6 +1,6 @@
 // Canvas-2D draw primitives for the reel engine (DOM, no React). Each primitive replicates ONE CSS
 // behavior the Remotion composition leans on, so the style modules compose them the way the JSX
-// composed divs. Sources of truth are cited per primitive; the parity harness (/design/reel-parity)
+// composed divs. Sources of truth are cited per primitive; the parity harness (/design/lab/tools/reel-parity)
 // is where the replication is graded.
 //
 // The downsample-chain blur (buildWash) is the load-bearing trick from the proven spike
@@ -330,7 +330,7 @@ const FONT_STACK =
   'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
 /**
- * The three T1 watermark candidates (a dev-only select on /design/reel-parity flips
+ * The three T1 watermark candidates (a dev-only select on /design/lab/tools/reel-parity flips
  * them; production always stamps DEFAULT_WATERMARK_VARIANT):
  * - "scrim": the ghost lockup over a whisper of radial corner darkening, so it stays
  *   legible even on blown-out white footage without any visible container shape.

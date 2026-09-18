@@ -2,7 +2,7 @@
  * The signed-in user's own uploads across ALL events (host uploads + guest uploads), render-ready for the
  * dashboard "Uploads" tab (Phase 4). `get_my_uploads` is a SECURITY DEFINER RPC because it reads the
  * name/date/token of events the user may NOT own (events RLS is host-only); it's auth.uid()-based +
- * authenticated-only. We presign the R2 keys server-side here (ADR-0003) — raw keys never reach the browser.
+ * authenticated-only. We presign the R2 keys server-side here (uploads-and-r2.md) — raw keys never reach the browser.
  */
 import "server-only";
 

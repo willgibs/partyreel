@@ -1,5 +1,5 @@
 /**
- * Pins the guest reel's anon allow-list (R3, ADR-0022 ruling 5).
+ * Pins the guest reel's anon allow-list (R3, guest-flow.md ruling 5).
  *
  * The RETURNS TABLE of get_event_reel_by_qr_token IS the anon surface; guest-reel-payload.ts is its
  * TypeScript mirror. This test pins BOTH directions: the allow-list is exactly the 8 ruled keys, and

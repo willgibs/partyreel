@@ -1,5 +1,49 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+/**
+ * ★ THE TYPE LADDER HAS TO BE DECLARED HERE OR `cn()` EATS IT (measured at the
+ * type wiring, 2026-09-17). tailwind-merge does not read our stylesheet, so any
+ * `text-*` class it cannot recognise as a font size falls into its `text-color`
+ * group, which accepts anything. Unextended, `cn("font-heading text-chapter
+ * text-white")` returned `font-heading text-white`: the step was dropped on
+ * every heading that also names a colour, silently, with nothing to see in the
+ * source. The names below are exactly the `--text-*` steps declared in
+ * src/app/theme.css; a step added there is added here in the same change (as
+ * `subhead` was, 2026-09-18), and the parity is pinned by
+ * src/lib/type-ladder-policy.test.ts.
+ */
+export const TYPE_STEPS = [
+  "display",
+  "hero",
+  "title",
+  "chapter",
+  "section",
+  "prose",
+  "subhead",
+  "page",
+  "subsection",
+  "card-title",
+] as const;
+
+/**
+ * ★ THE RADIUS TOKENS, THE SAME TRAP, QUIETER (measured at the corner wiring,
+ * 2026-09-18). tailwind-merge's radius group knows only Tailwind's own step
+ * names, so `cn("rounded-md", "rounded-tile")` kept BOTH classes and the corner
+ * fell to stylesheet order, which is alphabetical for utilities on one
+ * property: `rounded-tile` beat `rounded-md` by luck, while every stock step
+ * beat `rounded-float` and `rounded-action-sm` whichever was written last (the
+ * dashboard's button skeletons asked for the action corner and drew
+ * `rounded-md`). Declared, the last class wins, which is what `cn()` promises.
+ * The names are exactly the custom `--radius-*` tokens theme.css maps into the
+ * theme (its `sm`..`2xl` steps are Tailwind's own names already); the parity is
+ * pinned by src/lib/type-ladder-policy.test.ts beside the ladder's.
+ */
+export const RADIUS_TOKENS = ["action", "action-sm", "tile", "float"] as const;
+
+const twMerge = extendTailwindMerge({
+  extend: { theme: { text: [...TYPE_STEPS], radius: [...RADIUS_TOKENS] } },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

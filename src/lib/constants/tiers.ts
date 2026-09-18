@@ -22,7 +22,7 @@
  *     `storage_ledger.cumulative_bytes`, which never decrements. Free is a flat
  *     20 GB (`MONTHLY_INGRESS_BYTES`); paid tiers derive INGRESS_CAP_MULTIPLIER x the
  *     effective storage cap (`monthlyIngressCap`), so the abuse bound scales with
- *     what the host pays for (ADR-0021).
+ *     what the host pays for (billing-caps.md).
  *
  * Keep these numbers in lockstep with the Postgres `public.tier_limits()` fn (DB
  * enforcement) — a Vitest parity test guards the pairing. The universal per-file
@@ -178,7 +178,7 @@ export const TIER_NAMES: Record<Tier, string> = {
  * The Event Pass RENEWAL price label (display only — the Stripe price
  * STRIPE_PRICE_EVENT_PASS_RENEWAL is the billing truth, see PRICING.md). A
  * separate cheaper one-time price that extends a live pass by another year
- * (ADR-0021 decision 3); surfaced on /pricing so the keep-it-alive cost is
+ * (billing-caps.md decision 3); surfaced on /pricing so the keep-it-alive cost is
  * never a surprise.
  */
 export const EVENT_PASS_RENEWAL_PRICE_LABEL = "$15";
@@ -203,7 +203,7 @@ export const MONTHLY_INGRESS_BYTES: Record<Tier, number | null> = {
 };
 
 /**
- * Paid-tier monthly ingress = this multiple of the EFFECTIVE storage cap (ADR-0021).
+ * Paid-tier monthly ingress = this multiple of the EFFECTIVE storage cap (billing-caps.md).
  * Why a multiplier, not static bytes: the abuse bound scales with what the host pays
  * for, stays unmarketed, and 3x leaves a full extra refill cycle of legitimate
  * headroom (too-low blocks a paying customer; too-high is only mild abuse headroom).
@@ -323,7 +323,7 @@ export function videosAllowedForTier(tier: Tier): boolean {
 }
 
 /**
- * Max highlight-reel length in seconds (ADR-0021): Free 30, paid 60. Length carries
+ * Max highlight-reel length in seconds (billing-caps.md): Free 30, paid 60. Length carries
  * no render cost (client-side encode) — this is a product lever, marketed on
  * /pricing, so a number can only safely move UP later (grandfathering makes marketed
  * numbers sticky). MUST mirror tier_limits().max_reel_seconds.

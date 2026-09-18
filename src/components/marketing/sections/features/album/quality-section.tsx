@@ -12,8 +12,9 @@ import { PHOTO_FORMATS, VIDEO_FORMATS } from "./album-formats";
  * /features/album, chapter 1's wind-down: the quiet numbers before the paper
  * cut. Every figure DERIVES from lib/media/limits.ts (the universal per-file
  * truth: one ceiling, both kinds, every plan; no duration cap) so the band can
- * never drift from enforcement. The StatBand is the one ratified mono
- * register (numerals); the formats beneath are words, so they are Inter.
+ * never drift from enforcement. The StatBand carries the stat register (the
+ * display face with tabular figures); the formats beneath are words, so they
+ * stay on the body face.
  */
 export function QualitySection() {
   return (
@@ -43,13 +44,13 @@ export function QualitySection() {
             className="mx-auto mt-10 grid w-fit grid-cols-[auto_1fr] items-baseline gap-x-5 gap-y-2"
             style={{ "--i": 3 } as CSSProperties}
           >
-            <dt className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground/70 uppercase">
+            <dt className="text-[11px] font-medium tracking-[0.14em] text-faint uppercase">
               Photos
             </dt>
             <dd className="text-sm text-muted-foreground">
               {PHOTO_FORMATS.join(" · ")}
             </dd>
-            <dt className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground/70 uppercase">
+            <dt className="text-[11px] font-medium tracking-[0.14em] text-faint uppercase">
               Video
             </dt>
             <dd className="text-sm text-muted-foreground">

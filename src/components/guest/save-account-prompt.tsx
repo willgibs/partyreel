@@ -96,9 +96,10 @@ export function SaveAccountPrompt({
       <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
         <Bookmark className="size-5" />
       </div>
-      <p className="font-heading text-lg">Keep these photos</p>
+      {/* A prompt tile's title: the app's quiet middle, `subsection`. */}
+      <p className="font-heading text-subsection">Keep these photos</p>
       <p className="mx-auto mt-1 mb-4 max-w-xs text-[15px] text-muted-foreground">
-        Create a free account to save this event and come back to the gallery
+        Create a free account to save this event and come back to the album
         whenever you want.
       </p>
       <div className="flex justify-center">

@@ -20,38 +20,23 @@
  * `[preview]`. Nothing is lost but the preview itself: CI (GitHub Actions) runs typecheck,
  * lint, test and build on every push to main, launch-prep and lp/** regardless of this file.
  *
- * An lp/<track> push is unchanged: it builds when the branch has NO manifest yet (the pre-model
- * default, so a branch that predates docs/tracks keeps its every-push preview), when its manifest
- * docs/tracks/<track>.md says `preview: true` or `status: handed-off`, or when the commit message
- * carries `[preview]`. A manifest with `preview: false` and `status: open` skips, so the
- * integration preview never queues behind work in progress on the one-at-a-time Hobby plan (the
- * operating model, 2026-09-02). A missing/empty VERCEL_GIT_COMMIT_REF means a manual
- * `vercel deploy` with no git ref, which must never be silently canceled, so it builds.
- * Everything else skips.
+ * An lp/<track> push builds ONLY when the commit message carries `[preview]` (the storage round,
+ * 2026-09-15: with fourteen tracks handing off in one day, "build at handed-off" put the project
+ * at 40 GB of its 10 GB monthly deployment storage and over on function storage, and Will's
+ * review surface for a round is the launch-prep alias after integration, not fourteen branch
+ * aliases). A manifest's `status` and `preview:` fields no longer build anything, and a branch
+ * without a manifest builds nothing either. The Orchestrator builds the launch-prep alias once
+ * per round close, and prunes (`scripts/prune-vercel-deployments.mjs`) after every integration.
+ * A missing/empty VERCEL_GIT_COMMIT_REF means a manual `vercel deploy` with no git ref, which
+ * must never be silently canceled, so it builds. Everything else skips.
  *
  * vercel.json's "ignoreCommand" points here and overrides the project-settings field; keep the
  * policy in THIS file. Rollback: delete the vercel.json key (the dashboard field, if still set,
  * takes back over). See CLAUDE.md "Git" + docs/PROGRAM.md for the branch protocol this serves.
  */
 
-import { readFileSync } from "node:fs";
-
 const ref = process.env.VERCEL_GIT_COMMIT_REF ?? "";
 const message = process.env.VERCEL_GIT_COMMIT_MESSAGE ?? "";
-
-function manifestDecision(track) {
-  let head;
-  try {
-    head = readFileSync(`docs/tracks/${track}.md`, "utf8").split("\n---")[0];
-  } catch {
-    return { hasManifest: false, wants: false };
-  }
-  return {
-    hasManifest: true,
-    wants:
-      /^preview:\s*true\b/m.test(head) || /^status:\s*handed-off\b/m.test(head),
-  };
-}
 
 let build;
 let why;
@@ -67,23 +52,10 @@ if (ref === "") {
     ? "the commit message says [preview]"
     : "the integration branch builds on request (say [preview] when a walk needs it)";
 } else if (ref.startsWith("lp/")) {
-  const { hasManifest, wants } = manifestDecision(ref.slice(3));
-  if (!hasManifest) {
-    build = true;
-    why =
-      "an lp/ branch without a manifest builds every push (the pre-model default)";
-  } else if (wants) {
-    build = true;
-    why =
-      "its manifest asks for a preview (preview: true or status: handed-off)";
-  } else if (message.includes("[preview]")) {
-    build = true;
-    why = "the commit message says [preview]";
-  } else {
-    build = false;
-    why =
-      "its manifest is open with preview: false (say [preview] or flip the flag)";
-  }
+  build = message.includes("[preview]");
+  why = build
+    ? "the commit message says [preview]"
+    : "an agent branch builds no preview (the alias is built once per round; say [preview] only when the Orchestrator asks for one)";
 } else {
   build = false;
   why = "not main, launch-prep or lp/*";

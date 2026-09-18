@@ -1,4 +1,4 @@
-# partyreel-backup — media-backup Worker (ADR-0013, Pillar B)
+# partyreel-backup — media-backup Worker (durability-backups.md, Pillar B)
 
 Real-time, append-only, **immutable** second copy of all event media. Runs entirely on Cloudflare
 (zero egress, off Vercel). This package is **deployed separately from the Next app** via `wrangler`;
@@ -19,7 +19,7 @@ it is excluded from the app's `tsc`/`eslint`/`vitest` (see root `tsconfig.json` 
 - **Idempotent:** every copy does `BACKUP.head(key)` first and skips if present. Safe because media
   keys are write-once AND the Bucket Lock forbids overwriting a locked object.
 - **Avatars are excluded** (the `events/` prefix filter): they overwrite-in-place (conflicts with the
-  lock) and are derivable. (They move to Supabase Storage in a separate initiative — ADR-0013.)
+  lock) and are derivable. (They move to Supabase Storage in a separate initiative — durability-backups.md.)
 
 ## Bindings (wrangler.jsonc)
 
@@ -57,7 +57,7 @@ wrangler deploy
 wrangler r2 bucket notification create partyreel \
   --event-types object-create --queue partyreel-backup --prefix events/
 
-# 7. Deletion-aware prune secret (ADR-0013): a shared bearer token the weekly prune sends to the app's
+# 7. Deletion-aware prune secret (durability-backups.md): a shared bearer token the weekly prune sends to the app's
 #    confirm endpoint. Set the SAME random value in Vercel (PRUNE_API_SECRET) and here. The prune ships
 #    in dry-run (PRUNE_MODE=dryrun in wrangler.jsonc), so it deletes nothing until a human flips it live.
 wrangler secret put PRUNE_API_SECRET
@@ -83,7 +83,7 @@ authenticate; no other app env changes. (Optional later: a GitHub Action to auto
 Re-run the basics: `wrangler r2 object put partyreel/events/_drill/x --file <f> --remote` then poll
 `wrangler r2 object get partyreel-backup/events/_drill/x --remote`.
 
-## Deletion-aware prune (ADR-0013) — the weekly cron
+## Deletion-aware prune (durability-backups.md) — the weekly cron
 
 The backup is **keep-all by design**: when media leaves the primary (host delete -> 30-day recovery ->
 the app's purge cron hard-deletes the primary object + row), the backup copy stays. The prune bounds that

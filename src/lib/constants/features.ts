@@ -143,7 +143,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
           "Anyone with the album can save the originals at full quality, a single favorite or the keepsakes that matter most. No re-compression, no watermarks, no quality lost on the way in or out.",
       },
       {
-        // Shipped as the streaming zip export (ADR-0018); named here per the
+        // Shipped as the streaming zip export (uploads-and-r2.md); named here per the
         // T2.5 IA's missing-features batch.
         icon: FolderArchive,
         title: "Download it all as a zip",

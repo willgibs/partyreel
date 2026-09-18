@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 // 404 <head>; if a future Next stops honoring viewport on not-found files this
 // harmlessly falls back to the root media pair).
 export const viewport: Viewport = {
-  themeColor: "#fcfcfc",
+  themeColor: "#fdfdff",
 };
 
 export default function NotFound() {

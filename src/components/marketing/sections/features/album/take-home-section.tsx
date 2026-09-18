@@ -64,7 +64,7 @@ function Plate({
         {children}
       </div>
       <div className="flex flex-col gap-1 px-0.5">
-        <h3 className="font-heading text-base sm:text-lg">{title}</h3>
+        <h3 className="font-heading text-subsection">{title}</h3>
         <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
           {body}
         </p>
@@ -123,7 +123,7 @@ export function TakeHomeSection() {
             {ALBUM_TILES.map((id) => (
               <span
                 key={id}
-                className="relative block overflow-hidden rounded-[2px]"
+                className="relative block overflow-hidden rounded-tile"
               >
                 <Image
                   src={marketingImage(id).src}
@@ -137,7 +137,7 @@ export function TakeHomeSection() {
           </span>
           <span className="absolute inset-0 bg-black/35" />
           <span className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <span className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-4 text-xs font-medium text-neutral-900 shadow-[var(--shadow-float)]">
+            <span className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-4 text-xs font-medium text-neutral-900">
               <Download className="size-3.5" /> Download album
             </span>
             <span className="text-[11px] font-medium text-white/85 tabular-nums">

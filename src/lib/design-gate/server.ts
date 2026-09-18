@@ -30,10 +30,25 @@ export async function requireDesignKey(
   const key = typeof params.key === "string" ? params.key : undefined;
 
   if (process.env.NODE_ENV === "development") return key ?? null;
+  if (!designGateOpen(key)) notFound();
+  return key ?? null;
+}
 
+/**
+ * THE ONE GATE PREDICATE (the Library x Lab round, 2026-09-15): local dev is
+ * always open; production opens only to a key that timing-safe-matches
+ * DESIGN_PREVIEW_KEY. The proxy (src/proxy.ts) runs it on every /design
+ * request BEFORE any layout renders, because the shell layout builds the nav
+ * (component names, board titles, proposals, tracks) and a layout cannot see
+ * searchParams: without the proxy check a keyless request still streamed the
+ * layout's props in the flight payload under a 200 while the page's
+ * notFound() drew the 404 (measured on the launch-prep alias at 2644310d).
+ * The pages keep calling requireDesignKey as the second line.
+ */
+export function designGateOpen(key: string | null | undefined): boolean {
+  if (process.env.NODE_ENV === "development") return true;
   const secret = serverEnv.DESIGN_PREVIEW_KEY;
-  if (!secret || !key || !constantTimeEquals(key, secret)) notFound();
-  return key;
+  return Boolean(secret && key && constantTimeEquals(key, secret));
 }
 
 /**
@@ -52,7 +67,5 @@ export async function isDesignGateOpen(
   const params = await searchParams;
   const key = typeof params.key === "string" ? params.key : undefined;
   if (!key) return false;
-  if (process.env.NODE_ENV === "development") return true;
-  const secret = serverEnv.DESIGN_PREVIEW_KEY;
-  return Boolean(secret && constantTimeEquals(key, secret));
+  return designGateOpen(key);
 }

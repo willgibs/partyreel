@@ -35,7 +35,7 @@ export function LegalBlocks({
               <Tag
                 key={i}
                 className={cn(
-                  "space-y-1.5 pl-5 marker:text-muted-foreground/70",
+                  "space-y-1.5 pl-5 marker:text-faint",
                   block.ordered ? "list-decimal" : "list-disc",
                 )}
               >
@@ -79,10 +79,10 @@ export function LegalBlocks({
                             className={cn(
                               "py-2.5 pr-4",
                               c === 0 && "text-foreground",
-                              // Mono holds DATA (durations, amounts), never a
-                              // label: the R6 ruling.
+                              // A numeric column takes tabular figures so the
+                              // durations and amounts align down the column.
                               block.columns[c]?.numeric &&
-                                "font-mono text-xs whitespace-nowrap tabular-nums",
+                                "text-xs whitespace-nowrap tabular-nums",
                             )}
                           >
                             {cell}
@@ -101,7 +101,7 @@ export function LegalBlocks({
                 key={i}
                 id={id}
                 className={cn(
-                  "group pt-2 font-heading text-base text-foreground",
+                  "group pt-2 font-heading text-subsection text-foreground",
                   HEADING_SCROLL_MT,
                 )}
               >

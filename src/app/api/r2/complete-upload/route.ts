@@ -15,7 +15,7 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
   schema: completeUploadSchema,
   captureLabel: "create_media",
   async createRecord(parsed, kind, realSize) {
-    // QA #18 (ADR-0023 ruling 2): re-check the event's lock at COMPLETION too — a presigned URL
+    // QA #18 (host-app.md ruling 2): re-check the event's lock at COMPLETION too — a presigned URL
     // outlives a host's lock by up to 2h, and this is the write that counts (the media row +
     // ledger; the bytes an already-issued URL can land become a swept orphan, never album
     // content). Same policy as presign: `private` refuses everyone, `password` needs the cookie
@@ -66,7 +66,7 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
             ? 400
             : 422;
   },
-  // Forensic capture (ADR-0020): the guest's linkage IS the capability token; the
+  // Forensic capture (trust-safety-forensics.md): the guest's linkage IS the capability token; the
   // seam resolves it to the guests row server-side.
   forensicIdentity(parsed) {
     return { kind: "guest", sessionToken: parsed.session_token };

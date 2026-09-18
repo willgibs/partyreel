@@ -323,7 +323,7 @@ async function runUpload(args: {
     preview_key: previewKey,
     upload_id: presign.strategy === "multipart" ? presign.upload_id : null,
     parts,
-    // CAPTURE-ONLY (ADR-0020): the durable device UUID for the deny-all forensic
+    // CAPTURE-ONLY (trust-safety-forensics.md): the durable device UUID for the deny-all forensic
     // record. Never read back, never product logic; omitted when storage is blocked.
     device_uuid: getDeviceId() ?? undefined,
   });

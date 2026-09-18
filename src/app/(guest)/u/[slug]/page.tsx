@@ -48,7 +48,7 @@ export async function generateMetadata({
 }
 
 /**
- * The PUBLIC profile page (ADR-0019: profiles are public by existence; the slug
+ * The PUBLIC profile page (profiles-social.md: profiles are public by existence; the slug
  * is the address, and claiming it was the consent act). Logged-out visible via
  * the anon get_public_profile RPC. What renders is exactly the RPC's ruled
  * composition: hosted events the host PUBLISHED (display_in_profile, with the
@@ -128,7 +128,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
         {/* Identity block: avatar, name, handle, restraint (joined month only —
-            no counts by design: the graph is private, ADR-0019 point 4). */}
+            no counts by design: the graph is private, profiles-social.md point 4). */}
         <section
           data-arrive
           style={{ "--arrive-i": 0 } as CSSProperties}
@@ -147,12 +147,12 @@ export default async function PublicProfilePage({ params }: PageProps) {
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h1 className="font-heading text-[28px] leading-snug text-balance">
+            <h1 className="font-heading text-page text-balance">
               {name}
             </h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
               <span>@{profile.slug}</span>
-              <span aria-hidden className="text-muted-foreground/50">
+              <span aria-hidden className="text-faint">
                 ·
               </span>
               <span>Joined {joined}</span>

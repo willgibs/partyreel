@@ -7,10 +7,12 @@ import { Check, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { isNavActive, NAV } from "@/lib/admin/nav";
+import { isNavActive, NAV, navGroups } from "@/lib/admin/nav";
 import { cn } from "@/lib/utils";
 
 // The operator nav, collapsed into a single dropdown selector (the flat 8+ -item bar grew too long).
@@ -28,23 +30,35 @@ export function AdminNav() {
         {active.label}
         <ChevronDown className="size-3.5 text-muted-foreground transition-transform duration-150 group-data-[state=open]:rotate-180" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-52">
-        {NAV.map(({ href, label, icon: Icon }) => {
-          const current = isNavActive(pathname, href);
-          return (
-            <DropdownMenuItem
-              key={href}
-              asChild
-              className={cn(current && "bg-accent")}
-            >
-              <Link href={href} className="flex items-center gap-2">
-                <Icon className="size-4 text-muted-foreground" />
-                <span className="flex-1">{label}</span>
-                {current ? <Check className="size-4" /> : null}
-              </Link>
-            </DropdownMenuItem>
-          );
-        })}
+      {/* TWELVE ROWS THAT NOW SAY WHAT THEY ARE FOR. This was the longest
+          anonymous list in the product: Overview through Security in one
+          unbroken column, with nothing telling an operator that Support and
+          Applicants are inboxes while Jobs and Security are the machine. The
+          groups come from nav.ts, which is where a surface's part of the portal
+          belongs (Card, Will 2026-09-17). */}
+      <DropdownMenuContent align="start" className="w-56">
+        {navGroups().map(({ group, items }) => (
+          <DropdownMenuGroup key={group}>
+            <DropdownMenuLabel>{group}</DropdownMenuLabel>
+            {items.map(({ href, label, icon: Icon }) => {
+              const current = isNavActive(pathname, href);
+              return (
+                <DropdownMenuItem
+                  key={href}
+                  asChild
+                  className={cn(current && "bg-accent")}
+                >
+                  {/* The icon's rail colour is the primitive's now. */}
+                  <Link href={href}>
+                    <Icon />
+                    <span className="flex-1">{label}</span>
+                    {current ? <Check className="size-4" /> : null}
+                  </Link>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuGroup>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

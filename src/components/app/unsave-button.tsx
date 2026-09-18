@@ -39,7 +39,7 @@ export function UnsaveButton({ eventId }: { eventId: string }) {
       onClick={unsave}
       disabled={busy}
       aria-label="Remove from saved"
-      className="flex size-7 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow-sm backdrop-blur transition-colors hover:bg-background hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:scale-95 disabled:opacity-50"
+      className="flex size-7 items-center justify-center rounded-full bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:bg-background hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:scale-95 disabled:opacity-50"
     >
       <X className="size-4" />
     </button>

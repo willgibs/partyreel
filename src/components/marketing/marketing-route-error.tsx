@@ -42,21 +42,18 @@ export function MarketingRouteError({
       </div>
       <main className="flex flex-1 items-center justify-center px-6 py-16">
         <NotFoundScreen
+          // Marketing's half of the dead-end ladder: the `prose` step.
+          surface="marketing"
           icon={RefreshCcw}
           eyebrow="Error"
           title="That one didn't develop."
           description="Something went wrong loading this page, and it's on us, not you. Try again; if it keeps happening, we want to know."
           actions={
             <>
-              <Button size="lg" className="h-11 px-6 text-base" onClick={reset}>
+              <Button size="cta" onClick={reset}>
                 Try again
               </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-11 px-6 text-base"
-              >
+              <Button asChild size="cta" variant="outline">
                 <Link href="/">Back home</Link>
               </Button>
             </>

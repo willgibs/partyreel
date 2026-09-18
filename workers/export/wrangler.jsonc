@@ -1,5 +1,5 @@
 {
-  // Partyreel "Download all" zip-export Worker (ADR-0003 — heavy/streaming work off Vercel). Deployed
+  // Partyreel "Download all" zip-export Worker (uploads-and-r2.md — heavy/streaming work off Vercel). Deployed
   // SEPARATELY via `wrangler deploy` from this directory; NOT part of the Next app or the Vercel build.
   // Public-facing: the browser form-POSTs a signed manifest token; this Worker verifies it and streams a
   // store-only zip of the named R2 objects. The app is the single authz oracle (it signed the token).

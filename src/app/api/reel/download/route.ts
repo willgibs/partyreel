@@ -1,5 +1,5 @@
 /**
- * POST /api/reel/download — a GUEST saving the event's reel mp4 (R3, ADR-0022 rulings 3+4).
+ * POST /api/reel/download — a GUEST saving the event's reel mp4 (R3, guest-flow.md rulings 3+4).
  *
  * Authz re-derives the viewer's gallery access from the capability token EXACTLY like the guest
  * export route (the RSC's computation re-run server-side; never trust client state) — but STRICTER:

@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
 /**
- * The ADR-0019 event keys, as their own settings card OUTSIDE the RHF form:
+ * The profiles-social.md event keys, as their own settings card OUTSIDE the RHF form:
  * each toggle persists INSTANTLY on flip (these are deliberate one-key acts,
  * like the password/slug commits — a "Save changes" buffer would blur what the
  * host just consented to). Optimistic + reverted with a toast on failure.

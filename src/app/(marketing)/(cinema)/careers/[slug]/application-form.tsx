@@ -105,7 +105,7 @@ export function ApplicationForm({
             />
           </svg>
         </span>
-        <h3 className="font-heading text-base font-medium">
+        <h3 className="font-heading text-subsection font-medium">
           Application received
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -220,8 +220,6 @@ export function ApplicationForm({
             >
               {isSubmitting ? "Sending…" : "Submit application"}
             </Button>
-            {/* Inter, not MonoCaption: the R6 mono ruling reserves mono for
-                numerals and tabular alignment, and this is a CTA note. */}
             <span className="text-xs text-muted-foreground">
               No resume required.
             </span>

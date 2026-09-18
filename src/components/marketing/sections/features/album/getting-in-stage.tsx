@@ -59,10 +59,7 @@ export function GettingInStage() {
         >
           <div className="flex flex-col gap-4">
             <Eyebrow {...rise(0)}>Getting in</Eyebrow>
-            <h2
-              {...rise(1)}
-              className="font-heading text-3xl text-balance sm:text-4xl"
-            >
+            <h2 {...rise(1)} className="font-heading text-section text-balance">
               Scan, and they&rsquo;re in.
             </h2>
             <p
@@ -97,11 +94,11 @@ export function GettingInStage() {
                         active ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="pt-0.5 text-xs font-medium text-muted-foreground/70 tabular-nums">
+                    <span className="pt-0.5 text-xs font-medium text-faint tabular-nums">
                       0{i + 1}
                     </span>
                     <span className="flex flex-col gap-1">
-                      <span className="font-heading text-base text-foreground">
+                      <span className="font-heading text-subsection text-foreground">
                         {fact.title}
                       </span>
                       <span className="text-sm leading-relaxed text-pretty">

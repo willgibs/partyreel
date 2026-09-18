@@ -82,7 +82,7 @@ export default async function AdminAccountDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Billing</CardTitle>
+          <CardTitle>Billing</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label="Tier">
@@ -123,7 +123,7 @@ export default async function AdminAccountDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Storage and usage</CardTitle>
+          <CardTitle>Storage and usage</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label="Active storage">
@@ -139,7 +139,7 @@ export default async function AdminAccountDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Account</CardTitle>
+          <CardTitle>Account</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label="Created">
@@ -153,7 +153,9 @@ export default async function AdminAccountDetailPage({
             </span>
           </Row>
           <Row label="User ID">
-            <code className="text-xs">{profile.id}</code>
+            <code className="rounded bg-muted px-1.5 py-0.5 font-sans text-xs tabular-nums select-all">
+              {profile.id}
+            </code>
           </Row>
         </CardContent>
       </Card>
@@ -164,7 +166,7 @@ export default async function AdminAccountDetailPage({
           left to press, only the state, because deletion has no undo. */}
       <Card className="border-destructive/30">
         <CardHeader>
-          <CardTitle className="text-base text-destructive">
+          <CardTitle className="text-destructive">
             {deletion.requestedAt ? "Deletion in progress" : "Delete account"}
           </CardTitle>
           <CardDescription>

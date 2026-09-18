@@ -88,7 +88,7 @@ export function Calculator() {
         >
           {/* The slider + its live annotation. */}
           <div className="flex items-baseline justify-between gap-4">
-            <span className="font-heading text-3xl tabular-nums">
+            <span className="font-heading text-section tabular-nums">
               {formatBytes(bytes)}
             </span>
             <span className="text-right text-sm text-muted-foreground">
@@ -118,7 +118,7 @@ export function Calculator() {
               "focus-visible:ring-2 focus-visible:ring-ring/50",
             )}
           />
-          <div className="mt-2 flex justify-between text-[10px] tracking-[0.1em] text-muted-foreground/60 uppercase">
+          <div className="mt-2 flex justify-between text-[10px] tracking-[0.1em] text-faint uppercase">
             <span>{formatBytes(STOP_GB[0] * GIGABYTE)}</span>
             <span>{formatBytes(STOP_GB[STOP_GB.length - 1] * GIGABYTE)}</span>
           </div>
@@ -138,7 +138,7 @@ export function Calculator() {
             >
               <span
                 aria-hidden
-                className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background shadow-sm transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
+                className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
                 style={{
                   transform: `translateX(calc(${hostingAgain ? 1 : 0} * (100% + 0.25rem)))`,
                 }}
@@ -165,11 +165,12 @@ export function Calculator() {
           </div>
 
           {/* THE ALBUM WALL (ratified V1): filled tiles are real event media,
-              clip tiles carry a mono timecode. Gallery grammar: 3px radius,
-              3px gaps. Watch your album fill up. */}
+              clip tiles carry a timecode. The gallery grammar is the album's
+              own tokens, the photograph's corner and the gap pinned to it,
+              never their pixels. Watch your album fill up. */}
           <div
             aria-hidden
-            className="mt-6 grid gap-[3px] rounded-xl border bg-background/40 p-3"
+            className="mt-6 grid gap-[var(--gap-gallery)] rounded-xl border bg-background/40 p-3"
             style={{
               gridTemplateColumns: `repeat(${WALL_COLS}, minmax(0, 1fr))`,
             }}
@@ -181,7 +182,7 @@ export function Calculator() {
               return (
                 <div
                   key={i}
-                  className="relative aspect-square overflow-hidden rounded-[3px] bg-muted"
+                  className="relative aspect-square overflow-hidden rounded-tile bg-muted"
                 >
                   {isFilled && !isClip && (
                     <Image
@@ -194,7 +195,7 @@ export function Calculator() {
                   )}
                   {isClip && (
                     <div className="flex size-full animate-in items-center justify-center bg-foreground duration-150 zoom-in-75 motion-reduce:animate-none">
-                      <span className="font-mono text-[7px] text-background">
+                      <span className="text-[7px] text-background tabular-nums">
                         {CLIP_TIMES[i % CLIP_TIMES.length]}
                       </span>
                     </div>
@@ -203,7 +204,7 @@ export function Calculator() {
               );
             })}
           </div>
-          <p className="mt-2 text-xs text-muted-foreground/60">
+          <p className="mt-2 text-xs text-faint">
             {formatBytes(bytes)} of the plan&apos;s {formatBytes(planCap)}
           </p>
 
@@ -213,7 +214,7 @@ export function Calculator() {
             className="mt-5 rounded-xl border bg-background/40 p-5"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <p className="font-heading text-lg">
+              <p className="font-heading text-subsection">
                 {rec.planId === "free"
                   ? "Free covers it"
                   : rec.planId === "event_pass"
@@ -228,14 +229,14 @@ export function Calculator() {
               {rec.reason}
             </p>
             {annualPlanFor(rec.planId) && (
-              <p className="mt-1.5 text-xs text-muted-foreground/70">
+              <p className="mt-1.5 text-xs text-faint">
                 Or {annualPlanFor(rec.planId)!.priceLabel} billed yearly, two
                 months free.
               </p>
             )}
 
             {rec.alternative && (
-              <p className="mt-3 text-xs text-pretty text-muted-foreground/70">
+              <p className="mt-3 text-xs text-pretty text-faint">
                 {rec.alternative}
               </p>
             )}

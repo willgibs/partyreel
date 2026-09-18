@@ -44,20 +44,32 @@ describe("the home section order", () => {
     ]);
   });
 
-  it("the hero can split the ruled thesis around its kinetic slot", () => {
-    // cinema-hero derives its H1 halves from SITE_THESIS.split("event") so the
-    // byte-pinned constant stays the only copy source; a thesis rewrite that
-    // drops the slot word must revisit the hero, not silently break it.
-    expect(SITE_THESIS.split("event")).toHaveLength(2);
+  it("the hero renders the ruled thesis whole", () => {
+    // Retuned at the hero's wiring round (2026-09-17). The hero used to derive
+    // its H1 halves from SITE_THESIS.split("event") for the kinetic slot; the
+    // slot retired with the wall and the headline is the byte-pinned constant
+    // rendered verbatim, so what matters now is that the thesis is ONE line
+    // short enough to hold the ladder's top step without a bespoke ramp.
+    expect(SITE_THESIS).not.toMatch(/\n/);
+    expect(SITE_THESIS.length).toBeLessThanOrEqual(64);
   });
 
-  it("the decomposition facts stay count-up parseable", () => {
-    // decomposition renders each pinned fact verbatim with its number
-    // animating: leading text, ONE integer, trailing text.
+  it("the decomposition facts stay pop-in parseable", () => {
+    // decomposition renders each pinned fact VERBATIM and animates every
+    // integer run inside it as its own digit group (splitFact there splits on
+    // the digit runs, so the parts always re-join to the constant). A fact may
+    // carry more than one number since Will's `counts=hero` pick put both
+    // counts on the band's first line, so the old "exactly one integer" shape
+    // is no longer the contract.
+    //
+    // What still breaks the grammar is a figure a READER sees as one number
+    // and the parser splits in two: "1,200" pops as 1 then 200, "3.5" as 3
+    // then 5. So the pin is: the band carries at least one number, and no
+    // digit run is joined to the next by a lone separator.
     const numeric = DECOMPOSITION_FACTS.filter((fact) => /\d/.test(fact));
     expect(numeric.length).toBeGreaterThan(0);
     for (const fact of numeric) {
-      expect(fact).toMatch(/^\D*\d+\D*$/);
+      expect(fact).not.toMatch(/\d[.,   ]\d/);
     }
   });
 });

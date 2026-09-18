@@ -80,7 +80,7 @@ describe("parseMediaIdFromKey", () => {
   });
 });
 
-describe("preservation keys (ADR-0020)", () => {
+describe("preservation keys (trust-safety-forensics.md)", () => {
   const EVENT_ID = "11111111-2222-3333-4444-555555555555";
   const MEDIA_ID = "0a8b3c2d-1e4f-4a6b-8c9d-0e1f2a3b4c5d";
 
@@ -117,7 +117,7 @@ describe("preservation keys (ADR-0020)", () => {
 });
 
 /**
- * ADR-0023 ruling 3: rendered reel .mp4 bytes are DELIBERATELY exempt from the host's storage
+ * billing-caps.md ruling 3: rendered reel .mp4 bytes are DELIBERATELY exempt from the host's storage
  * meter, and that exemption is only safe because the artifact count is bounded at ONE PER EVENT.
  * The bound is structural (a stable key, so a re-render overwrites in place) rather than metered,
  * so nothing else would notice if the key ever gained a hash, timestamp, or version segment: the
@@ -125,7 +125,7 @@ describe("preservation keys (ADR-0020)", () => {
  * re-rendering. This is the pin the ADR promises. If per-event reels ever become plural, the ADR
  * must be revisited BEFORE this test is changed.
  */
-describe("reelOutputKey (ADR-0023: one artifact per event, unmetered)", () => {
+describe("reelOutputKey (billing-caps.md: one artifact per event, unmetered)", () => {
   const EVENT_A = "11111111-2222-3333-4444-555555555555";
   const EVENT_B = "99999999-8888-7777-6666-555555555555";
 

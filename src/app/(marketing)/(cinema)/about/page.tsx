@@ -46,7 +46,7 @@ export const metadata: Metadata = {
  * ★ THAT ARC IS THE (cinema) GROUP'S, NOT A NEW ONE. This page opens on the
  * room and rides ONE PaperChapter, which is what /help and all six feature
  * pages already do; the group's layout brings the dark overlay nav, the dark
- * dropdowns, the dark overscroll and the #040404 browser chrome with it. The
+ * dropdowns, the dark overscroll and the #040405 browser chrome with it. The
  * round's first build reached the same picture from the paper side (a
  * (spotlight) group whose header wore a hand-assembled --gallery* set), and
  * the reason that direction is closed is measurable: such a set is always one
@@ -110,11 +110,11 @@ export default function AboutPage() {
         heading={ABOUT_HERO.wordmark}
         subhead={ABOUT_HERO.subhead}
         actions={
-          // h-11 px-6 text-base is the site's hero CTA size, shared verbatim
-          // with cinema-hero and CtaBand: this is the one control pair the page
+          // `size="cta"` is the site's hero CTA size (button.tsx), the same one
+          // cinema-hero and CtaBand wear: this is the one control pair the page
           // carries, so it matches the others exactly.
           <>
-            <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Button asChild size="cta">
               <Link
                 href={MARKETING_CTA.href}
                 {...trackAttrs("cta_click", {
@@ -125,12 +125,7 @@ export default function AboutPage() {
                 {MARKETING_CTA.label}
               </Link>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline">
               <Link href={ABOUT_HERO.secondaryHref}>
                 {ABOUT_HERO.secondaryLabel}
               </Link>
@@ -162,7 +157,7 @@ export default function AboutPage() {
         <SectionShell reveal="none" className="mkt-gather-clear pb-16 sm:pb-20">
           <div className="mx-auto max-w-[36rem]">
             <Eyebrow>{ABOUT_STORY.eyebrow}</Eyebrow>
-            <h2 className="mt-4 font-heading text-2xl text-balance sm:text-3xl">
+            <h2 className="mt-4 font-heading text-prose text-balance">
               {ABOUT_STORY.heading}
             </h2>
             <div className="mt-6 flex flex-col gap-5">
@@ -188,7 +183,7 @@ export default function AboutPage() {
         >
           <div className="max-w-2xl">
             <Eyebrow>{ABOUT_LEDGER.eyebrow}</Eyebrow>
-            <h2 className="mt-4 font-heading text-2xl text-balance sm:text-3xl">
+            <h2 className="mt-4 font-heading text-prose text-balance">
               {ABOUT_LEDGER.heading}
             </h2>
             <p className="mt-3 text-pretty text-muted-foreground">
@@ -207,7 +202,7 @@ export default function AboutPage() {
               >
                 {/* No text-balance on a 2-4 word heading in a grid cell: balance
                   can pick a worse break than the natural one at that length. */}
-                <h3 className="font-heading text-xl sm:text-2xl">{title}</h3>
+                <h3 className="font-heading text-subhead">{title}</h3>
                 <div>
                   <p className="text-[15px] leading-7 text-pretty text-muted-foreground">
                     {body}
@@ -235,7 +230,7 @@ export default function AboutPage() {
           is derived, never hardcoded, so it cannot outlive the open roles. */}
         <section className="border-t">
           <Container className="flex flex-col items-center gap-5 py-20 text-center sm:py-24">
-            <h2 className="max-w-2xl font-heading text-2xl text-balance sm:text-3xl">
+            <h2 className="max-w-2xl font-heading text-prose text-balance">
               {ABOUT_CAREERS.heading}
             </h2>
             <p className="max-w-xl text-pretty text-muted-foreground">
@@ -247,12 +242,7 @@ export default function AboutPage() {
               compete (its doctrine: the footer is the paper lane's one
               CONVERSION action). Same size as the hero's secondary, so the
               page's two action moments match. */}
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="mt-1 h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline" className="mt-1">
               <Link
                 href={ABOUT_CAREERS.href}
                 {...trackAttrs("cta_click", {

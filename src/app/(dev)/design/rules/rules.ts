@@ -33,13 +33,80 @@ export type ComponentRecord = {
   contracts: ContractRecord[];
 };
 
+/** A policy's reach; `engineering` is the carve-out that needs no bible rule. */
+export type PolicyScope =
+  | "global"
+  | "marketing"
+  | "guest"
+  | "host"
+  | "shared"
+  | "lab"
+  | "engineering";
+
+export const POLICY_SCOPES: PolicyScope[] = [
+  "global",
+  "marketing",
+  "guest",
+  "host",
+  "shared",
+  "lab",
+  "engineering",
+];
+
+export const POLICY_SCOPE_LABEL: Record<PolicyScope, string> = {
+  global: "Everywhere",
+  marketing: "The marketing site",
+  guest: "The guest surface",
+  host: "The host app",
+  shared: "Shared components",
+  lab: "The lab",
+  engineering: "Engineering (not design)",
+};
+
+export type PolicyRecord = {
+  /** Repo-relative, POSIX: the test that holds the line. */
+  file: string;
+  scope: PolicyScope;
+  /** The `@policy:` title, or the file stem as a sentence. */
+  title: string;
+  /** The `@refuses:` line: what a red gate on this file means. */
+  summary: string;
+  /** 1-based; the line the directive sits on. */
+  line: number;
+};
+
 export type RulesArtifact = {
   version: number;
   components: ComponentRecord[];
+  policies: PolicyRecord[];
 };
 
 export const RULES_ARTIFACT = artifact as RulesArtifact;
 export const COMPONENTS: ComponentRecord[] = RULES_ARTIFACT.components;
+
+/**
+ * Every `@policy:` test, in file order. The level between a contract (one
+ * component's function) and precedent (what merely shipped): an agent-written
+ * line held across the whole tree, and provisional by construction, since an
+ * agent wrote it (Will, 2026-09-01: "a good rule that prevents bad choices, or
+ * a bad system that prevents good choices?").
+ */
+export const POLICIES: PolicyRecord[] = RULES_ARTIFACT.policies;
+
+/** The policy id the library anchors on and `policy:<id>` refs resolve: the file stem. */
+export function policyId(file: string): string {
+  return (file.split("/").pop() ?? file).replace(/\.test\.tsx?$/, "");
+}
+
+export function policiesByScope(): [PolicyScope, PolicyRecord[]][] {
+  return POLICY_SCOPES.map(
+    (scope) =>
+      [scope, POLICIES.filter((p) => p.scope === scope)] as [
+        PolicyScope,
+        PolicyRecord[],
+      ],
+  ).filter(([, list]) => list.length > 0);
+}
 
 /** The files in the library's directories: what the /design index lists. */
 export const INDEXED: ComponentRecord[] = COMPONENTS.filter((c) => c.indexed);
@@ -84,5 +151,6 @@ export function countContracts() {
     contracted: CONTRACTED.length,
     contracts,
     contractFiles,
+    policies: POLICIES.length,
   };
 }

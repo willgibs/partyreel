@@ -38,7 +38,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * THE BLOG INDEX (the composite Will ruled on 2026-08-28, from the four blog-identity lab
- * directions, on the record at docs/decisions/design-record.md#blog-identity): the Cutting Room as the base, the Broadsheet's small masthead and drawn rule as the
+ * directions, on the record at git show 3ffe0d56:docs/decisions/design-record.md, #blog-identity): the Cutting Room as the base, the Broadsheet's small masthead and drawn rule as the
  * page intro (reading "Blog", his word), the margin index made STICKY, and the library as a two-
  * to-three column wall of media-forward cards instead of full-width slabs.
  *
@@ -197,7 +197,7 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
               filter the way the featured card does, and it keeps the document outline stable in
               every view. The article title below is an h2 at the article type ramp. */}
           <div className="flex items-baseline justify-between gap-4">
-            <h1 className="font-heading text-lg sm:text-xl">Blog</h1>
+            <h1 className="font-heading text-subsection">Blog</h1>
             <a
               href="/blog/feed.xml"
               className="group inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground"
@@ -261,7 +261,7 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
                     shares the row and an 80-char line can wrap once. */}
                 <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-3">
                   <div className="min-w-0">
-                    <h2 className="font-heading text-xl sm:text-2xl">
+                    <h2 className="font-heading text-subhead">
                       {activeTag ? activeTag.label : "The library"}
                     </h2>
                     <p
@@ -389,7 +389,7 @@ function Pager({
             <li
               key={`gap-${i}`}
               aria-hidden
-              className="px-1 text-sm text-muted-foreground/50"
+              className="px-1 text-sm text-faint"
             >
               &hellip;
             </li>
@@ -439,7 +439,7 @@ function PagerStep({
       className={cn(
         "px-2.5 py-1 text-sm transition-colors duration-150",
         disabled
-          ? "cursor-not-allowed text-muted-foreground/40"
+          ? "cursor-not-allowed text-faint"
           : "text-muted-foreground hover:text-foreground",
       )}
     >
@@ -558,9 +558,7 @@ function RailRow({
         )}
       />
       {label}
-      <span className="text-[11px] text-muted-foreground/70 tabular-nums">
-        {count}
-      </span>
+      <span className="text-[11px] text-faint tabular-nums">{count}</span>
     </button>
   );
 }
@@ -609,7 +607,7 @@ function FeaturedCard({ post }: { post: BlogListItem }) {
         <span className="text-[11px] font-medium tracking-[0.14em] text-white/70 uppercase">
           Latest
         </span>
-        <h2 className="line-clamp-3 max-w-3xl font-heading text-3xl leading-[1.05] text-balance text-white sm:text-4xl md:text-5xl lg:text-6xl">
+        <h2 className="line-clamp-3 max-w-3xl font-heading text-chapter text-balance text-white">
           {post.title}
         </h2>
         <span className="hidden max-w-xl text-sm text-pretty text-white/75 sm:block">

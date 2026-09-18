@@ -13,9 +13,10 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
  * /features/qr paper section 1: THE PRINT SHOP. Two physical artifacts (a
  * table card and a poster corner) mocked as white print stock on the paper
  * chapter, plus the download truth (PNG or SVG) and the help center's
- * test-scan tip as a mono note. Print mocks stay achromatic ink-on-white (the
- * scanner-safest pairing, per qr-presets.ts); shadow-float is the paper
- * theme's real elevation, so the pieces read as stock laid on the desk.
+ * test-scan tip as a quiet note. Print mocks stay achromatic ink-on-white (the
+ * scanner-safest pairing, per qr-presets.ts); both pieces wear shadow-lift
+ * because both really overlap something (the table card lies on the poster,
+ * and the poster overhangs the cut), which is the small shadow's only case.
  *
  * THE PAPER CHAPTER'S OPENER (the feature-pages round): THE STRADDLE. At lg+
  * the print stock overhangs the cinema -> paper cut, so the welcome sign's
@@ -51,7 +52,7 @@ export function PrintShop() {
           <Eyebrow {...rise(0)}>Print it</Eyebrow>
           <h2
             {...rise(1)}
-            className="font-heading text-3xl text-balance sm:text-4xl"
+            className="font-heading text-section text-balance"
           >
             It was made to be printed.
           </h2>
@@ -86,7 +87,7 @@ function PrintMocks() {
           like the table card in front of it: type, then code, on one axis. */}
       <div
         data-mkt-reveal
-        className="absolute top-0 left-0 w-64 rotate-1 overflow-hidden rounded-lg border bg-white p-6 text-center text-neutral-900 shadow-[var(--shadow-float)] sm:w-72"
+        className="absolute top-0 left-0 w-64 rotate-1 overflow-hidden rounded-lg border bg-white p-6 text-center text-neutral-900 shadow-lift sm:w-72"
         style={{ "--i": 0 } as CSSProperties}
       >
         <p className="font-heading text-3xl leading-tight text-balance">
@@ -107,7 +108,7 @@ function PrintMocks() {
       {/* The table card, laid over the poster's lower corner (never its copy). */}
       <div
         data-mkt-reveal
-        className="relative mt-32 ml-24 w-52 -rotate-3 rounded-lg border bg-white p-5 text-center text-neutral-900 shadow-[var(--shadow-float)] sm:mt-28 sm:ml-48"
+        className="relative mt-32 ml-24 w-52 -rotate-3 rounded-lg border bg-white p-5 text-center text-neutral-900 shadow-lift sm:mt-28 sm:ml-48"
         style={{ "--i": 1 } as CSSProperties}
       >
         <div className="mx-auto w-fit rounded-md bg-white">
@@ -118,7 +119,7 @@ function PrintMocks() {
           />
         </div>
         <p className="mt-3 font-heading text-base">Scan to add your photos</p>
-        <p className="mt-1 font-mono text-[11px] tracking-wide text-neutral-500">
+        <p className="mt-1 text-[11px] tracking-wide text-neutral-500">
           Maya &amp; Jay&rsquo;s Wedding
         </p>
       </div>

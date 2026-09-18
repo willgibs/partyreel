@@ -3,10 +3,7 @@ import type { CSSProperties } from "react";
 
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import {
-  MAX_REEL_SECONDS,
-  planById,
-} from "@/lib/constants/tiers";
+import { MAX_REEL_SECONDS, planById } from "@/lib/constants/tiers";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
@@ -65,12 +62,12 @@ export function UnlockGrid() {
               <tile.icon className="size-4" strokeWidth={1.75} />
             </span>
             <div className="flex flex-1 flex-col gap-1.5">
-              <h3 className="font-heading text-base">{tile.title}</h3>
+              <h3 className="font-heading text-subsection">{tile.title}</h3>
               <p className="text-sm text-pretty text-muted-foreground">
                 {tile.body}
               </p>
             </div>
-            <p className="text-xs text-muted-foreground/60">{tile.freeLine}</p>
+            <p className="text-xs text-faint">{tile.freeLine}</p>
           </div>
         ))}
       </Reveal>

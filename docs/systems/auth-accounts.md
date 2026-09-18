@@ -38,7 +38,7 @@ one `profiles` row per signup.
 - Supabase's **OAuth Server** (project-as-IdP beta toggle) stays **OFF** — Partyreel is a client of Google
   OAuth, not an IdP.
 - **`profiles` is host-writable only on `email`, `announcements_seen_at`, `welcomed_at`** (the `grant
-  update(...)` allowlist); `display_name` (Phase 1: client UPDATE revoked, see the display-name gotcha below),
+  update(...)` allowlist); `display_name` (client UPDATE revoked, see the display-name gotcha below),
   `tier` / `storage_*` / `is_admin` / `stripe_*` / `avatar_updated_at` / `password_set_at` are service-role /
   webhook only. → [database-security.md](database-security.md).
 - The password hash never leaves the DB: `has_password` / `verify_current_password` are authenticated-only
@@ -51,7 +51,7 @@ one `profiles` row per signup.
   sweep, and only at ZERO remaining events** — that FK chain is `auth.users → profiles → events → media`, all
   CASCADE, so deleting it early destroys the `original_key`/`preview_key` rows the R2 delete still needs; the
   zero check is a `mustCount`, because a failed count reads as a confident zero. A **forensic hold** on any of
-  the account's own events outranks the request (ADR-0020): that event is skipped whole, the account never
+  the account's own events outranks the request: that event is skipped whole, the account never
   reaches zero, and it waits anonymised until the hold lifts. `guests.user_id` / `media.guest_id` are
   `ON DELETE SET NULL`, so the account's uploads to OTHER hosts' events survive, unlinked — that is the FK, not
   app code, and it is the promise `/privacy` makes.
@@ -71,6 +71,23 @@ one `profiles` row per signup.
   see the `/account` CHANGE form asking for a current password they don't have. Fix: a service-role
   `profiles.password_set_at`, stamped by **`mark_password_set()`** which the client calls right after every
   successful `updateUser({password})`; `has_password()` reads the flag (migration `…210158`).
+- **Ownership is proven BEFORE a password is ever written, and there is no `signUp({email,password})`.**
+  Every path is the same shape: prove the email (a fresh OTP verify, or an already-live session), then
+  `updateUser({ password })`. Creating an account runs the ordinary OTP sign-in first; a Google or
+  magic-link host adds a password from `/account` on their live session, which is the proof; "forgot"
+  reuses the OTP sign-in and lands on `/account?reset=1`. `signUp({email,password})` is avoided
+  deliberately (it carries anti-enumeration quirks and its own "Confirm signup" verify type, and it would
+  write a password before the address is proven), and there is NO Supabase recovery template and no
+  `type:'recovery'` branch to maintain, because a verified OTP already yields a live session. Accepted
+  edge: in create or forgot, tapping the magic LINK instead of typing the code leaves the page for
+  `/auth/callback`, so the held intent is lost and the host lands password-less; the UI leads with the
+  code for that reason.
+- **The email OTP leads with the CODE, and the magic link is the fallback.** One Supabase email carries
+  both. An iPhone PWA opens a tapped link in Safari rather than the installed app, which strands a
+  mid-flow guest or host outside the session they just created; `verifyOtp({ type: 'email' })` needs no
+  redirect at all. The shared [`email-sign-in.tsx`](../../src/components/auth/email-sign-in.tsx) owns NO
+  navigation: its caller's `onVerified` decides (host to the dashboard, guest to a `router.refresh()`),
+  which is why the host login, the guest entry gate and the save dialog can all reuse it unchanged.
 - **`updateUser({password})` runs on the BROWSER client** (it rotates the session; the browser cookie write
   is unconditional). The current-password re-check before a CHANGE is the `verify_current_password` RPC
   (READ-only → no session disruption); a first-time SET needs only the session.
@@ -83,6 +100,10 @@ one `profiles` row per signup.
   forces a reauth nonce → breaks the `verify_current_password` design) and "Require current password" OFF;
   "Minimum password length" must equal `MIN_PASSWORD_LENGTH` (8); "Email OTP Length" must equal `OTP_LENGTH`
   (6) in [`email-sign-in.tsx`](../../src/components/auth/email-sign-in.tsx); enable leaked-password protection.
+  Both email templates must carry `{{ .Token }}` alongside `{{ .ConfirmationURL }}` (Magic Link and Confirm
+  signup), or the code-first flow ships an email with no code in it, and "Allow new user signups" must stay
+  ON or account creation dies at the first OTP. The apex `https://partyreel.com/auth/callback**` entry in
+  the redirect allow-list is what lets a guest magic link carry its `?next=/e/[token]` back.
 - **Avatars are deterministic + orphan-free by construction.** The cropper re-encodes to a 512px WebP
   client-side → `POST /api/account/avatar` (validated server-side: content-type + size + magic-byte WebP
   sniff, so no SVG/XSS) → a DETERMINISTIC object `<id>/avatar.webp` in the **public Supabase Storage
@@ -95,7 +116,7 @@ one `profiles` row per signup.
   ([`getHostAvatarUrl`](../../src/lib/db/queries/guest-events-admin.ts)) keyed on `events.host_id` — no
   anon-RPC change. Bytes ride Supabase infra durability (separate from the R2 media WORM backup), not pg_dump;
   derivable, so that's by design.
-- **Display name is REQUIRED, public, and service-role-write-only (Phase 1, ADR-0015).** `handle_new_user`
+- **Display name is REQUIRED, public, and service-role-write-only.** `handle_new_user`
   leaves `display_name` NULL for ALL signups (incl. OAuth — it no longer copies `full_name`/`name`), so null
   genuinely means "not set"; the host onboarding step + the guest upload name step then collect it, PREFILLING
   the input from `user_metadata.full_name` for OAuth (so even a Google name passes through the one filter). The
@@ -117,4 +138,4 @@ one `profiles` row per signup.
 
 ## See also
 
-[ADR-0011](../adr/0011-email-password-auth.md) (email+password) · [ADR-0008](../adr/0008-account-from-guest-verified-email.md) (account-from-guest) · [database-security.md](database-security.md) · [admin-observability.md](admin-observability.md) (the MFA/AAL2 gate reuses this).
+[guest-flow.md](guest-flow.md) (account-from-guest: the guest side of the same sign-in) · [database-security.md](database-security.md) · [admin-observability.md](admin-observability.md) (the MFA/AAL2 gate reuses this).

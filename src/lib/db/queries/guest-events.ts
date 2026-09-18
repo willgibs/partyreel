@@ -1,6 +1,6 @@
 /**
  * Guest-facing reads for the `/e/[qr_token]` event page. Anonymous: the opaque
- * qr_token IS the capability (ADR-0004), so there's no `getUser()` here — the
+ * qr_token IS the capability (database-security.md), so there's no `getUser()` here — the
  * SECURITY DEFINER RPCs filter `deleted_at` and return only guest-safe fields.
  */
 import "server-only";
@@ -14,8 +14,8 @@ import { createClient } from "@/lib/supabase/server";
 
 export type GuestEvent = {
   id: string;
-  // The CANONICAL permanent capability (ADR-0004). This page may be reached via a custom
-  // slug alias (ADR-0012), so every downstream qr_token-keyed call — the gallery poll,
+  // The CANONICAL permanent capability (database-security.md). This page may be reached via a custom
+  // slug alias (host-app.md), so every downstream qr_token-keyed call — the gallery poll,
   // create_guest, save_event, create_report, verify_event_password — MUST use this, NOT
   // the route param (those RPCs match qr_token only; a slug would resolve to nothing).
   qr_token: string;
@@ -142,7 +142,7 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
 });
 
 /**
- * The fields the gallery needs (keys stay server-side, ADR-0003). Dimensions +
+ * The fields the gallery needs (keys stay server-side, uploads-and-r2.md). Dimensions +
  * duration feed the masonry tiles / video badges (Phase 4); they're WRITE-ONCE
  * at create_media (mutations only ever flip status fields), so they're stable
  * per id. Nullable: pre-measure-era rows and failed client measures are null

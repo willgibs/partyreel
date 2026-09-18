@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * THE GUEST REEL CARD — the reel's face on /e/, and the door to the watch overlay (R3, ADR-0022).
+ * THE GUEST REEL CARD — the reel's face on /e/, and the door to the watch overlay (R3, guest-flow.md).
  *
  * The card IS the host's poster card (components/reel/poster-card): same frame, same gradient, same
  * name treatment, same violet meta line. That continuity is the product point ("what the host made is
@@ -113,14 +113,14 @@ export function GuestReelCard({
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Watch the reel from ${eventName}`}
-        className="block w-full text-left outline-none transition-transform duration-150 ease-emphasis active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:active:scale-100"
+        className="block w-full text-left transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] motion-reduce:active:scale-100"
       >
         <PosterCard
           eventName={eventName}
           meta={meta}
           chip={<PosterCardChip />}
           playBadge
-          nameClassName={hero ? "text-2xl" : undefined}
+          nameClassName={hero ? "text-page" : undefined}
           media={<ReelCoverStill coverUrl={payload.coverUrl} />}
         />
       </button>

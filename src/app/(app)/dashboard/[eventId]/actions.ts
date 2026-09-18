@@ -210,7 +210,7 @@ export async function purgeMediaNowAction(
 }
 
 /**
- * The reel publish switch (R3, ADR-0022 ruling 1) — the ONE seam the share card, the reveal's
+ * The reel publish switch (R3, guest-flow.md ruling 1) — the ONE seam the share card, the reveal's
  * settled "Share with guests", and the Studio header all call. The RPC authorizes internally
  * (auth.uid() + host-owns-event) on the USER client — defense in depth over RLS, same as the other
  * reel writes. NO notification here by ruling (2026-07-30): reel-published emails are R5's round;
@@ -280,7 +280,8 @@ export async function setReelGuestVisibleAction(
       ok: false,
       reason,
       message:
-        PUBLISH_MESSAGES[reason] ?? "Couldn't update sharing. Please try again.",
+        PUBLISH_MESSAGES[reason] ??
+        "Couldn't update sharing. Please try again.",
     };
   }
 

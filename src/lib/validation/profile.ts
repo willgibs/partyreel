@@ -36,7 +36,7 @@ export type DisplayNameInput = z.infer<typeof displayNameSchema>;
 export const PROFILE_SLUG_MIN_LENGTH = 3;
 export const PROFILE_SLUG_MAX_LENGTH = 30;
 
-// Public profile handle for /u/[slug] (ADR-0019: a profile is public by
+// Public profile handle for /u/[slug] (profiles-social.md: a profile is public by
 // existence; the slug is just its address). Normalized to lowercase then
 // validated, mirroring eventSlugSchema. Two reserved lists apply: RESERVED_SLUGS
 // (route/brand words like "admin", "api") because /u/ is another public URL

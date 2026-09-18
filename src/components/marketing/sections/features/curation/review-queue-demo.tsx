@@ -11,7 +11,7 @@ import {
 } from "react";
 
 import { BrowserFrame } from "@/components/marketing/frames";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Button } from "@/components/ui/button";
@@ -111,13 +111,13 @@ export function ReviewQueueDemo() {
         <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
           <QueueStage key={runId} onReplay={() => setRunId((n) => n + 1)} />
         </div>
-        <MonoCaption
+        <Caption
           data-mkt-reveal
           className="mt-4 text-center"
           style={{ "--i": 3 } as CSSProperties}
         >
           the host view · hidden items land dimmed, and only you see them
-        </MonoCaption>
+        </Caption>
       </Reveal>
     </SectionShell>
   );
@@ -515,7 +515,7 @@ function ClearedBeat({ onReplay }: { onReplay: () => void }) {
       <span className="flex size-14 items-center justify-center rounded-full bg-success text-success-foreground">
         <Check className="size-7" />
       </span>
-      <p className="font-heading text-lg">All caught up</p>
+      <p className="font-heading text-subsection">All caught up</p>
       <Button type="button" variant="ghost" size="sm" onClick={onReplay}>
         <RotateCcw /> Replay
       </Button>

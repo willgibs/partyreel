@@ -6,7 +6,7 @@
 //   download = a GUEST's read path: NO write, NO render, NO mint. It can only ever hand back a
 //              presigned GET of an mp4 the host already produced, or a refusal.
 //
-// The request carries only `qr_token`, deliberately: the token IS the capability (ADR-0004), and the
+// The request carries only `qr_token`, deliberately: the token IS the capability (database-security.md), and the
 // route re-derives the event + gallery access from it rather than trusting any client-supplied event id
 // or publish state.
 //

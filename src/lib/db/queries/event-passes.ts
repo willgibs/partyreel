@@ -1,5 +1,5 @@
 /**
- * Event Pass ledger reads (ADR-0025). The table is RLS deny-all (service-role
+ * Event Pass ledger reads (billing-caps.md). The table is RLS deny-all (service-role
  * only), so every read goes through the admin client AFTER the caller's own auth
  * gate — the same posture as getEventGuestList. Never expose raw rows to the
  * browser; surfaces get derived facts (counts, expiry, credit) only.

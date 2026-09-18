@@ -17,7 +17,7 @@ import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 /**
  * Every media column EXCEPT legal_hold_at / legal_hold_reason. SELECT on media is COLUMN-scoped at
- * the DB (migration 20260707150000): a legal hold must be invisible to the owning host (ADR-0020
+ * the DB (migration 20260707150000): a legal hold must be invisible to the owning host (trust-safety-forensics.md
  * discretion — the host may BE the investigated uploader), so the authenticated grant excludes the
  * hold columns and a `select("*")` from the RLS client ERRORS at runtime. Single source for the
  * host-side media reads; a Vitest parity test pins this list to the migration's grant. Adding a
@@ -32,7 +32,7 @@ export const MEDIA_HOST_COLUMNS =
 // read it — and shouldn't (it records OUR sweep's action, not the host's). Verified live:
 // has_column_privilege('authenticated','public.media','removed_by_system','SELECT') = false.
 // `removed_by_admin` + `status_before_removed` (QA #8/#24, migration 20260729180000) join them for
-// the same reason: an operator takedown carries the ADR-0020 discretion posture (the host may BE
+// the same reason: an operator takedown carries the trust-safety-forensics.md discretion posture (the host may BE
 // the reported party), and the prior-status stamp is machinery, not host-facing state. Types.ts
 // will list all three after the post-apply regen — that is exactly when this Omit earns its keep.
 export type MediaRow = Omit<

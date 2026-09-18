@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 // opt-in + HOST-ONLY (guest galleries have no provider). Visually distinct from Like: a Clapperboard
 // glyph that turns the --reel VIOLET when in-reel (vs the like rose).
 //
-// ★ There used to be a second "row" variant, the hover-revealed chip on every gallery tile. ADR-0024
+// ★ There used to be a second "row" variant, the hover-revealed chip on every gallery tile. host-app.md
 // removed it: a five-chip hover fan on a dense masonry grid is a misclick trap, and reel membership is
 // not a per-card decision. The reel is curated in ONE of three places now (the lightbox, where you are
 // already looking at the moment; gallery bulk-Select; and the Studio's Moments picker, the primary

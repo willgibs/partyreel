@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 /**
  * THE PRESS PAGE, built as THE CONTACT SHEET (Will's ruling, 2026-08-28, over the
  * specimen-sheet alternative: "focusing press around the assets and quick hit points").
- * The explored range is on the record: docs/decisions/design-record.md#press-identity.
+ * The explored range is on the record: git show 3ffe0d56:docs/decisions/design-record.md, #press-identity.
  *
  * ★ THIS PAGE LIVES IN (cinema), NOT (paper), and the reason is the NAV. A dark hero has
  * to be paired with a dark nav (Will), and the header skin is chosen by the group layout,
@@ -153,22 +153,17 @@ export default function PressPage() {
         }
         actions={
           <>
-            <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Button asChild size="cta">
               <a href={PRESS_KIT_ZIP} download>
                 Download kit
                 {/* The size, not the count: "how big is this" is the question a reporter
                     on a hotel connection actually has (Will). */}
-                <span className="ml-1 font-mono text-[11px] opacity-60">
+                <span className="ml-1 text-[11px] tabular-nums opacity-60">
                   {formatKitBytes(PRESS_KIT_BYTES)}
                 </span>
               </a>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline">
               <Link href="/contact">Contact</Link>
             </Button>
           </>
@@ -279,7 +274,7 @@ export default function PressPage() {
                   <dd
                     className={cn(
                       "text-sm text-pretty text-muted-foreground",
-                      isTabular(value) && "font-mono text-[13px]",
+                      isTabular(value) && "text-[13px] tabular-nums",
                     )}
                   >
                     {href ? (
@@ -303,14 +298,14 @@ export default function PressPage() {
             centered block rather than another left-aligned one. */}
         <section className="border-t py-20 sm:py-24">
           <Container className="flex flex-col items-center gap-5 text-center">
-            <h2 className="max-w-2xl font-heading text-2xl text-balance sm:text-3xl">
+            <h2 className="max-w-2xl font-heading text-prose text-balance">
               Need anything else?
             </h2>
             <p className="max-w-xl text-pretty text-muted-foreground">
               Interviews, higher-resolution assets, or a walkthrough of the
               product. {REPLY_LINE}
             </p>
-            <Button asChild size="lg" className="mt-2 h-11 px-6 text-base">
+            <Button asChild size="cta" className="mt-2">
               <Link href="/contact">Send a message</Link>
             </Button>
           </Container>

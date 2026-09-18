@@ -4,36 +4,58 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Check, Copy, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 
-import type { TunerControl } from "@/components/dev/motion-tuner-config";
+import {
+  TUNER_GROUP_LABEL,
+  type TunerControl,
+  type TunerGroup,
+} from "@/components/dev/motion-tuner-config";
+import { useTunerCandidate } from "@/components/dev/candidate-style";
+import {
+  clearCandidate,
+  clearTunerValues,
+  getTunerServerSnapshot,
+  getTunerSnapshot,
+  hydrateTuner,
+  setTunerValue,
+  subscribeTuner,
+  type TunerValue,
+} from "@/components/dev/tuner-store";
 
 /**
- * A dev-only, design-key-gated motion tuning panel (S4·0) — the harness that
- * makes "build-direct + tune-live" (Will, 2026-06-21) work: finetune the polish
- * timings LIVE on the real (prod) host event page, no rebuild loop.
+ * A dev-only, design-key-gated tuning panel (S4·0; rebuilt for the rounding
+ * and tweaking GUI round, 2026-09-14): the harness that makes "build-direct +
+ * tune-live" (Will, 2026-06-21) work: finetune the polish timings and the
+ * radius tokens LIVE on the real pages, no rebuild loop.
  *
  * HOW IT WORKS: each control binds to a CSS custom property written as an
- * inline style on the element that OWNS that token; the polish CSS reads
- * `var(--tune-x, <baked default>)`, so the panel is a pure NO-OP until a control
- * moves, and unmount (navigation/reload) clears every var it set.
+ * inline style on the element that OWNS that token (tunerScope below); the CSS
+ * reads `var(--tune-x, <baked default>)` or the token itself, so the panel is a
+ * pure NO-OP until a control moves. The working set lives in tuner-store.ts
+ * (persisted, hydrated once, re-applied on every mount), so a value survives a
+ * Replay, a navigation out of the cinema group and a reload; Reset is what
+ * clears it, and the badge on the collapsed pill always counts what stands.
  *
  * ★ WRITE TARGET IS NOT ALWAYS <html> (fixed 2026-08-28, caught while wiring the
  * nav knobs). The app's --tune-* tokens are only ever var() fallbacks, so an
  * inline value on <html> inherits down and wins. The marketing --mkt-* tokens
  * are DECLARED on the [data-mkt] wrapper (marketing.css's containment contract
  * forbids :root), and a declaration on a descendant beats an inherited value
- * from an ancestor no matter how specific that ancestor's rule is — so every
- * --mkt-* knob written to <html> was silently doing nothing. Verified live:
- * setting --mkt-reveal-ms on <html> left the [data-mkt] scope reading .7s.
- * tunerScope() routes each var to the element that actually declares it. Drag -> feel it -> "Copy CSS" ->
- * bake the value as the globals.css default -> "Reset". In-house on purpose (no
- * lil-gui/leva prod dep), tailored to CSS-var tuning, config-driven so each
- * polish increment adds knobs without touching this file.
+ * from an ancestor no matter how specific that ancestor's rule is, so every
+ * --mkt-* knob written to <html> was silently doing nothing. tunerScope()
+ * routes each var to the element that actually declares it. Drag -> feel it ->
+ * "Copy CSS" -> bake the value as the default -> "Reset". In-house on purpose
+ * (no lil-gui/leva prod dep), tailored to CSS-var tuning, config-driven so each
+ * increment adds knobs without touching this file.
+ *
+ * Every knob shows its description and where it ships (Will, 2026-09-12: "some
+ * of the labels aren't very clear"), grouped; a knob without a specimen is not
+ * on the panel (motion-tuner-config.ts).
  *
  * GATING: the SERVER page that mounts this checks isDesignGateOpen() (see
- * src/lib/design-gate/server.ts) — opt-in via `?key=`, dev-open, prod requires the
- * timing-safe match. So this component never renders for a real host; it only
- * appears for a designer who arrived with the key. It still ships in the prod
- * bundle (tiny + inert) BY DESIGN, because tune-live happens on partyreel.com.
+ * src/lib/design-gate/server.ts), or the cinema layout's island asks
+ * /api/design-gate; so this never renders for a real host. It still ships in
+ * the prod bundle (tiny + inert) BY DESIGN, because tune-live happens on
+ * partyreel.com.
  *
  * Portaled to <body> so it floats above the route-fade transform (a transformed
  * ancestor breaks position:fixed) and above the focused-review Dialog (z-50);
@@ -41,12 +63,12 @@ import type { TunerControl } from "@/components/dev/motion-tuner-config";
  * ThemeToggle) without a set-state-in-effect.
  */
 
-function controlCssValue(control: TunerControl, raw: number | string): string {
+function controlCssValue(control: TunerControl, raw: TunerValue): string {
   return control.kind === "range" ? `${raw}${control.unit}` : String(raw);
 }
 
-/** The element an override has to be written on to actually take effect — see
- *  the WRITE TARGET note above. Falls back to <html> if the marketing wrapper
+/** The element an override has to be written on to actually take effect (see
+ *  the WRITE TARGET note above). Falls back to <html> if the marketing wrapper
  *  isn't on the page (then the var is a plain fallback and inheritance works). */
 function tunerScope(cssVar: string): HTMLElement {
   if (cssVar.startsWith("--mkt-")) {
@@ -54,6 +76,17 @@ function tunerScope(cssVar: string): HTMLElement {
     if (scope) return scope;
   }
   return document.documentElement;
+}
+
+function write(control: TunerControl, raw: TunerValue) {
+  tunerScope(control.cssVar).style.setProperty(
+    control.cssVar,
+    controlCssValue(control, raw),
+  );
+}
+
+function erase(control: TunerControl) {
+  tunerScope(control.cssVar).style.removeProperty(control.cssVar);
 }
 
 // SSR-safe "are we on the client yet" without set-state-in-effect (the lab's
@@ -72,60 +105,82 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
   const [open, setOpen] = useState(true);
   const [side, setSide] = useState<"right" | "left">("right");
   const [copied, setCopied] = useState(false);
-  // Raw control values (number for range, string for select). Initialized to the
-  // baked defaults (no DOM read -> SSR-safe); writes push to the <html> inline
-  // style on change only.
-  const [values, setValues] = useState<Record<string, number | string>>(() =>
-    Object.fromEntries(controls.map((c) => [c.cssVar, c.default])),
+  const overrides = useSyncExternalStore(
+    subscribeTuner,
+    getTunerSnapshot,
+    getTunerServerSnapshot,
   );
+  const candidate = useTunerCandidate();
 
-  // Clear every var we set on unmount (navigation/reload) so the inline overrides
-  // never outlive the panel and silently mask the baked defaults. Cleanup-only ->
-  // no set-state-in-effect.
+  // Apply the working set to the DOM on every mount and on every change: a
+  // fresh [data-mkt] wrapper after a navigation, a remount after a Replay, a
+  // reload (hydrate reads the store once). Cleanup erases nothing, on purpose:
+  // the store, not the panel, owns the values; Reset erases.
+  // The shell reads where the panel is (the Library x Lab round, 2026-09-15):
+  // `data-lab-panel` names the side it sits on and `--lab-panel-w` its width,
+  // so design.css can pad a wide board page clear of it on a desktop window
+  // (at 375 the answer is to collapse the panel, not to squeeze the board).
+  // Cleared on unmount, like the dock clears --board-dock-h.
   useEffect(() => {
+    const html = document.documentElement;
+    if (open) {
+      html.setAttribute("data-lab-panel", side);
+      html.style.setProperty("--lab-panel-w", "20rem");
+    } else {
+      html.removeAttribute("data-lab-panel");
+      html.style.setProperty("--lab-panel-w", "0px");
+    }
     return () => {
-      for (const c of controls)
-        tunerScope(c.cssVar).style.removeProperty(c.cssVar);
+      html.removeAttribute("data-lab-panel");
+      html.style.removeProperty("--lab-panel-w");
     };
-  }, [controls]);
+  }, [open, side]);
+
+  useEffect(() => {
+    hydrateTuner();
+    const set = getTunerSnapshot();
+    for (const c of controls) {
+      const v = set[c.cssVar];
+      if (v === undefined) erase(c);
+      else write(c, v);
+    }
+  }, [controls, overrides]);
 
   if (!mounted) return null;
 
-  function update(control: TunerControl, raw: number | string) {
-    setValues((v) => ({ ...v, [control.cssVar]: raw }));
-    tunerScope(control.cssVar).style.setProperty(
-      control.cssVar,
-      controlCssValue(control, raw),
-    );
+  const valueOf = (c: TunerControl): TunerValue =>
+    overrides[c.cssVar] ?? c.default;
+  const changed = controls.filter((c) => overrides[c.cssVar] !== undefined);
+
+  function update(control: TunerControl, raw: TunerValue) {
+    setTunerValue(control, raw);
+    if (raw === control.default) erase(control);
+    else write(control, raw);
     setCopied(false);
   }
 
   function reset() {
-    for (const c of controls)
-      tunerScope(c.cssVar).style.removeProperty(c.cssVar);
-    setValues(Object.fromEntries(controls.map((c) => [c.cssVar, c.default])));
+    for (const c of controls) erase(c);
+    clearTunerValues(controls);
     setCopied(false);
   }
 
-  // Only the controls moved off their default — exactly what to bake.
-  function changedControls() {
-    return controls.filter((c) => values[c.cssVar] !== c.default);
-  }
-
   async function copyCss() {
-    const changed = changedControls();
     // --mkt-* tokens bake onto [data-mkt] in marketing.css, never :root (the
-    // containment contract), so they get their own block — a `:root {}` block
+    // containment contract), so they get their own block; a `:root {}` block
     // would be dead the moment it was pasted, for the same reason the writes
-    // above needed a scope.
-    const block = (selector: string, list: TunerControl[]) =>
-      list.length === 0
-        ? ""
-        : `${selector} {\n${list
-            .map(
-              (c) => `  ${c.cssVar}: ${controlCssValue(c, values[c.cssVar])};`,
-            )
-            .join("\n")}\n}`;
+    // above needed a scope. Inside a block the lines are grouped like the panel.
+    const block = (selector: string, list: TunerControl[]) => {
+      if (list.length === 0) return "";
+      const groups = [...new Set(list.map((c) => c.group))];
+      const lines = groups.flatMap((g) => [
+        `  /* ${TUNER_GROUP_LABEL[g]} */`,
+        ...list
+          .filter((c) => c.group === g)
+          .map((c) => `  ${c.cssVar}: ${controlCssValue(c, valueOf(c))};`),
+      ]);
+      return `${selector} {\n${lines.join("\n")}\n}`;
+    };
     const text =
       changed.length === 0
         ? ":root {\n  /* no changes from the baked defaults */\n}"
@@ -151,11 +206,11 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
     }
   }
 
-  const changedCount = changedControls().length;
+  const groups = [...new Set(controls.map((c) => c.group))] as TunerGroup[];
 
   const panel = (
     <div
-      className={`fixed bottom-3 z-[9999] font-mono text-[11px] ${
+      className={`fixed bottom-3 z-[9999] text-[11px] ${
         side === "right" ? "right-3" : "left-3"
       }`}
       // Dev tool: keep it visually distinct from product chrome and never let it
@@ -163,10 +218,15 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
       data-motion-tuner
     >
       {open ? (
-        <div className="w-64 rounded-lg border border-white/15 bg-neutral-900/95 text-neutral-100 shadow-xl backdrop-blur-sm">
+        <div className="w-80 rounded-lg border border-white/15 bg-neutral-900/95 text-neutral-100 shadow-xl backdrop-blur-sm">
           <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
             <span className="flex items-center gap-1.5 font-semibold tracking-tight">
-              <SlidersHorizontal className="size-3.5" /> Motion tuner
+              <SlidersHorizontal className="size-3.5" /> Tuner
+              {changed.length > 0 && (
+                <span className="rounded-full bg-amber-400 px-1.5 text-[10px] font-semibold text-neutral-900 tabular-nums">
+                  {changed.length}
+                </span>
+              )}
             </span>
             <div className="flex items-center gap-1">
               <button
@@ -190,53 +250,86 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
             </div>
           </div>
 
-          <div className="max-h-[60vh] space-y-3 overflow-y-auto px-3 py-3">
+          {candidate && (
+            <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-amber-400/10 px-3 py-2">
+              <span className="min-w-0 truncate text-amber-200">
+                Candidate on the site: {candidate.label}
+              </span>
+              <button
+                type="button"
+                onClick={clearCandidate}
+                className="shrink-0 rounded px-1.5 py-0.5 text-neutral-300 hover:bg-white/10 hover:text-neutral-100"
+                title="Take the candidate block off the site (the board that applied it can apply it again)"
+              >
+                clear
+              </button>
+            </div>
+          )}
+
+          <div className="max-h-[64vh] space-y-4 overflow-y-auto px-3 py-3">
             {controls.length === 0 && (
               <p className="text-neutral-400">No knobs wired yet.</p>
             )}
-            {controls.map((c) => {
-              const changed = values[c.cssVar] !== c.default;
-              return (
-                <div key={c.cssVar} className="space-y-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <label className="text-neutral-300">{c.label}</label>
-                    <span
-                      className={
-                        changed ? "text-amber-300" : "text-neutral-500"
-                      }
-                    >
-                      {c.kind === "range"
-                        ? `${values[c.cssVar]}${c.unit}`
-                        : c.options.find((o) => o.value === values[c.cssVar])
-                            ?.label}
-                    </span>
-                  </div>
-                  {c.kind === "range" ? (
-                    <input
-                      type="range"
-                      min={c.min}
-                      max={c.max}
-                      step={c.step}
-                      value={Number(values[c.cssVar])}
-                      onChange={(e) => update(c, Number(e.target.value))}
-                      className="w-full accent-amber-400"
-                    />
-                  ) : (
-                    <select
-                      value={String(values[c.cssVar])}
-                      onChange={(e) => update(c, e.target.value)}
-                      className="w-full rounded border border-white/15 bg-neutral-800 px-1.5 py-1 text-neutral-100"
-                    >
-                      {c.options.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-              );
-            })}
+            {groups.map((g) => (
+              <section key={g} className="space-y-2.5">
+                <h3 className="text-[10px] font-semibold tracking-widest text-neutral-500 uppercase">
+                  {TUNER_GROUP_LABEL[g]}
+                </h3>
+                {controls
+                  .filter((c) => c.group === g)
+                  .map((c) => {
+                    const v = valueOf(c);
+                    const moved = overrides[c.cssVar] !== undefined;
+                    return (
+                      <div key={c.cssVar} className="space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="text-neutral-200">{c.label}</label>
+                          <span
+                            className={`tabular-nums ${
+                              moved ? "text-amber-300" : "text-neutral-500"
+                            }`}
+                          >
+                            {c.kind === "range"
+                              ? `${v}${c.unit}`
+                              : c.options.find((o) => o.value === v)?.label}
+                          </span>
+                        </div>
+                        <p className="text-[10px] leading-snug text-neutral-400">
+                          {c.description}
+                        </p>
+                        <p className="text-[10px] leading-snug text-neutral-500">
+                          Ships: {c.ships}.
+                        </p>
+                        {c.kind === "range" ? (
+                          <input
+                            type="range"
+                            min={c.min}
+                            max={c.max}
+                            step={c.step}
+                            value={Number(v)}
+                            onChange={(e) => update(c, Number(e.target.value))}
+                            className="w-full accent-amber-400"
+                            aria-label={c.label}
+                          />
+                        ) : (
+                          <select
+                            value={String(v)}
+                            onChange={(e) => update(c, e.target.value)}
+                            className="w-full rounded border border-white/15 bg-neutral-800 px-1.5 py-1 text-neutral-100"
+                            aria-label={c.label}
+                          >
+                            {c.options.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                    );
+                  })}
+              </section>
+            ))}
           </div>
 
           <div className="flex items-center gap-2 border-t border-white/10 px-3 py-2">
@@ -244,7 +337,7 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
               type="button"
               onClick={copyCss}
               className="flex flex-1 items-center justify-center gap-1.5 rounded bg-white/10 py-1.5 hover:bg-white/15"
-              title="Copy the changed vars as CSS to bake into globals.css"
+              title="Copy the changed vars as CSS, grouped, to bake into globals.css or marketing.css"
             >
               {copied ? (
                 <Check className="size-3.5 text-emerald-400" />
@@ -253,13 +346,13 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
               )}
               {copied
                 ? "Copied"
-                : `Copy CSS${changedCount ? ` (${changedCount})` : ""}`}
+                : `Copy CSS${changed.length ? ` (${changed.length})` : ""}`}
             </button>
             <button
               type="button"
               onClick={reset}
               className="flex items-center justify-center gap-1.5 rounded bg-white/10 px-2 py-1.5 hover:bg-white/15"
-              title="Drop all inline overrides (back to baked defaults)"
+              title="Drop every override this panel owns (back to the baked defaults, here and after a reload)"
             >
               <RotateCcw className="size-3.5" />
             </button>
@@ -270,12 +363,12 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
           type="button"
           onClick={() => setOpen(true)}
           className="flex items-center gap-1.5 rounded-full border border-white/15 bg-neutral-900/95 px-3 py-2 text-neutral-100 shadow-xl backdrop-blur-sm hover:bg-neutral-800"
-          title="Open the motion tuner"
+          title="Open the tuner"
         >
           <SlidersHorizontal className="size-3.5" />
-          {changedCount > 0 && (
-            <span className="rounded-full bg-amber-400 px-1.5 text-[10px] font-semibold text-neutral-900">
-              {changedCount}
+          {changed.length > 0 && (
+            <span className="rounded-full bg-amber-400 px-1.5 text-[10px] font-semibold text-neutral-900 tabular-nums">
+              {changed.length}
             </span>
           )}
         </button>

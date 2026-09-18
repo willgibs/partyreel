@@ -30,7 +30,7 @@ const ACTION_LABEL: Record<string, string> = {
   hold_released: "Hold released",
 };
 
-// The forensic capture + legal hold surface (ADR-0020, P8 operable + observable): the capture
+// The forensic capture + legal hold surface (trust-safety-forensics.md, P8 operable + observable): the capture
 // coverage health signal, the active-holds list with per-item preserve/export/release, and the
 // full audit trail. The incident procedure lives in docs/systems/trust-safety-forensics.md.
 export default async function ForensicsPage() {
@@ -58,7 +58,7 @@ export default async function ForensicsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Fingerprint className="size-5 text-foreground" />
-            <CardTitle className="text-base">Capture coverage (24h)</CardTitle>
+            <CardTitle>Capture coverage (24h)</CardTitle>
             {captureGap > 0 ? (
               <Badge variant="destructive">
                 {captureGap} uploads missing a record
@@ -106,9 +106,7 @@ export default async function ForensicsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <ShieldAlert className="size-5 text-foreground" />
-            <CardTitle className="text-base">
-              Set a hold and preserve evidence
-            </CardTitle>
+            <CardTitle>Set a hold and preserve evidence</CardTitle>
           </div>
           <CardDescription>
             Copies the original into the segregated preservation store and
@@ -123,7 +121,7 @@ export default async function ForensicsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Active legal holds</CardTitle>
+          <CardTitle>Active legal holds</CardTitle>
           <CardDescription>
             Held items are never hard-deleted. Releasing a hold puts the item
             back on its normal purge clock; preserved copies stay until deleted
@@ -149,7 +147,7 @@ export default async function ForensicsPage() {
                   {holds.map((h) => (
                     <tr key={h.id} className="border-b border-border/50">
                       <td
-                        className="py-2 pr-3 font-mono text-xs"
+                        className="py-2 pr-3 text-xs whitespace-nowrap tabular-nums"
                         title={h.holdReason ?? ""}
                       >
                         {h.id.slice(0, 8)}…
@@ -202,7 +200,7 @@ export default async function ForensicsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Audit log</CardTitle>
+          <CardTitle>Audit log</CardTitle>
           <CardDescription>
             Every preserve, export, and release, including failures. This log
             outlives the media it concerns.
@@ -231,7 +229,7 @@ export default async function ForensicsPage() {
                       <td className="py-2 pr-3">
                         {ACTION_LABEL[a.action] ?? a.action}
                       </td>
-                      <td className="py-2 pr-3 font-mono text-xs">
+                      <td className="py-2 pr-3 text-xs whitespace-nowrap tabular-nums">
                         {a.mediaId ? `${a.mediaId.slice(0, 8)}…` : ""}
                       </td>
                       <td className="py-2">

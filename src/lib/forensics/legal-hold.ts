@@ -1,5 +1,5 @@
 /**
- * Legal-hold exclusion predicates (ADR-0020). Pure, so the purge sweeps' hold behavior is
+ * Legal-hold exclusion predicates (trust-safety-forensics.md). Pure, so the purge sweeps' hold behavior is
  * unit-tested with fixtures. The invariant these serve: HELD MEDIA IS NEVER HARD-DELETED —
  * neither its DB row (purge_media_rows also refuses held ids at the SQL choke point) nor its R2
  * object (every caller deletes R2 FIRST, so each must filter held items before building its

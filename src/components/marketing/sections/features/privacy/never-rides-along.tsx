@@ -68,9 +68,7 @@ export function NeverRidesAlong() {
                 <claim.icon className="size-4.5" strokeWidth={1.5} />
               </span>
               <div className="flex flex-col gap-1">
-                <h3 className="font-heading text-base sm:text-lg">
-                  {claim.title}
-                </h3>
+                <h3 className="font-heading text-subsection">{claim.title}</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {claim.body}
                 </p>

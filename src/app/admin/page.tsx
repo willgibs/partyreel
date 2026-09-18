@@ -124,7 +124,7 @@ export default async function AdminHomePage() {
                   <Icon className="size-5 text-muted-foreground" />
                   <ArrowRight className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
-                <CardTitle className="flex items-center gap-2 text-base">
+                <CardTitle className="flex items-center gap-2">
                   {title}
                   {count > 0 ? <Badge>{count}</Badge> : null}
                 </CardTitle>

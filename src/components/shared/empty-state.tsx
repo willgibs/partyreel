@@ -41,8 +41,14 @@ export function EmptyState({
       <div className="space-y-1.5">
         <h3
           className={cn(
-            "text-sm font-medium",
-            variant === "quiet" && "font-heading text-lg font-normal",
+            // An empty state's title is a heading in BOTH variants, so both
+            // wear the ladder's `subsection` step, the app's quiet middle. The
+            // icon variant's used to stay Inter at a stock 14px as "a label",
+            // but it names the state from inside an h3, and every heading is on
+            // the ladder (Will, 2026-09-18: no one-off sizes). The quiet
+            // variant keeps the lighter weight it was drawn with.
+            "font-heading text-subsection",
+            variant === "quiet" && "font-normal",
           )}
         >
           {title}

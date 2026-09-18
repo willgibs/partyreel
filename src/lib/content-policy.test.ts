@@ -1,3 +1,6 @@
+// @policy: marketing · MDX prose obeys the copy rules
+// @refuses: an em-dash or a broken internal link in the MDX reading surfaces, which the TypeScript AST guard cannot see.
+
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -12,8 +15,8 @@ import { describe, expect, it } from "vitest";
 //      the AST guard there are no comments to exempt (MDX comments are rare and
 //      user-invisible either way; keeping the scan total keeps it simple).
 //
-//   2. The claims scan: the T2.5 hard "must not claim" fence (docs/decisions/
-//      t2p5-marketing-ia.md) bans fabricated social proof (Stripe is in TEST mode:
+//   2. The claims scan: the T2.5 hard "must not claim" fence (in git:
+//      git show 44090827:docs/decisions/t2p5-marketing-ia.md) bans fabricated social proof (Stripe is in TEST mode:
 //      no "trusted by", no user/host counts, no testimonials), CSAM/NCMEC/
 //      law-enforcement language (counsel + ESP registration pending), and marketing
 //      the ingress backstop numbers (an anti-abuse bound, deliberately unmarketed -

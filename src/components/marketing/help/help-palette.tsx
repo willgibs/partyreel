@@ -18,6 +18,7 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { portalSkinProps } from "@/components/marketing/chrome/portal-skin";
 import { MissingFrameStrip } from "@/components/marketing/marketing-not-found";
 import { Kbd } from "@/components/shared/kbd";
+import { floatingRow } from "@/components/ui/floating-layer";
 import type { HelpSearchItem } from "@/lib/content/help";
 import {
   matchDestinations,
@@ -286,7 +287,7 @@ export function HelpPaletteProvider({
             }}
             className={cn(
               skin.className,
-              "fixed top-[12vh] left-1/2 z-50 w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-float border bg-popover text-popover-foreground shadow-float ring-1 ring-foreground/10 duration-200 ease-emphasis outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:duration-150 data-closed:fade-out-0 data-closed:zoom-out-95",
+              "fixed top-[12vh] left-1/2 z-50 w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-float border bg-popover text-popover-foreground shadow-layer ring-1 ring-foreground/10 duration-200 ease-emphasis outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:duration-150 data-closed:fade-out-0 data-closed:zoom-out-95",
             )}
           >
             <DialogPrimitive.Title className="sr-only">
@@ -335,11 +336,17 @@ export function HelpPaletteProvider({
               )}
             </div>
 
+            {/* ★ THE FLOATING FAMILY'S RAIL (bible 15; the corner ladder,
+                2026-09-18): `p-1` with every row on `floatingRow`, the panel's
+                corner minus this 4px, so the row's arc shares the panel's
+                centre and a retune of --radius-float moves both. The rows were
+                `rounded-lg` in `p-2`, the SURFACE token nested wrong by 4px,
+                and their icons sat 4px right of the search field's. */}
             <div
               id="help-palette-list"
               role="listbox"
               aria-label="Search results"
-              className="max-h-[min(26rem,55vh)] overflow-y-auto p-2"
+              className="max-h-[min(26rem,55vh)] overflow-y-auto p-1"
             >
               {!hasQuery && (
                 <p className="px-3 pt-2 pb-1.5 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
@@ -406,7 +413,8 @@ export function HelpPaletteProvider({
                     }}
                     onMouseMove={() => setActiveIndex(optionIndex)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm select-none",
+                      "flex items-center gap-3 px-3 py-2.5 text-sm select-none",
+                      floatingRow,
                       optionIndex === active && "bg-muted",
                     )}
                   >
@@ -520,9 +528,11 @@ export function HelpSearchTrigger({
       type="button"
       onClick={open}
       className={cn(
-        // The desk elevation: the search field is the page's primary
-        // instrument, so it carries the float shadow at rest (R6 polish).
-        "flex h-14 w-full max-w-xl items-center gap-3.5 rounded-full border bg-card px-6 pr-3 text-left shadow-float ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none motion-reduce:transition-none",
+        // The page's primary instrument, edged by its border and its ring. It
+        // carried the float shadow until the light ruling (2026-09-17): a
+        // control lying flat takes none. On /help that shadow fell black on
+        // black and was never seen; on /contact it was a flat field on paper.
+        "flex h-14 w-full max-w-xl items-center gap-3.5 rounded-full border bg-card px-6 pr-3 text-left ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none motion-reduce:transition-none",
         className,
       )}
     >

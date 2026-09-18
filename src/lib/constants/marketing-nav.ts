@@ -41,7 +41,8 @@ export function isNavItemCurrent(item: NavItem, pathname: string): boolean {
 
 // The primary conversion CTA, single-sourced (Track B): the header, the mobile
 // sheet, and CtaBand all read THIS, so the label can never drift back to the
-// retired "Get started" (a Vitest pin holds it). The ruled label is "Start free".
+// retired "Get started". No test pins it (the 2026-09-12 reset) and all copy is
+// open (bible 21, 2026-09-14): a change here is a ruling, made in one place.
 export const MARKETING_CTA: NavLink = { label: "Start free", href: "/login" };
 
 // Desktop header primary nav (between the logo and the CTAs). The 2026-08-26

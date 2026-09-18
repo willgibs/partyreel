@@ -95,7 +95,7 @@ function AlbumTileView({
       <div
         data-mkt-fly
         data-on={on ? "true" : undefined}
-        className="relative size-full overflow-hidden rounded-[3px] bg-black/10"
+        className="relative size-full overflow-hidden rounded-tile bg-black/10"
         style={
           {
             "--i": 0,
@@ -158,10 +158,7 @@ export function AlbumFillGrid({
   const columns =
     cols === 3
       ? view.columns
-      : [
-          [...view.columns[0], ...view.columns[2]],
-          view.columns[1],
-        ];
+      : [[...view.columns[0], ...view.columns[2]], view.columns[1]];
 
   return (
     <div className={className}>
@@ -181,7 +178,7 @@ export function AlbumFillGrid({
         </p>
       )}
       <div
-        className="overflow-hidden rounded-[4px]"
+        className="overflow-hidden rounded-tile"
         style={{ height: `calc(${frameHeight}px * var(--fill-scale, 1))` }}
       >
         <div className="flex" style={{ gap }}>

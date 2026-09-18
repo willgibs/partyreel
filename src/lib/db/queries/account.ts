@@ -1,5 +1,5 @@
 /**
- * Account auth reads for the authenticated host (ADR-0011). Both wrap a SECURITY
+ * Account auth reads for the authenticated host (auth-accounts.md). Both wrap a SECURITY
  * DEFINER RPC that authorizes via auth.uid(); we still re-check getUser() (RLS is the
  * boundary, the proxy is not). They only READ auth.users and return booleans — the
  * password WRITE itself is supabase.auth.updateUser() on the BROWSER client, never here,

@@ -46,13 +46,15 @@ export function EnterEventPrompt({
         <Lock className="size-3" aria-hidden />
         Almost in
       </p>
-      <p className="mt-1.5 font-heading text-[22px] leading-tight text-balance">
+      {/* The entry sheet's title slot, so the event name's own step (`page`)
+          whichever of its screens is showing; the step carries its leading. */}
+      <p className="mt-1.5 font-heading text-page text-balance">
         {mediaTotal && mediaTotal > 0
           ? `${mediaTotal} ${mediaTotal === 1 ? "photo is" : "photos are"} waiting`
           : "See all the photos"}
       </p>
       <p className="mx-auto mt-2 mb-4 max-w-xs text-base leading-relaxed text-muted-foreground">
-        To keep this gallery just for guests, the host asks for a quick email
+        To keep this album just for guests, the host asks for a quick email
         check. One tap, no password needed, and you&rsquo;re in.
       </p>
       <div className="mx-auto max-w-xs text-left">
@@ -186,8 +188,9 @@ function PasswordLogin({
         </div>
       </div>
       <Button
+        size="cta"
         type="submit"
-        className="h-11 w-full text-[15px]"
+        className="w-full text-[15px]"
         disabled={pending}
       >
         {pending ? "Signing in…" : "Log in"}

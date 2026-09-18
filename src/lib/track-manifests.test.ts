@@ -1,3 +1,6 @@
+// @policy: engineering · Every track claims its lane
+// @refuses: a malformed track manifest, or two live tracks claiming the same path prefix.
+
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -26,6 +29,11 @@ const NEVER_OWNED = [
   "AGENTS.md",
   "src/lib/db/types.ts",
   "docs/tracks/",
+  "docs/ASSETS.md",
+  // Will's verbatim rulings and the review ledgers (the Library x Lab round):
+  // the Orchestrator writes both from his messages; no track claims them.
+  "docs/design/rulings.md",
+  "docs/reviews/",
 ];
 
 type Manifest = {

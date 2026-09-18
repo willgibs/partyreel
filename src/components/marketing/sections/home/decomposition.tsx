@@ -93,18 +93,30 @@ const MOBILE_CROP_X = 310;
 const CLOSING_LINE =
   "Partyreel turns everyone's camera roll into the film of the whole event.";
 
-/* The byte-pinned facts render verbatim; the number inside each animates, so
+/* The byte-pinned facts render verbatim; the numbers inside them animate, so
    the visible copy IS the constant. home-sections.test.ts pins parseability. */
-type FactParts = { before: string; value: number | null; after: string };
+type RawPart = { text: string } | { value: number };
+/** A rendered part: a number carries the digit-stagger slot it starts on. */
+type FactPart = { text: string } | { value: number; slot: number };
 
-function splitFact(fact: string): FactParts {
-  const m = fact.match(/^(\D*)(\d+)(.*)$/);
-  return m
-    ? { before: m[1], value: Number(m[2]), after: m[3] }
-    : { before: fact, value: null, after: "" };
+/** A fact split into its text runs and its whole numbers, in order.
+ *
+ *  ★ ONE FACT MAY CARRY TWO NUMBERS. The old parse took the FIRST integer and
+ *  swallowed the rest of the string as trailing text, which was true while
+ *  every fact held one count. Will's `counts=hero` pick (2026-09-17) put both
+ *  counts on the band's first line ("312 photos from 48 guests."), where that
+ *  parse would have popped the 312 in and left the 48 sitting dead beside it.
+ *  Splitting on the digit runs animates every count and renders the text
+ *  between them verbatim, so the parts always re-join to the constant
+ *  byte-for-byte. */
+function splitFact(fact: string): RawPart[] {
+  return fact
+    .split(/(\d+)/)
+    .filter((chunk) => chunk !== "")
+    .map((chunk) =>
+      /^\d+$/.test(chunk) ? { value: Number(chunk) } : { text: chunk },
+    );
 }
-
-const FACTS: FactParts[] = DECOMPOSITION_FACTS.map(splitFact);
 
 /* THE FACT NUMBERS RIDE THE HOUSE GRAMMAR (R4 motion census): this used to be
    a hand-rolled rAF count-up with its own easing curve, its own reduced-motion
@@ -117,24 +129,50 @@ const FACTS: FactParts[] = DECOMPOSITION_FACTS.map(splitFact);
 
    The --i base keeps the SHIPPED cadence: the count used to start 350ms in and
    step 260ms per fact, which at the 70ms --mkt-digit-stagger unit is 5 slots
-   in, 4 slots apart. Retune the token and the whole row scales with it. */
+   in, 4 slots apart. Retune the token and the whole row scales with it.
+
+   ★ The step counts NUMBERS, not facts: with both counts on one line the
+   sequence has to keep running across a line break, and this way the second
+   count still lands in the beat the old second fact owned. */
 const DIGIT_LEAD_IN = 5;
 const DIGIT_FACT_STEP = 4;
 
+const FACTS: FactPart[][] = (() => {
+  let n = 0;
+  return DECOMPOSITION_FACTS.map((fact) =>
+    splitFact(fact).map((part) => {
+      if (!("value" in part)) return part;
+      const slot = DIGIT_LEAD_IN + n * DIGIT_FACT_STEP;
+      n += 1;
+      return { value: part.value, slot };
+    }),
+  );
+})();
+
+/* The REVEAL beat (the 260ms stagger on each line) is pinned to the shipped
+   cadence rather than to the array index: the band used to reveal three facts
+   at slots 0/1/2 with the closing sentence at 4. The counts pair now holds the
+   first line alone, so "Created for you." keeps ITS beat at slot 2 and the
+   closing sentence keeps slot 4 — the band reads at exactly the tempo it
+   shipped with, and the second count pops into the gap the old middle fact
+   used to fill. */
+const FACT_REVEAL_SLOT = [0, 2];
+
 function FactNumber({
   value,
-  factIndex,
+  slot,
   on,
 }: {
   value: number;
-  factIndex: number;
+  /** The stagger slot this number's FIRST digit starts on. */
+  slot: number;
   on: boolean;
 }) {
   return (
     <span
       data-mkt-digits
       data-on={on ? "true" : "false"}
-      className="font-mono tabular-nums"
+      className="tabular-nums"
     >
       {String(value)
         .split("")
@@ -144,7 +182,7 @@ function FactNumber({
             data-mkt-digit
             style={
               {
-                "--i": DIGIT_LEAD_IN + factIndex * DIGIT_FACT_STEP + d,
+                "--i": slot + d,
               } as CSSProperties
             }
           >
@@ -169,7 +207,7 @@ function ReelPoster() {
         className="object-cover"
       />
       <span className="absolute inset-0 flex items-center justify-center">
-        <span className="flex size-12 items-center justify-center rounded-full bg-white/90 text-gallery shadow-lg">
+        <span className="flex size-12 items-center justify-center rounded-full bg-white/90 text-gallery shadow-lift">
           <Play className="size-5 translate-x-0.5 fill-current" />
         </span>
       </span>
@@ -181,7 +219,7 @@ function TilePhoto({ id }: { id: string }) {
   const m = marketingImage(id);
   return (
     <div
-      className="relative w-full overflow-hidden rounded-[3px]"
+      className="relative w-full overflow-hidden rounded-tile"
       style={{ aspectRatio: `${m.width} / ${m.height}` }}
     >
       <Image src={m.src} alt="" fill sizes="140px" className="object-cover" />
@@ -241,22 +279,46 @@ function DecompositionStage({ onReplay }: { onReplay: () => void }) {
         </div>
       </div>
 
-      {/* The three facts land while the tiles fly; counts tick in Geist Mono
-          tabular. Sequential stagger so each fact gets its beat. */}
+      {/* The facts land while the tiles fly; the counts tick on the heading
+          face with tabular figures, which is what holds each digit column
+          still. Sequential stagger so each line gets its beat.
+
+          WILL'S OWN LAYOUT (2026-09-17, the `counts=hero` pick): "I think it'd
+          be nice to make that the first line, then stacked center under,
+          'Created for you.'" So this is a centred COLUMN, not the baseline row
+          the three facts used to share: both counts ride the first line and the
+          closing fact sits under them.
+
+          The pair is the band's SUB-HEAD (the `subhead` step, 2026-09-18): it
+          captions the stage above and sits a clear step under the section h2
+          that follows it at both ends, where the stock 24/26 it wore tied that
+          h2 at a phone. */}
       <Container className="mt-8">
-        <div className="flex flex-wrap items-baseline justify-center gap-x-10 gap-y-2 text-center">
-          {FACTS.map((fact, i) => (
+        <div className="flex flex-col items-center gap-1 text-center">
+          {FACTS.map((parts, i) => (
             <p
               key={DECOMPOSITION_FACTS[i]}
               data-mkt-reveal
-              className="font-heading text-2xl leading-tight text-foreground sm:text-[26px]"
-              style={{ "--i": i, "--mkt-stagger-ms": "260ms" } as CSSProperties}
+              className="font-heading text-subhead text-balance text-foreground"
+              style={
+                {
+                  "--i": FACT_REVEAL_SLOT[i] ?? i,
+                  "--mkt-stagger-ms": "260ms",
+                } as CSSProperties
+              }
             >
-              {fact.before}
-              {fact.value !== null && (
-                <FactNumber value={fact.value} factIndex={i} on={inView} />
+              {parts.map((part, p) =>
+                "value" in part ? (
+                  <FactNumber
+                    key={p}
+                    value={part.value}
+                    slot={part.slot}
+                    on={inView}
+                  />
+                ) : (
+                  <span key={p}>{part.text}</span>
+                ),
               )}
-              {fact.after}
             </p>
           ))}
         </div>

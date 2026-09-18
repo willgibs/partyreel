@@ -1,6 +1,1715 @@
 {
-  "version": 2,
+  "version": 3,
   "components": [
+    {
+      "id": "copy-so-far",
+      "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx",
+      "names": [
+        "CopySoFar"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "composes only the held answers, verdicts and notes, one line per board",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 54
+        },
+        {
+          "title": "is empty when nothing is held",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 79
+        },
+        {
+          "title": "drops a note on a board whose round it cannot know",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 85
+        },
+        {
+          "title": "omits an answer the ledger already holds with the same choice and note",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 93
+        },
+        {
+          "title": "re-includes it the moment the choice changes",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 112
+        },
+        {
+          "title": "re-includes it when only the note changed",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 126
+        },
+        {
+          "title": "omits a verdict the ledger already holds, and sends a changed one",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 142
+        },
+        {
+          "title": "sends a cleared choice's surviving note as a note on that ask",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 166
+        },
+        {
+          "title": "never sends an entry from a round the board has left, whatever the ledger lists",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 181
+        },
+        {
+          "title": "omits a not-clear answer the ledger holds as null with the same note",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 204
+        },
+        {
+          "title": "never sends a note the ledger's open round already holds",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 223
+        },
+        {
+          "title": "sends a note again the moment its words change",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 249
+        },
+        {
+          "title": "sends nothing for a step the open round no longer asks",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 260
+        },
+        {
+          "title": "takes a board note along only on the board's open round",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 282
+        }
+      ]
+    },
+    {
+      "id": "session-step",
+      "file": "src/app/(dev)/design/(shell)/lab/_desk/session-step.ts",
+      "names": [
+        "SESSION_END",
+        "UNCLEAR"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is blocked while the question it waits on is undecided",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 71
+        },
+        {
+          "title": "opens once that question is answered THIS WAY in the session",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 77
+        },
+        {
+          "title": "is moot once that question went the other way",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 82
+        },
+        {
+          "title": "stays staged on 'not clear to me', which is not a decision",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 87
+        },
+        {
+          "title": "opens on a ruling from an earlier sitting, with nothing held here",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 98
+        },
+        {
+          "title": "is moot on a ruling from an earlier sitting that went the other way",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 106
+        },
+        {
+          "title": "lets this sitting's answer overrule the ledger's",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 113
+        },
+        {
+          "title": "keeps a staged step out of the walk and the rest of it in",
+          "suite": [
+            "a staged ask"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 120
+        },
+        {
+          "title": "is staged until the card is ruled, and moot on the other verdict",
+          "suite": [
+            "a step waiting on a catalog card"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
+          "line": 137
+        }
+      ]
+    },
+    {
+      "id": "registry",
+      "file": "src/app/(dev)/design/sandbox/registry.ts",
+      "names": [
+        "BOARDS"
+      ],
+      "specimens": [
+        "/design/lab",
+        "/design/lab/[board]",
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "holds a unique, directory-backed id for every spec",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 49
+        },
+        {
+          "title": "finds a board by id and nothing by a missing one",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 61
+        },
+        {
+          "title": "keeps every spec free of React, CSS and its own board",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 66
+        },
+        {
+          "title": "holds every string inside its limit",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 85
+        },
+        {
+          "title": "points every ask, note and walk step at a section that exists",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 155
+        },
+        {
+          "title": "declares every state a note or a walk step asks for",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 207
+        },
+        {
+          "title": "registers every board that has a spec, and only those",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 285
+        },
+        {
+          "title": "has a review on the record before a board opens a second round",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 324
+        },
+        {
+          "title": "makes an ask that cannot be drawn say what to look at instead",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 369
+        },
+        {
+          "title": "wires every catalog to a section, a pick and two compare controls",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 399
+        },
+        {
+          "title": "stages an ask only after an earlier ask or a card of its own catalog",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 498
+        },
+        {
+          "title": "computes one anchor everywhere",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 532
+        },
+        {
+          "title": "lists only standing boards as still on the string form",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 554
+        },
+        {
+          "title": "{b.id} asks every question in plain words",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 564
+        }
+      ]
+    },
+    {
+      "id": "gallery-empty-state",
+      "file": "src/components/guest/gallery-empty-state.tsx",
+      "names": [
+        "GUEST_GHOST_FRAMES",
+        "GalleryEmptyState"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "hides every photograph from assistive tech",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 82
+        },
+        {
+          "title": "is not a door out of the host's album: no link and no code in it",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 97
+        },
+        {
+          "title": "leaves nothing in the decoration for a keyboard to land on",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "shows the CTA only to a viewer who can upload",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 118
+        },
+        {
+          "title": "takes its photographs from the guest pack, one card each",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "runs no frame loop until it is on screen",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "stands still for a reader who asked for less motion, even on screen",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 147
+        },
+        {
+          "title": "paints the settled flow in the server's own HTML",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 159
+        }
+      ]
+    },
+    {
+      "id": "apply",
+      "file": "src/components/lab/apply.tsx",
+      "names": [
+        "ApplyToSite"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is imported only from the lab",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 57
+        },
+        {
+          "title": "never reaches into a board",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 69
+        },
+        {
+          "title": "keeps the two faces: no board or kit file uses a mono face",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 88
+        }
+      ]
+    },
+    {
+      "id": "before-after",
+      "file": "src/components/lab/before-after.tsx",
+      "names": [
+        "BeforeAfter"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws one card per declared candidate, with its own line and verdict",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "folds the rationale away, because a catalog is read by looking",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 133
+        },
+        {
+          "title": "marks the preview a specimen, so the reading budget counts what is read",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "picks into the board's declared control, never into the card",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 149
+        },
+        {
+          "title": "unpicks the picked card back to a clearable control's default",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "puts a card on either side of the comparison below",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 165
+        },
+        {
+          "title": "rules a card where it stands, under the board's own round",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "links a card to the Library only once its entry really exists",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 191
+        },
+        {
+          "title": "drops its page-wide pill rows in the step's tiles mode",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 204
+        },
+        {
+          "title": "makes a pressable card's preview inert, so a frame in it cannot swallow the pick",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 224
+        },
+        {
+          "title": "draws one card alone, as a before and after, when the walk asks for it",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 263
+        },
+        {
+          "title": "draws nothing at all for a board that declares no catalog",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 285
+        }
+      ]
+    },
+    {
+      "id": "board-page",
+      "file": "src/components/lab/board-page.tsx",
+      "names": [
+        "BoardPage"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "holds a unique, directory-backed id for every spec",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 49
+        },
+        {
+          "title": "finds a board by id and nothing by a missing one",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 61
+        },
+        {
+          "title": "keeps every spec free of React, CSS and its own board",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 66
+        },
+        {
+          "title": "holds every string inside its limit",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 85
+        },
+        {
+          "title": "points every ask, note and walk step at a section that exists",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 155
+        },
+        {
+          "title": "declares every state a note or a walk step asks for",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 207
+        },
+        {
+          "title": "registers every board that has a spec, and only those",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 285
+        },
+        {
+          "title": "has a review on the record before a board opens a second round",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 324
+        },
+        {
+          "title": "makes an ask that cannot be drawn say what to look at instead",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 369
+        },
+        {
+          "title": "wires every catalog to a section, a pick and two compare controls",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 399
+        },
+        {
+          "title": "stages an ask only after an earlier ask or a card of its own catalog",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 498
+        },
+        {
+          "title": "computes one anchor everywhere",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 532
+        },
+        {
+          "title": "lists only standing boards as still on the string form",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 554
+        },
+        {
+          "title": "{b.id} asks every question in plain words",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 564
+        }
+      ]
+    },
+    {
+      "id": "board-spec",
+      "file": "src/components/lab/board-spec.ts",
+      "names": [
+        "ITEM_VERDICTS",
+        "LIBRARY_VERDICTS",
+        "LIMITS"
+      ],
+      "specimens": [
+        "/design/lab",
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "holds a unique, directory-backed id for every spec",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 49
+        },
+        {
+          "title": "finds a board by id and nothing by a missing one",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 61
+        },
+        {
+          "title": "keeps every spec free of React, CSS and its own board",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 66
+        },
+        {
+          "title": "holds every string inside its limit",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 85
+        },
+        {
+          "title": "points every ask, note and walk step at a section that exists",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 155
+        },
+        {
+          "title": "declares every state a note or a walk step asks for",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 207
+        },
+        {
+          "title": "registers every board that has a spec, and only those",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 285
+        },
+        {
+          "title": "has a review on the record before a board opens a second round",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 324
+        },
+        {
+          "title": "makes an ask that cannot be drawn say what to look at instead",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 369
+        },
+        {
+          "title": "wires every catalog to a section, a pick and two compare controls",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 399
+        },
+        {
+          "title": "stages an ask only after an earlier ask or a card of its own catalog",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 498
+        },
+        {
+          "title": "computes one anchor everywhere",
+          "suite": [
+            "the board registry"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 532
+        },
+        {
+          "title": "lists only standing boards as still on the string form",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 554
+        },
+        {
+          "title": "{b.id} asks every question in plain words",
+          "suite": [
+            "the asks, in plain words"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 564
+        }
+      ]
+    },
+    {
+      "id": "board-state",
+      "file": "src/components/lab/board-state.tsx",
+      "names": [
+        "ControlKnobs",
+        "RESERVED_PARAMS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "declares nothing the kit owns",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 79
+        },
+        {
+          "title": "imports the kit from its new home, never the shim",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 97
+        },
+        {
+          "title": "is two files at its root: a spec and a board",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 109
+        },
+        {
+          "title": "is never also on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 117
+        },
+        {
+          "title": "leaves only boards that exist on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 122
+        }
+      ]
+    },
+    {
+      "id": "catalog",
+      "file": "src/components/lab/catalog.tsx",
+      "names": [
+        "Catalog",
+        "CatalogTiles",
+        "VerdictPill"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws one card per declared candidate, with its own line and verdict",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "folds the rationale away, because a catalog is read by looking",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 133
+        },
+        {
+          "title": "marks the preview a specimen, so the reading budget counts what is read",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "picks into the board's declared control, never into the card",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 149
+        },
+        {
+          "title": "unpicks the picked card back to a clearable control's default",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "puts a card on either side of the comparison below",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 165
+        },
+        {
+          "title": "rules a card where it stands, under the board's own round",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "links a card to the Library only once its entry really exists",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 191
+        },
+        {
+          "title": "drops its page-wide pill rows in the step's tiles mode",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 204
+        },
+        {
+          "title": "makes a pressable card's preview inert, so a frame in it cannot swallow the pick",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 224
+        },
+        {
+          "title": "draws one card alone, as a before and after, when the walk asks for it",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 263
+        },
+        {
+          "title": "draws nothing at all for a board that declares no catalog",
+          "suite": [
+            "the catalog"
+          ],
+          "file": "src/components/lab/catalog.test.tsx",
+          "line": 285
+        }
+      ]
+    },
+    {
+      "id": "compare-two",
+      "file": "src/components/lab/compare-two.tsx",
+      "names": [
+        "CompareTwo",
+        "SpotCompare"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "resolves A and B from the board's declared controls",
+          "suite": [
+            "any two, side by side"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 66
+        },
+        {
+          "title": "falls back to each control's declared default",
+          "suite": [
+            "any two, side by side"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 78
+        },
+        {
+          "title": "says what differs, from the cards' own lines when none is given",
+          "suite": [
+            "any two, side by side"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 83
+        },
+        {
+          "title": "draws a thing against itself ONCE, and says how to bring the seam back",
+          "suite": [
+            "any two, side by side"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "renders nothing for a board that declares no compare controls",
+          "suite": [
+            "any two, side by side"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 104
+        },
+        {
+          "title": "draws every spot twice, once under each side",
+          "suite": [
+            "the same places, under two cards"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "names each place, so a spot is judged where it lives",
+          "suite": [
+            "the same places, under two cards"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 137
+        },
+        {
+          "title": "draws one copy of a place when A and B name the same card",
+          "suite": [
+            "the same places, under two cards"
+          ],
+          "file": "src/components/lab/compare-two.test.tsx",
+          "line": 149
+        }
+      ]
+    },
+    {
+      "id": "dock",
+      "file": "src/components/lab/dock.tsx",
+      "names": [
+        "AppliedBadge",
+        "BoardDock",
+        "DOCK_PILL",
+        "DockRow",
+        "Knob",
+        "MotionToggle",
+        "ReplayButton"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "declares nothing the kit owns",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 79
+        },
+        {
+          "title": "imports the kit from its new home, never the shim",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 97
+        },
+        {
+          "title": "is two files at its root: a spec and a board",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 109
+        },
+        {
+          "title": "is never also on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 117
+        },
+        {
+          "title": "leaves only boards that exist on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 122
+        }
+      ]
+    },
+    {
+      "id": "frame",
+      "file": "src/components/lab/frame.tsx",
+      "names": [
+        "Frame",
+        "FrameRow"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is imported only from the lab",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 57
+        },
+        {
+          "title": "never reaches into a board",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 69
+        },
+        {
+          "title": "keeps the two faces: no board or kit file uses a mono face",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 88
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "file": "src/components/lab/index.ts",
+      "names": [
+        "Answer",
+        "AppliedBadge",
+        "ApplyBlock",
+        "ApplyToSite",
+        "Ask",
+        "AskAfter",
+        "AskOption",
+        "Asset",
+        "BeforeAfter",
+        "BoardApi",
+        "BoardDock",
+        "BoardLinks",
+        "BoardMeta",
+        "BoardPage",
+        "BoardPageContextValue",
+        "BoardPageProvider",
+        "BoardReview",
+        "BoardSection",
+        "BoardSectionLink",
+        "BoardSpec",
+        "BoardState",
+        "BuilderVerdict",
+        "CANVAS",
+        "CARD_PARAM",
+        "Candidate",
+        "Catalog",
+        "CatalogRenderArgs",
+        "CatalogSpec",
+        "CatalogTiles",
+        "CatalogTilesMode",
+        "Cell",
+        "CellLabel",
+        "Compare",
+        "CompareMode",
+        "CompareTwo",
+        "ConceptCard",
+        "Control",
+        "ControlKnobs",
+        "CopyButton",
+        "CostMeter",
+        "CostPhase",
+        "DOCK_PILL",
+        "Decision",
+        "DecisionOption",
+        "Departure",
+        "DockRow",
+        "ExplorationBoard",
+        "ExplorationInput",
+        "FitStage",
+        "Frame",
+        "FrameProps",
+        "FrameRow",
+        "Ground",
+        "GroundBox",
+        "ITEM_VERDICTS",
+        "ItemVerdict",
+        "ItemVerdictRow",
+        "Knob",
+        "LIBRARY_VERDICTS",
+        "LIMITS",
+        "LabFit",
+        "LabPrefs",
+        "LabSidebar",
+        "Labeled",
+        "LibraryVerdict",
+        "LookFirst",
+        "Loupe",
+        "Mode",
+        "MotionToggle",
+        "Note",
+        "Notes",
+        "Paste",
+        "PreviewKey",
+        "RESERVED_PARAMS",
+        "ReplayButton",
+        "Round",
+        "Section",
+        "SectionIdOf",
+        "SelectTable",
+        "Specimen",
+        "Spot",
+        "SpotCompare",
+        "Stage",
+        "Step",
+        "StepBoard",
+        "TRAPS",
+        "Toggle",
+        "Trap",
+        "TrueFit",
+        "Verdict",
+        "VerdictPill",
+        "Walk",
+        "WalkPage",
+        "WalkPages"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is imported only from the lab",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 57
+        },
+        {
+          "title": "never reaches into a board",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 69
+        },
+        {
+          "title": "keeps the two faces: no board or kit file uses a mono face",
+          "suite": [
+            "the lab kit's boundary"
+          ],
+          "file": "src/components/lab/boundary.test.ts",
+          "line": 88
+        }
+      ]
+    },
+    {
+      "id": "item-verdict",
+      "file": "src/components/lab/item-verdict.tsx",
+      "names": [
+        "ItemVerdictRow"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "offers exactly the vocabulary it is handed",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 34
+        },
+        {
+          "title": "takes the Library's own ladder as a prop, so one row serves both",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "holds a verdict under the ledger's own key",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 63
+        },
+        {
+          "title": "carries the note with the verdict",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 71
+        },
+        {
+          "title": "clears on a second press and keeps the note",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 85
+        },
+        {
+          "title": "presses exactly one word at a time",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 98
+        },
+        {
+          "title": "writes into the same store the Library line is composed from",
+          "suite": [
+            "the item verdict row"
+          ],
+          "file": "src/components/lab/item-verdict.test.tsx",
+          "line": 110
+        }
+      ]
+    },
+    {
+      "id": "lab-chrome",
+      "file": "src/components/lab/lab-chrome.tsx",
+      "names": [
+        "LabChrome"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "writes the reading preferences onto <html> and follows a change",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 52
+        },
+        {
+          "title": "renders nothing on a fresh stylesheet and forgets a past reload",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 63
+        },
+        {
+          "title": "reloads exactly once on a stale sheet in development",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 72
+        },
+        {
+          "title": "shows the notice instead of a second reload",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 79
+        },
+        {
+          "title": "treats a shell body that is not a grid as stale, whatever the number",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 87
+        },
+        {
+          "title": "is quiet where there is no shell to check",
+          "suite": [
+            "the lab chrome"
+          ],
+          "file": "src/components/lab/lab-chrome.test.tsx",
+          "line": 94
+        }
+      ]
+    },
+    {
+      "id": "specimen",
+      "file": "src/components/lab/specimen.tsx",
+      "names": [
+        "Cell",
+        "CellLabel",
+        "Labeled",
+        "Specimen"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "declares nothing the kit owns",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 79
+        },
+        {
+          "title": "imports the kit from its new home, never the shim",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 97
+        },
+        {
+          "title": "is two files at its root: a spec and a board",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 109
+        },
+        {
+          "title": "is never also on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 117
+        },
+        {
+          "title": "leaves only boards that exist on the legacy list",
+          "suite": [
+            "a migrated board"
+          ],
+          "file": "src/components/lab/kit-discipline.test.ts",
+          "line": 122
+        }
+      ]
+    },
+    {
+      "id": "step",
+      "file": "src/components/lab/step.tsx",
+      "names": [
+        "CARD_PARAM",
+        "Step"
+      ],
+      "specimens": [
+        "/design/lab/kit"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws every option once on the stage, before the dock",
+          "suite": [
+            "a step puts the preview on the page and the answer in a dock"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 290
+        },
+        {
+          "title": "lands showing the board's recommendation, and says which it is",
+          "suite": [
+            "a step puts the preview on the page and the answer in a dock"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 307
+        },
+        {
+          "title": "prints the author's line about what to look at",
+          "suite": [
+            "a step puts the preview on the page and the answer in a dock"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 324
+        },
+        {
+          "title": "keeps a link inside a preview from leaving the step",
+          "suite": [
+            "a step puts the preview on the page and the answer in a dock"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 334
+        },
+        {
+          "title": "shows an option without recording it",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 352
+        },
+        {
+          "title": "records the option on a second press of the one being shown",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 364
+        },
+        {
+          "title": "picks the option on the stage with Pick, so agreeing is one press",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 382
+        },
+        {
+          "title": "clears the answer on a third press and resets the stage",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 390
+        },
+        {
+          "title": "draws every option on the board's own section, in that option's state",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 405
+        },
+        {
+          "title": "falls back to options in words when nothing declares how to draw one",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 414
+        },
+        {
+          "title": "shows with a digit and picks with the same digit again",
+          "suite": [
+            "a step, by its keys"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 432
+        },
+        {
+          "title": "blinks back to the option shown before with x",
+          "suite": [
+            "a step, by its keys"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 446
+        },
+        {
+          "title": "goes to the note with n, and on from the note with Enter",
+          "suite": [
+            "a step, by its keys"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 456
+        },
+        {
+          "title": "marks the question unclear with ? and asks why before going on",
+          "suite": [
+            "a step, by its keys"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 467
+        },
+        {
+          "title": "lays the options side by side and back with g",
+          "suite": [
+            "a step, by its keys"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 478
+        },
+        {
+          "title": "asks the question in the words a stranger can answer it in",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 490
+        },
+        {
+          "title": "marks the option the board recommends, and only that one",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 501
+        },
+        {
+          "title": "carries the note with the answer",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 511
+        },
+        {
+          "title": "applies the ask's declared state on landing",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 523
+        },
+        {
+          "title": "holds Next until a question marked unclear says what was unclear",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 529
+        },
+        {
+          "title": "renders nothing for a session on another board",
+          "suite": [
+            "a step, as a form"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 541
+        },
+        {
+          "title": "skips a staged step, and reaches it once its question is answered",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 548
+        },
+        {
+          "title": "drops a staged step as moot when its question went the other way",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 571
+        },
+        {
+          "title": "counts the walk without the staged steps",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 585
+        },
+        {
+          "title": "draws a staged step wearing the answer it waits on",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 591
+        },
+        {
+          "title": "wears the ledger's answer from an earlier sitting when this one holds none",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 604
+        },
+        {
+          "title": "asks a pick-one catalog's winner on the cards themselves",
+          "suite": [
+            "a step on a catalog"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 613
+        },
+        {
+          "title": "walks a keep-any catalog one card at a time",
+          "suite": [
+            "a step on a catalog"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 629
+        },
+        {
+          "title": "keeps a catalog as ONE step whichever way it is walked",
+          "suite": [
+            "a step on a catalog"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 636
+        },
+        {
+          "title": "fills Next only once every card has a verdict",
+          "suite": [
+            "a step on a catalog"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 641
+        }
+      ]
+    },
     {
       "id": "marketing-footer",
       "file": "src/components/marketing/chrome/marketing-footer.tsx",
@@ -24,7 +1733,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 63
+          "line": 86
         },
         {
           "title": "keeps the QR server-rendered (no client island for a constant graphic)",
@@ -32,7 +1741,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 71
+          "line": 94
         },
         {
           "title": "the seam glow owns the loop-pause contract, through the primitive",
@@ -40,7 +1749,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 79
+          "line": 102
         },
         {
           "title": "reads the lamps' cadence from the one token, never a literal",
@@ -48,7 +1757,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 99
+          "line": 122
         }
       ]
     },
@@ -59,7 +1768,7 @@
         "AlbumFrame"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -71,7 +1780,7 @@
         "BrowserFrame"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -83,10 +1792,67 @@
         "GalleryFrame"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 210
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 225
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 240
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 265
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 282
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 304
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 318
+        }
+      ]
     },
     {
       "id": "live-qr",
@@ -95,10 +1861,67 @@
         "LiveQr"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 210
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 225
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 240
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 265
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 282
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 304
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 318
+        }
+      ]
     },
     {
       "id": "phone-frame",
@@ -108,10 +1931,67 @@
         "PhoneShell"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 210
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 225
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 240
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 265
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 282
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 304
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 318
+        }
+      ]
     },
     {
       "id": "qr-frame",
@@ -120,10 +2000,67 @@
         "QrFrame"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 210
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 225
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 240
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 265
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 282
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 304
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 318
+        }
+      ]
     },
     {
       "id": "reel-frame",
@@ -132,10 +2069,67 @@
         "ReelFrame"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 210
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 225
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 240
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 265
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 282
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 304
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 318
+        }
+      ]
     },
     {
       "id": "legal-document",
@@ -179,7 +2173,7 @@
         "FeatureDoor"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": [
@@ -216,7 +2210,7 @@
         "FeatureFaq"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -228,7 +2222,7 @@
         "FeatureHeroEyebrow"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -240,7 +2234,7 @@
         "GhostBackdrop"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -252,7 +2246,7 @@
         "GoDeeper"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -264,7 +2258,7 @@
         "RelatedFeatures"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -276,10 +2270,161 @@
         "TextSwap"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
+    },
+    {
+      "id": "hero-stream",
+      "file": "src/components/marketing/sections/home/hero-stream.ts",
+      "names": [
+        "BPS",
+        "BUILT",
+        "FLIGHT",
+        "FRAME_SIZES",
+        "GEO",
+        "LG_MIN",
+        "QR_FLOOR_PX_PER_MODULE",
+        "QR_QUIET",
+        "REVEAL_MS",
+        "STREAM_FRAMES"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "%s keeps every frame off the block, at its worst width",
+          "suite": [
+            "the band leaves the type its measured lane"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 50
+        },
+        {
+          "title": "%s solves its clear line off the band, not off a guess",
+          "suite": [
+            "the band leaves the type its measured lane"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 82
+        },
+        {
+          "title": "%s fits the whole composition above the fold",
+          "suite": [
+            "the band leaves the type its measured lane"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 101
+        },
+        {
+          "title": "%s sizes every DOM box to its largest visible moment",
+          "suite": [
+            "no frame is ever rasterized above its own pixels"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 120
+        },
+        {
+          "title": "asks for the size it renders, at each breakpoint",
+          "suite": [
+            "no frame is ever rasterized above its own pixels"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 142
+        },
+        {
+          "title": "pairs every frame across the two breakpoints",
+          "suite": [
+            "one set of nodes serves both geometries"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 155
+        },
+        {
+          "title": "%s stands deployed, never collapsed at the code",
+          "suite": [
+            "the rest state is a composed still"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 172
+        },
+        {
+          "title": "places every frame from a table, never from a hash",
+          "suite": [
+            "nothing in the composition is dealt"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 201
+        },
+        {
+          "title": "deals no photograph twice on screen, once Will's set lands",
+          "suite": [
+            "nothing in the composition is dealt"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 218
+        },
+        {
+          "title": "takes every frame from the media manifest",
+          "suite": [
+            "nothing in the composition is dealt"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 229
+        },
+        {
+          "title": "%s keeps three pixels on every module",
+          "suite": [
+            "the code is scannable at the size it is drawn"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 243
+        },
+        {
+          "title": "%s keeps the compositor's layer count honest",
+          "suite": [
+            "what the composition costs"
+          ],
+          "file": "src/components/marketing/sections/home/hero-stream.test.ts",
+          "line": 269
+        }
+      ]
+    },
+    {
+      "id": "pro-card-beam",
+      "file": "src/components/marketing/sections/home/pro-card-beam.tsx",
+      "names": [
+        "ProCardBeam"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws the ring at the card's corner",
+          "suite": [
+            "ProCardBeam"
+          ],
+          "file": "src/components/marketing/sections/home/pro-card-beam.test.tsx",
+          "line": 27
+        },
+        {
+          "title": "gives a square card a square ring, never the library's default",
+          "suite": [
+            "ProCardBeam"
+          ],
+          "file": "src/components/marketing/sections/home/pro-card-beam.test.tsx",
+          "line": 36
+        },
+        {
+          "title": "reads an unreadable corner as square",
+          "suite": [
+            "ProCardBeam"
+          ],
+          "file": "src/components/marketing/sections/home/pro-card-beam.test.tsx",
+          "line": 45
+        }
+      ]
     },
     {
       "id": "bulk-select-mock",
@@ -289,7 +2434,7 @@
         "SelectTile"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -301,7 +2446,7 @@
         "ConfettiBurst"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -313,10 +2458,67 @@
         "InlineReelPlayer"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 210
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 225
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 240
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 265
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 282
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 304
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 318
+        }
+      ]
     },
     {
       "id": "learn-chevron",
@@ -325,7 +2527,7 @@
         "LearnChevron"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -337,7 +2539,7 @@
         "LearnMoreLink"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -349,7 +2551,7 @@
         "SampleReelOverlay"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -361,7 +2563,7 @@
         "TextsReveal"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -373,7 +2575,7 @@
         "Caption"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -385,7 +2587,7 @@
         "CardGrid"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -397,7 +2599,7 @@
         "Conveyor"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -409,7 +2611,7 @@
         "CtaBand"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -421,7 +2623,7 @@
         "DemoCtaLink"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -433,7 +2635,7 @@
         "DemoTicket"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -445,7 +2647,7 @@
         "Eyebrow"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -457,19 +2659,7 @@
         "MediaSplit"
       ],
       "specimens": [
-        "/design/marketing"
-      ],
-      "indexed": true,
-      "contracts": []
-    },
-    {
-      "id": "mono-caption",
-      "file": "src/components/marketing/system/mono-caption.tsx",
-      "names": [
-        "MonoCaption"
-      ],
-      "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -481,7 +2671,7 @@
         "MorphDelegate"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -493,7 +2683,7 @@
         "PageHero"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": [
@@ -530,7 +2720,7 @@
           "line": 50
         },
         {
-          "title": "keeps the display step's descender padding",
+          "title": "trims by the leading it is cancelling, with the sign that trims MORE at a phone",
           "suite": [
             "the page hero lockup"
           ],
@@ -538,12 +2728,20 @@
           "line": 58
         },
         {
-          "title": "declares the type size as a length, not a bare clamp",
+          "title": "keeps the display step's descender padding",
           "suite": [
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 64
+          "line": 71
+        },
+        {
+          "title": "takes every size from the ladder, never from a number here",
+          "suite": [
+            "the page hero lockup"
+          ],
+          "file": "src/components/marketing/system/page-hero-contract.test.ts",
+          "line": 77
         },
         {
           "title": "keeps every scale in the table rather than inline",
@@ -551,7 +2749,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 70
+          "line": 97
         },
         {
           "title": "keeps the side bearing out of the heading class, gated on align",
@@ -559,7 +2757,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 74
+          "line": 101
         },
         {
           "title": "offers three named entrances, and the blur-rise never touches the h1",
@@ -567,7 +2765,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 88
+          "line": 115
         },
         {
           "title": "renders the stage AFTER the lockup, inside the same Container",
@@ -575,7 +2773,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 104
+          "line": 131
         },
         {
           "title": "keeps the tracking squeeze on the display step itself",
@@ -583,7 +2781,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 116
+          "line": 143
         }
       ]
     },
@@ -594,7 +2792,7 @@
         "PaperChapter"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -606,7 +2804,7 @@
         "Reveal"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -618,7 +2816,7 @@
         "ScreenLamp"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": [
@@ -665,13 +2863,131 @@
       ]
     },
     {
+      "id": "section-light",
+      "file": "src/components/marketing/system/section-light.tsx",
+      "names": [
+        "SectionLight"
+      ],
+      "specimens": [
+        "/design/library/foundations",
+        "/design/library/marketing"
+      ],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "renders the primitive and nothing of its own",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 53
+        },
+        {
+          "title": "turns the bottom band rather than growing a second shape",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 78
+        },
+        {
+          "title": "never hands the lamp a className",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 86
+        },
+        {
+          "title": "reads the slow clock from its token, never as a literal",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 97
+        },
+        {
+          "title": "keeps the register in one object every lamp spreads",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 112
+        },
+        {
+          "title": "never clips the lamp it mounts",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 124
+        },
+        {
+          "title": "puts the content after the light, in its own positioned wrapper",
+          "suite": [
+            "the aurora field is the engine, mounted"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 133
+        },
+        {
+          "title": "marks the LIGHT with data-section-light, never the content",
+          "suite": [
+            "the aurora never lights a paper ground"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 149
+        },
+        {
+          "title": "is fenced in CSS, mirroring the dark variant inverted",
+          "suite": [
+            "the aurora never lights a paper ground"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 171
+        },
+        {
+          "title": "takes the transform drive, and the drive declares where it parks",
+          "suite": [
+            "the aurora rests on the engine's designed still"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 193
+        },
+        {
+          "title": "found the call sites at all",
+          "suite": [
+            "the aurora is composed for the place"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 265
+        },
+        {
+          "title": "has no default placement to reach for",
+          "suite": [
+            "the aurora is composed for the place"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 270
+        },
+        {
+          "title": "never stamps one composition twice on a page",
+          "suite": [
+            "the aurora is composed for the place"
+          ],
+          "file": "src/components/marketing/system/section-light.test.ts",
+          "line": 279
+        }
+      ]
+    },
+    {
       "id": "section-shell",
       "file": "src/components/marketing/system/section-shell.tsx",
       "names": [
         "SectionShell"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -683,7 +2999,7 @@
         "StatBand"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -695,7 +3011,7 @@
         "TiltCard"
       ],
       "specimens": [
-        "/design/marketing"
+        "/design/library/marketing"
       ],
       "indexed": true,
       "contracts": []
@@ -711,13 +3027,672 @@
       "contracts": []
     },
     {
+      "id": "publish-light",
+      "file": "src/components/reel/publish-light.tsx",
+      "names": [
+        "ShareCardPublishLight",
+        "StudioPublishLight"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "opens an already-shared reel shared, and not shared HERE",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 95
+        },
+        {
+          "title": "marks a Share tap in the same render that mounts the light",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 101
+        },
+        {
+          "title": "clears both on Unshare",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "never celebrates a Share the server refused",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "comes back from a refused Unshare resting, not swelling",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "follows the server's echo when it disagrees with the tap",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 158
+        },
+        {
+          "title": "mounts nothing while the reel is a draft",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 178
+        },
+        {
+          "title": "mounts one bloom of the engine while the reel is shared",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 188
+        },
+        {
+          "title": "is decoration: hidden from assistive tech, on the light's own box",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "never puts a className on the lamp",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 206
+        },
+        {
+          "title": "takes the house five, never colours of its own",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 215
+        },
+        {
+          "title": "holds the swell at nothing unless the share happened here",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 225
+        },
+        {
+          "title": "rests at the same base on both roads",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 234
+        },
+        {
+          "title": "hooks the share card's light, and never the Studio's",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 247
+        },
+        {
+          "title": "is ONE rule: the card's light is named on the Aurora's fence, not given a copy",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 257
+        },
+        {
+          "title": "carries no light while Share is still the question",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 285
+        },
+        {
+          "title": "puts the light first and the card after it, in a positioned wrapper",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "keeps the fence's hook on the light, never on the card",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 312
+        },
+        {
+          "title": "hands the light both halves of the share state",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 325
+        },
+        {
+          "title": "mounts the light from the share state, once",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 355
+        },
+        {
+          "title": "puts the light before the reel, in a positioned wrapper that never clips",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 365
+        },
+        {
+          "title": "lights the reel's frame, never the Share button",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 380
+        },
+        {
+          "title": "lifts the header, the dock and the tray above the light",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 389
+        },
+        {
+          "title": "skips the theater under reduced motion, and the state still lands",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 403
+        },
+        {
+          "title": "leaves no violet flourish in the reveal grammar",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 416
+        },
+        {
+          "title": "adds no motion of its own, so reduced motion is the base and no swell",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 440
+        }
+      ]
+    },
+    {
+      "id": "reel-share-card",
+      "file": "src/components/reel/reel-share-card.tsx",
+      "names": [
+        "ReelShareCard",
+        "ReelStatusChip"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "opens an already-shared reel shared, and not shared HERE",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 95
+        },
+        {
+          "title": "marks a Share tap in the same render that mounts the light",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 101
+        },
+        {
+          "title": "clears both on Unshare",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "never celebrates a Share the server refused",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "comes back from a refused Unshare resting, not swelling",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "follows the server's echo when it disagrees with the tap",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 158
+        },
+        {
+          "title": "mounts nothing while the reel is a draft",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 178
+        },
+        {
+          "title": "mounts one bloom of the engine while the reel is shared",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 188
+        },
+        {
+          "title": "is decoration: hidden from assistive tech, on the light's own box",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "never puts a className on the lamp",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 206
+        },
+        {
+          "title": "takes the house five, never colours of its own",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 215
+        },
+        {
+          "title": "holds the swell at nothing unless the share happened here",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 225
+        },
+        {
+          "title": "rests at the same base on both roads",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 234
+        },
+        {
+          "title": "hooks the share card's light, and never the Studio's",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 247
+        },
+        {
+          "title": "is ONE rule: the card's light is named on the Aurora's fence, not given a copy",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 257
+        },
+        {
+          "title": "carries no light while Share is still the question",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 285
+        },
+        {
+          "title": "puts the light first and the card after it, in a positioned wrapper",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "keeps the fence's hook on the light, never on the card",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 312
+        },
+        {
+          "title": "hands the light both halves of the share state",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 325
+        },
+        {
+          "title": "mounts the light from the share state, once",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 355
+        },
+        {
+          "title": "puts the light before the reel, in a positioned wrapper that never clips",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 365
+        },
+        {
+          "title": "lights the reel's frame, never the Share button",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 380
+        },
+        {
+          "title": "lifts the header, the dock and the tray above the light",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 389
+        },
+        {
+          "title": "skips the theater under reduced motion, and the state still lands",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 403
+        },
+        {
+          "title": "leaves no violet flourish in the reveal grammar",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 416
+        },
+        {
+          "title": "adds no motion of its own, so reduced motion is the base and no swell",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 440
+        }
+      ]
+    },
+    {
+      "id": "reel-studio",
+      "file": "src/components/reel/reel-studio.tsx",
+      "names": [
+        "ReelStudio"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "opens an already-shared reel shared, and not shared HERE",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 95
+        },
+        {
+          "title": "marks a Share tap in the same render that mounts the light",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 101
+        },
+        {
+          "title": "clears both on Unshare",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "never celebrates a Share the server refused",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "comes back from a refused Unshare resting, not swelling",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "follows the server's echo when it disagrees with the tap",
+          "suite": [
+            "the swell is owed to the tap, the base to the state"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 158
+        },
+        {
+          "title": "mounts nothing while the reel is a draft",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 178
+        },
+        {
+          "title": "mounts one bloom of the engine while the reel is shared",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 188
+        },
+        {
+          "title": "is decoration: hidden from assistive tech, on the light's own box",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "never puts a className on the lamp",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 206
+        },
+        {
+          "title": "takes the house five, never colours of its own",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 215
+        },
+        {
+          "title": "holds the swell at nothing unless the share happened here",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 225
+        },
+        {
+          "title": "rests at the same base on both roads",
+          "suite": [
+            "the two lights, each of them"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 234
+        },
+        {
+          "title": "hooks the share card's light, and never the Studio's",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 247
+        },
+        {
+          "title": "is ONE rule: the card's light is named on the Aurora's fence, not given a copy",
+          "suite": [
+            "the light-ground fence"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 257
+        },
+        {
+          "title": "carries no light while Share is still the question",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 285
+        },
+        {
+          "title": "puts the light first and the card after it, in a positioned wrapper",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "keeps the fence's hook on the light, never on the card",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 312
+        },
+        {
+          "title": "hands the light both halves of the share state",
+          "suite": [
+            "the share card"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 325
+        },
+        {
+          "title": "mounts the light from the share state, once",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 355
+        },
+        {
+          "title": "puts the light before the reel, in a positioned wrapper that never clips",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 365
+        },
+        {
+          "title": "lights the reel's frame, never the Share button",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 380
+        },
+        {
+          "title": "lifts the header, the dock and the tray above the light",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 389
+        },
+        {
+          "title": "skips the theater under reduced motion, and the state still lands",
+          "suite": [
+            "the Studio"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 403
+        },
+        {
+          "title": "leaves no violet flourish in the reveal grammar",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 416
+        },
+        {
+          "title": "adds no motion of its own, so reduced motion is the base and no swell",
+          "suite": [
+            "the violet left, and nothing of its own moves"
+          ],
+          "file": "src/components/reel/publish-light.test.tsx",
+          "line": 440
+        }
+      ]
+    },
+    {
       "id": "action-tooltip",
       "file": "src/components/shared/action-tooltip.tsx",
       "names": [
         "ActionTooltip"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -729,7 +3704,7 @@
         "AnonymousInfo"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -761,7 +3736,7 @@
         "Container"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -773,8 +3748,7 @@
         "EmptyState"
       ],
       "specimens": [
-        "/design/components",
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -786,7 +3760,7 @@
         "FloatingAddButton"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -806,7 +3780,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 72
+          "line": 74
         },
         {
           "title": "mirrors the pause state onto data-paused for CSS to read",
@@ -814,7 +3788,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 84
+          "line": 86
         },
         {
           "title": "always renders the base beside the band, UNCONDITIONALLY",
@@ -822,7 +3796,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 88
+          "line": 90
         },
         {
           "title": "arms a one-shot by attribute rather than by mounting it",
@@ -830,7 +3804,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 116
+          "line": 118
         },
         {
           "title": "arms a one-shot against the VIEWPORT, not against its own height",
@@ -838,7 +3812,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 124
+          "line": 126
         },
         {
           "title": "accepts no className",
@@ -846,7 +3820,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 139
+          "line": 141
         },
         {
           "title": "never renders the filter host itself",
@@ -854,7 +3828,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 152
+          "line": 154
         },
         {
           "title": "declares the blur on the element, never only in a keyframe",
@@ -862,7 +3836,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 163
+          "line": 165
         },
         {
           "title": "ships the -webkit- pair on every mask declaration",
@@ -870,7 +3844,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 179
+          "line": 181
         },
         {
           "title": "isolates, so the edge layers cannot paint over the lit content",
@@ -878,7 +3852,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 194
+          "line": 196
         },
         {
           "title": "lets an ancestor drive the lamp's position",
@@ -886,7 +3860,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 203
+          "line": 205
         },
         {
           "title": "keeps the scalar drive at the same specificity as the shared mask block",
@@ -894,7 +3868,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 214
+          "line": 216
         },
         {
           "title": "carries the forced-colors, print and no-mask fallbacks",
@@ -902,7 +3876,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 233
+          "line": 235
         },
         {
           "title": "hides the WHOLE lamp where masking is unsupported",
@@ -910,7 +3884,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 241
+          "line": 243
         },
         {
           "title": "keeps every animation inside the no-preference block",
@@ -918,7 +3892,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 273
+          "line": 275
         },
         {
           "title": "namespaces every keyframe it adds under glw-",
@@ -926,7 +3900,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 292
+          "line": 294
         },
         {
           "title": "does not collide with a keyframe name already defined elsewhere",
@@ -934,7 +3908,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 298
+          "line": 300
         },
         {
           "title": "rests the comet where its own animation starts",
@@ -942,7 +3916,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 341
+          "line": 347
         },
         {
           "title": "rests an UNARMED bloom where its own animation starts",
@@ -950,7 +3924,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 369
+          "line": 375
         },
         {
           "title": "has exactly one filter host, and the footer is now on it",
@@ -958,7 +3932,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 410
+          "line": 416
         },
         {
           "title": "declares the filter in exactly one module",
@@ -966,7 +3940,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 448
+          "line": 454
         },
         {
           "title": "mounts it exactly once, in the root layout",
@@ -974,7 +3948,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 458
+          "line": 464
         },
         {
           "title": "has no knob the engine does not read",
@@ -982,7 +3956,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 467
+          "line": 473
         },
         {
           "title": "keeps the host a server component",
@@ -990,7 +3964,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 480
+          "line": 486
         },
         {
           "title": "found the call sites at all",
@@ -998,7 +3972,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 544
+          "line": 550
         },
         {
           "title": "passes theme explicitly, and never 'auto'",
@@ -1006,7 +3980,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 554
+          "line": 560
         }
       ]
     },
@@ -1017,7 +3991,7 @@
         "Glow"
       ],
       "specimens": [
-        "/design/foundations"
+        "/design/library/foundations"
       ],
       "indexed": true,
       "contracts": [
@@ -1027,7 +4001,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 72
+          "line": 74
         },
         {
           "title": "mirrors the pause state onto data-paused for CSS to read",
@@ -1035,7 +4009,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 84
+          "line": 86
         },
         {
           "title": "always renders the base beside the band, UNCONDITIONALLY",
@@ -1043,7 +4017,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 88
+          "line": 90
         },
         {
           "title": "arms a one-shot by attribute rather than by mounting it",
@@ -1051,7 +4025,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 116
+          "line": 118
         },
         {
           "title": "arms a one-shot against the VIEWPORT, not against its own height",
@@ -1059,7 +4033,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 124
+          "line": 126
         },
         {
           "title": "accepts no className",
@@ -1067,7 +4041,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 139
+          "line": 141
         },
         {
           "title": "never renders the filter host itself",
@@ -1075,7 +4049,7 @@
             "the spill primitive"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 152
+          "line": 154
         },
         {
           "title": "declares the blur on the element, never only in a keyframe",
@@ -1083,7 +4057,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 163
+          "line": 165
         },
         {
           "title": "ships the -webkit- pair on every mask declaration",
@@ -1091,7 +4065,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 179
+          "line": 181
         },
         {
           "title": "isolates, so the edge layers cannot paint over the lit content",
@@ -1099,7 +4073,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 194
+          "line": 196
         },
         {
           "title": "lets an ancestor drive the lamp's position",
@@ -1107,7 +4081,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 203
+          "line": 205
         },
         {
           "title": "keeps the scalar drive at the same specificity as the shared mask block",
@@ -1115,7 +4089,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 214
+          "line": 216
         },
         {
           "title": "carries the forced-colors, print and no-mask fallbacks",
@@ -1123,7 +4097,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 233
+          "line": 235
         },
         {
           "title": "hides the WHOLE lamp where masking is unsupported",
@@ -1131,7 +4105,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 241
+          "line": 243
         },
         {
           "title": "keeps every animation inside the no-preference block",
@@ -1139,7 +4113,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 273
+          "line": 275
         },
         {
           "title": "namespaces every keyframe it adds under glw-",
@@ -1147,7 +4121,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 292
+          "line": 294
         },
         {
           "title": "does not collide with a keyframe name already defined elsewhere",
@@ -1155,7 +4129,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 298
+          "line": 300
         },
         {
           "title": "rests the comet where its own animation starts",
@@ -1163,7 +4137,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 341
+          "line": 347
         },
         {
           "title": "rests an UNARMED bloom where its own animation starts",
@@ -1171,7 +4145,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 369
+          "line": 375
         },
         {
           "title": "has exactly one filter host, and the footer is now on it",
@@ -1179,7 +4153,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 410
+          "line": 416
         },
         {
           "title": "declares the filter in exactly one module",
@@ -1187,7 +4161,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 448
+          "line": 454
         },
         {
           "title": "mounts it exactly once, in the root layout",
@@ -1195,7 +4169,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 458
+          "line": 464
         },
         {
           "title": "has no knob the engine does not read",
@@ -1203,7 +4177,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 467
+          "line": 473
         },
         {
           "title": "keeps the host a server component",
@@ -1211,7 +4185,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 480
+          "line": 486
         },
         {
           "title": "found the call sites at all",
@@ -1219,7 +4193,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 544
+          "line": 550
         },
         {
           "title": "passes theme explicitly, and never 'auto'",
@@ -1227,7 +4201,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 554
+          "line": 560
         },
         {
           "title": "scanned the production lamps",
@@ -1235,7 +4209,7 @@
             "no lamp sits inside a clipping ancestor"
           ],
           "file": "src/components/shared/glow-placement.test.ts",
-          "line": 50
+          "line": 52
         },
         {
           "title": "never nests a lamp in TiltCard or Conveyor",
@@ -1243,7 +4217,7 @@
             "no lamp sits inside a clipping ancestor"
           ],
           "file": "src/components/shared/glow-placement.test.ts",
-          "line": 59
+          "line": 61
         },
         {
           "title": "never declares the lamp's own wrapper as overflow-hidden",
@@ -1251,7 +4225,7 @@
             "no lamp sits inside a clipping ancestor"
           ],
           "file": "src/components/shared/glow-placement.test.ts",
-          "line": 77
+          "line": 79
         },
         {
           "title": "passes a sampled palette wherever media is present",
@@ -1259,7 +4233,7 @@
             "no lamp sits inside a clipping ancestor"
           ],
           "file": "src/components/shared/glow-placement.test.ts",
-          "line": 96
+          "line": 98
         },
         {
           "title": "keeps the box the screen's width and ends its sides in a pool",
@@ -1267,7 +4241,7 @@
             "the reel screen's lamp is held to the screen"
           ],
           "file": "src/components/shared/glow-placement.test.ts",
-          "line": 110
+          "line": 112
         }
       ]
     },
@@ -1278,7 +4252,7 @@
         "Kbd"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1290,7 +4264,7 @@
         "LegalConsentLine"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": [
@@ -1327,11 +4301,51 @@
         "Logo"
       ],
       "specimens": [
-        "/design/components",
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "is the wordmark alone, and names itself",
+          "suite": [
+            "Logo"
+          ],
+          "file": "src/components/shared/logo.test.tsx",
+          "line": 21
+        },
+        {
+          "title": "takes the ground's colour rather than carrying a fill of its own",
+          "suite": [
+            "Logo"
+          ],
+          "file": "src/components/shared/logo.test.tsx",
+          "line": 30
+        },
+        {
+          "title": "draws the one path, in its own box",
+          "suite": [
+            "Logo"
+          ],
+          "file": "src/components/shared/logo.test.tsx",
+          "line": 39
+        },
+        {
+          "title": "keeps the drawing in one home",
+          "suite": [
+            "Logo"
+          ],
+          "file": "src/components/shared/logo.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "offers the stand-in mark only when asked, and never beside the wordmark",
+          "suite": [
+            "Logo"
+          ],
+          "file": "src/components/shared/logo.test.tsx",
+          "line": 70
+        }
+      ]
     },
     {
       "id": "masonry",
@@ -1341,10 +4355,67 @@
         "MasonryColumns"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "sits on the three kinds of surface, every host named, and nowhere else",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 210
+        },
+        {
+          "title": "sits on the box that owns the radius, never on a wrapper",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 225
+        },
+        {
+          "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 240
+        },
+        {
+          "title": "pushes the edge out by the border's width, reset on every host",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 265
+        },
+        {
+          "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 282
+        },
+        {
+          "title": "makes the host a containing block without taking over its positioning",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 304
+        },
+        {
+          "title": "exists on dark grounds only, through the one definition of dark",
+          "suite": [
+            "the bright edge: data-lit"
+          ],
+          "file": "src/components/shared/lit-edge-contract.test.ts",
+          "line": 318
+        }
+      ]
     },
     {
       "id": "media-lightbox.lazy",
@@ -1373,7 +4444,7 @@
         "NotFoundScreen"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1385,7 +4456,7 @@
         "PageHeading"
       ],
       "specimens": [
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1397,7 +4468,7 @@
         "PasswordStrengthMeter"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1409,11 +4480,251 @@
         "PlayBadge"
       ],
       "specimens": [
-        "/design/components",
-        "/design/patterns"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
+    },
+    {
+      "id": "river-engine",
+      "file": "src/components/shared/river/river-engine.ts",
+      "names": [
+        "REVEAL_MS",
+        "RIVER_FADES"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "wraps a card before its flight is over, so the stream never gaps",
+          "suite": [
+            "the clock"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 56
+        },
+        {
+          "title": "keeps the same pace whatever the pool size: fewer photographs, a sparser flow",
+          "suite": [
+            "the clock"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 63
+        },
+        {
+          "title": "spreads the pool evenly around the cycle at rest",
+          "suite": [
+            "the clock"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 73
+        },
+        {
+          "title": "takes every card out of the box before it wraps (%s)",
+          "suite": [
+            "the recycle"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 89
+        },
+        {
+          "title": "cuts a card exactly once, never twice (%s)",
+          "suite": [
+            "the recycle"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 98
+        },
+        {
+          "title": "cuts on the card's TOP EDGE and never its centre",
+          "suite": [
+            "the recycle"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 115
+        },
+        {
+          "title": "dissolves the stream out of the box before the cut, at both ends",
+          "suite": [
+            "the recycle"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 130
+        },
+        {
+          "title": "is never rasterized above 1:1, and is full size well before it lands",
+          "suite": [
+            "one card's composition"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 142
+        },
+        {
+          "title": "leaves at an angle and lands square",
+          "suite": [
+            "one card's composition"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 154
+        },
+        {
+          "title": "opens the fan out of nothing, and never wider than the box",
+          "suite": [
+            "one card's composition"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 170
+        },
+        {
+          "title": "fades a card up rather than switching it on",
+          "suite": [
+            "one card's composition"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 187
+        },
+        {
+          "title": "IS the running flow with the pour finished and the clock at zero",
+          "suite": [
+            "the rest state"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 199
+        },
+        {
+          "title": "is the SAME string every time, so the server and the browser agree",
+          "suite": [
+            "the rest state"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 217
+        },
+        {
+          "title": "starts the pour from one point, with the reveal at zero",
+          "suite": [
+            "the rest state"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 231
+        },
+        {
+          "title": "is described entirely in fractions, so one geometry serves every width",
+          "suite": [
+            "the box"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 244
+        },
+        {
+          "title": "puts a card's centre on the origin, in both directions",
+          "suite": [
+            "the box"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 257
+        },
+        {
+          "title": "gives every photograph exactly one card",
+          "suite": [
+            "the box"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 279
+        },
+        {
+          "title": "spreads consecutive launches apart rather than clustering them",
+          "suite": [
+            "the box"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 286
+        },
+        {
+          "title": "runs the whole fall and is quicker at the bottom than at the top",
+          "suite": [
+            "gravity"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 302
+        }
+      ]
+    },
+    {
+      "id": "river",
+      "file": "src/components/shared/river/river.tsx",
+      "names": [
+        "River"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "hides every photograph from assistive tech",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 82
+        },
+        {
+          "title": "is not a door out of the host's album: no link and no code in it",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 97
+        },
+        {
+          "title": "leaves nothing in the decoration for a keyboard to land on",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "shows the CTA only to a viewer who can upload",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 118
+        },
+        {
+          "title": "takes its photographs from the guest pack, one card each",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "runs no frame loop until it is on screen",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "stands still for a reader who asked for less motion, even on screen",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 147
+        },
+        {
+          "title": "paints the settled flow in the server's own HTML",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 159
+        }
+      ]
     },
     {
       "id": "route-error",
@@ -1432,7 +4743,7 @@
         "SetNameStep"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1459,7 +4770,7 @@
         "AvatarImage"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1471,7 +4782,7 @@
         "Badge"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1483,10 +4794,9 @@
         "Button"
       ],
       "specimens": [
-        "/design/components",
-        "/design/marketing",
-        "/design/patterns",
-        "/design/reference"
+        "/design/library/components",
+        "/design/library/marketing",
+        "/design/library/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1504,7 +4814,7 @@
         "CardTitle"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1525,7 +4835,7 @@
         "DialogTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1546,7 +4856,7 @@
         "DrawerTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1558,9 +4868,12 @@
         "DropdownMenu",
         "DropdownMenuCheckboxItem",
         "DropdownMenuContent",
+        "DropdownMenuFooter",
         "DropdownMenuGroup",
+        "DropdownMenuHeader",
         "DropdownMenuItem",
         "DropdownMenuLabel",
+        "DropdownMenuMeta",
         "DropdownMenuPortal",
         "DropdownMenuRadioGroup",
         "DropdownMenuRadioItem",
@@ -1572,10 +4885,43 @@
         "DropdownMenuTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "portals the submenu, so a transformed or scrolled parent cannot clip it",
+          "suite": [
+            "the menu opens a second menu, and never a third"
+          ],
+          "file": "src/components/ui/dropdown-menu.test.tsx",
+          "line": 40
+        },
+        {
+          "title": "refuses a third level, at render, rather than in a review note",
+          "suite": [
+            "the menu opens a second menu, and never a third"
+          ],
+          "file": "src/components/ui/dropdown-menu.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "wears a title row, labelled groups and a footer rail when a menu has them",
+          "suite": [
+            "Card's anatomy is parts, not a shape"
+          ],
+          "file": "src/components/ui/dropdown-menu.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "renders a two-row overflow with none of them, because Card's cost is real",
+          "suite": [
+            "Card's anatomy is parts, not a shape"
+          ],
+          "file": "src/components/ui/dropdown-menu.test.tsx",
+          "line": 136
+        }
+      ]
     },
     {
       "id": "form",
@@ -1590,7 +4936,7 @@
         "FormMessage"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1605,7 +4951,7 @@
         "InputOTPSlot"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1617,8 +4963,7 @@
         "Input"
       ],
       "specimens": [
-        "/design/components",
-        "/design/reference"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1630,8 +4975,7 @@
         "Label"
       ],
       "specimens": [
-        "/design/components",
-        "/design/reference"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1650,7 +4994,7 @@
         "NavigationMenuViewport"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1664,7 +5008,7 @@
         "PopoverTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1676,7 +5020,7 @@
         "Progress"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1697,7 +5041,7 @@
         "SelectValue"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1709,7 +5053,7 @@
         "Separator"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1728,7 +5072,7 @@
         "SheetTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1740,8 +5084,8 @@
         "Skeleton"
       ],
       "specimens": [
-        "/design/components",
-        "/design/foundations"
+        "/design/library/components",
+        "/design/library/foundations"
       ],
       "indexed": true,
       "contracts": []
@@ -1763,7 +5107,7 @@
         "Switch"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1778,7 +5122,7 @@
         "TabsTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1790,7 +5134,7 @@
         "Textarea"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1805,7 +5149,7 @@
         "TooltipTrigger"
       ],
       "specimens": [
-        "/design/components"
+        "/design/library/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1936,6 +5280,134 @@
           "line": 160
         }
       ]
+    }
+  ],
+  "policies": [
+    {
+      "file": "src/app/(marketing)/marketing-css-policy.test.ts",
+      "scope": "marketing",
+      "title": "Marketing CSS stays contained",
+      "summary": "a declaration in marketing.css that leaks app-wide once any marketing route has loaded.",
+      "line": 1
+    },
+    {
+      "file": "src/app/(marketing)/marketing-h1-policy.test.ts",
+      "scope": "marketing",
+      "title": "The marketing h1 never moves",
+      "summary": "a reveal-hidden or animated state on a marketing h1, which delays the page's largest paint.",
+      "line": 1
+    },
+    {
+      "file": "src/app/css-source-policy.test.ts",
+      "scope": "global",
+      "title": "Two Tailwind entries, one theme",
+      "summary": "a lab-only utility reaching the production stylesheet, or a second copy of the theme tokens.",
+      "line": 1
+    },
+    {
+      "file": "src/app/globals-theme-contract.test.ts",
+      "scope": "global",
+      "title": "The grounds keep their mechanism",
+      "summary": "a refactor that drops one of the three facts behind the mixed-theme chapters, which fails silently in the browser.",
+      "line": 1
+    },
+    {
+      "file": "src/app/keyframe-uniqueness.test.ts",
+      "scope": "engineering",
+      "title": "Keyframe names are unique",
+      "summary": "a second @keyframes of the same name in any stylesheet, which shadows the first for the rest of the session.",
+      "line": 1
+    },
+    {
+      "file": "src/app/two-faces-policy.test.ts",
+      "scope": "global",
+      "title": "Two faces, and only two",
+      "summary": "a third typeface: a font-mono class, a --font-mono token, or a mono loader anywhere in src.",
+      "line": 1
+    },
+    {
+      "file": "src/components/dev/border-beam-vendor.test.ts",
+      "scope": "shared",
+      "title": "The vendored beam stays vendored",
+      "summary": "a drifted copy of the vendored border-beam, or an import that reaches around it.",
+      "line": 1
+    },
+    {
+      "file": "src/components/shared/glow-contract.test.ts",
+      "scope": "shared",
+      "title": "The spill engine keeps its shape",
+      "summary": "a change to the lamp engine that renders as a hard-edged rectangle instead of light, with nothing else failing.",
+      "line": 3
+    },
+    {
+      "file": "src/components/shared/glow-placement.test.ts",
+      "scope": "shared",
+      "title": "A lamp is placed where light can fall",
+      "summary": "a lamp mounted where its spill has nothing to land on, which shipped twice and was reverted twice.",
+      "line": 2
+    },
+    {
+      "file": "src/components/ui/floating-layer.test.ts",
+      "scope": "engineering",
+      "title": "Bible 15: one floating layer, read from one contract",
+      "summary": "a floating primitive that spells its own corner, entrance or clock instead of reading floating-layer.ts, a fourth clock rung, and any translucency on a panel while the Glass exploration is banked.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/constants/marketing-media.test.ts",
+      "scope": "marketing",
+      "title": "One manifest gates the marketing media",
+      "summary": "an asset in public/marketing with no manifest entry, or an entry pointing at a file that is not there.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/content-policy.test.ts",
+      "scope": "marketing",
+      "title": "MDX prose obeys the copy rules",
+      "summary": "an em-dash or a broken internal link in the MDX reading surfaces, which the TypeScript AST guard cannot see.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/elevation-policy.test.ts",
+      "scope": "engineering",
+      "title": "Two shadows, each declared by its role",
+      "summary": "a stock Tailwind shadow, a hand-typed box-shadow or the retired shadow-float name on a production surface, and a ground that re-declares the theme without both shadows.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/no-em-dash-policy.test.ts",
+      "scope": "global",
+      "title": "No em-dashes in user-facing copy",
+      "summary": "an em-dash inside any string, template literal or JSX text under app, components or lib; comments and internal docs are exempt.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/record-depth-policy.test.ts",
+      "scope": "engineering",
+      "title": "The record is two rounds deep",
+      "summary": "a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/single-source-policy.test.ts",
+      "scope": "engineering",
+      "title": "One name, one module",
+      "summary": "the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/track-manifests.test.ts",
+      "scope": "engineering",
+      "title": "Every track claims its lane",
+      "summary": "a malformed track manifest, or two live tracks claiming the same path prefix.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/type-ladder-policy.test.ts",
+      "scope": "engineering",
+      "title": "One type ladder, and every heading on it",
+      "summary": "a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading.",
+      "line": 1
     }
   ]
 }

@@ -57,7 +57,7 @@ export function FileDropzone({
         disabled && "pointer-events-none opacity-50",
       )}
     >
-      <div className="flex size-12 items-center justify-center rounded-full bg-background text-primary shadow-sm">
+      <div className="flex size-12 items-center justify-center rounded-full bg-background text-primary">
         <ImagePlus className="size-6" />
       </div>
       <p className="text-sm font-medium">

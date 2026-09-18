@@ -76,7 +76,7 @@ export function orderedSections(opts: {
   moderationOn: boolean;
   hasPending: boolean;
 }): EventSection[] {
-  // Guests (the ADR-0019 named list / its discovery teaser) sits after the
+  // Guests (the profiles-social.md named list / its discovery teaser) sits after the
   // media sections: context, never urgency. Review still owns the urgency slot.
   const reviewFirst = opts.moderationOn && opts.hasPending;
   return reviewFirst

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import { AppDesignIsland } from "@/components/dev/app-design-island";
 import { MfaChallenge } from "@/components/admin/mfa-challenge";
 import { MfaEnroll } from "@/components/admin/mfa-enroll";
 import { Logo } from "@/components/shared/logo";
@@ -40,7 +41,11 @@ export default async function AdminLayout({
             <div className="flex justify-center">
               <Logo />
             </div>
-            <PageHeading className="text-lg">
+            {/* The gate card's title is the screen's h1: the `subsection` step,
+                which is the rank a max-w-sm card reads at (/login's card takes
+                it too). A stock `text-lg` would leave the ladder, and
+                type-ladder-policy.test.ts refuses one on a heading. */}
+            <PageHeading className="text-subsection">
               {ctx.mfaEnrolled
                 ? "Verify it's you"
                 : "Secure the operations portal"}
@@ -68,6 +73,9 @@ export default async function AdminLayout({
   return (
     <AdminShell email={ctx.email} alerts={{ support, applicants, reports }}>
       {children}
+      {/* Key-gated, inert otherwise: a board's candidate block on the portal's
+          own pages (the second round, 2026-09-15). */}
+      <AppDesignIsland />
     </AdminShell>
   );
 }

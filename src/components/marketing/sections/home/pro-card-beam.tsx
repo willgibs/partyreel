@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import { BorderBeam } from "@/components/vendor/border-beam";
 
@@ -21,10 +21,15 @@ import { BorderBeam } from "@/components/vendor/border-beam";
  * QR plate and the help palette were dropped because they are near-white in
  * production despite dark lab specimens.
  *
- * ★ NO borderRadius PROP, deliberately. Omitting it makes the library read the
- * child's own computed radius, so the ring is whatever the object is. Passing a
- * literal is what put a 16px ring around a 3.6px card in the lab and made the
- * two read as different shapes.
+ * ★ THE RING IS THE CARD'S OWN CORNER, MEASURED HERE, ZERO INCLUDED (Will,
+ * 2026-09-17: "We need to always ensure that the beam border and card border
+ * have matching radii. In this example, the Pro card is off."). The library
+ * reads the child's radius too, but it refuses a ZERO and falls back to its own
+ * 16px with no error, which is what he saw on the light board: a card whose
+ * radius token did not exist computed square and wore a round ring. So the
+ * wrapper measures the card and passes the number, and a square card gets a
+ * square ring. Never pass a literal: that is what put a 16px ring around a
+ * 3.6px card in the lab the first time.
  *
  * ★ theme IS PASSED EXPLICITLY. BorderBeam resolves 'auto' from
  * prefers-color-scheme, i.e. the OS, not next-themes -- so on a forced-dark
@@ -37,14 +42,38 @@ import { BorderBeam } from "@/components/vendor/border-beam";
  * vendor's `colorful`.
  */
 export function ProCardBeam({ children }: { children: ReactNode }) {
+  const beam = useRef<HTMLDivElement>(null);
+  // Undefined until measured, which hands the first server-rendered frame to
+  // the library's own read; the layout effect lands before the first paint.
+  const [radius, setRadius] = useState<number>();
+
+  useLayoutEffect(() => {
+    const card = beam.current?.firstElementChild;
+    if (!card) return;
+    const read = () => setRadius(cornerOf(card));
+    read();
+    // A breakpoint can change the card's corner without remounting it.
+    const watch = new ResizeObserver(read);
+    watch.observe(card);
+    return () => watch.disconnect();
+  }, []);
+
   return (
     <BorderBeam
+      ref={beam}
       size="pulse-outside"
       colorVariant="partyreel"
       strength={0.7}
       theme="dark"
+      borderRadius={radius}
     >
       {children}
     </BorderBeam>
   );
+}
+
+/** The card's computed corner in pixels; an unreadable one is square, never a default. */
+export function cornerOf(card: Element): number {
+  const px = parseFloat(getComputedStyle(card).borderTopLeftRadius);
+  return Number.isFinite(px) ? px : 0;
 }

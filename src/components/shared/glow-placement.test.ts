@@ -1,4 +1,6 @@
 // @contract-for: src/components/shared/glow.tsx
+// @policy: shared · A lamp is placed where light can fall
+// @refuses: a lamp mounted where its spill has nothing to land on, which shipped twice and was reverted twice.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 

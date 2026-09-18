@@ -12,7 +12,12 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        // A card is a SURFACE, so it wears the surface token itself: `lg` is
+        // --radius (8px under family C, Will's 2026-09-18 ruling, which is
+        // what "an 8px card" meant), bible 8's "surfaces take --radius". It
+        // wore the generator's `rounded-xl`, a step off the token, which put
+        // it at 2.8px under the old base. The parts' corners follow it.
+        "group/card flex flex-col gap-4 overflow-hidden rounded-lg bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg",
         className
       )}
       {...props}
@@ -25,7 +30,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-xl px-4 group-data-[size=sm]/card:px-3 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-4 group-data-[size=sm]/card:[.border-b]:pb-3",
+        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-lg px-4 group-data-[size=sm]/card:px-3 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-4 group-data-[size=sm]/card:[.border-b]:pb-3",
         className
       )}
       {...props}
@@ -38,7 +43,12 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-title"
       className={cn(
-        "font-heading text-base leading-snug font-semibold group-data-[size=sm]/card:text-sm",
+        // The ladder's `card-title` step (the one step that travels no rungs).
+        // Named `card-title` and not `card` because `text-card` is already the
+        // surface COLOR: see src/app/theme.css. A small card (size="sm") keeps
+        // the step: its padding is smaller, its title's ROLE is not, and the
+        // generator's text-sm here was the one stock size on the component.
+        "font-heading text-card-title font-semibold",
         className
       )}
       {...props}
@@ -84,7 +94,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center rounded-b-xl border-t bg-muted/50 p-4 group-data-[size=sm]/card:p-3",
+        "flex items-center rounded-b-lg border-t bg-muted/50 p-4 group-data-[size=sm]/card:p-3",
         className
       )}
       {...props}

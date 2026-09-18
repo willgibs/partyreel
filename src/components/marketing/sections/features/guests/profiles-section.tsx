@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
@@ -43,13 +43,13 @@ export function ProfilesSection() {
             className="mx-auto w-full max-w-sm"
             style={{ "--i": 0 } as CSSProperties}
           >
-            <div className="rounded-2xl border bg-card p-6 shadow-[var(--shadow-float)]">
+            <div className="rounded-2xl border bg-card p-6">
               <div className="flex flex-col items-center gap-2 text-center">
                 <span className="grid size-16 place-items-center rounded-full border bg-muted font-heading text-2xl">
                   M
                 </span>
                 <p className="font-heading text-xl">Maya</p>
-                <MonoCaption>partyreel.com/u/maya</MonoCaption>
+                <Caption>partyreel.com/u/maya</Caption>
                 {/* The real /u/[slug] follow control's resting state. */}
                 <span className="mt-1 inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
                   <UserPlus className="size-4" />
@@ -90,7 +90,7 @@ export function ProfilesSection() {
           <Eyebrow {...rise(0)}>Profiles &amp; following</Eyebrow>
           <h2
             {...rise(1)}
-            className="font-heading text-3xl text-balance sm:text-4xl"
+            className="font-heading text-section text-balance"
           >
             One name across every party, if you want it.
           </h2>

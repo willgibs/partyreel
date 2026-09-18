@@ -105,7 +105,7 @@ export default async function HelpArticlePage({
   // compileMDX (rsc) renders the body to a ReactElement we drop into the prose
   // container. Frontmatter is already stripped (gray-matter), so no parseFrontmatter.
   // blockJS stays on (v6 default) — articles are first-party but we still keep raw JS
-  // expressions out; the spec/Callout JSX components are preserved (see ADR-0006).
+  // expressions out; the spec/Callout JSX components are preserved (see marketing-content.md).
   const { content } = await compileMDX({
     source: article.body,
     components: mdxComponents,
@@ -186,7 +186,7 @@ export default async function HelpArticlePage({
                     <Badge variant="outline">{audienceTag}</Badge>
                   )}
                 </span>
-                <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
+                <h1 className="mt-4 font-heading text-chapter text-balance">
                   {article.frontmatter.title}
                 </h1>
                 {/* Paper only: the article's address, so a printed guide can
@@ -205,9 +205,11 @@ export default async function HelpArticlePage({
 
               {/* THE SHORT ANSWER, straddling: frontmatter description as the
                   lead (the legal shell's two-register pattern; AUTHORING.md
-                  binds authors to write descriptions that carry this slot). */}
+                  binds authors to write descriptions that carry this slot).
+                  It overhangs the cut, so it wears shadow-lift (an overlap);
+                  a card lying flat on the page takes no shadow. */}
               <div className="surface-paper relative z-10 mt-8 -mb-10">
-                <div className="rounded-2xl border bg-card p-5 shadow-float ring-1 ring-foreground/5 sm:p-6">
+                <div className="rounded-2xl border bg-card p-5 shadow-lift ring-1 ring-foreground/5 sm:p-6">
                   <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
                     In short
                   </p>
@@ -258,12 +260,18 @@ export default async function HelpArticlePage({
                 </div>
 
                 {/* prose-headings:font-heading pulls the article's h2/h3 onto the
-                house heading face (Urbanist) so long-form matches the chrome;
-                the prose SCALE itself is untouched (the ruling keeps it). */}
+                house heading face (Urbanist) so long-form matches the chrome,
+                and the h2/h3 modifiers put them on the LADDER (Will,
+                2026-09-18: nothing sized off it): an article h2 is the paper
+                prose head (`prose`) and its h3 the sub-head under it
+                (`subhead`), where @tailwindcss/typography had set 24 and 20 at
+                every width. The body copy's scale is still the plugin's. The
+                MDX components themselves are shared (components/marketing/
+                mdx/), so the sizes ride this wrapper, as the face does. */}
                 <article
                   id={ARTICLE_BODY_ID}
                   data-print-article
-                  className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading"
+                  className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading prose-h2:text-prose prose-h3:text-subhead prose-code:font-sans"
                 >
                   {content}
                 </article>
@@ -298,7 +306,7 @@ export default async function HelpArticlePage({
 
                 {related.length > 0 && (
                   <section className="mt-12 border-t pt-10" data-print-hide>
-                    <h2 className="font-heading text-xl tracking-tight">
+                    <h2 className="font-heading text-subhead">
                       Related articles
                     </h2>
                     <ul className="mt-5 flex flex-col gap-3.5">
@@ -354,7 +362,7 @@ export default async function HelpArticlePage({
                   className="mt-10 rounded-2xl border bg-muted/30 p-8 text-center"
                   data-print-hide
                 >
-                  <h2 className="font-heading text-xl tracking-tight">
+                  <h2 className="font-heading text-subhead">
                     Still need help?
                   </h2>
                   <p className="mx-auto mt-2 max-w-sm text-sm text-pretty text-muted-foreground">
@@ -376,7 +384,10 @@ export default async function HelpArticlePage({
                   className="hidden shrink-0 lg:block lg:w-48 lg:self-stretch"
                   data-print-hide
                 >
-                  <nav aria-label="On this page" className="sticky top-[var(--mkt-rail-top)]">
+                  <nav
+                    aria-label="On this page"
+                    className="sticky top-[var(--mkt-rail-top)]"
+                  >
                     <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                       On this page
                     </p>

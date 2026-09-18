@@ -3,12 +3,18 @@ import { cva } from "class-variance-authority"
 import { NavigationMenu as NavigationMenuPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import {
+  floatingEntrance,
+  floatingPanel,
+  floatingRow,
+} from "@/components/ui/floating-layer"
 import { ChevronDownIcon } from "lucide-react"
 
 // ★ THE FLOATING-LAYER CONTRACT (2026-08-28 nav round). This primitive shipped
 // generated-for-Base-UI and never joined the contract that ui/dropdown-menu,
-// ui/popover and ui/tooltip all follow: rounded-float + shadow-float + an
-// origin-aware transform-origin + fade-in-0/fade-out-0 + one house clock on
+// ui/popover and ui/tooltip all follow: rounded-float + shadow-layer (it was
+// shadow-float until the light ruling, 2026-09-17) + an origin-aware
+// transform-origin + fade-in-0/fade-out-0 + one house clock on
 // --ease-emphasis. It was missing all five, which is what made the marketing
 // mega-menu feel slow and jagged next to every other menu in the app. Five
 // specific defects fixed here, each verified in the browser before the change:
@@ -21,9 +27,10 @@ import { ChevronDownIcon } from "lucide-react"
 //      transition-property at its CSS initial value `all` — so the box morphed
 //      on 100ms/ease while the content swept 208px on 150ms/emphasis. The
 //      transition is now explicit and shares ONE clock with the animation.
-//   4. `rounded-lg` resolves to --radius (2px, the SHARP general-UI radius the
-//      doctrine forbids on the floating layer) and a raw `shadow` drew a shadow
-//      in dark mode, against the elevation contract.
+//   4. `rounded-lg` resolves to --radius (the SURFACE corner, 2px then, which
+//      the doctrine forbids on the floating layer) and a raw `shadow` drew
+//      Tailwind's stock shadow instead of the house family (a raw shadow on any
+//      production surface is refused by src/lib/elevation-policy.test.ts now).
 //   5. `transition-all` on the trigger + link (the house rule is explicit
 //      properties on primitives) with a symmetric 150ms on a slow-headed curve,
 //      which needed ~64ms just to reach half opacity — why a moderately fast
@@ -131,7 +138,7 @@ function NavigationMenuContent({
         // `inherits: false`, so a value on the viewport never reaches it). The
         // duration deliberately matches the viewport's so box and contents move
         // as one object.
-        "top-0 left-0 w-full p-1 duration-[var(--mkt-dropdown-open-ms,200ms)] ease-emphasis group-data-[viewport=false]/navigation-menu:top-full group-data-[viewport=false]/navigation-menu:mt-1.5 group-data-[viewport=false]/navigation-menu:overflow-hidden group-data-[viewport=false]/navigation-menu:rounded-float group-data-[viewport=false]/navigation-menu:bg-popover group-data-[viewport=false]/navigation-menu:text-popover-foreground group-data-[viewport=false]/navigation-menu:shadow-float group-data-[viewport=false]/navigation-menu:ring-1 group-data-[viewport=false]/navigation-menu:ring-foreground/10 data-[motion=from-end]:slide-in-from-right-8 data-[motion=from-start]:slide-in-from-left-8 data-[motion=to-end]:slide-out-to-right-8 data-[motion=to-start]:slide-out-to-left-8 data-[motion^=from-]:animate-in data-[motion^=from-]:fade-in data-[motion^=from-]:blur-in-[3px] data-[motion^=to-]:animate-out data-[motion^=to-]:fade-out data-[motion^=to-]:blur-out-[3px] **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none md:absolute md:w-auto group-data-[viewport=false]/navigation-menu:data-open:animate-in group-data-[viewport=false]/navigation-menu:data-open:fade-in-0 group-data-[viewport=false]/navigation-menu:data-open:zoom-in-95 group-data-[viewport=false]/navigation-menu:data-closed:animate-out group-data-[viewport=false]/navigation-menu:data-closed:fade-out-0 group-data-[viewport=false]/navigation-menu:data-closed:zoom-out-95",
+        "top-0 left-0 w-full p-1 duration-[var(--mkt-dropdown-open-ms,200ms)] ease-emphasis group-data-[viewport=false]/navigation-menu:top-full group-data-[viewport=false]/navigation-menu:mt-1.5 group-data-[viewport=false]/navigation-menu:overflow-hidden group-data-[viewport=false]/navigation-menu:rounded-float group-data-[viewport=false]/navigation-menu:bg-popover group-data-[viewport=false]/navigation-menu:text-popover-foreground group-data-[viewport=false]/navigation-menu:shadow-layer group-data-[viewport=false]/navigation-menu:ring-1 group-data-[viewport=false]/navigation-menu:ring-foreground/10 data-[motion=from-end]:slide-in-from-right-8 data-[motion=from-start]:slide-in-from-left-8 data-[motion=to-end]:slide-out-to-right-8 data-[motion=to-start]:slide-out-to-left-8 data-[motion^=from-]:animate-in data-[motion^=from-]:fade-in data-[motion^=from-]:blur-in-[3px] data-[motion^=to-]:animate-out data-[motion^=to-]:fade-out data-[motion^=to-]:blur-out-[3px] **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none md:absolute md:w-auto group-data-[viewport=false]/navigation-menu:data-open:animate-in group-data-[viewport=false]/navigation-menu:data-open:fade-in-0 group-data-[viewport=false]/navigation-menu:data-open:zoom-in-95 group-data-[viewport=false]/navigation-menu:data-closed:animate-out group-data-[viewport=false]/navigation-menu:data-closed:fade-out-0 group-data-[viewport=false]/navigation-menu:data-closed:zoom-out-95",
         className
       )}
       {...props}
@@ -166,7 +173,18 @@ function NavigationMenuViewport({
           // consumer) lands the origin exactly under the hovered label without
           // anyone needing to know the panel's width. The panel grows out of
           // the label you pointed at, which is what ties it to the indicator.
-          "origin-[calc(50%+var(--mkt-nav-origin-dx,0px))_top] relative mt-1.5 h-(--radix-navigation-menu-viewport-height) w-full overflow-hidden rounded-float bg-popover text-popover-foreground shadow-float ring-1 ring-foreground/10 duration-[var(--mkt-dropdown-open-ms,200ms)] ease-emphasis data-closed:duration-[var(--mkt-dropdown-close-ms,130ms)] md:w-(--radix-navigation-menu-viewport-width) data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 " +
+          // ★ THE ONE CLOCK THE CONTRACT DOES NOT SET, and it is a knob rather
+          // than a number: --mkt-dropdown-*-ms in marketing.css, ruled in the
+          // 2026-08-28 nav round and driven live by the motion tuner. Its
+          // default (200ms in, 130ms out) IS the contract's standard rung, which
+          // is the right one by frequency: a mega-menu is a chapter switch a
+          // visitor opens a few times, not a control a host flips fifty times a
+          // night.
+          "origin-[calc(50%+var(--mkt-nav-origin-dx,0px))_top] relative mt-1.5 h-(--radix-navigation-menu-viewport-height) w-full overflow-hidden duration-[var(--mkt-dropdown-open-ms,200ms)] data-closed:duration-[var(--mkt-dropdown-close-ms,130ms)] md:w-(--radix-navigation-menu-viewport-width) " +
+          floatingPanel +
+          " " +
+          floatingEntrance +
+          " " +
           // THE MORPH, GATED (01-card-resize). Radix seeds the width/height vars
           // from a ResizeObserver, so on a FIRST open they are unset for one
           // frame — the content is md:absolute, so the box measures 0×0 and then
@@ -194,7 +212,10 @@ function NavigationMenuLink({
       // fast pass while the out stays calm. `transition-all` (the generated
       // default) is banned on primitives by the design system anyway.
       className={cn(
-        "flex items-center gap-2 rounded-md p-2 text-sm transition-[color,background-color] duration-[var(--mkt-dropdown-hover-out-ms,180ms)] ease-emphasis outline-none hover:bg-muted hover:duration-[var(--mkt-dropdown-hover-ms,90ms)] focus:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-1 in-data-[slot=navigation-menu-content]:rounded-md data-active:bg-muted/50 data-active:hover:bg-muted data-active:focus:bg-muted [&_svg:not([class*='size-'])]:size-4",
+        // The corner is the contract's row, not `rounded-md`: a link IS a row
+        // inside the panel above it, and bible 9 asks the two to share a centre.
+        "flex items-center gap-2 p-2 text-sm transition-[color,background-color] duration-[var(--mkt-dropdown-hover-out-ms,180ms)] ease-emphasis outline-none hover:bg-muted hover:duration-[var(--mkt-dropdown-hover-ms,90ms)] focus:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-1 data-active:bg-muted/50 data-active:hover:bg-muted data-active:focus:bg-muted [&_svg:not([class*='size-'])]:size-4",
+        floatingRow,
         className
       )}
       {...props}
@@ -215,7 +236,9 @@ function NavigationMenuIndicator({
       )}
       {...props}
     >
-      <div className="relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm bg-border shadow-md" />
+      {/* The panel's arrow is part of the layer it points from, so it wears the
+          layer's shadow (it was Tailwind's stock shadow-md, the generator's). */}
+      <div className="relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm bg-border shadow-layer" />
     </NavigationMenuPrimitive.Indicator>
   )
 }

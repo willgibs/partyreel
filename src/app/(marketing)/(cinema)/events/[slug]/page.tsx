@@ -86,7 +86,7 @@ export default async function EventTypePage({
             {/* The H1 never carries a reveal-hidden state (the LCP rule,
                 pinned by marketing-h1-policy.test.ts); the slots around it
                 do the arriving. */}
-            <h1 className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="font-heading text-title text-balance">
               {eventType.headline}
             </h1>
             <p
@@ -100,15 +100,10 @@ export default async function EventTypePage({
               className="mt-2 flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
             >
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg" className="h-11 px-6 text-base">
+                <Button asChild size="cta">
                   <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
                 </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="h-11 px-6 text-base"
-                >
+                <Button asChild size="cta" variant="outline">
                   <Link href="/pricing">See pricing</Link>
                 </Button>
               </div>

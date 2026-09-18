@@ -310,11 +310,21 @@ export function CanvasReelPlayer({
       ref={wrapRef}
       className={`mx-auto w-full ${landscape ? "max-w-[640px]" : "max-w-[360px]"}`}
     >
-      <div className="overflow-hidden rounded-xl border bg-black shadow-sm">
+      {/* THE SCREEN, AND THE BRIGHT EDGE ON ITS BORDER ([data-lit="border"],
+          globals.css). Two things changed with the light ruling (2026-09-17):
+          the stock shadow-sm left (a screen lying flat on the page takes no
+          shadow), and this box no longer clips. ★ `overflow-hidden` clips at
+          the PADDING box, which is exactly where the border ends, so an edge
+          drawn on the border would be cut off to the pixel and nobody would
+          know why. The canvas rounds ITSELF instead (a replaced element is
+          trimmed to its own radius), by the box's radius less the border's one
+          pixel: nested corners are inner = outer minus the gap. */}
+      <div data-lit="border" className="rounded-xl border bg-black">
         <canvas
           ref={canvasRef}
           width={width}
           height={height}
+          className="rounded-[calc(var(--radius-xl)-1px)]"
           style={{
             display: "block",
             width: "100%",

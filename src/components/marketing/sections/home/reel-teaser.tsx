@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 
 import { Conveyor } from "@/components/marketing/system/conveyor";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { MARKETING_REELS } from "@/lib/constants/marketing-media";
@@ -87,10 +87,10 @@ export function ReelTeaser() {
           <ReelScreenLamp>
             <InlineReelPlayer reelId={INLINE_REEL_ID} />
           </ReelScreenLamp>
-          <MonoCaption className="mt-4 text-center">
+          <Caption className="mt-4 text-center tabular-nums">
             A real render · {styleLabel} ·{" "}
             {formatDuration(reel.durationSeconds)}
-          </MonoCaption>
+          </Caption>
         </div>
 
         {/* THE STYLE STRIP, PULLED BACK BENEATH THE SCREEN (treatment A): the same

@@ -266,7 +266,7 @@ export async function clearEventPassword(
 // Custom slug set/change + clear go through their own SECURITY DEFINER RPCs (NOT the
 // updateEvent patch) so tier + format + case-insensitive uniqueness are enforced
 // atomically and custom_slug stays revoked from the host's direct UPDATE grant. The slug
-// is an ALIAS to the one /e/[token] link (ADR-0010 + ADR-0012), not a second capability.
+// is an ALIAS to the one /e/[token] link (guest-flow.md + host-app.md), not a second capability.
 
 export async function setEventSlug(
   eventId: string,

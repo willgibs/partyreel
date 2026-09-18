@@ -86,10 +86,10 @@ export function EventExperience({
   hostAvatarUrl: string | null;
   /** Viewer is the event host -> the entry modal is suppressed (the owner bypasses the gate). Phase 2. */
   isOwner: boolean;
-  /** The server-composed named Guests section (ADR-0019) — non-null ONLY when the
+  /** The server-composed named Guests section (profiles-social.md) — non-null ONLY when the
    *  host enabled show_guest_list AND access is full (the page owns that gate). */
   guestListSlot?: React.ReactNode;
-  /** The published reel for THIS viewer, or null (R3, ADR-0022). Null already covers
+  /** The published reel for THIS viewer, or null (R3, guest-flow.md). Null already covers
    *  unpublished / empty / locked / below-full-access, so the card renders on
    *  non-null alone: this component adds only the ruled PLACEMENT. */
   guestReel: GuestReelPayload | null;
@@ -118,7 +118,7 @@ export function EventExperience({
   // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
   // (its centered CTA), so the header drops its Add to avoid two primaries.
   const galleryEmpty = mediaCount === 0;
-  // THE REEL CARD's two ruled placements (ADR-0022 ruling 2), a function of the
+  // THE REEL CARD's two ruled placements (guest-flow.md ruling 2), a function of the
   // event's lifecycle: while uploads are open, adding photos is still the page's
   // primary job, so the reel sits UNDER the action block; once the host closes
   // uploads the link IS the keepsake album, so the reel leads the page.
@@ -226,7 +226,7 @@ export function EventExperience({
         <h1
           data-arrive
           style={{ "--arrive-i": 0 } as React.CSSProperties}
-          className="font-heading text-[28px] leading-snug text-balance"
+          className="font-heading text-page text-balance"
         >
           {event.name}
         </h1>
@@ -240,7 +240,7 @@ export function EventExperience({
               >
                 {event.host_display_name?.trim() && (
                   <span className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground/70">Hosted by</span>
+                    <span className="text-faint">Hosted by</span>
                     {hostAvatarUrl && (
                       // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, short-lived
                       <img
@@ -255,7 +255,7 @@ export function EventExperience({
                   </span>
                 )}
                 {event.host_display_name?.trim() && event.event_date && (
-                  <span aria-hidden className="text-muted-foreground/50">
+                  <span aria-hidden className="text-faint">
                     ·
                   </span>
                 )}
@@ -410,7 +410,7 @@ export function EventExperience({
             ) : (
               !isDemo && (
                 <p className="mt-7 text-center text-[15px] text-muted-foreground">
-                  The host has closed uploads. You can still browse the gallery.
+                  The host has closed uploads. You can still browse the album.
                 </p>
               )
             ))}
@@ -438,7 +438,7 @@ export function EventExperience({
             />
           </Suspense>
 
-          {/* The named Guests section (ADR-0019, host-keyed) — after the album,
+          {/* The named Guests section (profiles-social.md, host-keyed) — after the album,
               before the report footer: context about who filled it, never
               competing with the media. Server-composed slot; null = key off. */}
           {guestListSlot}

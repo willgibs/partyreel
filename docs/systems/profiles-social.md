@@ -1,18 +1,27 @@
 # Profiles & social
 
 > ROLE: the profiles + social layer — public creator profiles (`/u/[slug]`), the follow/block graph, the host-controlled guest list, notification-pref storage.
-> BELONGS HERE: the slug/handle system, `display_in_profile`/`show_guest_list`, follows/blocks + their RPCs, the guest-list surfaces, `notification_prefs`' shape. · NOT HERE: the cross-cutting advisor/grant model (→ [database-security.md](database-security.md)), auth/avatars/display names (→ [auth-accounts.md](auth-accounts.md)), why the ruled model (→ [ADR-0019](../adr/0019-social-privacy-host-controlled-guest-list.md)).
+> BELONGS HERE: the slug/handle system, `display_in_profile`/`show_guest_list`, follows/blocks + their RPCs, the guest-list surfaces, `notification_prefs`' shape. · NOT HERE: the cross-cutting advisor/grant model (→ [database-security.md](database-security.md)), auth/avatars/display names (→ [auth-accounts.md](auth-accounts.md)).
 > GROWS BY: integrate-in-place.
 
 ## What it does
 
-The ADR-0019 ruled model, verbatim-in-intent: profiles are **public by existence** (claiming a handle
+The ruled model: profiles are **public by existence** (claiming a handle
 is the consent act; NO `discoverable` flag); the event guest list is **host-controlled**
 (`events.show_guest_list`; when on, ALL signed-in uploaders render named, no per-guest opt-in); the
 guest's control lives on their **own profile** (`profile_hidden_events` hides an attended event from
 `/u/[slug]` while they stay on the event's guest list); follows are **open any-to-any with an
 owner-private graph** (lists + counts visible only to the account owner, the VSCO shape); **blocking
 ships in-slice** (mutual severance, private, prevents re-follow).
+
+**Why the guest list has ONE key, not two** (Will's ruling, and the part worth keeping): a per-guest
+opt-in lands guest lists near-empty, which disappoints the host, starves the social side and adds one more
+thing for a new guest to digest between signing up and uploading. Attribution is ALREADY public by name on
+the same album surface, so gathering the uploaders into one list adds little exposure that the captions did
+not. A guest who does not want the linkage can decline to upload, or the host can allow anonymous uploads:
+the escape hatches already exist at the right layer. The consequence to carry: the GDPR posture rests on
+legitimate interest over already-public attribution rather than on opt-in consent, so the `/privacy` and ToS
+wording is what has to hold up, not a consent checkbox.
 
 Surfaces: `/u/[slug]` (hosted-events grid + link-less "Also at" attended list, indexable, minimal
 guest-side chrome); the Account page (slug claim, attended-event visibility switches, Connections
@@ -38,8 +47,8 @@ card); event settings (`ProfileSocialCard`, both keys persist per flip, LOUD per
   and counts render only to the owner (Connections card). Never add public counts.
 - **Attendance is not a capability grant.** The attended arm returns NO `qr_token`/`custom_slug`, and is
   gated on `show_guest_list` + `profile_hidden_events` + **`visibility = 'open'`** — the open-only gate
-  is the consent scope (the album-side list renders only to viewers who can OPEN the album; ADR-0019
-  preserves "locked pages leak name + count only" to capability holders). A migration-text Vitest guard
+  is the consent scope (the album-side list renders only to viewers who can OPEN the album, which
+  preserves "locked pages leak name + count only" for capability holders). A migration-text Vitest guard
   ([public-profile-visibility.test.ts](../../src/lib/social/public-profile-visibility.test.ts)) pins it.
 - **The hosted arm is deliberately UNgated on visibility**: `display_in_profile` is the host publishing
   their OWN album link (link-in-bio; discovery decoupled from access) and includes the link; a gated
@@ -53,10 +62,13 @@ card); event settings (`ProfileSocialCard`, both keys persist per flip, LOUD per
   SECURITY DEFINER — owner-RLS can't see "they blocked me") is the hard backstop; a block severs both
   directions atomically. The block menu stays visible even when they blocked me (a vanishing menu would
   leak the block); only the follow button hides on either-way blocks.
-- **`notification_prefs`** is R5-shaped (ADR-0019 point 6): tier 1 (transactional) has NO column by
-  design; rows are lazy (absent = `NOTIFICATION_PREF_DEFAULTS`, a parity test pins TS↔SQL); `user_id`
+- **`notification_prefs`** is shaped by the ruled consent tiers: **transactional** always sends and has
+  NO column by design; **relationship and service** mail defaults ON with a per-category opt-out, and only
+  for ACCOUNT holders; an anonymous email-only guest receives nothing beyond the one-shot they explicitly
+  asked for; **marketing** stays explicit opt-in. R5 must send within those four rules. Rows are lazy
+  (absent = `NOTIFICATION_PREF_DEFAULTS`, a parity test pins TS↔SQL); `user_id`
   is insertable never updatable, so `setNotificationPrefs` is update-then-insert (a PostgREST upsert
-  would `SET user_id`). No sends yet — R5 owns them; no prefs UI yet either.
+  would `SET user_id`). No sends yet; no prefs UI yet either.
 - `follow_user`/`block_user` are authenticated-only (advisor 0029, never 0028); `get_public_profile` is
   the 4th accepted anon-read RPC (0028). Inventory: [database-security.md](database-security.md).
 
@@ -71,4 +83,4 @@ card); event settings (`ProfileSocialCard`, both keys persist per flip, LOUD per
 - The event-settings `ProfileSocialCard` lives OUTSIDE the RHF form (each key flip is its own consented
   act, persisted instantly) and hides entirely pre-apply (`getEventSocialSettings` → null).
 
-ADR: [0019](../adr/0019-social-privacy-host-controlled-guest-list.md). Related: [auth-accounts.md](auth-accounts.md) · [guest-flow.md](guest-flow.md) · [database-security.md](database-security.md).
+Related: [auth-accounts.md](auth-accounts.md) · [guest-flow.md](guest-flow.md) · [database-security.md](database-security.md).

@@ -3,7 +3,7 @@
 /**
  * THE BUILDER: the Reel section before a reel exists.
  *
- * Create-birth (ADR-0023 ruling 4): the reel is BORN when the host taps Create,
+ * Create-birth (host-app.md ruling 4): the reel is BORN when the host taps Create,
  * and that tap is the reveal's natural trigger. So this surface has exactly one
  * job — get the host to a set of moments they are happy with, then hand the beat
  * over. Two beats, never one: FILL (quick-add, or pick your own), then CREATE.
@@ -34,6 +34,7 @@ import {
   useReelReveal,
 } from "@/components/reel/reel-reveal";
 import { type ReelConfigController } from "@/components/reel/use-reel-config";
+import { ctaCorner } from "@/components/ui/button";
 import {
   pickQuickAdd,
   QUICK_ADD_MIN,
@@ -85,7 +86,7 @@ export function ReelBuilder({
     return pickQuickAdd(candidates, { seed: defaultReelSeed(eventId) });
   }, [approved, eventId]);
 
-  // Offered at ONE approved item, not QUICK_ADD_MIN: since ADR-0024 took the reel chip off the
+  // Offered at ONE approved item, not QUICK_ADD_MIN: since host-app.md took the reel chip off the
   // gallery tiles, this button and gallery-Select are the only pre-Create fill paths, and gating it
   // at 4 left a small event with NO in-card path at all (Will hit exactly this on a 2-photo event,
   // 2026-08-06 — the bar's Create was a silent no-op and nothing in the card could fill).
@@ -245,7 +246,7 @@ export function ReelBuilder({
             </div>
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
               <Clapperboard className="size-6 text-reel" aria-hidden />
-              <p className="font-heading text-base leading-tight">
+              <p className="font-heading text-subsection">
                 Your reel starts here
               </p>
               <p className="max-w-[260px] text-xs leading-snug text-muted-foreground">
@@ -277,7 +278,7 @@ export function ReelBuilder({
                 </button>
               ) : null}
               {/* The "pick them myself" route. This USED to say "tap the clapperboard on any
-                  photo", which stopped being true when ADR-0024 took the reel chip off the
+                  photo", which stopped being true when host-app.md took the reel chip off the
                   gallery tiles. Select mode is the honest pre-Create answer (the Studio's
                   Moments picker is the post-Create one, and the Studio does not exist yet
                   here, so it cannot be the instruction). */}
@@ -293,7 +294,7 @@ export function ReelBuilder({
           // the progress, and the tiles double as the reveal's FLIP sources.
           <>
             <div className="flex items-baseline justify-between">
-              <p className="font-heading text-base leading-tight">
+              <p className="font-heading text-card-title">
                 {momentCount === 1
                   ? "1 moment picked"
                   : `${momentCount} moments picked`}
@@ -349,12 +350,17 @@ export function ReelBuilder({
                 </button>
               </div>
             ) : null}
+            {/* The 44px action's corner (ctaCorner). It was the one call site
+                of the 48px rung, which retired with it (2026-09-18). */}
             <button
               type="button"
               onClick={create}
               disabled={creating || reveal.running}
               aria-busy={creating || reveal.running}
-              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-[var(--radius-action-lg)] bg-reel text-sm font-semibold text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:opacity-60 motion-reduce:active:scale-100"
+              className={cn(
+                "mt-3 flex h-11 w-full items-center justify-center gap-2 bg-reel text-sm font-semibold text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:opacity-60 motion-reduce:active:scale-100",
+                ctaCorner,
+              )}
             >
               <Clapperboard className="size-4" aria-hidden />
               Create reel

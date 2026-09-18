@@ -96,7 +96,7 @@ export default async function RolePage({
             <div className="mt-6">
               <Eyebrow>{job.catchAll ? "Always open" : "Open role"}</Eyebrow>
             </div>
-            <h1 className="mt-3 max-w-3xl font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
+            <h1 className="mt-3 max-w-3xl font-heading text-chapter text-balance">
               {job.title}
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-pretty text-muted-foreground">
@@ -146,9 +146,12 @@ export default async function RolePage({
                 </div>
               </aside>
 
-              <div className="min-w-0 max-w-2xl flex-1">
+              <div className="max-w-2xl min-w-0 flex-1">
                 {job.responsibilities.length > 0 && (
-                  <RoleList heading="What you'll do" items={job.responsibilities} />
+                  <RoleList
+                    heading="What you'll do"
+                    items={job.responsibilities}
+                  />
                 )}
                 {job.requirements.length > 0 && (
                   <RoleList
@@ -172,7 +175,10 @@ export default async function RolePage({
                           key={item}
                           className="flex items-center gap-2.5 rounded-sm border bg-muted/40 px-4 py-3 text-sm"
                         >
-                          <Check className="size-4 shrink-0 text-success" aria-hidden />
+                          <Check
+                            className="size-4 shrink-0 text-success"
+                            aria-hidden
+                          />
                           {item}
                         </li>
                       ))}
@@ -200,7 +206,7 @@ export default async function RolePage({
               <div className="flex flex-col gap-5 lg:pt-1">
                 <div>
                   <Eyebrow>Apply</Eyebrow>
-                  <h2 className="mt-3 font-heading text-2xl text-balance sm:text-3xl">
+                  <h2 className="mt-3 font-heading text-prose text-balance">
                     {job.catchAll
                       ? "Tell us what you'd want to own."
                       : `Applying for ${job.title}.`}
@@ -228,7 +234,7 @@ export default async function RolePage({
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="font-heading text-xl sm:text-2xl">{children}</h2>;
+  return <h2 className="font-heading text-subhead">{children}</h2>;
 }
 
 /** The spec, as labelled pairs. A slashed inline run reads as a caption; a

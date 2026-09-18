@@ -42,7 +42,11 @@ export function RouteError({ area, error, reset }: RouteErrorProps) {
           style={{ "--nf-i": 1 } as CSSProperties}
           className="flex flex-col gap-3"
         >
-          <h1 className="font-heading text-3xl text-balance sm:text-4xl">
+          {/* The app's `page` step, the same rank a dead link takes inside the
+              app (Will's type ruling, 2026-09-17). Every caller is app-side —
+              (app), (guest), (auth), admin — and marketing has its own
+              boundary, which passes surface="marketing" to NotFoundScreen. */}
+          <h1 className="font-heading text-page text-balance">
             Something went wrong
           </h1>
           <p className="text-pretty text-muted-foreground">
@@ -54,24 +58,22 @@ export function RouteError({ area, error, reset }: RouteErrorProps) {
           style={{ "--nf-i": 2 } as CSSProperties}
           className="flex flex-col gap-3 sm:flex-row"
         >
-          <Button size="lg" className="h-11 px-6 text-base" onClick={reset}>
+          <Button size="cta" onClick={reset}>
             Try again
           </Button>
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className="h-11 px-6 text-base"
-          >
+          <Button asChild size="cta" variant="outline">
             <Link href="/">Back home</Link>
           </Button>
         </div>
         {error.digest && (
           <p
             style={{ "--nf-i": 3 } as CSSProperties}
-            className="text-xs text-muted-foreground/70"
+            className="text-xs text-faint"
           >
-            Error code: <span className="font-mono">{error.digest}</span>
+            Error code:{" "}
+            <span className="rounded bg-muted px-1.5 py-0.5 text-foreground/80 tabular-nums select-all">
+              {error.digest}
+            </span>
           </p>
         )}
       </div>

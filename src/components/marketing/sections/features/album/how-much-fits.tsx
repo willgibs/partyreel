@@ -21,7 +21,7 @@ import { HOW_MUCH_FITS } from "./album-copy";
  * prices, event counts, the friendly photo count) so this page cannot
  * disagree with /pricing; the storage bar makes "amount of album" literal
  * (ink on muted, never amber, never lit); the price sits in the heading face
- * (the pricing ruling: money in Urbanist, never mono); and Free's photos-only
+ * (the pricing ruling: money in Urbanist with tabular figures); and Free's photos-only
  * line takes the honest floor's muted minus. The cap behaviour beneath quotes
  * the guest's real refusal as the toast the app fires.
  */
@@ -55,7 +55,7 @@ function Column({
         {name}
       </p>
       <div className="flex flex-col gap-2">
-        <p className="font-heading text-4xl tracking-tight tabular-nums">
+        <p className="font-heading text-section tabular-nums">
           {formatBytes(bytes)}
         </p>
         <p className="text-sm text-muted-foreground tabular-nums">
@@ -71,7 +71,9 @@ function Column({
           />
         </span>
       </div>
-      <p className="border-t pt-4 font-heading text-lg tabular-nums">{price}</p>
+      <p className="border-t pt-4 font-heading text-subsection tabular-nums">
+        {price}
+      </p>
       <ul className="flex flex-col gap-2 text-sm">
         {rows.map((row) => (
           <li
@@ -89,7 +91,7 @@ function Column({
               />
             ) : (
               <Minus
-                className="size-3.5 shrink-0 text-muted-foreground/60"
+                className="size-3.5 shrink-0 text-faint"
                 strokeWidth={2.5}
               />
             )}
@@ -167,7 +169,7 @@ export function HowMuchFits() {
           data-mkt-toast
           data-on="true"
           aria-hidden
-          className="flex items-start gap-3 rounded-xl border bg-card px-4 py-3 shadow-[var(--shadow-float)]"
+          className="flex items-start gap-3 rounded-xl border bg-card px-4 py-3 shadow-layer"
           style={{ "--i": 0 } as CSSProperties}
         >
           <span className="mt-0.5 size-2 shrink-0 rounded-full bg-destructive" />

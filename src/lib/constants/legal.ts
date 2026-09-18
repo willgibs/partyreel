@@ -66,8 +66,10 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
       "Your content, plans and billing, retention, and the rules of the room.",
     // 1.1 (2026-09-02): Ending things is now self-serve, and a deletion
     // cancels an active plan at that moment rather than at period end.
-    version: "1.1",
-    lastUpdated: "2026-09-02",
+    // 1.2 (2026-09-18): Disclaimers says we may use generative AI for some of
+    // our own images and videos.
+    version: "1.2",
+    lastUpdated: "2026-09-18",
     status: "pending-review",
     effectiveDate: null,
   },

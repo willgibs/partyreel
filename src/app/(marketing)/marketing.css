@@ -1457,11 +1457,20 @@
    closes to the heading face's own tracking. Tracking is the most typographic
    move available, which is why it is the one motion beat a type-led page spends.
 
-   ★ THE REST STATE IS THE DEFAULT, and that is the whole design. -0.03em mirrors
-   the `font-heading` utility's own letter-spacing, so REDUCED MOTION and a
-   crawler get the correct wordmark with nothing written at all: arrival is
-   guaranteed by ABSENCE rather than by winning a specificity race. Retune this
-   value and font-heading together if the brand face is ever repointed.
+   ★ THE REST STATE IS THE DEFAULT, and that is the whole design. It is now the
+   DISPLAY STEP's own tracking, read from the token rather than repeated as a
+   number, so REDUCED MOTION and a crawler get the correct wordmark with nothing
+   written at all: arrival is guaranteed by ABSENCE rather than by winning a
+   specificity race, and retuning the step retunes the rest state. Before Will's
+   type ruling (2026-09-17) this mirrored the flat -0.03em that `font-heading`
+   still carries as its off-ladder fallback.
+
+   ★ AND THIS IS WHY THE STEP CANNOT SIMPLY BE WORN HERE. marketing.css is
+   UNLAYERED, so every rule in it beats the `utilities` layer whatever the
+   specificity: a masthead wearing `text-display` would still settle at whatever
+   is written below. The step's tracking has to be closed in these same two
+   places, or the one heading on the site with a motion beat of its own is the
+   one heading that leaves the ladder.
 
    The no-JS / failed-hydration case degrades to the OPEN tracking rather than
    the rest state (Reveal server-renders data-inview="false", which is
@@ -1476,7 +1485,7 @@
    a clamped masthead is sized for the state that has to fit, and a centred line
    with no siblings simply re-centres as it closes. ── */
 [data-mkt] .mkt-name {
-  letter-spacing: -0.03em;
+  letter-spacing: var(--text-display--letter-spacing);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1485,7 +1494,7 @@
     transition: letter-spacing var(--mkt-name-ms) var(--ease-emphasis);
   }
   [data-mkt] [data-inview="true"] .mkt-name {
-    letter-spacing: -0.03em;
+    letter-spacing: var(--text-display--letter-spacing);
   }
 }
 
@@ -1598,15 +1607,25 @@
 
 /* ─── Chapter 3: the skin block (the ONE sanctioned place for surface colors) ───
    The cinema wrapper carries class="dark" (the descendant-scoped token flip) +
-   data-mkt-skin="cinema"; this deepens the app's 0.14 night to the ruled cinema
-   room and fixes native form controls. 0-2-0 specificity so it can't lose the
-   --background tie against `.dark` on stylesheet order. The body:has rules stop
-   session-theme overscroll/short-page bleed around the wrappers (the red-team's
-   body-edge finding) — one per skin since the 2026-08-26 forced-light ruling
-   (marketing themes are AUTHORED; the app is the only theme-following surface):
-   cinema edges stay room-dark, paper edges stay paper-light, whatever the
-   session says. They are the file's only body selectors, sanctioned by the
-   policy test. ─── */
+   data-mkt-skin="cinema"; this fixes native form controls inside it.
+
+   ★ THE DEEPENING IS GONE, and that is the palette's round eight rather than a
+   deletion. This block used to re-declare --background, because the app's night
+   was 0.14 and a chapter wanted the deeper 0.11. Graphite takes marketing's own
+   deeper value across the WHOLE product (one room at 0.105), so a cinema
+   chapter and the app are the same ground and an override here would be a
+   second home for one number. If the two ever part again, the --background line
+   comes back HERE, at 0-2-0 specificity so it cannot lose the tie against
+   `.dark` on stylesheet order.
+
+   The body:has rules stop session-theme overscroll/short-page bleed around the
+   wrappers (the red-team's body-edge finding) — one per skin since the
+   2026-08-26 forced-light ruling (marketing themes are AUTHORED; the app is the
+   only theme-following surface): cinema edges stay room-dark, paper edges stay
+   paper-light, whatever the session says. They are the file's only body
+   selectors, sanctioned by the policy test. They must stay LITERAL: body sits
+   outside both wrappers, so var(--background) there resolves to the session's
+   own theme. These two are the room and the page of globals.css, by hand. ─── */
 
 /* ─── THE ACCENT BLOCK (the 2026-08-25 ruling: ACHROMATIC base, not
    monochromatic — occasional tasteful color accents for status feedback and
@@ -1633,17 +1652,16 @@
 }
 
 .dark[data-mkt-skin="cinema"] {
-  --background: oklch(0.11 0 0);
   color-scheme: dark;
 }
 
 body:has([data-mkt-skin="cinema"]) {
-  background: oklch(0.11 0 0);
+  background: oklch(0.105 0.0053 286);
   color-scheme: dark;
 }
 
 body:has([data-mkt-skin="paper"]) {
-  background: oklch(0.99 0 0);
+  background: oklch(0.995 0.002 286);
   color-scheme: light;
 }
 

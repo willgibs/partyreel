@@ -67,7 +67,7 @@ export function FilmStrip() {
             <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
               {s.scene}
             </p>
-            <h3 className="mt-2 font-heading text-2xl">{s.title}</h3>
+            <h3 className="mt-2 font-heading text-subhead">{s.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               {s.body}
             </p>
@@ -104,7 +104,7 @@ function FilmStripRow() {
         {frames.map((m, i) => (
           <div
             key={`${m.id}-${i}`}
-            className="relative h-24 w-40 shrink-0 overflow-hidden rounded-[2px] sm:h-28 sm:w-44"
+            className="relative h-24 w-40 shrink-0 overflow-hidden rounded-tile sm:h-28 sm:w-44"
           >
             <Image
               src={m.src}

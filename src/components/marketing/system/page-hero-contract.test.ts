@@ -48,11 +48,24 @@ describe("the page hero lockup", () => {
   });
 
   it("trims the display step's TOP only, never its bottom", () => {
-    // The box overstates the ink above the cap (leading-[0.85] + py) and
-    // UNDERSTATES it below (the descender hangs past the box). Trimming both
-    // ends is the intuitive move and it tightens the one end already tight.
-    expect(code).toContain("-mt-[0.12em]");
-    expect(code).not.toMatch(/-mb-\[/);
+    // The box overstates the ink above the cap (the step's tight leading + py)
+    // and UNDERSTATES it below (the descender hangs past the box). Trimming
+    // both ends is the intuitive move and it tightens the one end already tight.
+    expect(code).toMatch(/\bmt-\[calc\(/);
+    expect(code).not.toMatch(/-mb-\[|\bmb-\[calc/);
+  });
+
+  it("trims by the leading it is cancelling, with the sign that trims MORE at a phone", () => {
+    // Will's `display-trim=clamped` (2026-09-18). The overhang is minus the
+    // half-leading, which follows the step's own clamped line height, plus a
+    // constant in em; the constant is fitted so 1440 keeps its -0.12em. The
+    // board's tile had the half-leading's sign backwards, `(1lh - 1em) / 2`,
+    // which trims LESS at a phone where the leading is looser: the exact
+    // opposite of the words it was picked on, and the easiest regression to
+    // type. A flat em value is the other one: right at one width only.
+    expect(code).toContain("mt-[calc((1em-1lh)/2-0.19em)]");
+    expect(code).not.toContain("(1lh-1em)");
+    expect(code).not.toMatch(/-mt-\[[\d.]+em\]/);
   });
 
   it("keeps the display step's descender padding", () => {
@@ -61,10 +74,24 @@ describe("the page hero lockup", () => {
     expect(code).toContain("py-[0.08em]");
   });
 
-  it("declares the type size as a length, not a bare clamp", () => {
-    // Tailwind v4 cannot infer whether a clamp() in text-* is a size or a
-    // color, and guesses wrong silently.
-    expect(code).toContain("text-[length:clamp(");
+  it("takes every size from the ladder, never from a number here", () => {
+    // Will's type ruling (2026-09-17): one nine-step set in theme.css, each
+    // step a clamp through (375, phone) and (1440, desktop) carrying its own
+    // line-height and letter-spacing. The ambiguity the old rule guarded (v4
+    // cannot tell a clamp() in `text-*` from a color and guesses silently) went
+    // with the arbitrary value: a named step cannot be misread. What replaces
+    // it is the rule that actually matters — no hero invents a size, a leading
+    // or a tracking of its own, at any breakpoint.
+    const table = code.slice(
+      code.indexOf("const HERO_SCALE"),
+      code.indexOf("export type HeroEntrance"),
+    );
+    for (const step of ["text-display", "text-hero", "text-title"])
+      expect(table).toContain(step);
+    expect(table).not.toMatch(/text-\[/);
+    expect(table).not.toMatch(/\b(sm|md|lg|xl):text-/);
+    expect(table).not.toMatch(/\bleading-/);
+    expect(table).not.toMatch(/\btracking-/);
   });
 
   it("keeps every scale in the table rather than inline", () => {

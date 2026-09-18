@@ -9,24 +9,31 @@
    if a lab-only use ever appears.) */
 @import "tailwindcss/theme.css" theme(reference);
 @reference "../../theme.css";
-@import "tailwindcss/utilities.css" layer(utilities) source(none);
+/* ★ THE LAB'S UTILITIES SIT IN A SUB-LAYER OF `utilities` (round four, 2026-09-15). This sheet
+   loads AFTER globals.css and used to emit into the same `utilities` layer, so at equal specificity
+   the lab's copy of an unprefixed utility won over a production component's responsive one on the
+   same element (`grid-cols-1` beat `lg:grid-cols-12`, `hidden` beat `sm:block`), and every real
+   section a board mounted at 1440 laid out as its phone version (the light board, round four).
+   Rules directly in `utilities` outrank rules in `utilities.lab`, so production's classes win on a
+   shared element and a lab-only class still applies where nothing from production competes. A
+   board that must override a production class on the SAME element uses its own sheet or cn(). */
+@import "tailwindcss/utilities.css" layer(utilities.lab) source(none);
 @source "./";
 /* The rules artifact quotes class names inside rule text ("bg-gallery",
    "outline-ring/50"); scanning it would compile utilities out of prose. */
 @source not "./rules/rules.generated.json";
 
 /*
-  THE LAB SHEET: the mono mock tokens, the type layer, the shared motion.
+  THE LAB SHEET: the shell's grid, the boards' shared hooks, the shared motion.
 
-  Round 1 settled the identity: MONOCHROME, both modes (Will, 2026-06-10).
-  `.mono` is the Sandbox mock token sheet - light mode is round-1 A (paper,
-  hairline borders), dark mode is round-1 B (near-black glass, the media as
-  the light source). Light/dark FOLLOWS the global next-themes class via
-  `.dark .mono` (the Workbench's single theme source, 2026-06-19); the explicit
-  `[data-mode]` is kept as an optional local override. TYPE: `.font-opt-*`
-  swaps the display face + its optical tuning.
+  One design language (the Library x Lab round, 2026-09-15): the lab renders
+  on the REAL tokens (globals.css and theme.css through the app's own theme),
+  never on a copy. The `.mono` mock sheet of the round-one identity work
+  (paper in light, near-black glass in dark), its `font-opt-urbanist` display
+  face and the `[data-dir-root]` wash retired here; the last `.mono` dark
+  override left with the two legacy marketing boards in the migration wave.
 
-  The boards consume these hooks:
+  The boards consume these hooks (unscoped: they read the real tokens):
     [data-dir-display] - display/heading type
     [data-dir-card]    - card surface (hairline in light, glass in dark)
     [data-dir-press] / [data-dir-enter] / [data-dir-stagger] - motion
@@ -36,9 +43,9 @@
   transitions (interruptible) not keyframes, reduced-motion keeps the fade.
 
   WHAT IS NOT HERE (the library round, 2026-09-02): a board's own CSS lives
-  beside the board under sandbox/ (glow-lab.css, marketing-open.css), imported
-  by the board so it leaves with it, and the sheets of ruled rounds went with
-  their boards (git keeps them; docs/decisions/design-record.md keeps the
+  beside the board under sandbox/ (album-hero/hero.css, river-visual/river.css),
+  imported by the board so it leaves with it, and the sheets of ruled rounds went with
+  their boards (git keeps them; docs/design/rulings.md keeps the
   rulings). This sheet declares NO @keyframes: keyframe names are
   document-global and the lab once shadowed nine production names for the rest
   of a session on every /design visit; src/app/keyframe-uniqueness.test.ts
@@ -46,123 +53,377 @@
   marketing.css itself (loaded by layout.tsx), never from a copy here.
 */
 
-/* ───────────────────────────── The mono sheet ────────────────────────────── */
-.mono {
-  --background: oklch(0.995 0 0);
-  --foreground: oklch(0.13 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0 0);
-  --primary: oklch(0.13 0 0);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.13 0 0);
-  --muted: oklch(0.965 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.13 0 0);
-  --destructive: oklch(0.55 0.21 27);
-  --border: oklch(0.905 0 0);
-  --input: oklch(0.905 0 0);
-  --ring: oklch(0.3 0 0);
+/* ───────────────────────────── The shell's grid ───────────────────────────
+   The top bar (top-bar.tsx) writes its height to --lab-topbar-h on <html>;
+   the sidebar and the table of contents stick under it. lg: sidebar + content;
+   xl: + the TOC rail. A wide page ([data-lab-wide], a board) drops the TOC
+   column always, so a 1440 canvas has its room at 1:1.
 
-  /* THE ROUNDING SYSTEM (Will, rounds 6-7): sharp corners on general UI,
-     rounder corners on interactive elements - the radius contrast itself
-     signals "this is pressable". Surfaces ride --radius (now NEAR-SHARP,
-     2px, per the round-7 sharper call); actions ride --radius-action,
-     defined as 16px at the standard 40px button and SCALED BY HEIGHT
-     elsewhere (ratio 0.4). Media tiles get their OWN subtle token
-     (--radius-tile): rounder than surfaces but well under buttons, so
-     tight-gap grids don't open holes at the corners. ONE knob each to
-     re-tune globally; set the action tokens to 999px to go full pill. */
-  --radius: 0.125rem;
-  --radius-tile: 3px;
-  --radius-action: 1rem; /* 16px @ h-10 (40px) */
-  --radius-action-lg: 1.2rem; /* @ h-12 (48px) */
-  --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
+   THE SIDEBAR TOGGLE WORKS ON EVERY PAGE (the sweep, 2026-09-16). It used to
+   collapse the sidebar only on a wide page, so the top bar's button (which is
+   on screen at every `lg` width) did nothing at all on a library page: it wrote
+   the preference, the grid ignored it, and a stranger read the control as
+   broken. One preference, one meaning, everywhere: `data-lab-sidebar`
+   (lab-prefs.ts) drops the sidebar column at `lg` on any page, and the table of
+   contents keeps its rail at `xl` because a wider measure is the point of
+   collapsing, not a wider rail. */
+.lab-shell {
+  --lab-sidebar-w: 240px;
+  --lab-toc-w: 200px;
+  /* The stylesheet's generation, read by LabChrome to catch a browser holding
+     an old copy of this file (lab-css-generation.ts holds the same number). */
+  --lab-css-generation: 6;
+}
+.lab-shell-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 1024px) {
+  .lab-shell-body {
+    grid-template-columns: var(--lab-sidebar-w) minmax(0, 1fr);
+  }
+  .lab-sidebar {
+    position: sticky;
+    top: var(--lab-topbar-h, 48px);
+    height: calc(100dvh - var(--lab-topbar-h, 48px));
+    overflow-y: auto;
+  }
+}
+/* ★ THE TWO `xl:` SWITCHES ARE CSS, NOT UTILITIES (the Library x Lab round,
+   2026-09-15). The lab's sheet compiles into the `utilities.lab` SUB-layer, and
+   a rule in a sub-layer LOSES to one in its parent at equal specificity (the
+   landmine above). `hidden` is all over production, so it sits in `utilities`;
+   `xl:block` and `xl:hidden` are used NOWHERE outside the lab, so they compile
+   only into `utilities.lab` and lose. The result was that `hidden xl:block` on
+   the rail meant hidden at EVERY width (no table of contents above 1280 at
+   all), and `xl:hidden` on the narrow-window disclosure never hid it, so both
+   showed at once. An UNLAYERED rule beats every layer, so the pair lives here.
+   Every other responsive pairing in the shell is safe: `sm:`, `md:` and `lg:`
+   display utilities are all used by production too, so they land in
+   `utilities` and win by source order as usual. Check that before reaching for
+   a `<breakpoint>:` display utility that only the lab uses. */
+.lab-toc {
+  display: none;
+}
+.lab-toc-compact {
+  display: block;
+}
+@media (min-width: 1280px) {
+  .lab-shell-body {
+    grid-template-columns: var(--lab-sidebar-w) minmax(0, 1fr) var(--lab-toc-w);
+  }
+  .lab-toc {
+    display: block;
+    position: sticky;
+    top: var(--lab-topbar-h, 48px);
+    max-height: calc(100dvh - var(--lab-topbar-h, 48px));
+    overflow-y: auto;
+    padding: 1.5rem 1rem 1.5rem 0;
+  }
+  .lab-toc-compact {
+    display: none;
+  }
+}
+/* A wide page has no rail at any width, and no compact disclosure either: its
+   dock carries the Sections menu, and two jump controls for one list of
+   sections is one more than a reader needs (the sweep, 2026-09-16). */
+.lab-shell-body:has([data-lab-wide]) .lab-toc,
+.lab-shell-body:has([data-lab-wide]) .lab-toc-compact {
+  display: none;
+}
+@media (min-width: 1280px) {
+  .lab-shell-body:has([data-lab-wide]) {
+    grid-template-columns: var(--lab-sidebar-w) minmax(0, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  html[data-lab-sidebar="collapsed"] .lab-shell-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  html[data-lab-sidebar="collapsed"] .lab-sidebar {
+    display: none;
+  }
+}
+@media (min-width: 1280px) {
+  html[data-lab-sidebar="collapsed"] .lab-shell-body {
+    grid-template-columns: minmax(0, 1fr) var(--lab-toc-w);
+  }
+  html[data-lab-sidebar="collapsed"] .lab-shell-body:has([data-lab-wide]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* At 1:1 a wide page gives its stages the whole column, and a canvas or a
+   frame row runs edge to edge before it scrolls sideways (Will, 2026-09-16:
+   "use the full window width without left padding before allowing overflow"):
+   the page keeps its gutter for text and gives it back to what is judged. */
+html[data-lab-fit="true"] [data-lab-wide] {
+  max-width: none;
+}
+html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] {
+  margin-left: -1rem;
+  margin-right: -1rem;
+}
+/* A bleed inside a bleed (a Stage inside a board's own scroll row) keeps its
+   box: only the outermost surface takes the gutter back. */
+html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
+  margin-left: 0;
+  margin-right: 0;
+}
+/* THE BLEED REACHES THE WINDOW EDGE AND STOPS THERE (the sweep, 2026-09-16).
+   The rule above takes back a 1rem gutter, which is the wide page's own; a
+   board that ALSO pulls its rows left (a board's own sheet once widened its
+   rows past the column) stacks its pull on top and the whole DOCUMENT scrolled
+   sideways by the difference, which is the one kind of sideways scroll a board
+   must never cause. The shell holds that promise here rather than asking every
+   board to know about it. `clip`, never `hidden`: a clip container is not a
+   scroll container, so the dock and the sidebar keep sticking to the window.
 
-  /* No accent exists: brand-colored things render as ink. */
-  --brand: oklch(0.13 0 0);
-  --brand-foreground: oklch(0.99 0 0);
-
-  /* STATE COLORS (Will, rounds 6-7): mono bans BRAND color, never MEANING -
-     state feedback ALWAYS gets color, as punctuation, never a wash.
-     Success = green (the upload check reads instantly); liked = the
-     standard rose heart (white read as empty/unliked); warning = amber
-     (the needs-review chip must be noticeable); error = the destructive
-     red above. */
-  --success: oklch(0.6 0.16 150);
-  --success-foreground: oklch(0.99 0 0);
-  --warning: oklch(0.8 0.14 80);
-  --warning-foreground: oklch(0.25 0.05 70);
-  --dir-like: oklch(0.63 0.21 15);
-
-  --dir-duration: 200ms;
-  --dir-ease: cubic-bezier(0.23, 1, 0.32, 1);
+   ★ THE @supports IS LOAD-BEARING, not a capability check. A bare
+   `overflow-x: clip` is DROPPED by the build's CSS pipeline (Lightning CSS
+   cannot downlevel the value for the configured targets, so it deletes the
+   declaration and then the empty rule); the same rule with `hidden` survives.
+   Inside `@supports` the block is passed through untouched, and every browser
+   this lab is read in supports `clip`. Check the compiled chunk, not the
+   source, before believing any lone modern value here. */
+@supports (overflow: clip) {
+  html[data-lab-fit="true"] .lab-content:has([data-lab-wide]) {
+    overflow-x: clip;
+  }
+}
+/* THE CATALOG GRID (the revamp, 2026-09-16): one card per candidate, as many
+   across as fit. Unlayered on purpose: a lab-only `xl:grid-cols-4` in the
+   utilities.lab sub-layer loses to production's `lg:grid-cols-3`. A board sets
+   --lab-catalog-min for wider cards (a 375 phone canvas wants 420). */
+.lab-catalog {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(var(--lab-catalog-min, 280px), 100%), 1fr)
+  );
+}
+/* THE STEP (the dock round, 2026-09-18): the preview is the page and the
+   answer is a dock (step.tsx). Will could not see what he was answering when
+   the evidence was pinned in a 40vh window above the options: "The top preview
+   UI of our lab is covered by the answer UI, and I cannot scroll it". So the
+   stage is drawn at its true size and never capped, the head that names what it
+   shows sticks under the top bar, and the dock that answers sticks to the foot
+   of the window. Unlayered, for the reason the catalog grid is: every switch
+   here is lab-only, and a lab-only utility loses to production's in its
+   sub-layer (the landmine at the head of this file). */
+.lab-step-head {
+  display: grid;
+  gap: 0.75rem 2rem;
+}
+@media (min-width: 1024px) {
+  .lab-step-head[data-aside] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    align-items: start;
+  }
+}
+.lab-stage-head {
+  position: sticky;
+  top: var(--lab-topbar-h, 48px);
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 1rem;
+  min-height: 2.75rem;
+  padding-block: 0.375rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklab, var(--background) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+/* FLIPPED: every option in the same cell, one visible. The stage is as tall
+   as its tallest option, so a blink between two never jumps the page. */
+.lab-stage {
+  min-width: 0;
+  overflow-x: auto;
+}
+.lab-stage[data-arrange="flip"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.lab-stage[data-arrange="flip"] > [data-lab-view] {
+  grid-area: 1 / 1;
+}
+.lab-stage[data-arrange="flip"] > [data-lab-view]:not([data-shown]) {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+/* SIDE BY SIDE: only when every option fits at its true size (step.tsx). */
+.lab-stage[data-arrange="side"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.lab-stage[data-arrange="side"] > [data-lab-view] {
+  flex: 0 0 auto;
+}
+/* An option off the stage is paused as well as hidden: a JS loop reads
+   [data-paused] (stage.tsx), and this stops a CSS one. */
+[data-lab-view][data-paused] * {
+  animation-play-state: paused !important;
+}
+.lab-word-options {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
+}
+.lab-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "options way"
+    "note note";
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding-block: 0.625rem calc(0.625rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklab, var(--background) 94%, transparent);
+  backdrop-filter: blur(8px);
+}
+/* Next's dev indicator sits bottom-right over whatever is there, which was
+   Next itself on a reviewer's local server. Only while it is on the page. */
+html:has(nextjs-portal) .lab-dock {
+  padding-right: 3.25rem;
+}
+.lab-dock-options {
+  grid-area: options;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  overflow-x: auto;
+}
+.lab-dock-note {
+  grid-area: note;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.lab-dock-way {
+  grid-area: way;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+/* A phone gives the options a row of their own: sharing one with Back, Pick
+   and Next left room for a single chip. */
+@media (max-width: 639px) {
+  .lab-dock {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "options"
+      "note"
+      "way";
+  }
+}
+/* One row where there is room: the options, the note, the way on. */
+@media (min-width: 1280px) {
+  .lab-dock {
+    grid-template-columns: minmax(0, auto) minmax(14rem, 1fr) auto;
+    grid-template-areas: "options note way";
+  }
 }
 
-/* Dark mode = round-1 Night: near-black, inverted-ink CTAs, glass cards.
-   The mono mocks now FOLLOW the global theme: next-themes sets `.dark` on <html>
-   (the lab's single theme source, 2026-06-19), so `.dark .mono` flips the mock
-   palette with the rest of the Workbench. The explicit `[data-mode="dark"]` is
-   kept as an optional local override. */
-:is(.mono[data-mode="dark"], .dark .mono) {
-  --background: oklch(0.14 0 0);
-  --foreground: oklch(0.96 0 0);
-  --card: oklch(0.21 0 0 / 0.62);
-  --card-foreground: oklch(0.96 0 0);
-  --popover: oklch(0.21 0 0);
-  --popover-foreground: oklch(0.96 0 0);
-  --primary: oklch(0.96 0 0);
-  --primary-foreground: oklch(0.15 0 0);
-  --secondary: oklch(0.25 0 0);
-  --secondary-foreground: oklch(0.96 0 0);
-  --muted: oklch(0.245 0 0);
-  --muted-foreground: oklch(0.71 0 0);
-  --accent: oklch(0.25 0 0);
-  --accent-foreground: oklch(0.96 0 0);
-  --destructive: oklch(0.7 0.19 22);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.85 0 0);
-
-  --brand: oklch(0.96 0 0);
-  --brand-foreground: oklch(0.15 0 0);
-
-  /* State colors brighten against near-black so they still pop. */
-  --success: oklch(0.7 0.16 150);
-  --success-foreground: oklch(0.13 0 0);
-  --warning: oklch(0.84 0.14 82);
-  --warning-foreground: oklch(0.25 0.05 70);
-  --dir-like: oklch(0.68 0.2 15);
+/* The tuner panel (motion-tuner.tsx sets data-lab-panel to its side and
+   --lab-panel-w to its width while open): a wide page keeps its evidence
+   clear of it on a desktop window; below 1024 the reader collapses the panel
+   instead, because a board squeezed into 43px is worse than a covered corner. */
+@media (min-width: 1024px) {
+  html[data-lab-panel="right"] .board-page {
+    padding-right: calc(var(--lab-panel-w, 0px) + 1rem);
+  }
+  html[data-lab-panel="left"] .board-page {
+    padding-left: calc(var(--lab-panel-w, 0px) + 1rem);
+  }
+}
+/* Every in-page anchor lands under the bar. A board's dock adds its own height
+   to this property inline while it is mounted (dock.tsx); without the rule a
+   table-of-contents jump on a LIBRARY page put the heading behind the bar. */
+html:has(.lab-shell) {
+  scroll-padding-top: calc(var(--lab-topbar-h, 48px) + 12px);
 }
 
-/* Card surface: hairline paper in light, glass in dark. */
-.mono [data-dir-card] {
+/* THE SKIP LINK (the sweep, 2026-09-16): off screen until it takes focus, then
+   a real control over the top bar. Plain CSS because the Tailwind pair for this
+   (`sr-only` + `focus-visible:not-sr-only`) breaks here: `not-sr-only` is used
+   nowhere in production, so it compiles only into `utilities.lab` and loses to
+   production's `sr-only` (the landmine at the head of this file). */
+.lab-skip {
+  /* Fixed, not absolute: shift-tabbing back to it from halfway down a long
+     doc has to put it on SCREEN, not at the top of the document. */
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  z-index: 50;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--foreground);
+  color: var(--background);
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  font-weight: 500;
+}
+.lab-skip:focus-visible {
+  left: 0.5rem;
+  top: 0.5rem;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ─────────────────────────── The shell's disclosure ────────────────────────
+   A sidebar section, or the narrow-window table of contents, opening and
+   closing. `grid-template-rows: 0fr -> 1fr` animates to the content's REAL
+   height with no measurement, no ResizeObserver and no max-height guess (the
+   child must carry `min-height: 0` and `overflow: hidden`, which the markup
+   does). 180ms on the emphasis curve: a disclosure is occasional, so it is
+   allowed to move, and it stays inside the craft standard's 300ms ceiling.
+   `visibility` rides the same transition so a closed section's rows leave the
+   accessibility tree once the collapse has finished, and `inert` in the markup
+   takes them out of the tab order immediately. */
+.lab-disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 180ms var(--ease-emphasis, ease),
+    visibility 0s linear 180ms;
+}
+.lab-disclosure[data-open="true"] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 180ms var(--ease-emphasis, ease),
+    visibility 0s;
+}
+.lab-chevron {
+  transition: transform 180ms var(--ease-emphasis, ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-disclosure,
+  .lab-disclosure[data-open="true"],
+  .lab-chevron {
+    transition: none;
+  }
+}
+
+/* Card surface: hairline paper in light, glass in dark (unscoped, 2026-09-15). */
+[data-dir-card] {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
-
-:is(.mono[data-mode="dark"], .dark .mono) [data-dir-card] {
+.dark [data-dir-card] {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-}
-
-/* The faint neutral wash dark mode blurs its glass against. */
-:is(.mono[data-mode="dark"], .dark .mono)[data-dir-root] {
-  background-image:
-    radial-gradient(
-      36rem 24rem at 85% -5%,
-      oklch(0.45 0 0 / 0.2),
-      transparent 65%
-    ),
-    radial-gradient(
-      28rem 20rem at 0% 100%,
-      oklch(0.4 0 0 / 0.14),
-      transparent 60%
-    );
 }
 
 /* ───────────────────────────── The type layer ──────────────────────────────
@@ -192,21 +453,6 @@
   font-synthesis: none;
 }
 
-/* THE SHIPPED FACE: Urbanist, mirroring globals.css's font-heading (Will,
-   2026-06-19 - Instrument Serif read too thin). A proper variable sans, so the
-   Instrument-era knobs are gone: real bold (700) does the work, no synthetic
-   stroke, no x-height adjust. Two live knobs, exactly like the app: WEIGHT (700)
-   and TRACKING (-3%). The retired Instrument explorations live in git history;
-   the vendored fork in fonts-local/ is kept unused. */
-.font-opt-urbanist {
-  --font-heading: var(--font-display);
-  --display-font: var(--font-display);
-  --display-adjust: none;
-  --display-tracking: -0.03em;
-  --display-weight: 700;
-  --display-stroke: 0;
-}
-
 /* ───────────────────────────── Shared motion system ────────────────────────
    Press feedback is constant (craft standard: 100-160ms). */
 [data-dir-press] {
@@ -229,7 +475,7 @@
   }
 
   /* Dark's signature garnish: entrances de-blur (the emil blur-mask trick). */
-  :is(.mono[data-mode="dark"], .dark .mono) [data-dir-enter] {
+  .dark [data-dir-enter] {
     @starting-style {
       filter: blur(6px);
     }
@@ -257,4 +503,16 @@
       opacity: 0;
     }
   }
+}
+
+/* The kit's Paste, collapsed: the <pre> carries --lab-paste-lines and the
+   attribute (src/components/lab/paste.tsx), and this is the rule it says lives
+   here; without it every migrated board's collapsed paste was the whole block
+   and "Read all N lines" toggled nothing (the palette migration measured a
+   2054px box for a 113-line paste). The arithmetic is the <pre>'s own, 11px
+   type at leading-relaxed plus its p-4, so the box is exactly the requested
+   number of lines. */
+pre[data-lab-paste] {
+  max-height: calc(var(--lab-paste-lines, 6) * 1.625em + 2rem);
+  overflow: hidden;
 }

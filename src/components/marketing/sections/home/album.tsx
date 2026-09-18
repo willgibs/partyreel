@@ -29,8 +29,10 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
  *
  * The print is max-w-3xl, not 4xl, on purpose: the live-demo stage one cut
  * above is 896px wide, and a second 896px object right after it recreates the
- * two-visuals problem, only separated. shadow-float is the paper theme's real
- * elevation (a print on the desk); on dark it is zero, so it is unconditional.
+ * two-visuals problem, only separated. The frame takes NO shadow (the light
+ * ruling, 2026-09-17): since the overhang left, it lies flat on the page, and a
+ * flat surface is its border and its ring in either mode. A frame that
+ * overhangs a cut again wears `shadow-lift` at its own call site.
  */
 
 const ALBUM_TILE_IDS = [
@@ -87,10 +89,7 @@ export function Album() {
 function AlbumVisual() {
   return (
     <div aria-hidden>
-      <BrowserFrame
-        className="shadow-[var(--shadow-float)]"
-        label="partyreel.com/a/maya-and-jay"
-      >
+      <BrowserFrame label="partyreel.com/a/maya-and-jay">
         <div className="grid grid-cols-4 gap-2">
           {ALBUM_TILE_IDS.map((id) => {
             const m = marketingImage(id);

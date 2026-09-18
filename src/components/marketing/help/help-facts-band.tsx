@@ -10,13 +10,16 @@ import { cn } from "@/lib/utils";
 type Fact = { label: string; value: string; href: string };
 
 /**
- * THE FILMSTRIP (R6 polish v2, after Will's rework note on the floating
- * stats): the numbers printed on a strip of film — perforated edges, hairline
- * frame cells, display mono numerals with the number-pop-in recipe firing once
- * in view. Every cell links to the guide that explains its number; the FINAL
- * value is server-rendered so no-JS and SEO always read the truth. Mono is the
- * ruling-sanctioned use (tabular numerals, StatBand register). The perforation
- * is a CSS gradient, not marketing.css (no policy surface).
+ * THE FILMSTRIP (after Will's rework note on the floating stats): the numbers
+ * printed on a strip of film, with perforated edges, hairline frame cells and
+ * the number-pop-in recipe firing once in view. Every cell links to the guide
+ * that explains its number; the FINAL value is server-rendered so no-JS and
+ * SEO always read the truth. The perforation is a CSS gradient, not
+ * marketing.css (no policy surface).
+ *
+ * The numerals are the StatBand register (kill-mono, 2026-09-14): the display
+ * face with tabular figures, because a number on a film cell is the subject of
+ * that cell. The label under it stays the tracked uppercase micro-register.
  */
 export function HelpFactsBand({ facts }: { facts: Fact[] }) {
   const { ref, inView } = useInViewOnce<HTMLDivElement>(0.4);
@@ -25,7 +28,7 @@ export function HelpFactsBand({ facts }: { facts: Fact[] }) {
   return (
     <div
       ref={ref}
-      className="overflow-hidden rounded-2xl border bg-card shadow-xs ring-1 ring-foreground/5"
+      className="overflow-hidden rounded-2xl border bg-card ring-1 ring-foreground/5"
     >
       <Perforation edge="top" />
       <div className="grid grid-cols-2 gap-px border-y bg-border sm:grid-cols-3 lg:grid-cols-5">
@@ -41,7 +44,7 @@ export function HelpFactsBand({ facts }: { facts: Fact[] }) {
               index === 3 && "sm:col-span-2 lg:col-span-1",
             )}
           >
-            <span className="font-mono text-2xl font-medium tracking-tight tabular-nums sm:text-3xl">
+            <span className="font-heading text-prose tabular-nums">
               {reduced ? (
                 fact.value
               ) : (

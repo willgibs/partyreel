@@ -20,7 +20,7 @@ import { formatBytes } from "@/lib/utils";
  * the ticket stub read (the divider grammar: dashed = sub-division of one
  * thing), separating the identity half from the what-you-get half.
  *
- * Both ADR-0025 promises render here because both are TRUE in the product now:
+ * Both billing-caps.md promises render here because both are TRUE in the product now:
  * passes stack, and unused pass time converts to prorated credit on Pro.
  */
 
@@ -46,16 +46,17 @@ export function PassCard() {
       >
         {/* The identity stub. */}
         <div className="flex flex-col gap-2 lg:w-[38%] lg:pr-7">
-          <h2 className="font-heading text-xl">{pass.name}</h2>
+          <h2 className="font-heading text-subsection">{pass.name}</h2>
           <p className="text-sm text-pretty text-muted-foreground">
             One big event, paid once.
           </p>
-          {/* The display face for money (the sitting's mono flag): Urbanist,
-              tabular digits; qualifiers drop small via PricePop. */}
-          <div className="mt-3 font-heading text-4xl tabular-nums">
+          {/* The display face for money: Urbanist with tabular digits, the
+              register every subject number on the site now shares; qualifiers
+              drop small via PricePop. */}
+          <div className="mt-3 font-heading text-section tabular-nums">
             <PricePop label={pass.priceLabel} />
           </div>
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-xs text-faint">
             Covers its event for about a year. Keep it live longer for{" "}
             {EVENT_PASS_RENEWAL_PRICE_LABEL} a year.
           </p>
@@ -97,7 +98,7 @@ export function PassCard() {
               the day
             </PassPoint>
           </ul>
-          <p className="mt-auto text-xs text-pretty text-muted-foreground/70">
+          <p className="mt-auto text-xs text-pretty text-faint">
             No subscription. When the year ends, renew for{" "}
             {EVENT_PASS_RENEWAL_PRICE_LABEL} or let it lapse: you drop back to
             Free with a {OVER_CAP_GRACE_DAYS}-day window to free up space or

@@ -13,10 +13,7 @@ import { PageHero } from "@/components/marketing/system/page-hero";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Button } from "@/components/ui/button";
-import {
-  FEATURE_PAGES,
-  type FeaturePage,
-} from "@/lib/constants/feature-pages";
+import { FEATURE_PAGES, type FeaturePage } from "@/lib/constants/feature-pages";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 
@@ -66,15 +63,10 @@ export default function FeaturesPage() {
              lopsided. */
           <div className="flex flex-col items-center gap-4">
             <div className="flex flex-col items-center gap-3 sm:flex-row">
-              <Button asChild size="lg" className="h-11 px-6 text-base">
+              <Button asChild size="cta">
                 <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
               </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-11 px-6 text-base"
-              >
+              <Button asChild size="cta" variant="outline">
                 <Link href="/how-it-works">How it works</Link>
               </Button>
             </div>

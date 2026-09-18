@@ -1,6 +1,6 @@
 /**
  * Turn media rows (R2 KEYS) into render-ready GridMedia (presigned URLs) for the
- * galleries. SERVER-ONLY — raw keys never reach the browser (ADR-0003). Two
+ * galleries. SERVER-ONLY — raw keys never reach the browser (uploads-and-r2.md). Two
  * presigns per item from the same key: an INLINE url (grid/lightbox render) and an
  * `attachment` download url (the lightbox Save). Single source so the public album,
  * the guest event page, and the gallery poll route all presign identically.

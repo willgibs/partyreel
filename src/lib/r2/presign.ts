@@ -2,7 +2,7 @@
  * Presigned-URL helpers for browser → R2 direct uploads + gallery reads.
  * Server-only — these sign with the R2 secret.
  *
- * Upload strategy (ADR-0003): the browser uploads directly to R2 via presigned
+ * Upload strategy (uploads-and-r2.md): the browser uploads directly to R2 via presigned
  * URLs. Files under MULTIPART_THRESHOLD_BYTES use a single presigned PUT; larger
  * files use multipart (create → presign each part → browser PUTs parts →
  * complete). Bytes NEVER pass through a Vercel function.

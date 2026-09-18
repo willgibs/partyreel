@@ -242,8 +242,8 @@ export const TERMS_SECTIONS: LegalSection[] = [
     blocks: [
       // tiers.ts: free = 1 event, photos only; pro = subscription (month or
       // year), unlimited events; event_pass = one-time, 1 event, ~1 year,
-      // stacks (ADR-0025); pass→pro = prorated credit; one Pro at a time
-      // (ADR-0023); renewal extends never resets.
+      // stacks (billing-caps.md); pass→pro = prorated credit; one Pro at a time
+      // (host-app.md); renewal extends never resets.
       sub("plans", "The plans"),
       ul(
         <>
@@ -413,7 +413,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     summary:
       "A public profile is public by choice. Guest lists are the host's call. Blocks are honoured everywhere.",
     blocks: [
-      // ADR-0019 + profiles-social.md.
+      // profiles-social.md + profiles-social.md.
       p(
         "Claiming a public profile makes it visible to anyone at its address, including search engines. Your profile shows the events you host and choose to display, and the open events you have contributed to where the host shows a guest list and you have not hidden them. You can hide any event from your profile at any time. Profiles never show email addresses or follower counts.",
       ),
@@ -524,6 +524,12 @@ export const TERMS_SECTIONS: LegalSection[] = [
       ),
       p(
         "Content in an album comes from hosts and guests, not from us. We do not endorse it, and we are not responsible for it or for what anyone with access to an album does with it.",
+      ),
+      // Our own images, never a guest's: this sits after the sentence that
+      // separates the two so it can only read as the "us" side. It is the
+      // whole disclosure by Will's ruling (2026-09-18): no mark on any image.
+      p(
+        "We may use generative artificial-intelligence tools to create some of the images and videos on our website, in our marketing and in our demo event.",
       ),
     ],
   },

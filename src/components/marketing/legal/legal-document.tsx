@@ -35,7 +35,7 @@ import { LegalBlocks } from "./legal-blocks";
  * Cinema hero, paper body, ink footer: the utility-page rhythm (Will's ruling,
  * 2026-08-28, marketing-content.md). The page takes it by living in the
  * (cinema) group and riding ONE PaperChapter, exactly as /help and /about do;
- * the dark overlay nav and the #040404 chrome arrive with the group. Nothing
+ * the dark overlay nav and the #040405 chrome arrive with the group. Nothing
  * here is built from the paper side (the (spotlight) lesson).
  *
  * ── THE TWO REGISTERS, KEPT ──
@@ -47,9 +47,9 @@ import { LegalBlocks } from "./legal-blocks";
  * Version, status and reading time ride the paper card that straddles the
  * cinema→paper cut (the help article's "In short" move). It is a <div> on
  * purpose: ArticleToc measures the FIRST <header> for its scroll offset, and
- * that must stay the overlay MarketingHeader. The card also retires the R5
- * MonoCaption status line: mono holds data, Inter carries labels (the R6 mono
- * ruling), and a version line is a label with one number in it.
+ * that must stay the overlay MarketingHeader. The card also retired the old
+ * status line: a version line is a label with one number in it, so it reads
+ * as a caption on the body face with tabular figures.
  *
  * ── THE RAIL SCROLLS WITHIN ITSELF ──
  * Twenty-two entries at ~34px each do not fit a laptop viewport under the
@@ -93,11 +93,12 @@ export function LegalDocument({
       {/* THE STRADDLE: the meta card arrives out of the dark and lands on the
           desk. Negative bottom margin overhangs the chapter's top padding by
           40px at every width (below lg the chapter compresses the section to
-          py-14, which still clears it: help ships this exact pairing). */}
+          py-14, which still clears it: help ships this exact pairing). An
+          overhanging card is an overlap, so it wears shadow-lift. */}
       <section>
         <Container>
           <div className="surface-paper relative z-10 mx-auto -mb-10 max-w-2xl">
-            <div className="rounded-2xl border bg-card p-5 shadow-float ring-1 ring-foreground/5 sm:p-6">
+            <div className="rounded-2xl border bg-card p-5 shadow-lift ring-1 ring-foreground/5 sm:p-6">
               <p className="text-sm text-muted-foreground tabular-nums">
                 {legalStatusLine(meta)} &middot; {minutes}
               </p>
@@ -157,14 +158,13 @@ export function LegalDocument({
                       className={cn("py-8 first:pt-0", HEADING_SCROLL_MT)}
                     >
                       <div className="flex items-baseline gap-3">
-                        {/* The numeral stays mono: it is a datum, aligned in a column. */}
                         <span
                           aria-hidden
-                          className="font-mono text-xs tracking-wider text-muted-foreground tabular-nums"
+                          className="text-xs tracking-wider text-muted-foreground tabular-nums"
                         >
                           {String(index + 1).padStart(2, "0")}
                         </span>
-                        <h2 className="group font-heading text-xl text-balance sm:text-2xl">
+                        <h2 className="group font-heading text-subhead text-balance">
                           {section.title}
                           <HeadingAnchor id={section.id} />
                         </h2>
@@ -186,9 +186,7 @@ export function LegalDocument({
                 {/* Navigation, not the document: the printed copy ends at the
                     last section. */}
                 <section className="mt-12 border-t pt-10" data-print-hide>
-                  <h2 className="font-heading text-xl tracking-tight">
-                    Read next
-                  </h2>
+                  <h2 className="font-heading text-subhead">Read next</h2>
                   <ul className="mt-5 flex flex-col gap-3.5">
                     {LEGAL_RELATED[doc].map((item) => (
                       <li key={item.href}>

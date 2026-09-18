@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Inter, Urbanist } from "next/font/google";
+import { Inter, Urbanist } from "next/font/google";
 import "./globals.css";
 
 import { Providers } from "@/components/providers";
@@ -8,16 +8,17 @@ import { Toaster } from "@/components/ui/sonner";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants/site";
 
 // Font CSS variables must match the names referenced in globals.css
-// (--font-sans / --font-mono in @theme; --font-display consumed by the
-// font-heading utility's five-knob display layer). Renaming one side without
-// the other silently drops the typeface back to the browser default.
+// (--font-sans in @theme; --font-display consumed by the font-heading utility's
+// display layer). Renaming one side without the other silently drops the
+// typeface back to the browser default.
+//
+// TWO FACES, and only two (Will, 2026-09-14: "kill mono entirely"). The
+// Geist_Mono loader and its --font-mono variable left with the kill-mono sweep:
+// data reads on the body face with tabular figures, and a value that has to
+// look like a value gets a muted plate, never a third typeface. Do not add a
+// font loader back without a ruling.
 const inter = Inter({
   variable: "--font-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -53,12 +54,15 @@ export const metadata: Metadata = {
   },
 };
 
-// The browser UI tint per scheme (Phase 4 PWA): ink in dark, paper in light,
-// matching the mono system so the standalone status bar / address bar blends in.
+// The browser UI tint per scheme (Phase 4 PWA): the room in dark, the page in
+// light, so the standalone status bar / address bar blends into the chrome.
+// The two are the sRGB of --background in globals.css, retuned with the palette
+// (Graphite, 2026-09-17): oklch(0.995 0.002 286) and oklch(0.105 0.0053 286).
+// A hex, not a var(): <meta name="theme-color"> is parsed before any stylesheet.
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fcfcfc" },
-    { media: "(prefers-color-scheme: dark)", color: "#101010" },
+    { media: "(prefers-color-scheme: light)", color: "#fdfdff" },
+    { media: "(prefers-color-scheme: dark)", color: "#040405" },
   ],
 };
 
@@ -74,9 +78,13 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${geistMono.variable} ${urbanist.variable} h-full antialiased`}
+      className={`${inter.variable} ${urbanist.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      {/* suppressHydrationWarning on the body too: a browser extension
+          (ColorZilla writes cz-shortcut-listen) can edit the body before
+          React hydrates, and the dev overlay counted it as our issue. Scoped
+          to this one element, so a real mismatch below it still reports. */}
+      <body suppressHydrationWarning className="flex min-h-full flex-col">
         <Providers>{children}</Providers>
         <Toaster />
         {/* The spill engine's one turbulence field (round 1). Mounted at the

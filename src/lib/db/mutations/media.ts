@@ -32,7 +32,7 @@ import { formatBytes } from "@/lib/utils";
 // media_guard_privileged_transitions BEFORE trigger SKIPS (returns null, no error) any client
 // write to a legally-held row, so a held item also lands here. That is deliberate — the resulting
 // "That item is no longer available." is identical to the missing-row copy, so the host can never
-// use a moderation click as an oracle for whether a hold exists (ADR-0020 discretion).
+// use a moderation click as an oracle for whether a hold exists (trust-safety-forensics.md discretion).
 const NO_ROWS = "PGRST116";
 
 const UNAUTHORIZED = {
@@ -284,7 +284,7 @@ export async function removeMediaBulk(
  * {ok, reason, …} for EXPECTED refusals (we branch on data.reason — they do NOT raise),
  * so insufficient_space can carry needed_bytes for the UI.
  */
-// `legal_hold` (ADR-0020) and `admin_removed` (QA #8) are DELIBERATELY routed to the discreet
+// `legal_hold` (trust-safety-forensics.md) and `admin_removed` (QA #8) are DELIBERATELY routed to the discreet
 // default branch below, which produces the same "That item is no longer available." wording a
 // missing row does. Both mean "we acted on this item"; the host must not learn which, or that
 // either mechanism exists. They are named here so the union is honest, not so the copy can differ.
@@ -430,7 +430,7 @@ export async function purgeMediaNow(
     };
   }
 
-  // LEGAL HOLD (ADR-0020): held items are excluded HERE, before the R2-first delete — the
+  // LEGAL HOLD (trust-safety-forensics.md): held items are excluded HERE, before the R2-first delete — the
   // purge_media_now RPC also refuses them, but that would only save the ROW after this wrapper
   // had already destroyed the OBJECT. The lookup runs on the ADMIN client because SELECT on media
   // is COLUMN-scoped and legal_hold_at is deliberately NOT granted to hosts (a hold must stay

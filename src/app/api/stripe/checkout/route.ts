@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── ADR-0025 (supersedes ADR-0023 ruling 1's pass arm) ──────────────────────────────────────
+  // ── billing-caps.md (supersedes billing-caps.md ruling 1's pass arm) ──────────────────────────────────────
   // Pro stays ONE AT A TIME: a second subscription would double-bill against one cap, and plan
   // switches belong to the billing portal (correct proration). Derived server-side from
   // `profiles` (the webhook is its sole writer), never from the request body.
@@ -117,7 +117,7 @@ export async function POST(request: Request) {
 
   const plan = planById(planId);
 
-  // ── The prorated Pass → Pro credit (ADR-0025) ───────────────────────────────────────────────
+  // ── The prorated Pass → Pro credit (billing-caps.md) ───────────────────────────────────────────────
   // "I only pay for what I've used, and everything else goes toward what I get moving forward."
   // Computed here (the promise the buyer clicks on), stamped into session metadata, and honored
   // by the webhook on completion: it grants the amount as Stripe customer balance (auto-applied

@@ -2,17 +2,22 @@
  * THE marketing media manifest (Track B, F2) — the ONE source every marketing surface reads for
  * curated media, demo fixtures, and rendered reel loops. Nothing under `public/marketing/` may be
  * referenced except through an entry here, and nothing may live there without one (both directions
- * are pinned by marketing-media.test.ts). Why: the interim set is license-audited per entry, and
- * Will's FINAL media lands later as a pure swap (replace files + entries; components never change).
+ * are pinned by marketing-media.test.ts). Why: Will's FINAL media lands later as a pure swap
+ * (replace files + entries; components never change).
  *
  * Reel entries carry their full render recipe: the engine is deterministic per
  * (clips, styleId, seed, orientation), so any recorded loop re-renders byte-for-byte after a media
  * swap (the T2.5 cluster-5 convention). Shot boundaries are exact 1/24s multiples, in seconds; the
  * hero derives its active shot STATELESSLY from video.currentTime against them.
  *
- * PROVENANCE: the bootstrap 12 were copied from public/design/ (the dev lab pack). Their license
- * line is deliberately honest about the gap; final hero loops must re-render from batch-OK'd media
- * BEFORE milestone-4 ships (the plan's provenance gate).
+ * THE BOOTSTRAP 12 ARE STAND-INS, copied in from the dev lab pack as placeholders. The final set is
+ * generated (one Higgsfield month, docs/ROADMAP.md) and lands as that swap. A replacement keeps the
+ * id of the still it replaces, or every blog cover moves under its published post, and the two
+ * recorded reels then re-render from the new stills.
+ *
+ * ★ NO ENTRY CARRIES A CREDIT LINE, and the type has no field for one, so none can come back with
+ * the generated set. An image on the site is one we hold the rights to, and no agent tracks
+ * subjects, sources or permissions (Will, 2026-09-17, docs/design/rulings.md).
  */
 
 export type MarketingOrientation = "landscape" | "portrait";
@@ -27,14 +32,6 @@ export type MarketingImage = {
   orientation: MarketingOrientation;
   /** Honest content description (verified by eye at intake, not inherited from filenames). */
   subject: string;
-  credit: {
-    /** License or provenance status. Never empty; "…unverified" entries block the M4 gate. */
-    license: string;
-    author?: string;
-    sourceUrl?: string;
-    /** ISO date the file was retrieved, for batch-sourced entries. */
-    retrieved?: string;
-  };
 };
 
 export type MarketingReel = {
@@ -69,7 +66,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 600,
     orientation: "landscape",
     subject: "Wedding couple with bouquet in golden-hour flare",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "reception-table",
@@ -78,7 +74,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 601,
     orientation: "landscape",
     subject: "Reception long table, glassware and bright florals",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "party-balloons",
@@ -87,7 +82,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 600,
     orientation: "landscape",
     subject: "Pastel balloons with ribbons at a birthday party",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "concert-confetti",
@@ -96,7 +90,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 534,
     orientation: "landscape",
     subject: "Confetti falling over a night concert crowd, blue light",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "wedding-rings",
@@ -105,7 +98,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 600,
     orientation: "landscape",
     subject: "Hands with wedding rings over a peach bouquet",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "reception-hall",
@@ -114,7 +106,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 601,
     orientation: "landscape",
     subject: "Banquet hall with blue and white streamers, yellow flowers",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "party-dj",
@@ -123,7 +114,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 600,
     orientation: "landscape",
     subject: "DJ over a packed nightclub floor, disco ball and smoke",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "wedding-toast",
@@ -132,7 +122,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 600,
     orientation: "landscape",
     subject: "Champagne toast at a reception under string lights",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "festival-lights",
@@ -141,7 +130,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 600,
     orientation: "landscape",
     subject: "Festival arena in rainbow lasers and glitter",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "festival-crowd",
@@ -150,7 +138,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 600,
     orientation: "landscape",
     subject: "Outdoor festival crowd against a warm stage glow",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "wedding-arch",
@@ -159,7 +146,6 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 601,
     orientation: "landscape",
     subject: "Wedding arch florals and draped fabric against open sky",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
   {
     id: "wedding-petals",
@@ -168,14 +154,12 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
     height: 1050,
     orientation: "portrait",
     subject: "Couple kissing under falling petals, wedding party around",
-    credit: { license: "unsplash (per lab-pack comment; provenance unverified)" },
   },
 ];
 
 /**
  * Rendered reel loops. CANDIDATES ONLY so far (rendered from the bootstrap set for the hero
- * substrate lab round); finals re-render from the batch-OK'd set before milestone-4 ships (the
- * provenance gate). Boundaries were extracted from planReel for the exact recipe (transition
+ * substrate lab round); finals re-render from the generated set when it lands. Boundaries were extracted from planReel for the exact recipe (transition
  * midpoints; frame-exact at 24fps).
  */
 export const MARKETING_REELS: readonly MarketingReel[] = [

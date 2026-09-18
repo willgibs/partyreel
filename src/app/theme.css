@@ -15,11 +15,13 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
+  /* --font-mono left the theme at the review wave (2026-09-14, bible 7):
+     there is no mono face in the product. Never re-add. */
 
   /* Headings: the brand face is Urbanist (the font-heading utility bakes its own
-     -0.03em tracking + 700 weight). --tracking-tight stays 0em so the 90+ legacy
-     `tracking-tight` usages are no-ops; re-tuning them is its own deferred pass. */
+     700 weight; the -0.03em there is now only a FALLBACK, see the ladder below).
+     --tracking-tight stays 0em so the 90+ legacy `tracking-tight` usages are
+     no-ops; re-tuning them is its own deferred pass. */
   --tracking-tight: 0em;
 
   /* Motion — STRONG custom curves only (built-ins are too weak; emil-design-
@@ -63,6 +65,12 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
+  /* The THIRD text step (the palette's round eight, faint=in): `text-faint`.
+     The utility has to exist here or the token is unreachable from a className,
+     which is why ~37 sites faded --muted-foreground by hand instead. A caption
+     colour (3.21:1 on the page, 4.47:1 in the room), never body copy, and never
+     stacked with an alpha of its own. */
+  --color-faint: var(--faint);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
@@ -73,25 +81,43 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* The rounding system (see header). The legacy sm..4xl scale stays mapped
-     (everything in it is now "sharp family"); interactive + floating layers
-     use the dedicated tokens. */
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  /* The rounding system (values in globals.css; the ruling in its header).
+     THE DERIVED STEPS CLIMB IN QUARTERS of --radius (Will, 2026-09-18,
+     `ladder=quarters`: "This keeps the final pixel calculations much
+     cleaner"): 4 / 6 / 8 / 10 / 12px under the 8px surface, where the old
+     0.6 / 0.8 / 1.4 / 1.8 steps landed on fractions (a 2.8px card). `lg` IS
+     the surface, which is why Card wears it. Interactive and floating layers
+     ride their own tokens below, never this scale.
+
+     ★ THE TOP TWO ARE DROPPED BY SETTING THEM TO `initial`, NOT BY DELETING
+     THE LINES (`dead-rungs=drop`). Tailwind's own default theme defines
+     --radius-3xl (1.5rem) and --radius-4xl (2rem), so a deleted line would
+     bring `rounded-3xl` and `rounded-4xl` back as 24 and 32px, fixed and off
+     every token. `initial` removes the key, and the utilities emit nothing
+     (checked in the built CSS): a corner that big is a pill, and a pill is
+     `rounded-full`. */
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --radius-3xl: initial;
+  --radius-4xl: initial;
   --radius-action: var(--radius-action);
-  --radius-action-lg: var(--radius-action-lg);
   --radius-action-sm: var(--radius-action-sm);
   --radius-tile: var(--radius-tile);
   --radius-float: var(--radius-float);
 
-  /* The elevation contract: the one light-mode shadow family (floating layer
-     only); resolves to nothing in dark (lighter-is-closer instead). */
-  --shadow-float: var(--shadow-float);
+  /* The elevation contract's two shadows, as the two utilities a call site
+     declares its role with: `shadow-lift` (one object overlapping another of
+     its own lightness) and `shadow-layer` (anything the page keeps living
+     behind). Values per ground live in globals.css. Each compiles to
+     `--tw-shadow: var(...)`, the slot Tailwind composes beside the ring, so
+     wearing one never costs a surface its `ring-1` hairline; a bare
+     `box-shadow:` on a ringed surface does, silently. (`shadow-float`, the
+     old single name, retired with the rounding board on 2026-09-18.) */
+  --shadow-lift: var(--shadow-lift);
+  --shadow-layer: var(--shadow-layer);
 
   /* Skeleton shimmer: a background-position sweep over a 200%-wide gradient
      (skeleton.tsx). Linear on purpose - it's an ambient loop, not interaction
@@ -106,4 +132,93 @@
       background-position: -200% 0;
     }
   }
+}
+
+/*
+  ═══════ THE TYPE LADDER (Will's rulings, 2026-09-17 and 2026-09-18) ═══════
+
+  Ten steps, one set, both halves of the site. `display` through `subhead` are
+  marketing's rungs and `page` through `card-title` are the app's, named once,
+  because `CardTitle` is ONE component shipping on /pricing and on the dashboard
+  and would otherwise have to answer which of two sets it wears.
+
+  ★ THE LAW IS THE ORDER, NOT THE TRAVEL (2026-09-18). Every size here sits on
+  a rung of one set (12, 14, 16, 18, 20, 24, 28, 34, 42, 52, 64, 80, 100, 128,
+  160; the ratio widens as it climbs, because one ratio cannot serve a 160px
+  masthead and a 14px label). A step's desktop end is the size Will ruled at
+  1440; its phone end is the rung that keeps every heading ABOVE the one it
+  heads at 375. The first wiring moved every marketing step exactly four rungs
+  instead, which put the paper h2 (`prose`) a size UNDER its own sub-head at a
+  phone, and Will: "We should have a very clear heading hierarchy on mobile as
+  well." Marketing still travels further than the app (bible 2, "marketing may
+  be louder, scale included"), only as far as the order allows, and
+  type-ladder-policy.test.ts reads the paper stack (title > prose > subhead)
+  off these tokens at both ends.
+
+  ★ EVERY NUMBER IS GENERATED, NONE IS TYPED. The block was printed by the
+  type-scale board's `fluid()` from each step's two rungs (git keeps it:
+  41dcd591^, sandbox/type-scale/ladders.ts), and the second ruling's two steps
+  came out of the same function after it had regenerated the other 27
+  declarations byte for byte. Each rung carries its own leading and tracking
+  (that file's OPTICS table), so a step never invents its own optics. The clamp
+  passes through (375, phone) and (1440, desktop), so the ladder is continuous
+  and there is no breakpoint to jump at. The fixed ends are rem so a reader who
+  raises their base size raises the whole ladder; only the middle term is
+  viewport-driven. Line height is a LENGTH, not a ratio, so it travels with the
+  clamp instead of multiplying it. Letter spacing is one em value per step (the
+  desktop end's): em already scales with the size.
+
+  ★ `subhead` IS THE ONE STEP ADDED SINCE, AND IT NAMES A SIZE THE SITE ALREADY
+  WORE: seven headings carried exactly its pair as stock classes (20 at a phone,
+  24 from 640), which jumped at a breakpoint where a clamp does not. A step
+  added here is added to TYPE_STEPS in src/lib/utils.ts in the same change, or
+  cn() drops it from any className that also names a colour.
+
+  ★ THE CARD STEP IS `card-title`, NOT `card`, AND THAT IS NOT COSMETIC.
+  `--color-card` already exists (the surface), and Tailwind v4 resolves a
+  `text-*` class as a COLOR before a font size, so a `--text-card` token could
+  never be reached from a className. The board named the step `card` because it
+  aimed CSS at hooks rather than at classes; the wiring renames it and nothing
+  else moves. Every other name was checked against the `--color-*` namespace
+  above and collides with nothing (the policy keeps checking).
+
+  ★ `static` ON PURPOSE. Tailwind only emits the theme variables a utility
+  actually uses; the Library's Type section reads these vars directly so it can
+  print each step's own numbers, and a token that exists only when some page
+  happens to wear it is not a token. 30 declarations is a rounding error.
+
+  The steps' one home for WHAT WEARS WHAT is docs/systems/design-system.md; the
+  Library draws them at true size at /design/library/foundations#type.
+*/
+@theme static {
+  --text-display: clamp(4rem, 1.887rem + 9.01vw, 10rem);
+  --text-display--line-height: clamp(3.92rem, 2.272rem + 7.03vw, 8.6rem);
+  --text-display--letter-spacing: -0.045em;
+  --text-hero: clamp(2.625rem, 1.349rem + 5.45vw, 6.25rem);
+  --text-hero--line-height: clamp(2.888rem, 1.924rem + 4.11vw, 5.625rem);
+  --text-hero--letter-spacing: -0.042em;
+  --text-title: clamp(2.125rem, 1.113rem + 4.32vw, 5rem);
+  --text-title--line-height: clamp(2.465rem, 1.678rem + 3.36vw, 4.7rem);
+  --text-title--letter-spacing: -0.038em;
+  --text-chapter: clamp(1.75rem, 0.958rem + 3.38vw, 4rem);
+  --text-chapter--line-height: clamp(2.135rem, 1.506rem + 2.68vw, 3.92rem);
+  --text-chapter--letter-spacing: -0.035em;
+  --text-section: clamp(1.5rem, 0.884rem + 2.63vw, 3.25rem);
+  --text-section--line-height: clamp(1.89rem, 1.366rem + 2.24vw, 3.38rem);
+  --text-section--letter-spacing: -0.032em;
+  --text-prose: clamp(1.5rem, 1.28rem + 0.94vw, 2.125rem);
+  --text-prose--line-height: clamp(1.89rem, 1.688rem + 0.86vw, 2.465rem);
+  --text-prose--letter-spacing: -0.024em;
+  --text-subhead: clamp(1.25rem, 1.162rem + 0.38vw, 1.5rem);
+  --text-subhead--line-height: clamp(1.65rem, 1.566rem + 0.36vw, 1.89rem);
+  --text-subhead--letter-spacing: -0.018em;
+  --text-page: clamp(1.5rem, 1.412rem + 0.38vw, 1.75rem);
+  --text-page--line-height: clamp(1.89rem, 1.804rem + 0.37vw, 2.135rem);
+  --text-page--letter-spacing: -0.02em;
+  --text-subsection: clamp(1.125rem, 1.081rem + 0.19vw, 1.25rem);
+  --text-subsection--line-height: clamp(1.53rem, 1.488rem + 0.18vw, 1.65rem);
+  --text-subsection--letter-spacing: -0.014em;
+  --text-card-title: 1rem;
+  --text-card-title--line-height: 1.4rem;
+  --text-card-title--letter-spacing: -0.006em;
 }

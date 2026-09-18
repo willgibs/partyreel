@@ -1,7 +1,7 @@
 /**
  * What plan a host ACTUALLY holds right now, derived server-side from `profiles`.
  *
- * ADR-0023 ruling 1 ("one plan at a time") needs one honest answer to "does this caller already
+ * billing-caps.md ruling 1 ("one plan at a time") needs one honest answer to "does this caller already
  * have a live entitlement?", and that answer can never come from the client: the tier the browser
  * believes it has is exactly the field an attacker edits. Kept pure and fixture-testable so the
  * checkout route stays a thin gate over it.

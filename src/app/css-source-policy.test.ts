@@ -1,3 +1,6 @@
+// @policy: global · Two Tailwind entries, one theme
+// @refuses: a lab-only utility reaching the production stylesheet, or a second copy of the theme tokens.
+
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -62,9 +65,45 @@ describe("the lab entry (design.css)", () => {
     expect(lab).not.toContain('globals.css"');
   });
 
+  it("keeps the shell's layout rules outside every layer", () => {
+    // The shell grid, the sidebar and the table of contents are plain CSS in
+    // design.css on purpose: an unlayered rule beats every layer, so they can
+    // never lose to a production utility the way a `utilities.lab` rule does
+    // (design.css's own note). A refactor that tidies them into a layer would
+    // break the shell at a width nobody tests. Walk the braces: a selector
+    // inside any `@layer` block is the failure.
+    const layered = new Set<string>();
+    const unlayered = new Set<string>();
+    const SHELL = [".lab-shell-body", ".lab-sidebar", ".lab-toc"];
+    let depth = 0;
+    let inLayer = -1;
+    for (const line of lab.split("\n")) {
+      const trimmed = line.trim();
+      if (/^@layer\s/.test(trimmed) && trimmed.endsWith("{")) inLayer = depth;
+      for (const sel of SHELL) {
+        if (trimmed.startsWith(sel))
+          (inLayer >= 0 ? layered : unlayered).add(sel);
+      }
+      for (const ch of line) {
+        if (ch === "{") depth++;
+        if (ch === "}") {
+          depth--;
+          if (inLayer >= 0 && depth <= inLayer) inLayer = -1;
+        }
+      }
+    }
+    expect([...layered]).toEqual([]);
+    expect([...unlayered].sort()).toEqual(SHELL.sort());
+    // And the generation the chrome probes is declared on the shell root.
+    expect(lab).toMatch(/\.lab-shell\s*\{[^}]*--lab-css-generation:\s*\d+/);
+  });
+
   it("compiles utilities from a scan of the lab alone", () => {
+    // The lab's utilities live in a SUB-layer of `utilities` so a production
+    // component's responsive class wins over the lab's copy of the unprefixed
+    // one on a shared element (round four, 2026-09-15; see design.css).
     expect(lab).toContain(
-      '@import "tailwindcss/utilities.css" layer(utilities) source(none);',
+      '@import "tailwindcss/utilities.css" layer(utilities.lab) source(none);',
     );
     expect(lab).toContain('@source "./";');
   });

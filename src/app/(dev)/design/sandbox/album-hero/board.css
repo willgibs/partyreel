@@ -1,0 +1,16 @@
+/* THE ALBUM PAGE'S HERO: the board's own sheet. Keyframes and classes under
+   `abh-` and `alb-` only (keyframe-uniqueness.test.ts reads every sheet under
+   the lab). The hero has its own sheet (hero.css) and the album its own
+   (album.css); this one carries only what belongs to the board's page.
+
+   Since the migration wave the template owns the page's flow (the dock, the
+   answer, the index, the sections and their spacing), so the one thing left
+   here is the shrink permission below. */
+
+.abh-board {
+  /* The stages are 1:1, so the board's column is whatever the window gives it
+     and a 1440 canvas scrolls sideways INSIDE its stage rather than shrinking
+     the thing being judged. A flex item's automatic minimum size would fight
+     that: the stage must be allowed to be narrower than its canvas. */
+  min-width: 0;
+}

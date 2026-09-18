@@ -73,11 +73,24 @@ export function PosterCard({
   /** Centered play affordance — for a STILL cover only (never over a live player). */
   playBadge?: boolean;
   className?: string;
-  /** Size the event name per surface (inline card vs the post-event hero). */
+  /**
+   * Size the event name per surface (inline card vs the post-event hero). A
+   * ladder STEP, never a stock size: the card's own is a tile title
+   * (`subsection`), and the guest's post-event hero names the event the way
+   * every event title does (`text-page`).
+   */
   nameClassName?: string;
 }) {
   return (
-    <div className={cn("relative overflow-hidden rounded-lg", className)}>
+    <div
+      // The bright edge (globals.css, [data-lit]) on the STILL cover only. A
+      // cover still is a photograph and this box owns its corner; a live
+      // player (the host's Marquee) carries the edge on its own bordered
+      // screen, flush with this one, so lighting both would draw it twice on
+      // the same pixels. `playBadge` is already the "this is a still" signal.
+      data-lit={playBadge ? "" : undefined}
+      className={cn("relative overflow-hidden rounded-lg", className)}
+    >
       {media}
 
       {/* The bottom gradient: legibility for the name/meta over ANY media, from
@@ -99,7 +112,7 @@ export function PosterCard({
           aria-hidden
           className="pointer-events-none absolute inset-0 flex items-center justify-center"
         >
-          <span className="flex size-12 items-center justify-center rounded-full bg-white/90 shadow-lg">
+          <span className="flex size-12 items-center justify-center rounded-full bg-white/90 shadow-lift">
             <Play className="ml-0.5 size-5 fill-zinc-900 text-zinc-900" />
           </span>
         </span>
@@ -108,7 +121,7 @@ export function PosterCard({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 p-3">
         <p
           className={cn(
-            "font-heading text-lg leading-tight text-white",
+            "font-heading text-subsection text-white",
             nameClassName,
           )}
         >

@@ -96,7 +96,7 @@ export function HelpPane({
           className="flex flex-col bg-card p-6 sm:p-8"
         >
           <Chip icon={icon} />
-          <h3 className="mt-4 font-heading text-base sm:text-lg">{title}</h3>
+          <h3 className="mt-4 font-heading text-subsection">{title}</h3>
           <p className="mt-2 text-sm text-muted-foreground">{body}</p>
           {featureHref && (
             <Link

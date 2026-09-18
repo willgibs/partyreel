@@ -96,7 +96,7 @@ export function useReelConfig({
   reelConfig: ReelConfig | null;
   /** Free tier → stamp the partyreel.com wordmark in the live player (mirrors the export). */
   watermark: boolean;
-  /** The host's billing tier — drives the length cap (30s Free / 60s paid, ADR-0021). UX only;
+  /** The host's billing tier — drives the length cap (30s Free / 60s paid, billing-caps.md). UX only;
    *  the reel-config RPC and the render path re-enforce server-side. */
   tier: Tier;
 }) {
@@ -123,7 +123,7 @@ export function useReelConfig({
   const [coverMediaId, setCoverMediaId] = useState<string | null>(
     () => reelConfig?.coverMediaId ?? null,
   );
-  // The tier length cap (ADR-0021). A stored value past the cap (a downgraded host) initializes
+  // The tier length cap (billing-caps.md). A stored value past the cap (a downgraded host) initializes
   // clamped, so the UI never shows a locked option as active; the next save persists the clamp
   // (matching what the server would store anyway).
   const maxSeconds = MAX_REEL_SECONDS[tier];
@@ -140,9 +140,7 @@ export function useReelConfig({
   // render context's hash identity. Divergence is intentional; do not "fix" one to match the other.
   const membership = useMemo(
     () =>
-      orderedIds
-        .map((id) => byId.get(id))
-        .filter((m): m is GridMedia => !!m),
+      orderedIds.map((id) => byId.get(id)).filter((m): m is GridMedia => !!m),
     [orderedIds, byId],
   );
   /** The rendered timeline: approved-only, in reel order (the cover picker + the filmstrip). */

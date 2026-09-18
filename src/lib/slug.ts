@@ -1,6 +1,6 @@
 /**
  * Slug helpers — the single source shared by the media download-filename builder and the
- * custom event-link feature (ADR-0012). Do NOT re-add a local `slugify` elsewhere.
+ * custom event-link feature (host-app.md). Do NOT re-add a local `slugify` elsewhere.
  *
  * Client-safe (only zod + the reserved list), so the host UI imports it directly.
  */
@@ -63,7 +63,8 @@ export function evaluateSlugInput(
   if (!parsed.success) {
     return {
       kind: "invalid",
-      message: parsed.error.issues[0]?.message ?? "That custom link isn't valid.",
+      message:
+        parsed.error.issues[0]?.message ?? "That custom link isn't valid.",
     };
   }
   const normalized = parsed.data.slug;

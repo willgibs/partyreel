@@ -247,14 +247,20 @@ export const EntryModal = forwardRef<
               ? `${eventName} is private`
               : "See all the photos"
       }
+      // ALBUM, NOT GALLERY (Will, 2026-09-17, the `noun=album` pick): the site,
+      // the app and the reel all say album, so the guest's phone says it too.
+      // One noun for one object, because a guest who becomes a host meets both
+      // words. The CODE noun deliberately did not move with it (/api/guests/
+      // gallery, gallery-access, the RPCs): renaming a live route buys a guest
+      // nothing and risks the one flow with no account behind it.
       description={
         holding
-          ? "Opening the gallery."
+          ? "Opening the album."
           : isReviewing || current === "welcome"
-            ? "A shared gallery for the whole event."
+            ? "A shared album for the whole event."
             : current === "password"
               ? "Enter the event password to view it."
-              : "Create a free account to see the full gallery and add your own photos."
+              : "Create a free account to see the full album and add your own photos."
       }
     >
       <EntryStepTransition stepKey={displayKey} direction={direction}>
@@ -351,7 +357,7 @@ export const EntryModal = forwardRef<
 
 // THE SUCCESS BEAT (Phase 4.5 S5): the held "You're in" view that masks the
 // refresh roundtrip. A --success green check (the system's sanctioned feedback
-// color), "You're in", and "Opening the gallery" once it runs slow. If the
+// color), "You're in", and "Opening the album" once it runs slow. If the
 // refresh hangs past the watchdog, a Retry (the unlock cookie is already set,
 // so it always recovers). On the full path this exits into the reveal; on a
 // password->account hop it hands forward to the account step.
@@ -367,15 +373,17 @@ function SuccessStep({
   if (stalled) {
     return (
       <div className="flex flex-col items-center gap-4 py-6 text-center">
-        <p className="font-heading text-[22px] leading-tight text-balance">
+        {/* The sheet's title slot keeps the event name's step on every screen
+            of the flow (the welcome, the gate, this stall and the arrival). */}
+        <p className="font-heading text-page text-balance">
           That took longer than it should
         </p>
         <p className="max-w-xs text-base leading-relaxed text-muted-foreground">
-          You&rsquo;re unlocked, the gallery just didn&rsquo;t open. Give it one
+          You&rsquo;re unlocked, the album just didn&rsquo;t open. Give it one
           more tap.
         </p>
         <Button onClick={onRetry} size="lg" className="w-full text-[15px]">
-          Open the gallery
+          Open the album
         </Button>
       </div>
     );
@@ -386,11 +394,9 @@ function SuccessStep({
         <Check className="size-7" />
       </div>
       <div>
-        <p className="font-heading text-[24px] leading-tight">
-          You&rsquo;re in
-        </p>
+        <p className="font-heading text-page">You&rsquo;re in</p>
         <p className="mt-1 text-base text-muted-foreground">
-          {slow ? "Opening the gallery" : "Welcome to the party"}
+          {slow ? "Opening the album" : "Welcome to the party"}
         </p>
       </div>
     </div>
@@ -401,7 +407,7 @@ function SuccessStep({
 // name as the Instrument Serif hero, the host's byline, the count as social
 // proof, then two reading rows in the host's event voice (minimal Partyreel
 // branding). One primary advances ("Continue" when a gate follows) or
-// dismisses ("View the gallery"). The whole block staggers in on mount.
+// dismisses ("View the album"). The whole block staggers in on mount.
 function WelcomeStep({
   eventName,
   hostName,
@@ -442,7 +448,7 @@ function WelcomeStep({
         <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
           You&rsquo;re invited to
         </p>
-        <p className="mt-1.5 font-heading text-[28px] leading-[1.15] text-balance">
+        <p className="mt-1.5 font-heading text-page text-balance">
           {eventName}
         </p>
         {hasByline && (
@@ -464,7 +470,7 @@ function WelcomeStep({
               </>
             )}
             {host && eventDate && (
-              <span aria-hidden className="text-muted-foreground/50">
+              <span aria-hidden className="text-faint">
                 ·
               </span>
             )}
@@ -481,14 +487,14 @@ function WelcomeStep({
         <p className="flex items-start gap-3 text-base leading-relaxed">
           <Images className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
           {count > 0
-            ? `Everyone's shots land in one gallery. ${count} ${count === 1 ? "is" : "are"} already inside.`
-            : "Everyone's shots land in one gallery, yours included."}
+            ? `Everyone's shots land in one album. ${count} ${count === 1 ? "is" : "are"} already inside.`
+            : "Everyone's shots land in one album, yours included."}
         </p>
       </div>
 
       <div className="mt-auto flex flex-col gap-1">
         <Button onClick={onContinue} size="lg" className="w-full text-[15px]">
-          {continueLabel ?? (gateNext ? "Continue" : "View the gallery")}
+          {continueLabel ?? (gateNext ? "Continue" : "View the album")}
         </Button>
         {browseAvailable && (
           <Button

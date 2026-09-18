@@ -4,6 +4,7 @@ import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevr
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
+import { ctaCorner } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import { ASK_AI_TARGETS, LLMS_TXT_HREF } from "@/lib/constants/ask-ai";
 import { IS_HIRING } from "@/lib/constants/careers";
@@ -31,7 +32,7 @@ import { FooterGlow } from "./footer-glow";
  * (~22px headings, ~60px row pitch, nothing hidden), so this pass spends the
  * type scale and drops the disclosure entirely.
  *
- * ── THE SLAB PAINTS WITH --gallery*, AND TAKES ITS TOKEN SET FROM .surface-ink ──
+ * ── THE SLAB IS .surface-ink, AND IT PAINTS WITH ITS OWN --background ──
  *   (globals.css, one class since the library phase, 2026-09-11; the reasoning below
  *   is why that class exists)
  *
@@ -39,33 +40,42 @@ import { FooterGlow } from "./footer-glow";
  * forced light), and the root 404 (.surface-paper, and OUTSIDE (marketing) so
  * marketing.css never loads). It must look identical in all three.
  *
- * --gallery* is the system's always-dark family, declared once in :root and
- * deliberately never overridden in .dark. globals.css states the rule outright:
+ * ★ THE SLAB IS NO LONGER THE MEDIA WELL (the palette's round eight, Graphite,
+ * 2026-09-17). Both jobs used to ride --gallery* at one value; the ruling splits
+ * them, the well down to 0.065 so a photograph is the only light on it and this
+ * leaf up to 0.165 so it reads as a step below a paper page rather than a hole
+ * in it. So the class writes the slab's values out and `bg-background` inside it
+ * is the slab. A `bg-gallery` here would now paint the WELL, which is a
+ * different, much deeper colour: do not reach for it.
+ *
+ * A .dark wrapper is still forbidden. globals.css states the rule outright:
  * "never nest .dark inside .surface-paper (always-dark media surfaces use
- * --gallery* instead)". A .dark wrapper here would ALSO silently neuter every
- * `dark:` utility in the subtree, because the custom variant is
+ * --gallery* instead)", and a .dark wrapper here would ALSO silently neuter
+ * every `dark:` utility in the subtree, because the custom variant is
  * `:is(.dark *):not(.surface-paper *)`.
  *
- * ★ But bg-gallery alone is a trap, and this is the part that bites: --ring,
- * --border, --foreground, --muted-foreground and --brand are NOT in that family,
- * so under paper they keep their LIGHT values. `* { outline-ring/50 }` in
- * globals then paints focus rings at oklch(0.3) on an oklch(0.155) slab: 1.44:1
- * measured, against a 3:1 requirement. Muted text lands at 2.62:1 against 4.5:1,
- * and a bare `border-t` paints a near-white hairline. None of it is visible
- * while working on cinema pages, where the footer sits inside .dark and the ring
- * reads 12.4:1. So the slab REDECLARES the tokens it needs, which is the
+ * ★ And a background alone is a trap, which is the part that bites: --ring,
+ * --border, --foreground, --muted-foreground and --brand are NOT surfaces, so
+ * under paper they keep their LIGHT values. `* { outline-ring/50 }` in globals
+ * then paints focus rings at oklch(0.3 0.008 286) on the slab: 1.41:1 measured,
+ * against a 3:1 requirement. Muted text lands at 2.69:1 against 4.5:1, and a
+ * bare `border-t` paints a near-white hairline. None of it is visible while
+ * working on cinema pages, where the footer sits inside .dark and the ring
+ * reads 13.6:1. So the slab REDECLARES the tokens it needs, which is the
  * .surface-paper mechanism applied to one subtree. Everything inside then uses
  * ordinary utilities and is correct by construction rather than by vigilance.
  * Do not remove these; the bug they fix is invisible on the page you develop on.
  *
- * --brand needs redeclaring DIRECTLY, not via --primary: a var() inside a custom
- * property is substituted at the element that DECLARES it, so --brand: var(--primary)
- * already resolved to ink back at :root and inherits down resolved.
+ * --brand needs redeclaring DIRECTLY, not inherited: a var() inside a custom
+ * property is substituted at the element that DECLARES it, so :root's
+ * --brand: var(--primary) already resolved to paper ink back at :root and
+ * inherits down resolved. The class re-declares --primary AND --brand together,
+ * so the alias re-resolves here.
  *
- * Contrast on the slab: --gallery-foreground 17.9:1, --gallery-muted 5.37:1 (AA
- * for body text). Never stack opacity on the muted token: /80 lands at ~4.0:1
- * and fails. --gallery-border is 2.49:1, so it is decoration only and must never
- * become a control boundary or a focus indicator.
+ * Contrast on the slab: --foreground 17.40:1, --muted-foreground 7.60:1 (AA for
+ * body text), --faint 4.21:1 (captions and timestamps only). Never stack an
+ * opacity on a text token here; the hairline is decoration and must never become
+ * a control boundary or a focus indicator.
  *
  * ── MOTION ──
  *
@@ -104,7 +114,8 @@ export function MarketingFooter() {
   return (
     <footer
       className={cn(
-        // The slab's token set: .surface-ink in globals.css (see the header note).
+        // The slab's token set AND its ground: .surface-ink in globals.css
+        // (see the header note). bg-background below is the slab, not the well.
         "surface-ink",
         // isolate + relative give the seam glow something to pin to without it
         // escaping over the page above.
@@ -127,11 +138,7 @@ function SignOff() {
   // the QR would encode the marketing site the visitor is already on, so the
   // whole invitation stands down to the thesis.
   if (!DEMO_EVENT_URL) {
-    return (
-      <p className="max-w-xl font-heading text-3xl sm:text-4xl">
-        {SITE_THESIS}
-      </p>
-    );
+    return <p className="max-w-xl font-heading text-chapter">{SITE_THESIS}</p>;
   }
   return (
     <Reveal className="flex flex-col items-start gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
@@ -144,9 +151,10 @@ function SignOff() {
           <FooterDemo href={DEMO_EVENT_URL} value={DEMO_EVENT_URL} />
         </div>
         <div className="flex flex-col items-start gap-4">
-          <h2 className="font-heading text-3xl sm:text-4xl">
-            Explore a demo event.
-          </h2>
+          {/* The `chapter` step, with the sign-off above it: the footer is the
+              page's CLOSER, not one more body section, and the ladder is where
+              that rank is said out loud (2026-09-17). */}
+          <h2 className="font-heading text-chapter">Explore a demo event.</h2>
           <p className="max-w-sm text-[17px] text-pretty text-muted-foreground">
             <span className="hidden sm:inline">
               Scan the code for a real event album on your phone, exactly the
@@ -174,11 +182,15 @@ function SignOff() {
           on purpose: the slab's .surface-ink set would let a Button paint, but
           the outline register is the point. It also gives the register a
           right edge; without it the row left ~600px of dead space, the exact
-          wireframe quality this pass exists to remove. */}
+          wireframe quality this pass exists to remove. It is a 44px action,
+          so it wears the 44px action's corner (ctaCorner), not the 40px one. */}
       <Link
         href={MARKETING_CTA.href}
         {...trackAttrs("cta_click", { cta: "start-free", location: "footer" })}
-        className="mkt-learn hidden items-center gap-2 rounded-[var(--radius-action)] border px-6 py-3 text-[15px] font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97] lg:inline-flex"
+        className={cn(
+          "mkt-learn hidden items-center gap-2 border px-6 py-3 text-[15px] font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97] lg:inline-flex",
+          ctaCorner,
+        )}
       >
         {MARKETING_CTA.label}
         <LearnChevron />
@@ -196,10 +208,11 @@ function Index() {
           them. The track widens to 1.45fr to PAY for that padding, or the
           padding eats the column and the thesis starts wrapping. */}
       <div className="col-span-2 flex flex-col items-start gap-4 lg:col-span-1 lg:pr-12">
-        {/* Wordmark only: the mark's filled tile is a second white rectangle
-            directly under the QR plate, and the two read as a clash. */}
+        {/* The v1 wordmark, alone, as in the nav (Will, 2026-09-17). It was
+            already wordmark-only here: a mark's filled tile is a second white
+            rectangle directly under the QR plate, and the two read as a clash. */}
         <Link href="/" aria-label="Partyreel home">
-          <Logo wordmarkOnly />
+          <Logo />
         </Link>
         {/* Imports the ruled thesis rather than duplicating it: the original
             footer carried a byte-identical hardcoded copy, so a thesis rewrite
@@ -259,12 +272,12 @@ function FooterNavColumn({ column }: { column: FooterColumn }) {
         <Link
           href={column.href}
           id={id}
-          className="inline-block font-heading text-lg text-foreground underline decoration-current/25 underline-offset-[6px] transition-[text-decoration-color] duration-150 hover:decoration-current"
+          className="inline-block font-heading text-subsection text-foreground underline decoration-current/25 underline-offset-[6px] transition-[text-decoration-color] duration-150 hover:decoration-current"
         >
           {column.title}
         </Link>
       ) : (
-        <p id={id} className="font-heading text-lg text-foreground">
+        <p id={id} className="font-heading text-subsection text-foreground">
           {column.title}
         </p>
       )}
@@ -313,9 +326,8 @@ function LegalBar() {
   return (
     <div className="mt-16 flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-muted-foreground">
-        {/* Mono for the numeral only, per the R6 type ruling. */}
         <span aria-hidden>&copy;</span>{" "}
-        <span className="font-mono tabular-nums">{year}</span> Partyreel
+        <span className="tabular-nums">{year}</span> Partyreel
       </p>
       <ul className="flex flex-wrap items-center gap-x-6">
         {FOOTER_LEGAL.map((link) => (

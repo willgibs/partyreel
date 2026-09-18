@@ -1,3 +1,6 @@
+// @policy: marketing · One manifest gates the marketing media
+// @refuses: an asset in public/marketing with no manifest entry, or an entry pointing at a file that is not there.
+
 import { readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -12,7 +15,8 @@ import {
  * The manifest is the ONE gate between public/marketing/ and the components (see the module
  * header). These pins hold both directions: every entry resolves to a real file, and every file
  * is reachable through an entry, so an orphaned asset or a dead reference fails the build instead
- * of shipping a broken frame or unaudited media.
+ * of shipping a broken frame. There is deliberately no pin on where an image came from: an image on
+ * the site is one we hold the rights to, and nothing tracks them (Will, 2026-09-17).
  */
 
 const PUBLIC_DIR = join(process.cwd(), "public");
@@ -43,14 +47,11 @@ describe("marketing media manifest", () => {
     ]);
     for (const sub of ["img", "reels", "posters"]) {
       for (const name of filesUnder(join(MARKETING_DIR, sub))) {
-        expect(referenced.has(`/marketing/${sub}/${name}`), `orphan: ${sub}/${name}`).toBe(true);
+        expect(
+          referenced.has(`/marketing/${sub}/${name}`),
+          `orphan: ${sub}/${name}`,
+        ).toBe(true);
       }
-    }
-  });
-
-  it("every entry carries a non-empty license line", () => {
-    for (const image of MARKETING_IMAGES) {
-      expect(image.credit.license.trim().length, image.id).toBeGreaterThan(0);
     }
   });
 
@@ -75,7 +76,10 @@ describe("marketing media manifest", () => {
       }
       for (const boundary of reel.shotBoundaries) {
         // 24fps frames: boundary * 24 must land on an integer (within float noise).
-        expect(Math.abs(boundary * 24 - Math.round(boundary * 24)), `${reel.id}@${boundary}`).toBeLessThan(1e-6);
+        expect(
+          Math.abs(boundary * 24 - Math.round(boundary * 24)),
+          `${reel.id}@${boundary}`,
+        ).toBeLessThan(1e-6);
       }
     }
   });

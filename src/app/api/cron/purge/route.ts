@@ -383,7 +383,7 @@ async function sweepExpiredEvents(
     };
   }
 
-  // LEGAL HOLD (ADR-0020): an event containing ANY held media is skipped WHOLE this run.
+  // LEGAL HOLD (trust-safety-forensics.md): an event containing ANY held media is skipped WHOLE this run.
   // Deleting the event row would FK-CASCADE the held media rows (and their upload_forensics
   // rows) away, and the R2 enumeration below would delete the held objects — the cascade is
   // all-or-nothing, so the safe unit is the event. It stays soft-deleted in the bin and
@@ -475,7 +475,7 @@ async function sweepRemovedMedia(
   handled: Set<string>,
 ) {
   // purge_at is trigger-derived (= removed_at + RECENTLY_DELETED_WINDOW_DAYS); reclaim once it passes.
-  // LEGAL HOLD (ADR-0020): held rows are excluded HERE, before the R2-first delete — the SQL guard
+  // LEGAL HOLD (trust-safety-forensics.md): held rows are excluded HERE, before the R2-first delete — the SQL guard
   // in purge_media_rows protects only the row; this filter is what protects the OBJECT.
   const { data: media, error } = await admin
     .from("media")
@@ -553,7 +553,7 @@ async function sweepOrphans(admin: AdminClient, now: Date) {
     token = nextToken ?? undefined;
   } while (token && pages < ORPHAN_PAGE_CAP);
 
-  // --- Circuit-breaker (ADR-0013, media durability) ---------------------------------------
+  // --- Circuit-breaker (durability-backups.md, media durability) ---------------------------------------
   // The sweep TRUSTS the DB to label an object an orphan. A lost/unlinked media set (bad
   // migration, snapshot restore, mass row-delete, RLS/query bug) would make ~every object look
   // orphaned, so one run could delete the entire bucket — and there is no backup to undo it.
@@ -637,7 +637,7 @@ async function sweepOrphans(admin: AdminClient, now: Date) {
 }
 
 /**
- * Sweep 4 — Event Pass entitlement recompute (ADR-0025, ledger edition). The pass is
+ * Sweep 4 — Event Pass entitlement recompute (billing-caps.md, ledger edition). The pass is
  * a per-purchase LEDGER row now, so "expiry" is not a stored state to clear: this
  * sweep re-derives every pass holder's profile from their windows, which covers
  * natural expiry (tier → free, cap → null), a stacked pass lapsing (150 GB → 75 GB,
@@ -1074,7 +1074,7 @@ async function sweepStandbyBudget(
 
     // The bin via two DISJOINT queries (status='removed' vs in-a-deleted-event-and-not-removed),
     // unioned in JS. Avoids a version-sensitive cross-table PostgREST .or; the sets can't overlap.
-    // LEGAL HOLD (ADR-0020): held rows are excluded from the bin entirely — they can't be evicted
+    // LEGAL HOLD (trust-safety-forensics.md): held rows are excluded from the bin entirely — they can't be evicted
     // (the delete is R2-first, so they must never reach the key list) and they don't count against
     // the host's standby budget (the hold is our doing, not the host's hoarding).
     // ★ removed_by_system (QA #2): sweep 5 (sweepOverCapacity) soft-removes over-cap media EARLIER

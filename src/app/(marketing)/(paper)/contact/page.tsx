@@ -138,9 +138,7 @@ export default function ContactPage() {
             header + email card stacked left, the form spanning right. */}
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.6fr] lg:grid-rows-[auto_1fr] lg:gap-x-14 lg:gap-y-8">
           <div className="flex flex-col gap-5 lg:col-start-1 lg:row-start-1 lg:pt-2">
-            <h2 className="font-heading text-2xl tracking-tight sm:text-3xl">
-              Send a note
-            </h2>
+            <h2 className="font-heading text-prose">Send a note</h2>
             <p className="text-pretty text-muted-foreground">
               Pick a topic so it lands in the right place, say what&rsquo;s
               going on, and that&rsquo;s it.
@@ -188,10 +186,14 @@ export default function ContactPage() {
               style={{ "--i": 3 + i } as CSSProperties}
               className="mkt-learn group flex flex-col gap-2.5 border-t pt-5 transition-colors duration-150 hover:border-foreground/40"
             >
-              <span className="font-heading text-sm text-muted-foreground/60 tabular-nums">
+              {/* An index numeral is data, so it sits on the BODY face with
+                  tabular figures like every other ordinal on the site (/careers,
+                  the album's stages); it wore a 14px heading face here, the
+                  one ordinal off the ladder (2026-09-18). */}
+              <span className="text-xs font-medium text-faint tabular-nums">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <h3 className="font-heading text-lg">{tile.title}</h3>
+              <h3 className="font-heading text-subsection">{tile.title}</h3>
               <p className="text-sm text-pretty text-muted-foreground">
                 {tile.body}
               </p>

@@ -1,5 +1,5 @@
 {
-  // Partyreel media-backup Worker (ADR-0013, Pillar B). Deployed SEPARATELY via `wrangler deploy`
+  // Partyreel media-backup Worker (durability-backups.md, Pillar B). Deployed SEPARATELY via `wrangler deploy`
   // from this directory — it is NOT part of the Next.js app or the Vercel build.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "partyreel-backup",

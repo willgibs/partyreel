@@ -83,7 +83,7 @@ the service-role admin client (the deny-all tables); shared `TriageStatusControl
   ([`announcements/actions.ts`](../../src/app/admin/announcements/actions.ts)) inserts via the service-role
   client (the table has no host write policy). Hosts read it via the unchanged notification center →
   [notifications-analytics-growth.md](notifications-analytics-growth.md).
-- **Forensics (ADR-0020)** — the legal-hold + evidence-preservation surface: 24h capture-coverage
+- **Forensics** — the legal-hold + evidence-preservation surface: 24h capture-coverage
   health signal, the preserve form (hold + copy-to-preservation-prefix), per-hold audit-logged
   evidence/record exports, two-step hold release, the `forensic_audit_log` trail. Full model + the
   CSAM runbook: [trust-safety-forensics.md](trust-safety-forensics.md).
@@ -92,10 +92,10 @@ the service-role admin client (the deny-all tables); shared `TriageStatusControl
   per-job kill switch, and Run now where the app can actually start the job. Model + invariants below.
 - **Security** — MFA status.
 
-## Backend jobs (P8 — zero silent failures)
+## Backend jobs (zero silent failures)
 
-Every backend job reports through ONE heartbeat table whatever it runs on, because nothing persisted a
-run before this and a job that stopped firing was indistinguishable from a healthy one. The catalog
+Every backend job reports through ONE heartbeat table whatever it runs on, because a job that persists
+no run is indistinguishable from a healthy one when it stops firing. The catalog
 ([`jobs/catalog.ts`](../../src/app/admin/jobs/catalog.ts)) is the single source for what jobs exist,
 their cadence, their flag key and whether the app can start them; the store is
 [`queries/jobs.ts`](../../src/lib/db/queries/jobs.ts); `job_runs` and the four `ops_flags` rows are

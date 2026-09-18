@@ -1,5 +1,5 @@
 /**
- * Backup-prune circuit-breaker (ADR-0013 — media durability).
+ * Backup-prune circuit-breaker (durability-backups.md — media durability).
  *
  * The deletion-aware backup prune (workers/backup, the `prune` branch) reclaims a backup-bucket
  * object once BOTH its primary R2 object is absent AND its `media` row is gone. It is the INVERSE of

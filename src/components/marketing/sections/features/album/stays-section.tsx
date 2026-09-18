@@ -20,7 +20,7 @@ import { STAYS } from "./album-copy";
  */
 
 const TICK = "absolute -top-px left-0 h-px w-8 bg-foreground";
-const ORDINAL = "text-xs font-medium text-muted-foreground/70 tabular-nums";
+const ORDINAL = "text-xs font-medium text-faint tabular-nums";
 
 export function StaysSection() {
   return (
@@ -49,14 +49,14 @@ export function StaysSection() {
               style={{ "--i": 3 + i } as CSSProperties}
             >
               <span className={ORDINAL}>0{i + 1}</span>
-              <h3 className="font-heading text-lg">{step.title}</h3>
+              <h3 className="font-heading text-subsection">{step.title}</h3>
               <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
                 {step.body}
               </p>
               {i === 2 && (
                 <span
                   aria-hidden
-                  className="relative mt-1 block aspect-[4/3] w-32 overflow-hidden rounded-[4px] bg-muted"
+                  className="relative mt-1 block aspect-[4/3] w-32 overflow-hidden rounded-tile bg-muted"
                 >
                   <Image
                     src={marketingImage("wedding-petals").src}
@@ -83,7 +83,7 @@ export function StaysSection() {
               style={{ "--i": 7 + i } as CSSProperties}
             >
               <span className={TICK} />
-              <h3 className="font-heading text-base">{note.title}</h3>
+              <h3 className="font-heading text-card-title">{note.title}</h3>
               <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
                 {note.body}
               </p>

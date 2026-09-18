@@ -12,7 +12,7 @@ import { formatBytes } from "@/lib/utils";
  * Pricing-page FAQ — one source for the visible accordion AND the FAQPage
  * JSON-LD (the faq-data.ts contract: structured data must match what users
  * see). Numbers derive from tiers.ts / limits.ts; every answer states shipped
- * behavior only (the truth-ruling ledger), including the ADR-0025 economics
+ * behavior only (the truth-ruling ledger), including the billing-caps.md economics
  * that this round made real: stacking and the prorated Pro credit.
  */
 

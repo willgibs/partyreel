@@ -153,7 +153,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         "Likes, saved events, follows and blocks, if you use those features, and any reports you file. Reports are stored without your identity.",
       ),
       sub("upload-records", "Upload records"),
-      // ADR-0020 (A3-lite capture): the one-paragraph disclosure the ADR
+      // trust-safety-forensics.md (A3-lite capture): the one-paragraph disclosure the ADR
       // anticipated. Fields = upload_forensics columns; retention = the
       // media-lifetime cascade (trust-safety-forensics.md).
       p(
@@ -277,7 +277,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     summary:
       "An album opens exactly as wide as its host chooses, and never to search engines.",
     blocks: [
-      // ADR-0007 visibility; ADR-0004 capability links; accounts default ON.
+      // guest-flow.md visibility; database-security.md capability links; accounts default ON.
       p(
         "Every event has a visibility setting chosen by its host. An open event can be viewed by anyone who has its link or QR code. A password-protected event shows only its name and item count until the password is entered. A private event shows a locked screen to everyone but the host. Hosts may also require a verified email before a guest can see the full album or upload, which is the default for new events.",
       ),
@@ -287,7 +287,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
       p(
         "Inside an album, your uploads are attributed to your display name, or to Anonymous. The host of an event can see the email address of each signed-in uploader; other guests cannot. Anyone who can see the album can download items from it, download the whole album, and watch a highlight reel the host publishes.",
       ),
-      // ADR-0019: host-controlled guest list, no per-guest opt-in; the escape
+      // profiles-social.md: host-controlled guest list, no per-guest opt-in; the escape
       // hatches are the ones the ADR names.
       p(
         "Hosts can turn on a guest list for an event. When it is on, every signed-in uploader is listed by display name to everyone who can see the album. There is no per-guest opt-in, because uploads are already attributed by name on the same page. If you would rather not appear, upload without signing in where the host allows it, or do not upload to that event. You can also hide any event from your own public profile.",
@@ -404,7 +404,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         <>
           Our marketing-page analytics use no cookies and no persistent
           identifiers. If you still prefer not to be counted, set the key{" "}
-          <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs text-foreground">
+          <code className="rounded bg-muted px-1.5 py-0.5 font-sans font-medium text-foreground select-all">
             pr-no-track
           </code>{" "}
           to any value in your browser&rsquo;s local storage for partyreel.com,
@@ -655,7 +655,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
       p(
         "Anyone who can see an album can report it, or an item in it. Reports are stored without the reporter's identity, and filing one never removes content by itself. Every report is reviewed, and content is removed when it breaches our Terms. Hosts can remove anything from their own album instantly, and removals made by our operators cannot be undone by the host.",
       ),
-      // ADR-0020 legal hold + preservation prefix; REPORT Act 1-year clock.
+      // trust-safety-forensics.md legal hold + preservation prefix; REPORT Act 1-year clock.
       p(
         "When an investigation or a legal obligation requires it, we may place an item under a legal hold, which keeps it out of every deletion path, and preserve a copy of the item together with its upload record in segregated storage. We keep it for as long as the matter requires. For content that sexually exploits minors, we preserve it for as long as United States law requires and report it to the authority that law designates.",
       ),

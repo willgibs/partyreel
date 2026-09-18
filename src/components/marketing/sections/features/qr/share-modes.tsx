@@ -53,7 +53,7 @@ export function ShareModes() {
               className="size-5 text-muted-foreground"
               strokeWidth={1.6}
             />
-            <h3 className="font-heading text-lg sm:text-xl">{mode.title}</h3>
+            <h3 className="font-heading text-subsection">{mode.title}</h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
               {mode.body}
             </p>

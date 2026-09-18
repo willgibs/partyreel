@@ -61,7 +61,7 @@ function GoogleIcon() {
 export function LoginForm() {
   const router = useRouter();
   const [googleLoading, setGoogleLoading] = useState(false);
-  // Lead with email + password (ADR-0011). The email-code path is the alternative AND the
+  // Lead with email + password (auth-accounts.md). The email-code path is the alternative AND the
   // forgot-password route (verify ownership, then land on /account to set a new password).
   const [view, setView] = useState<"password" | "code">("password");
   // True when the code view was opened via "Forgot password?": after verifying, land on

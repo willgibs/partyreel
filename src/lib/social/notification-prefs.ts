@@ -1,5 +1,5 @@
 /**
- * Notification consent defaults (ADR-0019 point 6) — the app-side twin of the
+ * Notification consent defaults (profiles-social.md point 6) — the app-side twin of the
  * notification_prefs table (migration 20260708120000). SHAPED for R5: nothing
  * sends yet; R5's send paths must consult resolveNotificationPrefs before any
  * tier-2 send.

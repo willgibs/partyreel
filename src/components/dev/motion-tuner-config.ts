@@ -1,37 +1,75 @@
 /**
- * Motion-tuner control config (S4·0). Plain, serializable data so a SERVER page
- * can import it and pass it across the RSC boundary into the (client) MotionTuner
- * without pulling client code server-side. Each control binds to a CSS custom
- * property the polish CSS reads as `var(--tune-x, <baked default>)`; the tuner
- * writes the live value to document.documentElement.style.
+ * Motion-tuner control config (S4·0; the rounding and tweaking GUI round,
+ * 2026-09-14). Plain, serializable data so a SERVER page can import it and pass
+ * it across the RSC boundary into the (client) MotionTuner without pulling
+ * client code server-side. Each control binds to a CSS custom property the
+ * polish CSS reads as `var(--tune-x, <baked default>)` or a real token
+ * (`--radius`, `--spill-cadence`); the tuner writes the live value as an inline
+ * style on the element that declares it (motion-tuner.tsx's tunerScope) and
+ * keeps it in a store that survives a Replay, a navigation out of the cinema
+ * group and a reload (tuner-store.ts).
  *
- * GROWS PER INCREMENT: S4·0 ships only the proof-of-life route-fade knobs (the
- * one motion already wired to vars). Each polish increment (A2..A5) APPENDS its
- * own controls here in the SAME commit it wires the matching `var()` into
- * globals.css — so every knob in the panel always drives something real (no dead
- * sliders). When a value feels right: Copy CSS -> bake it as the globals.css
- * default -> Reset (drop the inline override). The `default`s below MUST mirror
- * the baked defaults in globals.css so the panel opens at the live state.
+ * THE RULE OF THE PANEL (Will, 2026-09-12: "some of the labels aren't very
+ * clear"; ruled at the rounding round): every knob carries a `description` (what
+ * moves, in a sentence) and `ships` (where it lands in the product), and every
+ * knob has a SPECIMEN somewhere the tuner mounts: the motion playground
+ * (/design/lab/tools/motion) for the app's beats, the real cinema pages for the marketing
+ * knobs, the Library's radius section (/design/library/foundations#radius) for
+ * the radius tokens (the rounding board was, until its ruling retired it). A knob
+ * without a specimen is retired from the panel rather than left as a dead
+ * slider: the reel reveal's seven and the reel experience's two (ratified at T1,
+ * revisit-only) and the event feed's swap and reorder (ratified 2026-06-22) left
+ * the panel here; their vars and baked values are untouched (the three-place
+ * contract in src/components/reel/reveal-constants.ts still holds), and a
+ * revisit re-adds a knob WITH its specimen in the same commit.
+ *
+ * GROWS PER INCREMENT: an increment APPENDS its controls here in the SAME commit
+ * it wires the matching `var()` into the CSS, with a description, a ships line
+ * and a specimen. The `default`s below MUST mirror the baked defaults in
+ * globals.css / marketing.css so the panel opens at the live state.
  */
 
+export type TunerGroup =
+  | "rounding"
+  | "lamps"
+  | "reveal"
+  | "nav"
+  | "route"
+  | "review";
+
+export const TUNER_GROUP_LABEL: Record<TunerGroup, string> = {
+  rounding: "Rounding",
+  lamps: "Lamps",
+  reveal: "Section reveal",
+  nav: "Nav",
+  route: "Route change",
+  review: "Review takeover",
+};
+
+type ControlBase = {
+  cssVar: string;
+  label: string;
+  group: TunerGroup;
+  /** What moves when this knob moves, one sentence. */
+  description: string;
+  /** Where it lands in the product, so the panel says what a drag restyles. */
+  ships: string;
+};
+
 export type TunerControl =
-  | {
+  | (ControlBase & {
       kind: "range";
-      cssVar: string;
-      label: string;
       min: number;
       max: number;
       step: number;
       unit: string;
       default: number;
-    }
-  | {
+    })
+  | (ControlBase & {
       kind: "select";
-      cssVar: string;
-      label: string;
       options: { label: string; value: string }[];
       default: string;
-    };
+    });
 
 /** The project's strong custom curves (globals.css @theme) + a couple of built-ins. */
 export const EASING_OPTIONS: { label: string; value: string }[] = [
@@ -43,17 +81,19 @@ export const EASING_OPTIONS: { label: string; value: string }[] = [
 ];
 
 /**
- * The controls mounted on the host event page (behind the design gate). S4·0:
- * the route crossfade (dashboard <-> /settings) is the proof-of-life — its
- * duration + easing are now `var(--tune-route-fade-*)` in globals.css, so these
- * two knobs visibly retune real motion. A2..A5 add the takeover, removal-exit,
- * stagger, and Add-panel knobs here.
+ * The app's beats, with a specimen each on the motion playground
+ * (/design/lab/tools/motion): the route crossfade, the review takeover's tile cascade,
+ * the removal exit and the all-caught-up beat.
  */
 export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
   {
     kind: "range",
     cssVar: "--tune-route-fade-ms",
     label: "Route crossfade",
+    group: "route",
+    description:
+      "How long the whole page takes to cross-fade when the route changes.",
+    ships: "the host app's page transitions (dashboard to settings and back)",
     min: 80,
     max: 500,
     step: 10,
@@ -64,6 +104,9 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     kind: "select",
     cssVar: "--tune-route-fade-ease",
     label: "Route crossfade easing",
+    group: "route",
+    description: "The curve the cross-fade follows.",
+    ships: "the same page transitions",
     options: EASING_OPTIONS,
     default: "cubic-bezier(0.23, 1, 0.32, 1)",
   },
@@ -72,6 +115,10 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--tune-review-tile-ms",
     label: "Review tile enter",
+    group: "review",
+    description:
+      "How long each pending tile takes to settle in when the review takeover opens.",
+    ships: "the host's review takeover grid",
     min: 120,
     max: 400,
     step: 10,
@@ -82,6 +129,9 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--tune-review-stagger-ms",
     label: "Review tile stagger",
+    group: "review",
+    description: "The delay between one tile's entrance and the next.",
+    ships: "the same grid",
     min: 10,
     max: 90,
     step: 5,
@@ -94,6 +144,10 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--tune-review-exit-ms",
     label: "Removal exit",
+    group: "review",
+    description:
+      "How long an acted tile fades and scales out before the list reflows.",
+    ships: "the review takeover, and the guest gallery's own removals",
     min: 80,
     max: 400,
     step: 10,
@@ -104,175 +158,44 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--tune-review-beat-ms",
     label: "All-caught-up beat",
+    group: "review",
+    description:
+      "How long the success beat holds when the last pending item clears.",
+    ships: "the review takeover's end",
     min: 600,
     max: 2600,
     step: 50,
     unit: "ms",
     default: 2500,
   },
-  // Event-feed prototype (the /design/event-feed lab): the filter-swap entrance + the
-  // urgency-reorder duration. Baked as lab defaults; promoted to globals.css on ratification.
-  {
-    kind: "range",
-    cssVar: "--tune-section-swap-ms",
-    label: "Section swap",
-    min: 80,
-    max: 400,
-    step: 10,
-    unit: "ms",
-    default: 180,
-  },
-  {
-    kind: "range",
-    cssVar: "--tune-reorder-ms",
-    label: "Section reorder",
-    min: 160,
-    max: 700,
-    step: 20,
-    unit: "ms",
-    default: 500,
-  },
-  // ── R3, the REEL REVEAL + reel experience. RATIFIED, REVISIT-ONLY: the reveal
-  // grammar was ruled by Will at T1 and ratified as-built at T2, so these knobs
-  // exist to REVISIT a closed decision on a device, not to be re-tuned during a
-  // build. Every `default` mirrors the bake in globals.css `:root` AND the JS
-  // fallback in src/components/reel/reveal-constants.ts (the three-place
-  // contract above) — change one, change all three.
-  {
-    kind: "range",
-    cssVar: "--tune-rvl-fly-ms",
-    label: "Assembly flight",
-    min: 300,
-    max: 1100,
-    step: 20,
-    unit: "ms",
-    default: 640,
-  },
-  {
-    kind: "range",
-    cssVar: "--tune-rvl-stagger-ms",
-    label: "Flight stagger",
-    min: 0,
-    max: 120,
-    step: 6,
-    unit: "ms",
-    default: 42,
-  },
-  {
-    kind: "range",
-    cssVar: "--tune-rvl-hold-ms",
-    label: "Stack hold",
-    min: 0,
-    max: 1600,
-    step: 50,
-    unit: "ms",
-    default: 700,
-  },
-  {
-    kind: "range",
-    cssVar: "--tune-rvl-flash-ms",
-    label: "Camera flash",
-    min: 160,
-    max: 700,
-    step: 20,
-    unit: "ms",
-    default: 360,
-  },
-  {
-    kind: "range",
-    cssVar: "--tune-rvl-expand-ms",
-    label: "Full-bleed expansion",
-    min: 300,
-    max: 1400,
-    step: 20,
-    unit: "ms",
-    default: 720,
-  },
-  {
-    kind: "select",
-    cssVar: "--tune-rvl-expand-ease",
-    label: "Expansion easing",
-    options: EASING_OPTIONS,
-    default: "cubic-bezier(0.77, 0, 0.175, 1)", // in-out-strong (on-screen movement)
-  },
-  {
-    kind: "range",
-    cssVar: "--tune-rvl-title-ms",
-    label: "Title hold",
-    min: 600,
-    max: 3000,
-    step: 50,
-    unit: "ms",
-    default: 1700,
-  },
-  {
-    kind: "range",
-    cssVar: "--tune-rxp-pub-ms",
-    label: "Publish flourish",
-    min: 300,
-    max: 1400,
-    step: 50,
-    unit: "ms",
-    default: 700,
-  },
-  {
-    kind: "range",
-    cssVar: "--tune-rxp-sheet-ms",
-    label: "Sheets + swaps",
-    min: 160,
-    max: 300,
-    step: 10,
-    unit: "ms",
-    default: 260,
-  },
 ];
 
 /**
- * The MARKETING knobs (Track B), mounted by MarketingMotionTuner on the
- * (cinema) group layout. Three-way contract as above: each `default` MIRRORS
- * the value baked into marketing.css. Marketing build tracks APPEND their beats
- * here in the same commit that wires the matching var() into marketing.css.
- *
- * ★ These knobs write to the [data-mkt] wrapper, not <html> — the --mkt-*
- * tokens are DECLARED there, so an inline value on <html> is shadowed and does
- * nothing (motion-tuner.tsx's tunerScope; the bug that made the two reveal
- * knobs inert was found and fixed in the 2026-08-28 nav round).
- *
- * The NAV group exists because the nav's numbers are TASTE, not correctness —
- * how instant a hover feels and how far a panel sweeps are Will's calls, and a
- * round-trip per 20ms is a bad loop. Hover intent is included even though it is
- * consumed by JS: marketing-nav.tsx reads it with readCssMs off the [data-mkt]
- * scope, so a live tuner change lands on the next mount (a reload, not a drag).
- */
-/**
- * THE ROUNDING KNOBS (staged for the radius round, 2026-09-01; shared with the
- * lab's motion playground since 2026-09-11 so the app's own cards, dialogs and
- * tiles on /design/components and /design/compositions can be judged with the
- * same three values as the marketing pages). --radius is the base every
- * rounded-* utility derives from (theme.css: md 0.8x, lg 1x, xl 1.4x, 2xl 1.8x,
- * 3xl 2.2x, 4xl 2.6x), so one knob restyles every sharp-family surface at once;
- * --radius-float and --radius-tile are separate tokens by design (menus/toasts;
- * media grids) and get their own knobs so the round can decide whether they
- * move with the surfaces or stay put. The baked defaults are 0.125rem / 0.5rem
- * / 3px; the tuner writes px, same computed values. Not --mkt-*, so tunerScope
- * puts these on <html>, where an inline value outranks the :root token, and a
- * soft navigation carries them across pages.
+ * THE ROUNDING KNOBS (staged 2026-09-01; ruled 2026-09-18: family C, the steps
+ * in quarters). --radius is the base every rounded-* utility derives from
+ * (theme.css: sm 0.5x, md 0.75x, lg 1x, xl 1.25x, 2xl 1.5x; 3xl and 4xl are
+ * dropped), so one knob restyles every surface at once; --radius-float and
+ * --radius-tile are separate tokens by design (the floating layer; photographs,
+ * with --gap-gallery pinned to the tile) and keep their own knobs; the two
+ * action radii are the other half of the surface / action contrast (16px at
+ * the 40px button, ~0.4x height; the 44px `cta` corner derives 1.1x from it).
+ * Baked: 0.5rem / 0.75rem / 4px / 1rem / 0.8rem; the tuner writes px, the same
+ * computed values. Not --mkt-*, so tunerScope puts these on <html>, where an
+ * inline value outranks the :root token, and a soft navigation carries them
+ * across pages. The specimen is the Library's radius section
+ * (/design/library/foundations#radius), which reads the live tokens, and every
+ * real page the tuner mounts on. (The rounding board was the specimen until its
+ * ruling retired it; the 48px action knob left with its one call site.)
  */
 export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
   {
     kind: "range",
     cssVar: "--radius",
     label: "Surface radius",
-    min: 0,
-    max: 24,
-    step: 1,
-    unit: "px",
-    default: 2,
-  },
-  {
-    kind: "range",
-    cssVar: "--radius-float",
-    label: "Floating-layer radius",
+    group: "rounding",
+    description:
+      "The base every rounded-* utility derives from; cards, inputs, plates and panels move together.",
+    ships: "every surface on the site and in the app, Card first",
     min: 0,
     max: 24,
     step: 1,
@@ -281,37 +204,113 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
   },
   {
     kind: "range",
+    cssVar: "--radius-float",
+    label: "Floating-layer radius",
+    group: "rounding",
+    description:
+      "The corner of anything that floats over the page; a row inside one is 4px tighter, derived.",
+    ships: "menus, popovers, tooltips, dialogs, toasts, the guest entry sheet",
+    min: 0,
+    max: 24,
+    step: 1,
+    unit: "px",
+    default: 12,
+  },
+  {
+    kind: "range",
     cssVar: "--radius-tile",
     label: "Media-tile radius",
+    group: "rounding",
+    description:
+      "The corner of a photograph in a tight-gap grid; --gap-gallery is pinned to it so corners never open holes.",
+    ships:
+      "every media grid: the guest gallery, the host feed, the triage grids",
     min: 0,
     max: 12,
     step: 1,
     unit: "px",
-    default: 3,
+    default: 4,
+  },
+  {
+    kind: "range",
+    cssVar: "--radius-action",
+    label: "Action radius",
+    group: "rounding",
+    description:
+      "The base of the action ladder: the 40px h-10 button wears it, and the h-6, h-7, h-9 and 44px cta sizes derive from it (0.6, 0.7, 0.9 and 1.1x); at half the height and above the corner reads as a pill.",
+    ships:
+      "the h-10 buttons and the segmented controls; the in-between Button sizes and every hero and CTA-band button (size cta) by derivation",
+    min: 0,
+    max: 48,
+    step: 1,
+    unit: "px",
+    default: 16,
+  },
+  {
+    kind: "range",
+    cssVar: "--radius-action-sm",
+    label: "Action radius, small",
+    group: "rounding",
+    description:
+      "The corner of the 32px button, which is the DEFAULT Button size (h-8); 16 and above is a pill.",
+    ships: "every default Button, toolbar buttons, chips, the icon buttons",
+    min: 0,
+    max: 32,
+    step: 0.4,
+    unit: "px",
+    default: 12.8,
   },
 ];
 
+/**
+ * The MARKETING knobs (Track B), mounted by MarketingMotionTuner on the
+ * (cinema) group layout; the specimen is the real page. Three-way contract as
+ * above: each `default` MIRRORS the value baked into marketing.css.
+ *
+ * ★ The --mkt-* knobs write to the [data-mkt] wrapper, not <html>: the tokens
+ * are DECLARED there, so an inline value on <html> is shadowed and does nothing
+ * (motion-tuner.tsx's tunerScope; the bug that made the two reveal knobs inert
+ * was found and fixed in the 2026-08-28 nav round).
+ *
+ * The NAV group exists because the nav's numbers are TASTE, not correctness:
+ * how instant a hover feels and how far a panel sweeps are Will's calls, and a
+ * round-trip per 20ms is a bad loop. Hover intent is consumed by JS
+ * (marketing-nav.tsx reads it with readCssMs off the [data-mkt] scope), so a
+ * live change lands on the next mount (a reload, not a drag).
+ */
 export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
   ...ROUNDING_TUNER_CONTROLS,
-  // ── The lamps' cadence (staged for the cadence sitting, 2026-09-11) ──
-  // Every lamp reads --spill-cadence (globals.css, 11s as shipped; the engine's
-  // ruled register is 8s). The honest A/B is the whole home page at each,
-  // which this knob gives: drag, walk the page, rule. On <html> like the
-  // radius knobs, where an inline value outranks the :root token.
+  // ── The lamps' cadence (ruled at the sitting, 2026-09-17) ──
+  // Every lamp reads --spill-cadence (globals.css, 8s since Will's ruling of
+  // 2026-09-17, down from the 11s the footer shipped at). The Aurora's field is
+  // not on this knob directly: it follows at three laps, through
+  // --aurora-cadence. On <html> like the radius knobs.
+  // ★ `default` IS LOAD-BEARING: setTunerValue compares against it to decide
+  // whether to store an override or drop one, so it must equal the shipped
+  // token or Reset leaves a phantom override behind.
   {
     kind: "range",
     cssVar: "--spill-cadence",
     label: "Lamp cadence",
+    group: "lamps",
+    description:
+      "One full cycle of every lamp's drift, ruled 8s on the whole page (2026-09-17); the Aurora's field follows at three laps of it.",
+    ships:
+      "the footer seam, the film strip, the reel pool, the feature heroes' screen lamps",
     min: 6,
     max: 14,
     step: 1,
     unit: "s",
-    default: 11,
+    default: 8,
   },
   {
     kind: "range",
     cssVar: "--mkt-reveal-ms",
     label: "Section reveal",
+    group: "reveal",
+    description:
+      "How long a section takes to rise in as it enters the viewport.",
+    ships: "every marketing section below the hero",
     min: 200,
     max: 1400,
     step: 20,
@@ -322,6 +321,9 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--mkt-stagger-ms",
     label: "Reveal stagger",
+    group: "reveal",
+    description: "The delay between one revealed child and the next.",
+    ships: "card rows and lists inside those sections",
     min: 0,
     max: 240,
     step: 10,
@@ -333,6 +335,10 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--mkt-nav-intent-ms",
     label: "Nav hover intent (reload)",
+    group: "nav",
+    description:
+      "How long the pointer rests on a nav item before its panel opens; read by JS at mount, so reload to feel it.",
+    ships: "the marketing header's primary nav",
     min: 0,
     max: 300,
     step: 10,
@@ -343,6 +349,10 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--mkt-dropdown-open-ms",
     label: "Panel open + morph",
+    group: "nav",
+    description:
+      "How long a nav panel takes to open, and to morph between two panels.",
+    ships: "the header dropdowns",
     min: 80,
     max: 400,
     step: 10,
@@ -353,6 +363,9 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--mkt-dropdown-close-ms",
     label: "Panel close",
+    group: "nav",
+    description: "How long a nav panel takes to close.",
+    ships: "the header dropdowns",
     min: 60,
     max: 300,
     step: 10,
@@ -363,6 +376,10 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--mkt-dropdown-swap-distance",
     label: "Side-by-side sweep",
+    group: "nav",
+    description:
+      "How far the content slides when the pointer moves from one panel to its neighbour.",
+    ships: "the header dropdowns",
     min: 0,
     max: 208,
     step: 4,
@@ -373,6 +390,9 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--mkt-dropdown-swap-blur",
     label: "Sweep blur",
+    group: "nav",
+    description: "The blur on the content during that sweep.",
+    ships: "the header dropdowns",
     min: 0,
     max: 8,
     step: 1,
@@ -383,6 +403,10 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--mkt-nav-indicator-ms",
     label: "Indicator travel",
+    group: "nav",
+    description:
+      "How long the hover indicator takes to slide to the next item.",
+    ships: "the header's primary nav",
     min: 60,
     max: 400,
     step: 10,
@@ -393,6 +417,9 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--mkt-dropdown-hover-ms",
     label: "Panel row hover in",
+    group: "nav",
+    description: "How fast a row inside a panel lights on hover.",
+    ships: "the header dropdowns' rows",
     min: 0,
     max: 300,
     step: 10,

@@ -27,7 +27,7 @@ import { formatBytes } from "@/lib/utils";
  * The full plan matrix (Resend-informed): row labels carry a hover/focus
  * tooltip where a term needs one; booleans are the A16 marks (green check =
  * included, muted minus = not); everything numeric derives from tiers.ts /
- * limits.ts. Ingress caps stay OFF this table by design (ADR-0021: unmarketed,
+ * limits.ts. Ingress caps stay OFF this table by design (billing-caps.md: unmarketed,
  * and the content-policy test hard-fails the build if the numbers appear).
  *
  * Layout: the plan header row is STICKY from lg up (the Biograph sticky-summary
@@ -303,7 +303,9 @@ export function ComparisonTable() {
                     className="bg-background px-4 py-4 align-bottom lg:sticky lg:top-[var(--mkt-header-h)] lg:z-10"
                   >
                     <div className="flex flex-col items-start gap-2">
-                      <span className="font-heading text-base">{name}</span>
+                      <span className="font-heading text-card-title">
+                        {name}
+                      </span>
                       <span className="text-xs font-medium text-muted-foreground tabular-nums">
                         {headerPrices[i]}
                       </span>

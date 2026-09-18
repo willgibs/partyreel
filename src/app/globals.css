@@ -2,7 +2,7 @@
 /* The design lab is NOT in the production scan (the library round, 2026-09-02): a utility
    used only by a lab specimen used to be emitted into the stylesheet every production page
    loads (measured 2026-09-01: 26 lab-only selectors on the home; the library round took 498
-   selectors and 38,919 bytes off that sheet, see docs/perf/v1-baseline.md section 5).
+   selectors and 38,919 bytes off that sheet, see `git show 44090827:docs/perf/v1-baseline.md` section 5).
    The lab compiles its own utilities from src/app/(dev)/design/design.css instead; a
    production component the lab renders is already in this scan by being production.
    Pinned by src/app/css-source-policy.test.ts. */
@@ -33,18 +33,26 @@
     • Both modes are one system: light = paper + hairline borders, dark =
       near-black + translucent card + lighter-is-closer elevation. No pure
       black/white anywhere (bg 0.99 / card 0.997 in light; fg 0.96 in dark).
-    • THE ROUNDING SYSTEM: sharp corners on general UI (--radius 2px),
-      rounder on interactive elements — the radius contrast itself signals
-      "pressable". Actions ride --radius-action (16px @ the 40px button,
-      scaled ~0.4×height: -lg @48px, -sm @32px). Media tiles get --radius-tile
-      (3px, tight-gap grids don't open corner holes). The FLOATING layer
-      (menus/tooltips/toasts) rides --radius-float (sharp reads broken there).
-      Nested corners follow inner = outer − gap (Hobday); sharp-surface/
-      round-action is the system's one deliberate exception to that math.
-    • THE ELEVATION CONTRACT: light mode floats on ONE soft shadow family
-      (--shadow-float, blur = 2× offset, single top light source); dark mode
-      uses NO shadows — depth = lighter surface steps (bg 0.14 → card 0.21 →
-      popover 0.23) + borders. One depth technique per mode, never mixed.
+    • THE ROUNDING SYSTEM (Will's ruling, 2026-09-18: family C, the derived
+      steps in quarters): an 8px surface (--radius: cards, inputs, panels), a
+      12px floating layer (--radius-float: menus, tooltips, toasts, dialogs,
+      the guest entry sheet; a ROW inside one is 4px tighter, derived), a 4px
+      photograph (--radius-tile, with --gap-gallery pinned to it so four
+      corners never open a hole) and actions at 0.4 of their height
+      (--radius-action: 16px @ the 40px button, -sm @32px, 1.1x for the 44px
+      `cta` size). A control is still twice as round as the surface under it,
+      so the contrast still says "pressable". rounded-sm..2xl climb in
+      quarters of --radius (4/6/8/10/12); 3xl and 4xl are dropped. Nested
+      corners follow inner = outer − gap (Hobday); an action rides its HEIGHT
+      instead, the system's one deliberate exception to that math.
+    • THE ELEVATION CONTRACT (Will's ruling, 2026-09-17): FOUR techniques, one
+      per height, never rivals. The STEP (a panel is a shade lighter than the
+      page) and the RING (a hairline marks an edge) ship on every surface. The
+      LIFT (--shadow-lift) goes only where one object overlaps another of its
+      own lightness; the LAYER (--shadow-layer) goes under anything the page
+      keeps living behind. A flat surface takes neither shadow, in either
+      mode. One geometry (blur = 2× offset, single top light source), two
+      sizes, one alpha ramp per ground.
     • TYPE: Urbanist is the heading face via the `font-heading` utility below
       (bold 700 at -3% tracking). TIERED app heading scale: PAGE titles 700
       (PageHeading), CARD/section titles 600 (CardTitle), per-setting LABELS stay
@@ -83,88 +91,59 @@
    paper theme" hook (marketing paper pages + paper chapters inside the cinema
    dark). Custom-property inheritance is nearest-ancestor, so a .surface-paper
    element inside `.dark` flips every token light for its subtree — including
-   the light elevation (--shadow-float returns) and light state colors. Tokens
+   the light elevation (both shadows take paper's alphas again, which is what a
+   card straddling a cinema-to-paper cut relies on) and light state colors. Tokens
    added to :root later reach paper surfaces automatically; `.dark`-only
    overrides stay dark-only. NEVER alias `.dark` this way, and never nest
    `.dark` inside `.surface-paper` (always-dark media surfaces use --gallery*
-   instead — the standing rule). Nuance: --tune-* re-declared here means
-   html-inline tuner overrides don't pierce paper subtrees; no marketing
-   surface reads --tune-* inside one today. */
+   instead — the standing rule). The theme-independent tokens (radius, gap,
+   cadence, --tune-*) live in their own :root block BELOW this one, so a
+   tuner override on <html> pierces every paper subtree. */
 :root,
 .surface-paper {
-  /* Light = paper. No pure white anywhere (Hobday): bg 0.99, card 0.997 —
-     the lift is real but hairlines, not contrast, do the layering. */
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.13 0 0);
-  --card: oklch(0.997 0 0);
-  --card-foreground: oklch(0.13 0 0);
-  --popover: oklch(0.997 0 0);
-  --popover-foreground: oklch(0.13 0 0);
-  --primary: oklch(0.13 0 0);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.13 0 0);
-  --muted: oklch(0.965 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.13 0 0);
+  /* Light = paper, the PEARL register (the palette's round eight, Will ruled
+     Graphite 2026-09-17). Two things changed and both are deliberate. The page
+     is the brightest thing in the product at 0.995 and a CARD IS THE SAME
+     WHITE: a card is defined by its hairline, never by a step of 0.007 that no
+     eye resolves (and never by a shadow: since the light ruling a surface
+     lying flat takes none, see THE TWO SHADOWS below). And every fill BELOW the page is one of Apple's
+     cool greys at hue 286 (their grey, not their blue at 258), so a panel and a
+     hover fill are 0.040 apart instead of 0.005. The menu is the one surface
+     brighter than the page, because a menu is genuinely above it. */
+  --background: oklch(0.995 0.002 286);
+  --foreground: oklch(0.145 0.006 286);
+  --card: oklch(0.995 0.002 286);
+  --card-foreground: oklch(0.145 0.006 286);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0.006 286);
+  --primary: oklch(0.145 0.006 286);
+  --primary-foreground: oklch(0.995 0.002 286);
+  --secondary: oklch(0.923 0.0067 286);
+  --secondary-foreground: oklch(0.145 0.006 286);
+  --muted: oklch(0.963 0.0066 286);
+  --muted-foreground: oklch(0.46 0.009 286);
+  /* THE THIRD TEXT STEP (faint=in, Will 2026-09-17). A timestamp, a caption and
+     a hint are all dimmer than the second grey, and ~37 places used to fade it
+     by hand with an alpha. An alpha composites against WHATEVER IS BEHIND IT,
+     so the same line was a different grey on a card than on the page; one token
+     is one grey on all three grounds. Measured on this register: 3.21:1 on the
+     page, 2.92:1 on the mat. That is a caption colour - never body copy, never
+     a control's only label, and never stacked with another alpha. */
+  --faint: oklch(0.648 0.0073 286);
+  --accent: oklch(0.923 0.0067 286);
+  --accent-foreground: oklch(0.145 0.006 286);
   --destructive: oklch(0.55 0.21 27);
-  --border: oklch(0.905 0 0);
-  --input: oklch(0.905 0 0);
-  --ring: oklch(0.3 0 0);
+  --border: oklch(0.89 0.0068 286);
+  --input: oklch(0.862 0.0068 286);
+  --ring: oklch(0.3 0.008 286);
+  /* The admin chart ramp is still at chroma 0: the palette's paste covers the
+     surface and text tokens, and a cast on five chart greys nobody has ruled
+     would be a value invented in a wiring round. Deferred, ROADMAP > Design. */
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-
-  /* The rounding system (rationale in the header). */
-  --radius: 0.125rem;
-  --radius-action: 1rem; /* 16px @ h-10 (40px); ratio ~0.4 x height */
-  --radius-action-lg: 1.2rem; /* @ h-12 (48px) */
-  --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
-  --radius-tile: 3px; /* media tiles: subtle, never opens corner holes */
-  --gap-gallery: 3px; /* the ONE gap for every media-tile grid (masonry + the dense triage grids); use gap-[var(--gap-gallery)] */
-  --radius-float: 0.5rem; /* menus/tooltips/toasts: sharp reads broken */
-  /* The lamps' cadence, ONE token (staged for the cadence sitting, 2026-09-11):
-     every shipped lamp (the footer seam, the film strip, the reel pool, the
-     feature heroes' screen lamps) passes --glw-dur: var(--spill-cadence). The
-     engine's ruled register is 8s (2026-08-31); every lamp shipped 11s; the
-     sitting judges the whole home page at each on the tuner's knob, and the
-     ruling lands here. Not --glw-* (the engine reads only its own knobs) and
-     not --lamp-* (the five are colour, fenced as light-never-UI). */
-  --spill-cadence: 11s;
-
-  /* Motion timing knobs — the RATIFIED production values (ratified in the /design/event-feed lab,
-     Will 2026-06-22). Read by CSS via var(--tune-*, fallback) and by JS via getComputedStyle
-     (use-flip, use-review-triage). The lab's MotionTuner overrides these live with an inline style
-     on <html> (which outranks :root), so the playground still tunes against these as the baseline. */
-  --tune-route-fade-ms: 310ms; /* the page route fade-in */
-  --tune-route-fade-ease: ease-out;
-  --tune-section-swap-ms: 180ms; /* the pill filter swap + the floating-bar morph crossfade */
-  --tune-reorder-ms: 500ms; /* the section FLIP when the urgency order flips */
-  --tune-review-beat-ms: 2500ms; /* the all-caught-up beat before the review section relocates */
-
-  /* The REEL REVEAL beats (R3). CLOSED grammar: ruled by Will at T1, ratified
-     AS-BUILT at T2, so these are transplanted verbatim from the design lab and
-     are revisit-only — do not re-tune them as part of a build. They are read by
-     CSS below via var(--tune-rvl-*, <the same value>) and by JS via readCssMs
-     (src/components/reel/reveal-constants.ts), which mirrors them again. */
-  --tune-rvl-fly-ms: 640ms; /* per-tile assembly flight */
-  --tune-rvl-stagger-ms: 42ms; /* per-tile flight delay step */
-  --tune-rvl-hold-ms: 700ms; /* the stack hold before the flash */
-  --tune-rvl-flash-ms: 360ms; /* the camera flash */
-  --tune-rvl-expand-ms: 720ms; /* the full-bleed expansion */
-  --tune-rvl-expand-ease: cubic-bezier(
-    0.77,
-    0,
-    0.175,
-    1
-  ); /* = --ease-in-out-strong (on-screen movement) */
-  --tune-rvl-title-ms: 1700ms; /* the title hold */
-  /* The reel-experience beats: the publish flourish + the sheet/swap family. */
-  --tune-rxp-pub-ms: 700ms; /* publish flourish (share-card bloom / studio glow) */
-  --tune-rxp-sheet-ms: 260ms; /* studio sheets + content swaps (under the 300ms ceiling) */
 
   /* Brand = ink. The alias keeps every legacy brand-tinted class coherent
      under the mono identity with zero sweeps. */
@@ -185,15 +164,44 @@
      signal, distinct from like-rose + save-blue. Used as the ICON color when in-reel / on hover. */
   --reel: oklch(0.62 0.2 300);
 
-  /* Elevation: the floating layer's one shadow family (blur = 2x offset,
-     single top light source). Dark mode zeroes it (see .dark). */
-  --shadow-float:
-    0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
+  /* ─── THE TWO SHADOWS, BY ROLE (Will's ruling, 2026-09-17: "A small shadow
+     where one card sits on another, and a larger one under menus, dialogs and
+     toasts"). ONE geometry (blur = 2x offset, single top light source), TWO
+     sizes, ONE alpha ramp per ground.
 
-  /* Gallery canvas — identical in light & dark (media-first, theme-independent). */
-  --gallery: oklch(0.155 0 0);
-  --gallery-foreground: oklch(0.97 0 0);
-  --gallery-muted: oklch(0.62 0 0);
+       LIFT   separates two objects of the same lightness that really overlap:
+              stacked photographs, a print deck, a card overhanging a seam.
+       LAYER  detaches anything the page keeps living behind: a menu, a
+              dialog, a sheet, a toast, a bar floating over the gallery.
+       A flat surface takes NEITHER, in either mode. A card on a page is its
+       step and its ring; a shadow under it is a smudge in dark and a fifth
+       technique in light. The role is the call site's to declare, by wearing
+       `shadow-lift` or `shadow-layer` (theme.css), and a raw Tailwind shadow
+       anywhere else is refused by src/lib/elevation-policy.test.ts.
+
+     ★ PAPER DID NOT MOVE. The lift here is the retired single shadow's value
+     to the byte, and the layer is that geometry at double the offsets. What
+     the ruling added is the DARK ramp (see .dark): 6 percent of black over a
+     0.105 room is arithmetically invisible, which is the whole reason dark
+     read as shadowless. (The old name left with the rounding board, its last
+     reader, on 2026-09-18; elevation-policy.test.ts refuses it coming back.)
+     ─── */
+  --shadow-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
+  --shadow-layer:
+    0 4px 8px -2px oklch(0 0 0 / 0.09), 0 8px 16px -4px oklch(0 0 0 / 0.13);
+
+  /* Gallery canvas — identical in light & dark (media-first, theme-independent).
+     ★ THE WELL SPLIT OFF THE SLAB at the palette's round eight. These were one
+     value (0.155) doing two jobs: the media well AND the footer leaf. Graphite
+     separates them - the well drops to 0.065, the deepest thing in the system
+     and the least tinted value in the set, so on an OLED panel a photograph is
+     the only light on it; the leaf lifts to 0.165 and lives in .surface-ink
+     below. An always-dark MEDIA surface is still --gallery*; a dark LEAF on a
+     paper page is .surface-ink. They are no longer the same colour. */
+  --gallery: oklch(0.065 0.0045 286);
+  --gallery-foreground: oklch(0.965 0.0045 286);
+  --gallery-muted: oklch(0.715 0.0105 286);
   --gallery-border: oklch(1 0 0 / 8%);
 
   /* ─── THE LAMP SET: the house palette for LIGHT (SPILL + BEAM + confetti).
@@ -228,29 +236,134 @@
   --lamp-5: oklch(0.68 0.16 305);
 }
 
+/* THEME-INDEPENDENT TOKENS, on :root ONLY (the rounding round, 2026-09-14): the
+   radius system, the gallery gap, the lamps' cadence and the motion knobs are
+   not part of a theme, so they are NOT aliased to .surface-paper. Aliased,
+   every paper chapter re-declared them and the tuner's html-inline override
+   never pierced it (a radius sitting on a paper chapter was silently on the
+   baked values). Declared once here they inherit into every subtree, and an
+   inline value on <html> (what the tuner writes) wins everywhere. Never move
+   them back into the `:root, .surface-paper` block. */
+:root {
+  /* The rounding system: family C (Will, 2026-09-18; rationale in the header).
+     Each value is the board's own, never retyped: C was 8 / 12 / 4 with the
+     gap its `gapFor(tile)`. The 48px action rung left with its one call site
+     (the reel builder's CTA is the 44px `cta` corner now, button.tsx). */
+  --radius: 0.5rem; /* 8px: every surface, and the base the rounded-* quarters derive from */
+  --radius-action: 1rem; /* 16px @ h-10 (40px); ratio ~0.4 x height */
+  --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
+  --radius-tile: 4px; /* a photograph */
+  /* The ONE gap for every media-tile grid (masonry + the dense triage grids;
+     use gap-[var(--gap-gallery)], and mb-[...] where a masonry lays out in
+     columns). ★ PINNED TO THE TILE, never typed (Will's gap=pinned): below
+     the tile radius, four rounded corners meeting at a junction open a
+     visible diamond, so the gap follows the corner; 3px is its floor because
+     the 3px gap is the album tell. Retune --radius-tile and this moves too
+     (both sit on <html>, which is where the tuner writes). */
+  --gap-gallery: max(3px, var(--radius-tile));
+  --radius-float: 0.75rem; /* 12px: menus, tooltips, toasts, dialogs, the guest sheet */
+  /* The lamps' cadence, ONE token (ruled 2026-09-17): every shipped lamp (the
+     footer seam, the film strip, the reel pool, the feature heroes' screen
+     lamps) passes --glw-dur: var(--spill-cadence), so the whole page moves on
+     one clock. Will ruled 8s on the whole home page at each, which is the
+     engine's own register (2026-08-31) and ends the two rounds where every lamp
+     shipped 11s against it. Not --glw-* (the engine reads only its own knobs)
+     and not --lamp-* (the five are colour, fenced as light-never-UI). */
+  --spill-cadence: 8s;
+
+  /* THE AURORA'S CLOCK: a SIBLING of the lamp's, never a re-tune of it. A field
+     the size of a chapter moving at a lamp's clock reads as a screensaver, so
+     the Aurora takes three laps of whatever the lamp runs: 24s against the
+     ruled 8s. Re-pointing --spill-cadence itself would slow the footer seam
+     that is the model for all of this, which is a different ruling entirely.
+
+     ★ IT MUST BE DECLARED SOMEWHERE EVERY CONSUMER LOADS, AND AN UNDECLARED
+     CADENCE FREEZES THE BAND RATHER THAN FALLING BACK. SectionLight hands the
+     engine `--glw-dur: var(--aurora-cadence)` as an INLINE style, so it beats
+     the engine's own `[data-glw] { --glw-dur: 8s }` and there is nothing behind
+     it: --glw-dur is not registered with @property, so a var() reference to a
+     property nothing declares is invalid at computed-value time, the
+     `animation: glw-drift-x var(--glw-dur) ...` shorthand is then invalid, and
+     every longhand resets -- animation-name to `none`. The band stops dead
+     while the base stays lit, which reads as a design choice rather than a
+     defect. The light board hit exactly this and diagnosed it; the declaration
+     lives here so the site can never repeat it. */
+  --aurora-cadence: calc(var(--spill-cadence) * 3);
+
+  /* Motion timing knobs — the RATIFIED production values (ratified in the /design/event-feed lab,
+     Will 2026-06-22). Read by CSS via var(--tune-*, fallback) and by JS via getComputedStyle
+     (use-flip, use-review-triage). The lab's MotionTuner overrides these live with an inline style
+     on <html> (which outranks :root), so the playground still tunes against these as the baseline. */
+  --tune-route-fade-ms: 310ms; /* the page route fade-in */
+  --tune-route-fade-ease: ease-out;
+  --tune-section-swap-ms: 180ms; /* the pill filter swap + the floating-bar morph crossfade */
+  --tune-reorder-ms: 500ms; /* the section FLIP when the urgency order flips */
+  --tune-review-beat-ms: 2500ms; /* the all-caught-up beat before the review section relocates */
+
+  /* The REEL REVEAL beats (R3). CLOSED grammar: ruled by Will at T1, ratified
+     AS-BUILT at T2, so these are transplanted verbatim from the design lab and
+     are revisit-only — do not re-tune them as part of a build. They are read by
+     CSS below via var(--tune-rvl-*, <the same value>) and by JS via readCssMs
+     (src/components/reel/reveal-constants.ts), which mirrors them again. */
+  --tune-rvl-fly-ms: 640ms; /* per-tile assembly flight */
+  --tune-rvl-stagger-ms: 42ms; /* per-tile flight delay step */
+  --tune-rvl-hold-ms: 700ms; /* the stack hold before the flash */
+  --tune-rvl-flash-ms: 360ms; /* the camera flash */
+  --tune-rvl-expand-ms: 720ms; /* the full-bleed expansion */
+  --tune-rvl-expand-ease: cubic-bezier(
+    0.77,
+    0,
+    0.175,
+    1
+  ); /* = --ease-in-out-strong (on-screen movement) */
+  --tune-rvl-title-ms: 1700ms; /* the title hold */
+  /* The reel-experience beats: the publish flourish + the sheet/swap family. */
+  --tune-rxp-pub-ms: 700ms; /* the publish beat: the Studio's confirmation card's hold (JS reads it; the light's swell is the engine's own clock) */
+  --tune-rxp-sheet-ms: 260ms; /* studio sheets + content swaps (under the 300ms ceiling) */
+}
+
 .dark {
-  /* Dark = the night system: near-black room, translucent card, and the
-     lighter-is-closer elevation ladder (bg 0.14 -> card 0.21 -> popover/menu
-     0.23 opaque). NO shadows in dark (the contract); borders + surface steps
-     carry depth. */
-  --background: oklch(0.14 0 0);
-  --foreground: oklch(0.96 0 0);
-  --card: oklch(0.21 0 0 / 0.62);
-  --card-foreground: oklch(0.96 0 0);
-  --popover: oklch(0.23 0 0);
-  --popover-foreground: oklch(0.96 0 0);
-  --primary: oklch(0.96 0 0);
-  --primary-foreground: oklch(0.15 0 0);
-  --secondary: oklch(0.25 0 0);
-  --secondary-foreground: oklch(0.96 0 0);
-  --muted: oklch(0.245 0 0);
-  --muted-foreground: oklch(0.71 0 0);
-  --accent: oklch(0.25 0 0);
-  --accent-foreground: oklch(0.96 0 0);
+  /* Dark = the night system, the GRAPHITE room (Will ruled it 2026-09-17).
+     ONE room at 0.105 for the whole product: the app used to sit 0.030 lighter
+     than a marketing chapter for no stated reason, and marketing's own deeper
+     value is what the whole product now wears. Deep enough to be a GROUND
+     rather than a grey, with every surface above it carrying hue 286 at half
+     again Apple's tint - because our surfaces sit on a blacker ground than
+     theirs and a tint disappears into black, so a card has to read as cool
+     rather than as merely lighter. The ladder is 0.105 -> 0.175 -> 0.225 ->
+     0.27 -> 0.315: the first step is the big one, so a panel separates from the
+     room and everything above it is a close ladder. Depth in dark is LIGHT
+     FIRST (bible 10): the surface steps and the hairlines carry it, and the two
+     shadows below are for the two cases they cannot reach (an overlap, a
+     layer), never for a flat surface. */
+  --background: oklch(0.105 0.0053 286);
+  --foreground: oklch(0.965 0.0045 286);
+  /* ★ THE VEIL RETIRED (card=declared, Will 2026-09-17: "If we ever need to
+     design that glass style over photos, we can design that custom."). This was
+     the system's ONE translucent surface and no document said so: 62% of a grey
+     over whatever sat behind it, which read solid over a page and turned to
+     glass over a photograph. A card is an OPAQUE surface everywhere now. Do not
+     re-introduce an alpha here; a glass surface over media is a design task with
+     its own ruling, not a token's side effect. */
+  --card: oklch(0.225 0.006 286);
+  --card-foreground: oklch(0.965 0.0045 286);
+  --popover: oklch(0.27 0.006 286);
+  --popover-foreground: oklch(0.965 0.0045 286);
+  --primary: oklch(0.965 0.0045 286);
+  --primary-foreground: oklch(0.105 0.0053 286);
+  --secondary: oklch(0.315 0.006 286);
+  --secondary-foreground: oklch(0.965 0.0045 286);
+  --muted: oklch(0.175 0.0053 286);
+  --muted-foreground: oklch(0.715 0.0105 286);
+  /* The third text step in the room (see :root). 4.47:1 on the room, 3.75:1 on
+     a card: a caption colour, never body copy. */
+  --faint: oklch(0.565 0.0075 286);
+  --accent: oklch(0.315 0.006 286);
+  --accent-foreground: oklch(0.965 0.0045 286);
   --destructive: oklch(0.7 0.19 22);
   --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.85 0 0);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.865 0.0105 286);
 
   /* Charts re-ramp BRIGHTER on near-black (the light ramp disappears). */
   --chart-1: oklch(0.92 0 0);
@@ -273,8 +386,15 @@
   --save-foreground: oklch(0.13 0 0);
   --reel: oklch(0.72 0.18 300);
 
-  /* Dark mode has NO shadows; an invisible value keeps the utility valid. */
-  --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
+  /* THE RAMP DARK NEVER HAD (the light board's depth ruling, 2026-09-17). The
+     geometry is the light block's, to the pixel; only the alpha changes,
+     because a shadow has to be darker than what it falls on. Judged on two
+     mid-key photographs and on a menu over a busy page, which are the only
+     two places these are allowed to land. */
+  --shadow-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
+  --shadow-layer:
+    0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
 
   /* --gallery* intentionally NOT overridden: galleries stay dark in every theme. */
 }
@@ -286,29 +406,80 @@
   color-scheme: light;
 }
 
+/* `.surface-mat` (the palette's round eight): the LIGHT set-apart ground, as a
+   register rather than as an alpha. The product marks a band as set apart with
+   `bg-muted/N` at six different alphas, which is six greys doing one job and
+   none of them a surface a card can sit on. This is the one ground: Apple's
+   gray6 at 0.963, with the card pushed back to the page's own white so a card
+   ON a mat still lifts, and the hover fill moved up a step so a band and a
+   hover are 0.040 apart instead of 0.005.
+
+   ★ IT IS DECLARED, NOT YET WORN. The ~35 `bg-muted/N` call sites become
+   sections carrying this class as a mechanical follow-up (ROADMAP > Design);
+   the ruling is the ground, not the sweep. Light only: it declares no dark
+   values, so a `.dark` subtree inside it keeps the room's ladder. Placed after
+   .surface-paper and before .surface-ink so an ink leaf on a mat still wins. */
+.surface-mat {
+  --background: oklch(0.963 0.0066 286);
+  --card: oklch(0.995 0.002 286);
+  --popover: oklch(1 0 0);
+  --muted: oklch(0.923 0.0067 286);
+  --secondary: oklch(0.895 0.0068 286);
+  --accent: oklch(0.895 0.0068 286);
+  --faint: oklch(0.648 0.0073 286);
+  --border: oklch(0.862 0.0068 286);
+  --input: oklch(0.862 0.0068 286);
+}
+
 /* `.surface-ink` (the library phase, 2026-09-11): the always-dark slab set in
-   ONE class. A leaf that paints with --gallery* needs the same re-mapping every
-   time (--ring, --border, --foreground, --muted-foreground and --brand are not
-   in the gallery family, so under paper they keep their LIGHT values and a
-   focus ring lands at 1.43:1 on the slab); the ink footer used to spray nine
-   of these on its own element. Leaf only, never page chrome (design-system.md:
-   a hand-assembled dark set is for a LEAF). The three the footer never
-   redeclared ride along, derived from the gallery pair rather than copied from
-   .dark, so they move when the ramp is retuned. Declared AFTER .surface-paper
-   so an ink leaf inside a paper chapter wins. */
+   ONE class. A leaf that paints dark needs the same re-mapping every time
+   (--ring, --border, --foreground, --muted-foreground and --brand are not in
+   the gallery family, so under paper they keep their LIGHT values and a focus
+   ring lands at 1.43:1 on the slab); the ink footer used to spray nine of these
+   on its own element. Leaf only, never page chrome (design-system.md: a
+   hand-assembled dark set is for a LEAF). Declared AFTER .surface-paper and
+   .surface-mat so an ink leaf inside a paper chapter or on a mat wins.
+
+   ★ WRITTEN OUT RATHER THAN DERIVED, since the palette's round eight. Every
+   line here used to read var(--gallery*), because the slab and the media well
+   were one value. Graphite splits them (the well at 0.065, the slab at 0.165),
+   so deriving would drag this leaf down to the well with it and a footer at the
+   bottom of a paper page would read as a hole rather than as a step. This is
+   the SLAB register of the ruled dark set, verbatim.
+
+   --brand is redeclared DIRECTLY here, and via --primary declared in this same
+   block: a var() inside a custom property is substituted where it is DECLARED,
+   so the :root `--brand: var(--primary)` resolved to paper ink back at :root
+   and inherits down already resolved. Overriding --primary alone leaves the
+   mark inverted on paper. */
 .surface-ink {
-  --background: var(--gallery);
-  --foreground: var(--gallery-foreground);
-  --card-foreground: var(--gallery-foreground);
-  --border: var(--gallery-border);
-  --muted: color-mix(in oklab, var(--gallery) 85%, var(--gallery-foreground));
-  --muted-foreground: var(--gallery-muted);
-  --ring: var(--gallery-foreground);
-  --brand: var(--gallery-foreground);
-  --brand-foreground: var(--gallery);
-  --primary: var(--gallery-foreground);
-  --primary-foreground: var(--gallery);
-  --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
+  --background: oklch(0.165 0.0053 286);
+  --foreground: oklch(0.965 0.0045 286);
+  --card: oklch(0.225 0.006 286);
+  --card-foreground: oklch(0.965 0.0045 286);
+  --popover: oklch(0.27 0.006 286);
+  --popover-foreground: oklch(0.965 0.0045 286);
+  --primary: oklch(0.965 0.0045 286);
+  --primary-foreground: oklch(0.165 0.0053 286);
+  --secondary: oklch(0.315 0.006 286);
+  --secondary-foreground: oklch(0.965 0.0045 286);
+  --muted: oklch(0.225 0.006 286);
+  --muted-foreground: oklch(0.715 0.0105 286);
+  --faint: oklch(0.565 0.0075 286);
+  --accent: oklch(0.315 0.006 286);
+  --accent-foreground: oklch(0.965 0.0045 286);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.965 0.0045 286);
+  --brand: var(--primary);
+  --brand-foreground: var(--primary-foreground);
+  /* The dark ramp, re-declared like everything else here: on a paper page the
+     leaf would otherwise inherit paper's 6 and 10 percent, which is nothing on
+     a slab (the footer's photo pile is an overlap, so it is a real reader). */
+  --shadow-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
+  --shadow-layer:
+    0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
 }
 
 @layer base {
@@ -809,9 +980,26 @@
    (CardTitle adds font-semibold); per-setting LABELS stay Inter 500 (FormLabel).
    Urbanist is a proper variable sans, so the Instrument-era knobs (font-size-
    adjust, the synthetic text-stroke weight, font-synthesis) are gone — a real
-   bold weight does the work. Two knobs remain: WEIGHT (700 default) and TRACKING
-   (-3%). Swap the brand face forever by repointing --font-display (root layout)
-   + retuning these two lines. */
+   bold weight does the work. Two knobs remain: WEIGHT (700 default) and TRACKING.
+   Swap the brand face forever by repointing --font-display (root layout) +
+   retuning these two lines.
+
+   ★ THE -0.03em IS A FALLBACK NOW, NOT THE LAW (the type wiring, 2026-09-17).
+   Will's ruling gave every SIZE its own letter-spacing, tighter as it climbs
+   (-0.045em at 160px, -0.006em at 16px; src/app/theme.css). A flat value from
+   160 down to 16 was fault three the ladder answers, so a heading wearing both
+   `font-heading` and a step must take the STEP's value — and it does, measured
+   rather than assumed: Tailwind v4 sorts the `utilities` layer by property, not
+   by the order of the class string, and it emits every custom `@utility` in the
+   font-* position, BEFORE the `text-*` size utilities. Both selectors are
+   (0,1,0), so the later one wins and that is the step. Verified as computed
+   style in `pnpm dev` and again on `pnpm build && pnpm start`.
+
+   What this line still does: it dresses every heading the ladder does not
+   reach — the lab's own chrome, a marquee, a numeral, anything off the ladder —
+   so nothing loses its tracking on the way. Do NOT delete it, and do NOT put a
+   `tracking-*` class next to a step: `tracking-tight` resolves to 0em here and
+   cancels the step's own value through --tw-tracking. */
 @utility font-heading {
   font-family: var(--font-display, var(--font-sans));
   font-weight: 700;
@@ -893,6 +1081,32 @@
   color: inherit !important;
 }
 
+/* THE TOAST IS A LAYER (the light ruling, 2026-09-17: "a larger one under
+   menus, dialogs and toasts"), and it was the one floating surface outside the
+   family: sonner ships its own `0 4px 12px rgba(0,0,0,.1)`, which is a fourth
+   geometry in light and nothing at all over a dark room.
+
+   WHY THE PROPERTY AND NOT --tw-shadow: a toast is sonner's element, not a
+   Tailwind surface, so it carries no ring and no composed box-shadow to
+   protect. WHY THREE ATTRIBUTES DEEP AND NO !important: sonner appends its
+   sheet to <head> at runtime, after ours, so its own (0,2,0) rule wins a tie on
+   source order; one more attribute wins on weight instead, in any order.
+
+   ★ THE FOCUS RING IS RE-STATED, BECAUSE THIS RULE WOULD OTHERWISE DELETE IT.
+   Sonner draws a focused toast's ring INSIDE the same box-shadow declaration
+   (the same trap as `ring-1` on our own surfaces), so a rule that sets only the
+   shadow takes the keyboard's focus mark with it. It is drawn in the house
+   ring colour rather than sonner's 20 percent black, which was never visible
+   in dark. */
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  box-shadow: var(--shadow-layer);
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"]:focus-visible {
+  box-shadow:
+    var(--shadow-layer),
+    0 0 0 2px color-mix(in oklab, var(--ring) 50%, transparent);
+}
+
 /* ═══════════ Reel reveal + reel experience (ratified, R3) ═══════════
    Promoted out of the design lab (design.css `[data-rvl-*]` / `[data-rxp-*]`)
    after Will ruled the composite reveal at T1 and ratified it AS-BUILT at T2.
@@ -929,10 +1143,17 @@
      [data-rxp-swap]        a content-swap entrance (state transitions ONLY —
                             @starting-style fires on FIRST PAINT, so never put
                             this on anything already present when the page loads)
-     [data-rxp-share]       the share card; [data-state="on"] fires the bloom
+     [data-rxp-share]       the share card; [data-state] is its state hook, and no
+                            rule here reads it since the violet ring left
      [data-rxp-studio]      the Studio room's takeover enter
      [data-rxp-sheet]       the Studio's control sheets (slide up over the canvas)
-     [data-rxp-pubglow]     the publish beat glowing on the canvas frame
+     [data-rxp-framelight] / [data-rxp-cardlight]
+                            the publish light's two lamp boxes, behind the Studio's
+                            frame and under the share card (publish-light.tsx).
+                            NO rule in this block: the light is the engine's bloom
+                            in the house five, resting lit while a reel is shared,
+                            and the card's box is named once, on the light-ground
+                            fence in the engine block below
      [data-rxp-toastcard]   the "Guests can now watch" confirmation
      [data-rxp-gstage] / [data-rxp-gscreen] / [data-rxp-gflash] /
      [data-rxp-gscrim] / [data-rxp-gtitle] / [data-rxp-gend]
@@ -1169,11 +1390,6 @@
       transform: translateY(10px) scale(0.99);
     }
   }
-  /* The publish flourish: the card flips state under 300ms, then ONE violet
-     bloom rides out from it (the occasional-frequency tier). */
-  [data-rxp-share][data-state="on"] {
-    animation: rxp-bloom var(--tune-rxp-pub-ms, 700ms) var(--ease-emphasis) both;
-  }
   /* The Studio enters like a SCENE, not a page: a scale settle from 1.03 on the
      strong curve (the film-cut grammar, softened). */
   [data-rxp-studio] {
@@ -1193,10 +1409,6 @@
       opacity: 0;
       transform: translateY(100%);
     }
-  }
-  [data-rxp-pubglow] {
-    animation: rxp-pubglow var(--tune-rxp-pub-ms, 700ms) var(--ease-emphasis)
-      both;
   }
   [data-rxp-toastcard] {
     transition:
@@ -1274,8 +1486,6 @@
   /* The flourishes are pure theater: reduced motion arrives without them (the JS
      side skips their holds too, so the state lands immediately). */
   [data-rvl-flash],
-  [data-rxp-share][data-state="on"],
-  [data-rxp-pubglow],
   [data-rxp-gstage][data-act="flash"] [data-rxp-gflash] {
     animation: none !important;
   }
@@ -1290,27 +1500,6 @@
   }
   100% {
     opacity: 0;
-  }
-}
-
-@keyframes rxp-bloom {
-  0% {
-    box-shadow: 0 0 0 0 oklch(0.62 0.2 300 / 0.45);
-  }
-  100% {
-    box-shadow: 0 0 0 18px oklch(0.62 0.2 300 / 0);
-  }
-}
-
-@keyframes rxp-pubglow {
-  0% {
-    box-shadow: inset 0 0 0 0 transparent;
-  }
-  35% {
-    box-shadow: inset 0 0 46px 2px oklch(0.62 0.2 300 / 0.55);
-  }
-  100% {
-    box-shadow: inset 0 0 0 0 transparent;
   }
 }
 
@@ -1400,7 +1589,9 @@
      comet over it. The footer ships both at 0.62; that is the calibration. */
   --glw-base: 0.62;
   --glw-strength: 0.62;
-  /* 8s ruled by Will on the register (2026-08-31), down from 11s. */
+  /* 8s ruled by Will on the register (2026-08-31, held on the whole page
+     2026-09-17). --spill-cadence now carries the same number, so a lamp that
+     passes the token and a lamp that takes this default finally agree. */
   --glw-dur: 8s;
   --glw-blur: 16px;
   /* The recipe's pixel geometry is tuned for a 142px tile and MUST scale with
@@ -1782,6 +1973,21 @@
    a shimmer. Both are on the board; this one is the cheap one. ── */
 [data-glw-drive="transform"] [data-glw-band] {
   inset: 0 -90%;
+  /* ★ THE COMET RESTS WHERE ITS OWN ANIMATION STARTS, the transform drive's
+     half of the fix round 1 made for the mask drive (2026-09-17). The animation
+     lives in the no-preference block, so whatever this rule DECLARES is what a
+     reduced-motion visitor sees permanently -- and with no translate declared
+     that was `translate: none`, which on a band inset -90% either side puts the
+     gradient's own 50% peak at dead centre of the box at full --glw-strength:
+     the precise midpoint of the sweep, forever, for the people who asked for
+     less motion. Law 4 inverted, exactly as `mask-position: 50% 0` was.
+
+     Nobody had seen it because no shipped lamp used this drive; the Aurora's
+     field is the first, and a chapter-scale field is the worst possible place
+     to discover it. 32% is glw-drift-x's own from-keyframe, so the animated
+     path is unchanged down to the frame: only the reduced-motion and
+     never-started states move. */
+  translate: 32% 0;
   background: linear-gradient(
     100deg,
     transparent 0%,
@@ -2198,6 +2404,47 @@
   }
 }
 
+/* ── THE AURORA IS A DARK-GROUND LIGHT, BY CONSTRUCTION (Will, 2026-09-17).
+   His ruling, in his words: "we may not be able to use the Aurora on
+   white/paper surfaces. It's barely noticeable and almost appears as a weird
+   shadow or a stray artifact... No light ground usage is a decision for now."
+
+   So the fence is CSS rather than a prop, a lint or a review note: a chapter
+   that turns to paper later, or a SectionLight dropped into the app's light
+   mode, goes dark-quiet on its own instead of leaving an artifact nobody
+   diagnoses. The field carries no colour there at all, which is the same
+   degradation forced-colors, print and the no-mask fallback already take.
+
+   ★ IT MIRRORS THE `dark` VARIANT, INVERTED, AND THAT IS WHY IT IS TWO
+   SELECTORS. theme.css defines dark as `&:is(.dark *):not(.surface-paper *)`,
+   because a paper chapter forces a light subtree INSIDE a forced-dark cinema
+   wrapper. The naive `:root:not(.dark)` would be wrong twice: it would blank
+   every cinema page in an explicit-light session (the wrapper carries `.dark`,
+   not <html>), and it would miss a paper chapter nested in one.
+
+   ★ SCOPED TO [data-section-light], NEVER TO [data-glw]. The seams that already
+   ship (the footer's, the film strip's, the screen lamps') have their own
+   paper behaviour and their own history; widening this to the engine would
+   silently unlight four production lamps. What the engine does on paper today
+   is a separate question for Will, not a side effect of this rule.
+
+   ★ ONE FENCE, A LIST OF LAMP BOXES. A lamp that can find itself on a light
+   ground is NAMED here, in this rule, and never given a second copy of it: two
+   fences drift, and the one that drifts is the one nobody re-reads. The share
+   card's publish light ([data-rxp-cardlight], publish-light.tsx) is the first
+   lamp in the APP, which follows the host's theme, so in light mode the card
+   takes no coloured light and its check and its words carry the moment. The
+   Studio's twin ([data-rxp-framelight]) is deliberately NOT here: that room is
+   a literal near-black in both themes and carries no `.dark`, so fencing it
+   would switch the light off over a ground that is not light. The hook sits on
+   the LIGHT's box, never on the object: `display: none` takes what it names. ── */
+[data-section-light]:not(.dark *),
+.surface-paper [data-section-light],
+[data-rxp-cardlight]:not(.dark *),
+.surface-paper [data-rxp-cardlight] {
+  display: none;
+}
+
 /* ── The states the doctrine has to survive. A purely decorative colour layer
    is exactly where these belong, and the repo currently has NO forced-colors
    or print rule on any PRODUCTION surface; the block just below is the repo's
@@ -2238,6 +2485,131 @@
    forced-colors and print already take two rules up. */
 @supports not (mask-image: linear-gradient(#000, transparent)) {
   [data-glw] {
+    display: none;
+  }
+}
+
+/* ═══════════ THE BRIGHT EDGE: [data-lit] ═══════════
+   Will, on the light board's round eight (2026-09-17): "I love the bright edge.
+   It's a really nice subtle design touch, but I think the implementation could
+   use a tweak to feel more polished and beautiful. The transparent border
+   radius also revealed some mismatches here in the preview roundings."
+
+   NOT ELEVATION, AND NOT A LAMP: MATERIAL. One pixel of light catching the
+   bevel of a surface that is lit from above, on exactly three kinds of
+   surface: a photograph or a video, a framed screen, and the QR card. It is
+   the FOREGROUND colour at a low alpha, never one of the five lamp hues (bible
+   3: those are light in a room, this is the room's own surface), it does not
+   move, and it is absent under everything else. A card, a menu and a button
+   already have their step and their ring; an edge on those is a third outline.
+
+   ★ THE MISMATCH, AND WHY IT CANNOT COME BACK. The board drew the cue on a bare
+   wrapper with a hand-typed radius, and laid it on the PADDING box while it
+   inherited the BORDER box's radius, so on a bordered surface the edge and the
+   corner were two different arcs (bible 9: "a ring with a radius of its own
+   reads as a mistake"). Here the hook sits on THE BOX THAT OWNS THE RADIUS, the
+   radius is inherited and never typed, and the pseudo-element is pushed out by
+   the border's width so it covers the border box: same box, same radius,
+   concentric by construction. CSS cannot read a border's width from a
+   pseudo-element, so the one fact it needs rides the attribute's value:
+
+       data-lit            the surface has no border (a photo, a player's well)
+       data-lit="border"   it wears Tailwind's 1px `border` (the QR card, a
+                           phone's bezel, the canvas player), and the light
+                           lands ON that border instead of drawing a second
+                           line inside it
+
+   ★ A BORDERED HOST MUST NOT CLIP. `overflow: hidden` clips at the PADDING
+   box, which is precisely where a border stops being visible, so the edge
+   would be drawn and then cut off to the pixel (the board's round seven lost a
+   whole card to the same kind of silence: an edge painted under its own
+   photograph). The canvas player rounds its canvas instead of clipping it.
+   The contract (src/components/shared/lit-edge-contract.test.ts) holds both.
+
+   ★ THE POLISH IS A FALLOFF, NOT A LINE. The board's version was a flat 9
+   percent hairline all the way round plus a 6 percent lip: a third outline on
+   a surface that had two. This one is brightest along the top, falls away down
+   the sides, and is nothing at the bottom, which is what a lit bevel does and
+   what a frame does not. If it ever reads as a frame, it is too strong.
+
+   ★ DARK GROUNDS ONLY, AND THE FENCE IS THE `dark` VARIANT ITSELF, NOT A COPY
+   OF IT. theme.css defines dark ONCE (`&:is(.dark *):not(.surface-paper *)`)
+   and `@variant dark` compiles this rule through that definition, so a paper
+   chapter inside a cinema page, the app in light mode and a guest gallery on a
+   light phone all paint nothing, and they paint nothing because no
+   pseudo-element is ever generated there (a masked layer per photograph is
+   not free, and a gallery can hold hundreds). On paper the foreground is ink,
+   so the same rule would draw a dark rim: the board tried that and cut it.
+
+   ON A PSEUDO-ELEMENT, ABOVE THE IMAGE. An inset box-shadow paints above an
+   element's own background and BELOW its children, and a media tile's child
+   is an image covering the whole box. `position: relative` rides @layer base
+   so a host that is already `absolute` or `sticky` by utility keeps its own
+   positioning (utilities outrank base), and one that is not positioned cannot
+   let the edge escape to an ancestor and ring the wrong box.
+
+   One pixel is drawn as a 1px padding ring through mask-composite (the
+   gradient fills the box, the mask keeps the box minus its content box). Both
+   spellings ship, because Safari composites on the prefixed one. ═══════════ */
+@layer base {
+  [data-lit] {
+    position: relative;
+  }
+}
+
+[data-lit] {
+  /* Reset on EVERY lit host, because a custom property inherits: a photograph
+     inside a lit phone would otherwise take the bezel's border width. */
+  --lit-border: 0px;
+}
+
+[data-lit="border"] {
+  --lit-border: 1px;
+}
+
+/* ★ THE EDGE IS GENERATED ONLY WHERE IT CAN BE DRAWN RIGHT, so the two ways it
+   can go wrong are "no edge", never "a wrong one". Without mask-composite the
+   gradient is a veil over the whole photograph; without color-mix the build's
+   own fallback is the foreground at FULL strength (Lightning CSS writes
+   `var(--foreground)` in place of each mix), which is a solid white frame
+   round every picture. Both are required up front rather than hidden after. */
+@supports (color: color-mix(in oklab, red, red)) and
+  ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  [data-lit] {
+    @variant dark {
+      &::after {
+        content: "";
+        position: absolute;
+        inset: calc(-1 * var(--lit-border));
+        border-radius: inherit;
+        padding: 1px;
+        pointer-events: none;
+        /* Lit from above: an ellipse anchored on the top edge, wider than the
+           box so the two top corners are still inside the light, and spent
+           before the bottom edge. */
+        background: radial-gradient(
+          135% 100% at 50% 0%,
+          color-mix(in oklab, var(--foreground) 30%, transparent) 0%,
+          color-mix(in oklab, var(--foreground) 13%, transparent) 36%,
+          color-mix(in oklab, var(--foreground) 4%, transparent) 66%,
+          transparent 92%
+        );
+        -webkit-mask-image:
+          linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+        mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+        -webkit-mask-clip: content-box, border-box;
+        mask-clip: content-box, border-box;
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+      }
+    }
+  }
+}
+
+/* The two states a decorative layer has to survive, the same two the lamps
+   take: no edge where colours are forced, and none on a printed sheet. */
+@media (forced-colors: active), print {
+  [data-lit]::after {
     display: none;
   }
 }
@@ -2285,7 +2657,7 @@
 @media print {
   /* THE ROOM PRINTS LIGHT. The dark is not one background to patch: the cinema
      wrapper carries `.dark` (the whole token flip) and marketing.css paints the
-     BODY oklch(0.11), so muted text, card and hairline all resolve dark too.
+     BODY the room's own near-black, so muted text, card and hairline resolve dark too.
      Re-declaring the tokens on the wrapper turns the subtree light in one move
      (paper values, not the oklch originals: print is sRGB and ink on white is
      the point). !important because marketing.css's body rule is a tie on
@@ -2304,6 +2676,7 @@
     --popover-foreground: #111;
     --muted: #f4f4f4;
     --muted-foreground: #444;
+    --faint: #666;
     --border: #c9c9c9;
     --input: #c9c9c9;
     --ring: #666;

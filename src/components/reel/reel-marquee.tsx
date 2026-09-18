@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * THE MARQUEE: the Reel section once a reel exists (ADR-0023 ruling 4, amended by
- * ADR-0024).
+ * THE MARQUEE: the Reel section once a reel exists (host-app.md ruling 4, amended by
+ * host-app.md).
  *
  * R3 gave the reel a FACE in the feed. R3.1 took away everything else. Will's
  * alias review of the shipped build ruled that a feed section is a VISUAL surface

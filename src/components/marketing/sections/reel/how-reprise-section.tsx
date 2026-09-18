@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { Conveyor } from "@/components/marketing/system/conveyor";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { GOLDEN_LINES, SECTION_HEADERS } from "@/lib/constants/marketing-voice";
@@ -54,8 +54,10 @@ export function HowRepriseSection() {
       <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-3">
         {STEPS.map((step, i) => (
           <div key={step.label} className="flex flex-col gap-2">
-            <MonoCaption>{String(i + 1).padStart(2, "0")}</MonoCaption>
-            <h3 className="font-heading text-lg sm:text-xl">{step.label}</h3>
+            <Caption className="tabular-nums">
+              {String(i + 1).padStart(2, "0")}
+            </Caption>
+            <h3 className="font-heading text-subsection">{step.label}</h3>
             <p className="text-sm text-pretty text-muted-foreground">
               {step.body}
             </p>

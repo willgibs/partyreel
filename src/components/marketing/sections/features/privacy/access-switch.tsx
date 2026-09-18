@@ -10,7 +10,7 @@ import {
 } from "@/lib/events/visibility-labels";
 import { BrowserFrame } from "@/components/marketing/frames";
 import { GhostBackdrop } from "@/components/marketing/sections/features/shared/ghost-grid";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -24,8 +24,9 @@ import { cn } from "@/lib/utils";
  * marketing. Same three segments (Public / Password / Private, same icons),
  * same one-line hints (imported from the app module, the sanctioned
  * "any future surface" single source), driving ONE event-card preview through
- * the three guest-side states. The pill slides with the app's lifted-segment
- * look (bg-background + shadow-sm) instead of .mkt-tabs' 48px-radius track so
+ * the three guest-side states. The pill slides with the app's own segment
+ * look (bg-background on the muted track: a step and no shadow, exactly as
+ * visibility-selector.tsx ships it) instead of .mkt-tabs' 48px-radius track so
  * the mock stays shape-faithful; reduced motion swaps instantly.
  */
 
@@ -89,7 +90,7 @@ export function AccessSwitch() {
               exactly one segment + the gap-1. */}
           <span
             aria-hidden
-            className="absolute inset-y-1 left-1 w-[calc((100%-1rem)/3)] rounded-md bg-background shadow-sm transition-transform ease-emphasis [transition-duration:var(--mkt-tabs-dur)] motion-reduce:transition-none"
+            className="absolute inset-y-1 left-1 w-[calc((100%-1rem)/3)] rounded-md bg-background transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
             style={{
               transform: `translateX(calc(${index} * (100% + 0.25rem)))`,
             }}
@@ -161,7 +162,7 @@ export function AccessSwitch() {
               <PreviewPanel active={mode === "password"}>
                 <GhostBackdrop />
                 <div className="z-10 flex items-center justify-center p-3 [grid-area:1/1]">
-                  <div className="w-full max-w-[17rem] rounded-xl border bg-card/95 p-4 text-center shadow-sm backdrop-blur">
+                  <div className="w-full max-w-[17rem] rounded-xl border bg-card/95 p-4 text-center shadow-layer backdrop-blur">
                     <p className="flex items-center justify-center gap-1.5 text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
                       <Lock className="size-3" />
                       Almost in
@@ -185,14 +186,14 @@ export function AccessSwitch() {
               <PreviewPanel active={mode === "private"}>
                 <GhostBackdrop />
                 <div className="z-10 flex items-center justify-center p-3 [grid-area:1/1]">
-                  <div className="flex flex-col items-center gap-2 rounded-xl border bg-card/95 px-8 py-6 text-center shadow-sm backdrop-blur">
+                  <div className="flex flex-col items-center gap-2 rounded-xl border bg-card/95 px-8 py-6 text-center shadow-layer backdrop-blur">
                     <span className="flex size-9 items-center justify-center rounded-full border text-muted-foreground">
                       <Lock className="size-4" />
                     </span>
                     <p className="font-heading text-base text-balance sm:text-lg">
                       {EVENT_NAME}
                     </p>
-                    <MonoCaption>{PHOTO_COUNT}</MonoCaption>
+                    <Caption className="tabular-nums">{PHOTO_COUNT}</Caption>
                   </div>
                 </div>
               </PreviewPanel>
@@ -250,16 +251,19 @@ function HintSwap({ text }: { text: string }) {
       return;
     }
     el.classList.add("is-exit");
-    const t = setTimeout(() => {
-      el.textContent = text;
-      el.classList.remove("is-exit");
-      el.classList.add("is-enter-start");
-      // Read a layout property so the browser commits the entry pose BEFORE
-      // the class comes off; without this reflow there is no start value to
-      // transition from and the line would just appear.
-      void el.offsetHeight;
-      el.classList.remove("is-enter-start");
-    }, readCssMs("--mkt-swap-dur", 150, el));
+    const t = setTimeout(
+      () => {
+        el.textContent = text;
+        el.classList.remove("is-exit");
+        el.classList.add("is-enter-start");
+        // Read a layout property so the browser commits the entry pose BEFORE
+        // the class comes off; without this reflow there is no start value to
+        // transition from and the line would just appear.
+        void el.offsetHeight;
+        el.classList.remove("is-enter-start");
+      },
+      readCssMs("--mkt-swap-dur", 150, el),
+    );
     return () => clearTimeout(t);
   }, [text, reduced]);
 
@@ -289,7 +293,7 @@ function PreviewPanel({
       className={cn(
         // Same clock as the pill it belongs to: the segments and their panels
         // are one control, so the duration has ONE home (--mkt-tabs-dur).
-        "grid transition-opacity ease-emphasis [transition-duration:var(--mkt-tabs-dur)] [grid-area:1/1] motion-reduce:transition-none",
+        "grid transition-opacity [transition-duration:var(--mkt-tabs-dur)] ease-emphasis [grid-area:1/1] motion-reduce:transition-none",
         active ? "opacity-100" : "pointer-events-none opacity-0",
       )}
     >
@@ -297,4 +301,3 @@ function PreviewPanel({
     </div>
   );
 }
-

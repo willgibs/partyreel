@@ -1,3 +1,6 @@
+// @policy: marketing · Marketing CSS stays contained
+// @refuses: a declaration in marketing.css that leaks app-wide once any marketing route has loaded.
+
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -179,10 +182,12 @@ describe("marketing.css containment policy", () => {
 
   // The gap the selector checks above miss: the NO-COLOR-LITERAL rule (recipe
   // colors re-point at house tokens). Sanctioned literals only:
-  //   • oklch(0.11 0 0)   — the cinema room ink (chapter 3 skin + body edge);
-  //   • oklch(0.99 0 0)   — the paper field (the paper body edge; forced-light
-  //     ruling 2026-08-26 — body sits outside the wrapper, so the edge rule
-  //     needs the literal, exactly like the cinema one above);
+  //   • oklch(0.105 0.0053 286) — the room (the cinema body edge). Since the
+  //     palette's round eight this is globals.css's .dark --background itself:
+  //     the chapter-3 skin no longer re-declares one, and the body edge keeps
+  //     the literal because body sits OUTSIDE the wrapper;
+  //   • oklch(0.995 0.002 286)  — the page (the paper body edge; forced-light
+  //     ruling 2026-08-26 — same reason, same shape as the cinema one above);
   //   • white rgba(255,255,255,…) — the tilt glare's LIGHT (capped by token);
   //   • #000 inside a mask-image  — an alpha ramp, machinery not palette.
   // Everything else (a hex, an rgb/hsl/oklch value, a named palette sneak-in
@@ -205,8 +210,8 @@ describe("marketing.css containment policy", () => {
       for (const match of chunk.matchAll(literal)) {
         const lit = match[0];
         const sanctioned =
-          lit === "oklch(0.11 0 0)" ||
-          lit === "oklch(0.99 0 0)" ||
+          lit === "oklch(0.105 0.0053 286)" ||
+          lit === "oklch(0.995 0.002 286)" ||
           /^rgba?\(\s*255\s*,\s*255\s*,\s*255/.test(lit) ||
           (lit === "#000" && /mask-image/.test(chunk)) ||
           // The accent block (the 2026-08-25 achromatic ruling): color

@@ -147,7 +147,7 @@ export default async function JobsPage() {
       {unavailable ? (
         <Card className="border-destructive/40">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base text-destructive">
+            <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="size-4" aria-hidden />
               Heartbeat unreadable
             </CardTitle>
@@ -158,7 +158,7 @@ export default async function JobsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="font-mono text-xs break-all text-muted-foreground">
+            <p className="rounded-md bg-muted px-2.5 py-2 text-xs break-all text-muted-foreground select-all">
               {unavailable}
             </p>
           </CardContent>
@@ -182,7 +182,7 @@ export default async function JobsPage() {
           <Card key={def.id}>
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <CardTitle className="flex items-center gap-2 text-base">
+                <CardTitle className="flex items-center gap-2">
                   {def.label}
                   <Badge variant={HEALTH_VARIANT[health]}>
                     {HEALTH_LABEL[health]}
@@ -260,7 +260,7 @@ export default async function JobsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recent runs</CardTitle>
+          <CardTitle>Recent runs</CardTitle>
           <CardDescription>
             The last {recent.length || 0} runs across every job, newest first.
           </CardDescription>

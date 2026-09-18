@@ -8,6 +8,16 @@ import { cn } from "@/lib/utils";
  * round, 2026-09-02, so a frame can hold live media rather than the fixed
  * upload mock below). Same chrome as before: the rounded card, the notch, the
  * inner screen. aria-hidden is the caller's job.
+ *
+ * The bezel is a FRAMED SCREEN, one of the three kinds of surface that take the
+ * bright edge (globals.css, [data-lit]). The hook sits on the bezel because the
+ * bezel owns the 2.5rem radius, and it says "border" because the bezel wears
+ * one: the light lands ON that border rather than drawing a third outline
+ * inside it. Two rules follow, both held by lit-edge-contract.test.ts: this
+ * box keeps its 1px `border`, and it never clips (the screen inside does). It
+ * took a stock shadow-sm until the light ruling (2026-09-17); a frame standing
+ * flat on the page takes none, and a composition that really overlaps one over
+ * something declares `shadow-lift` itself.
  */
 export function PhoneShell({
   className,
@@ -21,7 +31,10 @@ export function PhoneShell({
 }) {
   return (
     <div className={cn("w-full", className)}>
-      <div className="rounded-[2.5rem] border bg-card p-3 shadow-sm ring-1 ring-foreground/5">
+      <div
+        data-lit="border"
+        className="rounded-[2.5rem] border bg-card p-3 ring-1 ring-foreground/5"
+      >
         {/* speaker / notch */}
         <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-muted-foreground/20" />
         <div

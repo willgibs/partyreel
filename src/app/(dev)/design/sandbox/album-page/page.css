@@ -1,0 +1,79 @@
+/* THE ALBUM PAGE BOARD'S OWN SHEET (the heroes lane, 2026-09-18). Classes
+   under `apg-` only and NO keyframe (src/app/keyframe-uniqueness.test.ts reads
+   every sheet under the lab); the motion is the field's rAF loop and the light
+   is the Glow engine's own clock. */
+
+/* THE COLUMN COUNT, SET FROM THE OUTSIDE. `GuestMasonry` is `columns-2` at
+   every width, which is the phone it was designed for; the board drives it
+   through a variable rather than forking the component (album-hero's round
+   three did the same), three columns at 896 and two at a phone. */
+.apg-grid :where([class~="columns-2"]) {
+  column-count: var(--apg-cols, 2);
+}
+
+/* THE FOOT DISSOLVES: the frame is clipped to a height and its last stretch
+   fades to nothing, so the album reads as going on rather than as a box. A
+   mask, never a scrim: nothing is laid over a photograph (bible 1). */
+.apg-clip {
+  height: var(--apg-h);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--apg-fade)),
+    rgb(0 0 0 / 0.55) calc(100% - var(--apg-fade) * 0.5),
+    rgb(0 0 0 / 0.18) calc(100% - var(--apg-fade) * 0.2),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--apg-fade)),
+    rgb(0 0 0 / 0.55) calc(100% - var(--apg-fade) * 0.5),
+    rgb(0 0 0 / 0.18) calc(100% - var(--apg-fade) * 0.2),
+    transparent 100%
+  );
+}
+
+/* THE POOL: the reel's elliptical window (reel-screen-lamp.tsx), anchored on
+   the frame's centre line at the top of its own box and gone well inside the
+   frame's edges, so the light is never wider than the screen that throws it.
+   Smoothstep stops: a two-stop ramp kinks and the eye reads a kink as a ring. */
+.apg-pool {
+  -webkit-mask-image: radial-gradient(
+    ellipse 46% 100% at 50% 0%,
+    #000 0%,
+    rgb(0 0 0 / 0.97) 10%,
+    rgb(0 0 0 / 0.9) 20%,
+    rgb(0 0 0 / 0.78) 30%,
+    rgb(0 0 0 / 0.65) 40%,
+    rgb(0 0 0 / 0.5) 50%,
+    rgb(0 0 0 / 0.35) 60%,
+    rgb(0 0 0 / 0.22) 70%,
+    rgb(0 0 0 / 0.1) 80%,
+    rgb(0 0 0 / 0.03) 90%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 46% 100% at 50% 0%,
+    #000 0%,
+    rgb(0 0 0 / 0.97) 10%,
+    rgb(0 0 0 / 0.9) 20%,
+    rgb(0 0 0 / 0.78) 30%,
+    rgb(0 0 0 / 0.65) 40%,
+    rgb(0 0 0 / 0.5) 50%,
+    rgb(0 0 0 / 0.35) 60%,
+    rgb(0 0 0 / 0.22) 70%,
+    rgb(0 0 0 / 0.1) 80%,
+    rgb(0 0 0 / 0.03) 90%,
+    transparent 100%
+  );
+}
+
+/* THE HALO'S OBJECT: the frame's own card is lifted off it and laid UNDER the
+   wash, so the light climbs the frame's rim and chrome from behind while its
+   face, the photographs, stays clean. */
+.apg-halo {
+  background: var(--card);
+}
+.apg-halo .apg-frame {
+  background: transparent;
+}

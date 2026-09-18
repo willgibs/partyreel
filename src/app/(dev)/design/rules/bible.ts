@@ -1,9 +1,10 @@
 /**
- * THE BIBLE (Will's ruling, "less is more", 2026-09-12). The whole of
- * Partyreel's design law: twenty-two rules, hand-authored, ratified by Will,
- * rendered on /design/rules. A component's functional contract lives on the
- * component (a test tagged `@contract-for`); everything else on the site is
- * precedent an agent may break in a better exploration.
+ * THE BIBLE (Will's ruling, "less is more", 2026-09-12; second edition after
+ * his rule-by-rule review, 2026-09-14). The whole of Partyreel's design law:
+ * twenty-two rules, hand-authored, ratified by Will, rendered on
+ * /design/rules. A component's functional contract lives on the component (a
+ * test tagged `@contract-for`); everything else on the site is precedent an
+ * agent may break in a better exploration.
  *
  * The criterion for a line here: true on a page that does not exist yet, and
  * breaking it would make Partyreel look like a different product. Anything
@@ -11,8 +12,12 @@
  * invariant fails that test and is not a design rule.
  *
  * `enforcedBy` is honest: the tests that check some of the rule, or "review"
- * when the rule is doctrine held at review. A change to this file is a ruling
- * of Will's, never an agent's; bible.test.ts keeps it well-formed.
+ * when the rule is doctrine held at review. `status` is where a rule stands
+ * after a review: absent means ruled; "under exploration: <board>" means a lab
+ * board is writing what the rule inherits (its values, its doctrine) and the
+ * statement is the interim law; "retiring: <track>" means the rule leaves the
+ * bible when that track lands. A change to this file is a ruling of Will's,
+ * never an agent's; bible.test.ts keeps it well-formed.
  */
 
 export type BibleGroup =
@@ -23,7 +28,7 @@ export type BibleGroup =
   | "motion"
   | "surfaces"
   | "copy"
-  | "the bar";
+  | "rising tides";
 
 export const BIBLE_GROUPS: BibleGroup[] = [
   "identity",
@@ -33,8 +38,15 @@ export const BIBLE_GROUPS: BibleGroup[] = [
   "motion",
   "surfaces",
   "copy",
-  "the bar",
+  "rising tides",
 ];
+
+/** Where a rule stands after a review. Absent reads as "ruled". */
+export type BibleStatus =
+  | "ruled"
+  | "retired"
+  | `under exploration: ${string}`
+  | `retiring: ${string}`;
 
 export type BibleRule = {
   /** A stable slug; the row's anchor on /design/rules. */
@@ -50,9 +62,12 @@ export type BibleRule = {
   ruledBy: "Will";
   /** ISO date: ratified at the reset, or the original ruling where it was later. */
   ruledOn: string;
+  /** After a review: which board or track the rule inherits from, or that it is leaving. */
+  status?: BibleStatus;
 };
 
 const RATIFIED = "2026-09-12";
+const REVIEWED = "2026-09-14";
 
 export const BIBLE: BibleRule[] = [
   {
@@ -60,25 +75,25 @@ export const BIBLE: BibleRule[] = [
     n: 1,
     group: "identity",
     statement:
-      "Grayscale UI with one accent; the media is the color. The guest's photographs are the loudest thing on every surface.",
-    why: "The interface stays quiet so the pictures can carry the room; a colored control competes with the thing people came to see.",
+      "Achromatic UI with one accent; the media is the color. Where there is no media, the accent carries state and UI color and marketing may carry color of its own (aurora, non-sampled spill): a section without a picture is still beautiful, never bare.",
+    why: "The interface stays quiet so the pictures can carry the room, but quiet is not empty: the binary of has-media or is-boring is what the review killed (Will, 2026-09-14). The palette ruling wrote the ramp and kept the accent off (Graphite, 2026-09-17); the light exploration writes the aurora.",
     enforcedBy: ["src/app/(marketing)/marketing-css-policy.test.ts"],
     ruledBy: "Will",
-    ruledOn: RATIFIED,
+    ruledOn: REVIEWED,
   },
   {
     id: "one-token-set",
     n: 2,
     group: "identity",
     statement:
-      "Marketing and app share one token set. Marketing may be louder only in type and motion.",
-    why: "A visitor who becomes a host should feel no seam between the site and the product.",
+      "Marketing and app share one token set. Marketing may be louder in most things (type, motion, color, scale, density); only the tokens are shared by law.",
+    why: "A visitor who becomes a host should feel no seam between the site and the product, but a marketing site that reads like the app reads bland (Will, 2026-09-14).",
     enforcedBy: [
       "src/app/css-source-policy.test.ts",
       "src/app/globals-theme-contract.test.ts",
     ],
     ruledBy: "Will",
-    ruledOn: RATIFIED,
+    ruledOn: REVIEWED,
   },
   {
     id: "lamps-are-light",
@@ -97,21 +112,22 @@ export const BIBLE: BibleRule[] = [
     group: "identity",
     statement:
       "A guest surface belongs to the host's event: minimal Partyreel branding, the host's name first.",
-    why: "Guests came for the event, not for us; the QR is the growth loop, and it works because the page feels like the host's.",
+    why: "Guests came for the event, not for us; the QR is the growth loop, and it works because the page feels like the host's. The capture is staged email for the guests who sign up (upload reminders, new-photo notifications), never the event page as a billboard (Will, 2026-09-14).",
     enforcedBy: "review",
     ruledBy: "Will",
-    ruledOn: RATIFIED,
+    ruledOn: REVIEWED,
   },
   {
     id: "one-site-ladder",
     n: 5,
     group: "type",
     statement:
-      "One heading face on one site ladder. Every h1 sits on the ladder, never on a ramp of its own.",
-    why: "Will, 2026-08-29: normalize the site ladder so the pages read as one site; a page that needs its own scale has not been designed yet.",
+      "One heading face on one site ladder. Every heading sits on a step, and the steps keep their order at every width.",
+    why: "Will, 2026-08-29: normalize the site ladder so the pages read as one site; a page that needs its own scale has not been designed yet. The type ruling wrote the sizes (B, rungs, 2026-09-17), and the ninth batch made the law the ORDER (2026-09-18: \"we really shouldn't have any one-off adding instances\"): ten steps in theme.css, each with its own leading and tracking, a phone end being the rung that keeps each heading above the one it heads.",
     enforcedBy: [
       "src/app/(marketing)/marketing-h1-policy.test.ts",
       "src/components/marketing/system/page-hero-contract.test.ts",
+      "src/lib/type-ladder-policy.test.ts",
     ],
     ruledBy: "Will",
     ruledOn: "2026-08-29",
@@ -128,15 +144,15 @@ export const BIBLE: BibleRule[] = [
     ruledOn: "2026-08-29",
   },
   {
-    id: "mono-holds-data",
+    id: "two-faces",
     n: 7,
     group: "type",
     statement:
-      "Mono holds data: numerals, codes, keys. Every label, hint and descriptor is the Caption atom.",
-    why: "Mono reads as machine output; when a label wears it the whole surface starts to look like a terminal (the R6 ruling; the MonoCaption sweep, 2026-09-11).",
-    enforcedBy: "review",
+      "Two faces, and only two: Inter for everything a person reads, Urbanist for what the page says loudly. There is no mono face in the product; data sits on the body face with tabular figures, and every label, hint and descriptor is the Caption atom.",
+    why: "Kill mono entirely (Will, 2026-09-14): the kill-mono sweep removed the loader, the atom and every mono class, and redesigned the places where mono did semantic work (a number that is the subject takes the display face; a value that must look like a value takes a muted plate). This rule replaced the retiring mono rule when the sweep landed.",
+    enforcedBy: ["src/app/two-faces-policy.test.ts"],
     ruledBy: "Will",
-    ruledOn: RATIFIED,
+    ruledOn: REVIEWED,
   },
   {
     id: "tokens-never-literals",
@@ -144,10 +160,14 @@ export const BIBLE: BibleRule[] = [
     group: "shape",
     statement:
       "Sharp surfaces, round actions. Tokens, never literals: surfaces take --radius, floating layers --radius-float, media tiles --radius-tile, every lamp --spill-cadence.",
-    why: "One token each is what lets a round retune the whole product from one place; a literal is a value nobody can find later. The rounding round retunes the values, never the law.",
-    enforcedBy: ["src/components/marketing/chrome/footer-contract.test.ts"],
+    why: "One token each is what lets a round retune the whole product from one place; a literal is a value nobody can find later. The rounding board ruled the values on 2026-09-18, family C in quarters (an 8px surface, a 12px floating layer with its rows at 8, a 4px photograph with the gallery gap pinned to it, 3xl and 4xl dropped, a cta size for the 44px action): \"This keeps the final pixel calculations much cleaner.\"",
+    enforcedBy: [
+      "src/components/marketing/chrome/footer-contract.test.ts",
+      "src/lib/type-ladder-policy.test.ts",
+    ],
     ruledBy: "Will",
     ruledOn: RATIFIED,
+    status: "ruled",
   },
   {
     id: "radius-plus-offset",
@@ -161,26 +181,28 @@ export const BIBLE: BibleRule[] = [
     ruledOn: RATIFIED,
   },
   {
-    id: "dark-has-no-shadows",
+    id: "depth-in-dark",
     n: 10,
     group: "light",
     statement:
-      "Dark has no shadows. Light is the depth cue, and it comes from under or behind the object.",
-    why: "A shadow on a dark ground is a smudge; a lit edge is depth. The one underlight mechanic keeps every lamp honest about where it hangs.",
-    enforcedBy: "review",
+      "In dark, depth is light first, and BOTH shadows are available: the layer under anything the page keeps living behind, the lift where one object really sits on another. A flat surface takes neither, in either mode.",
+    why: "A shadow on a flat dark ground is a smudge, but two photographs on top of each other need an edge (Will, 2026-09-14), and the light board ruled both in on 2026-09-17 (\"I now see how step, ring, lift, and float work together\"), which gave dark and the ink slab the ramp they never had.",
+    enforcedBy: ["src/lib/elevation-policy.test.ts"],
     ruledBy: "Will",
-    ruledOn: RATIFIED,
+    ruledOn: "2026-09-17",
+    status: "ruled",
   },
   {
-    id: "light-has-a-source",
+    id: "lamps-without-media",
     n: 11,
     group: "light",
     statement:
-      "Light has a source and a direction: a lamp that cannot name what emits it is decoration and does not ship.",
-    why: "The spill doctrine's first two laws and its anti-sprawl mechanism: decorative glow on edges, cards and borders is how a monochrome identity quietly grows a second palette.",
+      "A lamp may light a section without media: the footer's seam is the model. The Aurora is the doctrine that replaced the source-and-direction law: one family, never on a light ground, composed for its place rather than repeated.",
+    why: "The source-and-direction law kept a monochrome identity from growing a second palette, but it also forbade the lamp Will likes most, the footer's, which emits from nothing (Will, 2026-09-14); the light board wrote the doctrine across eight rounds and retired with it on 2026-09-17.",
     enforcedBy: ["src/components/shared/glow-placement.test.ts"],
     ruledBy: "Will",
-    ruledOn: RATIFIED,
+    ruledOn: "2026-09-17",
+    status: "ruled",
   },
   {
     id: "animate-by-frequency",
@@ -223,22 +245,23 @@ export const BIBLE: BibleRule[] = [
     n: 15,
     group: "motion",
     statement:
-      "Every floating surface rides the floating-layer contract: one radius, one entrance, one light.",
-    why: "Menus, dialogs, sheets and popovers are one family, and a stray one reads as a bug (named 2026-08-28, when the nav turned out to be the one menu outside it).",
-    enforcedBy: "review",
+      "Every floating surface rides the floating-layer contract: one corner derived from one token, an entrance chosen by how often the surface opens, and the layer shadow. No surface spells its own.",
+    why: "Menus, dialogs, sheets and popovers are one family, and a stray one reads as a bug (named 2026-08-28, when the nav turned out to be the one menu outside it). The floating-surfaces board wrote it and Will ruled every ask on 2026-09-17: Card's anatomy, submenus at two levels and no more, the corner `nested` (the panel on the floating token, 12px since the corner ladder of 2026-09-18, its rows derived 4px inside it), entrances by frequency.",
+    enforcedBy: ["src/components/ui/floating-layer.test.ts"],
     ruledBy: "Will",
-    ruledOn: RATIFIED,
+    ruledOn: "2026-09-17",
+    status: "ruled",
   },
   {
-    id: "three-grounds",
+    id: "four-grounds",
     n: 16,
     group: "surfaces",
     statement:
-      "Three grounds: cinema, paper and ink. A dark hero decides the route group; a utility page runs cinema hero, paper body, ink footer.",
-    why: "Will, 2026-08-28: the rhythm every marketing page shares is what makes the site one site; a dark chapter dropped into a paper body breaks it.",
+      "Four grounds: cinema, the dark room every dark chapter sits on; paper, the light body; ink, the footer's darker leaf, never a page's chrome; and the muted panel, the set-apart block inside a paper body. A dark hero decides the route group, because the header's skin is chosen by the group's layout and no page can flip it from inside; a utility page runs cinema hero, paper body, ink footer.",
+    why: "Will, 2026-08-28 and 2026-09-14: the rhythm every marketing page shares is what makes the site one site; the panel is the one thing allowed to break the strict light-dark alternation, and the /about round proved a page cannot fake dark chrome from the paper side.",
     enforcedBy: "review",
     ruledBy: "Will",
-    ruledOn: "2026-08-28",
+    ruledOn: REVIEWED,
   },
   {
     id: "chapters-open-strong",
@@ -257,7 +280,7 @@ export const BIBLE: BibleRule[] = [
     group: "surfaces",
     statement:
       "Every frame is ours: no stock photography on a marketing surface, and a page argues in photographs wherever it can.",
-    why: "Will pulled the two stock event photos from the first press cut: it feels weird to say here is a real event and show someone else's.",
+    why: "Will pulled the two stock event photos from the first press cut: it feels weird to say here is a real event and show someone else's. No stock and no shoot: every frame is generated for the slot it fills, in one look, inside one Higgsfield month (2026-09-17). An image we use is one we hold the rights to, so nothing tracks them.",
     enforcedBy: ["src/lib/constants/marketing-media.test.ts"],
     ruledBy: "Will",
     ruledOn: RATIFIED,
@@ -280,33 +303,34 @@ export const BIBLE: BibleRule[] = [
     n: 20,
     group: "copy",
     statement:
-      "Affirmative only: never say what the product is not for; promise no human response, no human moderation, no automation absolutes; night is not identity language.",
-    why: "Will, 2026-08-28: this is about who we are, not who we are not; a fenced use case is a host we told to leave.",
+      "Affirmative only: say who we are, never who we are not. The two fences that are product truth stand meanwhile (no human-response or human-moderation promise, no automation absolutes); the `voice` board writes the do's.",
+    why: "Will, 2026-08-28: this is about who we are, not who we are not; a fenced use case is a host we told to leave. Reviewed 2026-09-14: a rule of don'ts with no do's is messy, and the voice guide replaces it.",
     enforcedBy: ["src/lib/content-policy.test.ts"],
     ruledBy: "Will",
-    ruledOn: "2026-08-28",
+    ruledOn: REVIEWED,
+    status: "under exploration: voice",
   },
   {
-    id: "ruled-copy",
+    id: "copy-is-open",
     n: 21,
     group: "copy",
     statement:
-      "The thesis line and the primary CTA are ruled copy: a change is a ruling, never drift.",
-    why: "Since 2026-09-12 no copy is pinned by a test; marketing-voice.ts is the one home, and its notes say which lines are provisional.",
+      "Copy is open. Every heading, thesis and line may be rewritten by the round that touches its section; the `voice` board establishes the voice one won line at a time, and no copy is pinned by a test meanwhile.",
+    why: "Kill for now (Will, 2026-09-14): all copy is unprotected until the voice exists. The former rule (the thesis and the primary CTA as ruled copy) is retired; marketing-voice.ts stays the one home and no copy is pinned by a test.",
     enforcedBy: "review",
     ruledBy: "Will",
-    ruledOn: RATIFIED,
+    ruledOn: REVIEWED,
   },
   {
-    id: "feels-like-magic",
+    id: "rising-tides",
     n: 22,
-    group: "the bar",
+    group: "rising tides",
     statement:
-      "Feels like magic: every UI round proposes one delight, and every marketing page closes at the would-this-hold-up-next-to-the-homepage screenshot gate.",
-    why: "Beauty is leverage and the unseen details compound; the gate is what keeps polish spread across surfaces rather than piled on two pages (rising tides; Will, 2026-08-27).",
+      "Rising tides. Nothing is protected: judge every section, component, flow and line from the ground up, asking what the perfect version would be if it did not exist yet, then build that: elevate what already points there, rework what does not, and raise the global system as you go.",
+    why: "No round can know the finished bar in advance, so the program is an iterative flow that keeps raising it. A page with a weak layout is torn down and rebuilt rather than pushed a little further, and big swings that can be reverted beat small cautious steps; but always reworking loses what we like and always polishing makes no progress, so the call is the agent's, each time, from the ground up, and it may push past today's systems, components and rules to set a new peak (Will, 2026-09-14).",
     enforcedBy: "review",
     ruledBy: "Will",
-    ruledOn: RATIFIED,
+    ruledOn: REVIEWED,
   },
 ];
 
@@ -318,5 +342,5 @@ export const BIBLE_GROUP_LABEL: Record<BibleGroup, string> = {
   motion: "Motion",
   surfaces: "Surfaces",
   copy: "Copy",
-  "the bar": "The bar",
+  "rising tides": "Rising tides",
 };

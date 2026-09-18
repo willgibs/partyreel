@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 /**
  * THE SHEET: the press kit as a photographic contact sheet (ruled by Will 2026-08-28
  * over the specimen-sheet alternative, "focusing press around the assets and quick hit
- * points"; the explored range is on the record, docs/decisions/design-record.md#press-identity).
+ * points"; the explored range is on the record, git show 3ffe0d56:docs/decisions/design-record.md, #press-identity).
  *
  * ★ THE FRAMES ARE NOT ALL THE SAME KIND OF THING, and that is the whole idea: artwork,
  * an app icon, a share card, a working code, the ink, the type. A contact sheet is
@@ -23,9 +23,10 @@ import { cn } from "@/lib/utils";
  * licence caveat that honesty required read as unfinished. Everything on the sheet is now
  * Partyreel artwork, which also collapsed a whole provenance block into one clear line.
  *
- * ★ THE 3px GAP IS THE TELL. gap-[var(--gap-gallery)] is the site's ONE media-grid gap,
- * so the sheet reads as a Partyreel album at a glance. A comfortable gap-4 turns it into
- * a card grid and throws away the cheapest identity move on the page.
+ * ★ THE ALBUM'S HAIRLINE GAP IS THE TELL. gap-[var(--gap-gallery)] is the site's ONE
+ * media-grid gap (pinned to the photograph's corner, 4px under family C), so the sheet
+ * reads as a Partyreel album at a glance. A comfortable gap-4 turns it into a card grid
+ * and throws away the cheapest identity move on the page.
  *
  * ★ PLATE BY LEGIBILITY, NEVER BY VARIETY: white behind anything drawn in ink, ink behind
  * anything drawn in white. The bare mark is a BRAND_HEX stroke and was briefly on a
@@ -96,8 +97,8 @@ function Frame({
           style={{ background: plate }}
           className="relative flex aspect-square items-center justify-center"
         >
-          {/* Mono earns its place here and almost nowhere else on the sheet: the index is
-              a NUMBER in a column of numbers, so tabular figures keep it aligned.
+          {/* The index is a NUMBER in a column of numbers, so tabular figures keep
+              it aligned on the body face.
               ★ An explicit tone per plate, NOT mix-blend-difference. The blend was fine on
               the old ink ground but the sheet now sits on paper, where a 55%-alpha ink
               glyph composites to mid-grey and then differences against white into
@@ -105,7 +106,7 @@ function Frame({
               matches them literally. */}
           <span
             className={cn(
-              "absolute top-2 left-2 font-mono text-[10px] tracking-wider",
+              "absolute top-2 left-2 text-[10px] tracking-wider tabular-nums",
               onDark ? "text-white/45" : "text-black/40",
             )}
           >
@@ -157,13 +158,13 @@ export function PressSheet() {
 
   return (
     <Reveal>
-      {/* ★ THE REBATE. On the ink ground the 3px --gap-gallery read on its own; on paper,
+      {/* ★ THE REBATE. On the ink ground the --gap-gallery gap read on its own; on paper,
           white plates against a near-white page made the grid dissolve. The list paints
           --border so the gaps become hairlines: how frames sit in the rebate of real film.
           ★ The outer inset and the inner gap are the SAME token on purpose. A 1px border
-          against 3px gaps read as an uneven frame (Will); a rebate is even all round or it
+          against the gaps read as an uneven frame (Will); a rebate is even all round or it
           is not a rebate. Change one and change the other, and keep both on
-          --gap-gallery — that 3px is the album tell. */}
+          --gap-gallery — that gap is the album tell, whatever the tile's corner makes it. */}
       <ul
         data-mkt-isolate
         className="grid grid-cols-2 gap-[var(--gap-gallery)] rounded-tile bg-border p-[var(--gap-gallery)] sm:grid-cols-4"
@@ -276,7 +277,7 @@ export function PressSheet() {
             <CopyButton
               value={BRAND_HEX}
               label="Copy the ink hex"
-              display={<span className="font-mono">{BRAND_HEX}</span>}
+              display={<span className="tabular-nums">{BRAND_HEX}</span>}
               className="border-foreground/25 px-2 py-1 text-[11px] text-foreground/80 hover:border-foreground/50 hover:text-foreground"
             />
           }
@@ -310,7 +311,7 @@ export function PressSheet() {
 
       {/* A footnote, not a paragraph: it qualifies the grid above rather than competing
           with it, so it sits a step down in both size and tone. */}
-      <p className="mt-5 max-w-2xl text-xs text-pretty text-muted-foreground/75">
+      <p className="mt-5 max-w-2xl text-xs text-pretty text-faint">
         Everything here is Partyreel artwork, free to use in coverage as it
         ships. If a file needs editing to work in your layout, write instead and
         we will make the one you need.

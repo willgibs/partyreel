@@ -83,8 +83,8 @@ export default async function EventDetailPage({
   // getUser(), so profile is the signed-in host's.
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
 
-  // The guest-facing absolute URL — the qr_token IS the capability (ADR-0004),
-  // straight from the row. One link per event (ADR-0010): the command strip's
+  // The guest-facing absolute URL — the qr_token IS the capability (database-security.md),
+  // straight from the row. One link per event (guest-flow.md): the command strip's
   // Share encodes it.
   const siteUrl = await getSiteUrl();
   const eventLink = `${siteUrl}/e/${event.qr_token}`;
@@ -109,7 +109,7 @@ export default async function EventDetailPage({
     listReelItems(event.id),
     // The composer config (theme/seed/length/cover); null until the host first composes.
     getReelConfig(event.id),
-    // ADR-0019 Guests section: null = show_guest_list off (or the pre-apply
+    // profiles-social.md Guests section: null = show_guest_list off (or the pre-apply
     // seam) -> the section renders its turn-it-on teaser instead of a list.
     getEventGuestList(event.id),
   ]);
@@ -192,7 +192,9 @@ export default async function EventDetailPage({
           <ArrowLeft className="size-4" /> Back to events
         </Link>
         <div className="space-y-2">
-          <PageHeading className="text-3xl">{event.name}</PageHeading>
+          {/* No size override: the event name is this page's h1 and wears the
+              ladder's `page` step like every other app title (2026-09-17). */}
+          <PageHeading>{event.name}</PageHeading>
           {/* Stat line: date + the icon sub-stats (items / contributors / views).
               Native title only; NO radix Tooltip on these SSR'd elements (the
               host-hydration regression cause, see architecture.md). */}
@@ -264,7 +266,7 @@ export default async function EventDetailPage({
               ReelStageProvider wraps the FEED (not just the Reel section) because the reel's
               lifecycle stage has two readers: the section, which is either the builder or the
               Marquee, and the floating action bar, which is either Create reel or Open studio.
-              (A ReelReorderProvider used to wrap these two; ADR-0024 moved reorder into the Studio's
+              (A ReelReorderProvider used to wrap these two; host-app.md moved reorder into the Studio's
               dock, so the feed no longer has a reorder MODE to share.) */}
           <HostSelectionProvider>
             <ReelStageProvider initialCreated={reelConfig != null}>

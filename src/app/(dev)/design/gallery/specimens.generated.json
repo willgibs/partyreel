@@ -1,0 +1,303 @@
+{
+  "version": 1,
+  "code": {
+    "button": [
+      "<Row>\n  <Button>\n    <ImageUp /> Add photos\n  </Button>\n  <Button variant=\"outline\">\n    <Share2 /> Share\n  </Button>\n</Row>",
+      "<Row>\n  <Button disabled>Default</Button>\n  <Button variant=\"outline\" disabled>\n    Outline\n  </Button>\n</Row>"
+    ],
+    "badge": [
+      "<Row>\n  <Badge>Live</Badge>\n  <Badge variant=\"secondary\">Draft</Badge>\n  <Badge variant=\"outline\">Private</Badge>\n  <Badge variant=\"destructive\">Over cap</Badge>\n</Row>"
+    ],
+    "input": [
+      "<div className=\"space-y-2\">\n  <Label htmlFor=\"ref-name\">Event name</Label>\n  <Input id=\"ref-name\" placeholder=\"Maya & Jay's Wedding\" />\n</div>",
+      "<div className=\"space-y-2\">\n  <Input placeholder=\"Default\" />\n  <Input placeholder=\"Disabled\" disabled />\n  <Input placeholder=\"Invalid\" aria-invalid />\n</div>"
+    ],
+    "textarea": [
+      "<Textarea placeholder=\"A note for your guests\" />"
+    ],
+    "label": [
+      "<div className=\"space-y-3\">\n  <div className=\"space-y-1.5\">\n    <Label htmlFor=\"ref-l1\">Enabled</Label>\n    <Input id=\"ref-l1\" placeholder=\"Active field\" />\n  </div>\n  <div className=\"group space-y-1.5\" data-disabled=\"true\">\n    <Label htmlFor=\"ref-l2\">Disabled</Label>\n    <Input id=\"ref-l2\" placeholder=\"Disabled field\" disabled />\n  </div>\n</div>"
+    ],
+    "switch": [
+      "<Row>\n  <Switch defaultChecked aria-label=\"On\" />\n  <Switch aria-label=\"Off\" />\n</Row>"
+    ],
+    "select": [
+      "<div className=\"max-w-xs\">\n  <Select defaultValue=\"public\">\n    <SelectTrigger className=\"w-full\">\n      <SelectValue placeholder=\"Visibility\" />\n    </SelectTrigger>\n    <SelectContent>\n      <SelectItem value=\"public\">Public</SelectItem>\n      <SelectItem value=\"password\">Password</SelectItem>\n      <SelectItem value=\"private\">Private</SelectItem>\n    </SelectContent>\n  </Select>\n</div>"
+    ],
+    "form": [
+      "<FormDemo />"
+    ],
+    "input-otp": [
+      "<OtpDemo />"
+    ],
+    "card": [
+      "<Card>\n  <CardHeader>\n    <CardTitle>Maya &amp; Jay&rsquo;s Wedding</CardTitle>\n    <CardDescription>\n      128 photos and videos from 43 guests\n    </CardDescription>\n  </CardHeader>\n  <CardContent className=\"text-sm text-muted-foreground\">\n    Card content sits here, on the card surface.\n  </CardContent>\n  <CardFooter>\n    <Button size=\"sm\" variant=\"outline\">\n      <Calendar /> June 14\n    </Button>\n  </CardFooter>\n</Card>"
+    ],
+    "avatar": [],
+    "separator": [
+      "<div className=\"text-sm text-muted-foreground\">\n  Above\n  <Separator className=\"my-3\" />\n  Below\n</div>"
+    ],
+    "skeleton": [
+      "<div className=\"space-y-2\">\n  <Skeleton className=\"h-4 w-3/4\" />\n  <Skeleton className=\"h-4 w-1/2\" />\n</div>"
+    ],
+    "river": [
+      "<EmptyAlbumDemo width={335} />",
+      "<EmptyAlbumDemo width={632} />",
+      "<div style={{ width: 335 }}>\n  <GalleryEmptyState />\n</div>",
+      "<div style={{ width: 335 }}>\n  <River frames={GUEST_GHOST_FRAMES} />\n</div>"
+    ],
+    "tabs": [
+      "<Tabs defaultValue=\"all\">\n  <TabsList>\n    <TabsTrigger value=\"all\">All</TabsTrigger>\n    <TabsTrigger value=\"photos\">Photos</TabsTrigger>\n    <TabsTrigger value=\"videos\">Videos</TabsTrigger>\n  </TabsList>\n  <TabsContent\n    value=\"all\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Everything, interleaved.\n  </TabsContent>\n  <TabsContent\n    value=\"photos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Photos only.\n  </TabsContent>\n  <TabsContent\n    value=\"videos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Videos only.\n  </TabsContent>\n</Tabs>"
+    ],
+    "navigation-menu": [
+      "<NavigationMenu>\n  <NavigationMenuList>\n    <NavigationMenuItem>\n      <NavigationMenuTrigger>Features</NavigationMenuTrigger>\n      <NavigationMenuContent>\n        <ul className=\"grid w-72 gap-1 p-2 text-sm\">\n          <li className=\"rounded-md px-3 py-2 hover:bg-muted\">\n            Uploads\n          </li>\n          <li className=\"rounded-md px-3 py-2 hover:bg-muted\">\n            Curation\n          </li>\n          <li className=\"rounded-md px-3 py-2 hover:bg-muted\">\n            Sharing\n          </li>\n        </ul>\n      </NavigationMenuContent>\n    </NavigationMenuItem>\n    <NavigationMenuItem>\n      <NavigationMenuTrigger>Events</NavigationMenuTrigger>\n      <NavigationMenuContent>\n        <ul className=\"grid w-72 gap-1 p-2 text-sm\">\n          <li className=\"rounded-md px-3 py-2 hover:bg-muted\">\n            Weddings\n          </li>\n          <li className=\"rounded-md px-3 py-2 hover:bg-muted\">\n            Parties\n          </li>\n        </ul>\n      </NavigationMenuContent>\n    </NavigationMenuItem>\n    <NavigationMenuItem>\n      <NavigationMenuLink className={navigationMenuTriggerStyle()}>\n        Pricing\n      </NavigationMenuLink>\n    </NavigationMenuItem>\n  </NavigationMenuList>\n</NavigationMenu>"
+    ],
+    "progress": [
+      "<div className=\"space-y-3\">\n  <Progress value={32} />\n  <Progress value={72} />\n</div>"
+    ],
+    "password-strength-meter": [
+      "<PasswordStrengthDemo />"
+    ],
+    "sonner": [
+      "<ToastDemo />"
+    ],
+    "dialog": [
+      "<Dialog>\n  <DialogTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open dialog\n    </Button>\n  </DialogTrigger>\n  <DialogContent>\n    <DialogHeader>\n      <DialogTitle>Delete this event?</DialogTitle>\n      <DialogDescription>\n        This removes the event and everything in it. There is no undo.\n      </DialogDescription>\n    </DialogHeader>\n    <DialogFooter showCloseButton>\n      <Button variant=\"destructive\" size=\"sm\">\n        Delete\n      </Button>\n    </DialogFooter>\n  </DialogContent>\n</Dialog>"
+    ],
+    "sheet": [
+      "<Sheet>\n  <SheetTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open sheet\n    </Button>\n  </SheetTrigger>\n  <SheetContent>\n    <SheetHeader>\n      <SheetTitle>Share this event</SheetTitle>\n      <SheetDescription>\n        Your guests scan one QR code to join and upload.\n      </SheetDescription>\n    </SheetHeader>\n  </SheetContent>\n</Sheet>"
+    ],
+    "drawer": [
+      "<Drawer>\n  <DrawerTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open drawer\n    </Button>\n  </DrawerTrigger>\n  <DrawerContent>\n    <DrawerHeader>\n      <DrawerTitle>Add to your event</DrawerTitle>\n      <DrawerDescription>\n        The mobile sheet pattern, with drag-to-dismiss.\n      </DrawerDescription>\n    </DrawerHeader>\n  </DrawerContent>\n</Drawer>"
+    ],
+    "popover": [
+      "<Popover>\n  <PopoverTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open popover\n    </Button>\n  </PopoverTrigger>\n  <PopoverContent>\n    <p className=\"text-sm font-medium\">Storage</p>\n    <p className=\"mt-1 text-sm text-muted-foreground\">\n      1.2 GB of 5 GB used.\n    </p>\n  </PopoverContent>\n</Popover>"
+    ],
+    "dropdown-menu": [
+      "<DropdownMenu>\n  <DropdownMenuTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      <Settings /> Manage\n    </Button>\n  </DropdownMenuTrigger>\n  <DropdownMenuContent className=\"w-64\">\n    <DropdownMenuHeader meta=\"Pro\">Ana and Theo</DropdownMenuHeader>\n    <DropdownMenuGroup>\n      <DropdownMenuLabel>Share</DropdownMenuLabel>\n      <DropdownMenuItem>\n        <Share2 /> Copy the guest link\n      </DropdownMenuItem>\n    </DropdownMenuGroup>\n    <DropdownMenuGroup>\n      <DropdownMenuLabel>The album</DropdownMenuLabel>\n      <DropdownMenuItem>\n        <Heart /> Saved\n        <DropdownMenuMeta>412</DropdownMenuMeta>\n      </DropdownMenuItem>\n      {/* The one branch the family allows, and the last one: a Sub\n          inside a Sub throws at render (Will: a third level \"gets too\n          complicated\"). */}\n      <DropdownMenuSub>\n        <DropdownMenuSubTrigger>\n          <Settings /> Who can upload\n        </DropdownMenuSubTrigger>\n        <DropdownMenuSubContent>\n          <DropdownMenuLabel>Who can upload</DropdownMenuLabel>\n          <DropdownMenuItem>Anyone with the link</DropdownMenuItem>\n          <DropdownMenuItem>\n            Guests who verify an email\n          </DropdownMenuItem>\n          <DropdownMenuItem>\n            Nobody, uploads are closed\n          </DropdownMenuItem>\n        </DropdownMenuSubContent>\n      </DropdownMenuSub>\n    </DropdownMenuGroup>\n    <DropdownMenuFooter>\n      <DropdownMenuItem variant=\"destructive\">\n        <Trash2 /> Delete the event\n      </DropdownMenuItem>\n    </DropdownMenuFooter>\n  </DropdownMenuContent>\n</DropdownMenu>",
+      "<DropdownMenu>\n  <DropdownMenuTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Download\n    </Button>\n  </DropdownMenuTrigger>\n  <DropdownMenuContent>\n    <DropdownMenuItem>SVG (best for print)</DropdownMenuItem>\n    <DropdownMenuItem>PNG (best for screens)</DropdownMenuItem>\n  </DropdownMenuContent>\n</DropdownMenu>"
+    ],
+    "tooltip": [
+      "<Tooltip>\n  <TooltipTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Hover me\n    </Button>\n  </TooltipTrigger>\n  <TooltipContent>Tooltips keep skip-delay</TooltipContent>\n</Tooltip>"
+    ],
+    "logo": [
+      "<div className=\"flex flex-col gap-px overflow-hidden rounded-lg border\">\n  <div className=\"dark flex h-14 items-center bg-background px-5 text-foreground\">\n    <Logo />\n  </div>\n  <div className=\"surface-paper flex h-14 items-center bg-background px-5 text-foreground\">\n    <Logo />\n  </div>\n</div>",
+      "<div className=\"dark flex items-center rounded-lg bg-background px-6 py-8 text-foreground\">\n  <Logo className=\"h-12\" />\n</div>",
+      "<Logo markOnly />"
+    ],
+    "play-badge": [
+      "<Row>\n  <Poster>\n    <PlayBadge />\n  </Poster>\n  <Poster>\n    <PlayBadge size=\"lg\" />\n  </Poster>\n</Row>"
+    ],
+    "masonry": [
+      "<Poster>\n  <CornerPlayBadge />\n</Poster>"
+    ],
+    "empty-state": [
+      "<EmptyState\n  icon={ImageUp}\n  title=\"No photos yet\"\n  description=\"Guests add photos and videos in seconds.\"\n/>",
+      "<EmptyState\n  variant=\"quiet\"\n  title=\"Nothing here yet\"\n  description=\"The typographic treatment, no icon chip.\"\n/>"
+    ],
+    "not-found-screen": [
+      "<div className=\"flex justify-center\">\n  <NotFoundScreen\n    icon={Compass}\n    eyebrow=\"404\"\n    title=\"Event not found\"\n    description=\"This link may have expired or the event was removed.\"\n    actions={\n      <Button asChild size=\"sm\">\n        <Link href=\"#\">Back home</Link>\n      </Button>\n    }\n  />\n</div>"
+    ],
+    "route-error": [
+      "<RouteErrorMock />"
+    ],
+    "anonymous-info": [
+      "<Row>\n  <span className=\"flex items-center gap-1.5 text-sm\">\n    Anonymous\n    <AnonymousInfo />\n  </span>\n  <span className=\"flex items-center gap-1.5 text-sm\">\n    Host view\n    <AnonymousInfo viewerIsHost />\n  </span>\n</Row>"
+    ],
+    "set-name-step": [
+      "<SetNameStepDemo />"
+    ],
+    "legal-consent-line": [
+      "<LegalConsentLine newTab />"
+    ],
+    "page-heading": [
+      "<PageHeading>Dashboard</PageHeading>"
+    ],
+    "kbd": [
+      "<Row className=\"text-sm text-muted-foreground\">\n  <Kbd>&#8593;</Kbd>\n  <Kbd>&#8595;</Kbd>\n  Navigate\n  <Kbd>Esc</Kbd>\n  Close\n</Row>"
+    ],
+    "container": [
+      "<Container className=\"border-x border-dashed border-border py-4 text-center text-xs text-muted-foreground\">\n  max-w-7xl, px-4 / sm:px-6 / lg:px-8\n</Container>"
+    ],
+    "action-tooltip": [
+      "<ActionTooltipDemo />"
+    ],
+    "floating-add-button": [
+      "<FloatingAddDemo />"
+    ],
+    "event-card": [
+      "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  itemsLabel=\"128 items\"\n  statusLabel=\"Open\"\n  pendingCount={3}\n  qrSlot={qrSlot}\n/>",
+      "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name=\"Office Summer Party\"\n  coverUrl={null}\n  dateLabel=\"Aug 2\"\n  itemsLabel=\"0 items\"\n  statusLabel=\"Open\"\n  pendingCount={0}\n/>",
+      "<EventCard\n  variant=\"saved\"\n  href=\"#\"\n  name=\"Priya &amp; Sam\"\n  coverUrl={SAMPLE.cover2}\n  dateLabel=\"May 30\"\n  byline=\"Hosted by Priya\"\n  statusLabel=\"Password\"\n/>",
+      "<EventCard\n  variant=\"trash\"\n  href={null}\n  name=\"Old Test Event\"\n  coverUrl={SAMPLE.cover3}\n  dateLabel=\"Mar 11\"\n  statusLabel=\"6 days left\"\n/>"
+    ],
+    "storage-meter": [
+      "<StorageMeter\n  storageUsed={1_200_000_000}\n  storageCap={5_000_000_000}\n  storagePct={24}\n  standbyBytes={0}\n  overBudget={false}\n  passExpiry={null}\n  planName=\"Pro\"\n  hasBilling\n  isEventPass={false}\n/>"
+    ],
+    "filter-chips": [
+      "<FilterChipsDemo />"
+    ],
+    "event-card-qr": [
+      "<div className=\"flex items-center gap-3\">\n  {qrSlot}\n  <span className=\"text-sm text-muted-foreground\">\n    Opens the share dialog\n  </span>\n</div>"
+    ],
+    "qr-preset-picker": [
+      "<QrPresetPickerDemo />"
+    ],
+    "events-empty-teaser": [
+      "<EventsEmptyTeaser />"
+    ],
+    "empty-section-teaser": [
+      "<EmptySectionTeaser\n  heading=\"Your uploads\"\n  blurb=\"Photos you add to any event show up here.\"\n/>"
+    ],
+    "feed-section": [
+      "<FeedSection heading=\"Your likes\">\n  <p className=\"text-sm text-muted-foreground\">\n    The labeled section the feed uses for each content group.\n  </p>\n</FeedSection>"
+    ],
+    "host-media-grid": [
+      "<LikesProvider mediaIds={SAMPLE_MEDIA.map((m) => m.id)}>\n  <HostMediaGrid eventId=\"demo\" items={SAMPLE_MEDIA} />\n</LikesProvider>"
+    ],
+    "recently-deleted-grid": [
+      "<RecentlyDeletedGrid eventId=\"demo\" items={SAMPLE_BIN} />"
+    ],
+    "review-section": [
+      "<ReviewSectionDemo />"
+    ],
+    "glow": [
+      "<div className=\"dark\">\n  <div className=\"h-16 bg-muted\" />\n  <div className=\"surface-ink relative isolate bg-background\">\n    <Glow\n      shape=\"seam\"\n      vars={{\n        \"--glw-h\": \"210px\",\n        \"--glw-dur\": \"var(--spill-cadence)\",\n      }}\n    />\n    <div data-glw-seamline aria-hidden />\n    <div className=\"relative px-8 py-16 text-sm text-muted-foreground\">\n      The ink slab, lit from the cut above it.\n    </div>\n  </div>\n</div>",
+      "<div className=\"dark flex justify-center bg-background p-10\">\n  <div className=\"relative isolate\" style={{ width: 168 }}>\n    <div\n      aria-hidden\n      className=\"pointer-events-none absolute -inset-16\"\n    >\n      <Glow\n        shape=\"throw\"\n        vars={{\n          \"--glw-from-x\": \"50%\",\n          \"--glw-from-y\": \"72%\",\n          \"--glw-reach\": \"72%\",\n          \"--glw-strength\": \"0.5\",\n          \"--glw-base\": \"0.5\",\n          \"--glw-blur\": \"22px\",\n          \"--glw-dur\": \"var(--spill-cadence)\",\n        }}\n      />\n    </div>\n    <div className=\"relative rounded-2xl bg-white p-5\">\n      <div className=\"aspect-square rounded-xl bg-gallery\" />\n    </div>\n  </div>\n</div>",
+      "<div className=\"dark bg-background\">\n  <SectionLight placement=\"both\">\n    <div className=\"mx-auto max-w-md px-8 py-28 text-center\">\n      <h3 className=\"text-2xl font-semibold text-foreground\">\n        A chapter, lit at its own edges\n      </h3>\n      <p className=\"mt-3 text-sm text-muted-foreground\">\n        Two bands, the bottom one the top one flipped on its own axis,\n        with the copy in the clean band between them.\n      </p>\n    </div>\n  </SectionLight>\n</div>",
+      "<div className=\"dark flex justify-center bg-background p-10\">\n  <div className=\"relative isolate\" style={{ width: 168 }}>\n    <div\n      aria-hidden\n      className=\"pointer-events-none absolute -inset-20 -z-10\"\n    >\n      <Glow\n        shape=\"bloom\"\n        vars={{\n          \"--glw-from-x\": \"50%\",\n          \"--glw-from-y\": \"50%\",\n          \"--glw-reach\": \"60%\",\n          \"--glw-strength\": \"0.95\",\n          \"--glw-base\": \"0.34\",\n          \"--glw-blur\": \"26px\",\n        }}\n      />\n    </div>\n    <div className=\"relative rounded-2xl bg-white p-5\">\n      <div className=\"aspect-square rounded-xl bg-gallery\" />\n    </div>\n  </div>\n</div>",
+      "<div className=\"dark flex justify-center bg-background p-10\">\n  <div\n    className=\"relative isolate overflow-hidden rounded-2xl border bg-card\"\n    style={\n      {\n        width: 220,\n        height: 148,\n        \"--glw-radius\": \"var(--radius-2xl)\",\n      } as CSSProperties\n    }\n  >\n    <Glow\n      shape=\"halo\"\n      vars={{\n        \"--glw-blur\": \"14px\",\n        \"--glw-core\": \"30%\",\n        \"--glw-strength\": \"0.9\",\n        \"--glw-base\": \"0.7\",\n        \"--glw-dur\": \"var(--spill-cadence)\",\n      }}\n    />\n    <div className=\"relative flex size-full items-center justify-center text-xs text-muted-foreground\">\n      A frame, lit from behind\n    </div>\n  </div>\n</div>",
+      "<>\n  <div className=\"grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-muted-foreground tabular-nums\">\n    {[\n      \"--glw-base\",\n      \"--glw-strength\",\n      \"--glw-dur\",\n      \"--glw-blur\",\n      \"--glw-scale\",\n      \"--glw-h\",\n      \"--glw-core\",\n      \"--glw-core-blur\",\n      \"--glw-from-x\",\n      \"--glw-from-y\",\n      \"--glw-reach\",\n      \"--glw-radius\",\n    ].map((name) => (\n      <span key={name}>{name}</span>\n    ))}\n  </div>\n  <p className=\"mt-3 text-xs text-muted-foreground\">\n    Tune through the vars prop, never a className: the engine sizes\n    itself to its positioned parent. The two clocks are tokens, not\n    numbers: --spill-cadence is every lamp&apos;s, and\n    --aurora-cadence is three laps of it for a field.\n  </p>\n</>"
+    ],
+    "section-shell": [
+      "<SectionShell\n  eyebrow=\"One link\"\n  heading=\"Everything guests need is one scan away\"\n  subhead=\"The QR opens the event; the same link is the album.\"\n  className=\"py-12\"\n>\n  <p className=\"mx-auto max-w-md text-center text-sm text-muted-foreground\">\n    Children render under the lockup.\n  </p>\n</SectionShell>",
+      "<SectionShell\n  eyebrow=\"Curation\"\n  heading=\"Tidy it up, then share it\"\n  subhead=\"A left-aligned lockup at the large scale.\"\n  scale=\"lg\"\n  align=\"left\"\n  width=\"narrow\"\n  className=\"py-12\"\n/>",
+      "<SectionShell\n  eyebrow=\"The reel\"\n  heading=\"The cinema reveal, with its cut\"\n  reveal=\"cinema\"\n  className=\"py-12\"\n/>"
+    ],
+    "paper-chapter": [
+      "<PaperChapter>\n  <SectionShell\n    eyebrow=\"Paper\"\n    heading=\"A chapter on paper\"\n    subhead=\"The token subtree flips to paper; the hairline marks the cut.\"\n    reveal=\"none\"\n    className=\"py-12\"\n  />\n</PaperChapter>"
+    ],
+    "section-light": [
+      "<SectionLight placement=\"both\">\n  <SectionShell\n    eyebrow=\"Aurora\"\n    heading=\"A chapter with a temperature\"\n    subhead=\"The room is lit at its own edges. Nothing is glowing: the light is in the air, behind everything, on a clock three times slower than a lamp's.\"\n    reveal=\"none\"\n    className=\"py-24\"\n  />\n</SectionLight>",
+      "<SectionLight placement=\"top\">\n  <SectionShell\n    eyebrow=\"Aurora\"\n    heading=\"Light at the opening edge\"\n    subhead=\"One band, where the chapter begins.\"\n    reveal=\"none\"\n    className=\"py-24\"\n  />\n</SectionLight>",
+      "<SectionLight placement=\"bottom\">\n  <SectionShell\n    eyebrow=\"Aurora\"\n    heading=\"Light at the closing edge\"\n    subhead=\"The engine has no bottom seam and should not grow one: the geometry is identical and only the vector differs.\"\n    reveal=\"none\"\n    className=\"py-24\"\n  />\n</SectionLight>",
+      "<SectionLight placement=\"room\">\n  <SectionShell\n    eyebrow=\"Aurora\"\n    heading=\"The room, cast from its floor\"\n    subhead=\"One origin-anchored cast rather than two bands. Rare: it is the placement nearest the fence, and it still declares where its light comes from.\"\n    reveal=\"none\"\n    className=\"py-24\"\n  />\n</SectionLight>",
+      "<SectionLight\n  placement=\"room\"\n  from={{ x: \"0%\", y: \"50%\" }}\n  reach=\"62%\"\n>\n  <SectionShell\n    eyebrow=\"Aurora\"\n    heading=\"Lit from the side it opens to\"\n    subhead=\"The cast starts on the section's own edge and falls away before it crosses the copy.\"\n    reveal=\"none\"\n    align=\"left\"\n    className=\"py-24\"\n  />\n</SectionLight>",
+      "<PaperChapter>\n  <SectionLight placement=\"both\">\n    <SectionShell\n      eyebrow=\"Aurora\"\n      heading=\"No light ground usage\"\n      subhead=\"The field paints nothing here, so a chapter that turns to paper a round later goes quiet on its own.\"\n      reveal=\"none\"\n      className=\"py-24\"\n    />\n  </SectionLight>\n</PaperChapter>"
+    ],
+    "page-hero": [
+      "<PageHero\n  scale=\"display\"\n  eyebrow=\"Press\"\n  heading=\"Press kit\"\n  subhead=\"The largest lockup: one or two words by contract, since the step is single-line under its 12vw clamp.\"\n  className=\"py-12\"\n/>",
+      "<PageHero\n  scale=\"xl\"\n  eyebrow=\"Pricing\"\n  heading=\"Start free. Grow when the room does.\"\n  actions={\n    <Row className=\"justify-center\">\n      <span className=\"rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background\">\n        Primary action\n      </span>\n      <span className=\"text-sm text-muted-foreground\">Secondary</span>\n    </Row>\n  }\n  className=\"py-12\"\n/>",
+      "<PageHero\n  scale=\"lg\"\n  align=\"left\"\n  eyebrow=\"Help\"\n  heading=\"How can we help?\"\n  subhead=\"The compact lockup, left-aligned.\"\n  className=\"py-12\"\n/>",
+      "<PageHero\n  scale=\"lg\"\n  entrance=\"blur\"\n  eyebrow=\"Help center\"\n  heading=\"How can we help?\"\n  subhead=\"The utility trio's register: eyebrow, subhead and actions rise through the blur while the title is already there.\"\n  actions={\n    <Row className=\"justify-center\">\n      <span className=\"rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background\">\n        Search the guides\n      </span>\n    </Row>\n  }\n  className=\"py-12\"\n/>"
+    ],
+    "screen-lamp": [
+      "<PageHero\n  scale=\"lg\"\n  entrance=\"cut\"\n  eyebrow=\"Album\"\n  heading=\"One album, filling itself.\"\n  subhead=\"The cut register with a stage: the type holds, the object under it arrives with its own lamp.\"\n  className=\"overflow-x-clip py-12 pb-72\"\n>\n  <div className=\"mt-10\">\n    <ScreenLamp>\n      <div className=\"mx-auto grid max-w-md grid-cols-3 gap-1 rounded-xl border border-border bg-card p-2\">\n        {tiles(\"140px\")}\n      </div>\n    </ScreenLamp>\n  </div>\n</PageHero>"
+    ],
+    "cinema-hero": [
+      "<CinemaHero />"
+    ],
+    "eyebrow": [],
+    "caption": [
+      "<Caption>\n  Every label, hint and descriptor on the site, in the body face.\n</Caption>"
+    ],
+    "learn-more-link": [
+      "<LearnMoreLink href=\"/features\">See every feature</LearnMoreLink>"
+    ],
+    "learn-chevron": [
+      "<Link\n  href=\"/contact\"\n  className=\"mkt-learn inline-flex items-center gap-1 text-sm\"\n>\n  Ask a question\n  <LearnChevron />\n</Link>"
+    ],
+    "texts-reveal": [
+      "<TextsRevealDemo />"
+    ],
+    "reveal": [
+      "<RevealDemo />"
+    ],
+    "card-grid": [
+      "<CardGrid tilt columns={3}>\n  {cards.map((image) => (\n    <div\n      key={image.id}\n      className=\"overflow-hidden rounded-2xl bg-card\"\n    >\n      <Image\n        src={image.src}\n        alt=\"\"\n        width={image.width}\n        height={image.height}\n        sizes=\"(min-width: 640px) 33vw, 100vw\"\n        className=\"aspect-4/3 w-full object-cover\"\n      />\n      <p className=\"px-4 py-3 text-sm font-medium\">{image.subject}</p>\n    </div>\n  ))}\n</CardGrid>"
+    ],
+    "tilt-card": [
+      "<div className=\"max-w-xs\">\n  <TiltCard className=\"rounded-2xl\" maxTiltDeg={6}>\n    <div className=\"rounded-2xl border border-border bg-card p-5 text-sm\">\n      A card that leans toward the pointer.\n    </div>\n  </TiltCard>\n</div>"
+    ],
+    "media-split": [
+      "<MediaSplit\n  media={\n    <Image\n      src={split.src}\n      alt=\"\"\n      width={split.width}\n      height={split.height}\n      sizes=\"(min-width: 1024px) 58vw, 100vw\"\n      className=\"w-full rounded-xl object-cover\"\n    />\n  }\n>\n  <Eyebrow>One link</Eyebrow>\n  <p className=\"mt-3 text-lg font-medium\">\n    Copy sits beside the media.\n  </p>\n  <p className=\"mt-2 text-sm text-muted-foreground\">\n    Seven columns of media, five of copy; one column on a phone.\n  </p>\n</MediaSplit>",
+      "<MediaSplit\n  mediaSide=\"end\"\n  media={\n    <Image\n      src={split.src}\n      alt=\"\"\n      width={split.width}\n      height={split.height}\n      sizes=\"(min-width: 1024px) 58vw, 100vw\"\n      className=\"w-full rounded-xl object-cover\"\n    />\n  }\n>\n  <Eyebrow>Mirrored</Eyebrow>\n  <p className=\"mt-3 text-lg font-medium\">The same split, flipped.</p>\n</MediaSplit>"
+    ],
+    "conveyor": [
+      "<Conveyor>\n  {strip.map((image) => (\n    <Image\n      key={image.id}\n      src={image.src}\n      alt=\"\"\n      width={image.width}\n      height={image.height}\n      sizes=\"240px\"\n      className=\"h-36 w-auto shrink-0 rounded-lg object-cover\"\n    />\n  ))}\n</Conveyor>"
+    ],
+    "inline-reel-player": [
+      "<InlineReelPlayer reelId={LIBRARY_REEL_ID} />"
+    ],
+    "browser-frame": [
+      "<BrowserFrame\n  label={\n    <span className=\"text-[11px]\">partyreel.com/a/maya-and-jay</span>\n  }\n>\n  <div className=\"grid grid-cols-3 gap-1 p-2\">{tiles(\"120px\")}</div>\n</BrowserFrame>"
+    ],
+    "phone-frame": [
+      "<PhoneShell className=\"mx-auto max-w-[220px]\">\n  <p className=\"text-xs font-medium\">Any screen goes here.</p>\n  <p className=\"mt-1 text-[10px] text-muted-foreground\">\n    The album&rsquo;s phones and the getting-in stage compose it.\n  </p>\n</PhoneShell>",
+      "<PhoneFrame />"
+    ],
+    "album-frame": [
+      "<AlbumFrame />"
+    ],
+    "gallery-frame": [
+      "<GalleryFrame />"
+    ],
+    "qr-frame": [
+      "<QrFrame />"
+    ],
+    "reel-frame": [
+      "<ReelFrame />"
+    ],
+    "live-qr": [
+      "<LiveQr\n  url=\"https://partyreel.com\"\n  caption=\"Scan to open partyreel.com\"\n/>"
+    ],
+    "stat-band": [
+      "<StatBandDemo animate=\"spin\" />",
+      "<StatBandDemo animate=\"pop\" />"
+    ],
+    "confetti-burst": [
+      "<ConfettiDemo />"
+    ],
+    "sample-reel-overlay.lazy": [
+      "<OverlayDemo />"
+    ],
+    "morph-delegate": [
+      "<>\n  <MorphDelegate\n    name=\"blog-cover\"\n    linkAttr=\"data-cover-morph\"\n    plateAttr=\"data-cover-plate\"\n  />\n  <Link\n    href={`/blog/${LIBRARY_MORPH_SLUG}`}\n    data-cover-morph=\"\"\n    className=\"group relative block aspect-4/5 max-w-[14rem] overflow-hidden rounded-lg bg-muted\"\n  >\n    <span data-cover-plate=\"\" className=\"absolute inset-0\">\n      <Image\n        src={morphCover.src}\n        alt=\"\"\n        fill\n        sizes=\"224px\"\n        className=\"object-cover\"\n      />\n    </span>\n  </Link>\n  <p className=\"mt-3 text-xs text-muted-foreground\">\n    Click the cover: the plate grows into the article&rsquo;s own\n    plate where the browser supports view transitions, and navigates\n    plainly where it does not.\n  </p>\n</>"
+    ],
+    "cta-band": [
+      "<CtaBand\n  heading=\"Your next event ends with a reel.\"\n  subhead=\"A sample band: the primary defaults to the marketing CTA.\"\n  demoLink\n  credit\n  className=\"py-12\"\n/>"
+    ],
+    "demo-ticket": [
+      "<div className=\"rounded-lg bg-gallery p-4\">\n  <DemoTicket />\n</div>",
+      "<DemoTicket layout=\"column\" />"
+    ],
+    "demo-cta-link": [
+      "<DemoCtaLink source=\"library\" />"
+    ],
+    "feature-door": [
+      "<div className=\"max-w-sm\">\n  <FeatureDoor slug=\"album\" copy=\"long\" />\n</div>",
+      "<div className=\"max-w-[14rem]\">\n  <FeatureDoor slug=\"qr\" aspect=\"portrait\" />\n</div>"
+    ],
+    "feature-hero-eyebrow": [
+      "<FeatureHeroEyebrow label=\"The live album\" />"
+    ],
+    "ghost-grid": [
+      "<div className=\"relative h-40 overflow-hidden rounded-lg border border-border\">\n  <GhostBackdrop cells={8} />\n</div>"
+    ],
+    "text-swap": [
+      "<TextSwapDemo />"
+    ],
+    "related-features": [
+      "<RelatedFeatures slugs={[\"qr\", \"curation\", \"sharing\"]} />"
+    ],
+    "feature-faq": [
+      "<FeatureFaq items={FAQ_ITEMS.slice(0, 3)}>\n  <GoDeeper\n    links={[\n      { href: \"/help\", label: \"How curation works\" },\n      { href: \"/pricing\", label: \"Every plan, side by side\" },\n    ]}\n  />\n</FeatureFaq>"
+    ],
+    "go-deeper": [
+      "<GoDeeper\n  links={[\n    { href: \"/help\", label: \"How curation works\" },\n    { href: \"/pricing\", label: \"Every plan, side by side\" },\n  ]}\n/>"
+    ],
+    "bulk-select-mock": [
+      "<div className=\"space-y-4\">\n  <div className=\"grid max-w-sm grid-cols-4 gap-1\">\n    {LIBRARY_SELECT_TILES.map((tile) => (\n      <SelectTile\n        key={tile.id}\n        id={tile.id}\n        selected={tile.selected}\n        sizes=\"96px\"\n      />\n    ))}\n  </div>\n  <BulkBarMock count={3} />\n</div>"
+    ]
+  }
+}

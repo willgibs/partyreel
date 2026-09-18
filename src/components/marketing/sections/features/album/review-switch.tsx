@@ -48,7 +48,7 @@ function Traveller({
       data-mkt-fly
       data-on={on ? "true" : undefined}
       className={cn(
-        "relative block overflow-hidden rounded-[4px] bg-muted",
+        "relative block overflow-hidden rounded-tile bg-muted",
         dim && "opacity-40",
         className,
       )}
@@ -97,7 +97,7 @@ export function ReviewSwitch() {
       >
         <span
           aria-hidden
-          className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background shadow-sm transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
+          className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
           style={{ transform: `translateX(calc(${index} * (100% + 0.25rem)))` }}
         />
         {SEGMENTS.map(({ mode: value, label, Icon }) => (
@@ -123,8 +123,9 @@ export function ReviewSwitch() {
 
       {/* The path: three plates on one rule. The rule is real (a hairline
           behind the plates), the plates sit on it, and only the photograph
-          moves. shadow-float is paper's real elevation, the desk's one card. */}
-      <div className="relative rounded-2xl border bg-card p-5 shadow-[var(--shadow-float)] ring-1 ring-foreground/5 sm:p-6">
+          moves. The desk's one card lies flat, so it is its border and its
+          ring: no shadow (the light ruling, 2026-09-17). */}
+      <div className="relative rounded-2xl border bg-card p-5 ring-1 ring-foreground/5 sm:p-6">
         {/* The rule and the three-across path exist from sm up; on a phone the
             path stacks top to bottom with its objects centred. */}
         <span
@@ -133,7 +134,7 @@ export function ReviewSwitch() {
         />
         <div className="relative grid grid-cols-1 items-start gap-6 sm:grid-cols-3">
           <Plate label="The phone">
-            <span className="relative mx-auto block aspect-square w-full max-w-[9rem] overflow-hidden rounded-[4px] bg-muted">
+            <span className="relative mx-auto block aspect-square w-full max-w-[9rem] overflow-hidden rounded-tile bg-muted">
               <Image
                 src={marketingImage(UPLOAD).src}
                 alt=""
@@ -179,7 +180,7 @@ export function ReviewSwitch() {
                 <span className="relative block size-14">
                   <span
                     aria-hidden
-                    className="absolute inset-0 rounded-[4px] border border-dashed border-border/70 bg-card"
+                    className="absolute inset-0 rounded-tile border border-dashed border-border/70 bg-card"
                   />
                   {!approved && (
                     <Traveller key="queue" className="absolute inset-0" />
@@ -207,7 +208,7 @@ export function ReviewSwitch() {
               {ALBUM.map((id) => (
                 <span
                   key={id}
-                  className="relative block aspect-square overflow-hidden rounded-[3px] bg-muted"
+                  className="relative block aspect-square overflow-hidden rounded-tile bg-muted"
                 >
                   <Image
                     src={marketingImage(id).src}
@@ -221,7 +222,7 @@ export function ReviewSwitch() {
               <span className="relative block aspect-square">
                 <span
                   aria-hidden
-                  className="absolute inset-0 rounded-[3px] border border-dashed border-border/70 bg-card"
+                  className="absolute inset-0 rounded-tile border border-dashed border-border/70 bg-card"
                 />
                 {inAlbum && (
                   <Traveller

@@ -24,7 +24,7 @@ export default function AdminNotFound() {
         title="We couldn't find that page"
         description="The record may have been deleted, or this link points to something that no longer exists."
         actions={
-          <Button asChild size="lg" className="h-11 px-6 text-base">
+          <Button asChild size="cta">
             <Link href="/admin">Back to overview</Link>
           </Button>
         }
