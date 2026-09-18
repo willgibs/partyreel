@@ -31,9 +31,10 @@ album hero's round three went "too boring" that way).
 | `ladders-wiring` | the type ladder's law as the ORDER (`prose` 24 at a phone, a tenth step `subhead`, every heading on a step, the clamped trim) and family C's corners in quarters (8 / 12 / 4, the gap pinned, a `cta` Button); `type-phone` and `rounding` retired | integrated: phase 1 at `5a5c6eb4`, phase 2 at `d2db2629`; bible 5 and 8 ruled |
 | the lab's step | the preview is the page (every option once at true size, flipped or side by side, a sticky head naming it) and the answer is a dock; a transcribed `?` leaves the walk; `lab:demo` fails CLIPPED, UNLABELLED, NO DOCK | landed at `d37be90e`, measured on ten reopened steps at 1280, 1512 and 375 |
 | the glow boards | `glow-doctrine` and `glow-moments`, records with nothing open | retired with the `[data-lit]` leak; the floors fixed; `lab:smoke` passes whole |
-| `heroes` | `privacy-hero` (the field as two spirals, faster, a trail) and `album-page` (round four at the home hero's pace, subtle, the live album beneath at 896 with its bottom faded, a pool of light) | building |
-| `river-card` | the river in the real QR door at 4:5 and 3:2, no label, the code unlinked: where it sits, what it opens | building |
+| `heroes` | `privacy-hero` (the field as two spirals, faster, a trail) and `album-page` (round four at the home hero's pace, subtle, the live album beneath at 896 with its bottom faded, a pool of light) | both boards committed; the agent was killed by a usage limit before its gate (resume: docs/tracks/orchestrator.md In flight) |
+| `river-card` | the river in the real QR door at 4:5 and 3:2, no label, the code unlinked: where it sits, what it opens | board committed, 2 edits uncommitted; the agent was killed before its gate |
 | `gallery-width` | how wide galleries run on laptops and desktops: small tiles, more columns, never a wide two-column masonry | integrated: four decisions measured at 1280, 1512 and 1920 (tile, width, where the words sit, the host); on the desk |
+| `ghost-wiring` | river-visual's `ghost` on the guest album's empty state, for Will to judge in the app | begun, nothing committed; the agent was killed |
 | `album-hero` (round three) | answered in full (`none`, `w880`, `lg`, `settled`, `page`) | waits on `album-page`, then its wiring |
 | `river-visual` (round two) | answered (`card`, `in`, `ghost`; `proportion` withdrawn) | waits on `river-card`, then its wiring |
 
