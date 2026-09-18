@@ -96,8 +96,8 @@ export function CatalogTiles({
 }
 
 const VERDICT_STYLE: Record<BuilderVerdict, string> = {
-  // Lifted from the glow boards' own pill (sandbox/glow-lab-shared.tsx), which
-  // is where the grammar was worked out: the weight IS the verdict, so it reads
+  // Lifted from the glow boards' own pill (retired 2026-09-18; git has
+  // sandbox/glow-lab-shared.tsx), which is where the grammar was worked out: the weight IS the verdict, so it reads
   // at a glance across twelve cards and never costs a hue (bible 1).
   ship: "border-transparent bg-foreground text-background",
   refine: "border-border text-foreground",

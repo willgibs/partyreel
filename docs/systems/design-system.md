@@ -228,10 +228,8 @@ events and pricing, and closes on the FAQ, the CTA and the tail.
 
 ## Light: SPILL, BEAM, and the lamp set
 
-> The two open boards
-> ([`sandbox/glow-doctrine-variants.tsx`](../../src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx),
-> `glow-moments`) hold the placements still under discussion; the rules live here rather than in the
-> boards, because a rule that lives only inside a lab TSX is a rule the next agent has to go
+> The two glow boards that argued this retired on 2026-09-18 with nothing open (git keeps them); the
+> rules live here, because a rule that lives only inside a lab TSX is a rule the next agent has to go
 > excavating for.
 
 Two siblings, and picking the wrong one is the usual mistake. **SPILL** is light falling FROM a lit

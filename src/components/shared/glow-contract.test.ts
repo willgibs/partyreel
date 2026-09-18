@@ -312,9 +312,9 @@ describe("the spill engine CSS", () => {
     // engine against itself and fail on every name. design.css moved the other
     // way and is now wholly elsewhere (it kept the lab-only glw-skel / glw-fly
     // / glw-tilefly recipes, which is exactly what this must catch).
-    // Every lab stylesheet, not one path: the open boards keep their sheets
-    // under sandbox/ (glow-lab.css holds the glw-* recipes this must catch),
-    // and a sheet that moves must stay in this net.
+    // Every lab stylesheet, not one path: a standing board keeps its sheet
+    // under sandbox/ beside the board, and a sheet that moves must stay in
+    // this net.
     const labDir = "src/app/(dev)/design";
     const labSheets = readdirSync(join(process.cwd(), labDir), {
       recursive: true,
@@ -322,7 +322,11 @@ describe("the spill engine CSS", () => {
       .map(String)
       .filter((f) => f.endsWith(".css"))
       .map((f) => `${labDir}/${f}`);
-    expect(labSheets.length, "no lab stylesheets found").toBeGreaterThan(1);
+    // The lab's own sheet is always there; a board's joins it while the board
+    // stands. A floor counting boards' sheets went red as boards retired.
+    expect(labSheets, "the net lost the lab's own sheet").toContain(
+      "src/app/(dev)/design/design.css",
+    );
     const elsewhere = new Set([
       ...names("src/app/(marketing)/marketing.css"),
       ...labSheets.flatMap(names),
@@ -546,9 +550,9 @@ describe("every beam states the ground it is drawn for", () => {
   it("found the call sites at all", () => {
     // A pin that scans nothing passes forever. The engine's own guards were
     // caught doing exactly that twice.
+    // The glow boards' two specimen files were call sites until they retired
+    // (2026-09-18); production's one is what is left.
     expect(callSites.map((f) => f.rel).sort()).toEqual([
-      "src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx",
-      "src/app/(dev)/design/sandbox/glow-moments-variants.tsx",
       "src/components/marketing/sections/home/pro-card-beam.tsx",
     ]);
   });
