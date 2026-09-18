@@ -71,12 +71,12 @@ and `docs/design/library.md` after a contract, policy, `for` line or `touchpoint
 19.2.4 · Tailwind v4 (CSS-first) · shadcn radix-nova 4.8.2 + `radix-ui` 1.4.3 · lucide-react · Supabase (`@supabase/ssr`
 0.10 + `-js` 2.106) · zod v4 · sonner · Cloudflare R2 (`@aws-sdk/client-s3`) · Stripe 22 (TEST mode) · Vitest 4.
 
-**MCP tooling:** Context7 (library docs: the first stop for "how does X work in this version") · Supabase (schema
-and DB ops; project `ddafaemglzmuekbtjwzn`; no CLI, migrations land via `apply_migration`; MCP-created RPCs inherit
-an `anon` EXECUTE grant: [database-security.md](docs/systems/database-security.md)) · Cloudflare R2 (account
-`8bd90d2f6a374d6cdff2f379e929b060`, bucket `partyreel`; cannot mint tokens or set CORS) · Vercel (deploys and logs;
-never env vars or domains) · Stripe (acct `acct_1TcStrPtjqmVkBwk`; one mode per key, check `retrieve_balance` →
-`livemode` first) · shadcn (no `form` item in radix-nova; ours is hand-authored) · the browser pane and Chrome for UI.
+**MCP tooling:** Context7 (library docs: the first stop for "how does X work in this version") · Supabase (schema and DB ops; project
+`ddafaemglzmuekbtjwzn`; no CLI, migrations land via `apply_migration`; MCP-created RPCs inherit an `anon` EXECUTE grant:
+[database-security.md](docs/systems/database-security.md)) · Cloudflare R2 (account `8bd90d2f6a374d6cdff2f379e929b060`, bucket `partyreel`; cannot
+mint tokens or set CORS) · Vercel (deploys and logs; never env vars or domains) · Stripe (`acct_1TcStrPtjqmVkBwk`, TEST;
+`list_available_accounts_or_orgs` → `livemode` first) · Mobbin (product UI for inspiration, never required: [guidance.md](docs/design/guidance.md))
+· Resend · shadcn (no `form` item in radix-nova; ours is hand-authored) · the browser pane and Chrome for UI.
 
 ## Local dev vs. live testing
 
