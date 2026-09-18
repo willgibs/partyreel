@@ -130,9 +130,12 @@ retired `type-phone`; both agents were told so by message.
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
-- **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]`. The alias
-  serves a commit when its HTML contains `sentry-release=<sha7>` (poll with curl; a build takes about four
-  minutes). After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
+- **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]` (a build takes
+  about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
+  the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains `"build":"<sha7>"` (the page
+  prints "Serving build"). The key must ride the QUERY on a plain request; the `x-design-key` header alone
+  answers 404, and no `sentry-release` marker exists in the HTML. After every integration:
+  `node scripts/prune-vercel-deployments.mjs --apply`.
 - **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it); `pnpm lab:demo
   --key <key>` and `?key=` on `/design/lab` take it.
 - **The review.** Will pastes a batch in chat; transcribe it with `pnpm lab:review` on STDIN (`--dry`
