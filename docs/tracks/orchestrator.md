@@ -166,10 +166,10 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
   (withheld so a `main` build that lacks the guard cannot purge a second time; the daily 401 in that project's cron
   log is the price); the overrides `NEXT_PUBLIC_SURFACE=admin`, `NEXT_PUBLIC_SITE_URL` (production the apex,
   preview the app's launch-prep alias) and `NEXT_PUBLIC_ADMIN_HOST` (production `admin.partyreel.com`, preview the
-  admin project's own launch-prep alias host, confirmed from its first preview deployment). (3) A `[preview]` push
-  builds both; curl the allow-list table on the admin preview host; WILL adds that host's `/auth/callback` to the
-  Supabase redirect allow-list (query-free), then signs in there through the account chooser and completes the MFA
-  step-up. (4) At the milestone that carries this code to `main`: add `CRON_SECRET` to the admin project; move the
+  admin project's own launch-prep alias host, confirmed from its first preview deployment). (3) DONE bar the human half: the admin preview host `partyreel-admin-git-launch-prep-partyreel.vercel.app` is
+  READY on `109cfac9` (built by `POST /v13/deployments` with `gitSource`, since the project's own build of the push
+  had no env yet) and its allow-list probed exactly as the table above; the callback is in the Supabase list. WILL
+  signs in there through the account chooser (`partyr33l@gmail.com`) and completes the MFA step-up onto `/admin`. (4) At the milestone that carries this code to `main`: add `CRON_SECRET` to the admin project; move the
   domain (remove `admin.partyreel.com` from `partyreel`, then add it to `partyreel-admin`); set
   `NEXT_PUBLIC_SURFACE=app` on `partyreel` PRODUCTION only then (earlier, the portal is dark between the merge and
   the move); run the runbook's checks a to g. Rollback at any step: unset the variable on either project.

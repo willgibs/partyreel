@@ -146,9 +146,13 @@ against a reference, never a cap and a test.
   says, and unset serves both, which is the whole rollback. The cron answers and stops on the admin surface, and the
   database showed that call writing no heartbeat. Four calls the lane recommended stand (the probe and `robots.txt`
   stay reachable on the admin host; the domain moves after the milestone that puts this code on `main`; a
-  `[preview]` push builds twice). The cutover is the Orchestrator's, its remaining steps in `docs/tracks/orchestrator.md`:
-  the Vercel project is Will's dashboard step (the API token cannot create projects), then its env, the preview
-  proof, the milestone, the domain.
+  `[preview]` push builds twice). The cutover ran the same night up to the preview proof: Will created
+  `partyreel-admin` in the dashboard and minted a team token (the old one was project-scoped), the Orchestrator
+  mirrored its settings, copied and verified its env value by value (the first copy was ciphertext: Vercel's env
+  list never decrypts), dropped the Sentry upload trio that failed its build, added the admin preview callback to
+  the Supabase redirect list in Chrome, and probed the preview host's allow-list: the portal, sign-in, MFA, the cron
+  route, the probe and `robots.txt` serve, everything else is a real 404. Left: Will's sign-in there, the milestone,
+  the domain move (`docs/tracks/orchestrator.md`).
 - `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console stopped meaning four crons. The catalog
   gained three kinds (a `scheduled` job with its own rows, a `signal` whose only question is what failed in the last
   24 hours, a `derived` reading riding another job's counts), all through the one pure `jobHealth`, and nine jobs
