@@ -82,12 +82,25 @@ against a reference, never a cap and a test.
   and unlinked: where it sits, where the photographs end (a fourth question the drawing surfaced), what it
   opens (the short `/demo` link fixes the scan floor; the event's full link leaves 0 px of clearance in the
   short door) and what the short door does. Every drawn code measured exactly 3.0 px a module.
-- `voice` cut (`13dd8ffd`): round one of the board Will asked for by name, the voice derived from won
-  lines, six to eight real lines each with three or four close candidates, bible 20's question first.
+- `voice` integrated (`e0b92af6`; cut `13dd8ffd`): round one of the board Will asked for by name, the voice
+  derived from won lines. Eight real lines in the places they are read, each with three or four candidates a
+  careful writer would weigh and one recommended: bible 20's question first, drawn on the guest sheet's own "No
+  app, no account" beside the same fact affirmed; then the home hero's sentence, /features/curation's headline,
+  the Pro card's line beside Free's, the empty dashboard, the email ask, the empty album and an upload's toast
+  (two of them the same question on two surfaces on purpose). No production byte moved. Its question for Will:
+  whether the first win binds the other seven (the lane recommends yes, re-asking only the won lines that break
+  it in round two).
 
-**Next.** His sitting on the four boards in the rebuilt step, and the ghost on a disposable event on the
-alias; then the wiring lanes (the album page, the river, the privacy hero, the galleries) and the voice
-board's round one; then a milestone (`main` is about 1,120 commits behind).
+- **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's
+  word ("we could begin getting main current to launch prep"), 1,138 commits: partyreel.com now serves Graphite,
+  the type and corner ladders, the Aurora with shadows by role, the home hero's band and the v1 wordmark, Card's
+  floating layer, the three voice picks and the river on the empty album; the lab gated (404 without a key).
+  Stripe stays TEST; no launch switch flipped. The verification pass on partyreel.com is recorded below the
+  merge in git.
+
+**Next.** His sitting on the five boards on the desk (the four of the ninth batch and `voice`), and the ghost on
+a disposable event on the alias; the glass, loose-ends and body-type boards integrate as they hand off; then the
+wiring lanes (the album page, the river, the privacy hero, the galleries) and round two of `voice` from his notes.
 
 ## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` to `00e82dba`)
 
