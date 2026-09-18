@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 280 contracts on 45 components · 6 standing boards.**
+**22 laws · 18 policies · 280 contracts on 45 components · 7 standing boards.**
 
 ## What binds you
 
@@ -372,4 +372,5 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `album-page` | marketing | Four decisions, no page: the live album or today's filling demo at 896 with its foot faded, three kinds of subtle motion around the words at the home hero's pace, a pool, no light or a halo for the album, and where the page's second light goes |
 | `river-card` | marketing | Four decisions, no page, every option drawn in the real FeatureDoor at its true size in both of its shapes at 1440 and at 375: the code's height, where the photographs end, the link the code encodes (which sets its size), and the short door |
 | `gallery-width` | shared | Four decisions, no page: the tile size (about 180, 240 or 300 px, the columns following the window), how far the album runs (the full window or the app's 1280 column), where the words sit above it, and whether the host's galleries follow; every option the real page at 1280, 1512 and 1920 with its columns measured in the frame |
+| `glass` | shared | Seven decisions, no page, every option a real app screen in a real viewport over real photographs at 1440 and 375: the recipe itself on the lightbox's action pill (four, named in numbers, each one's contrast and frame cost measured), one grade of glass or two, what sits behind the photograph, the chips over tiles at a phone, the reel's controls, the host's row as three panes or one, and the light ground on its own step |
 
