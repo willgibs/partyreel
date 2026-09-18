@@ -48,6 +48,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "loose-ends"
   | "glass"
   | "body-type"
   | "voice"
@@ -76,6 +77,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "loose-ends"
   | "glass"
   | "body-type"
   | "voice"
@@ -702,6 +704,34 @@ export const RULINGS: Ruling[] = [
         "The gallery's width",
         "Where the words sit",
         "The host's galleries",
+      ],
+    },
+  },
+  {
+    id: "loose-ends",
+    title: "Six loose ends",
+    surface: "shared",
+    ruled: "open (cut 2026-09-18: six ROADMAP decisions drawn on their real surfaces)",
+    shipped: null,
+    why: "Six ROADMAP one-liners drawn as decisions: the admin chart ramp's cast, one FAQ look, the home hero at tablet widths, and the album's three ambient pieces.",
+    lives: [
+      "src/app/globals.css",
+      "src/components/marketing/faq-accordion.tsx",
+      "src/components/marketing/sections/home/hero-stream.ts",
+      "src/components/marketing/sections/features/album/getting-in-stage.tsx",
+      "src/components/marketing/sections/features/album/review-switch.tsx",
+      "src/components/marketing/sections/features/album/everywhere-stage.tsx",
+    ],
+    board: {
+      note: "Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live | Review photograph, the lightbox pill), each on its real section at 1440 and 375",
+      variants: [
+        "Chart ramp, light",
+        "Chart ramp, dark",
+        "One FAQ look",
+        "The hero at tablet widths",
+        "The phone's screen cycle",
+        "The Live | Review photograph",
+        "The lightbox pill",
       ],
     },
   },
