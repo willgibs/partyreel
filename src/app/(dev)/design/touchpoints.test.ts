@@ -44,6 +44,8 @@ describe("the design lab's rulings registry", () => {
         // round four (2026-09-15): the burst and the river, killed as heroes
         "album-hero",
         "river-visual",
+        // the ninth batch (2026-09-18): the river in the QR door
+        "river-card",
       ].sort(),
     );
     for (const r of SANDBOX) expect(r.ruled, r.id).toMatch(/open/);

@@ -48,6 +48,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "river-card"
   | "pricing-plan-cards"
   | "pricing-calculator"
   | "contact-identity"
@@ -69,6 +70,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "river-card"
   | "album-hero"
   | "river-visual"
   | "glow-doctrine"
@@ -633,6 +635,28 @@ export const RULINGS: Ruling[] = [
         "400, the card",
         "240, the thumbnail",
         "The placements",
+      ],
+    },
+  },
+  {
+    id: "river-card",
+    title: "The river in the QR door",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-18: the river goes into the card, the code in it with no label, as an Easter egg, run through its own exploration)",
+    shipped: null,
+    why: "The river in the real QR feature door, in both of its shapes: where the code sits, where the photographs end, what the code opens and what the short door does.",
+    lives: [
+      "src/components/marketing/sections/features/shared/feature-door.tsx",
+      "src/components/marketing/sections/features/shared/related-features.tsx",
+    ],
+    board: {
+      note: "Four decisions, no page, every option drawn in the real FeatureDoor at its true size in both of its shapes at 1440 and at 375: the code's height, where the photographs end, the link the code encodes (which sets its size), and the short door",
+      variants: [
+        "Where the code sits",
+        "Where the photographs end",
+        "What the code opens",
+        "The short door",
       ],
     },
   },

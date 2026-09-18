@@ -1,0 +1,13 @@
+/* THE RIVER IN THE QR DOOR: the board's own sheet. Classes under rcd- only; no
+   keyframes; a board sheet never imports tailwindcss.
+
+   ★ THE ONE REACH INTO THE REAL DOOR. `FeatureDoor` draws the QR door's art
+   itself (`QrPlateArt`, feature-door.tsx) with no slot to replace it, and this
+   lane may not edit the door, so the board hides that plate here and door.tsx
+   puts the river where the picture goes. The plate is the link's one child on
+   `z-10` (the ink, the two scrims and the copy carry no z-index), so the
+   selector is structural and names no other part of the door. The wiring lane
+   gives the door a real slot and this rule leaves with the board. */
+.rcd-door a > span.z-10 {
+  display: none;
+}
