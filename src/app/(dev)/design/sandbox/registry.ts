@@ -3,6 +3,7 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { ALBUM_HERO } from "./album-hero/spec";
 import { ALBUM_PAGE } from "./album-page/spec";
 import { BODY_TYPE } from "./body-type/spec";
+import { CURSOR_BACKDROP } from "./cursor-backdrop/spec";
 import { GALLERY_WIDTH } from "./gallery-width/spec";
 import { GLASS } from "./glass/spec";
 import { LOOSE_ENDS } from "./loose-ends/spec";
@@ -29,6 +30,7 @@ import { VOICE } from "./voice/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  CURSOR_BACKDROP,
   LOOSE_ENDS,
   GLASS,
   BODY_TYPE,
