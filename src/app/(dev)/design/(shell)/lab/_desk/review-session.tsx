@@ -10,10 +10,12 @@ import { Step } from "@/components/lab/step";
 import { CopyButton } from "@/app/(dev)/design/(shell)/_shell/copy";
 import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
 import {
+  alreadySent,
   composeMessage,
   type SessionAnswer,
   type SessionItem,
   type SessionNote,
+  type Transcribed,
 } from "./review-message";
 import {
   EMPTY_REVIEW,
@@ -110,6 +112,7 @@ export function ReviewSession({
   title,
   blurb,
   build,
+  transcribed,
   sample = false,
 }: {
   steps: SessionStep[];
@@ -119,6 +122,8 @@ export function ReviewSession({
   blurb: string;
   /** The commit this page was built from; rides the paste as a `#` line. */
   build?: string | null;
+  /** What the ledger already holds, so neither message sends it again. */
+  transcribed?: Transcribed;
   /** A dry run: the message it composes is refused by lab-review, by design. */
   sample?: boolean;
 }) {
@@ -170,6 +175,7 @@ export function ReviewSession({
       }
       const held = store.answers[askKey(s)];
       if (!held?.choice) continue;
+      if (alreadySent(transcribed?.answers[askKey(s)], held)) continue;
       answers.push({
         board: s.board,
         round: s.round,
@@ -185,7 +191,7 @@ export function ReviewSession({
       if (text?.trim()) notes.push({ board: s.board, round: s.round, text });
     }
     return { answers, items, notes };
-  }, [steps, store]);
+  }, [steps, store, transcribed]);
 
   const message = useMemo(
     () => composeMessage(answers, notes, items, [], build),
@@ -233,6 +239,8 @@ export function ReviewSession({
           <Step
             steps={steps}
             param={param}
+            transcribed={transcribed}
+            build={build}
             onEnd={() => goTo(steps.length)}
           />
         </div>

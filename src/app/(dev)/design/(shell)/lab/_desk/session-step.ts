@@ -120,6 +120,15 @@ export type AskStep = StepBase & {
   catalogSection?: string;
   /** The section drawn under the tiles in the shown state (`catalog.stage`). */
   stageSection?: string;
+  /**
+   * ★ WHAT THE LEDGER HOLDS FOR THIS BOARD'S OTHER ASKS, this round, by ask id
+   * (the dock round, 2026-09-18). A step is drawn WEARING the board's decided
+   * answers, so a decision staged behind another is judged in the world the
+   * first one made: the gap at the pace he picked. This sitting's answers live
+   * in the browser's store and win over these; only the server can read the
+   * ledger, so it rides here. "Not clear to me" is not a decision and is left out.
+   */
+  ruled?: Readonly<Record<string, string>>;
 };
 
 /** One catalog card, as a step's list renders it. */
@@ -309,6 +318,17 @@ function evidenceOf(
   };
 }
 
+/** The board's decided answers from the ledger, less the ask being asked. */
+function decidedIn(
+  ruled: BoardWork["ruled"],
+  own: string,
+): Readonly<Record<string, string>> | undefined {
+  const out: Record<string, string> = {};
+  for (const [ask, choice] of Object.entries(ruled?.answers ?? {}))
+    if (ask !== own && choice) out[ask] = choice;
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 /** The option's own drawing state, when it declares one. */
 const optionState = (o: AskOption): Record<string, string> | undefined =>
   typeof o === "string" ? undefined : (o.state as Record<string, string>);
@@ -354,6 +374,7 @@ function toAskStep(
     tile: a.ask.tile,
     after: a.ask.after,
     afterRuled: ruledFor(a.ask.after, ruled),
+    ruled: decidedIn(ruled, a.ask.id),
     winner: winner || undefined,
     catalogSection: winner ? catalog?.section : undefined,
     stageSection: winner ? catalog?.stage : undefined,

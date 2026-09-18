@@ -166,6 +166,39 @@ describe("the desk's rows", () => {
     expect(states.every((s) => s.answer === null)).toBe(true);
   });
 
+  it("takes a transcribed ? out of the walk, and keeps it on the row", () => {
+    // Will's ninth batch (2026-09-18): a "not clear to me" that stayed in the
+    // walk was asked again in the same words, and the end of the walk pasted
+    // it a second time. The board owes a clearer question first; until it
+    // opens a new round the desk lists the ask and the walk skips it.
+    const base = status(SAMPLE_BOARD.round.n, []);
+    const grain = base.asks.find((a) => a.ask.id === "grain")!;
+    const answer = {
+      ask: "grain",
+      choice: null,
+      note: "which grain?",
+      by: "Will",
+      at: AT,
+    };
+    const reading: BoardStatus = {
+      ...base,
+      asks: base.asks.map((a) =>
+        a.ask.id === "grain" ? { ask: grain.ask, state: "unclear", answer } : a,
+      ),
+      round: base.round && { ...base.round, answers: [answer] },
+    };
+    const [row] = deskRows(
+      [BOARD],
+      () => reading,
+      () => [],
+    );
+    expect(row.open.map((a) => a.ask.id)).not.toContain("grain");
+    expect(row.asks.find((a) => a.ask.id === "grain")?.answer).toEqual({
+      choice: null,
+      note: "which grain?",
+    });
+  });
+
   it("marks a board with no spec as legacy and queues nothing for it", () => {
     const rows = deskRows(
       [BOARD, { ...BOARD, id: "no-spec", title: "No spec" }],

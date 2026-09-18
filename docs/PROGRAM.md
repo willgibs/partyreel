@@ -48,15 +48,17 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
    agent never guesses at a product decision.
 3. **The agent returns DECISIONS** at `/design/lab/<board>`, authored with `defineExploration` (the
    shape is "A round returns DECISIONS" below): one question per decision in plain words, every
-   option drawn, the winner worn by the evidence pinned above the options. `pnpm lab:smoke` refuses a
-   board over its reading budget; `pnpm lab:demo` presses every open step's options, refuses a stage
-   that does not change or that has drifted out of reach of the press, and prints how much of the
-   sitting asks with nothing to press. Handoff is one line per decision plus the questions it needs
+   option drawn at its true size on the step's stage and answered from its dock. `pnpm lab:smoke`
+   refuses a board over its reading budget; `pnpm lab:demo` presses every open step's options,
+   refuses a stage that does not change, that is clipped, that does not name what it shows, that
+   starts too far down, or whose dock leaves the screen, and prints how much of the sitting asks with
+   nothing to press. Handoff is one line per decision plus the questions it needs
    answered.
 4. **Integration**, and one alias build per round close (`[preview]` on that push alone).
-5. **Will reviews on the desk** (`/design/lab?key=`): Start the review, the card pins under each
-   board's dock, keep / refine / kill and a note per item, a word per ask, one paste at the end. The
-   Orchestrator transcribes it (`pnpm lab:review`) and asks the follow-ups in chat.
+5. **Will reviews on the desk** (`/design/lab?key=`): Start the review walks one step per question,
+   each answered from its dock with a note where the pick is not enough (keep / refine / kill per
+   card on the old catalogs), and one paste at the end. The Orchestrator transcribes it
+   (`pnpm lab:review`) and asks the follow-ups in chat.
 6. **Kept items are promoted**: the wiring round lands the component, section or screen, and its
    Library entry appears with a `new` badge, its preview, its variants and its contracts; the
    catalog card links to it; killed items leave with the board; a refined one is refined INSIDE the

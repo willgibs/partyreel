@@ -296,6 +296,14 @@ retire at their wiring.
   gets a round four at the home hero's pace, subtle, in the empty space around the lockup; the guest album
   runs wide with "a smaller size and add more columns. Not go wide and keep 2 col", on a board rather than
   an interim 880 cap. The calm lesson is in PROGRAM.md: a relative note is answered against a reference,
-  never with a cap and a test. ★ Still mine: the lab's step, the phase-1 merge, then the wiring rounds.
+  never with a cap and a test. The step rebuilt the same day: the preview is the page (every option
+  mounted once at its true size, flipped or side by side, a sticky head naming what it shows and at
+  what scale) and the answer is a dock (options by number, Pick, the note, "not clear", Back and Next;
+  keys 1-9, x, g, n, ?, Enter from the note). Measured on ten steps reopened locally (type-phone's
+  two, album-hero's five, river-visual's three): `lab:demo`, which now fails CLIPPED, UNLABELLED,
+  NO DOCK and a stage lower than 0.6 of a screen, passed all ten. The re-paste's cause: the walk's
+  end composed "Copy the message" from every held answer with no ledger check, and a transcribed "?"
+  stayed in the walk; both fixed (`alreadySent`, one rule for both composers). ★ Still mine: the
+  phase-1 merge, then the wiring rounds.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

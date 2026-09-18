@@ -167,14 +167,18 @@ export function deskRows(
       openItems: items.filter(
         (i) => i.ruling === null && status.openItems.some((o) => o.item.id === i.item.id),
       ),
-      // "Not clear to me" keeps an ask in the queue: the next session asks it
-      // again, in the plainer words the board owes it. A STAGED ask rides along
-      // too (dim on the desk, skipped by the walk) because the answer that
-      // unstages it can land in this very sitting, which only the browser
-      // knows; a MOOT one is gone for the round.
-      open: asks.filter(
-        (a) => (a.answer === null || a.answer.choice === null) && !a.moot,
-      ),
+      // ★ A TRANSCRIBED "NOT CLEAR TO ME" LEAVES THE WALK (Will's ninth
+      // batch, 2026-09-18). It used to stay, so the next sitting asked the
+      // same unclear question in the same words, the browser still held the
+      // "?", and the end-of-walk message sent it to the ledger a second time.
+      // The board owes a clearer question, and asking again before it has
+      // written one asks nothing new: the step returns when the board opens
+      // a new round, and the desk lists it meanwhile (`row.asks`, "not clear,
+      // waiting on a clearer question"). A STAGED ask rides along (dim on the
+      // desk, skipped by the walk) because the answer that unstages it can
+      // land in this very sitting, which only the browser knows; a MOOT one is
+      // gone for the round.
+      open: asks.filter((a) => a.answer === null && !a.moot),
       // `status.notes` mixes the window's GLOBAL notes into every board, which
       // would print the same four lines fourteen times; the desk prints those
       // once, in their own section. What belongs on a row is the board's own:
