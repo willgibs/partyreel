@@ -133,7 +133,8 @@ code: `pnpm design:rules`, `node "src/app/(dev)/design/gallery/collect-specimens
 
 ## Handoff (replaces the chat report)
 
-- Head `ae280c75`, pushed; synced with `launch-prep` at `feba31f9` (it had moved: the voice lane merged, plus
+- The board at `4ef4e747`, the sync merge at `ae280c75`, this manifest the commit after it, all pushed on
+  `lp/body-type`; synced with `launch-prep` at `feba31f9` (it had moved: the voice lane merged, plus
   milestone-25 and three docs commits). Merged, never rebased; keep-both on all four registration conflicts
   (`registry.ts`, `boards.ts`, `touchpoints.ts` twice for the unions and once for the RULINGS row), the
   generated `docs/design/library.md` regenerated on the merged tree rather than hand-resolved.
