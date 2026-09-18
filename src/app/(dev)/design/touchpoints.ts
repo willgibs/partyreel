@@ -51,6 +51,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "cursor-backdrop"
   | "admin"
   | "loose-ends"
   | "glass"
@@ -81,6 +82,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "cursor-backdrop"
   | "admin"
   | "loose-ends"
   | "glass"
@@ -627,6 +629,31 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "cursor-backdrop",
+    title: "Cursor backdrop",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-18: full image background sections that switch the image based on cursor position, in place of the aurora)",
+    shipped: null,
+    why: "The UI-forward sections lean on the aurora or on nothing; a full-bleed photograph that switches with the cursor breaks the strict dark/light run.",
+    lives: [
+      "src/components/marketing/sections/home/full-quality.tsx",
+      "src/components/marketing/sections/home/section-ids.ts",
+      "src/components/marketing/system/section-light.tsx",
+    ],
+    board: {
+      note: "Six decisions on the shipped sections, imported and drawn in place: which UI-forward section takes a photograph backdrop, what switches it (position, travel or the card under the pointer), how the next photograph arrives, how the copy stays readable over eight different photographs on both grounds, where it sits in the page's dark and light run, and what a phone with no cursor does; the cursor is simulated so a still shows its own cause",
+      variants: [
+        "The section",
+        "The copy over it",
+        "What switches it",
+        "How it arrives",
+        "Where it sits",
+        "At a phone",
+      ],
+    },
+  },
+  {
     id: "privacy-hero",
     title: "The privacy page's hero",
     surface: "marketing",
@@ -716,7 +743,8 @@ export const RULINGS: Ruling[] = [
     id: "loose-ends",
     title: "Six loose ends",
     surface: "shared",
-    ruled: "open (cut 2026-09-18: six ROADMAP decisions drawn on their real surfaces)",
+    ruled:
+      "open (cut 2026-09-18: six ROADMAP decisions drawn on their real surfaces)",
     shipped: null,
     why: "Six ROADMAP one-liners drawn as decisions: the admin chart ramp's cast, one FAQ look, the home hero at tablet widths, and the album's three ambient pieces.",
     lives: [
