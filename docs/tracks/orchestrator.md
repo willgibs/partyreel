@@ -90,6 +90,7 @@ are cut (development is parallel work again), the light sitting continues on its
 | `heroes` | `privacy-hero`, `album-page` (new) | cut after the ninth batch's record; both paced against the home hero |
 | `river-card` | `river-card` (new) | cut after the record |
 | `gallery-width` | `gallery-width` (new) | cut after the record |
+| `ghost-wiring` | none (river-visual's `guest-photos=ghost`, wired) | cut after the glow retirement: the river on the guest album's empty state, so Will sees it in the app in the same sitting as the four boards |
 
 ## Waiting on Will
 
