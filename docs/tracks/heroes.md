@@ -1,6 +1,6 @@
 ---
 track: heroes
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "d62dac22"         # the launch-prep SHA the branch was cut from
 board: privacy-hero, album-page # two new question-first boards
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -187,15 +187,74 @@ step's CLIPPED, UNLABELLED and NO DOCK).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree, each step's own exit code: design:rules, specimens, typecheck, lint, test (N), build (M pages), lab:smoke, lab:demo (both boards)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the registration lines + the generated files
-- Each decision, one line: its options, the recommendation, and the measured numbers against the home hero's
-- Captures (paths): every option of every decision at 1440 and 375, beside its words
-- Assets requested from Will: none (every image is the Higgsfield month's; an ask names the slot, never the picture)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head: the handoff commit (this manifest alone) on top of `2c3cc12a`, pushed. Synced once, a merge:
+  `2c3cc12a` (`origin/launch-prep` had moved: the gallery-width merge `3a519e0d`, the ghost-wiring
+  manifest, and the Orchestrator-seat-in docs `3bb7370d`/`cffd16d3`); resolved keep-both in
+  `registry.ts`, `boards.ts` and `touchpoints.ts` (this lane's two boards at the head, `gallery-width`'s
+  lines kept, unreordered), then `pnpm design:rules` regenerated `docs/design/library.md` on the merged
+  tree rather than hand-merging it.
+- Gates on the synced tree, each step's own exit code (all 0): `design:rules` (no drift), `collect-specimens.mjs`
+  (116 specimens/89 entries, no drift), `typecheck`, `lint` (8 known warnings, 0 errors), `test` (2162 passed,
+  231 files), `build` (254 pages), `lab:smoke` (214 checks, 0 failing; privacy-hero 449 words, album-page 483
+  words, both under the 1200 budget), `lab:demo --board privacy-hero` (4 steps, 0 failing) and
+  `--board album-page` (4 steps, 0 failing).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/design/library.md` (generated),
+  `src/app/(dev)/design/(shell)/lab/boards.ts`, `src/app/(dev)/design/sandbox/registry.ts`,
+  `src/app/(dev)/design/touchpoints.ts` (the three registration files, keep-both resolved), every file under
+  `src/app/(dev)/design/sandbox/privacy-hero/` and `src/app/(dev)/design/sandbox/album-page/`, and this manifest.
+  Nothing outside owned paths, the registration lines or the generated files.
+- Each decision, one line, numbers off the engine (`spirals.ts` / `margins.ts`), measured against the home
+  hero's 40 px/s and 1250 ms (desktop) / 1350 ms (phone):
+  - **privacy-hero pace** (home / under / over, home recommended): home is the home hero's own clock, 857 ms
+    between pairs at the half gap; under is 30 px/s and 1143 ms; over is 53 px/s and 643 ms. Pairwise pixel
+    difference 14-19% at 1440, 19-25% at 375 (all three visibly distinct).
+  - **privacy-hero gap** (half / edge / overlap, half recommended): 857 ms / ~10 lit, 547 ms / ~16 lit, 408 ms
+    / ~21 lit at pace=home. 15-18% pairwise at 1440, 25-28% at 375.
+  - **privacy-hero trail** (wake / echoes / none, wake recommended): the launch clock is identical across all
+    three (trail never touches it, confirmed off `spirals.ts`); the difference is only the rendering behind
+    each frame (wake's smear, echoes' two fading copies, none's plain frames). 7-14% pairwise at 1440, 18-24%
+    at 375, matching what the words claim.
+  - **privacy-hero at a phone** (spirals / cones, cones recommended): 375-only by design (the desktop
+    composition does not vary on this decision). 15.8% pixel difference; cones keeps both strips full where
+    spirals empties out mid-turn, confirmed visually at 375.
+  - **album-page visual** (live / filling, live recommended): 28.4% pixel difference at 1440, 30.5% at 375.
+  - **album-page motion** (stream / arrivals / arch, stream recommended): stream matches the home hero's own
+    clock exactly (40 px/s, 1250/1350 ms); arrivals lands one photo every 1250 ms with nothing travelling;
+    arch is a slower procession (a frame every 3598 ms) and needs a taller frame (1450 vs 1380 px desktop,
+    1169 vs 1161 px phone) since its photographs arc above the headline. All three visibly and structurally
+    distinct.
+  - **album-page light** (pool / none / halo, pool recommended): 4.6-13.9% pairwise pixel difference; pool is
+    the reel's pooled-light recipe under the fade, halo lights the frame's rim instead, both confirmed visually
+    distinct from no light.
+  - **album-page a second light** (none / floor / room, floor recommended): 7.4-16.7% pairwise pixel
+    difference; floor's warm glow at the dark-chapter-to-paper seam is visible in the capture.
+- Reduced motion, the resting frame: privacy-hero is genuinely still (byte-identical across repeated captures)
+  once its documented `REVEAL_MS` 1750 first-paint fan-in settles (2-6 s in this run). album-page's own
+  field/light engine is equally gated (a direct DOM audit under `prefers-reduced-motion: reduce` found zero
+  elements anywhere in the frame carrying a live CSS animation, at every sampled instant), but the **visual=live**
+  option does not reach a fixed byte image for several seconds in local dev, because `GuestMasonry` is loading
+  real photographs and `useSampledPaletteFromDom` samples their true colours once, after they paint; the
+  **visual=filling** alternative is pixel-perfect stable (0.000% diff) under the same conditions across a 13 s
+  window, isolating the cause to real-image load timing rather than to any animation this lane declares. Both
+  are shared code outside this lane's `owns` (`src/components/guest/guest-masonry.tsx`,
+  `src/lib/shared/sampled-palette.ts`), so left unfixed here; noting it rather than guessing further.
+- Captures (paths, never committed): every option of every decision at 1440 and 375, beside its option's words,
+  under `/private/tmp/partyreel-captures/heroes/privacy-hero/` and `/private/tmp/partyreel-captures/heroes/album-page/`
+  (42 PNGs plus `manifest.json` listing each file against its option, label and caption). Filenames:
+  `<board>.<decision>.<option>.<1440|375>.png`.
+- Assets requested from Will: none (every image is the Higgsfield month's; an ask names the slot, never the picture).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `privacy-hero.pace` (it stages every other privacy-hero decision) and `album-page.motion`
+  (the three kinds are genuinely different in kind, per his ask, and the least "obviously right" of the eight).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Two question-first boards on one field engine, paced against the
+home hero: `privacy-hero` recut "the field" as two opposite spirals (pace, gap, trail, a phone answer, four
+decisions) and `album-page` answered its fourth round (the live album at 896 with its foot faded, three kinds
+of subtle motion around the headline, its own pooled light, and a second light rising from the dark chapter's
+floor). Both boards drawn at 1440 and 375 with `defineExploration`, every option a real `Frame` at its true
+size; the gate green (2162 tests, 254 pages, `lab:smoke` and `lab:demo` both 0 failing) and every tile measured
+against its words. Left open: the "live" album visual's real photographs take several seconds to settle their
+colour sample in local dev (shared `GuestMasonry`/palette code, not this lane's engine); noted for whoever
+next touches that path.
