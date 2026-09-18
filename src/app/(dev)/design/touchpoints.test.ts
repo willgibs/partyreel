@@ -44,6 +44,7 @@ describe("the design lab's rulings registry", () => {
         // round four (2026-09-15): the burst and the river, killed as heroes
         "album-hero",
         "river-visual",
+        "gallery-width",
       ].sort(),
     );
     for (const r of SANDBOX) expect(r.ruled, r.id).toMatch(/open/);
