@@ -48,6 +48,7 @@ announces:
   - "The third batch (2026-09-17, c9903c99 and dc4530df): every card of the light board's round seven is ruled (the bloom, the halo and the beam kept) and round eight is three steps (depth, face, sweep). SectionLight has NO default placement: `placement` is required, `room` takes a `from` origin on an edge of the box and every placement a `reach`, and its contract refuses the same composition twice on one page (Will: the Aurora is 'a mix of all of them... custom and bespoke'). ProCardBeam measures its card's corner and passes it, zero included. src/app/globals.css is released to publish-bloom for the round (the publish block and the one fence rule only)."
   - "The fourth batch (2026-09-17, 871f650b to c64275a3): light r8 is fully answered and floating-surfaces picks Card. `pnpm lab:demo` (scripts/lab-demo.mjs) presses every open step and fails a frozen stage; a catalog card's preview is inert when the card is the press target (src/components/lab/catalog.tsx). Released to light-wiring for the round: src/app/globals.css, src/app/theme.css, _data/links.test.ts and _data/docs.test.ts (the two tests that name light as a standing board and its spec as NOT LAW); touchpoints.ts and touchpoints.test.ts stay here and the lane edits its own board's lines under the retirement exception."
   - "The eighth batch (2026-09-18, 00e82dba): type-phone r1 and rounding r7 are ruled, and one lane, ladders-wiring, wires both ladders and retires both boards (phase 1 type, phase 2 corners). The type ladder's law becomes the ORDER: prose's phone end 18 to 24 and a tenth step, subhead (20 to 24), declared in theme.css AND TYPE_STEPS. Corners are family C in quarters: --radius 8px, --radius-float 12px (rows derived at 8), --radius-tile 4px, --gap-gallery max(3px, var(--radius-tile)), 3xl and 4xl set to initial, a cta Button size, --shadow-float retired. Released to ladders-wiring for the round: src/app/globals.css, src/app/theme.css, src/components/dev/motion-tuner-config.ts; touchpoints.ts and touchpoints.test.ts stay here under the retirement exception."
+  - "The ninth batch (2026-09-18): album-hero r3 and river-visual r2 are ruled (their first ledgers, so registry.test.ts's grandfathered set is empty, and that file is the Orchestrator's again), and river-visual's `proportion` is withdrawn inside the round. Three board lanes are cut: `heroes` (`privacy-hero`, `album-page`), `river-card`, `gallery-width`. THE REGISTRATION EXCEPTION, while they run: a lane adds its own board's lines to sandbox/registry.ts, (shell)/lab/boards.ts, touchpoints.ts and touchpoints.test.ts and touches nothing else in them. New members go at the HEAD of `BOARDS`, `BOARD_COMPONENTS` and the `SandboxId` union, the RULINGS row directly after river-visual's, the id into `RulingId` directly after `river-visual`; `ladders-wiring` removes only its own lines and reorders nothing, so every merge is line-disjoint. The names `ladders-wiring` changes, which every lane builds against: `rounded-3xl` and `rounded-4xl` become no-ops (set to `initial`), `shadow-float` and `--radius-action-lg` retire, `size=\"cta\"` on Button and `text-subhead` arrive, and `prose` is 24px at a phone."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
 ---
 
@@ -80,14 +81,18 @@ are cut (development is parallel work again), the light sitting continues on its
 
 | track | board | waits on |
 | --- | --- | --- |
-| none | | `floating-wiring` (Card) and `voice-retire` are cut next; both retire a board, so they touch `touchpoints.ts`, `touchpoints.test.ts`, `registry.ts`, `boards.ts` and the generated artifacts, and they integrate one at a time |
+| `ladders-wiring` | `type-phone`, `rounding` (both retire) | phase 1 (the type ladder) gated and committing; merged early so the alias carries it, then phase 2 (the corners) |
+| `heroes` | `privacy-hero`, `album-page` (new) | cut after the ninth batch's record; both paced against the home hero |
+| `river-card` | `river-card` (new) | cut after the record |
+| `gallery-width` | `gallery-width` (new) | cut after the record |
 
 ## Waiting on Will
 
 The desk derives it (`/design/lab?key=`: every open ask and every unruled item of every board, from
 the specs minus the ledgers in `docs/reviews/`). Assets: [`../ASSETS.md`](../ASSETS.md). Next from
-him: nothing until the first reshaped boards integrate; then the stepped sitting, board by board (the
-palette and light first), pasted in batches with Copy so far.
+him: nothing until the four new boards integrate, then one sitting on them in the rebuilt step. The
+glow boards are records with nothing open; album-hero and river-visual have every step answered and
+retire at their wiring.
 
 ## Landed this window
 
@@ -280,8 +285,17 @@ palette and light first), pasted in batches with Copy so far.
   none carries forward; the SWC count-glue policy went with the only files it scanned and its gotcha is in
   `marketing-content.md`. Every frame is generated in one Higgsfield month before launch (ROADMAP, researched
   2026-09-17: prices, the MCP, Article 50). ASSETS 6, 7 and 13 withdrawn.
-  ★ Still mine: nothing outstanding. The three boards Will is stuck with (album-hero, rounding,
-  river-visual) clear in their present shape, and the old authoring surface is scrubbed when they do. The
-  media kit was the last keep-any board, so the gallery walk has no user left and goes with that scrub.
+  The media kit was the last keep-any board, so the gallery walk has no user left and goes with the
+  old authoring surface's scrub.
+- **Will's ninth batch** (composed on `00e82db`): album-hero r3 (`composition=none`, `album-width=w880`,
+  `headline=lg`, `no-script=settled`, `copy=page`) and river-visual r2 (`placement=card`, `code=in`,
+  `guest-photos=ghost`) recorded, with type-phone's two `?` re-sent by the lab and overwritten unchanged.
+  His `proportion=?` was the lab, not the question: the pinned stage clipped the preview and hid its
+  labels. It is withdrawn inside the round on an `ai:orchestrator` note, and the step is rebuilt (the
+  preview is the page, the answer is a dock). He answered three questions in chat: the album page's hero
+  gets a round four at the home hero's pace, subtle, in the empty space around the lockup; the guest album
+  runs wide with "a smaller size and add more columns. Not go wide and keep 2 col", on a board rather than
+  an interim 880 cap. The calm lesson is in PROGRAM.md: a relative note is answered against a reference,
+  never with a cap and a test. ★ Still mine: the lab's step, the phase-1 merge, then the wiring rounds.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

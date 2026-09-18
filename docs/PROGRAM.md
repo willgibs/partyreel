@@ -208,6 +208,13 @@ ships:** a preview shows what its option's words claim, checked on screen rather
 board drew one option with its formula's sign backwards, so the tile he judged showed the opposite of
 the words he picked.
 
+**Answer a relative note against a reference.** A note like "a bit more calm" is answered with options
+graded against something he already likes, never with a cap and a test: the album hero's round three
+pinned 40 px a second and sixteen lit frames on all four compositions, so every one was calm by
+construction and he found them "too boring" (2026-09-18). **Placeholder copy is judged for its size and
+wrapping, not its words** (his `copy=page`): until the `voice` board rules the words, a preview's copy
+only has to read like the copy that will replace it.
+
 What NOT to build: a page with argument, a verdict essay, departures, assets, or keep / refine / kill
 over N cards. "Simply designing a few variations will always beat a mountain of research text", and a
 question wrapped in a research paper is the thing this replaced. `src/app/(dev)/design/sandbox/type-phone`

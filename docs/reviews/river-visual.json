@@ -1,0 +1,47 @@
+{
+  "board": "river-visual",
+  "rounds": [
+    {
+      "n": 2,
+      "opened": "2026-09-18",
+      "answers": [
+        {
+          "ask": "placement",
+          "choice": "card",
+          "note": "This would create our first truly beautiful card visual. I think this is where it lands most powerfully, and how it works can use a more dedicated animation. However, let's run the card implementation through its own exploration to nail it. Right now, I think the QR code needs a bit more of a gap from the top, so it feels a bit more centered with the images still streaming down. The blank space above will allow some breathing room.",
+          "by": "Will",
+          "at": "2026-09-18T07:07:02Z"
+        },
+        {
+          "ask": "code",
+          "choice": "in",
+          "note": "However, we don't need the 'scan it' label text. Think of this more as an Easter egg in our design. We have other instances that are more direct about pointing to the demo event.",
+          "by": "Will",
+          "at": "2026-09-18T07:07:02Z"
+        },
+        {
+          "ask": "guest-photos",
+          "choice": "ghost",
+          "note": "This is an immediate upgrade to the 'this is where it all lands' empty state. However, I'd like to see it within the full app to see if a different animation would work better here.",
+          "by": "Will",
+          "at": "2026-09-18T07:07:02Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "on proportion (answered ?, then withdrawn inside the round): This seems to be a lab problem over the question itself. The top preview UI of our lab is covered by the answer UI, and I cannot scroll it to see the full heights or labels on which height is which. This has been a recurring problem where I have to visit the board to be able to see a full preview, then go back to the question to answer. We should ensure both the question/context/preview UI and response/answer UI work well together.",
+          "by": "Will",
+          "at": "2026-09-18T07:07:02Z"
+        },
+        {
+          "on": null,
+          "text": "proportion withdrawn inside the round (2026-09-18). The ? was a lab bug, not an unclear question: the pinned stage clipped the three boxes and hid which height was which. Unclipped it was still unanswerable (three sizes at one ratio; taller and squarer were never drawn), and placement=card makes it moot, since a card slot sets the shape. The fix is in the lab: the preview is the page and the answer is a dock.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-18T07:07:18Z"
+        }
+      ],
+      "items": []
+    }
+  ]
+}

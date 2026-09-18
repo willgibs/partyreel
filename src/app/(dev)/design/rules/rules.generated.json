@@ -283,7 +283,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 325
+          "line": 324
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -291,7 +291,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 370
+          "line": 369
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -299,7 +299,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 400
+          "line": 399
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -307,7 +307,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 499
+          "line": 498
         },
         {
           "title": "computes one anchor everywhere",
@@ -315,7 +315,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 533
+          "line": 532
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -550,7 +550,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 325
+          "line": 324
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -558,7 +558,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 370
+          "line": 369
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -566,7 +566,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 400
+          "line": 399
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -574,7 +574,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 499
+          "line": 498
         },
         {
           "title": "computes one anchor everywhere",
@@ -582,7 +582,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 533
+          "line": 532
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -678,7 +678,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 325
+          "line": 324
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -686,7 +686,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 370
+          "line": 369
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -694,7 +694,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 400
+          "line": 399
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -702,7 +702,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 499
+          "line": 498
         },
         {
           "title": "computes one anchor everywhere",
@@ -710,7 +710,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 533
+          "line": 532
         },
         {
           "title": "lists only standing boards as still on the string form",

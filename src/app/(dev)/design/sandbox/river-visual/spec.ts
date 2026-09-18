@@ -164,38 +164,16 @@ export const RIVER_VISUAL = defineBoard({
       evidence: "guest",
       state: { origin: "none" },
     },
-    {
-      id: "proportion",
-      question: "Should the box stay a third taller than it is wide?",
-      context:
-        "Every measurement in the visual is worked out from its width except one: how tall the box is. It stands at 1.32 times the width, which is the room the falling frames need to straighten up before they fade out at the bottom. A squarer box cuts that straightening short; a taller one keeps the frames small for longer before they land.",
-      look: "The three sizes, which all share the one proportion: watch where a frame finishes straightening before it fades at the bottom. The board draws 1.32 only, so the other two are judged on the room the fall uses.",
-      options: [
-        {
-          id: "keep",
-          label: "Keep it as it is",
-          means:
-            "The box stays 1.32 times as tall as it is wide, the proportion every specimen on the board draws.",
-        },
-        {
-          id: "taller",
-          label: "Make it taller",
-          means:
-            "More fall in the same width: the frames stay small for longer and straighten later.",
-        },
-        {
-          id: "squarer",
-          label: "Make it squarer",
-          means:
-            "Less fall in the same width: the frames land sooner, with less room to straighten.",
-        },
-      ],
-      recommended: "keep",
-      because:
-        "1.32 is the only number in the visual that is taste rather than arithmetic. It leaves the fall room to straighten before the fade takes it: squarer cuts the straightening, taller keeps the frames small for longer.",
-      evidence: "bank",
-      state: { motion: "live" },
-    },
+    // ★ THE `proportion` ASK WAS WITHDRAWN (2026-09-18, inside round two). Will
+    // answered `?`: "This seems to be a lab problem over the question itself.
+    // The top preview UI of our lab is covered by the answer UI, and I cannot
+    // scroll it to see the full heights or labels on which height is which."
+    // Unclipped it was still unanswerable (the three boxes were three SIZES at
+    // one ratio, and "taller" and "squarer" were never drawn), and his
+    // `placement=card` makes it moot: a card's slot sets the shape. The lab
+    // took the fix (the preview is the page, the answer is a dock), and the
+    // card's own exploration draws the box in the door it lives in.
+    // docs/reviews/river-visual.json carries his words and the Orchestrator's note.
   ],
 
   candidates: [

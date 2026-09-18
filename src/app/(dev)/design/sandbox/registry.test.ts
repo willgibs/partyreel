@@ -312,14 +312,14 @@ describe("the board registry", () => {
    * rebuilt at r6 is fine and common here.
    *
    * IN DEBT, and this list only ever shrinks: four boards were already past
-   * round 1 unreviewed when the rule landed. Each is on Will's queue and its
-   * line is deleted the day he walks it. Adding a board here is not a way to
-   * pass the test, it is a promise to get it reviewed before it moves again.
+   * round 1 unreviewed when the rule landed. Each was on Will's queue and its
+   * line was deleted the day he walked it; the last two, album-hero r3 and
+   * river-visual r2, in his ninth batch (2026-09-18), so the debt is paid.
+   * Adding a board here is not a way to pass the test, it is a promise to get
+   * it reviewed before it moves again. `<string>` because an empty `Set([])`
+   * infers `Set<never>` and `.has(b.id)` stops typechecking.
    */
-  const UNREVIEWED_BEFORE_THE_RULE = new Set([
-    "album-hero", // r3, waiting on his four picks and three recommendation calls
-    "river-visual", // r2, not yet walked
-  ]);
+  const UNREVIEWED_BEFORE_THE_RULE = new Set<string>();
 
   it("has a review on the record before a board opens a second round", () => {
     for (const b of BOARDS) {
@@ -530,8 +530,9 @@ describe("the board registry", () => {
   });
 
   it("computes one anchor everywhere", () => {
-    // A standing board's id (light was the example until it retired).
-    expect(anchorFor("rounding", "composer")).toBe("rounding-composer");
+    // A made-up id on purpose: anchorFor is pure, and a standing board's id
+    // (light, then rounding) had to be re-pointed at every retirement.
+    expect(anchorFor("some-board", "composer")).toBe("some-board-composer");
   });
 });
 
