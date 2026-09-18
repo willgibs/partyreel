@@ -128,7 +128,7 @@ export function Spine() {
               </div>
               <h3
                 data-mkt-reveal
-                className="font-heading text-lg sm:text-xl"
+                className="font-heading text-subsection"
                 style={{ "--i": 1 } as CSSProperties}
               >
                 {step.title}

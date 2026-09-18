@@ -24,7 +24,7 @@ function SubmissionCard({ submission }: { submission: ContactSubmission }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <CardTitle className="text-base">{submission.name}</CardTitle>
+              <CardTitle>{submission.name}</CardTitle>
               {/* Topic chip (nullable: rows predate the picker). Falls back to
                   the raw value so an unknown/legacy topic is still visible. */}
               {submission.topic ? (

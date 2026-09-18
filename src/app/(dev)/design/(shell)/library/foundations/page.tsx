@@ -122,20 +122,23 @@ export default async function FoundationsPage({
       <Section
         id="type"
         title="Type"
-        blurb="Urbanist is the identity face and Inter carries everything functional. Two faces, no third, and one nine-step ladder under both halves of the site."
+        blurb="Urbanist is the identity face and Inter carries everything functional. Two faces, no third, and one ten-step ladder under both halves of the site."
       >
         <Sub
           id="ladder"
           title="The ladder"
-          blurb="Nine steps, one set. Marketing travels four rungs between a phone and 1440, the app travels one, and the card step travels none: that is the law, and the sizes follow from it. Every line below is the real utility class at true size, and every number is read back off the live token, so this page cannot drift from theme.css. Resize the window and the last column moves."
+          blurb="Ten steps, one set, and the law is the order: every heading stays above the one it heads, at a phone and at 1440. The desktop ends are the sizes Will ruled; each phone end is the rung that keeps the order, so marketing travels further than the app and the card step travels not at all. Every line below is the real utility class at true size, and every number is read back off the live token, so this page cannot drift from theme.css. Resize the window and the last column moves."
         >
           <TypeLadder />
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
             A dead link joins the set rather than sitting outside it: its title
             takes the prose step on marketing and the page step inside the app.
             Nothing in the heading face may wear a stock size (text-3xl) or an
-            arbitrary one; a heading the ladder cannot name is a heading whose
-            role has not been decided yet.
+            arbitrary one, and the policy refuses both; a heading the ladder
+            cannot name is a heading whose role has not been decided yet. The
+            only type set off it is drawn inside a picture (a phone, a printed
+            sign, an asset plate), and the Inter labels a few heading tags carry
+            for the outline.
           </p>
         </Sub>
         <Sub

@@ -303,7 +303,9 @@ export function ComparisonTable() {
                     className="bg-background px-4 py-4 align-bottom lg:sticky lg:top-[var(--mkt-header-h)] lg:z-10"
                   >
                     <div className="flex flex-col items-start gap-2">
-                      <span className="font-heading text-base">{name}</span>
+                      <span className="font-heading text-card-title">
+                        {name}
+                      </span>
                       <span className="text-xs font-medium text-muted-foreground tabular-nums">
                         {headerPrices[i]}
                       </span>

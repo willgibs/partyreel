@@ -59,7 +59,7 @@ export default async function ExportsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Power className="size-5 text-foreground" />
-            <CardTitle className="text-base">Download all</CardTitle>
+            <CardTitle>Download all</CardTitle>
           </div>
           <CardDescription>
             Pause to block all new album downloads platform-wide. Existing
@@ -73,15 +73,15 @@ export default async function ExportsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="flex items-center gap-2">
             Recent exports
             {rejections > 0 ? (
               <Badge variant="secondary">{rejections} rejected (24h)</Badge>
             ) : null}
           </CardTitle>
           <CardDescription>
-            The last {recent.length || 0} download attempts. A request hashes the
-            IP, so no raw addresses are stored.
+            The last {recent.length || 0} download attempts. A request hashes
+            the IP, so no raw addresses are stored.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -110,7 +110,9 @@ export default async function ExportsPage() {
                       <td className="py-2 pr-3">
                         {r.eventName ?? (
                           <span className="text-muted-foreground">
-                            {r.eventId ? `${r.eventId.slice(0, 8)}…` : "unknown"}
+                            {r.eventId
+                              ? `${r.eventId.slice(0, 8)}…`
+                              : "unknown"}
                           </span>
                         )}
                       </td>

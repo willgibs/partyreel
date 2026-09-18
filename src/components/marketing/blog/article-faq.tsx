@@ -29,7 +29,7 @@ export function ArticleFaq({ items }: { items: FaqItem[] }) {
           row activates on the same box geometry as the rest of the piece. */}
       <h2
         id={ARTICLE_FAQ_ID}
-        className={cn("font-heading text-xl", HEADING_SCROLL_MT)}
+        className={cn("font-heading text-subhead", HEADING_SCROLL_MT)}
       >
         {ARTICLE_FAQ_HEADING}
       </h2>

@@ -106,7 +106,9 @@ export function PasswordGate({
           <Lock className="size-3" aria-hidden />
           Almost in
         </p>
-        <h1 className="mt-1.5 text-center font-heading text-[22px] leading-tight text-balance">
+        {/* The guest title step (`page`), the same one the entry sheet's
+            event name and the album's own h1 wear. */}
+        <h1 className="mt-1.5 text-center font-heading text-page text-balance">
           {eventName} is private
         </h1>
         <p

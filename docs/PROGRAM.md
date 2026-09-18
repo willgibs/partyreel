@@ -219,8 +219,10 @@ only has to read like the copy that will replace it.
 
 What NOT to build: a page with argument, a verdict essay, departures, assets, or keep / refine / kill
 over N cards. "Simply designing a few variations will always beat a mountain of research text", and a
-question wrapped in a research paper is the thing this replaced. `src/app/(dev)/design/sandbox/type-phone`
-is the worked example; the boards still open predate this and are being cleared, not copied.
+question wrapped in a research paper is the thing this replaced. The first worked example,
+`type-phone`, retired into the type ladder (`git show 55e444ea^:src/app/(dev)/design/sandbox/type-phone/spec.ts`);
+the ninth batch's four boards (`privacy-hero`, `album-page`, `river-card`, `gallery-width`) are the
+examples once they land, and the older boards still open predate this and are cleared, not copied.
 
 ### Every round gets Will's notes
 

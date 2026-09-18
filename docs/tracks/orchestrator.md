@@ -17,6 +17,7 @@ owns:
   # in its merge commit.
   - src/app/(dev)/design/_data/legacy-routes.ts
   - src/app/(dev)/design/_data/legacy-routes.test.ts
+  - src/app/(dev)/design/sandbox/registry.test.ts
   - src/app/(dev)/design/touchpoints.ts
   - src/app/(dev)/design/touchpoints.test.ts
   - src/components/dev/motion-tuner.tsx
@@ -81,7 +82,7 @@ are cut (development is parallel work again), the light sitting continues on its
 
 | track | board | waits on |
 | --- | --- | --- |
-| `ladders-wiring` | `type-phone`, `rounding` (both retire) | phase 1 (the type ladder) gated and committing; merged early so the alias carries it, then phase 2 (the corners) |
+| `ladders-wiring` | `type-phone`, `rounding` (both retire) | phase 1 (the type ladder) merged early at `55e444ea` and on the alias; phase 2 (the corners) building |
 | `heroes` | `privacy-hero`, `album-page` (new) | cut after the ninth batch's record; both paced against the home hero |
 | `river-card` | `river-card` (new) | cut after the record |
 | `gallery-width` | `gallery-width` (new) | cut after the record |
@@ -303,7 +304,10 @@ retire at their wiring.
   two, album-hero's five, river-visual's three): `lab:demo`, which now fails CLIPPED, UNLABELLED,
   NO DOCK and a stage lower than 0.6 of a screen, passed all ten. The re-paste's cause: the walk's
   end composed "Copy the message" from every held answer with no ledger check, and a transcribed "?"
-  stayed in the walk; both fixed (`alreadySent`, one rule for both composers). ★ Still mine: the
-  phase-1 merge, then the wiring rounds.
+  stayed in the walk; both fixed (`alreadySent`, one rule for both composers). `ladders-wiring`'s
+  phase 1 merged at `55e444ea` ahead of its handoff, so the type fix reaches the alias with the dock:
+  the ladder's law is the order, `prose` 24 at a phone, a tenth step `subhead`, 103 headings moved
+  onto a step, the trim tracking its leading, type-phone retired; bible 5 reworded to the order.
+  ★ Still mine: the board lanes' and ladders' handoffs, then the wiring rounds.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

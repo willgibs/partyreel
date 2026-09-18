@@ -207,7 +207,7 @@ export default function AboutPage() {
               >
                 {/* No text-balance on a 2-4 word heading in a grid cell: balance
                   can pick a worse break than the natural one at that length. */}
-                <h3 className="font-heading text-xl sm:text-2xl">{title}</h3>
+                <h3 className="font-heading text-subhead">{title}</h3>
                 <div>
                   <p className="text-[15px] leading-7 text-pretty text-muted-foreground">
                     {body}

@@ -86,7 +86,7 @@ function Cell({
         {children}
       </div>
       <div className="flex flex-col gap-1">
-        <p className="flex items-center gap-1.5 font-heading text-base">
+        <p className="flex items-center gap-1.5 font-heading text-subsection">
           <Icon className="size-4 text-muted-foreground" strokeWidth={1.5} />
           {title}
         </p>

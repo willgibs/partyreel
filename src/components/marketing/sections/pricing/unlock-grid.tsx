@@ -62,7 +62,7 @@ export function UnlockGrid() {
               <tile.icon className="size-4" strokeWidth={1.75} />
             </span>
             <div className="flex flex-1 flex-col gap-1.5">
-              <h3 className="font-heading text-base">{tile.title}</h3>
+              <h3 className="font-heading text-subsection">{tile.title}</h3>
               <p className="text-sm text-pretty text-muted-foreground">
                 {tile.body}
               </p>

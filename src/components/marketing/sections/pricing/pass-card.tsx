@@ -46,14 +46,14 @@ export function PassCard() {
       >
         {/* The identity stub. */}
         <div className="flex flex-col gap-2 lg:w-[38%] lg:pr-7">
-          <h2 className="font-heading text-xl">{pass.name}</h2>
+          <h2 className="font-heading text-subsection">{pass.name}</h2>
           <p className="text-sm text-pretty text-muted-foreground">
             One big event, paid once.
           </p>
           {/* The display face for money: Urbanist with tabular digits, the
               register every subject number on the site now shares; qualifiers
               drop small via PricePop. */}
-          <div className="mt-3 font-heading text-4xl tabular-nums">
+          <div className="mt-3 font-heading text-section tabular-nums">
             <PricePop label={pass.priceLabel} />
           </div>
           <p className="text-xs text-faint">

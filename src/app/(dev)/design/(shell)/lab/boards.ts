@@ -5,7 +5,6 @@ import { GlowDoctrineBoard } from "@/app/(dev)/design/sandbox/glow-doctrine/boar
 import { GlowMomentsBoard } from "@/app/(dev)/design/sandbox/glow-moments/board";
 import { RiverVisualBoard } from "@/app/(dev)/design/sandbox/river-visual/board";
 import { RoundingBoard } from "@/app/(dev)/design/sandbox/rounding/board";
-import { TypePhoneBoard } from "@/app/(dev)/design/sandbox/type-phone/board";
 import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 
 /**
@@ -17,7 +16,8 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
  * history. Retiring one is therefore ATOMIC across three files plus the
  * board's directory: touchpoints.ts (which owns SandboxId), this map and
  * sandbox/registry.ts. The palette, home-hero, type-scale, light and
- * floating-surfaces all left that way on 2026-09-17.
+ * floating-surfaces all left that way on 2026-09-17, and type-phone on
+ * 2026-09-18.
  *
  * `legacy` marks a board that predates the kit's template (it draws its own
  * header, index and asks); the migration wave clears the flag board by board,
@@ -31,5 +31,4 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   rounding: { Component: RoundingBoard },
   "album-hero": { Component: AlbumHeroBoard },
   "river-visual": { Component: RiverVisualBoard },
-  "type-phone": { Component: TypePhoneBoard },
 };

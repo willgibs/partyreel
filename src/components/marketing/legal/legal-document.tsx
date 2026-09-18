@@ -164,7 +164,7 @@ export function LegalDocument({
                         >
                           {String(index + 1).padStart(2, "0")}
                         </span>
-                        <h2 className="group font-heading text-xl text-balance sm:text-2xl">
+                        <h2 className="group font-heading text-subhead text-balance">
                           {section.title}
                           <HeadingAnchor id={section.id} />
                         </h2>
@@ -186,9 +186,7 @@ export function LegalDocument({
                 {/* Navigation, not the document: the printed copy ends at the
                     last section. */}
                 <section className="mt-12 border-t pt-10" data-print-hide>
-                  <h2 className="font-heading text-xl tracking-tight">
-                    Read next
-                  </h2>
+                  <h2 className="font-heading text-subhead">Read next</h2>
                   <ul className="mt-5 flex flex-col gap-3.5">
                     {LEGAL_RELATED[doc].map((item) => (
                       <li key={item.href}>

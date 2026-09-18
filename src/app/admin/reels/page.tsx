@@ -65,7 +65,7 @@ export default async function ReelsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Power className="size-5 text-foreground" />
-            <CardTitle className="text-base">Reel videos</CardTitle>
+            <CardTitle>Reel videos</CardTitle>
           </div>
           <CardDescription>
             Pause to block all new reel video renders platform-wide. In-progress
@@ -79,7 +79,7 @@ export default async function ReelsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="flex items-center gap-2">
             Recent renders
             {failures > 0 ? (
               <Badge variant="destructive">{failures} failed (24h)</Badge>

@@ -163,7 +163,7 @@ export default function CareersPage() {
                   </span>
                   <SelectMark index={index} strokeWidth={1.25} onReveal />
                 </span>
-                <h3 className="font-heading text-lg sm:text-xl">{title}</h3>
+                <h3 className="font-heading text-subsection">{title}</h3>
                 <p className="text-sm text-pretty text-muted-foreground">
                   {body}
                 </p>
@@ -204,7 +204,7 @@ export default function CareersPage() {
               style={{ "--i": 0 } as CSSProperties}
               className="flex flex-col gap-1"
             >
-              <h3 className="font-heading text-lg">Not sure yet?</h3>
+              <h3 className="font-heading text-subsection">Not sure yet?</h3>
               <p className="text-sm text-pretty text-muted-foreground">
                 Ask anything before you apply. {REPLY_LINE}
               </p>

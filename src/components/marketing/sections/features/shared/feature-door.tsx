@@ -291,12 +291,13 @@ export function FeatureDoor({
             aspect === "wide" && "sm:max-w-xl sm:p-7",
           )}
         >
+          {/* A door's title is a tile's title (`subsection`, like every
+              marketing tile); the wide door is the featured one and sits one
+              step up (`subhead`). Two steps, never a stock ramp per aspect. */}
           <span
             className={cn(
-              "flex items-center gap-1.5 font-heading leading-tight text-white",
-              aspect === "wide"
-                ? "text-xl sm:text-3xl"
-                : "text-lg sm:text-xl",
+              "flex items-center gap-1.5 font-heading text-white",
+              aspect === "wide" ? "text-subhead" : "text-subsection",
             )}
           >
             {door.title}

@@ -79,9 +79,7 @@ export function NoApp() {
               >
                 {/* No text-balance on a 2-4 word heading in a grid cell: balance
                   can pick a worse break than the natural one at that length. */}
-                <h3 className="font-heading text-xl sm:text-2xl">
-                  {claim.title}
-                </h3>
+                <h3 className="font-heading text-subhead">{claim.title}</h3>
                 <p className="text-[15px] leading-7 text-pretty text-muted-foreground">
                   {claim.body}
                 </p>

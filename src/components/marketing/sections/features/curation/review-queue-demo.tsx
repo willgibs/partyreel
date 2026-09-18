@@ -515,7 +515,7 @@ function ClearedBeat({ onReplay }: { onReplay: () => void }) {
       <span className="flex size-14 items-center justify-center rounded-full bg-success text-success-foreground">
         <Check className="size-7" />
       </span>
-      <p className="font-heading text-lg">All caught up</p>
+      <p className="font-heading text-subsection">All caught up</p>
       <Button type="button" variant="ghost" size="sm" onClick={onReplay}>
         <RotateCcw /> Replay
       </Button>

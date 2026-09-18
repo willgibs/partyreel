@@ -242,15 +242,18 @@ export default async function BlogPostPage({
                 {/* Mobile contents: the zero-JS chip row (the desktop rail is lg-only). */}
                 <ChipToc headings={headings} className="mb-8" />
 
-                {/* prose-headings:font-heading pulls the post's h2/h3 onto the house heading face;
-                    the prose SCALE itself is untouched. */}
+                {/* prose-headings:font-heading pulls the post's h2/h3 onto the house heading face,
+                    and the h2/h3 modifiers put them on the ladder (2026-09-18: nothing sized off
+                    it): the paper prose head (`prose`) and the sub-head under it (`subhead`),
+                    where the typography plugin had set 24 and 20 at every width. The body copy's
+                    scale is still the plugin's; the help article's wrapper carries the same pair. */}
                 {/* THE LEAD-IN: the opening paragraph sets one step above the body, which gives
                     the reader a type ramp down into the piece (standfirst 20px muted -> lead 18px
                     ink -> body 16px) instead of a cliff from display type straight to body copy.
                     Scoped to the first child so it can never catch a second paragraph. */}
                 <article
                   id={ARTICLE_BODY_ID}
-                  className="prose max-w-none prose-help prose-headings:font-heading prose-code:font-sans [&>p:first-child]:text-[1.0625rem] [&>p:first-child]:leading-[1.7]"
+                  className="prose max-w-none prose-help prose-headings:font-heading prose-h2:text-prose prose-h3:text-subhead prose-code:font-sans [&>p:first-child]:text-[1.0625rem] [&>p:first-child]:leading-[1.7]"
                 >
                   {content}
                 </article>
@@ -291,7 +294,7 @@ export default async function BlogPostPage({
 
                 {related.length > 0 && (
                   <section className="mt-14 border-t pt-10">
-                    <h2 className="font-heading text-xl">Keep reading</h2>
+                    <h2 className="font-heading text-subhead">Keep reading</h2>
                     <ul className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
                       {related.map((item, index) => (
                         <li key={item.slug}>

@@ -117,7 +117,7 @@ function RoleRow({ role, index }: { role: JobOpening; index: number }) {
             ))}
           </span>
         </div>
-        <h3 className="font-heading text-xl sm:text-2xl">{role.title}</h3>
+        <h3 className="font-heading text-subhead">{role.title}</h3>
         <p className="max-w-md text-sm text-pretty text-muted-foreground">
           {role.hook}
         </p>

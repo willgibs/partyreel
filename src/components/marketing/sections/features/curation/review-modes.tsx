@@ -90,7 +90,7 @@ export function ReviewModes() {
               >
                 <mode.icon className="size-5" strokeWidth={1.5} />
               </span>
-              <h3 className="font-heading text-lg sm:text-xl">{mode.title}</h3>
+              <h3 className="font-heading text-subsection">{mode.title}</h3>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {mode.body}
               </p>

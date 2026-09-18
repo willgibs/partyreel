@@ -16,7 +16,7 @@ function ApplicationCard({ application }: { application: JobApplication }) {
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <CardTitle className="text-base">{application.name}</CardTitle>
+            <CardTitle>{application.name}</CardTitle>
             <p
               className="text-xs text-muted-foreground"
               suppressHydrationWarning

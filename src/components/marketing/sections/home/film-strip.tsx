@@ -67,7 +67,7 @@ export function FilmStrip() {
             <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
               {s.scene}
             </p>
-            <h3 className="mt-2 font-heading text-2xl">{s.title}</h3>
+            <h3 className="mt-2 font-heading text-subhead">{s.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               {s.body}
             </p>

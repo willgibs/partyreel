@@ -2642,7 +2642,7 @@
           "line": 50
         },
         {
-          "title": "keeps the display step's descender padding",
+          "title": "trims by the leading it is cancelling, with the sign that trims MORE at a phone",
           "suite": [
             "the page hero lockup"
           ],
@@ -2650,12 +2650,20 @@
           "line": 58
         },
         {
+          "title": "keeps the display step's descender padding",
+          "suite": [
+            "the page hero lockup"
+          ],
+          "file": "src/components/marketing/system/page-hero-contract.test.ts",
+          "line": 71
+        },
+        {
           "title": "takes every size from the ladder, never from a number here",
           "suite": [
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 64
+          "line": 77
         },
         {
           "title": "keeps every scale in the table rather than inline",
@@ -2663,7 +2671,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 84
+          "line": 97
         },
         {
           "title": "keeps the side bearing out of the heading class, gated on align",
@@ -2671,7 +2679,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 88
+          "line": 101
         },
         {
           "title": "offers three named entrances, and the blur-rise never touches the h1",
@@ -2679,7 +2687,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 102
+          "line": 115
         },
         {
           "title": "renders the stage AFTER the lockup, inside the same Container",
@@ -2687,7 +2695,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 118
+          "line": 131
         },
         {
           "title": "keeps the tracking squeeze on the display step itself",
@@ -2695,7 +2703,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 130
+          "line": 143
         }
       ]
     },
@@ -5078,8 +5086,8 @@
     {
       "file": "src/lib/type-ladder-policy.test.ts",
       "scope": "engineering",
-      "title": "One type ladder, reachable from a className",
-      "summary": "a step theme.css and cn() disagree on, a step name the color namespace already owns, and a heading ramp coming back.",
+      "title": "One type ladder, and every heading on it",
+      "summary": "a step theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading.",
       "line": 1
     }
   ]

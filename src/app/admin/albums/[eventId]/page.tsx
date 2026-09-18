@@ -76,7 +76,7 @@ export default async function AdminAlbumDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Album</CardTitle>
+          <CardTitle>Album</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label="Host">

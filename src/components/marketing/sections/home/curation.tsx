@@ -124,9 +124,7 @@ export function Curation() {
                 {/* The H3 TIER (Will's checkpoint note: titles blended with body,
                     font-medium was overriding font-heading's 700): the heading
                     face at full weight, two sizes under the h2. */}
-                <h3 className="font-heading text-lg sm:text-xl">
-                  {item.title}
-                </h3>
+                <h3 className="font-heading text-subsection">{item.title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   {item.body}
                 </p>

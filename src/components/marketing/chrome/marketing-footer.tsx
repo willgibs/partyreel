@@ -137,11 +137,7 @@ function SignOff() {
   // the QR would encode the marketing site the visitor is already on, so the
   // whole invitation stands down to the thesis.
   if (!DEMO_EVENT_URL) {
-    return (
-      <p className="max-w-xl font-heading text-chapter">
-        {SITE_THESIS}
-      </p>
-    );
+    return <p className="max-w-xl font-heading text-chapter">{SITE_THESIS}</p>;
   }
   return (
     <Reveal className="flex flex-col items-start gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
@@ -271,12 +267,12 @@ function FooterNavColumn({ column }: { column: FooterColumn }) {
         <Link
           href={column.href}
           id={id}
-          className="inline-block font-heading text-lg text-foreground underline decoration-current/25 underline-offset-[6px] transition-[text-decoration-color] duration-150 hover:decoration-current"
+          className="inline-block font-heading text-subsection text-foreground underline decoration-current/25 underline-offset-[6px] transition-[text-decoration-color] duration-150 hover:decoration-current"
         >
           {column.title}
         </Link>
       ) : (
-        <p id={id} className="font-heading text-lg text-foreground">
+        <p id={id} className="font-heading text-subsection text-foreground">
           {column.title}
         </p>
       )}

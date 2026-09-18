@@ -85,10 +85,10 @@ export function EventCard({
       {/* Legibility gradient: dark at the foot where the chrome sits. */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 space-y-1.5 p-3 text-white">
-        {/* The ladder's `subsection` step (18/20): the app's quiet middle, one
-            rank over a card title and well under a page title. It was a
-            hand-rolled `text-xl` no type hook could reach until the wiring
-            (2026-09-17). */}
+        {/* The ladder's `subsection` step: the app's quiet middle, one rank
+            over a card title and well under a page title (its two ends live in
+            theme.css). It was a hand-rolled `text-xl` no type hook could reach
+            until the wiring (2026-09-17). */}
         <h3 className="truncate font-heading text-subsection">{name}</h3>
         {byline && <p className="truncate text-xs text-white/75">{byline}</p>}
         <div className="flex flex-wrap items-center gap-1.5">
@@ -122,7 +122,7 @@ export function EventCard({
         <Link
           href={href}
           data-lit=""
-          className="relative block aspect-[16/10] overflow-hidden rounded-xl outline-none transition-transform duration-150 ease-emphasis active:scale-[0.99] focus-visible:ring-3 focus-visible:ring-ring/50 motion-reduce:active:scale-100"
+          className="relative block aspect-[16/10] overflow-hidden rounded-xl transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.99] motion-reduce:active:scale-100"
         >
           {surface}
         </Link>
@@ -164,7 +164,9 @@ export function EventCard({
           {pendingCount} to review
         </div>
       )}
-      {action && <div className="absolute top-2.5 right-2.5 z-10">{action}</div>}
+      {action && (
+        <div className="absolute top-2.5 right-2.5 z-10">{action}</div>
+      )}
     </div>
   );
 }

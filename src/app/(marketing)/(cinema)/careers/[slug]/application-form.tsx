@@ -105,7 +105,7 @@ export function ApplicationForm({
             />
           </svg>
         </span>
-        <h3 className="font-heading text-base font-medium">
+        <h3 className="font-heading text-subsection font-medium">
           Application received
         </h3>
         <p className="text-sm text-muted-foreground">

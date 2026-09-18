@@ -82,9 +82,7 @@ export function Privacy() {
                 {String(i + 1).padStart(2, "0")}
               </span>
               <div className="grid min-w-0 flex-1 gap-x-8 gap-y-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-                <h3 className="font-heading text-lg sm:text-xl">
-                  {claim.title}
-                </h3>
+                <h3 className="font-heading text-subsection">{claim.title}</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {claim.body}
                 </p>

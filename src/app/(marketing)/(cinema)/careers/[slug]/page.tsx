@@ -146,9 +146,12 @@ export default async function RolePage({
                 </div>
               </aside>
 
-              <div className="min-w-0 max-w-2xl flex-1">
+              <div className="max-w-2xl min-w-0 flex-1">
                 {job.responsibilities.length > 0 && (
-                  <RoleList heading="What you'll do" items={job.responsibilities} />
+                  <RoleList
+                    heading="What you'll do"
+                    items={job.responsibilities}
+                  />
                 )}
                 {job.requirements.length > 0 && (
                   <RoleList
@@ -172,7 +175,10 @@ export default async function RolePage({
                           key={item}
                           className="flex items-center gap-2.5 rounded-sm border bg-muted/40 px-4 py-3 text-sm"
                         >
-                          <Check className="size-4 shrink-0 text-success" aria-hidden />
+                          <Check
+                            className="size-4 shrink-0 text-success"
+                            aria-hidden
+                          />
                           {item}
                         </li>
                       ))}
@@ -228,7 +234,7 @@ export default async function RolePage({
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="font-heading text-xl sm:text-2xl">{children}</h2>;
+  return <h2 className="font-heading text-subhead">{children}</h2>;
 }
 
 /** The spec, as labelled pairs. A slashed inline run reads as a caption; a

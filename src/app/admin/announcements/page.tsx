@@ -29,7 +29,7 @@ export default async function AdminAnnouncementsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">New announcement</CardTitle>
+          <CardTitle>New announcement</CardTitle>
         </CardHeader>
         <CardContent>
           <AnnouncementCompose />

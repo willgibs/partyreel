@@ -5,7 +5,6 @@ import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
 import { GLOW_MOMENTS } from "./glow-moments/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
 import { ROUNDING } from "./rounding/spec";
-import { TYPE_PHONE } from "./type-phone/spec";
 
 /**
  * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
@@ -23,13 +22,16 @@ import { TYPE_PHONE } from "./type-phone/spec";
  * drops `legacy` flags board by board; a board LEAVES this list only when its
  * ruling lands and its directory goes, which five did on 2026-09-17: the
  * palette (Graphite, now the token set), home-hero (whose favourite now ships
- * as the production hero), type-scale (B, rungs, now the nine `--text-*`
- * steps in theme.css and the Library's own Type section), light (both
- * shadows by role and the bright edge, now `--shadow-lift`, `--shadow-layer`
- * and `[data-lit]` in globals.css and the Library's Elevation and bright
- * edge sections) and floating-surfaces (Card's anatomy, the nested corner and
- * the entrances by frequency, now `ui/floating-layer.ts`, the menu's new parts
- * in `ui/dropdown-menu.tsx` and the Library's floating-layer section).
+ * as the production hero), type-scale (B, rungs, now the `--text-*` steps in
+ * theme.css and the Library's own Type section), light (both shadows by role
+ * and the bright edge, now `--shadow-lift`, `--shadow-layer` and `[data-lit]`
+ * in globals.css and the Library's Elevation and bright edge sections) and
+ * floating-surfaces (Card's anatomy, the nested corner and the entrances by
+ * frequency, now `ui/floating-layer.ts`, the menu's new parts in
+ * `ui/dropdown-menu.tsx` and the Library's floating-layer section). One more
+ * left on 2026-09-18: type-phone, the first question-first exploration (the
+ * ladder's order at a phone and its tenth step, now theme.css and
+ * type-ladder-policy.test.ts, and the clamped trim in page-hero.tsx).
  */
 export const BOARDS: readonly BoardSpec[] = [
   RIVER_VISUAL,
@@ -37,7 +39,6 @@ export const BOARDS: readonly BoardSpec[] = [
   GLOW_MOMENTS,
   ROUNDING,
   ALBUM_HERO,
-  TYPE_PHONE,
 ];
 
 export function boardSpec(id: string): BoardSpec | undefined {

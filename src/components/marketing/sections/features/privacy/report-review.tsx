@@ -53,7 +53,7 @@ export function ReportReview() {
             <span className="flex size-10 items-center justify-center rounded-lg border text-muted-foreground">
               <item.icon className="size-5" strokeWidth={1.5} />
             </span>
-            <h3 className="font-heading text-lg sm:text-xl">{item.title}</h3>
+            <h3 className="font-heading text-subsection">{item.title}</h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
               {item.body}
             </p>

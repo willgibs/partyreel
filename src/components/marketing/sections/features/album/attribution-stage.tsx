@@ -103,10 +103,7 @@ export function AttributionStage() {
         >
           <div className="flex flex-col gap-4">
             <Eyebrow {...rise(0)}>Names</Eyebrow>
-            <h2
-              {...rise(1)}
-              className="font-heading text-section text-balance"
-            >
+            <h2 {...rise(1)} className="font-heading text-section text-balance">
               Every shot says who took it.
             </h2>
             <p
@@ -139,7 +136,7 @@ export function AttributionStage() {
                         active ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="font-heading text-base text-foreground">
+                    <span className="font-heading text-subsection text-foreground">
                       {row.title}
                     </span>
                     <span className="text-sm leading-relaxed">{row.body}</span>

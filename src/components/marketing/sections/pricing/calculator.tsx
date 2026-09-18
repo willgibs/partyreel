@@ -88,7 +88,7 @@ export function Calculator() {
         >
           {/* The slider + its live annotation. */}
           <div className="flex items-baseline justify-between gap-4">
-            <span className="font-heading text-3xl tabular-nums">
+            <span className="font-heading text-section tabular-nums">
               {formatBytes(bytes)}
             </span>
             <span className="text-right text-sm text-muted-foreground">
@@ -213,7 +213,7 @@ export function Calculator() {
             className="mt-5 rounded-xl border bg-background/40 p-5"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <p className="font-heading text-lg">
+              <p className="font-heading text-subsection">
                 {rec.planId === "free"
                   ? "Free covers it"
                   : rec.planId === "event_pass"

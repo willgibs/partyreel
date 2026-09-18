@@ -82,7 +82,7 @@ export default async function AdminAccountDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Billing</CardTitle>
+          <CardTitle>Billing</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label="Tier">
@@ -123,7 +123,7 @@ export default async function AdminAccountDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Storage and usage</CardTitle>
+          <CardTitle>Storage and usage</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label="Active storage">
@@ -139,7 +139,7 @@ export default async function AdminAccountDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Account</CardTitle>
+          <CardTitle>Account</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label="Created">
@@ -166,7 +166,7 @@ export default async function AdminAccountDetailPage({
           left to press, only the state, because deletion has no undo. */}
       <Card className="border-destructive/30">
         <CardHeader>
-          <CardTitle className="text-base text-destructive">
+          <CardTitle className="text-destructive">
             {deletion.requestedAt ? "Deletion in progress" : "Delete account"}
           </CardTitle>
           <CardDescription>

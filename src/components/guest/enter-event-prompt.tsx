@@ -46,7 +46,9 @@ export function EnterEventPrompt({
         <Lock className="size-3" aria-hidden />
         Almost in
       </p>
-      <p className="mt-1.5 font-heading text-[22px] leading-tight text-balance">
+      {/* The entry sheet's title slot, so the event name's own step (`page`)
+          whichever of its screens is showing; the step carries its leading. */}
+      <p className="mt-1.5 font-heading text-page text-balance">
         {mediaTotal && mediaTotal > 0
           ? `${mediaTotal} ${mediaTotal === 1 ? "photo is" : "photos are"} waiting`
           : "See all the photos"}

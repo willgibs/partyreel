@@ -8,9 +8,10 @@ import { extendTailwindMerge } from "tailwind-merge";
  * group, which accepts anything. Unextended, `cn("font-heading text-chapter
  * text-white")` returned `font-heading text-white`: the step was dropped on
  * every heading that also names a colour, silently, with nothing to see in the
- * source. The nine names below are exactly the `--text-*` steps declared in
- * src/app/theme.css; a step added there is added here in the same change, and
- * the parity is pinned by src/lib/type-ladder-policy.test.ts.
+ * source. The names below are exactly the `--text-*` steps declared in
+ * src/app/theme.css; a step added there is added here in the same change (as
+ * `subhead` was, 2026-09-18), and the parity is pinned by
+ * src/lib/type-ladder-policy.test.ts.
  */
 export const TYPE_STEPS = [
   "display",
@@ -19,6 +20,7 @@ export const TYPE_STEPS = [
   "chapter",
   "section",
   "prose",
+  "subhead",
   "page",
   "subsection",
   "card-title",

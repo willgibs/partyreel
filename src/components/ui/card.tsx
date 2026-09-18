@@ -38,10 +38,12 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-title"
       className={cn(
-        // The ladder's `card-title` step (16 at every width; the one step that
-        // travels no rungs). Named `card-title` and not `card` because
-        // `text-card` is already the surface COLOR: see src/app/theme.css.
-        "font-heading text-card-title font-semibold group-data-[size=sm]/card:text-sm",
+        // The ladder's `card-title` step (the one step that travels no rungs).
+        // Named `card-title` and not `card` because `text-card` is already the
+        // surface COLOR: see src/app/theme.css. A small card (size="sm") keeps
+        // the step: its padding is smaller, its title's ROLE is not, and the
+        // generator's text-sm here was the one stock size on the component.
+        "font-heading text-card-title font-semibold",
         className
       )}
       {...props}
