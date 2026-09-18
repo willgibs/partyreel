@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 280 contracts on 45 components · 7 standing boards.**
+**22 laws · 18 policies · 280 contracts on 45 components · 8 standing boards.**
 
 ## What binds you
 
@@ -373,4 +373,5 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `river-card` | marketing | Four decisions, no page, every option drawn in the real FeatureDoor at its true size in both of its shapes at 1440 and at 375: the code's height, where the photographs end, the link the code encodes (which sets its size), and the short door |
 | `gallery-width` | shared | Four decisions, no page: the tile size (about 180, 240 or 300 px, the columns following the window), how far the album runs (the full window or the app's 1280 column), where the words sit above it, and whether the host's galleries follow; every option the real page at 1280, 1512 and 1920 with its columns measured in the frame |
 | `body-type` | shared | Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame |
+| `voice` | shared | Eight decisions, no page: bible 20's open question drawn on the guest sheet's own line, the home hero's sentence, a feature page's headline, the Pro card's line beside the Free card, a host's empty dashboard, the email ask, an empty album and an upload's toast; every candidate set in the shipped surface at 1440 or in a 375 column |
 

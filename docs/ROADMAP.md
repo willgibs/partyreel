@@ -20,7 +20,6 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
-- A milestone merge: `main` is 1,089 commits behind `launch-prep` (2026-09-18). Proposed to Will once the ninth batch's boards integrate; every wiring since `milestone-24` reaches partyreel.com only then.
 
 The lab and the kit:
 - Marketing type: the last flat `text-3xl` figure is /qr's pull quote (`features/qr/print-shop.tsx:93`, a `font-heading` paragraph the heading scan does not read); the prices and readouts went onto `section` with `ladders-wiring`. It takes a step by role.
@@ -34,6 +33,7 @@ The lab and the kit:
 - Design: the dialog title's `leading-none` beside `text-card-title` (`ui/dialog.tsx`) overrides the card step's own leading on every dialog; drop it and check the dialog headers signed in.
 - Design: the literal corners left outside the photograph set, each onto the token its role calls for: live-demo's 14px mock panel, and the 6px corners in `reel-builder.tsx` and `style-rail.tsx` (6px is `rounded-md` under C).
 - The lab: `river-visual`'s empty-state comparison draws `GalleryEmptyState` as its "today's grid" half, so both halves are the river since `ghost-wiring` (`31c94253`); the board is answered and retires at river-visual's own wiring, which also points `river-card` at `shared/river` and deletes `sandbox/river-visual/`.
+- The lab (from `voice` round one, 2026-09-18): a production hero mounted on a board arrives INVISIBLE until `Reveal` sees it (`PageHero`'s subhead and actions ride `data-mkt-cut`, whose `animation-fill-mode: both` holds their backwards state), so a board owes a settled-state rule the kit could carry; and `FitStage`'s `swapKey` remounts its child and reports a small box for one frame, so `vw` clamps resolve at their phone end and an 80px headline photographs at 34px (drop `swapKey` where nothing replays; capture one load per option).
 - The lab: `defineExploration` flattens every decision's `configs`, so a knob several decisions share arrives once per decision (a duplicate dock knob and a React key warning); dedupe by id in the constructor (`gallery-width/spec.ts` dedupes its window knob by hand).
 - The lab: a bare `Frame` ignores the lab's Fit, so a 1920 frame stays 1:1 and the stage head's scale button seems dead; fold `WindowFit` (`gallery-width/pages.tsx`: a `data-stage-fit` box with a CSS zoom, honest on an iframe) into `Frame` or the stage.
 - The lab: a leftover forced-h-11 CTA (`sandbox/album-hero/hero.tsx`) takes `size="cta"` if its board outlives the wiring, and `lab/tools/motion/motion-playground.tsx` still names `/design/lab/rounding` as a specimen; re-point it at `/design/library/foundations#radius`.
@@ -117,6 +117,7 @@ The app:
 - The admin chart ramp (`--chart-1..5`, both modes) is still chroma 0 beside Graphite's cool greys; a cast on five greys is a ruling, asked on the `loose-ends` board (cut 2026-09-18).
 - ★ The aurora is dark-ground only (Will, 2026-09-17: "No light ground usage is a decision for now"): the app's light mode owes its own answer for lit surfaces before the dark versus light work starts.
 - Polish: the guest-ghost pack's file list is rebuilt by hand in three components (`guest/gallery-empty-state.tsx`, `app/dashboard/events-empty-teaser.tsx`, `app/dashboard/empty-section-teaser.tsx`); one exported list would be the single source (`ghost-wiring`, 2026-09-18).
+- Guest flow: the dropzone's second line, "Tap to choose, or drag them here" (`file-dropzone.tsx`), is half wrong on the phone almost every guest meets it on (found by the `voice` board, 2026-09-18; not asked there).
 - Cross-gallery sort and filter for the Uploads hub (`get_my_uploads` is filter-ready; add a like-count sort).
 - Zip-export follow-ons: an async build-to-R2 job past the cap; a custom `export.partyreel.com`.
 - Preview-variant follow-ons: a server-side backfill for pre-feature media; preview bytes on the storage meter; the moderation feed's preview; AVIF if quality demands.

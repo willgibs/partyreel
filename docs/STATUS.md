@@ -35,7 +35,7 @@ album hero's round three went "too boring" that way).
 | `river-card` | the river in the real QR door at 4:5 and 3:2, no label, the code unlinked: where it sits, where the photographs end, what it opens, the short door | integrated at `3ed62f0c` (resumed on Sonnet): four decisions, every code at the 3px floor; on the desk |
 | `gallery-width` | how wide galleries run on laptops and desktops: small tiles, more columns, never a wide two-column masonry | integrated: four decisions measured at 1280, 1512 and 1920 (tile, width, where the words sit, the host); on the desk |
 | `ghost-wiring` | river-visual's `ghost` on the guest album's empty state, for Will to judge in the app | integrated at `31c94253` (resumed on Opus): the river's production home `src/components/shared/river/`, two contracts, a Library entry; the ghost's numbers (grayscale 0.85 at 40 percent, the board's) are his to overrule |
-| `voice` | round one of the voice derived from won lines: six to eight real lines, three or four close candidates each, bible 20's question first | building (Opus, :3135; cut `13dd8ffd`) |
+| `voice` | round one of the voice derived from won lines: eight real lines in the places they are read, three or four close candidates each, bible 20's question first | integrated at `e0b92af6`; on the desk; its question (does the first win bind the other seven) is Will's |
 | `glass` | round one of Glass on the app's chrome over photographs: the recipe, the lightbox, the masonry's buttons, the reel overlay, the host grid, the light-ground answers as their own steps | building (Opus, :3132; cut this evening) |
 | `loose-ends` | six ROADMAP decisions drawn on their real surfaces: the admin chart cast, one FAQ look, the hero at tablet widths, the album's three ambient pieces | building (Sonnet, :3133; cut this evening) |
 | `body-type` | the body and label ladder as decisions before any sweep: a guest's reading copy, the app's body, marketing reading copy, the caption floor, the label pair, buttons, line height | building (Opus, :3134; cut this evening; the fourth seat) |
@@ -54,8 +54,9 @@ authoring shape, and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-24` (`592da24`), 1,089 commits behind `launch-prep`;
-  a milestone is proposed once this round's boards integrate. **The `launch-prep` alias**
+- **Prod (partyreel.com)** = `main` @ tag `milestone-25` (`bf9cbd74`, merged 2026-09-18 from the `launch-prep` tip
+  `707d99a2`: Graphite, the type and corner ladders, the Aurora with shadows by role, the hero band and the v1
+  wordmark, the river on the empty album); `launch-prep` runs ahead by the boards integrated since. **The `launch-prep` alias**
   (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock. Will reviews
   on the alias as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**.
   Vercel's cap is 100 deployments per trailing day on every path, so `[preview]` stays the Orchestrator's,

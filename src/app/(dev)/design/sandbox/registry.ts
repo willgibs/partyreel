@@ -7,6 +7,7 @@ import { GALLERY_WIDTH } from "./gallery-width/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
 import { RIVER_CARD } from "./river-card/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
+import { VOICE } from "./voice/spec";
 
 /**
  * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
@@ -27,6 +28,7 @@ import { RIVER_VISUAL } from "./river-visual/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   BODY_TYPE,
+  VOICE,
   PRIVACY_HERO,
   ALBUM_PAGE,
   RIVER_CARD,
