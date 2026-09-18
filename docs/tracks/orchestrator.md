@@ -258,5 +258,21 @@ palette and light first), pasted in batches with Copy so far.
   ASSETS rows 10 and 11 marked superseded by 15 and 16 (the same two asks from the same board in two waves)
   and 15 and 16 re-pointed off the deleted board at `SectionLight` and the Library's Elevation legend.
   `globals.css`, `theme.css`, `_data/links.test.ts` and `_data/docs.test.ts` return to `owns` here.
+- `voice-picks` at `2735ad92` and `floating-wiring` at `8bb6aa9e`, both clean; bible 15 ruled with its first
+  test, which also cleared the last route failing the smoke. The brand-voice board deleted whole at
+  `1257ee63` (bible 20 and 21 re-pointed at `voice`, the ledger and 4,121 lines gone). `library/rules/[id]`
+  no longer 404s when a rule names work that has not been cut, a bug that fired twice the same day.
+- ★ **The lab, upgraded while the lanes ran** (Will asked for it mid-window, then for a ground-up rethink).
+  Measured first: the stage sat up to 5.6 screens below the option it answers to and nothing was sticky, so
+  a step now pins its evidence above the options at every width (out of reach 3 of 11 to 0). `look` was
+  carried and never rendered. A paste says which build composed it and `lab:review` reports the drift.
+  `lab:demo` fails a stage out of reach and prints the sitting's words-only share. Then the cause:
+  `defineExploration` (`9cda5262`) takes questions and emits an ordinary board, so every option is pictured
+  BY CONSTRUCTION and a missing preview is a type error; `type-phone` is the first, and it is the three type
+  calls that had sat in the ROADMAP as prose. Its previews were wrong once and corrected at `8d7f0031`: a
+  `vw` clamp reads the browser's width, so a "375 column" on a 1550 page drew the 1440 sizes under a 375
+  label. Frames fixed it, and the `vw` lesson is in `traps.ts`.
+  ★ Still mine: nothing outstanding. The four boards Will is stuck with (media-kit, album-hero, rounding,
+  river-visual) clear in their present shape, and the old authoring surface is scrubbed when they do.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
