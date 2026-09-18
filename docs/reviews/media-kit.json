@@ -1,0 +1,34 @@
+{
+  "board": "media-kit",
+  "rounds": [
+    {
+      "n": 7,
+      "opened": "2026-09-18",
+      "answers": [
+        {
+          "ask": "rule",
+          "choice": "no",
+          "note": "The images we use on the production site should have no attribution to original authors. If we're using it, that means we have full licenses and rights. What's the one unverified line we currently have?",
+          "by": "Will",
+          "at": "2026-09-18T03:25:44Z"
+        },
+        {
+          "ask": "spend",
+          "choice": "hold",
+          "note": "I will attach a separate note in chat to clarify the new media path.",
+          "by": "Will",
+          "at": "2026-09-18T03:25:44Z"
+        },
+        {
+          "ask": "shoot",
+          "choice": "park",
+          "note": "We will not be having a photo shoot. No idea where this originally came from. Look for a separate note in chat to clarify new media sourcing.",
+          "by": "Will",
+          "at": "2026-09-18T03:25:44Z"
+        }
+      ],
+      "notes": [],
+      "items": []
+    }
+  ]
+}

@@ -318,7 +318,6 @@ describe("the board registry", () => {
    */
   const UNREVIEWED_BEFORE_THE_RULE = new Set([
     "album-hero", // r3, waiting on his four picks and three recommendation calls
-    "media-kit", // r7, waiting on the spend and shoot asset asks
     "river-visual", // r2, not yet walked
     "rounding", // r7, five steps open, next after floating surfaces
   ]);

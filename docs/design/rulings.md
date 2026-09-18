@@ -8,6 +8,50 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-17 · the media kit is killed; every frame is generated in one Higgsfield month, and nothing tracks an image's rights
+
+**Became:** `docs/reviews/media-kit.json` round 7 (`rule=no`, `spend=hold`, `shoot=park`; the crowds
+answer deliberately not recorded, below), then the board deleted whole: the 36-frame call sheet, the 13
+catalogues, the $56 plan and the 22 staged stock photographs. The `credit` field removed from
+`MarketingImage` and its test; bible 18's why re-pointed at generation; ASSETS rows 6, 7 and 13 withdrawn,
+rows 1 to 4 and 14 parked on the Higgsfield month; that month a line under the ROADMAP's major overhauls.
+The line he asks after below was `license: "unsplash (per lab-pack comment; provenance unverified)"` on all
+twelve stand-in stills: a guess an early agent wrote when it copied them in from a dev pack, read by
+nothing but its own test.
+
+Verbatim, on the kill: "Let's kill the media kit from the pending explorations. I answered a few of the
+questions to address strategy." His notes on the three steps he answered: `rule=no`, "The images we use on
+the production site should have no attribution to original authors. If we're using it, that means we have
+full licenses and rights. What's the one unverified line we currently have?"; `spend=hold`, "I will attach
+a separate note in chat to clarify the new media path."; `shoot=park`, "We will not be having a photo
+shoot. No idea where this originally came from. Look for a separate note in chat to clarify new media
+sourcing."
+
+Verbatim, on rights, which binds every agent. Asked which way the crowds answer should be recorded (the
+option pressed and the note pointed opposite ways): "The official decision is that this should not even go
+into the record. Again, if we're using images, it inherently means we have the licenses to do so. Our AI
+chat agents do not need to track photo subjects and whether or not we had that permission. That's
+ridiculous for our pruposes." And on the field that tracked it: "Please remove the credit field from our
+existing stills so that it does not carry forward."
+
+Verbatim, on the source: "However, regarding the potential sources for media themselves, I think I found a
+far better path. When looking at all the stock photography, I realized that we were going to be limited by
+various factors: it's hard to find many high-quality photos packs recognizably from the same event and
+licensable, for any packs we could find we're limited to what it contains and may not fit perfectly, and
+we're paying a lot of money to support our visual needs. Better path: https://higgsfield.ai/ ... We can use
+its tools to shape a moodboard for consistent brand feel across future outputs, then through a combination
+of inspo images and creative prompting, generate an unlimited amount of high-quality photorealistic photos
+that we 100% own, match our exact needs, will likely feel far more exciting than real pictures, can remain
+on brand rather than mixing many different image styles, works across events/conferences/trips/weddings/etc.
+Imagine if at every photo instance you could simply ask for exactly what you wanted rather than spend tons
+of time hoping to find something that even comes close. That dream has come true!"
+
+Verbatim, on timing: "We will not immediately open the higgsfield media generation track - let's defer for
+now to shape more of the site, then we'll have a better of what we need. Try to do it all together so we
+can get away with a 1month subscription to higgsfield." Asked whether the board's 36-frame call sheet
+should survive as the month's starting brief, he chose "delete it all, start blank": the track writes its
+brief from the site as it stands when it opens.
+
 ## 2026-09-17 · the brand voice exploration is killed unruled; the voice is rebuilt from won lines, one comparison at a time
 
 **Became:** `docs/reviews/brand-voice.json` round 7, created and closed in one paste (`voice` left open with
