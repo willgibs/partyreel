@@ -1,6 +1,6 @@
 ---
 track: body-type
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "5e03ffe2"         # the launch-prep SHA the branch was cut from
 board: body-type        # round one: the body and label ladder as decisions, before any sweep
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -105,27 +105,124 @@ code: `pnpm design:rules`, `node "src/app/(dev)/design/gallery/collect-specimens
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **What are the four steps called?** The goal offered the names as an eighth decision "if two good namings
+  exist". Two do, and they draw the same picture, so it is a question and not a step (a decision whose options
+  look identical is a paragraph pretending to be one). **Recommended: `copy` / `body` / `caption` / `label`**.
+  Reading copy is `text-copy`, the app's working step is `text-body`, and the plain name goes to the workhorse
+  (the 366 sites that are `text-sm` today). The alternative is `body` / `ui` / `caption` / `label`, where
+  `text-body` is reading copy because that is the safest default to type. Both clear the two traps: no
+  `--color-copy`, `--color-body`, `--color-caption`, `--color-label` or `--color-ui` exists (the card step is
+  `card-title` because `--color-card` does), and all four are declarable in `TYPE_STEPS`.
+- **Does the caption step also become the label step's size?** Decision 5 offers one pair at 12 and one at 11,
+  and the floor picked in decision 4 can rule the 11 out. **Recommended: yes, one size**: the label step is
+  the caption step set in uppercase with tracking, which is one fewer rung to keep. If he picks a floor of 12
+  and a label of 11 the board will say so; the wiring then needs a rung the floor does not cover.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. The guest reading-copy rule in `docs/design/guidance.md` is what this board replaces, and it is edited
+  by the RULING, not by the board that asks about it.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Design system: `defineExploration` should dedupe a shared `configs` control by id. Every board with one knob
+  across decisions has to filter its own `controls` afterwards (gallery-width found it; this board copied the
+  workaround verbatim, both spec files carry the same comment).
+- Design system: 24 sites share `text-[15px]` across the guest pages and marketing, so the body-ladder wiring
+  cannot sweep that class in one pass; it has to split them by surface.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree, each step's own exit code: design:rules, specimens, typecheck, lint, test (N), build (M pages), lab:smoke, lab:demo
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the registration lines + the generated files
-- Each decision, one line: the surface, the options with their measured numbers, the recommendation and why
-- Captures (paths): every option at its true size beside its words
-- Assets requested from Will: none
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `ae280c75`, pushed; synced with `launch-prep` at `feba31f9` (it had moved: the voice lane merged, plus
+  milestone-25 and three docs commits). Merged, never rebased; keep-both on all four registration conflicts
+  (`registry.ts`, `boards.ts`, `touchpoints.ts` twice for the unions and once for the RULINGS row), the
+  generated `docs/design/library.md` regenerated on the merged tree rather than hand-resolved.
+- Gates on the synced tree, each step's own exit code: `pnpm design:rules` 0 · specimens 0 (120 specimens on
+  90 entries) · `pnpm typecheck` 0 · `pnpm lint` 0 (8 known warnings, 0 errors) · `pnpm test` 0 (233 files,
+  2197 tests) · `pnpm build` 0 (254 static pages, server killed by port first) · `pnpm lab:smoke` 0 (242
+  checks, 0 failing; the board reads 429 words of 1200) · `pnpm lab:demo --board body-type` 0 (7 steps, 0
+  failing, every step draws its options; tallest 1.8 screens, wordiest 216 words).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`:
+  ```
+  docs/design/library.md
+  src/app/(dev)/design/(shell)/lab/boards.ts
+  src/app/(dev)/design/sandbox/body-type/board.tsx
+  src/app/(dev)/design/sandbox/body-type/fixtures.ts
+  src/app/(dev)/design/sandbox/body-type/spec.ts
+  src/app/(dev)/design/sandbox/body-type/surfaces.tsx
+  src/app/(dev)/design/sandbox/registry.ts
+  src/app/(dev)/design/touchpoints.ts
+  ```
+  The owned directory, the three registration files and the one generated artifact. No production byte moves.
+
+### The seven decisions, with the numbers measured in the frame
+
+Every pair below is `size/leading` read off the real element inside its frame with the DevTools protocol, at
+1440 and again at 375. The leading shown is under the recommended rule (`length`, 2 x size - 8).
+
+1. **A guest's reading copy** (the real guest page at a 375 frame, `tile: "phone"`): 15/22 · **16/24** ·
+   17/26, under an h1 measured at 24/30.25. **16**, a rung the ladder already holds, the browser's own base,
+   and level with `card-title` where 17 would outrank the card title it sits under. 24 arbitrary
+   `text-[15px]` sites go.
+2. **The app's working body** (the dashboard over the admin jobs table, one 1440x1100 frame): **14/20** ·
+   15/22 · 13/18. **14**, the only rung on offer and the one 366 `text-sm` sites already wear. The two-rung
+   gap to a guest's 16 is what makes these two steps and not one.
+3. **Marketing reading copy** (a feature section, both widths): 16/24 flat · 18/28 flat · **fluid, measured
+   16/24 at 375 and 18/28 at 1440**. **Fluid**: the headings travel two to four rungs between the ends and
+   copy that does not travel with them shrinks as the page grows; at 375 it IS the guest's step. (`lab:demo`
+   reports 18-flat and fluid as the same picture at 1440, which is the clamp's ceiling: the difference is at
+   375, and the width knob shows it.)
+4. **The caption step, and the floor** (real event cards, two feed headers, a table head): **12/16** · 11/14 ·
+   10/14, one step replacing all three. **12**, the rung the scale bottoms out at, 148 arbitrary sizes
+   retired, and a floor that can be said out loud. Cost: every pill over a photograph grows.
+5. **The label step** (ten uppercase labels across marketing and the app, staged after the floor):
+   **12/16 +0.140em** · 11/14 +0.140em · 12/16 +0.080em, tracking measured in em off the element. **12 on
+   0.14em**, already on the site, the louder of the two we ship, and on the floor rather than under it.
+6. **Buttons on the ladder** (every Button size in the place it ships, staged after the app's step):
+   **ladder** cta 16/24, default 14/20, sm 12/16 · **own** cta 16/24, default 14/20, sm 12.8/19.2 · **one**
+   everything 14/20. **Ladder**: measured, it differs from today at exactly one size, the arbitrary
+   `text-[0.8rem]` on `size="sm"`, which is the whole point.
+7. **The line-height rule** (a feature section over the table): **length** 18/28 and 14/20 · **ratio** 18/27
+   and 14/21 · **two ratios** 18/28.8 and 14/19.6. **Length**: `2 x size - 8` reproduces the pairs the site
+   already wears at every rung (12/16, 14/20, 16/24, 18/28) and lands each on the 4px grid, which no ratio
+   does at an odd size.
+
+### Three things the measuring caught, which the board's words now say
+
+- **An arbitrary size is not leading-less, it inherits 1.5.** Tailwind's preflight sets a unitless 1.5 on
+  `<html>`, measured: `text-[15px]` computes to 22.5 and `text-[11px]` to 16.5. So the "one ratio" option IS
+  what the site does today wherever a class carries no pair, and the first draft of decision 7 (which said the
+  browser's normal, about 1.2) was wrong. The option that only drew today was dropped as a duplicate.
+- **A feature paragraph wears the same `text-[15px]` as the guest page**, so the guest rule and the marketing
+  rule collide and the later one wins on source order. Caught because the leading frame drew marketing's copy
+  at the guest's size while the caption under it said so. The wiring has the same problem: those 24 sites have
+  to be split by surface.
+- **A page shell's `min-h-full` resolves against the FRAME's viewport**, so the first of two stacked surfaces
+  claimed the whole window and pushed the admin table out of the tile while it still measured correctly in the
+  DOM. Both stacked surfaces now take a `stacked` prop. The same trap would hit any board that puts two real
+  pages in one frame.
+
+- Captures (`/private/tmp/partyreel-captures/body-type/`, never committed): 21 stage captures at 1440
+  (`<decision>-<option>.png`) and 21 at 375 (`-w375.png`), each the whole stage with the option's chip, the
+  frame title and the measured caption in shot; plus `measurements.json` and `measurements-w375.json`, the
+  computed size, leading and tracking of 18 probes per option. Every tile was checked against its option's
+  words; the one copy bug found (a JSX-eaten space that read "128photos") is fixed.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: **decision 4, the floor.** It is the only recommendation that makes something visibly BIGGER
+  (every pill on an event card, and the feed counters), and it is the one number that gets said out loud
+  afterwards. Flip the width knob to 375 on it: the badges over a photograph are where 12 either reads as
+  correct or as heavy.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-18). Round one of `body-type` asked the body and label ladder as
+seven decisions instead of proposing it as a scheme: a guest's reading copy on the real guest page in a 375
+frame, the app's working body on the dashboard stacked over the admin's jobs table, marketing's copy fixed or
+fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the
+line-height rule. Every option was the real surface wearing the paste a ruling would land (`Frame`'s adopted
+sheet, aimed at the production classes so it reached imported components too), and every number on a step was
+read off the element inside its frame rather than assumed, which caught three things the first draft had
+wrong: an arbitrary size inherits Tailwind's 1.5 rather than carrying nothing, a feature paragraph wears the
+guest page's own `text-[15px]`, and a stacked page shell's `min-h-full` eats the frame. Nothing outside the
+board's directory and the three registration lines moved.
