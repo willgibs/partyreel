@@ -6,11 +6,62 @@
 > state (→ [`STATUS.md`](STATUS.md)). GROWS BY: a new entry at a round's close, and the third-oldest
 > entry deleted in the same commit. Everything older is in git: `git log --oneline` for the commits,
 > `git show 932fdee9:docs/CHANGELOG.md` for the last full archive (5,495 lines, 2026-07-02 to 09-16),
-> `git show dd77fc9e:docs/CHANGELOG.md` for the Library x Lab round's entry, `git show 52e9afa2:docs/CHANGELOG.md` for the revamp's.
+> `git show dd77fc9e:docs/CHANGELOG.md` for the Library x Lab round's entry, `git show 52e9afa2:docs/CHANGELOG.md` for the revamp's,
+`git show d2db2629:docs/CHANGELOG.md` for the stepped review round's.
 
 ---
 
-## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` onward)
+## 2026-09-18 — The ladders and the dock: both ladders wired, the lab's step rebuilt, four question-first boards cut (`00e82dba` onward)
+
+**What Will did.** The eighth batch (`00e82dba`) answered both ladders. `type-phone` r1 came back with its
+two phone calls open and one direction, "fix the mobile type scale ladder so the upper heading is larger",
+and a rule for every type question after it: "we really shouldn't have any one-off adding instances.
+Everything should be addressed in our design system type ladder." `rounding` r7 picked family C,
+`actions=today`, `ladder=quarters` ("This keeps the final pixel calculations much cleaner."),
+`dead-rungs=drop` and `gap=pinned`. Generated media got its one sentence in the Terms (version 1.2), and no
+image carries a mark. The ninth batch (`d62dac22`) closed album-hero r3 (`composition=none`: "my calm
+instruction messed us up - now it feels too boring"; `w880` with the bottom faded and the lamp under it
+"wrong"; `headline=lg`, `no-script=settled`, `copy=page`) and river-visual r2 (`placement=card`, `code=in`
+as an Easter egg with no label, `guest-photos=ghost`). He answered `proportion` with the lab itself: "The
+top preview UI of our lab is covered by the answer UI, and I cannot scroll it". In chat, the album hero gets
+a round four at the home hero's pace, subtle, and galleries run wide with "a smaller size and add more
+columns. Not go wide and keep 2 col." The calm lesson is PROGRAM.md's now: a relative note is answered
+against a reference, never a cap and a test.
+
+- `ladders-wiring` (phase 1 merged early at `5a5c6eb4`, phase 2 at `d2db2629`; bible 5 and 8 ruled and
+  15's numbers, both ledgers gone). The type ladder's law became the ORDER: `prose` 18 to 24 at a phone with
+  1440 unmoved, a tenth step `subhead` (20 to 24) naming the pair seven sub-heads wore, all 126 off-ladder
+  heading-face elements onto the step their role calls for or named in `type-ladder-policy.test.ts`, and the
+  display trim tracking its leading (the caps 2px under the gap at 375, was 5). The corners became family C
+  in quarters: an 8px surface, a 12px floating layer with 8px rows, a 4px photograph with the gallery gap
+  pinned to it, 3xl and 4xl set to `initial` so Tailwind's defaults cannot return, a `cta` Button on 46
+  sites, the guest sheet on the floating corner, `--shadow-float` and `--radius-action-lg` retired. Its
+  finding: `cn()` did not know the radius tokens, so a token corner and a stock one both survived and the
+  stylesheet's order picked (`RADIUS_TOKENS` teaches it).
+- The lab's step, rebuilt (`d37be90e`): the preview is the page and the answer is a dock. Every option is
+  mounted once at its true size, flipped (one visible, the rest inert and paused) or side by side when they
+  all fit; a sticky head names the option on the stage and the scale it is drawn at; a sticky dock holds
+  the options, Back, Pick and Next, the note and "not clear". The step lands on the recommendation, keys
+  cover the rest (1-9, x for A and B, g, n, ?, Enter from the note), and a staged decision is drawn wearing
+  the board's decided answers. The re-paste he saw had two causes, both fixed: a transcribed `?` stayed in
+  the walk, and the walk's end composed its message with no ledger check (`alreadySent`, one rule for both
+  composers). `lab:demo` fails CLIPPED, UNLABELLED, NO DOCK and a stage starting below 0.6 of a screen; it
+  passed all ten steps reopened locally to measure it.
+- The glow boards retired with nothing open (5,613 lines and both ledgers), and with them a leak: the lab's
+  global `[data-lit]` rule restyled production's bright edge for the rest of a session once a glow board had
+  been visited. The floors that counted boards' stylesheets (at least five sheets, over thirty keyframes,
+  more than one lab sheet, the first standing board) became checks on the fixed files, so no retirement can
+  turn them red; the standing-board list in `touchpoints.test.ts` is derived from the registry. `lab:smoke`
+  passes whole again, so its exit code is a real gate.
+- Four boards cut on three lanes (`33f1de95`), each from measured facts: `privacy-hero` and `album-page`
+  (`heroes`), `river-card`, `gallery-width`. An exploration's preview may now be a function of the board's
+  state, so a staged decision can draw at the answer it waits on.
+
+**Next.** The four boards integrate and his sitting runs on them in the new step; then the wiring lanes
+(the album page, the river, the privacy hero, the galleries); then a milestone (`main` is 1,089 commits
+behind).
+
+## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` to `00e82dba`)
 
 **What Will did.** He opened his stepped sitting on the hero, answered its round six `none` in chat ("I
 think I liked the more symmetrical approach more than the variants we're using to scatter the photos"), and
@@ -168,90 +219,4 @@ object with `indexOf("{", indexOf("defineBoard("))`, which CLAMPS to 0 when the 
 did not understand was silently mis-scanned rather than refused; and a tile always drew in a 1440 canvas,
 so a phone column arrived as a thumbnail.
 
-**Next.** His sitting continues on type-phone, rounding, the album hero and river-visual.
-
-## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
-
-Will stopped his first per-item sitting on the round-four catalogs: "the review process favors you and
-makes me spend tons of time per track figuring what I'm even being asked." He asked for every open track
-to run one more round shaping its previews and information for a question-based review, staged where one
-depends on another, the desk current, old answers never re-sent; his model was "a multi-step onboarding
-form where all context is made available for 1+ questions around the same content, then onto the next
-context", with four screenshots (Cofounder, Adobe Express, Linktree, Biosites) as the feel. He rejected a
-machinery-heavy first plan with the steer that binds from here: the end goal is the product, fast
-iterative rounds beat slow meticulous ones for design, HTML and CSS is shaping rather than QA, the lab is
-a means. The round ran in one day: the spec fields, one kit lane, then every board four agents at a time,
-each integrated as it handed off; the record of the plan is `/Users/gibby/.claude/plans` (the Orchestrator's).
-
-**The fields** (`02c409b4`). `board-spec.ts` gained `Ask.lands` (what an answer decides platform-wide),
-`Ask.after` (an earlier ask or a card of the board's own catalog the question waits on), `Ask.strip` (the
-controls a step keeps beside its stage), `AskOption.state` (how an option is drawn on the specimen),
-`Candidate.lands`, and `CatalogSpec.mode` (`pick-one | keep-any`), `winner`, `walk` and `stage`;
-`registry.test.ts` rules on them, an ask mirroring a clearable control may offer its cleared default as
-`none`, and `look` is optional once every option is drawn.
-
-**`lab-flow`** (merged `c18570c4`) rebuilt the review as the form on the pieces that existed. `step.tsx`
-renders one context and its question alone on the screen: the options as preview tiles drawn on the
-board's own section in each option's state (a press shows on the stage through the URL, a second records,
-a third clears and puts the mirrored control back), a config strip, the real surface as the stage, the note
-with "This question is not clear to me", Back and Next; a pick-one catalog is decided by its winner ask on
-the cards themselves with "None of these: new directions" as the third exit, so the ledger line is
-`<ask>=none "..."` and the grammar never grew a word; a keep-any catalog walks one card at a time with
-`BeforeAfter` and "Lands as"; `Ask.after` stages a question until its prerequisite is decided (the ledger's
-side resolved on the server, the sitting's in the store) and drops it as moot; the desk lists the walk's
-own steps, badges what is held but not sent, dims what is staged, and "Copy so far" omits what the ledger
-already holds. The Answer's ask pills, the board index, the sections' "Rule on:" rows, the review panel,
-"Take me there" and `waitingOnWill` were deleted, which alone halved the catalog boards' reading; a tile is
-a `role="button"` div with an inert preview because a section holds real buttons; `pnpm new-board`
-scaffolds the pick-one shape.
-
-**The boards**, each reshaped in half a day with no new exploration, every one now under the standard
-1,200 words with its budget declaration deleted:
-- `home-hero` (merged `56ea9185`, asked as pick-one at `c334de13`): round six's catalog of four
-  compositions of the stream (mirror, phrase, settle, ribbon) on one engine, every seeded value a step in a
-  declared table, the board recommending the settle; the winner asked on the four cards plus none; 743.
-  Will answered it none in chat the same evening (the symmetric approach like the original reference over
-  any scatter, `514a5902`), and round seven (`ccf93732`) was built in the root tree with no lane: the
-  engine gains a turn by distance, a polar placement and a lockup with its own axis, and the board carries
-  the band (Melius's shape, recommended), the orbit (Cosmos's ring centred on the code, the block hung
-  under it) and the band with the whole block under or over the code; 779.
-- `type-scale` (merged `ec7367e7`): one pick over five ladders, then letter spacing and the 404 heading as
-  two-tile steps, the second staged behind the pick; round six's open question settled by one real page
-  re-typing itself in place with a second copy under it on a fade; 486.
-- `light` (merged `7ed0d2a2`): the twelve walked one at a time in Will's order on three specimens (the
-  lamps on one chapter, the depth cues on one pair of overlapping tiles, the marks on one reel frame), each
-  drawn as today and with it, with what it lands as and its usages; the four calls as tile steps; where the
-  aurora lands staged behind keeping the aurora; the order ask renamed `second` so round five's
-  `infusion=phase-1` stands; 920.
-- `palette` (merged `49ed0fbf`): one pick over the twelve, the real product as the stage on one Screen
-  control, the accent, card, faint-text and reach questions as tiles on one specimen each, reach staged
-  behind accent on; the guest masonry and its portrait-pair ask withdrawn; 1,191.
-- `floating-surfaces` (merged `514aee2d`): one pick over the seven directions, the real product as the
-  stage, the four calls as tile steps each on one menu, the shipped nested-submenu bug named in its step
-  for the wiring round; 922.
-- `rounding` (merged `7d90465c`): one pick over the six families, one real page re-skinned in place, the
-  button, ladder, dead-rung and gap questions as tiles at true pixels; 684.
-- `brand-voice` (merged `0c1cfa60`): one pick over the six voices on three lines at phone size, the real
-  home page as the stage, the noun, unfurl and counts questions as tiles and the scope question means-only
-  behind the pick; the spot list stays as the whole board's own section off the walk.
-- `media-kit` (merged `61063785`): thirteen cards in one keep-any gallery, a kept card a purchase priced
-  on the card, the crowds question as two tiles on the blog's own row, the rule, spend and shoot questions
-  means-only over real stages; the side-by-side section and its twenty-six dock pills deleted; 1,077.
-
-**Fixed on the way.** The library artifact regenerated after a touchpoints edit (`627ca513`; CLAUDE.md
-names `touchpoints.ts` among what triggers `pnpm design:rules`); three manifests stopped reading the merged
-kit manifest (a manifest is never a stable read); the hero's touchpoint entry and two media-kit asset
-references brought to round six; a card's "Lands as" line drawn on the picked card of any grid
-(`ef5e737d`); the meta panel's Ideas rows visible again, a native details folds by itself (`e6e05afb`).
-The kit findings sit on the ROADMAP's Now list: a true-size box whose reads settle, a declared tile size
-for a board whose tile is the specimen, a one-at-a-time step's config strip, a blocked step reached by URL
-numbering itself past the end, `lands` on a keep-any gallery, a tile that takes its board's canvas width.
-One rule broken: the light agent force-pushed its own branch once after amending a pushed commit; no
-damage, and every later brief says a fix is a follow-up commit.
-
-Gates at every merge: `pnpm design:rules`, typecheck, lint, the tests (2,160 at the close), the build
-(258 pages), each on its own exit code; `pnpm lab:smoke` over 257 checks with no route failure and only
-the two glow boards over budget, on purpose. The alias build waits for Vercel's cap (2026-09-17 00:13
-UTC). Next: Will's stepped sitting on the desk, then a wiring round per pick (the wind-down: a favourite
-becomes a working version in the Library and the board retires), and Round 3's planning pass after the
-sitting.
+**Then.** His sitting finished on type-phone, rounding, the album hero and river-visual in the next two batches.

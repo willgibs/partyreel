@@ -12,8 +12,8 @@ import { CopyLine } from "./specimen";
  * THE CONFIG PANEL (the gallery round, 2026-09-12): ONE reusable knob kit, so
  * a component's live configuration costs a declaration rather than a board.
  *
- * The precedent is two board-local panels, the register slider in
- * sandbox/glow-doctrine-variants.tsx and the style picker in
+ * The precedent is two board-local panels, the register slider on the glow
+ * doctrine board (retired 2026-09-18) and the style picker in
  * reel-parity/parity.tsx: both good, both trapped in their board. This is the
  * same idiom promoted: declare knobs, get a panel, a live specimen, and the
  * JSX line the knobs describe, which is the part an agent actually wants. The

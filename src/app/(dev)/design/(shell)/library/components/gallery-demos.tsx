@@ -120,6 +120,7 @@ const buttonSizes = [
   "sm",
   "default",
   "lg",
+  "cta",
   "icon",
   "icon-xs",
   "icon-sm",

@@ -31,7 +31,7 @@ export function GalleryEmptyState({
             src={src}
             alt=""
             loading="lazy"
-            className="aspect-square w-full rounded-[3px] object-cover"
+            className="aspect-square w-full rounded-tile object-cover"
           />
         ))}
       </div>

@@ -110,11 +110,11 @@ export default function AboutPage() {
         heading={ABOUT_HERO.wordmark}
         subhead={ABOUT_HERO.subhead}
         actions={
-          // h-11 px-6 text-base is the site's hero CTA size, shared verbatim
-          // with cinema-hero and CtaBand: this is the one control pair the page
+          // `size="cta"` is the site's hero CTA size (button.tsx), the same one
+          // cinema-hero and CtaBand wear: this is the one control pair the page
           // carries, so it matches the others exactly.
           <>
-            <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Button asChild size="cta">
               <Link
                 href={MARKETING_CTA.href}
                 {...trackAttrs("cta_click", {
@@ -125,12 +125,7 @@ export default function AboutPage() {
                 {MARKETING_CTA.label}
               </Link>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline">
               <Link href={ABOUT_HERO.secondaryHref}>
                 {ABOUT_HERO.secondaryLabel}
               </Link>
@@ -247,12 +242,7 @@ export default function AboutPage() {
               compete (its doctrine: the footer is the paper lane's one
               CONVERSION action). Same size as the hero's secondary, so the
               page's two action moments match. */}
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="mt-1 h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline" className="mt-1">
               <Link
                 href={ABOUT_CAREERS.href}
                 {...trackAttrs("cta_click", {

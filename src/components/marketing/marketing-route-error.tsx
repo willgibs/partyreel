@@ -50,15 +50,10 @@ export function MarketingRouteError({
           description="Something went wrong loading this page, and it's on us, not you. Try again; if it keeps happening, we want to know."
           actions={
             <>
-              <Button size="lg" className="h-11 px-6 text-base" onClick={reset}>
+              <Button size="cta" onClick={reset}>
                 Try again
               </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-11 px-6 text-base"
-              >
+              <Button asChild size="cta" variant="outline">
                 <Link href="/">Back home</Link>
               </Button>
             </>

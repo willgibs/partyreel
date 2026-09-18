@@ -34,12 +34,15 @@ import { join } from "node:path";
 const DATA = "src/app/(dev)/design/_data/legacy-routes.ts";
 const SPEC = "src/components/lab/board-spec.ts";
 const SANDBOX_DIR = "src/app/(dev)/design/sandbox";
-// The crawl starts at the two areas, plus the two iframe scene routes an href
-// crawl can never reach (a board builds their src client-side, key included).
+// The crawl starts at the two areas, plus any iframe scene route an href crawl
+// can never reach (a board builds its src client-side, key included).
 const SEEDS = ["/design/library", "/design/lab"];
-// (type-scale's scene left with its board on 2026-09-17, at its ruling, and
-// floating-surfaces' left the same day at its own.)
-const SCENES = ["/design/sandbox/rounding/screen"];
+// EMPTY, AND THAT IS CORRECT, NOT A GAP: no standing board draws its stage in
+// an iframe scene route any more. type-scale's and floating-surfaces' scenes
+// left with their boards on 2026-09-17, and rounding's `screen/` (the last one)
+// left with its board at its ruling on 2026-09-18. A board that adds a scene
+// route adds it here in the same change, or the crawl never visits it.
+const SCENES = [];
 // The boundary probe throws during server render on purpose (its page.tsx).
 // Whether that surfaces as a 500 or inside a 200 depends on where the shell's
 // Suspense boundary sits, so both pass; only the gate's 404 or no answer fails.

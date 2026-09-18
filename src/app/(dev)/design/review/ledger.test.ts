@@ -15,7 +15,6 @@ import {
 
 import { COMPONENTS } from "@/app/(dev)/design/rules/rules";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
-import { SANDBOX } from "@/app/(dev)/design/touchpoints";
 
 import {
   latestRound,
@@ -133,14 +132,15 @@ describe("the review ledgers", () => {
 
 describe("a board's status", () => {
   it("is derived from the spec minus the ledger, with no spec needed", () => {
-    // Phase 0 has no specs registered yet; a board without one reports no asks
-    // rather than throwing, so the desk renders during the migration.
-    const status = boardStatus(SANDBOX[0].id);
-    expect(status.board).toBe(SANDBOX[0].id);
-    if (status.spec === null) {
-      expect(status.asks).toEqual([]);
-      expect(status.complete).toBe(false);
-    }
+    // A board without a spec reports no asks rather than throwing, so the desk
+    // renders whatever is registered. A made-up id on purpose: the first
+    // standing board was the example until boards began retiring faster than
+    // new ones arrived, and a zero-board lab must not crash this.
+    const status = boardStatus("a-board-with-no-spec");
+    expect(status.board).toBe("a-board-with-no-spec");
+    expect(status.spec).toBeNull();
+    expect(status.asks).toEqual([]);
+    expect(status.complete).toBe(false);
   });
 
   it("answers every ask from an option that ask declares", () => {

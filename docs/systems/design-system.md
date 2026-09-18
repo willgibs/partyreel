@@ -100,7 +100,7 @@ ruling, where the rule lives), rendered at `/design/library/record`.
   shadow token that must draw nothing is the INVISIBLE value `0 0 0 0 oklch(0 0 0 / 0)`, never
   `none`** (Tailwind composes `--tw-shadow` into a comma-separated `box-shadow` beside the ring/inset
   slots, and a `none` in that list invalidates the whole declaration, taking any ring on the element
-  with it — `.dark` says exactly this where it re-states the retired `--shadow-float`'s zero); **`--card-foreground` travels WITH `--card`** (shadcn `Card` is `bg-card
+  with it — the retired `--shadow-float` bridge needed exactly this zero on `.dark` until it left, 2026-09-18); **`--card-foreground` travels WITH `--card`** (shadcn `Card` is `bg-card
   text-card-foreground`, so half-redeclaring makes a Card ink-on-ink, i.e. invisible rather than merely
   wrong), same for `--muted`/`--muted-foreground`; and `--input` paints the same near-white hairline
   `--border` is redeclared to stop. `.surface-ink` carries all of them, which is why a leaf should wear
@@ -228,10 +228,8 @@ events and pricing, and closes on the FAQ, the CTA and the tail.
 
 ## Light: SPILL, BEAM, and the lamp set
 
-> The two open boards
-> ([`sandbox/glow-doctrine-variants.tsx`](../../src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx),
-> `glow-moments`) hold the placements still under discussion; the rules live here rather than in the
-> boards, because a rule that lives only inside a lab TSX is a rule the next agent has to go
+> The two glow boards that argued this retired on 2026-09-18 with nothing open (git keeps them); the
+> rules live here, because a rule that lives only inside a lab TSX is a rule the next agent has to go
 > excavating for.
 
 Two siblings, and picking the wrong one is the usual mistake. **SPILL** is light falling FROM a lit
@@ -666,39 +664,60 @@ the work mono used to do:
 
 ## Rounding: sharp surfaces, round actions
 
-| Layer | Token | Value |
-| --- | --- | --- |
-| Surfaces (cards, inputs, sections) | `--radius` | `0.125rem` (sharp) |
-| Actions (buttons) | `--radius-action` / `-lg` / `-sm` | `1rem` @ h-10 · `1.2rem` @ h-12 · `0.8rem` @ h-8 (ratio ~0.4 x height); the in-between Button sizes DERIVE from `--radius-action` (h-6 0.6x, h-7 0.7x, h-9 0.9x, `button.tsx`), so one knob moves the whole ladder |
-| Media tiles | `--radius-tile` · `--gap-gallery` | radius `3px`; `--gap-gallery` (`3px`) is the ONE gap for EVERY media-tile grid: masonry galleries + the dense triage grids (Reviews / review takeover / admin moderation). Use `gap-[var(--gap-gallery)]`; one knob retunes them all |
-| Floating layer (menus, tooltips, toasts, dialogs, sheets' corners) | `--radius-float` | `0.5rem` (sharp reads broken on floating elements); a ROW inside one of those panels is `calc(--radius-float - 4px)`, derived in [`floating-layer.ts`](../../src/components/ui/floating-layer.ts) so retuning the token moves both |
+**Family C, the derived steps in quarters** (Will's ruling, 2026-09-18, on the rounding board:
+`family=c`, `actions=today`, `ladder=quarters`, `dead-rungs=drop`, `gap=pinned`). The values have
+one home, the `:root` block of [`globals.css`](../../src/app/globals.css), and the Library draws and
+measures them at `/design/library/foundations#radius`; this table says what each token is FOR.
 
-Nested-corner math: inner = outer minus gap. The sharp-surface/round-action contrast is the
-system's DELIBERATE exception to it.
+| Layer | Token | What wears it |
+| --- | --- | --- |
+| Surfaces | `--radius` (8px under C) | cards (`Card` wears `rounded-lg`, the token itself), inputs, panels, plates; the base the derived steps multiply |
+| Actions | `--radius-action` / `-sm` | 0.4 of the height: 16px on the 40px button, `-sm` on the 32px default `Button`; the other sizes DERIVE from `--radius-action` (h-6 0.6x, h-7 0.7x, h-9 0.9x, and the 44px `cta` size 1.1x, all in `button.tsx`), so one knob moves the whole action ladder. `ctaCorner` exports the 44px corner for the few 44px actions that are not a `Button` |
+| Photographs | `--radius-tile` · `--gap-gallery` | every photograph and media tile wears `rounded-tile`, never a literal; `--gap-gallery` is `max(3px, var(--radius-tile))`, PINNED to the corner (below the tile radius, four corners meeting open a visible diamond; 3px is the floor because the 3px gap was the album tell), and it is the ONE gap for every media grid: the guest masonry (its vertical gap is each tile's `mb-[var(--gap-gallery)]`, since CSS columns have no row gap), the skeleton that stands in for it, the ghost grid, the triage grids, the album-like marketing walls |
+| Floating layer | `--radius-float` (12px under C) | menus, tooltips, toasts, dialogs, and the guest entry sheet (`rounded-t-float`, the dialog it becomes at 640; it was 1.4x a button's corner); a ROW inside a panel is `calc(--radius-float - 4px)`, derived in [`floating-layer.ts`](../../src/components/ui/floating-layer.ts), on the family's `p-1` rail |
+
+**The derived steps climb in quarters of `--radius`** (`sm` 0.5, `md` 0.75, `lg` 1, `xl` 1.25, `2xl`
+1.5: 4 / 6 / 8 / 10 / 12px under C), where the old 0.6 / 0.8 / 1.4 / 1.8 steps landed on fractions.
+★ **`3xl` and `4xl` are dropped by setting them to `initial` in theme.css, never by deleting the
+lines**: Tailwind's own default theme defines both (24 and 32px), so a deleted line brings them
+back fixed and off every token; `initial` removes the key and the utilities emit nothing. A corner
+that big is a pill, and a pill is `rounded-full`.
+
+Nested-corner math: inner = outer minus gap. An action riding its HEIGHT instead is the system's
+DELIBERATE exception to it, and C keeps the contrast: a control is twice as round as the surface
+under it, so it still reads as the pressable thing.
+
+★ **`cn()` has to be taught the custom radius names** ([`src/lib/utils.ts`](../../src/lib/utils.ts)
+`RADIUS_TOKENS`: `action`, `action-sm`, `tile`, `float`). Unknown to tailwind-merge, a token corner
+and a stock one BOTH survived `cn()`, and the stylesheet's order, alphabetical for utilities on one
+property, picked the winner: every stock step beat `rounded-float` and `rounded-action-sm` whichever
+was written last. The parity is pinned beside the type ladder's.
 
 ★ **The radius tokens, `--gap-gallery`, `--spill-cadence` and the `--tune-*` knobs live in their OWN
 `:root` block in `globals.css`, never in the `:root, .surface-paper` block and never in a lab
 sheet.** They are theme-independent, and aliased into a
 theme set they are re-declared by every paper chapter and every lab board, so the tuner's
-html-inline override never pierces them: a radius sitting on a paper chapter or on the rounding
-board runs silently on the baked values (measured: `<html>` at 14px, the live column at 2px).
-Declared once on `:root` they inherit everywhere and the tuner wins everywhere.
+html-inline override never pierces them: a radius sitting on a paper chapter or on a lab board
+runs silently on the baked values (measured at the rounding round: `<html>` at 14px, the live
+column at 2px). Declared once on `:root` they inherit everywhere and the tuner wins everywhere,
+`--gap-gallery` included (it reads `--radius-tile` on the same element, so the tile knob moves the
+gap too).
 
 ★ **A DERIVED radius
-token is not a runtime variable.** `theme.css` declares `--radius-sm..4xl` inside `@theme inline`, so
+token is not a runtime variable.** `theme.css` declares `--radius-sm..2xl` inside `@theme inline`, so
 Tailwind compiles each into its utility and emits NO custom property; `var(--radius-md)` is empty at
 runtime and an empty var inside a `calc()` invalidates the whole declaration silently.
 Derive from `--radius`, `--radius-action`, `--radius-float` or
 `--radius-tile` (the real `:root` tokens), never from the scale's names.
 
-The sitting surface
-is `/design/lab/rounding` (four columns of one kit: three fixed candidates as inline overrides and a
-live column that follows the tuner) plus every real page the tuner mounts on; bible 8 inherits the
-values Will rules there.
+The sitting surface is the Library's radius section (`/design/library/foundations#radius`: every
+token on a real specimen, each caption read off the specimen, so the tuner's knobs move it live)
+plus every real page the tuner mounts on. The rounding board it replaced retired at the ruling.
 
 **Anything drawn AROUND an object takes the object's radius, never a literal** (bible 9). A ring, glow or
 bloom at offset N gets `object radius + N`, which is the same nested rule read outward. This is not
-theoretical: a 16px chromatic ring around a `rounded-2xl` (3.6px) card reads as two different shapes
+theoretical: a 16px chromatic ring around a card rounded a step off it (3.6px, measured before
+family C) reads as two different shapes
 the moment colour lands in a corner, which is what happens when a specimen is rounded like the
 vendored library and then handed the library's own
 `borderRadius`. `BorderBeam`
@@ -706,10 +725,11 @@ auto-detects its child's computed radius when the prop is OMITTED, which is the 
 [`border-beam-vendor.test.ts`](../../src/components/dev/border-beam-vendor.test.ts) pins that no lab
 specimen passes one. The corollary is worth knowing before reaching for that effect: it is authored
 for 16px+ corners, and 16px is what this system rounds an ACTION to, so **a beam's natural layer here
-is an action, not a surface**. The legacy `rounded-sm..4xl` scale stays mapped off `--radius`
-(all "sharp family"), so `rounded-xl` is tiny and floating panels must use `rounded-float`, never
-`rounded-xl`. Measurements ride Tailwind's 4px grid + the 0.4-height radius ratio (the system's
-math).
+is an action, not a surface**. The derived `rounded-sm..2xl` scale is mapped off `--radius` (the
+surface family), so a floating panel still uses `rounded-float`, never a step that happens to land
+near it: under C `rounded-2xl` and the floating corner are both 12px, and only one of them moves when
+the floating token is retuned. Measurements ride Tailwind's 4px grid + the 0.4-height radius ratio
+(the system's math).
 
 ## Elevation contract (four heights, one job each)
 
@@ -730,13 +750,13 @@ rule is the SAME in both modes. The legend he ruled on lives at `/design/library
   control's thumb and a frame standing on the page are their step and their ring.
 - **One geometry, two sizes, one alpha ramp per ground** (blur = 2x offset, single top light source;
   the layer is the lift at double the offsets). The values live in `globals.css` and nowhere else:
-  paper did not move (the lift is the old `--shadow-float` to the byte), and `.dark` and
+  paper did not move (the lift is the retired `--shadow-float`'s value to the byte), and `.dark` and
   `.surface-ink` gained the ramp they never had, because 6 percent of black over a 0.105 room is
   arithmetically invisible, which is the whole reason dark read as shadowless.
 - **The role is the call site's to declare**, and `src/lib/elevation-policy.test.ts` refuses the four
   ways round it: a stock or arbitrary Tailwind shadow, a hand-typed inline `box-shadow`, the retired
   `shadow-float` name, and a ground that re-declares the ink without both shadows. `--shadow-float`
-  survives only as a bridge for the lab's rounding board and resolves to zero on both dark grounds.
+  retired with the rounding board, its last reader (2026-09-18), and is declared nowhere now.
 - ★ **Never overwrite `box-shadow` where a ring lives.** `ring-1` IS a box-shadow in Tailwind v4,
   composed with `--tw-shadow` into one declaration, so a bare `box-shadow:` on a ringed surface
   deletes its hairline with nothing to see in the source. Wear the utility (it writes `--tw-shadow`),
@@ -745,7 +765,7 @@ rule is the SAME in both modes. The legend he ruled on lives at `/design/library
 - ★ **An unlayered rule outranks every utility.** `marketing.css`'s `[data-mkt] .mkt-stack-card` sets
   a bare `box-shadow`, so `shadow-lift` on those cards does nothing at all; the footer's pile carries
   the lift INLINE (`footer-demo.tsx`), token and never a literal.
-- ★ **`cn()` files `shadow-lift` and `shadow-layer` under shadow COLOUR**, as it always did
+- ★ **`cn()` files `shadow-lift` and `shadow-layer` under shadow COLOUR**, as it did the retired
   `shadow-float` (tailwind-merge does not read the theme). The two replace each other correctly, but
   `cn("shadow-layer", "shadow-none")` keeps both and the stylesheet's order decides. Nothing in the
   product does that today; the fix is one `theme.shadow` line in `src/lib/utils.ts`.
@@ -1051,7 +1071,7 @@ working set lives in a module store persisted to `localStorage` and re-applied o
 survives a Replay, a navigation out of the cinema group and a reload; Reset clears it and the badge always
 counts what stands. Every knob carries a `description`, a `ships` line and a `group`, and every knob has a
 specimen where the tuner mounts (the playground at [`/design/lab/tools/motion`](../../src/app/(dev)/design/(shell)/lab/tools/motion/page.tsx),
-the real cinema pages, the rounding board); a knob without one is retired rather than left as a dead
+the real cinema pages, the Library's radius section at `/design/library/foundations#radius`); a knob without one is retired rather than left as a dead
 slider, and retiring a knob leaves its var and its bake untouched. Contract: an increment APPENDS its
 knobs with all three fields and a specimen in the same commit,
 the config `default` MIRRORS the CSS default, and any JS-read var (`run()`'s `readCssMs`) falls back to a

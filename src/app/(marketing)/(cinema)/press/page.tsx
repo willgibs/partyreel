@@ -153,7 +153,7 @@ export default function PressPage() {
         }
         actions={
           <>
-            <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Button asChild size="cta">
               <a href={PRESS_KIT_ZIP} download>
                 Download kit
                 {/* The size, not the count: "how big is this" is the question a reporter
@@ -163,12 +163,7 @@ export default function PressPage() {
                 </span>
               </a>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline">
               <Link href="/contact">Contact</Link>
             </Button>
           </>
@@ -310,7 +305,7 @@ export default function PressPage() {
               Interviews, higher-resolution assets, or a walkthrough of the
               product. {REPLY_LINE}
             </p>
-            <Button asChild size="lg" className="mt-2 h-11 px-6 text-base">
+            <Button asChild size="cta" className="mt-2">
               <Link href="/contact">Send a message</Link>
             </Button>
           </Container>

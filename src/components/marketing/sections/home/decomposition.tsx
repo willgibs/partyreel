@@ -219,7 +219,7 @@ function TilePhoto({ id }: { id: string }) {
   const m = marketingImage(id);
   return (
     <div
-      className="relative w-full overflow-hidden rounded-[3px]"
+      className="relative w-full overflow-hidden rounded-tile"
       style={{ aspectRatio: `${m.width} / ${m.height}` }}
     >
       <Image src={m.src} alt="" fill sizes="140px" className="object-cover" />

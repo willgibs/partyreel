@@ -24,15 +24,10 @@ export default function AppNotFound() {
         description="It may have been deleted, or the link points to an event that no longer exists. Your other events are safe on your dashboard."
         actions={
           <>
-            <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Button asChild size="cta">
               <Link href="/dashboard">Back to dashboard</Link>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline">
               <Link href="/dashboard/new">Create an event</Link>
             </Button>
           </>

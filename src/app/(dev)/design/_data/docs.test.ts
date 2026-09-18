@@ -295,10 +295,13 @@ describe("listings", () => {
     expect(specs.find((s) => s.slug === "brand-voice")?.status).toContain(
       "STATUS",
     );
-    // A proposal that still STANDS says so; light was the example until its
-    // ruling cut docs/specs/light.md to what was decided (2026-09-17).
+    // A RULED spec says so in its status line, which is what the lab reads
+    // off it. No standing board keeps a spec doc any more (rounding was the
+    // last proposal that stood, until its ruling cut docs/specs/rounding.md to
+    // what was decided, 2026-09-18), and a spec outlives its board, so naming
+    // this retired one is stable in a way a standing example never was.
     expect(specs.find((s) => s.slug === "rounding")?.status).toContain(
-      "NOT LAW",
+      "RULED AND SHIPPED",
     );
   });
 

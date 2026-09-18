@@ -115,7 +115,7 @@ export function ZipModalDemo() {
       {/* The quiet stage: in the app this dialog floats over the gallery, so
           the mock gets a muted backdrop and the dialog's own shadow-layer
           instead of sitting flush on the page. */}
-      <div className="rounded-3xl border bg-muted/40 p-4 sm:p-8">
+      <div className="rounded-2xl border bg-muted/40 p-4 sm:p-8">
         <div className="mx-auto w-full max-w-[26rem] rounded-2xl border bg-card p-6 shadow-layer ring-1 ring-foreground/5">
           <div className="flex flex-col gap-1.5">
             <p className="text-lg font-semibold">Download album</p>

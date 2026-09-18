@@ -31,7 +31,7 @@ export function EmptySectionTeaser({
       <div className="mt-2.5 flex items-center gap-4 rounded-xl border border-dashed border-border bg-muted/20 p-4">
         <div
           aria-hidden
-          className="flex shrink-0 items-center gap-[3px] opacity-25 grayscale"
+          className="flex shrink-0 items-center gap-[var(--gap-gallery)] opacity-25 grayscale"
         >
           {GHOSTS.map(({ src, w }) => (
             // eslint-disable-next-line @next/next/no-img-element -- tiny local decorative asset
@@ -40,7 +40,7 @@ export function EmptySectionTeaser({
               src={src}
               alt=""
               loading="lazy"
-              className={cn("h-14 rounded-[3px] object-cover", w)}
+              className={cn("h-14 rounded-tile object-cover", w)}
             />
           ))}
         </div>

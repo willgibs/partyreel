@@ -48,7 +48,7 @@ function Traveller({
       data-mkt-fly
       data-on={on ? "true" : undefined}
       className={cn(
-        "relative block overflow-hidden rounded-[4px] bg-muted",
+        "relative block overflow-hidden rounded-tile bg-muted",
         dim && "opacity-40",
         className,
       )}
@@ -134,7 +134,7 @@ export function ReviewSwitch() {
         />
         <div className="relative grid grid-cols-1 items-start gap-6 sm:grid-cols-3">
           <Plate label="The phone">
-            <span className="relative mx-auto block aspect-square w-full max-w-[9rem] overflow-hidden rounded-[4px] bg-muted">
+            <span className="relative mx-auto block aspect-square w-full max-w-[9rem] overflow-hidden rounded-tile bg-muted">
               <Image
                 src={marketingImage(UPLOAD).src}
                 alt=""
@@ -180,7 +180,7 @@ export function ReviewSwitch() {
                 <span className="relative block size-14">
                   <span
                     aria-hidden
-                    className="absolute inset-0 rounded-[4px] border border-dashed border-border/70 bg-card"
+                    className="absolute inset-0 rounded-tile border border-dashed border-border/70 bg-card"
                   />
                   {!approved && (
                     <Traveller key="queue" className="absolute inset-0" />
@@ -208,7 +208,7 @@ export function ReviewSwitch() {
               {ALBUM.map((id) => (
                 <span
                   key={id}
-                  className="relative block aspect-square overflow-hidden rounded-[3px] bg-muted"
+                  className="relative block aspect-square overflow-hidden rounded-tile bg-muted"
                 >
                   <Image
                     src={marketingImage(id).src}
@@ -222,7 +222,7 @@ export function ReviewSwitch() {
               <span className="relative block aspect-square">
                 <span
                   aria-hidden
-                  className="absolute inset-0 rounded-[3px] border border-dashed border-border/70 bg-card"
+                  className="absolute inset-0 rounded-tile border border-dashed border-border/70 bg-card"
                 />
                 {inAlbum && (
                   <Traveller

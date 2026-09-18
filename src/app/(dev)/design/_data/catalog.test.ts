@@ -146,12 +146,18 @@ describe("the helpers", () => {
   it("light the longest matching item", () => {
     const hit = activeItem(nav, "/design/library/rules/no-em-dash");
     expect(hit?.item.href).toBe("/design/library/rules");
-    // A STANDING board: the nav is built from the registry, so a ruled board
-    // has no item to light (light was the example until 2026-09-17).
-    const board = activeItem(nav, "/design/lab/rounding");
-    expect(board?.item.href).toBe("/design/lab/rounding");
     const family = activeItem(nav, "/design/library/marketing");
     expect(family?.item.href).toBe("/design/library/marketing");
+  });
+
+  // ★ NEVER A NAMED BOARD. The nav lists the STANDING boards (touchpoints'
+  // SANDBOX), so a ruled board has no item to light, and a named example went
+  // red at every retirement (light, then rounding). The case takes whichever
+  // board stands first, and skips when none does.
+  const standing = SANDBOX[0]?.id;
+  it.runIf(standing !== undefined)("light a standing board's item", () => {
+    const board = activeItem(nav, `/design/lab/${standing}`);
+    expect(board?.item.href).toBe(`/design/lab/${standing}`);
   });
 
   it("keep an exact item off nested routes", () => {
@@ -386,15 +392,22 @@ describe("the search index", () => {
     expect(short).toBeGreaterThan(long);
   });
 
-  it("finds a rule by its number, a board by its id and a glossary word", () => {
-    const has = (query: string, kind: string) =>
-      searchLab(index, query).some((g) => g.kind === kind && g.entries.length);
+  const has = (query: string, kind: string) =>
+    searchLab(index, query).some((g) => g.kind === kind && g.entries.length);
+
+  it("finds a rule by its number, a glossary word and a policy", () => {
     expect(has("bible 22", "rule")).toBe(true);
-    // A STANDING board: the search index is built from the registry, so a ruled
-    // board is not findable here (the palette was the example until 2026-09-17).
-    expect(has("rounding", "board")).toBe(true);
     expect(has("landmine", "glossary")).toBe(true);
     expect(has("no-em-dash-policy", "policy")).toBe(true);
+  });
+
+  // ★ NEVER A NAMED BOARD. The index holds the STANDING boards (touchpoints'
+  // SANDBOX), so a ruled board is not findable, and a named example went red
+  // at every retirement (the palette, then rounding). The case takes whichever
+  // board stands first, and skips when none does.
+  const standing = SANDBOX[0]?.id;
+  it.runIf(standing !== undefined)("finds a standing board by its id", () => {
+    expect(has(standing ?? "", "board")).toBe(true);
   });
 
   it("groups in KIND_ORDER and never exceeds the limit", () => {
