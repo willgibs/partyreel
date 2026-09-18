@@ -14,9 +14,11 @@ import {
 import { requireAdmin } from "@/lib/auth/admin-context";
 import {
   getJobFlags,
+  getJobSignals,
   getJobStates,
   listRecentJobRuns,
   type JobRunRow,
+  type JobSignals,
   type JobState,
 } from "@/lib/db/queries/jobs";
 
@@ -24,8 +26,12 @@ import {
   JOBS,
   JOB_RUN_NOW_NOTE,
   jobHealth,
+  readDepth,
+  readDepthAgeMinutes,
+  type DepthSource,
   type JobHealth,
   type JobId,
+  type JobReading,
 } from "./catalog";
 import { JobKillSwitch, RunJobNowButton } from "./job-controls";
 
@@ -33,8 +39,12 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Jobs" };
 
 // The zero-silent-failure console (admin-portal P8, QA #15). Every backend job, whether it runs on
-// Vercel, on Cloudflare or on GitHub, reports here through one heartbeat table: when it last ran,
-// what it did, whether it is overdue, and a switch to stop it without a deploy.
+// Vercel, on Cloudflare, on GitHub or inside another job, reports here through one heartbeat table:
+// when it last ran, what it did, whether it is overdue, and a switch to stop it without a deploy.
+//
+// THREE KINDS OF CARD, one per catalog kind (catalog.ts explains the split). They share the card,
+// the badge and the definition list deliberately — an operator should not have to learn three
+// layouts to read one console — and differ only in the three or four facts that genuinely differ.
 
 const HEALTH_LABEL: Record<JobHealth, string> = {
   ok: "Healthy",
@@ -42,6 +52,7 @@ const HEALTH_LABEL: Record<JobHealth, string> = {
   paused: "Paused",
   missed: "Overdue",
   failed: "Last run failed",
+  attention: "Needs a look",
   never: "No runs yet",
 };
 
@@ -54,6 +65,7 @@ const HEALTH_VARIANT: Record<
   paused: "outline",
   missed: "destructive",
   failed: "destructive",
+  attention: "default",
   never: "outline",
 };
 
@@ -61,6 +73,8 @@ const HOST_LABEL: Record<string, string> = {
   vercel_cron: "Vercel Cron",
   cloudflare_worker: "Cloudflare Worker",
   github_actions: "GitHub Actions",
+  purge_sweep: "Inside the purge sweep",
+  app: "This app",
 };
 
 const RUN_STATUS_LABEL: Record<string, string> = {
@@ -70,11 +84,49 @@ const RUN_STATUS_LABEL: Record<string, string> = {
   skipped: "Skipped",
 };
 
+/**
+ * What a signal job's two numbers MEAN, in its own words. A shared "N ok, N failed" would read as
+ * nonsense: "40 sent" and "40 failed unlocks recorded" are both healthy and are not the same kind of
+ * fact. Presentation, so it lives on the page rather than in the catalog.
+ */
+const SIGNAL_LABEL: Partial<Record<JobId, { ok: string; failed: string }>> = {
+  email_delivery: { ok: "sent", failed: "failed or refused" },
+  abuse_limiter: { ok: "actions recorded", failed: "limiter errors" },
+  unlock_limiter: { ok: "failed unlocks recorded", failed: "limiter errors" },
+};
+
+/** What a `derived` reading counts, and the remedy to say when it is not zero. */
+const READING_LABEL: Partial<Record<JobId, { unit: string; remedy: string }>> = {
+  backup_queue: {
+    unit: "waiting to copy",
+    remedy:
+      "A backlog drains on its own; the daily reconcile copies anything the live queue never reached.",
+  },
+  backup_dead_letters: {
+    unit: "given up on",
+    remedy:
+      "The daily backup reconcile copies anything the live queue missed, so a dead letter clears on its next run.",
+  },
+};
+
+/** A signal job's "No activity" reads differently from a scheduled job's "No runs yet". */
+const NEVER_LABEL: Record<string, string> = {
+  signal: "No activity",
+  derived: "No reading",
+};
+
 function formatDuration(ms: number | null): string {
   if (ms === null) return "";
   if (ms < 1000) return `${ms} ms`;
   if (ms < 60_000) return `${(ms / 1000).toFixed(1)} s`;
   return `${Math.round(ms / 60_000)} min`;
+}
+
+function formatMinutes(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 48) return `${hours} hours`;
+  return `${Math.round(hours / 24)} days`;
 }
 
 /** A compact one-line rendering of a run's counts, so the card says what the run DID, not just that it ran. */
@@ -97,6 +149,7 @@ type PageData = {
   flags: Record<JobId, boolean> | null;
   states: JobState[];
   recent: JobRunRow[];
+  signals: JobSignals;
   /** Read once, outside the render, so every card judges freshness against the SAME instant (and
    * so the render itself stays pure, which the React Compiler lint enforces). */
   nowMs: number;
@@ -112,17 +165,26 @@ type PageData = {
  */
 async function loadPageData(): Promise<PageData> {
   try {
-    const [flags, states, recent] = await Promise.all([
+    const [flags, states, recent, signals] = await Promise.all([
       getJobFlags(),
       getJobStates(),
       listRecentJobRuns(40),
+      getJobSignals(),
     ]);
-    return { flags, states, recent, nowMs: Date.now(), unavailable: null };
+    return {
+      flags,
+      states,
+      recent,
+      signals,
+      nowMs: Date.now(),
+      unavailable: null,
+    };
   } catch (e) {
     return {
       flags: null,
       states: [],
       recent: [],
+      signals: {},
       nowMs: Date.now(),
       unavailable: e instanceof Error ? e.message : String(e),
     };
@@ -133,7 +195,55 @@ export default async function JobsPage() {
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return null;
 
-  const { flags, states, recent, nowMs, unavailable } = await loadPageData();
+  const { flags, states, recent, signals, nowMs, unavailable } =
+    await loadPageData();
+
+  // Health resolves in TWO passes because a `derived` reading inherits the health of the run that
+  // carried it: the Worker's own verdict has to exist before the queue and dead-letter cards can say
+  // whether their number is fresh. Both passes go through the one `jobHealth`, so the page and the
+  // alerting scan still share a single definition of healthy.
+  const healthById = new Map<JobId, JobHealth>();
+  for (const def of JOBS) {
+    if (def.kind === "derived") continue;
+    const state = states.find((s) => s.job === def.id);
+    healthById.set(
+      def.id,
+      jobHealth({
+        def,
+        enabled: flags?.[def.id] ?? true,
+        lastRun: state?.lastRun ?? null,
+        lastFinishedAtMs: state?.lastFinishedAtMs ?? null,
+        nowMs,
+        signal: signals[def.id] ?? null,
+      }),
+    );
+  }
+
+  const depthSources: DepthSource[] = states.map((s) => ({
+    job: s.job,
+    counts: s.lastRunRow?.counts ?? null,
+    startedAtMs: s.lastRun?.startedAtMs ?? null,
+    health: healthById.get(s.job) ?? "never",
+  }));
+
+  const readingById = new Map<JobId, JobReading | null>();
+  for (const def of JOBS) {
+    if (def.kind !== "derived") continue;
+    const reading = readDepth(def, depthSources);
+    readingById.set(def.id, reading);
+    healthById.set(
+      def.id,
+      jobHealth({
+        def,
+        // A derived reading has nothing to pause, so it is never "paused" — see catalog.ts.
+        enabled: true,
+        lastRun: null,
+        lastFinishedAtMs: null,
+        nowMs,
+        reading,
+      }),
+    );
+  }
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -168,15 +278,21 @@ export default async function JobsPage() {
       {JOBS.map((def) => {
         const state = states.find((s) => s.job === def.id);
         const enabled = flags?.[def.id] ?? true;
-        const health = jobHealth({
-          def,
-          enabled,
-          lastRun: state?.lastRun ?? null,
-          lastFinishedAtMs: state?.lastFinishedAtMs ?? null,
-          nowMs,
-        });
+        const health = healthById.get(def.id) ?? "never";
         const last = state?.lastRunRow ?? null;
         const counts = summarizeCounts(last?.counts ?? null);
+        const signal = signals[def.id] ?? null;
+        const signalWords = SIGNAL_LABEL[def.id];
+        const reading = readingById.get(def.id) ?? null;
+        const readingWords = READING_LABEL[def.id];
+        // The age rides the SAME run that carried the depth, so find that run rather than the
+        // newest one: a stale reading and a fresh one must never be mixed on one card.
+        const readingSource =
+          reading?.readAtMs !== null && reading?.readAtMs !== undefined
+            ? (states.find((s) => s.lastRun?.startedAtMs === reading.readAtMs)
+                ?.lastRunRow?.counts ?? null)
+            : null;
+        const readingAgeMin = readDepthAgeMinutes(def, readingSource);
 
         return (
           <Card key={def.id}>
@@ -185,10 +301,12 @@ export default async function JobsPage() {
                 <CardTitle className="flex items-center gap-2">
                   {def.label}
                   <Badge variant={HEALTH_VARIANT[health]}>
-                    {HEALTH_LABEL[health]}
+                    {health === "never"
+                      ? (NEVER_LABEL[def.kind] ?? HEALTH_LABEL.never)
+                      : HEALTH_LABEL[health]}
                   </Badge>
                 </CardTitle>
-                {flags ? (
+                {flags && def.flagKey ? (
                   <JobKillSwitch
                     jobId={def.id}
                     label={def.label}
@@ -208,35 +326,119 @@ export default async function JobsPage() {
                   <dt className="text-muted-foreground">Runs on</dt>
                   <dd>{HOST_LABEL[def.host] ?? def.host}</dd>
                 </div>
-                <div className="flex gap-2">
-                  <dt className="text-muted-foreground">Last run</dt>
-                  <dd>
-                    {last ? (
-                      <>
-                        {/* Locale/tz formatting differs between the server render and the browser
+
+                {def.kind === "signal" ? (
+                  <div className="flex gap-2 sm:col-span-2">
+                    <dt className="text-muted-foreground">Last 24 hours</dt>
+                    <dd>
+                      {signal ? (
+                        <>
+                          {signal.ok24h} {signalWords?.ok ?? "ok"},{" "}
+                          <span
+                            className={
+                              signal.failed24h > 0
+                                ? "text-destructive"
+                                : "text-muted-foreground"
+                            }
+                          >
+                            {signal.failed24h} {signalWords?.failed ?? "failed"}
+                          </span>
+                          {/* The failure count is a FLOOR, not a census: the log damps a burst to
+                              one row per quarter hour per instance, so "3" means at least three.
+                              Said here rather than left to be read as exact. */}
+                          {signal.failed24h > 0 ? (
+                            <span className="text-muted-foreground">
+                              {" "}
+                              (at least; Sentry has every event)
+                            </span>
+                          ) : null}
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">Not read</span>
+                      )}
+                    </dd>
+                  </div>
+                ) : null}
+
+                {def.kind === "derived" ? (
+                  <>
+                    <div className="flex gap-2">
+                      <dt className="text-muted-foreground">Depth</dt>
+                      <dd>
+                        {!reading || reading.value === null ? (
+                          <span className="text-muted-foreground">
+                            No reading
+                          </span>
+                        ) : (
+                          <span
+                            className={
+                              health === "failed" || health === "attention"
+                                ? "text-destructive"
+                                : undefined
+                            }
+                          >
+                            {reading.value} {readingWords?.unit ?? ""}
+                          </span>
+                        )}
+                      </dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="text-muted-foreground">Read</dt>
+                      <dd>
+                        {reading?.readAtMs ? (
+                          <span suppressHydrationWarning>
+                            {new Date(reading.readAtMs).toLocaleString()}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Never</span>
+                        )}
+                      </dd>
+                    </div>
+                    {readingAgeMin !== null ? (
+                      <div className="flex gap-2 sm:col-span-2">
+                        <dt className="text-muted-foreground">
+                          Oldest message
+                        </dt>
+                        <dd>{formatMinutes(readingAgeMin)}</dd>
+                      </div>
+                    ) : null}
+                  </>
+                ) : (
+                  <div className="flex gap-2">
+                    <dt className="text-muted-foreground">
+                      {def.kind === "signal" ? "Last failure" : "Last run"}
+                    </dt>
+                    <dd>
+                      {last ? (
+                        <>
+                          {/* Locale/tz formatting differs between the server render and the browser
                             (the React #418 trap in admin-observability.md), so suppress here. */}
-                        <span suppressHydrationWarning>
-                          {new Date(last.started_at).toLocaleString()}
-                        </span>{" "}
+                          <span suppressHydrationWarning>
+                            {new Date(last.started_at).toLocaleString()}
+                          </span>{" "}
+                          <span className="text-muted-foreground">
+                            {RUN_STATUS_LABEL[last.status] ?? last.status}
+                            {last.duration_ms !== null && def.kind !== "signal"
+                              ? `, ${formatDuration(last.duration_ms)}`
+                              : ""}
+                          </span>
+                        </>
+                      ) : (
                         <span className="text-muted-foreground">
-                          {RUN_STATUS_LABEL[last.status] ?? last.status}
-                          {last.duration_ms !== null
-                            ? `, ${formatDuration(last.duration_ms)}`
-                            : ""}
+                          {def.kind === "signal" ? "None recorded" : "Never"}
                         </span>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground">Never</span>
-                    )}
-                  </dd>
-                </div>
-                {counts ? (
+                      )}
+                    </dd>
+                  </div>
+                )}
+
+                {counts && def.kind === "scheduled" ? (
                   <div className="flex gap-2 sm:col-span-2">
                     <dt className="text-muted-foreground">Reported</dt>
                     <dd className="text-muted-foreground">{counts}</dd>
                   </div>
                 ) : null}
-                {last?.note ? (
+                {last?.note && def.kind !== "derived" ? (
                   <div className="flex gap-2 sm:col-span-2">
                     <dt className="text-muted-foreground">Note</dt>
                     <dd>{last.note}</dd>
@@ -249,8 +451,11 @@ export default async function JobsPage() {
                   <RunJobNowButton jobId={def.id} label={def.label} />
                 ) : null}
                 <p className="text-xs text-muted-foreground">
-                  {JOB_RUN_NOW_NOTE[def.host] ??
-                    "Pausing takes effect on the next scheduled run."}
+                  {/* The remedy, said where the problem is: a dead letter is not stuck forever. */}
+                  {def.kind === "derived" && health !== "ok" && readingWords
+                    ? readingWords.remedy
+                    : (JOB_RUN_NOW_NOTE[def.host] ??
+                      "Pausing takes effect on the next scheduled run.")}
                 </p>
               </div>
             </CardContent>

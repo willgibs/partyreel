@@ -27,7 +27,12 @@
  */
 import { z } from "zod";
 
-import { JOBS } from "@/app/admin/jobs/catalog";
+import {
+  DEPTH_AGE_COUNT_KEYS,
+  DEPTH_COUNT_KEYS,
+  JOBS,
+  QUEUE_BACKLOG_ATTENTION,
+} from "@/app/admin/jobs/catalog";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import {
   finishJobRun,
@@ -56,14 +61,61 @@ const finishSchema = z.object({
   runId: z.uuid(),
   startedAtMs: z.number().int().positive(),
   status: z.enum(["ok", "error", "skipped"]),
-  // Free-form per-job tallies. Bounded so a runaway job can't post an unbounded body.
+  // Free-form per-job tallies, and where the ADDITIVE Cloudflare depth keys ride (the Worker's
+  // queue-metrics.ts writes `queue_backlog` / `dead_letter_backlog`; the catalog names them for the
+  // reader). No new field was needed for them precisely because this has always been a free-form
+  // record: an app deploy predating the Worker's stores them harmlessly, one postdating it reads
+  // them. The key COUNT is capped so a runaway job cannot post an unbounded body.
   counts: z
-    .record(z.string(), z.union([z.number(), z.string(), z.boolean()]))
+    .record(z.string().max(64), z.union([z.number(), z.string(), z.boolean()]))
+    .refine((c) => Object.keys(c).length <= 40, {
+      message: "too many count keys",
+    })
     .optional(),
   note: z.string().max(500).optional(),
 });
 
 const bodySchema = z.discriminatedUnion("phase", [startSchema, finishSchema]);
+
+/**
+ * THE DEAD-LETTER ALERT, raised where the reading arrives rather than a day later.
+ *
+ * The daily missed-run scan can only page on a job that stopped REPORTING; a dead letter is a job
+ * reporting perfectly and saying something is wrong, which no freshness rule can catch. So the
+ * moment a Worker run hands us a depth, this reads it: any dead letter at all is a warning (each one
+ * is a media object with no backup copy until a reconcile sweep catches it), and a large live
+ * backlog is a softer note (an upload burst queues legitimately). Numbers only — nothing here can
+ * carry a key, an address or a token.
+ */
+function alertOnDepths(
+  job: string,
+  counts: Record<string, number | string | boolean> | undefined,
+): void {
+  if (!counts) return;
+  const numberAt = (key: string): number | null => {
+    const raw = counts[key];
+    return typeof raw === "number" && Number.isFinite(raw) ? raw : null;
+  };
+
+  const dead = numberAt(DEPTH_COUNT_KEYS.backup_dead_letters);
+  if (dead !== null && dead > 0) {
+    captureWarning("cron", "job_dead_letters_pending", {
+      job,
+      dead_letters: dead,
+      oldest_minutes: numberAt(DEPTH_AGE_COUNT_KEYS.backup_dead_letters),
+    });
+  }
+
+  const backlog = numberAt(DEPTH_COUNT_KEYS.backup_queue);
+  if (backlog !== null && backlog >= QUEUE_BACKLOG_ATTENTION) {
+    captureWarning("cron", "job_queue_backlog", {
+      job,
+      backlog,
+      oldest_minutes: numberAt(DEPTH_AGE_COUNT_KEYS.backup_queue),
+      threshold: QUEUE_BACKLOG_ATTENTION,
+    });
+  }
+}
 
 export async function POST(request: Request): Promise<Response> {
   let secret: string;
@@ -135,6 +187,10 @@ export async function POST(request: Request): Promise<Response> {
       startedAtMs: run.startedAtMs,
     });
   }
+
+  // Alert BEFORE the write, so a depth reading still pages even if the heartbeat row cannot be
+  // stored: the Cloudflare queue's state is the fact, and the row is only how the console shows it.
+  alertOnDepths(job, body.counts);
 
   const done = await finishJobRun(
     { runId: body.runId, startedAtMs: body.startedAtMs, heartbeatError: null },
