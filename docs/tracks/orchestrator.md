@@ -90,7 +90,7 @@ day by a new Orchestrator seated on a second Claude account** (opened for token 
 the Orchestrator runs on Fable and plans, judges and integrates; a lane runs on Opus for big, ambiguous,
 multi-file work and on Sonnet for fast, direct UI work, the call being the Orchestrator's on every spawn
 (PROGRAM.md "Model delegation"). Each agent ADOPTED its worktree and branch rather than being cut fresh. Dev
-ports: :3000 is the Orchestrator's; lanes take 3132 to 3134, one each, killed by port. ★ Two lines in the
+ports: :3000 is the Orchestrator's; lanes take 3132 to 3135, one each, killed by port (the fourth, `voice`, cut the same afternoon as the ceiling's last seat). ★ Two lines in the
 `heroes` and `river-card` manifests are stale (cut before the glow retirement): `touchpoints.test.ts` takes NO
 line (it derives its list from the registry), and the worked example is `sandbox/gallery-width`, not the
 retired `type-phone`; both agents were told so by message.
@@ -100,6 +100,7 @@ retired `type-phone`; both agents were told so by message.
 | `heroes` | head `6b11c162`, pushed, clean, two commits behind launch-prep | both boards committed (`20c30f86` privacy-hero, `6b11c162` album-page), synced at `0ed6315f` | Sonnet, :3133 | sync, the gate on the synced tree, the captures, Handoff and Record, then integrate |
 | `river-card` | head `6815225d`, pushed, 2 UNCOMMITTED edits (the preview gutter into `board.css`; `useLadderAt(1440)` in `board.tsx`, so the 1440 doors wear 1440's type in any window) | the board committed at `282f784f`, synced | Sonnet, :3134 | commit the two edits with their why, sync, the gate, the scan floor measured, Handoff, integrate |
 | `ghost-wiring` | head `8fa6fd83` (the manifest only), an UNTRACKED `src/components/shared/river/` begun (701 lines) | nothing committed | Opus, :3132 | the whole lane per its manifest (the engine trimmed, the empty state, a contract, a Library entry) |
+| `voice` | cut fresh at `13dd8ffd` (round one of the voice derived from won lines; Will asked for it by name 2026-09-17, ahead of Glass) | nothing yet | Opus, :3135 | the whole board per its manifest: six to eight real lines, bible 20's question first, then integrate |
 
 `gallery-width` integrated at `3a519e0d`; `origin/lp/gallery-width` goes at the next prune. The alias serves
 `3a519e0d` (READY); one `[preview]` follows the third merge, since Will sits after all four boards land.
