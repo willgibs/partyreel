@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 253 contracts on 42 components · 3 standing boards.**
+**22 laws · 18 policies · 253 contracts on 42 components · 4 standing boards.**
 
 ## What binds you
 
@@ -365,4 +365,5 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `album-hero` | marketing | Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit |
 | `river-visual` | marketing | The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
+| `album-page` | marketing | Four decisions, no page: the live album or today's filling demo at 896 with its foot faded, three kinds of subtle motion around the words at the home hero's pace, a pool, no light or a halo for the album, and where the page's second light goes |
 
