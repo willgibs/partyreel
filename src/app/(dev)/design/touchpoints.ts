@@ -13,7 +13,7 @@
  * or retired. The touchpoint dispatcher (c/[touchpoint]/page.tsx) maps the same
  * four ids to their components.
  */
-export type Surface = "guest" | "host" | "marketing" | "shared";
+export type Surface = "guest" | "host" | "marketing" | "shared" | "admin";
 
 /** Surface display labels: the ONE home (the sidebar, the record page and the
  *  touchpoint header all import this, never redefine it). */
@@ -22,6 +22,9 @@ export const SURFACE_LABEL: Record<Surface, string> = {
   host: "Host",
   marketing: "Marketing",
   shared: "Shared",
+  // The ops portal became its own deployment on 2026-09-18 (admin-split), so it is
+  // a surface of its own here too rather than "shared" machinery.
+  admin: "Admin",
 };
 
 export type RulingId =
@@ -819,12 +822,7 @@ export const RULINGS: Ruling[] = [
   {
     id: "admin",
     title: "The admin portal",
-    // `surface` has no "admin" member and this file is not this lane's to widen,
-    // so the portal sits under the closest one it has: the shell, the nav, the
-    // list shapes and the state colours are shared machinery, not a guest or a
-    // host screen. Widening the union is a one-line change for whoever next
-    // owns touchpoints.ts.
-    surface: "shared",
+    surface: "admin",
     ruled:
       'open (Will, 2026-09-18: "the full portal could likely be rethought from the ground up... plenty of thought should go into this prior to diving straight in")',
     shipped: null,

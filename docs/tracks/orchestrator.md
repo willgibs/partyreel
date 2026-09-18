@@ -37,7 +37,7 @@ owns:
   - src/components/marketing/mdx-components.tsx
   - src/lib/design-gate/
   - src/app/api/design-gate/
-  # scripts/vercel-ignore-build.mjs is RELEASED to admin-split for the round (2026-09-18); it returns here at the merge.
+  - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
   - src/app/(marketing)/marketing.css
   - src/lib/events/visibility-labels.ts
@@ -104,11 +104,11 @@ retired `type-phone`; both agents were told so by message.
 | `ghost-wiring` | integrated at `31c94253` (handed off `79169b2c`; its two mid-lane claims accepted) | done | Opus, :3132 | nothing |
 | `voice` | integrated at `e0b92af6` (handed off `5e6e5481`; eight lines, 234 smoke checks, 8 demo steps) | done | Opus, :3135 | nothing; round two is cut from his notes |
 | `glass` | integrated at `30aaf705` (handed off `f8ab4ad9`; seven steps, 250 smoke checks; one unused import cleaned at the record) | done | Opus, :3132 | nothing; round two is cut from his notes |
-| `admin` | cut this evening (the portal's shape as round one; lab-only, fixtures) | building | Opus, :3132 | the whole board per its manifest |
-| `admin-split` | handed off at `a4104a50` (synced at `ef044ee8`; the lane check clean bar `.env.example`, a parity fix the cut owed) | integrating | Opus, :3133 (stopped) | the merge, the docs, the runbook's steps 1 to 6 |
+| `admin` | integrated at `d6305818` (handed off `ed090c3b`; the `admin` surface added to touchpoints.ts at the merge) | done | Opus, :3132 | nothing |
+| `admin-split` | integrated at `7f3738ba` (handed off `a4104a50`) | done | Opus, :3133 | the cutover, below |
 | `image-trail` | cut 2026-09-18 night from Will's first note: the trail engine, the `image-trail` board and `privacy-hero` round two | building | Opus, :3135 | everything |
 | `cursor-backdrop` | cut the same night: demo six's switching backdrop on the marketing site's UI-forward chapters | building | Opus, :3136 | everything |
-| `admin-jobs` | cut this evening (the four heartbeat-less jobs onto the console) | building | Opus, :3134 | the code, the docs, the migration and Worker for the Orchestrator |
+| `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 
@@ -145,6 +145,27 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
+- **The admin cutover, where it stands (2026-09-18, after the `admin-split` merge `7f3738ba`).** The lane's full
+  runbook is in git: `git show 7f3738ba^2:docs/tracks/admin-split.md` (the Handoff). DONE: the code on
+  `launch-prep`; `NEXT_PUBLIC_SURFACE=app` on `partyreel` for PREVIEW only. NOT done, in order: (1) WILL, the Vercel
+  dashboard, with the scope switcher on **Partyreel Team** (his first attempt landed outside it: the team's project
+  list still shows only `partyreel`): Add New → Project → import `willgibs/partyreel`, name `partyreel-admin`,
+  framework Next.js, root the repository root (the REST token answers 403 to project creation and the Vercel MCP reuses the project already
+  linked to the repo); it deploys `main` once on creation, harmless, since `main` has no surface code and the domain
+  stays on `partyreel`. (2) Orchestrator, by REST once the project exists: mirror the settings (Node 24.x, `iad1`,
+  fork protection on, no SSO protection); try the per-project cron disable; copy every `partyreel` env entry EXCEPT
+  `RESEND_API_KEY`, `EMAIL_FROM`, `CONTACT_NOTIFY_EMAIL`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`,
+  `NEXT_PUBLIC_DEMO_QR_TOKEN`, `EXPORT_SIGNING_SECRET`, `EXPORT_WORKER_URL` and, until the milestone, `CRON_SECRET`
+  (withheld so a `main` build that lacks the guard cannot purge a second time; the daily 401 in that project's cron
+  log is the price); the overrides `NEXT_PUBLIC_SURFACE=admin`, `NEXT_PUBLIC_SITE_URL` (production the apex,
+  preview the app's launch-prep alias) and `NEXT_PUBLIC_ADMIN_HOST` (production `admin.partyreel.com`, preview the
+  admin project's own launch-prep alias host, confirmed from its first preview deployment). (3) A `[preview]` push
+  builds both; curl the allow-list table on the admin preview host; WILL adds that host's `/auth/callback` to the
+  Supabase redirect allow-list (query-free), then signs in there through the account chooser and completes the MFA
+  step-up. (4) At the milestone that carries this code to `main`: add `CRON_SECRET` to the admin project; move the
+  domain (remove `admin.partyreel.com` from `partyreel`, then add it to `partyreel-admin`); set
+  `NEXT_PUBLIC_SURFACE=app` on `partyreel` PRODUCTION only then (earlier, the portal is dark between the merge and
+  the move); run the runbook's checks a to g. Rollback at any step: unset the variable on either project.
 - **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]` (a build takes
   about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
   the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains the sha7 (the page prints "Serving build",
@@ -158,8 +179,8 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
   hand, `POST /v2/deployments/<id>/aliases` with `{"alias":"partyreel-git-launch-prep-partyreel.vercel.app"}`, then
   re-check the page (2026-09-18: `0681652c` sat READY behind the canceled `40a26a55` for three minutes, and a stuck
   queue had held it 80 minutes before that). After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
-- **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it); `pnpm lab:demo
-  --key <key>` and `?key=` on `/design/lab` take it.
+- **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it; ★ pnpm prints the script line WITH its arguments into any log it is redirected to, so a log of `pnpm lab:demo --key` carries the key: grep such a log for its EXIT lines only, never tail or cat it, a lesson from 2026-09-18); `pnpm lab:demo
+  --key <key>` and `?key=` on `/design/lab` take it. ★ A desk-wide `pnpm lab:demo` can STALL in headless Chrome after walking many boards (2026-09-18: nine boards in, it sat on the admin board's first step for nine minutes at zero CPU; the same board alone walked its seven steps in under a minute): run it under an alarm (`perl -e 'alarm 300; exec @ARGV' pnpm lab:demo ...`) and fall back to `--board <id>` per changed board.
 - **The review.** Will pastes a batch in chat; transcribe it with `pnpm lab:review` on STDIN (`--dry`
   first to validate; `--by ai:orchestrator` for the Orchestrator's own notes). Never click Copy or Copy so
   far in the built-in browser pane to test it: it writes Will's real clipboard, and a stray paste reads as a

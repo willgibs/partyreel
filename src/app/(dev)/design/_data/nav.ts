@@ -54,7 +54,7 @@ const FAMILY_NOTE: Record<GalleryFamily, string> = {
     "Colour, type, radius, motion, elevation and light as live swatches.",
 };
 
-const SURFACE_ORDER: Surface[] = ["guest", "host", "shared", "marketing"];
+const SURFACE_ORDER: Surface[] = ["guest", "host", "shared", "marketing", "admin"];
 
 const TOOLS: NavItem[] = [
   {
