@@ -47,7 +47,7 @@ const DRAFT = defineExploration({
       "The first round: how big a tile is, how far the album runs, where the words sit over it and whether the host's galleries follow, each drawn as the real page at 1280, 1512 and 1920.",
   },
   context:
-    "The guest album is capped at 632 px and two columns on every screen, and the host's gallery at 1280 and three. Will wants galleries to use the width they are given with small tiles and more columns; the words above them keep their readable column.",
+    "The guest album is capped at 632 px and two columns on every screen, and the host's gallery at 1280 and three. The ask (2026-09-18): galleries use the width they are given, with small tiles and more columns, while the words above them keep a readable column.",
   asks: [
     {
       id: "tile",
@@ -150,7 +150,7 @@ const DRAFT = defineExploration({
       label: "The host's galleries",
       question: "Should the host's galleries follow the guest album's rule?",
       context:
-        "The host's event page holds the same album in the app's 1280 column, three across today. Under the guest's rule its Gallery runs to the window's edges and its words go where the guest's went.",
+        "The host's event page holds the same album in the app's 1280 column, three across today. Under the guest's rule its Gallery runs to the window's edges and its words go where the guest's went. At 1280 the two match.",
       lands:
         "The host's galleries (the event's, the review queue, the reel grid, Uploads, Likes); with the words at the edge, the app's header and column too.",
       options: [
