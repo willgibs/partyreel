@@ -33,7 +33,7 @@ album hero's round three went "too boring" that way).
 | the glow boards | `glow-doctrine` and `glow-moments`, records with nothing open | retired with the `[data-lit]` leak; the floors fixed; `lab:smoke` passes whole |
 | `heroes` | `privacy-hero` (the field as two spirals, faster, a trail) and `album-page` (round four at the home hero's pace, subtle, the live album beneath at 896 with its bottom faded, a pool of light) | building |
 | `river-card` | the river in the real QR door at 4:5 and 3:2, no label, the code unlinked: where it sits, what it opens | building |
-| `gallery-width` | how wide galleries run on laptops and desktops: small tiles, more columns, never a wide two-column masonry | building |
+| `gallery-width` | how wide galleries run on laptops and desktops: small tiles, more columns, never a wide two-column masonry | integrated: four decisions measured at 1280, 1512 and 1920 (tile, width, where the words sit, the host); on the desk |
 | `album-hero` (round three) | answered in full (`none`, `w880`, `lg`, `settled`, `page`) | waits on `album-page`, then its wiring |
 | `river-visual` (round two) | answered (`card`, `in`, `ghost`; `proportion` withdrawn) | waits on `river-card`, then its wiring |
 

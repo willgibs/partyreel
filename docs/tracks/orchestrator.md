@@ -89,14 +89,17 @@ are cut (development is parallel work again), the light sitting continues on its
 | --- | --- | --- |
 | `heroes` | `privacy-hero`, `album-page` (new) | cut after the ninth batch's record; both paced against the home hero |
 | `river-card` | `river-card` (new) | cut after the record |
-| `gallery-width` | `gallery-width` (new) | cut after the record |
+| `gallery-width` | `gallery-width` (new) | integrated; on the desk for Will |
 | `ghost-wiring` | none (river-visual's `guest-photos=ghost`, wired) | cut after the glow retirement: the river on the guest album's empty state, so Will sees it in the app in the same sitting as the four boards |
 
 ## Waiting on Will
 
 The desk derives it (`/design/lab?key=`: every open ask and every unruled item of every board, from
 the specs minus the ledgers in `docs/reviews/`). Assets: [`../ASSETS.md`](../ASSETS.md). Next from
-him: nothing until the four new boards integrate, then one sitting on them in the rebuilt step.
+him: one sitting on the four new boards in the rebuilt step as they integrate (`gallery-width` first).
+`gallery-width` asks two questions for its wiring: if the host follows the guest with the words at the
+edge, does the WHOLE app pin left from `lg` (recommended, one header everywhere) or only the event page;
+and do the host's uniform grids (the review queue, the reels) take the same tile width (recommended yes).
 album-hero and river-visual have every step answered and retire at their wiring.
 
 ## Landed this window
