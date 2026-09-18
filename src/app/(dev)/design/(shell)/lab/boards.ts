@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 
 import { AlbumHeroBoard } from "@/app/(dev)/design/sandbox/album-hero/board";
 import { AlbumPageBoard } from "@/app/(dev)/design/sandbox/album-page/board";
+import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
 import { GalleryWidthBoard } from "@/app/(dev)/design/sandbox/gallery-width/board";
 import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board";
 import { RiverCardBoard } from "@/app/(dev)/design/sandbox/river-card/board";
@@ -25,6 +26,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  "body-type": { Component: BodyTypeBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },
   "album-page": { Component: AlbumPageBoard },
   "river-card": { Component: RiverCardBoard },
