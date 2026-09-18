@@ -102,10 +102,13 @@ retired `type-phone`; both agents were told so by message.
 | `ghost-wiring` | integrated at `31c94253` (handed off `79169b2c`; its two mid-lane claims accepted) | done | Opus, :3132 | nothing |
 | `voice` | integrated at `e0b92af6` (handed off `5e6e5481`; eight lines, 234 smoke checks, 8 demo steps) | done | Opus, :3135 | nothing; round two is cut from his notes |
 | `glass` | integrated at `30aaf705` (handed off `f8ab4ad9`; seven steps, 250 smoke checks; one unused import cleaned at the record) | done | Opus, :3132 | nothing; round two is cut from his notes |
-| `loose-ends` | cut at `5e03ffe2` (six ROADMAP decisions on their real surfaces) | building | Sonnet, :3133 | the whole board per its manifest |
+| `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 
-`gallery-width` integrated at `3a519e0d`. The three resumed lanes integrated the same afternoon (`6b5ea1bf`,
+No lane is open (2026-09-18, evening): every board of the round is integrated and on the desk, eight in all
+(privacy-hero, album-page, river-card, gallery-width, voice, body-type, glass, loose-ends), plus the ghost on
+the disposable event. Next from here: his batches, transcribed; then the wiring lanes from his answers and
+round two of `voice` and `glass` from his notes. `gallery-width` integrated at `3a519e0d`. The three resumed lanes integrated the same afternoon (`6b5ea1bf`,
 `31c94253`, `3ed62f0c`), the full gate green on the final tree (2,189 tests, 254 pages), and the round's
 `[preview]` is the record commit on top of them; the four worktrees and branches are pruned at the push.
 

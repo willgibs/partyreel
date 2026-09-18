@@ -111,6 +111,16 @@ against a reference, never a cap and a test.
   forty tile chips while a full-screen pane costs a seventh of that. Two questions carried on their
   recommendations (the backdrop belongs in round one; one Library entry with two grades). Marketing, the
   header's glass layer and the marriage with the aurora are round two, after his notes.
+- `loose-ends` integrated (`b83b7c3d`; cut `5e03ffe2`): six ROADMAP lines drawn as seven decisions on their
+  real surfaces. The admin chart ramp's cast in light and in dark on the real `MetricsCharts` (Graphite's cool
+  cast recommended in both), one FAQ look on both FAQs (the shared size moved into a real heading), the home
+  hero at a real 900 px tablet (a composed third geometry), and the album page's three ambient pieces: the
+  phone's screen cycle graded against the home hero's beat (two beats), the Live | Review photograph (the
+  rings), and a proposed lightbox-hint pill (a quiet corner mark). Two briefed pieces had no behaviour to vary,
+  so the lane read them as "which photo" and "propose a pill" and asks whether that reading was meant. Found
+  on the way, a real production bug: four of the five `--color-chart-*` aliases are never emitted by Tailwind's
+  `@theme inline`, so those admin chart series paint black (the ROADMAP's Now list). The desk draws the charts
+  correctly in a real browser; the lane's own captures squished them through the capture path `glass` documented.
 - **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's
   word ("we could begin getting main current to launch prep"), 1,138 commits: partyreel.com now serves Graphite,
   the type and corner ladders, the Aurora with shadows by role, the home hero's band and the v1 wordmark, Card's

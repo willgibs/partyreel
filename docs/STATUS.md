@@ -37,7 +37,7 @@ album hero's round three went "too boring" that way).
 | `ghost-wiring` | river-visual's `ghost` on the guest album's empty state, for Will to judge in the app | integrated at `31c94253` (resumed on Opus): the river's production home `src/components/shared/river/`, two contracts, a Library entry; the ghost's numbers (grayscale 0.85 at 40 percent, the board's) are his to overrule |
 | `voice` | round one of the voice derived from won lines: eight real lines in the places they are read, three or four close candidates each, bible 20's question first | integrated at `e0b92af6`; on the desk; its question (does the first win bind the other seven) is Will's |
 | `glass` | round one of Glass on the app's chrome over photographs: four recipes in numbers, one grade or two, the lightbox's backdrop, the chips over tiles at a phone, the reel's controls, the host's row, the light ground on its own step; every cost measured | integrated at `30aaf705`; on the desk; round two (marketing, the aurora marriage) is cut from his notes |
-| `loose-ends` | six ROADMAP decisions drawn on their real surfaces: the admin chart cast, one FAQ look, the hero at tablet widths, the album's three ambient pieces | building (Sonnet, :3133; cut this evening) |
+| `loose-ends` | six ROADMAP lines as seven decisions on their real surfaces: the admin chart cast in both modes, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces | integrated at `b83b7c3d`; on the desk; one question his (the reading of the two ambient pieces that had nothing to vary); a real chart-token bug found, on the ROADMAP's Now list |
 | `body-type` | the body and label ladder as seven decisions, every number measured in the frame: a guest's reading copy, the app's body, marketing copy fixed or fluid, the caption floor, the label pair, buttons, line height | integrated at `130236c2`; on the desk; two questions his (the four names; one size for caption and label) |
 | `album-hero` (round three) | answered in full (`none`, `w880`, `lg`, `settled`, `page`) | waits on `album-page`, then its wiring |
 | `river-visual` (round two) | answered (`card`, `in`, `ghost`; `proportion` withdrawn) | waits on `river-card`, then its wiring |
@@ -91,7 +91,7 @@ prune crons and the shared `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-The desk derives the steps (`/design/lab?key=`): the four new boards are integrated and his sitting is open
+The desk derives the steps (`/design/lab?key=`): all eight boards of the round are integrated and his sitting is open
 in the rebuilt step (1-9 show and pick, x flips A and B, g lays them side by side, n goes to the note, ?
 marks a question unclear), plus the ghost on a disposable event on the alias (its link in chat). His to
 overrule from the wiring lane: the ghost's fade (grayscale 0.85 at 40 percent, the board's values, rather
