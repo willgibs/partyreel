@@ -76,6 +76,7 @@ import { deleteR2Objects, listR2Objects } from "@/lib/r2/delete";
 import { parseMediaIdFromKey, reelOutputKey } from "@/lib/r2/keys";
 import { evaluateOrphanSweep } from "@/lib/r2/orphan-guard";
 import { getSiteUrl } from "@/lib/site-url";
+import { servesApp } from "@/lib/surface";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatBytes } from "@/lib/utils";
 
@@ -231,6 +232,26 @@ export async function GET(request: Request): Promise<Response> {
   const authHeader = request.headers.get("authorization") ?? "";
   if (!constantTimeEquals(authHeader, `Bearer ${cronSecret}`)) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  // THIS JOB BELONGS TO THE APP SURFACE (the admin split, 2026-09-18). vercel.json is ONE file in
+  // ONE repository, so BOTH Vercel projects register this cron and Vercel invokes it once per
+  // project, twice a day for a job that hard-deletes bytes and writes a heartbeat. The admin
+  // deployment answers and stops HERE, before the admin client exists: no sweep, no DB read, and
+  // crucially no heartbeat, since a second run row a day would make /admin/jobs report a cadence
+  // the job does not have and would mask a real missed run. The freshness scan rides the app
+  // surface's run, so nothing is lost. After the auth check on purpose: the route's contract is
+  // identical on both surfaces, and an unauthenticated prober learns nothing new either way.
+  // Vercel also offers a per-project cron disable (the project's `crons.disabledAt`), worth
+  // setting on partyreel-admin as well, but this guard is the one that lives in the repo and
+  // survives a project being recreated.
+  if (!servesApp()) {
+    return Response.json({
+      ok: true,
+      skipped: true,
+      reason: "not_this_surface",
+      ran_at: new Date().toISOString(),
+    });
   }
 
   const admin = createAdminClient();

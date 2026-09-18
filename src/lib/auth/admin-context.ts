@@ -23,6 +23,7 @@ import type { ActionResult } from "@/app/(app)/dashboard/actions";
 import { isAdminHost } from "@/lib/auth/admin-host";
 import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
+import { servesAdmin } from "@/lib/surface";
 
 export type AdminAal = "aal1" | "aal2";
 
@@ -47,11 +48,19 @@ type AdminGate =
   | { status: "ok"; ctx: AdminContext };
 
 /**
- * In production the portal renders ONLY on the admin host; the apex 404s `/admin`
- * so its existence never leaks. Dev (NEXT_PUBLIC_ADMIN_HOST unset) skips the guard
- * so `/admin` is reachable on localhost for pure-UI work.
+ * The portal renders ONLY where it belongs, checked twice.
+ *
+ * 1. SURFACE (the admin split, 2026-09-18). The `app` deployment never serves the portal, whatever
+ *    the Host header says. The proxy 404s `/admin` there first; this is the belt and braces INSIDE
+ *    the seam, so a request that somehow reached a page (a route the matcher skips, a future direct
+ *    invocation) still cannot render it. With NEXT_PUBLIC_SURFACE unset (local dev, and every
+ *    deployment before the cutover) both surfaces are served and this check is a no-op.
+ * 2. HOST. In production the portal renders only on the admin host; the apex 404s `/admin` so its
+ *    existence never leaks. Dev (NEXT_PUBLIC_ADMIN_HOST unset) skips it so `/admin` is reachable on
+ *    localhost for pure-UI work.
  */
-async function assertAdminHost(): Promise<void> {
+async function assertAdminSurface(): Promise<void> {
+  if (!servesAdmin()) notFound();
   if (!env.NEXT_PUBLIC_ADMIN_HOST) return;
   const host = (await headers()).get("host");
   if (!isAdminHost(host)) notFound();
@@ -96,14 +105,14 @@ async function readGate(): Promise<AdminGate> {
 }
 
 /**
- * Pages / layouts. Host-guards, then: anonymous → redirect to login (the subdomain
+ * Pages / layouts. Surface- and host-guards, then: anonymous → redirect to login (the subdomain
  * already implies an admin area exists, so a login prompt leaks nothing), non-admin
  * → notFound() (a logged-in non-admin can't even confirm the route). AAL is NOT
  * enforced here — the layout inspects `ctx.aal` to render the enroll/step-up gate,
  * and sensitive pages should `if (ctx.aal !== "aal2") return null` before fetching.
  */
 export async function requireAdmin(): Promise<AdminContext> {
-  await assertAdminHost();
+  await assertAdminSurface();
   const gate = await readGate();
   if (gate.status === "anonymous") redirect("/login?next=/admin");
   if (gate.status === "forbidden") notFound();
@@ -133,6 +142,10 @@ const MFA_REQUIRED: ActionResult = {
 export async function requireAdminAction(): Promise<
   { ok: true; ctx: AdminContext } | { ok: false; result: ActionResult }
 > {
+  // Same surface belt-and-braces as the page seam: the `app` deployment runs no admin write, even
+  // if one were reachable. Every call site today sits under /admin (which the proxy 404s there), so
+  // this costs nothing and keeps the rule in ONE place for both entry points. Unset = no-op.
+  if (!servesAdmin()) return { ok: false, result: NOT_AUTHORIZED };
   const gate = await readGate();
   if (gate.status !== "ok") return { ok: false, result: NOT_AUTHORIZED };
   if (gate.ctx.aal !== "aal2") return { ok: false, result: MFA_REQUIRED };
