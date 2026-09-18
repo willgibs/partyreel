@@ -3838,7 +3838,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 343
+          "line": 347
         },
         {
           "title": "rests an UNARMED bloom where its own animation starts",
@@ -3846,7 +3846,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 371
+          "line": 375
         },
         {
           "title": "has exactly one filter host, and the footer is now on it",
@@ -3854,7 +3854,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 412
+          "line": 416
         },
         {
           "title": "declares the filter in exactly one module",
@@ -3862,7 +3862,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 450
+          "line": 454
         },
         {
           "title": "mounts it exactly once, in the root layout",
@@ -3870,7 +3870,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 460
+          "line": 464
         },
         {
           "title": "has no knob the engine does not read",
@@ -3878,7 +3878,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 469
+          "line": 473
         },
         {
           "title": "keeps the host a server component",
@@ -3886,7 +3886,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 482
+          "line": 486
         },
         {
           "title": "found the call sites at all",
@@ -3894,7 +3894,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 546
+          "line": 550
         },
         {
           "title": "passes theme explicitly, and never 'auto'",
@@ -3902,7 +3902,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 556
+          "line": 560
         }
       ]
     },
@@ -4059,7 +4059,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 343
+          "line": 347
         },
         {
           "title": "rests an UNARMED bloom where its own animation starts",
@@ -4067,7 +4067,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 371
+          "line": 375
         },
         {
           "title": "has exactly one filter host, and the footer is now on it",
@@ -4075,7 +4075,7 @@
             "the spill engine CSS"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 412
+          "line": 416
         },
         {
           "title": "declares the filter in exactly one module",
@@ -4083,7 +4083,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 450
+          "line": 454
         },
         {
           "title": "mounts it exactly once, in the root layout",
@@ -4091,7 +4091,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 460
+          "line": 464
         },
         {
           "title": "has no knob the engine does not read",
@@ -4099,7 +4099,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 469
+          "line": 473
         },
         {
           "title": "keeps the host a server component",
@@ -4107,7 +4107,7 @@
             "the turbulence field is a document singleton"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 482
+          "line": 486
         },
         {
           "title": "found the call sites at all",
@@ -4115,7 +4115,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 546
+          "line": 550
         },
         {
           "title": "passes theme explicitly, and never 'auto'",
@@ -4123,7 +4123,7 @@
             "every beam states the ground it is drawn for"
           ],
           "file": "src/components/shared/glow-contract.test.ts",
-          "line": 556
+          "line": 560
         },
         {
           "title": "scanned the production lamps",

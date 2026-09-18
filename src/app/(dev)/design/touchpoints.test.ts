@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { BOARDS } from "./sandbox/registry";
 import { RULINGS, SANDBOX } from "./touchpoints";
 
 /**
@@ -24,28 +25,13 @@ describe("the design lab's rulings registry", () => {
   });
 
   it("marks exactly the standing sandbox boards", () => {
+    // DERIVED, not listed (2026-09-18): the rows touchpoints marks with a
+    // `board` are the registry's boards, whichever those are today. A hand
+    // list here made every lane that added or retired a board edit one more
+    // shared file, and gave four lanes cut on one day the same line to fight
+    // over. A ruled board leaves both and keeps only its RULINGS row.
     expect(SANDBOX.map((r) => r.id).sort()).toEqual(
-      [
-        "glow-doctrine",
-        "glow-moments",
-        // the two legacy marketing boards retired to the record in the
-        // Library x Lab migration wave (2026-09-15), and five more with their
-        // rulings on 2026-09-17: the palette (Graphite), the home hero (whose
-        // favourite ships as cinema-hero.tsx), the type scale (B, rungs, now
-        // the nine --text-* steps in theme.css), light (both shadows by
-        // role and the bright edge, now two tokens and one attribute in
-        // globals.css) and floating surfaces (Card's anatomy, the nested
-        // corner and the entrances by frequency, now ui/floating-layer.ts and
-        // the menu's new parts). A ruled board leaves sandbox/ and keeps only
-        // its RULINGS row; type-phone and rounding (the review wave's last
-        // board) left the same way on 2026-09-18, into theme.css and the
-        // radius tokens
-        // round four (2026-09-15): the burst and the river, killed as heroes
-        "album-hero",
-        "river-visual",
-        // the ninth batch (2026-09-18): the river in the QR door
-        "river-card",
-      ].sort(),
+      BOARDS.map((b) => b.id).sort(),
     );
     for (const r of SANDBOX) expect(r.ruled, r.id).toMatch(/open/);
   });

@@ -54,7 +54,7 @@ announces:
   - "The third batch (2026-09-17, c9903c99 and dc4530df): every card of the light board's round seven is ruled (the bloom, the halo and the beam kept) and round eight is three steps (depth, face, sweep). SectionLight has NO default placement: `placement` is required, `room` takes a `from` origin on an edge of the box and every placement a `reach`, and its contract refuses the same composition twice on one page (Will: the Aurora is 'a mix of all of them... custom and bespoke'). ProCardBeam measures its card's corner and passes it, zero included. src/app/globals.css is released to publish-bloom for the round (the publish block and the one fence rule only)."
   - "The fourth batch (2026-09-17, 871f650b to c64275a3): light r8 is fully answered and floating-surfaces picks Card. `pnpm lab:demo` (scripts/lab-demo.mjs) presses every open step and fails a frozen stage; a catalog card's preview is inert when the card is the press target (src/components/lab/catalog.tsx). Released to light-wiring for the round: src/app/globals.css, src/app/theme.css, _data/links.test.ts and _data/docs.test.ts (the two tests that name light as a standing board and its spec as NOT LAW); touchpoints.ts and touchpoints.test.ts stay here and the lane edits its own board's lines under the retirement exception."
   - "The eighth batch (2026-09-18, 00e82dba): type-phone r1 and rounding r7 are ruled, and one lane, ladders-wiring, wires both ladders and retires both boards (phase 1 type, phase 2 corners). The type ladder's law becomes the ORDER: prose's phone end 18 to 24 and a tenth step, subhead (20 to 24), declared in theme.css AND TYPE_STEPS. Corners are family C in quarters: --radius 8px, --radius-float 12px (rows derived at 8), --radius-tile 4px, --gap-gallery max(3px, var(--radius-tile)), 3xl and 4xl set to initial, a cta Button size, --shadow-float retired. Released to ladders-wiring for the round: src/app/globals.css, src/app/theme.css, src/components/dev/motion-tuner-config.ts; touchpoints.ts and touchpoints.test.ts stay here under the retirement exception."
-  - "The ninth batch (2026-09-18): album-hero r3 and river-visual r2 are ruled (their first ledgers, so registry.test.ts's grandfathered set is empty, and that file is the Orchestrator's again), and river-visual's `proportion` is withdrawn inside the round. Three board lanes are cut: `heroes` (`privacy-hero`, `album-page`), `river-card`, `gallery-width`. THE REGISTRATION EXCEPTION, while they run: a lane adds its own board's lines to sandbox/registry.ts, (shell)/lab/boards.ts, touchpoints.ts and touchpoints.test.ts and touches nothing else in them. New members go at the HEAD of `BOARDS`, `BOARD_COMPONENTS` and the `SandboxId` union, the RULINGS row directly after river-visual's, the id into `RulingId` directly after `river-visual`; `ladders-wiring` removes only its own lines and reorders nothing, so every merge is line-disjoint. The names `ladders-wiring` changes, which every lane builds against: `rounded-3xl` and `rounded-4xl` become no-ops (set to `initial`), `shadow-float` and `--radius-action-lg` retire, `size=\"cta\"` on Button and `text-subhead` arrive, and `prose` is 24px at a phone."
+  - "The ninth batch (2026-09-18): album-hero r3 and river-visual r2 are ruled (their first ledgers, so registry.test.ts's grandfathered set is empty, and that file is the Orchestrator's again), and river-visual's `proportion` is withdrawn inside the round. Three board lanes are cut: `heroes` (`privacy-hero`, `album-page`), `river-card`, `gallery-width`. THE REGISTRATION EXCEPTION, while they run: a lane adds its own board's lines to sandbox/registry.ts, (shell)/lab/boards.ts and touchpoints.ts and touches nothing else in them (touchpoints.test.ts derives its standing list from the registry since the glow retirement, so it takes no line). New members go at the HEAD of `BOARDS`, `BOARD_COMPONENTS` and the `SandboxId` union, the RULINGS row directly after river-visual's, the id into `RulingId` directly after `river-visual`; `ladders-wiring` removes only its own lines and reorders nothing, so every merge is line-disjoint. The names `ladders-wiring` changes, which every lane builds against: `rounded-3xl` and `rounded-4xl` become no-ops (set to `initial`), `shadow-float` and `--radius-action-lg` retire, `size=\"cta\"` on Button and `text-subhead` arrive, and `prose` is 24px at a phone."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
 ---
 
@@ -95,9 +95,8 @@ are cut (development is parallel work again), the light sitting continues on its
 
 The desk derives it (`/design/lab?key=`: every open ask and every unruled item of every board, from
 the specs minus the ledgers in `docs/reviews/`). Assets: [`../ASSETS.md`](../ASSETS.md). Next from
-him: nothing until the four new boards integrate, then one sitting on them in the rebuilt step. The
-glow boards are records with nothing open; album-hero and river-visual have every step answered and
-retire at their wiring.
+him: nothing until the four new boards integrate, then one sitting on them in the rebuilt step.
+album-hero and river-visual have every step answered and retire at their wiring.
 
 ## Landed this window
 
@@ -322,5 +321,12 @@ retire at their wiring.
   and 15's corner numbers, both ledgers and the manifest deleted, ASSETS row 17 withdrawn (the gap is
   pinned and checked on real photographs), the lane's five deferred lines into the ROADMAP, and the
   stylesheets, the board lists and the two example tests back here.
+- The glow boards retired right after, with nothing open (5,613 lines, both ledgers), and the lab's
+  global `[data-lit]` rule with them, which had restyled production's bright edge for the rest of a
+  session once a glow board was visited. Every floor that counted boards (five sheets, thirty keyframes,
+  two lab sheets, the first standing board) now checks the fixed files, and `touchpoints.test.ts`
+  derives its standing list from the registry, so a lane never edits that test to add or retire a board.
+  `lab:smoke` passes whole. The round's record: a new CHANGELOG entry (the stepped review's dropped, git
+  keeps it at `d2db2629`) and STATUS replaced.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

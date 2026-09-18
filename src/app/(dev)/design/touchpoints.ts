@@ -72,9 +72,7 @@ export type RulingId =
 export type SandboxId =
   | "river-card"
   | "album-hero"
-  | "river-visual"
-  | "glow-doctrine"
-  | "glow-moments";
+  | "river-visual";
 
 export type Ruling = {
   id: RulingId;
@@ -404,47 +402,23 @@ export const RULINGS: Ruling[] = [
     id: "glow-doctrine",
     title: "The spill doctrine",
     surface: "shared",
-    ruled: "2026-08-28 and 08-31; open: the lit surface",
-    shipped: null,
-    why: "Settled but for the lit surface: SPILL is light from a lit thing, BEAM is the live subject lit at its edge; the engine promoted, our palette, the 8s register.",
+    ruled: "2026-08-28 and 08-31, the lit surface 2026-09-17; the board retired 2026-09-18",
+    shipped: "the spill engine (glow.tsx), the bright edge ([data-lit]) with light-wiring, the Aurora with aurora-wiring",
+    why: "Retired with nothing open: SPILL is light from a lit thing, BEAM a live subject lit at its edge; the engine, the bright edge and the Aurora all ship.",
     lives: [
       "docs/systems/design-system.md#light-spill-beam-and-the-lamp-set",
       "src/components/shared/glow.tsx",
       "src/app/globals.css",
     ],
-    board: {
-      note: "Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing",
-      variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo", "Corner A/B"],
-      tracks: ["glow-specs"],
-    },
   },
   {
     id: "glow-moments",
     title: "Spill placements",
     surface: "shared",
-    ruled: "2026-08-31; open: the publish beat's violet",
-    shipped: null,
-    why: "Reviewed: ten spill placements and three beams ship, the QR plate takes our own light, the upload takes none; the publish beat's violet is unruled.",
+    ruled: "2026-08-31, the publish beat 2026-09-17; the board retired 2026-09-18",
+    shipped: "the placements with light-wiring, the publish beat in the house five with publish-bloom",
+    why: "Retired with nothing open: the placements ship, the QR plate takes our own light, the upload takes none, and the publish beat wears the house five.",
     lives: ["docs/systems/design-system.md#the-shipped-light"],
-    board: {
-      note: "Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into",
-      variants: [
-        "Hero underlight",
-        "Locked door",
-        "Doorbell arrival",
-        "Awaiting media",
-        "Album straddle",
-        "QR plate",
-        "Publish beat",
-        "CTA rim",
-        "Paper probe",
-        "Upload as light",
-        "Scan-through",
-        "Where a beam is allowed",
-        "The whole page",
-      ],
-      tracks: ["glow-specs"],
-    },
   },
   // THE REVIEW WAVE (Will's rule-by-rule review of the bible, 2026-09-14):
   // seven boards registered up front by the Orchestrator so each track owns
