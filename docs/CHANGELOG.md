@@ -62,9 +62,32 @@ against a reference, never a cap and a test.
   edge or centred; edge, added once the wide page showed it), and whether the host follows (same). The
   candidate is one `column-width` per gallery from `sm` up, so the phone keeps its two columns.
 
-**Next.** The four boards integrate and his sitting runs on them in the new step; then the wiring lanes
-(the album page, the river, the privacy hero, the galleries); then a milestone (`main` is 1,089 commits
-behind).
+- The Orchestrator changed seats mid-round: the previous one was cut by a weekly limit with three lanes
+  mid-work, and a new one on a second account resumed all three the same day (Fable orchestrating; the
+  board lanes on Sonnet, the wiring lane on Opus, by Will's ruling in PROGRAM.md "Model delegation").
+- `heroes` integrated (`6b5ea1bf`): `privacy-hero` recuts "the field" as two opposite spirals behind the
+  Privacy page's lockup, graded against the home hero's pace (the pace, the gap, the trail, a phone answer),
+  and `album-page` answers the album hero's round four (the live album at 896 with its foot faded or today's
+  filling demo, three kinds of subtle motion around the words, the album's light, a second light). Every
+  option a real `Frame` at 1440 and 375, every tile measured against its words.
+- `ghost-wiring` integrated (`31c94253`): the guest album's empty state trades its faint 3 by 3 grid for the
+  river, so Will can judge `guest-photos=ghost` in the full app. The engine's production home is
+  `src/components/shared/river/`, rewritten in fractions of its box (it takes its width from the column, and
+  the fall is solved from the cut rather than typed, which had cut two of nine cards in a square box);
+  ghosted by a filter on the placement's wrapper at the board's values (grayscale 0.85 at 40 percent, his
+  to move), nothing at the top of the flow (bible 4), the title and CTA kept. Measured: no frame work off
+  screen, on a hidden tab or under reduced motion; the flow stands with JavaScript off; 44 KB of WebPs; zero
+  long tasks with four rivers running. Two contracts and a Library entry.
+- `river-card` integrated (`3ed62f0c`): the river in the real QR door at 4:5 and 3:2, the code unlabelled
+  and unlinked: where it sits, where the photographs end (a fourth question the drawing surfaced), what it
+  opens (the short `/demo` link fixes the scan floor; the event's full link leaves 0 px of clearance in the
+  short door) and what the short door does. Every drawn code measured exactly 3.0 px a module.
+- `voice` cut (`13dd8ffd`): round one of the board Will asked for by name, the voice derived from won
+  lines, six to eight real lines each with three or four close candidates, bible 20's question first.
+
+**Next.** His sitting on the four boards in the rebuilt step, and the ghost on a disposable event on the
+alias; then the wiring lanes (the album page, the river, the privacy hero, the galleries) and the voice
+board's round one; then a milestone (`main` is about 1,120 commits behind).
 
 ## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` to `00e82dba`)
 

@@ -33,6 +33,7 @@ The lab and the kit:
 - Design: `EmailSignIn` (`src/components/auth/`) takes no Button size, so the guest gate's email button is still a default Button forced to h-11 (12.8px on 44px); give it a size so it wears `cta`.
 - Design: the dialog title's `leading-none` beside `text-card-title` (`ui/dialog.tsx`) overrides the card step's own leading on every dialog; drop it and check the dialog headers signed in.
 - Design: the literal corners left outside the photograph set, each onto the token its role calls for: live-demo's 14px mock panel, and the 6px corners in `reel-builder.tsx` and `style-rail.tsx` (6px is `rounded-md` under C).
+- The lab: `river-visual`'s empty-state comparison draws `GalleryEmptyState` as its "today's grid" half, so both halves are the river since `ghost-wiring` (`31c94253`); the board is answered and retires at river-visual's own wiring, which also points `river-card` at `shared/river` and deletes `sandbox/river-visual/`.
 - The lab: `defineExploration` flattens every decision's `configs`, so a knob several decisions share arrives once per decision (a duplicate dock knob and a React key warning); dedupe by id in the constructor (`gallery-width/spec.ts` dedupes its window knob by hand).
 - The lab: a bare `Frame` ignores the lab's Fit, so a 1920 frame stays 1:1 and the stage head's scale button seems dead; fold `WindowFit` (`gallery-width/pages.tsx`: a `data-stage-fit` box with a CSS zoom, honest on an iframe) into `Frame` or the stage.
 - The lab: a leftover forced-h-11 CTA (`sandbox/album-hero/hero.tsx`) takes `size="cta"` if its board outlives the wiring, and `lab/tools/motion/motion-playground.tsx` still names `/design/lab/rounding` as a specimen; re-point it at `/design/library/foundations#radius`.
@@ -115,6 +116,7 @@ Marketing:
 The app:
 - The admin chart ramp (`--chart-1..5`, both modes) is still chroma 0 beside Graphite's cool greys; a cast on five greys is a ruling, not a wiring round's value.
 - ★ The aurora is dark-ground only (Will, 2026-09-17: "No light ground usage is a decision for now"): the app's light mode owes its own answer for lit surfaces before the dark versus light work starts.
+- Polish: the guest-ghost pack's file list is rebuilt by hand in three components (`guest/gallery-empty-state.tsx`, `app/dashboard/events-empty-teaser.tsx`, `app/dashboard/empty-section-teaser.tsx`); one exported list would be the single source (`ghost-wiring`, 2026-09-18).
 - Cross-gallery sort and filter for the Uploads hub (`get_my_uploads` is filter-ready; add a like-count sort).
 - Zip-export follow-ons: an async build-to-R2 job past the cap; a custom `export.partyreel.com`.
 - Preview-variant follow-ons: a server-side backfill for pre-feature media; preview bytes on the storage meter; the moderation feed's preview; AVIF if quality demands.

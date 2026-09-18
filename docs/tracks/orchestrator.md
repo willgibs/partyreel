@@ -97,19 +97,20 @@ retired `type-phone`; both agents were told so by message.
 
 | track | worktree (`../partyreel-wt/<track>`) | state at the kill | resumed as | to finish |
 | --- | --- | --- | --- | --- |
-| `heroes` | head `6b11c162`, pushed, clean, two commits behind launch-prep | both boards committed (`20c30f86` privacy-hero, `6b11c162` album-page), synced at `0ed6315f` | Sonnet, :3133 | sync, the gate on the synced tree, the captures, Handoff and Record, then integrate |
-| `river-card` | head `6815225d`, pushed, 2 UNCOMMITTED edits (the preview gutter into `board.css`; `useLadderAt(1440)` in `board.tsx`, so the 1440 doors wear 1440's type in any window) | the board committed at `282f784f`, synced | Sonnet, :3134 | commit the two edits with their why, sync, the gate, the scan floor measured, Handoff, integrate |
-| `ghost-wiring` | head `8fa6fd83` (the manifest only), an UNTRACKED `src/components/shared/river/` begun (701 lines) | nothing committed | Opus, :3132 | the whole lane per its manifest (the engine trimmed, the empty state, a contract, a Library entry) |
+| `heroes` | integrated at `6b5ea1bf` (handed off `766f5a66`) | done | Sonnet, :3133 | nothing |
+| `river-card` | integrated at `3ed62f0c` (handed off `64c25a02`; the RULINGS rows' union needed album-page's closing lines put back by hand) | done | Sonnet, :3134 | nothing |
+| `ghost-wiring` | integrated at `31c94253` (handed off `79169b2c`; its two mid-lane claims accepted) | done | Opus, :3132 | nothing |
 | `voice` | cut fresh at `13dd8ffd` (round one of the voice derived from won lines; Will asked for it by name 2026-09-17, ahead of Glass) | nothing yet | Opus, :3135 | the whole board per its manifest: six to eight real lines, bible 20's question first, then integrate |
 
-`gallery-width` integrated at `3a519e0d`; `origin/lp/gallery-width` goes at the next prune. The alias serves
-`3a519e0d` (READY); one `[preview]` follows the third merge, since Will sits after all four boards land.
+`gallery-width` integrated at `3a519e0d`. The three resumed lanes integrated the same afternoon (`6b5ea1bf`,
+`31c94253`, `3ed62f0c`), the full gate green on the final tree (2,189 tests, 254 pages), and the round's
+`[preview]` is the record commit on top of them; the four worktrees and branches are pruned at the push.
 
 ## Next, in order (batch nine's plan T4 to T6; the plan's words live in rulings.md 2026-09-18 and ROADMAP)
 
-1. **Integrate** `heroes`, `river-card`, `ghost-wiring` as each hands off ("keep both" on the four board
-   lists, regenerate, the full gate, `[preview]`, confirm the alias, prune). Will's next sitting is the four
-   new boards (`privacy-hero`, `album-page`, `river-card`, `gallery-width`) in the rebuilt step.
+1. **Done 2026-09-18:** `heroes`, `river-card` and `ghost-wiring` integrated. Will's next sitting is the four
+   new boards (`privacy-hero`, `album-page`, `river-card`, `gallery-width`) in the rebuilt step, plus the
+   ghost on a disposable event on the alias (left standing until he has judged it, then deleted).
 2. **Wiring lanes from his answers** (four agents at most, each a manifest from the template):
    - `album-wiring`: `ScreenLamp` fixed AT ITS SOURCE into the pool design-system.md prescribes (it also
      lights the guest and sharing pages: flag it to Will); the album page's round-four motion, the visual
