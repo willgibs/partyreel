@@ -1,0 +1,110 @@
+/* THE RIVER'S OWN SHEET (river.tsx), co-located the way the home hero's is,
+   because every rule here paints a state the component's loop hands over from.
+   Classes under rvr- only. It declares NO keyframe: the flow is one rAF loop
+   writing transform and opacity, and the only CSS state is the pour's first
+   frame, so nothing here can collide with a lab or a production keyframe.
+
+   ── THE REST STATE / ENTRANCE SPLIT (the lab's, and the home hero's) ──
+
+   The flow's FINAL state is the album standing at its steady spacing, and it
+   lives outside every media query on .rvr-card, read from the per card custom
+   properties the component computes during render: a reader who asked for less
+   motion, a crawler and the server's own HTML all get the flow at rest, with
+   nothing to undo.
+
+   The state inside `no-preference` is the pour's FIRST FRAME, every card
+   collapsed where it is born. It has to live in CSS, not in an effect: an
+   effect runs after the server's paint, so the flow would paint at rest, snap
+   back, and pour again. In the same query the motion is allowed in, the pour
+   is one beat.
+
+   The one reader between the two, motion allowed and scripting off, would be
+   left on the collapsed frame with nothing to run the loop. The component
+   renders a <noscript> companion for exactly that reader (NOSCRIPT_RULE in
+   river.tsx): parsed as markup only when scripting is off, later in the
+   document than this sheet, so it wins and puts the rest state back. */
+
+.rvr {
+  position: relative;
+  width: 100%;
+  /* clip, not hidden: a hidden box is still a scroll container. */
+  overflow: clip;
+  contain: layout paint;
+  /* Decoration never takes a tap, a drag or a long-press menu. */
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* ★ TWO ELEMENTS, ONE MASK EACH, deliberately (the lab's finding): two layers
+   on one element with `mask-composite: intersect` resolve to the union in
+   Chrome, so the dissolve vanishes. Nesting is unambiguous in every engine.
+   This one is the vertical pair: the flow arrives through the top and leaves
+   through the bottom, dissolving at both, so the box never guillotines it. */
+.rvr-stream {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 var(--rvr-fade-t),
+    #000 var(--rvr-fade-b0),
+    transparent var(--rvr-fade-b1)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 var(--rvr-fade-t),
+    #000 var(--rvr-fade-b0),
+    transparent var(--rvr-fade-b1)
+  );
+}
+
+.rvr-flow {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 var(--rvr-fade-x),
+    #000 calc(100% - var(--rvr-fade-x)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 var(--rvr-fade-x),
+    #000 calc(100% - var(--rvr-fade-x)),
+    transparent 100%
+  );
+}
+
+.rvr-card {
+  position: absolute;
+  /* Every card is born at one point, above the frame, and its negative margins
+     put its CENTRE there, so scale opens about the point it falls from. */
+  top: var(--rvr-origin);
+  left: 50%;
+  overflow: hidden;
+  border-radius: var(--radius-tile);
+  transform: var(--rvr-rest);
+  opacity: var(--rvr-rest-o);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.rvr-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The pour's first frame: every card where it is born, at no size. */
+  .rvr-card {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
