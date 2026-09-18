@@ -15,10 +15,11 @@ design variable. The `admin` board (round one, 2026-09-18) asks the shape; its p
 
 ## What it does
 
-An internal portal served on the **`admin.partyreel.com` subdomain by the SAME Next app** (route segment
-[`src/app/admin/`](../../src/app/admin) with its own `AdminShell`, distinct from the host `AppShell`).
-Three hard gates, all behind ONE seam ([`admin-context.ts`](../../src/lib/auth/admin-context.ts)):
-`getUser()` + `profiles.is_admin` + **AAL2** (free app-based TOTP MFA).
+An internal portal on **`admin.partyreel.com`**, built from THIS repository by its **own Vercel project**
+(route segment [`src/app/admin/`](../../src/app/admin) with its own `AdminShell`, distinct from the host
+`AppShell`; the deployment shape is the Perimeter invariant below). Three hard gates, all behind ONE seam
+([`admin-context.ts`](../../src/lib/auth/admin-context.ts)): `getUser()` + `profiles.is_admin` + **AAL2**
+(free app-based TOTP MFA).
 
 ## The seam (never bypass it)
 
@@ -36,15 +37,41 @@ swap point for a future `staff_members`+roles model (solo admin now, team later)
   `currentLevel`/`nextLevel` (`nextLevel === 'aal2'` → "step up", else "enroll").
 - **Keep admin auth cookies HOST-ISOLATED.** `@supabase/ssr` cookies are host-only by default — do NOT set
   a `.partyreel.com` cookie `domain`, or the AAL2 admin session leaks to the apex. The admin signs in
-  separately at the subdomain.
+  separately at the subdomain. Two deployments do not make this safe by themselves: both projects talk to
+  the one Supabase project, so a domain-scoped cookie would still hand the apex an AAL2 session.
 - **The auth callback's `redirectTo` must be the BARE `/auth/callback` (query-free).** On the admin host,
   `callbackUrl()` ([`login-form.tsx`](../../src/components/auth/login-form.tsx)) uses
   `window.location.origin` (NOT the apex `NEXT_PUBLIC_SITE_URL`) so the cookie lands on the subdomain; the
   [callback route](../../src/app/(auth)/auth/callback/route.ts) picks the landing per host (admin → `/admin`).
-- **Perimeter:** the proxy ([`proxy.ts`](../../src/proxy.ts)) redirects the subdomain root → `/admin`; the
-  layout host-guards so the **apex 404s `/admin`** (existence never leaks) when `NEXT_PUBLIC_ADMIN_HOST` is
-  set. Unset (dev) → `/admin` is reachable on localhost, but auth/MFA only complete on the live subdomain.
-  Canonical path is `/admin/*` on every host so `AdminShell` nav works in dev + prod.
+- **Perimeter: two deployments, one tree** (the admin split, 2026-09-18). Two Vercel projects build the
+  same commit of this one repository and differ by ONE variable, `NEXT_PUBLIC_SURFACE`, whose only reader
+  is [`src/lib/surface`](../../src/lib/surface): `partyreel-admin` (`=admin`) serves `admin.partyreel.com`,
+  `partyreel` (`=app`) serves the apex. The proxy ([`proxy.ts`](../../src/proxy.ts)) applies that rule
+  before every other rule it has.
+  - On the **admin** surface it is an ALLOW-LIST: `/admin`, `/login`, `/auth`, `/api/cron` and
+    `/api/design-gate` (the probe the admin layout's own `AppDesignIsland` calls), plus `/`, which
+    redirects to `/admin`, and `/robots.txt`, which the shared `robots.ts` already Disallows entirely.
+    Everything else is REWRITTEN to a path no route serves, so the marketing site, the host app, the guest
+    links and the lab answer with the same real 404 a mistyped URL gets.
+  - On the **app** surface `/admin` is a 404 whatever the Host header says, with `assertAdminSurface()`
+    inside `requireAdmin()` (and the same one-liner in `requireAdminAction`) as belt and braces.
+  - **UNSET serves both**, byte for byte as before the split, so unsetting the variable IS the rollback.
+    Dev is unset, which is why `/admin` stays reachable on localhost; auth and MFA still only complete on
+    a real host. Canonical path is `/admin/*` everywhere so `AdminShell` nav works in dev and prod.
+  Both projects still BUILD every route: the surface rule is enforced when a request is served, never
+  compiled away. That is the deliberate trade for one code path and a one-variable rollback; the security
+  boundary is still RLS plus the `requireAdmin` seam, never reachability.
+- **The crons run on the APP surface only.** `vercel.json` is one file in one repo, so BOTH projects
+  register its cron and Vercel invokes `/api/cron/purge` once per project. The route answers on the admin
+  surface and stops before the admin client exists: no sweep, no DB read and no heartbeat, because a
+  second run row a day would make `/admin/jobs` report a cadence the job does not have and would mask a
+  real missed run. Vercel's per-project cron disable (the project's `crons.disabledAt`) is worth setting on
+  `partyreel-admin` as well; the code guard is the one that lives in the repo and survives a project being
+  recreated. Crons only fire on production deployments, so no preview ever purges.
+- **Host and preview are per PROJECT.** `NEXT_PUBLIC_ADMIN_HOST` is set on each project and per
+  environment: production `admin.partyreel.com`, preview that project's own `launch-prep` alias host. So
+  Supabase's auth redirect allow-list needs the admin project's preview `/auth/callback` alongside the
+  production one, and the app project's preview alias no longer signs anyone into the portal.
 
 ## Gotchas (why it's like this — don't revert)
 
@@ -118,9 +145,9 @@ deny-all, service-role only.
   switch (it hard-deletes bytes, and one skipped daily run costs nothing); the backup reconcile and the
   DB-backup Action fail OPEN (a missing backup is worse than a missing log line); the backup prune fails
   CLOSED (it is the only job that deletes from the last-resort copy).
-- ★ **The missed-run signal rides the purge cron**, the only scheduled app-side code: at the end of
-  every run it checks EVERY job for a terminal row within 1.5x its own cadence and raises one Sentry
-  `job_missed_run` warning per silent job. The verdict comes from `jobHealth`, the SAME pure function
+- ★ **The missed-run signal rides the purge cron**, the only scheduled app-side code (and it runs on the
+  APP surface only, see the Perimeter invariant): at the end of every run it checks EVERY job for a
+  terminal row within 1.5x its own cadence and raises one Sentry `job_missed_run` warning per silent job. The verdict comes from `jobHealth`, the SAME pure function
   the page renders, so the alert and the console can never drift apart.
 - **Heartbeat writes degrade, health reads do not.** A job must not die because its bookkeeping failed,
   so the writes swallow and report (the caller raises the warning, since Sentry never enters
