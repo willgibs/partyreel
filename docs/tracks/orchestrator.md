@@ -149,8 +149,12 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
   never for `"build":"`; a poll on the quoted form watched a READY alias for 15 minutes and never matched). The
   same keyed lab page also carries `sentry-release=<sha40>` (the Sentry SDK's stamp on a dynamic page); the static
   home page carries neither, which is why a poll on `/` sees nothing. The key must ride the QUERY on a plain request; the `x-design-key` header alone
-  answers 404, and no `sentry-release` marker exists in the HTML. After every integration:
-  `node scripts/prune-vercel-deployments.mjs --apply`.
+  answers 404, and no `sentry-release` marker exists in the HTML. **READY is not the alias:** a build that goes
+  READY after a NEWER deployment exists for the branch (even a docs-only one the ignore script CANCELED) never takes
+  the branch alias (`aliasAssigned` stays empty, no error) and the alias keeps serving the older build; assign it by
+  hand, `POST /v2/deployments/<id>/aliases` with `{"alias":"partyreel-git-launch-prep-partyreel.vercel.app"}`, then
+  re-check the page (2026-09-18: `0681652c` sat READY behind the canceled `40a26a55` for three minutes, and a stuck
+  queue had held it 80 minutes before that). After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
 - **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it); `pnpm lab:demo
   --key <key>` and `?key=` on `/design/lab` take it.
 - **The review.** Will pastes a batch in chat; transcribe it with `pnpm lab:review` on STDIN (`--dry`
