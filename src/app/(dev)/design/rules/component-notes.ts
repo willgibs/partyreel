@@ -173,6 +173,11 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
       "a document singleton mounted once in the marketing layout; a second mount doubles every event, so the page lists it as text",
   },
 
+  /* guest (not a library directory: indexed for the empty state's contract) */
+  "src/components/guest/gallery-empty-state.tsx": {
+    for: "an album with nothing in it yet: the river ghosted under the promise, with the CTA only when the viewer can upload",
+  },
+
   /* reel (not a library directory: indexed for the publish light's contract) */
   "src/components/reel/publish-light.tsx": {
     for: "the light a shared reel rests in: the house five behind the Studio's frame and under the share card, swelling only for a share made on this page",
@@ -249,6 +254,16 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/components/shared/play-badge.tsx": {
     for: "the this-is-a-video badge on a poster; pointer-transparent, so it never eats a swipe",
+  },
+  // A subdirectory, so the collector does not index these two on its own: they
+  // are here because they carry contracts, and the river's Library entry reads
+  // its `for` line from this table like every other component's.
+  "src/components/shared/river/river-engine.ts": {
+    for: "the river's arithmetic alone (no React, no DOM), in fractions of the box, so the server, the browser and a test all compute the same frame",
+    unspecimened: "pure functions; the river above is what they draw",
+  },
+  "src/components/shared/river/river.tsx": {
+    for: "a flow of photographs falling through a box, sized by its container; decorative, and a placement that wants it quiet filters its own wrapper",
   },
   "src/components/shared/route-error.tsx": {
     for: "the route error boundary",

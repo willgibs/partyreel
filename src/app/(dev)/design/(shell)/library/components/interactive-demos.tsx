@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -158,5 +159,25 @@ export function FormDemo() {
         </Button>
       </form>
     </Form>
+  );
+}
+
+/**
+ * THE EMPTY GUEST ALBUM WITH ITS CTA, which is here for the one reason this
+ * module exists: the promise's button is drawn only when the viewer can upload
+ * (`onAddFirst`), and the library's pages are server components, so the handler
+ * has to be minted inside a client boundary. The uploads-closed state and the
+ * bare river need no handler and stay inline in gallery-demos.tsx, where the
+ * Code tab can show the real call.
+ *
+ * The width is passed rather than inherited: a library frame is as wide as the
+ * window, and the WIDTH is the point (the guest page gives its gallery 335px at
+ * a phone and 632px from 672 up).
+ */
+export function EmptyAlbumDemo({ width }: { width: number }) {
+  return (
+    <div style={{ width }}>
+      <GalleryEmptyState onAddFirst={() => {}} />
+    </div>
   );
 }

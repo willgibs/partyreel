@@ -40,6 +40,12 @@
     "skeleton": [
       "<div className=\"space-y-2\">\n  <Skeleton className=\"h-4 w-3/4\" />\n  <Skeleton className=\"h-4 w-1/2\" />\n</div>"
     ],
+    "river": [
+      "<EmptyAlbumDemo width={335} />",
+      "<EmptyAlbumDemo width={632} />",
+      "<div style={{ width: 335 }}>\n  <GalleryEmptyState />\n</div>",
+      "<div style={{ width: 335 }}>\n  <River frames={GUEST_GHOST_FRAMES} />\n</div>"
+    ],
     "tabs": [
       "<Tabs defaultValue=\"all\">\n  <TabsList>\n    <TabsTrigger value=\"all\">All</TabsTrigger>\n    <TabsTrigger value=\"photos\">Photos</TabsTrigger>\n    <TabsTrigger value=\"videos\">Videos</TabsTrigger>\n  </TabsList>\n  <TabsContent\n    value=\"all\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Everything, interleaved.\n  </TabsContent>\n  <TabsContent\n    value=\"photos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Photos only.\n  </TabsContent>\n  <TabsContent\n    value=\"videos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Videos only.\n  </TabsContent>\n</Tabs>"
     ],
