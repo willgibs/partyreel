@@ -5,6 +5,7 @@ import { ALBUM_PAGE } from "./album-page/spec";
 import { BODY_TYPE } from "./body-type/spec";
 import { GALLERY_WIDTH } from "./gallery-width/spec";
 import { GLASS } from "./glass/spec";
+import { IMAGE_TRAIL } from "./image-trail/spec";
 import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
 import { RIVER_CARD } from "./river-card/spec";
@@ -29,6 +30,7 @@ import { VOICE } from "./voice/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  IMAGE_TRAIL,
   LOOSE_ENDS,
   GLASS,
   BODY_TYPE,
