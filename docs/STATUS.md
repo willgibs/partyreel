@@ -5,7 +5,7 @@
 > what shipped (→ [`CHANGELOG.md`](CHANGELOG.md), two rounds deep), how systems work (→ [`systems/`](systems)),
 > what might be next (→ [`ROADMAP.md`](ROADMAP.md)). GROWS BY: being replaced at every round close.
 
-**Updated:** 2026-09-17
+**Updated:** 2026-09-18
 
 ## The era
 
@@ -17,74 +17,49 @@ desk, then the wiring; partyreel.com changes only at tagged milestone merges. Th
 (Will, 2026-09-14): every page reaches a cohesive informational flow and every point of the design system,
 the marketing site and the app is elevated platform-wide; nothing is protected.
 
-## The current round: the stepped review round (opened 2026-09-16 at `02c409b4`; every board integrated at `dd77fc9e`)
+## The current round: the ladders and the dock (opened 2026-09-18 at `00e82dba`)
 
-Will stopped his first per-item sitting on the round-four catalogs ("the review process favors you and
-makes me spend tons of time per track figuring what I'm even being asked") and asked for every open track
-to run one more round shaping its previews for a question-based review. His steer binds from here: the end
-goal is the product, fast iterative rounds beat slow meticulous ones for design, HTML and CSS is shaping
-rather than QA, the lab is a means. The round ran in one day: the spec fields, then `lab-flow` rebuilt the
-review as an onboarding form (one context and its question alone on the screen, the options as preview
-tiles on one specimen, show before choose, "None of these" as a pick-one board's third exit, one card at a
-time for a keep-any board, staged follow-ups, the desk's rows as steps, "Copy so far" omitting what the
-ledger holds), then every board was reshaped into steps four agents at a time with no new exploration.
-Every reshaped board is under the standard 1,200 words. **The round is closed and its sitting is running**:
-Start the review walks what is left (type-phone, rounding, the album hero, river-visual), and
-a pick's wiring round is cut the day he makes it (a favourite becomes a working version, the board retires).
-**The sitting (2026-09-17), batch by batch:** the hero (`stream=stack-above`) and the palette (`graphite`,
-no accent), the aurora ruled off light grounds; the type scale, with the throw and the aurora kept
-(`1cb34f70`); the bloom, the halo (objects only) and the beam, the Aurora composed per place (`c9903c99`);
-the light board answered in full and Card picked with submenus at two levels, Glass banked by name
-(`871f650b`), after he stopped on a frozen stage, fixed the same day (`pnpm lab:demo` now proves every open
-step shows its options); then entrances by frequency, the corner re-asked as one staged step, and **the v1
-wordmark delivered and wired** (alone, on every door; the icon to come). **The sixth:** the corner confirmed,
-closing floating surfaces, and **the brand voice exploration killed unruled** at round seven, where it had
-arrived with no review ever recorded (six voices, 510 strings, 4,121 lines). Three picks stand and ship
-(`noun=album`, `unfurl=join`, `counts=hero`); the voice restarts as a board built from won lines, and
-an unreviewed second round is a test now. **The seventh:** the media kit killed for generated frames,
-and no agent tracks an image's rights.
+Will's eighth and ninth batches finished the sitting the stepped review opened: both ladders answered,
+wired and their boards retired; the album hero and river-visual answered, their wiring waiting on four new
+boards; and the lab rebuilt around his note that he could not see what he was answering. His steer binds
+from here: the end goal is the product, fast iterative rounds beat slow meticulous ones, and a relative
+note ("a bit more calm") is answered against a reference he already likes, never a cap and a test (the
+album hero's round three went "too boring" that way).
 
 | track | returns | state |
 | --- | --- | --- |
-| `lab-flow` | the review as a stepped onboarding form: tiles on one specimen, show versus choose, the three exits, one card at a time, staging, the desk's rows as steps | integrated at `c18570c4`; the catalog boards' reading halved with the deletions |
-| `palette-wiring` | the wind-down's first wiring: Graphite in both modes (a Pearl page, a Graphite room, Apple's cool greys), no accent, the dark card opaque, `--faint` as the third text step on 40 sites; the board retired | integrated at `88d0bec0`; bible 1 ruled and the ledger gone at `52e9afa2` |
-| `hero-wiring` | the wind-down's second wiring: the band streaming out of the real demo QR with the ruled block under it and no caption, the engine as `hero-stream.ts` with its contract (two breakpoints, the minimum 683 and 642 px), the wall, its scrims and the kinetic word gone, the board retired | integrated at `0c58ff76`; the ledger gone and the artifacts regenerated at `137e504b` |
-| `album-hero` (round three) | Will's six notes answered: the lockup composed for the page as one block with no gap, four calm compositions on one engine (the orbit, the field calmed, the shelf, the arrival) with the calm rule pinned by a test, the live album centred on a 720 / 880 / 1040 step; the board picks the orbit | integrated at `57e2c2e4`, 830 words; the touchpoint at `759a557b` |
-| `type-wiring` | the wind-down's third wiring: Will ruled the type scale on every ask (`ladder=b`, `tracking=adopt`, `not-found=on-ladder`): ladder B as one `@theme` block, every heading on a step, the three ramps collapsed, the dead link on the set, the board retired into the Library's Type section; four silent failures held by `type-ladder-policy.test.ts`; three phone-end findings wait on Will | integrated at `0a52c8dc`; bible 5 ruled at `aaa057dd` |
-| `light` + `light-wiring` | the board had stopped his sitting twice (the cards did not show what they asked), then answered in full; the wiring lane shipped its picks and retired it | board integrated at `ee0b21d6`; **wiring merged at `47bba92a`, the board retired**: both shadows by role on all four grounds, `elevation-policy.test.ts`, the `data-lit` bright edge with a mutation-tested contract, Foundations' Elevation legend; bible 10 and 11 ruled and the ledger gone |
-| `aurora-wiring` | the lamps he kept (the seam, the throw, the field: one Aurora, never on paper) as working versions: the 8 second clock, `SectionLight`, the Library's Aurora entry; the transform drive's reduced-motion still fixed on the way | integrated at `2987a5e5`; the home page's two places composed at `dc4530df` (the closer's horizon, the ledger lit from its side), no default placement |
-| `publish-bloom` | the publish moment joins the Aurora: the house five as wings behind the studio's frame and a pool under the share card, resting lit while a reel is shared, the swell owed to the tap, nothing on a light ground; the violet keyframes left | integrated at `7e713fe8`; signed in on the alias the Studio's wings and the card's pool rest lit with no swell on open, no sideways scroll at 375, and the card's light is `display: none` off a dark ground; the tap's swell is proven on the lab stand-in and by the contract only (the one shared reel is the public demo's, not flipped) |
-| `floating-surfaces` + `floating-wiring` | pick-one over seven directions, with the submenu, corner, entrance and shadow as steps; then the wiring | board at `514aee2d`, **wiring merged at `8bb6aa9e` and the board retired**: Card's anatomy as PARTS a menu may leave out, `ui/floating-layer.ts` as bible 15 in code (one corner token, the row derived), the submenu portalled and capped at two levels, `select` joined the family, entrances by frequency; bible 15 ruled with its first test and the ledger gone |
-| `type-phone` (round one) | **the first question-first exploration** (`defineExploration`): the three type calls the ladder left open, as three decisions with every option drawn at 375 in its own surface | built 2026-09-18; waiting on Will |
-| `rounding` (round seven) | pick-one: the winner from the six or none, the button, ladder, dead-rung and gap questions as tiles at true pixels | integrated at `7d90465c`, 684 words, no declaration |
-| `brand-voice` (round seven) | pick-one over six voices, with the noun, unfurl, counts and scope as steps | **killed unruled and deleted** (no review in seven rounds; 4,121 lines gone at his instruction). `voice-picks` shipped his three answers at `2735ad92`; bible 20 and 21 point at the new `voice` board, which is next |
-| `media-kit` (round seven) | keep-any over thirteen stock catalogues, with the rule, crowds, spend and shoot as steps | **killed and deleted**: every frame generated instead, in one Higgsfield month once the site is shaped and before launch (ROADMAP). `rule=no`, `spend=hold`, `shoot=park`; the crowds answer kept off the record by his ruling that no agent tracks an image's rights, and the stills' `credit` field gone with it; ASSETS 6, 7 and 13 withdrawn |
+| `ladders-wiring` | the type ladder's law as the ORDER (`prose` 24 at a phone, a tenth step `subhead`, every heading on a step, the clamped trim) and family C's corners in quarters (8 / 12 / 4, the gap pinned, a `cta` Button); `type-phone` and `rounding` retired | integrated: phase 1 at `5a5c6eb4`, phase 2 at `d2db2629`; bible 5 and 8 ruled |
+| the lab's step | the preview is the page (every option once at true size, flipped or side by side, a sticky head naming it) and the answer is a dock; a transcribed `?` leaves the walk; `lab:demo` fails CLIPPED, UNLABELLED, NO DOCK | landed at `d37be90e`, measured on ten reopened steps at 1280, 1512 and 375 |
+| the glow boards | `glow-doctrine` and `glow-moments`, records with nothing open | retired with the `[data-lit]` leak; the floors fixed; `lab:smoke` passes whole |
+| `heroes` | `privacy-hero` (the field as two spirals, faster, a trail) and `album-page` (round four at the home hero's pace, subtle, the live album beneath at 896 with its bottom faded, a pool of light) | building |
+| `river-card` | the river in the real QR door at 4:5 and 3:2, no label, the code unlinked: where it sits, what it opens | building |
+| `gallery-width` | how wide galleries run on laptops and desktops: small tiles, more columns, never a wide two-column masonry | building |
+| `album-hero` (round three) | answered in full (`none`, `w880`, `lg`, `settled`, `page`) | waits on `album-page`, then its wiring |
+| `river-visual` (round two) | answered (`card`, `in`, `ghost`; `proportion` withdrawn) | waits on `river-card`, then its wiring |
 
-## The previous round: the revamp (2026-09-16, `5cdebfe0` to `48bd3bdc`)
+## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
 
-Will found the lab "super broken" on localhost and the explorations turning into papers. Round 1 fixed the
-lab (the stale-stylesheet guard, one toggle rule for every pick, edge-to-edge canvases, the catalog kit and
-the reading budget; `lab-catalog` `57b93286`, `lab-sweep` `88dafe50`); Round 2 made `docs/PROGRAM.md` the
-loop, CLAUDE.md 150 lines, a manifest deleted at its merge and the record two rounds deep, folded the 25
-ADRs and stripped the four heavy system docs (`d4ec4cff`, `aea90fd3`, `0a48db70`); Round 4 rebuilt the six
-paper boards as catalogs under declared budgets (`5868325e` to `8587d3ed`), and the palette's cool round
-seven landed mid-sitting (`5a538c0a`). Round 3, the Library as the complete inventory with keep / redesign
-/ retire on every entry, waits for its planning pass. The CHANGELOG's "The revamp" is the record.
+His stepped sitting turned picks into working versions the same day: Graphite (`palette-wiring`), the hero
+streaming out of the code (`hero-wiring`), ladder B (`type-wiring`), the Aurora (`aurora-wiring`), both
+shadows and the bright edge (`light-wiring`), the publish bloom, floating surfaces on Card
+(`floating-wiring`) and the v1 wordmark. The brand voice exploration was killed unruled and restarts as a
+board built from won lines; the media kit was killed for generated frames (one Higgsfield month before
+launch, and no agent tracks an image's rights). The lab gained `defineExploration`, the question-first
+authoring shape, and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-24` (`592da24`). **The `launch-prep` alias**
-  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the wind-down's wirings (Graphite, the
-  band out of the code, the type ladder, the Aurora on the home page, the publish light) and the fixed
-  lab steps (built 2026-09-17; the smoke passed 246 checks at `c9903c99`, the two glow boards over the
-  reading budget on purpose). Will reviews on the alias as well as his local `pnpm dev`, so **the alias is
-  rebuilt whenever a board changes** (his third batch landed in the wrong round because it was not).
-  Vercel's cap is 100 deployments per trailing day on every path (canceled ones register, builds do not),
-  so `[preview]` stays the Orchestrator's.
+- **Prod (partyreel.com)** = `main` @ tag `milestone-24` (`592da24`), 1,089 commits behind `launch-prep`;
+  a milestone is proposed once this round's boards integrate. **The `launch-prep` alias**
+  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock. Will reviews
+  on the alias as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**.
+  Vercel's cap is 100 deployments per trailing day on every path, so `[preview]` stays the Orchestrator's,
+  and the prune runs after every integration.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and
   fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 2,150 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on
-  `main` and `launch-prep` code pushes only; an `lp/*` push only on `[ci]`).
+- **Tests:** about 2,140 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI
+  runs on `main` and `launch-prep` code pushes only; an `lp/*` push only on `[ci]`). `lab:smoke` passes
+  whole again, so a board over its reading budget is a failure, not a known exception.
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup GitHub Action (about
   06:30 UTC) are live; the deletion-aware backup prune ships in dry-run (`PRUNE_MODE=live` is a launch flip).
 - **The repo is public for the interim** (Will, 2026-09-15, after twelve tracks spent the month's private
@@ -110,11 +85,10 @@ prune crons and the shared `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-The desk derives the steps (`/design/lab?key=`); the assets are in [`ASSETS.md`](ASSETS.md). Next from him:
-the stepped sitting, board by board (rounding, the album hero, river-visual), pasted in batches with Copy
-so far; the three phone-end type calls, now answerable on `type-phone`; the assets still open: the grain
-tile and the worst-case overlap pair (rows 15 and 16), the bright-edged tile set (row 17) and the v1 icon
-(row 19). The bible-20 question (naming or shape) becomes the new `voice` board's first ask rather than
-dying with brand-voice. The standing submenu bug is FIXED (`SubContent` is portalled; its symptom was a
-clip by a transformed parent, not a blank). The launch-gated tasks are the ROADMAP's Launch checkpoint
-(`[human]` / `[eng]` / `[content]`).
+The desk derives the steps (`/design/lab?key=`): nothing is open until the four new boards integrate, then
+one sitting in the rebuilt step (1-9 show and pick, x flips A and B, g lays them side by side, n goes to
+the note, ? marks a question unclear). Two calls were made for him to overrule: type drawn inside a picture
+counts as depicted (the help emblem, the press kit's plate, /features/qr's sign), and the album sits at 896,
+the scale's step, rather than 880. The assets still open: the grain tile and the worst-case overlap pair
+(rows 15 and 16) and the v1 icon (row 19). The bible-20 question becomes the new `voice` board's first ask.
+The launch-gated tasks are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).

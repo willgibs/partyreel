@@ -172,8 +172,10 @@ describe("bindsFor", () => {
   });
 
   it("leaves out the levels that inform, because obeying them builds small", () => {
-    // A standing board (light was the example until its ruling retired it).
-    const binds = bindsFor({ board: "rounding", surface: "shared" });
+    // A FIXTURE board, never a named one: bindsFor takes the id as data (it is
+    // only compared with a rule's exploration marker), and a named example went
+    // stale at every retirement (light, then rounding, 2026-09-17 and -18).
+    const binds = bindsFor({ board: "fixture-board", surface: "shared" });
     const levels = new Set(
       [
         ...binds.contracts,

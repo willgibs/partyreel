@@ -56,7 +56,7 @@ export function StaysSection() {
               {i === 2 && (
                 <span
                   aria-hidden
-                  className="relative mt-1 block aspect-[4/3] w-32 overflow-hidden rounded-[4px] bg-muted"
+                  className="relative mt-1 block aspect-[4/3] w-32 overflow-hidden rounded-tile bg-muted"
                 >
                   <Image
                     src={marketingImage("wedding-petals").src}

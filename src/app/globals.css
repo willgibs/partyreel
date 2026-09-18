@@ -33,14 +33,18 @@
     • Both modes are one system: light = paper + hairline borders, dark =
       near-black + translucent card + lighter-is-closer elevation. No pure
       black/white anywhere (bg 0.99 / card 0.997 in light; fg 0.96 in dark).
-    • THE ROUNDING SYSTEM: sharp corners on general UI (--radius 2px),
-      rounder on interactive elements — the radius contrast itself signals
-      "pressable". Actions ride --radius-action (16px @ the 40px button,
-      scaled ~0.4×height: -lg @48px, -sm @32px). Media tiles get --radius-tile
-      (3px, tight-gap grids don't open corner holes). The FLOATING layer
-      (menus/tooltips/toasts) rides --radius-float (sharp reads broken there).
-      Nested corners follow inner = outer − gap (Hobday); sharp-surface/
-      round-action is the system's one deliberate exception to that math.
+    • THE ROUNDING SYSTEM (Will's ruling, 2026-09-18: family C, the derived
+      steps in quarters): an 8px surface (--radius: cards, inputs, panels), a
+      12px floating layer (--radius-float: menus, tooltips, toasts, dialogs,
+      the guest entry sheet; a ROW inside one is 4px tighter, derived), a 4px
+      photograph (--radius-tile, with --gap-gallery pinned to it so four
+      corners never open a hole) and actions at 0.4 of their height
+      (--radius-action: 16px @ the 40px button, -sm @32px, 1.1x for the 44px
+      `cta` size). A control is still twice as round as the surface under it,
+      so the contrast still says "pressable". rounded-sm..2xl climb in
+      quarters of --radius (4/6/8/10/12); 3xl and 4xl are dropped. Nested
+      corners follow inner = outer − gap (Hobday); an action rides its HEIGHT
+      instead, the system's one deliberate exception to that math.
     • THE ELEVATION CONTRACT (Will's ruling, 2026-09-17): FOUR techniques, one
       per height, never rivals. The STEP (a panel is a shade lighter than the
       page) and the RING (a hairline marks an edge) ship on every surface. The
@@ -175,21 +179,17 @@
        `shadow-lift` or `shadow-layer` (theme.css), and a raw Tailwind shadow
        anywhere else is refused by src/lib/elevation-policy.test.ts.
 
-     ★ PAPER DID NOT MOVE. The lift here is the old --shadow-float to the byte
-     and the layer is that geometry at double the offsets. What the ruling
-     added is the DARK ramp (see .dark): 6 percent of black over a 0.105 room
-     is arithmetically invisible, which is the whole reason dark read as
-     shadowless. ─── */
+     ★ PAPER DID NOT MOVE. The lift here is the retired single shadow's value
+     to the byte, and the layer is that geometry at double the offsets. What
+     the ruling added is the DARK ramp (see .dark): 6 percent of black over a
+     0.105 room is arithmetically invisible, which is the whole reason dark
+     read as shadowless. (The old name left with the rounding board, its last
+     reader, on 2026-09-18; elevation-policy.test.ts refuses it coming back.)
+     ─── */
   --shadow-lift:
     0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
   --shadow-layer:
     0 4px 8px -2px oklch(0 0 0 / 0.09), 0 8px 16px -4px oklch(0 0 0 / 0.13);
-  /* THE OLD NAME, A BRIDGE FOR THE LAB ONLY. No production surface reads it
-     (the policy pins that): the rounding board's two floating specimens still
-     wear `shadow-float`, and that board is another lane's and mid-review. On a
-     light ground the alias is the same bytes it always was. It retires with
-     that board: delete the three declarations and theme.css's mapping. */
-  --shadow-float: var(--shadow-lift);
 
   /* Gallery canvas — identical in light & dark (media-first, theme-independent).
      ★ THE WELL SPLIT OFF THE SLAB at the palette's round eight. These were one
@@ -245,14 +245,23 @@
    inline value on <html> (what the tuner writes) wins everywhere. Never move
    them back into the `:root, .surface-paper` block. */
 :root {
-  /* The rounding system (rationale in the header). */
-  --radius: 0.125rem;
+  /* The rounding system: family C (Will, 2026-09-18; rationale in the header).
+     Each value is the board's own, never retyped: C was 8 / 12 / 4 with the
+     gap its `gapFor(tile)`. The 48px action rung left with its one call site
+     (the reel builder's CTA is the 44px `cta` corner now, button.tsx). */
+  --radius: 0.5rem; /* 8px: every surface, and the base the rounded-* quarters derive from */
   --radius-action: 1rem; /* 16px @ h-10 (40px); ratio ~0.4 x height */
-  --radius-action-lg: 1.2rem; /* @ h-12 (48px) */
   --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
-  --radius-tile: 3px; /* media tiles: subtle, never opens corner holes */
-  --gap-gallery: 3px; /* the ONE gap for every media-tile grid (masonry + the dense triage grids); use gap-[var(--gap-gallery)] */
-  --radius-float: 0.5rem; /* menus/tooltips/toasts: sharp reads broken */
+  --radius-tile: 4px; /* a photograph */
+  /* The ONE gap for every media-tile grid (masonry + the dense triage grids;
+     use gap-[var(--gap-gallery)], and mb-[...] where a masonry lays out in
+     columns). ★ PINNED TO THE TILE, never typed (Will's gap=pinned): below
+     the tile radius, four rounded corners meeting at a junction open a
+     visible diamond, so the gap follows the corner; 3px is its floor because
+     the 3px gap is the album tell. Retune --radius-tile and this moves too
+     (both sit on <html>, which is where the tuner writes). */
+  --gap-gallery: max(3px, var(--radius-tile));
+  --radius-float: 0.75rem; /* 12px: menus, tooltips, toasts, dialogs, the guest sheet */
   /* The lamps' cadence, ONE token (ruled 2026-09-17): every shipped lamp (the
      footer seam, the film strip, the reel pool, the feature heroes' screen
      lamps) passes --glw-dur: var(--spill-cadence), so the whole page moves on
@@ -386,14 +395,6 @@
     0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
   --shadow-layer:
     0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
-  /* ★ THE ZERO IS RE-STATED, NOT INHERITED, AND IT IS LOAD-BEARING. :root and
-     .dark are the same element at the same specificity, so without this line
-     the light block's `--shadow-float: var(--shadow-lift)` would reach the dark
-     root on source order and hand a shadow to whatever still wears the old
-     name. The INVISIBLE value, never `none`: Tailwind composes --tw-shadow into
-     one comma-separated box-shadow beside the ring slots, and a `none` in that
-     list invalidates the whole declaration, taking the element's ring with it. */
-  --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
 
   /* --gallery* intentionally NOT overridden: galleries stay dark in every theme. */
 }
@@ -474,13 +475,11 @@
   --brand-foreground: var(--primary-foreground);
   /* The dark ramp, re-declared like everything else here: on a paper page the
      leaf would otherwise inherit paper's 6 and 10 percent, which is nothing on
-     a slab (the footer's photo pile is an overlap, so it is a real reader).
-     The old name keeps its zero for the same reason .dark re-states it. */
+     a slab (the footer's photo pile is an overlap, so it is a real reader). */
   --shadow-lift:
     0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
   --shadow-layer:
     0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
-  --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
 }
 
 @layer base {

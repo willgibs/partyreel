@@ -6,7 +6,7 @@ import { Camera } from "lucide-react";
 // reading as a broken grid. Decorative only.
 export function GhostGrid({ tiles = 9 }: { tiles?: number }) {
   return (
-    <div aria-hidden className="grid grid-cols-3 gap-[3px]">
+    <div aria-hidden className="grid grid-cols-3 gap-[var(--gap-gallery)]">
       {Array.from({ length: tiles }, (_, i) => (
         <div
           key={i}

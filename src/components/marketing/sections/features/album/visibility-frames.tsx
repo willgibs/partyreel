@@ -44,7 +44,7 @@ function Album({ ghost }: { ghost?: boolean }) {
         <span
           key={id}
           className={cn(
-            "relative block aspect-square overflow-hidden rounded-[2px]",
+            "relative block aspect-square overflow-hidden rounded-tile",
             ghost && "border border-border/70 bg-muted/60",
           )}
         >

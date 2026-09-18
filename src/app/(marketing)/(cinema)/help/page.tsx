@@ -362,7 +362,7 @@ export default function HelpIndexPage() {
             Can&rsquo;t find what you&rsquo;re looking for? Reach out and
             we&rsquo;ll get back to you.
           </p>
-          <Button asChild size="lg" className="mt-1 h-11 px-6 text-base">
+          <Button asChild size="cta" className="mt-1">
             <Link href="/contact">Contact us</Link>
           </Button>
           <p className="text-sm text-muted-foreground">{REPLY_LINE}</p>

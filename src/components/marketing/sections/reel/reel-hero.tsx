@@ -55,7 +55,7 @@ export function ReelHero() {
               {...cut(3)}
               className="mt-2 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6"
             >
-              <Button asChild size="lg" className="h-11 px-6 text-base">
+              <Button asChild size="cta">
                 <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
               </Button>
               <DemoCtaLink />

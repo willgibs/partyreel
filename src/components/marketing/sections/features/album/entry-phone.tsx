@@ -144,7 +144,7 @@ function Adding() {
           <span
             key={id}
             className={cn(
-              "relative overflow-hidden rounded-[3px] bg-muted",
+              "relative overflow-hidden rounded-tile bg-muted",
               i === 0 ? "aspect-[4/5]" : "aspect-square",
             )}
           >
@@ -164,7 +164,7 @@ function Adding() {
             )}
           </span>
         ))}
-        <span className="flex aspect-square items-center justify-center rounded-[3px] border border-dashed border-border/70 text-muted-foreground">
+        <span className="flex aspect-square items-center justify-center rounded-tile border border-dashed border-border/70 text-muted-foreground">
           <ImageUp className="size-4" />
         </span>
       </div>

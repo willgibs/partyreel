@@ -1,11 +1,8 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { ALBUM_HERO } from "./album-hero/spec";
-import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
-import { GLOW_MOMENTS } from "./glow-moments/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
-import { ROUNDING } from "./rounding/spec";
 
 /**
  * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
@@ -18,28 +15,15 @@ import { ROUNDING } from "./rounding/spec";
  * reads the question for its header from here; the component comes from
  * `(shell)/lab/boards.ts`, which is the client half.
  *
- * A board without a spec renders through the legacy path in `boards.ts` and the
- * desk shows its touchpoints.ts note instead. The migration wave adds specs and
- * drops `legacy` flags board by board; a board LEAVES this list only when its
- * ruling lands and its directory goes, which five did on 2026-09-17: the
- * palette (Graphite, now the token set), home-hero (whose favourite now ships
- * as the production hero), type-scale (B, rungs, now the `--text-*` steps in
- * theme.css and the Library's own Type section), light (both shadows by role
- * and the bright edge, now `--shadow-lift`, `--shadow-layer` and `[data-lit]`
- * in globals.css and the Library's Elevation and bright edge sections) and
- * floating-surfaces (Card's anatomy, the nested corner and the entrances by
- * frequency, now `ui/floating-layer.ts`, the menu's new parts in
- * `ui/dropdown-menu.tsx` and the Library's floating-layer section). One more
- * left on 2026-09-18: type-phone, the first question-first exploration (the
- * ladder's order at a phone and its tenth step, now theme.css and
- * type-ladder-policy.test.ts, and the clamped trim in page-hero.tsx).
+ * ★ A BOARD LEAVES THIS LIST WHEN ITS RULING LANDS, and its directory goes with
+ * it: the ruling lives on in its RULINGS row (touchpoints.ts), the words in
+ * docs/design/rulings.md, and the board in git. A lane adds or removes ONLY its
+ * own board's lines here (the registration and retirement exceptions,
+ * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
   PRIVACY_HERO,
   RIVER_VISUAL,
-  GLOW_DOCTRINE,
-  GLOW_MOMENTS,
-  ROUNDING,
   ALBUM_HERO,
 ];
 

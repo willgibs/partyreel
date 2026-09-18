@@ -62,7 +62,7 @@ export function CtaBand({
     >
       <div className="mt-8 flex flex-col items-center gap-4">
         <div className="flex flex-col items-center gap-3 sm:flex-row">
-          <Button asChild size="lg" className="h-11 px-6 text-base">
+          <Button asChild size="cta">
             <Link
               href={primary.href}
               {...trackAttrs("cta_click", {
@@ -74,12 +74,7 @@ export function CtaBand({
             </Link>
           </Button>
           {secondary && (
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline">
               <Link
                 href={secondary.href}
                 {...trackAttrs("cta_click", {

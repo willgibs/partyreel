@@ -26,18 +26,21 @@
  */
 
 /**
- * THE CORNER (`radius=nested`, confirmed by `roundness=nested`, 2026-09-17):
- * an 8px panel around 4px rows. The panel keeps the corner it ships,
- * `--radius-float` in globals.css, so the retune is that one token.
+ * THE CORNER (`radius=nested`, confirmed by `roundness=nested`, 2026-09-17;
+ * sized by the corner ladder's family C, 2026-09-18): a 12px panel around 8px
+ * rows. The panel keeps the corner it ships, `--radius-float` in globals.css,
+ * so the retune is that one token (C moved it from 8 to 12 and the rows came
+ * along from 4 to 8, which is the derivation below doing its job).
  */
 export const floatingCorner = "rounded-float"
 
 /**
  * THE ROW'S CORNER, DERIVED, NEVER TYPED. Bible 9 asks a nested corner to share
  * a centre with the one around it: inner = outer minus the gap. The gap is the
- * panel's 4px of padding, so the row is `--radius-float` minus 4px = 4px, which
- * is exactly the pair Will ruled. Today's rows are `rounded-md` (1.6px, off the
- * SHARP general-UI family), so the panel's arc misses its rows' by six times.
+ * panel's 4px of padding, so the row is `--radius-float` minus 4px, which is
+ * exactly the pair Will ruled. The rows before the floating wiring were
+ * `rounded-md` (a step of the surface corner, 1.6px then), so the panel's arc
+ * missed its rows' by six times.
  *
  * ★ A ROW'S PADDING AND ITS CORNER ARE ONE DECISION. A group body at `p-1.5`
  * with this corner nests wrongly by 2px; every rail in the family is `p-1` for

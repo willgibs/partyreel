@@ -123,7 +123,7 @@ export function TakeHomeSection() {
             {ALBUM_TILES.map((id) => (
               <span
                 key={id}
-                className="relative block overflow-hidden rounded-[2px]"
+                className="relative block overflow-hidden rounded-tile"
               >
                 <Image
                   src={marketingImage(id).src}
