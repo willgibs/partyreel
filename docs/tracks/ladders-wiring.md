@@ -37,7 +37,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/sandbox/type-phone/
   - src/app/(dev)/design/sandbox/rounding/
   - src/app/(dev)/design/sandbox/registry.ts
-  - src/app/(dev)/design/sandbox/registry.test.ts
   - src/app/(dev)/design/(shell)/lab/boards.ts
   - src/app/(dev)/design/(shell)/library/foundations/
   - src/app/(dev)/design/_data/links.test.ts
@@ -269,28 +268,45 @@ normal while the two glow boards sit over the reading budget; 0 ROUTES failing i
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **A third kind of off-ladder type: type drawn inside a picture that is not a device or a screen.**
+  The help emblem's "?" glyph, the press kit's "Aa" typeface plate, and /features/qr's printed welcome
+  sign and table card are all heading-face type sized by the picture they sit in, not by the page. The
+  brief named two exceptions and said a third kind is a question. **Recommended:** the same kind as a
+  depicted device (type that is part of a picture, where a viewport clamp would size it by the wrong
+  box), allow-listed under the one `depicted` exception with a reason and an exact count per file;
+  phase 1 ships it that way. **Orchestrator's call, 2026-09-18; relayed to Will, who may overrule.**
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/design-system.md`, "Type: the heading face + the ladder": ten steps, and the law is the
+  ORDER (the travel paragraph replaced); the table gains `subhead` and every row names its wearers by
+  role; a "roles, not sizes" paragraph (the MDX h2/h3 on the prose wrappers, index numerals on the body
+  face); the five silent failures the policy holds; the named off-ladder kinds (depicted, the Inter
+  labels, the root error page); the display trim paragraph (the clamped form, its sign, the measured
+  cap offsets); the index masthead on `subsection`; the utility-documents line. Also the chapter-opener
+  bullet in "Chapters" (its stale "36/48/60" became the `chapter` step).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: one FAQ, one look. The home and /pricing accordion's questions are on the card step (Urbanist
+  16/600) since this lane; the shared `FaqAccordion` (/events, the feature pages) sets its questions as
+  Inter 14/500 in a `<summary>` that is not a heading, so the two FAQs now read differently.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; phase 1 at <sha>; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree, each step's own exit code: design:rules, specimens, typecheck, lint, test (N), build (M pages), lab:smoke, lab:demo
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Type: the two new clamps printed; the 126 elements by resolution (how many took which step); the policy's named exceptions
-- The trim: the measured cap-top offset at 375 and at 1440, before and after
-- Corners: every token's before and after; the cta sites; every photograph corner moved
-- Captures, before and after at 375 and 1440 (paths): /about, /help, the blog index, an article, the 404, /pricing, the open menu, the guest album, the entry sheet
+- Head <sha>, pushed; phase 1 at <sha: the commit titled "ladders: the type ladder keeps its order at a phone"; its SHA lands here with phase 2>; synced with launch-prep at <sha>
+- Gates, phase 1 (on its own commit, each step's own exit code): see the phase 1 commit message; the synced tree's line replaces this one at handoff
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file, plus the retirement exception (`touchpoints.ts`, `touchpoints.test.ts`: only type-phone's and rounding's own lines), the generated `docs/design/library.md` and `rules.generated.json`, and the listed system doc
+- Course corrections from the Orchestrator (2026-09-18): `sandbox/registry.test.ts` left `owns` (it moves `anchorFor` onto a fixture id itself); the standing-board example tests take a fixture, or the first standing board under `it.runIf(BOARDS.length > 0)`, never a named board; widened policies never scan `src/app/(dev)/` or `src/components/lab/`
+- Type, the two clamps (printed by the board's own `fluid()` from git `41dcd591^`, after it had regenerated the other 27 declarations byte for byte): `--text-prose: clamp(1.5rem, 1.28rem + 0.94vw, 2.125rem)` (leading `clamp(1.89rem, 1.688rem + 0.86vw, 2.465rem)`, -0.024em; was `clamp(1.125rem, 0.773rem + 1.5vw, 2.125rem)`) and `--text-subhead: clamp(1.25rem, 1.162rem + 0.38vw, 1.5rem)` (leading `clamp(1.65rem, 1.566rem + 0.36vw, 1.89rem)`, -0.018em); `TYPE_STEPS` gained `subhead`
+- Type, the 126 (a comment-aware TypeScript AST scan of every h1-h6, `*Title` / `*Heading` and `font-heading` element in production code): 24 CardTitle overrides dropped (the card step applies again), 45 to `subsection`, 15 to `subhead` (the seven stock pairs among them), 9 to `page`, 6 to `section` (prices, storage and calculator readouts), 1 to `chapter` (/help's ghost folio), 3 to `card-title`, 1 index numeral to the body face (/contact), and 22 left and named: 15 depicted (9 files), 6 Inter labels (5 files), 1 false positive (the blog article's lead-in paragraph size, on its prose wrapper). Beyond the 126: the MDX h2/h3 through `prose-h2:text-prose prose-h3:text-subhead` on both article wrappers, the home FAQ's bare h3 onto `card-title`, `card.tsx`'s small-card `text-sm` dropped (a small card's title keeps the card step: its padding shrinks, its role does not)
+- Type, the policy (`type-ladder-policy.test.ts`, no new file): ten steps with their leading and tracking, parity with `cn()`, no colour-name clash, no ramp, the ORDER (title > prose > subhead, read off the tokens at 375 and 1440), and every heading on a step. Scan roots: every `.ts`/`.tsx` under `src/` except tests and `src/app/(dev)/`, `src/components/dev/`, `src/components/lab/`, `src/components/vendor/`. Exceptions by file, reason and exact element count: `depicted` (9 files, 15 elements), `label` (5 files, 6 heading tags that are not in the heading face; the feed header and the album's "Guests" h2 size a child span, so the scan never sees them), `unstyled` (`global-error.tsx`, sized inline because it replaces the stylesheet). Mutation-tested: a `sm:` ramp and an order break each turn it red
+- The trim, measured on /about's masthead (lossless CDP, reduced motion, the first ink row of the "P"): 375 before: -0.12em margin (-7.68px), caps 5.0px under the end of the shared gap (12.7px under the h1's box top); after: -0.18em (-11.52px), 2.0px (13.5px). 1440 before: -19.19px, 6.0px (25.2px); after: -19.21px, 6.0px (25.2px). The form is `mt-[calc((1em-1lh)/2-0.19em)]` (compiles to `calc(.31em - .5lh)`); the contract pins it and refuses the board's reversed sign
+- Corners: phase 2
+- Captures, phase 1 (light, reduced motion; full pages, 1440 and 375): before `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/b4ab430f-9f27-40b5-90a6-4177ea1d1021/scratchpad/ladders/before/`, after `.../ladders/after-p1/` (about, help, blog, blog-article, help-article, 404, pricing, press, feature-album, guest, home, careers, contact, how); side-by-side pairs `.../ladders/crops/pair-*.png`; the trim `.../ladders/trim/`; every heading's computed size on 26 routes before and after `.../ladders/audit-before/`, `.../ladders/audit-after/`
 - Assets requested from Will: none (every image is the Higgsfield month's; an ask names the slot, never the picture)
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Look at first: the pricing prices on the stat-numeral step (36 at every width became 24 at a phone and 52 at 1440); /help's ghost folio on `chapter` (60/72 became 28/64); /features' wide door title on `subhead` (30 at 1440 became 24, a step over its siblings' 20; `prose` at 34 is the louder alternative); the home FAQ questions now Urbanist 16/600 (the shared FAQ is still Inter 14, Deferred). For the Orchestrator at the merge: bible 5's `why` still says "nine steps" and "four rungs", and `docs/PROGRAM.md` names `sandbox/type-phone` as `defineExploration`'s worked example; the directory is gone
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 

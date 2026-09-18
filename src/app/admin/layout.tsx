@@ -41,9 +41,10 @@ export default async function AdminLayout({
             <div className="flex justify-center">
               <Logo />
             </div>
-            {/* The gate card's title is the screen's h1: the `subsection` step
-                (18/20), which is the rank a max-w-sm card reads at. A stock
-                `text-lg` would now leave the ladder silently (2026-09-17). */}
+            {/* The gate card's title is the screen's h1: the `subsection` step,
+                which is the rank a max-w-sm card reads at (/login's card takes
+                it too). A stock `text-lg` would leave the ladder, and
+                type-ladder-policy.test.ts refuses one on a heading. */}
             <PageHeading className="text-subsection">
               {ctx.mfaEnrolled
                 ? "Verify it's you"

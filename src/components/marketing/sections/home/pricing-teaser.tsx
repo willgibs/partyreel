@@ -87,8 +87,11 @@ export function PricingTeaser() {
                 {/* The ratified price register (/pricing, 2026-08-27): money in
                     the DISPLAY face with tabular numerals. It is the model the
                     kill-mono sweep took site-wide for every number that is the
-                    subject of its block (2026-09-14). */}
-                <div className="mt-3 font-heading text-3xl font-medium tracking-tight tabular-nums">
+                    subject of its block (2026-09-14), and that role is the
+                    ladder's `section` step ("a stat numeral"), the one
+                    /pricing's cards wear too. No tracking-tight beside it: it
+                    resolves to 0em here and would cancel the step's own. */}
+                <div className="mt-3 font-heading text-section font-medium tabular-nums">
                   <PricePop label={card.price} />
                 </div>
                 <p className="mt-auto pt-3 text-xs leading-relaxed text-muted-foreground">

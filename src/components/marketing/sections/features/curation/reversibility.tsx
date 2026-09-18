@@ -135,9 +135,7 @@ export function Reversibility() {
                   <item.icon className="size-5" strokeWidth={1.5} />
                 </span>
                 <div>
-                  <h3 className="font-heading text-base sm:text-lg">
-                    {item.title}
-                  </h3>
+                  <h3 className="font-heading text-subsection">{item.title}</h3>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                     {item.body}
                   </p>

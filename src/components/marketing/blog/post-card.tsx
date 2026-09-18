@@ -101,7 +101,7 @@ export function PostCard({
         {/* line-clamp-2 is the layout GUARANTEE behind the 80-char schema cap: the schema stops a
             long title at authoring time, this stops one that slipped through from ever pushing the
             byline out of the card. Two lines is the rhythm the wall reads on. */}
-        <span className="line-clamp-2 font-heading text-base leading-tight text-balance text-white sm:text-lg">
+        <span className="line-clamp-2 font-heading text-subsection text-balance text-white">
           {post.title}
         </span>
         <PostMeta post={post} />

@@ -69,9 +69,7 @@ function ChartCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
@@ -234,7 +232,7 @@ export default async function AdminMetricsPage() {
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Revenue unavailable</CardTitle>
+              <CardTitle>Revenue unavailable</CardTitle>
               <CardDescription>
                 Couldn&rsquo;t reach Stripe just now. Try again shortly.
               </CardDescription>

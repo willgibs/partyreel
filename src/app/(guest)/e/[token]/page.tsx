@@ -125,9 +125,10 @@ export default async function GuestEventPage({
           <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Lock className="size-5" />
           </div>
-          <h1 className="text-lg font-semibold tracking-tight">
-            This event is private
-          </h1>
+          {/* The dead-end stack NotFoundScreen mirrors, so its title takes the
+              same step the app's dead link does (`page`), in the heading face
+              every other h1 wears. */}
+          <h1 className="font-heading text-page">This event is private</h1>
           <p className="max-w-sm text-sm text-muted-foreground">
             The host has this event set to private. Check back later, or ask
             them to make it public.

@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 242 contracts on 42 components · 6 standing boards.**
+**22 laws · 18 policies · 243 contracts on 42 components · 5 standing boards.**
 
 ## What binds you
 
@@ -222,7 +222,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | The record is two rounds deep | a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |
 | Every track claims its lane | a malformed track manifest, or two live tracks claiming the same path prefix. | `src/lib/track-manifests.test.ts:1` |
-| One type ladder, reachable from a className | a step theme.css and cn() disagree on, a step name the color namespace already owns, and a heading ramp coming back. | `src/lib/type-ladder-policy.test.ts:1` |
+| One type ladder, and every heading on it | a step theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading. | `src/lib/type-ladder-policy.test.ts:1` |
 
 ## Guidance
 
@@ -272,7 +272,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/eyebrow.tsx` | the section eyebrow atom: Inter, uppercase, tracked | none |
 | `src/components/marketing/system/media-split.tsx` | the media-and-copy split; the media half gets the wider run, because media is the color | none |
 | `src/components/marketing/system/morph-delegate.tsx` | one delegated listener grows a clicked card into the page it opens; the cards stay server | none |
-| `src/components/marketing/system/page-hero.tsx` | the shared hero lockup for the identity pages: eyebrow, heading, subhead, actions | renders the heading as an h1, never a lesser tag; never puts a reveal-hidden state on the h1 (the LCP rule); keeps one shared gap for every scale; trims the display step's TOP only, never its bottom; keeps the display step's descender padding; takes every size from the ladder, never from a number here; keeps every scale in the table rather than inline; keeps the side bearing out of the heading class, gated on align; offers three named entrances, and the blur-rise never touches the h1; renders the stage AFTER the lockup, inside the same Container; keeps the tracking squeeze on the display step itself |
+| `src/components/marketing/system/page-hero.tsx` | the shared hero lockup for the identity pages: eyebrow, heading, subhead, actions | renders the heading as an h1, never a lesser tag; never puts a reveal-hidden state on the h1 (the LCP rule); keeps one shared gap for every scale; trims the display step's TOP only, never its bottom; trims by the leading it is cancelling, with the sign that trims MORE at a phone; keeps the display step's descender padding; takes every size from the ladder, never from a number here; keeps every scale in the table rather than inline; keeps the side bearing out of the heading class, gated on align; offers three named entrances, and the blur-rise never touches the h1; renders the stage AFTER the lockup, inside the same Container; keeps the tracking squeeze on the display step itself |
 | `src/components/marketing/system/paper-chapter.tsx` | a run of sections forced onto paper inside a cinema page; the flip is a chapter cut | none |
 | `src/components/marketing/system/reveal.tsx` | the in-view trigger firing the marketing arrival grammar; CSS owns every bit of motion | none |
 | `src/components/marketing/system/screen-lamp.tsx` | the one underlight: a lit object throws light down, as a SIBLING and never from inside | is a seam that hangs BELOW the object (the one underlight mechanic); renders the lamp AFTER the children, as their sibling; breaks out full-bleed so the field's side edges land off-screen; samples from the DOM it wraps, never from URLs; passes the engine no className (the utilities layer outranks it) |
@@ -364,7 +364,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
-| `type-phone` | shared | Three decisions, no page: the marketing sub-head tier, the dead-link title, and whether the display step's optical trim tracks its leading. Every option is the real surface in a 375 column at true pixels, which the shape makes structural rather than optional |
 | `rounding` | shared | Six families as cards, each the card, the menu, the photograph and the button at true size plus a 375 frame; two families on the same real page scroll-locked; four questions (the button rung, the derived ladder, the dead rungs, the album's gap) |
 | `album-hero` | marketing | Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit |
 | `river-visual` | marketing | The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost |

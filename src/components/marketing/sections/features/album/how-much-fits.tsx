@@ -55,7 +55,7 @@ function Column({
         {name}
       </p>
       <div className="flex flex-col gap-2">
-        <p className="font-heading text-4xl tracking-tight tabular-nums">
+        <p className="font-heading text-section tabular-nums">
           {formatBytes(bytes)}
         </p>
         <p className="text-sm text-muted-foreground tabular-nums">
@@ -71,7 +71,9 @@ function Column({
           />
         </span>
       </div>
-      <p className="border-t pt-4 font-heading text-lg tabular-nums">{price}</p>
+      <p className="border-t pt-4 font-heading text-subsection tabular-nums">
+        {price}
+      </p>
       <ul className="flex flex-col gap-2 text-sm">
         {rows.map((row) => (
           <li

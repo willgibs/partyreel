@@ -183,7 +183,7 @@ The goal is not formalised chapter intros. Give every opener the same device and
 templated one level up, which kills the freshness each chapter is supposed to bring. The devices are a
 **vocabulary** to draw from, and a page should **vary the device between its chapters**:
 
-- the heading a tier up (`SectionShell scale="lg"`, the ladder's one empty slot: 36/48/60)
+- the heading a tier up (`SectionShell scale="lg"`, the ladder's `chapter` step)
 - the hard film-cut entrance (`reveal="cinema"` / `data-mkt-cut`) instead of the soft rise
 - materially more air above the opener than a body section gets
 - an object that physically crosses the chapter cut (/about's gather, /help's emblem strip, /blog's
@@ -489,32 +489,45 @@ reach. Urbanist is a real variable sans, so it carries no font-size-adjust, no
 synthetic text-stroke weight and no font-synthesis: a real bold weight does
 the work. Swap the brand face forever by repointing `--font-display` + retuning the two lines in the utility.
 
-**THE LADDER: nine steps, one set, both halves of the site** (Will's ruling, 2026-09-17, on the
-type-scale board's card B). Declared once as `--text-*` tokens in
+**THE LADDER: ten steps, one set, both halves of the site** (Will's rulings: 2026-09-17 on the
+type-scale board's card B, 2026-09-18 on `type-phone`). Declared once as `--text-*` tokens in
 [`src/app/theme.css`](../../src/app/theme.css) and drawn at true size from those live tokens at
 `/design/library/foundations#ladder`, which is where you READ it: the numbers have one home, and this
 doc deliberately does not copy them. A step carries its own font-size, line-height and letter-spacing,
 so one class sets all three, and each is a `clamp()` through (375, phone) and (1440, desktop): there
-is no breakpoint to jump at, and no four-step ramp anywhere on the site.
+is no breakpoint to jump at, and no ramp anywhere on the site.
 
-**The law is the TRAVEL, not the sizes.** Every size sits on one rung set from 12 to 160 whose ratio
-widens as it climbs (one ratio cannot serve a 160px masthead and a 14px label). A marketing step moves
-exactly four rungs between 375 and 1440, an app step moves one, and the card step moves none: bible 2
-("marketing may be louder, scale included") as arithmetic rather than as judgement.
+**The law is the ORDER, not the travel** (2026-09-18). Every size sits on one rung set from 12 to 160
+whose ratio widens as it climbs (one ratio cannot serve a 160px masthead and a 14px label). A step's
+desktop end is the size Will ruled at 1440; its phone end is the rung that keeps every heading ABOVE
+the one it heads at 375. The first wiring moved every marketing step exactly four rungs instead, and
+that put the paper h2 (`prose`) under its own sub-head at a phone, unseen on a desktop review ("We
+should have a very clear heading hierarchy on mobile as well"). Marketing still travels further than
+the app (bible 2, "marketing may be louder, scale included"), only as far as the order allows. The
+policy reads the paper stack (title > prose > sub-head) off the tokens at both ends.
 
 | Step | Class | Wears it |
 | --- | --- | --- |
 | Display | `text-display` | the masthead, one or two words (`PageHero scale="display"`) |
 | Hero | `text-hero` | the cinema hero and the home (`PageHero scale="xl"`) |
 | Title | `text-title` | /help, the six feature heroes, /reel, /events (`PageHero scale="lg"`) |
-| Chapter | `text-chapter` | `SectionShell scale="lg"`, the article and role titles, the footer's closer |
-| Section | `text-section` | the body-section h2 (`SectionShell` default, ~70 sites) and a stat numeral |
-| Prose | `text-prose` | the paper prose head (/about, /press, /help, /contact) and a dead link on marketing |
-| Page | `text-page` | every app and admin h1 (`PageHeading`), the guest event and profile titles |
-| Subsection | `text-subsection` | the app's quiet middle: an event tile, the admin gate card, a quiet empty state |
-| Card title | `text-card-title` | `CardTitle`, and every sheet, drawer and dialog title |
+| Chapter | `text-chapter` | `SectionShell scale="lg"`, the article and role titles, the footer's closer, /help's ghost folio (each pane's chapter number) |
+| Section | `text-section` | the body-section h2 (`SectionShell` default, ~70 sites) and a stat numeral: a price, a storage readout |
+| Prose | `text-prose` | the paper prose head (/about, /press, /help, /contact), an article's h2, and a dead link on marketing |
+| Sub-head | `text-subhead` | the sub-head under a prose or section h2 (/about's six, /help's categories, a role, the home's first chapter), an article's h3, a legal section, an article's closing h2s, a featured door |
+| Page | `text-page` | every app and admin h1 (`PageHeading`), the guest event and profile titles, every screen of the guest entry sheet, the reel's title card |
+| Subsection | `text-subsection` | the app's quiet middle (an event tile, a gate card, an empty state, a prompt tile) and marketing's tile and item titles (a feature h3, a plan's name, a footer column) |
+| Card title | `text-card-title` | `CardTitle`, every sheet, drawer and dialog title, an FAQ question, a table's column head |
 
-Three things the wiring measured, each of which fails SILENTLY, now held by
+**Roles, not sizes, decide a step** (Will, 2026-09-18: "we really shouldn't have any one-off adding
+instances. Everything should be addressed in our design system type ladder"). A heading that no step
+fits is a role nobody has decided, and a new step is added only when it is a helpful global addition
+that names a size the site already uses (`subhead` named seven headings' stock pair). The MDX
+articles' h2 and h3 are sized on the prose wrappers (`prose-h2:text-prose prose-h3:text-subhead` in
+`help/[slug]` and `blog/[slug]`), because the MDX components are shared and carry no sizes. Index
+numerals are data, not headings: they sit on the body face with tabular figures.
+
+Five ways the ladder fails SILENTLY, all held by
 [`src/lib/type-ladder-policy.test.ts`](../../src/lib/type-ladder-policy.test.ts):
 - **The card step is `card-title`, never `card`.** Tailwind v4 resolves a `text-*` class as a COLOR
   before a font size, and `--color-card` (the surface) has existed far longer, so `--text-card` would
@@ -523,17 +536,32 @@ Three things the wiring measured, each of which fails SILENTLY, now held by
   does not read the stylesheet, so an unknown `text-*` lands in its colour group and is dropped by any
   real colour in the same call: `cn("font-heading text-chapter text-white")` returned `font-heading
   text-white`. A step added to theme.css is added there in the same change.
-- **A step beats `font-heading`; a `tracking-*` or `leading-*` beats the step.** Tailwind sorts the
-  utilities layer by property and emits a custom `@utility` in the font-* position, ahead of the size
-  utilities, so at equal specificity the step's own spacing wins. But `tracking-tight` resolves to
-  `0em` here and cancels it through `--tw-tracking`; never put one beside a step. `--tracking-tight`
-  stays `0em` so the 90+ legacy `tracking-tight` usages are no-ops on everything else.
+- **A ramp coming back.** A stock pair (`text-xl sm:text-2xl`) also JUMPS at 640 where a clamp does
+  not: the sub-head out-shouted its h2 from 640 to 775 as well as at a phone. No `sm:` size, and no
+  step behind a breakpoint, on any heading.
+- **The order breaking at one end** (above), read off the tokens at 375 and at 1440.
+- **A heading off the ladder.** A stock (`text-xs` to `text-9xl`), arbitrary (`text-[22px]`) or inline
+  size on a heading tag, a `*Title` / `*Heading` component or anything in the heading face. The scan
+  found 126 at the second wiring; every heading among them took the step its role calls for.
 
-**The one written exception: a LABEL inside a heading tag is not on the ladder.** The event feed's
-section header (`app/event-feed/feed-section-header.tsx`) is an 11px uppercase Inter label inside an
-`h2`, and the admin metric bands are its 14px cousin. The tag is there for the document OUTLINE, the
-look is a label, and this is the heading FACE's ladder: nothing set in Inter joins it. Restyling the
-feed is its own decision and not this ruling's, so until one is taken, do not "fix" these onto a step.
+**A step beats `font-heading`; a `tracking-*` or `leading-*` beats the step.** Tailwind sorts the
+utilities layer by property and emits a custom `@utility` in the font-* position, ahead of the size
+utilities, so at equal specificity the step's own spacing wins. But `tracking-tight` resolves to `0em`
+here and cancels it through `--tw-tracking`, and a `leading-*` overrides the step's line height the
+same way; never put either beside a step. `--tracking-tight` stays `0em` so the legacy
+`tracking-tight` usages are no-ops on everything else.
+
+**What the policy names, and nothing else, sits off the ladder** (each by file, with its reason and a
+count, so the hole cannot grow). **Type drawn inside a picture**: a phone, a frame card or an album
+that pictures the app at reduced scale, a printed sign, the press kit's typeface plate, an emblem's
+glyph; a picture of a heading is sized by its picture, and a viewport clamp would size it by the wrong
+box. **A LABEL inside a heading tag**: the event feed's section header
+(`app/event-feed/feed-section-header.tsx`) is an 11px uppercase Inter label inside an `h2`, and the
+admin metric bands are its 14px cousin (eight such labels, six of which size the tag itself). The tag
+is there for the document OUTLINE, the look is a label, and this is the heading FACE's ladder: nothing
+set in Inter joins it. Restyling the feed is its own decision, so until one is taken, do not "fix"
+these onto a step. **The root error page** (`app/global-error.tsx`), which replaces the whole document,
+stylesheet included, so its h1 is sized inline.
 
 **Weight is still tiered on top of the step** (one face, weight per tier; app page and card titles take
 the heading face, never Inter): page titles **700** via
@@ -546,9 +574,9 @@ off the ladder: name another STEP instead.
 **Marketing's page-H1 exemptions** (titles must OWN their headers): the standard page h1 is the `title`
 step; the HOME hero takes `hero`; long-title ARTICLE surfaces (help, blog and careers articles, and the
 blog index's featured card) stop at `chapter`, where a long line reads as prose rather than as a
-masthead; utility documents (`/contact` via SectionShell, the legal shell) use the section steps. On a
-phone the marketing steps sit closer together than they do at 1440, so a section's weight there comes
-from its entrance and its air as much as from its type.
+masthead; utility documents (`/contact` via SectionShell, the legal shell, whose section titles are
+sub-heads) use the section steps. On a phone the marketing steps sit closer together than they do at
+1440, so a section's weight there comes from its entrance and its air as much as from its type.
 **The hero lockup owns all of this** ([`page-hero.tsx`](../../src/components/marketing/system/page-hero.tsx),
 pinned by `page-hero-contract.test.ts`): eyebrow / heading / subhead / actions on one shared `gap-6`
 grammar, with `scale` picking the type, `lg` the ladder above, `xl` the cinema register, `display`
@@ -586,10 +614,16 @@ about its ink, a display line's is not, and it is wrong in OPPOSITE directions a
 with canvas TextMetrics (Urbanist bold: cap 0.75em over the baseline, descender 0.25em under), a
 0.85-ish leading + `py-[0.08em]` put the box top 0.125em ABOVE the cap while the box bottom lands
 0.094em ABOVE the descender, so one honest `gap-6` reads ~44px over the name and ~9px under it. The
-step therefore trims its TOP only (`-mt-[0.12em]`, in `em` so it holds across the clamp) and
-deliberately never its bottom: trimming both ends symmetrically is the intuitive move and it tightens
-the end already tight. Keep `py-[0.08em]`: it is what stops an `overflow-hidden` ancestor clipping the
-descender, and the negative margin removes the distance from LAYOUT while the glyph keeps its room.
+step therefore trims its TOP only and deliberately never its bottom: trimming both ends symmetrically
+is the intuitive move and it tightens the end already tight. **The trim tracks the leading** (Will,
+2026-09-18, `display-trim=clamped`): `mt-[calc((1em-1lh)/2-0.19em)]`, minus the half-leading at
+whatever width is drawing plus a face constant fitted so 1440 keeps the `-0.12em` it shipped with. The
+step's leading is itself a clamp (looser at a phone), so the old flat `-0.12em` was right at 1440
+only; measured on /about's masthead, the cap's first ink row now sits 2px under the shared gap's end
+at 375 (it was 5) and 6px at 1440 (unchanged). ★ Mind the sign: `(1lh - 1em) / 2` agrees at 1440 and
+trims LESS at a phone, which is how the board's own tile drew it (the contract pins the form). Keep
+`py-[0.08em]`: it is what stops an `overflow-hidden` ancestor clipping the descender, and the negative
+margin removes the distance from LAYOUT while the glyph keeps its room.
 (A consequence worth expecting rather than "fixing": a title with NO descender, like "Press", reads
 looser under the masthead than one with a "y". The box rhythm is identical; the ink differs.)
 And an **optical side bearing** (`leadIn`), which is a different kind of correction and is gated
@@ -604,10 +638,11 @@ rediscover the problem and invent a magic number.
 **THE THIRD REGISTER, the INDEX MASTHEAD, is the display step's inverse** (Will, 2026-08-28: "I love
 broadsheet's small 'notes' title and underline above the featured blog card... should say 'Blog'").
 Where `display` is for a page whose
-TITLE is the subject, this is for a page whose CONTENT is: the h1 recedes to a label
-(`text-lg sm:text-xl`) above a drawn `[data-mkt-rule]` hairline, and the lead item owns the stage.
-/blog's `Blog` sits at 18px while the featured card's h2 runs to `lg:text-6xl`. That inversion is
-DELIBERATE; do not "restore" it to the ladder. The small one keeps the h1 because it is what the
+TITLE is the subject, this is for a page whose CONTENT is: the h1 recedes to a small title above a
+drawn `[data-mkt-rule]` hairline, and the lead item owns the stage. It is ON the ladder, at the
+`subsection` step (the exact sizes its old stock pair set, so nothing moved), while the featured
+card's h2 runs at `chapter`. That inversion is DELIBERATE: the h1 is quiet by picking a quiet STEP,
+never by leaving the ladder, and a louder step would undo the register. The small one keeps the h1 because it is what the
 page IS, it never collapses under a filter the way the featured card does, and it holds the document
 outline stable in every view. It is deliberately NOT in `PageHero`: that component owns the
 eyebrow/heading/subhead/actions lockup, and this is a different one (title + rule + a trailing

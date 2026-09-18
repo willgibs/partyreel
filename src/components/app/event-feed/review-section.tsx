@@ -27,8 +27,15 @@ export function ReviewSection({
   onEnableModeration: () => void;
   enabling: boolean;
 }) {
-  const { visualState, beatKind, pending, selected, exiting, selectMode, toggle } =
-    triage;
+  const {
+    visualState,
+    beatKind,
+    pending,
+    selected,
+    exiting,
+    selectMode,
+    toggle,
+  } = triage;
 
   if (visualState === "moderation-off") {
     return (
@@ -71,7 +78,7 @@ export function ReviewSection({
           >
             <Check className="size-7" />
           </span>
-          <p className="font-heading text-lg">All caught up</p>
+          <p className="font-heading text-subsection">All caught up</p>
         </div>
       </section>
     );

@@ -57,7 +57,7 @@ export function HowRepriseSection() {
             <Caption className="tabular-nums">
               {String(i + 1).padStart(2, "0")}
             </Caption>
-            <h3 className="font-heading text-lg sm:text-xl">{step.label}</h3>
+            <h3 className="font-heading text-subsection">{step.label}</h3>
             <p className="text-sm text-pretty text-muted-foreground">
               {step.body}
             </p>

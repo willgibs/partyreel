@@ -120,7 +120,7 @@ export function GuestReelCard({
           meta={meta}
           chip={<PosterCardChip />}
           playBadge
-          nameClassName={hero ? "text-2xl" : undefined}
+          nameClassName={hero ? "text-page" : undefined}
           media={<ReelCoverStill coverUrl={payload.coverUrl} />}
         />
       </button>

@@ -247,11 +247,16 @@ export function PlanPair() {
         >
           <PhotoStack />
           <div className="flex flex-col gap-2">
-            <h2 className="font-heading text-xl">{free.name}</h2>
+            {/* Both on the ladder by ROLE (2026-09-18): a plan's name is a
+                card's title in the marketing register (`subsection`, as every
+                tile title here is), and its price is the number the card is
+                about, which is the `section` step's "stat numeral". The Pro
+                card and the Event Pass wear the same pair. */}
+            <h2 className="font-heading text-subsection">{free.name}</h2>
             <p className="text-sm text-pretty text-muted-foreground">
               Your first event, covered.
             </p>
-            <div className="mt-3 font-heading text-4xl tabular-nums">
+            <div className="mt-3 font-heading text-section tabular-nums">
               <PricePop label={free.priceLabel} />
             </div>
           </div>
@@ -306,11 +311,11 @@ export function PlanPair() {
           </span>
           <PhotoStack ink />
           <div className="flex flex-col gap-2">
-            <h2 className="font-heading text-xl">Pro</h2>
+            <h2 className="font-heading text-subsection">Pro</h2>
             <p className="text-sm text-pretty text-background/75">
               For hosts who host again.
             </p>
-            <div className="mt-3 font-heading text-4xl tabular-nums">
+            <div className="mt-3 font-heading text-section tabular-nums">
               {/* Keyed remount so a size/cadence change swaps the price instantly
                 (high-frequency interaction: no re-pop theater). */}
               <PricePop key={proDisplay.id} label={proDisplay.priceLabel} />

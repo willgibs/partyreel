@@ -49,7 +49,7 @@ export function StaysSection() {
               style={{ "--i": 3 + i } as CSSProperties}
             >
               <span className={ORDINAL}>0{i + 1}</span>
-              <h3 className="font-heading text-lg">{step.title}</h3>
+              <h3 className="font-heading text-subsection">{step.title}</h3>
               <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
                 {step.body}
               </p>
@@ -83,7 +83,7 @@ export function StaysSection() {
               style={{ "--i": 7 + i } as CSSProperties}
             >
               <span className={TICK} />
-              <h3 className="font-heading text-base">{note.title}</h3>
+              <h3 className="font-heading text-card-title">{note.title}</h3>
               <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
                 {note.body}
               </p>

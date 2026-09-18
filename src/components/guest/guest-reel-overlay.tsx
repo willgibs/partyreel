@@ -370,7 +370,9 @@ export function GuestReelOverlay({
             <p className="text-[9px] font-medium tracking-[0.24em] text-white/70 uppercase">
               The reel
             </p>
-            <p className="mt-1 font-heading text-xl leading-tight text-white">
+            {/* The title card names the event, so it wears the step every
+                other event title does (`page`), leading included. */}
+            <p className="mt-1 font-heading text-page text-white">
               {eventName}
             </p>
           </div>

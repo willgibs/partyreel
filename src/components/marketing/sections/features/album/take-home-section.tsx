@@ -64,7 +64,7 @@ function Plate({
         {children}
       </div>
       <div className="flex flex-col gap-1 px-0.5">
-        <h3 className="font-heading text-base sm:text-lg">{title}</h3>
+        <h3 className="font-heading text-subsection">{title}</h3>
         <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
           {body}
         </p>

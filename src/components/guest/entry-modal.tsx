@@ -373,7 +373,9 @@ function SuccessStep({
   if (stalled) {
     return (
       <div className="flex flex-col items-center gap-4 py-6 text-center">
-        <p className="font-heading text-[22px] leading-tight text-balance">
+        {/* The sheet's title slot keeps the event name's step on every screen
+            of the flow (the welcome, the gate, this stall and the arrival). */}
+        <p className="font-heading text-page text-balance">
           That took longer than it should
         </p>
         <p className="max-w-xs text-base leading-relaxed text-muted-foreground">
@@ -392,9 +394,7 @@ function SuccessStep({
         <Check className="size-7" />
       </div>
       <div>
-        <p className="font-heading text-[24px] leading-tight">
-          You&rsquo;re in
-        </p>
+        <p className="font-heading text-page">You&rsquo;re in</p>
         <p className="mt-1 text-base text-muted-foreground">
           {slow ? "Opening the album" : "Welcome to the party"}
         </p>

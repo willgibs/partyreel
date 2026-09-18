@@ -166,10 +166,7 @@ export default function HelpIndexPage() {
         <section className="pt-24 pb-14 sm:pt-28 sm:pb-16">
           <Container>
             <Reveal className="flex flex-col gap-1.5">
-              <h2
-                data-mkt-reveal
-                className="font-heading text-prose"
-              >
+              <h2 data-mkt-reveal className="font-heading text-prose">
                 Start here
               </h2>
               <p
@@ -198,7 +195,7 @@ export default function HelpIndexPage() {
                     <span className="text-xs tracking-wider text-success tabular-nums">
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="font-heading text-lg">
+                    <h3 className="font-heading text-subsection">
                       {article.frontmatter.title}
                     </h3>
                     <span className="flex-1 text-sm text-pretty text-muted-foreground">
@@ -221,10 +218,7 @@ export default function HelpIndexPage() {
         <section className="border-y bg-muted/30">
           <Container className="py-14 sm:py-16">
             <Reveal className="flex flex-col gap-1.5">
-              <h2
-                data-mkt-reveal
-                className="font-heading text-prose"
-              >
+              <h2 data-mkt-reveal className="font-heading text-prose">
                 The numbers
               </h2>
               <p
@@ -247,10 +241,7 @@ export default function HelpIndexPage() {
         <section className="py-16 sm:py-20">
           <Container>
             <Reveal className="flex flex-col gap-1.5">
-              <h2
-                data-mkt-reveal
-                className="font-heading text-prose"
-              >
+              <h2 data-mkt-reveal className="font-heading text-prose">
                 Every guide, in order
               </h2>
               <p
@@ -283,15 +274,16 @@ export default function HelpIndexPage() {
                       wide && "lg:col-span-2",
                     )}
                   >
-                    {/* The ghost folio: the category number at print-index
-                      scale, in the brand face at 6% ink. A watermark folio is
-                      display typography, so it takes the heading face and its
-                      own tracking; tabular figures keep 01 and 10 the same
-                      width, which is what stops the pane's corner from
-                      shifting between cells (kill-mono, 2026-09-14). */}
+                    {/* The ghost folio: each pane's CHAPTER number in the guide
+                      index, in the brand face at 6% ink, so it wears the
+                      `chapter` step rather than the stock 60/72 it had of its
+                      own (a number that names a chapter, not a stat to read).
+                      Tabular figures keep 01 and 10 the same width, which is
+                      what stops the pane's corner from shifting between cells
+                      (kill-mono, 2026-09-14). */}
                     <span
                       aria-hidden
-                      className="pointer-events-none absolute top-3 right-6 font-heading text-6xl leading-none text-foreground/[0.06] tabular-nums select-none sm:text-7xl"
+                      className="pointer-events-none absolute top-3 right-6 font-heading text-chapter text-foreground/[0.06] tabular-nums select-none"
                     >
                       {String(groupIndex + 1).padStart(2, "0")}
                     </span>
@@ -302,7 +294,7 @@ export default function HelpIndexPage() {
                           {articles.length}{" "}
                           {articles.length === 1 ? "guide" : "guides"}
                         </p>
-                        <h3 className="mt-0.5 font-heading text-xl sm:text-2xl">
+                        <h3 className="mt-0.5 font-heading text-subhead">
                           {category.title}
                         </h3>
                       </div>
@@ -365,9 +357,7 @@ export default function HelpIndexPage() {
              contact first, then onward per the de-silo ruling). ───────────── */}
       <section>
         <Container className="flex flex-col items-center gap-4 py-16 text-center sm:py-20">
-          <h2 className="font-heading text-prose">
-            Still need help?
-          </h2>
+          <h2 className="font-heading text-prose">Still need help?</h2>
           <p className="max-w-md text-pretty text-muted-foreground">
             Can&rsquo;t find what you&rsquo;re looking for? Reach out and
             we&rsquo;ll get back to you.

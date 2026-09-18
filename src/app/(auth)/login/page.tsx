@@ -58,7 +58,12 @@ export default async function LoginPage({
         </div>
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-lg">Welcome to Partyreel</CardTitle>
+            {/* The gate card's rank, the same step the admin gate's title
+                takes: a max-w-sm card that IS the screen reads a step over a
+                card's own title (the ladder, never a stock size). */}
+            <CardTitle className="text-subsection">
+              Welcome to Partyreel
+            </CardTitle>
             <CardDescription>
               Sign in to create events and collect photos from your guests. No
               app, no fuss.

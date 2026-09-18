@@ -88,8 +88,18 @@ const STEPS: {
     label: "Prose",
     cls: "text-prose",
     register: "marketing",
-    where: "the paper prose head, and a dead link on marketing",
+    where:
+      "the paper prose head, an article's h2, and a dead link on marketing",
     word: "Why we built it",
+  },
+  {
+    id: "subhead",
+    label: "Sub-head",
+    cls: "text-subhead",
+    register: "marketing",
+    where:
+      "the sub-head under a prose or section h2, an article's h3, a legal section",
+    word: "Originals in, originals out.",
   },
   {
     id: "page",
@@ -104,7 +114,8 @@ const STEPS: {
     label: "Subsection",
     cls: "text-subsection",
     register: "app",
-    where: "the app's quiet middle: an event tile, a gate card, an empty state",
+    where:
+      "the app's quiet middle (an event tile, a gate card, an empty state), and a marketing tile's title",
     word: "Your events",
   },
   {
@@ -214,7 +225,8 @@ export function TypeLadder() {
     <div className="overflow-hidden rounded-lg border">
       {STEPS.map((step, i) => {
         const r = read[step.id];
-        const opens = step.register === "app" && STEPS[i - 1]?.register !== "app";
+        const opens =
+          step.register === "app" && STEPS[i - 1]?.register !== "app";
         return (
           <div
             key={step.id}
@@ -222,9 +234,10 @@ export function TypeLadder() {
               "px-4 py-4",
               i > 0 && "border-t",
               // ★ ONE HAIRLINE SAYS "THIS IS THE OTHER HALF OF THE SITE".
-              // Marketing descends to 18 and the app starts again at 24, which
-              // reads as a broken ladder until you know why. The rule is the
-              // why, and it is drawn from the data, never typed in.
+              // Marketing descends to its sub-head and the app starts again a
+              // rung ABOVE it (the page title), which reads as a broken ladder
+              // until you know why. The rule is the why, and it is drawn from
+              // the data, never typed in (the sizes are on the rows above).
               opens && "border-t-2 border-t-foreground/20",
             )}
           >

@@ -73,8 +73,7 @@ export type SandboxId =
   | "river-visual"
   | "glow-doctrine"
   | "glow-moments"
-  | "rounding"
-  | "type-phone";
+  | "rounding";
 
 export type Ruling = {
   id: RulingId;
@@ -555,26 +554,24 @@ export const RULINGS: Ruling[] = [
       "docs/specs/media-kit.md",
     ],
   },
+  // RULED AND RETIRED (round one, 2026-09-18). Will answered with the fix
+  // the board never offered (the ladder, not the page) and `clamped` for the
+  // trim; the board left sandbox/ and docs/design/rulings.md keeps his words.
   {
     id: "type-phone",
     title: "Type at a phone",
     surface: "shared",
-    ruled: "open (the first question-first exploration, 2026-09-18)",
-    shipped: null,
-    why: "Bible 5's ladder shipped and measured three places that read wrong at 375 and right at 1440; each is one decision with its options drawn at true pixels.",
+    ruled: "2026-09-18",
+    shipped:
+      "The order at a phone, the subhead step, every heading on the ladder, the clamped trim",
+    why: "The law is the order: prose rises to keep each heading above the one it heads at 375, subhead names the sub-head pair, and no heading is set off the ladder.",
     lives: [
+      "docs/systems/design-system.md#type-the-heading-face-the-ladder",
       "src/app/theme.css",
+      "src/lib/type-ladder-policy.test.ts",
       "src/components/marketing/system/page-hero.tsx",
-      "src/components/shared/not-found-screen.tsx",
+      "src/app/(dev)/design/(shell)/library/foundations/page.tsx#ladder",
     ],
-    board: {
-      note: "Three decisions, no page: the marketing sub-head tier, the dead-link title, and whether the display step's optical trim tracks its leading. Every option is the real surface in a 375 column at true pixels, which the shape makes structural rather than optional",
-      variants: [
-        "The sub-head tier",
-        "The dead-link title",
-        "The display trim",
-      ],
-    },
   },
   {
     id: "rounding",

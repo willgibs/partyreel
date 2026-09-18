@@ -260,12 +260,18 @@ export default async function HelpArticlePage({
                 </div>
 
                 {/* prose-headings:font-heading pulls the article's h2/h3 onto the
-                house heading face (Urbanist) so long-form matches the chrome;
-                the prose SCALE itself is untouched (the ruling keeps it). */}
+                house heading face (Urbanist) so long-form matches the chrome,
+                and the h2/h3 modifiers put them on the LADDER (Will,
+                2026-09-18: nothing sized off it): an article h2 is the paper
+                prose head (`prose`) and its h3 the sub-head under it
+                (`subhead`), where @tailwindcss/typography had set 24 and 20 at
+                every width. The body copy's scale is still the plugin's. The
+                MDX components themselves are shared (components/marketing/
+                mdx/), so the sizes ride this wrapper, as the face does. */}
                 <article
                   id={ARTICLE_BODY_ID}
                   data-print-article
-                  className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading prose-code:font-sans"
+                  className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading prose-h2:text-prose prose-h3:text-subhead prose-code:font-sans"
                 >
                   {content}
                 </article>
@@ -300,7 +306,7 @@ export default async function HelpArticlePage({
 
                 {related.length > 0 && (
                   <section className="mt-12 border-t pt-10" data-print-hide>
-                    <h2 className="font-heading text-xl tracking-tight">
+                    <h2 className="font-heading text-subhead">
                       Related articles
                     </h2>
                     <ul className="mt-5 flex flex-col gap-3.5">
@@ -356,7 +362,7 @@ export default async function HelpArticlePage({
                   className="mt-10 rounded-2xl border bg-muted/30 p-8 text-center"
                   data-print-hide
                 >
-                  <h2 className="font-heading text-xl tracking-tight">
+                  <h2 className="font-heading text-subhead">
                     Still need help?
                   </h2>
                   <p className="mx-auto mt-2 max-w-sm text-sm text-pretty text-muted-foreground">

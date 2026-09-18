@@ -73,7 +73,12 @@ export function PosterCard({
   /** Centered play affordance — for a STILL cover only (never over a live player). */
   playBadge?: boolean;
   className?: string;
-  /** Size the event name per surface (inline card vs the post-event hero). */
+  /**
+   * Size the event name per surface (inline card vs the post-event hero). A
+   * ladder STEP, never a stock size: the card's own is a tile title
+   * (`subsection`), and the guest's post-event hero names the event the way
+   * every event title does (`text-page`).
+   */
   nameClassName?: string;
 }) {
   return (
@@ -116,7 +121,7 @@ export function PosterCard({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 p-3">
         <p
           className={cn(
-            "font-heading text-lg leading-tight text-white",
+            "font-heading text-subsection text-white",
             nameClassName,
           )}
         >

@@ -32,8 +32,8 @@ type SectionShellProps = ComponentProps<"section"> & {
   containerClassName?: string;
   /**
    * Heading tier. "default" is the body-section h2: the ladder's `section`
-   * step, 24 at a phone and 52 at 1440. "lg" is the `chapter` step (28/64),
-   * which sits above every body section and below the page h1. It is a
+   * step. "lg" is the `chapter` step, which sits above every body section and
+   * below the page h1 (both ends of each live in theme.css). It is a
    * VOCABULARY item for a chapter's opener or closing anchor, not a chapter
    * template: the pacing principle (design-system.md, "Chapters") wants each
    * such section designed bespoke, and this is just the type step several of

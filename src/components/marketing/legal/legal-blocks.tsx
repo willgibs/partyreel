@@ -101,7 +101,7 @@ export function LegalBlocks({
                 key={i}
                 id={id}
                 className={cn(
-                  "group pt-2 font-heading text-base text-foreground",
+                  "group pt-2 font-heading text-subsection text-foreground",
                   HEADING_SCROLL_MT,
                 )}
               >

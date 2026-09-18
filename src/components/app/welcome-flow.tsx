@@ -54,9 +54,7 @@ export function WelcomeFlow({
     return (
       <Card className="mx-auto w-full max-w-lg">
         <CardHeader className="space-y-1">
-          <PageHeading>
-            Welcome to Partyreel
-          </PageHeading>
+          <PageHeading>Welcome to Partyreel</PageHeading>
           <p className="text-muted-foreground">
             First, the name your guests will see on the photos you add.
           </p>
@@ -108,9 +106,7 @@ export function WelcomeFlow({
       <CardContent className="min-h-44">
         {step === 1 && (
           <div className="space-y-2 text-center">
-            <PageHeading>
-              Welcome to Partyreel
-            </PageHeading>
+            <PageHeading>Welcome to Partyreel</PageHeading>
             <p className="text-muted-foreground">
               Collect every photo and video from your event. Your guests just
               scan a QR code. No app, no accounts.
@@ -119,9 +115,10 @@ export function WelcomeFlow({
         )}
         {step === 2 && (
           <div className="space-y-4">
-            <h2 className="text-center font-heading text-lg">
-              How it works
-            </h2>
+            {/* Every step's title is the same slot, so it wears step 1's
+                PageHeading step: the tutorial's rhythm is one title per
+                screen, never a size per screen. */}
+            <h2 className="text-center font-heading text-page">How it works</h2>
             <ul className="space-y-4">
               {HOW_IT_WORKS.map(({ icon: Icon, title, body }) => (
                 <li key={title} className="flex gap-3">
@@ -139,9 +136,7 @@ export function WelcomeFlow({
         )}
         {step === 3 && (
           <div className="space-y-2 text-center">
-            <h2 className="font-heading text-2xl">
-              You&rsquo;re all set
-            </h2>
+            <h2 className="font-heading text-page">You&rsquo;re all set</h2>
             <p className="text-muted-foreground">
               Create your first event and share the QR with your guests.
               They&rsquo;ll start adding photos in seconds.

@@ -36,7 +36,9 @@ export function GalleryEmptyState({
         ))}
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="font-heading text-2xl text-balance">
+        {/* An empty state's title: the ladder's `subsection`, a step under the
+            album's own h1 (`page`) so the empty album never out-shouts it. */}
+        <p className="font-heading text-subsection text-balance">
           This is where it all lands
         </p>
         {onAddFirst && (

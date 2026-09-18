@@ -38,14 +38,19 @@ export function HomeFaqAccordion({
             className="mkt-acc px-5"
             data-open={isOpen ? "true" : "false"}
           >
-            <h3>
+            {/* A question is the title of its row in one bordered card, so
+                the h3 wears the card step (it inherited 16px Inter before, the
+                one heading on the page off the ladder). The button inherits
+                the face, the size, the leading and the tracking from it (the
+                preflight sets font: inherit) and keeps a card title's 600. */}
+            <h3 className="font-heading text-card-title">
               <button
                 id={buttonId}
                 type="button"
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 onClick={() => setOpen(isOpen ? null : i)}
-                className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left font-medium"
+                className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left font-semibold"
               >
                 {item.q}
                 <span

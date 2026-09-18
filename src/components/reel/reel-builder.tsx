@@ -245,7 +245,7 @@ export function ReelBuilder({
             </div>
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
               <Clapperboard className="size-6 text-reel" aria-hidden />
-              <p className="font-heading text-base leading-tight">
+              <p className="font-heading text-subsection">
                 Your reel starts here
               </p>
               <p className="max-w-[260px] text-xs leading-snug text-muted-foreground">
@@ -293,7 +293,7 @@ export function ReelBuilder({
           // the progress, and the tiles double as the reveal's FLIP sources.
           <>
             <div className="flex items-baseline justify-between">
-              <p className="font-heading text-base leading-tight">
+              <p className="font-heading text-card-title">
                 {momentCount === 1
                   ? "1 moment picked"
                   : `${momentCount} moments picked`}

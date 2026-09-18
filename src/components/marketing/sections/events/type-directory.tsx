@@ -81,7 +81,7 @@ export function TypeDirectory() {
           >
             <Preview slug={slug} />
             <div className="flex flex-1 flex-col gap-2.5 p-6">
-              <h3 className="font-heading text-xl">{navLabel}</h3>
+              <h3 className="font-heading text-subsection">{navLabel}</h3>
               <p className="text-sm text-muted-foreground">{teaser}</p>
               <div className="mt-auto flex flex-wrap gap-1.5 pt-2">
                 {nestedThemes.slice(0, THEME_CHIP_COUNT).map((theme) => (

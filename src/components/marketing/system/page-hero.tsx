@@ -30,17 +30,26 @@ import { Reveal } from "./reveal";
  * cap, while the box bottom lands 0.094em ABOVE the descender. So a uniform
  * `gap-6` reads ~44px over the name and only ~9px under it: too loose, then too
  * tight, from one honest value. That is the "hero spacing is off" Will flagged.
- * The leading is now the `display` step's own (0.86 at 1440, 0.98 at 375), so
- * the trim under-corrects slightly at a phone, where the ladder buys the
- * masthead a looser line on purpose. Trimming per width would need a second
- * clamp for one page; the shared gap is worth more than the last 4px.
  *
  * The round's build answered it with per-pair margins (mt-1/mt-5/mt-8) on that
  * one page, which lands correct pixels but leaves the page sharing no spacing
  * convention with the lane, and hands the next page the same puzzle. So the gap
- * stays uniform and the DISPLAY STEP TRIMS ITSELF: `-mt-[0.12em]` takes back
- * the top overhang so the shared gap measures from the CAP. It is in `em`, so
- * it holds across the whole clamp rather than at one width.
+ * stays uniform and the DISPLAY STEP TRIMS ITSELF: a negative top margin takes
+ * back the overhang so the shared gap measures from the CAP.
+ *
+ * ★ THE TRIM TRACKS THE LEADING (Will, 2026-09-18, `display-trim=clamped`).
+ * The overhang is two things added together: the half-leading, which follows
+ * the step's line height, and the face's own ascender-to-cap distance, which is
+ * a constant in `em`. The step's leading is itself a clamp (tighter at 1440
+ * than at a phone), so the flat `-0.12em` this used to be was right at 1440
+ * only and left a sliver of air over the caps at 375. `calc((1em - 1lh) / 2 -
+ * 0.19em)` separates them: the first term is minus the half-leading at
+ * whatever width is drawing (`1lh` is this element's own line height), the
+ * second is the constant, fitted so 1440 keeps exactly the -0.12em it shipped
+ * with. A phone therefore trims more (about -0.18em), never less.
+ * ★ Mind the SIGN: the board's tile drew `(1lh - 1em) / 2 - 0.05em`, which
+ * agrees at 1440 and trims LESS at a phone (about -0.06em), the opposite of
+ * what it claimed; page-hero-contract.test.ts pins this form.
  *
  * ★ There is deliberately NO bottom trim. The box UNDERSTATES the ink there
  * (the descender hangs below it), so a negative margin would tighten the one
@@ -97,7 +106,7 @@ const HERO_SCALE: Record<
    */
   display: {
     heading:
-      "mkt-name -mt-[0.12em] py-[0.08em] text-display whitespace-nowrap",
+      "mkt-name mt-[calc((1em-1lh)/2-0.19em)] py-[0.08em] text-display whitespace-nowrap",
     /**
      * ★ LEFT-ALIGNED ONLY, and never folded back into `heading`. This is the
      * optical SIDE BEARING: at 160px a capital carries visible space inside
@@ -115,9 +124,9 @@ const HERO_SCALE: Record<
      */
     leadIn: "[margin-inline-start:-0.045em]",
   },
-  /** The cinema register: the `hero` step, 42 at a phone and 100 at 1440. */
+  /** The cinema register: the `hero` step (its two ends live in theme.css). */
   xl: { heading: "text-hero" },
-  /** The `title` step (34/80), shared with /help and the six feature heroes. */
+  /** The `title` step, shared with /help and the six feature heroes. */
   lg: { heading: "text-title text-balance" },
 };
 

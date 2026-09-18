@@ -224,7 +224,9 @@ export function ContactForm({
               />
             </svg>
           </span>
-          <h3 className="font-heading text-lg font-medium">Message sent</h3>
+          <h3 className="font-heading text-subsection font-medium">
+            Message sent
+          </h3>
           <p className="text-sm text-pretty text-muted-foreground">
             Thanks for reaching out. {REPLY_LINE}
           </p>

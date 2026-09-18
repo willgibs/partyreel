@@ -348,7 +348,9 @@ export function ReelReveal({
             <p className="text-[9px] font-medium tracking-[0.24em] text-white/70 uppercase">
               The reel
             </p>
-            <p className="font-heading mt-1 text-xl leading-tight text-white">
+            {/* The title card names the event: the `page` step, like every
+                other event title (the guest overlay's card matches it). */}
+            <p className="mt-1 font-heading text-page text-white">
               {eventName}
             </p>
           </div>
@@ -380,7 +382,7 @@ export function ReelReveal({
               type="button"
               onClick={onShare}
               disabled={sharing}
-              className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-action)] bg-reel text-sm font-medium text-white outline-none transition-transform duration-150 ease-emphasis active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-zinc-900 disabled:opacity-70 motion-reduce:active:scale-100"
+              className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-action)] bg-reel text-sm font-medium text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100"
             >
               <Share2 className="size-4" />
               {sharing ? "Sharing…" : "Share with guests"}
@@ -388,7 +390,7 @@ export function ReelReveal({
             <button
               type="button"
               onClick={onDismiss}
-              className="h-10 shrink-0 rounded-[var(--radius-action)] border border-zinc-200 px-3.5 text-sm font-medium text-zinc-600 outline-none transition-transform duration-150 ease-emphasis active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-zinc-900 motion-reduce:active:scale-100"
+              className="h-10 shrink-0 rounded-[var(--radius-action)] border border-zinc-200 px-3.5 text-sm font-medium text-zinc-600 transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 active:scale-[0.98] motion-reduce:active:scale-100"
             >
               Not yet
             </button>

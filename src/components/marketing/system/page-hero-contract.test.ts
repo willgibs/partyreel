@@ -48,11 +48,24 @@ describe("the page hero lockup", () => {
   });
 
   it("trims the display step's TOP only, never its bottom", () => {
-    // The box overstates the ink above the cap (leading-[0.85] + py) and
-    // UNDERSTATES it below (the descender hangs past the box). Trimming both
-    // ends is the intuitive move and it tightens the one end already tight.
-    expect(code).toContain("-mt-[0.12em]");
-    expect(code).not.toMatch(/-mb-\[/);
+    // The box overstates the ink above the cap (the step's tight leading + py)
+    // and UNDERSTATES it below (the descender hangs past the box). Trimming
+    // both ends is the intuitive move and it tightens the one end already tight.
+    expect(code).toMatch(/\bmt-\[calc\(/);
+    expect(code).not.toMatch(/-mb-\[|\bmb-\[calc/);
+  });
+
+  it("trims by the leading it is cancelling, with the sign that trims MORE at a phone", () => {
+    // Will's `display-trim=clamped` (2026-09-18). The overhang is minus the
+    // half-leading, which follows the step's own clamped line height, plus a
+    // constant in em; the constant is fitted so 1440 keeps its -0.12em. The
+    // board's tile had the half-leading's sign backwards, `(1lh - 1em) / 2`,
+    // which trims LESS at a phone where the leading is looser: the exact
+    // opposite of the words it was picked on, and the easiest regression to
+    // type. A flat em value is the other one: right at one width only.
+    expect(code).toContain("mt-[calc((1em-1lh)/2-0.19em)]");
+    expect(code).not.toContain("(1lh-1em)");
+    expect(code).not.toMatch(/-mt-\[[\d.]+em\]/);
   });
 
   it("keeps the display step's descender padding", () => {

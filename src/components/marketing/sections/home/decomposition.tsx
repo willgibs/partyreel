@@ -287,14 +287,19 @@ function DecompositionStage({ onReplay }: { onReplay: () => void }) {
           be nice to make that the first line, then stacked center under,
           'Created for you.'" So this is a centred COLUMN, not the baseline row
           the three facts used to share: both counts ride the first line and the
-          closing fact sits under them. */}
+          closing fact sits under them.
+
+          The pair is the band's SUB-HEAD (the `subhead` step, 2026-09-18): it
+          captions the stage above and sits a clear step under the section h2
+          that follows it at both ends, where the stock 24/26 it wore tied that
+          h2 at a phone. */}
       <Container className="mt-8">
         <div className="flex flex-col items-center gap-1 text-center">
           {FACTS.map((parts, i) => (
             <p
               key={DECOMPOSITION_FACTS[i]}
               data-mkt-reveal
-              className="font-heading text-2xl leading-tight text-balance text-foreground sm:text-[26px]"
+              className="font-heading text-subhead text-balance text-foreground"
               style={
                 {
                   "--i": FACT_REVEAL_SLOT[i] ?? i,

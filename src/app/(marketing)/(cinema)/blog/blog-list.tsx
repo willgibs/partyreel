@@ -197,7 +197,7 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
               filter the way the featured card does, and it keeps the document outline stable in
               every view. The article title below is an h2 at the article type ramp. */}
           <div className="flex items-baseline justify-between gap-4">
-            <h1 className="font-heading text-lg sm:text-xl">Blog</h1>
+            <h1 className="font-heading text-subsection">Blog</h1>
             <a
               href="/blog/feed.xml"
               className="group inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground"
@@ -261,7 +261,7 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
                     shares the row and an 80-char line can wrap once. */}
                 <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-3">
                   <div className="min-w-0">
-                    <h2 className="font-heading text-xl sm:text-2xl">
+                    <h2 className="font-heading text-subhead">
                       {activeTag ? activeTag.label : "The library"}
                     </h2>
                     <p

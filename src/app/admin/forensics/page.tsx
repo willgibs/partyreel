@@ -58,7 +58,7 @@ export default async function ForensicsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Fingerprint className="size-5 text-foreground" />
-            <CardTitle className="text-base">Capture coverage (24h)</CardTitle>
+            <CardTitle>Capture coverage (24h)</CardTitle>
             {captureGap > 0 ? (
               <Badge variant="destructive">
                 {captureGap} uploads missing a record
@@ -106,9 +106,7 @@ export default async function ForensicsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <ShieldAlert className="size-5 text-foreground" />
-            <CardTitle className="text-base">
-              Set a hold and preserve evidence
-            </CardTitle>
+            <CardTitle>Set a hold and preserve evidence</CardTitle>
           </div>
           <CardDescription>
             Copies the original into the segregated preservation store and
@@ -123,7 +121,7 @@ export default async function ForensicsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Active legal holds</CardTitle>
+          <CardTitle>Active legal holds</CardTitle>
           <CardDescription>
             Held items are never hard-deleted. Releasing a hold puts the item
             back on its normal purge clock; preserved copies stay until deleted
@@ -202,7 +200,7 @@ export default async function ForensicsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Audit log</CardTitle>
+          <CardTitle>Audit log</CardTitle>
           <CardDescription>
             Every preserve, export, and release, including failures. This log
             outlives the media it concerns.
