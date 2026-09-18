@@ -8,6 +8,27 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-18 · the board keeps growing while he reviews: Glass round one on the app's media chrome, the loose ends as decisions, the body ladder ruled in
+
+**Became:** two lanes cut the same evening, `glass` (round one: the app's chrome over photographs first, dark
+and light drawn and asked separately) and `loose-ends` (six ROADMAP decisions drawn on their real surfaces);
+the body and label ladder ruled onto the type system as one question-first board before any sweep, cut the
+same evening as `body-type` into the fourth seat (Will: "we may as well launch the body ladder board if it's
+ready to be answered"); the marketing site at a phone left in the ROADMAP.
+
+Verbatim, on pacing: "I can complete reviews faster than you & your agents can work (not a bad thing -
+you're concepting & building multiple ideas, I'm simply selecting & commenting), so it makes the most sense
+to continue building our board as I review. However, we dug ourselves into a hole in previous lab cycles
+where explorations got too deep without feedback - the goal with our new multi-step question lab moving
+forward is to be able to pace those over as many rounds as needed, and handle questions regarding
+explorations as targeted or broad as relevant/helpful."
+
+His picks, asked as options: launch Glass and the loose ends now; Glass draws the app's media chrome first
+(the lightbox's pills, the masonry's like and unsave buttons, the reel overlay: glass over real
+photographs) with marketing in round two; glass is drawn on both grounds and asked separately, never a
+package; and "everything should be addressed in our design system type ladder" reaches body and label
+sizes, one board first.
+
 ## 2026-09-18 · the calm was the wrong instruction; the album hero gets a fourth round at the home hero's pace, the field becomes the Privacy hero's spirals, the river goes into a card and onto the empty album, and galleries run wide with more columns
 
 **Became:** `docs/reviews/album-hero.json` round 3 (`composition=none`, `album-width=w880`, `headline=lg`,

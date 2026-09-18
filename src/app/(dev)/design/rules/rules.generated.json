@@ -336,6 +336,84 @@
       ]
     },
     {
+      "id": "gallery-empty-state",
+      "file": "src/components/guest/gallery-empty-state.tsx",
+      "names": [
+        "GUEST_GHOST_FRAMES",
+        "GalleryEmptyState"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "hides every photograph from assistive tech",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 82
+        },
+        {
+          "title": "is not a door out of the host's album: no link and no code in it",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 97
+        },
+        {
+          "title": "leaves nothing in the decoration for a keyboard to land on",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "shows the CTA only to a viewer who can upload",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 118
+        },
+        {
+          "title": "takes its photographs from the guest pack, one card each",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "runs no frame loop until it is on screen",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "stands still for a reader who asked for less motion, even on screen",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 147
+        },
+        {
+          "title": "paints the settled flow in the server's own HTML",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 159
+        }
+      ]
+    },
+    {
       "id": "apply",
       "file": "src/components/lab/apply.tsx",
       "names": [
@@ -4406,6 +4484,247 @@
       ],
       "indexed": true,
       "contracts": []
+    },
+    {
+      "id": "river-engine",
+      "file": "src/components/shared/river/river-engine.ts",
+      "names": [
+        "REVEAL_MS",
+        "RIVER_FADES"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "wraps a card before its flight is over, so the stream never gaps",
+          "suite": [
+            "the clock"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 56
+        },
+        {
+          "title": "keeps the same pace whatever the pool size: fewer photographs, a sparser flow",
+          "suite": [
+            "the clock"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 63
+        },
+        {
+          "title": "spreads the pool evenly around the cycle at rest",
+          "suite": [
+            "the clock"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 73
+        },
+        {
+          "title": "takes every card out of the box before it wraps (%s)",
+          "suite": [
+            "the recycle"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 89
+        },
+        {
+          "title": "cuts a card exactly once, never twice (%s)",
+          "suite": [
+            "the recycle"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 98
+        },
+        {
+          "title": "cuts on the card's TOP EDGE and never its centre",
+          "suite": [
+            "the recycle"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 115
+        },
+        {
+          "title": "dissolves the stream out of the box before the cut, at both ends",
+          "suite": [
+            "the recycle"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 130
+        },
+        {
+          "title": "is never rasterized above 1:1, and is full size well before it lands",
+          "suite": [
+            "one card's composition"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 142
+        },
+        {
+          "title": "leaves at an angle and lands square",
+          "suite": [
+            "one card's composition"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 154
+        },
+        {
+          "title": "opens the fan out of nothing, and never wider than the box",
+          "suite": [
+            "one card's composition"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 170
+        },
+        {
+          "title": "fades a card up rather than switching it on",
+          "suite": [
+            "one card's composition"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 187
+        },
+        {
+          "title": "IS the running flow with the pour finished and the clock at zero",
+          "suite": [
+            "the rest state"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 199
+        },
+        {
+          "title": "is the SAME string every time, so the server and the browser agree",
+          "suite": [
+            "the rest state"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 217
+        },
+        {
+          "title": "starts the pour from one point, with the reveal at zero",
+          "suite": [
+            "the rest state"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 231
+        },
+        {
+          "title": "is described entirely in fractions, so one geometry serves every width",
+          "suite": [
+            "the box"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 244
+        },
+        {
+          "title": "puts a card's centre on the origin, in both directions",
+          "suite": [
+            "the box"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 257
+        },
+        {
+          "title": "gives every photograph exactly one card",
+          "suite": [
+            "the box"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 279
+        },
+        {
+          "title": "spreads consecutive launches apart rather than clustering them",
+          "suite": [
+            "the box"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 286
+        },
+        {
+          "title": "runs the whole fall and is quicker at the bottom than at the top",
+          "suite": [
+            "gravity"
+          ],
+          "file": "src/components/shared/river/river-engine.test.ts",
+          "line": 302
+        }
+      ]
+    },
+    {
+      "id": "river",
+      "file": "src/components/shared/river/river.tsx",
+      "names": [
+        "River"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "hides every photograph from assistive tech",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 82
+        },
+        {
+          "title": "is not a door out of the host's album: no link and no code in it",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 97
+        },
+        {
+          "title": "leaves nothing in the decoration for a keyboard to land on",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "shows the CTA only to a viewer who can upload",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 118
+        },
+        {
+          "title": "takes its photographs from the guest pack, one card each",
+          "suite": [
+            "the empty album is decoration plus a promise, and nothing else"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "runs no frame loop until it is on screen",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "stands still for a reader who asked for less motion, even on screen",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 147
+        },
+        {
+          "title": "paints the settled flow in the server's own HTML",
+          "suite": [
+            "the flow costs nothing when nobody is looking"
+          ],
+          "file": "src/components/guest/gallery-empty-state.test.tsx",
+          "line": 159
+        }
+      ]
     },
     {
       "id": "route-error",

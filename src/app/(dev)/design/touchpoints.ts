@@ -49,6 +49,9 @@ export type RulingId =
   | "album-hero"
   | "river-visual"
   | "voice"
+  | "privacy-hero"
+  | "album-page"
+  | "river-card"
   | "gallery-width"
   | "pricing-plan-cards"
   | "pricing-calculator"
@@ -72,6 +75,9 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "voice"
+  | "privacy-hero"
+  | "album-page"
+  | "river-card"
   | "gallery-width"
   | "album-hero"
   | "river-visual";
@@ -605,6 +611,64 @@ export const RULINGS: Ruling[] = [
         "400, the card",
         "240, the thumbnail",
         "The placements",
+      ],
+    },
+  },
+  {
+    id: "privacy-hero",
+    title: "The privacy page's hero",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-18: the album hero's round-three field becomes the Privacy & trust hero, two spirals, faster, closer, with a decaying trail)",
+    shipped: null,
+    why: "The field recut as two spirals behind the privacy page's words, graded against the home hero's pace: four decisions, each drawn at 1440 and 375.",
+    lives: [
+      "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
+      "src/components/marketing/system/page-hero.tsx",
+    ],
+    board: {
+      note: "Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375",
+      variants: ["The pace", "The gap", "The trail", "At a phone"],
+      tracks: ["heroes"],
+    },
+  },
+  {
+    id: "album-page",
+    title: "The album page's hero, round four",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-18: a round four at the home hero's pace, a subtle motion in the empty space around the words, the live album under them, a new light)",
+    shipped: null,
+    why: "The album page's top as four decisions: the album under the words, a subtle motion around them at the home hero's pace, the album's light and a second light.",
+    lives: [
+      "src/app/(marketing)/(cinema)/features/album/page.tsx",
+      "src/components/marketing/sections/features/album/arrivals-hero.tsx",
+    ],
+    board: {
+      note: "Four decisions, no page: the live album or today's filling demo at 896 with its foot faded, three kinds of subtle motion around the words at the home hero's pace, a pool, no light or a halo for the album, and where the page's second light goes",
+      variants: ["The album", "The motion", "The album's light", "A second light"],
+      tracks: ["heroes"],
+    },
+  },
+  {
+    id: "river-card",
+    title: "The river in the QR door",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-18: the river goes into the card, the code in it with no label, as an Easter egg, run through its own exploration)",
+    shipped: null,
+    why: "The river in the real QR feature door, in both of its shapes: where the code sits, where the photographs end, what the code opens and what the short door does.",
+    lives: [
+      "src/components/marketing/sections/features/shared/feature-door.tsx",
+      "src/components/marketing/sections/features/shared/related-features.tsx",
+    ],
+    board: {
+      note: "Four decisions, no page, every option drawn in the real FeatureDoor at its true size in both of its shapes at 1440 and at 375: the code's height, where the photographs end, the link the code encodes (which sets its size), and the short door",
+      variants: [
+        "Where the code sits",
+        "Where the photographs end",
+        "What the code opens",
+        "The short door",
       ],
     },
   },

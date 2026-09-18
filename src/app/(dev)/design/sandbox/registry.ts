@@ -1,7 +1,10 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { ALBUM_HERO } from "./album-hero/spec";
+import { ALBUM_PAGE } from "./album-page/spec";
 import { GALLERY_WIDTH } from "./gallery-width/spec";
+import { PRIVACY_HERO } from "./privacy-hero/spec";
+import { RIVER_CARD } from "./river-card/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
 import { VOICE } from "./voice/spec";
 
@@ -24,6 +27,9 @@ import { VOICE } from "./voice/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   VOICE,
+  PRIVACY_HERO,
+  ALBUM_PAGE,
+  RIVER_CARD,
   GALLERY_WIDTH,
   RIVER_VISUAL,
   ALBUM_HERO,

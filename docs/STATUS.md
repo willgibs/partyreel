@@ -31,10 +31,14 @@ album hero's round three went "too boring" that way).
 | `ladders-wiring` | the type ladder's law as the ORDER (`prose` 24 at a phone, a tenth step `subhead`, every heading on a step, the clamped trim) and family C's corners in quarters (8 / 12 / 4, the gap pinned, a `cta` Button); `type-phone` and `rounding` retired | integrated: phase 1 at `5a5c6eb4`, phase 2 at `d2db2629`; bible 5 and 8 ruled |
 | the lab's step | the preview is the page (every option once at true size, flipped or side by side, a sticky head naming it) and the answer is a dock; a transcribed `?` leaves the walk; `lab:demo` fails CLIPPED, UNLABELLED, NO DOCK | landed at `d37be90e`, measured on ten reopened steps at 1280, 1512 and 375 |
 | the glow boards | `glow-doctrine` and `glow-moments`, records with nothing open | retired with the `[data-lit]` leak; the floors fixed; `lab:smoke` passes whole |
-| `heroes` | `privacy-hero` (the field as two spirals, faster, a trail) and `album-page` (round four at the home hero's pace, subtle, the live album beneath at 896 with its bottom faded, a pool of light) | both boards committed; the agent was killed by a usage limit before its gate (resume: docs/tracks/orchestrator.md In flight) |
-| `river-card` | the river in the real QR door at 4:5 and 3:2, no label, the code unlinked: where it sits, what it opens | board committed, 2 edits uncommitted; the agent was killed before its gate |
+| `heroes` | `privacy-hero` (the field as two spirals, faster, a trail) and `album-page` (round four at the home hero's pace, subtle, the live album beneath at 896 with its bottom faded, a pool of light) | integrated at `6b5ea1bf` (resumed on Sonnet after the kill): eight decisions, every option a real Frame at 1440 and 375; on the desk |
+| `river-card` | the river in the real QR door at 4:5 and 3:2, no label, the code unlinked: where it sits, where the photographs end, what it opens, the short door | integrated at `3ed62f0c` (resumed on Sonnet): four decisions, every code at the 3px floor; on the desk |
 | `gallery-width` | how wide galleries run on laptops and desktops: small tiles, more columns, never a wide two-column masonry | integrated: four decisions measured at 1280, 1512 and 1920 (tile, width, where the words sit, the host); on the desk |
-| `ghost-wiring` | river-visual's `ghost` on the guest album's empty state, for Will to judge in the app | begun, nothing committed; the agent was killed |
+| `ghost-wiring` | river-visual's `ghost` on the guest album's empty state, for Will to judge in the app | integrated at `31c94253` (resumed on Opus): the river's production home `src/components/shared/river/`, two contracts, a Library entry; the ghost's numbers (grayscale 0.85 at 40 percent, the board's) are his to overrule |
+| `voice` | round one of the voice derived from won lines: six to eight real lines, three or four close candidates each, bible 20's question first | building (Opus, :3135; cut `13dd8ffd`) |
+| `glass` | round one of Glass on the app's chrome over photographs: the recipe, the lightbox, the masonry's buttons, the reel overlay, the host grid, the light-ground answers as their own steps | building (Opus, :3132; cut this evening) |
+| `loose-ends` | six ROADMAP decisions drawn on their real surfaces: the admin chart cast, one FAQ look, the hero at tablet widths, the album's three ambient pieces | building (Sonnet, :3133; cut this evening) |
+| `body-type` | the body and label ladder as decisions before any sweep: a guest's reading copy, the app's body, marketing reading copy, the caption floor, the label pair, buttons, line height | building (Opus, :3134; cut this evening; the fourth seat) |
 | `album-hero` (round three) | answered in full (`none`, `w880`, `lg`, `settled`, `page`) | waits on `album-page`, then its wiring |
 | `river-visual` (round two) | answered (`card`, `in`, `ghost`; `proportion` withdrawn) | waits on `river-card`, then its wiring |
 
@@ -58,7 +62,7 @@ authoring shape, and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
   and the prune runs after every integration.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and
   fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 2,140 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI
+- **Tests:** about 2,190 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI
   runs on `main` and `launch-prep` code pushes only; an `lp/*` push only on `[ci]`). `lab:smoke` passes
   whole again, so a board over its reading budget is a failure, not a known exception.
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup GitHub Action (about
@@ -86,9 +90,11 @@ prune crons and the shared `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-The desk derives the steps (`/design/lab?key=`): nothing is open until the four new boards integrate, then
-one sitting in the rebuilt step (1-9 show and pick, x flips A and B, g lays them side by side, n goes to
-the note, ? marks a question unclear). Two calls were made for him to overrule: type drawn inside a picture
+The desk derives the steps (`/design/lab?key=`): the four new boards are integrated and his sitting is open
+in the rebuilt step (1-9 show and pick, x flips A and B, g lays them side by side, n goes to the note, ?
+marks a question unclear), plus the ghost on a disposable event on the alias (its link in chat). His to
+overrule from the wiring lane: the ghost's fade (grayscale 0.85 at 40 percent, the board's values, rather
+than the old grid's 25 percent at full grayscale). Two calls were made for him to overrule: type drawn inside a picture
 counts as depicted (the help emblem, the press kit's plate, /features/qr's sign), and the album sits at 896,
 the scale's step, rather than 880. The assets still open: the grain tile and the worst-case overlap pair
 (rows 15 and 16) and the v1 icon (row 19). The bible-20 question becomes the new `voice` board's first ask.

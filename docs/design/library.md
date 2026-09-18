@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 253 contracts on 42 components · 4 standing boards.**
+**22 laws · 18 policies · 280 contracts on 45 components · 7 standing boards.**
 
 ## What binds you
 
@@ -333,6 +333,7 @@ Contracted but outside the library's directories:
 - `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (14 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (14 guards)
+- `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/lab/apply.tsx` (3 guards)
 - `src/components/lab/before-after.tsx` (12 guards)
 - `src/components/lab/board-page.tsx` (14 guards)
@@ -354,6 +355,8 @@ Contracted but outside the library's directories:
 - `src/components/reel/publish-light.tsx` (26 guards)
 - `src/components/reel/reel-share-card.tsx` (26 guards)
 - `src/components/reel/reel-studio.tsx` (26 guards)
+- `src/components/shared/river/river-engine.ts` (19 guards)
+- `src/components/shared/river/river.tsx` (8 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 
@@ -365,6 +368,9 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `album-hero` | marketing | Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit |
 | `river-visual` | marketing | The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost |
+| `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
+| `album-page` | marketing | Four decisions, no page: the live album or today's filling demo at 896 with its foot faded, three kinds of subtle motion around the words at the home hero's pace, a pool, no light or a halo for the album, and where the page's second light goes |
+| `river-card` | marketing | Four decisions, no page, every option drawn in the real FeatureDoor at its true size in both of its shapes at 1440 and at 375: the code's height, where the photographs end, the link the code encodes (which sets its size), and the short door |
 | `gallery-width` | shared | Four decisions, no page: the tile size (about 180, 240 or 300 px, the columns following the window), how far the album runs (the full window or the app's 1280 column), where the words sit above it, and whether the host's galleries follow; every option the real page at 1280, 1512 and 1920 with its columns measured in the frame |
 | `voice` | shared | Eight decisions, no page: bible 20's open question drawn on the guest sheet's own line, the home hero's sentence, a feature page's headline, the Pro card's line beside the Free card, a host's empty dashboard, the email ask, an empty album and an upload's toast; every candidate set in the shipped surface at 1440 or in a 375 column |
 

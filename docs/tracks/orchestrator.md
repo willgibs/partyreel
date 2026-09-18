@@ -97,19 +97,20 @@ retired `type-phone`; both agents were told so by message.
 
 | track | worktree (`../partyreel-wt/<track>`) | state at the kill | resumed as | to finish |
 | --- | --- | --- | --- | --- |
-| `heroes` | head `6b11c162`, pushed, clean, two commits behind launch-prep | both boards committed (`20c30f86` privacy-hero, `6b11c162` album-page), synced at `0ed6315f` | Sonnet, :3133 | sync, the gate on the synced tree, the captures, Handoff and Record, then integrate |
-| `river-card` | head `6815225d`, pushed, 2 UNCOMMITTED edits (the preview gutter into `board.css`; `useLadderAt(1440)` in `board.tsx`, so the 1440 doors wear 1440's type in any window) | the board committed at `282f784f`, synced | Sonnet, :3134 | commit the two edits with their why, sync, the gate, the scan floor measured, Handoff, integrate |
-| `ghost-wiring` | head `8fa6fd83` (the manifest only), an UNTRACKED `src/components/shared/river/` begun (701 lines) | nothing committed | Opus, :3132 | the whole lane per its manifest (the engine trimmed, the empty state, a contract, a Library entry) |
+| `heroes` | integrated at `6b5ea1bf` (handed off `766f5a66`) | done | Sonnet, :3133 | nothing |
+| `river-card` | integrated at `3ed62f0c` (handed off `64c25a02`; the RULINGS rows' union needed album-page's closing lines put back by hand) | done | Sonnet, :3134 | nothing |
+| `ghost-wiring` | integrated at `31c94253` (handed off `79169b2c`; its two mid-lane claims accepted) | done | Opus, :3132 | nothing |
 | `voice` | cut fresh at `13dd8ffd` (round one of the voice derived from won lines; Will asked for it by name 2026-09-17, ahead of Glass) | nothing yet | Opus, :3135 | the whole board per its manifest: six to eight real lines, bible 20's question first, then integrate |
 
-`gallery-width` integrated at `3a519e0d`; `origin/lp/gallery-width` goes at the next prune. The alias serves
-`3a519e0d` (READY); one `[preview]` follows the third merge, since Will sits after all four boards land.
+`gallery-width` integrated at `3a519e0d`. The three resumed lanes integrated the same afternoon (`6b5ea1bf`,
+`31c94253`, `3ed62f0c`), the full gate green on the final tree (2,189 tests, 254 pages), and the round's
+`[preview]` is the record commit on top of them; the four worktrees and branches are pruned at the push.
 
 ## Next, in order (batch nine's plan T4 to T6; the plan's words live in rulings.md 2026-09-18 and ROADMAP)
 
-1. **Integrate** `heroes`, `river-card`, `ghost-wiring` as each hands off ("keep both" on the four board
-   lists, regenerate, the full gate, `[preview]`, confirm the alias, prune). Will's next sitting is the four
-   new boards (`privacy-hero`, `album-page`, `river-card`, `gallery-width`) in the rebuilt step.
+1. **Done 2026-09-18:** `heroes`, `river-card` and `ghost-wiring` integrated. Will's next sitting is the four
+   new boards (`privacy-hero`, `album-page`, `river-card`, `gallery-width`) in the rebuilt step, plus the
+   ghost on a disposable event on the alias (left standing until he has judged it, then deleted).
 2. **Wiring lanes from his answers** (four agents at most, each a manifest from the template):
    - `album-wiring`: `ScreenLamp` fixed AT ITS SOURCE into the pool design-system.md prescribes (it also
      lights the guest and sharing pages: flag it to Will); the album page's round-four motion, the visual
@@ -129,9 +130,12 @@ retired `type-phone`; both agents were told so by message.
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
-- **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]`. The alias
-  serves a commit when its HTML contains `sentry-release=<sha7>` (poll with curl; a build takes about four
-  minutes). After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
+- **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]` (a build takes
+  about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
+  the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains `"build":"<sha7>"` (the page
+  prints "Serving build"). The key must ride the QUERY on a plain request; the `x-design-key` header alone
+  answers 404, and no `sentry-release` marker exists in the HTML. After every integration:
+  `node scripts/prune-vercel-deployments.mjs --apply`.
 - **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it); `pnpm lab:demo
   --key <key>` and `?key=` on `/design/lab` take it.
 - **The review.** Will pastes a batch in chat; transcribe it with `pnpm lab:review` on STDIN (`--dry`
@@ -147,11 +151,24 @@ retired `type-phone`; both agents were told so by message.
   MCP re-connected there: Supabase, Vercel, Resend, Mobbin, Context7, Cloudflare, Sentry and (since the same afternoon)
   Stripe answer (TEST, `acct_1TcStrPtjqmVkBwk`, verified through `list_available_accounts_or_orgs`); the shadcn
   MCP named in CLAUDE.md is still not connected on it, and is needed only for a new shadcn component.
+- **A merge deletes the manifest with `git rm -f`.** The lane's handoff commit modifies its manifest, so
+  the merge stages it as changed and a plain `git rm` refuses; the refusal broke a chained script once
+  (2026-09-18) and the next block committed the wrong merge under the wrong message. So: one script per merge,
+  `set -e` with a trap, every step on its own exit code, never a `&&` chain that a `;` can skip past.
+- **The RULINGS rows' keep-both.** Two lanes appending rows after river-visual's conflict with git's hunk
+  ending INSIDE the first lane's last row (the two closing lines are common to both sides), so a plain
+  union of ours and theirs needs that row's `},\n  },\n  {` put back by hand before the next row; typecheck
+  before the commit catches it.
 - **The gate** before any `[preview]` push, each step on its own exit code: `pnpm design:rules`, `node
   "src/app/(dev)/design/gallery/collect-specimens.mjs"`, typecheck, lint (8 known warnings), test, build,
   `pnpm lab:smoke` (0 failing), `pnpm lab:demo --key <key>` (0 failing).
 
 ## Waiting on Will
+
+**The disposable event for the ghost** (created 2026-09-18 on the alias by the Orchestrator as `willg97@gmail.com`,
+named "Ghost check (disposable)", guest link `/e/0333eef9d7994951b86e5b2a71da49f9`): it stands until Will has
+judged the empty state in the app, then it is DELETED (never the public "Partyreel Demo"). The alias serves
+`797a7361` (READY) with the four boards and the ghost.
 
 The desk derives it (`/design/lab?key=`: every open ask and every unruled item of every board, from
 the specs minus the ledgers in `docs/reviews/`). Assets: [`../ASSETS.md`](../ASSETS.md). Next from
