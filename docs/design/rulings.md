@@ -8,6 +8,38 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-18 · the privacy hero: none; the image trail is the reference; crisp media motion is the foundation of the visual identity
+
+**Became:** `privacy-hero` round one answered none, and two lanes were cut the same night: `image-trail` (our
+own cursor-tracking image trail for the marketing site, written from scratch against the Codrops "Image
+Trail Effects" demo one, plus `privacy-hero` round two on the same engine: tighter, faster, the trailing
+photographs decaying) and `cursor-backdrop` (demo six: full-bleed photograph sections that switch with the
+cursor, for the marketing site's UI-forward chapters in place of the aurora). "Decaying trail", his ask
+for round one, meant the trailing IMAGES decaying, never a separate trail drawn behind the path. The
+resource is https://tympanus.net/Development/ImageTrailEffects/ (github.com/codrops/ImageTrailEffects);
+its photographs are never ours, and every board draws the site's own.
+
+Verbatim, his first note of the sitting: "I just started my review with the new privacy and trust hero.
+None feel right. I think the density needs to increase as well as the speed. Also, when I said "decaying
+trail," I meant of the trailing images, not an actual separate trail effect. I went to Google to find a
+better image trail reference to send you, but I actually found a resource I love itself."
+
+Verbatim, the three asks: "1. Let's rework these explorations to be tighter with images effectively
+overlapping, a bit faster pace and a polished image trail behind, like the attached screenshots. 2. Let's
+create our own cursor tracking version of this effect in the lab as well, to hopefully be used on the
+marketing site somewhere, else bank for later. If the hero explorations don't pan out, maybe it can serve
+as one instead. 3. I specifically like demo 1 of 6 for our image trail. However, demo 6 of 6
+(https://tympanus.net/Development/ImageTrailEffects/index6.html) would be amazing for the marketing site as
+well. Rather than leaning on aurora treatments for more UI-forward sections (eg. icon feature cards with no
+media visual), we could have full image background sections that switch the image based on cursor
+position. This would feel help break up the strictly alternating dark/light chapters and make the page
+feel very alive, especially once we begin our higgsfield generations for custom media. This new effect
+would be its own exploration as well."
+
+Verbatim, the identity: "I think this crisp media motion design is going to be the foundation of our
+visual identity. Home hero is beautiful, I'm loving the river, and the new image trail and demo 6 will be
+polished additions."
+
 ## 2026-09-18 · the admin portal is rethought from the ground up as an on-brand devtool, split into its own deployment now, one repo, one Orchestrator
 
 **Became:** three lanes cut the same evening: `admin` (the portal's shape as round one of a question-first
