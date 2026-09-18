@@ -82,6 +82,56 @@ export const SIZE: Record<SizeId, Record<Mode, number>> = {
 export const PHONES = ["touch", "walks", "still", "none"] as const;
 export type PhoneId = (typeof PHONES)[number];
 
+/* ── The homes, and the words each one has to stay off ───────────────────── */
+
+export type HomeId = "privacy" | "close" | "notfound" | "bank";
+
+/** Which ground each home stands on, for the board's own words. */
+export const GROUND: Record<HomeId, "cinema" | "paper"> = {
+  privacy: "cinema",
+  close: "cinema",
+  notfound: "paper",
+  bank: "cinema",
+};
+
+/**
+ * ★ EVERY HOME'S LOCKUP, MEASURED ON THE RENDERED BLOCK rather than reasoned
+ * about: the union of the painted lines in each frame, read off the live board
+ * at 1440 and 375 (2026-09-18). It is the box the trail fades inside, so a
+ * photograph never sits on top of a line of type (`shy`, trail-engine.ts).
+ * `bank` has no words, so it has no box and the trail runs whole. Re-measure if
+ * a page's copy changes: copy is open (bible 21).
+ */
+export const LOCKUP: Record<
+  HomeId,
+  Record<Mode, { cx: number; cy: number; hx: number; hy: number }> | null
+> = {
+  privacy: {
+    desktop: { cx: 720, cy: 497, hx: 384, hy: 173 },
+    phone: { cx: 188, cy: 412, hx: 172, hy: 180 },
+  },
+  close: {
+    desktop: { cx: 720, cy: 465, hx: 336, hy: 141 },
+    phone: { cx: 188, cy: 380, hx: 172, hy: 141 },
+  },
+  notfound: {
+    desktop: { cx: 720, cy: 523, hx: 224, hy: 158 },
+    phone: { cx: 188, cy: 438, hx: 164, hy: 194 },
+  },
+  bank: null,
+};
+
+/**
+ * How faint a photograph goes over the words, and how much of it has to be over
+ * them to get there. A fifth is where the type reads cleanly at every size in
+ * the lockup (the eyebrow decides it: small and muted, and the casualty in the
+ * first capture of this board) while the photograph is still visibly there,
+ * which is what makes it read as passing BEHIND the words rather than as being
+ * switched off. A third of a card's area is the coverage that means "this one
+ * is over the headline" rather than "this one is near it".
+ */
+export const SHY = { floor: 0.22, cover: 0.34 } as const;
+
 /* ── One look, assembled ─────────────────────────────────────────────────── */
 
 export type Look = {
@@ -111,8 +161,13 @@ export const SLIDE_MS = 760;
  *  any slower and it is born off the far side of the screen. */
 export const LAG = 0.1;
 
-export function specOf(look: Look, mode: Mode): TrailSpec {
+export function specOf(
+  look: Look,
+  mode: Mode,
+  home: HomeId = "privacy",
+): TrailSpec {
   const size = SIZE[look.size][mode];
+  const words = LOCKUP[home]?.[mode];
   // Density is stated at 1440 and scales with the card, so "half a photograph
   // apart" means the same thing on both screens.
   const scale = size / SIZE[look.size].desktop;
@@ -125,6 +180,7 @@ export function specOf(look: Look, mode: Mode): TrailSpec {
     lag: LAG,
     pool: 8,
     keeper: true,
+    shy: words ? { ...words, ...SHY } : undefined,
   };
   // The ring is derived from the life and the density rather than typed, so a
   // longer decay or a denser trail pays for its own nodes.
@@ -144,8 +200,8 @@ export const stillAt = (look: Look, mode: Mode) =>
   Math.round(lifeMs(specOf(look, mode)) * 2.4);
 
 /** What a look costs, measured on the scripted hand it will be drawn with. */
-export function facts(look: Look, mode: Mode) {
-  const spec = specOf(look, mode);
-  const f = factsOf(spec, [scriptFor(mode)], 14_000);
+export function facts(look: Look, mode: Mode, home: HomeId = "privacy") {
+  const spec = specOf(look, mode, home);
+  const f = factsOf(spec, [scriptFor(mode)], 14_000, CANVAS[mode]);
   return { ...f, life: lifeMs(spec), size: spec.size, density: spec.density };
 }

@@ -58,21 +58,22 @@ export const PRIVACY_HERO = defineExploration({
       options: [
         {
           id: "over",
-          label: "A notch over the home hero",
+          label: "A notch over: one every 500 ms",
           means:
-            "A photograph every 458 ms on each arm, and 14 on screen at the busiest instant. The home hero launches a pair every 1,250 ms and holds 12.",
+            "Per arm, so a pair every 500 ms against the home hero's 1,250. 10 on screen at the busiest instant, where the home hero holds 12.",
         },
         {
           id: "rush",
-          label: "Two notches over",
+          label: "Two notches over: one every 364 ms",
           means:
-            "Every 340 ms, and 18 on screen. Half again as fast as the notch above it, and the busiest this hero gets before the words start to fight it.",
+            "Half again as fast. 14 on screen, more than the home hero holds, and the busiest this hero gets before the words start to fight it.",
         },
       ],
-      recommended: "over",
+      recommended: "rush",
       because:
-        "It is nearly three times round one's tempo, which is the increase you asked for, while still reading as the same site as the home hero: two notches makes the privacy page the fastest screen we have, which is a strange thing for the page about restraint.",
-      overrule: "If it still reads as slow beside the home hero, two notches.",
+        "Your note was that the density and the speed both need to increase, and this is the option where both do: more photographs on screen than the home hero holds, arriving three times as often as round one did.",
+      overrule:
+        "If it reads as busy behind the words on the page about restraint, a notch over.",
     },
     {
       id: "path",
@@ -87,13 +88,13 @@ export const PRIVACY_HERO = defineExploration({
           id: "spiral",
           label: "Two arms, winding outward",
           means:
-            "Each point leaves the rim of the words and winds out to the edge as it turns, then starts again at the rim. 14 on screen. The figure you liked on round three.",
+            "Each point leaves the rim of the words and winds out to the edge as it turns, then starts again at the rim. 10 on screen. The figure you liked on round three.",
         },
         {
           id: "wander",
           label: "Two drifts around the words",
           means:
-            "Each point drifts near the words on a slow walk that never repeats. 15 on screen, and no figure to read: photographs simply keep arriving nearby.",
+            "Each point drifts near the words on a slow walk that never repeats. 13 on screen, and no figure to read: photographs simply keep arriving nearby.",
         },
       ],
       recommended: "spiral",
@@ -150,19 +151,19 @@ export const PRIVACY_HERO = defineExploration({
           id: "quick",
           label: "1.2 seconds",
           means:
-            "A short arc at the head of each arm and nothing behind it. 12 on screen at the busiest instant.",
+            "A short arc at the head of each arm and nothing behind it. 7 on screen at the busiest instant.",
         },
         {
           id: "linger",
           label: "2 seconds",
           means:
-            "The arm reads its whole length, bright at the head and nearly gone at the tail. 14 on screen.",
+            "The arm reads its whole length, bright at the head and nearly gone at the tail. 10 on screen.",
         },
         {
           id: "long",
           label: "3 seconds, keeping a third of its size",
           means:
-            "The tail is still legible where it started, so the two arms almost meet. 18 on screen, the busiest option here.",
+            "The tail is still legible where it started, so the two arms almost meet. 14 on screen, the busiest option here.",
         },
       ],
       recommended: "linger",
@@ -184,7 +185,7 @@ export const PRIVACY_HERO = defineExploration({
           id: "same",
           label: "The same figure, sized to the column",
           means:
-            "One object on both screens. 14 on screen, but the arms spend part of every sweep behind the words, where nothing can be seen.",
+            "One object on both screens. 10 at the busiest, but an arm pointing into the words empties both strips, and at the calmer pace the column goes bare.",
         },
         {
           id: "strips",

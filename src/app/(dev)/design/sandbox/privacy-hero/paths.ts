@@ -171,9 +171,19 @@ type Geo = {
  */
 export const GRAZE = 0.5;
 
+/**
+ * ★ `rMax` IS A SCREEN, NOT A NUMBER, and the first cut of it emptied the hero.
+ * An arm that climbs to 1,150 px spends half of every sweep past the edge of a
+ * 1440 canvas, so when it restarts at the rim the whole of its lit trail is off
+ * screen and the hero is bare for two seconds at a time (caught in the capture:
+ * one photograph, in a corner). Held inside the frame, the photographs that are
+ * dying are the ones leaving the edge, which is what a comet looks like. The
+ * `sweep` share is raised to match, so the arm still turns far enough to read as
+ * a spiral over its shorter climb.
+ */
 const GEO: Record<Mode, Geo> = {
-  desktop: { unit: 200, r0: 570, rMax: 1150, grow: 0.62, sweep: 0.86 },
-  phone: { unit: 104, r0: 260, rMax: 560, grow: 1.24, sweep: 0.78 },
+  desktop: { unit: 200, r0: 570, rMax: 860, grow: 0.62, sweep: 0.93 },
+  phone: { unit: 104, r0: 260, rMax: 350, grow: 1.24, sweep: 0.88 },
 };
 
 /**
@@ -222,6 +232,18 @@ export function specOf(s: HeroSpec): TrailSpec {
     // screen when a hand stops; a path never stops, and a held photograph on a
     // hero nobody is touching would simply be a photograph that will not go.
     keeper: false,
+    // The arms are solved to stay off the lockup, so this almost never fires;
+    // it is here because a card's SLIDE starts at the lagged point, which can
+    // be inside the words while the arm itself is not, and because a retune of
+    // `r0` should cost legibility nothing.
+    shy: {
+      cx: centreOf(s.mode).x,
+      cy: CENTRE_Y[s.mode],
+      hx: BLOCK[s.mode].w / 2,
+      hy: BLOCK[s.mode].h / 2,
+      floor: 0.22,
+      cover: 0.34,
+    },
   };
   const speed = sourceSpeed(s);
   return { ...base, pool: poolFor(base, speed * 1.6) };
@@ -314,7 +336,7 @@ export function pathsOf(s: HeroSpec): Path[] {
         // This factor is what lands it on the spiral's own beat with both in
         // play; `paths.test.ts` holds the two within a tenth of each other, so
         // the figure question can never quietly become a second pace question.
-        speed: (speed * 1.02) / (meanR(geo) / 1.3),
+        speed: (speed * 0.78) / (meanR(geo) / 1.3),
         phase,
       });
       return (t: number) => outside(walk(t));
@@ -327,7 +349,14 @@ export function pathsOf(s: HeroSpec): Path[] {
   // arithmetic that makes it true.
   const turn = ((geo.sweep * speed) / meanR(geo)) * (180 / Math.PI);
   const climb = Math.sqrt(1 - geo.sweep * geo.sweep) * speed;
-  return [0, 180].map((phase) =>
+  // Half a sweep, so the two arms never restart at the same instant; the second
+  // arm's start angle is pulled back by exactly what that offset adds to it, so
+  // the pair is still opposite.
+  const half = (((geo.rMax - geo.r0) / climb) * 1000) / 2;
+  return [
+    { phase: 0, t0: 0 },
+    { phase: 180 - (turn * half) / 1000, t0: half },
+  ].map(({ phase, t0 }) =>
     spiralPath({
       centre,
       r0: geo.r0,
@@ -336,6 +365,7 @@ export function pathsOf(s: HeroSpec): Path[] {
       phase,
       speed: climb,
       rMax: geo.rMax,
+      t0,
     }),
   );
 }

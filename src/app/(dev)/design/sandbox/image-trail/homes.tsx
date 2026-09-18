@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { featurePage } from "@/lib/constants/feature-pages";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
+import type { HomeId } from "./looks";
+
 /**
  * THE HOMES: the real places on the site the trail could live, drawn whole so
  * the question "where does this go" is answered on the page rather than on a
@@ -30,16 +32,6 @@ import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
  * swapped underneath it (the dark and light are chosen separately rule, read the
  * way it is meant).
  */
-
-export type HomeId = "privacy" | "close" | "notfound" | "bank";
-
-/** Which ground each home stands on, for the board's own words. */
-export const GROUND: Record<HomeId, "cinema" | "paper"> = {
-  privacy: "cinema",
-  close: "cinema",
-  notfound: "paper",
-  bank: "cinema",
-};
 
 /** A press inside a preview is looking, not leaving. */
 const lookOnly = (e: React.MouseEvent) => {

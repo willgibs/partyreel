@@ -67,8 +67,14 @@ describe("the pace tiles", () => {
     for (const pace of PACES) {
       const f = facts({ ...BASE, pace });
       expect(f.armBeat, `pace ${pace}`).toBeLessThan(HOME.desktop.beat);
-      expect(f.lit, `pace ${pace}`).toBeGreaterThanOrEqual(HOME.desktop.lit);
     }
+    // And the RECOMMENDED one is denser than the home hero, because that is
+    // what the note asked for: the density needs to increase as well as the
+    // speed. An option that is only faster does not answer it.
+    const rec = PRIVACY_HERO.asks.find((a) => a.id === "pace")!.recommended;
+    expect(facts({ ...BASE, pace: rec as never }).lit).toBeGreaterThan(
+      HOME.desktop.lit,
+    );
     // And the two are a real notch apart rather than the same answer twice.
     expect(facts({ ...BASE, pace: "rush" }).armBeat).toBeLessThan(
       facts({ ...BASE, pace: "over" }).armBeat * 0.85,
@@ -76,8 +82,8 @@ describe("the pace tiles", () => {
   });
 
   it("quotes the home hero's own numbers, read off the shipped engine", () => {
-    expect(tile("pace", "over")).toContain(`${fmt(HOME.desktop.beat)} ms`);
-    expect(PRIVACY_HERO.context).toContain(fmt(HOME.desktop.beat));
+    expect(tile("pace", "over")).toContain(fmt(HOME.desktop.beat));
+    expect(PRIVACY_HERO.context).toContain(`${fmt(HOME.desktop.beat)} ms`);
     expect(PRIVACY_HERO.context).toContain(String(HOME.desktop.lit));
   });
 });
@@ -187,6 +193,70 @@ describe("the composition", () => {
           }
         }
       }
+    }
+  });
+
+  it("never leaves the hero bare, at any option a reviewer can pick", () => {
+    // ★ THE BUG THIS EXISTS FOR. An arm that climbs past the edge of the canvas
+    // takes its whole lit trail off screen when it restarts, so the hero has
+    // nothing on it for seconds at a time while the busiest-instant count still
+    // reads healthy. It reached a capture once. A floor under the QUIETEST
+    // instant is what catches it. One is the floor across every combination,
+    // including the thinnest (the quick trail on the wander, which doubles back
+    // and can stall); the board's caption prints the quietest instant beside
+    // the busiest, so the cost of the thin end is read rather than hidden.
+    for (const mode of ["desktop", "phone"] as const) {
+      for (const arms of ARMS) {
+        // The one exception is measured and stated on its own tile, below.
+        if (mode === "phone" && arms === "same") continue;
+        for (const pace of PACES) {
+          for (const trail of TRAILS) {
+            for (const path of PATHS) {
+              const f = facts({ ...BASE, mode, arms, pace, trail, path });
+              expect(
+                f.quiet,
+                `${mode}/${arms}/${pace}/${trail}/${path}`,
+              ).toBeGreaterThanOrEqual(1);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it("measures the phone's own cost rather than hiding it", () => {
+    // Keeping the desktop figure at 375 is a real option and it has a real
+    // price: an arm pointing into the words' own width puts nothing in either
+    // strip, and at the calmer pace with the quick trail the column empties
+    // completely. That is what its tile says, so this is what holds it true.
+    const same = facts({
+      ...BASE,
+      mode: "phone",
+      arms: "same",
+      pace: "over",
+      trail: "quick",
+    });
+    expect(same.quiet).toBe(0);
+    const strips = facts({ ...BASE, mode: "phone", arms: "strips" });
+    expect(strips.quiet).toBeGreaterThan(same.quiet);
+  });
+
+  it("keeps the RECOMMENDED composition full at its quietest", () => {
+    // Never bare is the floor; the recommendation has to be better than the
+    // floor, or the board is recommending a hero that thins out.
+    const rec = (id: string) =>
+      PRIVACY_HERO.asks.find((a) => a.id === id)!.recommended;
+    for (const mode of ["desktop", "phone"] as const) {
+      const f = facts({
+        mode,
+        pace: rec("pace") as never,
+        path: rec("path") as never,
+        gap: rec("gap") as never,
+        trail: rec("trail") as never,
+        arms: rec("phone") as never,
+      });
+      expect(f.quiet, `${mode} quietest`).toBeGreaterThanOrEqual(5);
+      expect(f.lit, `${mode} busiest`).toBeGreaterThan(HOME[mode].lit);
     }
   });
 

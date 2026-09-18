@@ -54,7 +54,7 @@ const look = (s: BoardState, mode: Mode): HeroSpec => ({
  *  shipped home hero's beside them. */
 function captionFor(spec: HeroSpec) {
   const f = facts(spec);
-  return `${f.lit} lit at the busiest instant (the home hero: ${f.home.lit}) · a photograph every ${f.armBeat} ms on each arm (home: a pair every ${f.home.beat}) · ${f.gap} px apart · the point at ${f.speed} px a second · ${(f.life / 1000).toFixed(1)} s each · ${f.nodes} nodes`;
+  return `${f.lit} lit at the busiest instant and ${f.quiet} at the quietest (the home hero: ${f.home.lit}) · a photograph every ${f.armBeat} ms on each arm (home: a pair every ${f.home.beat}) · ${f.gap} px apart · the point at ${f.speed} px a second · ${(f.life / 1000).toFixed(1)} s each · ${f.nodes} nodes`;
 }
 
 function Screens({

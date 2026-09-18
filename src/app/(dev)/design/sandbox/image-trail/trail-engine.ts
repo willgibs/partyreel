@@ -128,6 +128,40 @@ export type TrailSpec = {
    * photograph does not decay. See `advance`.
    */
   keeper: boolean;
+  /**
+   * ★ THE LOCKUP, SO THE TRAIL CAN SEE IT. Left out, nothing changes.
+   *
+   * A cursor trail goes where the reader's hand goes, which on a hero is
+   * straight across the headline. The reference has no type to protect and ours
+   * does: the first capture of this board had a bright reception table sitting
+   * on top of the words PRIVACY AND TRUST, and the eyebrow was gone.
+   *
+   * The house answer to media under type is to MEASURE a clear lane and place
+   * the words outside it (`hero-stream.ts`), and that answer is unavailable
+   * here, because the lane is wherever the cursor is. The other reachable
+   * answer, a scrim over the photographs, is the one thing bible 1 refuses. So
+   * the photograph yields instead: inside the lockup's own box a card fades to
+   * `floor` and comes back over a soft edge, which reads as the trail passing
+   * BEHIND the words rather than as anything being dimmed on top of them, and
+   * costs the composition nothing anywhere else on the screen.
+   */
+  shy?: {
+    /** The lockup's centre, in the same canvas px the source is in. */
+    cx: number;
+    cy: number;
+    /** Half the lockup's ink, per axis. */
+    hx: number;
+    hy: number;
+    /**
+     * How much of a photograph has to lie over the words before it is all the
+     * way down to `floor`, as a share of the photograph's own area. It is the
+     * softness of the edge: at 0.35 a card grazing a corner barely dims and one
+     * a third over the headline is already behind it.
+     */
+    cover: number;
+    /** What a card is worth where it lies over the words. */
+    floor: number;
+  };
 };
 
 /** ms from birth to gone. */
@@ -220,6 +254,40 @@ const FLICK = 7;
 const LAND_FROM = 0.92;
 
 /**
+ * How much of its light a card keeps, given the lockup: 1 anywhere clear of the
+ * words, `floor` where it covers them, and the ramp between is the OVERLAP
+ * itself. Exported so the boards can measure it rather than trust it.
+ *
+ * ★ THE OVERLAP, NOT THE CENTRE, and the first cut of this got it wrong. A
+ * 240 by 320 photograph whose centre sits 255 px above the headline still has
+ * its bottom third over the eyebrow, so a rule written on the centre left
+ * exactly the card that broke the capture at full strength. Measuring what the
+ * card COVERS is both correct and softer: a photograph grazing a corner barely
+ * dims, and one that is a third over the words is already behind them, with no
+ * separate feather to tune.
+ */
+export function shyness(
+  spec: TrailSpec,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): number {
+  const s = spec.shy;
+  if (!s) return 1;
+  const ox =
+    Math.min(x + w / 2, s.cx + s.hx) - Math.max(x - w / 2, s.cx - s.hx);
+  const oy =
+    Math.min(y + h / 2, s.cy + s.hy) - Math.max(y - h / 2, s.cy - s.hy);
+  if (ox <= 0 || oy <= 0) return 1;
+  const covered = clamp01((ox * oy) / (w * h) / s.cover);
+  // Smoothstepped, so a photograph crossing the lockup's edge dims on a curve
+  // rather than on a straight line, which is what keeps it reading as depth.
+  const t = covered * covered * (3 - 2 * covered);
+  return 1 - (1 - s.floor) * t;
+}
+
+/**
  * One card at one moment on the engine's clock, or null when it has gone.
  * The loop, the rest state and every measurement read THIS and nothing else,
  * so a still and a moving frame can never disagree.
@@ -241,7 +309,9 @@ export function frameOf(
   // The decay is a real-time clock of its own, so a card that was held by the
   // keeper decays on exactly the same curve the moment it is released.
   const d = decay <= 0 ? 0 : decay;
-  const opacity = 1 - quadOut(d / spec.fadeMs);
+  const box = boxOf(spec, c.slot);
+  const opacity =
+    (1 - quadOut(d / spec.fadeMs)) * shyness(spec, x, y, box.w, box.h);
   const shrunk = 1 + (spec.endScale - 1) * quintOut(d / spec.shrinkMs);
   const land = LAND_FROM + (1 - LAND_FROM) * p;
 
@@ -450,8 +520,14 @@ export const scriptedPointer =
   (t) => {
     const u = t / 1000;
     return {
-      x: w * (0.5 + 0.36 * Math.sin(u * 0.9)),
-      y: h * (0.5 + 0.26 * Math.sin(u * 1.4 + 0.6)),
+      // ★ IT HAS TO REACH THE EDGES, and the first cut did not. At 375 the
+      // lockup fills nearly the whole column, so a hand that stayed in the
+      // middle drew every photograph behind the words and the capture showed a
+      // phone with no trail on it at all. These amplitudes take the stroke to
+      // within a tenth of each edge, so a still shows both the photographs over
+      // the type and the ones in the strips it leaves clear.
+      x: w * (0.5 + 0.4 * Math.sin(u * 0.9)),
+      y: h * (0.5 + 0.38 * Math.sin(u * 1.4 + 0.6)),
     };
   };
 
@@ -476,12 +552,20 @@ export const spiralPath =
     speed: number;
     /** Past this the arm restarts at the rim, so the figure is a loop. */
     rMax: number;
+    /**
+     * ★ HOW FAR INTO ITS OWN SWEEP THIS ARM STARTS, in ms. Two arms that restart
+     * together leave the hero briefly bare twice a cycle; half a sweep apart,
+     * one is always climbing while the other is arriving. The caller sets the
+     * angle to match, so the two are still opposite.
+     */
+    t0?: number;
   }): Path =>
   (t) => {
     const span = (o.rMax - o.r0) / o.speed; // seconds for one sweep
-    const u = ((t / 1000) % span) / span;
+    const at = t + (o.t0 ?? 0);
+    const u = ((((at / 1000) % span) + span) % span) / span;
     const r = o.r0 + (o.rMax - o.r0) * u;
-    const a = ((o.phase + o.turn * (t / 1000)) * Math.PI) / 180;
+    const a = ((o.phase + o.turn * (at / 1000)) * Math.PI) / 180;
     return {
       x: o.centre.x + Math.cos(a) * r,
       y: o.centre.y + Math.sin(a) * r * o.grow,
@@ -582,9 +666,16 @@ export function factsOf(
    * that stays inside the frame.
    */
   within?: { w: number; h: number },
-): { lit: number; beat: number; nodes: number; born: number } {
+): { lit: number; quiet: number; beat: number; nodes: number; born: number } {
   const states = paths.map(() => emptyState(spec));
   let lit = 0;
+  /**
+   * ★ AND THE QUIETEST INSTANT, which is the number a busiest-instant count
+   * cannot see. An arm whose sweep runs past the edge of the screen leaves the
+   * hero BARE for seconds at a time while its peak still reads healthy; that
+   * reached a capture once, and the board's own test now holds a floor under it.
+   */
+  let quiet = Infinity;
   let born = 0;
   for (let t = 0; t <= over; t += REPLAY_STEP) {
     for (let i = 0; i < paths.length; i++) {
@@ -609,9 +700,11 @@ export function factsOf(
         ).length
       : seen.length;
     if (n > lit) lit = n;
+    if (n < quiet) quiet = n;
   }
   return {
     lit,
+    quiet: Number.isFinite(quiet) ? quiet : 0,
     beat: born > 0 ? Math.round(over / born) : 0,
     nodes: spec.pool * paths.length,
     born,

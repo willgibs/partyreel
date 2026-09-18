@@ -6,7 +6,7 @@ import { ExplorationBoard, Frame } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { type HomeId, Home } from "./homes";
+import { Home } from "./homes";
 import {
   CANVAS,
   type Decay,
@@ -14,6 +14,7 @@ import {
   DEFAULT_LOOK,
   type EntranceId,
   facts,
+  type HomeId,
   type Look,
   type Mode,
   type PhoneId,
@@ -70,23 +71,41 @@ const PHONE_DRIVE: Record<PhoneId, Drive | null> = {
 };
 
 /** The numbers under each screen, measured off the engine it draws. */
-function captionFor(look: Look, mode: Mode) {
-  const f = facts(look, mode);
+function captionFor(look: Look, mode: Mode, home: HomeId) {
+  const f = facts(look, mode, home);
   return `${f.lit} photographs lit at the busiest instant · one every ${f.beat} ms at the scripted hand · ${f.density} px of travel between them · ${f.size} px wide · ${(f.life / 1000).toFixed(1)} s each · ${f.nodes} nodes`;
 }
+
+/**
+ * ★ A HAND-DRIVEN TRAIL'S STILL IS ONE DRAG, NOT A WHOLE PATH. Under `hand`
+ * nothing walks by itself, so the resting composition should be what a single
+ * finger stroke leaves behind, which is a third of the scripted hand rather
+ * than all of it. Without this, "it follows a finger" and "a still composition"
+ * draw the identical picture and a reviewer is asked to choose between two
+ * tiles that look the same (`lab:demo` prints exactly that).
+ */
+const STILL_OF_A_DRAG = 0.34;
 
 function Trail({
   look,
   mode,
   drive,
+  home,
 }: {
   look: Look;
   mode: Mode;
   drive: Drive;
+  home: HomeId;
 }) {
-  const spec = useMemo(() => specOf(look, mode), [look, mode]);
+  const spec = useMemo(() => specOf(look, mode, home), [look, mode, home]);
   const paths = useMemo(() => [scriptFor(mode)], [mode]);
-  const at = useMemo(() => stillAt(look, mode), [look, mode]);
+  const at = useMemo(
+    () =>
+      Math.round(
+        stillAt(look, mode) * (drive === "hand" ? STILL_OF_A_DRAG : 1),
+      ),
+    [look, mode, drive],
+  );
   return <TrailLayer spec={spec} source={{ paths, drive, stillAt: at }} />;
 }
 
@@ -119,12 +138,14 @@ function Screens({
             w={CANVAS.desktop.w}
             h={CANVAS.desktop.h}
             title="1440"
-            caption={captionFor(look, "desktop")}
+            caption={captionFor(look, "desktop", home)}
           >
             <Home
               id={home}
               mode="desktop"
-              trail={<Trail look={look} mode="desktop" drive="pointer" />}
+              trail={
+                <Trail look={look} mode="desktop" drive="pointer" home={home} />
+              }
             />
           </Frame>
         )}
@@ -136,7 +157,7 @@ function Screens({
           caption={
             phoneDrive === null
               ? "no trail below 640 px: the page as it ships today"
-              : captionFor(look, "phone")
+              : captionFor(look, "phone", home)
           }
         >
           <Home
@@ -144,7 +165,12 @@ function Screens({
             mode="phone"
             trail={
               phoneDrive === null ? null : (
-                <Trail look={look} mode="phone" drive={phoneDrive} />
+                <Trail
+                  look={look}
+                  mode="phone"
+                  drive={phoneDrive}
+                  home={home}
+                />
               )
             }
           />

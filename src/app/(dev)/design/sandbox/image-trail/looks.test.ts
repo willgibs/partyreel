@@ -7,12 +7,15 @@ import {
   DEFAULT_LOOK,
   DENSITY,
   facts,
+  type HomeId,
   type Look,
+  LOCKUP,
+  SHY,
   SIZE,
   specOf,
 } from "./looks";
 import { IMAGE_TRAIL } from "./spec";
-import { lifeMs } from "./trail-engine";
+import { boxOf, lifeMs, shyness } from "./trail-engine";
 
 /**
  * THE BOARD'S WORDS AGAINST THE ENGINE'S NUMBERS.
@@ -158,5 +161,65 @@ describe("the board as a whole", () => {
         expect(f.nodes, `${density}/${decay}`).toBeGreaterThan(f.lit);
       }
     }
+  });
+});
+
+describe("the trail over the words", () => {
+  const HOMES: HomeId[] = ["privacy", "close", "notfound", "bank"];
+
+  it("fades to a fifth on a line of type, and is whole clear of it", () => {
+    for (const home of HOMES) {
+      const box = LOCKUP[home];
+      if (!box) continue;
+      for (const mode of ["desktop", "phone"] as const) {
+        const spec = specOf(DEFAULT_LOOK, mode, home);
+        const card = boxOf(spec, 0);
+        const shy = (x: number, y: number) =>
+          shyness(spec, x, y, card.w, card.h);
+        const b = box[mode];
+        // Dead centre of the headline.
+        expect(shy(b.cx, b.cy), `${home}/${mode} centre`).toBeCloseTo(
+          SHY.floor,
+          3,
+        );
+        // ★ THE CARD THAT BROKE THE FIRST CAPTURE: its centre is clear of the
+        // box and its bottom edge is not. It has to dim, or the eyebrow goes.
+        const grazing = shy(b.cx, b.cy - b.hy - card.h / 2 + 40);
+        expect(grazing, `${home}/${mode} grazing`).toBeLessThan(0.95);
+        // A whole card clear of the box on either axis alone is untouched.
+        expect(
+          shy(b.cx + b.hx + card.w / 2 + 1, b.cy),
+          `${home}/${mode} beside`,
+        ).toBe(1);
+        expect(
+          shy(b.cx, b.cy - b.hy - card.h / 2 - 1),
+          `${home}/${mode} above`,
+        ).toBe(1);
+        // And it comes back on a curve rather than stepping.
+        const ramp = [0, 40, 90].map((d) =>
+          shy(b.cx, b.cy - b.hy - card.h / 2 + d),
+        );
+        expect(ramp[0]).toBeGreaterThan(ramp[1]);
+        expect(ramp[1]).toBeGreaterThan(ramp[2]);
+      }
+    }
+  });
+
+  it("leaves the banked home whole, because it has no words to protect", () => {
+    expect(LOCKUP.bank).toBeNull();
+    const spec = specOf(DEFAULT_LOOK, "desktop", "bank");
+    expect(spec.shy).toBeUndefined();
+    expect(shyness(spec, 720, 465, 240, 320)).toBe(1);
+  });
+
+  it("gives the 404 its own box, because it stands on paper and sits lower", () => {
+    // Measured on the rendered block, not inherited: a light ground and a
+    // taller lockup are a different keep-clear from the privacy hero's.
+    expect(LOCKUP.notfound!.desktop.cy).toBeGreaterThan(
+      LOCKUP.privacy!.desktop.cy,
+    );
+    expect(LOCKUP.notfound!.desktop.hx).toBeLessThan(
+      LOCKUP.privacy!.desktop.hx,
+    );
   });
 });

@@ -56,7 +56,7 @@ const DRAFT = defineExploration({
   },
   bible: [1, 13, 14, 22],
   context:
-    "A photograph appears every time the cursor has travelled far enough, lands where the cursor is, then fades and shrinks away behind it. Written from scratch, no new dependency, and the site's own photographs. A PROPOSAL inside every option, say the word and it goes: when you stop moving, the newest photograph does not decay. It holds, lit, under the cursor until you move again, so the screen is never empty and you find you are carrying a picture.",
+    "A photograph appears every time the cursor has travelled far enough, lands where the cursor is, then fades and shrinks away behind it. Written from scratch, no new dependency, the site's own photographs, and over the words it fades to a fifth so nothing ever sits on a line of type. A PROPOSAL inside every option, say the word and it goes: when you stop moving, the newest photograph does not decay. It holds, lit, under the cursor until you move again, so the screen is never empty and you find you are carrying a picture.",
   asks: [
     {
       id: "density",
@@ -72,19 +72,19 @@ const DRAFT = defineExploration({
           id: "d60",
           label: "60 px: heavily overlapping",
           means:
-            "A photograph every 60 px, each covering three quarters of the one before it. 12 lit at the busiest instant on the scripted hand.",
+            "A photograph every 60 px, each covering three quarters of the one before it. 14 lit at the busiest instant on the scripted hand.",
         },
         {
           id: "d100",
           label: "100 px: overlapping",
           means:
-            "The reference's own spacing: each photograph covers about three fifths of the last. 7 lit at the busiest instant.",
+            "The reference's own spacing: each photograph covers about three fifths of the last. 9 lit at the busiest instant.",
         },
         {
           id: "d140",
           label: "140 px: loosely overlapping",
           means:
-            "Each covers two fifths of the last, so the trail reads as a line of separate photographs. 5 lit at the busiest instant.",
+            "Each covers two fifths of the last, so the trail reads as a line of separate photographs. 6 lit at the busiest instant.",
         },
       ],
       recommended: "d60",
@@ -108,19 +108,19 @@ const DRAFT = defineExploration({
           id: "quick",
           label: "Quick: 0.9 seconds",
           means:
-            "Gone almost as fast as it arrives, so the trail is short and the cursor is the point. 8 lit at the busiest instant.",
+            "Gone almost as fast as it arrives, so the trail is short and the cursor is the point. 10 lit at the busiest instant.",
         },
         {
           id: "linger",
           label: "Lingering: 1.4 seconds",
           means:
-            "Long enough to look back at what you drew and see it going. 12 lit at the busiest instant.",
+            "Long enough to look back at what you drew and see it going. 14 lit at the busiest instant.",
         },
         {
           id: "long",
           label: "Long: 2 seconds, a slower shrink",
           means:
-            "The tail stays legible right to the end, keeping a third of its size. 15 lit at the busiest instant.",
+            "The tail stays legible right to the end, keeping a third of its size. 19 lit at the busiest instant.",
         },
       ],
       recommended: "linger",
