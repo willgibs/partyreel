@@ -12,14 +12,14 @@ owns:
   # links.test.ts and docs.test.ts are RELEASED again to `floating-wiring`: both
   # name a standing board as their example, so every retirement re-points them.
   # They come back when no lane is retiring a board.
-  - src/app/globals.css
-  - src/app/theme.css
+  # globals.css, theme.css and motion-tuner-config.ts are RELEASED to
+  # `ladders-wiring` for the round (both ladders live in them); they come back
+  # in its merge commit.
   - src/app/(dev)/design/_data/legacy-routes.ts
   - src/app/(dev)/design/_data/legacy-routes.test.ts
   - src/app/(dev)/design/touchpoints.ts
   - src/app/(dev)/design/touchpoints.test.ts
   - src/components/dev/motion-tuner.tsx
-  - src/components/dev/motion-tuner-config.ts
   - src/components/dev/marketing-motion-tuner.tsx
   - src/components/dev/tuner-store.ts
   - src/components/dev/candidate-style.tsx
@@ -47,6 +47,7 @@ announces:
   - "The second batch (2026-09-17, 4280a59c): the type scale is ruled (B, the spacing law, the dead link on the set) and the Aurora is one light in three kept forms (seam, throw, field), never on paper, on an 8 second clock. The stylesheets are released for the round: theme.css and marketing.css to type-wiring (plus the @utility font-heading block of globals.css), the rest of globals.css to aurora-wiring. review-message.ts: composeSoFar(store, openOf, transcribed) takes the open round's shape ({ round, asks, items }) and Transcribed carries notes by board."
   - "The third batch (2026-09-17, c9903c99 and dc4530df): every card of the light board's round seven is ruled (the bloom, the halo and the beam kept) and round eight is three steps (depth, face, sweep). SectionLight has NO default placement: `placement` is required, `room` takes a `from` origin on an edge of the box and every placement a `reach`, and its contract refuses the same composition twice on one page (Will: the Aurora is 'a mix of all of them... custom and bespoke'). ProCardBeam measures its card's corner and passes it, zero included. src/app/globals.css is released to publish-bloom for the round (the publish block and the one fence rule only)."
   - "The fourth batch (2026-09-17, 871f650b to c64275a3): light r8 is fully answered and floating-surfaces picks Card. `pnpm lab:demo` (scripts/lab-demo.mjs) presses every open step and fails a frozen stage; a catalog card's preview is inert when the card is the press target (src/components/lab/catalog.tsx). Released to light-wiring for the round: src/app/globals.css, src/app/theme.css, _data/links.test.ts and _data/docs.test.ts (the two tests that name light as a standing board and its spec as NOT LAW); touchpoints.ts and touchpoints.test.ts stay here and the lane edits its own board's lines under the retirement exception."
+  - "The eighth batch (2026-09-18, 00e82dba): type-phone r1 and rounding r7 are ruled, and one lane, ladders-wiring, wires both ladders and retires both boards (phase 1 type, phase 2 corners). The type ladder's law becomes the ORDER: prose's phone end 18 to 24 and a tenth step, subhead (20 to 24), declared in theme.css AND TYPE_STEPS. Corners are family C in quarters: --radius 8px, --radius-float 12px (rows derived at 8), --radius-tile 4px, --gap-gallery max(3px, var(--radius-tile)), 3xl and 4xl set to initial, a cta Button size, --shadow-float retired. Released to ladders-wiring for the round: src/app/globals.css, src/app/theme.css, src/components/dev/motion-tuner-config.ts; touchpoints.ts and touchpoints.test.ts stay here under the retirement exception."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
 ---
 
