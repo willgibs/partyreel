@@ -37,7 +37,8 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
   live via `LiveGallery`'s `onCountChange`; M is static per load. Threaded from the page RSC, NOT the poll
   route (ETag semantics untouched).
 - **Masonry gallery** ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)): CSS `columns-2`
-  + 3px gaps/radius, tiles at their NATURAL aspect ratio (the plumbed `width`/`height`; 1:1 fallback for
+  + the ONE gallery gap and the photograph's corner (`--gap-gallery` pinned to `--radius-tile`, 4px under the
+  corner ladder's family C; the vertical gap is each tile's bottom margin on the same token), tiles at their NATURAL aspect ratio (the plumbed `width`/`height`; 1:1 fallback for
   pre-measure rows — dims ride OUTSIDE the gallery ETag hash, write-once per id). A 45ms entrance stagger
   applies to the SEED render only (`--tile-i`; doorbell/poll arrivals get 0). Videos wear a small CORNER
   play badge (the shared centered `PlayBadge` stays on other surfaces; `MediaTile` gained `playBadge="none"`).

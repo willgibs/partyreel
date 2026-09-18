@@ -166,7 +166,7 @@ export function LiveDemo() {
                     key={tile.id}
                     data-mkt-fly
                     data-on={after(phase, "tiles") ? "true" : undefined}
-                    className={`relative mb-1.5 ${tile.h} w-full overflow-hidden rounded-[3px]`}
+                    className={`relative mb-1.5 ${tile.h} w-full overflow-hidden rounded-tile`}
                     style={
                       {
                         "--i": i,
@@ -235,7 +235,7 @@ export function LiveDemo() {
             data-on={after(phase, "reel") ? "true" : undefined}
             className="mt-3 flex items-center gap-3 rounded-xl border bg-popover/95 p-3 backdrop-blur sm:absolute sm:right-6 sm:bottom-6 sm:mt-0 sm:pr-4"
           >
-            <div className="relative size-12 shrink-0 overflow-hidden rounded-[3px]">
+            <div className="relative size-12 shrink-0 overflow-hidden rounded-tile">
               <Image
                 src={reelCover.src}
                 alt=""

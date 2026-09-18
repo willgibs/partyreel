@@ -58,15 +58,10 @@ export function RouteError({ area, error, reset }: RouteErrorProps) {
           style={{ "--nf-i": 2 } as CSSProperties}
           className="flex flex-col gap-3 sm:flex-row"
         >
-          <Button size="lg" className="h-11 px-6 text-base" onClick={reset}>
+          <Button size="cta" onClick={reset}>
             Try again
           </Button>
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className="h-11 px-6 text-base"
-          >
+          <Button asChild size="cta" variant="outline">
             <Link href="/">Back home</Link>
           </Button>
         </div>

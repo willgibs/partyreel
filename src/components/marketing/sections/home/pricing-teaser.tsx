@@ -118,15 +118,10 @@ export function PricingTeaser() {
           className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
           style={{ "--i": 6 } as CSSProperties}
         >
-          <Button asChild size="lg" className="h-11 px-6 text-base">
+          <Button asChild size="cta">
             <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
           </Button>
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className="h-11 px-6 text-base"
-          >
+          <Button asChild size="cta" variant="outline">
             <Link href="/pricing">See full pricing</Link>
           </Button>
         </div>

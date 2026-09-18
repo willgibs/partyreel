@@ -81,18 +81,29 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* The rounding system (see header). The legacy sm..4xl scale stays mapped
-     (everything in it is now "sharp family"); interactive + floating layers
-     use the dedicated tokens. */
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  /* The rounding system (values in globals.css; the ruling in its header).
+     THE DERIVED STEPS CLIMB IN QUARTERS of --radius (Will, 2026-09-18,
+     `ladder=quarters`: "This keeps the final pixel calculations much
+     cleaner"): 4 / 6 / 8 / 10 / 12px under the 8px surface, where the old
+     0.6 / 0.8 / 1.4 / 1.8 steps landed on fractions (a 2.8px card). `lg` IS
+     the surface, which is why Card wears it. Interactive and floating layers
+     ride their own tokens below, never this scale.
+
+     ★ THE TOP TWO ARE DROPPED BY SETTING THEM TO `initial`, NOT BY DELETING
+     THE LINES (`dead-rungs=drop`). Tailwind's own default theme defines
+     --radius-3xl (1.5rem) and --radius-4xl (2rem), so a deleted line would
+     bring `rounded-3xl` and `rounded-4xl` back as 24 and 32px, fixed and off
+     every token. `initial` removes the key, and the utilities emit nothing
+     (checked in the built CSS): a corner that big is a pill, and a pill is
+     `rounded-full`. */
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --radius-3xl: initial;
+  --radius-4xl: initial;
   --radius-action: var(--radius-action);
-  --radius-action-lg: var(--radius-action-lg);
   --radius-action-sm: var(--radius-action-sm);
   --radius-tile: var(--radius-tile);
   --radius-float: var(--radius-float);
@@ -103,12 +114,10 @@
      behind). Values per ground live in globals.css. Each compiles to
      `--tw-shadow: var(...)`, the slot Tailwind composes beside the ring, so
      wearing one never costs a surface its `ring-1` hairline; a bare
-     `box-shadow:` on a ringed surface does, silently.
-     `shadow-float` is the old name, kept for the lab alone (globals.css says
-     which board and when it goes); production never reads it. */
+     `box-shadow:` on a ringed surface does, silently. (`shadow-float`, the
+     old single name, retired with the rounding board on 2026-09-18.) */
   --shadow-lift: var(--shadow-lift);
   --shadow-layer: var(--shadow-layer);
-  --shadow-float: var(--shadow-float);
 
   /* Skeleton shimmer: a background-position sweep over a 200%-wide gradient
      (skeleton.tsx). Linear on purpose - it's an ambient loop, not interaction

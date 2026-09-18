@@ -12,6 +12,7 @@ import { Column, Swatch } from "@/app/(dev)/design/reference/reference-ui";
 
 import { BrightEdge } from "./bright-edge";
 import { ElevationLegend } from "./elevation-legend";
+import { RadiusLadder } from "./radius-ladder";
 import { TypeLadder } from "./type-ladder";
 
 /**
@@ -177,30 +178,9 @@ export default async function FoundationsPage({
       <Section
         id="radius"
         title="Radius"
-        blurb="Sharp surfaces, round actions: the radius contrast itself signals what is pressable. One root knob (--radius) scales the surface family."
+        blurb="Family C (Will's ruling, 2026-09-18): a surface, a photograph, a floating layer and an action, one token each, and a control is still twice as round as the surface under it, so the contrast still says what is pressable. The derived steps climb in quarters of --radius, and the top two are dropped. Every number below is read off the specimen it captions, so the tuner's knobs move it live."
       >
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <RadiusBox
-            name="Surface"
-            hint="--radius · 2px"
-            className="rounded-lg"
-          />
-          <RadiusBox
-            name="Tile"
-            hint="--radius-tile · 3px"
-            className="rounded-[var(--radius-tile)]"
-          />
-          <RadiusBox
-            name="Float"
-            hint="--radius-float · 8px"
-            className="rounded-[var(--radius-float)]"
-          />
-          <RadiusBox
-            name="Action"
-            hint="--radius-action · 16px"
-            className="rounded-[var(--radius-action)]"
-          />
-        </div>
+        <RadiusLadder />
       </Section>
 
       <Section
@@ -337,28 +317,6 @@ function SwatchGroup({
         ))}
       </div>
     </Sub>
-  );
-}
-
-function RadiusBox({
-  name,
-  hint,
-  className,
-}: {
-  name: string;
-  hint: string;
-  className: string;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <div
-        className={`mx-auto size-16 border-2 border-foreground ${className}`}
-      />
-      <p className="mt-3 text-center text-[13px] font-medium">{name}</p>
-      <p className="text-center text-[10px] text-muted-foreground tabular-nums">
-        {hint}
-      </p>
-    </div>
   );
 }
 

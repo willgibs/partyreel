@@ -55,15 +55,10 @@ export default function CurationFeaturePage() {
         subhead={page.heroSub}
         actions={
           <>
-            <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Button asChild size="cta">
               <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline">
               <Link href="/features/album">See the live album</Link>
             </Button>
           </>

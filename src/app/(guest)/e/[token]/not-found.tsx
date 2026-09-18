@@ -36,7 +36,7 @@ export default function GuestNotFound() {
           title="This event link didn't work"
           description="The link may be mistyped, or the host may have deleted the event. Double-check the QR code or link, or ask the host to resend it."
           actions={
-            <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Button asChild size="cta">
               <Link href="/">What is Partyreel?</Link>
             </Button>
           }

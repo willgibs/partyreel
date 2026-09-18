@@ -23,7 +23,7 @@ export function UploadThumbnail({ file }: { file: File }) {
     return (
       <video
         src={videoPosterSrc(src)}
-        className="size-10 shrink-0 rounded object-cover"
+        className="size-10 shrink-0 rounded-tile object-cover"
         preload="metadata"
         muted
         playsInline
@@ -38,7 +38,7 @@ export function UploadThumbnail({ file }: { file: File }) {
     <img
       src={src}
       alt=""
-      className="size-10 shrink-0 rounded object-cover"
+      className="size-10 shrink-0 rounded-tile object-cover"
       onError={(e) => e.currentTarget.classList.add("hidden")}
     />
   );

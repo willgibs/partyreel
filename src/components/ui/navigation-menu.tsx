@@ -27,8 +27,8 @@ import { ChevronDownIcon } from "lucide-react"
 //      transition-property at its CSS initial value `all` — so the box morphed
 //      on 100ms/ease while the content swept 208px on 150ms/emphasis. The
 //      transition is now explicit and shares ONE clock with the animation.
-//   4. `rounded-lg` resolves to --radius (2px, the SHARP general-UI radius the
-//      doctrine forbids on the floating layer) and a raw `shadow` drew
+//   4. `rounded-lg` resolves to --radius (the SURFACE corner, 2px then, which
+//      the doctrine forbids on the floating layer) and a raw `shadow` drew
 //      Tailwind's stock shadow instead of the house family (a raw shadow on any
 //      production surface is refused by src/lib/elevation-policy.test.ts now).
 //   5. `transition-all` on the trigger + link (the house rule is explicit

@@ -18,6 +18,7 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { portalSkinProps } from "@/components/marketing/chrome/portal-skin";
 import { MissingFrameStrip } from "@/components/marketing/marketing-not-found";
 import { Kbd } from "@/components/shared/kbd";
+import { floatingRow } from "@/components/ui/floating-layer";
 import type { HelpSearchItem } from "@/lib/content/help";
 import {
   matchDestinations,
@@ -335,11 +336,17 @@ export function HelpPaletteProvider({
               )}
             </div>
 
+            {/* ★ THE FLOATING FAMILY'S RAIL (bible 15; the corner ladder,
+                2026-09-18): `p-1` with every row on `floatingRow`, the panel's
+                corner minus this 4px, so the row's arc shares the panel's
+                centre and a retune of --radius-float moves both. The rows were
+                `rounded-lg` in `p-2`, the SURFACE token nested wrong by 4px,
+                and their icons sat 4px right of the search field's. */}
             <div
               id="help-palette-list"
               role="listbox"
               aria-label="Search results"
-              className="max-h-[min(26rem,55vh)] overflow-y-auto p-2"
+              className="max-h-[min(26rem,55vh)] overflow-y-auto p-1"
             >
               {!hasQuery && (
                 <p className="px-3 pt-2 pb-1.5 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
@@ -406,7 +413,8 @@ export function HelpPaletteProvider({
                     }}
                     onMouseMove={() => setActiveIndex(optionIndex)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm select-none",
+                      "flex items-center gap-3 px-3 py-2.5 text-sm select-none",
+                      floatingRow,
                       optionIndex === active && "bg-muted",
                     )}
                   >

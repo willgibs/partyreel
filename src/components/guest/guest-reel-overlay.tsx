@@ -28,6 +28,7 @@ import { toast } from "sonner";
 
 import type { GalleryPayload } from "@/components/guest/live-gallery";
 import { rvlMs } from "@/components/reel/reveal-constants";
+import { ctaCorner } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
 import { downloadReel, saveBlobLocally } from "@/lib/reel/client-save";
@@ -403,11 +404,16 @@ export function GuestReelOverlay({
             </p>
           </div>
         ) : null}
+        {/* A 44px pair, so the 44px action's corner (ctaCorner, the `cta`
+            Button size's own): they wore the 40px button's, a size smaller. */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleShare}
-            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-action)] bg-white/12 text-sm font-medium text-white backdrop-blur-sm transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] motion-reduce:active:scale-100"
+            className={cn(
+              "flex h-11 flex-1 items-center justify-center gap-1.5 bg-white/12 text-sm font-medium text-white backdrop-blur-sm transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] motion-reduce:active:scale-100",
+              ctaCorner,
+            )}
           >
             <Share2 className="size-4" />
             Share
@@ -416,7 +422,10 @@ export function GuestReelOverlay({
             type="button"
             onClick={handleDownload}
             disabled={download.phase !== "idle"}
-            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-action)] bg-white text-sm font-medium text-zinc-900 transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100"
+            className={cn(
+              "flex h-11 flex-1 items-center justify-center gap-1.5 bg-white text-sm font-medium text-zinc-900 transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100",
+              ctaCorner,
+            )}
           >
             <Download className="size-4" />
             {download.phase === "idle" ? "Download" : "Working…"}
