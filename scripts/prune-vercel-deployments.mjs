@@ -20,13 +20,19 @@
  * ERRORED, or when it is past the keep count for its own live branch. Three guards outrank all of
  * that and are never overridden by a flag:
  *
+ *   0. any deployment an alias of the project currently points at (the branch alias is not always
+ *      on the newest build: see the note at `aliased` below);
  *   1. the deployment currently serving production, whatever its age;
  *   2. the newest deployment on any live branch, so an alias never loses its target;
- *   3. anything created in the last 24 hours, so a running review is never pulled out from under
- *      whoever is looking at it.
+ *   3. anything still in flight (queued, building, initializing), so a build is never deleted
+ *      under itself.
  *
- * `main` keeps everything by ruling (Will, 2026-09-11): production deployments are the
- * instant-rollback targets, and retention expires them on its own schedule.
+ * Three per branch by ruling (Will, 2026-09-18, replacing "main keeps everything" of 2026-09-11):
+ * "We definitely don't need every main deployment. The last in the launch prep. The three most
+ * recent at any time should be more than enough." The team is on Hobby, whose deployment storage
+ * cap (10 GB) a kept-everything policy blew through (45 GB on 2026-09-18, and Vercel's queue held
+ * a build for eighty minutes that evening); a finished deployment past its keep count goes
+ * whatever its age.
  *
  * Auth: VERCEL_TOKEN from the environment, or from .env.local, the same team-scoped token the rest
  * of the program uses. Never printed, never committed.
@@ -39,11 +45,12 @@ const TEAM_ID = "team_ht9qAVBQVZf60dpGNJUwmaj5";
 const API = "https://api.vercel.com";
 
 /** How many of a LIVE branch's deployments to keep, newest first. Infinity keeps the lot. */
-const KEEP_PER_BRANCH = { main: Infinity, "launch-prep": 10 };
-const DEFAULT_KEEP = 10;
+const KEEP_PER_BRANCH = { main: 3, "launch-prep": 3 };
+const DEFAULT_KEEP = 3;
 
-/** Nothing younger than this is ever deleted, however it classifies. */
+/** A deployment younger than this is kept only while it is still in flight (see guard 3). */
 const MIN_AGE_MS = 24 * 60 * 60 * 1000;
+const TERMINAL = new Set(["READY", "CANCELED", "ERROR"]);
 
 /**
  * Courtesy pause between deletes. Vercel rate-limits deletion hard: the first run of this script
@@ -165,6 +172,19 @@ const production = await api(
   `/v6/deployments?projectId=${PROJECT_ID}&teamId=${TEAM_ID}&limit=1&target=production&state=READY`,
 );
 const productionId = production.deployments?.[0]?.uid ?? null;
+// Guard 0: every deployment an alias of this project points at RIGHT NOW. The branch alias is not
+// always on the newest build: Vercel reported `aliasAssigned: true` for a build whose alias still
+// targeted the previous one, and the first run of the three-per-branch policy (2026-09-18) deleted
+// that target, so the desk answered DEPLOYMENT_NOT_FOUND until the alias was reassigned by hand.
+const aliased = new Set();
+for (let next = null, i = 0; i < 10; i++) {
+  const page = await api(
+    `/v4/aliases?projectId=${PROJECT_ID}&teamId=${TEAM_ID}&limit=100${next ? `&until=${next}` : ""}`,
+  );
+  for (const a of page.aliases ?? []) if (a.deploymentId) aliased.add(a.deploymentId);
+  next = page.pagination?.next ?? null;
+  if (!next) break;
+}
 
 const now = Date.now();
 const branchOf = (d) => d.meta?.githubCommitRef ?? "";
@@ -191,8 +211,9 @@ for (const d of [...deployments].sort(
 
   let verdict = null;
   if (d.uid === productionId) verdict = ["keep", "serves production"];
-  else if (now - (d.created ?? 0) < MIN_AGE_MS)
-    verdict = ["keep", "younger than 24h"];
+  else if (aliased.has(d.uid)) verdict = ["keep", "an alias points at it"];
+  else if (now - (d.created ?? 0) < MIN_AGE_MS && !TERMINAL.has(d.state))
+    verdict = ["keep", "in flight, younger than 24h"];
   else if (newestPerBranch.get(branch) === d.uid && isLive)
     verdict = ["keep", `newest on ${branch}`];
   else if (!isLive)

@@ -105,6 +105,11 @@ export async function jobStart(
 /**
  * Close the heartbeat row. Best-effort by definition: the work already happened, so a failure here
  * is logged and dropped. A null handle (the start never opened a row) is a no-op.
+ *
+ * `counts` now also carries the Cloudflare QUEUE and DEAD-LETTER depths (queue-metrics.ts). That is
+ * additive by construction: the field has always been a free-form record on both ends, so an app
+ * deploy that predates the reader stores the extra keys harmlessly, and one that postdates the
+ * Worker deploy simply finds no reading and says so rather than printing a zero.
  */
 export async function jobFinish(
   env: HeartbeatEnv,

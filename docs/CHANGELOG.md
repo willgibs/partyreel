@@ -82,12 +82,91 @@ against a reference, never a cap and a test.
   and unlinked: where it sits, where the photographs end (a fourth question the drawing surfaced), what it
   opens (the short `/demo` link fixes the scan floor; the event's full link leaves 0 px of clearance in the
   short door) and what the short door does. Every drawn code measured exactly 3.0 px a module.
-- `voice` cut (`13dd8ffd`): round one of the board Will asked for by name, the voice derived from won
-  lines, six to eight real lines each with three or four close candidates, bible 20's question first.
+- `voice` integrated (`e0b92af6`; cut `13dd8ffd`): round one of the board Will asked for by name, the voice
+  derived from won lines. Eight real lines in the places they are read, each with three or four candidates a
+  careful writer would weigh and one recommended: bible 20's question first, drawn on the guest sheet's own "No
+  app, no account" beside the same fact affirmed; then the home hero's sentence, /features/curation's headline,
+  the Pro card's line beside Free's, the empty dashboard, the email ask, the empty album and an upload's toast
+  (two of them the same question on two surfaces on purpose). No production byte moved. Its question for Will:
+  whether the first win binds the other seven (the lane recommends yes, re-asking only the won lines that break
+  it in round two).
 
-**Next.** His sitting on the four boards in the rebuilt step, and the ghost on a disposable event on the
-alias; then the wiring lanes (the album page, the river, the privacy hero, the galleries) and the voice
-board's round one; then a milestone (`main` is about 1,120 commits behind).
+- `body-type` integrated (`130236c2`; cut `707d99a2` into the fourth seat on Will's yes): the body and label
+  ladder asked as seven decisions rather than schemed, every option the real surface wearing the paste a
+  ruling would land and every number read off the element in its frame. A guest's reading copy at a phone
+  (16 recommended, level with `card-title`), the app's working body (14), marketing copy fluid from 16 to 18,
+  the caption step and the floor (12, retiring 148 arbitrary sizes), the label pair (12 on 0.14em), buttons on
+  the ladder, and the line-height rule (2 x size minus 8, which lands every pair on the 4px grid). The
+  measuring caught three things the first draft had wrong: an arbitrary size inherits Tailwind's 1.5 leading,
+  a feature paragraph wears the guest page's own `text-[15px]`, and a stacked page shell's `min-h-full` eats
+  the frame. Two questions for Will: the four step names (`copy` / `body` / `caption` / `label` recommended),
+  and whether the caption and label steps share one size (yes recommended).
+- `glass` integrated (`30aaf705`; cut `5e03ffe2`): round one of the Glass exploration Will banked by name,
+  drawn where glass exists for a reason, the app's chrome over photographs. Four recipes named in numbers on
+  the lightbox's action pill (Frost recommended: the most glass that keeps its text), one grade or two (two, the
+  quiet one derived), what sits behind the photograph in the lightbox (the album blurred at half brightness),
+  the chips over tiles at a phone (the quiet grade), the reel's controls, the host's tile row as one bar or
+  three panes, and the light ground on its own step. Every cost read off Chrome's compositor trace under a 4x
+  throttle at 375: the round's surprise is that the product already pays seventeen times the flat cost on its
+  forty tile chips while a full-screen pane costs a seventh of that. Two questions carried on their
+  recommendations (the backdrop belongs in round one; one Library entry with two grades). Marketing, the
+  header's glass layer and the marriage with the aurora are round two, after his notes.
+- `loose-ends` integrated (`b83b7c3d`; cut `5e03ffe2`): six ROADMAP lines drawn as seven decisions on their
+  real surfaces. The admin chart ramp's cast in light and in dark on the real `MetricsCharts` (Graphite's cool
+  cast recommended in both), one FAQ look on both FAQs (the shared size moved into a real heading), the home
+  hero at a real 900 px tablet (a composed third geometry), and the album page's three ambient pieces: the
+  phone's screen cycle graded against the home hero's beat (two beats), the Live | Review photograph (the
+  rings), and a proposed lightbox-hint pill (a quiet corner mark). Two briefed pieces had no behaviour to vary,
+  so the lane read them as "which photo" and "propose a pill" and asks whether that reading was meant. Found
+  on the way, a real production bug: four of the five `--color-chart-*` aliases are never emitted by Tailwind's
+  `@theme inline`, so any series read by name through them paints black; production's own page reads only `chart-3` and `brand` literally, so nothing was black on partyreel.com, but the trap was one template string away. Fixed the same evening at the source: the five aliases moved into `theme.css`'s `@theme static` block, which is emitted whole, proved in the compiled CSS; the gotcha is in design-system.md. The desk draws the charts
+  correctly in a real browser; the lane's own captures squished them through the capture path `glass` documented.
+- **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's
+  word ("we could begin getting main current to launch prep"), 1,138 commits: partyreel.com now serves Graphite,
+  the type and corner ladders, the Aurora with shadows by role, the home hero's band and the v1 wordmark, Card's
+  floating layer, the three voice picks and the river on the empty album; the lab gated (404 without a key).
+  Stripe stays TEST; no launch switch flipped. The verification pass on partyreel.com is recorded below the
+  merge in git.
+
+- `admin` integrated (`d6305818`; cut `0681652c`): round one of the portal's shape as seven decisions on the real
+  admin components fed one Tuesday of fixtures at 1440 by 900 (two backend runs down, one account over cap, three
+  reports, nine messages): the operator's home (a ranked list of what is waiting recommended), the nav for twelve
+  surfaces (a rail plus a command palette), density (a table for data and a reading pane for prose), how far a
+  state's colour travels (the chip), one grammar for three destructive acts (a sheet sized to the damage), where
+  health is said (a band under the bar on every page) and how much of the product's bar the portal keeps (a 44 px
+  tool bar). Four screens from Mobbin shaped decisions and were designed from the ground up. Four questions carried
+  on their recommendations and closed by the Orchestrator: the chart ramp stays `loose-ends`'s for the product and
+  the admin gets its own in the wiring round; `touchpoints.ts` gained the `admin` surface at the merge; nothing at
+  375 and no light-against-dark in round one; the palette ships closed behind a key if it wins. Three defects it
+  found in the shipped portal are on the ROADMAP's admin bucket.
+- `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the
+  tree. One pure module, `src/lib/surface`, answers which surface a build serves, and the proxy, the `requireAdmin`
+  seam and the purge cron decide from it: the admin surface serves an allow-list (the portal, sign-in, MFA, the cron
+  route, the design-gate probe) and rewrites the rest to a real 404, the app surface 404s `/admin` whatever the Host
+  says, and unset serves both, which is the whole rollback. The cron answers and stops on the admin surface, and the
+  database showed that call writing no heartbeat. Four calls the lane recommended stand (the probe and `robots.txt`
+  stay reachable on the admin host; the domain moves after the milestone that puts this code on `main`; a
+  `[preview]` push builds twice). The cutover ran the same night up to the preview proof: Will created
+  `partyreel-admin` in the dashboard and minted a team token (the old one was project-scoped), the Orchestrator
+  mirrored its settings, copied and verified its env value by value (the first copy was ciphertext: Vercel's env
+  list never decrypts), dropped the Sentry upload trio that failed its build, added the admin preview callback to
+  the Supabase redirect list in Chrome, and probed the preview host's allow-list: the portal, sign-in, MFA, the cron
+  route, the probe and `robots.txt` serve, everything else is a real 404. Left: Will's sign-in there, the milestone,
+  the domain move (`docs/tracks/orchestrator.md`).
+- `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console stopped meaning four crons. The catalog
+  gained three kinds (a `scheduled` job with its own rows, a `signal` whose only question is what failed in the last
+  24 hours, a `derived` reading riding another job's counts), all through the one pure `jobHealth`, and nine jobs
+  joined it. The backup Worker reads the Cloudflare queue and dead-letter depths on every run (any dead letter is a
+  failure, alerting where the number arrives, since a freshness rule can only page on silence); the purge cron's four
+  account-looping sweeps became jobs with their own switches and per-row isolation (QA #27 closed); `sendOnce` and
+  both rate limiters stopped failing invisibly (QA #19). The lane's cross-lane patch (six files outside its owns)
+  landed in the merge; the additive migration (four `ops_flags` rows, one `sent_emails` index) is applied with the
+  advisor set unchanged; the Worker deployed the same night (version `d7b16bcc`, both queue producers bound), so the depth reading lands with the next 05:00 UTC run.
+
+**Next.** His sitting on the boards on the desk (`privacy-hero` already answered none, its round two in
+`image-trail`), and the ghost on a disposable event on the alias; the `admin` board, `image-trail` and
+`cursor-backdrop` integrate as they hand off; the admin cutover's remaining steps as Will's two dashboard steps
+land (the Vercel project, the wrangler login); then the wiring lanes from his notes.
 
 ## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` to `00e82dba`)
 

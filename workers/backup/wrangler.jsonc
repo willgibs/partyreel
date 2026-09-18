@@ -17,7 +17,18 @@
   // Consumer for the R2 object-create event notifications (the human wires the bucket -> queue
   // subscription with `wrangler r2 bucket notification create ... --prefix events/`). Poison
   // messages land in the DLQ after max_retries.
+  //
+  // The two PRODUCER bindings exist only so the Worker can call `Queue.metrics()` and report each
+  // queue's realtime backlog on every scheduled run (src/queue-metrics.ts). This Worker never sends
+  // to either queue; the depths were visible on the Cloudflare dashboard and nowhere else, and a
+  // dead letter is a media object with no backup copy, which is exactly the silence /admin/jobs
+  // exists to end. Producer bindings do not change delivery: the DLQ still has no consumer, so
+  // nothing drains it, and the daily reconcile stays the thing that copies what the queue missed.
   "queues": {
+    "producers": [
+      { "binding": "BACKUP_QUEUE", "queue": "partyreel-backup" },
+      { "binding": "BACKUP_DLQ", "queue": "partyreel-backup-dlq" },
+    ],
     "consumers": [
       {
         "queue": "partyreel-backup",

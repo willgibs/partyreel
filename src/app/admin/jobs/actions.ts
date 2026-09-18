@@ -27,7 +27,10 @@ export async function toggleJobAction(
   if (!auth.ok) return auth.result;
 
   const def = jobById(jobId);
-  if (!def) {
+  // A job with no flagKey has nothing to pause (the derived readings and the rolling signals: a
+  // switch there would silence the reading, not the work), so its card never draws a switch.
+  // Refusing here too keeps the action honest if one is ever forged.
+  if (!def?.flagKey) {
     return { ok: false, code: "unknown", message: "Unknown job." };
   }
 

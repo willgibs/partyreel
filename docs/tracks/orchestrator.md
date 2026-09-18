@@ -55,6 +55,8 @@ announces:
   - "The fourth batch (2026-09-17, 871f650b to c64275a3): light r8 is fully answered and floating-surfaces picks Card. `pnpm lab:demo` (scripts/lab-demo.mjs) presses every open step and fails a frozen stage; a catalog card's preview is inert when the card is the press target (src/components/lab/catalog.tsx). Released to light-wiring for the round: src/app/globals.css, src/app/theme.css, _data/links.test.ts and _data/docs.test.ts (the two tests that name light as a standing board and its spec as NOT LAW); touchpoints.ts and touchpoints.test.ts stay here and the lane edits its own board's lines under the retirement exception."
   - "The eighth batch (2026-09-18, 00e82dba): type-phone r1 and rounding r7 are ruled, and one lane, ladders-wiring, wires both ladders and retires both boards (phase 1 type, phase 2 corners). The type ladder's law becomes the ORDER: prose's phone end 18 to 24 and a tenth step, subhead (20 to 24), declared in theme.css AND TYPE_STEPS. Corners are family C in quarters: --radius 8px, --radius-float 12px (rows derived at 8), --radius-tile 4px, --gap-gallery max(3px, var(--radius-tile)), 3xl and 4xl set to initial, a cta Button size, --shadow-float retired. Released to ladders-wiring for the round: src/app/globals.css, src/app/theme.css, src/components/dev/motion-tuner-config.ts; touchpoints.ts and touchpoints.test.ts stay here under the retirement exception."
   - "The ninth batch (2026-09-18): album-hero r3 and river-visual r2 are ruled (their first ledgers, so registry.test.ts's grandfathered set is empty, and that file is the Orchestrator's again), and river-visual's `proportion` is withdrawn inside the round. Three board lanes are cut: `heroes` (`privacy-hero`, `album-page`), `river-card`, `gallery-width`. THE REGISTRATION EXCEPTION, while they run: a lane adds its own board's lines to sandbox/registry.ts, (shell)/lab/boards.ts and touchpoints.ts and touches nothing else in them (touchpoints.test.ts derives its standing list from the registry since the glow retirement, so it takes no line). New members go at the HEAD of `BOARDS`, `BOARD_COMPONENTS` and the `SandboxId` union, the RULINGS row directly after river-visual's, the id into `RulingId` directly after `river-visual`; `ladders-wiring` removes only its own lines and reorders nothing, so every merge is line-disjoint. The names `ladders-wiring` changes, which every lane builds against: `rounded-3xl` and `rounded-4xl` become no-ops (set to `initial`), `shadow-float` and `--radius-action-lg` retire, `size=\"cta\"` on Button and `text-subhead` arrive, and `prose` is 24px at a phone."
+  - "The admin round (2026-09-18, evening): `NEXT_PUBLIC_SURFACE` arrives in src/lib/env.ts (optional; `app` or `admin`; unset serves both surfaces as before); `admin-split` owns src/proxy.ts, src/lib/auth/admin-context.ts, src/lib/surface/, scripts/vercel-ignore-build.mjs and src/app/api/cron/purge/route.ts for the round and names the surface rules; `admin-jobs` owns the jobs console's backend (src/app/admin/jobs/, the internal job-run route, workers/backup/src/, the limiter and the email sender) and READS the purge route; the `admin` board is lab-only. The admin's design binds are in docs/systems/admin-observability.md."
+  - "The image-trail round (2026-09-18, night): `image-trail` owns sandbox/image-trail/ AND sandbox/privacy-hero/ (round two of that board; the `heroes` lane is gone); `cursor-backdrop` owns sandbox/cursor-backdrop/. Both are lab-only and take the registration exception above; neither adds a dependency (no GSAP: the Web Animations API, rAF and CSS, as the river). A trail engine the marketing site adopts moves to src/components/shared/ in a wiring lane, beside the river."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
 ---
 
@@ -100,9 +102,20 @@ retired `type-phone`; both agents were told so by message.
 | `heroes` | integrated at `6b5ea1bf` (handed off `766f5a66`) | done | Sonnet, :3133 | nothing |
 | `river-card` | integrated at `3ed62f0c` (handed off `64c25a02`; the RULINGS rows' union needed album-page's closing lines put back by hand) | done | Sonnet, :3134 | nothing |
 | `ghost-wiring` | integrated at `31c94253` (handed off `79169b2c`; its two mid-lane claims accepted) | done | Opus, :3132 | nothing |
-| `voice` | cut fresh at `13dd8ffd` (round one of the voice derived from won lines; Will asked for it by name 2026-09-17, ahead of Glass) | nothing yet | Opus, :3135 | the whole board per its manifest: six to eight real lines, bible 20's question first, then integrate |
+| `voice` | integrated at `e0b92af6` (handed off `5e6e5481`; eight lines, 234 smoke checks, 8 demo steps) | done | Opus, :3135 | nothing; round two is cut from his notes |
+| `glass` | integrated at `30aaf705` (handed off `f8ab4ad9`; seven steps, 250 smoke checks; one unused import cleaned at the record) | done | Opus, :3132 | nothing; round two is cut from his notes |
+| `admin` | integrated at `d6305818` (handed off `ed090c3b`; the `admin` surface added to touchpoints.ts at the merge) | done | Opus, :3132 | nothing |
+| `admin-split` | integrated at `7f3738ba` (handed off `a4104a50`) | done | Opus, :3133 | the cutover, below |
+| `image-trail` | cut 2026-09-18 night from Will's first note: the trail engine, the `image-trail` board and `privacy-hero` round two | building | Opus, :3135 | everything |
+| `cursor-backdrop` | cut the same night: demo six's switching backdrop on the marketing site's UI-forward chapters | building | Opus, :3136 | everything |
+| `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
+| `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
+| `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 
-`gallery-width` integrated at `3a519e0d`. The three resumed lanes integrated the same afternoon (`6b5ea1bf`,
+Three admin lanes opened the same evening (below). Before them, no lane was open: every board of the round is integrated and on the desk, eight in all
+(privacy-hero, album-page, river-card, gallery-width, voice, body-type, glass, loose-ends), plus the ghost on
+the disposable event. Next from here: his batches, transcribed; then the wiring lanes from his answers and
+round two of `voice` and `glass` from his notes. `gallery-width` integrated at `3a519e0d`. The three resumed lanes integrated the same afternoon (`6b5ea1bf`,
 `31c94253`, `3ed62f0c`), the full gate green on the final tree (2,189 tests, 254 pages), and the round's
 `[preview]` is the record commit on top of them; the four worktrees and branches are pruned at the push.
 
@@ -123,21 +136,61 @@ retired `type-phone`; both agents were told so by message.
      below first).
 3. **Show the ghost** on a DISPOSABLE event on the alias, then delete the event (never the public
    "Partyreel Demo"). If he wants another animation, the parked "pour" is the one.
-4. **Propose a milestone** to Will: `main` is about 1,090 commits behind `launch-prep`.
+4. **Done 2026-09-18:** `milestone-25` merged (`bf9cbd74`) and deployed on Will's word; the classifier refuses a
+   push to `main` from a script, so the push is run as its own plain command, and Will granted it standing
+   ("You always have full permission to push to main once we're ready").
 5. **`lab-scrub`** once no old-surface board stands (about 4,200 lines of the old authoring surface); its
    Handoff carries the never-owned doc edits word for word. Ask Will first: removing `item:` retires his
    keep/refine/kill verdicts (2026-09-16).
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
+- **The admin cutover, where it stands (2026-09-18, after the `admin-split` merge `7f3738ba`).** The lane's full
+  runbook is in git: `git show 7f3738ba^2:docs/tracks/admin-split.md` (the Handoff). DONE (2026-09-18, late): the code on
+  `launch-prep`; `NEXT_PUBLIC_SURFACE=app` on `partyreel` for PREVIEW only; the project `partyreel-admin`
+  (`prj_gJhEa7ul4ehpQljDI1EIm6d9jd9D`, created by Will in the dashboard; the original token and the connector were
+  project-scoped and could not see it until he minted a team token and reconnected the connector); its settings
+  mirrored; its env copied and VERIFIED value by value (★ the first copy wrote ciphertext: see CLAUDE.md's env line);
+  the Sentry upload trio (`SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`) deliberately NOT on the admin project
+  (its build failed on `Project not found` in the source-map upload; the DSN stays, so runtime errors still report;
+  its own Sentry project is the ROADMAP line); the admin preview `/auth/callback**` in the Supabase redirect list
+  (Orchestrator, in Chrome). The cron toggle is not in the API (`crons` is rejected by PATCH); `CRON_SECRET` withheld
+  is the guard until the milestone. Historic, for the record: (1) the Vercel
+  dashboard step was: with the scope switcher on **Partyreel Team**, Add New → Project → import `willgibs/partyreel`, name `partyreel-admin`,
+  framework Next.js, root the repository root (the REST token answers 403 to project creation and the Vercel MCP reuses the project already
+  linked to the repo); it deploys `main` once on creation, harmless, since `main` has no surface code and the domain
+  stays on `partyreel`. (2) Orchestrator, by REST once the project exists: mirror the settings (Node 24.x, `iad1`,
+  fork protection on, no SSO protection); try the per-project cron disable; copy every `partyreel` env entry EXCEPT
+  `RESEND_API_KEY`, `EMAIL_FROM`, `CONTACT_NOTIFY_EMAIL`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`,
+  `NEXT_PUBLIC_DEMO_QR_TOKEN`, `EXPORT_SIGNING_SECRET`, `EXPORT_WORKER_URL` and, until the milestone, `CRON_SECRET`
+  (withheld so a `main` build that lacks the guard cannot purge a second time; the daily 401 in that project's cron
+  log is the price); the overrides `NEXT_PUBLIC_SURFACE=admin`, `NEXT_PUBLIC_SITE_URL` (production the apex,
+  preview the app's launch-prep alias) and `NEXT_PUBLIC_ADMIN_HOST` (production `admin.partyreel.com`, preview the
+  admin project's own launch-prep alias host, confirmed from its first preview deployment). (3) DONE bar the human half: the admin preview host `partyreel-admin-git-launch-prep-partyreel.vercel.app` is
+  READY on `109cfac9` (built by `POST /v13/deployments` with `gitSource`, since the project's own build of the push
+  had no env yet) and its allow-list probed exactly as the table above; the callback is in the Supabase list. WILL
+  signs in there through the account chooser (`partyr33l@gmail.com`) and completes the MFA step-up onto `/admin`. (4) At the milestone that carries this code to `main`: add `CRON_SECRET` to the admin project; move the
+  domain (remove `admin.partyreel.com` from `partyreel`, then add it to `partyreel-admin`); set
+  `NEXT_PUBLIC_SURFACE=app` on `partyreel` PRODUCTION only then (earlier, the portal is dark between the merge and
+  the move); run the runbook's checks a to g. Rollback at any step: unset the variable on either project.
 - **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]` (a build takes
   about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
-  the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains `"build":"<sha7>"` (the page
-  prints "Serving build"). The key must ride the QUERY on a plain request; the `x-design-key` header alone
-  answers 404, and no `sentry-release` marker exists in the HTML. After every integration:
-  `node scripts/prune-vercel-deployments.mjs --apply`.
-- **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it); `pnpm lab:demo
-  --key <key>` and `?key=` on `/design/lab` take it.
+  the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains the sha7 (the page prints "Serving build",
+  and the stamp rides the RSC payload with ESCAPED quotes, `\"build\":\"<sha7>`, so grep for the bare sha7,
+  never for `"build":"`; a poll on the quoted form watched a READY alias for 15 minutes and never matched). The
+  same keyed lab page also carries `sentry-release=<sha40>` (the Sentry SDK's stamp on a dynamic page); the static
+  home page carries neither, which is why a poll on `/` sees nothing. The key must ride the QUERY on a plain request; the `x-design-key` header alone
+  answers 404, and no `sentry-release` marker exists in the HTML. **READY is not the alias:** a build that goes
+  READY after a NEWER deployment exists for the branch (even a docs-only one the ignore script CANCELED) never takes
+  the branch alias (`aliasAssigned` stays empty, no error) and the alias keeps serving the older build; assign it by
+  hand, `POST /v2/deployments/<id>/aliases` with `{"alias":"partyreel-git-launch-prep-partyreel.vercel.app"}`, then
+  re-check the page (2026-09-18: `0681652c` sat READY behind the canceled `40a26a55` for three minutes, and a stuck
+  queue had held it 80 minutes before that). ★ `aliasAssigned: true` on a deployment is NOT proof either: `109cfac9`
+  reported it while `GET /v4/aliases/<alias>` still named the previous build, and the prune then deleted that
+  build, so the desk answered DEPLOYMENT_NOT_FOUND for a few minutes. After every build read the alias RECORD
+  (`deploymentId`) and the page's `sentry-release`, and the prune keeps every alias target (guard 0). After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
+- **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it; ★ pnpm prints the script line WITH its arguments into any log it is redirected to, so a log of `pnpm lab:demo --key` carries the key: grep such a log for its EXIT lines only, never tail or cat it, a lesson from 2026-09-18); `pnpm lab:demo
+  --key <key>` and `?key=` on `/design/lab` take it. ★ A desk-wide `pnpm lab:demo` can STALL in headless Chrome after walking many boards (2026-09-18: nine boards in, it sat on the admin board's first step for nine minutes at zero CPU; the same board alone walked its seven steps in under a minute): run it under an alarm (`perl -e 'alarm 300; exec @ARGV' pnpm lab:demo ...`) and fall back to `--board <id>` per changed board.
 - **The review.** Will pastes a batch in chat; transcribe it with `pnpm lab:review` on STDIN (`--dry`
   first to validate; `--by ai:orchestrator` for the Orchestrator's own notes). Never click Copy or Copy so
   far in the built-in browser pane to test it: it writes Will's real clipboard, and a stray paste reads as a

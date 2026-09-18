@@ -30,6 +30,17 @@
  * A missing/empty VERCEL_GIT_COMMIT_REF means a manual `vercel deploy` with no git ref, which
  * must never be silently canceled, so it builds. Everything else skips.
  *
+ * TWO PROJECTS RUN THIS FILE, and the policy is deliberately IDENTICAL on both (the admin split,
+ * 2026-09-18): `partyreel` (NEXT_PUBLIC_SURFACE=app) and `partyreel-admin`
+ * (NEXT_PUBLIC_SURFACE=admin, admin.partyreel.com) build the same commit of the same repository, so
+ * this script sees the same ref and the same message twice and answers the same way twice. Do NOT
+ * add a "the admin only builds when a push touches admin paths" shortcut: the portal renders the
+ * shared tokens, the shared components, the auth seam and the db layer, so a push that names no
+ * /admin path still changes what the admin serves, and a skipped admin build would leave the two
+ * deployments on different commits with nothing saying so. The cost is one extra build per
+ * reviewable push; the alternative is a silent drift between surfaces. The knob that IS per-project
+ * is the surface variable itself.
+ *
  * vercel.json's "ignoreCommand" points here and overrides the project-settings field; keep the
  * policy in THIS file. Rollback: delete the vercel.json key (the dashboard field, if still set,
  * takes back over). See CLAUDE.md "Git" + docs/PROGRAM.md for the branch protocol this serves.

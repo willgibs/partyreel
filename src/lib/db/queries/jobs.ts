@@ -22,8 +22,15 @@
  */
 import "server-only";
 
-import { JOBS, type JobId, type JobRunSummary } from "@/app/admin/jobs/catalog";
-import { mustQuery } from "@/lib/db/must-query";
+import {
+  JOBS,
+  SIGNAL_WINDOW_MS,
+  jobsWithRuns,
+  type JobId,
+  type JobRunSummary,
+  type JobSignal,
+} from "@/app/admin/jobs/catalog";
+import { mustCount, mustQuery } from "@/lib/db/must-query";
 import type { Json, Database } from "@/lib/db/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -80,14 +87,21 @@ function narrowRun(
  */
 export async function getJobFlags(): Promise<Record<JobId, boolean>> {
   const admin = createAdminClient();
-  const keys = JOBS.map((j) => j.flagKey);
+  // A job with a null flagKey has nothing to pause (the derived readings and the rolling signals):
+  // it is always "enabled", because there is no run for a switch to stop.
+  const keys = JOBS.map((j) => j.flagKey).filter(
+    (k): k is string => k !== null,
+  );
   const rows = await mustQuery(
     admin.from("ops_flags").select("key, enabled").in("key", keys),
     "admin/jobs: kill switches",
   );
   const byKey = new Map((rows ?? []).map((r) => [r.key, r.enabled]));
   const out = {} as Record<JobId, boolean>;
-  for (const job of JOBS) out[job.id] = byKey.get(job.flagKey) ?? true;
+  for (const job of JOBS) {
+    out[job.id] =
+      job.flagKey === null ? true : (byKey.get(job.flagKey) ?? true);
+  }
   return out;
 }
 
@@ -178,6 +192,40 @@ export async function finishJobRun(
 }
 
 /**
+ * THE FAILURE LOG for a `signal` job — one closed `error` row for something that went wrong in a
+ * path with no schedule of its own (a transactional send, a rate-limiter read). Degrades like every
+ * other heartbeat write: the caller is mid-failure already and must not be handed a second one.
+ *
+ * `job_runs` is deliberately the store rather than a new table: the column is unconstrained by
+ * design, the rows are already deny-all and already rendered in the activity feed, and a failure IS
+ * a run of something. The alerting lives at the call site (`src/lib/jobs/failure-log.ts`), which
+ * also throttles: a database outage must not turn one failure per request into a write storm on the
+ * table we are trying to read health from.
+ */
+export async function recordJobFailure(
+  job: JobId,
+  note: string,
+): Promise<{ heartbeatError: string | null }> {
+  try {
+    const now = new Date().toISOString();
+    const { error } = await jobRunsDb()
+      .from("job_runs")
+      .insert({
+        job,
+        status: "error",
+        triggered_by: "schedule",
+        started_at: now,
+        finished_at: now,
+        duration_ms: 0,
+        note: note.slice(0, 500),
+      });
+    return { heartbeatError: error?.message ?? null };
+  } catch (e) {
+    return { heartbeatError: String(e) };
+  }
+}
+
+/**
  * Record a run that never happened because the job is paused. Written as a CLOSED row so a paused
  * job keeps reporting in and never trips the missed-run alert: pausing is a decision, not a fault.
  */
@@ -237,8 +285,10 @@ export type JobState = {
  */
 export async function getJobStates(): Promise<JobState[]> {
   const db = jobRunsDb();
+  // `derived` jobs keep no rows of their own (their reading rides another job's counts), so asking
+  // for theirs would be two guaranteed-empty queries per page load.
   return Promise.all(
-    JOBS.map(async (def): Promise<JobState> => {
+    jobsWithRuns().map(async (def): Promise<JobState> => {
       const [latest, lastFinished] = await Promise.all([
         mustQuery(
           db
@@ -283,4 +333,82 @@ export async function getJobStates(): Promise<JobState[]> {
       };
     }),
   );
+}
+
+// ---------------------------------------------------------------------------
+// The rolling 24h signals (`signal` jobs — a query, not a stored aggregate)
+// ---------------------------------------------------------------------------
+
+/** Every `signal` job's window, keyed by JobId. `mustCount` throughout: see the header's second rule. */
+export type JobSignals = Partial<Record<JobId, JobSignal>>;
+
+/**
+ * The 24h windows for the three signal jobs, as SIX head-counts in parallel.
+ *
+ * A QUERY, not a stored daily aggregate, and the cost is why: every one of these is a bounded
+ * count over a table that is either tiny by construction (`action_attempts` and `unlock_attempts`
+ * are pruned to 24h by the purge cron's own sweeps) or tiny by budget (`sent_emails` tops out near
+ * the 3,000/month Resend free tier). A row-per-day aggregate would need a table, a migration, a
+ * writer, its own backfill and its own failure mode, to save six index-or-small-table counts on a
+ * page only an operator opens. Revisit if `sent_emails` ever outgrows a seq scan; the additive
+ * `sent_emails (sent_at desc)` index in this round's migration is the first step of that.
+ *
+ * THE FAILURE half is always `job_runs` (the error rows `recordJobFailure` writes); the SUCCESS half
+ * is each path's own evidence, so "nothing failed" can never be printed without saying whether
+ * anything happened at all.
+ */
+export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
+  const db = jobRunsDb();
+  const sinceIso = new Date(nowMs - SIGNAL_WINDOW_MS).toISOString();
+
+  const failuresOf = (job: JobId) =>
+    mustCount(
+      db
+        .from("job_runs")
+        .select("*", { count: "exact", head: true })
+        .eq("job", job)
+        .eq("status", "error")
+        .gt("started_at", sinceIso),
+      `admin/jobs: 24h failures (${job})`,
+    );
+
+  const [
+    emailsSent,
+    emailFailures,
+    abuseAttempts,
+    abuseFailures,
+    unlockAttempts,
+    unlockFailures,
+  ] = await Promise.all([
+    mustCount(
+      db
+        .from("sent_emails")
+        .select("*", { count: "exact", head: true })
+        .gt("sent_at", sinceIso),
+      "admin/jobs: 24h emails sent",
+    ),
+    failuresOf("email_delivery"),
+    mustCount(
+      db
+        .from("action_attempts")
+        .select("*", { count: "exact", head: true })
+        .gt("created_at", sinceIso),
+      "admin/jobs: 24h abuse-limiter records",
+    ),
+    failuresOf("abuse_limiter"),
+    mustCount(
+      db
+        .from("unlock_attempts")
+        .select("*", { count: "exact", head: true })
+        .gt("attempted_at", sinceIso),
+      "admin/jobs: 24h unlock-limiter records",
+    ),
+    failuresOf("unlock_limiter"),
+  ]);
+
+  return {
+    email_delivery: { ok24h: emailsSent, failed24h: emailFailures },
+    abuse_limiter: { ok24h: abuseAttempts, failed24h: abuseFailures },
+    unlock_limiter: { ok24h: unlockAttempts, failed24h: unlockFailures },
+  };
 }

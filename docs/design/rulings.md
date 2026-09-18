@@ -8,6 +8,75 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-18 · the privacy hero: none; the image trail is the reference; crisp media motion is the foundation of the visual identity
+
+**Became:** `privacy-hero` round one answered none, and two lanes were cut the same night: `image-trail` (our
+own cursor-tracking image trail for the marketing site, written from scratch against the Codrops "Image
+Trail Effects" demo one, plus `privacy-hero` round two on the same engine: tighter, faster, the trailing
+photographs decaying) and `cursor-backdrop` (demo six: full-bleed photograph sections that switch with the
+cursor, for the marketing site's UI-forward chapters in place of the aurora). "Decaying trail", his ask
+for round one, meant the trailing IMAGES decaying, never a separate trail drawn behind the path. The
+resource is https://tympanus.net/Development/ImageTrailEffects/ (github.com/codrops/ImageTrailEffects);
+its photographs are never ours, and every board draws the site's own.
+
+Verbatim, his first note of the sitting: "I just started my review with the new privacy and trust hero.
+None feel right. I think the density needs to increase as well as the speed. Also, when I said "decaying
+trail," I meant of the trailing images, not an actual separate trail effect. I went to Google to find a
+better image trail reference to send you, but I actually found a resource I love itself."
+
+Verbatim, the three asks: "1. Let's rework these explorations to be tighter with images effectively
+overlapping, a bit faster pace and a polished image trail behind, like the attached screenshots. 2. Let's
+create our own cursor tracking version of this effect in the lab as well, to hopefully be used on the
+marketing site somewhere, else bank for later. If the hero explorations don't pan out, maybe it can serve
+as one instead. 3. I specifically like demo 1 of 6 for our image trail. However, demo 6 of 6
+(https://tympanus.net/Development/ImageTrailEffects/index6.html) would be amazing for the marketing site as
+well. Rather than leaning on aurora treatments for more UI-forward sections (eg. icon feature cards with no
+media visual), we could have full image background sections that switch the image based on cursor
+position. This would feel help break up the strictly alternating dark/light chapters and make the page
+feel very alive, especially once we begin our higgsfield generations for custom media. This new effect
+would be its own exploration as well."
+
+Verbatim, the identity: "I think this crisp media motion design is going to be the foundation of our
+visual identity. Home hero is beautiful, I'm loving the river, and the new image trail and demo 6 will be
+polished additions."
+
+## 2026-09-18 · the admin portal is rethought from the ground up as an on-brand devtool, split into its own deployment now, one repo, one Orchestrator
+
+**Became:** three lanes cut the same evening: `admin` (the portal's shape as round one of a question-first
+board, on the real components with fixtures), `admin-split` (the admin as its own Vercel project on this
+one repository, serving only the admin on its subdomain, the main project no longer serving it) and
+`admin-jobs` (the four backend jobs with no heartbeat wired into the console: the backup queue and its dead
+letters, the purge's sub-sweeps, transactional email, the limiters). The admin's design binds are one line
+in `docs/systems/admin-observability.md`: the platform's foundational identity carried over, everything
+else free, real colour allowed. The Orchestrator recommended and he chose separating now rather than after
+the redesign, with the deployment split rather than a second repository, because the single base
+requirement below is met only when every surface stays one tree.
+
+Verbatim, the base requirement: "I absolutely love the ability to interact with you alone as orchestrator
+across the marketing site, app, admin, library, and lab. Along with making my life easier, it's also been
+great allowing you to keep everything closely tied together (design systems, functional systems, database,
+etc), so if something changes anywhere, its impacts are handled throughout the entire system across
+surfaces. I want to ensure I can continue working with you across all platform surfaces in parallel within
+a single Orchestrator chat as the single base requirement."
+
+Verbatim, on the subdomain: "I completely understand the importance of admin (and potentially other
+surfaces) having its own dedicated subdomain, and actively encourage this. This allows each surface to
+exist elegantly serving its own purpose, with far fewer security risks than having everything tied
+together." And: "We can even separate these into separate repos, or any other project structure, so long
+as you're able to manage across all as orchestrator in a single chat."
+
+Verbatim, on the admin's look: "If we can simply carry over a foundational identity (logo, font
+family/weight/spacing, achromatic palette [we'll want additional real colors for the admin portal too,
+like charts], etc) - the rest of the admin is free to be its own thing. Those would keep it feel tied
+pretty closely already - carrying too much of our product system restricts the admin portal from best
+serving its purposes with custom UI, but I don't want it to feel like a separate brand identity entirely,
+more an on-brand devtool".
+
+Verbatim, on the portal: "we've barely touched the admin portal since we threw up the first version way
+back... 1+ dedicated agents could likely begin working on our admin portal via the Lab. Lots of open
+directions to improve it, nothing is unprotected and the full portal could likely be rethought from the
+ground up... plenty of thought should go into this prior to diving straight in."
+
 ## 2026-09-18 · the board keeps growing while he reviews: Glass round one on the app's media chrome, the loose ends as decisions, the body ladder ruled in
 
 **Became:** two lanes cut the same evening, `glass` (round one: the app's chrome over photographs first, dark

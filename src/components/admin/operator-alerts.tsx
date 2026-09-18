@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Flag, LifeBuoy, Users } from "lucide-react";
+import { Activity, Bell, Flag, LifeBuoy, Users } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -17,6 +17,13 @@ export type OperatorAlertCounts = {
   support: number;
   applicants: number;
   reports: number;
+  /**
+   * Backend jobs in a state that needs a look — overdue, failed, or flagged for attention
+   * (`countUnhealthyJobs`). OPTIONAL so the shell keeps compiling on a deploy whose layout has not
+   * started passing it yet, and absent reads as zero: this is a nudge toward /admin/jobs, and that
+   * page is the authority (it draws the loud banner when it cannot read anything at all).
+   */
+  jobs?: number;
 };
 
 // Portal-wide "needs attention" bell for the operator (mirrors the host notification bell). Fed the
@@ -51,15 +58,26 @@ const ALERTS = [
     label: "Reports",
     state: "open",
   },
+  // Backend health joins the same bell as the human queues, because "the purge sweep has not run in
+  // three days" is pending work in exactly the sense the other three are. `state` says what the
+  // number means, and "unhealthy" is the honest word: paused jobs are deliberately not counted.
+  {
+    key: "jobs",
+    href: "/admin/jobs",
+    icon: Activity,
+    label: "Jobs",
+    state: "unhealthy",
+  },
 ] as const;
 
 export function OperatorAlerts({
   support,
   applicants,
   reports,
+  jobs = 0,
 }: OperatorAlertCounts) {
-  const counts = { support, applicants, reports };
-  const total = support + applicants + reports;
+  const counts = { support, applicants, reports, jobs };
+  const total = support + applicants + reports + jobs;
   const active = ALERTS.filter((a) => counts[a.key] > 0);
 
   return (

@@ -10,6 +10,7 @@ import { createHmac } from "node:crypto";
 
 import { mustCount } from "@/lib/db/must-query";
 import { serverEnv } from "@/lib/env";
+import { recordSignalFailure } from "@/lib/jobs/failure-log";
 import {
   UNLOCK_EVENT_WINDOW_MIN,
   UNLOCK_IP_WINDOW_MIN,
@@ -57,36 +58,64 @@ export async function checkUnlockRate(
   // could not surface, because swallowing the error meant nothing ever threw.
   // NOTE this pair escaped the no-swallowed-db-error lint: `ipRes.count ?? 0` is a
   // property read, not a destructure, so the rule's AST pattern never saw it.
-  const [ipCount, evCount] = await Promise.all([
-    mustCount(
-      admin
-        .from("unlock_attempts")
-        .select("*", { count: "exact", head: true })
-        .eq("ip_hash", ipHash)
-        .gt("attempted_at", ipSince),
-      "security/unlock-limiter: per-IP failures",
-    ),
-    mustCount(
-      admin
-        .from("unlock_attempts")
-        .select("*", { count: "exact", head: true })
-        .eq("token_hash", tokenHash)
-        .gt("attempted_at", eventSince),
-      "security/unlock-limiter: per-event failures",
-    ),
-  ]);
-  return unlockRateDecision(ipCount, evCount);
+  // The counts are recorded into the `unlock_limiter` signal on their way past (QA #19): the route
+  // still fails OPEN on a throw, on purpose, but a week of silent fail-open is now a number on
+  // /admin/jobs instead of an open brute-force window nobody would ever learn about.
+  try {
+    const [ipCount, evCount] = await Promise.all([
+      mustCount(
+        admin
+          .from("unlock_attempts")
+          .select("*", { count: "exact", head: true })
+          .eq("ip_hash", ipHash)
+          .gt("attempted_at", ipSince),
+        "security/unlock-limiter: per-IP failures",
+      ),
+      mustCount(
+        admin
+          .from("unlock_attempts")
+          .select("*", { count: "exact", head: true })
+          .eq("token_hash", tokenHash)
+          .gt("attempted_at", eventSince),
+        "security/unlock-limiter: per-event failures",
+      ),
+    ]);
+    return unlockRateDecision(ipCount, evCount);
+  } catch (e) {
+    await recordSignalFailure({
+      job: "unlock_limiter",
+      area: "security",
+      operation: "unlock_attempts windowed counts",
+      error: e,
+    });
+    throw e;
+  }
 }
 
-/** Record ONE failed attempt (best-effort; the caller ignores errors). */
+/**
+ * Record ONE failed attempt (best-effort; the caller ignores errors).
+ *
+ * ★ A failing INSERT here is the limiter switching itself off: no failures are counted, so no
+ * threshold is ever reached, so every attempt is allowed. Silent until now, and indistinguishable
+ * from a night when nobody typed a wrong password.
+ */
 export async function recordUnlockFailure(
   tokenHash: string,
   ipHash: string,
 ): Promise<void> {
   const admin = createAdminClient();
-  await admin
+  const { error } = await admin
     .from("unlock_attempts")
     .insert({ token_hash: tokenHash, ip_hash: ipHash });
+  if (error) {
+    await recordSignalFailure({
+      job: "unlock_limiter",
+      area: "security",
+      operation: "unlock_attempts insert",
+      error: new Error(error.message),
+      extra: { code: error.code },
+    });
+  }
 }
 
 /** On a SUCCESSFUL unlock, clear that IP's failures for the event (the venue-crowd fix). */

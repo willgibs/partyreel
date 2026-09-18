@@ -91,12 +91,12 @@ OTP. Live and DB testing is expected with disposable test data only; the test to
 
 ## Secrets & env vars
 
-A new secret goes in all three: `.env.local`, the Vercel project env as NON-sensitive (flipped at the launch
-checkpoint), `src/lib/env.ts` (zod, `.optional()` + a lazy `assert*Env()`). Vercel env vars via the REST API with
-`$VERCEL_TOKEN` (team-scoped to the P3 Partyreel Team; the `vercel` CLI cannot run on it): read `GET
-api.vercel.com/v9/projects/partyreel/env`, write `POST /v10/projects/partyreel/env?upsert=true`. Deploy auth: `gh`
-→ `willgibs/partyreel` (`git push` uses its credential helper); `wrangler` → the P3 Cloudflare team, `wrangler whoami`
-before any Worker deploy (other projects re-login it to the personal account). Never commit a secret.
+A new secret goes in all three: `.env.local`, the Vercel project env as NON-sensitive, `src/lib/env.ts` (zod,
+`.optional()` + a lazy `assert*Env()`). Vercel env via the REST API with `$VERCEL_TOKEN` (team-scoped to the P3
+team; no `vercel` CLI): list `GET api.vercel.com/v9/projects/partyreel/env`; ★ a value decrypts ONE at a time,
+`GET /v1/projects/<id>/env/<envId>?decrypt=true` (the list's `decrypt=true` is ciphertext); write
+`POST /v10/projects/partyreel/env?upsert=true`. Deploy auth: `gh` → `willgibs/partyreel` (`git push` rides its
+helper); `wrangler` → the P3 Cloudflare team, `wrangler whoami` before any Worker deploy. Never commit a secret.
 
 ## Universal gotchas (per-system ones live in `docs/systems/`; ★ marks a landmine)
 
