@@ -136,15 +136,15 @@ The app:
 - **QA hardening — the remaining fix queue** (the ~590-agent adversarial round of 2026-07-28/29;
   Q1-Q4 + the write spine shipped as milestone-1.5 — [`systems/host-app.md`](systems/host-app.md) +
   [`CHANGELOG.md`](CHANGELOG.md); this list IS the remaining queue). Roughly in the intended order:
+  - **Abuse + jobs + observability, deferred from `admin-jobs` (2026-09-18):** replay a dead letter from
+    `/admin/jobs` (the depth is reported and the daily reconcile is the remedy; a real replay wants a DLQ consumer in
+    `wrangler.jsonc`, which changes delivery semantics) · a per-day `job_signals` aggregate if `sent_emails` ever
+    outgrows a 24h head-count (the `sent_at` index is the first step) · #37/#38 below stay untouched.
   - **Abuse + jobs + observability:** #13 a `presign` abuse kind (pure TS, `action_attempts` is
     kind-generic; needs `Retry-After`/429 vocabulary the pipeline lacks today) · #14 the contact + careers
     limiter, fail-CLOSED (unauthenticated + unthrottled today: each call = one service-role insert + one
     Resend send, and ~3,000 requests drain the monthly quota, after which the orphan-sweep and prune
-    breaker alerts cannot send) · #15 the purge cron + backup Worker have NO `/admin` surface and NO kill
-    switch (the P8 mandate; `/admin/exports` + `/admin/reels` are the byte-identical template, and
-    NOTHING persists a job run today — no heartbeat table exists) · #27 per-ROW isolation inside the
-    sweep loops (isolation is per-sweep today, so one bad address aborts the rest of that sweep's
-    accounts) · #37/#38 persist the pagination cursor for the backup reconcile + orphan sweep (both are
+    breaker alerts cannot send) · #37/#38 persist the pagination cursor for the backup reconcile + orphan sweep (both are
     function-local `let`s, so both restart at bucket head every run and nothing past the per-run cap is
     ever examined) · #39 POST id batches (supabase-js renders `.in()` into the URL; several sites can
     reach ~1000-2000 UUIDs) · #22 scrub Sentry (guest capability tokens ride the URL PATH, and
@@ -183,7 +183,10 @@ The app:
   hook — audience/transport design lands here, and late joiners see the card meanwhile, no catch-up mail).
   Build the foundational features first so
   we know what needs notifying. Extension point: [`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
-- **Admin / operations portal** — the portal is being rethought from the ground up via the lab (`admin` round one, cut 2026-09-18: the shape first; an on-brand devtool per Will's ruling) and split into its own deployment (`admin-split`). **P8 backend-ops & observability (the priority piece; the four jobs with no heartbeat are `admin-jobs`, cut 2026-09-18):** every backend
+- **Admin deployment, deferred from `admin-split` (2026-09-18):** revisit the admin project's preview builds if
+  deployment storage bites again (pause its git deployments between rounds; never a path-based skip in
+  `scripts/vercel-ignore-build.mjs`) · give the admin deployment its own Sentry project (it shares `partyreel`'s DSN).
+- **Admin / operations portal** — the portal is being rethought from the ground up via the lab (`admin` round one, cut 2026-09-18: the shape first; an on-brand devtool per Will's ruling) and split into its own deployment (`admin-split`, integrated 2026-09-18; the cutover's remaining steps are in `tracks/orchestrator.md`). **Found by the `admin` board in the shipped portal (2026-09-18):** `DistributionChart` hard-codes `YAxis width={28}`, so a four-digit tick renders as its last three characters (`/admin/metrics` hits it the day a count reaches 1,000); the home's card grid and the nav list two different portals (Exports has a card and no nav entry; Reels, Forensics and Jobs have a nav entry and no card); four destructive grammars whose friction does not track the damage (pausing the purge sweep is a bare switch, deleting one account retypes an email). **Deferred from the board:** the portal at a phone, for an operator glancing at health away from a desk; an operator audit log (what was done, by whom, with an Undo where one exists), only if the arm-in-place grammar wins decision 5. **P8 backend-ops & observability (the priority piece; the four jobs with no heartbeat are `admin-jobs`, cut 2026-09-18):** every backend
   job (the cron sweeps, the media-backup Worker + DLQ, the **weekly backup prune**, the DB backup)
   manageable + health-surfaced in `/admin` with zero silent failures (a missing nightly backup pages,
   never passes quietly). The prune currently ships **alert-only** (breaker trips page via Sentry + a

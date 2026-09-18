@@ -11,11 +11,26 @@ timing-safe-comparing `Authorization` against `Bearer ${CRON_SECRET}` (Vercel Cr
 bearer; `vercel.json` registers the schedule — you don't wire the header). `CRON_SECRET` is `.optional()`
 in [`env.ts`](../../src/lib/env.ts); `assertCronEnv()` asserts it lazily at request time.
 
-**11 sweeps, each independently try/caught:** `expired_events`, `removed_media`, `orphans`,
-`expired_passes`, `over_capacity`, `renewal_nudges`, `inactive_free_events`, `standby_budget`,
-`unlock_attempts`, `action_attempts`. (The `orphans` sweep is guarded by the circuit-breaker → [durability-backups.md](durability-backups.md).)
-Isolation is per-SWEEP, not per-row: inside each sweep's per-account loop a single throw (a bad row, a
-failed email) still aborts the rest of that sweep's accounts — QA #27, queued for the jobs round.
+**11 sweeps, each independently try/caught:** `expired_events`, `removed_media`, `deleted_accounts`,
+`orphans`, `expired_passes`, `over_capacity`, `renewal_nudges`, `inactive_free_events`,
+`standby_budget`, `unlock_attempts`, `action_attempts`. (The `orphans` sweep is guarded by the
+circuit-breaker → [durability-backups.md](durability-backups.md).)
+
+**FOUR of them are jobs of their own** (`orphans`, `deleted_accounts`, `inactive_free_events`,
+`over_capacity`): the ones that loop over ACCOUNTS and either email somebody or delete bytes. Each
+opens and closes its own `job_runs` row inside the parent invocation, with its own `ops_flags` switch
+and its own card, through `createSweepRunner` ([`jobs/purge-sweeps.ts`](../../src/lib/jobs/purge-sweeps.ts))
+— the route's `runSweep` is two lines that delegate to it, and the other seven behave exactly as
+before. So an operator can pause the inactivity sweep for a night without giving up storage
+reclamation, and a sweep failing for a week is a red card rather than one key in the parent's counts.
+→ [admin-observability.md](admin-observability.md).
+
+★ **Isolation is now per-ROW inside those loops** (QA #27, closed). `forEachIsolated`
+([`jobs/isolate.ts`](../../src/lib/jobs/isolate.ts)) wraps the per-account bodies of `over_capacity`,
+`inactive_free_events`, `renewal_nudges` and `deleted_accounts`, so one bounced address no longer
+costs every account behind it. It never buys silence: the tally travels with the sweep's result and
+any `rows_failed` closes that sub-sweep's run as an ERROR, and five consecutive failures abort the
+loop (a dead dependency, not a bad row).
 
 `purge_media_rows` does the atomic R2-then-row reclaim + the `storage_used_bytes` decrement — it is
 **service-role-only** and must stay REVOKED from anon/authenticated (never in the advisor lists). R2 bulk
@@ -61,6 +76,16 @@ helpers in [`r2/delete.ts`](../../src/lib/r2/delete.ts): `deleteR2Objects()` chu
   state (the 3,000/mo free-tier guard). On send failure it releases the claim (retries next run; never
   double-sends). Templates: [`email/templates.ts`](../../src/lib/email/templates.ts). Needs
   `RESEND_API_KEY` + `EMAIL_FROM` via lazy `assertResendEnv()`.
+- ★ **Every fallible call is ABOVE the claim** — `assertResendEnv()` and `getResend()` both. ONLY a
+  Resend `sendError` releases the row, so anything that throws between the claim and the send burns
+  that `(kind, dedupe_key)` forever: one over-cap warning per host, permanently un-sendable, fixable
+  only by a manual DELETE. The window now holds exactly one fallible call, the send itself.
+- ★ **A failed send is no longer silent.** It released the claim and threw, the sweep caught it, and
+  the cron retried the same refused address every night forever — indistinguishable from a healthy
+  night on every console we had. Both failure branches now record into the `email_delivery` signal
+  (a Sentry event plus one throttled `job_runs` error row), which `/admin/jobs` reads as "N sent, N
+  failed or refused in the last 24 hours". The THROW is unchanged; only the silence is.
+  → [admin-observability.md](admin-observability.md).
 
 ## The sweeps that nudge / enforce (decisions key off ACTIVE bytes)
 

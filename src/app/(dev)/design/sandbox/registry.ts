@@ -1,5 +1,6 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
+import { ADMIN } from "./admin/spec";
 import { ALBUM_HERO } from "./album-hero/spec";
 import { ALBUM_PAGE } from "./album-page/spec";
 import { BODY_TYPE } from "./body-type/spec";
@@ -31,6 +32,7 @@ import { VOICE } from "./voice/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   IMAGE_TRAIL,
+  ADMIN,
   LOOSE_ENDS,
   GLASS,
   BODY_TYPE,

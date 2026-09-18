@@ -128,9 +128,45 @@ against a reference, never a cap and a test.
   Stripe stays TEST; no launch switch flipped. The verification pass on partyreel.com is recorded below the
   merge in git.
 
-**Next.** His sitting on the five boards on the desk (the four of the ninth batch and `voice`), and the ghost on
-a disposable event on the alias; the glass, loose-ends and body-type boards integrate as they hand off; then the
-wiring lanes (the album page, the river, the privacy hero, the galleries) and round two of `voice` from his notes.
+- `admin` integrated (`d6305818`; cut `0681652c`): round one of the portal's shape as seven decisions on the real
+  admin components fed one Tuesday of fixtures at 1440 by 900 (two backend runs down, one account over cap, three
+  reports, nine messages): the operator's home (a ranked list of what is waiting recommended), the nav for twelve
+  surfaces (a rail plus a command palette), density (a table for data and a reading pane for prose), how far a
+  state's colour travels (the chip), one grammar for three destructive acts (a sheet sized to the damage), where
+  health is said (a band under the bar on every page) and how much of the product's bar the portal keeps (a 44 px
+  tool bar). Four screens from Mobbin shaped decisions and were designed from the ground up. Four questions carried
+  on their recommendations and closed by the Orchestrator: the chart ramp stays `loose-ends`'s for the product and
+  the admin gets its own in the wiring round; `touchpoints.ts` gained the `admin` surface at the merge; nothing at
+  375 and no light-against-dark in round one; the palette ships closed behind a key if it wins. Three defects it
+  found in the shipped portal are on the ROADMAP's admin bucket.
+- `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the
+  tree. One pure module, `src/lib/surface`, answers which surface a build serves, and the proxy, the `requireAdmin`
+  seam and the purge cron decide from it: the admin surface serves an allow-list (the portal, sign-in, MFA, the cron
+  route, the design-gate probe) and rewrites the rest to a real 404, the app surface 404s `/admin` whatever the Host
+  says, and unset serves both, which is the whole rollback. The cron answers and stops on the admin surface, and the
+  database showed that call writing no heartbeat. Four calls the lane recommended stand (the probe and `robots.txt`
+  stay reachable on the admin host; the domain moves after the milestone that puts this code on `main`; a
+  `[preview]` push builds twice). The cutover ran the same night up to the preview proof: Will created
+  `partyreel-admin` in the dashboard and minted a team token (the old one was project-scoped), the Orchestrator
+  mirrored its settings, copied and verified its env value by value (the first copy was ciphertext: Vercel's env
+  list never decrypts), dropped the Sentry upload trio that failed its build, added the admin preview callback to
+  the Supabase redirect list in Chrome, and probed the preview host's allow-list: the portal, sign-in, MFA, the cron
+  route, the probe and `robots.txt` serve, everything else is a real 404. Left: Will's sign-in there, the milestone,
+  the domain move (`docs/tracks/orchestrator.md`).
+- `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console stopped meaning four crons. The catalog
+  gained three kinds (a `scheduled` job with its own rows, a `signal` whose only question is what failed in the last
+  24 hours, a `derived` reading riding another job's counts), all through the one pure `jobHealth`, and nine jobs
+  joined it. The backup Worker reads the Cloudflare queue and dead-letter depths on every run (any dead letter is a
+  failure, alerting where the number arrives, since a freshness rule can only page on silence); the purge cron's four
+  account-looping sweeps became jobs with their own switches and per-row isolation (QA #27 closed); `sendOnce` and
+  both rate limiters stopped failing invisibly (QA #19). The lane's cross-lane patch (six files outside its owns)
+  landed in the merge; the additive migration (four `ops_flags` rows, one `sent_emails` index) is applied with the
+  advisor set unchanged; the Worker deployed the same night (version `d7b16bcc`, both queue producers bound), so the depth reading lands with the next 05:00 UTC run.
+
+**Next.** His sitting on the boards on the desk (`privacy-hero` already answered none, its round two in
+`image-trail`), and the ghost on a disposable event on the alias; the `admin` board, `image-trail` and
+`cursor-backdrop` integrate as they hand off; the admin cutover's remaining steps as Will's two dashboard steps
+land (the Vercel project, the wrangler login); then the wiring lanes from his notes.
 
 ## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` to `00e82dba`)
 
