@@ -233,7 +233,9 @@ async function reconcile(env: Env): Promise<void> {
 }
 
 /** Two optional lines into one note, or undefined when there is nothing to say. */
-function joinNotes(...parts: (string | null | undefined)[]): string | undefined {
+function joinNotes(
+  ...parts: (string | null | undefined)[]
+): string | undefined {
   const kept = parts.filter((p): p is string => Boolean(p));
   return kept.length ? kept.join("; ").slice(0, 500) : undefined;
 }

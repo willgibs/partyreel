@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  forEachIsolated,
-  tallyIsClean,
-  tallyNote,
-} from "@/lib/jobs/isolate";
+import { forEachIsolated, tallyIsClean, tallyNote } from "@/lib/jobs/isolate";
 
 const noop = () => {};
 

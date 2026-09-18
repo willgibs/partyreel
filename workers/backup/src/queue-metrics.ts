@@ -74,11 +74,17 @@ export async function readQueue(
     const backlog = Number(m.backlogCount);
     if (!Number.isFinite(backlog)) return null;
     const oldest = m.oldestMessageTimestamp
-      ? Math.max(0, Math.round((nowMs - m.oldestMessageTimestamp.getTime()) / 60_000))
+      ? Math.max(
+          0,
+          Math.round((nowMs - m.oldestMessageTimestamp.getTime()) / 60_000),
+        )
       : null;
     return { backlog, oldestMinutes: oldest };
   } catch (err) {
-    console.error("queue metrics: read failed", { queue: label, err: String(err) });
+    console.error("queue metrics: read failed", {
+      queue: label,
+      err: String(err),
+    });
     return null;
   }
 }

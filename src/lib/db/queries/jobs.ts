@@ -89,7 +89,9 @@ export async function getJobFlags(): Promise<Record<JobId, boolean>> {
   const admin = createAdminClient();
   // A job with a null flagKey has nothing to pause (the derived readings and the rolling signals):
   // it is always "enabled", because there is no run for a switch to stop.
-  const keys = JOBS.map((j) => j.flagKey).filter((k): k is string => k !== null);
+  const keys = JOBS.map((j) => j.flagKey).filter(
+    (k): k is string => k !== null,
+  );
   const rows = await mustQuery(
     admin.from("ops_flags").select("key, enabled").in("key", keys),
     "admin/jobs: kill switches",
@@ -97,7 +99,8 @@ export async function getJobFlags(): Promise<Record<JobId, boolean>> {
   const byKey = new Map((rows ?? []).map((r) => [r.key, r.enabled]));
   const out = {} as Record<JobId, boolean>;
   for (const job of JOBS) {
-    out[job.id] = job.flagKey === null ? true : (byKey.get(job.flagKey) ?? true);
+    out[job.id] =
+      job.flagKey === null ? true : (byKey.get(job.flagKey) ?? true);
   }
   return out;
 }
@@ -205,15 +208,17 @@ export async function recordJobFailure(
 ): Promise<{ heartbeatError: string | null }> {
   try {
     const now = new Date().toISOString();
-    const { error } = await jobRunsDb().from("job_runs").insert({
-      job,
-      status: "error",
-      triggered_by: "schedule",
-      started_at: now,
-      finished_at: now,
-      duration_ms: 0,
-      note: note.slice(0, 500),
-    });
+    const { error } = await jobRunsDb()
+      .from("job_runs")
+      .insert({
+        job,
+        status: "error",
+        triggered_by: "schedule",
+        started_at: now,
+        finished_at: now,
+        duration_ms: 0,
+        note: note.slice(0, 500),
+      });
     return { heartbeatError: error?.message ?? null };
   } catch (e) {
     return { heartbeatError: String(e) };

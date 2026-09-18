@@ -63,7 +63,11 @@ describe("readQueue", () => {
   });
 
   it("never reports a negative age for a clock skew", async () => {
-    const reading = await readQueue(queue(1, new Date(NOW + 5000)), NOW, "live");
+    const reading = await readQueue(
+      queue(1, new Date(NOW + 5000)),
+      NOW,
+      "live",
+    );
     expect(reading?.oldestMinutes).toBe(0);
   });
 });

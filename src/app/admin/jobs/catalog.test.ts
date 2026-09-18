@@ -398,7 +398,11 @@ describe("readDepth and the reading rules", () => {
 
   it("reads the depth the Worker reported", () => {
     const reading = readDepth(defOf("backup_dead_letters"), [
-      source("backup_reconcile", { dead_letter_backlog: 3, copied: 9 }, 3600_000),
+      source(
+        "backup_reconcile",
+        { dead_letter_backlog: 3, copied: 9 },
+        3600_000,
+      ),
     ]);
     expect(reading?.value).toBe(3);
     expect(reading?.sourceHealth).toBe("ok");

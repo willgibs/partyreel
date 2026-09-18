@@ -43,14 +43,17 @@ describe("the sub-sweep map", () => {
 
 describe("sanitizeCounts", () => {
   it("keeps the numbers a tally is made of", () => {
-    expect(sanitizeCounts({ events: 3, media_rows: 0, freed_bytes: 12 })).toEqual(
-      { events: 3, media_rows: 0, freed_bytes: 12 },
-    );
+    expect(
+      sanitizeCounts({ events: 3, media_rows: 0, freed_bytes: 12 }),
+    ).toEqual({ events: 3, media_rows: 0, freed_bytes: 12 });
   });
 
   it("keeps booleans and short strings, like a cutoff stamp", () => {
     expect(
-      sanitizeCounts({ breaker_tripped: false, before: "2026-09-18T00:00:00Z" }),
+      sanitizeCounts({
+        breaker_tripped: false,
+        before: "2026-09-18T00:00:00Z",
+      }),
     ).toEqual({ breaker_tripped: false, before: "2026-09-18T00:00:00Z" });
   });
 
@@ -59,7 +62,8 @@ describe("sanitizeCounts", () => {
     // than through Sentry's scrubber. Numbers only, plus the short stamps.
     const out = sanitizeCounts({
       ok: 1,
-      error: "resend send (over_cap_reminder): no such recipient will@example.com",
+      error:
+        "resend send (over_cap_reminder): no such recipient will@example.com",
       note: "x".repeat(200),
     });
     expect(out).toEqual({ ok: 1 });
@@ -84,7 +88,9 @@ describe("sanitizeCounts", () => {
 
 describe("tallyReportsFailedRows", () => {
   it("is false for a clean sweep", () => {
-    expect(tallyReportsFailedRows({ accounts: 10, rows_failed: 0 })).toBe(false);
+    expect(tallyReportsFailedRows({ accounts: 10, rows_failed: 0 })).toBe(
+      false,
+    );
     expect(tallyReportsFailedRows({ accounts: 10 })).toBe(false);
   });
 

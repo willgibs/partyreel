@@ -342,7 +342,11 @@ export type JobHealth =
   | "never";
 
 /** The health states an operator has to do something about. Drives the alerts bell. */
-export const UNHEALTHY: readonly JobHealth[] = ["missed", "failed", "attention"];
+export const UNHEALTHY: readonly JobHealth[] = [
+  "missed",
+  "failed",
+  "attention",
+];
 
 export function isUnhealthy(health: JobHealth): boolean {
   return UNHEALTHY.includes(health);
@@ -484,7 +488,9 @@ export function readDepth(
 ): JobReading | null {
   if (def.kind !== "derived") return null;
   const key = DEPTH_COUNT_KEYS[def.id as keyof typeof DEPTH_COUNT_KEYS];
-  const candidates = sources.filter((s) => (def.readFrom ?? []).includes(s.job));
+  const candidates = sources.filter((s) =>
+    (def.readFrom ?? []).includes(s.job),
+  );
   if (candidates.length === 0) return null;
 
   let best: (DepthSource & { value: number }) | null = null;

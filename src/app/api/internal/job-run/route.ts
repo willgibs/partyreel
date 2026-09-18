@@ -32,6 +32,7 @@ import {
   DEPTH_COUNT_KEYS,
   JOBS,
   QUEUE_BACKLOG_ATTENTION,
+  jobById,
 } from "@/app/admin/jobs/catalog";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import {
@@ -143,6 +144,14 @@ export async function POST(request: Request): Promise<Response> {
   const job = body.job as (typeof JOBS)[number]["id"];
 
   if (body.phase === "start") {
+    // Only a SCHEDULED job has a run to open. A `signal` entry owns nothing but closed failure rows
+    // and a `derived` one owns no rows at all, so a start against either would leave a `running` row
+    // that nothing will ever close — which the console would eventually read as a stuck job. Found
+    // by pointing the endpoint at its own new job ids.
+    if (jobById(job)?.kind !== "scheduled") {
+      return new Response("Not a scheduled job", { status: 400 });
+    }
+
     let enabled: boolean;
     try {
       enabled = await isJobEnabled(job);

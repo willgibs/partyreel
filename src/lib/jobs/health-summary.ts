@@ -35,9 +35,7 @@ import { captureError } from "@/lib/observability/sentry";
  * A PAUSED job is not counted — pausing is a decision, and a bell that keeps ringing about a switch
  * the operator set themselves is a bell they learn to ignore.
  */
-export async function countUnhealthyJobs(
-  nowMs = Date.now(),
-): Promise<number> {
+export async function countUnhealthyJobs(nowMs = Date.now()): Promise<number> {
   try {
     const [flags, states, signals] = await Promise.all([
       getJobFlags(),

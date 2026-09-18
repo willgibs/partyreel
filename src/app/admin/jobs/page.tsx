@@ -96,18 +96,19 @@ const SIGNAL_LABEL: Partial<Record<JobId, { ok: string; failed: string }>> = {
 };
 
 /** What a `derived` reading counts, and the remedy to say when it is not zero. */
-const READING_LABEL: Partial<Record<JobId, { unit: string; remedy: string }>> = {
-  backup_queue: {
-    unit: "waiting to copy",
-    remedy:
-      "A backlog drains on its own; the daily reconcile copies anything the live queue never reached.",
-  },
-  backup_dead_letters: {
-    unit: "given up on",
-    remedy:
-      "The daily backup reconcile copies anything the live queue missed, so a dead letter clears on its next run.",
-  },
-};
+const READING_LABEL: Partial<Record<JobId, { unit: string; remedy: string }>> =
+  {
+    backup_queue: {
+      unit: "waiting to copy",
+      remedy:
+        "A backlog drains on its own; the daily reconcile copies anything the live queue never reached.",
+    },
+    backup_dead_letters: {
+      unit: "given up on",
+      remedy:
+        "The daily backup reconcile copies anything the live queue missed, so a dead letter clears on its next run.",
+    },
+  };
 
 /** A signal job's "No activity" reads differently from a scheduled job's "No runs yet". */
 const NEVER_LABEL: Record<string, string> = {
