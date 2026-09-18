@@ -72,8 +72,7 @@ export type SandboxId =
   | "album-hero"
   | "river-visual"
   | "glow-doctrine"
-  | "glow-moments"
-  | "rounding";
+  | "glow-moments";
 
 export type Ruling = {
   id: RulingId;
@@ -573,29 +572,24 @@ export const RULINGS: Ruling[] = [
       "src/app/(dev)/design/(shell)/library/foundations/page.tsx#ladder",
     ],
   },
+  // RULED AND RETIRED (round seven, 2026-09-18). Will answered every step
+  // (family C, today's actions, quarters, the dead rungs dropped, the gap
+  // pinned); the board left sandbox/ and docs/design/rulings.md keeps his words.
   {
     id: "rounding",
     title: "The rounding",
     surface: "shared",
-    ruled: "open (the revamp's catalog, 2026-09-16)",
-    shipped: null,
-    why: "Bible 8 under exploration: the radius values on the tuner, the sharp-surface / round-action contrast at candidate values for every radius token; the sitting surface.",
+    ruled: "2026-09-18",
+    shipped:
+      "C, soft: an 8px surface, a 12px floating layer, a 4px photograph with the gap pinned to it, the steps in quarters, the 44px cta",
+    why: "Family C in quarters: one token per layer, a control still twice as round as the surface under it, the gallery gap following the photograph's corner.",
     lives: [
       "docs/systems/design-system.md#rounding-sharp-surfaces-round-actions",
       "src/app/globals.css",
-      "src/components/dev/motion-tuner-config.ts",
+      "src/app/theme.css",
+      "src/components/ui/button.tsx",
+      "src/app/(dev)/design/(shell)/library/foundations/page.tsx#radius",
     ],
-    board: {
-      note: "Six families as cards, each the card, the menu, the photograph and the button at true size plus a 375 frame; two families on the same real page scroll-locked; four questions (the button rung, the derived ladder, the dead rungs, the album's gap)",
-      variants: [
-        "A, today",
-        "B, square",
-        "C, soft",
-        "D, one family",
-        "E, print",
-        "F, half a step",
-      ],
-    },
   },
   {
     id: "album-hero",

@@ -84,7 +84,7 @@ export function ReelPayoff() {
           {reel.recipe.clipIds.map((id) => (
             <span
               key={id}
-              className="relative block h-8 overflow-hidden rounded-[3px] ring-1 ring-white/10"
+              className="relative block h-8 overflow-hidden rounded-tile ring-1 ring-white/10"
             >
               <Image
                 src={marketingImage(id).src}

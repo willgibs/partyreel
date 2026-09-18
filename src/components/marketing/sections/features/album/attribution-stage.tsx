@@ -89,7 +89,7 @@ export function AttributionStage() {
                   <span className="inline-flex items-center gap-1.5">
                     <TextSwap value={current.name} />
                     {current.badge && (
-                      <span className="inline-flex h-4 items-center rounded-4xl bg-white/20 px-1.5 text-[10px] font-medium">
+                      <span className="inline-flex h-4 items-center rounded-full bg-white/20 px-1.5 text-[10px] font-medium">
                         Host
                       </span>
                     )}

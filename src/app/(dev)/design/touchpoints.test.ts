@@ -37,10 +37,9 @@ describe("the design lab's rulings registry", () => {
         // globals.css) and floating surfaces (Card's anatomy, the nested
         // corner and the entrances by frequency, now ui/floating-layer.ts and
         // the menu's new parts). A ruled board leaves sandbox/ and keeps only
-        // its RULINGS row; type-phone left the same way on 2026-09-18 (the
-        // ladder's order at a phone, now theme.css and its policy)
-        // the review wave (2026-09-14)
-        "rounding",
+        // its RULINGS row; type-phone and rounding (the review wave's last
+        // board) left the same way on 2026-09-18, into theme.css and the
+        // radius tokens
         // round four (2026-09-15): the burst and the river, killed as heroes
         "album-hero",
         "river-visual",

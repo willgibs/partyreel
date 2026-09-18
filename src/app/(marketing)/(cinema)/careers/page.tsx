@@ -88,7 +88,7 @@ export default function CareersPage() {
         heading={CAREERS_INTRO.headline}
         subhead={CAREERS_INTRO.subhead}
         actions={
-          <Button asChild size="lg" className="h-11 px-6 text-base">
+          <Button asChild size="cta">
             <Link
               href="#open-roles"
               {...trackAttrs("cta_click", {

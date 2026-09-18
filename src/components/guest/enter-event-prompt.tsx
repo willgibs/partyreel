@@ -188,8 +188,9 @@ function PasswordLogin({
         </div>
       </div>
       <Button
+        size="cta"
         type="submit"
-        className="h-11 w-full text-[15px]"
+        className="w-full text-[15px]"
         disabled={pending}
       >
         {pending ? "Signing in…" : "Log in"}

@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 243 contracts on 42 components · 5 standing boards.**
+**22 laws · 18 policies · 243 contracts on 42 components · 4 standing boards.**
 
 ## What binds you
 
@@ -222,7 +222,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | The record is two rounds deep | a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |
 | Every track claims its lane | a malformed track manifest, or two live tracks claiming the same path prefix. | `src/lib/track-manifests.test.ts:1` |
-| One type ladder, and every heading on it | a step theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading. | `src/lib/type-ladder-policy.test.ts:1` |
+| One type ladder, and every heading on it | a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading. | `src/lib/type-ladder-policy.test.ts:1` |
 
 ## Guidance
 
@@ -364,7 +364,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
-| `rounding` | shared | Six families as cards, each the card, the menu, the photograph and the button at true size plus a 375 frame; two families on the same real page scroll-locked; four questions (the button rung, the derived ladder, the dead rungs, the album's gap) |
 | `album-hero` | marketing | Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit |
 | `river-visual` | marketing | The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost |
 

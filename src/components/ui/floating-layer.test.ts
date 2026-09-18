@@ -21,7 +21,7 @@ import {
  * exactly where nobody was looking. Three drifts, all real, all found by
  * reading rather than by a gate:
  *
- *   - `navigation-menu` shipped `rounded-lg` (the SHARP 2px general-UI corner)
+ *   - `navigation-menu` shipped `rounded-lg` (the SURFACE corner, 2px then)
  *     and a stock Tailwind shadow, and was outside the family for months;
  *   - `select` shipped `rounded-md border` with no entrance at all, so it was
  *     the one menu in the product that opened on the browser's timing;
@@ -225,11 +225,12 @@ describe("bible 15: one floating layer, read from one contract", () => {
   })
 
   it("keeps the corner derived from one token and the clocks to three rungs", () => {
-    // The pair Will ruled: an 8px panel around 4px rows (`radius=nested`,
-    // confirmed by `roundness=nested`). The VALUES are globals.css's and no
-    // test here asserts them; what is pinned is that the row is DERIVED from
-    // the panel's token, so retuning one token moves both and bible 9's nested
-    // corner cannot drift apart again.
+    // The pair Will ruled nests (`radius=nested`, confirmed by
+    // `roundness=nested`), and the corner ladder sized it: a 12px panel around
+    // 8px rows under family C (2026-09-18), 8 and 4 before it. The VALUES are
+    // globals.css's and no test here asserts them; what is pinned is that the
+    // row is DERIVED from the panel's token, so retuning one token moves both
+    // (C's retune did exactly that) and bible 9's nested corner cannot drift.
     expect(floatingCorner).toBe("rounded-float")
     // The row is a calc OFF the panel's token (the subtracted px is the panel's
     // own padding, bible 9's gap), never a radius of its own.

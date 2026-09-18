@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { BIBLE } from "@/app/(dev)/design/rules/bible";
 import { COMPONENTS } from "@/app/(dev)/design/rules/rules";
-import { RULINGS } from "@/app/(dev)/design/touchpoints";
+import { RULINGS, SANDBOX } from "@/app/(dev)/design/touchpoints";
 
 import {
   DOC_FILES,
@@ -30,20 +30,30 @@ const ROOT = process.cwd();
 const onDisk = (file: string) => existsSync(join(ROOT, file));
 
 describe("parseRef: the boards and the bible", () => {
-  // The example was the palette, then light, until each one's ruling retired
-  // its board (both 2026-09-17). The URL form validates against the STANDING
-  // ids, so the example has to be a board that stands; `board:` does not
-  // validate, which is why the third case still reads an id that has left.
-  it("reads /design/c/rounding#rnd-02 as the rounding board at rnd-02", () => {
-    expect(parseRef("/design/c/rounding#rnd-02")).toEqual({
-      kind: "board",
-      id: "rounding",
-      anchor: "rnd-02",
-    });
-    expect(parseRef("/design/lab/rounding")).toEqual({
-      kind: "board",
-      id: "rounding",
-    });
+  // ★ NEVER A NAMED BOARD. The URL form validates against the STANDING ids
+  // (touchpoints' SANDBOX, which is what parseRef reads), and a named example
+  // turned this red at every retirement: the palette, light, then rounding
+  // (2026-09-17 and -18). So the example is whichever board stands first, and
+  // with none standing there is nothing to parse and the case skips, never
+  // fails. `board:` does not validate, so its case reads an id that left long
+  // ago and always runs.
+  const standing = SANDBOX[0]?.id;
+  it.runIf(standing !== undefined)(
+    "reads a standing board's /design/c/ and /design/lab/ URLs as that board",
+    () => {
+      expect(parseRef(`/design/c/${standing}#x-02`)).toEqual({
+        kind: "board",
+        id: standing,
+        anchor: "x-02",
+      });
+      expect(parseRef(`/design/lab/${standing}`)).toEqual({
+        kind: "board",
+        id: standing,
+      });
+    },
+  );
+
+  it("reads board:<id>#<anchor> without validating the id", () => {
     expect(parseRef("board:palette#pal-02")).toEqual({
       kind: "board",
       id: "palette",

@@ -93,10 +93,15 @@ export function EntryShell({
           data-entry-overlay
           className="fixed inset-0 z-50 bg-black/10 supports-backdrop-filter:backdrop-blur-xs"
         />
+        {/* ★ THE SHEET IS THE FLOATING LAYER, SO IT WEARS ITS CORNER (Will,
+            2026-09-18, `actions=today`): `rounded-t-float`, the same token as
+            the desktop dialog this surface becomes at 640. It was 1.4x a
+            BUTTON's corner (22.4px), which tied the first surface every guest
+            meets to the action rung, so a button retune reshaped the sheet. */}
         <Drawer.Content
           data-entry-drawer
           onCloseAutoFocus={(e) => e.preventDefault()}
-          className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-[calc(var(--radius-action)*1.4)] bg-popover px-6 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-sm text-popover-foreground shadow-layer ring-1 ring-foreground/10 outline-none"
+          className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-float bg-popover px-6 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-sm text-popover-foreground shadow-layer ring-1 ring-foreground/10 outline-none"
         >
           {/* The handle is REAL now (vaul drag target) and renders only when
               dragging actually dismisses - the R2 honesty rule. */}

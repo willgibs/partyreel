@@ -335,7 +335,7 @@ export function CinemaHero() {
             {SITE_SUBHEAD}
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3 lg:mt-7">
-            <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Button asChild size="cta">
               <Link
                 href={MARKETING_CTA.href}
                 {...trackAttrs("cta_click", {
@@ -351,13 +351,13 @@ export function CinemaHero() {
                 do?" and the reel answers "what do I get?", and they are
                 different questions. */}
             <Button
-              size="lg"
+              size="cta"
               variant="outline"
               onClick={() => {
                 track("reel_play");
                 setOverlayOpen(true);
               }}
-              className="h-11 gap-2 border-white/35 bg-white/5 px-5 text-base text-white hover:border-white/50 hover:bg-white/15 hover:text-white"
+              className="gap-2 border-white/35 bg-white/5 px-5 text-white hover:border-white/50 hover:bg-white/15 hover:text-white"
             >
               <Play className="size-4 fill-current" />
               Watch a sample reel

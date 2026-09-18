@@ -458,7 +458,7 @@ export function ReelStudio({
                     aria-pressed={active}
                     onClick={() => config.setCoverMediaId(m.id)}
                     className={cn(
-                      "shrink-0 overflow-hidden rounded-[4px] transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] motion-reduce:active:scale-100",
+                      "shrink-0 overflow-hidden rounded-tile transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] motion-reduce:active:scale-100",
                       active && "ring-2 ring-reel",
                     )}
                   >

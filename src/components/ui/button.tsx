@@ -4,6 +4,15 @@ import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * The 44px action's corner, as ONE string: the `cta` size wears it, and so do
+ * the few 44px actions that are not a <Button> (the guest reel's overlay pair,
+ * the footer's hairline CTA, the reel builder's Create), so the site's loudest
+ * button has one corner wherever it is drawn. 1.1x the 40px button's corner,
+ * derived from --radius-action, so the tuner's one knob moves it too.
+ */
+export const ctaCorner = "rounded-[calc(var(--radius-action)*1.1)]"
+
 const buttonVariants = cva(
   // V1 craft: actions are the ROUND family (radius ~0.4 x height, per size
   // below) with press feedback as a 150ms scale on the strong curve -
@@ -30,12 +39,21 @@ const buttonVariants = cva(
       // 0.9x of the 40px button's 16px), so one knob on the tuner moves the
       // whole action ladder (the rounding round, 2026-09-14; the literals
       // 0.6rem / 0.7rem / 0.9rem they replace were the same numbers, frozen).
+      //
+      // ★ `cta` IS THE 44px BUTTON, NAMED (Will, 2026-09-18, `actions=today`).
+      // Every hero, CTA band, dead end and form submit on the site forced
+      // `size="lg"` up to h-11 with `h-11 px-6 text-base`, so the site's
+      // loudest button wore the 36px button's corner (0.9x, 14.4px) on a 44px
+      // box, at 45 call sites. It is a size now, on the same rule as the rest:
+      // 1.1x of the 40px button's corner (17.6px), derived, so the one knob
+      // still moves it. Never force another size up to h-11; use this.
       size: {
         default:
           "h-8 gap-1.5 rounded-action-sm px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         xs: "h-6 gap-1 rounded-[calc(var(--radius-action)*0.6)] px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 rounded-[calc(var(--radius-action)*0.7)] px-2.5 text-[0.8rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 rounded-[calc(var(--radius-action)*0.9)] px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        cta: `h-11 gap-1.5 ${ctaCorner} px-6 text-base has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5`,
         icon: "size-8 rounded-action-sm",
         "icon-xs": "size-6 rounded-[calc(var(--radius-action)*0.6)] [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-7 rounded-[calc(var(--radius-action)*0.7)]",

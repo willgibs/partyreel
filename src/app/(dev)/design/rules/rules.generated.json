@@ -1575,7 +1575,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 88
+          "line": 86
         },
         {
           "title": "keeps the QR server-rendered (no client island for a constant graphic)",
@@ -1583,7 +1583,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 96
+          "line": 94
         },
         {
           "title": "the seam glow owns the loop-pause contract, through the primitive",
@@ -1591,7 +1591,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 104
+          "line": 102
         },
         {
           "title": "reads the lamps' cadence from the one token, never a literal",
@@ -1599,7 +1599,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 124
+          "line": 122
         }
       ]
     },
@@ -5007,7 +5007,7 @@
       "file": "src/lib/type-ladder-policy.test.ts",
       "scope": "engineering",
       "title": "One type ladder, and every heading on it",
-      "summary": "a step theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading.",
+      "summary": "a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading.",
       "line": 1
     }
   ]

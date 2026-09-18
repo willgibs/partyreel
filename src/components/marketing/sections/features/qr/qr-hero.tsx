@@ -102,9 +102,7 @@ export function QrHero() {
             <FeatureHeroEyebrow {...cut(0)} label={page.navLabel} />
             {/* LCP rule: the H1 never carries a reveal-hidden state (the home
                 hero's ratified shape). The stub around it does the arriving. */}
-            <h1 className="font-heading text-title text-balance">
-              {page.h1}
-            </h1>
+            <h1 className="font-heading text-title text-balance">{page.h1}</h1>
             <p
               {...cut(1)}
               className="max-w-xl text-lg text-pretty text-muted-foreground"
@@ -115,7 +113,7 @@ export function QrHero() {
               {...cut(2)}
               className="mt-2 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6"
             >
-              <Button asChild size="lg" className="h-11 px-6 text-base">
+              <Button asChild size="cta">
                 <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
               </Button>
               <DemoCtaLink />

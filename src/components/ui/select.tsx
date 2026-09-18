@@ -15,10 +15,11 @@ import {
 /**
  * ★ THE ONE MENU THAT WAS NEVER IN THE FAMILY. Bible 15 says every floating
  * surface rides one contract, and this primitive rode none of it: a
- * `rounded-md` panel (1.6px, the SHARP general-UI corner the doctrine forbids
- * on the floating layer) with a real `border` where the family wears a ring,
- * `rounded-sm` rows, and NO entrance clock at all, so it opened on Tailwind's
- * stock timing while every other menu opened on `--ease-emphasis`. The light
+ * `rounded-md` panel (a step of the SURFACE corner, 1.6px then, which the
+ * doctrine forbids on the floating layer) with a real `border` where the
+ * family wears a ring, `rounded-sm` rows, and NO entrance clock at all, so it
+ * opened on Tailwind's stock timing while every other menu opened on
+ * `--ease-emphasis`. The light
  * board caught its shadow (2026-09-17) and left the rest; the floating-surfaces
  * wiring brings the corner, the entrance and the label in with it.
  */

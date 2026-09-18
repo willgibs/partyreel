@@ -55,15 +55,10 @@ export default function EventsHub() {
              balance, Will 2026-09-02, applied here by rising tides). */
           <div className="flex flex-col items-center gap-4">
             <div className="flex flex-col items-center gap-3 sm:flex-row">
-              <Button asChild size="lg" className="h-11 px-6 text-base">
+              <Button asChild size="cta">
                 <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
               </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-11 px-6 text-base"
-              >
+              <Button asChild size="cta" variant="outline">
                 <Link href="/pricing">See pricing</Link>
               </Button>
             </div>

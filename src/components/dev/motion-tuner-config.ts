@@ -14,7 +14,8 @@
  * moves, in a sentence) and `ships` (where it lands in the product), and every
  * knob has a SPECIMEN somewhere the tuner mounts: the motion playground
  * (/design/lab/tools/motion) for the app's beats, the real cinema pages for the marketing
- * knobs, the rounding board (/design/lab/rounding) for the radius tokens. A knob
+ * knobs, the Library's radius section (/design/library/foundations#radius) for
+ * the radius tokens (the rounding board was, until its ruling retired it). A knob
  * without a specimen is retired from the panel rather than left as a dead
  * slider: the reel reveal's seven and the reel experience's two (ratified at T1,
  * revisit-only) and the event feed's swap and reorder (ratified 2026-06-22) left
@@ -170,20 +171,21 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
 ];
 
 /**
- * THE ROUNDING KNOBS (staged 2026-09-01; the round opened 2026-09-14). --radius
- * is the base every rounded-* utility derives from (theme.css: sm 0.6x, md
- * 0.8x, lg 1x, xl 1.4x, 2xl 1.8x, 3xl 2.2x, 4xl 2.6x), so one knob restyles
- * every sharp-family surface at once; --radius-float and --radius-tile are
- * separate tokens by design (menus/toasts; media grids) and get their own knobs
- * so the round can decide whether they move with the surfaces or stay put;
- * the three action radii are the other half of the sharp-surface / round-action
- * contrast (globals.css: 16px at the 40px button, scaled ~0.4x height), and
- * without them on the panel the sitting could only drag one side of the
- * contrast. Baked: 0.125rem / 0.5rem / 3px / 1rem / 1.2rem / 0.8rem; the tuner
- * writes px, the same computed values. Not --mkt-*, so tunerScope puts these on
- * <html>, where an inline value outranks the :root token, and a soft navigation
- * carries them across pages. The specimens are the rounding board
- * (/design/lab/rounding) and every real page the tuner mounts on.
+ * THE ROUNDING KNOBS (staged 2026-09-01; ruled 2026-09-18: family C, the steps
+ * in quarters). --radius is the base every rounded-* utility derives from
+ * (theme.css: sm 0.5x, md 0.75x, lg 1x, xl 1.25x, 2xl 1.5x; 3xl and 4xl are
+ * dropped), so one knob restyles every surface at once; --radius-float and
+ * --radius-tile are separate tokens by design (the floating layer; photographs,
+ * with --gap-gallery pinned to the tile) and keep their own knobs; the two
+ * action radii are the other half of the surface / action contrast (16px at
+ * the 40px button, ~0.4x height; the 44px `cta` corner derives 1.1x from it).
+ * Baked: 0.5rem / 0.75rem / 4px / 1rem / 0.8rem; the tuner writes px, the same
+ * computed values. Not --mkt-*, so tunerScope puts these on <html>, where an
+ * inline value outranks the :root token, and a soft navigation carries them
+ * across pages. The specimen is the Library's radius section
+ * (/design/library/foundations#radius), which reads the live tokens, and every
+ * real page the tuner mounts on. (The rounding board was the specimen until its
+ * ruling retired it; the 48px action knob left with its one call site.)
  */
 export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
   {
@@ -193,26 +195,26 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
     group: "rounding",
     description:
       "The base every rounded-* utility derives from; cards, inputs, plates and panels move together.",
-    ships:
-      "every surface on the site and in the app (about 320 uses in 154 files, the rounding board's count)",
+    ships: "every surface on the site and in the app, Card first",
     min: 0,
     max: 24,
     step: 1,
     unit: "px",
-    default: 2,
+    default: 8,
   },
   {
     kind: "range",
     cssVar: "--radius-float",
     label: "Floating-layer radius",
     group: "rounding",
-    description: "The corner of anything that floats over the page.",
-    ships: "menus, popovers, tooltips, dialogs, toasts",
+    description:
+      "The corner of anything that floats over the page; a row inside one is 4px tighter, derived.",
+    ships: "menus, popovers, tooltips, dialogs, toasts, the guest entry sheet",
     min: 0,
     max: 24,
     step: 1,
     unit: "px",
-    default: 8,
+    default: 12,
   },
   {
     kind: "range",
@@ -227,7 +229,7 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
     max: 12,
     step: 1,
     unit: "px",
-    default: 3,
+    default: 4,
   },
   {
     kind: "range",
@@ -235,29 +237,14 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
     label: "Action radius",
     group: "rounding",
     description:
-      "The base of the action ladder: the 40px h-10 button wears it, and the h-6, h-7 and h-9 sizes derive from it (0.6, 0.7 and 0.9x); at half the height and above the corner reads as a pill.",
+      "The base of the action ladder: the 40px h-10 button wears it, and the h-6, h-7, h-9 and 44px cta sizes derive from it (0.6, 0.7, 0.9 and 1.1x); at half the height and above the corner reads as a pill.",
     ships:
-      "the h-10 buttons and the segmented controls; the in-between Button sizes by derivation",
+      "the h-10 buttons and the segmented controls; the in-between Button sizes and every hero and CTA-band button (size cta) by derivation",
     min: 0,
     max: 48,
     step: 1,
     unit: "px",
     default: 16,
-  },
-  {
-    kind: "range",
-    cssVar: "--radius-action-lg",
-    label: "Action radius, large",
-    group: "rounding",
-    description:
-      "The corner of the 48px button (rounded-action-lg); 24 and above is a pill.",
-    ships:
-      "the one rounded-action-lg call site today (the reel builder); the hero and pricing CTAs are h-11 on the base",
-    min: 0,
-    max: 48,
-    step: 0.4,
-    unit: "px",
-    default: 19.2,
   },
   {
     kind: "range",
