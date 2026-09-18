@@ -34,6 +34,11 @@ const publicSchema = z.object({
   // to this subdomain (the apex 404s /admin). Optional: unset in local dev, where
   // the portal is reachable directly at /admin and the proxy adds no host behavior.
   NEXT_PUBLIC_ADMIN_HOST: z.string().min(1).optional(),
+  // Which SURFACE this build serves (the admin split, 2026-09-18): "admin" is the second Vercel
+  // project on this same repo, serving only /admin (and its auth) on admin.partyreel.com; "app" is
+  // everything else. Unset (local dev, and every deployment until the split lands) serves both, as
+  // before. Read by src/proxy.ts and the admin gate; the crons must run on ONE surface only.
+  NEXT_PUBLIC_SURFACE: z.enum(["app", "admin"]).optional(),
   // Sentry DSN (public by design — safe in the client bundle). When unset, Sentry is a
   // no-op (commonInit sets enabled:false) so dev/unconfigured never sends and the build
   // stays green. The build-time SENTRY_AUTH_TOKEN / SENTRY_ORG / SENTRY_PROJECT (source-map
@@ -119,6 +124,7 @@ function parsePublic() {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_DEMO_QR_TOKEN: process.env.NEXT_PUBLIC_DEMO_QR_TOKEN,
     NEXT_PUBLIC_ADMIN_HOST: process.env.NEXT_PUBLIC_ADMIN_HOST,
+    NEXT_PUBLIC_SURFACE: process.env.NEXT_PUBLIC_SURFACE,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
   });
   if (!parsed.success) {

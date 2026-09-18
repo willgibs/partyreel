@@ -91,7 +91,7 @@ Marketing:
 - The five remaining feature pages, one ground-up round each in nav order, the album page as the model (the brief: `git show 0f52503:docs/tracks/marketing-feature-pages.md`). Two heroes are ahead of that: the album page's (round four, on the `album-page` board) and the privacy page's, which Will took from restraint to the field as two spirals (2026-09-18, the `privacy-hero` board).
 - The album's ambient pieces (the phone's screen cycle, the Live | Review photograph, the lightbox pill): three decisions on the `loose-ends` board (on the desk since 2026-09-18), judged on Will's screen; the switch's photograph is one hard-coded id and the Everywhere stage has no lightbox hint, so the board asks "which photo" and "propose a pill".
 - The design lab on its own subdomain: one repository, a second Vercel project on the same code (architecture, not a saving: 2.5 MB marginal).
-- Admin as its own app on its own subdomain: a separately deployable surface with a closed blast radius (not a saving: 1.5 MB marginal).
+- Admin as its own app on its own subdomain: CUT 2026-09-18 as `admin-split` (one repo, a second Vercel project serving only the admin; Will's pick: separate now, in parallel with the redesign).
 - Fold the two `SourceLink` copies into one; link each contract block on the rules page to its component's permalink.
 - App polish the gallery surfaced: `empty-state.tsx`'s comment vs its default, `action-tooltip.tsx`'s claimed delay, `ui/drawer` and `ui/tabs` unused, `ui/select` and `ui/sheet` one call site each.
 - The composition pass: once the six boards are ruled, one board stacks the ruled blocks on the home arc and the dashboard beside today, and the wiring rounds cut from that.
@@ -183,7 +183,7 @@ The app:
   hook — audience/transport design lands here, and late joiners see the card meanwhile, no catch-up mail).
   Build the foundational features first so
   we know what needs notifying. Extension point: [`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
-- **Admin / operations portal** — **P8 backend-ops & observability (the priority piece):** every backend
+- **Admin / operations portal** — the portal is being rethought from the ground up via the lab (`admin` round one, cut 2026-09-18: the shape first; an on-brand devtool per Will's ruling) and split into its own deployment (`admin-split`). **P8 backend-ops & observability (the priority piece; the four jobs with no heartbeat are `admin-jobs`, cut 2026-09-18):** every backend
   job (the cron sweeps, the media-backup Worker + DLQ, the **weekly backup prune**, the DB backup)
   manageable + health-surfaced in `/admin` with zero silent failures (a missing nightly backup pages,
   never passes quietly). The prune currently ships **alert-only** (breaker trips page via Sentry + a

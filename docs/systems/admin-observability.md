@@ -4,6 +4,15 @@
 > BELONGS HERE: the `admin.partyreel.com` perimeter, the `requireAdmin` seam + MFA, every admin surface, the reports/safety queue, Sentry wiring. · NOT HERE: host-side moderation (→ [host-app.md](host-app.md)), the cap/Stripe internals the Accounts/Metrics pages read (→ [billing-caps.md](billing-caps.md)), backup health that P8 will surface (→ [durability-backups.md](durability-backups.md)).
 > GROWS BY: integrate-in-place.
 
+## What binds the admin's design (Will, 2026-09-18)
+
+The portal carries the platform's FOUNDATIONAL identity and is otherwise free: the wordmark
+(`src/lib/brand/wordmark.ts`, `Logo`), the faces with their weights and spacing, the achromatic Graphite
+base. Beyond that it is "an on-brand devtool, not a separate brand identity": real colour is wanted here
+(charts, state), density, tables and its own chrome are its to choose, and bible 1 and 2 bind the product,
+not the portal past that foundation. The security seam (`requireAdmin`, the host guard, AAL2) is never a
+design variable. The `admin` board (round one, 2026-09-18) asks the shape; its picks land here as they wire.
+
 ## What it does
 
 An internal portal served on the **`admin.partyreel.com` subdomain by the SAME Next app** (route segment

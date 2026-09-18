@@ -37,7 +37,7 @@ owns:
   - src/components/marketing/mdx-components.tsx
   - src/lib/design-gate/
   - src/app/api/design-gate/
-  - scripts/vercel-ignore-build.mjs
+  # scripts/vercel-ignore-build.mjs is RELEASED to admin-split for the round (2026-09-18); it returns here at the merge.
   - .github/workflows/ci.yml
   - src/app/(marketing)/marketing.css
   - src/lib/events/visibility-labels.ts
@@ -55,6 +55,7 @@ announces:
   - "The fourth batch (2026-09-17, 871f650b to c64275a3): light r8 is fully answered and floating-surfaces picks Card. `pnpm lab:demo` (scripts/lab-demo.mjs) presses every open step and fails a frozen stage; a catalog card's preview is inert when the card is the press target (src/components/lab/catalog.tsx). Released to light-wiring for the round: src/app/globals.css, src/app/theme.css, _data/links.test.ts and _data/docs.test.ts (the two tests that name light as a standing board and its spec as NOT LAW); touchpoints.ts and touchpoints.test.ts stay here and the lane edits its own board's lines under the retirement exception."
   - "The eighth batch (2026-09-18, 00e82dba): type-phone r1 and rounding r7 are ruled, and one lane, ladders-wiring, wires both ladders and retires both boards (phase 1 type, phase 2 corners). The type ladder's law becomes the ORDER: prose's phone end 18 to 24 and a tenth step, subhead (20 to 24), declared in theme.css AND TYPE_STEPS. Corners are family C in quarters: --radius 8px, --radius-float 12px (rows derived at 8), --radius-tile 4px, --gap-gallery max(3px, var(--radius-tile)), 3xl and 4xl set to initial, a cta Button size, --shadow-float retired. Released to ladders-wiring for the round: src/app/globals.css, src/app/theme.css, src/components/dev/motion-tuner-config.ts; touchpoints.ts and touchpoints.test.ts stay here under the retirement exception."
   - "The ninth batch (2026-09-18): album-hero r3 and river-visual r2 are ruled (their first ledgers, so registry.test.ts's grandfathered set is empty, and that file is the Orchestrator's again), and river-visual's `proportion` is withdrawn inside the round. Three board lanes are cut: `heroes` (`privacy-hero`, `album-page`), `river-card`, `gallery-width`. THE REGISTRATION EXCEPTION, while they run: a lane adds its own board's lines to sandbox/registry.ts, (shell)/lab/boards.ts and touchpoints.ts and touches nothing else in them (touchpoints.test.ts derives its standing list from the registry since the glow retirement, so it takes no line). New members go at the HEAD of `BOARDS`, `BOARD_COMPONENTS` and the `SandboxId` union, the RULINGS row directly after river-visual's, the id into `RulingId` directly after `river-visual`; `ladders-wiring` removes only its own lines and reorders nothing, so every merge is line-disjoint. The names `ladders-wiring` changes, which every lane builds against: `rounded-3xl` and `rounded-4xl` become no-ops (set to `initial`), `shadow-float` and `--radius-action-lg` retire, `size=\"cta\"` on Button and `text-subhead` arrive, and `prose` is 24px at a phone."
+  - "The admin round (2026-09-18, evening): `NEXT_PUBLIC_SURFACE` arrives in src/lib/env.ts (optional; `app` or `admin`; unset serves both surfaces as before); `admin-split` owns src/proxy.ts, src/lib/auth/admin-context.ts, src/lib/surface/, scripts/vercel-ignore-build.mjs and src/app/api/cron/purge/route.ts for the round and names the surface rules; `admin-jobs` owns the jobs console's backend (src/app/admin/jobs/, the internal job-run route, workers/backup/src/, the limiter and the email sender) and READS the purge route; the `admin` board is lab-only. The admin's design binds are in docs/systems/admin-observability.md."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
 ---
 
@@ -102,10 +103,13 @@ retired `type-phone`; both agents were told so by message.
 | `ghost-wiring` | integrated at `31c94253` (handed off `79169b2c`; its two mid-lane claims accepted) | done | Opus, :3132 | nothing |
 | `voice` | integrated at `e0b92af6` (handed off `5e6e5481`; eight lines, 234 smoke checks, 8 demo steps) | done | Opus, :3135 | nothing; round two is cut from his notes |
 | `glass` | integrated at `30aaf705` (handed off `f8ab4ad9`; seven steps, 250 smoke checks; one unused import cleaned at the record) | done | Opus, :3132 | nothing; round two is cut from his notes |
+| `admin` | cut this evening (the portal's shape as round one; lab-only, fixtures) | building | Opus, :3132 | the whole board per its manifest |
+| `admin-split` | cut this evening (the admin as its own deployment, one repo; the runbook is the Orchestrator's to execute) | building | Opus, :3133 | the code, the docs, the runbook |
+| `admin-jobs` | cut this evening (the four heartbeat-less jobs onto the console) | building | Opus, :3134 | the code, the docs, the migration and Worker for the Orchestrator |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 
-No lane is open (2026-09-18, evening): every board of the round is integrated and on the desk, eight in all
+Three admin lanes opened the same evening (below). Before them, no lane was open: every board of the round is integrated and on the desk, eight in all
 (privacy-hero, album-page, river-card, gallery-width, voice, body-type, glass, loose-ends), plus the ghost on
 the disposable event. Next from here: his batches, transcribed; then the wiring lanes from his answers and
 round two of `voice` and `glass` from his notes. `gallery-width` integrated at `3a519e0d`. The three resumed lanes integrated the same afternoon (`6b5ea1bf`,
