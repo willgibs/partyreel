@@ -141,8 +141,9 @@ and `field.css` were left exactly as they were, because `album-page` reads them.
 
 ## Handoff (replaces the chat report)
 
-**Head:** `6802e081` on `origin/lp/image-trail`, a merge of `origin/launch-prep` at `df173c2e`
-(milestone-26). `launch-prep` had moved 21 commits, so everything below is the SYNCED tree.
+**Head:** `9039319d` on `origin/lp/image-trail` (this manifest), on top of `6802e081`, which is the tree
+every gate step below was run on: a merge of `origin/launch-prep` at `df173c2e` (milestone-26).
+`launch-prep` had moved 21 commits, so everything below is the SYNCED tree.
 
 **The gate, each step on its own exit code, on the synced tree:**
 
