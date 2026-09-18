@@ -61,6 +61,7 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
           "sm",
           "default",
           "lg",
+          "cta",
           "icon",
           "icon-xs",
           "icon-sm",

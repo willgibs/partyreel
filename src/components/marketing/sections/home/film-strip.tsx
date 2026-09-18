@@ -104,7 +104,7 @@ function FilmStripRow() {
         {frames.map((m, i) => (
           <div
             key={`${m.id}-${i}`}
-            className="relative h-24 w-40 shrink-0 overflow-hidden rounded-[2px] sm:h-28 sm:w-44"
+            className="relative h-24 w-40 shrink-0 overflow-hidden rounded-tile sm:h-28 sm:w-44"
           >
             <Image
               src={m.src}

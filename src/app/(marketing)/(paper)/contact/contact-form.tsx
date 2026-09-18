@@ -62,7 +62,7 @@ function FormCard({ children }: { children: ReactNode }) {
           alt=""
           width={64}
           height={64}
-          className="size-16 rounded-[4px] border-4 border-background object-cover shadow-lift"
+          className="size-16 rounded-tile border-4 border-background object-cover shadow-lift"
         />
       </div>
       <Caption>A note to Partyreel</Caption>
@@ -445,9 +445,9 @@ export function ContactForm({
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
             <Button
               type="submit"
-              size="lg"
+              size="cta"
               disabled={isSubmitting}
-              className="h-11 px-6 text-base transition-transform active:scale-[0.98]"
+              className="transition-transform active:scale-[0.98]"
             >
               {isSubmitting ? "Sending…" : "Send message"}
             </Button>

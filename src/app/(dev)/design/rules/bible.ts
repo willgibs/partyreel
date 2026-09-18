@@ -160,11 +160,14 @@ export const BIBLE: BibleRule[] = [
     group: "shape",
     statement:
       "Sharp surfaces, round actions. Tokens, never literals: surfaces take --radius, floating layers --radius-float, media tiles --radius-tile, every lamp --spill-cadence.",
-    why: "One token each is what lets a round retune the whole product from one place; a literal is a value nobody can find later. The rounding round retunes the values on the tuner, never the law (opened 2026-09-14).",
-    enforcedBy: ["src/components/marketing/chrome/footer-contract.test.ts"],
+    why: "One token each is what lets a round retune the whole product from one place; a literal is a value nobody can find later. The rounding board ruled the values on 2026-09-18, family C in quarters (an 8px surface, a 12px floating layer with its rows at 8, a 4px photograph with the gallery gap pinned to it, 3xl and 4xl dropped, a cta size for the 44px action): \"This keeps the final pixel calculations much cleaner.\"",
+    enforcedBy: [
+      "src/components/marketing/chrome/footer-contract.test.ts",
+      "src/lib/type-ladder-policy.test.ts",
+    ],
     ruledBy: "Will",
     ruledOn: RATIFIED,
-    status: "under exploration: rounding",
+    status: "ruled",
   },
   {
     id: "radius-plus-offset",
@@ -243,7 +246,7 @@ export const BIBLE: BibleRule[] = [
     group: "motion",
     statement:
       "Every floating surface rides the floating-layer contract: one corner derived from one token, an entrance chosen by how often the surface opens, and the layer shadow. No surface spells its own.",
-    why: "Menus, dialogs, sheets and popovers are one family, and a stray one reads as a bug (named 2026-08-28, when the nav turned out to be the one menu outside it). The floating-surfaces board wrote it and Will ruled every ask on 2026-09-17: Card's anatomy, submenus at two levels and no more, the corner `nested` (8px panel, rows derived at 4px), entrances by frequency.",
+    why: "Menus, dialogs, sheets and popovers are one family, and a stray one reads as a bug (named 2026-08-28, when the nav turned out to be the one menu outside it). The floating-surfaces board wrote it and Will ruled every ask on 2026-09-17: Card's anatomy, submenus at two levels and no more, the corner `nested` (the panel on the floating token, 12px since the corner ladder of 2026-09-18, its rows derived 4px inside it), entrances by frequency.",
     enforcedBy: ["src/components/ui/floating-layer.test.ts"],
     ruledBy: "Will",
     ruledOn: "2026-09-17",

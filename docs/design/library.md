@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 253 contracts on 42 components · 5 standing boards.**
+**22 laws · 18 policies · 253 contracts on 42 components · 4 standing boards.**
 
 ## What binds you
 
@@ -82,9 +82,9 @@ Kill mono entirely (Will, 2026-09-14): the kill-mono sweep removed the loader, t
 
 **8. Sharp surfaces, round actions. Tokens, never literals: surfaces take --radius, floating layers --radius-float, media tiles --radius-tile, every lamp --spill-cadence.**
 
-One token each is what lets a round retune the whole product from one place; a literal is a value nobody can find later. The rounding round retunes the values on the tuner, never the law (opened 2026-09-14).
+One token each is what lets a round retune the whole product from one place; a literal is a value nobody can find later. The rounding board ruled the values on 2026-09-18, family C in quarters (an 8px surface, a 12px floating layer with its rows at 8, a 4px photograph with the gallery gap pinned to it, 3xl and 4xl dropped, a cta size for the 44px action): "This keeps the final pixel calculations much cleaner."
 
-<small>**under exploration: rounding** · enforced by `src/components/marketing/chrome/footer-contract.test.ts` · `/design/library/rules/tokens-never-literals`</small>
+<small>enforced by `src/components/marketing/chrome/footer-contract.test.ts`, `src/lib/type-ladder-policy.test.ts` · `/design/library/rules/tokens-never-literals`</small>
 
 **9. Anything drawn around an object takes the object's radius plus its offset.**
 
@@ -128,7 +128,7 @@ A visitor who asked for less motion gets none, and the design still stands at re
 
 **15. Every floating surface rides the floating-layer contract: one corner derived from one token, an entrance chosen by how often the surface opens, and the layer shadow. No surface spells its own.**
 
-Menus, dialogs, sheets and popovers are one family, and a stray one reads as a bug (named 2026-08-28, when the nav turned out to be the one menu outside it). The floating-surfaces board wrote it and Will ruled every ask on 2026-09-17: Card's anatomy, submenus at two levels and no more, the corner `nested` (8px panel, rows derived at 4px), entrances by frequency.
+Menus, dialogs, sheets and popovers are one family, and a stray one reads as a bug (named 2026-08-28, when the nav turned out to be the one menu outside it). The floating-surfaces board wrote it and Will ruled every ask on 2026-09-17: Card's anatomy, submenus at two levels and no more, the corner `nested` (the panel on the floating token, 12px since the corner ladder of 2026-09-18, its rows derived 4px inside it), entrances by frequency.
 
 <small>enforced by `src/components/ui/floating-layer.test.ts` · `/design/library/rules/floating-layer-contract`</small>
 
@@ -222,7 +222,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | The record is two rounds deep | a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |
 | Every track claims its lane | a malformed track manifest, or two live tracks claiming the same path prefix. | `src/lib/track-manifests.test.ts:1` |
-| One type ladder, and every heading on it | a step theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading. | `src/lib/type-ladder-policy.test.ts:1` |
+| One type ladder, and every heading on it | a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading. | `src/lib/type-ladder-policy.test.ts:1` |
 
 ## Guidance
 
@@ -364,7 +364,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
-| `rounding` | shared | Six families as cards, each the card, the menu, the photograph and the button at true size plus a 375 frame; two families on the same real page scroll-locked; four questions (the button rung, the derived ladder, the dead rungs, the album's gap) |
 | `album-hero` | marketing | Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit |
 | `river-visual` | marketing | The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost |
 

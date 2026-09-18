@@ -165,11 +165,12 @@ export function Calculator() {
           </div>
 
           {/* THE ALBUM WALL (ratified V1): filled tiles are real event media,
-              clip tiles carry a mono timecode. Gallery grammar: 3px radius,
-              3px gaps. Watch your album fill up. */}
+              clip tiles carry a timecode. The gallery grammar is the album's
+              own tokens, the photograph's corner and the gap pinned to it,
+              never their pixels. Watch your album fill up. */}
           <div
             aria-hidden
-            className="mt-6 grid gap-[3px] rounded-xl border bg-background/40 p-3"
+            className="mt-6 grid gap-[var(--gap-gallery)] rounded-xl border bg-background/40 p-3"
             style={{
               gridTemplateColumns: `repeat(${WALL_COLS}, minmax(0, 1fr))`,
             }}
@@ -181,7 +182,7 @@ export function Calculator() {
               return (
                 <div
                   key={i}
-                  className="relative aspect-square overflow-hidden rounded-[3px] bg-muted"
+                  className="relative aspect-square overflow-hidden rounded-tile bg-muted"
                 >
                   {isFilled && !isClip && (
                     <Image

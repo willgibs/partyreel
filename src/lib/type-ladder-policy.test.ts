@@ -1,5 +1,5 @@
 // @policy: engineering · One type ladder, and every heading on it
-// @refuses: a step theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading.
+// @refuses: a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading.
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -7,7 +7,7 @@ import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
-import { TYPE_STEPS } from "@/lib/utils";
+import { cn, RADIUS_TOKENS, TYPE_STEPS } from "@/lib/utils";
 
 /**
  * THE LADDER FAILS SILENTLY IN FIVE WAYS, AND THIS IS ALL FIVE (the type
@@ -23,7 +23,11 @@ import { TYPE_STEPS } from "@/lib/utils";
  *    stylesheet, so an unknown `text-*` falls into its `text-color` group and
  *    is dropped by any real colour in the same call: `cn("font-heading
  *    text-chapter text-white")` returned `font-heading text-white` until
- *    utils.ts declared the ladder. Measured on the blog list's own h2.
+ *    utils.ts declared the ladder. Measured on the blog list's own h2. The
+ *    corner ladder's custom tokens (`tile`, `float`, `action`) are the same
+ *    trap one room over: unknown to tailwind-merge, a token corner and a stock
+ *    one both survived `cn()` and the stylesheet's alphabet picked, so their
+ *    parity is pinned here too.
  *
  * 3. A RAMP COMING BACK. The four-breakpoint ramps are what the ladder
  *    replaced (a step is a pair, not a list of sizes). A stock pair like
@@ -363,6 +367,21 @@ describe("the type ladder", () => {
     // file and not the other is dropped from every className that also names a
     // colour, with nothing to see in the source.
     expect([...TYPE_STEPS].sort()).toEqual([...declared].sort());
+  });
+
+  it("teaches cn() every radius token theme.css maps, so a token corner overrides a stock one", () => {
+    // Way 2, one room over. The custom tokens are the self-mapped lines of the
+    // theme block (`--radius-tile: var(--radius-tile)`); the derived sm..2xl
+    // steps carry Tailwind's own names and need no teaching.
+    const custom = [
+      ...theme.matchAll(/^\s*--radius-([a-z0-9-]+):\s*var\(--radius-\1\);/gm),
+    ].map((m) => m[1]);
+    expect([...RADIUS_TOKENS].sort()).toEqual([...custom].sort());
+    for (const name of custom) {
+      // The last class wins in both directions, never the stylesheet's alphabet.
+      expect(cn("rounded-md", `rounded-${name}`)).toBe(`rounded-${name}`);
+      expect(cn(`rounded-${name}`, "rounded-full")).toBe("rounded-full");
+    }
   });
 
   it("gives no step a name the color namespace already owns", () => {

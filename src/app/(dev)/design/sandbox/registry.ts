@@ -4,7 +4,6 @@ import { ALBUM_HERO } from "./album-hero/spec";
 import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
 import { GLOW_MOMENTS } from "./glow-moments/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
-import { ROUNDING } from "./rounding/spec";
 
 /**
  * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
@@ -28,16 +27,17 @@ import { ROUNDING } from "./rounding/spec";
  * in globals.css and the Library's Elevation and bright edge sections) and
  * floating-surfaces (Card's anatomy, the nested corner and the entrances by
  * frequency, now `ui/floating-layer.ts`, the menu's new parts in
- * `ui/dropdown-menu.tsx` and the Library's floating-layer section). One more
+ * `ui/dropdown-menu.tsx` and the Library's floating-layer section). Two more
  * left on 2026-09-18: type-phone, the first question-first exploration (the
  * ladder's order at a phone and its tenth step, now theme.css and
- * type-ladder-policy.test.ts, and the clamped trim in page-hero.tsx).
+ * type-ladder-policy.test.ts, and the clamped trim in page-hero.tsx), and
+ * rounding (family C in quarters, now the radius tokens in globals.css and
+ * theme.css, the `cta` Button size and the Library's radius section).
  */
 export const BOARDS: readonly BoardSpec[] = [
   RIVER_VISUAL,
   GLOW_DOCTRINE,
   GLOW_MOMENTS,
-  ROUNDING,
   ALBUM_HERO,
 ];
 

@@ -48,15 +48,10 @@ export default function HowItWorksPage() {
         subhead="What you set up, what your guests see, and how the whole event comes back as one album and a highlight reel."
         actions={
           <>
-            <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Button asChild size="cta">
               <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
-            >
+            <Button asChild size="cta" variant="outline">
               <Link href="/features">Browse the features</Link>
             </Button>
           </>

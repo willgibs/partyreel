@@ -23,9 +23,10 @@ import { cn } from "@/lib/utils";
  * licence caveat that honesty required read as unfinished. Everything on the sheet is now
  * Partyreel artwork, which also collapsed a whole provenance block into one clear line.
  *
- * ★ THE 3px GAP IS THE TELL. gap-[var(--gap-gallery)] is the site's ONE media-grid gap,
- * so the sheet reads as a Partyreel album at a glance. A comfortable gap-4 turns it into
- * a card grid and throws away the cheapest identity move on the page.
+ * ★ THE ALBUM'S HAIRLINE GAP IS THE TELL. gap-[var(--gap-gallery)] is the site's ONE
+ * media-grid gap (pinned to the photograph's corner, 4px under family C), so the sheet
+ * reads as a Partyreel album at a glance. A comfortable gap-4 turns it into a card grid
+ * and throws away the cheapest identity move on the page.
  *
  * ★ PLATE BY LEGIBILITY, NEVER BY VARIETY: white behind anything drawn in ink, ink behind
  * anything drawn in white. The bare mark is a BRAND_HEX stroke and was briefly on a
@@ -157,13 +158,13 @@ export function PressSheet() {
 
   return (
     <Reveal>
-      {/* ★ THE REBATE. On the ink ground the 3px --gap-gallery read on its own; on paper,
+      {/* ★ THE REBATE. On the ink ground the --gap-gallery gap read on its own; on paper,
           white plates against a near-white page made the grid dissolve. The list paints
           --border so the gaps become hairlines: how frames sit in the rebate of real film.
           ★ The outer inset and the inner gap are the SAME token on purpose. A 1px border
-          against 3px gaps read as an uneven frame (Will); a rebate is even all round or it
+          against the gaps read as an uneven frame (Will); a rebate is even all round or it
           is not a rebate. Change one and change the other, and keep both on
-          --gap-gallery — that 3px is the album tell. */}
+          --gap-gallery — that gap is the album tell, whatever the tile's corner makes it. */}
       <ul
         data-mkt-isolate
         className="grid grid-cols-2 gap-[var(--gap-gallery)] rounded-tile bg-border p-[var(--gap-gallery)] sm:grid-cols-4"

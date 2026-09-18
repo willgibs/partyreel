@@ -4,6 +4,7 @@ import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevr
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
+import { ctaCorner } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import { ASK_AI_TARGETS, LLMS_TXT_HREF } from "@/lib/constants/ask-ai";
 import { IS_HIRING } from "@/lib/constants/careers";
@@ -181,11 +182,15 @@ function SignOff() {
           on purpose: the slab's .surface-ink set would let a Button paint, but
           the outline register is the point. It also gives the register a
           right edge; without it the row left ~600px of dead space, the exact
-          wireframe quality this pass exists to remove. */}
+          wireframe quality this pass exists to remove. It is a 44px action,
+          so it wears the 44px action's corner (ctaCorner), not the 40px one. */}
       <Link
         href={MARKETING_CTA.href}
         {...trackAttrs("cta_click", { cta: "start-free", location: "footer" })}
-        className="mkt-learn hidden items-center gap-2 rounded-[var(--radius-action)] border px-6 py-3 text-[15px] font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97] lg:inline-flex"
+        className={cn(
+          "mkt-learn hidden items-center gap-2 border px-6 py-3 text-[15px] font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97] lg:inline-flex",
+          ctaCorner,
+        )}
       >
         {MARKETING_CTA.label}
         <LearnChevron />

@@ -47,7 +47,7 @@ function HiddenStrip() {
       {["wedding-golden", "party-dj", "party-balloons"].map((id, i) => (
         <span
           key={id}
-          className="relative block aspect-square overflow-hidden rounded-[3px] bg-muted"
+          className="relative block aspect-square overflow-hidden rounded-tile bg-muted"
         >
           <Image
             src={marketingImage(id).src}

@@ -34,6 +34,7 @@ import {
   useReelReveal,
 } from "@/components/reel/reel-reveal";
 import { type ReelConfigController } from "@/components/reel/use-reel-config";
+import { ctaCorner } from "@/components/ui/button";
 import {
   pickQuickAdd,
   QUICK_ADD_MIN,
@@ -349,12 +350,17 @@ export function ReelBuilder({
                 </button>
               </div>
             ) : null}
+            {/* The 44px action's corner (ctaCorner). It was the one call site
+                of the 48px rung, which retired with it (2026-09-18). */}
             <button
               type="button"
               onClick={create}
               disabled={creating || reveal.running}
               aria-busy={creating || reveal.running}
-              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-[var(--radius-action-lg)] bg-reel text-sm font-semibold text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:opacity-60 motion-reduce:active:scale-100"
+              className={cn(
+                "mt-3 flex h-11 w-full items-center justify-center gap-2 bg-reel text-sm font-semibold text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:opacity-60 motion-reduce:active:scale-100",
+                ctaCorner,
+              )}
             >
               <Clapperboard className="size-4" aria-hidden />
               Create reel

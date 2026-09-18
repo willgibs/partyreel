@@ -2,9 +2,12 @@
 
 /**
  * The GUEST gallery masonry (Phase 4, the ratified V2 "creative separation"
- * grid): CSS columns flow tiles at their NATURAL aspect ratios (3px gaps +
- * 3px tile radius, the Phase-1 rounding decision). Guest-only - the host /
- * personal grids keep MediaGrid's square grid until Phase 5.
+ * grid): CSS columns flow tiles at their NATURAL aspect ratios, on the ONE
+ * gallery gap and the photograph's corner (--gap-gallery pinned to
+ * --radius-tile, Will's `gap=pinned`, 2026-09-18). CSS columns have no row
+ * gap, so the vertical gap is each tile's bottom margin, on the same token.
+ * Guest-only - the host / personal grids keep MediaGrid's square grid until
+ * Phase 5.
  *
  * - aspect-ratio is set from the plumbed width/height (1:1 fallback for
  *   pre-measure-era rows), so the layout reserves space BEFORE images load
@@ -80,7 +83,7 @@ export function GuestMasonry({
   return (
     <>
       <div
-        className="columns-2 gap-[3px]"
+        className="columns-2 gap-[var(--gap-gallery)]"
         onPointerEnter={preloadMediaLightbox}
         onTouchStart={preloadMediaLightbox}
       >
@@ -93,7 +96,7 @@ export function GuestMasonry({
             // photo does not gain an edge at the moment it finishes uploading.
             data-lit=""
             style={{ borderRadius: "var(--radius-tile)" } as CSSProperties}
-            className="relative mb-[3px] w-full overflow-hidden bg-black/10"
+            className="relative mb-[var(--gap-gallery)] w-full overflow-hidden bg-black/10"
           >
             {/* The local preview sizes itself (natural blob dimensions). */}
             {p.kind === "photo" ? (
@@ -155,7 +158,7 @@ export function GuestMasonry({
                 "--tile-i": seededIds.has(item.id) ? i : 0,
               } as CSSProperties
             }
-            className="group relative mb-[3px] w-full overflow-hidden bg-black/10"
+            className="group relative mb-[var(--gap-gallery)] w-full overflow-hidden bg-black/10"
           >
             <button
               type="button"

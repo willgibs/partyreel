@@ -99,7 +99,7 @@ export function EntryFlow() {
               {UPLOADING_IDS.map((id, i) => (
                 <span
                   key={id}
-                  className="relative aspect-square overflow-hidden rounded-[4px] bg-muted"
+                  className="relative aspect-square overflow-hidden rounded-tile bg-muted"
                 >
                   <Image
                     src={marketingImage(id).src}

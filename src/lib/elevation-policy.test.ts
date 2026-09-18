@@ -35,12 +35,15 @@ import { describe, expect, it } from "vitest";
  *
  * ★ THE FOUR WAYS BACK IN, which are the four tests:
  *  1. a stock size (`shadow-sm` .. `shadow-2xl`, the bare `shadow`) or an
- *     arbitrary value (`shadow-[...]`, which is also how the old token was worn
- *     on marketing: `shadow-[var(--shadow-float)]`);
+ *     arbitrary value (`shadow-[...]`, which is also how the old single token
+ *     was worn on marketing: an arbitrary shadow wrapping its var). The class
+ *     is not spelled out here on purpose: Tailwind scans this file, and a
+ *     spelled-out class compiles a dead rule for a retired token;
  *  2. a hand-typed box-shadow in an inline style, which no class scan sees;
- *  3. the retired name. `--shadow-float` still exists for one lab board
- *     (globals.css says which) and resolves to NOTHING in dark, so a production
- *     surface wearing it is a layer with no shadow in half the product;
+ *  3. the retired name. `--shadow-float` was the single shadow before the
+ *     ruling, kept as a lab bridge that resolved to NOTHING in dark; it left
+ *     with the rounding board on 2026-09-18 and is declared nowhere now, so a
+ *     surface wearing it would draw no shadow at all. Refused so it stays gone;
  *  4. a new ground. A shadow has to be darker than what it falls on, so a block
  *     that re-declares the ink (which is what flipping a ground's lightness
  *     means) and not the ramp leaves its subtree on the wrong alphas, silently:
@@ -178,10 +181,11 @@ describe("two shadows, each declared by its role", () => {
   });
 
   it("never wears the retired name on a production surface", () => {
-    // Way back in 3. It resolves to a zero shadow on both dark grounds.
+    // Way back in 3. It is declared nowhere since 2026-09-18, so it would
+    // resolve to no shadow at all.
     expect(
       scan(/shadow-float/g),
-      "shadow-float is the lab's bridge; production declares lift or layer",
+      "shadow-float is retired; production declares lift or layer",
     ).toEqual([]);
   });
 
