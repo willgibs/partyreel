@@ -20,7 +20,6 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
-- ★ Admin charts paint four of five series black in production: Tailwind's `@theme inline` emits a token's `--color-*` alias only when the bare name appears as text in some source file, and today only `chart-3` does (`admin/metrics/page.tsx`), so `--color-chart-1`, `-2`, `-4` and `-5` never resolve and SVG falls back to black (found by `loose-ends`, 2026-09-18, confirmed against the running dev server; the board sets both the raw and the aliased property inline as a workaround). Fix in `theme.css` or `globals.css`: a safelist (`@source inline(...)`) or the bare names referenced once; verify in the compiled CSS.
 
 
 The lab and the kit:

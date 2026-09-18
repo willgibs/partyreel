@@ -53,11 +53,6 @@
   --color-gallery-muted: var(--gallery-muted);
   --color-gallery-border: var(--gallery-border);
 
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -191,6 +186,21 @@
   Library draws them at true size at /design/library/foundations#type.
 */
 @theme static {
+  /* ★ THE CHART ALIASES ARE STATIC, NOT INLINE (2026-09-18). Tailwind emits a
+     theme variable only when something in the scanned source uses it, and a
+     colour that reaches SVG through `var(--color-chart-N)` built from a
+     template string, or set from a data table, is never seen: four of the five
+     resolved to nothing and Recharts painted its black fallback (found by the
+     loose-ends board, which had to set the raw token inline to be judged). A
+     static block is emitted whole, so every series can read `--color-chart-1..5`
+     from JS or SVG; the values still flip with the mode through the raw
+     `--chart-N` tokens in globals.css. Never move these back into the inline
+     block, and prefer this block for any token read by name outside a class. */
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
   --text-display: clamp(4rem, 1.887rem + 9.01vw, 10rem);
   --text-display--line-height: clamp(3.92rem, 2.272rem + 7.03vw, 8.6rem);
   --text-display--letter-spacing: -0.045em;

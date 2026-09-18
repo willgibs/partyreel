@@ -160,6 +160,12 @@ ruling, where the rule lives), rendered at `/design/library/record`.
   keep their chosen rendering, scanners locate corners by shape, and the share studio redesigns
   presets wholesale. No longer tied to any UI token.
 
+★ **A theme alias is emitted only when the scanner sees it used.** Tailwind v4 drops an unused `@theme`
+variable from the build, and a colour read by name from JS or SVG (`var(--color-chart-N)` built from a template
+string, or set from a data table) is never seen, so it resolves to nothing: four of the five chart aliases did
+until 2026-09-18. Tokens read by name outside a class live in `theme.css`'s `@theme static` block (the chart
+aliases, beside the type ladder), which is emitted whole; the raw `--chart-N` values still flip with the mode.
+
 ## Chapters: the attention arc
 
 Marketing pages alternate **cinema** (dark) and **paper** chapters to group sections and break

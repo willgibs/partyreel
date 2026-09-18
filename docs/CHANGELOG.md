@@ -119,7 +119,7 @@ against a reference, never a cap and a test.
   rings), and a proposed lightbox-hint pill (a quiet corner mark). Two briefed pieces had no behaviour to vary,
   so the lane read them as "which photo" and "propose a pill" and asks whether that reading was meant. Found
   on the way, a real production bug: four of the five `--color-chart-*` aliases are never emitted by Tailwind's
-  `@theme inline`, so those admin chart series paint black (the ROADMAP's Now list). The desk draws the charts
+  `@theme inline`, so any series read by name through them paints black; production's own page reads only `chart-3` and `brand` literally, so nothing was black on partyreel.com, but the trap was one template string away. Fixed the same evening at the source: the five aliases moved into `theme.css`'s `@theme static` block, which is emitted whole, proved in the compiled CSS; the gotcha is in design-system.md. The desk draws the charts
   correctly in a real browser; the lane's own captures squished them through the capture path `glass` documented.
 - **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's
   word ("we could begin getting main current to launch prep"), 1,138 commits: partyreel.com now serves Graphite,
