@@ -3,6 +3,7 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { ALBUM_HERO } from "./album-hero/spec";
 import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
 import { GLOW_MOMENTS } from "./glow-moments/spec";
+import { PRIVACY_HERO } from "./privacy-hero/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
 import { ROUNDING } from "./rounding/spec";
 
@@ -34,6 +35,7 @@ import { ROUNDING } from "./rounding/spec";
  * type-ladder-policy.test.ts, and the clamped trim in page-hero.tsx).
  */
 export const BOARDS: readonly BoardSpec[] = [
+  PRIVACY_HERO,
   RIVER_VISUAL,
   GLOW_DOCTRINE,
   GLOW_MOMENTS,

@@ -1,0 +1,81 @@
+/* THE FIELD'S OWN SHEET (the heroes lane, 2026-09-18): the layer both boards
+   draw their photographs in. Classes under `fld-` only, and NO keyframe: the
+   field is one requestAnimationFrame loop writing inline transforms
+   (src/app/keyframe-uniqueness.test.ts reads every sheet under the lab).
+
+   ★ THE REST STATE IS THE ONLY STATE THE SHEET KNOWS. Each node carries its
+   elapsed-0 transform and opacity as custom properties and this paints them,
+   so the server's HTML, reduced motion, a reader with scripting off and the
+   loop's first frame are one picture (`field-layer.tsx`). */
+
+.fld-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Every card carries its own z-index so a near photograph paints over a far
+     one; this keeps that ordering contained, so the lockup above never has to
+     out-number the pool. */
+  isolation: isolate;
+}
+
+.fld-trails,
+.fld-cards {
+  position: absolute;
+  inset: 0;
+}
+
+.fld-card,
+.fld-smear,
+.fld-ghost {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: var(--fld-rest);
+  opacity: var(--fld-rest-o);
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  /* ★ NO FILTER ON A CARD, which is half of round two's "jittery/buggy": a card
+     only ever scales DOWN from the box it was sized to (`solve`, field.ts). */
+}
+
+.fld-photo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-tile);
+  background: oklch(1 0 0 / 0.05);
+  /* The hairline every media tile on a dark ground wears, inside the frame. */
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.1);
+}
+
+/* ★ THE SMEAR IS THE CARD'S OWN PHOTOGRAPH, STRETCHED BACK ALONG THE TURN to
+   where the arm was a moment ago, blurred and dissolving toward the tail: the
+   colour of the frame drawn out behind it, the way a long exposure draws a
+   moving light. The blur is static and the element is its own layer, so moving
+   it re-rasterises nothing; the mask runs along the element's own x, which the
+   transform has turned to face the way the arm travels (tail at 0, head at
+   100%). */
+.fld-smear {
+  filter: blur(8px) saturate(1.3);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgb(0 0 0 / 0.3) 40%,
+    rgb(0 0 0 / 0.8) 78%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgb(0 0 0 / 0.3) 40%,
+    rgb(0 0 0 / 0.8) 78%,
+    #000 100%
+  );
+}
+
+.fld-smear > .fld-photo {
+  border-radius: 999px;
+  box-shadow: none;
+}

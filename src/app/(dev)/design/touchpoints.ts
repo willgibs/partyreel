@@ -48,6 +48,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "privacy-hero"
   | "pricing-plan-cards"
   | "pricing-calculator"
   | "contact-identity"
@@ -69,6 +70,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "privacy-hero"
   | "album-hero"
   | "river-visual"
   | "glow-doctrine"
@@ -634,6 +636,24 @@ export const RULINGS: Ruling[] = [
         "240, the thumbnail",
         "The placements",
       ],
+    },
+  },
+  {
+    id: "privacy-hero",
+    title: "The privacy page's hero",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-18: the album hero's round-three field becomes the Privacy & trust hero, two spirals, faster, closer, with a decaying trail)",
+    shipped: null,
+    why: "The field recut as two spirals behind the privacy page's words, graded against the home hero's pace: four decisions, each drawn at 1440 and 375.",
+    lives: [
+      "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
+      "src/components/marketing/system/page-hero.tsx",
+    ],
+    board: {
+      note: "Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375",
+      variants: ["The pace", "The gap", "The trail", "At a phone"],
+      tracks: ["heroes"],
     },
   },
 ];
