@@ -149,17 +149,18 @@ the board under the reading budget), `pnpm lab:demo --board gallery-width --base
 
 ## Handoff (replaces the chat report)
 
-- Head: the handoff commit (this manifest alone) on top of `5cdb0d04`, pushed. Synced twice, both
-  merges: `5a5c6eb4` mid-round on the Orchestrator's word (the rebuilt step, before measuring) and
-  `74f98761` before handoff in `5cdb0d04` (ladders-wiring's corners and the glow retirement; the
+- Head: the handoff commit (this manifest alone) on top of `66b5076b`, pushed. Synced three times,
+  every one a merge: `5a5c6eb4` mid-round on the Orchestrator's word (the rebuilt step, before
+  measuring); `74f98761` in `5cdb0d04` (ladders-wiring's corners and the glow retirement: the
   registration conflicts resolved keep-both, `touchpoints.test.ts` taken from launch-prep because its
-  standing list is derived now, `library.md` regenerated, never hand-merged)
-- Gates on the synced tree (`5cdb0d04`), each step's own exit code: design:rules 0 (only `library.md`
-  moves, one row), specimens 0 (no diff), typecheck 0 (after `rm -rf .next/dev`: the dev server's stale
-  validator still named the retired rounding route), lint 0 (0 errors, the 8 existing warnings, none
-  here), test 0 (228 files, 2,135 tests), build 0 (254 pages), lab:smoke 0 (202 checks, 0 failing; the
-  board reads 293 words of 1,200), lab:demo 0 (4 steps, 0 failing: tile moves 70.7%, width 62.2%, words
-  4.6%, host 52.0%; 1.7 screens each, no CLIPPED, UNLABELLED or NO DOCK)
+  standing list is derived now, `library.md` regenerated, never hand-merged); and `8fa6fd83` in
+  `66b5076b` (the ghost-wiring manifest, docs only, which landed after the first handoff commit)
+- Gates on the synced tree (`66b5076b`), each step's own exit code: design:rules 0 (no diff;
+  the lane's one generated change is `library.md`'s new row), specimens 0 (no diff), typecheck 0 (with `.next/dev` cleared: a dev
+  server's stale validator still named the retired rounding route), lint 0 (0 errors, the 8 existing
+  warnings, none here), test 0 (228 files, 2,137 tests), build 0 (254 pages), lab:smoke 0 (203
+  checks, 0 failing; the board reads 293 words of 1,200), lab:demo 0 (4 steps, 0 failing: tile moves
+  71.1%, width 62.2%, words 4.6%, host 52.0%; 1.7 screens each, no CLIPPED, UNLABELLED or NO DOCK)
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = the five files under
   `sandbox/gallery-width/` (spec, board, pages, fixtures, the sheet), this manifest, the registration
   lines in `sandbox/registry.ts`, `(shell)/lab/boards.ts` and `touchpoints.ts` (the id, the union
