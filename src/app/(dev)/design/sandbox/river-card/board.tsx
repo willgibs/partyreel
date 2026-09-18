@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { type CSSProperties, useState, useSyncExternalStore } from "react";
 
 import { ExplorationBoard, Frame, GroundBox } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 import { FeatureDoor } from "@/components/marketing/sections/features/shared/feature-door";
 import { DEMO_EVENT_URL } from "@/lib/demo";
+import { TYPE_STEPS } from "@/lib/utils";
 
 import { codeEdge, spanOf } from "./card-river";
 import { type DoorFacts, type Fall, type Place, RiverDoor } from "./door";
@@ -22,8 +23,9 @@ import { RIVER_CARD } from "./spec";
  * board's own document would show a phone the desktop's title. `Frame` is the
  * lab's one real viewport, so the phone doors sit in one, inside the site's
  * 16 px gutters. The 1440 doors are drawn in the board's own document at the
- * width the grid gives them, which is 1440's type on any window 1423 wide or
- * more; a 1440 frame would be a 1440 wide box to show a 331 wide door.
+ * width the grid gives them, wearing the ladder worked out at 1440
+ * (`useLadderAt`); a 1440 frame would be a 1440 wide box to show a 331 wide
+ * door.
  *
  * ★ EVERY PREVIEW IS A FUNCTION OF THE BOARD'S STATE (`Preview`): each
  * decision is drawn wearing the others' answers, so the code sits where he put
@@ -62,6 +64,49 @@ type Look = { place: Place; fall: Fall; value: string; still?: boolean };
 const heightOf = (w: number, aspect: "portrait" | "landscape") =>
   Math.ceil(aspect === "portrait" ? (w * 5) / 4 : (w * 2) / 3);
 
+/**
+ * ★ THE 1440 DOORS WEAR 1440'S TYPE IN ANY WINDOW. The ladder's steps are `vw`
+ * clamps (theme.css), so a door drawn in the board's own document takes its
+ * title's size from the reviewer's window: 20 px on a 1440 screen, 18 on a
+ * phone viewing the board, and the code, which sits off the title, moves with
+ * it. Every step that reads `vw` is re-declared on the 1440 doors' wrapper with
+ * its `vw` worked out at 1440, so the "1440" door is 1440's at any window. It
+ * reads the ladder's own declarations off the root, so a retuned ladder is
+ * followed, never copied.
+ */
+const LADDERS = new Map<number, CSSProperties>();
+const NO_LADDER: CSSProperties = {};
+const unchanging = () => () => {};
+
+function ladderAt(width: number): CSSProperties {
+  const held = LADDERS.get(width);
+  if (held) return held;
+  const root = getComputedStyle(document.documentElement);
+  const out: Record<string, string> = {};
+  for (const step of TYPE_STEPS) {
+    for (const name of [`--text-${step}`, `--text-${step}--line-height`]) {
+      const value = root.getPropertyValue(name).trim();
+      if (value.includes("vw"))
+        out[name] = value.replace(
+          /(-?\d*\.?\d+)vw/g,
+          (_, n: string) => `${(parseFloat(n) * width) / 100}px`,
+        );
+    }
+  }
+  LADDERS.set(width, out as CSSProperties);
+  return out as CSSProperties;
+}
+
+/** Read off the root once per width: the server has no window, so it draws the
+ *  ladder as declared and the browser re-renders with it worked out (frame.tsx
+ *  reads the root's theme class the same way). */
+const useLadderAt = (width: number): CSSProperties =>
+  useSyncExternalStore(
+    unchanging,
+    () => ladderAt(width),
+    () => NO_LADDER,
+  );
+
 /** The numbers under a door, measured off it rather than claimed. */
 function numbers(facts: DoorFacts | null, value: string) {
   if (!facts) return "measuring";
@@ -80,6 +125,7 @@ function Wide({
   look: Look;
 }) {
   const [facts, setFacts] = useState<DoorFacts | null>(null);
+  const ladder = useLadderAt(1440);
   return (
     <figure className="m-0 flex flex-col gap-2" style={{ width: W1440 }}>
       <figcaption className="flex flex-col gap-0.5">
@@ -88,7 +134,9 @@ function Wide({
           {numbers(facts, look.value)}
         </span>
       </figcaption>
-      <RiverDoor aspect={aspect} {...look} onFacts={setFacts} />
+      <div style={ladder}>
+        <RiverDoor aspect={aspect} {...look} onFacts={setFacts} />
+      </div>
     </figure>
   );
 }
@@ -129,7 +177,7 @@ function Phone({
  */
 function Doors({ id, look }: { id: string; look: Look }) {
   return (
-    <GroundBox ground="cinema" className="w-fit p-6 max-sm:p-0">
+    <GroundBox ground="cinema" className="rcd-preview w-fit">
       <div className="flex flex-wrap items-start gap-6">
         <Wide title="On /features at 1440" aspect="portrait" look={look} />
         <Phone
@@ -176,8 +224,9 @@ function LastRow({
   const aspect = tall ? "portrait" : "landscape";
   const [facts, setFacts] = useState<DoorFacts | null>(null);
   const [phone, setPhone] = useState<DoorFacts | null>(null);
+  const ladder = useLadderAt(1440);
   return (
-    <GroundBox ground="cinema" className="w-fit p-6 max-sm:p-0">
+    <GroundBox ground="cinema" className="rcd-preview w-fit">
       <div className="flex flex-wrap items-start gap-6">
         <figure className="m-0 flex flex-col gap-2" style={{ width: GRID }}>
           <figcaption className="flex flex-col gap-0.5">
@@ -190,7 +239,7 @@ function LastRow({
           </figcaption>
           <div
             className="grid grid-cols-3 items-start"
-            style={{ gap: GAP, width: GRID }}
+            style={{ ...ladder, gap: GAP, width: GRID }}
           >
             <RiverDoor
               aspect={aspect}

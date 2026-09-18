@@ -11,3 +11,17 @@
 .rcd-door a > span.z-10 {
   display: none;
 }
+
+/* THE PREVIEW'S GUTTER, here and not in a utility. A preview wraps its doors in
+   24 px of cinema ground, and on a phone that ground is what pushes a 375 frame
+   off a 375 screen, so the gutter goes at a phone. `p-6` is a production class,
+   so it sits in the `utilities` layer and beats the lab's own `max-sm:p-0`
+   (design.css's sub-layer); an unlayered rule in the board's sheet beats both. */
+.rcd-preview {
+  padding: 24px;
+}
+@media (max-width: 639.98px) {
+  .rcd-preview {
+    padding: 0;
+  }
+}
