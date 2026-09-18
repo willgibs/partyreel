@@ -12,8 +12,9 @@
 
 **Became:** two lanes cut the same evening, `glass` (round one: the app's chrome over photographs first, dark
 and light drawn and asked separately) and `loose-ends` (six ROADMAP decisions drawn on their real surfaces);
-the body and label ladder ruled onto the type system as one question-first board before any sweep, queued
-for the next free seat; the marketing site at a phone left in the ROADMAP.
+the body and label ladder ruled onto the type system as one question-first board before any sweep, cut the
+same evening as `body-type` into the fourth seat (Will: "we may as well launch the body ladder board if it's
+ready to be answered"); the marketing site at a phone left in the ROADMAP.
 
 Verbatim, on pacing: "I can complete reviews faster than you & your agents can work (not a bad thing -
 you're concepting & building multiple ideas, I'm simply selecting & commenting), so it makes the most sense

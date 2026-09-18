@@ -38,6 +38,7 @@ album hero's round three went "too boring" that way).
 | `voice` | round one of the voice derived from won lines: six to eight real lines, three or four close candidates each, bible 20's question first | building (Opus, :3135; cut `13dd8ffd`) |
 | `glass` | round one of Glass on the app's chrome over photographs: the recipe, the lightbox, the masonry's buttons, the reel overlay, the host grid, the light-ground answers as their own steps | building (Opus, :3132; cut this evening) |
 | `loose-ends` | six ROADMAP decisions drawn on their real surfaces: the admin chart cast, one FAQ look, the hero at tablet widths, the album's three ambient pieces | building (Sonnet, :3133; cut this evening) |
+| `body-type` | the body and label ladder as decisions before any sweep: a guest's reading copy, the app's body, marketing reading copy, the caption floor, the label pair, buttons, line height | building (Opus, :3134; cut this evening; the fourth seat) |
 | `album-hero` (round three) | answered in full (`none`, `w880`, `lg`, `settled`, `page`) | waits on `album-page`, then its wiring |
 | `river-visual` (round two) | answered (`card`, `in`, `ghost`; `proportion` withdrawn) | waits on `river-card`, then its wiring |
 
