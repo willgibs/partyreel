@@ -3,6 +3,7 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { ALBUM_HERO } from "./album-hero/spec";
 import { ALBUM_PAGE } from "./album-page/spec";
 import { GALLERY_WIDTH } from "./gallery-width/spec";
+import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
 import { RIVER_CARD } from "./river-card/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
@@ -25,6 +26,7 @@ import { RIVER_VISUAL } from "./river-visual/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  LOOSE_ENDS,
   PRIVACY_HERO,
   ALBUM_PAGE,
   RIVER_CARD,
