@@ -133,7 +133,7 @@ and the Worker's `npm test` in `workers/backup`.
 
 ## Handoff (replaces the chat report)
 
-- Head **`ab3eb5ee`**, pushed. `origin/launch-prep` HAD moved: synced by merge at **`ef044ee8`**
+- Head **`35364fa1`** (this commit), pushed. `origin/launch-prep` HAD moved: synced by merge at **`ef044ee8`**
   (docs only, `docs/tracks/orchestrator.md`); the whole gate re-run on the synced tree.
 
 **Gate, each step its own exit code, on the synced tree**
@@ -221,7 +221,7 @@ would show "No activity" indefinitely, the bell would not count jobs, and
 
 It was written, APPLIED locally, gated (typecheck 0, lint 0, `pnpm test` the same single pre-existing
 failure, `pnpm build` 0, the Worker dry-run clean), then reverted so the lane check stays clean.
-`git apply --check` passes at `ab3eb5ee`. Review it with `git diff -w` afterwards: 198 semantic lines,
+`git apply --check` passes at this head. Review it with `git diff -w` afterwards: 198 semantic lines,
 the rest is the one-level reindent of two loop bodies into a callback.
 
 | file | change |
