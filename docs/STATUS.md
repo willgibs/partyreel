@@ -38,7 +38,7 @@ album hero's round three went "too boring" that way).
 | `voice` | round one of the voice derived from won lines: eight real lines in the places they are read, three or four close candidates each, bible 20's question first | integrated at `e0b92af6`; on the desk; its question (does the first win bind the other seven) is Will's |
 | `glass` | round one of Glass on the app's chrome over photographs: the recipe, the lightbox, the masonry's buttons, the reel overlay, the host grid, the light-ground answers as their own steps | building (Opus, :3132; cut this evening) |
 | `loose-ends` | six ROADMAP decisions drawn on their real surfaces: the admin chart cast, one FAQ look, the hero at tablet widths, the album's three ambient pieces | building (Sonnet, :3133; cut this evening) |
-| `body-type` | the body and label ladder as decisions before any sweep: a guest's reading copy, the app's body, marketing reading copy, the caption floor, the label pair, buttons, line height | building (Opus, :3134; cut this evening; the fourth seat) |
+| `body-type` | the body and label ladder as seven decisions, every number measured in the frame: a guest's reading copy, the app's body, marketing copy fixed or fluid, the caption floor, the label pair, buttons, line height | integrated at `130236c2`; on the desk; two questions his (the four names; one size for caption and label) |
 | `album-hero` (round three) | answered in full (`none`, `w880`, `lg`, `settled`, `page`) | waits on `album-page`, then its wiring |
 | `river-visual` (round two) | answered (`card`, `in`, `ghost`; `proportion` withdrawn) | waits on `river-card`, then its wiring |
 

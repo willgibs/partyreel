@@ -103,7 +103,7 @@ retired `type-phone`; both agents were told so by message.
 | `voice` | integrated at `e0b92af6` (handed off `5e6e5481`; eight lines, 234 smoke checks, 8 demo steps) | done | Opus, :3135 | nothing; round two is cut from his notes |
 | `glass` | cut at `5e03ffe2` (round one: the app's chrome over photographs; the recipe, then each surface, light grounds as their own steps) | building | Opus, :3132 | the whole board per its manifest |
 | `loose-ends` | cut at `5e03ffe2` (six ROADMAP decisions on their real surfaces) | building | Sonnet, :3133 | the whole board per its manifest |
-| `body-type` | cut at `707d99a2` (the body and label ladder as decisions) | building | Opus, :3134 | the whole board per its manifest |
+| `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 
 `gallery-width` integrated at `3a519e0d`. The three resumed lanes integrated the same afternoon (`6b5ea1bf`,
 `31c94253`, `3ed62f0c`), the full gate green on the final tree (2,189 tests, 254 pages), and the round's

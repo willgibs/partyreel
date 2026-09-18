@@ -91,6 +91,16 @@ against a reference, never a cap and a test.
   whether the first win binds the other seven (the lane recommends yes, re-asking only the won lines that break
   it in round two).
 
+- `body-type` integrated (`130236c2`; cut `707d99a2` into the fourth seat on Will's yes): the body and label
+  ladder asked as seven decisions rather than schemed, every option the real surface wearing the paste a
+  ruling would land and every number read off the element in its frame. A guest's reading copy at a phone
+  (16 recommended, level with `card-title`), the app's working body (14), marketing copy fluid from 16 to 18,
+  the caption step and the floor (12, retiring 148 arbitrary sizes), the label pair (12 on 0.14em), buttons on
+  the ladder, and the line-height rule (2 x size minus 8, which lands every pair on the 4px grid). The
+  measuring caught three things the first draft had wrong: an arbitrary size inherits Tailwind's 1.5 leading,
+  a feature paragraph wears the guest page's own `text-[15px]`, and a stacked page shell's `min-h-full` eats
+  the frame. Two questions for Will: the four step names (`copy` / `body` / `caption` / `label` recommended),
+  and whether the caption and label steps share one size (yes recommended).
 - **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's
   word ("we could begin getting main current to launch prep"), 1,138 commits: partyreel.com now serves Graphite,
   the type and corner ladders, the Aurora with shadows by role, the home hero's band and the v1 wordmark, Card's
