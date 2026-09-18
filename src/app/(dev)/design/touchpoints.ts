@@ -48,6 +48,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "voice"
   | "privacy-hero"
   | "album-page"
   | "river-card"
@@ -73,6 +74,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "voice"
   | "privacy-hero"
   | "album-page"
   | "river-card"
@@ -690,6 +692,32 @@ export const RULINGS: Ruling[] = [
         "The gallery's width",
         "Where the words sit",
         "The host's galleries",
+      ],
+    },
+  },
+  {
+    id: "voice",
+    title: "The voice",
+    surface: "shared",
+    ruled:
+      "open (Will, 2026-09-17: the brand-voice board killed unruled at round seven; the voice is rebuilt from won lines, one real comparison at a time)",
+    shipped: null,
+    why: "No voice is declared: eight real lines in their real places, three or four close candidates each, and the voice is written up from what his wins share.",
+    lives: [
+      "src/lib/constants/marketing-voice.ts",
+      "src/app/(dev)/design/rules/bible.ts",
+    ],
+    board: {
+      note: "Eight decisions, no page: bible 20's open question drawn on the guest sheet's own line, the home hero's sentence, a feature page's headline, the Pro card's line beside the Free card, a host's empty dashboard, the email ask, an empty album and an upload's toast; every candidate set in the shipped surface at 1440 or in a 375 column",
+      variants: [
+        "Naming an absence",
+        "The home hero's sentence",
+        "A feature page's headline",
+        "The Pro card's line",
+        "A host's first screen",
+        "Asking for an email",
+        "An empty album",
+        "The upload's answer",
       ],
     },
   },
