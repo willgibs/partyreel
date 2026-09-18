@@ -48,6 +48,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "admin"
   | "loose-ends"
   | "glass"
   | "body-type"
@@ -77,6 +78,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "admin"
   | "loose-ends"
   | "glass"
   | "body-type"
@@ -811,6 +813,38 @@ export const RULINGS: Ruling[] = [
         "Asking for an email",
         "An empty album",
         "The upload's answer",
+      ],
+    },
+  },
+  {
+    id: "admin",
+    title: "The admin portal",
+    // `surface` has no "admin" member and this file is not this lane's to widen,
+    // so the portal sits under the closest one it has: the shell, the nav, the
+    // list shapes and the state colours are shared machinery, not a guest or a
+    // host screen. Widening the union is a one-line change for whoever next
+    // owns touchpoints.ts.
+    surface: "shared",
+    ruled:
+      'open (Will, 2026-09-18: "the full portal could likely be rethought from the ground up... plenty of thought should go into this prior to diving straight in")',
+    shipped: null,
+    why: "Sixteen routes behind one dropdown, every page a column of cards, no health signal away from the jobs console; round one asks the portal's shape as seven decisions.",
+    lives: [
+      "docs/systems/admin-observability.md",
+      "src/lib/admin/nav.ts",
+      "src/components/admin/admin-shell.tsx",
+      "src/app/admin/page.tsx",
+    ],
+    board: {
+      note: "Seven decisions, no page: the operator's home on one Tuesday's fixtures, the nav for twelve surfaces, the density of a list on the support inbox and the accounts table, how far a state's colour travels on the jobs console, one grammar for three destructive acts, where the backend's health is said, and how much of the product's bar the portal keeps; every option is the real admin components at 1440 by 900, a laptop screen",
+      variants: [
+        "The operator's home",
+        "The navigation",
+        "Density and the list",
+        "Colour for state",
+        "Destructive actions",
+        "The health strip",
+        "The chrome's identity",
       ],
     },
   },
