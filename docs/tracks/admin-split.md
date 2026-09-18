@@ -145,8 +145,11 @@ port (`lsof -ti tcp:3133 | xargs -I{} kill {}`). The gate, each step on its own 
 
 ## Handoff (replaces the chat report)
 
-- **Head `1e44837c`**, pushed. Synced with `launch-prep` at **`ef044ee8`** (`git merge`, never rebase; it
-  had moved by one docs-only commit, `docs/tracks/orchestrator.md`).
+- **Head**: the tip of `lp/admin-split`, pushed, which is this file's own latest commit (a manifest cannot
+  name the SHA it creates; `git rev-parse origin/lp/admin-split` is authoritative). The work itself is
+  `dadf7981` (the code and its tests) and `5141db47` (the two system docs); the sync merge is `1e44837c`.
+  Synced with `launch-prep` at **`ef044ee8`** (`git merge`, never rebase; it had moved by one docs-only
+  commit, `docs/tracks/orchestrator.md`, so nothing intersected this lane).
 - **Gates on the synced tree**, each step its own exit code:
   - `pnpm design:rules` exit 0 (113 components, 464 contracts, 18 policies) and
     `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` exit 0 (120 specimens on 90 entries);
