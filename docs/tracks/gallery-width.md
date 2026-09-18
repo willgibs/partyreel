@@ -1,6 +1,6 @@
 ---
 track: gallery-width
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "d62dac22"         # the launch-prep SHA the branch was cut from
 board: gallery-width    # a new question-first board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -120,27 +120,97 @@ the board under the reading budget), `pnpm lab:demo --board gallery-width --base
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The app shell, if the host follows the guest.** `host=same` with the words at the edge pins the
+  host's event page to the left gutter, header included, and `AppShell` is one header for every app
+  page. Does the whole app pin left from `lg` with it (the dashboard's event cards then run wide as a
+  gallery of their own), or only the event page? Recommended: the whole app, from `lg`: a header whose
+  logo moves between pages reads as a bug, and the dashboard's grid is a gallery by the same argument.
+- **The host's uniform grids.** The review queue and the reel grid are squares-at-4:5 grids
+  (`grid-cols-3 sm:grid-cols-4`), not masonry. Under the tile rule they would take the same column
+  width as `repeat(auto-fill, minmax(<tile>, 1fr))`. Recommended: yes, one tile width for every gallery
+  (at 240 the review queue shows five at 1280 and eight at 1920 instead of four); the wiring draws them.
+- (Not a chat question, flagged so the count is right: the board asks FOUR decisions, not the brief's
+  three. Drawing the wide album made the words' place the first thing the page shows, and the goal
+  settled that the words keep a readable column but not where it sits, so `words` is asked on the board
+  after `width`, recommended `edge`.)
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (a lab-only round; no production byte)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Major overhauls, the lab and the kit: `defineExploration` flattens every decision's `configs`, so a
+  knob several decisions share arrives once per decision (a duplicate dock knob and a React key
+  warning); dedupe by id in the constructor (`gallery-width/spec.ts` dedupes its window knob by hand).
+- Major overhauls, the lab and the kit: a bare `Frame` ignores the lab's Fit, so a 1920 frame stays
+  1:1 and the stage head's scale button seems dead; fold `WindowFit` (`gallery-width/pages.tsx`: a
+  `data-stage-fit` box with a CSS zoom, measured honest on an iframe) into `Frame` or the stage.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree, each step's own exit code: design:rules, specimens, typecheck, lint, test (N), build (M pages), lab:smoke, lab:demo
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the registration lines + the generated files
-- Each decision, one line: its options, the recommendation, and the measured tile width and columns per window
-- Captures (paths): every option at 1280, 1512 and 1920 beside its words, and the phone at 375
-- Assets requested from Will: none (every image is the Higgsfield month's; an ask names the slot, never the picture)
+- Head: the handoff commit (this manifest alone) on top of `5cdb0d04`, pushed. Synced twice, both
+  merges: `5a5c6eb4` mid-round on the Orchestrator's word (the rebuilt step, before measuring) and
+  `74f98761` before handoff in `5cdb0d04` (ladders-wiring's corners and the glow retirement; the
+  registration conflicts resolved keep-both, `touchpoints.test.ts` taken from launch-prep because its
+  standing list is derived now, `library.md` regenerated, never hand-merged)
+- Gates on the synced tree (`5cdb0d04`), each step's own exit code: design:rules 0 (only `library.md`
+  moves, one row), specimens 0 (no diff), typecheck 0 (after `rm -rf .next/dev`: the dev server's stale
+  validator still named the retired rounding route), lint 0 (0 errors, the 8 existing warnings, none
+  here), test 0 (228 files, 2,135 tests), build 0 (254 pages), lab:smoke 0 (202 checks, 0 failing; the
+  board reads 293 words of 1,200), lab:demo 0 (4 steps, 0 failing: tile moves 70.7%, width 62.2%, words
+  4.6%, host 52.0%; 1.7 screens each, no CLIPPED, UNLABELLED or NO DOCK)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the five files under
+  `sandbox/gallery-width/` (spec, board, pages, fixtures, the sheet), this manifest, the registration
+  lines in `sandbox/registry.ts`, `(shell)/lab/boards.ts` and `touchpoints.ts` (the id, the union
+  members, the row), and the generated `docs/design/library.md`. Nothing else; `rules.generated.json`
+  did not move
+- `tile` (the tile size): about 180 / about 240 / about 300 px, recommended 240 ("reads a face at a
+  glance": the phone's tile at arm's length). Measured on the guest album, full window, as columns x px
+  at 1280 / 1512 / 1920: 180 = 7x174 / 8x181 / 10x184; 240 = 5x245 / 6x242 / 8x232; 300 = 4x307 /
+  5x291 / 6x310. Today: 2x314 everywhere
+- `width` (after tile): the full window (20 px gutters) / the app's 1280 column, recommended full.
+  At 240: full = 5x245 / 6x242 / 8x232; container = 5x240 at every window
+- `words` (after width; added, above): at the album's left edge / centred as today, recommended edge.
+  The gallery is identical (5x245 / 6x242 / 8x232); the name starts at x 20 / 20 / 20 or 324 / 440 / 644
+- `host` (after `width=full`): the guest album's rule / their own, the app's 1280 column, recommended
+  same. At 240 with the words at the edge: same = 5x240 / 6x238 / 8x229 (the page pinned to the 32 px
+  gutter); own = 5x240 at every window (the Container). Today: 3 columns of about 403. At 1280 the two
+  are the same picture, and the step says so
+- The phone, unchanged: every frame narrowed to 375 in the browser measured the guest album at 2 x
+  165.5 px (335 wide, the name at 20) and the host's at 2 x 169.5, which is what ships
+- For the wiring, the candidate is one declaration per gallery, made from outside in
+  `gallery-width.css`: from `sm` up `column-width: <tile>` with `column-count: auto` in place of the
+  count (170 / 220 / 280 px for 180 / 240 / 300; each holds its column counts at a 3 or 4 px gap and
+  with a classic 15 px scrollbar). In code that is `sm:columns-[220px]` on `guest-masonry.tsx`,
+  `shared/masonry.tsx`, `selectable-media-grid.tsx` and `gallery-skeleton.tsx`; `event-experience.tsx`
+  moves its `max-w-2xl px-5` from the whole page onto the words (the gallery section runs `px-5`, or
+  the Container); the host's Gallery section leaves the Container; `loading.tsx` stops drawing a grid
+  its own gallery does not have (the brief's finding)
+- Captures (paths, under `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/b4ab430f-9f27-40b5-90a6-4177ea1d1021/scratchpad/gallery-width/`):
+  `final/<ask>-<option>-<window>.png`, all 27 (every option at 1280, 1512 and 1920, dark, 1:1, in the
+  real step: the stage head naming the option and its meaning, the frame's measured caption, the dock
+  with every option's words), with `final/measured.json`; `final-light/` the same 27 in light;
+  `final-phone/` the 9 at the 1512 window on a 375 phone; `final-fit/` the 9 at the 1920 window under
+  the lab's Fit on a 1512 screen (the stage head says "Fit 52%", and the frame still measures 10 / 8 /
+  6 columns inside, because a zoom leaves an iframe's own viewport alone)
+- Assets requested from Will: none (every image is the Higgsfield month's; an ask names the slot,
+  never the picture). The stand-in album is the twelve marketing stills declared at a phone roll's
+  shapes; ASSETS row 5 (the demo event's folder) is the slot that makes the tile judgment exact, and
+  at ten columns the twelve stills still repeat
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Look at first: the `words` step (the fourth decision), then the `host` step's `same` at 1920, which
+  wears the words answer: with the words at the edge the host's page pins its header and column left,
+  which is Question 1. Kit: the window knob is one control shared by four decisions (deduped in the
+  spec), and the frames keep the lab's Fit through `WindowFit` (both in Deferred)
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `gallery-width` round one asked how wide a gallery runs on
+a laptop and a desktop as four decisions, each option the real guest or host event page in a `Frame` at
+1280, 1512 and 1920 over forty stand-in photographs shaped like a phone's roll, its columns measured
+inside the frame: the tile (about 180, 240 or 300 px; 240), the width (the full window or the app's
+1280 column; full), where the words sit (the album's edge or centred; edge, added once the wide page
+showed it) and whether the host's galleries follow (same). The candidate is one `column-width` per
+gallery from `sm` up, so the phone kept its two columns. Two kit findings: the constructor duplicates a
+shared `configs` knob, and a bare `Frame` ignored the lab's Fit.
