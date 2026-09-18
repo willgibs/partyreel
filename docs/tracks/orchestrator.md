@@ -177,8 +177,8 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
   `POST /v9/projects/<admin>/domains/admin.partyreel.com/verify` answered verified on the first try; the admin host
   then served the admin project (`/pricing` 404, `/admin` → login). The apex flag and redeploy followed (production `dpl_5eV2X9KiAuQVAmh2GB7BN1UTdW25`, READY; partyreel.com 404s
   `/admin`, the marketing routes 200, `/dashboard` gates, the lab 404 keyless; the admin host `/admin` → login,
-  `/pricing` 404). DONE bar checks (e) and (g), Will's sign-in and the three pages, and (f), tomorrow's single purge
-  run in `job_runs`. Historic
+  `/pricing` 404). Checks (a) to (e) and (g) DONE (Will signed in on the new host, the three pages render; the live red-team is in
+  the CHANGELOG); (f), one purge run in `job_runs` after 04:00 UTC on 2026-09-19, is the last. Historic
   detail of the click, for the record: the domain move was WILL'S CLICK
   (the classifier refuses the Orchestrator's `DELETE /v9/projects/partyreel/domains/admin.partyreel.com` +
   `POST /v10/projects/partyreel-admin/domains` as a DNS-class change): in the dashboard, project `partyreel` →

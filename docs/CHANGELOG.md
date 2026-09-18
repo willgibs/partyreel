@@ -164,7 +164,10 @@ reference, never a cap and a test.
   key. `partyreel-admin`'s production build went READY, Will moved the domain in the dashboard (the API move is the one
   step the Orchestrator's guardrails refuse), a fresh `_vercel` TXT at GoDaddy verified it (the apex domain object
   lives under his personal account), and the apex took `NEXT_PUBLIC_SURFACE=app` with a redeploy: partyreel.com
-  404s `/admin`, admin.partyreel.com serves only the portal. The cutover closed the same night.
+  404s `/admin`, admin.partyreel.com serves only the portal. The cutover closed the same night, red-teamed live: every app route,
+  the lab (keyed too), the guest paths and the webhook are 404 on the admin host under GET and POST, case and
+  traversal variants included; the cron there answers 401 without the secret and `skipped: not_this_surface` with
+  it; Will signed in on the new host and `/admin/metrics`, `/admin/albums` and `/admin/forensics` rendered.
 
 **Next.** His sitting on the boards on the desk (`privacy-hero` already answered none, its round two in
 `image-trail`), and the ghost on a disposable event on the alias; `image-trail` and `cursor-backdrop` integrate as
