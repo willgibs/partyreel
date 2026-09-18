@@ -52,8 +52,11 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
   (zero flicker as a pending tile becomes the optimistic tile). Hold-for-approval completions show NO
   optimistic tile (a settle toast fires; the host's approval rings the doorbell and the tile arrives).
 - **Empty state** ([`gallery-empty-state.tsx`](../../src/components/guest/gallery-empty-state.tsx)): the
-  photographic promise — a faint grayscale ghost mosaic (the optimized `public/guest-ghost` WebPs) with a
-  centered `font-heading` CTA. At 0 items the header drops its Add (the CTA owns it).
+  photographic promise — the RIVER (`shared/river`, Will's `guest-photos=ghost`, 2026-09-18) in a square
+  box the width of the column, the `public/guest-ghost` WebPs pouring down under a centered `font-heading`
+  title and CTA. The fade (grayscale 0.85 at 40%) is a filter on the placement's WRAPPER, never a layer
+  over the photographs, and NOTHING sits at the top of the flow: a demo code inside a host's own album is
+  what bible 4 refuses. At 0 items the header drops its Add (the CTA owns it).
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx)):
   full-bleed media, a floating top-right close, a bottom ACTION PILL (Like / Save / Share /
   Delete) over an ATTRIBUTION PILL ("[name] [Host] / Anonymous(i) · i+1 of N" — the counter always
