@@ -12,7 +12,7 @@ curates, and a public album results, every QR seeding the next host. Data in **S
 RLS + capability RPCs); media bytes in **Cloudflare R2**; payments **Stripe**; email **Resend**;
 errors **Sentry**.
 
-## Route groups (one app, one domain)
+## Route groups (one app, one repository)
 
 ```
 src/app/
@@ -21,7 +21,7 @@ src/app/
   (auth)/           # public: /login, /auth/callback  (NOT gated — see below)
   (app)/            # GATED host app: /dashboard …  layout runs getUser() → redirect /login
   (guest)/          # the token surface: /e/[token]  (the single event link, config-driven)
-  admin/            # the ops portal, served on admin.partyreel.com (host-guarded)
+  admin/            # the ops portal: its OWN Vercel project, on admin.partyreel.com
   api/              # route handlers
 ```
 
@@ -34,7 +34,19 @@ src/app/
 - **One domain is the growth loop, not a deployment convenience:** a scanned QR, a shared album and the
   marketing site are the same recognizable origin, one cookie domain, one deploy. The price is that all
   four surfaces share the root layout and its bundle baseline, so the root layout stays minimal and each
-  group carries its own chrome.
+  group carries its own chrome. The ops portal is the one deliberate exception, below: it faces nobody the
+  loop needs and it is the surface a separate origin most protects.
+- **One tree, two deployments (the admin split, 2026-09-18).** `admin/` is built from THIS repository by a
+  SECOND Vercel project, `partyreel-admin`, which differs from `partyreel` by one variable:
+  `NEXT_PUBLIC_SURFACE` (`admin` vs `app`; unset serves both, which is also the rollback). Its only reader
+  is [`src/lib/surface`](../../src/lib/surface), and `src/proxy.ts` applies it before every other rule, so
+  the admin host serves an allow-list (`/admin`, sign-in, MFA, the cron route, the design-gate probe) and
+  the apex 404s `/admin` whatever the Host header says. Two projects, not two repositories, because Will's
+  base requirement is one Orchestrator across every surface in a single chat: a shared token, component or
+  schema change has to reach the portal in the same commit that makes it. The three daily jobs stay on the
+  app surface, since `vercel.json` registers its cron on BOTH projects and the purge route answers and
+  stops on the admin one. Full perimeter + the cutover facts:
+  [admin-observability.md](admin-observability.md).
 - The always-dark **`gallery`** surface is unused as a full page (the one-link view-only state shipped as
   a panel-removal on the themed event page); its `--gallery` tokens persist for the lightbox
   backdrop + `SaveEventButton`'s `tone="gallery"`. → see [uploads-and-r2.md](uploads-and-r2.md).

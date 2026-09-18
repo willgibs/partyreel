@@ -37,9 +37,9 @@ album hero's round three went "too boring" that way).
 | `ghost-wiring` | river-visual's `ghost` on the guest album's empty state, for Will to judge in the app | integrated at `31c94253` (resumed on Opus): the river's production home `src/components/shared/river/`, two contracts, a Library entry; the ghost's numbers (grayscale 0.85 at 40 percent, the board's) are his to overrule |
 | `voice` | round one of the voice derived from won lines: eight real lines in the places they are read, three or four close candidates each, bible 20's question first | integrated at `e0b92af6`; on the desk; its question (does the first win bind the other seven) is Will's |
 | `glass` | round one of Glass on the app's chrome over photographs: four recipes in numbers, one grade or two, the lightbox's backdrop, the chips over tiles at a phone, the reel's controls, the host's row, the light ground on its own step; every cost measured | integrated at `30aaf705`; on the desk; round two (marketing, the aurora marriage) is cut from his notes |
-| `admin` | the admin portal's shape, round one: the operator's home, the navigation, density, colour for state, destructive actions, the health strip, on the real components with fixtures; an on-brand devtool per Will's ruling | building (Opus, :3132; cut this evening) |
-| `admin-split` | the admin as its own Vercel project on this one repo, serving only the admin; the main project stops serving it; the cutover runbook for the Orchestrator | handed off at `a4104a50`; integrating (the runbook's project, crons and env follow the merge; the domain moves at the milestone) |
-| `admin-jobs` | the four backend jobs with no heartbeat (the backup queue and dead letters, the purge's sub-sweeps, email, the limiters) onto the console with health, kill switches and alerts | building (Opus, :3134; cut this evening) |
+| `admin` | the admin portal's shape, round one: the operator's home, the navigation, density, colour for state, destructive actions, the health strip, on the real components with fixtures; an on-brand devtool per Will's ruling | integrated at `d6305818`; on the desk (seven steps at 1440 by 900; the questions closed by the Orchestrator, in the CHANGELOG) |
+| `admin-split` | the admin as its own Vercel project on this one repo, serving only the admin; the main project stops serving it; the cutover runbook for the Orchestrator | integrated at `7f3738ba`; the preview host proven (the allow-list probed, Will's sign-in and MFA step-up done); on `main` at milestone-26 with `partyreel-admin`'s production build READY; left: the domain move (Will's dashboard click), then the apex flag and redeploy (`tracks/orchestrator.md`) |
+| `admin-jobs` | the four backend jobs with no heartbeat (the backup queue and dead letters, the purge's sub-sweeps, email, the limiters) onto the console with health, kill switches and alerts | integrated at `3ad58b1c` (the cross-lane patch applied in the merge); the migration applied, the advisor set unchanged; the Worker deployed (`d7b16bcc`) |
 | `loose-ends` | six ROADMAP lines as seven decisions on their real surfaces: the admin chart cast in both modes, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces | integrated at `b83b7c3d`; on the desk; one question his (the reading of the two ambient pieces that had nothing to vary); a real chart-token bug found, on the ROADMAP's Now list |
 | `body-type` | the body and label ladder as seven decisions, every number measured in the frame: a guest's reading copy, the app's body, marketing copy fixed or fluid, the caption floor, the label pair, buttons, line height | integrated at `130236c2`; on the desk; two questions his (the four names; one size for caption and label) |
 | `image-trail` | our own cursor-tracking image trail (the Codrops "Image Trail Effects" demo one as the reference, written from scratch: a photograph born on every stretch of cursor travel, sliding to the cursor and decaying behind it) with real homes on the marketing site, and `privacy-hero` round two on the same engine (tighter, faster, the trailing photographs decaying) | building (Opus, :3135; cut tonight from Will's first note) |
@@ -59,9 +59,12 @@ authoring shape, and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-25` (`bf9cbd74`, merged 2026-09-18 from the `launch-prep` tip
-  `707d99a2`: Graphite, the type and corner ladders, the Aurora with shadows by role, the hero band and the v1
-  wordmark, the river on the empty album); `launch-prep` runs ahead by the boards integrated since. **The `launch-prep` alias**
+- **Prod (partyreel.com)** = `main` @ tag `milestone-26` (`df173c2e`, merged 2026-09-18 late from the `launch-prep` tip
+  `353ad884`: the admin split's code, the jobs console on three kinds, the chart aliases static, four boards behind
+  the key); `launch-prep` is level with it. **The admin cutover** is one click from done: `partyreel-admin`'s
+  production build of `main` is READY; `admin.partyreel.com` still points at `partyreel` until Will moves it in the
+  dashboard (the API domain move is refused by the Orchestrator's guardrails), after which the apex gets
+  `NEXT_PUBLIC_SURFACE=app` and a redeploy (`tracks/orchestrator.md`). **The `launch-prep` alias**
   (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock. Will reviews
   on the alias as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**.
   Vercel's cap is 100 deployments per trailing day on every path, so `[preview]` stays the Orchestrator's,
@@ -72,7 +75,7 @@ authoring shape, and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
   runs on `main` and `launch-prep` code pushes only; an `lp/*` push only on `[ci]`). `lab:smoke` passes
   whole again, so a board over its reading budget is a failure, not a known exception.
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup GitHub Action (about
-  06:30 UTC) are live; the deletion-aware backup prune ships in dry-run (`PRUNE_MODE=live` is a launch flip).
+  06:30 UTC) are live; the deletion-aware backup prune ships in dry-run (`PRUNE_MODE=live` is a launch flip). The backup Worker's queue and dead-letter depth reading (`admin-jobs`) is deployed (version `d7b16bcc`, 2026-09-18); the two derived cards fill with the 05:00 UTC run.
 - **The repo is public for the interim** (Will, 2026-09-15, after twelve tracks spent the month's private
   GitHub Actions minutes in two days); it goes back to private when the budget clears.
 

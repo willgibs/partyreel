@@ -30,6 +30,7 @@ import {
   parseMediaIdFromKey,
   shouldDelete,
 } from "./prune-strategy";
+import { depthNote, readQueueDepths, type DepthCounts } from "./queue-metrics";
 
 export type Env = {
   /** Source bucket (the live `partyreel` bucket), bound read-only in practice. */
@@ -42,6 +43,13 @@ export type Env = {
   PRUNE_API_URL?: string;
   /** Shared bearer secret for PRUNE_API_URL (`wrangler secret put PRUNE_API_SECRET`). */
   PRUNE_API_SECRET?: string;
+  /**
+   * Producer bindings for the live queue and its dead-letter queue, used ONLY to read their depth
+   * (`Queue.metrics()`); this Worker never sends to either. OPTIONAL so a deploy whose wrangler.jsonc
+   * predates them still backs media up and simply reports no depth reading. See queue-metrics.ts.
+   */
+  BACKUP_QUEUE?: Queue;
+  BACKUP_DLQ?: Queue;
 };
 
 /**
@@ -196,16 +204,21 @@ async function reconcile(env: Env): Promise<void> {
   }
   const run = gate.ok ? gate.run : null;
 
+  // Read the depths FIRST and reuse them on both exits. They are a reading about the queue, not about
+  // this sweep, so a run that then fails must still report them: a reconcile that died is exactly
+  // when an operator most needs to know how deep the dead-letter queue is.
+  const depths = await readQueueDepths(env);
+
   try {
     const tally = await reconcileSweep(env);
-    console.log("reconcile: done", tally);
+    console.log("reconcile: done", tally, depths);
     await jobFinish(env, "backup_reconcile", run, {
       status: tally.failed > 0 ? "error" : "ok",
-      counts: { ...tally },
-      note:
-        tally.failed > 0
-          ? `${tally.failed} object(s) failed to copy`
-          : undefined,
+      counts: { ...tally, ...depths },
+      note: joinNotes(
+        tally.failed > 0 ? `${tally.failed} object(s) failed to copy` : null,
+        depthNote(depths),
+      ),
     });
   } catch (err) {
     // A throw here is the sweep itself failing (a list call, not a single key). Close the row as an
@@ -213,9 +226,18 @@ async function reconcile(env: Env): Promise<void> {
     console.error("reconcile: run failed", { err: String(err) });
     await jobFinish(env, "backup_reconcile", run, {
       status: "error",
+      counts: depths,
       note: String(err).slice(0, 300),
     });
   }
+}
+
+/** Two optional lines into one note, or undefined when there is nothing to say. */
+function joinNotes(
+  ...parts: (string | null | undefined)[]
+): string | undefined {
+  const kept = parts.filter((p): p is string => Boolean(p));
+  return kept.length ? kept.join("; ").slice(0, 500) : undefined;
 }
 
 type ConfirmResult =
@@ -477,13 +499,22 @@ async function prune(env: Env): Promise<void> {
     return;
   }
 
+  // The weekly run reports the depths too, so a week where the daily reconcile itself stopped firing
+  // still leaves one fresh reading of the queue behind it.
+  const depths: DepthCounts = await readQueueDepths(env);
+
   try {
     const outcome = await pruneSweep(env);
-    await jobFinish(env, "backup_prune", gate.run, outcome);
+    await jobFinish(env, "backup_prune", gate.run, {
+      ...outcome,
+      counts: { ...outcome.counts, ...depths },
+      note: joinNotes(outcome.note, depthNote(depths)),
+    });
   } catch (err) {
     console.error("prune: run failed", { err: String(err) });
     await jobFinish(env, "backup_prune", gate.run, {
       status: "error",
+      counts: depths,
       note: String(err).slice(0, 300),
     });
   }
