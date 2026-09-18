@@ -184,6 +184,7 @@ export default async function DeskPage({
             param={param === SAMPLE_BOARD.id ? stepParam(walk[0]) : param}
             sample={sample}
             build={build}
+            transcribed={transcribed}
             title="The message"
             blurb="One line per board, in the ledger grammar. Paste it into chat and the answers land in docs/reviews."
           />
@@ -541,8 +542,10 @@ function BoardCard({
             .map((a) => (
             <li key={a.ask.id}>
               <LabLink
+                // An answered ask, or one marked unclear, is not in the walk:
+                // it opens the board rather than a step that is not there.
                 href={
-                  a.answer?.choice
+                  a.answer
                     ? `/design/lab/${row.id}`
                     : askHref(row.id, a.ask.id)
                 }
@@ -569,7 +572,7 @@ function BoardCard({
                 )}
                 {a.answer && a.answer.choice === null && (
                   <span className="font-medium text-foreground">
-                    not clear, asked again
+                    not clear, waiting on a clearer question
                   </span>
                 )}
               </LabLink>

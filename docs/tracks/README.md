@@ -132,7 +132,7 @@ The manifest is the init. The whole prompt for the new session:
 > A big goal is shaped PROGRESSIVELY, never as one "pick one": `after` stages a question behind
 > another answer so a round can unlock the next, and decisions with no `after` between them are
 > independent pieces. Do not build a page, a verdict essay, departures or a catalog of cards to rule
-> on one by one. `src/app/(dev)/design/sandbox/type-phone` is the worked example. Read his notes on
+> on one by one. the newest `defineExploration` board in `src/app/(dev)/design/sandbox/` is the worked example. Read his notes on
 > the last round first. Anything the goal leaves open goes under the manifest's Questions
 > with your recommended answer, and you carry on with the recommendation. Design law is the bible on
 > `/design/library/rules` and the component contracts on `/design/library`; everything else is

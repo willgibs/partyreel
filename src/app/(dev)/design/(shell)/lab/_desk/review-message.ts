@@ -195,6 +195,24 @@ const sameChoice = (sent: string | null, held: string) =>
   (sent ?? "?") === held;
 
 /**
+ * WHETHER THE LEDGER ALREADY HOLDS AN ENTRY, choice and note alike: the one
+ * rule every composer drops a held entry by. "Copy so far" and the end of the
+ * walk both compose from the browser's store, and the end of the walk had no
+ * such rule, which is how a transcribed "?" reached the ledger twice (Will's
+ * ninth batch, 2026-09-18).
+ */
+export function alreadySent(
+  sent: { choice: string | null; note?: string } | undefined,
+  held: { choice: string; note?: string },
+): boolean {
+  return (
+    sent !== undefined &&
+    sameChoice(sent.choice, held.choice) &&
+    sameNote(sent.note, held.note)
+  );
+}
+
+/**
  * EVERYTHING HELD SO FAR THAT IS NOT ALREADY IN THE LEDGER, AS ONE MESSAGE
  * (Will, 2026-09-16, a few questions into his first sitting: "it's really
  * annoying that there's not an option to copy and send you only the answers
@@ -268,9 +286,7 @@ export function composeSoFar(
       if (held.note?.trim()) note(board, open.round, `on ${id}: ${held.note}`);
       continue;
     }
-    const sent = transcribed.answers[key];
-    if (sent && sameChoice(sent.choice, held.choice) && sameNote(sent.note, held.note))
-      continue;
+    if (alreadySent(transcribed.answers[key], held)) continue;
     answers.push({
       board,
       round: Number(round),

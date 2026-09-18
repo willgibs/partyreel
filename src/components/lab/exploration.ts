@@ -4,6 +4,7 @@ import {
   type Ask,
   type AskAfter,
   type BoardSpec,
+  type BoardState,
   type Control,
   defineBoard,
   type Section,
@@ -141,9 +142,23 @@ export type PreviewKey<E extends ExplorationInput> = {
 export type Exploration<E extends ExplorationInput = ExplorationInput> =
   BoardSpec<readonly Section[]> & { readonly __keys?: PreviewKey<E> };
 
+/**
+ * ONE OPTION'S PICTURE: a node, or a function of the board's state.
+ *
+ * ★ A FUNCTION WHEN THE PICTURE DEPENDS ON ANOTHER ANSWER (2026-09-18). A
+ * decision staged behind another (`after`) is asked in a world where the first
+ * one is settled, so its options have to be drawn IN that world: the gap
+ * between photographs is judged at the pace he picked, not at whatever the
+ * board happened to default to. The step hands `evidence` the state with every
+ * decided answer of the board worn (`step.tsx`, `stateFor`), and a function
+ * preview reads the ones it needs: `(s) => <Spirals pace={s.pace} gap="half" />`.
+ * A plain node is still the common case and needs nothing.
+ */
+export type Preview = ReactNode | ((state: BoardState) => ReactNode);
+
 /** The exhaustive preview map an exploration's board owes. */
 export type PreviewsFor<S> = S extends { __keys?: infer K }
-  ? Readonly<Record<K & string, ReactNode>>
+  ? Readonly<Record<K & string, Preview>>
   : never;
 
 /**

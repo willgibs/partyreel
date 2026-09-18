@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 243 contracts on 42 components · 4 standing boards.**
+**22 laws · 18 policies · 253 contracts on 42 components · 4 standing boards.**
 
 ## What binds you
 
@@ -60,9 +60,9 @@ Guests came for the event, not for us; the QR is the growth loop, and it works b
 
 ### type
 
-**5. One heading face on one site ladder. Every h1 sits on the ladder, never on a ramp of its own.**
+**5. One heading face on one site ladder. Every heading sits on a step, and the steps keep their order at every width.**
 
-Will, 2026-08-29: normalize the site ladder so the pages read as one site; a page that needs its own scale has not been designed yet. The type ruling wrote the sizes (B, rungs, 2026-09-17): nine steps in theme.css, each carrying its own leading and tracking, marketing travelling four rungs between a phone and a desktop and the app one.
+Will, 2026-08-29: normalize the site ladder so the pages read as one site; a page that needs its own scale has not been designed yet. The type ruling wrote the sizes (B, rungs, 2026-09-17), and the ninth batch made the law the ORDER (2026-09-18: "we really shouldn't have any one-off adding instances"): ten steps in theme.css, each with its own leading and tracking, a phone end being the rung that keeps each heading above the one it heads.
 
 <small>enforced by `src/app/(marketing)/marketing-h1-policy.test.ts`, `src/components/marketing/system/page-hero-contract.test.ts`, `src/lib/type-ladder-policy.test.ts` · `/design/library/rules/one-site-ladder`</small>
 
@@ -345,7 +345,7 @@ Contracted but outside the library's directories:
 - `src/components/lab/item-verdict.tsx` (7 guards)
 - `src/components/lab/lab-chrome.tsx` (6 guards)
 - `src/components/lab/specimen.tsx` (5 guards)
-- `src/components/lab/step.tsx` (20 guards)
+- `src/components/lab/step.tsx` (30 guards)
 - `src/components/marketing/chrome/marketing-footer.tsx` (5 guards)
 - `src/components/marketing/legal/legal-document.tsx` (3 guards)
 - `src/components/marketing/sections/home/hero-stream.ts` (12 guards)

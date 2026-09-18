@@ -8,6 +8,92 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-18 · the calm was the wrong instruction; the album hero gets a fourth round at the home hero's pace, the field becomes the Privacy hero's spirals, the river goes into a card and onto the empty album, and galleries run wide with more columns
+
+**Became:** `docs/reviews/album-hero.json` round 3 (`composition=none`, `album-width=w880`, `headline=lg`,
+`no-script=settled`, `copy=page`) and `docs/reviews/river-visual.json` round 2 (`placement=card`,
+`code=in`, `guest-photos=ghost`; `proportion` was answered `?` and then withdrawn inside the round, his
+words kept as his note beside the Orchestrator's: the pinned stage hid it, its three boxes were three
+sizes at one ratio with "taller" and "squarer" never drawn, and a card's slot sets the shape). Both boards had been
+grandfathered past round one with no review, and the list is empty now. What follows: the lab's step
+rebuilt around his last note (the preview is the page and the answer is a dock); four question-first
+boards on three lanes, `album-page` (the album hero's round four) with `privacy-hero` (the field as two
+spirals) because both are paced against the home hero, `river-card`, and `gallery-width`; then the
+wiring, which waits on them.
+
+**How the calm went wrong, which binds every exploration.** His note on round two asked for the heroes to
+"feel a bit more calm. These are all moving too fast and feel distracting from the actual page content.
+Many frames are also jittery/buggy." Round three turned a relative note into absolute limits (nothing
+faster than 40 px a second, at most sixteen frames lit), pinned them with a test, and applied them to all
+four compositions, so every option was calm by construction and none was drawn against the pace he
+already liked on the home page. A relative note is answered with options graded against a reference,
+never with a cap and a test (`docs/PROGRAM.md`).
+
+**The privacy page's restraint is overturned for its hero.** The page was built as the site's quietest,
+with "no stage and no lamp" in its hero ("restraint is their identity", `docs/systems/design-system.md`).
+His note gives that hero the field, faster, as two spirals with a trail.
+
+**Placeholder copy is judged for its size and wrapping, never its words** (`copy=page`), in every
+exploration until the `voice` board rules the words.
+
+Verbatim, on the compositions: "Honestly, none of these landed as well as I was hoping. I think my calm
+instruction messed us up - now it feels too boring. Let's speed up the pace again; home hero currently
+feels perfect - fast but not overwhelming, so it's still easy to read text. Aside from the 'calm' problem
+effecting all explorations, none feel they would pair well with the album visual beneath. However, I'd
+love to revamp 'the field' for the 'Privacy & trust' page hero. I love the images popping in spiraling
+opposite two sides. Increasing the pace, reducing the gap between images and leaving a decaying trail
+behind the 2 spirals should hopefully be perfect for that page hero."
+
+Verbatim, on the album's width (with two screenshots in chat of the lamp under the page's demo): "If
+this width makes the dashboard visual too tall, we can fade out the bottom. May look better either way.
+Current lamp usage is wrong anyways on album page beneath demo visual (will attach image in chat), so we
+can find new ways to infuse the aurora here as well."
+
+Verbatim, on the copy: "The future voiceboard exploration will treat all copy as unprotected, so we can
+design without getting too specific on copy right now as long as the active placeholder feels like an
+accurate representation of the future copy. That way, we're judging things like size and wrapping
+correctly."
+
+Verbatim, on the river's placement: "This would create our first truly beautiful card visual. I think this
+is where it lands most powerfully, and how it works can use a more dedicated animation. However, let's
+run the card implementation through its own exploration to nail it. Right now, I think the QR code needs a
+bit more of a gap from the top, so it feels a bit more centered with the images still streaming down. The
+blank space above will allow some breathing room."
+
+Verbatim, on the code in the river: "However, we don't need the 'scan it' label text. Think of this more as
+an Easter egg in our design. We have other instances that are more direct about pointing to the demo
+event."
+
+Verbatim, on the empty album: "This is an immediate upgrade to the 'this is where it all lands' empty
+state. However, I'd like to see it within the full app to see if a different animation would work better
+here."
+
+Verbatim, on the lab, which the step's rebuild answers: "This seems to be a lab problem over the question
+itself. The top preview UI of our lab is covered by the answer UI, and I cannot scroll it to see the full
+heights or labels on which height is which. This has been a recurring problem where I have to visit the
+board to be able to see a full preview, then go back to the question to answer. We should ensure both the
+question/context/preview UI and response/answer UI work well together."
+
+Asked whether 880 was meant for the album page's demo only or for the real guest album too, verbatim:
+"This will likely require its own exploratory track, but I currently dislike how we're restricting the
+width of the gallery (both in app and real guest event pages) on larger screens. For laptops, desktops,
+etc., it makes way more sense to use the full width for galleries to show more images. So, as an immediate
+answer, it's fine to do both, but as a larger answer, the real guest album page already needs to be
+widened anyway."
+
+Asked what the album page's hero becomes (no composition, or a fourth round), verbatim: "Let's do a round
+4, home hero pace. I know you recommended the no composition, and I'd guess it's because the album below
+already serves as a visual for the hero and pairing it with a loud animation, such as those from our last
+exploration, may feel overwhelming. I agree, but feel the area above and to the sides of the H1 lockup will
+feel too empty with just the album beneath. Maybe we can use a more subtle animation in some of the empty
+space to help the hero feel more alive & full."
+
+Told that an interim 880 cap on the guest page works against his goal (the cap wraps the whole page and
+the album stays two columns, so tiles get bigger and fewer fit), and asked whether to skip it and run a
+full-width gallery board, verbatim: "Let's skip it and run the board as you recommended. However, as a
+quick note before the board, in my request for widening the gallery, we'd keep image tiles to a smaller
+size and add more columns. Not go wide and keep 2 col."
+
 ## 2026-09-18 · the type ladder keeps its order at a phone and nothing is set off it; the corners are C in quarters; every image and video is generated, with one line in the Terms
 
 **Became:** `docs/reviews/type-phone.json` round 1 (`subhead` and `dead-link` left open with his words,

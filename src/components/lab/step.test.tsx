@@ -1,5 +1,5 @@
 // @contract-for: src/components/lab/step.tsx
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -183,6 +183,45 @@ const CARDS: ItemsStep = {
 
 const QUEUE: SessionStep[] = [DEPTH, REGISTER, LANDING, ELSEWHERE];
 
+/** An exploration's pair: each decision is its own control, the second staged. */
+const PACE: AskStep = {
+  kind: "ask",
+  board: "hero",
+  boardTitle: "A hero",
+  round: 1,
+  askId: "pace",
+  question: "How fast should it travel?",
+  options: [
+    { id: "slow", label: "Slow", state: { pace: "slow" } },
+    { id: "fast", label: "Fast", state: { pace: "fast" } },
+  ],
+  recommended: "fast",
+  evidence: null,
+  section: "pace",
+  control: "pace",
+  boardHref: "/design/lab/hero",
+};
+
+const GAP: AskStep = {
+  kind: "ask",
+  board: "hero",
+  boardTitle: "A hero",
+  round: 1,
+  askId: "gap",
+  question: "How far apart should the photographs be?",
+  options: [
+    { id: "half", label: "Half a photograph", state: { gap: "half" } },
+    { id: "edge", label: "Edge to edge", state: { gap: "edge" } },
+  ],
+  recommended: "half",
+  evidence: null,
+  section: "gap",
+  control: "gap",
+  after: { ask: "pace" },
+  afterRuled: "slow",
+  boardHref: "/design/lab/hero",
+};
+
 /** A board surface that records what it was asked to draw, and in what state. */
 function fakeBoard(): StepBoard & { drawn: [string, BoardState][] } {
   const drawn: [string, BoardState][] = [];
@@ -222,15 +261,12 @@ function step(
   );
 }
 
-/**
- * ★ A TILE IS NOT A <button>. It wraps the board's own evidence, and a real
- * section contains real buttons: nesting one inside a button is invalid HTML
- * and a hydration error (found live, 2026-09-16). So the tile is a
- * `role="button"` div whose preview is inert, and the tests reach it the way a
- * reader does.
- */
-const tile = (label: string) =>
-  screen.getByText(label).closest('[role="button"]') as HTMLElement;
+/** The dock's option buttons, reached the way a reader does. */
+const chip = (label: string) =>
+  within(screen.getByRole("group", { name: "The options" })).getByRole(
+    "button",
+    { name: new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) },
+  );
 
 beforeEach(() => {
   push.mockClear();
@@ -239,33 +275,50 @@ beforeEach(() => {
 });
 
 /**
- * ★ THE EVIDENCE IS IN REACH OF THE PRESS (2026-09-17).
+ * ★ THE PREVIEW IS THE PAGE AND THE ANSWER IS A DOCK (2026-09-18).
  *
- * Measured across all 21 open steps before this landed: the stage sat up to
- * 5.6 SCREENS below the first option it answers to, and nothing in the lab was
- * sticky. That is what Will reported twice as "clicking the configs didn't seem
- * to change anything" - the presses registered and the evidence was off screen.
- *
- * These two pin the FUNCTION, never the look: the stage is rendered before the
- * options in document order (so it is above them, and can be pinned there), and
- * the author's `look` sentence reaches the reviewer at all. Nothing here
- * asserts a height, a position value or a colour; a board may raise
- * `--lab-stage-peek` and these still hold.
+ * The step before this pinned the evidence in a 40vh window above the options,
+ * and Will could not see what he was answering: "The top preview UI of our lab
+ * is covered by the answer UI, and I cannot scroll it to see the full heights
+ * or labels on which height is which." These pin the FUNCTION, never the look:
+ * every option is drawn once on the stage, the stage says which one it shows,
+ * the options to press come after it in a dock, and the step lands showing
+ * the board's recommendation. Nothing here asserts a height, a position or a
+ * colour; `pnpm lab:demo` measures the clipping in a real browser.
  */
-describe("a step puts its evidence in reach", () => {
-  it("draws the stage before the options, not after them", () => {
+describe("a step puts the preview on the page and the answer in a dock", () => {
+  it("draws every option once on the stage, before the dock", () => {
     const board = fakeBoard();
-    const { container } = step("light.depth", board);
+    const { container } = step("light.register", board);
     const root = container.querySelector("[data-review-step]")!;
-    const stage = root.querySelector('[data-lab-specimen]:not([inert])')!;
-    const firstTile = root.querySelector('[role="button"][aria-pressed]')!;
-    expect(stage, "the step drew no stage").not.toBeNull();
-    // Node.DOCUMENT_POSITION_FOLLOWING === 4: the tile comes after the stage.
+    const views = [...root.querySelectorAll("[data-lab-view]")].map((v) =>
+      v.getAttribute("data-option"),
+    );
+    expect(views).toEqual(["accent", "identity"]);
+    const dock = root.querySelector("[data-lab-dock]")!;
+    // Node.DOCUMENT_POSITION_FOLLOWING === 4: the dock comes after the stage.
     expect(
-      stage.compareDocumentPosition(firstTile) &
+      root.querySelector("[data-lab-stage]")!.compareDocumentPosition(dock) &
         Node.DOCUMENT_POSITION_FOLLOWING,
-      "the options must follow the stage so a press is seen",
+      "the answer follows the preview",
     ).toBeTruthy();
+  });
+
+  it("lands showing the board's recommendation, and says which it is", () => {
+    const board = fakeBoard();
+    const { container } = step("light.register", board);
+    expect(board.state.register).toBe("identity");
+    expect(
+      container.querySelector("[data-lab-stage-label]"),
+    ).toHaveTextContent("Identity: the page reads as a lit room");
+    // Only the shown option is visible and live; the other is inert.
+    expect(
+      container.querySelector('[data-lab-view][data-option="accent"]'),
+    ).toHaveAttribute("inert");
+    // Landing is showing, never answering.
+    expect(
+      getReviewStore().answers[holdId("light", 5, "register")],
+    ).toBeUndefined();
   });
 
   it("prints the author's line about what to look at", () => {
@@ -277,13 +330,29 @@ describe("a step puts its evidence in reach", () => {
       screen.getByText(/The Separate section on the App dark ground\./),
     ).toBeTruthy();
   });
+
+  it("keeps a link inside a preview from leaving the step", async () => {
+    const board = {
+      ...fakeBoard(),
+      evidence: () => <a href="/elsewhere">a link in the picture</a>,
+    };
+    step("light.register", board);
+    let left = true;
+    const spy = (e: MouseEvent) => {
+      left = !e.defaultPrevented;
+    };
+    document.addEventListener("click", spy);
+    await userEvent.click(screen.getAllByText("a link in the picture")[0]);
+    document.removeEventListener("click", spy);
+    expect(left).toBe(false);
+  });
 });
 
 describe("a step, show versus choose", () => {
   it("shows an option without recording it", async () => {
     const board = fakeBoard();
     step("light.register", board);
-    await userEvent.click(tile("Accent: a glow on one section"));
+    await userEvent.click(chip("Accent: a glow on one section"));
     // The stage moved...
     expect(board.state.register).toBe("accent");
     // ...and nothing was answered.
@@ -295,8 +364,8 @@ describe("a step, show versus choose", () => {
   it("records the option on a second press of the one being shown", async () => {
     const board = fakeBoard();
     step("light.register", board);
-    await userEvent.click(tile("Accent: a glow on one section"));
-    await userEvent.click(tile("Accent: a glow on one section"));
+    await userEvent.click(chip("Accent: a glow on one section"));
+    await userEvent.click(chip("Accent: a glow on one section"));
     expect(getReviewStore().answers[holdId("light", 5, "register")]).toEqual({
       choice: "accent",
       note: "",
@@ -310,12 +379,20 @@ describe("a step, show versus choose", () => {
     ).toBe("review light r5: register=accent");
   });
 
+  it("picks the option on the stage with Pick, so agreeing is one press", async () => {
+    step("light.register", fakeBoard());
+    await userEvent.click(screen.getByRole("button", { name: /^Pick/ }));
+    expect(
+      getReviewStore().answers[holdId("light", 5, "register")]?.choice,
+    ).toBe("identity");
+  });
+
   it("clears the answer on a third press and resets the stage", async () => {
     const board = fakeBoard();
     step("light.register", board);
-    await userEvent.click(tile("Accent: a glow on one section")); // show
-    await userEvent.click(tile("Accent: a glow on one section")); // choose
-    await userEvent.click(tile("Accent: a glow on one section")); // clear
+    await userEvent.click(chip("Accent: a glow on one section")); // show
+    await userEvent.click(chip("Accent: a glow on one section")); // choose
+    await userEvent.click(chip("Accent: a glow on one section")); // clear
     expect(
       getReviewStore().answers[holdId("light", 5, "register")],
     ).toBeUndefined();
@@ -334,13 +411,78 @@ describe("a step, show versus choose", () => {
     expect(composer).toEqual(expect.arrayContaining(["accent", "identity"]));
   });
 
-  it("falls back to text tiles when nothing declares how to draw an option", () => {
+  it("falls back to options in words when nothing declares how to draw one", async () => {
     const board = fakeBoard();
     step("light.depth", board);
     // `depth` mirrors no control and its options carry no state, so the only
-    // thing drawn is the stage, never a tile preview.
+    // thing drawn is the evidence, and the options are cards in words.
     expect(board.drawn.every(([id]) => id === "separate")).toBe(true);
     expect(screen.getByText("Two soft shadows.")).toBeInTheDocument();
+    // A card in words has nothing to show, so its first press chooses.
+    await userEvent.click(
+      screen.getByRole("button", { name: /The shadow family/ }),
+    );
+    expect(getReviewStore().answers[holdId("light", 5, "depth")]?.choice).toBe(
+      "family",
+    );
+  });
+});
+
+describe("a step, by its keys", () => {
+  it("shows with a digit and picks with the same digit again", async () => {
+    const board = fakeBoard();
+    step("light.register", board);
+    await userEvent.keyboard("1");
+    expect(board.state.register).toBe("accent");
+    expect(
+      getReviewStore().answers[holdId("light", 5, "register")],
+    ).toBeUndefined();
+    await userEvent.keyboard("1");
+    expect(
+      getReviewStore().answers[holdId("light", 5, "register")]?.choice,
+    ).toBe("accent");
+  });
+
+  it("blinks back to the option shown before with x", async () => {
+    const board = fakeBoard();
+    step("light.register", board);
+    await userEvent.keyboard("1"); // accent, over the landing's identity
+    await userEvent.keyboard("x");
+    expect(board.state.register).toBe("identity");
+    await userEvent.keyboard("x");
+    expect(board.state.register).toBe("accent");
+  });
+
+  it("goes to the note with n, and on from the note with Enter", async () => {
+    step("light.depth", fakeBoard());
+    await userEvent.keyboard("n");
+    expect(screen.getByRole("textbox")).toHaveFocus();
+    await userEvent.keyboard("the dim pair{Enter}");
+    expect(getReviewStore().answers[holdId("light", 5, "depth")]?.note).toBe(
+      "the dim pair",
+    );
+    expect(screen.getByRole("heading")).toHaveTextContent(REGISTER.question);
+  });
+
+  it("marks the question unclear with ? and asks why before going on", async () => {
+    step("light.depth", fakeBoard());
+    await userEvent.keyboard("?");
+    expect(getReviewStore().answers[holdId("light", 5, "depth")].choice).toBe(
+      "?",
+    );
+    expect(screen.getByRole("textbox")).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("heading")).toHaveTextContent(DEPTH.question);
+  });
+
+  it("lays the options side by side and back with g", async () => {
+    const { container } = step("light.register", fakeBoard());
+    const stage = () => container.querySelector("[data-lab-stage]")!;
+    expect(stage()).toHaveAttribute("data-arrange", "flip");
+    await userEvent.keyboard("g");
+    expect(stage()).toHaveAttribute("data-arrange", "side");
+    await userEvent.keyboard("g");
+    expect(stage()).toHaveAttribute("data-arrange", "flip");
   });
 });
 
@@ -351,23 +493,26 @@ describe("a step, as a form", () => {
     expect(screen.getByText(DEPTH.context!)).toBeInTheDocument();
     expect(screen.getByText(DEPTH.lands!)).toBeInTheDocument();
     for (const option of DEPTH.options) {
-      expect(screen.getByText(option.label)).toBeInTheDocument();
+      expect(screen.getAllByText(option.label).length).toBeGreaterThan(0);
       expect(screen.getByText(option.means!)).toBeInTheDocument();
     }
   });
 
   it("marks the option the board recommends, and only that one", () => {
-    step("light.depth", fakeBoard());
-    const said = screen.getAllByText("the board says");
+    step("light.register", fakeBoard());
+    const dock = within(screen.getByRole("group", { name: "The options" }));
+    const said = dock.getAllByText("the board says");
     expect(said).toHaveLength(1);
-    expect(said[0].closest('[role="button"]')).toHaveTextContent(
-      "The shadow family",
+    expect(said[0].closest("button")).toHaveTextContent(
+      "Identity: the page reads as a lit room",
     );
   });
 
   it("carries the note with the answer", async () => {
     step("light.depth", fakeBoard());
-    await userEvent.click(tile("The shadow family"));
+    await userEvent.click(
+      screen.getByRole("button", { name: /The shadow family/ }),
+    );
     await userEvent.type(screen.getByRole("textbox"), "the dim pair");
     expect(getReviewStore().answers[holdId("light", 5, "depth")]).toEqual({
       choice: "family",
@@ -383,7 +528,7 @@ describe("a step, as a form", () => {
 
   it("holds Next until a question marked unclear says what was unclear", async () => {
     step("light.depth", fakeBoard());
-    await userEvent.click(screen.getByText("This question is not clear to me"));
+    await userEvent.click(screen.getByRole("button", { name: "Not clear to me" }));
     expect(getReviewStore().answers[holdId("light", 5, "depth")].choice).toBe(
       "?",
     );
@@ -442,6 +587,26 @@ describe("a step, staged behind another", () => {
     // Four steps declared, one of them staged: the reviewer has three.
     expect(screen.getByText("step 1 of 3")).toBeInTheDocument();
   });
+
+  it("draws a staged step wearing the answer it waits on", () => {
+    // This sitting answered the pace; the gap is drawn at that pace.
+    setReviewStore({
+      ...EMPTY_REVIEW,
+      answers: { [holdId("hero", 1, "pace")]: { choice: "fast", note: "" } },
+    });
+    const board = fakeBoard();
+    step("hero.gap", board, "hero", [PACE, GAP]);
+    const gaps = board.drawn.filter(([id]) => id === "gap");
+    expect(gaps.length).toBeGreaterThan(0);
+    expect(gaps.every(([, at]) => at.pace === "fast")).toBe(true);
+  });
+
+  it("wears the ledger's answer from an earlier sitting when this one holds none", () => {
+    const board = fakeBoard();
+    step("hero.gap", board, "hero", [{ ...GAP, ruled: { pace: "slow" } }]);
+    const gaps = board.drawn.filter(([id]) => id === "gap");
+    expect(gaps.every(([, at]) => at.pace === "slow")).toBe(true);
+  });
 });
 
 describe("a step on a catalog", () => {
@@ -452,7 +617,9 @@ describe("a step on a catalog", () => {
     expect(board.drawn.some(([id]) => id === "catalog")).toBe(true);
     // And "None of these" is the winner ask's own option, so the ledger line
     // stays `palette=none` and the grammar never grows a fourth word.
-    await userEvent.click(tile("None of these: new directions"));
+    await userEvent.click(
+      screen.getByRole("button", { name: /None of these: new directions/ }),
+    );
     expect(getReviewStore().answers[holdId("palette", 8, "palette")]).toEqual({
       choice: "none",
       note: "",

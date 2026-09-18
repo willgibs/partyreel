@@ -323,7 +323,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 553
+          "line": 554
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -331,7 +331,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 563
+          "line": 564
         }
       ]
     },
@@ -590,7 +590,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 553
+          "line": 554
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -598,7 +598,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 563
+          "line": 564
         }
       ]
     },
@@ -718,7 +718,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 553
+          "line": 554
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -726,7 +726,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 563
+          "line": 564
         }
       ]
     },
@@ -1391,20 +1391,36 @@
       "indexed": false,
       "contracts": [
         {
-          "title": "draws the stage before the options, not after them",
+          "title": "draws every option once on the stage, before the dock",
           "suite": [
-            "a step puts its evidence in reach"
+            "a step puts the preview on the page and the answer in a dock"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 256
+          "line": 290
+        },
+        {
+          "title": "lands showing the board's recommendation, and says which it is",
+          "suite": [
+            "a step puts the preview on the page and the answer in a dock"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 307
         },
         {
           "title": "prints the author's line about what to look at",
           "suite": [
-            "a step puts its evidence in reach"
+            "a step puts the preview on the page and the answer in a dock"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 271
+          "line": 324
+        },
+        {
+          "title": "keeps a link inside a preview from leaving the step",
+          "suite": [
+            "a step puts the preview on the page and the answer in a dock"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 334
         },
         {
           "title": "shows an option without recording it",
@@ -1412,7 +1428,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 283
+          "line": 352
         },
         {
           "title": "records the option on a second press of the one being shown",
@@ -1420,7 +1436,15 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 295
+          "line": 364
+        },
+        {
+          "title": "picks the option on the stage with Pick, so agreeing is one press",
+          "suite": [
+            "a step, show versus choose"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 382
         },
         {
           "title": "clears the answer on a third press and resets the stage",
@@ -1428,7 +1452,7 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 313
+          "line": 390
         },
         {
           "title": "draws every option on the board's own section, in that option's state",
@@ -1436,15 +1460,55 @@
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 328
+          "line": 405
         },
         {
-          "title": "falls back to text tiles when nothing declares how to draw an option",
+          "title": "falls back to options in words when nothing declares how to draw one",
           "suite": [
             "a step, show versus choose"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 337
+          "line": 414
+        },
+        {
+          "title": "shows with a digit and picks with the same digit again",
+          "suite": [
+            "a step, by its keys"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 432
+        },
+        {
+          "title": "blinks back to the option shown before with x",
+          "suite": [
+            "a step, by its keys"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 446
+        },
+        {
+          "title": "goes to the note with n, and on from the note with Enter",
+          "suite": [
+            "a step, by its keys"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 456
+        },
+        {
+          "title": "marks the question unclear with ? and asks why before going on",
+          "suite": [
+            "a step, by its keys"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 467
+        },
+        {
+          "title": "lays the options side by side and back with g",
+          "suite": [
+            "a step, by its keys"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 478
         },
         {
           "title": "asks the question in the words a stranger can answer it in",
@@ -1452,7 +1516,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 348
+          "line": 490
         },
         {
           "title": "marks the option the board recommends, and only that one",
@@ -1460,7 +1524,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 359
+          "line": 501
         },
         {
           "title": "carries the note with the answer",
@@ -1468,7 +1532,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 368
+          "line": 511
         },
         {
           "title": "applies the ask's declared state on landing",
@@ -1476,7 +1540,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 378
+          "line": 523
         },
         {
           "title": "holds Next until a question marked unclear says what was unclear",
@@ -1484,7 +1548,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 384
+          "line": 529
         },
         {
           "title": "renders nothing for a session on another board",
@@ -1492,7 +1556,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 396
+          "line": 541
         },
         {
           "title": "skips a staged step, and reaches it once its question is answered",
@@ -1500,7 +1564,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 403
+          "line": 548
         },
         {
           "title": "drops a staged step as moot when its question went the other way",
@@ -1508,7 +1572,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 426
+          "line": 571
         },
         {
           "title": "counts the walk without the staged steps",
@@ -1516,7 +1580,23 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 440
+          "line": 585
+        },
+        {
+          "title": "draws a staged step wearing the answer it waits on",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 591
+        },
+        {
+          "title": "wears the ledger's answer from an earlier sitting when this one holds none",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 604
         },
         {
           "title": "asks a pick-one catalog's winner on the cards themselves",
@@ -1524,7 +1604,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 448
+          "line": 613
         },
         {
           "title": "walks a keep-any catalog one card at a time",
@@ -1532,7 +1612,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 462
+          "line": 629
         },
         {
           "title": "keeps a catalog as ONE step whichever way it is walked",
@@ -1540,7 +1620,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 469
+          "line": 636
         },
         {
           "title": "fills Next only once every card has a verdict",
@@ -1548,7 +1628,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 474
+          "line": 641
         }
       ]
     },

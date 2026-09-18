@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 import { withDesignKey } from "@/lib/design-gate/links";
@@ -35,59 +35,89 @@ import { holdId } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 import type { BoardState, Control } from "./board-spec";
 import { ControlKnobs } from "./board-state";
 import { CatalogTiles } from "./catalog";
-import { FitStage } from "./stage";
+import { type LabFit, type LabSidebar, setLabPref, useLabPrefs } from "./lab-prefs";
 import { useDesignKey } from "./walk";
 
 /**
- * THE STEP (the stepped review, 2026-09-16): one context and its question,
- * alone on the screen.
+ * THE STEP (the stepped review, 2026-09-16; the dock, 2026-09-18): one context
+ * and its question, the options drawn full size, and the answer in a dock.
  *
  * ★ WILL'S WORDS ARE THE SPEC. "The review process favors you and makes me
  * spend tons of time per track figuring what I'm even being asked"; what he
  * wants instead is "more similar to a multi-step onboarding form where all
  * context is made available for 1+ questions around the same content, then onto
- * the next context". The surface this replaces put about 840 words and 250
- * controls around the evidence on one catalog board, printed every ask three or
- * four times (the Answer's pills, the section's "Rule on:", the review panel,
- * the card), and could only preview an option by RECORDING it. So: one
- * question, its options drawn as tiles on one specimen, the real thing on a
- * stage below, Back and Next, and nothing else on the page.
+ * the next context". So: one question, its options drawn on the board's own
+ * specimen, Back and Next, and nothing else on the page.
  *
- * ★ SHOWING IS NOT CHOOSING, AND THAT IS THE WHOLE MECHANISM. The old card
- * could not show you an option without writing it into the ledger draft, so
- * looking at the five palettes meant answering the question five times. A press
- * on a tile SHOWS it (the URL's declared state, which nothing reads back); a
- * press on the tile already shown, or the Choose beside it, RECORDS it; a
- * second Choose clears the answer and puts the stage back where it started.
- * Nothing is recorded by looking, which is what makes looking free.
+ * ★ THE PREVIEW IS THE PAGE AND THE ANSWER IS A DOCK (Will, 2026-09-18). The
+ * step before this pinned the evidence above the options in a 40vh window, and
+ * he could not see what he was answering: "The top preview UI of our lab is
+ * covered by the answer UI, and I cannot scroll it to see the full heights or
+ * labels on which height is which. This has been a recurring problem where I
+ * have to visit the board to be able to see a full preview, then go back to the
+ * question to answer. We should ensure both the question/context/preview UI and
+ * response/answer UI work well together." So the page is, top to bottom:
+ *  - the HEAD: the question and its context, with "It decides" and "What to
+ *    look at" beside them where there is room;
+ *  - the STAGE HEAD, sticky: which option is on the stage (its number, its
+ *    label, the board's recommendation or your pick, what it means), the knobs,
+ *    the scale the stage is drawn at;
+ *  - the STAGE: every option mounted ONCE at its true size, never capped and
+ *    never pinned, and it takes the pointer, so the wheel scrolls the page;
+ *  - the DOCK, sticky at the bottom: the options by number, Pick, the note,
+ *    "not clear to me", Back and Next.
+ * The answer is always on screen and the preview is never clipped, at every
+ * width, which is the one layout the two halves of his note ask for.
  *
- * ★ A STEP IS STAGED UNTIL ITS QUESTION EXISTS. An ask that declares `after`
- * (the aurora's landing, once the aurora is kept) is skipped by Back, Next and
- * Start the review until its prerequisite is decided, and dropped as moot when
- * it went the other way: `stepBlocked` is the one rule, shared with the desk.
+ * ★ EVERY OPTION IS MOUNTED ONCE, FLIPPED OR SIDE BY SIDE. Flipped, the options
+ * share one place on the stage and one is visible (the rest inert, hidden and
+ * paused), so pressing between two is a blink with no reload and no scroll jump:
+ * the stage is as tall as its tallest option. Side by side when they all fit at
+ * true size (phone-sized previews in a wide column), and `g` swaps the two. A
+ * phone always flips.
  *
- * ★ AND THE EVIDENCE IS THE BOARD'S OWN. This renders no pictures: the tiles
- * and the stage call the board's `evidence(section, state)` in the state being
- * shown, so what a reviewer judges is the real section the board draws, in the
- * option's own state. Off a board page (the desk's dry run) there is no
- * evidence function, and the tiles degrade to what the spec declares in words.
+ * ★ SHOWING IS NOT CHOOSING, AND THAT IS THE WHOLE MECHANISM. A press on an
+ * option SHOWS it; a press on the one being shown, or Pick, RECORDS it; a
+ * second Pick clears it. Nothing is recorded by looking, which is what makes
+ * looking free. The step LANDS showing the answer held, else the board's
+ * recommendation, so a reviewer who agrees presses once.
  *
- * Keys: 1..9 picks, Enter and the arrows step, Escape lets a note field go.
- * Enter belongs to whatever is focused: a board is a hundred buttons and an
- * Enter that both pressed the focused control AND advanced the review answered
- * a question the reader never looked at.
+ * ★ A STEP IS STAGED UNTIL ITS QUESTION EXISTS, AND DRAWN IN THE WORLD IT WAITS
+ * ON. An ask that declares `after` is skipped by Back, Next and Start the review
+ * until its prerequisite is decided (`stepBlocked`, shared with the desk), and
+ * every step is drawn wearing the board's decided answers (`wearing`): this
+ * sitting's store over the ledger's, so the gap is judged at the pace he picked.
+ *
+ * ★ AND THE EVIDENCE IS THE BOARD'S OWN. This renders no pictures: the stage
+ * calls the board's `evidence(section, state)` in each option's own state. Off
+ * a board page (the desk's dry run) there is no evidence function, and the
+ * options degrade to what the spec declares in words.
+ *
+ * Keys: 1..9 shows an option and a second press picks it; x blinks back to the
+ * one shown before (A and B); g flips or lays side by side; n goes to the note;
+ * ? marks the question unclear; Enter and the arrows step, Enter from the note
+ * too; Escape lets the note go. Enter on a focused control belongs to that
+ * control: an Enter that pressed a button AND advanced the review answered a
+ * question the reader never looked at.
  */
 
 /** The board's own surface, when the step is mounted on one. */
 export type StepBoard = {
   /** The board's declared controls, for an ask's config strip. */
   controls?: readonly Control[];
-  /** The live board state (`useBoardState`), which the stage and tiles read. */
+  /** The live board state (`useBoardState`), which the stage reads. */
   state: BoardState;
   setState: (patch: Record<string, string>) => void;
   /** One section's evidence, in whatever state it is handed. */
   evidence: (sectionId: string, state: BoardState) => React.ReactNode;
 };
+
+/** How the options share the stage. */
+type Arrange = "flip" | "side";
+
+/** A phone-sized preview's width, and the gap between two laid side by side. */
+const PHONE_W = 375;
+const SIDE_GAP = 16;
 
 export function Step({
   boardId,
@@ -121,8 +151,13 @@ export function Step({
   // Null until the reader moves: the opening step is the one the URL names, so
   // the first paint is right and no effect has to correct it.
   const [chosen, setChosen] = useState<number | null>(null);
-  /** The option on the stage that has NOT been recorded. */
+  /** The option on the stage, recorded or not. */
   const [shown, setShown] = useState<string | null>(null);
+  /** The option shown before it, which `x` blinks back to. */
+  const [previous, setPrevious] = useState<string | null>(null);
+  const noteRef = useRef<HTMLInputElement | null>(null);
+  /** The stage's flip-or-side switch, which `g` presses. */
+  const arrangeRef = useRef<(() => void) | null>(null);
   const landed = useRef<string | null>(null);
 
   const from = steps.findIndex((s) => stepParam(s) === param);
@@ -138,6 +173,11 @@ export function Step({
       ? store.answers[holdId(step.board, step.round, step.askId)]
       : undefined;
   const choice = held?.choice ?? "";
+  const unclear = step?.kind === "ask" && choice === UNCLEAR;
+  // ★ "?" IS AN ANSWER, AND IT OWES ITS REASON. The ledger grammar is
+  // `<ask>=? "why"`, and `pnpm lab:review` refuses the line without the note:
+  // an unclear question that never says what was unclear cannot be rewritten.
+  const needsWhy = unclear && !(held?.note ?? "").trim();
 
   /* ── what Next and Back reach, skipping what is staged ────────────────── */
 
@@ -182,14 +222,36 @@ export function Step({
     window.history.replaceState(window.history.state, "", url.toString());
   };
 
-  /* ── showing, and choosing ────────────────────────────────────────────── */
+  /* ── the world a step is drawn in ─────────────────────────────────────── */
 
   /**
-   * THE CONTROLS THAT DRAW AN OPTION: the ask's own state, then the option's,
-   * then the control mirror. With no option it is the state the question is
-   * asked in, and the mirrored control goes back to its DECLARED DEFAULT: a
-   * cleared answer that left the board wearing the cleared choice would be the
-   * un-unpickable pick all over again (Will, 2026-09-16).
+   * THE BOARD'S DECIDED ANSWERS, AS THE CONTROLS THAT DRAW THEM: the ledger's
+   * from an earlier sitting (`ruled`, resolved on the server), then this
+   * sitting's from the store, which are newer and win. An exploration's control
+   * IS its ask (`defineExploration`), so a ruled answer lands on the control of
+   * the same id; an ask in this walk also lends its option's own patch.
+   */
+  const wearing = (s: AskStep): Record<string, string> => {
+    const out: Record<string, string> = { ...s.ruled };
+    for (const t of steps) {
+      if (t.kind !== "ask" || t.board !== s.board || t.round !== s.round)
+        continue;
+      if (t.askId === s.askId) continue;
+      const value = store.answers[holdId(t.board, t.round, t.askId)]?.choice;
+      if (!value || value === UNCLEAR) continue;
+      const option = t.options.find((o) => o.id === value);
+      Object.assign(out, option?.state, { [t.control ?? t.askId]: value });
+    }
+    return out;
+  };
+
+  /**
+   * THE CONTROLS THAT DRAW AN OPTION: the board's decided answers, the ask's
+   * own state, then the option's, then the control mirror. With no option it is
+   * the state the question is asked in, and the mirrored control goes back to
+   * its DECLARED DEFAULT: a cleared answer that left the board wearing the
+   * cleared choice would be the un-unpickable pick all over again (Will,
+   * 2026-09-16).
    */
   const stateFor = (s: AskStep, option?: SessionOption) => {
     const cleared =
@@ -197,6 +259,7 @@ export function Step({
         ? board?.controls?.find((c) => c.id === s.control)?.default
         : undefined;
     return {
+      ...wearing(s),
       ...s.state,
       ...option?.state,
       ...(s.control && option && option.id !== UNCLEAR
@@ -206,8 +269,11 @@ export function Step({
     };
   };
 
+  /* ── showing, and choosing ────────────────────────────────────────────── */
+
   const show = (option: SessionOption) => {
     if (step?.kind !== "ask") return;
+    if (shown && shown !== option.id) setPrevious(shown);
     setShown(option.id);
     board?.setState(stateFor(step, option));
   };
@@ -217,30 +283,38 @@ export function Step({
     const option = step.options.find((o) => o.id === id);
     const set = toggleAnswer(step.board, step.round, step.askId, id);
     if (set) {
-      setShown(id);
+      if (option && drawable(step, option, board) && shown !== id) {
+        if (shown) setPrevious(shown);
+        setShown(id);
+      }
       if (option) board?.setState(stateFor(step, option));
       return;
     }
-    // Cleared: the stage goes back to the state the question was asked in, or
-    // this step would keep arguing for an answer that is no longer held.
-    setShown(null);
+    // Cleared: the board's control goes back to the state the question was
+    // asked in, or the board would keep arguing for an answer nobody holds.
+    // The stage keeps showing the option: it is shown now, no longer picked.
     board?.setState(stateFor(step));
   };
 
   /**
-   * A press on a tile: show it, or choose the one already shown.
+   * A press on an option: show it, or record the one already shown.
    *
-   * ★ A TEXT TILE CHOOSES ON THE FIRST PRESS. Show-then-choose buys a free look
-   * at a preview; an option that declares no way to be drawn (a rule, not a
-   * look) has nothing to look at, so a first press that did nothing visible
-   * would read as a dead button. Off a board page every tile is a text tile,
-   * which is what keeps the desk's dry run answerable in one press.
+   * ★ AN OPTION IN WORDS CHOOSES ON THE FIRST PRESS. Show-then-choose buys a
+   * free look at a preview; an option that declares no way to be drawn (a rule,
+   * not a look) has nothing to look at, so a first press that did nothing
+   * visible would read as a dead button. Off a board page every option is in
+   * words, which is what keeps the desk's dry run answerable in one press.
    */
   const press = (option: SessionOption) => {
     if (step?.kind !== "ask") return;
     if (!drawable(step, option, board)) choose(option.id);
-    else if (shown === option.id || choice === option.id) choose(option.id);
+    else if (shown === option.id) choose(option.id);
     else show(option);
+  };
+
+  const markUnclear = () => {
+    choose(UNCLEAR);
+    noteRef.current?.focus();
   };
 
   const writeNote = (note: string) => {
@@ -248,17 +322,35 @@ export function Step({
     setAnswerNote(step.board, step.round, step.askId, note);
   };
 
-  /* ── landing: the state the question is asked in ──────────────────────── */
+  /* ── landing: the answer held, else the board's recommendation ────────── */
+
+  // Landing happens once per step and reads the render it lands in (the held
+  // choice, the board, the decided answers) through a ref: a pick made on this
+  // step must not re-land it, and a board handed in anew each render must not
+  // either.
+  const land = useRef<(s: SessionStep) => void>(() => {});
+  useEffect(() => {
+    land.current = (s) => {
+      setPrevious(null);
+      if (s.kind === "ask") {
+        const opening = openingFor(s, choice, board);
+        setShown(opening?.id ?? null);
+        board?.setState(stateFor(s, opening));
+      } else {
+        setShown(null);
+        if (s.state) board?.setState(s.state);
+      }
+    };
+  });
 
   useEffect(() => {
     if (!step || !mine) return;
     const id = stepParam(step);
     if (landed.current === id) return;
     landed.current = id;
-    setShown(null);
-    if (step.state) board?.setState(step.state);
+    land.current(step);
     window.scrollTo({ top: 0 });
-  }, [step, mine, board]);
+  }, [step, mine]);
 
   /* ── the keys ─────────────────────────────────────────────────────────── */
 
@@ -267,17 +359,32 @@ export function Step({
     const n = Number(pressed);
     // A digit on a catalog step does nothing: the verdicts are on the cards,
     // and nine of twelve would be an arbitrary half of a catalog.
-    if (
-      step.kind === "ask" &&
-      Number.isInteger(n) &&
-      n >= 1 &&
-      n <= step.options.length
-    ) {
-      press(step.options[n - 1]);
-      return true;
+    if (step.kind === "ask") {
+      if (Number.isInteger(n) && n >= 1 && n <= step.options.length) {
+        press(step.options[n - 1]);
+        return true;
+      }
+      const key = pressed.toLowerCase();
+      if (key === "x") {
+        const back = step.options.find((o) => o.id === previous);
+        if (back) show(back);
+        return true;
+      }
+      if (key === "g") {
+        arrangeRef.current?.();
+        return true;
+      }
+      if (key === "n") {
+        noteRef.current?.focus();
+        return true;
+      }
+      if (pressed === "?") {
+        markUnclear();
+        return true;
+      }
     }
     if (pressed === "Enter" || pressed === "ArrowRight") {
-      goTo(at + 1);
+      if (!needsWhy) goTo(at + 1);
       return true;
     }
     if (pressed === "ArrowLeft") {
@@ -307,6 +414,11 @@ export function Step({
         el?.isContentEditable === true;
       if (typing) {
         if (event.key === "Escape") el?.blur();
+        // ★ ENTER FROM THE NOTE GOES ON: the note is the last thing a step
+        // asks for, and reaching for Next after typing it was a second trip.
+        if (event.key === "Enter" && el?.hasAttribute("data-lab-note")) {
+          if (latest.current("Enter")) event.preventDefault();
+        }
         return;
       }
       if (
@@ -322,22 +434,23 @@ export function Step({
 
   if (!step || !mine) return null;
 
-  const unclear = step.kind === "ask" && choice === UNCLEAR;
-  // ★ "?" IS AN ANSWER, AND IT OWES ITS REASON. The ledger grammar is
-  // `<ask>=? "why"`, and `pnpm lab:review` refuses the line without the note:
-  // an unclear question that never says what was unclear cannot be rewritten.
-  const needsWhy = unclear && !(held?.note ?? "").trim();
   const filled = stepDone(step, store) && !needsWhy;
   // The walk's own numbering: a staged step is not a step the reviewer has.
   const walk = steps.filter((s) => stepBlocked(s, store) === null);
   const n = walk.indexOf(step) + 1;
+  // The options the dock carries: the ones drawn on the stage. A catalog's
+  // winner is pressed on its cards, and an option in words on its own card.
+  const pictured =
+    step.kind === "ask" && !step.winner
+      ? step.options.filter((o) => drawable(step, o, board))
+      : [];
 
   return (
     <div
       data-review-step
       role="region"
       aria-label={`${step.boardTitle}: the step being reviewed`}
-      className={cn("flex min-w-0 flex-col gap-5 pb-24 sm:pb-8", className)}
+      className={cn("flex min-w-0 flex-col gap-5", className)}
     >
       <Spine
         step={step}
@@ -347,39 +460,16 @@ export function Step({
         build={build}
       />
 
-      <header className="max-w-3xl">
-        <h1 className="font-heading text-2xl leading-tight tracking-tight text-balance sm:text-3xl">
-          {step.kind === "items" ? headingFor(step) : step.question}
-        </h1>
-        {step.kind === "ask" ? (
-          <>
-            {step.context && (
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {step.context}
-              </p>
-            )}
-            {step.lands && (
-              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
-                <span className="text-foreground">It decides: </span>
-                {step.lands}
-              </p>
-            )}
-          </>
-        ) : (
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            {step.walk === "one-at-a-time"
-              ? "One card at a time, as it would land. Keep it, refine it, or kill it, with a note where the word is not enough."
-              : "Keep, refine or kill each card. A second press on the same word clears it; the note stays."}
-          </p>
-        )}
-      </header>
+      <Head step={step} />
 
       {step.kind === "ask" ? (
         <AskBody
           step={step}
           board={board}
+          pictured={pictured}
           choice={choice}
           shown={shown}
+          arrangeRef={arrangeRef}
           onPress={press}
           onChoose={choose}
           stateFor={stateFor}
@@ -388,22 +478,22 @@ export function Step({
         <ItemsBody step={step} board={board} />
       )}
 
-      {step.kind === "ask" && (
-        <NoteRow
-          note={held?.note ?? ""}
-          unclear={unclear}
-          needsWhy={needsWhy}
-          question={step.question}
-          onNote={writeNote}
-          onUnclear={() => choose(UNCLEAR)}
-        />
-      )}
-
-      <Foot
+      <Dock
+        step={step}
+        pictured={pictured}
+        choice={choice}
+        shown={shown}
+        note={held?.note ?? ""}
+        unclear={unclear}
+        needsWhy={needsWhy}
+        noteRef={noteRef}
+        onPress={press}
+        onChoose={choose}
+        onNote={writeNote}
+        onUnclear={markUnclear}
         back={seek(at - 1, -1) >= 0 ? () => goTo(at - 1) : undefined}
         next={needsWhy ? undefined : () => goTo(at + 1)}
         filled={filled}
-        blocked={needsWhy ? "Say what was unclear, then go on." : undefined}
       />
     </div>
   );
@@ -415,6 +505,25 @@ const drawable = (
   option: SessionOption,
   board?: StepBoard,
 ): boolean => Boolean(board && step.section && (option.state || step.control));
+
+/**
+ * THE OPTION A STEP OPENS ON: the answer held, else the board's recommendation,
+ * else the first that can be drawn. "Not clear to me" is not an option to show,
+ * and an option in words has nothing to show, so a step of words opens on none.
+ */
+function openingFor(
+  step: AskStep,
+  held: string,
+  board?: StepBoard,
+): SessionOption | undefined {
+  const can = (id: string) =>
+    step.options.find((o) => o.id === id && drawable(step, o, board));
+  return (
+    (held && held !== UNCLEAR ? can(held) : undefined) ??
+    can(step.recommended) ??
+    step.options.find((o) => drawable(step, o, board))
+  );
+}
 
 const headingFor = (step: ItemsStep) =>
   step.walk === "one-at-a-time"
@@ -488,246 +597,490 @@ function Spine({
   );
 }
 
+/* ── the head ─────────────────────────────────────────────────────────────── */
+
+/**
+ * THE QUESTION AND ITS CONTEXT, with what it decides and where to look beside
+ * them where there is room (design.css, `.lab-step-head`), under them where
+ * there is not. `look` is the author's own sentence naming what separates the
+ * options; it was carried on the step type and once never rendered at all.
+ */
+function Head({ step }: { step: SessionStep }) {
+  const aside = step.kind === "ask" && Boolean(step.lands || step.look);
+  return (
+    <header className="lab-step-head" data-aside={aside ? "" : undefined}>
+      <div className="min-w-0 max-w-3xl">
+        <h1 className="font-heading text-2xl leading-tight tracking-tight text-balance sm:text-3xl">
+          {step.kind === "items" ? headingFor(step) : step.question}
+        </h1>
+        {step.kind === "ask" ? (
+          step.context && (
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {step.context}
+            </p>
+          )
+        ) : (
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {step.walk === "one-at-a-time"
+              ? "One card at a time, as it would land. Keep it, refine it, or kill it, with a note where the word is not enough."
+              : "Keep, refine or kill each card. A second press on the same word clears it; the note stays."}
+          </p>
+        )}
+      </div>
+      {aside && step.kind === "ask" && (
+        <div className="flex min-w-0 flex-col gap-2 text-xs leading-relaxed text-muted-foreground">
+          {step.lands && (
+            <p>
+              <span className="text-foreground">It decides: </span>
+              {step.lands}
+            </p>
+          )}
+          {step.look && (
+            <p>
+              <span className="text-foreground">What to look at: </span>
+              {step.look}
+            </p>
+          )}
+        </div>
+      )}
+    </header>
+  );
+}
+
 /* ── an ask ───────────────────────────────────────────────────────────────── */
 
 function AskBody({
   step,
   board,
+  pictured,
   choice,
   shown,
+  arrangeRef,
   onPress,
   onChoose,
   stateFor,
 }: {
   step: AskStep;
   board?: StepBoard;
+  pictured: readonly SessionOption[];
   choice: string;
   shown: string | null;
+  arrangeRef: React.RefObject<(() => void) | null>;
   onPress: (o: SessionOption) => void;
   onChoose: (id: string) => void;
   stateFor: (s: AskStep, o?: SessionOption) => Record<string, string>;
 }) {
-  // The state the stage wears: the option being looked at, else the one
-  // recorded, else the state the question is asked in.
-  const live = step.options.find((o) => o.id === (shown || choice));
-  const stageState = { ...board?.state, ...stateFor(step, live) };
-  const stageSection = step.stageSection ?? step.section;
-  const strip = board && step.strip && step.strip.length > 0;
-  const stage = board && stageSection;
+  if (step.winner && step.catalogSection && board) {
+    return (
+      <GalleryStep
+        step={step}
+        board={board}
+        choice={choice}
+        shown={shown}
+        onPress={onPress}
+        onChoose={onChoose}
+      />
+    );
+  }
 
+  const section = step.stageSection ?? step.section;
+  if (board && section && pictured.length > 0) {
+    return (
+      <StageViews
+        step={step}
+        board={board}
+        section={section}
+        options={pictured}
+        choice={choice}
+        shown={shown}
+        arrangeRef={arrangeRef}
+        onPress={onPress}
+        stateFor={stateFor}
+      />
+    );
+  }
+
+  // A question whose options cannot be drawn: the evidence as the question is
+  // asked, then the options in words, each its own card.
+  const strip = board && step.strip && step.strip.length > 0;
   return (
     <>
-      {/* ★ WHERE TO LOOK, BEFORE WHAT TO PRESS. `look` is the author's own
-          sentence naming what separates the options, and it was carried on the
-          step type and then dropped: `answer.tsx` printed it in browse mode and
-          the step never did. On an ask whose options cannot be drawn it is the
-          ONLY instruction a reviewer gets, so river-visual's four steps were
-          three unlabelled words and a stage (measured 2026-09-17). */}
-      {step.look && (
-        <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
-          <span className="text-foreground">What to look at: </span>
-          {step.look}
-        </p>
-      )}
-
-      {/* ★ THE EVIDENCE IS PINNED, AND IT COMES BEFORE THE OPTIONS.
-          Measured 2026-09-17 across all 21 open steps: the stage sat a median
-          0.5 and a worst 5.6 SCREENS below the first option it answers to, and
-          nothing in the lab was sticky. That is exactly what Will reported
-          twice as "clicking the configs didn't seem to change anything" - the
-          presses registered and the evidence was off screen. Reading order is
-          now the one a configurator uses: here is the page, here are the ways
-          it could look, press one. The knobs ride with it because they drive
-          it. A board whose stage needs more room raises `--lab-stage-peek`.
-          No negative margin on this block, on purpose: a board's stage may
-          carry `data-lab-bleed`, which takes the page's gutter back and would
-          then be clipped by this block's own overflow. */}
-      {stage && (
-        <div className="sticky top-[var(--lab-topbar-h,0px)] z-20 flex flex-col gap-3 border-b border-border bg-background/90 pt-2 pb-3 backdrop-blur sm:pt-3">
-          {strip && <ConfigStrip step={step} board={board} />}
-          {/* ★ THE PINNED STAGE DOES NOT TAKE THE POINTER. It is evidence, not
-              a control: every press on this screen is a tile. Without this the
-              stage swallows the wheel, because a stage is usually a same-origin
-              `Frame` and a wheel over an iframe scrolls the iframe (measured:
-              scrolling the step moved the frame 194px and the page 0). The
-              board itself is one click away in the spine for poking at. */}
-          <div className="relative min-w-0">
-            {/* A phone gets a shorter peek: 812px of viewport has to hold the
-                pinned evidence, a card and the fixed foot, and 375 is where the
-                travel it replaces was worst. */}
-            <div
-              data-lab-specimen=""
-              className="pointer-events-none min-w-0 overflow-hidden max-sm:[--lab-stage-peek:34vh]"
-              style={{ maxHeight: "var(--lab-stage-peek, 40vh)" }}
-            >
-              {board.evidence(stageSection, stageState)}
-            </div>
-            {/* The cut reads as "there is more below" rather than as a broken
-                box. It only paints where the stage is actually clipped, which
-                is why it sits on the wrapper and not inside the specimen: a
-                child of [data-lab-specimen] would be photographed by lab:demo
-                as part of the picture it compares. */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-b from-transparent to-background"
-            />
-          </div>
+      {board && section && (
+        <div data-lab-specimen="" className="min-w-0">
+          {board.evidence(section, { ...board.state, ...stateFor(step) })}
         </div>
       )}
-
-      {step.winner && step.catalogSection && board ? (
-        <GalleryStep
-          step={step}
-          board={board}
-          choice={choice}
-          shown={shown}
-          onPress={onPress}
-          onChoose={onChoose}
-        />
-      ) : (
-        <OptionTiles
-          step={step}
-          board={board}
-          choice={choice}
-          shown={shown}
-          onPress={onPress}
-          stateFor={stateFor}
-        />
-      )}
-
-      {/* A step with knobs but no stage still needs them, under the options. */}
-      {strip && !stage && <ConfigStrip step={step} board={board} />}
-    </>
-  );
-}
-
-/**
- * THE OPTIONS AS TILES ON ONE SPECIMEN. Every option is the SAME section of the
- * board drawn in that option's own state, so the five things being compared
- * differ in exactly the one way the question is about; a press puts the chosen
- * one on the full-size stage below.
- *
- * ★ AN OPTION THAT CANNOT BE DRAWN IS A TEXT TILE, not a blank one. Plenty of
- * asks are about a rule rather than a look ("six families or the four named?"),
- * and those have no state to render: the tile is then the label and what
- * choosing it means, which is what the old card showed for everything.
- */
-function OptionTiles({
-  step,
-  board,
-  choice,
-  shown,
-  onPress,
-  stateFor,
-}: {
-  step: AskStep;
-  board?: StepBoard;
-  choice: string;
-  shown: string | null;
-  onPress: (o: SessionOption) => void;
-  stateFor: (s: AskStep, o?: SessionOption) => Record<string, string>;
-}) {
-  const section = step.section;
-  return (
-    <ul className="lab-tiles">
-      {step.options.map((option, i) => {
-        const drawn =
-          section && drawable(step, option, board)
-            ? board!.evidence(section, {
-                ...board!.state,
-                ...stateFor(step, option),
-              })
-            : null;
-        return (
+      {strip && <ConfigStrip step={step} board={board} />}
+      <ul className="lab-word-options">
+        {step.options.map((option, i) => (
           <li key={option.id} className="min-w-0 list-none">
-            <Tile
+            <OptionCard
               n={i + 1}
               label={option.label}
               means={option.means}
               recommended={option.id === step.recommended}
               chosen={choice === option.id}
-              shown={shown === option.id}
               onPress={() => onPress(option)}
-            >
-              {drawn ? (
-                <FitStage mode={step.tile ?? "desktop"} fit="zoom">
-                  {drawn}
-                </FitStage>
-              ) : null}
-            </Tile>
+            />
           </li>
-        );
-      })}
-    </ul>
+        ))}
+      </ul>
+    </>
   );
 }
 
 /**
- * ONE TILE: the preview, the name, the one line, and the ring when it is the
- * answer. The number is the key that picks it.
+ * THE STAGE: every drawn option mounted once, flipped or side by side.
+ *
+ * ★ IT TAKES THE POINTER. The stage it replaces refused it, because a wheel
+ * over a pinned iframe scrolled the frame and not the page; nothing is pinned
+ * now, so the wheel goes where the reader expects and a preview can be hovered.
+ * A link inside a preview does not navigate (a press on the picture of a page
+ * is looking, not leaving), and a form inside one does not submit.
  */
-function Tile({
+function StageViews({
+  step,
+  board,
+  section,
+  options,
+  choice,
+  shown,
+  arrangeRef,
+  onPress,
+  stateFor,
+}: {
+  step: AskStep;
+  board: StepBoard;
+  section: string;
+  options: readonly SessionOption[];
+  choice: string;
+  shown: string | null;
+  arrangeRef: React.RefObject<(() => void) | null>;
+  onPress: (o: SessionOption) => void;
+  stateFor: (s: AskStep, o?: SessionOption) => Record<string, string>;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const { fit, sidebar } = useLabPrefs();
+  const [room, setRoom] = useState<{ width: number; phone: boolean } | null>(
+    null,
+  );
+  const [arrange, setArrange] = useState<Arrange | null>(null);
+  const [scale, setScale] = useState<Scale>({ zoom: 1, wide: false });
+
+  // The column's width, read before paint so the arrangement never flashes.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const sync = () =>
+      setRoom({
+        width: el.getBoundingClientRect().width,
+        phone: window.innerWidth < 640,
+      });
+    sync();
+    window.addEventListener("resize", sync);
+    const ro =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(sync);
+    ro?.observe(el);
+    return () => {
+      window.removeEventListener("resize", sync);
+      ro?.disconnect();
+    };
+  }, []);
+
+  // Side by side only when every option fits at its TRUE size: a phone-sized
+  // preview (`tile: "phone"`) in a column wide enough for all of them.
+  const fits =
+    step.tile === "phone" &&
+    room !== null &&
+    !room.phone &&
+    room.width >= options.length * PHONE_W + (options.length - 1) * SIDE_GAP;
+  const mode: Arrange = room?.phone ? "flip" : (arrange ?? (fits ? "side" : "flip"));
+  // `g` swaps at any width but a phone's; the button is offered only where
+  // side by side draws every option at its true size, or to leave it.
+  const canSide = !room?.phone;
+  const offerSide = canSide && (fits || mode === "side");
+
+  useEffect(() => {
+    arrangeRef.current = canSide
+      ? () => setArrange(mode === "side" ? "flip" : "side")
+      : null;
+    return () => {
+      arrangeRef.current = null;
+    };
+  });
+
+  const live =
+    options.find((o) => o.id === shown) ??
+    options.find((o) => o.id === choice) ??
+    options.find((o) => o.id === step.recommended) ??
+    options[0];
+
+  // THE SCALE, READ OFF WHAT IS SHOWN: a zoom-fitted `Stage` reports its zoom,
+  // and anything wider than the column is scrolled sideways, which is the
+  // other way a preview can stop being 1:1.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const view =
+      el.querySelector<HTMLElement>("[data-lab-view][data-shown]") ??
+      el.querySelector<HTMLElement>("[data-lab-view]");
+    if (!view) return;
+    const read = () => {
+      let zoom = 1;
+      for (const box of view.querySelectorAll<HTMLElement>(
+        '[data-stage-fit="zoom"]',
+      )) {
+        const canvas = box.firstElementChild as HTMLElement | null;
+        const z = canvas ? parseFloat(getComputedStyle(canvas).zoom) : NaN;
+        if (z > 0 && z < zoom) zoom = z;
+      }
+      let wide = view.scrollWidth > view.clientWidth + 1;
+      for (const box of view.querySelectorAll<HTMLElement>(
+        '[data-stage-fit="true"]',
+      ))
+        if (box.scrollWidth > box.clientWidth + 1) wide = true;
+      setScale((s) =>
+        s.zoom === zoom && s.wide === wide ? s : { zoom, wide },
+      );
+    };
+    read();
+    const ro =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(read);
+    ro?.observe(view);
+    return () => ro?.disconnect();
+  }, [live.id, mode, fit]);
+
+  return (
+    <>
+      <StageHead
+        step={step}
+        board={board}
+        live={live}
+        n={step.options.indexOf(live) + 1}
+        picked={choice === live.id}
+        mode={mode}
+        canSide={offerSide}
+        onArrange={() => setArrange(mode === "side" ? "flip" : "side")}
+        scale={scale}
+        fit={fit}
+        sidebar={sidebar}
+      />
+      <div
+        ref={ref}
+        data-lab-stage=""
+        data-arrange={mode}
+        // The stage takes the page's gutter back at 1:1 on a wide page, and a
+        // Stage inside it keeps its own box (a bleed inside a bleed).
+        data-lab-bleed=""
+        className="lab-stage"
+        onClickCapture={(event) => {
+          if ((event.target as Element).closest?.("a[href]"))
+            event.preventDefault();
+        }}
+        onSubmitCapture={(event) => event.preventDefault()}
+      >
+        {options.map((option) => {
+          const on = option.id === live.id;
+          const visible = mode === "side" || on;
+          const i = step.options.indexOf(option);
+          return (
+            <div
+              key={option.id}
+              data-lab-view=""
+              data-option={option.id}
+              data-shown={on ? "" : undefined}
+              data-paused={visible ? undefined : "true"}
+              inert={!visible}
+              aria-hidden={visible ? undefined : true}
+              className="min-w-0"
+            >
+              {mode === "side" && (
+                <button
+                  type="button"
+                  data-dir-press
+                  data-lab-view-head=""
+                  aria-pressed={choice === option.id}
+                  onClick={() => onPress(option)}
+                  className={cn(
+                    "mb-2 flex w-full min-w-0 items-baseline gap-2 rounded-lg border px-2.5 py-1.5 text-left text-[12px] transition-colors duration-150 motion-reduce:transition-none",
+                    on
+                      ? "border-foreground/40 bg-card"
+                      : "border-border hover:bg-muted/40",
+                  )}
+                >
+                  <span className="text-muted-foreground tabular-nums">
+                    {choice === option.id ? (
+                      <Check className="inline size-3" aria-hidden />
+                    ) : (
+                      i + 1
+                    )}
+                  </span>
+                  <span className="min-w-0 truncate font-medium">
+                    {option.label}
+                  </span>
+                  {option.id === step.recommended && (
+                    <span className="shrink-0 text-[10px] text-muted-foreground">
+                      the board says
+                    </span>
+                  )}
+                </button>
+              )}
+              <div data-lab-specimen="" className="min-w-0">
+                {board.evidence(section, {
+                  ...board.state,
+                  ...stateFor(step, option),
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+/** How the shown option is drawn: its zoom, and whether it runs off the column. */
+type Scale = { zoom: number; wide: boolean };
+
+/**
+ * THE STAGE HEAD, sticky under the top bar: WHICH option the stage is showing,
+ * whether it is the board's recommendation or the reader's pick, what it means,
+ * the knobs that drive the stage, and the scale it is drawn at. Before this a
+ * stage said nothing about itself and the reader had to remember which tile
+ * they had pressed.
+ */
+function StageHead({
+  step,
+  board,
+  live,
+  n,
+  picked,
+  mode,
+  canSide,
+  onArrange,
+  scale,
+  fit,
+  sidebar,
+}: {
+  step: AskStep;
+  board: StepBoard;
+  live: SessionOption;
+  n: number;
+  picked: boolean;
+  mode: Arrange;
+  canSide: boolean;
+  onArrange: () => void;
+  scale: Scale;
+  fit: LabFit;
+  sidebar: LabSidebar;
+}) {
+  const strip = step.strip && step.strip.length > 0;
+  const zoomed = scale.zoom < 0.995;
+  const small = zoomed || scale.wide;
+  return (
+    <div data-lab-stage-head="" className="lab-stage-head">
+      <div className="min-w-0 flex-1">
+        <p className="flex min-w-0 items-baseline gap-2 text-[13px] leading-snug font-medium">
+          <span className="text-muted-foreground tabular-nums">{n}</span>
+          <span data-lab-stage-label="" className="min-w-0 truncate">
+            {live.label}
+          </span>
+          {live.id === step.recommended && (
+            <span className="shrink-0 text-[11px] font-normal text-muted-foreground">
+              the board says
+            </span>
+          )}
+          {picked && (
+            <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-normal text-foreground">
+              <Check className="size-3" aria-hidden />
+              your pick
+            </span>
+          )}
+        </p>
+        {live.means && (
+          <p className="truncate text-[11px] leading-snug text-muted-foreground">
+            {live.means}
+          </p>
+        )}
+      </div>
+      {strip && <ConfigStrip step={step} board={board} />}
+      <span className="flex shrink-0 flex-wrap items-center gap-1.5">
+        {canSide && step.options.length > 1 && (
+          <button
+            type="button"
+            data-dir-press
+            onClick={onArrange}
+            title="Press g to swap"
+            className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+          >
+            {mode === "side" ? "One at a time" : "Side by side"}
+          </button>
+        )}
+        <button
+          type="button"
+          data-dir-press
+          data-lab-scale=""
+          onClick={() => setLabPref("fit", fit === "true" ? "zoom" : "true")}
+          title="The lab draws previews 1:1, or fitted to the column. Press to switch."
+          className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground tabular-nums transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+        >
+          {zoomed ? `Fit ${Math.round(scale.zoom * 100)}%` : "1:1"}
+          {scale.wide && " · scroll sideways"}
+        </button>
+        {/* The one thing standing between this preview and 1:1 is sometimes
+            the lab's own sidebar: say so, and take it away in one press. */}
+        {small && sidebar === "open" && (
+          <button
+            type="button"
+            data-dir-press
+            onClick={() => setLabPref("sidebar", "collapsed")}
+            className="rounded-md border border-dashed border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+          >
+            Hide the sidebar for 1:1
+          </button>
+        )}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * AN OPTION IN WORDS: the name, the one line, and the ring when it is the
+ * answer. The number is the key that picks it. Also the "None of these" exit
+ * under a catalog, drawn dashed as the one card that is not a specimen.
+ */
+function OptionCard({
   n,
   label,
   means,
   recommended,
   chosen,
-  shown,
   onPress,
   dashed,
-  children,
 }: {
   n?: number;
   label: string;
   means?: string;
   recommended?: boolean;
   chosen: boolean;
-  shown: boolean;
   onPress: () => void;
-  /** The "None of these" exit, drawn as the one tile that is not a specimen. */
   dashed?: boolean;
-  children?: React.ReactNode;
 }) {
   return (
-    // ★ NOT A <button>, AND THE PREVIEW IS INERT. A tile wraps the board's own
-    // evidence, and a real section contains real buttons: a <button> around one
-    // is invalid HTML and a hydration error (found live, 2026-09-16), and a
-    // press that reached a control inside the preview would be answering the
-    // question by fiddling with the picture of it. The preview is a picture:
-    // `inert` takes it out of the tab order and the a11y tree, and the tile
-    // itself is the only thing you can press.
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       data-dir-press
       aria-pressed={chosen}
       onClick={onPress}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onPress();
-        }
-      }}
       className={cn(
-        "flex h-full w-full min-w-0 cursor-pointer flex-col gap-2 rounded-xl border p-2.5 text-left transition-colors duration-150 outline-none focus-visible:border-foreground/40 motion-reduce:transition-none",
+        "flex h-full w-full min-w-0 items-start gap-2 rounded-xl border p-2.5 text-left transition-colors duration-150 outline-none focus-visible:border-foreground/40 motion-reduce:transition-none",
         dashed && "border-dashed",
         chosen
           ? "border-foreground/40 bg-muted/40 ring-1 ring-foreground/40"
-          : shown
-            ? "border-foreground/25 bg-card"
-            : "border-border hover:bg-muted/40",
+          : "border-border hover:bg-muted/40",
       )}
     >
-      {children && (
-        <span
-          inert
-          data-lab-specimen=""
-          className="lab-tile-view block min-w-0"
-        >
-          {children}
-        </span>
-      )}
-      <span className="flex min-w-0 items-start gap-2">
+      {n !== undefined && (
         <span
           aria-hidden
           className={cn(
@@ -739,23 +1092,23 @@ function Tile({
         >
           {chosen ? <Check className="size-2.5" /> : n}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[12px] leading-snug font-medium break-words">
-            {label}
-            {recommended && (
-              <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">
-                the board says
-              </span>
-            )}
-          </span>
-          {means && (
-            <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
-              {means}
+      )}
+      <span className="min-w-0 flex-1">
+        <span className="block text-[12px] leading-snug font-medium break-words">
+          {label}
+          {recommended && (
+            <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">
+              the board says
             </span>
           )}
         </span>
+        {means && (
+          <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
+            {means}
+          </span>
+        )}
       </span>
-    </div>
+    </button>
   );
 }
 
@@ -812,11 +1165,10 @@ function GalleryStep({
       </CatalogTiles>
       {none && (
         <div className="max-w-md">
-          <Tile
+          <OptionCard
             label={none.label}
             means={none.means}
             chosen={choice === NONE}
-            shown={false}
             dashed
             onPress={() => onChoose(NONE)}
           />
@@ -920,13 +1272,13 @@ function CardStepButton({
   );
 }
 
-/* ── the furniture under the tiles ────────────────────────────────────────── */
+/* ── the knobs ────────────────────────────────────────────────────────────── */
 
 /**
  * THE CONFIG STRIP: the handful of controls this question needs, beside the
  * stage, rather than the board's whole dock. An ask declares them (`strip`),
  * which is what keeps a step from growing back into the twenty-switch dock
- * this round is deleting.
+ * the stepped round deleted.
  */
 function ConfigStrip({ step, board }: { step: AskStep; board: StepBoard }) {
   const wanted = new Set(step.strip ?? []);
@@ -943,91 +1295,180 @@ function ConfigStrip({ step, board }: { step: AskStep; board: StepBoard }) {
   );
 }
 
-function NoteRow({
+/* ── the dock ─────────────────────────────────────────────────────────────── */
+
+/**
+ * THE ANSWER, ALWAYS ON SCREEN (the dock round, 2026-09-18): sticky at the foot
+ * of the window while the page scrolls, and at rest at the foot of the step when
+ * it ends, so a reader can look anywhere on a tall preview and answer without
+ * travelling. The options by number (the shown one ringed, the pick ticked),
+ * Pick, the note, "not clear to me", Back and Next. At 375 the options scroll
+ * sideways on their own row and the rest wraps under them.
+ */
+function Dock({
+  step,
+  pictured,
+  choice,
+  shown,
   note,
   unclear,
   needsWhy,
-  question,
+  noteRef,
+  onPress,
+  onChoose,
   onNote,
   onUnclear,
-}: {
-  note: string;
-  unclear: boolean;
-  needsWhy: boolean;
-  question: string;
-  onNote: (v: string) => void;
-  onUnclear: () => void;
-}) {
-  return (
-    <div className="flex max-w-3xl flex-wrap items-center gap-2">
-      <input
-        type="text"
-        value={note}
-        onChange={(e) => onNote(e.target.value)}
-        aria-label={`Your note on: ${question}`}
-        aria-required={needsWhy}
-        placeholder={
-          unclear
-            ? "Say what was unclear. It rides the answer into the ledger."
-            : "A note on this one (optional)"
-        }
-        className={cn(
-          "h-9 min-w-0 flex-1 basis-[18rem] rounded-lg border bg-card px-3 text-[12px] transition-colors duration-150 outline-none placeholder:text-faint focus:border-foreground/40 motion-reduce:transition-none",
-          needsWhy ? "border-foreground/40" : "border-border",
-        )}
-      />
-      {/* "?" is recorded, not skipped: the ledger then says which question
-          failed and why, and the board owes a clearer one. */}
-      <button
-        type="button"
-        data-dir-press
-        aria-pressed={unclear}
-        onClick={(e) => {
-          onUnclear();
-          e.currentTarget.parentElement?.querySelector("input")?.focus();
-        }}
-        className={cn(
-          "rounded-lg border border-dashed px-3 py-2 text-[11px] font-medium transition-colors duration-150 motion-reduce:transition-none",
-          unclear
-            ? "border-foreground/40 bg-card text-foreground"
-            : "border-border text-muted-foreground hover:text-foreground",
-        )}
-      >
-        {unclear
-          ? "Marked: not clear to me"
-          : "This question is not clear to me"}
-      </button>
-    </div>
-  );
-}
-
-/**
- * BACK AND NEXT, at the foot where a form's are. At 375 they are fixed to the
- * bottom of the window: a step whose stage is three screens tall would
- * otherwise put the way on below all of it.
- */
-function Foot({
   back,
   next,
   filled,
-  blocked,
 }: {
+  step: SessionStep;
+  pictured: readonly SessionOption[];
+  choice: string;
+  shown: string | null;
+  note: string;
+  unclear: boolean;
+  needsWhy: boolean;
+  noteRef: React.RefObject<HTMLInputElement | null>;
+  onPress: (o: SessionOption) => void;
+  onChoose: (id: string) => void;
+  onNote: (v: string) => void;
+  onUnclear: () => void;
   back?: () => void;
   next?: () => void;
   filled: boolean;
-  blocked?: string;
 }) {
+  const live = pictured.find((o) => o.id === shown);
+  const picked = live !== undefined && choice === live.id;
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 flex flex-wrap items-center gap-2 border-t border-border bg-background/90 px-4 py-2.5 backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
-      {blocked && (
-        <span className="order-last basis-full text-[11px] text-muted-foreground sm:order-none sm:basis-auto">
-          {blocked}
-        </span>
+    <div data-lab-dock="" className="lab-dock">
+      {step.kind === "ask" && pictured.length > 0 && (
+        <div
+          className="lab-dock-options"
+          role="group"
+          aria-label="The options"
+        >
+          {pictured.map((option) => {
+            const i = step.options.indexOf(option);
+            const on = shown === option.id;
+            const mine = choice === option.id;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                data-dir-press
+                data-lab-option={option.id}
+                data-label={option.label}
+                data-shown={on ? "" : undefined}
+                aria-pressed={mine}
+                title={option.means}
+                onClick={() => onPress(option)}
+                className={cn(
+                  "inline-flex max-w-[16rem] min-w-0 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-left text-[12px] transition-colors duration-150 motion-reduce:transition-none",
+                  mine
+                    ? "border-transparent bg-foreground text-background"
+                    : on
+                      ? "border-foreground/40 bg-card ring-1 ring-foreground/30"
+                      : "border-border text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <span className="tabular-nums">
+                  {mine ? <Check className="size-3" aria-hidden /> : i + 1}
+                </span>
+                <span className="min-w-0 truncate font-medium">
+                  {option.label}
+                </span>
+                {option.id === step.recommended && (
+                  <span
+                    className={cn(
+                      "shrink-0 text-[10px]",
+                      mine ? "text-background/70" : "text-muted-foreground",
+                    )}
+                  >
+                    the board says
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       )}
-      <span className="ml-auto flex items-center gap-2">
+
+      {step.kind === "ask" && (
+        <div className="lab-dock-note">
+          <input
+            ref={noteRef}
+            type="text"
+            data-lab-note=""
+            value={note}
+            onChange={(e) => onNote(e.target.value)}
+            aria-label={`Your note on: ${step.question}`}
+            aria-required={needsWhy}
+            placeholder={
+              unclear
+                ? "Say what was unclear. It rides the answer into the ledger."
+                : "A note on this one (optional)"
+            }
+            className={cn(
+              "h-9 min-w-0 flex-1 rounded-lg border bg-card px-3 text-[12px] transition-colors duration-150 outline-none placeholder:text-faint focus:border-foreground/40 motion-reduce:transition-none",
+              needsWhy ? "border-foreground/40" : "border-border",
+            )}
+          />
+          {/* "?" is recorded, not skipped: the ledger then says which question
+              failed and why, and the board owes a clearer one. */}
+          <button
+            type="button"
+            data-dir-press
+            aria-pressed={unclear}
+            onClick={onUnclear}
+            className={cn(
+              "shrink-0 rounded-lg border border-dashed px-3 py-2 text-[11px] font-medium transition-colors duration-150 motion-reduce:transition-none",
+              unclear
+                ? "border-foreground/40 bg-card text-foreground"
+                : "border-border text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {unclear ? "Marked: not clear to me" : "Not clear to me"}
+          </button>
+          {needsWhy && (
+            <span className="shrink-0 text-[11px] text-muted-foreground">
+              Say what was unclear, then go on.
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Back, Pick, Next: agreeing with what is on the stage and moving on
+          are one gesture apart. Pick sits outside the options' own row, which
+          scrolls, so a long row can never push it off the dock. */}
+      <div className="lab-dock-way">
         <Way dir="back" onGo={back} />
+        {live && (
+            <button
+              type="button"
+              data-dir-press
+              data-lab-pick=""
+              aria-pressed={picked}
+              onClick={() => onChoose(live.id)}
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 motion-reduce:transition-none",
+                picked
+                  ? "border border-border text-muted-foreground hover:text-foreground"
+                  : "border border-transparent bg-foreground text-background hover:opacity-90",
+              )}
+            >
+              {picked ? (
+                <>
+                  <Check className="size-3" aria-hidden />
+                  Picked
+                </>
+              ) : (
+                `Pick ${step.kind === "ask" ? step.options.indexOf(live) + 1 : 1}`
+              )}
+            </button>
+          )}
         <Way dir="next" onGo={next} filled={filled} />
-      </span>
+      </div>
     </div>
   );
 }
@@ -1042,13 +1483,6 @@ function Way({
   filled?: boolean;
 }) {
   const label = dir === "back" ? "Back" : "Next";
-  const body = (
-    <>
-      {dir === "back" && <ArrowLeft className="size-3.5" aria-hidden />}
-      {label}
-      {dir === "next" && <ArrowRight className="size-3.5" aria-hidden />}
-    </>
-  );
   const shape = cn(
     "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors duration-150 motion-reduce:transition-none",
     filled
@@ -1063,7 +1497,9 @@ function Way({
       disabled={!onGo}
       className={cn(shape, "disabled:opacity-40")}
     >
-      {body}
+      {dir === "back" && <ArrowLeft className="size-3.5" aria-hidden />}
+      {label}
+      {dir === "next" && <ArrowRight className="size-3.5" aria-hidden />}
     </button>
   );
 }
