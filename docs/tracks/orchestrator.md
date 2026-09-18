@@ -101,7 +101,7 @@ retired `type-phone`; both agents were told so by message.
 | `river-card` | integrated at `3ed62f0c` (handed off `64c25a02`; the RULINGS rows' union needed album-page's closing lines put back by hand) | done | Sonnet, :3134 | nothing |
 | `ghost-wiring` | integrated at `31c94253` (handed off `79169b2c`; its two mid-lane claims accepted) | done | Opus, :3132 | nothing |
 | `voice` | integrated at `e0b92af6` (handed off `5e6e5481`; eight lines, 234 smoke checks, 8 demo steps) | done | Opus, :3135 | nothing; round two is cut from his notes |
-| `glass` | cut at `5e03ffe2` (round one: the app's chrome over photographs; the recipe, then each surface, light grounds as their own steps) | building | Opus, :3132 | the whole board per its manifest |
+| `glass` | integrated at `30aaf705` (handed off `f8ab4ad9`; seven steps, 250 smoke checks; one unused import cleaned at the record) | done | Opus, :3132 | nothing; round two is cut from his notes |
 | `loose-ends` | cut at `5e03ffe2` (six ROADMAP decisions on their real surfaces) | building | Sonnet, :3133 | the whole board per its manifest |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 

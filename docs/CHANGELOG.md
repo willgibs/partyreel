@@ -101,6 +101,16 @@ against a reference, never a cap and a test.
   a feature paragraph wears the guest page's own `text-[15px]`, and a stacked page shell's `min-h-full` eats
   the frame. Two questions for Will: the four step names (`copy` / `body` / `caption` / `label` recommended),
   and whether the caption and label steps share one size (yes recommended).
+- `glass` integrated (`30aaf705`; cut `5e03ffe2`): round one of the Glass exploration Will banked by name,
+  drawn where glass exists for a reason, the app's chrome over photographs. Four recipes named in numbers on
+  the lightbox's action pill (Frost recommended: the most glass that keeps its text), one grade or two (two, the
+  quiet one derived), what sits behind the photograph in the lightbox (the album blurred at half brightness),
+  the chips over tiles at a phone (the quiet grade), the reel's controls, the host's tile row as one bar or
+  three panes, and the light ground on its own step. Every cost read off Chrome's compositor trace under a 4x
+  throttle at 375: the round's surprise is that the product already pays seventeen times the flat cost on its
+  forty tile chips while a full-screen pane costs a seventh of that. Two questions carried on their
+  recommendations (the backdrop belongs in round one; one Library entry with two grades). Marketing, the
+  header's glass layer and the marriage with the aurora are round two, after his notes.
 - **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's
   word ("we could begin getting main current to launch prep"), 1,138 commits: partyreel.com now serves Graphite,
   the type and corner ladders, the Aurora with shadows by role, the home hero's band and the v1 wordmark, Card's

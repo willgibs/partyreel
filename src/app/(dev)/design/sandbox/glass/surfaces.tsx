@@ -3,7 +3,7 @@
 import "./glass.css";
 
 import Image from "next/image";
-import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
