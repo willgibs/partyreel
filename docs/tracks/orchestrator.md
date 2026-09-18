@@ -162,6 +162,11 @@ retired `type-phone`; both agents were told so by message.
 
 ## Waiting on Will
 
+**The disposable event for the ghost** (created 2026-09-18 on the alias by the Orchestrator as `willg97@gmail.com`,
+named "Ghost check (disposable)", guest link `/e/0333eef9d7994951b86e5b2a71da49f9`): it stands until Will has
+judged the empty state in the app, then it is DELETED (never the public "Partyreel Demo"). The alias serves
+`797a7361` (READY) with the four boards and the ghost.
+
 The desk derives it (`/design/lab?key=`: every open ask and every unruled item of every board, from
 the specs minus the ledgers in `docs/reviews/`). Assets: [`../ASSETS.md`](../ASSETS.md). Next from
 him: one sitting on the four new boards in the rebuilt step as they integrate (`gallery-width` first).
